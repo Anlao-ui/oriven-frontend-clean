@@ -2352,3 +2352,23 @@ textarea.flow-inp{min-height:90px;resize:vertical}
   width: auto;
   display: block;
 }
+/* ── CANCEL PLAN SECTION ────────────────────────────────────── */
+.plan-cancel-section{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;padding:16px 20px;margin-top:12px;
+  border:1px solid var(--border);border-radius:10px;
+  background:var(--surface);
+}
+.plan-cancel-section-title{font-size:13px;font-weight:600;color:var(--charcoal);margin-bottom:2px}
+.plan-cancel-section-sub{font-size:12px;color:var(--muted)}
+.plan-cancel-confirm{
+  padding:16px 20px;margin-top:8px;
+  border:1px solid #f3c4c4;border-radius:10px;
+  background:#fff9f9;
+}
+.plan-cancel-confirm-text{font-size:13px;color:var(--charcoal);margin-bottom:12px;line-height:1.5}
+.plan-cancel-confirm-btns{display:flex;gap:8px}
+.btn-danger{
+  background:#e53935;color:#fff;border:none;
+}
+.btn-danger:hover{background:#c62828}

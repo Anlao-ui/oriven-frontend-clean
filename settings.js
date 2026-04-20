@@ -1300,7 +1300,7 @@ function renderPlanPanel(){
   if(!container) return;
 
   var cfg         = loadSettings();
-  var currentId   = cfg.currentPlan || "starter";
+  var currentId   = cfg.currentPlan || "free";
   var pendingId   = cfg.pendingPlan || null;
   var renewalStr  = _formatPlanDate(cfg.planRenewalDate);
   var currentData = PLANS.find(function(p){ return p.id === currentId; });
@@ -1318,10 +1318,16 @@ function renderPlanPanel(){
     var pendingData = PLANS.find(function(p){ return p.id === pendingId; });
     var pendingName = pendingData ? pendingData.name : pendingId;
     var pendingDate = _formatPlanDate(cfg.pendingPlanDate || cfg.planRenewalDate);
+    var isCancellation = pendingId === "free";
     html += '<div class="plan-status-pending">';
     html += '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" width="13" height="13"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>';
-    html += 'Scheduled change: <strong>' + pendingName + '</strong> starts ' + pendingDate;
-    html += '<button class="plan-cancel-btn" onclick="cancelPlanChange()">Cancel</button>';
+    if(isCancellation){
+      html += 'Cancellation scheduled — access active until <strong>' + pendingDate + '</strong>';
+      html += '<button class="plan-cancel-btn" onclick="cancelPlanChange()">Undo Cancellation</button>';
+    } else {
+      html += 'Scheduled change: <strong>' + pendingName + '</strong> starts ' + pendingDate;
+      html += '<button class="plan-cancel-btn" onclick="cancelPlanChange()">Cancel Change</button>';
+    }
     html += '</div>';
   }
   html += '</div>';
@@ -1402,7 +1408,35 @@ function renderPlanPanel(){
     html += '</div>';
   }
 
+  // ── Cancel Plan section (paid users, no cancellation already pending) ──
+  if(currentId !== "free" && pendingId !== "free"){
+    html += '<div class="plan-cancel-section">';
+    html += '<div class="plan-cancel-section-info">';
+    html += '<div class="plan-cancel-section-title">Cancel Plan</div>';
+    html += '<div class="plan-cancel-section-sub">Your access stays active until ' + renewalStr + '. After that you move to the Free plan.</div>';
+    html += '</div>';
+    html += '<button class="btn btn-g btn-sm" onclick="_showCancelConfirm()">Cancel Plan</button>';
+    html += '</div>';
+    html += '<div class="plan-cancel-confirm" id="planCancelConfirm" style="display:none">';
+    html += '<div class="plan-cancel-confirm-text">Cancel your <strong>' + (currentData ? currentData.name : currentId) + '</strong> plan? You\'ll keep access until <strong>' + renewalStr + '</strong>, then move to Free.</div>';
+    html += '<div class="plan-cancel-confirm-btns">';
+    html += '<button class="btn btn-danger btn-sm" onclick="switchPlan(\'free\')">Yes, Cancel Plan</button>';
+    html += '<button class="btn btn-g btn-sm" onclick="_hideCancelConfirm()">Keep Plan</button>';
+    html += '</div>';
+    html += '</div>';
+  }
+
   container.innerHTML = html;
+}
+
+function _showCancelConfirm(){
+  var el = document.getElementById("planCancelConfirm");
+  if(el) el.style.display = "";
+}
+
+function _hideCancelConfirm(){
+  var el = document.getElementById("planCancelConfirm");
+  if(el) el.style.display = "none";
 }
 
 function _updateSidebarPlan(planId){

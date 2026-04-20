@@ -6,9 +6,9 @@
 // type "daily"   → resets every calendar day (Free plan)
 // type "monthly" → resets every calendar month (paid plans)
 var PLAN_LIMITS = {
-  free:     { type: "daily",   limit: 1,   label: "Free"     },
+  free:     { type: "monthly", limit: 3,   label: "Free"     },
   starter:  { type: "monthly", limit: 50,  label: "Starter"  },
-  premium:  { type: "monthly", limit: 150, label: "Premium"  },
+  premium:  { type: "monthly", limit: 200, label: "Premium"  },
   business: { type: "monthly", limit: 400, label: "Business" }
 };
 
@@ -45,6 +45,33 @@ function _usageKey(){
     if(S && S.user && S.user.id) return "oriven_usage_" + S.user.id;
   } catch(_){}
   return "oriven_usage_anon";
+}
+
+// ── Get current session access token ─────────────────────────
+async function _getAccessToken(){
+  try {
+    var { data } = await SB.auth.getSession();
+    return data && data.session ? data.session.access_token : null;
+  } catch(_){ return null; }
+}
+
+// ── Sync usage from server into localStorage ──────────────────
+async function _syncUsageFromServer(){
+  var token = await _getAccessToken();
+  if(!token) return;
+  try {
+    var resp = await fetch(API_BASE_URL + "/api/get-usage", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    if(!resp.ok) return;
+    var data = await resp.json();
+    var d = _readUsage();
+    d.monthlyKey   = data.monthly_key;
+    d.monthlyCount = data.monthly_count;
+    d.dailyDate    = data.daily_key;
+    d.dailyCount   = data.daily_count;
+    _writeUsage(d);
+  } catch(_){}
 }
 
 // ── Read / write usage record from localStorage ───────────────
@@ -113,6 +140,14 @@ function consumeUsage(){
   d.monthlyCount = (d.monthlyCount || 0) + 1;
   _writeUsage(d);
   _refreshUsageUI();
+  // Fire-and-forget server increment (best-effort)
+  _getAccessToken().then(function(token){
+    if(!token) return;
+    fetch(API_BASE_URL + "/api/increment-usage", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + token }
+    }).catch(function(){});
+  });
 }
 
 // ── Public: combined gate — check then consume ─────────────────
@@ -208,11 +243,11 @@ function initUsageTracking(user){
     S.user.id = user.id;
   }
   invalidatePlanCache();
-  // Short delay: allow subscription check to settle
-  setTimeout(function(){
+  // Sync from server first, then refresh UI
+  _syncUsageFromServer().then(function(){
     _refreshUsageUI();
     updateTeamNavVisibility();
-  }, 800);
+  });
 }
 
 // ── Boot: refresh UI once DOM is ready (before auth, best-effort)
