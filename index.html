@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORIVEN AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+
+<style>
+/* ══════════════════════════════════════════════
+   ORIVEN Premium Onboarding
+   ══════════════════════════════════════════════ */
+
+#onboardingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 8888;
+  background: #0C0F0D;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: 'Geist', -apple-system, sans-serif;
+}
+
+/* ── Animated background blobs ── */
+.ob-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  will-change: transform;
+}
+.ob-blob-1 {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(26,66,41,0.38) 0%, transparent 70%);
+  top: -260px; left: -160px;
+  animation: obBlob1 14s ease-in-out infinite;
+}
+.ob-blob-2 {
+  width: 550px; height: 550px;
+  background: radial-gradient(circle, rgba(82,183,136,0.12) 0%, transparent 70%);
+  bottom: -180px; right: -120px;
+  animation: obBlob2 18s ease-in-out infinite;
+}
+.ob-blob-3 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(82,183,136,0.06) 0%, transparent 70%);
+  top: 40%; left: 55%;
+  animation: obBlob2 22s ease-in-out infinite reverse;
+}
+@keyframes obBlob1 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(70px,50px) scale(1.12); }
+}
+@keyframes obBlob2 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(-50px,-35px) scale(1.09); }
+}
+
+/* ── Step containers ── */
+.ob-step {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px 96px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.5s cubic-bezier(.22,.68,0,1.2), transform 0.5s cubic-bezier(.22,.68,0,1.2);
+  pointer-events: none;
+}
+.ob-step.ob-active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+.ob-step.ob-exit {
+  opacity: 0;
+  transform: translateY(-18px);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+  pointer-events: none;
+}
+
+/* ── Progress dots ── */
+.ob-dots {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 2;
+}
+.ob-dot {
+  width: 6px; height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.18);
+  transition: all 0.4s cubic-bezier(.22,.68,0,1.2);
+}
+.ob-dot.ob-dot-active {
+  width: 24px;
+  background: #52B788;
+}
+
+/* ── Typography ── */
+.ob-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #52B788;
+  margin: 0 0 22px;
+}
+.ob-h1 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 54px;
+  line-height: 1.08;
+  color: #F0EDE6;
+  margin: 0 0 22px;
+  max-width: 580px;
+}
+.ob-h1-md { font-size: 38px; line-height: 1.15; }
+.ob-sub {
+  font-size: 16px;
+  line-height: 1.78;
+  color: rgba(240,237,230,0.5);
+  margin: 0 0 52px;
+  max-width: 400px;
+}
+
+/* ── ORIVEN logo mark (onboarding) ── */
+.ob-logomark {
+  width: 60px; height: 60px;
+  background: linear-gradient(140deg, #1f5236, #2D6A4F);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 38px;
+  box-shadow: 0 0 0 1px rgba(82,183,136,0.2), 0 0 50px rgba(82,183,136,0.22), 0 4px 16px rgba(0,0,0,0.5);
+}
+
+/* ── Buttons ── */
+.ob-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 14px 46px;
+  background: linear-gradient(135deg, #1A4229 0%, #2D6A4F 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: 'Geist', sans-serif;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 24px rgba(26,66,41,0.55), 0 1px 0 rgba(255,255,255,0.08) inset;
+  position: relative;
+  overflow: hidden;
+}
+.ob-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 50%);
+  border-radius: inherit;
+}
+.ob-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(26,66,41,0.7), 0 1px 0 rgba(255,255,255,0.08) inset; }
+.ob-btn:active { transform: translateY(0); }
+
+.ob-btn-ghost {
+  background: none;
+  border: none;
+  color: rgba(240,237,230,0.35);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Geist', sans-serif;
+  padding: 10px 20px;
+  margin-top: 14px;
+  transition: color 0.2s;
+}
+.ob-btn-ghost:hover { color: rgba(240,237,230,0.65); }
+
+/* ── Step 2: Feature cards ── */
+.ob-cards {
+  display: flex;
+  gap: 14px;
+  max-width: 700px;
+  width: 100%;
+  margin: 0 0 48px;
+}
+.ob-card {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: left;
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.55s ease, transform 0.55s ease, border-color 0.2s;
+}
+.ob-card:hover { border-color: rgba(82,183,136,0.2); }
+.ob-card.ob-card-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+.ob-card-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: #52B788;
+  letter-spacing: 0.12em;
+  margin-bottom: 16px;
+}
+.ob-card-icon {
+  width: 40px; height: 40px;
+  background: rgba(82,183,136,0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.ob-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #F0EDE6;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.ob-card-desc {
+  font-size: 12px;
+  color: rgba(240,237,230,0.38);
+  line-height: 1.65;
+}
+
+/* ── Step 3: AI Orb ── */
+.ob-orb-wrap {
+  position: relative;
+  width: 110px; height: 110px;
+  margin: 0 auto 44px;
+}
+.ob-orb-core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 36%, #2D6A4F, #0E2B1D);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 60px rgba(82,183,136,0.28), 0 8px 32px rgba(0,0,0,0.6);
+  animation: obOrbGlow 3s ease-in-out infinite;
+}
+@keyframes obOrbGlow {
+  0%,100% { box-shadow: 0 0 50px rgba(82,183,136,0.22), 0 0 0 0 rgba(82,183,136,0.3), 0 8px 32px rgba(0,0,0,0.6); }
+  50% { box-shadow: 0 0 80px rgba(82,183,136,0.38), 0 0 0 14px rgba(82,183,136,0), 0 8px 32px rgba(0,0,0,0.6); }
+}
+.ob-orb-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(82,183,136,0.22);
+  inset: -14px;
+  animation: obRing 2.8s ease-out infinite;
+}
+.ob-orb-ring-2 {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(82,183,136,0.1);
+  inset: -28px;
+  animation: obRing 2.8s ease-out infinite 0.5s;
+}
+@keyframes obRing {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* AI message bubbles */
+.ob-msg {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 100px;
+  padding: 10px 18px;
+  font-size: 13.5px;
+  color: rgba(240,237,230,0.8);
+  margin: 0 auto 10px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  white-space: nowrap;
+}
+.ob-msg.ob-msg-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+.ob-msg-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #52B788;
+  flex-shrink: 0;
+  animation: obMsgDot 1.5s ease-in-out infinite;
+}
+@keyframes obMsgDot {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Step 4: CTA badge ── */
+.ob-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(82,183,136,0.1);
+  border: 1px solid rgba(82,183,136,0.22);
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #52B788;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 auto 30px;
+}
+.ob-badge-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #52B788;
+}
+
+/* ── Corner orb ── */
+#obCornerOrb {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 36%, #2D6A4F, #0E2B1D);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9100;
+  opacity: 0;
+  transform: scale(0.5) translateY(20px);
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(.22,.68,0,1.4);
+  cursor: default;
+  box-shadow: 0 0 30px rgba(82,183,136,0.22), 0 4px 20px rgba(0,0,0,0.5);
+  animation: obCornerPulse 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+#obCornerOrb.ob-orb-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+@keyframes obCornerPulse {
+  0%,100% { box-shadow: 0 0 30px rgba(82,183,136,0.22), 0 4px 20px rgba(0,0,0,0.5); }
+  55% { box-shadow: 0 0 50px rgba(82,183,136,0.38), 0 0 0 10px rgba(82,183,136,0), 0 4px 20px rgba(0,0,0,0.5); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .ob-h1 { font-size: 38px; }
+  .ob-h1-md { font-size: 28px; }
+  .ob-cards { flex-direction: column; max-width: 360px; }
+  .ob-orb-wrap { width: 88px; height: 88px; }
+  .ob-msg { white-space: normal; text-align: center; }
+}
+
+/* ══════════════════════════════════════════════
+   ORIVEN Guide Tour (in-app tooltips)
+   ══════════════════════════════════════════════ */
+
+/* Spotlight — a transparent box whose massive box-shadow dims everything else */
+#gtSpot {
+  position: fixed;
+  z-index: 9200;
+  pointer-events: none;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(12,15,13,0.72);
+  border: 1.5px solid rgba(82,183,136,0.5);
+  display: none;
+  opacity: 0;
+  transition: opacity 0.38s ease,
+              top    0.4s cubic-bezier(.22,.68,0,1.2),
+              left   0.4s cubic-bezier(.22,.68,0,1.2),
+              width  0.4s cubic-bezier(.22,.68,0,1.2),
+              height 0.4s cubic-bezier(.22,.68,0,1.2);
+}
+#gtSpot.gt-on { opacity: 1; }
+
+/* Tooltip card */
+#gtTip {
+  position: fixed;
+  z-index: 9201;
+  width: 290px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 18px;
+  padding: 18px 20px 20px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.13), 0 1px 4px rgba(0,0,0,0.05);
+  display: none;
+  opacity: 0;
+  transform: translateY(10px) scale(0.97);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(.22,.68,0,1.2);
+  font-family: 'Geist', -apple-system, sans-serif;
+}
+#gtTip.gt-on {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Tooltip internals */
+.gt-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.gt-tip-icon {
+  width: 26px; height: 26px;
+  background: linear-gradient(135deg, #1A4229, #2D6A4F);
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.gt-tip-step {
+  font-size: 11px;
+  font-weight: 600;
+  color: #52B788;
+  letter-spacing: 0.06em;
+  flex: 1;
+}
+.gt-tip-close {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.05);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+}
+.gt-tip-close:hover { background: rgba(0,0,0,0.1); color: #333; }
+.gt-tip-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #18181A;
+  margin: 0 0 7px;
+  line-height: 1.35;
+}
+.gt-tip-body {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+.gt-tip-btn {
+  width: 100%;
+  padding: 11px 16px;
+  background: linear-gradient(135deg, #1A4229, #2D6A4F);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Geist', sans-serif;
+  transition: transform 0.18s, box-shadow 0.18s;
+  box-shadow: 0 3px 14px rgba(26,66,41,0.4);
+}
+.gt-tip-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,66,41,0.52); }
+.gt-tip-btn:active { transform: translateY(0); }
+
+/* Guide orb message bubble */
+#gtOrbMsg {
+  position: fixed;
+  bottom: 94px;
+  right: 24px;
+  z-index: 9203;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: #0C0F0D;
+  color: rgba(240,237,230,0.9);
+  font-size: 13px;
+  font-family: 'Geist', -apple-system, sans-serif;
+  padding: 9px 14px;
+  border-radius: 12px 12px 4px 12px;
+  max-width: 230px;
+  line-height: 1.45;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px) scale(0.97);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(.22,.68,0,1.2);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+#gtOrbMsg.gt-on {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+#gtOrbMsg::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  right: 16px;
+  border: 6px solid transparent;
+  border-top-color: #0C0F0D;
+  border-bottom: none;
+}
+.gt-orb-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #52B788;
+  flex-shrink: 0;
+  animation: obMsgDot 1.5s ease-in-out infinite;
+}
+
+/* Backdrop — dims the whole page for the centered final step */
+#gtBd {
+  position: fixed;
+  inset: 0;
+  background: rgba(12,15,13,0.78);
+  z-index: 9199;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+#gtBd.gt-on { opacity: 1; }
+
+/* Centered modal mode for the final step */
+#gtTip.gt-centered {
+  width: 340px;
+}
+#gtTip.gt-centered:not(.gt-on) {
+  transform: translate(-50%, -50%) scale(0.97) !important;
+  opacity: 0;
+}
+#gtTip.gt-centered.gt-on {
+  transform: translate(-50%, -50%) scale(1) !important;
+  opacity: 1;
+}
+
+/* Bullet list */
+.gt-tip-bullets {
+  list-style: none;
+  margin: -4px 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.gt-tip-bullets li {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.4;
+  padding: 5px 9px;
+  background: rgba(82,183,136,0.07);
+  border-radius: 7px;
+  border-left: 2px solid rgba(82,183,136,0.4);
+}
+.gt-tip-bullets li strong { color: #1A4229; font-weight: 600; }
+.gt-tip-bullets li span   { color: #888; }
+
+/* Progress dots */
+.gt-progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 14px;
+}
+.gt-pdot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.12);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.gt-pdot.gt-pdot-on     { background: rgba(82,183,136,0.45); }
+.gt-pdot.gt-pdot-active { background: #52B788; transform: scale(1.35); }
+
+/* Skip tour text button (hidden on centered final step) */
+#gtSkipBtn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px;
+  background: none;
+  border: none;
+  color: #bbb;
+  font-size: 12px;
+  font-family: 'Geist', sans-serif;
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.2s;
+}
+#gtSkipBtn:hover { color: #777; }
+</style>
+
+<!-- Supabase JS v2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<!-- Apply saved theme instantly to prevent flash of wrong mode -->
+<script>(function(){try{var s=JSON.parse(localStorage.getItem("oriven_settings")||"{}");if(s.theme==="dark")document.body.classList.add("dark-mode");}catch(_){}}());</script>
+
+<!-- AUTH OVERLAY — visible until user is signed in -->
+<div id="authOverlay" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="width:100%;max-width:420px">
+    <div style="text-align:center;margin-bottom:36px">
+      <div style="display:inline-flex;align-items:center;gap:9px;margin-bottom:10px">
+        <div style="width:34px;height:34px;background:var(--gm,#1A4229);border-radius:8px;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 14 14" width="14" height="14"><path d="M7 1L13 7L7 13L1 7Z" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="7" cy="7" r="2" fill="#fff" stroke="none"/></svg>
+        </div>
+        <span style="font-size:19px;font-weight:700;color:var(--charcoal,#18181A)">ORIVEN <span style="color:var(--gm,#1A4229)">AI</span></span>
+      </div>
+      <div style="font-size:13px;color:var(--muted,#888)">Your AI brand studio</div>
+    </div>
+    <div style="background:var(--bg2,#F6F3EE);border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:28px 28px 24px">
+      <!-- Tabs -->
+      <div style="display:flex;border-bottom:1px solid rgba(0,0,0,.08);margin-bottom:22px">
+        <div id="authTabSignin" onclick="switchAuthTab('signin')" style="flex:1;text-align:center;padding:7px 0;font-size:13px;font-weight:600;cursor:pointer;color:var(--gm,#1A4229);border-bottom:2px solid var(--gm,#1A4229);margin-bottom:-1px">Sign In</div>
+        <div id="authTabSignup" onclick="switchAuthTab('signup')" style="flex:1;text-align:center;padding:7px 0;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted,#888)">Sign Up</div>
+      </div>
+      <!-- Sign In -->
+      <div id="authSigninForm">
+        <div class="fg"><label class="lbl">Email</label><input class="inp" id="siEmail" type="email" placeholder="you@example.com" autocomplete="email" onkeydown="if(event.key==='Enter')handleSignIn()"></div>
+        <div class="fg"><label class="lbl">Password</label><input class="inp" id="siPass" type="password" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleSignIn()"></div>
+        <div id="authErrorSi" style="font-size:12px;color:#EF4444;margin-bottom:12px;padding:8px 10px;background:rgba(239,68,68,.08);border-radius:8px;display:none"></div>
+        <button id="authSigninBtn" class="btn btn-p" style="width:100%;justify-content:center" onclick="handleSignIn()">Sign In</button>
+      </div>
+      <!-- Sign Up -->
+      <div id="authSignupForm" style="display:none">
+        <div class="fg"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="lbl">First name *</label><input class="inp" id="suFirst" placeholder="Jane" autocomplete="given-name"></div><div><label class="lbl">Last name</label><input class="inp" id="suLast" placeholder="Smith" autocomplete="family-name"></div></div></div>
+        <div class="fg"><label class="lbl">Email *</label><input class="inp" id="suEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
+        <div class="fg"><label class="lbl">Password *</label><input class="inp" id="suPass" type="password" placeholder="Min. 6 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleSignUp()"></div>
+        <div class="fg"><label class="lbl">Phone <span style="font-weight:400;color:var(--muted,#888)">(optional)</span></label><input class="inp" id="suPhone" type="tel" placeholder="+1 234 567 8900" autocomplete="tel"></div>
+        <div id="authErrorSu" style="font-size:12px;color:#EF4444;margin-bottom:12px;padding:8px 10px;background:rgba(239,68,68,.08);border-radius:8px;display:none"></div>
+        <button id="authSignupBtn" class="btn btn-p" style="width:100%;justify-content:center" onclick="handleSignUp()">Create Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING OVERLAY — premium intro, shown once per new user -->
+<div id="onboardingOverlay">
+
+  <!-- Ambient background blobs -->
+  <div class="ob-blob ob-blob-1"></div>
+  <div class="ob-blob ob-blob-2"></div>
+  <div class="ob-blob ob-blob-3"></div>
+
+  <!-- ── STEP 1: Welcome ───────────────────────────────────── -->
+  <div class="ob-step" id="obStep1">
+    <div class="ob-logomark">
+      <svg viewBox="0 0 14 14" width="24" height="24"><path d="M7 1L13 7L7 13L1 7Z" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="7" cy="7" r="2" fill="#fff" stroke="none"/></svg>
+    </div>
+    <p class="ob-eyebrow">Your AI Brand Studio</p>
+    <h1 class="ob-h1">Welcome to ORIVEN</h1>
+    <p class="ob-sub">Build your brand. Scale your content.<br>Dominate your niche.</p>
+    <button class="ob-btn" onclick="obGoTo(2)">
+      Get Started
+      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </button>
+  </div>
+
+  <!-- ── STEP 2: How it works ──────────────────────────────── -->
+  <div class="ob-step" id="obStep2">
+    <p class="ob-eyebrow">How it works</p>
+    <h1 class="ob-h1 ob-h1-md">Three steps to brand domination</h1>
+    <p class="ob-sub" style="margin-bottom:36px">ORIVEN guides you from identity to campaigns — fast.</p>
+    <div class="ob-cards">
+      <div class="ob-card" id="obCard1">
+        <div class="ob-card-num">01</div>
+        <div class="ob-card-icon">
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="#52B788" stroke-width="1.5"><path d="M10 2l2 5h5l-4 3 1.5 5.5L10 12.5l-4.5 3L7 10 3 7h5z"/></svg>
+        </div>
+        <div class="ob-card-title">Create your brand identity</div>
+        <div class="ob-card-desc">Build your BrandCore — strategy, voice, colors, and positioning in minutes.</div>
+      </div>
+      <div class="ob-card" id="obCard2">
+        <div class="ob-card-num">02</div>
+        <div class="ob-card-icon">
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="#52B788" stroke-width="1.5"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M6 9h8M6 12.5h5"/></svg>
+        </div>
+        <div class="ob-card-title">Generate content at scale</div>
+        <div class="ob-card-desc">Create ads, campaigns, and copy that sounds exactly like your brand — powered by AI.</div>
+      </div>
+      <div class="ob-card" id="obCard3">
+        <div class="ob-card-num">03</div>
+        <div class="ob-card-icon">
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="#52B788" stroke-width="1.5"><path d="M4 10.5l4.5 4 7.5-9"/></svg>
+        </div>
+        <div class="ob-card-title">Launch your campaigns</div>
+        <div class="ob-card-desc">Take your brand-consistent content from draft to live — faster than ever before.</div>
+      </div>
+    </div>
+    <button class="ob-btn" onclick="obGoTo(3)">
+      Continue
+      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </button>
+  </div>
+
+  <!-- ── STEP 3: AI Assistant intro ───────────────────────── -->
+  <div class="ob-step" id="obStep3">
+    <div class="ob-orb-wrap">
+      <div class="ob-orb-ring"></div>
+      <div class="ob-orb-ring-2"></div>
+      <div class="ob-orb-core">
+        <svg viewBox="0 0 14 14" width="26" height="26"><path d="M7 1L13 7L7 13L1 7Z" stroke="#52B788" stroke-width="1.5" fill="none"/><circle cx="7" cy="7" r="2" fill="#52B788" stroke="none"/></svg>
+      </div>
+    </div>
+    <div class="ob-msg" id="obMsg1"><span class="ob-msg-dot"></span>I'll guide you every step of the way</div>
+    <div class="ob-msg" id="obMsg2"><span class="ob-msg-dot"></span>Let's start with your brand identity</div>
+    <div class="ob-msg" id="obMsg3"><span class="ob-msg-dot"></span>It only takes a few minutes to get set up</div>
+    <div style="margin-top:44px">
+      <button class="ob-btn" onclick="obGoTo(4)">
+        Let's go
+        <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── STEP 4: Final CTA ─────────────────────────────────── -->
+  <div class="ob-step" id="obStep4">
+    <div class="ob-badge"><span class="ob-badge-dot"></span>Ready to build</div>
+    <h1 class="ob-h1">Everything starts with<br>your brand</h1>
+    <p class="ob-sub">Your BrandCore is the foundation of everything ORIVEN creates. It takes minutes — and unlocks everything.</p>
+    <button class="ob-btn" style="padding:16px 56px;font-size:16px" onclick="obFinish()">Create your Brand</button>
+    <button class="ob-btn-ghost" onclick="obSkip()">Skip for now</button>
+  </div>
+
+  <!-- Progress dots (4 steps) -->
+  <div class="ob-dots">
+    <div class="ob-dot ob-dot-active" id="obDot1"></div>
+    <div class="ob-dot" id="obDot2"></div>
+    <div class="ob-dot" id="obDot3"></div>
+    <div class="ob-dot" id="obDot4"></div>
+  </div>
+
+</div>
+
+<!-- AI Corner Orb — appears at step 4 of intro, reused by guide tour -->
+<div id="obCornerOrb">
+  <svg viewBox="0 0 14 14" width="18" height="18"><path d="M7 1L13 7L7 13L1 7Z" stroke="#52B788" stroke-width="1.5" fill="none"/><circle cx="7" cy="7" r="2" fill="#52B788" stroke="none"/></svg>
+</div>
+
+<!-- Guide Tour: orb message bubble (appears above corner orb) -->
+<div id="gtOrbMsg">
+  <span class="gt-orb-dot"></span>
+  <span id="gtOrbMsgText"></span>
+</div>
+
+<!-- Guide Tour: full-screen backdrop (used for centered final step) -->
+<div id="gtBd"></div>
+
+<!-- Guide Tour: spotlight (transparent box with dark shadow around it) -->
+<div id="gtSpot"></div>
+
+<!-- Guide Tour: tooltip card -->
+<div id="gtTip">
+  <div class="gt-tip-head">
+    <div class="gt-tip-icon">
+      <svg viewBox="0 0 14 14" width="13" height="13"><path d="M7 1L13 7L7 13L1 7Z" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="7" cy="7" r="2" fill="#fff"/></svg>
+    </div>
+    <span id="gtTipStep" class="gt-tip-step">1 / 6</span>
+    <button class="gt-tip-close" onclick="gtSkipAll()" title="Skip tour">
+      <svg viewBox="0 0 14 14" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 2l10 10M12 2L2 12"/></svg>
+    </button>
+  </div>
+  <h3 class="gt-tip-title" id="gtTipTitle"></h3>
+  <p class="gt-tip-body" id="gtTipBody"></p>
+  <ul class="gt-tip-bullets" id="gtTipBullets" style="display:none"></ul>
+  <button class="gt-tip-btn" id="gtTipBtn" onclick="gtAction()"></button>
+  <button id="gtSkipBtn" onclick="gtSkipAll()">Skip tour</button>
+  <div class="gt-progress-dots" id="gtProgressDots">
+    <div class="gt-pdot"></div>
+    <div class="gt-pdot"></div>
+    <div class="gt-pdot"></div>
+    <div class="gt-pdot"></div>
+    <div class="gt-pdot"></div>
+    <div class="gt-pdot"></div>
+  </div>
+</div>
+
+<!-- ── First-version feedback banner ── -->
+<div class="beta-banner" id="betaBanner">
+  <span class="beta-banner-text">You're using the first version of ORIVEN — the product is still being refined. Pricing will increase once this early version closes. We welcome your feedback: <a href="mailto:studio@oriven.com" class="beta-banner-link">studio@oriven.com</a></span>
+  <button class="beta-banner-close" id="betaBannerClose" aria-label="Dismiss notice">
+    <svg viewBox="0 0 10 10" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l8 8M9 1L1 9"/></svg>
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="sbOverlay" onclick="closeSidebar()"></div>
+<button id="sbToggle" onclick="toggleSidebar()" aria-label="Menu">
+  <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4.5h14M2 9h14M2 13.5h14"/></svg>
+</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sb" id="sidebar">
+
+    <!-- TOP: logo + main navigation -->
+    <div class="sb-top">
+      <div class="sb-logo">
+        <div class="logo">
+          <div class="logo-mk">
+            <img src="assets/orivenlogo.png" alt="ORIVEN logo">
+          </div>
+          <span class="logo-name"> <span></span></span>
+        </div>
+      </div>
+      <nav class="sb-nav">
+        <div class="ni active" data-page="dashboard">
+          <svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+          <span>Dashboard</span>
+        </div>
+        <div class="ni" data-page="create">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/></svg>
+          <span>Create</span>
+        </div>
+        <div class="ni" data-page="studio">
+          <svg viewBox="0 0 16 16"><rect x="1" y="4" width="14" height="10" rx="1.5"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/></svg>
+          <span>Studio</span>
+        </div>
+        <div class="ni" data-page="inspiration">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5a4 4 0 0 1 1.6 7.67V11H6.4V9.17A4 4 0 0 1 8 1.5z"/><path d="M6.4 12.5h3.2M7 14.5h2" stroke-linecap="round"/></svg>
+          <span>Ideas</span>
+        </div>
+        <!-- Team nav — only visible for Business plan (shown by usage.js) -->
+        <div class="ni" data-page="team" id="teamNavItem" style="display:none">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M11 14v-1.5a3 3 0 0 0-3-3H4a3 3 0 0 0-3 3V14"/><circle cx="6" cy="6" r="2.5"/><path d="M15 14v-1.5a3 3 0 0 0-2-2.83"/><path d="M11 4.13a2.5 2.5 0 0 1 0 4.74"/></svg>
+          <span>Team</span>
+        </div>
+      </nav>
+    </div>
+
+    <!-- BOTTOM: settings → plan → identity — always visible, never clipped -->
+    <div class="sb-bottom">
+
+      <!-- 1 · Settings -->
+      <div class="ni" data-page="settings">
+        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M3 13l1.4-1.4M11.6 4.4L13 3"/></svg>
+        <span>Settings</span>
+      </div>
+
+      <!-- 2 · Plan + usage badge -->
+      <div class="sb-usage-wrap">
+        <div class="sb-plan-row">
+          <span class="sb-plan-label sb-plan-free" id="sbPlanLabel">Free</span>
+        </div>
+        <span class="usage-badge usage-badge-ok" id="usageBadge">&nbsp;</span>
+      </div>
+
+      <!-- 3 · Identity (name, workspace, sign out) -->
+      <div class="sb-ft">
+        <!-- Hidden elements kept for JS compatibility (auth.js + app.js write to these) -->
+        <span id="sidebarUserDot" style="display:none">U</span>
+        <span id="wsDot" style="display:none">W</span>
+        <span id="wsNameDisp" style="display:none">My Workspace</span>
+        <div class="sb-identity">
+          <div class="sb-identity-name" id="sidebarUserName">Account</div>
+          <div class="sb-identity-sub"><span data-i18n="brandWorkspace">Brand Workspace</span> &middot; <span class="sb-signout" onclick="authSignOut()" data-i18n="signOut">Sign out</span></div>
+        </div>
+      </div>
+
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <div class="mc">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+
+      <div class="dash-outer">
+
+        <!-- HERO -->
+        <div class="dash-hero">
+          <h1 class="dash-headline" id="dashHeadline">Your brand is <span class="dash-hl-grad" id="dashHeadlineWord">ready.</span></h1>
+          <p class="dash-tagline" data-i18n="dashTagline">Let's turn it into content, ads, and growth.</p>
+          <div class="dash-brand-badge" id="dashBrandBadge"></div>
+        </div>
+
+        <!-- 2×2 ACTION CARDS -->
+        <div class="dash-cards">
+
+          <button class="dash-card" onclick="navigate('create')">
+            <span class="dash-card-ico">
+              <svg viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="3"/><path d="M10 7v6M7 10h6"/></svg>
+            </span>
+            <span class="dash-card-label" data-i18n="dashCreateLabel">Create Content</span>
+            <span class="dash-card-desc" data-i18n="dashCreateDesc">Images, copy, video scripts, and more.</span>
+            <span class="dash-card-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+
+          <button class="dash-card" onclick="navigate('inspiration')">
+            <span class="dash-card-ico">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2l1.8 5.5H18l-4.7 3.4 1.8 5.6L10 13.2l-5.1 3.3 1.8-5.6L2 7.5h6.2Z"/></svg>
+            </span>
+            <span class="dash-card-label" data-i18n="dashIdeasLabel">Explore Ideas</span>
+            <span class="dash-card-desc" data-i18n="dashIdeasDesc">Content ideas, ad angles, and campaign concepts.</span>
+            <span class="dash-card-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+
+          <button class="dash-card" onclick="openCreateWorkspace('campaign','campaign')">
+            <span class="dash-card-ico">
+              <svg viewBox="0 0 20 20"><path d="M3 15l3-8 3 5 2-3 4 6"/><circle cx="6" cy="7" r="1" fill="currentColor"/></svg>
+            </span>
+            <span class="dash-card-label" data-i18n="dashCampaignLabel">Build Campaign</span>
+            <span class="dash-card-desc" data-i18n="dashCampaignDesc">Full multi-channel campaigns end to end.</span>
+            <span class="dash-card-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+
+          <button class="dash-card" onclick="navigate('studio');setTimeout(function(){switchStudioTab('brandcore')},100)">
+            <span class="dash-card-ico">
+              <svg viewBox="0 0 20 20"><path d="M10 2l2 5.5H18l-4.5 3.2 1.7 5.3L10 13l-5.2 3 1.7-5.3L2 7.5h6Z"/></svg>
+            </span>
+            <span class="dash-card-label" data-i18n="dashBrandLabel">Edit Brand Core</span>
+            <span class="dash-card-desc" data-i18n="dashBrandDesc">Colors, fonts, tone of voice, and identity.</span>
+            <span class="dash-card-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+
+        </div>
+
+        <!-- BRAND SNAPSHOT -->
+        <div id="dashSnapshot"></div>
+
+      </div>
+    </div>
+
+    <!-- CREATE -->
+    <div class="page" id="page-create">
+      <div class="create-outer">
+        <div class="create-heading">
+          <span class="create-eyebrow" data-i18n="create">Create</span>
+          <h1 class="create-h1"><span data-i18n="createH1Line1">What would you like to</span><br><em data-i18n="createH1Line2">create today?</em></h1>
+          <p class="create-sub" data-i18n="createSub">Choose a creation type to get started. Your Brand Core shapes every output.</p>
+        </div>
+        <div class="create-grid">
+
+          <div class="cblk cblk-image" onclick="openCreateWorkspace('image','poster')">
+            <div class="cblk-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M3 16l5-5 4 4 3-3 5 5"/></svg></div>
+            <div class="cblk-body">
+              <div class="cblk-title" data-i18n="imageTitle">Image</div>
+              <div class="cblk-desc" data-i18n="imageDesc">Create visuals, posters, and social media designs.</div>
+            </div>
+            <div class="cblk-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></div>
+          </div>
+
+          <div class="cblk cblk-text" onclick="openCreateWorkspace('text','copy')">
+            <div class="cblk-ico"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h13"/></svg></div>
+            <div class="cblk-body">
+              <div class="cblk-title" data-i18n="textTitle">Text</div>
+              <div class="cblk-desc" data-i18n="textDesc">Generate captions, headlines, and brand copy.</div>
+            </div>
+            <div class="cblk-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></div>
+          </div>
+
+          <div class="cblk cblk-campaign" onclick="openCreateWorkspace('campaign','campaign')">
+            <div class="cblk-ico"><svg viewBox="0 0 24 24"><path d="M3 17L7 7l4 6 3-4 5 8"/><circle cx="7" cy="7" r="1"/></svg></div>
+            <div class="cblk-body">
+              <div class="cblk-title" data-i18n="campaignTitle">Campaign</div>
+              <div class="cblk-desc" data-i18n="campaignDesc">Build full campaigns with visuals and copy.</div>
+            </div>
+            <div class="cblk-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></div>
+          </div>
+
+          <div class="cblk cblk-video cblk-disabled">
+            <span class="cblk-soon" data-i18n="comingSoon">Coming soon</span>
+            <div class="cblk-ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="14" height="14" rx="3"/><path d="M17 9l4-2v10l-4-2"/></svg></div>
+            <div class="cblk-body">
+              <div class="cblk-title" data-i18n="videoTitle">Video</div>
+              <div class="cblk-desc" data-i18n="videoDesc">Create video ideas, scripts, and concepts.</div>
+            </div>
+          </div>
+
+          <div class="cblk cblk-web cblk-disabled">
+            <span class="cblk-soon" data-i18n="comingSoon">Coming soon</span>
+            <div class="cblk-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="3"/><path d="M2 7h20"/><path d="M6 5h.01M9 5h.01M12 5h.01"/><path d="M8 21h8M12 17v4"/></svg></div>
+            <div class="cblk-body">
+              <div class="cblk-title" data-i18n="webTitle">Web</div>
+              <div class="cblk-desc" data-i18n="webDesc">Build brand-aligned landing pages and web assets.</div>
+            </div>
+          </div>
+
+          <div class="cblk cblk-assistant" onclick="openFAB()">
+            <div class="cblk-ico"><svg viewBox="0 0 24 24"><path d="M12 2L14.5 8.5H21L16 12L18 19L12 15.5L6 19L8 12L3 8.5H9.5Z"/></svg></div>
+            <div class="cblk-body">
+              <div class="cblk-title" data-i18n="brandAssistant">Brand Assistant</div>
+              <div class="cblk-desc" data-i18n="assistantDesc">Ask your brand AI for guidance, ideas, and creative direction.</div>
+            </div>
+            <div class="cblk-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE WORKSPACE -->
+    <div class="page" id="page-create-workspace">
+      <div class="cws-header">
+        <div class="cws-back" onclick="navigate('create')">
+          <svg viewBox="0 0 16 16"><path d="M10 3L5 8l5 5"/></svg>
+          <span>Create</span>
+        </div>
+        <div style="width:1px;height:18px;background:var(--border)"></div>
+        <div class="cws-type-badge" id="cwsTypeBadge">
+          <svg viewBox="0 0 16 16" id="cwsTypeIcon" width="14" height="14" fill="none" stroke-width="1.8"></svg>
+          <span id="cwsTypeLabel">Image</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-left:4px" id="cwsContext"></div>
+      </div>
+      <div class="chat-shell">
+        <div class="chat-feed" id="cwsFeed"></div>
+
+        <!-- ── Image configurator — visible only in image mode ── -->
+        <div class="img-cfg" id="imgCfg" style="display:none">
+          <div class="img-cfg-row">
+            <span class="img-cfg-lbl">Type</span>
+            <div class="img-type-pills" id="imgTypePills">
+              <button class="img-pill active" data-itype="visual" onclick="imgSelectType('visual')">Visuals</button>
+              <button class="img-pill" data-itype="poster" onclick="imgSelectType('poster')">Posters</button>
+              <button class="img-pill" data-itype="social" onclick="imgSelectType('social')">Social Media</button>
+            </div>
+          </div>
+          <div class="img-cfg-row">
+            <span class="img-cfg-lbl">Format</span>
+            <div class="img-format-pills" id="imgFormatPills">
+              <!-- populated by imgSelectType() -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Ads configurator — visible only in ads mode ── -->
+        <div class="img-cfg" id="adsCfg" style="display:none">
+          <div class="img-cfg-row">
+            <span class="img-cfg-lbl">Format</span>
+            <div class="img-format-pills" id="adsFormatPills">
+              <button class="img-pill active" data-afmt="meta_feed" onclick="adsSelectFormat('meta_feed')">Meta Feed<span class="img-pill-hint">4:5</span></button>
+              <button class="img-pill" data-afmt="square" onclick="adsSelectFormat('square')">Square<span class="img-pill-hint">1:1</span></button>
+              <button class="img-pill" data-afmt="story" onclick="adsSelectFormat('story')">Story / Reel<span class="img-pill-hint">9:16</span></button>
+              <button class="img-pill" data-afmt="tiktok" onclick="adsSelectFormat('tiktok')">TikTok<span class="img-pill-hint">9:16</span></button>
+              <button class="img-pill" data-afmt="youtube" onclick="adsSelectFormat('youtube')">YouTube<span class="img-pill-hint">16:9</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Campaign configurator — visible only in campaign mode ── -->
+        <div class="img-cfg" id="campCfg" style="display:none">
+          <div class="img-cfg-row">
+            <span class="img-cfg-lbl">Pack</span>
+            <div class="img-format-pills" id="campPackPills">
+              <button class="img-pill active" data-cpack="meta" onclick="campaignSelectPack('meta')">Meta Campaign<span class="img-pill-hint">Feed · Story · Square</span></button>
+              <button class="img-pill" data-cpack="social" onclick="campaignSelectPack('social')">Social Launch<span class="img-pill-hint">Story · Post · Thumb</span></button>
+              <button class="img-pill" data-cpack="vertical" onclick="campaignSelectPack('vertical')">Vertical Content<span class="img-pill-hint">Reel · TikTok</span></button>
+              <button class="img-pill" data-cpack="full" onclick="campaignSelectPack('full')">Full Campaign<span class="img-pill-hint">4 formats</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Video configurator — visible only in video mode ── -->
+        <div class="img-cfg" id="vidCfg" style="display:none">
+          <div class="img-cfg-row">
+            <span class="img-cfg-lbl">Format</span>
+            <div class="img-format-pills" id="vidFormatPills">
+              <button class="img-pill active" data-vfmt="short_vertical" onclick="videoSelectFormat('short_vertical')">Short Vertical<span class="img-pill-hint">9:16 · 15–30s</span></button>
+              <button class="img-pill" data-vfmt="standard_ad" onclick="videoSelectFormat('standard_ad')">Standard Ad<span class="img-pill-hint">16:9 · 15–30s</span></button>
+              <button class="img-pill" data-vfmt="square_promo" onclick="videoSelectFormat('square_promo')">Square Promo<span class="img-pill-hint">1:1 · 15–30s</span></button>
+              <button class="img-pill" data-vfmt="hook_bumper" onclick="videoSelectFormat('hook_bumper')">Hook / Bumper<span class="img-pill-hint">6s</span></button>
+              <button class="img-pill" data-vfmt="tiktok_reel" onclick="videoSelectFormat('tiktok_reel')">TikTok / Reel<span class="img-pill-hint">9:16 · 15–60s</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Text configurator — visible only in text mode ── -->
+        <div class="img-cfg" id="txtCfg" style="display:none">
+          <div class="img-cfg-row">
+            <span class="img-cfg-lbl">Type</span>
+            <div class="img-format-pills" id="txtTypePills">
+              <button class="img-pill active" data-ttype="headlines"    onclick="textSelectType('headlines')">Headlines</button>
+              <button class="img-pill"         data-ttype="body_copy"   onclick="textSelectType('body_copy')">Body Copy</button>
+              <button class="img-pill"         data-ttype="captions"    onclick="textSelectType('captions')">Captions</button>
+              <button class="img-pill"         data-ttype="hooks"       onclick="textSelectType('hooks')">Hooks</button>
+              <button class="img-pill"         data-ttype="product_desc" onclick="textSelectType('product_desc')">Product Descriptions</button>
+              <button class="img-pill"         data-ttype="ad_copy"     onclick="textSelectType('ad_copy')">Ad Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <div class="chat-controls" id="cwsControls">
+            <select class="chat-ctrl-sel" id="cwsOutType">
+              <option value="auto">Auto-detect</option>
+              <option value="poster">Poster</option>
+              <option value="instagram">Instagram Post</option>
+              <option value="headline">Headlines</option>
+              <option value="copy">Brand Copy</option>
+              <option value="caption">Caption</option>
+              <option value="ad_copy">Ad Ideas</option>
+              <option value="campaign">Campaign Ideas</option>
+            </select>
+            <select class="chat-ctrl-sel" id="cwsFormat">
+              <option>Square</option><option>Portrait</option>
+              <option>Story</option><option>Landscape</option>
+            </select>
+            <select class="chat-ctrl-sel" id="cwsTone">
+              <option>Premium</option><option>Bold</option>
+              <option>Minimal</option><option>Warm</option><option>Modern</option>
+            </select>
+          </div>
+          <div class="chat-input-box">
+            <textarea id="cwsInput" rows="1" placeholder="Describe what you want to create…"></textarea>
+            <button class="chat-send" onclick="sendCWS()">
+              <svg viewBox="0 0 16 16"><path d="M14 8L2 2l2.5 6L2 14l12-6z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASSISTANT (was AI Chat) -->
+    <div class="page" id="page-aichat">
+      <div class="chat-shell">
+        <div class="chat-feed" id="chatFeed"></div>
+        <div class="chat-input-area">
+          <div class="chat-controls">
+            <select class="chat-ctrl-sel" id="chatOutType">
+              <option value="auto">Auto-detect</option>
+              <option value="poster">Poster</option>
+              <option value="instagram">Instagram Post</option>
+              <option value="headline">Headlines</option>
+              <option value="copy">Brand Copy</option>
+              <option value="caption">Caption</option>
+              <option value="ad_copy">Ad Ideas</option>
+              <option value="campaign">Campaign Ideas</option>
+            </select>
+            <select class="chat-ctrl-sel">
+              <option>Square</option><option>Portrait</option>
+              <option>Story</option><option>Landscape</option>
+            </select>
+            <select class="chat-ctrl-sel">
+              <option>Premium</option><option>Bold</option>
+              <option>Minimal</option><option>Warm</option><option>Modern</option>
+            </select>
+          </div>
+          <div class="chat-input-box">
+            <textarea id="chatInput" rows="1" placeholder="Ask your brand assistant anything — refine ideas, get guidance, or ask questions…"></textarea>
+            <button class="chat-send" onclick="sendChat()">
+              <svg viewBox="0 0 16 16"><path d="M14 8L2 2l2.5 6L2 14l12-6z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDIO -->
+    <div class="page" id="page-studio">
+
+      <!-- ── Hub view ── -->
+      <div class="sh-outer" id="studioHubView">
+        <div class="sh-hero">
+          <h2 class="sh-title" data-i18n="brandStudioTitle">Brand Studio</h2>
+          <p class="sh-sub" data-i18n="brandStudioSub">Everything that defines and drives your brand.</p>
+        </div>
+        <div class="sh-cards">
+          <button class="sh-card sh-card-saved" onclick="switchStudioTab('saved')">
+            <span class="sh-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 11h18"/></svg></span>
+            <span class="sh-card-label" data-i18n="studioSavedLabel">Saved</span>
+            <span class="sh-card-desc" data-i18n="studioSavedDesc">All your generated content and assets.</span>
+            <span class="sh-card-arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+          <button class="sh-card sh-card-bc" onclick="switchStudioTab('brandcore')">
+            <span class="sh-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.5 5.5L20 9l-4 3.9 1 5.6L12 16l-5 2.5 1-5.6L4 9l5.5-1.5L12 2z"/></svg></span>
+            <span class="sh-card-label" data-i18n="brandCore">Brand Core</span>
+            <span class="sh-card-desc" data-i18n="studioBCDesc">Colors, fonts, tone of voice, and identity.</span>
+            <span class="sh-card-arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+          <button class="sh-card sh-card-check" onclick="switchStudioTab('check')">
+            <span class="sh-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L3 7v5c0 4.5 3.5 8 9 9 5.5-1 9-4.5 9-9V7L12 2z"/><path d="M9 12l2 2 4-4"/></svg></span>
+            <span class="sh-card-label" data-i18n="studioCheckLabel">Brand Check</span>
+            <span class="sh-card-desc" data-i18n="studioCheckDesc">Analyze content for brand consistency.</span>
+            <span class="sh-card-arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+          <button class="sh-card sh-card-camp" onclick="switchStudioTab('campaigns')">
+            <span class="sh-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17L7 7L11 13L14 9L18 17"/></svg></span>
+            <span class="sh-card-label" data-i18n="campaigns">Campaigns</span>
+            <span class="sh-card-desc" data-i18n="studioCampDesc">Manage and launch your active campaigns.</span>
+            <span class="sh-card-arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Panel view (shown when a section is opened) ── -->
+      <div class="sh-panel-view hidden" id="studioPanelView">
+        <div class="sh-panel-header">
+          <button class="sh-back-btn" onclick="showStudioHub()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 4L6 8l4 4"/></svg>
+            <span data-i18n="studioBackBtn">Back</span>
+          </button>
+          <span class="sh-panel-title" id="studioPanelTitle">Studio</span>
+        </div>
+
+          <!-- ── SAVED ── -->
+          <div class="studio-panel active" id="tab-saved">
+            <div class="saved-panel">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+                <div style="font-size:14px;font-weight:600;color:var(--charcoal)" data-i18n="savedAssetsHeader">Saved Assets</div>
+                <span class="badge bg-grey" id="savedCount">0 items</span>
+              </div>
+              <div class="asset-grid" id="assetGrid"></div>
+              <div class="empty" id="assetEmpty">
+                <div class="empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 11h18"/></svg></div>
+                <div class="empty-ttl" data-i18n="noItems">No saved assets yet</div>
+                <div class="empty-sub" data-i18n="createContent">Generate content in AI Chat and save it here.</div>
+                <button class="btn btn-p btn-sm" onclick="navigate('aichat')" data-i18n="openAIChatBtn">Open AI Chat</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── BRAND CORE ── -->
+          <div class="studio-panel" id="tab-brandcore">
+            <div id="stBCEmpty" style="padding:24px">
+              <div class="empty">
+                <div class="empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.5 5.5L20 9l-4 3.9 1 5.6L12 16l-5 2.5 1-5.6L4 9l5.5-1.5L12 2z"/></svg></div>
+                <div class="empty-ttl" data-i18n="noBCConfigured">No Brand Core configured yet</div>
+                <div class="empty-sub" data-i18n="noBCConfiguredSub">Set up your brand identity to unlock AI generation.</div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-g" onclick="openModal('modal-genbrand')" data-i18n="aiGenerateBtn">AI Generate</button>
+                  <button class="btn btn-p" onclick="openModal('modal-bcsetup')" data-i18n="manualSetupBtn">Manual Setup</button>
+                </div>
+              </div>
+            </div>
+            <div id="stBCContent" class="hidden" style="padding:20px;overflow-y:auto">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                <div style="font-size:14px;font-weight:600;color:var(--charcoal)">Brand Core</div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-g btn-sm" onclick="openModal('modal-genbrand')">Regenerate</button>
+                  <button class="btn btn-p btn-sm" onclick="openAddColorModal()">+ Color</button>
+                </div>
+              </div>
+              <div class="bcs"><div class="bcs-hd"><div class="bcs-ttl">Colors</div><button class="btn btn-g btn-sm" onclick="openAddColorModal()">+ Add</button></div><div class="sw-list" id="stColorSwatches"></div></div>
+              <div class="bcs"><div class="bcs-hd"><div class="bcs-ttl">Typography</div></div><div id="stTypoList"></div></div>
+              <div class="bcs">
+                <div class="bcs-hd">
+                  <div class="bcs-ttl">Logos</div>
+                  <button class="btn btn-g btn-sm" onclick="openLogoAIModal()">Generate with AI</button>
+                </div>
+                <div class="logo-mgmt-grid" id="stLogoGrid"></div>
+              </div>
+              <div class="bcs">
+                <div class="bcs-hd"><div class="bcs-ttl">Tone of Voice</div></div>
+                <div style="margin-bottom:10px"><div class="sec-lbl" style="margin-bottom:6px">Voice Attributes</div><div id="stToneTags"></div></div>
+                <div class="hr"></div>
+                <div class="g2" style="margin-top:10px">
+                  <div><div class="sec-lbl" style="margin-bottom:6px">Use</div><div id="stWordsUse"></div></div>
+                  <div><div class="sec-lbl" style="margin-bottom:6px">Avoid</div><div id="stWordsAvoid"></div></div>
+                </div>
+              </div>
+              <div class="bcs"><div class="bcs-hd"><div class="bcs-ttl">Positioning</div></div><div class="g3" id="stPosGrid"></div></div>
+            </div>
+          </div>
+
+          <!-- ── BRAND CHECK ── -->
+          <div class="studio-panel" id="tab-check">
+            <div class="check-outer">
+
+              <!-- Upload zone -->
+              <div class="up-zone" id="upZone"
+                ondrop="handleCheckDrop(event)"
+                ondragover="handleCheckDragOver(event)"
+                ondragleave="handleCheckDragLeave()"
+                onclick="document.getElementById('ckFileInput').click()">
+                <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 28V16M20 16L14 22M20 16L26 22"/><path d="M8 32h24"/></svg>
+                <h3 data-i18n="dropImageTitle">Drop your image here</h3>
+                <p data-i18n="dropImageSub">PNG, JPG, or WEBP — drag and drop or click to browse</p>
+                <input type="file" id="ckFileInput" accept="image/*" style="display:none" onchange="handleCheckUpload(this)">
+              </div>
+
+              <!-- OR divider -->
+              <div class="ck-or-divider" id="ckOrDivider"><span>or</span></div>
+
+              <!-- Manual check — large button -->
+              <button class="ck-manual-btn" id="ckManualBtn" onclick="startManualCheck()">
+                <svg viewBox="0 0 20 20" fill="none" stroke-width="1.5"><path d="M10 2l2 5.5H18l-4.5 3.2 1.7 5.3L10 13l-5.2 3 1.7-5.3L2 7.5h6Z"/></svg>
+                <span data-i18n="checkBrandNoImgBtn">Check Brand Without Image</span>
+              </button>
+
+              <!-- Image preview (hidden until upload) -->
+              <div class="ck-preview-wrap hidden" id="ckPreview">
+                <div class="ck-preview-thumb">
+                  <img id="ckPreviewImg" src="" alt="Preview" style="width:100%;height:100%;object-fit:cover">
+                  <div class="ck-preview-ph" id="ckPreviewPh"></div>
+                </div>
+                <div class="ck-preview-meta">
+                  <div class="ck-preview-name" id="ckFileName">Uploaded image</div>
+                  <div class="ck-preview-sub" data-i18n="readyForCheck">Ready for brand check</div>
+                </div>
+                <button class="btn btn-g btn-sm" onclick="resetCheck()" data-i18n="removeBtn">Remove</button>
+              </div>
+
+              <!-- Run button (hidden until upload) -->
+              <div class="ck-actions-row hidden" id="ckActions">
+                <button class="btn btn-p" style="flex:1" onclick="startCheck()" data-i18n="runBrandCheckBtn">Run Brand Check</button>
+                <button class="btn btn-g btn-sm" onclick="resetCheck()" data-i18n="resetBtn">Reset</button>
+              </div>
+
+              <!-- Loading -->
+              <div id="ckLoad" class="hidden" style="text-align:center;padding:20px">
+                <div class="spin" style="margin:0 auto 12px;width:28px;height:28px;border-width:2.5px"></div>
+                <div style="font-size:13px;font-weight:500;color:var(--charcoal);margin-bottom:4px" data-i18n="analyzingBrand">Analyzing brand consistency...</div>
+                <div style="font-size:12px;color:var(--muted)" data-i18n="checkingDetails">Checking colors, typography, and visual style</div>
+                <div class="lbar" style="width:200px;margin:12px auto 0"><div class="lbar-fill"></div></div>
+              </div>
+
+              <!-- Results -->
+              <div class="scd hidden" id="ckScore"></div>
+
+            </div>
+          </div>
+
+          <!-- ── CAMPAIGNS ── -->
+          <div class="studio-panel" id="tab-campaigns">
+            <!-- Main campaigns list -->
+            <div id="campMain" style="padding:24px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+                <div style="font-size:14px;font-weight:600;color:var(--charcoal)">Campaigns</div>
+                <button class="btn btn-p btn-sm" onclick="S._editCampId=null;renderAssetPicker();openModal('modal-newcamp')">+ New</button>
+              </div>
+              <div id="campList"></div>
+              <div class="empty" id="campEmpty">
+                <div class="empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17L7 7L11 13L14 9L18 17"/></svg></div>
+                <div class="empty-ttl" data-i18n="noCampaignsTitle">No campaigns yet</div>
+                <div class="empty-sub" data-i18n="noCampaignsSub">Bundle saved assets into visual campaign concepts for social media and ads.</div>
+                <button class="btn btn-p btn-sm" onclick="S._editCampId=null;renderAssetPicker();openModal('modal-newcamp')" data-i18n="newCampaignBtn">+ New Campaign</button>
+              </div>
+            </div>
+            <!-- Campaign detail view (hidden by default) -->
+            <div id="campDetail" class="hidden" style="padding:24px;overflow-y:auto"></div>
+          </div>
+
+      </div><!-- /sh-panel-view -->
+    </div>
+
+    <!-- BRAND CORE -->
+    <div class="page" id="page-brandcore">
+      <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div><div class="ph-ttl">Brand Core</div><div class="ph-sub">Your living brand identity — the source of truth for all generated content.</div></div>
+        <div style="display:flex;gap:8px"><button class="btn btn-g btn-sm" onclick="openModal('modal-genbrand')">AI Generate</button><button class="btn btn-p btn-sm" onclick="openModal('modal-bcsetup')">Manual Setup</button></div>
+      </div>
+      <div id="bcEmpty">
+        <div class="empty">
+          <div class="empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.5 5.5L20 9l-4 3.9 1 5.6L12 16l-5 2.5 1-5.6L4 9l5.5-1.5L12 2z"/></svg></div>
+          <div class="empty-ttl">No Brand Core configured yet</div>
+          <div class="empty-sub">Set up your brand identity to unlock AI Chat generation, Brand Check, and more.</div>
+          <div style="display:flex;gap:8px"><button class="btn btn-g" onclick="openModal('modal-genbrand')">AI Generate</button><button class="btn btn-p" onclick="openModal('modal-bcsetup')">Manual Setup</button></div>
+        </div>
+      </div>
+      <div id="bcContent" class="hidden">
+        <div class="bcs"><div class="bcs-hd"><div class="bcs-ttl">Brand Colors</div><button class="btn btn-g btn-sm" onclick="openAddColorModal()">+ Add Color</button></div><div class="sw-list" id="colorSwatches"></div></div>
+        <div class="bcs"><div class="bcs-hd"><div class="bcs-ttl">Typography</div><button class="btn btn-g btn-sm" onclick="toast('Typography editor coming soon','warn')">Edit</button></div><div id="typoList"></div></div>
+        <div class="bcs">
+          <div class="bcs-hd">
+            <div class="bcs-ttl">Logo System</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-g btn-sm" onclick="openLogoAIModal()">Generate with AI</button>
+            </div>
+          </div>
+          <div class="logo-mgmt-grid" id="logoGrid"></div>
+        </div>
+        <div class="bcs"><div class="bcs-hd"><div class="bcs-ttl">Tone of Voice</div><button class="btn btn-g btn-sm" onclick="toast('Tone editor coming soon','warn')">Edit</button></div>
+          <div style="margin-bottom:12px"><div class="sec-lbl" style="margin-bottom:8px">Voice Attributes</div><div id="toneTags"></div></div>
+          <div class="hr"></div>
+          <div class="g2" style="margin-top:12px">
+            <div><div class="sec-lbl" style="margin-bottom:8px">Use these words</div><div id="wordsUse"></div></div>
+            <div><div class="sec-lbl" style="margin-bottom:8px">Avoid these words</div><div id="wordsAvoid"></div></div>
+          </div>
+        </div>
+        <div class="bcs"><div class="bcs-hd"><div class="bcs-ttl">Positioning</div><button class="btn btn-g btn-sm" onclick="toast('Positioning editor coming soon','warn')">Edit</button></div><div class="g3" id="posGrid"></div></div>
+      </div>
+    </div>
+
+    <!-- IDEAS (was: Inspiration) -->
+    <div class="page" id="page-inspiration">
+
+      <!-- ── Hub view ── -->
+      <div class="id-outer" id="idHubView">
+        <div class="id-hero">
+          <h2 class="id-title" data-i18n="ideasTitle">Ideas</h2>
+          <p class="id-sub" data-i18n="ideasSub">Proven frameworks to spark your next piece of content.</p>
+        </div>
+        <div class="id-cards">
+
+          <button class="id-card id-card-content" onclick="idShowPanel('content')">
+            <span class="id-card-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </span>
+            <span class="id-card-label" data-i18n="contentIdeasLabel">Content Ideas</span>
+            <span class="id-card-desc" data-i18n="contentIdeasDesc">Posts, stories, and formats that build audiences.</span>
+            <span class="id-card-arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+
+          <button class="id-card id-card-angles" onclick="idShowPanel('angles')">
+            <span class="id-card-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="2" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="22" y2="12"/></svg>
+            </span>
+            <span class="id-card-label" data-i18n="adAnglesLabel">Ad Angles</span>
+            <span class="id-card-desc" data-i18n="adAnglesDesc">Messaging frameworks that turn attention into action.</span>
+            <span class="id-card-arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+
+          <button class="id-card id-card-visual" onclick="idShowPanel('visual')">
+            <span class="id-card-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8a4 4 0 0 1 0 8"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2"/></svg>
+            </span>
+            <span class="id-card-label" data-i18n="visualStylesLabel">Visual Styles</span>
+            <span class="id-card-desc" data-i18n="visualStylesDesc">Aesthetic directions for your brand's visual identity.</span>
+            <span class="id-card-arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+
+          <button class="id-card id-card-campaign" onclick="idShowPanel('campaign')">
+            <span class="id-card-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17L7 7L11 13L14 9L18 17"/><path d="M3 21h18"/></svg>
+            </span>
+            <span class="id-card-label" data-i18n="campaignConceptsLabel">Campaign Concepts</span>
+            <span class="id-card-desc" data-i18n="campaignConceptsDesc">End-to-end structures that drive real results.</span>
+            <span class="id-card-arr"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- ── Panel view ── -->
+      <div class="id-panel-view hidden" id="idPanelView">
+        <div class="id-panel-header">
+          <button class="id-back-btn" onclick="idShowHub()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 4L6 8l4 4"/></svg>
+            <span data-i18n="studioBackBtn">Back</span>
+          </button>
+          <span class="id-panel-title" id="idPanelTitle">Ideas</span>
+        </div>
+        <div class="id-panel-content" id="idPanelContent"></div>
+      </div>
+
+    </div>
+
+    <!-- TEAM — Business plan only -->
+    <div class="page" id="page-team">
+      <div class="ph">
+        <div class="ph-ttl" data-i18n="teamTitle">Team</div>
+        <div class="ph-sub"><span data-i18n="teamSub">Manage your Business workspace team.</span> <span id="teamMemberCount">0 / 10 members</span>.</div>
+      </div>
+      <div style="padding:0 32px 32px">
+        <div id="teamMemberList"></div>
+      </div>
+    </div>
+
+    <!-- BUILDER (guided flow) -->
+    <div class="page" id="page-builder">
+      <div class="flow-pg">
+
+        <!-- Topbar -->
+        <div class="flow-topbar">
+          <button class="flow-back-btn" onclick="navigate('create')">&#8592; Back</button>
+          <div class="flow-brand-pill" id="flowBrandPill" style="display:none">
+            <span id="flowBrandName"></span>
+          </div>
+        </div>
+
+        <!-- AI Guide -->
+        <div class="flow-guide" id="flowGuide">
+          <div class="flow-guide-avatar">
+            <img src="assets/orivenlogo.png" alt="ORIVEN" class="flow-guide-logo">
+          </div>
+          <div class="flow-guide-content">
+            <div class="flow-guide-label">ORIVEN</div>
+            <div class="flow-guide-message" id="flowGuideMessage">Let&#39;s create something great.</div>
+          </div>
+        </div>
+
+        <!-- Progress dots -->
+        <div class="flow-progress" id="flowProgress"></div>
+
+        <!-- Previous answers (history strip) -->
+        <div class="flow-history" id="flowHistory"></div>
+
+        <!-- Current question -->
+        <div class="flow-step-wrap">
+          <div class="flow-step" id="flowStep"></div>
+        </div>
+
+        <!-- Navigation: back + continue (shown for text/textarea steps) -->
+        <div class="flow-nav" id="flowNav" style="display:none">
+          <button class="flow-nav-back" id="flowNavBack" onclick="flowBack()">&#8592; Back</button>
+          <button class="btn btn-p flow-nav-continue" id="flowNavContinue" onclick="flowContinue()">Continue</button>
+        </div>
+
+        <!-- Result area (shown after generation) -->
+        <div class="builder-result-wrap" id="builderResultWrap" style="display:none">
+          <div class="builder-result-bar">
+            <span class="builder-result-label" data-i18n="builderResultLabel">Result</span>
+            <div class="builder-result-actions">
+              <button class="btn btn-g btn-sm" onclick="runBuilder()" data-i18n="regenerateBtn">Regenerate</button>
+              <button class="btn btn-p btn-sm" id="builderSaveBtn" onclick="builderSave()" data-i18n="saveToStudioBtn">Save to Studio</button>
+            </div>
+          </div>
+          <div class="builder-result-body" id="builderResultBody"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div>
+        <div class="ph"><div class="ph-ttl" data-i18n="settingsTitle">Settings</div><div class="ph-sub" data-i18n="settingsSub">Manage your workspace and preferences.</div></div>
+        <div class="stg-layout">
+          <div id="sNav">
+            <div class="snav-item active" data-sp="workspace">Workspace</div>
+            <div class="snav-item" data-sp="plan">Your Plan</div>
+            <div class="snav-item" data-sp="appearance">Appearance</div>
+            <div class="snav-item" data-sp="language">Language</div>
+            <div class="snav-item" data-sp="notifications">Notifications</div>
+            <div class="snav-item" data-sp="export">Export</div>
+            <div class="snav-item" data-sp="danger">Brand Reset</div>
+          </div>
+          <div>
+
+            <!-- ── Workspace ──────────────────────────────── -->
+            <div class="spanel active" id="sp-workspace">
+              <div class="stg-ttl" data-i18n="workspace">Workspace</div>
+              <div class="stg-sub" data-i18n="spWorkspaceSub">Manage your brand workspace details and preferences.</div>
+
+              <div class="stg-card">
+                <div class="stg-card-ttl" data-i18n="wsNameLabel">Workspace Name</div>
+                <div class="stg-help" data-i18n="wsNameHelp">This is the name of your workspace inside ORIVEN. It appears in your sidebar and throughout the app.</div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+                  <input type="text" class="inp" id="wsNameInp" placeholder="My Workspace" style="max-width:300px">
+                  <button class="btn btn-p btn-sm" onclick="saveWsName()" data-i18n="saveBtn">Save</button>
+                </div>
+              </div>
+
+              <div class="stg-card">
+                <div class="stg-card-ttl" data-i18n="brandLockLabel">Brand Lock</div>
+                <div class="tgl-row">
+                  <div>
+                    <div class="tgl-lbl" data-i18n="lockBCLabel">Lock BrandCore</div>
+                    <div class="tgl-sub" data-i18n="lockBCSub">When enabled, your BrandCore stays fixed and is applied consistently across all generated content. Disable to make changes to your brand setup.</div>
+                  </div>
+                  <div class="tgl" id="tglBrandLock" onclick="toggleBrandLock(this)"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Your Plan ──────────────────────────────── -->
+            <div class="spanel" id="sp-plan">
+              <div class="stg-ttl">Your Plan</div>
+              <div class="stg-sub">Manage your subscription and switch plans. Changes take effect at the end of your current billing period.</div>
+              <div id="planPanelContent">
+                <div style="padding:32px 0;text-align:center;color:var(--muted);font-size:13px">Loading plan details…</div>
+              </div>
+            </div>
+
+            <!-- ── Appearance ─────────────────────────────── -->
+            <div class="spanel" id="sp-appearance">
+              <div class="stg-ttl" data-i18n="appearance">Appearance</div>
+              <div class="stg-sub" data-i18n="spAppearanceSub">Choose how ORIVEN looks and feels. Your preference is saved and persists across sessions.</div>
+              <div class="stg-card">
+                <div class="stg-card-ttl" data-i18n="themeLabel">Theme</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+                  <div id="themeLight" class="theme-pick active" onclick="setTheme('light')">
+                    <div class="theme-prev theme-prev-light">
+                      <div class="tp-sidebar"></div>
+                      <div class="tp-content"><div class="tp-card"></div><div class="tp-card"></div></div>
+                    </div>
+                    <div class="theme-pick-label" data-i18n="lightMode">Light Mode</div>
+                  </div>
+                  <div id="themeDark" class="theme-pick" onclick="setTheme('dark')">
+                    <div class="theme-prev theme-prev-dark">
+                      <div class="tp-sidebar tp-sidebar-dark"></div>
+                      <div class="tp-content"><div class="tp-card tp-card-dark"></div><div class="tp-card tp-card-dark"></div></div>
+                    </div>
+                    <div class="theme-pick-label" data-i18n="darkMode">Dark Mode</div>
+                  </div>
+                </div>
+              </div>
+              <div class="stg-card">
+                <div class="stg-card-ttl" data-i18n="accentLabel">Accent Color</div>
+                <div class="stg-help" data-i18n="accentHelp">Choose the highlight color used across buttons, active states, and UI elements.</div>
+                <div class="accent-grid">
+                  <button class="accent-swatch active" data-accent="green"  onclick="setAccent('green')"  title="Green"  style="background:#265E38"></button>
+                  <button class="accent-swatch"        data-accent="blue"   onclick="setAccent('blue')"   title="Blue"   style="background:#1971C2"></button>
+                  <button class="accent-swatch"        data-accent="purple" onclick="setAccent('purple')" title="Purple" style="background:#7C3AED"></button>
+                  <button class="accent-swatch"        data-accent="red"    onclick="setAccent('red')"    title="Red"    style="background:#DC2626"></button>
+                  <button class="accent-swatch"        data-accent="orange" onclick="setAccent('orange')" title="Orange" style="background:#EA580C"></button>
+                  <button class="accent-swatch"        data-accent="pink"   onclick="setAccent('pink')"   title="Pink"   style="background:#DB2777"></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Language ───────────────────────────────── -->
+            <div class="spanel" id="sp-language">
+              <div class="stg-ttl" data-i18n="language">Language</div>
+              <div class="stg-sub" data-i18n="spLanguageSub">Set the display and content generation language for your workspace. Your selection is saved and applied on every session.</div>
+              <div class="stg-card">
+                <div class="stg-card-ttl" data-i18n="langDisplayLabel">Display &amp; Generation Language</div>
+                <div class="stg-help" data-i18n="langDisplayHelp">ORIVEN will use this language for interface labels and when generating content with your BrandCore.</div>
+                <select class="sel" id="langSelect" style="max-width:280px;margin-top:10px" onchange="setLanguage(this.value)">
+                  <option value="en">English (US)</option>
+                  <option value="nl">Dutch</option>
+                  <option value="es">Spanish</option>
+                  <option value="pt">Portuguese</option>
+                  <option value="de">German</option>
+                  <option value="zh">Chinese</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- ── Notifications ──────────────────────────── -->
+            <div class="spanel" id="sp-notifications">
+              <div class="stg-ttl" data-i18n="notifications">Notifications</div>
+              <div class="stg-sub" data-i18n="spNotificationsSub">Control in-app notifications. Changes are saved immediately.</div>
+              <div class="stg-card">
+                <div class="tgl-row">
+                  <div>
+                    <div class="tgl-lbl" data-i18n="notifBrandCheckLabel">Brand Check alerts</div>
+                    <div class="tgl-sub" data-i18n="notifBrandCheckSub">Show a notification when your Brand Check score drops below 70%.</div>
+                  </div>
+                  <div class="tgl on" id="tglNotifBrandCheck" onclick="toggleNotif(this,'notifBrandCheck')"></div>
+                </div>
+                <div class="tgl-row">
+                  <div>
+                    <div class="tgl-lbl" data-i18n="notifGenCompleteLabel">Generation complete</div>
+                    <div class="tgl-sub" data-i18n="notifGenCompleteSub">Notify you when AI finishes generating content.</div>
+                  </div>
+                  <div class="tgl on" id="tglNotifGenComplete" onclick="toggleNotif(this,'notifGenComplete')"></div>
+                </div>
+                <div class="tgl-row">
+                  <div>
+                    <div class="tgl-lbl" data-i18n="notifUpdatesLabel">Product updates</div>
+                    <div class="tgl-sub" data-i18n="notifUpdatesSub">Receive in-app announcements about new ORIVEN features and improvements.</div>
+                  </div>
+                  <div class="tgl on" id="tglNotifUpdates" onclick="toggleNotif(this,'notifUpdates')"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Export ─────────────────────────────────── -->
+            <div class="spanel" id="sp-export">
+              <div class="stg-ttl" data-i18n="spExportTitle">Export Preferences</div>
+              <div class="stg-sub" data-i18n="spExportSub">Control how your generated content is prepared for export and download.</div>
+
+              <div class="stg-card">
+                <div class="stg-card-ttl" data-i18n="expFormatLabel">Default Export Format</div>
+                <div class="stg-help" data-i18n="expFormatHelp">Choose the default file format when downloading generated assets. You can always change the format at the point of export.</div>
+                <select class="sel" id="exportFormatSel" style="max-width:220px;margin-top:10px" onchange="setExportFormat(this.value)">
+                  <option value="PNG">PNG</option>
+                  <option value="JPG">JPG</option>
+                  <option value="PDF">PDF</option>
+                  <option value="SVG">SVG</option>
+                  <option value="Text">Text / Copy</option>
+                </select>
+              </div>
+
+              <div class="stg-card">
+                <div class="tgl-row">
+                  <div>
+                    <div class="tgl-lbl" data-i18n="autoSaveLabel">Auto-save generated content</div>
+                    <div class="tgl-sub" data-i18n="autoSaveSub">Automatically save your workspace changes and generated content to Studio. When enabled, every generation is stored without requiring a manual save.</div>
+                  </div>
+                  <div class="tgl on" id="tglAutoSave" onclick="toggleAutoSave(this)"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Brand Reset ────────────────────────────── -->
+            <div class="spanel" id="sp-danger">
+              <div class="stg-ttl" data-i18n="brandReset">Brand Reset</div>
+              <div class="stg-sub" data-i18n="spDangerSub">Permanent actions — these cannot be undone.</div>
+              <div class="dz">
+                <div class="dz-ttl" data-i18n="resetBCTitle">Reset Brand Core</div>
+                <div class="dz-desc" data-i18n="resetBCDesc">This resets your entire brand setup — colors, tone of voice, positioning, and identity data. Your generated assets saved in Studio will not be affected, but all future generations will lose brand context until you create a new BrandCore. This action is permanent and cannot be reversed.</div>
+                <button class="btn btn-d" onclick="confirmReset()" data-i18n="resetBCBtn">Reset Brand Core</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+</div><!-- /mc -->
+</div><!-- /app -->
+
+<!-- MODALS -->
+<div class="mbk" id="modal-genbrand"><div class="modal">
+  <div class="modal-ttl">Generate Brand Core</div><div class="modal-sub">Tell ORIVEN AI about your brand to generate a complete identity system.</div>
+  <div class="fg"><label class="lbl">Brand name *</label><input class="inp" id="gbName" placeholder="e.g. Verdant"></div>
+  <div class="fg"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="lbl">Type</label><select class="sel" id="gbType"><option>B2B SaaS</option><option>B2C Product</option><option>Agency</option><option>eCommerce</option><option>Startup</option></select></div><div><label class="lbl">Industry</label><input class="inp" id="gbInd" placeholder="e.g. Sustainability"></div></div></div>
+  <div class="fg"><label class="lbl">Description</label><input class="inp" id="gbDesc" placeholder="What does your brand do?"></div>
+  <div class="fg"><label class="lbl">Target audience</label><input class="inp" id="gbAud" placeholder="e.g. SaaS founders, growth teams"></div>
+  <div class="fg"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="lbl">Color Mood</label><select class="sel" id="gbColorMood"><option value="">Not specified</option><option>Warm</option><option>Cool</option><option>Neutral</option><option>Dark</option><option>Light</option><option>Earthy</option><option>Vibrant</option><option>Monochrome</option></select></div><div><label class="lbl">Brand Style</label><select class="sel" id="gbBrandStyle"><option value="">Not specified</option><option>Minimal</option><option>Bold</option><option>Luxury</option><option>Futuristic</option><option>Soft</option><option>Premium</option><option>Playful</option><option>Elegant</option><option>Modern</option><option>Nature</option></select></div></div></div>
+  <div class="fg"><label class="lbl">Personality</label><div id="gbTags" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"><div class="fb active" onclick="this.classList.toggle('active')">Strategic</div><div class="fb" onclick="this.classList.toggle('active')">Premium</div><div class="fb" onclick="this.classList.toggle('active')">Bold</div><div class="fb" onclick="this.classList.toggle('active')">Minimal</div><div class="fb" onclick="this.classList.toggle('active')">Warm</div><div class="fb" onclick="this.classList.toggle('active')">Clear</div><div class="fb" onclick="this.classList.toggle('active')">Authoritative</div><div class="fb" onclick="this.classList.toggle('active')">Playful</div></div></div>
+  <div class="modal-ft"><button class="btn btn-g" onclick="closeModal('modal-genbrand')">Cancel</button><button class="btn btn-p" onclick="runGenBrand()">Generate Brand Core</button></div>
+</div></div>
+
+<div class="glov" id="glov"><div class="glov-inner">
+  <div class="spin" style="margin:0 auto;width:36px;height:36px;border-width:3px"></div>
+  <h3>Building your Brand Brain</h3>
+  <p id="glovStatus">Analyzing personality inputs...</p>
+  <div class="lbar" style="width:240px;margin:0 auto"><div class="lbar-fill"></div></div>
+</div></div>
+
+<div class="mbk" id="modal-bcsetup"><div class="modal">
+  <div class="modal-ttl">Manual Brand Setup</div><div class="modal-sub">Configure the foundation of your brand identity.</div>
+  <div class="fg"><label class="lbl">Brand name *</label><input class="inp" id="bcsName" placeholder="Your brand name"></div>
+  <div class="fg"><label class="lbl">Primary color</label><input class="inp" id="bcsPrimary" placeholder="#1A4229"></div>
+  <div class="fg"><label class="lbl">Heading font</label><input class="inp" id="bcsHead" placeholder="e.g. Instrument Serif"></div>
+  <div class="fg"><label class="lbl">Body font</label><input class="inp" id="bcsBody" placeholder="e.g. Geist"></div>
+  <div class="fg"><label class="lbl">Brand promise</label><input class="inp" id="bcsPromise" placeholder="One sentence that captures your brand purpose"></div>
+  <div class="modal-ft"><button class="btn btn-g" onclick="closeModal('modal-bcsetup')">Cancel</button><button class="btn btn-p" onclick="saveBCManual()">Save Brand Core</button></div>
+</div></div>
+
+<div class="mbk" id="modal-addcolor"><div class="modal" style="width:340px">
+  <div class="modal-ttl" id="colorModalTtl">Add Brand Color</div><div class="modal-sub">Add a color to your brand palette.</div>
+  <div class="fg"><div id="colorPrev" style="height:56px;border-radius:var(--rl);border:1px solid rgba(0,0,0,.06);background:#1A4229;margin-bottom:12px;transition:background .15s"></div></div>
+  <div class="fg"><label class="lbl">Hex code</label><input class="inp" id="colorHex" placeholder="#1A4229" oninput="updateColorPrev(this.value)"></div>
+  <div class="fg"><label class="lbl">Color name</label><input class="inp" id="colorName" placeholder="e.g. Forest Green"></div>
+  <div class="fg"><label class="lbl">Usage role</label><select class="sel" id="colorRole"><option>Primary</option><option>Accent</option><option>Support</option><option>Background</option><option>Text</option></select></div>
+  <div class="modal-ft"><button class="btn btn-g" onclick="closeModal('modal-addcolor')">Cancel</button><button class="btn btn-p" onclick="saveColor()">Save Color</button></div>
+</div></div>
+
+<div class="mbk" id="modal-logo-ai"><div class="modal" style="width:520px">
+  <div class="modal-ttl">Generate Logo with AI</div>
+  <div class="modal-sub">Describe your brand and choose a style. ORIVEN AI will generate a logo concept you can save directly to your Brand Core.</div>
+  <div class="fg"><label class="lbl">Brand name</label><input class="inp" id="logoAIBrand" placeholder="Your brand name"></div>
+  <div class="fg">
+    <label class="lbl">Logo type</label>
+    <div class="b-pills" id="logoAIStylePills" style="margin-top:6px">
+      <button class="b-pill active" data-val="minimal icon / symbol" onclick="bPickModal(this,'logoAIStylePills')">Icon / Symbol</button>
+      <button class="b-pill" data-val="wordmark logo" onclick="bPickModal(this,'logoAIStylePills')">Wordmark</button>
+      <button class="b-pill" data-val="emblem logo badge" onclick="bPickModal(this,'logoAIStylePills')">Emblem</button>
+      <button class="b-pill" data-val="monogram lettermark" onclick="bPickModal(this,'logoAIStylePills')">Monogram</button>
+      <button class="b-pill" data-val="abstract geometric mark" onclick="bPickModal(this,'logoAIStylePills')">Abstract</button>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="lbl">Style direction</label>
+    <div class="b-pills" id="logoAIDirPills" style="margin-top:6px">
+      <button class="b-pill active" data-val="minimal clean refined" onclick="bPickModal(this,'logoAIDirPills')">Minimal</button>
+      <button class="b-pill" data-val="bold strong impactful" onclick="bPickModal(this,'logoAIDirPills')">Bold</button>
+      <button class="b-pill" data-val="premium luxury sophisticated" onclick="bPickModal(this,'logoAIDirPills')">Premium</button>
+      <button class="b-pill" data-val="playful friendly approachable" onclick="bPickModal(this,'logoAIDirPills')">Playful</button>
+      <button class="b-pill" data-val="technical precise systematic" onclick="bPickModal(this,'logoAIDirPills')">Technical</button>
+    </div>
+  </div>
+  <div class="fg"><label class="lbl">Colour palette <span style="font-weight:400;color:var(--muted);font-size:11px">(auto-filled from BrandCore)</span></label><input class="inp" id="logoAIColors" placeholder="e.g. deep forest green, warm beige, charcoal"></div>
+  <div class="fg"><label class="lbl">Description <span style="font-weight:400;color:var(--muted);font-size:11px">optional</span></label><textarea class="inp" id="logoAIDesc" rows="2" placeholder="e.g. A premium wellness brand for modern professionals. Clean, grounded, aspirational."></textarea></div>
+  <div id="logoAIResult" style="display:none"></div>
+  <div class="modal-ft">
+    <button class="btn btn-g" onclick="closeModal('modal-logo-ai')">Cancel</button>
+    <button class="btn btn-p" id="logoAIGenBtn" onclick="generateAILogo()">Generate Logo</button>
+  </div>
+</div></div>
+
+<div class="mbk" id="modal-newcamp"><div class="modal" style="width:480px">
+  <div class="modal-ttl">New Campaign</div><div class="modal-sub">Bundle saved assets into a visual campaign concept.</div>
+  <div class="fg"><label class="lbl">Campaign name *</label><input class="inp" id="ncName" placeholder="e.g. Q3 Product Launch"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+    <div><label class="lbl">Objective</label><select class="sel" id="ncObj"><option>Product Launch</option><option>Feature Release</option><option>Brand Awareness</option><option>Seasonal Drop</option><option>Ad Testing</option><option>Lead Generation</option></select></div>
+    <div><label class="lbl">Target audience</label><input class="inp" id="ncAud" placeholder="e.g. SaaS founders"></div>
+  </div>
+  <div class="fg"><label class="lbl">Notes</label><textarea class="inp" id="ncNotes" placeholder="Campaign brief..." rows="2"></textarea></div>
+  <div class="fg">
+    <label class="lbl">Link Saved Assets</label>
+    <div id="ncAssetPicker" style="max-height:160px;overflow-y:auto;margin-top:4px"></div>
+  </div>
+  <div class="modal-ft"><button class="btn btn-g" onclick="closeModal('modal-newcamp')">Cancel</button><button class="btn btn-p" onclick="createCampaign()">Create Campaign</button></div>
+</div></div>
+
+<div class="mbk" id="modal-tpl"><div class="modal" style="width:500px">
+  <div id="tplPrevContent"></div>
+  <div class="modal-ft"><button class="btn btn-g" onclick="closeModal('modal-tpl')">Close</button><button class="btn btn-g" onclick="toast('Saved as draft');closeModal('modal-tpl')">Save Draft</button><button class="btn btn-p" onclick="useTpl()">Use Template</button></div>
+</div></div>
+
+<div class="mbk" id="modal-rename"><div class="modal" style="width:340px">
+  <div class="modal-ttl">Rename Asset</div>
+  <div class="fg" style="margin-top:16px"><label class="lbl">Name</label><input class="inp" id="renameInp"></div>
+  <div class="modal-ft"><button class="btn btn-g" onclick="closeModal('modal-rename')">Cancel</button><button class="btn btn-p" onclick="doRename()">Rename</button></div>
+</div></div>
+
+<!-- INVITE TEAM MEMBER MODAL -->
+<div class="mbk" id="modal-invite"><div class="modal" style="width:440px">
+  <div class="modal-ttl">Invite Team Member</div>
+  <div class="modal-sub">They'll receive an email invite to join your workspace.</div>
+  <div class="fg"><label class="lbl">Name</label><input class="inp" id="teamInviteName" placeholder="e.g. Jane Smith"></div>
+  <div class="fg"><label class="lbl">Email *</label><input class="inp" id="teamInviteEmail" placeholder="name@company.com" type="email"></div>
+  <div class="fg">
+    <label class="lbl">Role</label>
+    <select class="sel" id="teamInviteRole" onchange="_updateRoleDesc(this.value)">
+      <option value="Member">Member</option>
+      <option value="Editor">Editor</option>
+      <option value="Viewer">Viewer</option>
+      <option value="Admin">Admin</option>
+    </select>
+    <div id="teamRoleDesc" style="font-size:11.5px;color:var(--muted,#888);margin-top:6px;line-height:1.5">Standard collaborative access — generate content and view assets</div>
+  </div>
+  <div class="fg"><label class="lbl">Personal message <span style="font-weight:400;color:var(--muted,#888)">(optional)</span></label><textarea class="inp" id="teamInviteMsg" placeholder="Add a note to your invite…" rows="2" style="resize:vertical;min-height:60px;font-family:inherit"></textarea></div>
+  <div class="modal-ft"><button class="btn btn-g" onclick="closeModal('modal-invite')">Cancel</button><button class="btn btn-p" id="teamInviteSendBtn" onclick="addTeamMember()">Send Invite</button></div>
+</div></div>
+
+<!-- PAYWALL MODAL -->
+<div class="mbk" id="modal-paywall">
+  <div class="modal" style="width:680px;padding:0;overflow:visible">
+    <!-- X close -->
+    <button onclick="closePaywall()" title="Close" style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:var(--bg2,#F6F3EE);border:1px solid rgba(0,0,0,.08);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;padding:0">
+      <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 1l10 10M11 1L1 11"/></svg>
+    </button>
+    <!-- Header -->
+    <div style="padding:28px 28px 22px;text-align:center;border-bottom:1px solid rgba(0,0,0,.06)">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--gm,#1A4229);text-transform:uppercase;margin-bottom:10px">ORIVEN PRO</div>
+      <h2 style="font-size:26px;font-weight:700;color:var(--charcoal,#18181A);margin:0 0 8px;font-family:'Instrument Serif',serif">Unlock ORIVEN</h2>
+      <p style="font-size:14px;color:var(--muted,#888);margin:0">Scale your brand, content and conversions</p>
+    </div>
+    <!-- Plans -->
+    <div style="padding:22px 22px 18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <!-- Starter -->
+      <div style="border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:20px 18px;display:flex;flex-direction:column">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted,#888);margin-bottom:14px">STARTER</div>
+        <div style="margin-bottom:14px">
+          <span style="font-size:30px;font-weight:700;color:var(--charcoal,#18181A);line-height:1">€1</span>
+          <div style="font-size:12px;color:var(--muted,#888);margin-top:2px">first month</div>
+          <div style="font-size:11px;color:var(--muted,#888)">then €9/month</div>
+        </div>
+        <div style="flex:1;font-size:12px;color:var(--charcoal,#18181A);line-height:1.9;margin-bottom:18px">
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>AI Brand Generation</div>
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>Brand Check</div>
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>50 AI outputs/month</div>
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>1 Brand Core</div>
+        </div>
+        <button class="btn btn-g" style="width:100%;justify-content:center;font-size:13px" onclick="selectPlan('starter')">Start for €1</button>
+      </div>
+      <!-- Premium (highlighted) -->
+      <div style="border:2px solid var(--gm,#1A4229);border-radius:12px;padding:20px 18px;display:flex;flex-direction:column;position:relative;background:rgba(26,66,41,.025)">
+        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--gm,#1A4229);color:#fff;font-size:9px;font-weight:700;letter-spacing:.1em;padding:3px 12px;border-radius:20px;white-space:nowrap">MOST POPULAR</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gm,#1A4229);margin-bottom:14px">PREMIUM</div>
+        <div style="margin-bottom:14px">
+          <span style="font-size:30px;font-weight:700;color:var(--charcoal,#18181A);line-height:1">€19</span>
+          <div style="font-size:12px;color:var(--muted,#888);margin-top:2px">/month</div>
+        </div>
+        <div style="flex:1;font-size:12px;color:var(--charcoal,#18181A);line-height:1.9;margin-bottom:18px">
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>Everything in Starter</div>
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>Unlimited AI outputs</div>
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>Brand Check uploads</div>
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>Campaign builder</div>
+        </div>
+        <button class="btn btn-p" style="width:100%;justify-content:center;font-size:13px" onclick="selectPlan('premium')">Upgrade to Premium</button>
+      </div>
+      <!-- Business -->
+      <div style="border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:20px 18px;display:flex;flex-direction:column">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted,#888);margin-bottom:14px">BUSINESS</div>
+        <div style="margin-bottom:14px">
+          <span style="font-size:30px;font-weight:700;color:var(--charcoal,#18181A);line-height:1">€39</span>
+          <div style="font-size:12px;color:var(--muted,#888);margin-top:2px">/month</div>
+        </div>
+        <div style="flex:1;font-size:12px;color:var(--charcoal,#18181A);line-height:1.9;margin-bottom:18px">
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>Everything in Premium</div>
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>5 Brand Cores</div>
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>Team access</div>
+          <div style="display:flex;gap:7px;align-items:flex-start"><svg viewBox="0 0 10 10" width="10" height="10" style="margin-top:4px;flex-shrink:0" fill="none" stroke="var(--gm,#1A4229)" stroke-width="1.7"><path d="M1.5 5L4 7.5L8.5 2"/></svg>Priority support</div>
+        </div>
+        <button class="btn btn-g" style="width:100%;justify-content:center;font-size:13px" onclick="selectPlan('business')">Upgrade to Business</button>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:14px 28px 20px;text-align:center;border-top:1px solid rgba(0,0,0,.06)">
+      <button onclick="closePaywall()" style="background:none;border:none;font-size:12px;color:var(--muted,#888);cursor:pointer;padding:6px 10px">Continue with free plan</button>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="styles.css">
+<script src="supabase.js"></script>
+<script src="auth.js"></script>
+<script src="guide.js"></script>
+<script src="app.js"></script>
+<script src="studio.js"></script>
+<script src="create.js"></script>
+<script src="assistant.js"></script>
+<script src="settings.js"></script>
+<script src="usage.js"></script>
+<script src="team.js"></script>
+</body>
+</html>

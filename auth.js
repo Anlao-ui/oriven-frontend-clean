@@ -1,0 +1,624 @@
+// ═══ AUTH + DATABASE ══════════════════════════════════════════
+// Handles: sign up, sign in, sign out, session restore,
+//          BrandCore save/load from Supabase.
+
+// ── UI helpers ────────────────────────────────────────────────
+
+function showApp(){
+  var overlay = document.getElementById("authOverlay");
+  var app     = document.querySelector(".app");
+  if(overlay) overlay.style.display = "none";
+  if(app)     app.style.display     = "";
+}
+
+function showAuthPage(){
+  var overlay = document.getElementById("authOverlay");
+  var app     = document.querySelector(".app");
+  if(overlay) overlay.style.display = "flex";
+  if(app)     app.style.display     = "none";
+}
+
+function switchAuthTab(tab){
+  var siForm = document.getElementById("authSigninForm");
+  var suForm = document.getElementById("authSignupForm");
+  var siTab  = document.getElementById("authTabSignin");
+  var suTab  = document.getElementById("authTabSignup");
+  var errSi  = document.getElementById("authErrorSi");
+  var errSu  = document.getElementById("authErrorSu");
+  if(errSi){ errSi.textContent=""; errSi.style.display="none"; }
+  if(errSu){ errSu.textContent=""; errSu.style.display="none"; }
+  var activeStyle   = "color:var(--gm);border-bottom:2px solid var(--gm);margin-bottom:-1px";
+  var inactiveStyle = "color:var(--muted)";
+  if(tab === "signin"){
+    siForm.style.display = "";
+    suForm.style.display = "none";
+    if(siTab) siTab.setAttribute("style", siTab.getAttribute("style").replace(/color:[^;]+;border-bottom:[^;]+;margin-bottom:[^;]+|color:[^;]+/,"") + activeStyle);
+    if(suTab) suTab.setAttribute("style", suTab.getAttribute("style").replace(/color:[^;]+;border-bottom:[^;]+;margin-bottom:[^;]+|color:[^;]+/,"") + inactiveStyle);
+  } else {
+    siForm.style.display = "none";
+    suForm.style.display = "";
+    if(siTab) siTab.setAttribute("style", siTab.getAttribute("style").replace(/color:[^;]+;border-bottom:[^;]+;margin-bottom:[^;]+|color:[^;]+/,"") + inactiveStyle);
+    if(suTab) suTab.setAttribute("style", suTab.getAttribute("style").replace(/color:[^;]+;border-bottom:[^;]+;margin-bottom:[^;]+|color:[^;]+/,"") + activeStyle);
+  }
+}
+
+function showAuthError(formType, msg){
+  var id = formType === "signin" ? "authErrorSi" : "authErrorSu";
+  var el = document.getElementById(id);
+  if(el){ el.textContent = msg; el.style.display = "block"; }
+}
+
+function setAuthBtnLoading(btnId, loading){
+  var btn = document.getElementById(btnId);
+  if(!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? "Please wait…" : btn.getAttribute("data-label");
+}
+
+// ── Sign In ───────────────────────────────────────────────────
+
+async function handleSignIn(){
+  var email = (document.getElementById("siEmail").value||"").trim();
+  var pass  = document.getElementById("siPass").value||"";
+  if(!email || !pass){ showAuthError("signin","Enter your email and password."); return; }
+  var errEl = document.getElementById("authErrorSi");
+  if(errEl){ errEl.style.display="none"; }
+  var btn = document.getElementById("authSigninBtn");
+  if(btn){ btn.disabled=true; btn.textContent="Signing in…"; }
+  console.log("[Auth] Signing in:", email);
+  try {
+    var result = await SB.auth.signInWithPassword({ email:email, password:pass });
+    if(result.error) throw result.error;
+    console.log("[Auth] Sign in successful:", result.data.user.id);
+    await onUserSignedIn(result.data.user);
+  } catch(err){
+    console.error("[Auth] Sign in error:", err.message);
+    showAuthError("signin", err.message);
+    if(btn){ btn.disabled=false; btn.textContent="Sign In"; }
+  }
+}
+
+// ── Sign Up ───────────────────────────────────────────────────
+
+async function handleSignUp(){
+  var firstName = (document.getElementById("suFirst").value||"").trim();
+  var lastName  = (document.getElementById("suLast").value||"").trim();
+  var email     = (document.getElementById("suEmail").value||"").trim();
+  var pass      = document.getElementById("suPass").value||"";
+  var phone     = (document.getElementById("suPhone").value||"").trim();
+  if(!firstName || !email || !pass){ showAuthError("signup","First name, email and password are required."); return; }
+  if(pass.length < 6){ showAuthError("signup","Password must be at least 6 characters."); return; }
+  var errEl = document.getElementById("authErrorSu");
+  if(errEl){ errEl.style.display="none"; }
+  var btn = document.getElementById("authSignupBtn");
+  if(btn){ btn.disabled=true; btn.textContent="Creating account…"; }
+  console.log("[Auth] Signing up:", email);
+  try {
+    var result = await SB.auth.signUp({
+      email:email,
+      password:pass,
+      options:{ data:{ first_name:firstName, last_name:lastName, phone:phone||null } }
+    });
+    if(result.error) throw result.error;
+    var user = result.data.user;
+    // Insert profile row
+    if(user){
+      var profileResult = await SB.from("profiles").insert({
+        id: user.id,
+        first_name: firstName,
+        last_name:  lastName,
+        email:      email,
+        phone:      phone || null
+      });
+      if(profileResult.error) console.warn("[Auth] Profile insert warning:", profileResult.error.message);
+      else console.log("[Auth] Profile created for:", user.id);
+    }
+    // If email confirmation is required, session will be null
+    if(result.data.session){
+      console.log("[Auth] Account created, session active:", user.id);
+      await onUserSignedIn(user);
+    } else {
+      showAuthError("signup","Account created! Check your email to confirm, then sign in.");
+      if(btn){ btn.disabled=false; btn.textContent="Create Account"; }
+    }
+  } catch(err){
+    console.error("[Auth] Sign up error:", err.message);
+    showAuthError("signup", err.message);
+    if(btn){ btn.disabled=false; btn.textContent="Create Account"; }
+  }
+}
+
+// ── Sign Out ──────────────────────────────────────────────────
+
+async function authSignOut(){
+  console.log("[Auth] Signing out");
+  await SB.auth.signOut();
+  S.brandCore = null;
+  showAuthPage();
+  toast("Signed out");
+}
+
+// ── After sign in: update UI, load BrandCore, show app ───────
+
+async function syncSubscriptionFromDB(){
+  try {
+    var sessionResult = await SB.auth.getSession();
+    var session = sessionResult.data && sessionResult.data.session;
+    if(!session) return;
+    var resp = await fetch("http://localhost:3000/api/get-subscription", {
+      headers: { "Authorization": "Bearer " + session.access_token }
+    });
+    if(!resp.ok){ console.warn("[Subscription] GET /api/get-subscription failed:", resp.status); return; }
+    var data = await resp.json();
+    console.log("[Subscription] Synced from server:", JSON.stringify(data));
+    var changed = false;
+    if(data.subscription_status && S.currentPlan !== data.subscription_status){
+      S.currentPlan = data.subscription_status;
+      changed = true;
+    }
+    var serverPending = data.pending_plan || null;
+    var serverPendingDate = data.pending_plan_date || null;
+    if(S.pendingPlan !== serverPending || S.pendingPlanDate !== serverPendingDate){
+      S.pendingPlan = serverPending;
+      S.pendingPlanDate = serverPendingDate;
+      changed = true;
+    }
+    if(changed) saveSettings();
+    if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(S.currentPlan);
+  } catch(err){
+    console.warn("[Subscription] Sync error (non-fatal):", err.message);
+  }
+}
+
+async function onUserSignedIn(user){
+  console.log("[Auth] User signed in, loading data for:", user.id);
+  updateSidebarUser(user);
+  await loadBrandCoreFromDB();
+  await syncSubscriptionFromDB();
+  showApp();
+  navigate("dashboard");
+
+  // Initialise usage tracking and team nav visibility
+  if(typeof initUsageTracking === "function") initUsageTracking(user);
+
+  // Check onboarding — show flow if first time
+  var completed = await checkOnboardingStatus(user.id);
+  if(!completed){
+    console.log("[Onboarding] First login — showing onboarding flow");
+    showOnboarding();
+  } else {
+    console.log("[Onboarding] Already completed — going straight to dashboard");
+  }
+}
+
+// ── Onboarding: status check ──────────────────────────────────
+
+async function checkOnboardingStatus(userId){
+  console.log("[Onboarding] Checking status for user:", userId);
+  try {
+    var result = await SB.from("profiles")
+      .select("onboarding_completed")
+      .eq("id", userId)
+      .maybeSingle();
+    if(result.error) throw result.error;
+    if(!result.data){
+      console.log("[Onboarding] No profile row found — treating as new user");
+      return false;
+    }
+    console.log("[Onboarding] onboarding_completed:", result.data.onboarding_completed);
+    return result.data.onboarding_completed === true;
+  } catch(err){
+    console.error("[Onboarding] Status check error:", err.message);
+    return true; // fail-safe: don't block user on error
+  }
+}
+
+async function markOnboardingComplete(){
+  var userResult = await SB.auth.getUser();
+  var user = userResult.data && userResult.data.user;
+  if(!user) return;
+  console.log("[Onboarding] Marking complete for user:", user.id);
+  try {
+    var result = await SB.from("profiles")
+      .update({ onboarding_completed: true })
+      .eq("id", user.id);
+    if(result.error) throw result.error;
+    console.log("[Onboarding] Marked as complete in database");
+  } catch(err){
+    console.error("[Onboarding] Mark complete error:", err.message);
+  }
+}
+
+// ── Onboarding: UI ────────────────────────────────────────────
+// Premium 4-step intro experience
+
+var _obStep = 1; // current step tracker
+
+function showOnboarding(){
+  var el = document.getElementById("onboardingOverlay");
+  if(!el) return;
+
+  _obStep = 1;
+
+  // Reset all steps: remove active/exit classes
+  for(var i = 1; i <= 4; i++){
+    var s = document.getElementById("obStep" + i);
+    if(s){ s.classList.remove("ob-active","ob-exit"); }
+  }
+
+  // Reset card and message animations
+  ["obCard1","obCard2","obCard3"].forEach(function(id){
+    var c = document.getElementById(id);
+    if(c) c.classList.remove("ob-card-in");
+  });
+  ["obMsg1","obMsg2","obMsg3"].forEach(function(id){
+    var m = document.getElementById(id);
+    if(m) m.classList.remove("ob-msg-in");
+  });
+
+  // Hide corner orb
+  var orb = document.getElementById("obCornerOrb");
+  if(orb) orb.classList.remove("ob-orb-visible");
+
+  // Show overlay with fade-in
+  el.style.opacity = "0";
+  el.style.display = "flex";
+  el.style.transition = "opacity 0.45s ease";
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      el.style.opacity = "1";
+      // Activate step 1 after overlay fades in
+      setTimeout(function(){
+        var s1 = document.getElementById("obStep1");
+        if(s1) s1.classList.add("ob-active");
+      }, 120);
+    });
+  });
+
+  _obSetDots(1);
+  console.log("[Onboarding] Premium overlay shown — Step 1");
+}
+
+function hideOnboarding(){
+  var el = document.getElementById("onboardingOverlay");
+  if(el){
+    el.style.transition = "opacity 0.3s ease";
+    el.style.opacity = "0";
+    setTimeout(function(){
+      el.style.display = "none";
+      el.style.opacity = "";
+      el.style.transition = "";
+    }, 320);
+  }
+  // Hide corner orb
+  var orb = document.getElementById("obCornerOrb");
+  if(orb) orb.classList.remove("ob-orb-visible");
+}
+
+function _obSetDots(active){
+  for(var i = 1; i <= 4; i++){
+    var d = document.getElementById("obDot" + i);
+    if(!d) continue;
+    if(i === active){
+      d.classList.add("ob-dot-active");
+    } else {
+      d.classList.remove("ob-dot-active");
+    }
+  }
+}
+
+// Navigate to a specific step with smooth transition
+function obGoTo(step){
+  if(step < 1 || step > 4 || step === _obStep) return;
+
+  var prev = _obStep;
+  var prevEl = document.getElementById("obStep" + prev);
+  var nextEl = document.getElementById("obStep" + step);
+
+  // Exit current step
+  if(prevEl){
+    prevEl.classList.add("ob-exit");
+    prevEl.classList.remove("ob-active");
+  }
+
+  setTimeout(function(){
+    if(prevEl) prevEl.classList.remove("ob-exit");
+
+    if(nextEl){
+      nextEl.classList.remove("ob-exit","ob-active");
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          nextEl.classList.add("ob-active");
+        });
+      });
+    }
+
+    _obStep = step;
+    _obSetDots(step);
+
+    // Step-specific side effects
+    if(step === 2) _obAnimateCards();
+    if(step === 3) _obAnimateMsgs();
+    if(step === 4) _obShowCornerOrb();
+
+    console.log("[Onboarding] Step →", step);
+  }, 300);
+}
+
+// Backward compat: obNext() still works
+function obNext(){
+  obGoTo(_obStep + 1);
+}
+
+// Stagger the three feature cards into view
+function _obAnimateCards(){
+  ["obCard1","obCard2","obCard3"].forEach(function(id, i){
+    var c = document.getElementById(id);
+    if(!c) return;
+    c.classList.remove("ob-card-in");
+    setTimeout(function(){ c.classList.add("ob-card-in"); }, i * 160);
+  });
+}
+
+// Stagger the AI assistant messages into view
+function _obAnimateMsgs(){
+  ["obMsg1","obMsg2","obMsg3"].forEach(function(id, i){
+    var m = document.getElementById(id);
+    if(!m) return;
+    m.classList.remove("ob-msg-in");
+    setTimeout(function(){ m.classList.add("ob-msg-in"); }, 350 + i * 520);
+  });
+}
+
+// Pop the corner orb into the bottom-right
+function _obShowCornerOrb(){
+  var orb = document.getElementById("obCornerOrb");
+  if(orb){
+    setTimeout(function(){ orb.classList.add("ob-orb-visible"); }, 350);
+  }
+}
+
+function obFinish(){
+  console.log("[Onboarding] User clicked Create your Brand");
+  markOnboardingComplete();
+  hideOnboarding();
+  setTimeout(function(){
+    if(typeof gtStart === "function"){
+      gtStart();
+    } else {
+      navigate("studio");
+      setTimeout(function(){ if(typeof switchStudioTab==="function") switchStudioTab("brandcore"); }, 150);
+    }
+  }, 280);
+}
+
+function obSkip(){
+  console.log("[Onboarding] User skipped onboarding");
+  markOnboardingComplete();
+  hideOnboarding();
+}
+
+function updateSidebarUser(user){
+  var meta      = user.user_metadata || {};
+  var firstName = meta.first_name || user.email.split("@")[0];
+  var initial   = firstName.charAt(0).toUpperCase();
+  var nameEl    = document.getElementById("sidebarUserName");
+  var dotEl     = document.getElementById("sidebarUserDot");
+  if(nameEl) nameEl.textContent = firstName;
+  if(dotEl)  dotEl.textContent  = initial;
+  console.log("[Auth] Sidebar updated for:", firstName);
+}
+
+// ── BrandCore: save to Supabase ───────────────────────────────
+
+async function saveBCToDB(){
+  if(typeof SB === "undefined"){ console.warn("[DB] Supabase not initialized"); return; }
+  var userResult = await SB.auth.getUser();
+  var user = userResult.data && userResult.data.user;
+  if(!user){ console.log("[DB] Not logged in — BrandCore not saved to cloud"); return; }
+  if(!S.brandCore){ console.log("[DB] No BrandCore to save"); return; }
+  console.log("[DB] Saving BrandCore to Supabase for user:", user.id, "brand:", S.brandCore.name);
+  try {
+    var result = await SB.from("brand_cores").upsert(
+      { user_id: user.id, brand_data: S.brandCore },
+      { onConflict: "user_id" }
+    );
+    if(result.error) throw result.error;
+    console.log("[DB] BrandCore saved successfully");
+    toast("Brand Core saved to cloud");
+  } catch(err){
+    console.error("[DB] Save BrandCore error:", err.message);
+  }
+}
+
+// ── BrandCore: load from Supabase ────────────────────────────
+
+async function loadBrandCoreFromDB(){
+  if(typeof SB === "undefined"){ return; }
+  var userResult = await SB.auth.getUser();
+  var user = userResult.data && userResult.data.user;
+  if(!user) return;
+  console.log("[DB] Loading BrandCore from Supabase for user:", user.id);
+  try {
+    var result = await SB.from("brand_cores")
+      .select("brand_data")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if(result.error) throw result.error;
+    if(!result.data){ console.log("[DB] No BrandCore found for user"); return; }
+    S.brandCore = result.data.brand_data;
+    console.log("[DB] BrandCore loaded:", S.brandCore.name);
+    if(typeof refreshBC === "function") refreshBC();
+  } catch(err){
+    console.error("[DB] Load BrandCore error:", err.message);
+  }
+}
+
+// ── BrandCore: delete from Supabase ──────────────────────────
+
+async function deleteBCFromDB(){
+  if(typeof SB === "undefined"){ return; }
+  var userResult = await SB.auth.getUser();
+  var user = userResult.data && userResult.data.user;
+  if(!user) return;
+  console.log("[DB] Deleting BrandCore from Supabase for user:", user.id);
+  try {
+    var result = await SB.from("brand_cores").delete().eq("user_id", user.id);
+    if(result.error) throw result.error;
+    console.log("[DB] BrandCore deleted from cloud");
+  } catch(err){
+    console.error("[DB] Delete BrandCore error:", err.message);
+  }
+}
+
+// ── Paywall ───────────────────────────────────────────────────
+
+async function checkSubscriptionStatus(){
+  if(typeof SB === "undefined"){
+    console.error("[Paywall] SB client not initialized — cannot check subscription");
+    return "free";
+  }
+
+  // Always fetch a fresh user object — never use a cached value
+  var userResult = await SB.auth.getUser();
+  var user = userResult.data && userResult.data.user;
+  if(!user){
+    console.log("[Paywall] No authenticated user — defaulting to free");
+    return "free";
+  }
+
+  console.log("[Paywall] Fetching LIVE subscription status from Supabase for user:", user.id);
+
+  try {
+    var resp = await SB.from("profiles")
+      .select("subscription_status")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    // Always log the raw response so the cause is visible in the console
+    var rawData  = resp.data  ? JSON.stringify(resp.data) : "null (no row)";
+    var rawError = resp.error ? resp.error.message + " [code: " + resp.error.code + "]" : "none";
+    console.log("[Paywall] Supabase response — data:", rawData, "| error:", rawError);
+
+    if(resp.error){
+      // Most common causes:
+      //   42703 — column does not exist (ALTER TABLE not yet run)
+      //   42501 — RLS blocking the SELECT
+      console.error("[Paywall] Query failed:", resp.error.message);
+      if(resp.error.code === "42703"){
+        console.error("[Paywall] FIX: run this in Supabase SQL Editor:\n  ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status text default 'free';");
+      }
+      return "free"; // fail-safe — never block the user on a DB error
+    }
+
+    if(!resp.data){
+      // Profile row does not exist — create it so future checks work
+      console.warn("[Paywall] No profile row found for user:", user.id, "— upserting defaults");
+      var upsert = await SB.from("profiles").upsert(
+        { id: user.id, email: user.email, subscription_status: "free", onboarding_completed: false },
+        { onConflict: "id" }
+      );
+      if(upsert.error) console.error("[Paywall] Could not upsert profile:", upsert.error.message);
+      return "free";
+    }
+
+    // We have a real row — read the value directly, do NOT fall back silently
+    var status = resp.data.subscription_status;
+    if(!status){
+      console.warn("[Paywall] subscription_status is null/empty in DB — treating as free. " +
+        "Run the ALTER TABLE SQL, then set it to 'premium' for paid users.");
+      return "free";
+    }
+
+    var isPaid = status !== "free";
+    console.log("[Paywall] subscription_status:", status, "→", isPaid
+      ? "✓ SUBSCRIBED — paywall will NOT show"
+      : "✗ FREE — paywall will show");
+    return status;
+
+  } catch(err){
+    console.error("[Paywall] Unexpected JS error:", err.message);
+    return "free";
+  }
+}
+
+async function maybeShowPaywall(){
+  console.log("[Paywall] Triggered — checking subscription before showing paywall...");
+  var status = await checkSubscriptionStatus();
+  if(status !== "free"){
+    console.log("[Paywall] Subscribed user (" + status + ") — paywall suppressed");
+    return;
+  }
+  console.log("[Paywall] Free user — opening paywall modal");
+  if(typeof openModal === "function") openModal("modal-paywall");
+}
+
+function closePaywall(){
+  if(typeof closeModal === "function") closeModal("modal-paywall");
+  console.log("[Paywall] Dismissed by user");
+}
+
+async function selectPlan(plan){
+  console.log("[Paywall] Plan selected:", plan);
+  var btn = document.querySelector('[onclick="selectPlan(\'' + plan + '\')"]');
+  if(btn){ btn.disabled = true; btn.textContent = "Redirecting…"; }
+
+  try {
+    var u = S.user || (await SB.auth.getUser()).data.user;
+    var resp = await fetch("http://localhost:3000/api/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan, userId: u.id, userEmail: u.email })
+    });
+    var data = await resp.json();
+    if(!resp.ok || !data.url) throw new Error(data.error || "No checkout URL returned");
+    window.location.href = data.url;
+  } catch(err) {
+    console.error("[Paywall] Checkout error:", err);
+    toast("Could not start checkout — please try again");
+    if(btn){ btn.disabled = false; btn.textContent = btn.getAttribute("data-label") || "Get Started"; }
+  }
+}
+
+// ── Session restore on page load ─────────────────────────────
+
+document.addEventListener("DOMContentLoaded", async function(){
+  // Handle Stripe return URLs
+  var params = new URLSearchParams(window.location.search);
+  if(params.get("success") === "true"){
+    history.replaceState(null, "", window.location.pathname);
+    // Refresh subscription status after a moment (webhook may be in-flight)
+    setTimeout(async function(){
+      await checkSubscriptionStatus();
+      toast("Your subscription is now active — welcome!");
+    }, 1500);
+  } else if(params.get("canceled") === "true"){
+    history.replaceState(null, "", window.location.pathname);
+    toast("Checkout canceled — you can upgrade anytime.");
+  }
+
+  // Hide app immediately — show only after auth confirmed
+  var app = document.querySelector(".app");
+  if(app) app.style.display = "none";
+
+  console.log("[Auth] Checking existing session...");
+  var sessionResult = await SB.auth.getSession();
+  var session = sessionResult.data && sessionResult.data.session;
+
+  if(session && session.user){
+    console.log("[Auth] Session restored for:", session.user.id);
+    await onUserSignedIn(session.user);
+  } else {
+    console.log("[Auth] No session found — showing auth page");
+    showAuthPage();
+  }
+
+  // React to future auth changes (e.g. session expiry)
+  SB.auth.onAuthStateChange(function(event, _session){
+    console.log("[Auth] Auth state change:", event);
+    if(event === "SIGNED_OUT"){
+      S.brandCore = null;
+      showAuthPage();
+    }
+  });
+});
