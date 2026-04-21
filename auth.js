@@ -95,13 +95,12 @@ async function handleSignUp(){
   console.log("[Auth] Signing up:", email);
   try {
     // Step 1: Create user via server (email_confirm:true bypasses Supabase's blocking gate)
-    var signupResp = await fetch(API_BASE_URL + "/api/signup", {
+    var signupResult = await apiFetch("/api/signup", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({ firstName, lastName, email, password: pass, phone: phone||null })
     });
-    var signupData = await signupResp.json();
-    if(!signupResp.ok) throw new Error(signupData.error || "Signup failed");
+    if(!signupResult.ok) throw new Error(signupResult.data.error || "Signup failed");
 
     // Step 2: Sign in immediately — no email confirmation gate
     var result = await SB.auth.signInWithPassword({ email, password: pass });
@@ -133,11 +132,11 @@ async function syncSubscriptionFromDB(){
     var sessionResult = await SB.auth.getSession();
     var session = sessionResult.data && sessionResult.data.session;
     if(!session) return;
-    var resp = await fetch(API_BASE_URL+"/api/get-subscription", {
+    var result = await apiFetch("/api/get-subscription", {
       headers: { "Authorization": "Bearer " + session.access_token }
     });
-    if(!resp.ok){ console.warn("[Subscription] GET /api/get-subscription failed:", resp.status); return; }
-    var data = await resp.json();
+    if(!result.ok){ console.warn("[Subscription] GET /api/get-subscription failed:", result.status); return; }
+    var data = result.data;
     console.log("[Subscription] Synced from server:", JSON.stringify(data));
     var changed = false;
     if(data.subscription_status && S.currentPlan !== data.subscription_status){
@@ -440,12 +439,11 @@ async function resendVerificationEmail(){
     var sessionResult = await SB.auth.getSession();
     var session = sessionResult.data && sessionResult.data.session;
     if(!session){ toast("Please sign in first"); return; }
-    var resp = await fetch(API_BASE_URL + "/api/resend-verification", {
+    var result = await apiFetch("/api/resend-verification", {
       method:  "POST",
       headers: { "Authorization": "Bearer " + session.access_token }
     });
-    var data = await resp.json();
-    if(!resp.ok) throw new Error(data.error || "Failed to send");
+    if(!result.ok) throw new Error(result.data.error || "Failed to send");
     toast("Verification email sent — check your inbox");
   } catch(err){
     console.error("[EmailVerify] Resend error:", err.message);
@@ -461,13 +459,12 @@ async function _handleVerifyToken(){
   if(!token) return;
   history.replaceState(null, "", window.location.pathname);
   try {
-    var resp = await fetch(API_BASE_URL + "/api/verify-email", {
+    var result = await apiFetch("/api/verify-email", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({ token })
     });
-    var data = await resp.json();
-    if(resp.ok && data.ok){
+    if(result.ok && result.data.ok){
       _hideVerifyBanner();
       setTimeout(function(){ toast("Email verified — your account is confirmed!"); }, 600);
     } else {
@@ -645,14 +642,13 @@ async function selectPlan(plan){
 
   try {
     var u = S.user || (await SB.auth.getUser()).data.user;
-    var resp = await fetch(API_BASE_URL+"/api/create-checkout-session", {
+    var result = await apiFetch("/api/create-checkout-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plan, userId: u.id, userEmail: u.email })
     });
-    var data = await resp.json();
-    if(!resp.ok || !data.url) throw new Error(data.error || "No checkout URL returned");
-    window.location.href = data.url;
+    if(!result.ok || !result.data.url) throw new Error(result.data.error || "No checkout URL returned");
+    window.location.href = result.data.url;
   } catch(err) {
     console.error("[Paywall] Checkout error:", err);
     toast("Could not start checkout — please try again");

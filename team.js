@@ -176,22 +176,20 @@ async function addTeamMember(){
 
   // Send invite via backend
   try {
-    var res = await fetch("/api/send-invite", {
+    var result = await apiFetch("/api/send-invite", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({ name: name, email: email, role: role, message: message, workspaceName: wsName })
     });
 
-    if(!res.ok){
-      var errData = {};
-      try { errData = await res.json(); } catch(_){}
-      var errMsg = errData.error || "Failed to send invite email";
+    if(!result.ok){
+      var errMsg = (result.data && result.data.error) || "Failed to send invite email";
       if(typeof toast === "function") toast(errMsg, "warn");
       if(sendBtn){ sendBtn.disabled = false; sendBtn.textContent = "Send Invite"; }
       return;
     }
   } catch(e){
-    if(typeof toast === "function") toast("Could not reach server — invite not sent", "warn");
+    if(typeof toast === "function") toast("Could not reach server — invite not sent. " + e.message, "warn");
     if(sendBtn){ sendBtn.disabled = false; sendBtn.textContent = "Send Invite"; }
     return;
   }

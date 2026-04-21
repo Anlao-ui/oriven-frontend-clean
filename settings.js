@@ -1243,7 +1243,7 @@ async function switchPlan(planId){
       return;
     }
 
-    var resp = await fetch(API_BASE_URL+"/api/schedule-plan-change", {
+    var planResult = await apiFetch("/api/schedule-plan-change", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1251,9 +1251,9 @@ async function switchPlan(planId){
       },
       body: JSON.stringify({ plan: planId })
     });
-    var data = await resp.json();
+    var data = planResult.data;
 
-    if(!resp.ok) throw new Error(data.error || "Server error");
+    if(!planResult.ok) throw new Error(data.error || "Server error");
 
     if(data.requiresCheckout){
       if(typeof selectPlan === "function") selectPlan(planId);
