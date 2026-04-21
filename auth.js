@@ -2,6 +2,9 @@
 // Handles: sign up, sign in, sign out, session restore,
 //          BrandCore save/load from Supabase.
 
+var _currentUser     = null;
+var _onboardingShown = false;
+
 // ── UI helpers ────────────────────────────────────────────────
 
 function showApp(){
@@ -119,6 +122,8 @@ async function handleSignUp(){
 
 async function authSignOut(){
   console.log("[Auth] Signing out");
+  _currentUser     = null;
+  _onboardingShown = false;
   await SB.auth.signOut();
   S.brandCore = null;
   showAuthPage();
@@ -158,54 +163,62 @@ async function syncSubscriptionFromDB(){
 }
 
 async function onUserSignedIn(user){
-  console.log("[Auth] User signed in, loading data for:", user.id);
+  _currentUser = user;
+  console.log("[Auth] User signed in:", user.id);
   updateSidebarUser(user);
-  await loadBrandCoreFromDB();
-  await syncSubscriptionFromDB();
   showApp();
   navigate("dashboard");
-
-  // Initialise usage tracking and team nav visibility
+  // All background work fires in parallel — none delays the UI
+  loadBrandCoreFromDB(user);
+  syncSubscriptionFromDB();
   if(typeof initUsageTracking === "function") initUsageTracking(user);
-
-  // Show verification banner if email not yet confirmed
-  _checkEmailVerification(user);
-
-  // Check onboarding — show flow if first time
-  var completed = await checkOnboardingStatus(user.id);
-  if(!completed){
-    console.log("[Onboarding] First login — showing onboarding flow");
-    showOnboarding();
-  } else {
-    console.log("[Onboarding] Already completed — going straight to dashboard");
-  }
+  _loadUserProfile(user);
 }
 
-// ── Onboarding: status check ──────────────────────────────────
+// ── Profile: single consolidated query ───────────────────────
 
-async function checkOnboardingStatus(userId){
-  console.log("[Onboarding] Checking status for user:", userId);
+async function _loadUserProfile(user){
   try {
     var result = await SB.from("profiles")
-      .select("onboarding_completed")
-      .eq("id", userId)
+      .select("onboarding_completed, email_verified, created_at, subscription_status, pending_plan, pending_plan_date")
+      .eq("id", user.id)
       .maybeSingle();
     if(result.error) throw result.error;
-    if(!result.data){
-      console.log("[Onboarding] No profile row found — treating as new user");
-      return false;
+    var data = result.data;
+
+    // Email verification banner
+    if(data && !data.email_verified){
+      var createdAt   = data.created_at ? new Date(data.created_at) : new Date();
+      var daysElapsed = Math.floor((Date.now() - createdAt.getTime()) / (1000*60*60*24));
+      var daysLeft    = Math.max(0, 14 - daysElapsed);
+      _showVerifyBanner(daysLeft);
     }
-    console.log("[Onboarding] onboarding_completed:", result.data.onboarding_completed);
-    return result.data.onboarding_completed === true;
+
+    // Subscription sync from DB
+    if(data && data.subscription_status && S.currentPlan !== data.subscription_status){
+      S.currentPlan = data.subscription_status;
+      saveSettings();
+      if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(S.currentPlan);
+    }
+
+    // Onboarding — only show once per session
+    if(!_onboardingShown){
+      var completed = data ? data.onboarding_completed === true : false;
+      if(!completed){
+        _onboardingShown = true;
+        console.log("[Onboarding] First login — showing onboarding flow");
+        showOnboarding();
+      } else {
+        console.log("[Onboarding] Already completed — going straight to dashboard");
+      }
+    }
   } catch(err){
-    console.error("[Onboarding] Status check error:", err.message);
-    return true; // fail-safe: don't block user on error
+    console.error("[Profile] Load error (non-fatal):", err.message);
   }
 }
 
 async function markOnboardingComplete(){
-  var userResult = await SB.auth.getUser();
-  var user = userResult.data && userResult.data.user;
+  var user = _currentUser;
   if(!user) return;
   console.log("[Onboarding] Marking complete for user:", user.id);
   try {
@@ -236,10 +249,9 @@ function showOnboarding(){
     if(s){ s.classList.remove("ob-active","ob-exit"); }
   }
 
-  // Reset card and message animations
-  ["obCard1","obCard2","obCard3"].forEach(function(id){
-    var c = document.getElementById(id);
-    if(c) c.classList.remove("ob-card-in");
+  // Reset create-grid and message animations
+  document.querySelectorAll("#obCreateGrid .ob-create-item").forEach(function(item){
+    item.classList.remove("ob-create-in");
   });
   ["obMsg1","obMsg2","obMsg3"].forEach(function(id){
     var m = document.getElementById(id);
@@ -389,23 +401,6 @@ function obSkip(){
 
 // ── Email verification helpers ────────────────────────────────
 
-async function _checkEmailVerification(user){
-  try {
-    var result = await SB.from("profiles")
-      .select("email_verified, created_at")
-      .eq("id", user.id)
-      .maybeSingle();
-    if(result.error || !result.data) return;
-    if(result.data.email_verified) return;
-    var createdAt   = result.data.created_at ? new Date(result.data.created_at) : new Date();
-    var daysElapsed = Math.floor((Date.now() - createdAt.getTime()) / (1000*60*60*24));
-    var daysLeft    = Math.max(0, 14 - daysElapsed);
-    _showVerifyBanner(daysLeft);
-  } catch(err){
-    console.warn("[EmailVerify] Check error (non-fatal):", err.message);
-  }
-}
-
 function _showVerifyBanner(daysLeft){
   var banner = document.getElementById("verifyBanner");
   var text   = document.getElementById("verifyBannerText");
@@ -509,10 +504,13 @@ async function saveBCToDB(){
 
 // ── BrandCore: load from Supabase ────────────────────────────
 
-async function loadBrandCoreFromDB(){
+async function loadBrandCoreFromDB(user){
   if(typeof SB === "undefined"){ return; }
-  var userResult = await SB.auth.getUser();
-  var user = userResult.data && userResult.data.user;
+  if(!user) user = _currentUser;
+  if(!user){
+    var userResult = await SB.auth.getUser();
+    user = userResult.data && userResult.data.user;
+  }
   if(!user) return;
   console.log("[DB] Loading BrandCore from Supabase for user:", user.id);
   try {
@@ -685,7 +683,7 @@ document.addEventListener("DOMContentLoaded", async function(){
 
   if(session && session.user){
     console.log("[Auth] Session restored for:", session.user.id);
-    await onUserSignedIn(session.user);
+    onUserSignedIn(session.user);
   } else {
     console.log("[Auth] No session found — showing auth page");
     showAuthPage();
