@@ -480,12 +480,16 @@
 }
 .gt-tip-icon {
   width: 26px; height: 26px;
-  background: linear-gradient(135deg, #1A4229, #2D6A4F);
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.1);
   border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+  padding: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
 }
 .gt-tip-step {
   font-size: 11px;
@@ -673,11 +677,11 @@
 <div id="authOverlay" style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px">
   <div style="width:100%;max-width:420px">
     <div style="text-align:center;margin-bottom:36px">
-      <div style="display:inline-flex;align-items:center;gap:9px;margin-bottom:10px">
-        <div style="width:34px;height:34px;background:var(--gm,#1A4229);border-radius:8px;display:flex;align-items:center;justify-content:center">
-          <svg viewBox="0 0 14 14" width="14" height="14"><path d="M7 1L13 7L7 13L1 7Z" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="7" cy="7" r="2" fill="#fff" stroke="none"/></svg>
+      <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="width:38px;height:38px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;padding:5px;box-shadow:0 1px 6px rgba(0,0,0,.1)">
+          <img src="assets/orivenlogo.png" alt="ORIVEN" style="width:100%;height:100%;object-fit:contain;display:block">
         </div>
-        <span style="font-size:19px;font-weight:700;color:var(--charcoal,#18181A)">ORIVEN <span style="color:var(--gm,#1A4229)">AI</span></span>
+        <span style="font-size:19px;font-weight:700;color:var(--charcoal,#18181A)">ORIVEN</span>
       </div>
       <div style="font-size:13px;color:var(--muted,#888)">Your AI brand studio</div>
     </div>
@@ -809,7 +813,9 @@
       <div class="ob-orb-ring"></div>
       <div class="ob-orb-ring-2"></div>
       <div class="ob-orb-core">
-        <svg viewBox="0 0 14 14" width="26" height="26"><path d="M7 1L13 7L7 13L1 7Z" stroke="#52B788" stroke-width="1.5" fill="none"/><circle cx="7" cy="7" r="2" fill="#52B788" stroke="none"/></svg>
+        <div style="width:38px;height:38px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:5px">
+          <img src="assets/orivenlogo.png" alt="ORIVEN" style="width:100%;height:100%;object-fit:contain;display:block">
+        </div>
       </div>
     </div>
     <div class="ob-msg" id="obMsg1"><span class="ob-msg-dot"></span>I'll guide you every step of the way</div>
@@ -844,7 +850,9 @@
 
 <!-- AI Corner Orb — appears at step 4 of intro, reused by guide tour -->
 <div id="obCornerOrb">
-  <svg viewBox="0 0 14 14" width="18" height="18"><path d="M7 1L13 7L7 13L1 7Z" stroke="#52B788" stroke-width="1.5" fill="none"/><circle cx="7" cy="7" r="2" fill="#52B788" stroke="none"/></svg>
+  <div style="width:30px;height:30px;background:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:3px">
+    <img src="assets/orivenlogo.png" alt="ORIVEN" style="width:100%;height:100%;object-fit:contain;display:block">
+  </div>
 </div>
 
 <!-- Guide Tour: orb message bubble (appears above corner orb) -->
@@ -863,7 +871,7 @@
 <div id="gtTip">
   <div class="gt-tip-head">
     <div class="gt-tip-icon">
-      <svg viewBox="0 0 14 14" width="13" height="13"><path d="M7 1L13 7L7 13L1 7Z" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="7" cy="7" r="2" fill="#fff"/></svg>
+      <img src="assets/orivenlogo.png" alt="ORIVEN" style="width:100%;height:100%;object-fit:contain;display:block">
     </div>
     <span id="gtTipStep" class="gt-tip-step">1 / 6</span>
     <button class="gt-tip-close" onclick="gtSkipAll()" title="Skip tour">
