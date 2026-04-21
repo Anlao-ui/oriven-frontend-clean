@@ -340,13 +340,12 @@ function obNext(){
   obGoTo(_obStep + 1);
 }
 
-// Stagger the three feature cards into view
+// Stagger the six create-category items into view
 function _obAnimateCards(){
-  ["obCard1","obCard2","obCard3"].forEach(function(id, i){
-    var c = document.getElementById(id);
-    if(!c) return;
-    c.classList.remove("ob-card-in");
-    setTimeout(function(){ c.classList.add("ob-card-in"); }, i * 160);
+  var items = document.querySelectorAll("#obCreateGrid .ob-create-item");
+  items.forEach(function(item, i){
+    item.classList.remove("ob-create-in");
+    setTimeout(function(){ item.classList.add("ob-create-in"); }, i * 75);
   });
 }
 
