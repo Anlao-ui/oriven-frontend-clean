@@ -94,33 +94,21 @@ async function handleSignUp(){
   if(btn){ btn.disabled=true; btn.textContent="Creating account…"; }
   console.log("[Auth] Signing up:", email);
   try {
-    var result = await SB.auth.signUp({
-      email:email,
-      password:pass,
-      options:{ data:{ first_name:firstName, last_name:lastName, phone:phone||null } }
+    // Step 1: Create user via server (email_confirm:true bypasses Supabase's blocking gate)
+    var signupResp = await fetch(API_BASE_URL + "/api/signup", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ firstName, lastName, email, password: pass, phone: phone||null })
     });
+    var signupData = await signupResp.json();
+    if(!signupResp.ok) throw new Error(signupData.error || "Signup failed");
+
+    // Step 2: Sign in immediately — no email confirmation gate
+    var result = await SB.auth.signInWithPassword({ email, password: pass });
     if(result.error) throw result.error;
-    var user = result.data.user;
-    // Insert profile row
-    if(user){
-      var profileResult = await SB.from("profiles").insert({
-        id: user.id,
-        first_name: firstName,
-        last_name:  lastName,
-        email:      email,
-        phone:      phone || null
-      });
-      if(profileResult.error) console.warn("[Auth] Profile insert warning:", profileResult.error.message);
-      else console.log("[Auth] Profile created for:", user.id);
-    }
-    // If email confirmation is required, session will be null
-    if(result.data.session){
-      console.log("[Auth] Account created, session active:", user.id);
-      await onUserSignedIn(user);
-    } else {
-      showAuthError("signup","Account created! Check your email to confirm, then sign in.");
-      if(btn){ btn.disabled=false; btn.textContent="Create Account"; }
-    }
+
+    console.log("[Auth] Account created and signed in:", result.data.user.id);
+    await onUserSignedIn(result.data.user);
   } catch(err){
     console.error("[Auth] Sign up error:", err.message);
     showAuthError("signup", err.message);
@@ -180,6 +168,9 @@ async function onUserSignedIn(user){
 
   // Initialise usage tracking and team nav visibility
   if(typeof initUsageTracking === "function") initUsageTracking(user);
+
+  // Show verification banner if email not yet confirmed
+  _checkEmailVerification(user);
 
   // Check onboarding — show flow if first time
   var completed = await checkOnboardingStatus(user.id);
@@ -398,6 +389,95 @@ function obSkip(){
   hideOnboarding();
 }
 
+// ── Email verification helpers ────────────────────────────────
+
+async function _checkEmailVerification(user){
+  try {
+    var result = await SB.from("profiles")
+      .select("email_verified, created_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    if(result.error || !result.data) return;
+    if(result.data.email_verified) return;
+    var createdAt   = result.data.created_at ? new Date(result.data.created_at) : new Date();
+    var daysElapsed = Math.floor((Date.now() - createdAt.getTime()) / (1000*60*60*24));
+    var daysLeft    = Math.max(0, 14 - daysElapsed);
+    _showVerifyBanner(daysLeft);
+  } catch(err){
+    console.warn("[EmailVerify] Check error (non-fatal):", err.message);
+  }
+}
+
+function _showVerifyBanner(daysLeft){
+  var banner = document.getElementById("verifyBanner");
+  var text   = document.getElementById("verifyBannerText");
+  if(!banner) return;
+  if(text){
+    var timeStr;
+    if(daysLeft <= 0){
+      timeStr = " — your account may be removed soon";
+    } else if(daysLeft === 1){
+      timeStr = " — only 1 day remaining";
+    } else if(daysLeft <= 3){
+      timeStr = " — only " + daysLeft + " days remaining";
+    } else {
+      timeStr = " (" + daysLeft + " days remaining)";
+    }
+    text.textContent = "Please verify your email to keep your account active" + timeStr + ".";
+  }
+  banner.style.display = "flex";
+}
+
+function _hideVerifyBanner(){
+  var banner = document.getElementById("verifyBanner");
+  if(banner) banner.style.display = "none";
+}
+
+async function resendVerificationEmail(){
+  var btn = document.getElementById("verifyBannerResend");
+  if(btn){ btn.disabled = true; btn.textContent = "Sending…"; }
+  try {
+    var sessionResult = await SB.auth.getSession();
+    var session = sessionResult.data && sessionResult.data.session;
+    if(!session){ toast("Please sign in first"); return; }
+    var resp = await fetch(API_BASE_URL + "/api/resend-verification", {
+      method:  "POST",
+      headers: { "Authorization": "Bearer " + session.access_token }
+    });
+    var data = await resp.json();
+    if(!resp.ok) throw new Error(data.error || "Failed to send");
+    toast("Verification email sent — check your inbox");
+  } catch(err){
+    console.error("[EmailVerify] Resend error:", err.message);
+    toast("Could not send — " + err.message, "warn");
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = "Resend Email"; }
+  }
+}
+
+async function _handleVerifyToken(){
+  var params = new URLSearchParams(window.location.search);
+  var token  = params.get("verify_token");
+  if(!token) return;
+  history.replaceState(null, "", window.location.pathname);
+  try {
+    var resp = await fetch(API_BASE_URL + "/api/verify-email", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ token })
+    });
+    var data = await resp.json();
+    if(resp.ok && data.ok){
+      _hideVerifyBanner();
+      setTimeout(function(){ toast("Email verified — your account is confirmed!"); }, 600);
+    } else {
+      setTimeout(function(){ toast("Verification link is invalid or already used. Request a new one.", "warn"); }, 600);
+    }
+  } catch(err){
+    console.error("[EmailVerify] Token error:", err.message);
+  }
+}
+
 function updateSidebarUser(user){
   var meta      = user.user_metadata || {};
   var firstName = meta.first_name || user.email.split("@")[0];
@@ -583,6 +663,9 @@ async function selectPlan(plan){
 // ── Session restore on page load ─────────────────────────────
 
 document.addEventListener("DOMContentLoaded", async function(){
+  // Handle email verification token from verify link in email
+  await _handleVerifyToken();
+
   // Handle Stripe return URLs
   var params = new URLSearchParams(window.location.search);
   if(params.get("success") === "true"){

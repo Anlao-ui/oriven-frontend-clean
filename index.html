@@ -804,6 +804,20 @@
   </button>
 </div>
 
+<!-- ── Email verification banner — shown for unverified accounts ── -->
+<div class="verify-banner" id="verifyBanner" style="display:none" role="alert">
+  <svg class="verify-banner-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" width="16" height="16" aria-hidden="true">
+    <circle cx="10" cy="10" r="8.5"/>
+    <path d="M10 5.5v5" stroke-linecap="round"/>
+    <circle cx="10" cy="14" r=".7" fill="currentColor" stroke="none"/>
+  </svg>
+  <span class="verify-banner-text" id="verifyBannerText">Please verify your email to keep your account active.</span>
+  <button class="verify-banner-resend" id="verifyBannerResend" onclick="resendVerificationEmail()">Resend Email</button>
+  <button class="verify-banner-close" onclick="_hideVerifyBanner()" aria-label="Dismiss verification notice">
+    <svg viewBox="0 0 10 10" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l8 8M9 1L1 9"/></svg>
+  </button>
+</div>
+
 <div class="toast" id="toast"></div>
 <div id="sbOverlay" onclick="closeSidebar()"></div>
 <button id="sbToggle" onclick="toggleSidebar()" aria-label="Menu">
