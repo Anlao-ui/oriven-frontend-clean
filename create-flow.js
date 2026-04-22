@@ -44,6 +44,27 @@ var CF_FLOWS = {
       ]
     },
     {
+      key:  "imgIncludeText",
+      q:    "Do you want to include text in the image?",
+      desc: "Add a title, slogan, or message that should appear in the image.",
+      options: [
+        { val: "none",   label: "No text" },
+        { val: "title",  label: "Short title" },
+        { val: "slogan", label: "Slogan" },
+        { val: "custom", label: "Custom text" }
+      ]
+    },
+    {
+      key:          "imgTextContent",
+      q:            "What text should be included?",
+      desc:         "This text will be integrated into the image design.",
+      type:         "textarea",
+      placeholder:  "Type the exact text to include in the image…",
+      optional:     false,
+      conditional:  "imgIncludeText",
+      conditionalVal: "custom"
+    },
+    {
       key:  "imgFormat",
       q:    "What format do you need?",
       desc: "This sets the dimensions and aspect ratio of the output.",
@@ -439,6 +460,20 @@ function _cfAdvance(step, answerLabel){
     setTimeout(function(){
       _cfStep++;
       var steps = CF_FLOWS[_cfType];
+
+      // Skip conditional steps whose condition is not met
+      while(steps && _cfStep < steps.length){
+        var nextStep = steps[_cfStep];
+        if(nextStep && nextStep.conditional){
+          var condAnswer = _cfAnswers[nextStep.conditional];
+          if(!condAnswer || condAnswer.val !== nextStep.conditionalVal){
+            _cfStep++;
+            continue;
+          }
+        }
+        break;
+      }
+
       if(!steps || _cfStep >= steps.length){
         _cfLaunch();
         return;

@@ -519,9 +519,25 @@ function _buildImageBuilderPrompt(custom){
   // ── Priority 1: Core constraints (always included, never trimmed) ──────────
   var coreParts = [];
 
-  coreParts.push(
-    "NO TEXT IN IMAGE. Pure visual background — text overlaid in post-production. No logos, UI, or typographic elements."
-  );
+  // Text-in-image: drive the first constraint based on user choice
+  var includeText = b.imgIncludeText || "none";
+  if(includeText !== "none"){
+    var textMap = {
+      title:  "Include a short, clean title text in the image.",
+      slogan: "Include a slogan or tagline in the image.",
+      custom: 'Include this exact text in the image: "' + (b.imgTextContent || "").slice(0, 200) + '".'
+    };
+    coreParts.push(
+      (textMap[includeText] || "Include text in the image.")
+      + " Typography must be clean, professionally set, and naturally integrated into the composition — "
+      + "not a sticker, not a watermark, not floating over the image. "
+      + "Font style must complement the brand tone. Text must be fully legible and unobstructed."
+    );
+  } else {
+    coreParts.push(
+      "NO TEXT IN IMAGE. Pure visual background — text overlaid in post-production. No logos, UI, or typographic elements."
+    );
+  }
 
   coreParts.push(
     "Photorealistic commercial photography. Real motivated lighting (key light, fill, natural shadows). "
