@@ -1030,7 +1030,7 @@
             <span class="dash-card-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
           </button>
 
-          <button class="dash-card" onclick="openCreateWorkspace('campaign','campaign')">
+          <button class="dash-card" onclick="openAIFlow('campaign')">
             <span class="dash-card-ico">
               <svg viewBox="0 0 20 20"><path d="M3 15l3-8 3 5 2-3 4 6"/><circle cx="6" cy="7" r="1" fill="currentColor"/></svg>
             </span>
@@ -1066,7 +1066,7 @@
         </div>
         <div class="create-grid">
 
-          <div class="cblk cblk-image" onclick="openCreateWorkspace('image','poster')">
+          <div class="cblk cblk-image" onclick="openAIFlow('image')">
             <div class="cblk-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M3 16l5-5 4 4 3-3 5 5"/></svg></div>
             <div class="cblk-body">
               <div class="cblk-title" data-i18n="imageTitle">Image</div>
@@ -1075,7 +1075,7 @@
             <div class="cblk-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></div>
           </div>
 
-          <div class="cblk cblk-text" onclick="openCreateWorkspace('text','copy')">
+          <div class="cblk cblk-text" onclick="openAIFlow('text')">
             <div class="cblk-ico"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h13"/></svg></div>
             <div class="cblk-body">
               <div class="cblk-title" data-i18n="textTitle">Text</div>
@@ -1084,7 +1084,7 @@
             <div class="cblk-arr"><svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></div>
           </div>
 
-          <div class="cblk cblk-campaign" onclick="openCreateWorkspace('campaign','campaign')">
+          <div class="cblk cblk-campaign" onclick="openAIFlow('campaign')">
             <div class="cblk-ico"><svg viewBox="0 0 24 24"><path d="M3 17L7 7l4 6 3-4 5 8"/><circle cx="7" cy="7" r="1"/></svg></div>
             <div class="cblk-body">
               <div class="cblk-title" data-i18n="campaignTitle">Campaign</div>
@@ -2016,5 +2016,69 @@
 <script src="settings.js"></script>
 <script src="usage.js"></script>
 <script src="team.js"></script>
+<script src="create-flow.js"></script>
+
+<!-- ════════════════════════════════════════════════════════════
+     AI CONVERSATION FLOW OVERLAY
+     Used for: Image, Text, Campaign
+     ════════════════════════════════════════════════════════════ -->
+<div id="cfOverlay" class="cf-overlay" style="display:none" role="dialog" aria-modal="true" aria-label="AI Create Flow">
+  <div class="cf-panel">
+
+    <!-- Top bar -->
+    <div class="cf-topbar">
+      <div class="cf-type-pill">
+        <span class="cf-type-icon" id="cfTypeIcon"></span>
+        <span class="cf-type-label" id="cfTypeLabel">Image</span>
+      </div>
+      <button class="cf-close-btn" onclick="closeAIFlow()" aria-label="Close">
+        <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <path d="M1 1l10 10M11 1L1 11"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Progress track -->
+    <div class="cf-progress-track">
+      <div class="cf-progress-fill" id="cfProgressFill"></div>
+    </div>
+
+    <!-- Conversation history (answered questions) -->
+    <div class="cf-history" id="cfHistory"></div>
+
+    <!-- Stage: current question + answers -->
+    <div class="cf-stage">
+
+      <!-- AI question block -->
+      <div class="cf-question-block" id="cfQuestionBlock">
+        <div class="cf-avatar">
+          <img src="assets/orivenlogo.png" alt="ORIVEN AI" width="22" height="22">
+        </div>
+        <div class="cf-question-content">
+          <div class="cf-question-text" id="cfQuestionText"></div>
+          <div class="cf-question-desc" id="cfQuestionDesc"></div>
+        </div>
+      </div>
+
+      <!-- Pill options -->
+      <div class="cf-options" id="cfOptions"></div>
+
+      <!-- Free-text input (for textarea steps) -->
+      <div class="cf-free-input" id="cfFreeInput" style="display:none">
+        <textarea class="cf-textarea" id="cfTextarea" rows="3" placeholder="Type here…"></textarea>
+        <div class="cf-input-row">
+          <button class="cf-skip-btn" id="cfSkipBtn" onclick="cfSkipStep()">Skip</button>
+          <button class="cf-continue-btn" onclick="cfSubmitText()">
+            Continue
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 8h10M9 4l4 4-4 4"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 </body>
 </html>

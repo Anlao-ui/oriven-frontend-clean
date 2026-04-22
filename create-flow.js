@@ -1,0 +1,586 @@
+// ════════════════════════════════════════════════════════════════
+// AI CONVERSATION FLOW
+// Replaces the form-based builder for Image, Text, and Campaign.
+// Keys are aligned with S._builder / FLOWS in create.js so the
+// existing runBuilder() engine is used unchanged for generation.
+// ════════════════════════════════════════════════════════════════
+
+var CF_FLOWS = {
+
+  image: [
+    {
+      key:  "imgDesignType",
+      q:    "What kind of image do you need?",
+      desc: "This defines the type and purpose of the visual.",
+      options: [
+        { val: "product",      label: "Product Image" },
+        { val: "social",       label: "Social Post" },
+        { val: "poster",       label: "Poster" },
+        { val: "ad_creative",  label: "Ad Creative" },
+        { val: "promo",        label: "Promo Image" },
+        { val: "announcement", label: "Announcement" }
+      ]
+    },
+    {
+      key:  "imgPurpose",
+      q:    "What is the purpose of this image?",
+      desc: "Define how the image will be used — this shapes the composition and messaging.",
+      options: [
+        { val: "launch",       label: "Product Launch" },
+        { val: "promotion",    label: "Promotion" },
+        { val: "awareness",    label: "Brand Awareness" },
+        { val: "sales",        label: "Drive Sales" },
+        { val: "engagement",   label: "Engagement" },
+        { val: "introduction", label: "Introduction" }
+      ]
+    },
+    {
+      key:  "imgSubject",
+      q:    "Should this image include a person?",
+      desc: "Choose whether the image should feature a human subject.",
+      options: [
+        { val: "person", label: "Yes — include a person" },
+        { val: "no",     label: "No — brand visual only" }
+      ]
+    },
+    {
+      key:  "imgFormat",
+      q:    "What format do you need?",
+      desc: "This sets the dimensions and aspect ratio of the output.",
+      options: [
+        { val: "1:1",  label: "Square 1:1" },
+        { val: "4:5",  label: "Portrait 4:5" },
+        { val: "9:16", label: "Story 9:16" },
+        { val: "16:9", label: "Wide 16:9" }
+      ]
+    },
+    {
+      key:  "_extraNotes",
+      q:    "Anything else you'd like to add?",
+      desc: "The more specific your input, the better the final result.",
+      type: "textarea",
+      placeholder: "Describe any specific details, references, colors, lighting, or elements…",
+      optional: true
+    }
+  ],
+
+  text: [
+    {
+      key:  "txtType",
+      q:    "What type of content are you creating?",
+      desc: "This shapes the format, length, and structure of the output.",
+      options: [
+        { val: "headline",     label: "Headline" },
+        { val: "body_copy",    label: "Body Copy" },
+        { val: "caption",      label: "Social Caption" },
+        { val: "hook",         label: "Hook" },
+        { val: "ad_copy",      label: "Ad Copy" },
+        { val: "product_desc", label: "Product Description" }
+      ]
+    },
+    {
+      key:  "txtPurpose",
+      q:    "What is the purpose of this text?",
+      desc: "This defines the goal and shapes how the copy is written.",
+      options: [
+        { val: "launch",      label: "Product Launch" },
+        { val: "awareness",   label: "Build Awareness" },
+        { val: "conversion",  label: "Drive Conversions" },
+        { val: "engagement",  label: "Engage Audience" },
+        { val: "brand_intro", label: "Brand Introduction" },
+        { val: "promotion",   label: "Promotion" }
+      ]
+    },
+    {
+      key:  "_extraNotes",
+      q:    "Anything else you'd like to add?",
+      desc: "The more specific your input, the better the final result.",
+      type: "textarea",
+      placeholder: "Add context, key messages, product details, or anything specific…",
+      optional: true
+    }
+  ],
+
+  campaign: [
+    {
+      key:  "campType",
+      q:    "What type of campaign are you running?",
+      desc: "This defines the overarching strategy and campaign structure.",
+      options: [
+        { val: "launch",      label: "Product Launch" },
+        { val: "awareness",   label: "Brand Awareness" },
+        { val: "conversion",  label: "Conversion" },
+        { val: "promotion",   label: "Seasonal / Promo" },
+        { val: "retargeting", label: "Retargeting" }
+      ]
+    },
+    {
+      key:  "campChannel",
+      q:    "Which platform will this campaign run on?",
+      desc: "Select where this campaign will live and be distributed.",
+      options: [
+        { val: "meta",    label: "Meta / Facebook / Instagram" },
+        { val: "tiktok",  label: "TikTok" },
+        { val: "youtube", label: "YouTube" },
+        { val: "multi",   label: "Multi-platform" }
+      ]
+    },
+    {
+      key:  "campFormat",
+      q:    "What format do you need?",
+      desc: "This sets the dimensions across all campaign variations.",
+      options: [
+        { val: "square",     label: "Square 1:1" },
+        { val: "portrait",   label: "Portrait 4:5" },
+        { val: "story_reel", label: "Story / Reel" },
+        { val: "mixed",      label: "Mixed formats" }
+      ]
+    },
+    {
+      key:  "campSubject",
+      q:    "What is this campaign about?",
+      desc: "Knowing the subject shapes the creative angle and messaging.",
+      options: [
+        { val: "product", label: "Product" },
+        { val: "service", label: "Service" },
+        { val: "brand",   label: "Brand" },
+        { val: "offer",   label: "Offer / Deal" }
+      ]
+    },
+    {
+      key:  "campVariations",
+      q:    "How many ad variations do you want?",
+      desc: "Each variation is a unique creative angle within the campaign.",
+      options: [
+        { val: "2", label: "2 variations" },
+        { val: "3", label: "3 variations" },
+        { val: "4", label: "4 variations" }
+      ]
+    },
+    {
+      key:  "_extraNotes",
+      q:    "Anything else you'd like to add?",
+      desc: "The more specific your input, the better the final result.",
+      type: "textarea",
+      placeholder: "Describe your offer, audience, key messages, or any creative direction…",
+      optional: true
+    }
+  ]
+
+};
+
+// ── State ─────────────────────────────────────────────────────
+var _cfType      = null;
+var _cfStep      = 0;
+var _cfAnswers   = {};
+var _cfTypingId  = null;
+
+// ── Type label + icon map ─────────────────────────────────────
+var CF_META = {
+  image: {
+    label: "Image",
+    icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="16" height="16" rx="3.5"/><circle cx="7" cy="7" r="1.5"/><path d="M2 14l4.5-4.5 3.5 3.5 2.5-2.5 4 4"/></svg>'
+  },
+  text: {
+    label: "Text",
+    icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 6h14M3 10h9M3 14h11"/></svg>'
+  },
+  campaign: {
+    label: "Campaign",
+    icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14L6 6l3.5 5.5L12 8l4.5 7"/><circle cx="6" cy="6" r="1"/></svg>'
+  }
+};
+
+// ── Open ──────────────────────────────────────────────────────
+function openAIFlow(type){
+  _cfType    = type;
+  _cfStep    = 0;
+  _cfAnswers = {};
+
+  var meta  = CF_META[type] || CF_META.image;
+  var icon  = document.getElementById("cfTypeIcon");
+  var label = document.getElementById("cfTypeLabel");
+  if(icon)  icon.innerHTML = meta.icon;
+  if(label) label.textContent = meta.label;
+
+  // Clear state
+  var hist  = document.getElementById("cfHistory");
+  var opts  = document.getElementById("cfOptions");
+  var free  = document.getElementById("cfFreeInput");
+  var qTxt  = document.getElementById("cfQuestionText");
+  var qDesc = document.getElementById("cfQuestionDesc");
+  if(hist)  hist.innerHTML = "";
+  if(opts)  opts.innerHTML = "";
+  if(free)  free.style.display  = "none";
+  if(qTxt)  qTxt.textContent    = "";
+  if(qDesc) qDesc.textContent   = "";
+
+  // Reset progress
+  _cfUpdateProgress(0);
+
+  // Reset question block position
+  var block = document.getElementById("cfQuestionBlock");
+  if(block){
+    block.style.transition = "none";
+    block.style.opacity    = "0";
+    block.style.transform  = "translateY(20px)";
+  }
+
+  // Show overlay
+  var overlay = document.getElementById("cfOverlay");
+  if(!overlay) return;
+  overlay.style.display = "flex";
+  overlay.style.opacity = "0";
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      overlay.style.opacity = "1";
+      setTimeout(function(){ _cfShowStep(); }, 180);
+    });
+  });
+}
+
+// ── Close ─────────────────────────────────────────────────────
+function closeAIFlow(){
+  _cfStopTyping();
+  var overlay = document.getElementById("cfOverlay");
+  if(!overlay) return;
+  overlay.style.transition = "opacity 0.25s ease";
+  overlay.style.opacity = "0";
+  setTimeout(function(){ overlay.style.display = "none"; }, 260);
+}
+
+// ── Render current step ───────────────────────────────────────
+function _cfShowStep(){
+  var steps = CF_FLOWS[_cfType];
+  if(!steps) return;
+  var step = steps[_cfStep];
+  if(!step) return;
+
+  _cfUpdateProgress(_cfStep);
+
+  var qEl   = document.getElementById("cfQuestionText");
+  var dEl   = document.getElementById("cfQuestionDesc");
+  var opts  = document.getElementById("cfOptions");
+  var free  = document.getElementById("cfFreeInput");
+  var block = document.getElementById("cfQuestionBlock");
+
+  // Reset children
+  if(opts)  { opts.innerHTML = ""; opts.style.opacity = "1"; opts.style.transform = "none"; opts.style.transition = "none"; }
+  if(free)  { free.style.display = "none"; free.style.opacity = "1"; free.style.transform = "none"; }
+  if(qEl)   qEl.textContent = "";
+  if(dEl)   { dEl.textContent = ""; dEl.style.opacity = "0"; }
+
+  // Slide block in
+  if(block){
+    block.style.transition = "none";
+    block.style.opacity    = "0";
+    block.style.transform  = "translateY(18px)";
+    requestAnimationFrame(function(){
+      block.style.transition = "opacity 0.35s ease, transform 0.35s ease";
+      block.style.opacity    = "1";
+      block.style.transform  = "translateY(0)";
+    });
+  }
+
+  // Type the question text, then reveal desc + options
+  setTimeout(function(){
+    _cfTypeText(step.q, function(){
+      if(dEl){
+        dEl.textContent = step.desc || "";
+        dEl.style.transition = "opacity 0.4s ease";
+        dEl.style.opacity = "1";
+      }
+      setTimeout(function(){ _cfRenderOptions(step); }, 120);
+    });
+  }, 100);
+}
+
+// ── Typing animation ──────────────────────────────────────────
+function _cfTypeText(text, onDone){
+  _cfStopTyping();
+  var el = document.getElementById("cfQuestionText");
+  if(!el){ if(onDone) onDone(); return; }
+
+  var i     = 0;
+  var len   = text.length;
+  // Scale speed: 1000ms for short, 1600ms for very long — feels deliberate
+  var total = Math.max(900, Math.min(1800, len * 22));
+  var delay = Math.round(total / len);
+
+  el.textContent = "";
+  el.classList.add("cf-typing");
+
+  _cfTypingId = setInterval(function(){
+    el.textContent = text.slice(0, i + 1);
+    i++;
+    if(i >= len){
+      clearInterval(_cfTypingId);
+      _cfTypingId = null;
+      el.classList.remove("cf-typing");
+      if(onDone) onDone();
+    }
+  }, delay);
+}
+
+function _cfStopTyping(){
+  if(_cfTypingId){ clearInterval(_cfTypingId); _cfTypingId = null; }
+  var el = document.getElementById("cfQuestionText");
+  if(el) el.classList.remove("cf-typing");
+}
+
+// ── Render options ────────────────────────────────────────────
+function _cfRenderOptions(step){
+  var opts = document.getElementById("cfOptions");
+  var free = document.getElementById("cfFreeInput");
+  if(!opts) return;
+
+  if(step.type === "textarea"){
+    opts.innerHTML = "";
+    if(free){
+      var ta   = document.getElementById("cfTextarea");
+      var skip = document.getElementById("cfSkipBtn");
+      if(ta){ ta.value = ""; ta.setAttribute("placeholder", step.placeholder || "Type here…"); }
+      if(skip) skip.style.display = step.optional ? "" : "none";
+      free.style.display   = "";
+      free.style.opacity   = "0";
+      free.style.transform = "translateY(10px)";
+      free.style.transition = "none";
+      requestAnimationFrame(function(){
+        free.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+        free.style.opacity   = "1";
+        free.style.transform = "translateY(0)";
+      });
+      if(ta) setTimeout(function(){ ta.focus(); }, 320);
+    }
+    return;
+  }
+
+  // Pill options — staggered fade-in
+  var html = "";
+  (step.options || []).forEach(function(opt, i){
+    html += '<button class="cf-opt" style="animation-delay:' + (i * 45) + 'ms" '
+          + 'onclick="cfSelectOpt(' + i + ')">'
+          + _cfEsc(opt.label)
+          + '</button>';
+  });
+  opts.innerHTML = html;
+  opts.style.opacity   = "0";
+  opts.style.transform = "translateY(10px)";
+  opts.style.transition = "none";
+  requestAnimationFrame(function(){
+    opts.style.transition = "opacity 0.28s ease, transform 0.28s ease";
+    opts.style.opacity   = "1";
+    opts.style.transform = "translateY(0)";
+  });
+}
+
+// ── Option selected ───────────────────────────────────────────
+function cfSelectOpt(idx){
+  var steps = CF_FLOWS[_cfType];
+  if(!steps) return;
+  var step = steps[_cfStep];
+  if(!step || !step.options) return;
+  var opt = step.options[idx];
+  if(!opt) return;
+
+  // Visual feedback
+  var btns = document.querySelectorAll("#cfOptions .cf-opt");
+  btns.forEach(function(b, i){ b.classList.toggle("cf-opt-selected", i === idx); });
+  btns.forEach(function(b, i){ if(i !== idx) b.disabled = true; });
+
+  _cfAnswers[step.key] = { val: opt.val, label: opt.label };
+  setTimeout(function(){ _cfAdvance(step, opt.label); }, 340);
+}
+
+// ── Text submitted ────────────────────────────────────────────
+function cfSubmitText(){
+  var ta    = document.getElementById("cfTextarea");
+  var val   = ta ? ta.value.trim() : "";
+  var steps = CF_FLOWS[_cfType];
+  if(!steps) return;
+  var step  = steps[_cfStep];
+  if(!step) return;
+  _cfAnswers[step.key] = { val: val, label: val ? val.slice(0, 48) + (val.length > 48 ? "…" : "") : "Added details" };
+  _cfAdvance(step, _cfAnswers[step.key].label);
+}
+
+function cfSkipStep(){
+  var steps = CF_FLOWS[_cfType];
+  if(!steps) return;
+  var step  = steps[_cfStep];
+  if(!step) return;
+  _cfAnswers[step.key] = { val: "", label: "Skipped" };
+  _cfAdvance(step, "Skipped");
+}
+
+// ── Advance: move Q to history, show next ─────────────────────
+function _cfAdvance(step, answerLabel){
+  _cfStopTyping();
+
+  var block = document.getElementById("cfQuestionBlock");
+  var opts  = document.getElementById("cfOptions");
+  var free  = document.getElementById("cfFreeInput");
+
+  // Fade out options
+  if(opts){ opts.style.transition = "opacity 0.15s ease"; opts.style.opacity = "0"; }
+  if(free){ free.style.transition = "opacity 0.15s ease"; free.style.opacity = "0"; }
+
+  setTimeout(function(){
+    // Push to history
+    _cfAppendHistory(step.q, answerLabel);
+
+    // Slide question up and out
+    if(block){
+      block.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+      block.style.opacity    = "0";
+      block.style.transform  = "translateY(-14px)";
+    }
+
+    setTimeout(function(){
+      _cfStep++;
+      var steps = CF_FLOWS[_cfType];
+      if(!steps || _cfStep >= steps.length){
+        _cfLaunch();
+        return;
+      }
+
+      // Reset everything for next step
+      if(opts){ opts.innerHTML = ""; opts.style.opacity = "1"; opts.style.transform = "none"; }
+      if(free){ free.style.display = "none"; free.style.opacity = "1"; free.style.transform = "none"; }
+
+      _cfShowStep();
+    }, 220);
+  }, 160);
+}
+
+// ── Append answered question to history ───────────────────────
+function _cfAppendHistory(question, answer){
+  var hist = document.getElementById("cfHistory");
+  if(!hist) return;
+
+  var item = document.createElement("div");
+  item.className = "cf-hist-item";
+  item.innerHTML =
+    '<span class="cf-hist-q">' + _cfEsc(question) + '</span>'
+  + '<span class="cf-hist-sep">&#8250;</span>'
+  + '<span class="cf-hist-a">' + _cfEsc(answer) + '</span>';
+
+  hist.appendChild(item);
+  item.style.opacity   = "0";
+  item.style.transform = "translateY(-5px)";
+  item.style.transition = "none";
+  requestAnimationFrame(function(){
+    item.style.transition = "opacity 0.28s ease, transform 0.28s ease";
+    item.style.opacity   = "1";
+    item.style.transform = "translateY(0)";
+  });
+  hist.scrollTop = hist.scrollHeight;
+}
+
+// ── Update progress bar ───────────────────────────────────────
+function _cfUpdateProgress(stepIndex){
+  var steps = CF_FLOWS[_cfType];
+  var total = steps ? steps.length : 1;
+  var pct   = Math.round((stepIndex / total) * 100);
+  var fill  = document.getElementById("cfProgressFill");
+  if(fill) fill.style.width = pct + "%";
+}
+
+// ── Launch builder with conversation answers ──────────────────
+function _cfLaunch(){
+  // Show a brief "generating" state in the overlay before closing
+  var block = document.getElementById("cfQuestionBlock");
+  var opts  = document.getElementById("cfOptions");
+  var free  = document.getElementById("cfFreeInput");
+  var fill  = document.getElementById("cfProgressFill");
+
+  if(opts)  { opts.style.opacity = "0"; }
+  if(free)  { free.style.display = "none"; }
+  if(fill)  fill.style.width = "100%";
+
+  if(block){
+    block.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+    block.style.opacity    = "0";
+    block.style.transform  = "translateY(-10px)";
+  }
+
+  setTimeout(function(){
+    // Show generating message
+    var qEl   = document.getElementById("cfQuestionText");
+    var dEl   = document.getElementById("cfQuestionDesc");
+    if(qEl)   qEl.textContent = "Building your " + _cfType + "…";
+    if(dEl)   dEl.textContent = "Sending your brief to ORIVEN AI.";
+
+    if(block){
+      block.style.transition = "none";
+      block.style.opacity    = "0";
+      block.style.transform  = "translateY(12px)";
+      requestAnimationFrame(function(){
+        block.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+        block.style.opacity    = "1";
+        block.style.transform  = "translateY(0)";
+      });
+    }
+
+    setTimeout(function(){
+      closeAIFlow();
+      _cfDispatch();
+    }, 520);
+  }, 200);
+}
+
+// ── Transfer answers to S._builder and run generation ─────────
+function _cfDispatch(){
+  S._builderType = _cfType;
+  if(!S._builder) S._builder = {};
+
+  // Write all conversation answers into S._builder
+  Object.keys(_cfAnswers).forEach(function(key){
+    S._builder[key] = _cfAnswers[key].val;
+  });
+
+  // Fill defaults for fields builder expects that the conversation skips
+  if(_cfType === "image"){
+    if(!S._builder.imgFormat)    S._builder.imgFormat    = "1:1";
+    S._builder._hasText      = "no";
+    S._builder.imgTextStyle  = "clean";
+    S._builder.imgHeadline   = "";
+    S._builder.imgSubtext    = "";
+    S._builder.imgCta        = "";
+  } else if(_cfType === "campaign"){
+    if(!S._builder.campVariations) S._builder.campVariations = "3";
+    if(!S._builder.campFormat)     S._builder.campFormat = "square";
+    if(!S._builder.campSubject)    S._builder.campSubject = "brand";
+  }
+
+  // Set up builder page (matches openBuilder() setup)
+  var pill     = document.getElementById("flowBrandPill");
+  var pillName = document.getElementById("flowBrandName");
+  if(pill){
+    if(S.brandCore && S.brandCore.name){
+      pill.style.display = "";
+      if(pillName) pillName.textContent = S.brandCore.name;
+    } else {
+      pill.style.display = "none";
+    }
+  }
+
+  var resultWrap = document.getElementById("builderResultWrap");
+  if(resultWrap) resultWrap.style.display = "none";
+  S._lastBuilderResult = null;
+
+  // Initialize S._flow so _flowGenerate() doesn't crash on S._flow.answers
+  S._flow = { type: _cfType, stepIndex: 0, answers: {}, activeSteps: [] };
+
+  // Navigate then immediately trigger generation (skipping the flow wizard)
+  navigate("builder");
+  setTimeout(function(){ _flowGenerate(); }, 90);
+}
+
+// ── HTML escape ───────────────────────────────────────────────
+function _cfEsc(s){
+  return String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
