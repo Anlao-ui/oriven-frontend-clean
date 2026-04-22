@@ -543,13 +543,26 @@ function _buildImageBuilderPrompt(custom){
     var modelDesc = (b.imgModelDesc || "").trim();
     coreParts.push(
       "Include a person: authentically human, real skin, genuine expression, aspirational."
-      + (modelDesc ? " Details: " + modelDesc + "." : "")
+      + (modelDesc ? " Details: " + modelDesc + ". CRITICAL: Reproduce exactly — do not change gender, age, appearance, or expression." : "")
       + " Brand-aligned wardrobe and environment."
     );
   } else {
     coreParts.push(
       "No person. Brand-based visual — deliberate, premium, grounded in brand identity. Not abstract, not generic."
     );
+  }
+
+  // Creative brief (custom notes) — placed immediately after subject so DALL-E
+  // cannot drift from user-specified constraints even if the brand block is long.
+  if(custom){
+    var hasPersonKeyword = /\b(woman|man|girl|boy|person|model|human|child|people|female|male|she|he|they)\b/i.test(custom);
+    var hasPlaceKeyword  = /\b(beach|forest|office|city|studio|outdoor|indoor|kitchen|street|park|mountain|desert|room|store)\b/i.test(custom);
+    var enforcement = "CREATIVE BRIEF — REPRODUCE EXACTLY:\n" + custom.slice(0, 500);
+    enforcement += "\n\nCRITICAL ENFORCEMENT:";
+    if(hasPersonKeyword) enforcement += " Do not alter the described person's gender, age, demographic, or appearance.";
+    if(hasPlaceKeyword)  enforcement += " Do not alter the described location or setting.";
+    enforcement += " Do not introduce unrelated elements. Follow the brief literally and completely.";
+    coreParts.push(enforcement);
   }
 
   // Upload context
@@ -669,7 +682,13 @@ function _buildTextBuilderPrompt(custom){
   var ctx = purposeContext[b.txtPurpose || "awareness"];
   if(ctx) parts.push(ctx);
 
-  if(custom) parts.push("BRIEF: " + custom);
+  if(custom){
+    parts.push(
+      "BRIEF — FOLLOW EXACTLY:\n" + custom
+      + "\n\nCRITICAL: Write specifically and precisely for this brief. Do not generalize, reinterpret, or substitute. "
+      + "Every word must serve the stated purpose and audience."
+    );
+  }
 
   // BrandCore provides tone, audience, and voice — no manual tone selection needed
   if(bc && bc.name){
@@ -808,7 +827,13 @@ function _buildCampaignBuilderPrompt(custom){
   parts.push(formats[b.campFormat || "square"]    || formats.square);
   parts.push(subjects[b.campSubject || "brand"]   || subjects.brand);
 
-  if(custom) parts.push("CAMPAIGN BRIEF / SPECIFIC DETAILS: " + custom);
+  if(custom){
+    parts.push(
+      "CAMPAIGN BRIEF — FOLLOW EXACTLY:\n" + custom
+      + "\n\nCRITICAL: Build every variation specifically for this brief. Do not generalize the offer, audience, or product. "
+      + "The brief overrides any generic defaults — treat it as the primary creative directive."
+    );
+  }
 
   // BrandCore is the primary intelligence — applied across all variations
   if(bc && bc.name){
@@ -841,11 +866,16 @@ function _buildCampaignBuilderPrompt(custom){
 }
 
 function _buildBuilderPrompt(type){
-  // Extra notes come from the flow's _extraNotes answer
   var custom = "";
+  // 1. Flow wizard answers (original builder)
   if(S._flow && S._flow.answers && S._flow.answers._extraNotes){
     custom = (S._flow.answers._extraNotes || "").trim();
   }
+  // 2. AI conversation flow writes directly into S._builder
+  if(!custom && S._builder && S._builder._extraNotes){
+    custom = (S._builder._extraNotes || "").trim();
+  }
+  // 3. Legacy custom input field (create-workspace page)
   if(!custom){
     custom = ((document.getElementById("builderCustomInp") || {}).value || "").trim();
   }
@@ -1773,13 +1803,22 @@ async function runBuilder(){
     S._lastBuilderResult = { type: type, data: data };
     _showBuilderResult(type, data);
     if(saveBtn){ saveBtn.disabled = false; }
-    // Restore guide message after result
+
+    // Clear the generating spinner left in #flowStep by _flowGenerate()
+    var stepEl = document.getElementById("flowStep");
+    if(stepEl && stepEl.querySelector(".flow-generating")) stepEl.innerHTML = "";
+
     var msgEl = document.getElementById("flowGuideMessage");
-    if(msgEl) msgEl.textContent = "Here\u2019s your " + type + ". You can regenerate or save it to Studio.";
+    if(msgEl) msgEl.textContent = "Here’s your " + type + ". You can regenerate or save it to Studio.";
   } catch(e){
     console.error("[Builder/" + type + "] error:", e);
     if(resultBody) resultBody.innerHTML =
       '<div class="builder-error">Could not connect to ORIVEN services. Please try again.</div>';
+
+    // Clear spinner on error too
+    var stepEl2 = document.getElementById("flowStep");
+    if(stepEl2 && stepEl2.querySelector(".flow-generating")) stepEl2.innerHTML = "";
+
     var msgEl2 = document.getElementById("flowGuideMessage");
     if(msgEl2) msgEl2.textContent = "Something went wrong. Please try again.";
   }
