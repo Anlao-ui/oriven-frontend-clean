@@ -237,41 +237,39 @@ async function markOnboardingComplete(){
 // ── Onboarding: UI ────────────────────────────────────────────
 // Premium 4-step intro experience
 
-var _obStep = 1; // current step tracker
+var _obStep          = 1;
+var _obSelectedStyle  = null;
+var _obSelectedAction = null;
 
 function showOnboarding(){
   var el = document.getElementById("onboardingOverlay");
   if(!el) return;
 
-  _obStep = 1;
+  _obStep          = 1;
+  _obSelectedStyle  = null;
+  _obSelectedAction = null;
 
-  // Reset all steps: remove active/exit classes
-  for(var i = 1; i <= 4; i++){
+  // Reset all steps
+  for(var i = 1; i <= 5; i++){
     var s = document.getElementById("obStep" + i);
     if(s){ s.classList.remove("ob-active","ob-exit"); }
   }
 
-  // Reset create-grid and message animations
-  document.querySelectorAll("#obCreateGrid .ob-create-item").forEach(function(item){
-    item.classList.remove("ob-create-in");
-  });
-  ["obMsg1","obMsg2","obMsg3"].forEach(function(id){
-    var m = document.getElementById(id);
-    if(m) m.classList.remove("ob-msg-in");
-  });
+  // Reset selection state
+  document.querySelectorAll(".ob-style-card").forEach(function(c){ c.classList.remove("ob-selected","ob-card-in"); });
+  document.querySelectorAll(".ob-action-card").forEach(function(c){ c.classList.remove("ob-selected","ob-card-in"); });
+  var s2btn = document.getElementById("obStep2Btn");
+  var s3btn = document.getElementById("obStep3Btn");
+  if(s2btn) s2btn.disabled = true;
+  if(s3btn) s3btn.disabled = true;
 
-  // Hide corner orb
-  var orb = document.getElementById("obCornerOrb");
-  if(orb) orb.classList.remove("ob-orb-visible");
-
-  // Show overlay with fade-in
+  // Show overlay
   el.style.opacity = "0";
   el.style.display = "flex";
   el.style.transition = "opacity 0.45s ease";
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
       el.style.opacity = "1";
-      // Activate step 1 after overlay fades in
       setTimeout(function(){
         var s1 = document.getElementById("obStep1");
         if(s1) s1.classList.add("ob-active");
@@ -280,7 +278,7 @@ function showOnboarding(){
   });
 
   _obSetDots(1);
-  console.log("[Onboarding] Premium overlay shown — Step 1");
+  console.log("[Onboarding] Guided setup shown — Step 1");
 }
 
 function hideOnboarding(){
@@ -294,36 +292,25 @@ function hideOnboarding(){
       el.style.transition = "";
     }, 320);
   }
-  // Hide corner orb
-  var orb = document.getElementById("obCornerOrb");
-  if(orb) orb.classList.remove("ob-orb-visible");
 }
 
 function _obSetDots(active){
-  for(var i = 1; i <= 4; i++){
+  for(var i = 1; i <= 5; i++){
     var d = document.getElementById("obDot" + i);
     if(!d) continue;
-    if(i === active){
-      d.classList.add("ob-dot-active");
-    } else {
-      d.classList.remove("ob-dot-active");
-    }
+    if(i === active){ d.classList.add("ob-dot-active"); }
+    else { d.classList.remove("ob-dot-active"); }
   }
 }
 
-// Navigate to a specific step with smooth transition
 function obGoTo(step){
-  if(step < 1 || step > 4 || step === _obStep) return;
+  if(step < 1 || step > 5 || step === _obStep) return;
 
-  var prev = _obStep;
+  var prev   = _obStep;
   var prevEl = document.getElementById("obStep" + prev);
   var nextEl = document.getElementById("obStep" + step);
 
-  // Exit current step
-  if(prevEl){
-    prevEl.classList.add("ob-exit");
-    prevEl.classList.remove("ob-active");
-  }
+  if(prevEl){ prevEl.classList.add("ob-exit"); prevEl.classList.remove("ob-active"); }
 
   setTimeout(function(){
     if(prevEl) prevEl.classList.remove("ob-exit");
@@ -331,58 +318,53 @@ function obGoTo(step){
     if(nextEl){
       nextEl.classList.remove("ob-exit","ob-active");
       requestAnimationFrame(function(){
-        requestAnimationFrame(function(){
-          nextEl.classList.add("ob-active");
-        });
+        requestAnimationFrame(function(){ nextEl.classList.add("ob-active"); });
       });
     }
 
     _obStep = step;
     _obSetDots(step);
-
-    // Step-specific side effects
-    if(step === 2) _obAnimateCards();
-    if(step === 3) _obAnimateMsgs();
-    if(step === 4) _obShowCornerOrb();
+    if(step === 2) _obAnimateStyleCards();
+    if(step === 3) _obAnimateActionCards();
 
     console.log("[Onboarding] Step →", step);
   }, 300);
 }
 
-// Backward compat: obNext() still works
-function obNext(){
-  obGoTo(_obStep + 1);
-}
+function obNext(){ obGoTo(_obStep + 1); }
 
-// Stagger the six create-category items into view
-function _obAnimateCards(){
-  var items = document.querySelectorAll("#obCreateGrid .ob-create-item");
-  items.forEach(function(item, i){
-    item.classList.remove("ob-create-in");
-    setTimeout(function(){ item.classList.add("ob-create-in"); }, i * 75);
+function _obAnimateStyleCards(){
+  document.querySelectorAll("#obStyleGrid .ob-style-card").forEach(function(card, i){
+    card.classList.remove("ob-card-in");
+    setTimeout(function(){ card.classList.add("ob-card-in"); }, i * 80);
   });
 }
 
-// Stagger the AI assistant messages into view
-function _obAnimateMsgs(){
-  ["obMsg1","obMsg2","obMsg3"].forEach(function(id, i){
-    var m = document.getElementById(id);
-    if(!m) return;
-    m.classList.remove("ob-msg-in");
-    setTimeout(function(){ m.classList.add("ob-msg-in"); }, 350 + i * 520);
+function _obAnimateActionCards(){
+  document.querySelectorAll("#obActionList .ob-action-card").forEach(function(card, i){
+    card.classList.remove("ob-card-in");
+    setTimeout(function(){ card.classList.add("ob-card-in"); }, i * 90);
   });
 }
 
-// Pop the corner orb into the bottom-right
-function _obShowCornerOrb(){
-  var orb = document.getElementById("obCornerOrb");
-  if(orb){
-    setTimeout(function(){ orb.classList.add("ob-orb-visible"); }, 350);
-  }
+function _obSelectStyle(el, style){
+  _obSelectedStyle = style;
+  document.querySelectorAll(".ob-style-card").forEach(function(c){ c.classList.remove("ob-selected"); });
+  el.classList.add("ob-selected");
+  var btn = document.getElementById("obStep2Btn");
+  if(btn) btn.disabled = false;
+}
+
+function _obSelectAction(el, action){
+  _obSelectedAction = action;
+  document.querySelectorAll(".ob-action-card").forEach(function(c){ c.classList.remove("ob-selected"); });
+  el.classList.add("ob-selected");
+  var btn = document.getElementById("obStep3Btn");
+  if(btn) btn.disabled = false;
 }
 
 function obFinish(){
-  console.log("[Onboarding] User clicked Create your Brand");
+  console.log("[Onboarding] Complete — style:", _obSelectedStyle, "action:", _obSelectedAction);
   markOnboardingComplete();
   hideOnboarding();
   setTimeout(function(){
@@ -393,12 +375,6 @@ function obFinish(){
       setTimeout(function(){ if(typeof switchStudioTab==="function") switchStudioTab("brandcore"); }, 150);
     }
   }, 280);
-}
-
-function obSkip(){
-  console.log("[Onboarding] User skipped onboarding");
-  markOnboardingComplete();
-  hideOnboarding();
 }
 
 // ── Email verification helpers ────────────────────────────────
