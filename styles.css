@@ -2662,3 +2662,88 @@ body.dark-mode .cf-textarea:focus{ background:var(--surface); }
   .cf-hist-q{ max-width:140px; }
   .cf-hist-a{ max-width:130px; }
 }
+
+/* ════════════════════════════════════════════════════════════
+   MOBILE UX — iOS SAFE AREA + INPUT ZOOM + SCROLL FIXES
+   ════════════════════════════════════════════════════════════ */
+
+/* Fill iOS status bar with app background color */
+html{ background:#0B0B0B; }
+
+/* ── Hamburger: account for notch / status bar ── */
+@supports(padding-top:env(safe-area-inset-top)){
+  #sbToggle{
+    top:calc(10px + env(safe-area-inset-top));
+  }
+}
+
+/* ── Sidebar bottom: lift above home indicator bar ── */
+@supports(padding-bottom:env(safe-area-inset-bottom)){
+  .sb-bottom{
+    padding-bottom:calc(20px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ── Auth overlay: push content below the status bar ── */
+@supports(padding-top:env(safe-area-inset-top)){
+  #authOverlay{
+    padding-top:calc(24px + env(safe-area-inset-top)) !important;
+  }
+}
+
+/* ── iOS input zoom fix — font-size must be ≥ 16px on mobile ── */
+@media(max-width:768px){
+  .inp,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea{
+    font-size:16px !important;
+  }
+  /* Keep cf-textarea readable but still above 16px threshold */
+  .cf-textarea{ font-size:16px !important; }
+}
+
+/* ── Studio page: make scrollable on mobile ── */
+@media(max-width:768px){
+  #page-studio.active{
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .sh-outer{
+    height:auto;
+    min-height:100%;
+    justify-content:flex-start;
+    padding-top:80px;
+    padding-bottom:40px;
+  }
+}
+
+/* ── Inspiration page: make scrollable on mobile ── */
+@media(max-width:768px){
+  #page-inspiration.active{
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .id-outer{
+    height:auto;
+    min-height:100%;
+    justify-content:flex-start;
+    padding-top:80px;
+    padding-bottom:40px;
+  }
+}
+
+/* ── Create page: add safe-area top spacing ── */
+@media(max-width:768px){
+  @supports(padding-top:env(safe-area-inset-top)){
+    #page-create.active,
+    #page-create-workspace.active{
+      padding-top:calc(64px + env(safe-area-inset-top));
+    }
+  }
+}

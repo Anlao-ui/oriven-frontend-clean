@@ -70,6 +70,7 @@ async function handleSignIn(){
   if(btn){ btn.disabled=true; btn.textContent="Signing in…"; }
   console.log("[Auth] Signing in:", email);
   try {
+    document.activeElement && document.activeElement.blur();
     var result = await SB.auth.signInWithPassword({ email:email, password:pass });
     if(result.error) throw result.error;
     console.log("[Auth] Sign in successful:", result.data.user.id);
@@ -106,6 +107,7 @@ async function handleSignUp(){
     if(!signupResult.ok) throw new Error(signupResult.data.error || "Signup failed");
 
     // Step 2: Sign in immediately — no email confirmation gate
+    document.activeElement && document.activeElement.blur();
     var result = await SB.auth.signInWithPassword({ email, password: pass });
     if(result.error) throw result.error;
 
