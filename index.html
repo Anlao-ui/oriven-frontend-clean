@@ -1960,6 +1960,7 @@
 <link rel="stylesheet" href="styles.css">
 <script src="supabase.js"></script>
 <script src="auth.js"></script>
+<script src="guest.js"></script>
 <script src="guide.js"></script>
 <script src="app.js"></script>
 <script src="studio.js"></script>
@@ -2032,5 +2033,125 @@
     </div>
   </div>
 </div>
+
+<!-- ════════════════════════════════════════════════════════════
+     GUEST LANDING — unauthenticated hero (try before signup)
+     ════════════════════════════════════════════════════════════ -->
+<div id="guestLanding" style="display:none">
+
+  <!-- Fixed nav -->
+  <nav class="gl-nav">
+    <div class="gl-nav-logo">
+      <img src="assets/orivenlogo.png" alt="ORIVEN">
+      ORIVEN
+    </div>
+    <button class="gl-signin-link" onclick="_showGuestGate();_ggShow('login')">Sign in</button>
+  </nav>
+
+  <!-- Hero body -->
+  <div class="gl-body">
+    <p class="gl-eyebrow">AI Brand Platform</p>
+    <h1 class="gl-headline">Turn any idea into a<br>brand-ready visual.</h1>
+    <p class="gl-sub">Describe what you want. We build it — no account needed to try.</p>
+
+    <div class="gl-input-row">
+      <input
+        type="text"
+        id="guestPromptInput"
+        class="gl-input"
+        placeholder="e.g. Bold logo for a coffee brand…"
+        maxlength="300"
+        onkeydown="if(event.key==='Enter')_guestTry()"
+      >
+      <button class="gl-try-btn" id="guestTryBtn" onclick="_guestTry()">
+        <span id="guestTryLabel">Try it now</span>
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </button>
+    </div>
+    <p class="gl-disclaimer">One free generation &mdash; no credit card required.</p>
+
+    <!-- Result area (shown after generation) -->
+    <div class="gl-result-area" id="guestResultArea" style="display:none">
+      <div class="gl-result-img" id="guestResultImg"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     GUEST GATE MODAL — forced after 1 generation
+     No dismiss. Only exit: signup or login.
+     ════════════════════════════════════════════════════════════ -->
+<div id="guestGate" style="display:none">
+  <div class="gg-panel">
+
+    <!-- Optional preview image -->
+    <div class="gg-preview" id="ggPreview" style="display:none">
+      <img id="ggPreviewImg" src="" alt="Your creation">
+      <div class="gg-preview-label">
+        <span class="gg-preview-text">Your creation &mdash; save it free</span>
+      </div>
+    </div>
+
+    <!-- Main view -->
+    <div id="ggMain">
+      <div class="gg-check-wrap">
+        <svg viewBox="0 0 22 22" width="28" height="28" fill="none" stroke="#52B788" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 11l5 5 9-9"/>
+        </svg>
+      </div>
+      <h2 class="gg-title">Nice. This is how it works.</h2>
+      <p class="gg-sub">Create a free account to download your visual, generate more, and unlock your full brand toolkit.</p>
+      <div class="gg-cta-col">
+        <button class="gg-signup-btn" onclick="_guestSignupClick()">Create free account</button>
+        <button class="gg-login-link" onclick="_guestLoginClick()">Already have an account? Sign in</button>
+      </div>
+    </div>
+
+    <!-- Signup form -->
+    <div id="ggSignup" style="display:none">
+      <button class="gg-back-btn" onclick="_ggShow('main')">
+        <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2L4 6l4 4"/></svg>
+        Back
+      </button>
+      <div class="gg-form-title">Create your free account</div>
+      <div class="gg-field-row">
+        <div class="gg-field">
+          <input type="text" id="ggFirst" class="gg-input" placeholder="First name" autocomplete="given-name">
+        </div>
+        <div class="gg-field">
+          <input type="text" id="ggLast" class="gg-input" placeholder="Last name" autocomplete="family-name">
+        </div>
+      </div>
+      <div class="gg-field">
+        <input type="email" id="ggEmail" class="gg-input" placeholder="Email address" autocomplete="email">
+      </div>
+      <div class="gg-field">
+        <input type="password" id="ggPass" class="gg-input" placeholder="Password (min. 6 characters)" autocomplete="new-password">
+      </div>
+      <div class="gg-err" id="ggErr"></div>
+      <button class="gg-submit-btn" id="ggSignupBtn" onclick="_ggDoSignup()">Create free account</button>
+    </div>
+
+    <!-- Login form -->
+    <div id="ggLogin" style="display:none">
+      <button class="gg-back-btn" onclick="_ggShow('main')">
+        <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2L4 6l4 4"/></svg>
+        Back
+      </button>
+      <div class="gg-form-title">Sign in to your account</div>
+      <div class="gg-field">
+        <input type="email" id="ggLoginEmail" class="gg-input" placeholder="Email address" autocomplete="email">
+      </div>
+      <div class="gg-field">
+        <input type="password" id="ggLoginPass" class="gg-input" placeholder="Password" autocomplete="current-password">
+      </div>
+      <div class="gg-err" id="ggLoginErr"></div>
+      <button class="gg-submit-btn" id="ggLoginBtn" onclick="_ggDoLogin()">Sign in</button>
+    </div>
+
+  </div>
+</div>
+
 </body>
 </html>

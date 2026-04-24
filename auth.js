@@ -128,7 +128,7 @@ async function authSignOut(){
   _onboardingShown = false;
   await SB.auth.signOut();
   S.brandCore = null;
-  showAuthPage();
+  showGuestLanding();
   toast("Signed out");
 }
 
@@ -663,8 +663,8 @@ document.addEventListener("DOMContentLoaded", async function(){
     console.log("[Auth] Session restored for:", session.user.id);
     onUserSignedIn(session.user);
   } else {
-    console.log("[Auth] No session found — showing auth page");
-    showAuthPage();
+    console.log("[Auth] No session — showing guest landing");
+    showGuestLanding();
   }
 
   // React to future auth changes (e.g. session expiry)
@@ -672,7 +672,7 @@ document.addEventListener("DOMContentLoaded", async function(){
     console.log("[Auth] Auth state change:", event);
     if(event === "SIGNED_OUT"){
       S.brandCore = null;
-      showAuthPage();
+      showGuestLanding();
     }
   });
 });
