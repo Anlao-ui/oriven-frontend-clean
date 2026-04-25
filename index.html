@@ -644,158 +644,53 @@
     </button>
   </div>
 
-  <!-- ── STEP 2: Brand Style (mandatory selection) ───────────── -->
+  <!-- ── STEP 2: Feature highlights ───────────────────────────── -->
   <div class="ob-step" id="obStep2">
-    <p class="ob-eyebrow">Your Brand</p>
-    <h1 class="ob-h1 ob-h1-md">What's your style?</h1>
-    <p class="ob-sub" style="margin-bottom:24px">This defines how your content will look.</p>
-    <div class="ob-style-grid" id="obStyleGrid">
+    <p class="ob-eyebrow">Your Toolkit</p>
+    <h1 class="ob-h1 ob-h1-md">Three tools.<br>Built for brands.</h1>
+    <div class="ob-feat-list">
 
-      <div class="ob-style-card" id="obStyle-minimal" onclick="_obSelectStyle(this,'minimal')">
-        <div class="ob-style-card-dot" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14)">
-          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#52B788" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 10h6M10 7v6" stroke-linecap="round"/></svg>
+      <div class="ob-feat-item">
+        <div class="ob-feat-icon">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#52B788" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="4" width="14" height="11" rx="1.5"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/></svg>
         </div>
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
-          <div>
-            <div class="ob-style-card-name">Modern &amp; Minimal</div>
-            <div class="ob-style-card-desc">Clean lines, open space, neutral palette</div>
-          </div>
-          <svg class="ob-style-check" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#52B788" stroke-width="2.2"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div>
+          <div class="ob-feat-name">Studio</div>
+          <div class="ob-feat-desc">Save and manage everything you create.</div>
         </div>
       </div>
 
-      <div class="ob-style-card" id="obStyle-bold" onclick="_obSelectStyle(this,'bold')">
-        <div class="ob-style-card-dot" style="background:rgba(255,100,50,0.12);border:1px solid rgba(255,100,50,0.2)">
-          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#FF6432" stroke-width="1.5"><path d="M4 16L10 4l6 12H4z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="ob-feat-item">
+        <div class="ob-feat-icon">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#52B788" stroke-width="1.4" stroke-linecap="round"><path d="M10 2a4 4 0 0 1 1.6 7.67V11H8.4V9.67A4 4 0 0 1 10 2z"/><path d="M8.4 12.5h3.2M9 14.5h2"/></svg>
         </div>
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
-          <div>
-            <div class="ob-style-card-name">Bold &amp; Dynamic</div>
-            <div class="ob-style-card-desc">Strong contrast, high energy, vivid color</div>
-          </div>
-          <svg class="ob-style-check" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#52B788" stroke-width="2.2"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div>
+          <div class="ob-feat-name">Ideas</div>
+          <div class="ob-feat-desc">Get ready-to-use concepts and inspiration.</div>
         </div>
       </div>
 
-      <div class="ob-style-card" id="obStyle-elegant" onclick="_obSelectStyle(this,'elegant')">
-        <div class="ob-style-card-dot" style="background:rgba(212,175,120,0.12);border:1px solid rgba(212,175,120,0.2)">
-          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#D4AF78" stroke-width="1.5"><circle cx="10" cy="10" r="6"/><circle cx="10" cy="10" r="2.5"/></svg>
+      <div class="ob-feat-item">
+        <div class="ob-feat-icon">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#52B788" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="2.5"/><path d="M10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M4 4l1.5 1.5M14.5 14.5L16 16M4 16l1.5-1.5M14.5 5.5L16 4"/></svg>
         </div>
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
-          <div>
-            <div class="ob-style-card-name">Elegant &amp; Refined</div>
-            <div class="ob-style-card-desc">Premium feel, muted tones, editorial</div>
-          </div>
-          <svg class="ob-style-check" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#52B788" stroke-width="2.2"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-      </div>
-
-      <div class="ob-style-card" id="obStyle-creative" onclick="_obSelectStyle(this,'creative')">
-        <div class="ob-style-card-dot" style="background:rgba(147,51,234,0.12);border:1px solid rgba(147,51,234,0.2)">
-          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#9333EA" stroke-width="1.5"><path d="M10 3c0 4-3.5 6-7 7 3.5 1 7 3 7 7 0-4 3.5-6 7-7-3.5-1-7-3-7-7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
-          <div>
-            <div class="ob-style-card-name">Creative &amp; Playful</div>
-            <div class="ob-style-card-desc">Vibrant, expressive, unexpected visuals</div>
-          </div>
-          <svg class="ob-style-check" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#52B788" stroke-width="2.2"><path d="M3 8l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div>
+          <div class="ob-feat-name">Settings</div>
+          <div class="ob-feat-desc">Customize your brand and workflow.</div>
         </div>
       </div>
 
     </div>
-    <button class="ob-btn" id="obStep2Btn" onclick="obGoTo(3)" disabled>
-      Continue
-      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-    </button>
-  </div>
-
-  <!-- ── STEP 3: First Action ────────────────────────────────── -->
-  <div class="ob-step" id="obStep3">
-    <p class="ob-eyebrow">First Creation</p>
-    <h1 class="ob-h1 ob-h1-md">Let's create your<br>first image.</h1>
-    <p class="ob-sub" style="margin-bottom:24px">What kind of content do you need?</p>
-    <div class="ob-action-list" id="obActionList">
-
-      <div class="ob-action-card" id="obAction-social" onclick="_obSelectAction(this,'social')">
-        <div class="ob-action-icon">
-          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="#52B788" stroke-width="1.5"><rect x="2" y="3.5" width="16" height="13" rx="2.5"/><circle cx="7" cy="8.5" r="1.5"/><path d="M2 13.5l4-4 3.5 3.5 2.5-2.5 5.5 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div class="ob-action-text">
-          <div class="ob-action-name">Social Post</div>
-          <div class="ob-action-sub">Feed content, stories, reels cover</div>
-        </div>
-        <svg class="ob-action-arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-      </div>
-
-      <div class="ob-action-card" id="obAction-brand" onclick="_obSelectAction(this,'brand')">
-        <div class="ob-action-icon">
-          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="#52B788" stroke-width="1.5"><path d="M10 2l2.4 5.2H18l-4.4 3.4 1.7 5.4L10 13l-5.3 3 1.7-5.4L2 7.2h5.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div class="ob-action-text">
-          <div class="ob-action-name">Brand Visual</div>
-          <div class="ob-action-sub">Showcase your identity and aesthetic</div>
-        </div>
-        <svg class="ob-action-arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-      </div>
-
-      <div class="ob-action-card" id="obAction-promo" onclick="_obSelectAction(this,'promo')">
-        <div class="ob-action-icon">
-          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="#52B788" stroke-width="1.5"><rect x="2" y="4" width="12" height="10" rx="2"/><path d="M14 8l4-2v6l-4-2M7 9l2 2 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <div class="ob-action-text">
-          <div class="ob-action-name">Promotional</div>
-          <div class="ob-action-sub">Drive action, highlight your offer</div>
-        </div>
-        <svg class="ob-action-arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-      </div>
-
-    </div>
-    <button class="ob-btn" id="obStep3Btn" onclick="obGoTo(4)" disabled>
-      Continue
-      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-    </button>
-  </div>
-
-  <!-- ── STEP 4: Success Moment ─────────────────────────────── -->
-  <div class="ob-step" id="obStep4">
-    <div class="ob-success-wrap">
-      <svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="#52B788" stroke-width="2.5"><path d="M7 16l6 6 12-13" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </div>
-    <h1 class="ob-h1 ob-h1-md">Nice.<br>This is how it works.</h1>
-    <p class="ob-sub">You describe it. We build it.</p>
-    <button class="ob-btn" onclick="obGoTo(5)">
-      Continue
-      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-    </button>
-  </div>
-
-  <!-- ── STEP 5: Enter App ───────────────────────────────────── -->
-  <div class="ob-step" id="obStep5">
-    <div class="ob-ready-orb">
-      <div class="ob-ready-ring"></div>
-      <div class="ob-ready-ring-2"></div>
-      <div class="ob-ready-core">
-        <div style="width:42px;height:42px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:5px">
-          <img src="assets/orivenlogo.png" alt="ORIVEN" style="width:100%;height:100%;object-fit:contain;display:block">
-        </div>
-      </div>
-    </div>
-    <h1 class="ob-h1 ob-h1-md">You're ready.</h1>
-    <p class="ob-sub">Your brand studio is waiting.</p>
     <button class="ob-btn" style="padding:16px 52px;font-size:16px" onclick="obFinish()">
       Enter ORIVEN
       <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
     </button>
   </div>
 
-  <!-- Progress dots (5 steps) -->
+  <!-- Progress dots (2 steps) -->
   <div class="ob-dots">
     <div class="ob-dot ob-dot-active" id="obDot1"></div>
     <div class="ob-dot" id="obDot2"></div>
-    <div class="ob-dot" id="obDot3"></div>
-    <div class="ob-dot" id="obDot4"></div>
-    <div class="ob-dot" id="obDot5"></div>
   </div>
 
 </div>
@@ -2047,10 +1942,54 @@
     <div class="gob-intro-inner">
       <p class="gob-intro-eyebrow">ORIVEN</p>
       <h1 class="gob-intro-title">Welcome to ORIVEN</h1>
-      <p class="gob-intro-body">Create visuals, content, and campaigns —<br>without guessing prompts.</p>
-      <p class="gob-intro-sub">We'll show you how it works in seconds.</p>
+      <p class="gob-intro-body">Turn ideas into campaigns, content &amp; visuals — instantly.</p>
       <button class="gob-btn gob-btn-primary gob-intro-start" onclick="_guestOnboardStart()">
-        Get started
+        Let's start
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Overview: quick feature highlights (shown after intro) ── -->
+  <div class="gob-overview" id="gobOverview" style="display:none">
+    <div class="gov-card">
+      <p class="gov-eyebrow">What you get</p>
+      <h2 class="gov-title">Everything in one studio.</h2>
+      <div class="gov-list">
+
+        <div class="gov-item">
+          <div class="gov-icon">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#52B788" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M10 7v6M7 10h6"/></svg>
+          </div>
+          <div>
+            <div class="gov-name">Create</div>
+            <div class="gov-desc">Turn any idea into images, copy, and campaigns.</div>
+          </div>
+        </div>
+
+        <div class="gov-item">
+          <div class="gov-icon">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#52B788" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="4" width="14" height="11" rx="1.5"/><path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/></svg>
+          </div>
+          <div>
+            <div class="gov-name">Studio</div>
+            <div class="gov-desc">Save and manage everything you create.</div>
+          </div>
+        </div>
+
+        <div class="gov-item">
+          <div class="gov-icon">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#52B788" stroke-width="1.4" stroke-linecap="round"><path d="M10 2a4 4 0 0 1 1.6 7.67V11H8.4V9.67A4 4 0 0 1 10 2z"/><path d="M8.4 12.5h3.2M9 14.5h2"/></svg>
+          </div>
+          <div>
+            <div class="gov-name">Ideas</div>
+            <div class="gov-desc">Get ready-to-use concepts and inspiration.</div>
+          </div>
+        </div>
+
+      </div>
+      <button class="gob-btn gob-btn-primary" onclick="_guestOverviewContinue()">
+        Continue
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
       </button>
     </div>
@@ -2073,10 +2012,10 @@
   <!-- ── Step 2: create highlight ── -->
   <div class="gob-card" id="gobStep2" style="display:none">
     <div class="gob-step">Step 2 of 2</div>
-    <div class="gob-title">This is where everything starts.</div>
-    <div class="gob-text">Describe what you want — we build it.</div>
+    <div class="gob-title">Start with one idea.</div>
+    <div class="gob-text">Describe what you want — image, copy, campaign.</div>
     <button class="gob-btn gob-btn-primary" onclick="_guestOnboardCreate()">
-      Create your first image
+      Create your first result
       <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
     </button>
   </div>
@@ -2098,7 +2037,7 @@
       <div class="gcm-icon">
         <svg viewBox="0 0 22 22" width="22" height="22" fill="none" stroke="#52B788" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="2" width="18" height="18" rx="3"/><path d="M11 7v8M7 11h8"/></svg>
       </div>
-      <div class="gcm-title">Create your first image</div>
+      <div class="gcm-title">Start with one idea.</div>
       <div class="gcm-sub">No account needed — try it free.</div>
     </div>
 
@@ -2106,18 +2045,22 @@
       type="text"
       id="gcInput"
       class="gcm-input"
-      placeholder="e.g. Modern logo for a coffee brand…"
+      placeholder="Describe what you want to create…"
       maxlength="300"
       onkeydown="if(event.key==='Enter')_guestGenerate()"
     >
 
     <button id="gcGenBtn" class="gcm-gen-btn" onclick="_guestGenerate()">
-      <span id="gcGenLabel">Generate image</span>
+      <span id="gcGenLabel">Create your first result</span>
       <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
     </button>
 
     <div id="gcResultArea" style="display:none">
       <div id="gcResultImg" class="gcm-result-img"></div>
+      <div id="gcSecondaryResult" class="gcm-secondary" style="display:none">
+        <div class="gcm-secondary-label">Caption idea</div>
+        <div id="gcSecondaryText" class="gcm-secondary-text"></div>
+      </div>
     </div>
 
     <div class="gcm-footer">1 free generation &middot; No account needed</div>

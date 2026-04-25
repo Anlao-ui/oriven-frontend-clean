@@ -64,10 +64,10 @@ function _guestShowIntro(){
     overlay.style.transition = "opacity 0.35s ease";
     overlay.style.opacity    = "1";
   });
-  // Show intro, hide steps and spotlight
+  // Show intro, hide everything else
   var intro = document.getElementById("gobIntro");
   if(intro) { intro.style.display = "flex"; intro.style.opacity = "1"; }
-  ["gobStep1","gobStep2","gobSpotlight"].forEach(function(id){
+  ["gobOverview","gobStep1","gobStep2","gobSpotlight"].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.style.display = "none";
   });
@@ -80,8 +80,34 @@ function _guestOnboardStart(){
     intro.style.opacity    = "0";
     setTimeout(function(){
       intro.style.display = "none";
-      _guestOnboard(1);
+      _guestShowOverview();
     }, 250);
+  } else {
+    _guestShowOverview();
+  }
+}
+
+function _guestShowOverview(){
+  var ov = document.getElementById("gobOverview");
+  if(!ov) { _guestOnboard(1); return; }
+  ov.style.display   = "flex";
+  ov.style.opacity   = "0";
+  ov.style.transition = "";
+  requestAnimationFrame(function(){
+    ov.style.transition = "opacity 0.3s ease";
+    ov.style.opacity    = "1";
+  });
+}
+
+function _guestOverviewContinue(){
+  var ov = document.getElementById("gobOverview");
+  if(ov){
+    ov.style.transition = "opacity 0.22s ease";
+    ov.style.opacity    = "0";
+    setTimeout(function(){
+      ov.style.display = "none";
+      _guestOnboard(1);
+    }, 220);
   } else {
     _guestOnboard(1);
   }
@@ -132,9 +158,11 @@ function _guestOnboard(step){
     overlay.style.opacity    = "1";
   });
 
-  // Intro is only for the initial entry; hide it for steps 1 & 2
+  // Intro and overview are only for initial entry; hide them for steps 1 & 2
   var intro = document.getElementById("gobIntro");
   if(intro) intro.style.display = "none";
+  var ov = document.getElementById("gobOverview");
+  if(ov) ov.style.display = "none";
 
   var s1 = document.getElementById("gobStep1");
   var s2 = document.getElementById("gobStep2");
@@ -274,6 +302,9 @@ async function _guestGenerate(){
   if(labelEl)    labelEl.textContent = "Generating…";
   if(inputEl)    inputEl.disabled    = true;
   if(resultArea) resultArea.style.display = "";
+  var secEl     = document.getElementById("gcSecondaryResult");
+  var secTextEl = document.getElementById("gcSecondaryText");
+  if(secEl) secEl.style.display = "none";
   if(resultImg){
     resultImg.innerHTML =
       '<div class="gl-generating">'
@@ -301,7 +332,36 @@ async function _guestGenerate(){
         resultImg.innerHTML =
           '<img src="' + data.imageUrl + '" alt="Your creation" style="width:100%;display:block;border-radius:12px">';
       }
-      setTimeout(function(){ _showGuestGate(data.imageUrl); }, 900);
+
+      // Generate a caption alongside the image
+      if(labelEl) labelEl.textContent = "Adding caption…";
+      if(secEl && secTextEl){
+        secEl.style.display = "";
+        secTextEl.innerHTML =
+          '<span class="gl-gen-dots" style="display:inline-flex;gap:4px">'
+          + '<span></span><span></span><span></span>'
+          + '</span>';
+      }
+      try {
+        var textRes  = await fetch(API_BASE_URL + "/api/generate-text", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: "Write one short punchy social media caption (max 2 sentences) for this creative concept: " + prompt,
+            type:   "captions"
+          })
+        });
+        var textData = await textRes.json();
+        if(textData && textData.result && secTextEl){
+          secTextEl.textContent = textData.result;
+        } else {
+          if(secEl) secEl.style.display = "none";
+        }
+      } catch(textErr){
+        if(secEl) secEl.style.display = "none";
+      }
+
+      setTimeout(function(){ _showGuestGate(data.imageUrl); }, 1200);
     } else {
       _guestResetAfterError();
     }
@@ -319,7 +379,7 @@ function _guestResetAfterError(){
   var inputEl    = document.getElementById("gcInput");
   var resultArea = document.getElementById("gcResultArea");
   if(btn)        btn.disabled        = false;
-  if(labelEl)    labelEl.textContent = "Generate image";
+  if(labelEl)    labelEl.textContent = "Create your first result";
   if(inputEl)    inputEl.disabled    = false;
   if(resultArea) resultArea.style.display = "none";
   if(typeof toast === "function") toast("Could not generate — please try again.");

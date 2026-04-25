@@ -288,33 +288,21 @@ async function markOnboardingComplete(){
 }
 
 // ── Onboarding: UI ────────────────────────────────────────────
-// Premium 4-step intro experience
+// 2-step mini onboarding: intro → feature highlights → Enter ORIVEN
 
-var _obStep          = 1;
-var _obSelectedStyle  = null;
-var _obSelectedAction = null;
+var _obStep = 1;
 
 function showOnboarding(){
   var el = document.getElementById("onboardingOverlay");
   if(!el) return;
 
-  _obStep          = 1;
-  _obSelectedStyle  = null;
-  _obSelectedAction = null;
+  _obStep = 1;
 
-  // Reset all steps
-  for(var i = 1; i <= 5; i++){
+  // Reset steps
+  for(var i = 1; i <= 2; i++){
     var s = document.getElementById("obStep" + i);
     if(s){ s.classList.remove("ob-active","ob-exit"); }
   }
-
-  // Reset selection state
-  document.querySelectorAll(".ob-style-card").forEach(function(c){ c.classList.remove("ob-selected","ob-card-in"); });
-  document.querySelectorAll(".ob-action-card").forEach(function(c){ c.classList.remove("ob-selected","ob-card-in"); });
-  var s2btn = document.getElementById("obStep2Btn");
-  var s3btn = document.getElementById("obStep3Btn");
-  if(s2btn) s2btn.disabled = true;
-  if(s3btn) s3btn.disabled = true;
 
   // Show overlay
   el.style.opacity = "0";
@@ -331,7 +319,7 @@ function showOnboarding(){
   });
 
   _obSetDots(1);
-  console.log("[Onboarding] Guided setup shown — Step 1");
+  console.log("[Onboarding] Mini onboarding shown — Step 1");
 }
 
 function hideOnboarding(){
@@ -348,7 +336,7 @@ function hideOnboarding(){
 }
 
 function _obSetDots(active){
-  for(var i = 1; i <= 5; i++){
+  for(var i = 1; i <= 2; i++){
     var d = document.getElementById("obDot" + i);
     if(!d) continue;
     if(i === active){ d.classList.add("ob-dot-active"); }
@@ -357,7 +345,7 @@ function _obSetDots(active){
 }
 
 function obGoTo(step){
-  if(step < 1 || step > 5 || step === _obStep) return;
+  if(step < 1 || step > 2 || step === _obStep) return;
 
   var prev   = _obStep;
   var prevEl = document.getElementById("obStep" + prev);
@@ -377,55 +365,19 @@ function obGoTo(step){
 
     _obStep = step;
     _obSetDots(step);
-    if(step === 2) _obAnimateStyleCards();
-    if(step === 3) _obAnimateActionCards();
-
     console.log("[Onboarding] Step →", step);
   }, 300);
 }
 
-function obNext(){ obGoTo(_obStep + 1); }
-
-function _obAnimateStyleCards(){
-  document.querySelectorAll("#obStyleGrid .ob-style-card").forEach(function(card, i){
-    card.classList.remove("ob-card-in");
-    setTimeout(function(){ card.classList.add("ob-card-in"); }, i * 80);
-  });
-}
-
-function _obAnimateActionCards(){
-  document.querySelectorAll("#obActionList .ob-action-card").forEach(function(card, i){
-    card.classList.remove("ob-card-in");
-    setTimeout(function(){ card.classList.add("ob-card-in"); }, i * 90);
-  });
-}
-
-function _obSelectStyle(el, style){
-  _obSelectedStyle = style;
-  document.querySelectorAll(".ob-style-card").forEach(function(c){ c.classList.remove("ob-selected"); });
-  el.classList.add("ob-selected");
-  var btn = document.getElementById("obStep2Btn");
-  if(btn) btn.disabled = false;
-}
-
-function _obSelectAction(el, action){
-  _obSelectedAction = action;
-  document.querySelectorAll(".ob-action-card").forEach(function(c){ c.classList.remove("ob-selected"); });
-  el.classList.add("ob-selected");
-  var btn = document.getElementById("obStep3Btn");
-  if(btn) btn.disabled = false;
-}
-
 function obFinish(){
-  console.log("[Onboarding] Complete — style:", _obSelectedStyle, "action:", _obSelectedAction);
+  console.log("[Onboarding] Complete");
   markOnboardingComplete();
   hideOnboarding();
   setTimeout(function(){
     if(typeof gtStart === "function"){
       gtStart();
     } else {
-      navigate("studio");
-      setTimeout(function(){ if(typeof switchStudioTab==="function") switchStudioTab("brandcore"); }, 150);
+      navigate("create");
     }
   }, 280);
 }
