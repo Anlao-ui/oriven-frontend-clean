@@ -2035,47 +2035,102 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════════════
-     GUEST LANDING — unauthenticated hero (try before signup)
+     GUEST ONBOARDING — 2-step in-app guided intro
+     Step 1: Dashboard intro · Step 2: Create highlight
      ════════════════════════════════════════════════════════════ -->
-<div id="guestLanding" style="display:none">
+<div id="guestOnboard" style="display:none">
 
-  <!-- Fixed nav -->
-  <nav class="gl-nav">
-    <div class="gl-nav-logo">
-      <img src="assets/orivenlogo.png" alt="ORIVEN">
-      ORIVEN
-    </div>
-    <button class="gl-signin-link" onclick="_showGuestGate();_ggShow('login')">Sign in</button>
-  </nav>
+  <!-- Spotlight box (step 2 only, positioned via JS) -->
+  <div class="gob-spotlight" id="gobSpotlight"></div>
 
-  <!-- Hero body -->
-  <div class="gl-body">
-    <p class="gl-eyebrow">AI Brand Platform</p>
-    <h1 class="gl-headline">Turn any idea into a<br>brand-ready visual.</h1>
-    <p class="gl-sub">Describe what you want. We build it — no account needed to try.</p>
-
-    <div class="gl-input-row">
-      <input
-        type="text"
-        id="guestPromptInput"
-        class="gl-input"
-        placeholder="e.g. Bold logo for a coffee brand…"
-        maxlength="300"
-        onkeydown="if(event.key==='Enter')_guestTry()"
-      >
-      <button class="gl-try-btn" id="guestTryBtn" onclick="_guestTry()">
-        <span id="guestTryLabel">Try it now</span>
-        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-      </button>
-    </div>
-    <p class="gl-disclaimer">One free generation &mdash; no credit card required.</p>
-
-    <!-- Result area (shown after generation) -->
-    <div class="gl-result-area" id="guestResultArea" style="display:none">
-      <div class="gl-result-img" id="guestResultImg"></div>
-    </div>
+  <!-- Step 1: workspace intro -->
+  <div class="gob-card" id="gobStep1">
+    <div class="gob-step">Step 1 of 2</div>
+    <div class="gob-title">This is your workspace.</div>
+    <div class="gob-text">Everything you create will live here.</div>
+    <button class="gob-btn gob-btn-ghost" onclick="_guestOnboardNext()">
+      Continue
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </button>
   </div>
 
+  <!-- Step 2: create highlight -->
+  <div class="gob-card" id="gobStep2" style="display:none">
+    <div class="gob-step">Step 2 of 2</div>
+    <div class="gob-title">This is where everything starts.</div>
+    <div class="gob-text">Describe what you want — we build it.</div>
+    <button class="gob-btn gob-btn-primary" onclick="_guestOnboardCreate()">
+      Create your first image
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </button>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     GUEST CREATE MODAL — 1-shot generation, no account needed
+     ════════════════════════════════════════════════════════════ -->
+<div id="guestCreateModal" style="display:none">
+  <div class="gcm-panel">
+
+    <button class="gcm-back" onclick="_guestCreateBack()">
+      <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2L4 6l4 4"/></svg>
+      Back
+    </button>
+
+    <div class="gcm-top">
+      <div class="gcm-icon">
+        <svg viewBox="0 0 22 22" width="22" height="22" fill="none" stroke="#52B788" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="2" width="18" height="18" rx="3"/><path d="M11 7v8M7 11h8"/></svg>
+      </div>
+      <div class="gcm-title">Create your first image</div>
+      <div class="gcm-sub">No account needed — try it free.</div>
+    </div>
+
+    <input
+      type="text"
+      id="gcInput"
+      class="gcm-input"
+      placeholder="e.g. Modern logo for a coffee brand…"
+      maxlength="300"
+      onkeydown="if(event.key==='Enter')_guestGenerate()"
+    >
+
+    <button id="gcGenBtn" class="gcm-gen-btn" onclick="_guestGenerate()">
+      <span id="gcGenLabel">Generate image</span>
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </button>
+
+    <div id="gcResultArea" style="display:none">
+      <div id="gcResultImg" class="gcm-result-img"></div>
+    </div>
+
+    <div class="gcm-footer">1 free generation &middot; No account needed</div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     GUEST LOCK SCREEN — shown when locked tab is clicked
+     ════════════════════════════════════════════════════════════ -->
+<div id="guestLockScreen" style="display:none">
+  <div class="gls-panel">
+
+    <button class="gls-back" onclick="_hideGuestLockScreen()">
+      <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2L4 6l4 4"/></svg>
+      Back
+    </button>
+
+    <div class="gls-lock-icon">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="5" y="11" width="14" height="11" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    </div>
+    <div class="gls-title" id="glsTitle">Studio</div>
+    <div class="gls-desc" id="glsDesc">Save and manage everything you create.</div>
+    <p class="gls-unlock">Everything unlocks after signup.</p>
+
+    <button class="gls-cta" onclick="_showGuestGate()">Create account to unlock</button>
+    <button class="gls-login" onclick="_showGuestGate();setTimeout(function(){_ggShow('login')},50)">Already have an account? Sign in</button>
+
+  </div>
 </div>
 
 <!-- ════════════════════════════════════════════════════════════

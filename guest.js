@@ -1,78 +1,217 @@
 // ════════════════════════════════════════════════════════════
-// GUEST FLOW — one-shot try-before-signup
-// Journey: Land → single generation → gate modal → signup/login
-// State: localStorage "guestGenerationUsed" = "true"
+// GUEST FLOW — in-app try-before-signup experience
+// Journey: App loads → 2-step onboarding → Create 1 image → Gate → Signup
+// State:   localStorage "guestGenerationUsed" = "true"
 // ════════════════════════════════════════════════════════════
 
+var _isGuestMode       = false;
 var _guestLastImageUrl = null;
 var _guestGenerating   = false;
+var _originalNavigate  = null;
 
-// ── Show landing (called by auth.js instead of showAuthPage) ──
+// ── Entry point (called from auth.js DOMContentLoaded + signout) ──
 
 function showGuestLanding(){
-  var landing = document.getElementById("guestLanding");
-  var app     = document.querySelector(".app");
-  var authOvr = document.getElementById("authOverlay");
-  if(landing) landing.style.display = "flex";
-  if(app)     app.style.display     = "none";
-  if(authOvr) authOvr.style.display = "none";
+  _isGuestMode = true;
 
+  // Show the real app UI — guests land directly inside
+  showApp();
+
+  // Hook navigate() to intercept locked tabs
+  if(typeof navigate === "function" && !_originalNavigate){
+    _originalNavigate = navigate;
+    navigate = function(page){
+      var locked = ["studio","inspiration","settings","usage","team"];
+      if(_isGuestMode && locked.indexOf(page) !== -1){
+        _showGuestLockScreen(page);
+        return;
+      }
+      _originalNavigate(page);
+    };
+  }
+
+  // Add capture-phase click interceptor on locked sidebar items
+  _guestInstallTabGuard();
+
+  // Land on dashboard
+  if(typeof _originalNavigate === "function") _originalNavigate("dashboard");
+
+  // Already generated on a prior visit → go straight to gate
   if(localStorage.getItem("guestGenerationUsed") === "true"){
-    _showGuestGate();
+    setTimeout(function(){ _showGuestGate(); }, 400);
+    return;
+  }
+
+  // Start 2-step onboarding
+  setTimeout(function(){ _guestOnboard(1); }, 500);
+}
+
+// Kept for backwards-compat
+function hideGuestLanding(){}
+
+// ── Tab guard — intercept locked sidebar items ────────────────
+
+function _guestInstallTabGuard(){
+  var locked = ["studio","inspiration","settings","usage","team"];
+  document.querySelectorAll(".ni[data-page]").forEach(function(ni){
+    if(locked.indexOf(ni.dataset.page) !== -1){
+      ni.addEventListener("click", _guestTabGuardHandler, true);
+    }
+  });
+}
+
+function _guestTabGuardHandler(e){
+  if(!_isGuestMode) return;
+  e.stopPropagation();
+  e.preventDefault();
+  _showGuestLockScreen(this.dataset.page);
+}
+
+function _guestRemoveTabGuard(){
+  var locked = ["studio","inspiration","settings","usage","team"];
+  document.querySelectorAll(".ni[data-page]").forEach(function(ni){
+    if(locked.indexOf(ni.dataset.page) !== -1){
+      ni.removeEventListener("click", _guestTabGuardHandler, true);
+    }
+  });
+}
+
+// ── Guest Onboarding (2 steps before first generation) ────────
+
+function _guestOnboard(step){
+  var overlay = document.getElementById("guestOnboard");
+  if(!overlay) return;
+
+  // Step 1: dim full screen; step 2: spotlight handles darkness
+  if(step === 1) overlay.classList.add("gob-dim");
+  else           overlay.classList.remove("gob-dim");
+
+  overlay.style.display   = "block";
+  overlay.style.opacity   = "0";
+  overlay.style.transition = "";
+  requestAnimationFrame(function(){
+    overlay.style.transition = "opacity 0.3s ease";
+    overlay.style.opacity    = "1";
+  });
+
+  var s1 = document.getElementById("gobStep1");
+  var s2 = document.getElementById("gobStep2");
+  if(s1) s1.style.display = step === 1 ? "" : "none";
+  if(s2) s2.style.display = step === 2 ? "" : "none";
+
+  if(step === 2){
+    _guestSpotlightCreate();
+  } else {
+    var spotlight = document.getElementById("gobSpotlight");
+    if(spotlight) spotlight.style.display = "none";
   }
 }
 
-function hideGuestLanding(){
-  var el = document.getElementById("guestLanding");
-  if(el) el.style.display = "none";
+function _guestSpotlightCreate(){
+  var createNi  = document.querySelector(".ni[data-page='create']");
+  var spotlight = document.getElementById("gobSpotlight");
+  var card      = document.getElementById("gobStep2");
+  if(!spotlight || !createNi) return;
+
+  var r  = createNi.getBoundingClientRect();
+  var vw = window.innerWidth;
+
+  if(r.width > 0 && r.height > 0){
+    spotlight.style.top    = (r.top    - 6)  + "px";
+    spotlight.style.left   = (r.left   - 6)  + "px";
+    spotlight.style.width  = (r.width  + 12) + "px";
+    spotlight.style.height = (r.height + 12) + "px";
+    spotlight.style.display = "block";
+
+    // On desktop: float card to the right of the sidebar
+    if(card && vw > 600){
+      var cardLeft = Math.min(r.right + 20, vw - 360);
+      var cardTop  = Math.max(r.top   - 20, 20);
+      card.style.left      = cardLeft + "px";
+      card.style.top       = cardTop  + "px";
+      card.style.bottom    = "";
+      card.style.transform = "";
+    }
+  }
 }
 
-// ── "Try it now" ──────────────────────────────────────────────
+function _guestOnboardNext(){
+  _guestOnboard(2);
+}
 
-async function _guestTry(){
+function _guestOnboardCreate(){
+  var overlay = document.getElementById("guestOnboard");
+  if(overlay){
+    overlay.style.opacity = "0";
+    setTimeout(function(){ overlay.style.display = "none"; }, 280);
+  }
+  if(typeof _originalNavigate === "function") _originalNavigate("create");
+  setTimeout(function(){ _guestShowCreateModal(); }, 250);
+}
+
+// ── Guest Create Modal ────────────────────────────────────────
+
+function _guestShowCreateModal(){
+  var modal = document.getElementById("guestCreateModal");
+  if(!modal) return;
+  modal.style.display   = "flex";
+  modal.style.opacity   = "0";
+  modal.style.transition = "";
+  requestAnimationFrame(function(){
+    modal.style.transition = "opacity 0.3s ease";
+    modal.style.opacity    = "1";
+  });
+  var inp = document.getElementById("gcInput");
+  if(inp) setTimeout(function(){ inp.focus(); }, 350);
+}
+
+function _guestCreateBack(){
+  var modal = document.getElementById("guestCreateModal");
+  if(modal){
+    modal.style.opacity = "0";
+    setTimeout(function(){ modal.style.display = "none"; }, 280);
+  }
+  if(typeof _originalNavigate === "function") _originalNavigate("dashboard");
+}
+
+async function _guestGenerate(){
   if(_guestGenerating) return;
 
-  var inputEl = document.getElementById("guestPromptInput");
+  var inputEl = document.getElementById("gcInput");
   var prompt  = inputEl ? inputEl.value.trim() : "";
 
   if(!prompt){
     if(inputEl){
-      inputEl.focus();
-      inputEl.style.transition = "border-color 0.15s";
+      inputEl.style.transition  = "border-color 0.15s";
       inputEl.style.borderColor = "var(--gm)";
+      setTimeout(function(){ inputEl.style.borderColor = ""; }, 1200);
     }
     return;
   }
 
-  // Already used — go straight to gate
   if(localStorage.getItem("guestGenerationUsed") === "true"){
-    _showGuestGate();
-    return;
+    _showGuestGate(); return;
   }
 
   _guestGenerating = true;
   localStorage.setItem("guestGenerationUsed", "true");
 
-  var labelEl = document.getElementById("guestTryLabel");
-  var btn     = document.getElementById("guestTryBtn");
-  if(btn)     btn.disabled    = true;
-  if(labelEl) labelEl.textContent = "Generating…";
-  if(inputEl) inputEl.disabled = true;
+  var btn        = document.getElementById("gcGenBtn");
+  var labelEl    = document.getElementById("gcGenLabel");
+  var resultArea = document.getElementById("gcResultArea");
+  var resultImg  = document.getElementById("gcResultImg");
 
-  // Show loading
-  var resultArea = document.getElementById("guestResultArea");
-  var resultImg  = document.getElementById("guestResultImg");
+  if(btn)        btn.disabled        = true;
+  if(labelEl)    labelEl.textContent = "Generating…";
+  if(inputEl)    inputEl.disabled    = true;
   if(resultArea) resultArea.style.display = "";
   if(resultImg){
     resultImg.innerHTML =
       '<div class="gl-generating">'
-    + '<div class="gl-gen-dots"><span></span><span></span><span></span></div>'
-    + '<span>Creating your visual…</span>'
-    + '</div>';
+      + '<div class="gl-gen-dots"><span></span><span></span><span></span></div>'
+      + '<span>Creating your visual…</span>'
+      + '</div>';
   }
-  setTimeout(function(){
-    if(resultArea) resultArea.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, 200);
 
   try {
     var res  = await fetch(API_BASE_URL + "/api/generate-image", {
@@ -91,9 +230,8 @@ async function _guestTry(){
       _guestLastImageUrl = data.imageUrl;
       if(resultImg){
         resultImg.innerHTML =
-          '<img src="' + data.imageUrl + '" alt="Your creation" style="width:100%;display:block">';
+          '<img src="' + data.imageUrl + '" alt="Your creation" style="width:100%;display:block;border-radius:12px">';
       }
-      // Let user see the result for ~900ms, then show gate
       setTimeout(function(){ _showGuestGate(data.imageUrl); }, 900);
     } else {
       _guestResetAfterError();
@@ -107,18 +245,62 @@ async function _guestTry(){
 function _guestResetAfterError(){
   localStorage.removeItem("guestGenerationUsed");
   _guestGenerating = false;
-  var labelEl    = document.getElementById("guestTryLabel");
-  var btn        = document.getElementById("guestTryBtn");
-  var inputEl    = document.getElementById("guestPromptInput");
-  var resultArea = document.getElementById("guestResultArea");
-  if(btn)        btn.disabled         = false;
-  if(labelEl)    labelEl.textContent  = "Try it now";
-  if(inputEl)    inputEl.disabled     = false;
+  var btn        = document.getElementById("gcGenBtn");
+  var labelEl    = document.getElementById("gcGenLabel");
+  var inputEl    = document.getElementById("gcInput");
+  var resultArea = document.getElementById("gcResultArea");
+  if(btn)        btn.disabled        = false;
+  if(labelEl)    labelEl.textContent = "Generate image";
+  if(inputEl)    inputEl.disabled    = false;
   if(resultArea) resultArea.style.display = "none";
   if(typeof toast === "function") toast("Could not generate — please try again.");
 }
 
-// ── Gate modal ────────────────────────────────────────────────
+// ── Locked Tab Screen ─────────────────────────────────────────
+
+function _showGuestLockScreen(page){
+  var titles = {
+    studio:      "Brand Studio",
+    inspiration: "Ideas",
+    settings:    "Settings",
+    usage:       "Usage",
+    team:        "Team"
+  };
+  var descs = {
+    studio:      "Save and manage everything you create. Your brand assets, campaigns, and creative history — all in one place.",
+    inspiration: "Get ready-to-use concepts and creative ideas tailored to your brand style.",
+    settings:    "Customize your brand identity, workspace, and preferences.",
+    usage:       "Track your generation usage and plan limits.",
+    team:        "Invite your team and collaborate on brand creation together."
+  };
+
+  var titleEl = document.getElementById("glsTitle");
+  var descEl  = document.getElementById("glsDesc");
+  if(titleEl) titleEl.textContent = titles[page] || page;
+  if(descEl)  descEl.textContent  = descs[page]  || "";
+
+  var screen = document.getElementById("guestLockScreen");
+  if(!screen) return;
+  screen.style.display   = "flex";
+  screen.style.opacity   = "0";
+  screen.style.transition = "";
+  requestAnimationFrame(function(){
+    screen.style.transition = "opacity 0.25s ease";
+    screen.style.opacity    = "1";
+  });
+}
+
+function _hideGuestLockScreen(){
+  var screen = document.getElementById("guestLockScreen");
+  if(!screen) return;
+  screen.style.opacity = "0";
+  setTimeout(function(){
+    screen.style.display = "none";
+    if(typeof _originalNavigate === "function") _originalNavigate("dashboard");
+  }, 250);
+}
+
+// ── Gate Modal (post-generation, no dismiss) ───────────────────
 
 function _showGuestGate(imageUrl){
   var gate = document.getElementById("guestGate");
@@ -135,9 +317,9 @@ function _showGuestGate(imageUrl){
   }
 
   _ggShow("main");
-
-  gate.style.display = "flex";
-  gate.style.opacity = "0";
+  gate.style.display   = "flex";
+  gate.style.opacity   = "0";
+  gate.style.transition = "";
   requestAnimationFrame(function(){
     gate.style.transition = "opacity 0.3s ease";
     gate.style.opacity    = "1";
@@ -150,7 +332,6 @@ function _ggShow(view){
     var el = document.getElementById("gg" + v.charAt(0).toUpperCase() + v.slice(1));
     if(el) el.style.display = v === view ? "" : "none";
   });
-  // Clear errors on every view switch
   ["ggErr","ggLoginErr"].forEach(function(id){
     var el = document.getElementById(id);
     if(el){ el.textContent = ""; el.style.display = "none"; }
@@ -227,8 +408,26 @@ async function _ggDoLogin(){
 // ── After guest signs in or signs up ─────────────────────────
 
 function _guestOnSignedIn(user){
-  hideGuestLanding();
-  var gate = document.getElementById("guestGate");
-  if(gate){ gate.style.opacity = "0"; setTimeout(function(){ gate.style.display = "none"; }, 300); }
+  _isGuestMode = false;
+
+  // Restore original navigate
+  if(_originalNavigate){
+    navigate = _originalNavigate;
+    _originalNavigate = null;
+  }
+
+  // Remove tab guards
+  _guestRemoveTabGuard();
+
+  // Close all guest overlays
+  ["guestGate","guestCreateModal","guestOnboard","guestLockScreen"].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){
+      el.style.opacity = "0";
+      setTimeout(function(){ el.style.display = "none"; }, 300);
+    }
+  });
+
+  // Hand off to normal auth flow — triggers onboarding check
   onUserSignedIn(user);
 }
