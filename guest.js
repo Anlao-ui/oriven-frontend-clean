@@ -146,10 +146,8 @@ function _guestOnboard(step){
   var overlay = document.getElementById("guestOnboard");
   if(!overlay) return;
 
-  // Step 1: dim full screen; step 2: spotlight handles darkness
-  if(step === 1) overlay.classList.add("gob-dim");
-  else           overlay.classList.remove("gob-dim");
-
+  // Spotlight creates its own darkness — no full-screen dim needed
+  overlay.classList.remove("gob-dim");
   overlay.style.display   = "block";
   overlay.style.opacity   = "0";
   overlay.style.transition = "";
@@ -158,7 +156,7 @@ function _guestOnboard(step){
     overlay.style.opacity    = "1";
   });
 
-  // Intro and overview are only for initial entry; hide them for steps 1 & 2
+  // Intro and overview only show during initial entry
   var intro = document.getElementById("gobIntro");
   if(intro) intro.style.display = "none";
   var ov = document.getElementById("gobOverview");
@@ -169,39 +167,48 @@ function _guestOnboard(step){
   if(s1) s1.style.display = step === 1 ? "" : "none";
   if(s2) s2.style.display = step === 2 ? "" : "none";
 
-  if(step === 2){
-    _guestSpotlightCreate();
+  if(step === 1)      _guestSpotlightDashboard();
+  else if(step === 2) _guestSpotlightCreate();
+}
+
+// Shared card positioning helper — anchors card to the right of the sidebar
+function _gobPositionCard(card, targetRect){
+  var sidebar = document.getElementById("sidebar");
+  var vw = window.innerWidth;
+  var sr  = sidebar ? sidebar.getBoundingClientRect() : { right: 0, width: 0 };
+  var anchorLeft = (sr.width > 0 ? sr.right : targetRect.right) + 24;
+  var anchorTop  = Math.max(targetRect.top - 12, 24);
+
+  if(vw > 600 && anchorLeft + 330 <= vw - 12){
+    // Desktop: right of sidebar, vertically aligned with the nav item
+    card.style.left      = anchorLeft + "px";
+    card.style.top       = anchorTop + "px";
+    card.style.bottom    = "auto";
+    card.style.transform = "none";
   } else {
-    var spotlight = document.getElementById("gobSpotlight");
-    if(spotlight) spotlight.style.display = "none";
-    if(step === 1) _guestPositionStep1Card();
+    // Mobile: centred above bottom safe area
+    card.style.left      = "50%";
+    card.style.top       = "auto";
+    card.style.bottom    = "80px";
+    card.style.transform = "translateX(-50%)";
   }
 }
 
-function _guestPositionStep1Card(){
-  var card    = document.getElementById("gobStep1");
-  var sidebar = document.getElementById("sidebar");
-  if(!card) return;
+function _guestSpotlightDashboard(){
+  var dashNi    = document.querySelector(".ni[data-page='dashboard']");
+  var spotlight = document.getElementById("gobSpotlight");
+  var card      = document.getElementById("gobStep1");
+  if(!spotlight || !dashNi) return;
 
-  var vw = window.innerWidth;
-
-  if(sidebar && vw > 768){
-    var sr = sidebar.getBoundingClientRect();
-    if(sr.width > 0){
-      // Anchor card just inside the main content area, below any top bar
-      card.style.left      = (sr.right + 24) + "px";
-      card.style.top       = "72px";
-      card.style.bottom    = "";
-      card.style.transform = "";
-      return;
-    }
+  var r = dashNi.getBoundingClientRect();
+  if(r.width > 0 && r.height > 0){
+    spotlight.style.top    = (r.top    - 6) + "px";
+    spotlight.style.left   = (r.left   - 6) + "px";
+    spotlight.style.width  = (r.width  + 12) + "px";
+    spotlight.style.height = (r.height + 12) + "px";
+    spotlight.style.display = "block";
   }
-
-  // Mobile / sidebar hidden: bottom-centre, leave room for safe area
-  card.style.left      = "50%";
-  card.style.bottom    = "80px";
-  card.style.top       = "";
-  card.style.transform = "translateX(-50%)";
+  if(card) _gobPositionCard(card, r);
 }
 
 function _guestSpotlightCreate(){
@@ -210,26 +217,15 @@ function _guestSpotlightCreate(){
   var card      = document.getElementById("gobStep2");
   if(!spotlight || !createNi) return;
 
-  var r  = createNi.getBoundingClientRect();
-  var vw = window.innerWidth;
-
+  var r = createNi.getBoundingClientRect();
   if(r.width > 0 && r.height > 0){
-    spotlight.style.top    = (r.top    - 6)  + "px";
-    spotlight.style.left   = (r.left   - 6)  + "px";
+    spotlight.style.top    = (r.top    - 6) + "px";
+    spotlight.style.left   = (r.left   - 6) + "px";
     spotlight.style.width  = (r.width  + 12) + "px";
     spotlight.style.height = (r.height + 12) + "px";
     spotlight.style.display = "block";
-
-    // On desktop: float card to the right of the sidebar
-    if(card && vw > 600){
-      var cardLeft = Math.min(r.right + 20, vw - 360);
-      var cardTop  = Math.max(r.top   - 20, 20);
-      card.style.left      = cardLeft + "px";
-      card.style.top       = cardTop  + "px";
-      card.style.bottom    = "";
-      card.style.transform = "";
-    }
   }
+  if(card) _gobPositionCard(card, r);
 }
 
 function _guestOnboardNext(){

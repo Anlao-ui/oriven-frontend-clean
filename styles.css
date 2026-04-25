@@ -2836,13 +2836,13 @@ html{ background:#0B0B0B; }
 
 .gob-card{
   position:absolute;
-  bottom:36px;left:50%;transform:translateX(-50%);
-  width:340px;max-width:calc(100vw - 40px);
+  /* positioning set entirely by JS — no CSS defaults that would conflict */
+  width:320px;max-width:calc(100vw - 40px);
   background:#141414;
   border:1px solid rgba(255,255,255,0.10);
-  border-radius:18px;padding:28px;
+  border-radius:18px;padding:22px 24px;
   pointer-events:all;
-  box-shadow:0 24px 60px rgba(0,0,0,0.6);
+  box-shadow:0 20px 50px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04);
 }
 
 .gob-step{
