@@ -2040,11 +2040,27 @@
      ════════════════════════════════════════════════════════════ -->
 <div id="guestOnboard" style="display:none">
 
-  <!-- Spotlight box (step 2 only, positioned via JS) -->
+  <!-- ── Intro screen (shown before step 1) ── -->
+  <div class="gob-intro" id="gobIntro">
+    <div class="gob-blob gob-blob-1"></div>
+    <div class="gob-blob gob-blob-2"></div>
+    <div class="gob-intro-inner">
+      <p class="gob-intro-eyebrow">ORIVEN</p>
+      <h1 class="gob-intro-title">Welcome to ORIVEN</h1>
+      <p class="gob-intro-body">Create visuals, content, and campaigns —<br>without guessing prompts.</p>
+      <p class="gob-intro-sub">We'll show you how it works in seconds.</p>
+      <button class="gob-btn gob-btn-primary gob-intro-start" onclick="_guestOnboardStart()">
+        Get started
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Spotlight box (step 2 only, positioned via JS) ── -->
   <div class="gob-spotlight" id="gobSpotlight"></div>
 
-  <!-- Step 1: workspace intro -->
-  <div class="gob-card" id="gobStep1">
+  <!-- ── Step 1: workspace intro ── -->
+  <div class="gob-card" id="gobStep1" style="display:none">
     <div class="gob-step">Step 1 of 2</div>
     <div class="gob-title">This is your workspace.</div>
     <div class="gob-text">Everything you create will live here.</div>
@@ -2054,7 +2070,7 @@
     </button>
   </div>
 
-  <!-- Step 2: create highlight -->
+  <!-- ── Step 2: create highlight ── -->
   <div class="gob-card" id="gobStep2" style="display:none">
     <div class="gob-step">Step 2 of 2</div>
     <div class="gob-title">This is where everything starts.</div>

@@ -44,12 +44,48 @@ function showGuestLanding(){
     return;
   }
 
-  // Start 2-step onboarding
-  setTimeout(function(){ _guestOnboard(1); }, 500);
+  // Show intro screen first
+  setTimeout(function(){ _guestShowIntro(); }, 400);
 }
 
 // Kept for backwards-compat
 function hideGuestLanding(){}
+
+// ── Intro screen ──────────────────────────────────────────────
+
+function _guestShowIntro(){
+  var overlay = document.getElementById("guestOnboard");
+  if(!overlay) return;
+  overlay.classList.remove("gob-dim");
+  overlay.style.display   = "block";
+  overlay.style.opacity   = "0";
+  overlay.style.transition = "";
+  requestAnimationFrame(function(){
+    overlay.style.transition = "opacity 0.35s ease";
+    overlay.style.opacity    = "1";
+  });
+  // Show intro, hide steps and spotlight
+  var intro = document.getElementById("gobIntro");
+  if(intro) { intro.style.display = "flex"; intro.style.opacity = "1"; }
+  ["gobStep1","gobStep2","gobSpotlight"].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.display = "none";
+  });
+}
+
+function _guestOnboardStart(){
+  var intro = document.getElementById("gobIntro");
+  if(intro){
+    intro.style.transition = "opacity 0.25s ease";
+    intro.style.opacity    = "0";
+    setTimeout(function(){
+      intro.style.display = "none";
+      _guestOnboard(1);
+    }, 250);
+  } else {
+    _guestOnboard(1);
+  }
+}
 
 // ── Tab guard — intercept locked sidebar items ────────────────
 
@@ -96,6 +132,10 @@ function _guestOnboard(step){
     overlay.style.opacity    = "1";
   });
 
+  // Intro is only for the initial entry; hide it for steps 1 & 2
+  var intro = document.getElementById("gobIntro");
+  if(intro) intro.style.display = "none";
+
   var s1 = document.getElementById("gobStep1");
   var s2 = document.getElementById("gobStep2");
   if(s1) s1.style.display = step === 1 ? "" : "none";
@@ -106,7 +146,34 @@ function _guestOnboard(step){
   } else {
     var spotlight = document.getElementById("gobSpotlight");
     if(spotlight) spotlight.style.display = "none";
+    if(step === 1) _guestPositionStep1Card();
   }
+}
+
+function _guestPositionStep1Card(){
+  var card    = document.getElementById("gobStep1");
+  var sidebar = document.getElementById("sidebar");
+  if(!card) return;
+
+  var vw = window.innerWidth;
+
+  if(sidebar && vw > 768){
+    var sr = sidebar.getBoundingClientRect();
+    if(sr.width > 0){
+      // Anchor card just inside the main content area, below any top bar
+      card.style.left      = (sr.right + 24) + "px";
+      card.style.top       = "72px";
+      card.style.bottom    = "";
+      card.style.transform = "";
+      return;
+    }
+  }
+
+  // Mobile / sidebar hidden: bottom-centre, leave room for safe area
+  card.style.left      = "50%";
+  card.style.bottom    = "80px";
+  card.style.top       = "";
+  card.style.transform = "translateX(-50%)";
 }
 
 function _guestSpotlightCreate(){
