@@ -12,7 +12,9 @@ var _originalNavigate  = null;
 // ── Entry point (called from auth.js DOMContentLoaded + signout) ──
 
 function showGuestLanding(){
-  _isGuestMode = true;
+  _isGuestMode       = true;
+  _guestGenerating   = false;
+  _guestLastImageUrl = null;
 
   // Show the real app UI — guests land directly inside
   showApp();
@@ -336,10 +338,47 @@ function _ggShow(view){
     var el = document.getElementById(id);
     if(el){ el.textContent = ""; el.style.display = "none"; }
   });
+  // Clear all input error states on view switch
+  _ggClearErr(["ggFirst","ggLast","ggEmail","ggPass","ggLoginEmail","ggLoginPass"]);
 }
 
 function _guestSignupClick(){ _ggShow("signup"); }
 function _guestLoginClick(){  _ggShow("login");  }
+
+// ── Auth error helpers ────────────────────────────────────────
+
+function _ggMapError(err){
+  var msg = (err && err.message) ? err.message : String(err || "");
+  if(/invalid login credentials|invalid_credentials/i.test(msg))
+    return "Incorrect email or password. Please try again.";
+  if(/email not confirmed/i.test(msg))
+    return "Please verify your email address before signing in.";
+  if(/user already registered|already registered|already in use/i.test(msg))
+    return "An account with this email already exists. Try signing in instead.";
+  if(/unable to validate email|invalid.*email/i.test(msg))
+    return "Please enter a valid email address.";
+  if(/password.*at least/i.test(msg))
+    return "Password must be at least 6 characters.";
+  if(/too many requests|rate.?limit/i.test(msg))
+    return "Too many attempts — please wait a moment and try again.";
+  if(/network|failed to fetch/i.test(msg))
+    return "Connection error. Please check your internet and try again.";
+  return msg || "Something went wrong. Please try again.";
+}
+
+function _ggMarkErr(ids){
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.classList.add("gg-input-err");
+  });
+}
+
+function _ggClearErr(ids){
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.classList.remove("gg-input-err");
+  });
+}
 
 // ── Signup ────────────────────────────────────────────────────
 
@@ -351,9 +390,17 @@ async function _ggDoSignup(){
   var errEl = document.getElementById("ggErr");
 
   function showErr(msg){ if(errEl){ errEl.textContent = msg; errEl.style.display = ""; } }
+  _ggClearErr(["ggFirst","ggEmail","ggPass"]);
 
-  if(!first || !email || !pass){ showErr("First name, email and password are required."); return; }
-  if(pass.length < 6)          { showErr("Password must be at least 6 characters."); return; }
+  if(!first || !email || !pass){
+    showErr("First name, email and password are required.");
+    _ggMarkErr([!first?"ggFirst":null, !email?"ggEmail":null, !pass?"ggPass":null].filter(Boolean));
+    return;
+  }
+  if(pass.length < 6){
+    showErr("Password must be at least 6 characters.");
+    _ggMarkErr(["ggPass"]); return;
+  }
 
   if(errEl) errEl.style.display = "none";
   var btn = document.getElementById("ggSignupBtn");
@@ -371,9 +418,11 @@ async function _ggDoSignup(){
     var result = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(result.error) throw result.error;
 
+    _ggClearErr(["ggFirst","ggEmail","ggPass"]);
     _guestOnSignedIn(result.data.user);
   } catch(err){
-    showErr(err.message || "Something went wrong.");
+    showErr(_ggMapError(err));
+    _ggMarkErr(["ggEmail","ggPass"]);
     if(btn){ btn.disabled = false; btn.textContent = "Create free account"; }
   }
 }
@@ -386,8 +435,13 @@ async function _ggDoLogin(){
   var errEl = document.getElementById("ggLoginErr");
 
   function showErr(msg){ if(errEl){ errEl.textContent = msg; errEl.style.display = ""; } }
+  _ggClearErr(["ggLoginEmail","ggLoginPass"]);
 
-  if(!email || !pass){ showErr("Enter your email and password."); return; }
+  if(!email || !pass){
+    showErr("Enter your email and password.");
+    _ggMarkErr([!email?"ggLoginEmail":null, !pass?"ggLoginPass":null].filter(Boolean));
+    return;
+  }
 
   if(errEl) errEl.style.display = "none";
   var btn = document.getElementById("ggLoginBtn");
@@ -398,9 +452,11 @@ async function _ggDoLogin(){
     var result = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(result.error) throw result.error;
 
+    _ggClearErr(["ggLoginEmail","ggLoginPass"]);
     _guestOnSignedIn(result.data.user);
   } catch(err){
-    showErr(err.message || "Something went wrong.");
+    showErr(_ggMapError(err));
+    _ggMarkErr(["ggLoginEmail","ggLoginPass"]);
     if(btn){ btn.disabled = false; btn.textContent = "Sign in"; }
   }
 }

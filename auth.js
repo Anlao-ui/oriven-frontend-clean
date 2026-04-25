@@ -51,6 +51,41 @@ function showAuthError(formType, msg){
   if(el){ el.textContent = msg; el.style.display = "block"; }
 }
 
+function _authMapError(err){
+  var msg = (err && err.message) ? err.message : String(err || "");
+  if(/invalid login credentials|invalid_credentials/i.test(msg))
+    return "Incorrect email or password. Please try again.";
+  if(/email not confirmed/i.test(msg))
+    return "Please verify your email address before signing in.";
+  if(/user already registered|already registered|already in use/i.test(msg))
+    return "An account with this email already exists. Try signing in instead.";
+  if(/unable to validate email|invalid.*email/i.test(msg))
+    return "Please enter a valid email address.";
+  if(/password.*at least/i.test(msg))
+    return "Password must be at least 6 characters.";
+  if(/signup.*disabled|signups.*not allowed/i.test(msg))
+    return "Account creation is currently unavailable.";
+  if(/too many requests|rate.?limit/i.test(msg))
+    return "Too many attempts — please wait a moment and try again.";
+  if(/network|failed to fetch/i.test(msg))
+    return "Connection error. Please check your internet and try again.";
+  return msg || "Something went wrong. Please try again.";
+}
+
+function _authClearInputErr(ids){
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.classList.remove("inp-err");
+  });
+}
+
+function _authMarkInputErr(ids){
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.classList.add("inp-err");
+  });
+}
+
 function setAuthBtnLoading(btnId, loading){
   var btn = document.getElementById(btnId);
   if(!btn) return;
@@ -63,7 +98,12 @@ function setAuthBtnLoading(btnId, loading){
 async function handleSignIn(){
   var email = (document.getElementById("siEmail").value||"").trim();
   var pass  = document.getElementById("siPass").value||"";
-  if(!email || !pass){ showAuthError("signin","Enter your email and password."); return; }
+  _authClearInputErr(["siEmail","siPass"]);
+  if(!email || !pass){
+    showAuthError("signin","Enter your email and password.");
+    _authMarkInputErr(!email ? ["siEmail"] : ["siPass"]);
+    return;
+  }
   var errEl = document.getElementById("authErrorSi");
   if(errEl){ errEl.style.display="none"; }
   var btn = document.getElementById("authSigninBtn");
@@ -73,11 +113,13 @@ async function handleSignIn(){
     document.activeElement && document.activeElement.blur();
     var result = await SB.auth.signInWithPassword({ email:email, password:pass });
     if(result.error) throw result.error;
+    _authClearInputErr(["siEmail","siPass"]);
     console.log("[Auth] Sign in successful:", result.data.user.id);
     await onUserSignedIn(result.data.user);
   } catch(err){
     console.error("[Auth] Sign in error:", err.message);
-    showAuthError("signin", err.message);
+    showAuthError("signin", _authMapError(err));
+    _authMarkInputErr(["siEmail","siPass"]);
     if(btn){ btn.disabled=false; btn.textContent="Sign In"; }
   }
 }
@@ -90,15 +132,23 @@ async function handleSignUp(){
   var email     = (document.getElementById("suEmail").value||"").trim();
   var pass      = document.getElementById("suPass").value||"";
   var phone     = (document.getElementById("suPhone").value||"").trim();
-  if(!firstName || !email || !pass){ showAuthError("signup","First name, email and password are required."); return; }
-  if(pass.length < 6){ showAuthError("signup","Password must be at least 6 characters."); return; }
+  _authClearInputErr(["suFirst","suEmail","suPass"]);
+  if(!firstName || !email || !pass){
+    showAuthError("signup","First name, email and password are required.");
+    _authMarkInputErr([!firstName?"suFirst":null, !email?"suEmail":null, !pass?"suPass":null].filter(Boolean));
+    return;
+  }
+  if(pass.length < 6){
+    showAuthError("signup","Password must be at least 6 characters.");
+    _authMarkInputErr(["suPass"]);
+    return;
+  }
   var errEl = document.getElementById("authErrorSu");
   if(errEl){ errEl.style.display="none"; }
   var btn = document.getElementById("authSignupBtn");
   if(btn){ btn.disabled=true; btn.textContent="Creating account…"; }
   console.log("[Auth] Signing up:", email);
   try {
-    // Step 1: Create user via server (email_confirm:true bypasses Supabase's blocking gate)
     var signupResult = await apiFetch("/api/signup", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
@@ -106,16 +156,17 @@ async function handleSignUp(){
     });
     if(!signupResult.ok) throw new Error(signupResult.data.error || "Signup failed");
 
-    // Step 2: Sign in immediately — no email confirmation gate
     document.activeElement && document.activeElement.blur();
     var result = await SB.auth.signInWithPassword({ email, password: pass });
     if(result.error) throw result.error;
 
+    _authClearInputErr(["suFirst","suEmail","suPass"]);
     console.log("[Auth] Account created and signed in:", result.data.user.id);
     await onUserSignedIn(result.data.user);
   } catch(err){
     console.error("[Auth] Sign up error:", err.message);
-    showAuthError("signup", err.message);
+    showAuthError("signup", _authMapError(err));
+    _authMarkInputErr(["suEmail","suPass"]);
     if(btn){ btn.disabled=false; btn.textContent="Create Account"; }
   }
 }
@@ -128,6 +179,8 @@ async function authSignOut(){
   _onboardingShown = false;
   await SB.auth.signOut();
   S.brandCore = null;
+  // Clear guest generation flag so user gets a fresh try after logout
+  localStorage.removeItem("guestGenerationUsed");
   showGuestLanding();
   toast("Signed out");
 }

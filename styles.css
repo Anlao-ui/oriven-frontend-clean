@@ -3108,6 +3108,16 @@ html{ background:#0B0B0B; }
 .gg-submit-btn:hover{ opacity:0.88; }
 .gg-submit-btn:disabled{ opacity:0.5;cursor:not-allowed; }
 
+/* Input error states */
+.gg-input.gg-input-err{
+  border-color:rgba(245,110,110,0.55) !important;
+  background:rgba(245,110,110,0.05) !important;
+}
+.inp.inp-err{
+  border-color:rgba(239,68,68,0.5) !important;
+  background:rgba(239,68,68,0.04) !important;
+}
+
 @media(max-width:460px){
   #ggMain{ padding:28px 20px 26px; }
   #ggSignup,#ggLogin{ padding:22px 20px 24px; }
