@@ -1,0 +1,17 @@
+{
+  "rewrites": [
+    { "source": "/",                                              "destination": "/home.html" },
+    { "source": "/app",                                           "destination": "/index.html" },
+    { "source": "/app/(.*)",                                      "destination": "/index.html" },
+    { "source": "/ai-content",                                    "destination": "/ai-content/index.html" },
+    { "source": "/ai-content/",                                   "destination": "/ai-content/index.html" },
+    { "source": "/ai-ad-generator",                               "destination": "/ai-ad-generator/index.html" },
+    { "source": "/ai-ad-generator/",                              "destination": "/ai-ad-generator/index.html" },
+    { "source": "/blog",                                          "destination": "/blog/index.html" },
+    { "source": "/blog/",                                         "destination": "/blog/index.html" },
+    { "source": "/blog/how-to-create-content-with-ai",           "destination": "/blog/how-to-create-content-with-ai/index.html" },
+    { "source": "/blog/how-to-create-content-with-ai/",          "destination": "/blog/how-to-create-content-with-ai/index.html" },
+    { "source": "/blog/ai-instagram-ads-guide",                  "destination": "/blog/ai-instagram-ads-guide/index.html" },
+    { "source": "/blog/ai-instagram-ads-guide/",                 "destination": "/blog/ai-instagram-ads-guide/index.html" }
+  ]
+}
