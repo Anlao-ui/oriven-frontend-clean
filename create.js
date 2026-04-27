@@ -575,198 +575,160 @@ function _renderBuilderControls(type){
 var _IMG_PROMPT_MAX = 2800;
 
 function _buildImageBuilderPrompt(custom){
-  var b  = S._builder || {};
-  var bc = S.brandCore;
+  var b   = S._builder || {};
+  var bc  = S.brandCore;
   var fmt = b.imgFormat || "1:1";
 
   var isLogo = (b.imgDesignType === "logo");
 
-  var designTypes = {
-    product:     "Product image — deliberate staging, product as undisputed hero.",
-    social:      "Social post — scroll-stopping, brand-aligned, feed-optimised.",
-    poster:      "Poster background — bold, structured, strong compositional presence.",
-    ad_creative: "Ad creative background — high-converting, arresting, commercial quality.",
-    logo:        "Logo concept — clean, scalable, iconographic. No photorealism."
+  // ── Human-readable type labels ────────────────────────────────
+  var typeLabels = {
+    logo:        "logo",
+    social:      "social media post",
+    ad_creative: "ad creative",
+    poster:      "poster",
+    product:     "product image"
   };
 
-  var purposes = {
-    promotion:      "Promotion — value-forward, desire-generating.",
-    engagement:     "Engagement — inviting, compelling, prompts response.",
-    brand_awareness:"Brand awareness — memorable, distinctive, brand-first.",
-    showcase:       "Showcase product — hero product, best angle, deliberate staging.",
-    features:       "Highlight features — detail-forward, shows what makes it distinct.",
-    campaign:       "Campaign visual — bold, cohesive, campaign-defining.",
-    storytelling:   "Brand storytelling — narrative-driven, emotional, authentic.",
-    brand_identity: "Brand identity — definitive, distinctive, built to last.",
-    rebrand:        "Rebranding — fresh direction, signals evolution."
+  // ── Purpose descriptions ──────────────────────────────────────
+  var purposeLabels = {
+    promotion:      "Promotion — create desire, lead with value",
+    engagement:     "Engagement — invite interaction, emotionally compelling",
+    brand_awareness:"Brand awareness — memorable, brand-first, no hard sell",
+    showcase:       "Showcase product — hero product, best angle, deliberate staging",
+    features:       "Highlight features — detail-forward, shows what makes it distinct",
+    campaign:       "Campaign visual — bold, cohesive, campaign-defining",
+    storytelling:   "Brand storytelling — narrative-driven, emotional, authentic",
+    brand_identity: "Brand identity — definitive, distinctive, built to last",
+    rebrand:        "Rebranding — fresh direction, signals evolution"
   };
 
-  // ── Priority 1: Core constraints (always included, never trimmed) ──────────
-  var coreParts = [];
-
-  // Normalise text preference: builder uses _hasText/imgTextContent; flow uses imgIncludeText
-  var includeText, resolvedTextContent;
-  if(b._hasText === "yes"){
-    includeText = "custom";
-    resolvedTextContent = (b.imgTextContent || "").trim();
-  } else if(b._hasText === "no"){
-    includeText = "none";
-    resolvedTextContent = "";
-  } else {
-    includeText = b.imgIncludeText || "none";
-    resolvedTextContent = (b.imgTextContent || "").trim();
-  }
-  // Flow path: pick up headline/subtext/cta if no explicit text content
-  if(!resolvedTextContent){
-    var flowParts = [b.imgHeadline, b.imgSubtext, b.imgCta].filter(Boolean);
-    if(flowParts.length){ resolvedTextContent = flowParts.join(" / "); includeText = "custom"; }
+  // ── Resolve text content (builder and flow paths) ─────────────
+  var wantsText = (b._hasText === "yes");
+  var textContent = (b.imgTextContent || "").trim();
+  if(!textContent){
+    var fp = [b.imgHeadline, b.imgSubtext, b.imgCta].filter(Boolean);
+    if(fp.length){ textContent = fp.join(" / "); wantsText = true; }
   }
 
-  if(includeText !== "none"){
-    var textInstruction = resolvedTextContent
-      ? 'Include this exact text in the image: "' + resolvedTextContent.slice(0, 200) + '".'
-      : "Include a short, clean title or tagline text in the image.";
-    coreParts.push(
-      textInstruction
-      + " Typography must be clean, professionally set, and naturally integrated into the composition — "
-      + "not a sticker, not a watermark, not floating over the image. "
-      + "Font style must complement the brand tone. Text must be fully legible and unobstructed."
-    );
-  } else {
-    coreParts.push(
-      "NO TEXT IN IMAGE. Pure visual — text overlaid in post-production. No logos, UI, or typographic elements."
-    );
+  // ── Person ───────────────────────────────────────────────────
+  var wantsPerson = (b.imgSubject === "yes" || b.imgSubject === "person");
+  var modelDesc   = (b.imgModelDesc || "").trim();
+
+  // ── Section builders ─────────────────────────────────────────
+
+  // 1. Opening
+  var typeLabel = typeLabels[b.imgDesignType] || "brand visual";
+  var opening = "Create a " + typeLabel + " for a brand with the following identity:";
+
+  // 2. Brand identity block (full — trimmed only under budget pressure)
+  var brandLines = [];
+  if(bc && bc.name)     brandLines.push("Brand: " + bc.name);
+  if(bc && bc.audience) brandLines.push("Target audience: " + bc.audience);
+  var vstyle = bc && (bc.styleDirection || bc.style);
+  if(vstyle)            brandLines.push("Style: " + vstyle);
+  var tone = bc && bc.tone;
+  if(tone)              brandLines.push("Mood: " + (Array.isArray(tone) ? tone.join(", ") : tone));
+  var cs = bc && _formatBrandColors(bc.colors);
+  if(cs)                brandLines.push("Color palette: " + cs + " — apply to surfaces, environment, props. Not to skin.");
+  if(bc && bc.promise)  brandLines.push("Visual direction: " + bc.promise);
+  var brandBlock = brandLines.length
+    ? brandLines.join("\n")
+    : "Brand: Not defined. Clean, minimal aesthetic — neutral palette with one intentional accent. Premium feel.";
+
+  // 3. Purpose
+  var purposeLabel = purposeLabels[b.imgPurpose] || "";
+  var purposeBlock = purposeLabel ? ("Purpose: " + purposeLabel) : "";
+
+  // 4. Person (conditional)
+  var personBlock = "";
+  if(!isLogo){
+    if(wantsPerson){
+      personBlock = "Include a person in this image."
+        + (modelDesc
+          ? " Description: " + modelDesc + " — reproduce exactly. Do not alter gender, age, or appearance."
+          : "")
+        + " Authentically human, genuine expression. Brand-aligned wardrobe and setting.";
+    } else {
+      personBlock = "No person. Pure brand visual — deliberate composition, premium feel.";
+    }
   }
 
-  if(isLogo){
-    coreParts.push(
-      "Logo design concept — clean vector-style mark, scalable at any size. "
-      + "NOT photorealistic. Flat or semi-flat graphic style. "
-      + "Simple, iconic, memorable — single strong shape or symbol. "
-      + "No photography, no textures, no gradients unless intentional design choice. "
-      + "White or transparent background. Crisp edges."
-    );
-  } else {
-    coreParts.push(
-      "Photorealistic commercial photography. Real motivated lighting (key light, fill, natural shadows). "
-      + "No plastic faces, no AI skin smoothing, no uncanny valley. "
-      + "No AI aesthetic: no dreamlike blur, painterly glow, or surreal gradients. "
-      + "Looks like a high-budget commercial shoot."
-    );
+  // 5. Text (conditional)
+  var textBlock = "";
+  if(wantsText && textContent){
+    textBlock = 'Include text: "' + textContent.slice(0, 200) + '"'
+      + " — clean typography, fully legible, naturally integrated into the composition."
+      + " Font style must align with the brand mood and style.";
+  } else if(!isLogo){
+    textBlock = "No text in the image. Pure visual — typography added in post-production.";
   }
 
-  coreParts.push(
-    "Canvas: " + fmt + " — fill edge to edge. Text safe zone: " + _imgTextZone(fmt) + " — keep open and uncluttered."
-  );
-
-  var dtype = designTypes[b.imgDesignType] || "Brand visual — premium, deliberate, grounded in brand identity.";
-  var purp  = purposes[b.imgPurpose]      || "";
-  coreParts.push("Type: " + dtype + (purp ? " Purpose: " + purp : ""));
-
-  // Subject — "person" comes from the guided flow; "yes" comes from the builder panel
-  var wantsPerson = (b.imgSubject === "person" || b.imgSubject === "yes");
-  if(wantsPerson){
-    var modelDesc = (b.imgModelDesc || "").trim();
-    coreParts.push(
-      "Include a person: authentically human, real skin, genuine expression, aspirational."
-      + (modelDesc ? " Details: " + modelDesc + ". CRITICAL: Reproduce exactly — do not change gender, age, appearance, or expression." : "")
-      + " Brand-aligned wardrobe and environment."
-    );
-  } else {
-    coreParts.push(
-      "No person. Brand-based visual — deliberate, premium, grounded in brand identity. Not abstract, not generic."
-    );
-  }
-
-  // Creative brief (custom notes) — placed immediately after subject so DALL-E
-  // cannot drift from user-specified constraints even if the brand block is long.
-  if(custom){
-    var hasPersonKeyword = /\b(woman|man|girl|boy|person|model|human|child|people|female|male|she|he|they)\b/i.test(custom);
-    var hasPlaceKeyword  = /\b(beach|forest|office|city|studio|outdoor|indoor|kitchen|street|park|mountain|desert|room|store)\b/i.test(custom);
-    var enforcement = "CREATIVE BRIEF — REPRODUCE EXACTLY:\n" + custom.slice(0, 500);
-    enforcement += "\n\nCRITICAL ENFORCEMENT:";
-    if(hasPersonKeyword) enforcement += " Do not alter the described person's gender, age, demographic, or appearance.";
-    if(hasPlaceKeyword)  enforcement += " Do not alter the described location or setting.";
-    enforcement += " Do not introduce unrelated elements. Follow the brief literally and completely.";
-    coreParts.push(enforcement);
-  }
-
-  // Upload context
+  // 6. Upload context (conditional)
+  var uploadBlock = "";
   var uploadType = b.imgUploadType;
   if(uploadType === "product"){
-    coreParts.push(
-      "PRODUCT: Reproduce the uploaded product faithfully as the hero subject — exact shape, colour, material, proportions. Stage in brand-aligned environment."
-    );
+    uploadBlock = "Product reference uploaded: reproduce the product as the hero — exact shape, color, material, proportions. Stage in a brand-aligned environment.";
   } else if(uploadType === "reference"){
-    coreParts.push(
-      "STYLE REF: Apply the uploaded reference image's aesthetic (composition, lighting, colour temperature, mood) — elevate it, do not copy it literally."
-    );
+    uploadBlock = "Style reference uploaded: apply its aesthetic — lighting, composition, color temperature, mood. Elevate it, do not copy literally.";
   } else if(uploadType === "logo"){
-    coreParts.push(
-      "LOGO REF: Do not include the logo. Use its visual language — shapes, forms, palette — to subtly inform composition."
-    );
+    uploadBlock = "Logo reference uploaded: do not include the logo. Use its visual language — shapes, forms, palette — to inform the composition.";
   }
 
-  // ── Priority 2: BrandCore (included, trimmed if needed) ───────────────────
-  var brandPart = "";
-  if(bc && bc.name){
-    var bl = ["BRAND: " + bc.name + "."];
-    var cs = _formatBrandColors(bc.colors);
-    if(cs) bl.push("Colours: " + cs + " — apply to environment, props, surfaces, wardrobe. Not to skin or sky.");
-    var vstyle = bc.styleDirection || bc.style;
-    if(vstyle) bl.push("Style: " + vstyle + ".");
-    if(bc.tone) bl.push("Tone: " + (Array.isArray(bc.tone) ? bc.tone.join(", ") : bc.tone) + ".");
-    if(bc.audience) bl.push("Audience: " + bc.audience + ".");
-    if(bc.promise) bl.push("Promise: " + bc.promise + ".");
-    brandPart = bl.join(" ");
-  } else {
-    brandPart = "BRAND: None set. Refined minimal palette — clean neutrals with one intentional accent. Modern, premium.";
+  // 7. Additional context (droppable under budget pressure)
+  var extraBlock = custom ? ("Additional context: " + custom.slice(0, 400)) : "";
+
+  // 8. Quality instruction
+  var qualityBlock = isLogo
+    ? "Logo design: clean vector-style mark, scalable at any size. Flat or semi-flat graphic style. Simple, iconic, memorable. White or transparent background. Crisp edges. NOT photorealistic."
+    : "The image must feel cohesive, premium, and aligned with the brand identity. Avoid generic AI outputs.\nPhotorealistic quality. Real, motivated lighting. No painterly blur, dreamlike gradients, or AI aesthetic.";
+
+  // 9. Technical format
+  var techBlock = "Format: " + fmt + " — fill edge to edge. Keep the " + _imgTextZone(fmt) + " uncluttered for text overlay.";
+
+  // ── Assemble: all sections except extras ─────────────────────
+  var coreSections = [opening, brandBlock, purposeBlock, personBlock, textBlock, uploadBlock, qualityBlock, techBlock]
+    .filter(Boolean);
+  var coreText = coreSections.join("\n\n");
+  var result   = extraBlock ? (coreText + "\n\n" + extraBlock) : coreText;
+
+  console.log("[ImagePrompt] Raw length: " + result.length);
+
+  // Budget trimming: drop extra context first
+  if(result.length > _IMG_PROMPT_MAX && extraBlock){
+    result = coreText;
+    console.log("[ImagePrompt] Dropped extra context. Length: " + result.length);
   }
 
-  // ── Priority 3: Custom notes (lowest — trimmed most aggressively) ──────────
-  var customPart = custom ? ("Notes: " + custom.slice(0, 300)) : "";
-
-  // ── Assemble with budget tracking ─────────────────────────────────────────
-  var coreText  = coreParts.join("\n");
-  var raw       = [coreText, brandPart, customPart].filter(Boolean).join("\n\n");
-  var rawLen    = raw.length;
-
-  console.log("[ImagePrompt] Raw length before trim: " + rawLen);
-
-  var result = raw;
-
-  // If over budget, drop custom notes first
-  if(result.length > _IMG_PROMPT_MAX && customPart){
-    result = [coreText, brandPart].filter(Boolean).join("\n\n");
-    console.log("[ImagePrompt] Dropped custom notes. Length: " + result.length);
-  }
-
-  // If still over budget, shorten the brand block (keep name + colours only)
+  // Still over: trim brand to name + audience + colors only
   if(result.length > _IMG_PROMPT_MAX && bc && bc.name){
-    var bl2 = ["BRAND: " + bc.name + "."];
+    var shortBrandLines = [];
+    if(bc.name)     shortBrandLines.push("Brand: " + bc.name);
+    if(bc.audience) shortBrandLines.push("Target audience: " + bc.audience);
     var cs2 = _formatBrandColors(bc.colors);
-    if(cs2) bl2.push("Colours: " + cs2 + ".");
-    var trimmedBrand = bl2.join(" ");
-    result = [coreText, trimmedBrand].filter(Boolean).join("\n\n");
-    console.log("[ImagePrompt] Trimmed brand to name+colours. Length: " + result.length);
+    if(cs2)         shortBrandLines.push("Color palette: " + cs2);
+    var shortBrand = shortBrandLines.join("\n");
+    var trimSections = [opening, shortBrand, purposeBlock, personBlock, textBlock, uploadBlock, qualityBlock, techBlock].filter(Boolean);
+    result = trimSections.join("\n\n");
+    console.log("[ImagePrompt] Trimmed brand block. Length: " + result.length);
   }
 
-  // Hard clamp — should never be needed, but is the final safety net
+  // Hard clamp — final safety net
   if(result.length > _IMG_PROMPT_MAX){
     result = result.slice(0, _IMG_PROMPT_MAX);
-    console.log("[ImagePrompt] Hard-clamped to " + _IMG_PROMPT_MAX + " chars.");
+    console.log("[ImagePrompt] Hard-clamped.");
   }
 
-  console.log("[ImagePrompt] Final client prompt length: " + result.length);
+  console.log("[ImagePrompt] Final length: " + result.length);
   return result;
 }
 
-// Returns the safe zone description for a given format — tells DALL-E where to keep it open
+// Returns the text-safe zone for a given format
 function _imgTextZone(fmt){
-  if(fmt === "9:16")  return "lower 40% of the frame — keep the upper 60% as the primary compositional visual";
-  if(fmt === "16:9")  return "lower 30% of the frame — keep the upper 70% as the primary compositional visual";
-  if(fmt === "4:5")   return "lower 35% of the frame — keep the upper 65% as the primary compositional visual";
-  return "lower 35% of the frame — keep the upper 65% as the primary compositional visual"; // 1:1
+  if(fmt === "9:16")  return "lower third";
+  if(fmt === "16:9")  return "lower quarter";
+  if(fmt === "4:5")   return "lower third";
+  return "lower third"; // 1:1 default
 }
 
 function _buildTextBuilderPrompt(custom){
