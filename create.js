@@ -354,11 +354,11 @@ function _imgRefRemove(){
 
 function _imgPurposesForType(typeVal){
   var map = {
-    logo:        [{val:"brand_identity",label:"Brand identity"},{val:"rebrand",label:"Rebranding"},{val:"new_brand",label:"New brand"}],
-    social:      [{val:"promotion",label:"Promotion"},{val:"brand_awareness",label:"Brand awareness"},{val:"engagement",label:"Engagement"},{val:"product_launch",label:"Product launch"}],
-    ad_creative: [{val:"promotion",label:"Promotion"},{val:"brand_awareness",label:"Brand awareness"},{val:"engagement",label:"Engagement"},{val:"product_launch",label:"Product launch"}],
-    product:     [{val:"showcase",label:"Showcase"},{val:"features",label:"Highlight features"},{val:"ecommerce",label:"E-commerce"}],
-    poster:      [{val:"campaign",label:"Campaign visual"},{val:"storytelling",label:"Storytelling"},{val:"event",label:"Event"}]
+    logo:        [{val:"brand_identity",label:"Brand identity"},{val:"rebrand",label:"Rebranding"}],
+    social:      [{val:"promotion",label:"Promotion"},{val:"engagement",label:"Engagement"},{val:"brand_awareness",label:"Brand awareness"}],
+    ad_creative: [{val:"promotion",label:"Promotion"},{val:"engagement",label:"Engagement"},{val:"brand_awareness",label:"Brand awareness"}],
+    product:     [{val:"showcase",label:"Showcase product"},{val:"features",label:"Highlight features"}],
+    poster:      [{val:"campaign",label:"Campaign visual"},{val:"storytelling",label:"Brand storytelling"}]
   };
   return map[typeVal] || map.social;
 }
@@ -433,7 +433,7 @@ function _renderBuilderControls(type){
     return '<div class="builder-section">'
       + '<div class="builder-lbl">Image Type</div>'
       + '<div class="b-pills">'
-      + [{val:"product",label:"Product Image"},{val:"social",label:"Social Post"},{val:"poster",label:"Poster"},{val:"ad_creative",label:"Ad Creative"},{val:"logo",label:"Logo"}].map(function(opt){
+      + [{val:"logo",label:"Logo"},{val:"social",label:"Social Post"},{val:"ad_creative",label:"Ad Creative"},{val:"poster",label:"Poster"},{val:"product",label:"Product Image"}].map(function(opt){
           return '<button class="b-pill' + (opt.val === currentType ? " active" : "") + '"'
             + ' onclick="_imgBuilderTypeChanged(\'' + opt.val + '\',this)">'
             + opt.label + '</button>';
@@ -591,18 +591,14 @@ function _buildImageBuilderPrompt(custom){
 
   var purposes = {
     promotion:      "Promotion — value-forward, desire-generating.",
-    brand_awareness:"Brand awareness — memorable, distinctive, brand-first.",
     engagement:     "Engagement — inviting, compelling, prompts response.",
-    product_launch: "Product launch — maximum energy, sense of arrival.",
-    showcase:       "Showcase — product as undisputed hero, best angle.",
+    brand_awareness:"Brand awareness — memorable, distinctive, brand-first.",
+    showcase:       "Showcase product — hero product, best angle, deliberate staging.",
     features:       "Highlight features — detail-forward, shows what makes it distinct.",
-    ecommerce:      "E-commerce — clean, commercial, purchase-ready.",
     campaign:       "Campaign visual — bold, cohesive, campaign-defining.",
     storytelling:   "Brand storytelling — narrative-driven, emotional, authentic.",
-    event:          "Event — high-energy, signals occasion and importance.",
     brand_identity: "Brand identity — definitive, distinctive, built to last.",
-    rebrand:        "Rebranding — fresh direction, signals evolution.",
-    new_brand:      "New brand — first impression, clear and confident."
+    rebrand:        "Rebranding — fresh direction, signals evolution."
   };
 
   // ── Priority 1: Core constraints (always included, never trimmed) ──────────
@@ -663,12 +659,13 @@ function _buildImageBuilderPrompt(custom){
     "Canvas: " + fmt + " — fill edge to edge. Text safe zone: " + _imgTextZone(fmt) + " — keep open and uncluttered."
   );
 
-  var dtype = designTypes[b.imgDesignType || "other"] || designTypes.other;
-  var purp  = purposes[b.imgPurpose || "awareness"] || purposes.awareness;
-  coreParts.push("Type: " + dtype + " Purpose: " + purp);
+  var dtype = designTypes[b.imgDesignType] || "Brand visual — premium, deliberate, grounded in brand identity.";
+  var purp  = purposes[b.imgPurpose]      || "";
+  coreParts.push("Type: " + dtype + (purp ? " Purpose: " + purp : ""));
 
-  // Subject
-  if(b.imgSubject === "person"){
+  // Subject — "person" comes from the guided flow; "yes" comes from the builder panel
+  var wantsPerson = (b.imgSubject === "person" || b.imgSubject === "yes");
+  if(wantsPerson){
     var modelDesc = (b.imgModelDesc || "").trim();
     coreParts.push(
       "Include a person: authentically human, real skin, genuine expression, aspirational."
@@ -1058,11 +1055,11 @@ var FLOWS = {
       ai:  "What kind of image do you need?",
       type:"pills",
       options:[
-        {val:"product",     label:"Product Image"},
+        {val:"logo",        label:"Logo"},
         {val:"social",      label:"Social Post"},
-        {val:"poster",      label:"Poster"},
         {val:"ad_creative", label:"Ad Creative"},
-        {val:"logo",        label:"Logo"}
+        {val:"poster",      label:"Poster"},
+        {val:"product",     label:"Product Image"}
       ]
     },
     {
@@ -1071,9 +1068,8 @@ var FLOWS = {
       type:"pills",
       options:[
         {val:"promotion",      label:"Promotion"},
-        {val:"brand_awareness",label:"Brand awareness"},
         {val:"engagement",     label:"Engagement"},
-        {val:"product_launch", label:"Product launch"}
+        {val:"brand_awareness",label:"Brand awareness"}
       ],
       when:function(a){ return !a.imgDesignType || a.imgDesignType === "social" || a.imgDesignType === "ad_creative"; }
     },
@@ -1082,9 +1078,8 @@ var FLOWS = {
       ai:  "What is the purpose?",
       type:"pills",
       options:[
-        {val:"showcase",  label:"Showcase"},
-        {val:"features",  label:"Highlight features"},
-        {val:"ecommerce", label:"E-commerce"}
+        {val:"showcase", label:"Showcase product"},
+        {val:"features", label:"Highlight features"}
       ],
       when:function(a){ return a.imgDesignType === "product"; }
     },
@@ -1094,8 +1089,7 @@ var FLOWS = {
       type:"pills",
       options:[
         {val:"campaign",     label:"Campaign visual"},
-        {val:"storytelling", label:"Storytelling"},
-        {val:"event",        label:"Event"}
+        {val:"storytelling", label:"Brand storytelling"}
       ],
       when:function(a){ return a.imgDesignType === "poster"; }
     },
@@ -1105,14 +1099,13 @@ var FLOWS = {
       type:"pills",
       options:[
         {val:"brand_identity", label:"Brand identity"},
-        {val:"rebrand",        label:"Rebranding"},
-        {val:"new_brand",      label:"New brand"}
+        {val:"rebrand",        label:"Rebranding"}
       ],
       when:function(a){ return a.imgDesignType === "logo"; }
     },
     {
       key: "_brandcoreReview",
-      ai:  "Here\u2019s your brand style \u2014 this shapes every element of your image automatically.",
+      ai:  "This image will be based on your brand identity.",
       type:"brandcore"
     },
     {
@@ -1122,20 +1115,20 @@ var FLOWS = {
     },
     {
       key: "imgSubject",
-      ai:  "Do you want a person or model in the image?",
+      ai:  "Should this image include a person?",
       type:"pills",
       options:[
-        {val:"person", label:"Yes \u2014 include a person"},
-        {val:"no",     label:"No \u2014 brand visual only"}
+        {val:"yes", label:"Yes"},
+        {val:"no",  label:"No"}
       ]
     },
     {
       key: "imgModelDesc",
-      ai:  "Describe the person or model briefly.",
+      ai:  "Describe the person.",
       type:"text",
-      placeholder:"e.g. confident woman in her 30s, professional setting",
+      placeholder:"e.g. young creative entrepreneur, minimal outfit, clean aesthetic",
       optional:true,
-      when:function(a){ return a.imgSubject === "person"; }
+      when:function(a){ return a.imgSubject === "yes"; }
     },
     {
       key: "imgFormat",
@@ -1151,34 +1144,18 @@ var FLOWS = {
     },
     {
       key: "_hasText",
-      ai:  "Do you want text overlaid on the image?",
+      ai:  "Should this image include text?",
       type:"pills",
       options:[
-        {val:"yes", label:"Yes \u2014 add text"},
-        {val:"no",  label:"No \u2014 image only"}
+        {val:"yes", label:"Yes"},
+        {val:"no",  label:"No"}
       ]
     },
     {
-      key: "imgHeadline",
-      ai:  "What is the headline?",
+      key: "imgTextContent",
+      ai:  "Enter the exact text.",
       type:"text",
-      placeholder:"e.g. Clarity starts here.",
-      when:function(a){ return a._hasText === "yes"; }
-    },
-    {
-      key: "imgSubtext",
-      ai:  "Any supporting text?",
-      type:"text",
-      placeholder:"Supporting line or description",
-      optional:true,
-      when:function(a){ return a._hasText === "yes"; }
-    },
-    {
-      key: "imgCta",
-      ai:  "What is the CTA?",
-      type:"text",
-      placeholder:"e.g. Get started \u2192",
-      optional:true,
+      placeholder:"e.g. Launch day.",
       when:function(a){ return a._hasText === "yes"; }
     },
     {
@@ -1743,7 +1720,20 @@ function _flowStepHtml(step){
 
     bhtml += '</div>'; // fbp-rows
 
-    bhtml += '<div class="fbp-note">These brand elements will be applied to your image automatically. No manual input needed.</div>';
+    // Promise / visual direction
+    if(bc.promise){
+      bhtml += '<div class="fbp-row">'
+        + '<div class="fbp-row-label">Promise</div>'
+        + '<div class="fbp-row-value">' + _escHtml(bc.promise) + '</div>'
+        + '</div>';
+    }
+
+    bhtml += '</div>'; // fbp-rows
+
+    bhtml += '<div class="fbp-footer">'
+      + '<div class="fbp-note">These brand elements shape every element of your image automatically.</div>'
+      + '<a href="#" class="fbp-edit-link" onclick="switchTab(\'brand\');return false">Edit brand identity →</a>'
+      + '</div>';
 
     bhtml += '</div>'; // flow-brandcore-panel
     return bhtml;

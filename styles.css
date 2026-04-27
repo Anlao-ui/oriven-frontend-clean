@@ -1696,8 +1696,15 @@ textarea.flow-inp{min-height:90px;resize:vertical}
 }
 .fbp-note{
   font-size:11.5px;color:var(--muted);line-height:1.65;
-  border-top:1px solid var(--border);padding-top:12px;
 }
+.fbp-footer{
+  border-top:1px solid var(--border);padding-top:12px;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;
+}
+.fbp-edit-link{
+  font-size:11.5px;color:var(--gm);text-decoration:none;font-weight:500;white-space:nowrap;
+}
+.fbp-edit-link:hover{text-decoration:underline}
 
 /* ── Upload step ───────────────────────────────────────── */
 .flow-upload-step{display:flex;flex-direction:column;gap:12px}
