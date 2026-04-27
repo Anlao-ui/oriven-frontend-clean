@@ -1756,6 +1756,25 @@ textarea.flow-inp{min-height:90px;resize:vertical}
 .b-pill:hover{border-color:var(--gm);color:var(--gm);background:var(--glt)}
 .b-pill.active{border-color:var(--gm);background:var(--gm);color:#fff}
 
+/* ── Image builder brand preview ── */
+.builder-section--brand{border-top:1px solid var(--border);padding-top:18px;margin-top:4px}
+.img-brand-preview{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;
+}
+.img-brand-preview--empty{
+  font-size:13px;color:var(--muted);text-align:center;padding:14px 16px;
+  border:1px dashed var(--border);border-radius:10px;
+}
+.img-brand-preview--empty a{color:var(--gm);text-decoration:none}
+.ibp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ibp-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.ibp-edit{font-size:12px;color:var(--gm);text-decoration:none;font-weight:500}
+.ibp-edit:hover{text-decoration:underline}
+.ibp-rows{display:flex;flex-direction:column;gap:5px}
+.ibp-row{display:flex;gap:10px;align-items:baseline;font-size:13px}
+.ibp-lbl{color:var(--dim);min-width:52px;font-size:12px}
+.ibp-val{color:var(--charcoal);line-height:1.4}
+
 .builder-result-wrap{
   margin-top:28px;
   border:1px solid var(--border);border-radius:var(--rx);

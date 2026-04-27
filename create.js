@@ -350,57 +350,141 @@ function _imgRefRemove(){
   if(area) area.innerHTML = _imgRefAreaHtml();
 }
 
+// ── Image builder — dynamic type / purpose helpers ────────────
+
+function _imgPurposesForType(typeVal){
+  var map = {
+    logo:        [{val:"brand_identity",label:"Brand identity"},{val:"rebrand",label:"Rebranding"},{val:"new_brand",label:"New brand"}],
+    social:      [{val:"promotion",label:"Promotion"},{val:"brand_awareness",label:"Brand awareness"},{val:"engagement",label:"Engagement"},{val:"product_launch",label:"Product launch"}],
+    ad_creative: [{val:"promotion",label:"Promotion"},{val:"brand_awareness",label:"Brand awareness"},{val:"engagement",label:"Engagement"},{val:"product_launch",label:"Product launch"}],
+    product:     [{val:"showcase",label:"Showcase"},{val:"features",label:"Highlight features"},{val:"ecommerce",label:"E-commerce"}],
+    poster:      [{val:"campaign",label:"Campaign visual"},{val:"storytelling",label:"Storytelling"},{val:"event",label:"Event"}]
+  };
+  return map[typeVal] || map.social;
+}
+
+function _imgPurposePillsHtml(typeVal){
+  var opts = _imgPurposesForType(typeVal);
+  var current = S._builder && S._builder.imgPurpose;
+  if(!current || !opts.find(function(o){ return o.val === current; })){
+    current = opts[0].val;
+    if(!S._builder) S._builder = {};
+    S._builder.imgPurpose = current;
+  }
+  return '<div class="b-pills">'
+    + opts.map(function(opt){
+        return '<button class="b-pill' + (opt.val === current ? " active" : "") + '"'
+          + ' onclick="bPick(\'imgPurpose\',\'' + opt.val + '\',this)">'
+          + opt.label + '</button>';
+      }).join("")
+    + '</div>';
+}
+
+function _imgBuilderTypeChanged(typeVal, btn){
+  bPick("imgDesignType", typeVal, btn);
+  var el = document.getElementById("imgBuilderPurposePills");
+  if(el) el.innerHTML = _imgPurposePillsHtml(typeVal);
+}
+
+function _imgBuilderPersonToggle(val, btn){
+  bPick("imgSubject", val, btn);
+  var row = document.getElementById("imgBuilderPersonDesc");
+  if(row) row.style.display = (val === "yes") ? "" : "none";
+}
+
+function _imgBuilderTextToggle(val, btn){
+  bPick("_hasText", val, btn);
+  var row = document.getElementById("imgBuilderTextContent");
+  if(row) row.style.display = (val === "yes") ? "" : "none";
+}
+
+function _imgBrandPreviewHtml(){
+  var bc = S.brandCore;
+  if(!bc || !bc.name){
+    return '<div class="img-brand-preview img-brand-preview--empty">'
+      + '<span>No brand identity set. <a href="#" onclick="switchTab(\'brand\');return false">Set up your brand →</a></span>'
+      + '</div>';
+  }
+  var rows = [];
+  var cs = _formatBrandColors(bc.colors);
+  if(cs) rows.push('<div class="ibp-row"><span class="ibp-lbl">Colors</span><span class="ibp-val">' + cs + '</span></div>');
+  if(bc.tone) rows.push('<div class="ibp-row"><span class="ibp-lbl">Tone</span><span class="ibp-val">' + (Array.isArray(bc.tone) ? bc.tone.join(", ") : bc.tone) + '</span></div>');
+  if(bc.audience) rows.push('<div class="ibp-row"><span class="ibp-lbl">Audience</span><span class="ibp-val">' + bc.audience + '</span></div>');
+  var vstyle = bc.styleDirection || bc.style;
+  if(vstyle) rows.push('<div class="ibp-row"><span class="ibp-lbl">Style</span><span class="ibp-val">' + vstyle + '</span></div>');
+  return '<div class="img-brand-preview">'
+    + '<div class="ibp-header"><span class="ibp-title">Your brand identity</span>'
+    + '<a class="ibp-edit" href="#" onclick="switchTab(\'brand\');return false">Edit →</a></div>'
+    + (rows.length ? '<div class="ibp-rows">' + rows.join("") + '</div>' : '')
+    + '</div>';
+}
+
 
 // ── Render controls for each builder type ────────────────────
 
 function _renderBuilderControls(type){
   if(type === "image"){
-    return _bSection("Purpose", "imgPurpose", [
-      {val:"opening_post", label:"Opening Post"},
-      {val:"announcement", label:"Announcement"},
-      {val:"promotion",    label:"Promotion"},
-      {val:"brand_intro",  label:"Brand Introduction"},
-      {val:"ad_creative",  label:"Ad Creative"},
-      {val:"custom",       label:"Custom"}
-    ], "opening_post")
+    var currentType = (S._builder && S._builder.imgDesignType) || "social";
+    var personVal   = (S._builder && S._builder.imgSubject)    || "no";
+    var textVal     = (S._builder && S._builder._hasText)      || "no";
+    var modelDescVal   = (S._builder && S._builder.imgModelDesc   || "");
+    var textContentVal = (S._builder && S._builder.imgTextContent || "");
 
-    + '<div class="builder-section">'
-      + '<div class="builder-lbl">Headline <span class="builder-req">required</span></div>'
-      + '<input class="inp" id="imgHeadline" placeholder="e.g. Clarity starts here." autocomplete="off">'
+    return '<div class="builder-section">'
+      + '<div class="builder-lbl">Image Type</div>'
+      + '<div class="b-pills">'
+      + [{val:"product",label:"Product Image"},{val:"social",label:"Social Post"},{val:"poster",label:"Poster"},{val:"ad_creative",label:"Ad Creative"},{val:"logo",label:"Logo"}].map(function(opt){
+          return '<button class="b-pill' + (opt.val === currentType ? " active" : "") + '"'
+            + ' onclick="_imgBuilderTypeChanged(\'' + opt.val + '\',this)">'
+            + opt.label + '</button>';
+        }).join("") + '</div>'
       + '</div>'
 
-    + '<div class="builder-section">'
-      + '<div class="builder-lbl">Subtext <span class="builder-opt">optional</span></div>'
-      + '<input class="inp" id="imgSubtext" placeholder="Supporting line or description" autocomplete="off">'
+      + '<div class="builder-section">'
+      + '<div class="builder-lbl">Purpose</div>'
+      + '<div id="imgBuilderPurposePills">' + _imgPurposePillsHtml(currentType) + '</div>'
       + '</div>'
 
-    + '<div class="builder-section">'
-      + '<div class="builder-lbl">CTA <span class="builder-opt">optional</span></div>'
-      + '<input class="inp" id="imgCta" placeholder="e.g. Get started \u2192" autocomplete="off">'
+      + '<div class="builder-section">'
+      + '<div class="builder-lbl">Include a person?</div>'
+      + '<div class="b-pills">'
+      + [{val:"no",label:"No"},{val:"yes",label:"Yes"}].map(function(opt){
+          return '<button class="b-pill' + (opt.val === personVal ? " active" : "") + '"'
+            + ' onclick="_imgBuilderPersonToggle(\'' + opt.val + '\',this)">'
+            + opt.label + '</button>';
+        }).join("") + '</div>'
+      + '<div id="imgBuilderPersonDesc" style="margin-top:10px;' + (personVal === "yes" ? "" : "display:none") + '">'
+      + '<input class="inp" id="imgModelDesc" placeholder="e.g. confident woman in her 30s, professional setting" autocomplete="off"'
+      + ' oninput="if(!S._builder)S._builder={};S._builder.imgModelDesc=this.value"'
+      + (modelDescVal ? ' value="' + modelDescVal.replace(/"/g, "&quot;") + '"' : "")
+      + '></div>'
       + '</div>'
 
-    + _bSection("Text Style", "imgTextStyle", [
-      {val:"bold",      label:"Bold"},
-      {val:"minimal",   label:"Minimal"},
-      {val:"editorial", label:"Editorial"},
-      {val:"clean",     label:"Clean"},
-      {val:"premium",   label:"Premium"}
-    ], "clean")
+      + '<div class="builder-section">'
+      + '<div class="builder-lbl">Include text in image?</div>'
+      + '<div class="b-pills">'
+      + [{val:"no",label:"No"},{val:"yes",label:"Yes"}].map(function(opt){
+          return '<button class="b-pill' + (opt.val === textVal ? " active" : "") + '"'
+            + ' onclick="_imgBuilderTextToggle(\'' + opt.val + '\',this)">'
+            + opt.label + '</button>';
+        }).join("") + '</div>'
+      + '<div id="imgBuilderTextContent" style="margin-top:10px;' + (textVal === "yes" ? "" : "display:none") + '">'
+      + '<input class="inp" id="imgTextContent" placeholder="e.g. Launch day." autocomplete="off"'
+      + ' oninput="if(!S._builder)S._builder={};S._builder.imgTextContent=this.value"'
+      + (textContentVal ? ' value="' + textContentVal.replace(/"/g, "&quot;") + '"' : "")
+      + '></div>'
+      + '</div>'
 
-    + _bSection("Visual Style", "imgVisualStyle", [
-      {val:"abstract",  label:"Abstract"},
-      {val:"product",   label:"Product"},
-      {val:"lifestyle", label:"Lifestyle"},
-      {val:"minimal",   label:"Minimal"},
-      {val:"editorial", label:"Editorial"}
-    ], "abstract")
+      + _bSection("Format", "imgFormat", [
+          {val:"1:1",  label:"1:1 Square"},
+          {val:"4:5",  label:"4:5 Portrait"},
+          {val:"9:16", label:"9:16 Vertical"},
+          {val:"16:9", label:"16:9 Wide"}
+        ], "1:1")
 
-    + _bSection("Format", "imgFormat", [
-      {val:"1:1",  label:"1:1 Square"},
-      {val:"4:5",  label:"4:5 Portrait"},
-      {val:"9:16", label:"9:16 Vertical"},
-      {val:"16:9", label:"16:9 Wide"}
-    ], "1:1");
+      + '<div class="builder-section builder-section--brand">'
+      + _imgBrandPreviewHtml()
+      + '</div>';
   }
 
   if(type === "text"){
@@ -495,56 +579,85 @@ function _buildImageBuilderPrompt(custom){
   var bc = S.brandCore;
   var fmt = b.imgFormat || "1:1";
 
+  var isLogo = (b.imgDesignType === "logo");
+
   var designTypes = {
-    product:      "Product image — deliberate staging, product as undisputed hero.",
-    social:       "Social post — scroll-stopping, brand-aligned, feed-optimised.",
-    poster:       "Poster background — bold, structured, strong compositional presence.",
-    ad_creative:  "Ad creative background — high-converting, arresting, commercial quality.",
-    brand_intro:  "Brand introduction — aspirational first impression, premium presence.",
-    promo:        "Promotional image — desire-forward, strong contrast, communicates value.",
-    announcement: "Announcement visual — authoritative, commanding, signals importance.",
-    other:        "Brand visual — premium, deliberate, grounded in the brand identity."
+    product:     "Product image — deliberate staging, product as undisputed hero.",
+    social:      "Social post — scroll-stopping, brand-aligned, feed-optimised.",
+    poster:      "Poster background — bold, structured, strong compositional presence.",
+    ad_creative: "Ad creative background — high-converting, arresting, commercial quality.",
+    logo:        "Logo concept — clean, scalable, iconographic. No photorealism."
   };
 
   var purposes = {
-    launch:       "Launch — maximum energy, sense of arrival.",
-    promotion:    "Promotion — value-forward, desire-generating.",
-    introduction: "Introduction — clear, confident, brand-establishing.",
-    awareness:    "Awareness — memorable, distinctive, brand-first.",
-    sales:        "Sales — benefit-led, removes hesitation.",
-    engagement:   "Engagement — inviting, compelling, prompts response.",
-    other:        "General brand use."
+    promotion:      "Promotion — value-forward, desire-generating.",
+    brand_awareness:"Brand awareness — memorable, distinctive, brand-first.",
+    engagement:     "Engagement — inviting, compelling, prompts response.",
+    product_launch: "Product launch — maximum energy, sense of arrival.",
+    showcase:       "Showcase — product as undisputed hero, best angle.",
+    features:       "Highlight features — detail-forward, shows what makes it distinct.",
+    ecommerce:      "E-commerce — clean, commercial, purchase-ready.",
+    campaign:       "Campaign visual — bold, cohesive, campaign-defining.",
+    storytelling:   "Brand storytelling — narrative-driven, emotional, authentic.",
+    event:          "Event — high-energy, signals occasion and importance.",
+    brand_identity: "Brand identity — definitive, distinctive, built to last.",
+    rebrand:        "Rebranding — fresh direction, signals evolution.",
+    new_brand:      "New brand — first impression, clear and confident."
   };
 
   // ── Priority 1: Core constraints (always included, never trimmed) ──────────
   var coreParts = [];
 
-  // Text-in-image: drive the first constraint based on user choice
-  var includeText = b.imgIncludeText || "none";
+  // Normalise text preference: builder uses _hasText/imgTextContent; flow uses imgIncludeText
+  var includeText, resolvedTextContent;
+  if(b._hasText === "yes"){
+    includeText = "custom";
+    resolvedTextContent = (b.imgTextContent || "").trim();
+  } else if(b._hasText === "no"){
+    includeText = "none";
+    resolvedTextContent = "";
+  } else {
+    includeText = b.imgIncludeText || "none";
+    resolvedTextContent = (b.imgTextContent || "").trim();
+  }
+  // Flow path: pick up headline/subtext/cta if no explicit text content
+  if(!resolvedTextContent){
+    var flowParts = [b.imgHeadline, b.imgSubtext, b.imgCta].filter(Boolean);
+    if(flowParts.length){ resolvedTextContent = flowParts.join(" / "); includeText = "custom"; }
+  }
+
   if(includeText !== "none"){
-    var textMap = {
-      title:  "Include a short, clean title text in the image.",
-      slogan: "Include a slogan or tagline in the image.",
-      custom: 'Include this exact text in the image: "' + (b.imgTextContent || "").slice(0, 200) + '".'
-    };
+    var textInstruction = resolvedTextContent
+      ? 'Include this exact text in the image: "' + resolvedTextContent.slice(0, 200) + '".'
+      : "Include a short, clean title or tagline text in the image.";
     coreParts.push(
-      (textMap[includeText] || "Include text in the image.")
+      textInstruction
       + " Typography must be clean, professionally set, and naturally integrated into the composition — "
       + "not a sticker, not a watermark, not floating over the image. "
       + "Font style must complement the brand tone. Text must be fully legible and unobstructed."
     );
   } else {
     coreParts.push(
-      "NO TEXT IN IMAGE. Pure visual background — text overlaid in post-production. No logos, UI, or typographic elements."
+      "NO TEXT IN IMAGE. Pure visual — text overlaid in post-production. No logos, UI, or typographic elements."
     );
   }
 
-  coreParts.push(
-    "Photorealistic commercial photography. Real motivated lighting (key light, fill, natural shadows). "
-    + "No plastic faces, no AI skin smoothing, no uncanny valley. "
-    + "No AI aesthetic: no dreamlike blur, painterly glow, or surreal gradients. "
-    + "Looks like a high-budget commercial shoot."
-  );
+  if(isLogo){
+    coreParts.push(
+      "Logo design concept — clean vector-style mark, scalable at any size. "
+      + "NOT photorealistic. Flat or semi-flat graphic style. "
+      + "Simple, iconic, memorable — single strong shape or symbol. "
+      + "No photography, no textures, no gradients unless intentional design choice. "
+      + "White or transparent background. Crisp edges."
+    );
+  } else {
+    coreParts.push(
+      "Photorealistic commercial photography. Real motivated lighting (key light, fill, natural shadows). "
+      + "No plastic faces, no AI skin smoothing, no uncanny valley. "
+      + "No AI aesthetic: no dreamlike blur, painterly glow, or surreal gradients. "
+      + "Looks like a high-budget commercial shoot."
+    );
+  }
 
   coreParts.push(
     "Canvas: " + fmt + " — fill edge to edge. Text safe zone: " + _imgTextZone(fmt) + " — keep open and uncluttered."
@@ -945,29 +1058,57 @@ var FLOWS = {
       ai:  "What kind of image do you need?",
       type:"pills",
       options:[
-        {val:"product",      label:"Product Image"},
-        {val:"social",       label:"Social Post"},
-        {val:"poster",       label:"Poster"},
-        {val:"ad_creative",  label:"Ad Creative"},
-        {val:"brand_intro",  label:"Brand Introduction"},
-        {val:"promo",        label:"Promo Image"},
-        {val:"announcement", label:"Announcement Visual"},
-        {val:"other",        label:"Other"}
+        {val:"product",     label:"Product Image"},
+        {val:"social",      label:"Social Post"},
+        {val:"poster",      label:"Poster"},
+        {val:"ad_creative", label:"Ad Creative"},
+        {val:"logo",        label:"Logo"}
       ]
     },
     {
       key: "imgPurpose",
-      ai:  "What is the purpose of this image?",
+      ai:  "What is the purpose?",
       type:"pills",
       options:[
-        {val:"launch",       label:"Launch"},
-        {val:"promotion",    label:"Promotion"},
-        {val:"introduction", label:"Introduction"},
-        {val:"awareness",    label:"Awareness"},
-        {val:"sales",        label:"Sales"},
-        {val:"engagement",   label:"Engagement"},
-        {val:"other",        label:"Other"}
-      ]
+        {val:"promotion",      label:"Promotion"},
+        {val:"brand_awareness",label:"Brand awareness"},
+        {val:"engagement",     label:"Engagement"},
+        {val:"product_launch", label:"Product launch"}
+      ],
+      when:function(a){ return !a.imgDesignType || a.imgDesignType === "social" || a.imgDesignType === "ad_creative"; }
+    },
+    {
+      key: "imgPurpose",
+      ai:  "What is the purpose?",
+      type:"pills",
+      options:[
+        {val:"showcase",  label:"Showcase"},
+        {val:"features",  label:"Highlight features"},
+        {val:"ecommerce", label:"E-commerce"}
+      ],
+      when:function(a){ return a.imgDesignType === "product"; }
+    },
+    {
+      key: "imgPurpose",
+      ai:  "What is the purpose?",
+      type:"pills",
+      options:[
+        {val:"campaign",     label:"Campaign visual"},
+        {val:"storytelling", label:"Storytelling"},
+        {val:"event",        label:"Event"}
+      ],
+      when:function(a){ return a.imgDesignType === "poster"; }
+    },
+    {
+      key: "imgPurpose",
+      ai:  "What is the purpose?",
+      type:"pills",
+      options:[
+        {val:"brand_identity", label:"Brand identity"},
+        {val:"rebrand",        label:"Rebranding"},
+        {val:"new_brand",      label:"New brand"}
+      ],
+      when:function(a){ return a.imgDesignType === "logo"; }
     },
     {
       key: "_brandcoreReview",
