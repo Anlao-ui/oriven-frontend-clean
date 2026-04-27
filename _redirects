@@ -1,7 +1,8 @@
 # ORIVEN — Netlify Routing
 # Marketing pages serve static HTML; app lives at /app
 
-/                          /home.html                    200
+/                          /onboarding/index.html        200
+/home                      /onboarding/index.html        200
 /app                       /index.html                   200
 /app/*                     /index.html                   200
 /ai-content                /ai-content/index.html        200
