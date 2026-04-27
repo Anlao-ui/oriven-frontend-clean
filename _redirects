@@ -1,20 +1,5 @@
-# ORIVEN — Netlify Routing
-# Marketing pages serve static HTML; app lives at /app
-
-/  /index.html  200
-/index.html  /index.html  200
-/                          /home.html                    200
-/app                       /index.html                   200
-/app/*                     /index.html                   200
-/demo                      /demo/index.html              200
-/demo/                     /demo/index.html              200
-/ai-content                /ai-content/index.html        200
-/ai-content/               /ai-content/index.html        200
-/ai-ad-generator           /ai-ad-generator/index.html   200
-/ai-ad-generator/          /ai-ad-generator/index.html   200
-/blog                      /blog/index.html              200
-/blog/                     /blog/index.html              200
-/blog/how-to-create-content-with-ai        /blog/how-to-create-content-with-ai/index.html   200
-/blog/how-to-create-content-with-ai/       /blog/how-to-create-content-with-ai/index.html   200
-/blog/ai-instagram-ads-guide               /blog/ai-instagram-ads-guide/index.html          200
-/blog/ai-instagram-ads-guide/              /blog/ai-instagram-ads-guide/index.html          200
+/app     /app.html           200
+/app/*   /app.html           200
+/demo    /demo/index.html    200
+/demo/   /demo/index.html    200
+/*       /index.html         200
