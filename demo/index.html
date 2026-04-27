@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Campaign — ORYX | ORIVEN</title>
+  <meta name="description" content="See how Oriven generates a complete, brand-aligned campaign from a single brand identity. Demo campaign for ORYX.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:       #0A0A0A;
+      --surface:  #111111;
+      --surface2: #161616;
+      --card:     #131313;
+      --border:   #1E1E1E;
+      --border2:  #262626;
+      --green:    #52B788;
+      --green-lo: rgba(82, 183, 136, 0.07);
+      --green-mid:rgba(82, 183, 136, 0.15);
+      --green-border: rgba(82, 183, 136, 0.22);
+      --text:     #F2F2F2;
+      --muted:    #888888;
+      --dim:      #444444;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Nav ─────────────────────────────────── */
+    .dm-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 58px;
+      background: rgba(10,10,10,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .dm-nav-logo {
+      font-family: 'Geist', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .dm-nav-label {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .dm-nav-cta {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--green);
+      text-decoration: none;
+      padding: 7px 16px;
+      border: 1px solid var(--green-border);
+      border-radius: 7px;
+      transition: background 0.18s, color 0.18s;
+    }
+    .dm-nav-cta:hover {
+      background: var(--green-lo);
+      color: #6DDBA8;
+    }
+
+    /* ── Hero strip ──────────────────────────── */
+    .dm-hero {
+      padding: 56px 40px 40px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dm-hero-eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 14px;
+    }
+    .dm-hero-title {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 400;
+      line-height: 1.14;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .dm-hero-sub {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── Main layout ──────────────────────────── */
+    .dm-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: calc(100vh - 58px - 130px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Left: Brand panel ────────────────────── */
+    .dm-brand {
+      border-right: 1px solid var(--border);
+      padding: 40px 32px;
+      position: sticky;
+      top: 58px;
+      height: fit-content;
+    }
+    .dm-panel-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 28px;
+    }
+    .dm-brand-name {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 42px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 20px;
+      letter-spacing: -0.01em;
+    }
+    .dm-brand-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 32px;
+    }
+    .dm-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .dm-divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 28px;
+    }
+    .dm-brand-field {
+      margin-bottom: 22px;
+    }
+    .dm-field-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 7px;
+    }
+    .dm-field-value {
+      font-size: 13.5px;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* Brand drives output note */
+    .dm-brand-note {
+      margin-top: 32px;
+      padding: 14px 16px;
+      background: var(--green-lo);
+      border: 1px solid var(--green-border);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--green);
+      line-height: 1.6;
+      opacity: 0.85;
+    }
+
+    /* ── Right: Campaign panel ────────────────── */
+    .dm-campaign {
+      padding: 40px 48px;
+    }
+
+    /* ── Section ─────────────────────────────── */
+    .dm-section {
+      margin-bottom: 48px;
+    }
+    .dm-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 16px;
+    }
+
+    /* ── Concept block ───────────────────────── */
+    .dm-concept {
+      padding: 24px 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .dm-concept-text {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    /* ── Ads grid ────────────────────────────── */
+    .dm-ads {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .dm-ad-card {
+      padding: 24px 28px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: border-color 0.18s;
+    }
+    .dm-ad-card:hover {
+      border-color: var(--border2);
+    }
+    .dm-ad-num {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 12px;
+    }
+    .dm-ad-copy {
+      font-size: 17px;
+      font-weight: 400;
+      line-height: 1.55;
+      color: var(--text);
+    }
+    .dm-ad-format {
+      margin-top: 14px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+    }
+
+    /* ── Visual direction ────────────────────── */
+    .dm-visual {
+      padding: 24px 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .dm-visual-row {
+      display: flex;
+      gap: 14px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: baseline;
+    }
+    .dm-visual-row:first-child { padding-top: 0; }
+    .dm-visual-row:last-child  { border-bottom: none; padding-bottom: 0; }
+    .dm-visual-k {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      min-width: 92px;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+    .dm-visual-v {
+      font-size: 13.5px;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── CTA band ────────────────────────────── */
+    .dm-cta {
+      padding: 56px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20px;
+    }
+    .dm-cta-eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .dm-cta-headline {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: clamp(24px, 3.5vw, 36px);
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.2;
+      max-width: 480px;
+    }
+    .dm-cta-sub {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 400px;
+      line-height: 1.65;
+    }
+    .dm-cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 36px;
+      background: var(--green);
+      color: #0A0A0A;
+      border-radius: 9px;
+      font-family: 'Geist', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.18s;
+      margin-top: 4px;
+    }
+    .dm-cta-btn:hover { background: #62CFA2; }
+    .dm-cta-btn-arr {
+      display: inline-block;
+      transition: transform 0.18s;
+    }
+    .dm-cta-btn:hover .dm-cta-btn-arr { transform: translateX(3px); }
+    .dm-cta-login {
+      font-size: 13px;
+      color: var(--dim);
+    }
+    .dm-cta-login a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .dm-cta-login a:hover { color: var(--text); }
+
+    /* ── Footer ──────────────────────────────── */
+    .dm-footer {
+      padding: 24px 40px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dm-footer-copy {
+      font-size: 12px;
+      color: var(--dim);
+    }
+    .dm-footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    .dm-footer-link {
+      font-size: 12px;
+      color: var(--dim);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .dm-footer-link:hover { color: var(--muted); }
+
+    /* ── Mobile ──────────────────────────────── */
+    @media (max-width: 768px) {
+      .dm-nav        { padding: 0 20px; }
+      .dm-nav-label  { display: none; }
+      .dm-hero       { padding: 40px 20px 32px; }
+      .dm-layout     { grid-template-columns: 1fr; }
+      .dm-brand      { position: static; border-right: none; border-bottom: 1px solid var(--border); padding: 32px 20px; }
+      .dm-campaign   { padding: 32px 20px; }
+      .dm-cta        { padding: 48px 20px; }
+      .dm-footer     { padding: 24px 20px; flex-direction: column; gap: 16px; text-align: center; }
+      .dm-concept    { padding: 20px; }
+      .dm-ad-card    { padding: 20px; }
+      .dm-visual     { padding: 20px; }
+    }
+
+    /* ── Entry animation ─────────────────────── */
+    .dm-layout,
+    .dm-hero,
+    .dm-cta {
+      animation: dmFadeIn 0.55s cubic-bezier(.22,1,.36,1) both;
+    }
+    .dm-brand   { animation-delay: 0.05s; }
+    .dm-campaign{ animation-delay: 0.12s; }
+
+    @keyframes dmFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Navigation ───────────────────────────────── -->
+<nav class="dm-nav">
+  <a href="/" class="dm-nav-logo">Oriven</a>
+  <span class="dm-nav-label">Demo Campaign</span>
+  <a href="/app" class="dm-nav-cta">Create yours</a>
+</nav>
+
+<!-- ─── Hero ─────────────────────────────────────── -->
+<div class="dm-hero">
+  <div class="dm-hero-eyebrow">Demo Campaign — Generated from brand identity</div>
+  <h1 class="dm-hero-title">This is what Oriven<br>builds from a brand.</h1>
+  <p class="dm-hero-sub">No random outputs. One brief, one brand, one complete campaign — structured and ready to use.</p>
+</div>
+
+<!-- ─── Two-column layout ─────────────────────────── -->
+<div class="dm-layout">
+
+  <!-- LEFT: Brand identity -->
+  <aside class="dm-brand">
+    <div class="dm-panel-label">Brand identity</div>
+
+    <div class="dm-brand-name">ORYX</div>
+
+    <div class="dm-brand-badges">
+      <span class="dm-badge">Aggressive</span>
+      <span class="dm-badge">Premium</span>
+    </div>
+
+    <div class="dm-divider"></div>
+
+    <div class="dm-brand-field">
+      <div class="dm-field-label">Audience</div>
+      <div class="dm-field-value">Young men focused on strength and discipline</div>
+    </div>
+
+    <div class="dm-brand-field">
+      <div class="dm-field-label">Tone</div>
+      <div class="dm-field-value">Direct. Uncompromising. Built to perform.</div>
+    </div>
+
+    <div class="dm-brand-field">
+      <div class="dm-field-label">Style</div>
+      <div class="dm-field-value">High-contrast. Dark. No noise.</div>
+    </div>
+
+    <div class="dm-brand-note">
+      Every element of this campaign — copy, visual direction, messaging — was generated from this brand identity.
+    </div>
+  </aside>
+
+  <!-- RIGHT: Campaign output -->
+  <main class="dm-campaign">
+
+    <!-- Campaign concept -->
+    <div class="dm-section">
+      <div class="dm-section-label">Campaign concept</div>
+      <div class="dm-concept">
+        <p class="dm-concept-text">
+          Build a dominant physique through consistency and discipline.
+        </p>
+      </div>
+    </div>
+
+    <!-- Ad copy -->
+    <div class="dm-section">
+      <div class="dm-section-label">Ad copy — 3 variations</div>
+      <div class="dm-ads">
+
+        <div class="dm-ad-card">
+          <div class="dm-ad-num">Ad 01</div>
+          <p class="dm-ad-copy">Stop guessing your supplements. Start building real strength.</p>
+          <div class="dm-ad-format">Instagram Feed · Conversion</div>
+        </div>
+
+        <div class="dm-ad-card">
+          <div class="dm-ad-num">Ad 02</div>
+          <p class="dm-ad-copy">Your body doesn't need more products. It needs the right system.</p>
+          <div class="dm-ad-format">Instagram Feed · Brand awareness</div>
+        </div>
+
+        <div class="dm-ad-card">
+          <div class="dm-ad-num">Ad 03</div>
+          <p class="dm-ad-copy">Consistency builds muscle. ORYX builds consistency.</p>
+          <div class="dm-ad-format">Instagram Story · Engagement</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Visual direction -->
+    <div class="dm-section">
+      <div class="dm-section-label">Visual direction</div>
+      <div class="dm-visual">
+        <div class="dm-visual-row">
+          <span class="dm-visual-k">Background</span>
+          <span class="dm-visual-v">Deep black — zero distraction, maximum presence</span>
+        </div>
+        <div class="dm-visual-row">
+          <span class="dm-visual-k">Accent</span>
+          <span class="dm-visual-v">Neon green — sharp, high-energy, cuts through</span>
+        </div>
+        <div class="dm-visual-row">
+          <span class="dm-visual-k">Subject</span>
+          <span class="dm-visual-v">Strong male physique — deliberate, aspirational, unposed</span>
+        </div>
+        <div class="dm-visual-row">
+          <span class="dm-visual-k">Lighting</span>
+          <span class="dm-visual-v">High-contrast — hard shadows, single strong key light</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ─── CTA band ──────────────────────────────────── -->
+<section class="dm-cta">
+  <div class="dm-cta-eyebrow">Your turn</div>
+  <h2 class="dm-cta-headline">Generate a campaign<br>from your brand.</h2>
+  <p class="dm-cta-sub">
+    Add your brand identity once. Oriven generates structured campaigns, ad copy, and visual direction — every time.
+  </p>
+  <a href="/app" class="dm-cta-btn">
+    Create free account
+    <span class="dm-cta-btn-arr">→</span>
+  </a>
+  <p class="dm-cta-login">Already have an account? <a href="/app">Sign in</a></p>
+</section>
+
+<!-- ─── Footer ────────────────────────────────────── -->
+<footer class="dm-footer">
+  <span class="dm-footer-copy">© 2025 ORIVEN. All rights reserved.</span>
+  <nav class="dm-footer-links">
+    <a href="/" class="dm-footer-link">Home</a>
+    <a href="/blog" class="dm-footer-link">Blog</a>
+    <a href="/onboarding" class="dm-footer-link">How it works</a>
+    <a href="/app" class="dm-footer-link">Use Tool</a>
+  </nav>
+</footer>
+
+</body>
+</html>
