@@ -971,7 +971,29 @@ function _buildBuilderPrompt(type){
   if(type === "text")     return _buildTextBuilderPrompt(custom);
   if(type === "ads")      return _buildAdsBuilderPrompt(custom);
   if(type === "campaign") return _buildCampaignBuilderPrompt(custom);
+  if(type === "web")      return _buildWebBuilderPrompt(custom);
   return custom;
+}
+
+function _buildWebBuilderPrompt(custom){
+  var b    = S._builder   || {};
+  var bc   = S.brandCore  || {};
+  var parts = [];
+
+  if(bc.name)      parts.push("Brand: " + bc.name);
+  if(bc.industry)  parts.push("Industry: " + bc.industry);
+  if(bc.values)    parts.push("Brand values: " + bc.values);
+  if(bc.tone)      parts.push("Brand tone: " + bc.tone);
+  if(bc.palette)   parts.push("Brand palette: " + bc.palette);
+
+  if(b.webPromotion) parts.push("Promoting: " + b.webPromotion);
+  if(b.webAudience)  parts.push("Target audience: " + b.webAudience);
+  if(b.webStyle)     parts.push("Design style: " + b.webStyle);
+  if(b.webAnimations)parts.push("Animations: " + b.webAnimations);
+  if(b.webSections)  parts.push("Page sections: " + b.webSections.replace(/-/g, " + "));
+  if(custom)         parts.push("Additional notes: " + custom);
+
+  return parts.join("\n");
 }
 
 
@@ -1889,6 +1911,9 @@ async function runBuilder(){
   } else if(type === "text"){
     endpoint    = API_BASE_URL+"/api/generate-text";
     requestBody = { prompt: prompt, type: "text" };
+  } else if(type === "web"){
+    endpoint    = API_BASE_URL+"/api/generate-web";
+    requestBody = { prompt: prompt, type: "web" };
   }
 
   console.log("[Builder/" + type + "] → " + endpoint);
@@ -2046,7 +2071,39 @@ function _showBuilderResult(type, data){
     return;
   }
 
+  if(type === "web"){
+    if(!data.html){
+      body.innerHTML = '<div class="builder-error">No page was returned.</div>';
+      return;
+    }
+    var whtml = '<div class="builder-web-result">';
+    whtml += '<div class="bwr-toolbar">';
+    whtml += '<span class="bwr-label">Landing Page Preview</span>';
+    whtml += '<button class="bwr-download" onclick="_downloadWebPage()">Download HTML</button>';
+    whtml += '</div>';
+    whtml += '<iframe id="webPreviewFrame" class="bwr-frame" sandbox="allow-scripts allow-same-origin"></iframe>';
+    whtml += '</div>';
+    body.innerHTML = whtml;
+    var frame = document.getElementById("webPreviewFrame");
+    if(frame) frame.srcdoc = data.html;
+    S._lastWebHTML = data.html;
+    return;
+  }
+
   body.innerHTML = '<div class="builder-result-text">' + _formatBrief(data.result || "") + '</div>';
+}
+
+function _downloadWebPage(){
+  var html = S._lastWebHTML || "";
+  if(!html) return;
+  var blob = new Blob([html], { type: "text/html" });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement("a");
+  a.href     = url;
+  a.download = "landing-page.html";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
 }
 
 

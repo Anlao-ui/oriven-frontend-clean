@@ -1812,6 +1812,26 @@ textarea.flow-inp{min-height:90px;resize:vertical}
   white-space:pre-wrap;
 }
 
+/* Web result */
+.builder-web-result{display:flex;flex-direction:column;gap:0}
+.bwr-toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  background:var(--bg2);
+}
+.bwr-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.bwr-download{
+  font-size:12px;font-weight:600;padding:6px 14px;
+  border-radius:6px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);cursor:pointer;
+  transition:background .15s,border-color .15s;
+}
+.bwr-download:hover{background:var(--bg2);border-color:var(--accent)}
+.bwr-frame{
+  width:100%;height:560px;border:none;
+  background:#fff;display:block;
+}
+
 /* ── Image composite (visual + text overlay) ─────────────────── */
 .img-composite{
   display:flex;

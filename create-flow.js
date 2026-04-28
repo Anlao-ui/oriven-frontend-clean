@@ -186,6 +186,63 @@ var CF_FLOWS = {
       placeholder: "Describe your offer, audience, key messages, or any creative direction…",
       optional: true
     }
+  ],
+
+  web: [
+    {
+      key:         "webPromotion",
+      q:           "What are you promoting?",
+      desc:        "Describe the product, service, or offer this landing page is for.",
+      type:        "textarea",
+      placeholder: "e.g. A SaaS tool for freelance designers that automates invoicing…",
+      optional:    false
+    },
+    {
+      key:         "webAudience",
+      q:           "Who is your target audience?",
+      desc:        "Be specific — this shapes the copy, tone, and messaging angle.",
+      type:        "textarea",
+      placeholder: "e.g. Freelance designers aged 25–40 who hate admin work…",
+      optional:    false
+    },
+    {
+      key:  "webStyle",
+      q:    "What design style do you want?",
+      desc: "This sets the visual language and layout density of the page.",
+      options: [
+        { val: "minimal", label: "Minimal" },
+        { val: "modern",  label: "Modern" },
+        { val: "bold",    label: "Bold" }
+      ]
+    },
+    {
+      key:  "webAnimations",
+      q:    "Should the page include animations?",
+      desc: "Animations can improve feel but may slow load time.",
+      options: [
+        { val: "none",   label: "None" },
+        { val: "subtle", label: "Subtle" },
+        { val: "smooth", label: "Smooth" }
+      ]
+    },
+    {
+      key:  "webSections",
+      q:    "Which sections should the page include?",
+      desc: "Choose the layout structure for the landing page.",
+      options: [
+        { val: "hero-features-cta",               label: "Hero + Features + CTA" },
+        { val: "hero-features-testimonials-cta",  label: "Hero + Features + Testimonials + CTA" },
+        { val: "hero-features-pricing-cta",       label: "Hero + Features + Pricing + CTA" }
+      ]
+    },
+    {
+      key:         "_extraNotes",
+      q:           "Anything else you'd like to add?",
+      desc:        "The more specific your input, the better the final result.",
+      type:        "textarea",
+      placeholder: "Specific copy direction, color preferences, tone notes, inspiration…",
+      optional:    true
+    }
   ]
 
 };
@@ -209,6 +266,10 @@ var CF_META = {
   campaign: {
     label: "Campaign",
     icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14L6 6l3.5 5.5L12 8l4.5 7"/><circle cx="6" cy="6" r="1"/></svg>'
+  },
+  web: {
+    label: "Web",
+    icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2" width="18" height="13" rx="2.5"/><path d="M1 6h18"/><path d="M4 4h.01M6.5 4h.01M9 4h.01"/><path d="M6 18h8M10 15v3"/></svg>'
   }
 };
 
@@ -586,6 +647,10 @@ function _cfDispatch(){
     if(!S._builder.campVariations) S._builder.campVariations = "3";
     if(!S._builder.campFormat)     S._builder.campFormat = "square";
     if(!S._builder.campSubject)    S._builder.campSubject = "brand";
+  } else if(_cfType === "web"){
+    if(!S._builder.webStyle)      S._builder.webStyle      = "modern";
+    if(!S._builder.webAnimations) S._builder.webAnimations = "subtle";
+    if(!S._builder.webSections)   S._builder.webSections   = "hero-features-cta";
   }
 
   // Set up builder page (matches openBuilder() setup)
