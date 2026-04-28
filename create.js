@@ -1912,8 +1912,20 @@ async function runBuilder(){
     endpoint    = API_BASE_URL+"/api/generate-text";
     requestBody = { prompt: prompt, type: "text" };
   } else if(type === "web"){
+    var _b = S._builder  || {};
+    var _c = S.brandCore || {};
     endpoint    = API_BASE_URL+"/api/generate-web";
-    requestBody = { prompt: prompt, type: "web" };
+    requestBody = {
+      brand_name: _c.name       || "",
+      product:    _b.webPromotion || "",
+      audience:   _b.webAudience  || "",
+      tone:       _c.tone        || "",
+      color:      _c.palette     || "#52B788",
+      goal:       "conversion",
+      style:      _b.webStyle      || "modern",
+      animations: _b.webAnimations || "subtle",
+      sections:   _b.webSections   || "hero-features-cta"
+    };
   }
 
   console.log("[Builder/" + type + "] → " + endpoint);
