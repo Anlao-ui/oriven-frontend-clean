@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Demo Campaign — ORYX | ORIVEN</title>
-  <meta name="description" content="See how Oriven generates a complete, brand-aligned campaign from a single brand identity. Demo campaign for ORYX.">
+  <title>Demo Campaign — ORIVEN</title>
+  <meta name="description" content="See how Oriven generates a complete, brand-aligned campaign from a single brand identity. No setup required.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -53,13 +53,14 @@
       border-bottom: 1px solid var(--border);
     }
     .dm-nav-logo {
-      font-family: 'Geist', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text);
+      display: flex;
+      align-items: center;
       text-decoration: none;
+    }
+    .dm-nav-logo-img {
+      height: 22px;
+      width: auto;
+      display: block;
     }
     .dm-nav-label {
       font-size: 12px;
@@ -425,7 +426,9 @@
 
 <!-- ─── Navigation ───────────────────────────────── -->
 <nav class="dm-nav">
-  <a href="/" class="dm-nav-logo">Oriven</a>
+  <a href="/" class="dm-nav-logo" aria-label="ORIVEN">
+    <img src="/assets/orivenlogo.png" alt="ORIVEN" class="dm-nav-logo-img">
+  </a>
   <span class="dm-nav-label">Demo Campaign</span>
   <a href="/app" class="dm-nav-cta">Create yours</a>
 </nav>
@@ -444,28 +447,28 @@
   <aside class="dm-brand">
     <div class="dm-panel-label">Brand identity</div>
 
-    <div class="dm-brand-name">ORYX</div>
+    <div class="dm-brand-name">Your Brand</div>
 
     <div class="dm-brand-badges">
-      <span class="dm-badge">Aggressive</span>
       <span class="dm-badge">Premium</span>
+      <span class="dm-badge">Intentional</span>
     </div>
 
     <div class="dm-divider"></div>
 
     <div class="dm-brand-field">
       <div class="dm-field-label">Audience</div>
-      <div class="dm-field-value">Young men focused on strength and discipline</div>
+      <div class="dm-field-value">Founders, creators, and makers building something real</div>
     </div>
 
     <div class="dm-brand-field">
       <div class="dm-field-label">Tone</div>
-      <div class="dm-field-value">Direct. Uncompromising. Built to perform.</div>
+      <div class="dm-field-value">Clear. Direct. Confident.</div>
     </div>
 
     <div class="dm-brand-field">
       <div class="dm-field-label">Style</div>
-      <div class="dm-field-value">High-contrast. Dark. No noise.</div>
+      <div class="dm-field-value">Minimal, premium — no noise, no filler.</div>
     </div>
 
     <div class="dm-brand-note">
@@ -481,7 +484,7 @@
       <div class="dm-section-label">Campaign concept</div>
       <div class="dm-concept">
         <p class="dm-concept-text">
-          Build a dominant physique through consistency and discipline.
+          Your brand has a point of view. Every campaign should prove it.
         </p>
       </div>
     </div>
@@ -493,20 +496,20 @@
 
         <div class="dm-ad-card">
           <div class="dm-ad-num">Ad 01</div>
-          <p class="dm-ad-copy">Stop guessing your supplements. Start building real strength.</p>
-          <div class="dm-ad-format">Instagram Feed · Conversion</div>
-        </div>
-
-        <div class="dm-ad-card">
-          <div class="dm-ad-num">Ad 02</div>
-          <p class="dm-ad-copy">Your body doesn't need more products. It needs the right system.</p>
+          <p class="dm-ad-copy">You know what you're building. Make sure your audience does too.</p>
           <div class="dm-ad-format">Instagram Feed · Brand awareness</div>
         </div>
 
         <div class="dm-ad-card">
+          <div class="dm-ad-num">Ad 02</div>
+          <p class="dm-ad-copy">Great brands don't shout. They make people lean in.</p>
+          <div class="dm-ad-format">Instagram Feed · Engagement</div>
+        </div>
+
+        <div class="dm-ad-card">
           <div class="dm-ad-num">Ad 03</div>
-          <p class="dm-ad-copy">Consistency builds muscle. ORYX builds consistency.</p>
-          <div class="dm-ad-format">Instagram Story · Engagement</div>
+          <p class="dm-ad-copy">Stop producing content. Start building a brand.</p>
+          <div class="dm-ad-format">Instagram Story · Conversion</div>
         </div>
 
       </div>
@@ -518,19 +521,19 @@
       <div class="dm-visual">
         <div class="dm-visual-row">
           <span class="dm-visual-k">Background</span>
-          <span class="dm-visual-v">Deep black — zero distraction, maximum presence</span>
+          <span class="dm-visual-v">Clean dark surface — nothing competes with the message</span>
         </div>
         <div class="dm-visual-row">
           <span class="dm-visual-k">Accent</span>
-          <span class="dm-visual-v">Neon green — sharp, high-energy, cuts through</span>
+          <span class="dm-visual-v">Brand color — used with intention, not decoration</span>
         </div>
         <div class="dm-visual-row">
           <span class="dm-visual-k">Subject</span>
-          <span class="dm-visual-v">Strong male physique — deliberate, aspirational, unposed</span>
+          <span class="dm-visual-v">Your product, your moment — no stock imagery</span>
         </div>
         <div class="dm-visual-row">
-          <span class="dm-visual-k">Lighting</span>
-          <span class="dm-visual-v">High-contrast — hard shadows, single strong key light</span>
+          <span class="dm-visual-k">Typography</span>
+          <span class="dm-visual-v">Bold, spaced, clear — headline leads, nothing else fights</span>
         </div>
       </div>
     </div>
@@ -557,8 +560,6 @@
   <span class="dm-footer-copy">© 2025 ORIVEN. All rights reserved.</span>
   <nav class="dm-footer-links">
     <a href="/" class="dm-footer-link">Home</a>
-    <a href="/blog" class="dm-footer-link">Blog</a>
-    <a href="/onboarding" class="dm-footer-link">How it works</a>
     <a href="/app" class="dm-footer-link">Use Tool</a>
   </nav>
 </footer>

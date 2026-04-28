@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,12 +30,15 @@
       --dim:       #444444;
     }
 
-    html, body {
-      width: 100%; height: 100%;
+    html, body { width: 100%; height: 100%; }
+
+    body {
       background: var(--bg);
       color: var(--text);
       font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
       overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.25s ease;
     }
 
     /* Progress bar */
@@ -91,7 +95,7 @@
     }
     .ob-frame {
       width: 100%;
-      max-width: 580px;
+      max-width: 680px;
     }
 
     /* Step */
@@ -118,19 +122,19 @@
     }
     .ob-headline {
       font-family: 'Instrument Serif', Georgia, serif;
-      font-size: clamp(34px, 5.5vw, 56px);
+      font-size: clamp(38px, 5.5vw, 62px);
       font-weight: 400;
-      line-height: 1.12;
+      line-height: 1.1;
       color: var(--text);
-      margin-bottom: 18px;
-      max-width: 520px;
+      margin-bottom: 20px;
+      max-width: 600px;
     }
     .ob-sub {
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 300;
       line-height: 1.65;
       color: var(--muted);
-      max-width: 420px;
+      max-width: 500px;
       margin-bottom: 44px;
     }
 
@@ -392,7 +396,25 @@
 </nav>
 
 <script>
-(function(){
+(async function(){
+  // ── Auth gate ─────────────────────────────────────────────────
+  // If the user already has a valid session, send them straight to
+  // the dashboard and never render the onboarding at all.
+  try {
+    var _sb = window.supabase.createClient(
+      'https://rsqfoqitooxmkyrkuyzi.supabase.co',
+      'sb_publishable_O7XoiC1YmV94lhwV5o8YBA_7zJ2HA7K'
+    );
+    var _r = await _sb.auth.getSession();
+    if (_r.data && _r.data.session) {
+      window.location.replace('/app');
+      return; // body stays hidden while redirect happens — no flash
+    }
+  } catch(_e) { /* CDN failed or network error — fail open, show onboarding */ }
+
+  document.body.style.opacity = '1';
+
+  // ── Onboarding flow ───────────────────────────────────────────
   var current   = 0;
   var total     = 5;
   var animating = false;
