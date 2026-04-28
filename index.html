@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ORIVEN — AI Brand Studio</title>
-  <meta name="description" content="See how Oriven turns your brand into structured, on-brand campaigns. No setup required.">
+  <meta name="description" content="Turn one idea into ads, visuals and messaging — all aligned. Oriven builds full campaigns, not random content.">
   <link rel="canonical" href="https://orivenai.com/">
   <meta property="og:title" content="ORIVEN — AI Brand Studio">
   <meta property="og:description" content="One idea. A full campaign. Built from your brand.">
@@ -20,205 +20,205 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:        #0A0A0A;
-      --surface:   #111111;
-      --border:    #1E1E1E;
-      --border2:   #2A2A2A;
-      --green:     #52B788;
-      --text:      #F2F2F2;
-      --muted:     #888888;
-      --dim:       #444444;
+      --bg:           #0A0A0A;
+      --surface:      #111111;
+      --card:         #131313;
+      --border:       #1E1E1E;
+      --border2:      #2A2A2A;
+      --green:        #52B788;
+      --green-lo:     rgba(82, 183, 136, 0.07);
+      --green-border: rgba(82, 183, 136, 0.18);
+      --text:         #F2F2F2;
+      --muted:        #888888;
+      --dim:          #444444;
     }
 
-    html, body { width: 100%; height: 100%; }
+    html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg);
       color: var(--text);
       font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
-      overflow: hidden;
+      min-height: 100vh;
       opacity: 0;
-      transition: opacity 0.25s ease;
+      transition: opacity 0.3s ease;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Progress bar */
-    .ob-progress {
+    /* ── Header ─────────────────────────────────────── */
+    .lp-header {
       position: fixed;
       top: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--border);
-      z-index: 20;
-    }
-    .ob-progress-fill {
-      height: 100%;
-      background: var(--green);
-      transition: width 0.5s cubic-bezier(.4,0,.2,1);
-      will-change: width;
-    }
-
-    /* Header */
-    .ob-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 58px;
+      height: 60px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 32px;
-      z-index: 10;
+      padding: 0 40px;
+      z-index: 50;
+      background: rgba(10,10,10,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
     }
-    .ob-logo-link {
+    .lp-logo {
       display: flex;
       align-items: center;
       text-decoration: none;
     }
-    .ob-logo-img {
+    .lp-logo-img {
       height: 24px;
       width: auto;
       display: block;
     }
-    .ob-counter {
-      font-size: 11px;
+    .lp-signin {
+      font-size: 13px;
       font-weight: 500;
-      letter-spacing: 0.08em;
-      color: var(--dim);
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s;
     }
+    .lp-signin:hover { color: var(--text); }
 
-    /* Stage */
-    .ob-stage {
-      width: 100%;
-      height: 100vh;
+    /* ── Hero ───────────────────────────────────────── */
+    .lp-hero {
+      min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 80px 32px 108px;
+      text-align: center;
+      padding: 120px 40px 96px;
     }
-    .ob-frame {
-      width: 100%;
-      max-width: 680px;
-    }
-
-    /* Step */
-    .ob-step {
-      display: none;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .ob-step.is-active  { display: flex; }
-    .ob-step.is-visible { animation: obIn 0.42s cubic-bezier(.22,1,.36,1) both; }
-    .ob-step.is-exiting { animation: obOut 0.2s ease forwards; }
-
-    @keyframes obIn  { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes obOut { to   { opacity:0; transform:translateY(-10px); } }
-
-    /* Typography */
-    .ob-eyebrow {
+    .lp-eyebrow {
       font-size: 11px;
       font-weight: 500;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--green);
-      margin-bottom: 18px;
+      margin-bottom: 28px;
     }
-    .ob-headline {
+    .lp-headline {
       font-family: 'Instrument Serif', Georgia, serif;
-      font-size: clamp(38px, 5.5vw, 62px);
+      font-size: clamp(36px, 5.5vw, 68px);
       font-weight: 400;
       line-height: 1.1;
       color: var(--text);
-      margin-bottom: 20px;
-      max-width: 600px;
+      max-width: 860px;
+      margin-bottom: 28px;
     }
-    .ob-sub {
+    .lp-sub {
       font-size: 19px;
       font-weight: 300;
       line-height: 1.65;
       color: var(--muted);
-      max-width: 500px;
-      margin-bottom: 44px;
-    }
-
-    /* Step 2: Chaos */
-    .ob-chaos {
-      position: relative;
-      width: 100%;
-      max-width: 500px;
-      height: 200px;
-      margin-bottom: 8px;
-      pointer-events: none;
-      user-select: none;
-      overflow: hidden;
-    }
-    .ob-chaos-chip {
-      position: absolute;
-      padding: 7px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 400;
-      color: var(--dim);
-      white-space: nowrap;
-    }
-
-    /* Step 3: Clean */
-    .ob-clean {
-      width: 100%;
       max-width: 460px;
-      background: var(--surface);
+    }
+
+    /* ── Proof section ──────────────────────────────── */
+    .lp-proof {
+      padding: 80px 40px 96px;
+      border-top: 1px solid var(--border);
+    }
+    .lp-section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .lp-proof-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .lp-ad-card {
+      padding: 28px;
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-    .ob-clean-head {
-      padding: 13px 18px;
-      border-bottom: 1px solid var(--border);
       display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: border-color 0.18s;
+    }
+    .lp-ad-card:hover { border-color: var(--border2); }
+    .lp-ad-num {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .lp-ad-copy {
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.55;
+      color: var(--text);
+      flex: 1;
+    }
+    .lp-ad-format {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--green);
+      opacity: 0.65;
+    }
+
+    /* ── Flow section ───────────────────────────────── */
+    .lp-flow {
+      padding: 96px 40px;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
+      text-align: center;
+      border-top: 1px solid var(--border);
     }
-    .ob-clean-dot { width:6px; height:6px; border-radius:50%; background:var(--green); }
-    .ob-clean-tag { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--dim); }
-    .ob-clean-body { padding:18px; display:flex; flex-direction:column; gap:11px; }
-    .ob-clean-row  { display:flex; gap:14px; align-items:baseline; }
-    .ob-clean-k    { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.09em; color:var(--dim); min-width:76px; flex-shrink:0; padding-top:2px; }
-    .ob-clean-v    { font-size:13.5px; font-weight:400; color:var(--muted); line-height:1.5; }
-    .ob-clean-v.hi { color:var(--green); font-weight:500; }
+    .lp-flow-statement {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: clamp(34px, 4.5vw, 58px);
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--text);
+      margin-bottom: 18px;
+    }
+    .lp-flow-statement .accent { color: var(--green); }
+    .lp-flow-note {
+      font-size: 17px;
+      font-weight: 300;
+      color: var(--muted);
+    }
 
-    /* Step 4: Brand flow */
-    .ob-flow {
+    /* ── CTA section ────────────────────────────────── */
+    .lp-cta {
+      padding: 96px 40px 128px;
       display: flex;
-      align-items: stretch;
-      width: 100%;
-      max-width: 480px;
-      margin-bottom: 8px;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      border-top: 1px solid var(--border);
     }
-    .ob-flow-card { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
-    .ob-flow-card.is-output { border-color:rgba(82,183,136,0.25); background:rgba(82,183,136,0.04); }
-    .ob-flow-lbl  { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.12em; color:var(--dim); margin-bottom:11px; }
-    .ob-flow-lbl.hi { color:rgba(82,183,136,0.5); }
-    .ob-flow-attr { font-size:12.5px; line-height:1.85; color:var(--muted); }
-    .ob-flow-attr strong { color:var(--text); font-weight:500; }
-    .ob-flow-attr .g { color:var(--green); font-weight:500; }
-    .ob-flow-sep  { display:flex; align-items:center; padding:0 14px; font-size:18px; color:var(--green); opacity:0.45; flex-shrink:0; }
-
-    /* Step 5: CTAs */
-    .ob-final { display:flex; flex-direction:column; gap:12px; width:100%; max-width:380px; }
-    .ob-final-note { font-size:12px; color:var(--dim); margin-top:4px; }
-    .ob-final-note a { color:var(--muted); text-decoration:none; }
-    .ob-final-note a:hover { color:var(--text); }
+    .lp-cta-eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 28px;
+    }
 
     /* Buttons */
-    .ob-btn {
+    .lp-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 13px 28px;
-      border-radius: 8px;
+      padding: 15px 32px;
+      border-radius: 9px;
       font-family: 'Geist', sans-serif;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 500;
       cursor: pointer;
       border: none;
@@ -226,180 +226,112 @@
       transition: background 0.18s, color 0.18s, border-color 0.18s;
       white-space: nowrap;
     }
-    .ob-btn--primary { background:var(--green); color:#0A0A0A; }
-    .ob-btn--primary:hover { background:#62CFA2; }
-    .ob-btn--ghost { background:transparent; color:var(--muted); border:1px solid var(--border2); }
-    .ob-btn--ghost:hover { color:var(--text); border-color:#3A3A3A; }
-    .ob-btn-arr { display:inline-block; transition:transform 0.18s; }
-    .ob-btn--primary:hover .ob-btn-arr { transform:translateX(3px); }
-
-    /* Bottom nav */
-    .ob-nav {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      padding: 24px 32px calc(24px + env(safe-area-inset-bottom));
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 10;
-      background: linear-gradient(to top, var(--bg) 50%, transparent);
+    .lp-btn--primary { background: var(--green); color: #0A0A0A; }
+    .lp-btn--primary:hover { background: #62CFA2; }
+    .lp-btn--ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border2);
     }
-    .ob-nav.is-hidden { display: none; }
-    .ob-skip-btn {
-      font-size: 13px;
-      font-family: 'Geist', sans-serif;
-      font-weight: 400;
+    .lp-btn--ghost:hover { color: var(--text); border-color: #3A3A3A; }
+    .lp-btn-arr { display: inline-block; transition: transform 0.18s; }
+    .lp-btn--primary:hover .lp-btn-arr { transform: translateX(3px); }
+
+    .lp-cta-note {
+      font-size: 12px;
       color: var(--dim);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 10px 4px;
-      transition: color 0.18s;
+      margin-top: 10px;
+      margin-bottom: 28px;
     }
-    .ob-skip-btn:hover { color: var(--muted); }
+    .lp-cta-signin {
+      font-size: 13px;
+      color: var(--dim);
+      margin-top: 16px;
+    }
+    .lp-cta-signin a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .lp-cta-signin a:hover { color: var(--text); }
 
-    /* Mobile */
-    @media (max-width: 540px) {
-      .ob-header  { padding: 0 20px; }
-      .ob-stage   { padding: 72px 20px 100px; }
-      .ob-nav     { padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); }
-      .ob-headline { font-size: 32px; }
-      .ob-sub     { font-size: 16px; }
-      .ob-chaos   { height: 170px; }
-      .ob-flow    { flex-direction: column; gap: 10px; }
-      .ob-flow-sep { padding:4px 0; font-size:16px; transform:rotate(90deg); align-self:flex-start; margin-left:18px; }
-      .ob-final   { max-width: 100%; }
+    /* ── Mobile ─────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .lp-header  { padding: 0 20px; }
+      .lp-hero    { padding: 100px 20px 80px; }
+      .lp-sub     { font-size: 16px; }
+      .lp-proof   { padding: 64px 20px 80px; }
+      .lp-proof-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+      .lp-flow    { padding: 72px 20px; }
+      .lp-cta     { padding: 72px 20px 100px; }
+    }
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .lp-proof-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
 
-<div class="ob-progress">
-  <div class="ob-progress-fill" id="obFill" style="width:20%"></div>
-</div>
-
-<header class="ob-header">
-  <a href="/" class="ob-logo-link" aria-label="ORIVEN">
-    <img src="/assets/orivenlogo.png" alt="ORIVEN" class="ob-logo-img">
+<!-- ─── Header ────────────────────────────────────────── -->
+<header class="lp-header">
+  <a href="/" class="lp-logo" aria-label="ORIVEN">
+    <img src="/assets/orivenlogo.png" alt="ORIVEN" class="lp-logo-img">
   </a>
-  <span class="ob-counter" id="obCounter">1 / 5</span>
+  <a href="/app" class="lp-signin">Sign in</a>
 </header>
 
-<div class="ob-stage">
-  <div class="ob-frame">
+<!-- ─── Section 1: Hook ──────────────────────────────── -->
+<section class="lp-hero">
+  <p class="lp-eyebrow">AI Brand Studio</p>
+  <h1 class="lp-headline">Most AI gives you random content.<br>Oriven builds full campaigns.</h1>
+  <p class="lp-sub">Turn one idea into ads, visuals and messaging — all aligned.</p>
+</section>
 
-    <!-- Step 1: Pattern interrupt -->
-    <div class="ob-step is-active" data-step="0">
-      <div class="ob-eyebrow">The problem</div>
-      <h1 class="ob-headline">Your AI content<br>isn't the problem.</h1>
-      <p class="ob-sub">The system behind it is.</p>
+<!-- ─── Section 2: Visual proof ─────────────────────── -->
+<section class="lp-proof">
+  <p class="lp-section-label">What Oriven builds</p>
+  <div class="lp-proof-grid">
+
+    <div class="lp-ad-card">
+      <div class="lp-ad-num">Ad 01</div>
+      <p class="lp-ad-copy">You've been busy building. Now make sure people see it.</p>
+      <div class="lp-ad-format">Feed · Performance</div>
     </div>
 
-    <!-- Step 2: What most AI gives -->
-    <div class="ob-step" data-step="1">
-      <div class="ob-eyebrow">Most AI tools</div>
-      <h1 class="ob-headline">This is what most<br>AI gives you.</h1>
-      <p class="ob-sub" style="margin-bottom:28px">Random outputs. No consistency. Not usable.</p>
-      <div class="ob-chaos" aria-hidden="true">
-        <div class="ob-chaos-chip" style="top:2px;left:0;transform:rotate(-2deg)">AI caption for brand</div>
-        <div class="ob-chaos-chip" style="top:0;left:178px;transform:rotate(1.5deg)">Generic headline copy</div>
-        <div class="ob-chaos-chip" style="top:48px;left:72px;transform:rotate(-1.2deg)">Product description text</div>
-        <div class="ob-chaos-chip" style="top:44px;left:270px;transform:rotate(2.5deg);opacity:.65">Social post</div>
-        <div class="ob-chaos-chip" style="top:98px;left:6px;transform:rotate(1deg);opacity:.8">Some random copy</div>
-        <div class="ob-chaos-chip" style="top:102px;left:190px;transform:rotate(-2deg)">Ad creative v3</div>
-        <div class="ob-chaos-chip" style="top:152px;left:44px;transform:rotate(0.8deg);opacity:.6">Campaign concept</div>
-        <div class="ob-chaos-chip" style="top:148px;left:266px;transform:rotate(-1.5deg);opacity:.7">Brand message</div>
-      </div>
+    <div class="lp-ad-card">
+      <div class="lp-ad-num">Ad 02</div>
+      <p class="lp-ad-copy">Most brands go quiet right when they should be speaking up.</p>
+      <div class="lp-ad-format">Feed · Awareness</div>
     </div>
 
-    <!-- Step 3: What Oriven gives -->
-    <div class="ob-step" data-step="2">
-      <div class="ob-eyebrow">Oriven</div>
-      <h1 class="ob-headline">Oriven gives<br>you this.</h1>
-      <p class="ob-sub" style="margin-bottom:28px">One idea. One system. Everything aligned.</p>
-      <div class="ob-clean" aria-label="Clean structured campaign output example">
-        <div class="ob-clean-head">
-          <div class="ob-clean-dot"></div>
-          <span class="ob-clean-tag">Campaign output</span>
-        </div>
-        <div class="ob-clean-body">
-          <div class="ob-clean-row">
-            <span class="ob-clean-k">Brand</span>
-            <span class="ob-clean-v hi">ORIVEN</span>
-          </div>
-          <div class="ob-clean-row">
-            <span class="ob-clean-k">Concept</span>
-            <span class="ob-clean-v">Premium brand creation for serious creators</span>
-          </div>
-          <div class="ob-clean-row">
-            <span class="ob-clean-k">Ad copy</span>
-            <span class="ob-clean-v">Stop guessing your content. Start building a real brand.</span>
-          </div>
-          <div class="ob-clean-row">
-            <span class="ob-clean-k">Direction</span>
-            <span class="ob-clean-v">Dark, minimal, premium — every asset aligned.</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 4: BrandCore -->
-    <div class="ob-step" data-step="3">
-      <div class="ob-eyebrow">The difference</div>
-      <h1 class="ob-headline">Built from<br>your brand.</h1>
-      <p class="ob-sub" style="margin-bottom:28px">Tone, audience and style drive every output.</p>
-      <div class="ob-flow" aria-label="How brand identity drives output">
-        <div class="ob-flow-card">
-          <div class="ob-flow-lbl">Brand identity</div>
-          <div class="ob-flow-attr">
-            <strong>Tone</strong> — Bold, direct<br>
-            <strong>Audience</strong> — Founders<br>
-            <strong>Style</strong> — Minimal, premium
-          </div>
-        </div>
-        <div class="ob-flow-sep" aria-hidden="true">→</div>
-        <div class="ob-flow-card is-output">
-          <div class="ob-flow-lbl hi">Output</div>
-          <div class="ob-flow-attr">
-            <span class="g">Visual</span> — on-brand<br>
-            <span class="g">Copy</span> — on-voice<br>
-            <span class="g">Campaign</span> — aligned
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 5: Action -->
-    <div class="ob-step" data-step="4">
-      <div class="ob-eyebrow">Get started</div>
-      <h1 class="ob-headline">See it<br>in action.</h1>
-      <p class="ob-sub">No setup. No effort. A complete campaign — generated from a real brand.</p>
-      <div class="ob-final">
-        <a href="/demo" class="ob-btn ob-btn--primary">
-          Generate Demo Campaign
-          <span class="ob-btn-arr">→</span>
-        </a>
-        <a href="/app" class="ob-btn ob-btn--ghost">Create Account</a>
-        <p class="ob-final-note">Already have an account? <a href="/app">Sign in</a></p>
-      </div>
+    <div class="lp-ad-card">
+      <div class="lp-ad-num">Ad 03</div>
+      <p class="lp-ad-copy">Stop producing content. Start building a brand.</p>
+      <div class="lp-ad-format">Story · Conversion</div>
     </div>
 
   </div>
-</div>
+</section>
 
-<nav class="ob-nav" id="obNav">
-  <button class="ob-skip-btn" onclick="obSkip()">Skip to demo</button>
-  <button class="ob-btn ob-btn--primary" onclick="obNext()">
-    Continue
-    <span class="ob-btn-arr">→</span>
-  </button>
-</nav>
+<!-- ─── Section 3: Simple flow ───────────────────────── -->
+<section class="lp-flow">
+  <p class="lp-flow-statement"><span class="accent">1 idea</span> → full campaign</p>
+  <p class="lp-flow-note">No guesswork. No random outputs.</p>
+</section>
+
+<!-- ─── Section 4: Primary CTA ──────────────────────── -->
+<section class="lp-cta">
+  <p class="lp-cta-eyebrow">See it in action</p>
+  <a href="/demo" class="lp-btn lp-btn--primary">
+    Generate Demo Campaign
+    <span class="lp-btn-arr">→</span>
+  </a>
+  <p class="lp-cta-note">Takes less than 10 seconds</p>
+  <a href="/app" class="lp-btn lp-btn--ghost">Create Account</a>
+  <p class="lp-cta-signin">Already have an account? <a href="/app">Sign in</a></p>
+</section>
 
 <script>
 (async function(){
-  // ── Auth gate ─────────────────────────────────────────────────
-  // If the user already has a valid session, send them straight to
-  // the dashboard and never render the onboarding at all.
   try {
     var _sb = window.supabase.createClient(
       'https://rsqfoqitooxmkyrkuyzi.supabase.co',
@@ -408,67 +340,10 @@
     var _r = await _sb.auth.getSession();
     if (_r.data && _r.data.session) {
       window.location.replace('/app');
-      return; // body stays hidden while redirect happens — no flash
+      return;
     }
-  } catch(_e) { /* CDN failed or network error — fail open, show onboarding */ }
-
+  } catch(_e) {}
   document.body.style.opacity = '1';
-
-  // ── Onboarding flow ───────────────────────────────────────────
-  var current   = 0;
-  var total     = 5;
-  var animating = false;
-
-  function getStep(idx){ return document.querySelector('[data-step="' + idx + '"]'); }
-
-  function setProgress(idx){
-    var fill    = document.getElementById('obFill');
-    var counter = document.getElementById('obCounter');
-    var nav     = document.getElementById('obNav');
-    if(fill)    fill.style.width = ((idx + 1) / total * 100) + '%';
-    if(counter) counter.textContent = (idx + 1) + ' / ' + total;
-    if(nav)     nav.classList.toggle('is-hidden', idx === total - 1);
-  }
-
-  function showStep(idx){
-    if(animating) return;
-    var from = getStep(current);
-    var to   = getStep(idx);
-    if(!to) return;
-    animating = true;
-    if(from){
-      from.classList.add('is-exiting');
-      from.addEventListener('animationend', function onEnd(){
-        from.removeEventListener('animationend', onEnd);
-        from.classList.remove('is-active','is-visible','is-exiting');
-      }, { once: true });
-    }
-    setTimeout(function(){
-      current = idx;
-      setProgress(idx);
-      to.classList.add('is-active');
-      requestAnimationFrame(function(){
-        to.classList.add('is-visible');
-        animating = false;
-      });
-    }, from ? 180 : 0);
-  }
-
-  window.obNext = function(){ if(current < total - 1) showStep(current + 1); };
-  window.obSkip = function(){ window.location.href = '/demo'; };
-
-  document.addEventListener('keydown', function(e){
-    if(e.key === 'ArrowRight' || e.key === 'Enter'){ if(current < total - 1) obNext(); }
-    if(e.key === 'ArrowLeft' && current > 0) showStep(current - 1);
-    if(e.key === 'Escape') obSkip();
-  });
-
-  setProgress(0);
-  var first = getStep(0);
-  if(first){
-    first.classList.add('is-active');
-    requestAnimationFrame(function(){ first.classList.add('is-visible'); });
-  }
 })();
 </script>
 
