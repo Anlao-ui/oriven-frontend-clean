@@ -79,7 +79,6 @@
     }
     .ob-step.is-active { display: flex; }
 
-    /* Hero: vertically centered, full viewport */
     .ob-step--hero.is-active {
       min-height: 100vh;
       justify-content: center;
@@ -94,16 +93,15 @@
       align-items: center;
     }
 
-    /* Scroll: top-aligned, full-width */
     .ob-step--scroll.is-active {
       min-height: 100vh;
       justify-content: flex-start;
       padding: 100px 40px 80px;
     }
-    .ob-step--form .ob-inner  { max-width: 560px; width: 100%; }
+    .ob-step--form   .ob-inner { max-width: 560px; width: 100%; }
     .ob-step--result .ob-inner { max-width: 700px; width: 100%; }
+    .ob-step--lp     .ob-inner { max-width: 760px; width: 100%; }
 
-    /* Animations */
     .ob-step.is-entering { animation: obIn  0.48s cubic-bezier(.22,1,.36,1) both; }
     .ob-step.is-exiting  { animation: obOut 0.22s ease forwards; }
 
@@ -138,7 +136,6 @@
       margin-bottom: 40px;
     }
 
-    /* Step 1 feature points */
     .ob-points {
       display: flex;
       flex-direction: column;
@@ -173,7 +170,7 @@
       cursor: pointer;
       border: none;
       text-decoration: none;
-      transition: background 0.18s, color 0.18s, border-color 0.18s;
+      transition: background 0.18s, color 0.18s, border-color 0.18s, opacity 0.18s;
       white-space: nowrap;
     }
     .ob-btn--primary { background: var(--green); color: #0A0A0A; }
@@ -207,7 +204,7 @@
     }
     .ob-dot.is-active { background: var(--green); transform: scale(1.3); }
 
-    /* ── Form (step 3) ──────────────────────────── */
+    /* ── Form ───────────────────────────────────── */
     .ob-field { margin-bottom: 26px; }
     .ob-label {
       display: block;
@@ -217,12 +214,7 @@
       margin-bottom: 9px;
     }
     .ob-req { color: var(--green); margin-left: 2px; }
-    .ob-opt {
-      font-size: 11px;
-      font-weight: 400;
-      color: var(--dim);
-      margin-left: 6px;
-    }
+    .ob-opt { font-size: 11px; font-weight: 400; color: var(--dim); margin-left: 6px; }
     .ob-input {
       width: 100%;
       background: var(--surface);
@@ -259,7 +251,6 @@
       color: var(--green);
       background: var(--green-lo);
     }
-
     .ob-form-error {
       font-size: 13px;
       color: #E57373;
@@ -267,35 +258,13 @@
       min-height: 18px;
     }
 
-    /* ── Loading (step 4) ───────────────────────── */
-    .ob-load-label {
-      font-size: 15px;
-      font-weight: 400;
-      color: var(--muted);
-      margin-bottom: 24px;
-    }
-    .ob-load-bar {
-      width: 240px;
-      height: 2px;
-      background: var(--border2);
-      border-radius: 1px;
-      overflow: hidden;
-    }
-    .ob-load-fill {
-      height: 100%;
-      background: var(--green);
-      width: 0%;
-      transition: width 0.7s cubic-bezier(.4,0,.2,1);
-      border-radius: 1px;
-    }
-    .ob-load-sub {
-      font-size: 12px;
-      color: var(--dim);
-      margin-top: 16px;
-      transition: opacity 0.3s;
-    }
+    /* ── Loading ────────────────────────────────── */
+    .ob-load-label { font-size: 15px; font-weight: 400; color: var(--muted); margin-bottom: 24px; }
+    .ob-load-bar { width: 240px; height: 2px; background: var(--border2); border-radius: 1px; overflow: hidden; }
+    .ob-load-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.7s cubic-bezier(.4,0,.2,1); border-radius: 1px; }
+    .ob-load-sub { font-size: 12px; color: var(--dim); margin-top: 16px; }
 
-    /* ── Result (step 5) ────────────────────────── */
+    /* ── Campaign result ────────────────────────── */
     .ob-result-header { margin-bottom: 40px; }
     .ob-result-section { margin-bottom: 32px; }
     .ob-result-label {
@@ -306,101 +275,84 @@
       color: var(--dim);
       margin-bottom: 12px;
     }
-
-    .ob-concept {
-      padding: 22px 26px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-    }
-    .ob-concept-text {
-      font-family: 'Instrument Serif', Georgia, serif;
-      font-size: 20px;
-      font-weight: 400;
-      line-height: 1.5;
-      color: var(--text);
-    }
-
+    .ob-concept { padding: 22px 26px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+    .ob-concept-text { font-family: 'Instrument Serif', Georgia, serif; font-size: 20px; font-weight: 400; line-height: 1.5; color: var(--text); }
     .ob-ads { display: flex; flex-direction: column; gap: 10px; }
-    .ob-ad-card {
-      padding: 20px 24px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      transition: border-color 0.18s;
-    }
+    .ob-ad-card { padding: 20px 24px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; transition: border-color 0.18s; }
     .ob-ad-card:hover { border-color: var(--border2); }
-    .ob-ad-num {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin-bottom: 9px;
-    }
-    .ob-ad-hook {
-      font-size: 15px;
-      font-weight: 400;
-      line-height: 1.5;
-      color: var(--text);
-      margin-bottom: 7px;
-    }
-    .ob-ad-body {
-      font-size: 13px;
-      font-weight: 300;
-      line-height: 1.7;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-    .ob-ad-format {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.05em;
-      color: var(--green);
-      opacity: 0.65;
-    }
-
-    .ob-visual {
-      padding: 20px 24px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-    }
-    .ob-vrow {
-      display: flex;
-      gap: 16px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-      align-items: baseline;
-    }
+    .ob-ad-num { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-bottom: 9px; }
+    .ob-ad-hook { font-size: 15px; font-weight: 400; line-height: 1.5; color: var(--text); margin-bottom: 7px; }
+    .ob-ad-body { font-size: 13px; font-weight: 300; line-height: 1.7; color: var(--muted); margin-bottom: 12px; }
+    .ob-ad-format { font-size: 11px; font-weight: 500; letter-spacing: 0.05em; color: var(--green); opacity: 0.65; }
+    .ob-visual { padding: 20px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+    .ob-vrow { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--border); align-items: baseline; }
     .ob-vrow:first-child { padding-top: 0; }
     .ob-vrow:last-child  { border-bottom: none; padding-bottom: 0; }
-    .ob-vk {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--dim);
-      min-width: 88px;
-      flex-shrink: 0;
-    }
-    .ob-vv {
-      font-size: 13px;
-      font-weight: 400;
-      color: var(--muted);
-      line-height: 1.5;
-    }
+    .ob-vk { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); min-width: 88px; flex-shrink: 0; }
+    .ob-vv { font-size: 13px; font-weight: 400; color: var(--muted); line-height: 1.5; }
 
-    /* ── Signup gate ────────────────────────────── */
-    .ob-gate {
-      margin-top: 52px;
-      padding-top: 44px;
+    /* Campaign → landing page tease */
+    .ob-lp-tease {
+      margin-top: 48px;
+      padding-top: 40px;
       border-top: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      padding-bottom: 24px;
+      gap: 12px;
+      width: 100%;
+    }
+    .ob-lp-tease-note {
+      font-size: 12px;
+      color: var(--dim);
+    }
+
+    /* ── Landing page preview ───────────────────── */
+    .ob-lp-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .ob-lp-sections {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--dim);
+    }
+    .ob-lp-dl {
+      padding: 7px 16px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      font-family: 'Geist', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .ob-lp-dl:hover { color: var(--text); border-color: #3A3A3A; }
+    .ob-lp-frame {
+      width: 100%;
+      height: 520px;
+      border: none;
+      border-radius: 10px;
+      outline: 1px solid var(--border);
+      display: block;
+    }
+
+    /* ── Signup gate ────────────────────────────── */
+    .ob-gate {
+      margin-top: 48px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-bottom: 20px;
     }
     .ob-gate-title {
       font-family: 'Instrument Serif', Georgia, serif;
@@ -410,18 +362,8 @@
       margin-bottom: 28px;
       line-height: 1.2;
     }
-    .ob-gate-btns {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 100%;
-      max-width: 300px;
-    }
-    .ob-gate-note {
-      font-size: 13px;
-      color: var(--dim);
-      margin-top: 18px;
-    }
+    .ob-gate-btns { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; }
+    .ob-gate-note { font-size: 13px; color: var(--dim); margin-top: 18px; }
     .ob-gate-note a { color: var(--muted); text-decoration: none; }
     .ob-gate-note a:hover { color: var(--text); }
 
@@ -432,9 +374,10 @@
       .ob-step--scroll.is-active { padding: 90px 20px 80px; }
       .ob-headline    { font-size: 34px; }
       .ob-headline--md { font-size: 26px; }
-      .ob-sub         { font-size: 16px; }
-      .ob-dots        { bottom: 24px; }
-      .ob-load-bar    { width: 180px; }
+      .ob-sub { font-size: 16px; }
+      .ob-dots { bottom: 24px; }
+      .ob-load-bar { width: 180px; }
+      .ob-lp-frame { height: 400px; }
     }
   </style>
 </head>
@@ -559,15 +502,15 @@
   <!-- Step 4: Loading -->
   <div class="ob-step ob-step--hero" data-step="4">
     <div class="ob-inner">
-      <p class="ob-load-label" id="obLoadLabel">Generating your campaign</p>
+      <p class="ob-load-label" id="obLoadLabel">Building your campaign</p>
       <div class="ob-load-bar">
         <div class="ob-load-fill" id="obLoadFill"></div>
       </div>
-      <p class="ob-load-sub" id="obLoadSub">Building concept and structure...</p>
+      <p class="ob-load-sub" id="obLoadSub">Writing concept and structure...</p>
     </div>
   </div>
 
-  <!-- Step 5: Result + Signup gate -->
+  <!-- Step 5: Campaign result -->
   <div class="ob-step ob-step--scroll ob-step--result" data-step="5">
     <div class="ob-inner">
 
@@ -577,6 +520,32 @@
       </div>
 
       <div id="obResult"></div>
+
+      <div class="ob-lp-tease">
+        <button class="ob-btn ob-btn--primary ob-btn--wide" onclick="obShowLP()">
+          See your landing page <span class="ob-arr">→</span>
+        </button>
+        <p class="ob-lp-tease-note">Hero, features, testimonials, CTA — generated from your brand</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Step 6: Landing page preview + signup -->
+  <div class="ob-step ob-step--scroll ob-step--lp" data-step="6">
+    <div class="ob-inner">
+
+      <div class="ob-result-header">
+        <p class="ob-eyebrow">Landing page generated</p>
+        <h1 class="ob-headline ob-headline--md" id="obLPTitle">Your landing page</h1>
+      </div>
+
+      <div class="ob-lp-header-row">
+        <span class="ob-lp-sections">Hero · Features · Testimonials · CTA</span>
+        <button class="ob-lp-dl" onclick="obDownloadLP()">Download HTML</button>
+      </div>
+
+      <iframe id="obLPFrame" class="ob-lp-frame" title="Generated landing page preview"></iframe>
 
       <div class="ob-gate">
         <h2 class="ob-gate-title">Create your account to continue</h2>
@@ -603,7 +572,7 @@
 
 <script>
 (async function(){
-  // ── Auth gate ────────────────────────────────────────────────
+  // ── Auth gate ───────────────────────────────────────────────
   try {
     var _sb = window.supabase.createClient(
       'https://rsqfoqitooxmkyrkuyzi.supabase.co',
@@ -618,12 +587,13 @@
 
   document.body.style.opacity = '1';
 
-  // ── State ────────────────────────────────────────────────────
-  var currentStep = 0;
-  var userData    = {};
-  var animating   = false;
+  // ── State ───────────────────────────────────────────────────
+  var currentStep    = 0;
+  var userData       = {};
+  var landingPageHTML = '';
+  var animating      = false;
 
-  // ── Navigate to step ─────────────────────────────────────────
+  // ── Navigation ──────────────────────────────────────────────
   function obGoTo(idx) {
     if (animating) return;
     var from = document.querySelector('.ob-step.is-active');
@@ -631,7 +601,6 @@
     if (!to || idx === currentStep) return;
 
     animating = true;
-
     if (from) {
       from.classList.add('is-exiting');
       from.addEventListener('animationend', function onEnd() {
@@ -639,7 +608,6 @@
         from.classList.remove('is-active', 'is-exiting', 'is-entering');
       }, { once: true });
     }
-
     setTimeout(function() {
       currentStep = idx;
       to.classList.add('is-active', 'is-entering');
@@ -653,14 +621,12 @@
     }, from ? 230 : 0);
   }
 
-  function obNext() {
-    if (currentStep < 3) obGoTo(currentStep + 1);
-  }
+  function obNext() { if (currentStep < 3) obGoTo(currentStep + 1); }
 
-  window.obGoTo     = obGoTo;
-  window.obNext     = obNext;
+  window.obGoTo = obGoTo;
+  window.obNext = obNext;
 
-  // ── Dots ─────────────────────────────────────────────────────
+  // ── Dots ────────────────────────────────────────────────────
   function updateDots(step) {
     var el = document.getElementById('obDots');
     if (!el) return;
@@ -698,37 +664,68 @@
     startLoading();
   };
 
-  // ── Loading ───────────────────────────────────────────────────
+  // ── Loading ──────────────────────────────────────────────────
   function startLoading() {
     var fill  = document.getElementById('obLoadFill');
     var subEl = document.getElementById('obLoadSub');
 
     if (fill) {
-      setTimeout(function() { fill.style.width = '38%'; }, 120);
-      setTimeout(function() { fill.style.width = '68%'; }, 950);
-      setTimeout(function() { fill.style.width = '88%'; }, 1900);
-      setTimeout(function() { fill.style.width = '100%'; }, 2550);
+      setTimeout(function() { fill.style.width = '28%'; }, 120);
+      setTimeout(function() { fill.style.width = '52%'; }, 900);
+      setTimeout(function() { fill.style.width = '74%'; }, 2000);
+      setTimeout(function() { fill.style.width = '91%'; }, 3100);
+      setTimeout(function() { fill.style.width = '100%'; }, 3700);
     }
     if (subEl) {
-      setTimeout(function() { subEl.textContent = 'Writing ad copy...'; }, 850);
-      setTimeout(function() { subEl.textContent = 'Adding visual direction...'; }, 1750);
-      setTimeout(function() { subEl.textContent = 'Finishing up...'; }, 2450);
+      setTimeout(function() { subEl.textContent = 'Writing ad copy...'; }, 800);
+      setTimeout(function() { subEl.textContent = 'Building your landing page...'; }, 1900);
+      setTimeout(function() { subEl.textContent = 'Adding visual direction...'; }, 3000);
+      setTimeout(function() { subEl.textContent = 'Finishing up...'; }, 3600);
     }
 
     setTimeout(function() {
       buildResult();
+      buildLandingPage();
       animating = false;
       obGoTo(5);
-    }, 2900);
+    }, 4000);
   }
 
-  // ── Build result ──────────────────────────────────────────────
+  // ── Show landing page ────────────────────────────────────────
+  window.obShowLP = function() {
+    var frame   = document.getElementById('obLPFrame');
+    var lpTitle = document.getElementById('obLPTitle');
+    if (frame && landingPageHTML) frame.srcdoc = landingPageHTML;
+    if (lpTitle) lpTitle.textContent = userData.product || 'Your landing page';
+    obGoTo(6);
+  };
+
+  // ── Download ─────────────────────────────────────────────────
+  window.obDownloadLP = function() {
+    if (!landingPageHTML) return;
+    var name = (userData.product || 'landing-page')
+      .replace(/[^a-z0-9]/gi, '-').toLowerCase()
+      .replace(/-+/g, '-').replace(/^-|-$/g, '');
+    var blob = new Blob([landingPageHTML], { type: 'text/html' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url;
+    a.download = name + '-landing-page.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // ── Escape helper ────────────────────────────────────────────
   function esc(s) {
     return String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
+  // ── Build campaign result ────────────────────────────────────
   function buildResult() {
     var p = esc(userData.product);
     var a = esc(userData.audience);
@@ -788,8 +785,7 @@
 
     var concept = concepts[g] || concepts.growth;
     var ads     = adSets[g]   || adSets.growth;
-
-    var html = '';
+    var html    = '';
 
     html += '<div class="ob-result-section">';
     html += '<div class="ob-result-label">Campaign concept</div>';
@@ -825,7 +821,195 @@
     document.getElementById('obResult').innerHTML = html;
   }
 
-  // ── Init ─────────────────────────────────────────────────────
+  // ── Build landing page HTML ──────────────────────────────────
+  function buildLandingPage() {
+    var p      = esc(userData.product);
+    var a      = esc(userData.audience);
+    var g      = userData.goal  || 'growth';
+    var tone   = userData.tone  || '';
+    var accent = '#52B788';
+
+    // Hero copy
+    var heroMap = {
+      sales: {
+        eye: 'Built to convert',
+        h1:  'The only way to run campaigns<br>that actually move the needle.',
+        sub: 'Stop guessing what works. ' + p + ' gives ' + a +
+             ' a system that moves people from aware to purchased — every time.'
+      },
+      awareness: {
+        eye: 'Be unmistakable',
+        h1:  'Your brand deserves<br>to be remembered.',
+        sub: p + ' helps ' + a +
+             ' build identities that last. Not content that disappears in 24 hours.'
+      },
+      growth: {
+        eye: 'Scale with confidence',
+        h1:  p + ' — built for brands<br>that are ready to grow.',
+        sub: 'More output. Less guesswork. Everything ' + a +
+             ' needs to scale without adding chaos.'
+      }
+    };
+
+    // Features
+    var featureMap = {
+      sales: [
+        { t: 'Built to convert',     d: 'Every touchpoint moves ' + a + ' from aware to action. Nothing is wasted.' },
+        { t: 'No wasted spend',      d: 'Campaigns that find the right people at the right moment — and say the right thing.' },
+        { t: 'Measurable results',   d: 'Clear metrics. No vanity numbers. Just the data that actually tells you something.' },
+        { t: 'Done in minutes',      d: 'Launch faster. Iterate faster. Stop waiting on briefs, approvals, and revisions.' }
+      ],
+      awareness: [
+        { t: 'Unmistakable voice',   d: 'Your brand sounds like you — across every channel, every format, every campaign.' },
+        { t: 'Consistent everywhere', d: 'Ads, emails, social. Everything aligned to one identity that people actually remember.' },
+        { t: 'Built for recall',     d: 'People remember brands with a point of view. ' + p + ' helps you build and hold it.' },
+        { t: 'Structured from day one', d: 'Not a pile of assets. A real, working brand system that compounds over time.' }
+      ],
+      growth: [
+        { t: 'Scale without chaos',  d: 'More output. Same quality. No extra headcount, no extra approvals.' },
+        { t: 'From brief to live',   d: 'One input. Everything follows — copy, design, direction, campaign. Done.' },
+        { t: 'Built for your market', d: p + ' understands ' + a + '. Not as a persona. As real people with real goals.' },
+        { t: 'Always on-brand',      d: 'Every output reflects your identity. No drift, no guesswork, no off-days.' }
+      ]
+    };
+
+    // Final CTA
+    var ctaMap = {
+      sales:     { h: 'Stop guessing. Start converting.', sub: 'Your next campaign starts here.' },
+      awareness: { h: 'Build a brand worth remembering.', sub: 'Start with one brief. See the difference.' },
+      growth:    { h: 'Ready to scale without the chaos?', sub: 'One input. A full campaign. Start now.' }
+    };
+
+    var hero     = heroMap[g]    || heroMap.growth;
+    var features = featureMap[g] || featureMap.growth;
+    var cta      = ctaMap[g]     || ctaMap.growth;
+
+    var testimonials = [
+      { q: 'I went from spending a full week on a campaign to finishing in an afternoon. The quality didn\'t drop — it got better.',
+        name: 'Sarah M.', role: 'Founder, DTC Brand' },
+      { q: 'Finally something that understands what a brand actually is. Not just pretty templates with my logo dropped in.',
+        name: 'James K.', role: 'Marketing Director' },
+      { q: 'Our campaign conversion rate went up 34% in the first month. That was the moment I stopped questioning it.',
+        name: 'Priya L.', role: 'Growth Lead' }
+    ];
+
+    // CSS for generated page (ACCENT is replaced below)
+    var css = '';
+    css += '*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }';
+    css += 'html { scroll-behavior:smooth; }';
+    css += 'body { background:#0A0A0A; color:#F0F0F0; font-family:Geist,-apple-system,BlinkMacSystemFont,sans-serif; -webkit-font-smoothing:antialiased; }';
+    css += '.nav { position:sticky; top:0; z-index:50; background:rgba(10,10,10,0.92); backdrop-filter:blur(12px); border-bottom:1px solid #1E1E1E; display:flex; align-items:center; justify-content:space-between; padding:0 48px; height:62px; }';
+    css += '.nav-brand { font-family:"Instrument Serif",Georgia,serif; font-size:20px; color:#F0F0F0; text-decoration:none; letter-spacing:-0.01em; }';
+    css += '.nav-cta { padding:9px 22px; background:ACCENT; color:#0A0A0A; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none; transition:opacity 0.18s; white-space:nowrap; }';
+    css += '.nav-cta:hover { opacity:0.82; }';
+    css += '.hero { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:100px 48px 80px; }';
+    css += '.hero-eye { font-size:11px; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:ACCENT; margin-bottom:22px; }';
+    css += '.hero h1 { font-family:"Instrument Serif",Georgia,serif; font-size:clamp(42px,6vw,80px); font-weight:400; line-height:1.08; color:#F0F0F0; max-width:860px; margin-bottom:24px; }';
+    css += '.hero p { font-size:18px; font-weight:300; line-height:1.7; color:#888; max-width:520px; margin-bottom:44px; }';
+    css += '.hero-btns { display:flex; gap:14px; align-items:center; flex-wrap:wrap; justify-content:center; }';
+    css += '.btn-p { padding:14px 32px; background:ACCENT; color:#0A0A0A; border-radius:9px; font-size:15px; font-weight:500; text-decoration:none; transition:opacity 0.18s; }';
+    css += '.btn-p:hover { opacity:0.82; }';
+    css += '.section { padding:96px 48px; }';
+    css += '.section-eye { font-size:11px; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:#444; text-align:center; margin-bottom:14px; }';
+    css += '.section h2 { font-family:"Instrument Serif",Georgia,serif; font-size:clamp(32px,4vw,52px); font-weight:400; color:#F0F0F0; text-align:center; margin-bottom:56px; line-height:1.15; max-width:640px; margin-left:auto; margin-right:auto; }';
+    css += '.fg { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; max-width:860px; margin:0 auto; }';
+    css += '.fc { padding:28px; background:#111; border:1px solid #1E1E1E; border-radius:12px; transition:border-color 0.18s; }';
+    css += '.fc:hover { border-color:#2A2A2A; }';
+    css += '.fc h3 { font-size:15px; font-weight:500; color:#F0F0F0; margin-bottom:10px; }';
+    css += '.fc p { font-size:14px; font-weight:300; line-height:1.65; color:#888; }';
+    css += '.testi { background:#0D0D0D; border-top:1px solid #1A1A1A; border-bottom:1px solid #1A1A1A; }';
+    css += '.tg { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; max-width:960px; margin:0 auto; }';
+    css += '.tc { padding:28px; background:#131313; border:1px solid #1E1E1E; border-radius:12px; display:flex; flex-direction:column; }';
+    css += '.tq { font-size:14px; font-weight:300; line-height:1.75; color:#AAAAAA; flex:1; margin-bottom:22px; }';
+    css += '.ta { font-size:13px; font-weight:500; color:#E0E0E0; }';
+    css += '.tr { font-size:12px; color:#555; margin-top:3px; }';
+    css += '.fcta { text-align:center; border-top:1px solid #1E1E1E; }';
+    css += '.fcta h2 { max-width:560px; }';
+    css += '.footer { padding:28px 48px; border-top:1px solid #1A1A1A; display:flex; align-items:center; justify-content:space-between; }';
+    css += '.fb { font-family:"Instrument Serif",Georgia,serif; font-size:16px; color:#333; }';
+    css += '.fc2 { font-size:12px; color:#2A2A2A; }';
+    css += '@media (max-width:768px) {';
+    css += '.nav { padding:0 20px; }';
+    css += '.hero { padding:90px 20px 72px; }';
+    css += '.hero p { font-size:16px; }';
+    css += '.section { padding:72px 20px; }';
+    css += '.fg { grid-template-columns:1fr; }';
+    css += '.tg { grid-template-columns:1fr; }';
+    css += '.footer { padding:24px 20px; flex-direction:column; gap:8px; text-align:center; }';
+    css += '}';
+
+    css = css.replace(/ACCENT/g, accent);
+
+    // HTML body
+    var body = '';
+
+    // Nav
+    body += '<nav class="nav">';
+    body += '<a class="nav-brand" href="#">' + p + '</a>';
+    body += '<a class="nav-cta" href="#">Get started</a>';
+    body += '</nav>';
+
+    // Hero
+    body += '<section class="hero">';
+    body += '<p class="hero-eye">' + hero.eye + '</p>';
+    body += '<h1>' + hero.h1 + '</h1>';
+    body += '<p>' + hero.sub + '</p>';
+    body += '<div class="hero-btns">';
+    body += '<a class="btn-p" href="#">Get started</a>';
+    body += '</div>';
+    body += '</section>';
+
+    // Features
+    body += '<section class="section">';
+    body += '<p class="section-eye">What you get</p>';
+    body += '<h2>Everything you need.<br>Nothing you don\'t.</h2>';
+    body += '<div class="fg">';
+    features.forEach(function(f) {
+      body += '<div class="fc"><h3>' + esc(f.t) + '</h3><p>' + esc(f.d) + '</p></div>';
+    });
+    body += '</div></section>';
+
+    // Testimonials
+    body += '<section class="section testi">';
+    body += '<p class="section-eye">What people are saying</p>';
+    body += '<h2>Results that speak<br>for themselves.</h2>';
+    body += '<div class="tg">';
+    testimonials.forEach(function(t) {
+      body += '<div class="tc">';
+      body += '<p class="tq">' + esc(t.q) + '</p>';
+      body += '<p class="ta">' + esc(t.name) + '</p>';
+      body += '<p class="tr">' + esc(t.role) + '</p>';
+      body += '</div>';
+    });
+    body += '</div></section>';
+
+    // Final CTA
+    body += '<section class="section fcta">';
+    body += '<p class="section-eye">Get started</p>';
+    body += '<h2>' + esc(cta.h) + '</h2>';
+    body += '<p style="font-size:16px;font-weight:300;color:#888;max-width:400px;margin:0 auto 36px;line-height:1.65;">' + esc(cta.sub) + '</p>';
+    body += '<a class="btn-p" href="#">Get started now</a>';
+    body += '</section>';
+
+    // Footer
+    body += '<footer class="footer">';
+    body += '<span class="fb">' + p + '</span>';
+    body += '<span class="fc2">Generated by ORIVEN &mdash; &copy; 2025 ' + p + '</span>';
+    body += '</footer>';
+
+    var out = '<!DOCTYPE html><html lang="en"><head>';
+    out += '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">';
+    out += '<title>' + p + '</title>';
+    out += '<link rel="preconnect" href="https://fonts.googleapis.com">';
+    out += '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+    out += '<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">';
+    out += '<style>' + css + '</style>';
+    out += '</head><body>' + body + '</body></html>';
+
+    landingPageHTML = out;
+  }
+
+  // ── Init ────────────────────────────────────────────────────
   updateDots(0);
   var first = document.querySelector('[data-step="0"]');
   if (first) {
