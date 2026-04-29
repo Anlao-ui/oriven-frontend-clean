@@ -267,17 +267,16 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
   res.json({ received: true });
 });
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
 // ── Web generator — registered immediately after json middleware ──
 app.post('/api/generate-web', async (req, res) => {
   const {
-    brand_name, audience, tone, product, goal,
+    brand_name, product, goal,
     style, animations, sections,
     primary_color, secondary_color, accent_color,
     background_color, text_color,
-    heading_font, body_font, logo_url,
     prompt
   } = req.body;
 
@@ -287,26 +286,19 @@ app.post('/api/generate-web', async (req, res) => {
   const primColor = primary_color    || '#1A4229';
   const secColor  = secondary_color  || '#265E38';
   const accColor  = accent_color     || '#BFA07A';
-  const hFont     = heading_font     || 'Georgia, serif';
-  const bFont     = body_font        || 'system-ui, sans-serif';
 
   const userPrompt = prompt || [
     brand_name ? `Brand name: ${brand_name}`         : null,
     product    ? `Promoting: ${product}`              : null,
-    audience   ? `Target audience: ${audience}`       : null,
     goal       ? `Goal: ${goal}`                      : null,
-    tone       ? `Tone: ${tone}`                      : null,
     style      ? `Design style: ${style}`             : null,
     animations ? `Animations: ${animations}`          : null,
     sections   ? `Sections: ${sections}`              : null,
-    logo_url   ? `Logo URL: ${logo_url}`              : null,
     `Background color: ${bgColor}`,
     `Text color: ${txtColor}`,
     `Primary color: ${primColor}`,
     `Secondary color: ${secColor}`,
     `Accent color: ${accColor}`,
-    `Heading font: ${hFont}`,
-    `Body font: ${bFont}`,
   ].filter(Boolean).join('\n');
 
   if (!userPrompt) return res.status(400).json({ error: 'No input provided' });
@@ -323,15 +315,11 @@ BRAND IDENTITY RULES — NON-NEGOTIABLE:
 - Primary buttons, hero sections, and main CTAs MUST use the "Primary color"
 - Secondary blocks, alternate sections, and supporting elements MUST use the "Secondary color"
 - Borders, dividers, highlights, and accent details MUST use the "Accent color"
-- ALL headings (h1–h4) MUST use the "Heading font" from the brief as font-family
-- ALL body text and paragraphs MUST use the "Body font" from the brief as font-family
-- If a Logo URL is provided, place an <img> tag with that URL in the top-left of the nav bar
-
 TECHNICAL REQUIREMENTS:
 - Output ONLY a complete HTML document starting with <!DOCTYPE html>
 - All CSS inside a <style> tag in <head> — no external stylesheets, no CDN links
 - Define CSS custom properties at :root for all brand colors and use them throughout
-- Fonts: use the exact font-family strings from the brief (they are system or web-safe fonts)
+- Use system fonts (system-ui, -apple-system, Georgia, serif) — no web font CDNs
 - No icons, no emojis, no SVG illustrations
 - All copy must be specific to the product/brand in the brief — no lorem ipsum
 - Include: a nav bar, all sections listed in the brief, and a footer
