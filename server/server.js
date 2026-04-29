@@ -1,0 +1,1540 @@
+const express = require('express');
+const cors = require('cors');
+const Anthropic = require('@anthropic-ai/sdk');
+const OpenAI = require('openai');
+const Stripe = require('stripe');
+const { createClient } = require('@supabase/supabase-js');
+const nodemailer = require('nodemailer');
+const crypto     = require('crypto');
+const cron       = require('node-cron');
+require('dotenv').config();
+
+const app = express();
+const PORT = 3000;
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// Decode a JWT payload without any library
+function decodeJwtRole(token) {
+  try {
+    const payload = token.split('.')[1];
+    const base64  = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json    = Buffer.from(base64, 'base64').toString('utf8');
+    return JSON.parse(json).role || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+// Admin Supabase client — must use service_role key to bypass RLS
+// Server-side options: disable session persistence (no localStorage in Node)
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+
+// ── Startup sanity checks ───────────────────────────────────────
+(function checkEnv() {
+  const srk  = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const role = decodeJwtRole(srk);
+
+  console.log('\n══════════════ ORIVEN SERVER STARTUP ══════════════');
+
+  if (!srk) {
+    console.error('❌ [ENV] SUPABASE_SERVICE_ROLE_KEY is not set');
+  } else if (!role) {
+    console.error('❌ [ENV] SUPABASE_SERVICE_ROLE_KEY is not a valid JWT');
+    console.error('   Get the service_role key from: Supabase Dashboard → Settings → API');
+  } else if (role !== 'service_role') {
+    console.error(`❌ [ENV] SUPABASE_SERVICE_ROLE_KEY JWT role = "${role}" — expected "service_role"`);
+    console.error('   ⚡ You set the ANON key as the service role key — this is the most common mistake');
+    console.error('   ⚡ The anon key cannot bypass RLS. Supabase updates in the webhook WILL be silently blocked.');
+    console.error('   Fix: Supabase Dashboard → Settings → API → copy the "service_role" key (labeled DANGER)');
+    console.error('   Then update SUPABASE_SERVICE_ROLE_KEY in server/.env and restart the server');
+  } else {
+    console.log('✅ [ENV] SUPABASE_SERVICE_ROLE_KEY JWT role = "service_role" ← correct');
+  }
+
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('❌ [ENV] STRIPE_WEBHOOK_SECRET is not set — all webhooks will be rejected');
+  } else {
+    console.log('✅ [ENV] STRIPE_WEBHOOK_SECRET is set');
+  }
+
+  if (!process.env.FRONTEND_URL) {
+    console.error('❌ [ENV] FRONTEND_URL is not set — Stripe will redirect to wrong URL after payment');
+    console.error('   Fix: set FRONTEND_URL to https://orivenai.com in Render environment variables');
+  } else {
+    console.log('✅ [ENV] FRONTEND_URL =', process.env.FRONTEND_URL);
+  }
+
+  // ── Stripe price ID audit — logged every boot so mismatches are obvious ──
+  const priceAudit = {
+    STRIPE_PRICE_STARTER:  process.env.STRIPE_PRICE_STARTER  || '(NOT SET)',
+    STRIPE_PRICE_PREMIUM:  process.env.STRIPE_PRICE_PREMIUM  || '(NOT SET)',
+    STRIPE_PRICE_BUSINESS: process.env.STRIPE_PRICE_BUSINESS || '(NOT SET)',
+    STRIPE_SECRET_KEY:     process.env.STRIPE_SECRET_KEY
+      ? (process.env.STRIPE_SECRET_KEY.startsWith('sk_live') ? '✅ LIVE key' : '⚠️  TEST key')
+      : '❌ NOT SET',
+  };
+  console.log('[ENV] Stripe price IDs:');
+  Object.entries(priceAudit).forEach(([k, v]) => console.log('  ', k, '=', v));
+
+  console.log('═══════════════════════════════════════════════════\n');
+})();
+
+const PRICE_IDS = {
+  starter:  process.env.STRIPE_PRICE_STARTER,
+  premium:  process.env.STRIPE_PRICE_PREMIUM,
+  business: process.env.STRIPE_PRICE_BUSINESS,
+};
+
+app.use(cors());
+
+// ── Stripe webhook — must be registered BEFORE express.json() ──
+app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  console.log('\n──────────────────────────────────────────');
+  console.log('[Webhook] ▶ Route hit');
+
+  // 1. Verify Stripe signature
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    console.log('[Webhook] ✅ Signature verified');
+  } catch (err) {
+    console.error('[Webhook] ❌ Signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // 2. Log event type
+  console.log('[Webhook] Event type:', event.type);
+  console.log('[Webhook] Event id:  ', event.id);
+
+  // ── Subscription deleted (cancellation applied) ──────────────
+  if (event.type === 'customer.subscription.deleted') {
+    const sub = event.data.object;
+    const customerId = sub.customer;
+    console.log('[Webhook] subscription.deleted → customer:', customerId);
+    if (customerId) {
+      const { error } = await supabaseAdmin.from('profiles')
+        .update({ subscription_status: 'free', pending_plan: null, pending_plan_date: null })
+        .eq('stripe_customer_id', customerId);
+      if (error) console.error('[Webhook] subscription.deleted DB error:', error.message);
+      else console.log('[Webhook] ✅ Plan reset to free for customer:', customerId);
+    }
+    return res.json({ received: true });
+  }
+
+  // ── Subscription updated (paid-to-paid switch) ────────────────
+  if (event.type === 'customer.subscription.updated') {
+    const sub = event.data.object;
+    const customerId = sub.customer;
+    const pendingPlan = sub.metadata && sub.metadata.pending_plan;
+    if (pendingPlan && sub.status === 'active') {
+      console.log('[Webhook] subscription.updated → applying plan:', pendingPlan);
+      const { error } = await supabaseAdmin.from('profiles')
+        .update({ subscription_status: pendingPlan, pending_plan: null, pending_plan_date: null })
+        .eq('stripe_customer_id', customerId);
+      if (error) console.error('[Webhook] subscription.updated DB error:', error.message);
+      else console.log('[Webhook] ✅ Plan updated to:', pendingPlan, 'for customer:', customerId);
+    } else {
+      console.log('[Webhook] subscription.updated — no pending_plan or not active, skipping');
+    }
+    return res.json({ received: true });
+  }
+
+  if (event.type !== 'checkout.session.completed') {
+    console.log('[Webhook] ℹ️  Ignoring event type:', event.type);
+    return res.json({ received: true });
+  }
+
+  const session = event.data.object;
+
+  // 3. Log full metadata for debugging
+  console.log('[Webhook] payment_status:', session.payment_status);
+  console.log('[Webhook] session.metadata:', JSON.stringify(session.metadata));
+
+  // 4. Extract userId and plan
+  const userId = session.metadata && session.metadata.userId;
+  const plan   = session.metadata && session.metadata.plan;
+
+  console.log('[Webhook] Extracted userId:', userId || '(MISSING)');
+  console.log('[Webhook] Extracted plan:  ', plan   || '(MISSING)');
+
+  // 5. Guard: both fields must be present
+  if (!userId) {
+    console.error('[Webhook] ❌ userId missing from metadata — cannot update Supabase');
+    return res.json({ received: true });
+  }
+  if (!plan) {
+    console.error('[Webhook] ❌ plan missing from metadata — cannot update Supabase');
+    return res.json({ received: true });
+  }
+
+  // 6. Guard: plan must be a known value
+  const validPlans = ['starter', 'premium', 'business'];
+  if (!validPlans.includes(plan)) {
+    console.error(`[Webhook] ❌ Unknown plan "${plan}" — expected one of: ${validPlans.join(', ')}`);
+    return res.json({ received: true });
+  }
+
+  // 7. Guard: payment must be confirmed
+  if (session.payment_status !== 'paid') {
+    console.warn(`[Webhook] ⚠️  payment_status is "${session.payment_status}", not "paid" — skipping update`);
+    return res.json({ received: true });
+  }
+
+  // 8. Attempt Supabase update
+  console.log(`[Webhook] 🔄 UPDATE profiles SET subscription_status = '${plan}' WHERE id = '${userId}'`);
+
+  const { data: updateData, error: updateError } = await supabaseAdmin
+    .from('profiles')
+    .update({
+      subscription_status: plan,
+      stripe_subscription_id: session.subscription || null,
+      stripe_customer_id: session.customer || null
+    })
+    .eq('id', userId)
+    .select('id, subscription_status');
+
+  // Log raw update result — never assume success without checking
+  console.log('[Webhook] Raw update response:');
+  console.log('           data: ', JSON.stringify(updateData));
+  console.log('           error:', JSON.stringify(updateError));
+
+  if (updateError) {
+    console.error('[Webhook] ❌ UPDATE failed');
+    console.error('           code:   ', updateError.code);
+    console.error('           message:', updateError.message);
+    console.error('           details:', updateError.details);
+    console.error('           hint:   ', updateError.hint);
+    if (updateError.code === '42501') {
+      console.error('[Webhook] ❌ RLS policy blocked the update — service_role key is probably wrong');
+    }
+  } else if (!updateData || updateData.length === 0) {
+    console.warn('[Webhook] ⚠️  UPDATE matched 0 rows');
+    console.warn('           This means no profile row has id =', userId);
+    console.warn('           Checking whether the row exists at all...');
+
+    const { data: checkData, error: checkError } = await supabaseAdmin
+      .from('profiles')
+      .select('id, subscription_status')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('[Webhook] ❌ Existence check failed:', checkError.message);
+    } else if (!checkData) {
+      console.error('[Webhook] ❌ No profile row found for userId:', userId);
+      console.error('           The user may not have a profiles row yet');
+    } else {
+      console.log('[Webhook] ℹ️  Row exists but was not updated:', JSON.stringify(checkData));
+      console.log('[Webhook]    This is likely an RLS permission problem');
+    }
+  } else {
+    console.log('[Webhook] ✅ UPDATE succeeded — rows changed:', updateData.length);
+    console.log('[Webhook]    Updated row:', JSON.stringify(updateData[0]));
+  }
+
+  // 9. Independent post-update verification SELECT — confirms what's in the DB right now
+  console.log('[Webhook] 🔎 Verifying current DB value...');
+  const { data: verifyData, error: verifyError } = await supabaseAdmin
+    .from('profiles')
+    .select('id, subscription_status')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (verifyError) {
+    console.error('[Webhook] ❌ Verification SELECT failed:', verifyError.message);
+  } else if (!verifyData) {
+    console.error('[Webhook] ❌ Verification: no row found in profiles for userId:', userId);
+  } else {
+    const actual = verifyData.subscription_status;
+    if (actual === plan) {
+      console.log(`[Webhook] ✅ CONFIRMED — DB shows subscription_status = "${actual}"`);
+    } else {
+      console.error(`[Webhook] ❌ MISMATCH — expected "${plan}" but DB shows "${actual}"`);
+      console.error('[Webhook]    The update did not persist — check service_role key and RLS policies');
+    }
+  }
+
+  console.log('──────────────────────────────────────────\n');
+  res.json({ received: true });
+});
+
+app.use(express.json());
+
+// ── Web generator — registered immediately after json middleware ──
+app.post('/api/generate-web', async (req, res) => {
+  const {
+    brand_name, audience, tone, product, goal,
+    style, animations, sections,
+    primary_color, secondary_color, accent_color,
+    background_color, text_color,
+    heading_font, body_font, logo_url,
+    prompt
+  } = req.body;
+
+  // Resolve colors with fallbacks
+  const bgColor   = background_color || '#0a0a0a';
+  const txtColor  = text_color       || '#f0f0f0';
+  const primColor = primary_color    || '#1A4229';
+  const secColor  = secondary_color  || '#265E38';
+  const accColor  = accent_color     || '#BFA07A';
+  const hFont     = heading_font     || 'Georgia, serif';
+  const bFont     = body_font        || 'system-ui, sans-serif';
+
+  const userPrompt = prompt || [
+    brand_name ? `Brand name: ${brand_name}`         : null,
+    product    ? `Promoting: ${product}`              : null,
+    audience   ? `Target audience: ${audience}`       : null,
+    goal       ? `Goal: ${goal}`                      : null,
+    tone       ? `Tone: ${tone}`                      : null,
+    style      ? `Design style: ${style}`             : null,
+    animations ? `Animations: ${animations}`          : null,
+    sections   ? `Sections: ${sections}`              : null,
+    logo_url   ? `Logo URL: ${logo_url}`              : null,
+    `Background color: ${bgColor}`,
+    `Text color: ${txtColor}`,
+    `Primary color: ${primColor}`,
+    `Secondary color: ${secColor}`,
+    `Accent color: ${accColor}`,
+    `Heading font: ${hFont}`,
+    `Body font: ${bFont}`,
+  ].filter(Boolean).join('\n');
+
+  if (!userPrompt) return res.status(400).json({ error: 'No input provided' });
+
+  console.log('[Web] Anthropic → generating brand-aligned landing page');
+
+  const systemPrompt = `You are a senior web designer and frontend engineer who builds pixel-perfect, brand-aligned landing pages.
+
+Generate a complete, production-ready HTML landing page that STRICTLY follows the brand identity provided in the brief.
+
+BRAND IDENTITY RULES — NON-NEGOTIABLE:
+- Page background MUST be exactly the "Background color" value from the brief
+- All body text MUST use exactly the "Text color" value from the brief
+- Primary buttons, hero sections, and main CTAs MUST use the "Primary color"
+- Secondary blocks, alternate sections, and supporting elements MUST use the "Secondary color"
+- Borders, dividers, highlights, and accent details MUST use the "Accent color"
+- ALL headings (h1–h4) MUST use the "Heading font" from the brief as font-family
+- ALL body text and paragraphs MUST use the "Body font" from the brief as font-family
+- If a Logo URL is provided, place an <img> tag with that URL in the top-left of the nav bar
+
+TECHNICAL REQUIREMENTS:
+- Output ONLY a complete HTML document starting with <!DOCTYPE html>
+- All CSS inside a <style> tag in <head> — no external stylesheets, no CDN links
+- Define CSS custom properties at :root for all brand colors and use them throughout
+- Fonts: use the exact font-family strings from the brief (they are system or web-safe fonts)
+- No icons, no emojis, no SVG illustrations
+- All copy must be specific to the product/brand in the brief — no lorem ipsum
+- Include: a nav bar, all sections listed in the brief, and a footer
+- Footer must include small text: "Generated by ORIVEN"
+- Fully responsive — mobile and desktop
+- Animations: use CSS keyframes only if the brief requests them
+
+OUTPUT: Return ONLY the HTML document. No explanation, no preamble, no markdown fences. Start directly with <!DOCTYPE html>.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model:      'claude-opus-4-6',
+      max_tokens: 8000,
+      system:     systemPrompt,
+      messages:   [{ role: 'user', content: userPrompt }]
+    });
+
+    let raw = response.content[0].text.trim();
+
+    // Strip markdown code fences if Claude wrapped the output
+    raw = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+
+    // Extract only the HTML document
+    const start  = raw.search(/<!DOCTYPE\s+html/i);
+    const end    = raw.search(/<\/html\s*>/i);
+    const match  = raw.match(/<\/html\s*>/i);
+    const html   = (start !== -1 && end !== -1 && match)
+      ? raw.slice(start, end + match[0].length)
+      : raw;
+
+    if (!html || html.length < 100) {
+      console.error('[Web] response too short or missing HTML');
+      return res.status(500).json({ error: 'Failed to generate website' });
+    }
+
+    console.log(`[Web] page ready — ${html.length} chars`);
+    res.json({ html });
+  } catch (err) {
+    console.error('[Web] Anthropic error:', err.message);
+    res.status(500).json({ error: 'Failed to generate website' });
+  }
+});
+
+// ── Auth helper — verify Supabase JWT and return user ───────────
+async function getUserFromToken(req) {
+  const auth = req.headers.authorization || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  if (!token) return null;
+  try {
+    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !data.user) return null;
+    return data.user;
+  } catch (_) { return null; }
+}
+
+// ── Shared SMTP transporter factory ─────────────────────────────
+function _smtpTransporter() {
+  return nodemailer.createTransport({
+    host:   process.env.SMTP_HOST || 'smtp-mail.outlook.com',
+    port:   parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: false,
+    auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    tls:    { ciphers: 'SSLv3' }
+  });
+}
+
+// ── Verification email HTML ──────────────────────────────────────
+function _verificationEmailHtml(firstName, verifyUrl) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Verify your ORIVEN email</title></head>
+<body style="margin:0;padding:0;background:#F5F3F0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
+  <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 24px rgba(0,0,0,.08)">
+    <div style="background:#1A4229;padding:32px 40px 28px">
+      <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-.5px">ORIVEN</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.6);margin-top:4px">Brand Intelligence Platform</div>
+    </div>
+    <div style="padding:36px 40px">
+      <p style="margin:0 0 8px;font-size:20px;font-weight:600;color:#111">Hi ${firstName},</p>
+      <p style="margin:0 0 24px;font-size:14px;color:#555;line-height:1.6">
+        Thanks for joining ORIVEN. Please verify your email address to keep your account active.
+        You have <strong>14 days</strong> from sign-up to complete this.
+      </p>
+      <a href="${verifyUrl}" style="display:inline-block;background:#1A4229;color:#fff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:10px">
+        Verify Email Address
+      </a>
+      <p style="margin:24px 0 0;font-size:12px;color:#999;line-height:1.6">
+        Or paste this link into your browser:<br>
+        <a href="${verifyUrl}" style="color:#1A4229;word-break:break-all">${verifyUrl}</a>
+      </p>
+    </div>
+    <div style="padding:20px 40px;border-top:1px solid #F0EDE8">
+      <p style="margin:0;font-size:12px;color:#999;line-height:1.6">
+        If you didn't create an ORIVEN account, you can safely ignore this email.<br>
+        Questions? <a href="mailto:studio.oriven@outlook.com" style="color:#1A4229">studio.oriven@outlook.com</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+app.use((req, _res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+app.get('/', (_req, res) => {
+  res.send('ORIVEN backend is running');
+});
+
+// ── Shared helpers ──────────────────────────────────────────────
+
+async function callAnthropic(systemPrompt, userPrompt) {
+  const params = {
+    model: 'claude-opus-4-6',
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: userPrompt }],
+  };
+  if (systemPrompt) params.system = systemPrompt;
+  const response = await anthropic.messages.create(params);
+  return response.content[0].text;
+}
+
+// ── DALL-E 3 supported sizes: 1024x1024 | 1024x1792 | 1792x1024 ─
+async function callDallE(imagePrompt, size = '1024x1024') {
+  const validSizes = ['1024x1024', '1024x1792', '1792x1024'];
+  const safeSize   = validSizes.includes(size) ? size : '1024x1024';
+
+  const response = await openai.images.generate({
+    model:   'dall-e-3',
+    prompt:  imagePrompt,
+    n:       1,
+    size:    safeSize,
+    quality: 'hd',
+  });
+  return response.data[0].url;
+}
+
+// ── Extract a concise DALL-E image prompt from a structured brief ─
+// Uses Anthropic to translate a multi-section brief into a vivid,
+// DALL-E-optimised image description (150–300 characters).
+async function _briefToDallEPrompt(fullBrief, contextHint) {
+  const system = `You are a visual art director. Convert the following structured brief into a single DALL-E 3 image generation prompt.
+
+The prompt must:
+- Be 150–300 characters
+- Describe a specific, photorealistic or design-art visual scene
+- Reference brand colours from the brief by name or hex if present — e.g. "deep forest green (#1A4229) background"
+- Match the composition, mood, and format requirements in the brief
+- NOT mention text, headlines, logos, buttons, or UI elements
+- NOT start with "Generate" or "Create" — just describe what is seen
+
+Output ONLY the image prompt. No labels. No explanation. No quotes.`;
+
+  const userMsg = (contextHint ? 'Context: ' + contextHint + '\n\n' : '')
+    + 'Brief:\n' + fullBrief.slice(0, 2000);
+
+  const response = await anthropic.messages.create({
+    model:      'claude-opus-4-6',
+    max_tokens: 200,
+    system,
+    messages:   [{ role: 'user', content: userMsg }]
+  });
+  return response.content[0].text.trim().slice(0, 450);
+}
+
+// ── Text — Anthropic only ───────────────────────────────────────
+// Used by: Text, Brand Assistant, Ideas, Video
+app.post('/api/generate-text', async (req, res) => {
+  const { prompt, type } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+  console.log(`[Text/${type || 'default'}] Anthropic → prompt received`);
+
+  let systemPrompt;
+
+  if (type === 'assistant') {
+    // Fully conversational — responds naturally to anything including greetings
+    systemPrompt = `You are a strategic brand advisor and creative consultant embedded in a professional AI brand platform called ORIVEN.
+You are in a real-time conversation with a brand owner or marketer about their brand.
+Be conversational, insightful, and warm. Respond naturally to greetings and casual messages.
+When brand context is provided in the message, use it to give specific, tailored advice.
+Keep responses focused and practical — think like a senior brand strategist having a genuine working conversation.
+Never refuse to engage. Never give generic, hollow advice. Always be direct and specific.`;
+  } else if (type === 'text' || type === 'video' || type === 'ideas') {
+    // Structured output generator — no casual replies
+    systemPrompt = `You are a senior brand copywriter and content strategist.
+Generate structured, professional content based on the brief provided.
+Output must be specific, intentional, and ready to use — no preamble, no meta-commentary, no filler.
+Never respond conversationally. Never say "Sure!" or "Great!" or explain what you're about to do.
+Just produce the requested content, formatted cleanly and directly.`;
+  } else {
+    // Fallback for any unrecognised type
+    systemPrompt = `You are a senior brand copywriter. Generate professional brand content based on the brief.
+Be specific and direct. No preamble or filler.`;
+  }
+
+  try {
+    const result = await callAnthropic(systemPrompt, prompt);
+    console.log(`[Text/${type || 'default'}] Anthropic → response ready`);
+    res.json({ result });
+  } catch (err) {
+    console.error(`[Text/${type || 'default'}] Anthropic error:`, err.message);
+    res.status(500).json({ error: 'Failed to generate text. Please try again.' });
+  }
+});
+
+// ── Image — OpenAI DALL-E only ──────────────────────────────────
+// Used by: Image (guided flow)
+// Receives: { prompt, size, imageType, imageFormat, refImageData? }
+// If refImageData is provided, Anthropic vision extracts style cues
+// which are appended to the DALL-E prompt as a style guide.
+app.post('/api/generate-image', async (req, res) => {
+  const { prompt, size, imageType, imageFormat, refImageData, uploadType } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+  const resolvedSize = size || '1024x1024';
+  console.log(`[Image] type=${imageType || '?'} format=${imageFormat || '?'} uploadType=${uploadType || 'none'} → DALL-E size: ${resolvedSize}`);
+
+  let finalPrompt = prompt;
+
+  // Context-aware vision analysis based on upload type
+  if (refImageData) {
+    try {
+      const match = refImageData.match(/^data:([a-zA-Z0-9+/]+\/[a-zA-Z0-9+/]+);base64,(.+)$/);
+      if (match) {
+        const mediaType = match[1];
+        const b64data   = match[2];
+
+        let visionSystem, visionPrompt, promptLabel;
+
+        if (uploadType === 'product') {
+          visionSystem = 'You are a product photographer and art director. Analyze this product image precisely.';
+          visionPrompt = 'Describe this product in detail for a DALL-E image generation prompt: exact shape, color, material, finish, proportions, and any distinguishing features. Be specific and literal — this description will be used to faithfully recreate the product in a scene. 60–80 words max.';
+          promptLabel  = 'PRODUCT TO FEATURE';
+        } else if (uploadType === 'logo') {
+          visionSystem = 'You are a brand identity analyst. Analyze this logo for its design language.';
+          visionPrompt = 'Analyze this brand logo and extract its visual design language: color palette, geometric forms, negative space usage, visual weight, and the overall aesthetic feeling it conveys. Do NOT describe the logo itself — describe the design principles that could inform a photograph or scene. 50–70 words max.';
+          promptLabel  = 'BRAND VISUAL LANGUAGE FROM LOGO';
+        } else {
+          // reference (default)
+          visionSystem = 'You are a visual art director. Analyze reference images for style extraction.';
+          visionPrompt = 'Extract the key visual style cues from this reference image for use in a DALL-E generation prompt. Focus on: color palette and temperature, lighting character and direction, composition approach, texture and material feel, depth of field, overall mood and aesthetic. Specific observations only. 60–80 words max.';
+          promptLabel  = 'REFERENCE IMAGE STYLE';
+        }
+
+        console.log(`[Image] Running ${uploadType || 'reference'} vision analysis…`);
+        const visionResult = await anthropic.messages.create({
+          model: 'claude-opus-4-6',
+          max_tokens: 160,
+          system: visionSystem,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64data } },
+              { type: 'text', text: visionPrompt }
+            ]
+          }]
+        });
+
+        const analysis = visionResult.content[0].text.trim();
+        finalPrompt = finalPrompt + '\n\n' + promptLabel + ': ' + analysis;
+        console.log(`[Image] Vision analysis appended (${uploadType || 'reference'}).`);
+      }
+    } catch (err) {
+      console.warn('[Image] Vision analysis failed (non-fatal):', err.message);
+    }
+  }
+
+  // Hard safety clamp before DALL-E — API limit is 4000 chars
+  const DALLE_MAX = 3900;
+  console.log(`[Image] Prompt length before DALL-E: ${finalPrompt.length}`);
+  if (finalPrompt.length > DALLE_MAX) {
+    finalPrompt = finalPrompt.slice(0, DALLE_MAX);
+    console.warn(`[Image] Prompt clamped to ${DALLE_MAX} chars — check prompt builder for verbosity.`);
+  }
+  console.log(`[Image] Final prompt length: ${finalPrompt.length}`);
+
+  try {
+    const imageUrl = await callDallE(finalPrompt, resolvedSize);
+    console.log('[Image] DALL-E → image ready');
+    res.json({ imageUrl });
+  } catch (err) {
+    console.error('[Image] DALL-E error:', err.message);
+    res.status(500).json({ error: 'Failed to generate image. ' + err.message });
+  }
+});
+
+// ── Ads — Anthropic (copy) + Anthropic→DALL-E (visual) ──────────
+// Used by: Ads
+// Receives: { prompt, size, adFormat }
+// Steps 1 and 2 (copy + visual prompt) run in parallel via Promise.all
+// to minimise total latency before DALL-E is called.
+app.post('/api/generate-ad', async (req, res) => {
+  const { prompt, size, adFormat } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+  const resolvedSize = size || '1024x1024';
+  console.log(`[Ads] format=${adFormat || '?'} → DALL-E size: ${resolvedSize}`);
+  console.log('[Ads] Step 1+2 — Anthropic (copy + visual prompt) in parallel...');
+
+  const copySystem = `You are a senior creative advertising director.
+Generate ONE complete, platform-specific ad concept based on the brief provided.
+Every element must reflect the brand identity in the brief — not be generic.
+Use the brand tone, colours, audience, and positioning provided. Every word earns its place.
+Reply ONLY with valid JSON (no markdown fences, no extra text):
+{"title":"...","headline":"...","body":"...","cta":"..."}
+- title: ad concept name (max 6 words, brand-specific, not generic)
+- headline: punchy, platform-optimised (max 10 words), brand tone and voice specific
+- body: benefit-led copy in brand voice (2-3 sentences, no filler, no generic phrases)
+- cta: action-driven, brand-appropriate (max 4 words)`;
+
+  let adCopy, dallePrompt;
+  try {
+    // Run copy generation and visual prompt extraction in parallel
+    const [rawCopy, rawVisual] = await Promise.all([
+      callAnthropic(copySystem, prompt),
+      _briefToDallEPrompt(prompt, `${adFormat || 'feed'} advertisement visual`)
+    ]);
+
+    // Parse ad copy JSON
+    const cleaned = rawCopy.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    try {
+      adCopy = JSON.parse(cleaned);
+    } catch {
+      adCopy = { headline: '', body: rawCopy, cta: 'Learn More' };
+    }
+    dallePrompt = rawVisual;
+    console.log('[Ads] Step 1+2 — copy and visual prompt ready');
+  } catch (err) {
+    console.error('[Ads] Anthropic error:', err.message);
+    return res.status(500).json({ error: 'Failed to generate ad copy' });
+  }
+
+  console.log(`[Ads] Step 3 — DALL-E → size: ${resolvedSize}`);
+  let imageUrl = null;
+  try {
+    imageUrl = await callDallE(dallePrompt, resolvedSize);
+    console.log('[Ads] Step 3 — DALL-E → image ready');
+  } catch (err) {
+    console.warn('[Ads] Step 3 — DALL-E failed (non-fatal):', err.message);
+  }
+
+  res.json({
+    title:    adCopy.title    || '',
+    headline: adCopy.headline || '',
+    body:     adCopy.body     || '',
+    cta:      adCopy.cta      || '',
+    imageUrl,
+  });
+});
+
+// ── Campaign — N adset-style variations, each with image + copy ─
+// Used by: Campaign builder
+// Receives: { prompt, size }
+// Step 1: Anthropic generates N variation objects (title/headline/body/cta/imagePrompt)
+// Step 2: All N DALL-E images generated in parallel
+// Returns: { variations: [{title,headline,body,cta,imageUrl},...] }
+app.post('/api/generate-campaign', async (req, res) => {
+  const { prompt, size } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+  const resolvedSize = size || '1024x1024';
+
+  // ── Step 1: Generate all variation copy + image prompts via Anthropic ──
+  console.log('[Campaign] Step 1 — Anthropic → generating campaign variations...');
+  let variations;
+  try {
+    const system = `You are a strategic brand marketing expert and senior creative director.
+Generate a complete set of campaign adset-style variation concepts based on the brief.
+Each variation must use a genuinely different creative angle — not repetitions of the same idea.
+The brand identity in the brief must be unmistakable in every variation.
+Reply ONLY with a valid JSON array — no markdown fences, no extra text, nothing else.
+[{"title":"...","headline":"...","body":"...","cta":"...","imagePrompt":"..."},...]
+Rules:
+- title: variation concept name, max 5 words, unique per variation
+- headline: platform-optimised, max 10 words, brand-voice specific
+- body: benefit-led copy in brand voice, 2-3 sentences, no generic filler
+- cta: direct action CTA, max 4 words
+- imagePrompt: 100-180 character DALL-E 3 visual description for this variation.
+  CRITICAL: must be 100% text-free. Must reference brand colours from the brief if provided.
+  Describes subject, composition, mood, and colour palette. No text/letters/logos/UI in image.`;
+
+    const raw     = await callAnthropic(system, prompt);
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    try {
+      variations = JSON.parse(cleaned);
+      if (!Array.isArray(variations) || !variations.length) throw new Error('Empty or non-array');
+    } catch (parseErr) {
+      console.error('[Campaign] JSON parse failed. Raw output:', raw.slice(0, 300));
+      return res.status(500).json({ error: 'Failed to parse campaign variations output' });
+    }
+    console.log(`[Campaign] Step 1 — ${variations.length} variations ready`);
+  } catch (err) {
+    console.error('[Campaign] Anthropic error:', err.message);
+    return res.status(500).json({ error: 'Failed to generate campaign variations' });
+  }
+
+  // ── Step 2: Generate all images in parallel ──────────────────────────
+  console.log(`[Campaign] Step 2 — generating ${variations.length} images in parallel (size: ${resolvedSize})...`);
+  const imageResults = await Promise.allSettled(
+    variations.map(async (v, i) => {
+      const imgPrompt = (v.imagePrompt || '').trim();
+      if (!imgPrompt) return null;
+      try {
+        const url = await callDallE(imgPrompt, resolvedSize);
+        console.log(`[Campaign] Image ${i + 1}/${variations.length} ready`);
+        return url;
+      } catch (err) {
+        console.warn(`[Campaign] Image ${i + 1} failed (non-fatal):`, err.message);
+        return null;
+      }
+    })
+  );
+
+  const variationsWithImages = variations.map((v, i) => ({
+    title:    v.title    || '',
+    headline: v.headline || '',
+    body:     v.body     || '',
+    cta:      v.cta      || '',
+    imageUrl: imageResults[i].status === 'fulfilled' ? imageResults[i].value : null,
+  }));
+
+  console.log(`[Campaign] Done — ${variationsWithImages.length} variations with images`);
+  res.json({ variations: variationsWithImages });
+});
+
+// ── Video — placeholder (not implemented) ───────────────────────
+// The frontend handles this locally; no route needed.
+
+// ── BrandCore — AI Generate ─────────────────────────────────────
+app.post('/api/generate-brandcore', async (req, res) => {
+  const { brandName, type, industry, description, targetAudience, colorMood, brandStyle, personality } = req.body;
+  if (!brandName) return res.status(400).json({ error: 'brandName is required' });
+
+  console.log('[BrandCore] Anthropic → generating brand identity for:', brandName);
+  try {
+    const system = `You are a senior brand strategist at a world-class branding agency.
+Your task is to generate a complete, premium brand identity based on the client brief.
+Reply ONLY with valid JSON — no markdown fences, no extra text, no explanation.
+The JSON must match this exact structure:
+{
+  "brandName": "string",
+  "brandStrategy": {
+    "positioning": "string",
+    "targetAudience": "string",
+    "brandPersonality": "string",
+    "toneOfVoice": "string"
+  },
+  "brandCore": {
+    "brandPromise": "string",
+    "mission": "string",
+    "vision": "string",
+    "values": ["string", "string", "string"]
+  },
+  "visualIdentity": {
+    "primaryColor": "string (hex)",
+    "secondaryColor": "string (hex)",
+    "accentColor": "string (hex)",
+    "headingFont": "string",
+    "bodyFont": "string",
+    "styleDirection": "string",
+    "colorMood": "string"
+  },
+  "logoConcept": {
+    "description": "string",
+    "style": "string",
+    "imagePrompt": "string"
+  }
+}
+
+Rules:
+- Colors must be realistic, purposeful hex codes that reflect the requested color mood and style direction
+- Fonts must be real, widely available fonts (e.g. Montserrat, Inter, Playfair Display, DM Sans, Lora, Geist)
+- Brand personality and tone must be consistent across every field
+- styleDirection and colorMood must directly reflect the client's requested style and mood preferences
+- logoConcept.imagePrompt must be visual, specific, and contain no text — suitable for AI logo generation
+- Outputs must feel like they came from a premium agency, not a generic tool
+- Avoid clichés and vague language`;
+
+    const userPrompt = `Generate a complete brand identity for the following brief:
+
+Brand Name: ${brandName}
+Brand Type: ${type || 'not specified'}
+Industry: ${industry || 'not specified'}
+Description: ${description || 'not specified'}
+Target Audience: ${targetAudience || 'not specified'}
+Color Mood: ${colorMood || 'not specified'}
+Brand Style: ${brandStyle || 'not specified'}
+Personality Tags: ${personality || 'not specified'}
+
+Return the full JSON brand identity object.`;
+
+    const raw = await callAnthropic(system, userPrompt);
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    let brandcore;
+    try {
+      brandcore = JSON.parse(cleaned);
+    } catch {
+      console.error('[BrandCore] JSON parse failed, raw output:', raw);
+      return res.status(500).json({ error: 'Failed to parse brand identity output' });
+    }
+
+    console.log('[BrandCore] Anthropic → brand identity ready for:', brandName);
+    res.json(brandcore);
+  } catch (err) {
+    console.error('[BrandCore] Anthropic error:', err.message);
+    res.status(500).json({ error: 'Failed to generate brand identity' });
+  }
+});
+
+// ── Brand Check — AI Analysis ───────────────────────────────────
+app.post('/api/brand-check', async (req, res) => {
+  const {
+    brandName, colors, fonts, brandPromise, description, targetAudience,
+    styleDirection, colorMood, mission, vision, personality, toneOfVoice,
+    values, positioning, logoConcept, imageData,
+  } = req.body;
+  if (!brandName) return res.status(400).json({ error: 'brandName is required' });
+
+  const hasImage = !!(imageData);
+  console.log('[BrandCheck] Anthropic → analysing brand:', brandName, hasImage ? '(with image)' : '(manual/BrandCore)');
+  try {
+    const system = `You are a senior brand strategist and consultant with 20 years of experience evaluating brand identities.
+Your task is to critically assess the complete brand setup provided and deliver an honest, expert-level analysis.
+Reply ONLY with valid JSON — no markdown fences, no extra text, no explanation.
+The JSON must match this exact structure:
+{
+  "score": number,
+  "summary": "string",
+  "strengths": ["string", "string"],
+  "weaknesses": ["string", "string"],
+  "improvements": ["string", "string"],
+  "consistencyCheck": "string",
+  "professionalLevel": "string"
+}
+
+Rules:
+- score is 0–100 reflecting overall brand strength and professionalism
+- summary is 2–3 sentences: honest, strategic, high-level verdict on the brand as a whole
+- strengths: 2–4 specific, concrete positives — reference actual brand elements, avoid vague praise
+- weaknesses: 2–4 specific gaps or problems — be direct and honest but constructive
+- improvements: 2–4 actionable, prioritised recommendations — be specific about what to change and why
+- consistencyCheck: assess alignment between colors, fonts, promise, mission, vision, audience, style, and tone — call out gaps explicitly
+- professionalLevel: one of "beginner", "developing", "intermediate", "advanced", "premium"
+- Evaluate clarity of positioning, memorability, audience fit, and whether the brand feels cohesive
+- If an image is provided, assess it visually — check color usage, typography, layout, and brand alignment
+- Never produce vague, generic, or repetitive feedback — this should read like a premium brand audit`;
+
+    // Build a rich brand context block from all available fields
+    const lines = [];
+    lines.push(`Brand Name: ${brandName}`);
+    if (positioning)    lines.push(`Positioning: ${positioning}`);
+    if (brandPromise)   lines.push(`Brand Promise: ${brandPromise}`);
+    if (mission)        lines.push(`Mission: ${mission}`);
+    if (vision)         lines.push(`Vision: ${vision}`);
+    if (values)         lines.push(`Brand Values: ${values}`);
+    if (personality)    lines.push(`Brand Personality: ${personality}`);
+    if (toneOfVoice)    lines.push(`Tone of Voice: ${toneOfVoice}`);
+    if (targetAudience) lines.push(`Target Audience: ${targetAudience}`);
+    if (description)    lines.push(`Description: ${description}`);
+    if (colors) lines.push(`Color Palette: ${Array.isArray(colors) ? colors.join(', ') : colors}`);
+    if (fonts)  lines.push(`Typography: ${Array.isArray(fonts) ? fonts.join(', ') : fonts}`);
+    if (styleDirection) lines.push(`Style Direction: ${styleDirection}`);
+    if (colorMood)      lines.push(`Color Mood: ${colorMood}`);
+    if (logoConcept)    lines.push(`Logo Concept: ${logoConcept}`);
+
+    // Build message content — support vision if image provided
+    const content = [];
+
+    if (hasImage) {
+      const match = imageData.match(/^data:([a-zA-Z0-9+/]+\/[a-zA-Z0-9+/]+);base64,(.+)$/);
+      if (match) {
+        content.push({
+          type: 'image',
+          source: { type: 'base64', media_type: match[1], data: match[2] },
+        });
+        content.push({
+          type: 'text',
+          text: `Analyse this uploaded brand asset for "${brandName}". Check visual alignment with the brand identity below, then return a full brand check report.\n\nFull brand identity:\n${lines.join('\n')}`,
+        });
+      } else {
+        // Invalid data URL — fall through to text-only
+        content.push({ type: 'text', text: `Perform a comprehensive brand audit and return a full brand check report for the following brand identity:\n\n${lines.join('\n')}` });
+      }
+    } else {
+      content.push({ type: 'text', text: `Perform a comprehensive brand audit and return a full brand check report for the following brand identity:\n\n${lines.join('\n')}` });
+    }
+
+    // Direct Anthropic call so we can pass structured content (vision support)
+    const response = await anthropic.messages.create({
+      model: 'claude-opus-4-6',
+      max_tokens: 1024,
+      system,
+      messages: [{ role: 'user', content }],
+    });
+
+    const raw = response.content[0].text;
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    let report;
+    try {
+      report = JSON.parse(cleaned);
+    } catch {
+      console.error('[BrandCheck] JSON parse failed, raw output:', raw);
+      return res.status(500).json({ error: 'Failed to parse brand check output' });
+    }
+
+    console.log('[BrandCheck] Anthropic → analysis ready for:', brandName, '| Score:', report.score);
+    res.json(report);
+  } catch (err) {
+    console.error('[BrandCheck] Anthropic error:', err.message);
+    res.status(500).json({ error: 'Failed to run brand check' });
+  }
+});
+
+// ── Stripe checkout session ─────────────────────────────────────
+app.post('/api/create-checkout-session', async (req, res) => {
+  const { plan, userId, userEmail } = req.body;
+
+  console.log(`[Checkout] ▶ Request received — plan: ${plan}, userId: ${userId}, email: ${userEmail || '(none)'}`);
+
+  if (!plan || !userId) {
+    console.error('[Checkout] ❌ Missing required fields — plan:', plan, 'userId:', userId);
+    return res.status(400).json({ error: 'plan and userId are required' });
+  }
+
+  const validPlans = ['starter', 'premium', 'business'];
+  if (!validPlans.includes(plan)) {
+    console.error(`[Checkout] ❌ Unrecognised plan name: "${plan}" — expected one of: ${validPlans.join(', ')}`);
+    return res.status(400).json({ error: `Unrecognised plan: ${plan}` });
+  }
+
+  const priceId = PRICE_IDS[plan];
+  if (!priceId) {
+    console.error(`[Checkout] ❌ No price ID configured for plan "${plan}"`);
+    console.error('[Checkout]    STRIPE_PRICE_' + plan.toUpperCase(), '= (NOT SET in environment)');
+    console.error('[Checkout]    Fix: add this variable in the Render dashboard and redeploy');
+    return res.status(400).json({ error: `No price configured for plan: ${plan}. Contact support.` });
+  }
+
+  const frontendUrl = process.env.FRONTEND_URL || 'https://orivenai.com';
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity: 1 }],
+      customer_email: userEmail || undefined,
+      metadata: { userId, plan },
+      success_url: `${frontendUrl}?success=true`,
+      cancel_url:  `${frontendUrl}?canceled=true`,
+    });
+
+    console.log(`[Checkout] ✅ Session created`);
+    console.log(`[Checkout]    Session ID:   ${session.id}`);
+    console.log(`[Checkout]    userId:       ${userId}`);
+    console.log(`[Checkout]    plan:         ${plan}`);
+    console.log(`[Checkout]    priceId:      ${priceId}`);
+    console.log(`[Checkout]    success_url:  ${frontendUrl}?success=true`);
+    res.json({ url: session.url });
+  } catch (err) {
+    // Log every available field on Stripe errors for easy debugging
+    console.error('[Checkout] ❌ Stripe error creating session');
+    console.error('           message:', err.message);
+    console.error('           type:   ', err.type    || '(none)');
+    console.error('           code:   ', err.code    || '(none)');
+    console.error('           param:  ', err.param   || '(none)');
+    console.error('           raw:    ', err.raw ? JSON.stringify(err.raw) : '(none)');
+    console.error('           plan:   ', plan);
+    console.error('           priceId:', priceId);
+    res.status(500).json({ error: 'Could not create checkout session. Please try again.' });
+  }
+});
+
+// ── GET /api/get-subscription ───────────────────────────────────
+app.get('/api/get-subscription', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('profiles')
+      .select('subscription_status, pending_plan, pending_plan_date')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (error) return res.status(500).json({ error: error.message });
+    if (!data) return res.json({ subscription_status: 'free', pending_plan: null, pending_plan_date: null });
+
+    res.json({
+      subscription_status: data.subscription_status || 'free',
+      pending_plan:        data.pending_plan        || null,
+      pending_plan_date:   data.pending_plan_date   || null,
+    });
+  } catch (err) {
+    console.error('[GetSubscription] Error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch subscription' });
+  }
+});
+
+// ── POST /api/schedule-plan-change ──────────────────────────────
+app.post('/api/schedule-plan-change', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { plan } = req.body;
+  if (!plan) return res.status(400).json({ error: 'plan is required' });
+
+  const validPlans = ['free', 'starter', 'premium', 'business'];
+  if (!validPlans.includes(plan)) return res.status(400).json({ error: 'Invalid plan' });
+
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .select('subscription_status, stripe_subscription_id, stripe_customer_id')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (profileError) return res.status(500).json({ error: profileError.message });
+
+  const currentPlan = (profile && profile.subscription_status) || 'free';
+  const subId = profile && profile.stripe_subscription_id;
+
+  if (plan === currentPlan) return res.json({ ok: true, message: 'Already on this plan' });
+
+  // Upgrading from free to paid — tell client to use checkout
+  if (currentPlan === 'free' && plan !== 'free') {
+    return res.json({ requiresCheckout: true });
+  }
+
+  // Cancelling to free — schedule cancel_at_period_end on Stripe
+  if (plan === 'free') {
+    if (!subId) {
+      await supabaseAdmin.from('profiles')
+        .update({ pending_plan: 'free', pending_plan_date: null })
+        .eq('id', user.id);
+      return res.json({ ok: true, pending_plan: 'free', pending_plan_date: null });
+    }
+    try {
+      const sub = await stripe.subscriptions.update(subId, { cancel_at_period_end: true });
+      const periodEnd = new Date(sub.current_period_end * 1000).toISOString();
+      await supabaseAdmin.from('profiles')
+        .update({ pending_plan: 'free', pending_plan_date: periodEnd })
+        .eq('id', user.id);
+      console.log('[SchedulePlan] Cancellation scheduled for:', periodEnd);
+      return res.json({ ok: true, pending_plan: 'free', pending_plan_date: periodEnd });
+    } catch (err) {
+      console.error('[SchedulePlan] Stripe cancel error:', err.message);
+      return res.status(500).json({ error: 'Failed to schedule cancellation' });
+    }
+  }
+
+  // Switching between paid plans — update Stripe subscription
+  if (!subId) return res.status(400).json({ error: 'No active subscription found' });
+
+  const newPriceId = PRICE_IDS[plan];
+  if (!newPriceId) return res.status(400).json({ error: 'Price not configured for plan: ' + plan });
+
+  try {
+    const sub = await stripe.subscriptions.retrieve(subId);
+    const itemId = sub.items.data[0].id;
+    const periodEnd = new Date(sub.current_period_end * 1000).toISOString();
+
+    await stripe.subscriptions.update(subId, {
+      items: [{ id: itemId, price: newPriceId }],
+      proration_behavior: 'create_prorations',
+      metadata: { pending_plan: plan },
+    });
+
+    await supabaseAdmin.from('profiles')
+      .update({ pending_plan: plan, pending_plan_date: periodEnd })
+      .eq('id', user.id);
+
+    console.log('[SchedulePlan] Plan change to', plan, 'scheduled for:', periodEnd);
+    return res.json({ ok: true, pending_plan: plan, pending_plan_date: periodEnd });
+  } catch (err) {
+    console.error('[SchedulePlan] Stripe update error:', err.message);
+    return res.status(500).json({ error: 'Failed to update subscription' });
+  }
+});
+
+// ── POST /api/cancel-plan-change ────────────────────────────────
+app.post('/api/cancel-plan-change', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .select('pending_plan, stripe_subscription_id')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (profileError) return res.status(500).json({ error: profileError.message });
+
+  // If the pending change was a cancellation, un-cancel in Stripe
+  if (profile && profile.pending_plan === 'free' && profile.stripe_subscription_id) {
+    try {
+      await stripe.subscriptions.update(profile.stripe_subscription_id, { cancel_at_period_end: false });
+      console.log('[CancelPlanChange] Un-canceled Stripe subscription:', profile.stripe_subscription_id);
+    } catch (err) {
+      console.error('[CancelPlanChange] Stripe un-cancel error:', err.message);
+    }
+  }
+
+  await supabaseAdmin.from('profiles')
+    .update({ pending_plan: null, pending_plan_date: null })
+    .eq('id', user.id);
+
+  res.json({ ok: true });
+});
+
+// ── GET /api/get-usage ───────────────────────────────────────────
+app.get('/api/get-usage', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const { data, error } = await supabaseAdmin.from('profiles')
+      .select('usage_data').eq('id', user.id).maybeSingle();
+    if (error) return res.status(500).json({ error: error.message });
+    const usage = (data && data.usage_data) || {};
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const currentDay   = new Date().toISOString().slice(0, 10);
+    res.json({
+      monthly_count: usage.monthly_key === currentMonth ? (usage.monthly_count || 0) : 0,
+      monthly_key:   currentMonth,
+      daily_count:   usage.daily_key   === currentDay   ? (usage.daily_count   || 0) : 0,
+      daily_key:     currentDay,
+    });
+  } catch (err) {
+    console.error('[GetUsage] Error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch usage' });
+  }
+});
+
+// ── POST /api/increment-usage ────────────────────────────────────
+app.post('/api/increment-usage', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const currentDay   = new Date().toISOString().slice(0, 10);
+  try {
+    const { data } = await supabaseAdmin.from('profiles')
+      .select('usage_data').eq('id', user.id).maybeSingle();
+    const prev         = (data && data.usage_data) || {};
+    const monthlyCount = prev.monthly_key === currentMonth ? (prev.monthly_count || 0) + 1 : 1;
+    const dailyCount   = prev.daily_key   === currentDay   ? (prev.daily_count   || 0) + 1 : 1;
+    await supabaseAdmin.from('profiles').update({
+      usage_data: { monthly_count: monthlyCount, monthly_key: currentMonth, daily_count: dailyCount, daily_key: currentDay }
+    }).eq('id', user.id);
+    res.json({ monthly_count: monthlyCount, daily_count: dailyCount });
+  } catch (err) {
+    console.error('[IncrementUsage] Error:', err.message);
+    res.status(500).json({ error: 'Failed to increment usage' });
+  }
+});
+
+// ── POST /api/signup ─────────────────────────────────────────────
+// Creates a user immediately (email_confirm:true bypasses Supabase gate),
+// stores email_verified:false in profiles, sends verification email.
+// Body: { firstName, lastName, email, password, phone }
+app.post('/api/signup', async (req, res) => {
+  const { firstName, lastName, email, password, phone } = req.body || {};
+  if (!firstName || !email || !password) {
+    return res.status(400).json({ error: 'First name, email and password are required' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+
+  // Create user — email_confirm:true means Supabase won't block signInWithPassword
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { first_name: firstName, last_name: lastName || '', phone: phone || null }
+  });
+
+  if (authError) {
+    console.error('[Signup] Auth user creation failed:', authError.message);
+    const msg = authError.message || '';
+    if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('exists')) {
+      return res.status(409).json({ error: 'An account with this email already exists. Please sign in.' });
+    }
+    return res.status(500).json({ error: msg || 'Could not create account' });
+  }
+
+  const user = authData.user;
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+
+  // Create profile row (email_verified: false — user must confirm within 14 days)
+  const { error: profileError } = await supabaseAdmin.from('profiles').insert({
+    id:                   user.id,
+    first_name:           firstName,
+    last_name:            lastName || null,
+    email,
+    phone:                phone || null,
+    email_verified:        false,
+    onboarding_completed:  false,
+    verification_token:    verificationToken,
+    verification_sent_at:  new Date().toISOString()
+  });
+  if (profileError) console.warn('[Signup] Profile insert warning:', profileError.message);
+
+  // Send verification email (best-effort — signup succeeds even if email fails)
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  if (smtpUser && smtpPass && smtpPass !== 'YOUR_OUTLOOK_PASSWORD_HERE') {
+    const verifyUrl = `${process.env.FRONTEND_URL || 'https://orivenai.com'}?verify_token=${verificationToken}`;
+    try {
+      await _smtpTransporter().sendMail({
+        from:    process.env.SMTP_FROM || `ORIVEN <${smtpUser}>`,
+        to:      email,
+        subject: 'Verify your ORIVEN email address',
+        html:    _verificationEmailHtml(firstName, verifyUrl),
+        text:    `Hi ${firstName},\n\nVerify your email:\n${verifyUrl}\n\nThis link is valid for 14 days.\n\n— ORIVEN`
+      });
+      console.log('[Signup] Verification email sent to', email);
+    } catch (emailErr) {
+      console.error('[Signup] Verification email failed (non-fatal):', emailErr.message);
+    }
+  } else {
+    console.warn('[Signup] SMTP not configured — skipping verification email');
+  }
+
+  console.log('[Signup] ✅ User created:', user.id, email);
+  res.json({ ok: true, userId: user.id });
+});
+
+// ── POST /api/verify-email ───────────────────────────────────────
+// No auth required — the token itself is the credential.
+// Body: { token }
+app.post('/api/verify-email', async (req, res) => {
+  const { token } = req.body || {};
+  if (!token) return res.status(400).json({ error: 'Token required' });
+
+  const { data, error } = await supabaseAdmin.from('profiles')
+    .select('id')
+    .eq('verification_token', token)
+    .maybeSingle();
+
+  if (error)  return res.status(500).json({ error: error.message });
+  if (!data)  return res.status(404).json({ error: 'Verification link is invalid or has already been used' });
+
+  await supabaseAdmin.from('profiles').update({
+    email_verified:     true,
+    verification_token: null
+  }).eq('id', data.id);
+
+  console.log('[VerifyEmail] ✅ Email verified for user:', data.id);
+  res.json({ ok: true });
+});
+
+// ── POST /api/resend-verification ───────────────────────────────
+// Requires auth. Generates a fresh token and resends the email.
+app.post('/api/resend-verification', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  if (!smtpUser || !smtpPass || smtpPass === 'YOUR_OUTLOOK_PASSWORD_HERE') {
+    return res.status(500).json({ error: 'Email service not configured' });
+  }
+
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const verifyUrl = `${process.env.FRONTEND_URL || 'https://orivenai.com'}?verify_token=${verificationToken}`;
+
+  const { data: profile } = await supabaseAdmin.from('profiles')
+    .select('first_name, email').eq('id', user.id).maybeSingle();
+  const firstName = (profile && profile.first_name) || 'there';
+  const toEmail   = (profile && profile.email)       || user.email;
+
+  await supabaseAdmin.from('profiles').update({
+    verification_token:   verificationToken,
+    verification_sent_at: new Date().toISOString()
+  }).eq('id', user.id);
+
+  try {
+    await _smtpTransporter().sendMail({
+      from:    process.env.SMTP_FROM || `ORIVEN <${smtpUser}>`,
+      to:      toEmail,
+      subject: 'Verify your ORIVEN email address',
+      html:    _verificationEmailHtml(firstName, verifyUrl),
+      text:    `Hi ${firstName},\n\nVerify your email:\n${verifyUrl}\n\nThis link is valid for 14 days.\n\n— ORIVEN`
+    });
+    console.log('[ResendVerify] ✅ Sent to', toEmail);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[ResendVerify] Failed:', err.message);
+    res.status(500).json({ error: 'Failed to send email: ' + err.message });
+  }
+});
+
+// ── POST /api/send-invite ────────────────────────────────────────
+// Sends a team invite email via Outlook SMTP.
+// Body: { name, email, role, message, workspaceName }
+app.post('/api/send-invite', async (req, res) => {
+  const { name, email, role, message, workspaceName } = req.body || {};
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'A valid email address is required' });
+  }
+
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+
+  if (!smtpUser || !smtpPass || smtpPass === 'YOUR_OUTLOOK_PASSWORD_HERE') {
+    console.error('[Invite] ❌ SMTP credentials not configured in .env');
+    return res.status(500).json({ error: 'Email service not configured — set SMTP_USER and SMTP_PASS in server/.env' });
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp-mail.outlook.com',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: false,        // STARTTLS on port 587
+    auth: { user: smtpUser, pass: smtpPass },
+    tls:  { ciphers: 'SSLv3' }
+  });
+
+  const recipientName    = name  || email.split('@')[0];
+  const senderWorkspace  = workspaceName || 'ORIVEN Workspace';
+  const roleLabel        = role  || 'Member';
+  const personalNote     = message ? `<p style="margin:0 0 14px;color:#374151;font-size:14px;line-height:1.6;font-style:italic;">"${message}"</p>` : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>You're invited to ${senderWorkspace}</title></head>
+<body style="margin:0;padding:0;background:#F6F3EE;font-family:'Geist',Helvetica,Arial,sans-serif;">
+  <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.07);">
+
+    <!-- Header -->
+    <div style="background:#1A4229;padding:28px 32px;">
+      <div style="font-size:20px;font-weight:700;color:#fff;letter-spacing:-.01em;">ORIVEN</div>
+      <div style="font-size:12px;color:#74C69D;margin-top:3px;letter-spacing:.04em;">AI BRAND STUDIO</div>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:32px 32px 28px;">
+      <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#18181A;line-height:1.25;">
+        You've been invited to join<br><span style="color:#1A4229;">${senderWorkspace}</span>
+      </h1>
+      <p style="margin:0 0 22px;color:#555;font-size:14px;line-height:1.6;">
+        Hi ${recipientName}, you've been invited to collaborate as a <strong>${roleLabel}</strong> in the
+        ${senderWorkspace} workspace on ORIVEN.
+      </p>
+
+      ${personalNote}
+
+      <!-- Role chip -->
+      <div style="display:inline-block;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:#15803D;margin-bottom:24px;">
+        Role: ${roleLabel}
+      </div>
+
+      <!-- CTA -->
+      <div style="text-align:center;margin:8px 0 28px;">
+        <a href="https://oriven.app" style="display:inline-block;background:#1A4229;color:#fff;font-size:14px;font-weight:600;text-decoration:none;padding:13px 32px;border-radius:8px;letter-spacing:.01em;">
+          Accept Invitation &rarr;
+        </a>
+      </div>
+
+      <p style="margin:0;font-size:12px;color:#999;line-height:1.6;border-top:1px solid #F0EDE8;padding-top:18px;">
+        If you weren't expecting this invite, you can ignore this email.<br>
+        Questions? Reply to <a href="mailto:studio.oriven@outlook.com" style="color:#1A4229;">studio.oriven@outlook.com</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  try {
+    await transporter.sendMail({
+      from:    process.env.SMTP_FROM || `ORIVEN <${smtpUser}>`,
+      to:      email,
+      subject: `You've been invited to ${senderWorkspace} on ORIVEN`,
+      html:    html,
+      text:    `Hi ${recipientName},\n\nYou've been invited to join "${senderWorkspace}" on ORIVEN as a ${roleLabel}.\n\nVisit https://oriven.app to accept.\n\n— The ORIVEN Team`
+    });
+
+    console.log(`[Invite] ✅ Invite sent to ${email} (role: ${roleLabel}, workspace: ${senderWorkspace})`);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[Invite] ❌ Failed to send invite email:', err.message);
+    res.status(500).json({ error: 'Failed to send invite email: ' + err.message });
+  }
+});
+
+// ── AI Logo Generation ──────────────────────────────────────────
+// Receives: { brandName, description, logoStyle, styleDirection, colorPalette }
+// Returns: { imageUrl, prompt }
+app.post('/api/generate-logo', async (req, res) => {
+  const { brandName, description, logoStyle, styleDirection, colorPalette } = req.body;
+  if (!brandName) return res.status(400).json({ error: 'brandName is required' });
+
+  console.log(`[LogoGen] Generating AI logo for: ${brandName}`);
+
+  // Use Anthropic to craft an optimised DALL-E logo prompt
+  const system = `You are a logo design expert and art director.
+Your job is to write a precise DALL-E 3 prompt that will generate a professional brand logo concept.
+
+Rules:
+- Output is 120–250 characters — a single, vivid visual description
+- Describe a logo SYMBOL or MARK — geometric shapes, abstract forms, icons, emblems — never letters or text
+- Describe the specific visual form: shape, geometry, composition, colour treatment
+- Reference the style direction and logo type requested
+- End with: ", isolated on white background, vector-style clean design, professional brand identity mark"
+- CRITICAL: Do NOT include ANY readable text, letters, words, numbers, or typographic elements of any kind
+- Do NOT include the brand name, initials, taglines, or ANY characters that form words
+- DALL-E cannot reliably render text — the output must be a pure visual symbol with zero written elements
+- Do NOT say "Generate" or "Create" — just describe what is seen in the image
+- Output ONLY the prompt. No labels. No quotes. No explanation.`;
+
+  try {
+    const userMsg = `Brand: ${brandName}
+Logo type: ${logoStyle || 'minimal icon / symbol'}
+Style direction: ${styleDirection || 'minimal premium'}
+Colour palette: ${colorPalette || 'professional neutral palette'}
+Brand description: ${description || 'a professional brand'}`;
+
+    const rawPrompt = await callAnthropic(system, userMsg);
+    const dallePrompt = rawPrompt.trim().replace(/^["']|["']$/g, '').slice(0, 450);
+
+    console.log(`[LogoGen] DALL-E prompt: ${dallePrompt}`);
+    const imageUrl = await callDallE(dallePrompt, '1024x1024');
+    console.log(`[LogoGen] ✅ Logo generated for: ${brandName}`);
+    res.json({ imageUrl, prompt: dallePrompt });
+  } catch (err) {
+    console.error('[LogoGen] Error:', err.message);
+    res.status(500).json({ error: 'Failed to generate logo: ' + err.message });
+  }
+});
+
+// ── 404 catch-all — must be after all routes ────────────────────
+// Prevents Express from returning an HTML error page for missing routes.
+// Without this, unknown paths produce "Cannot GET /api/..." in HTML,
+// causing the frontend JSON.parse to throw "Unexpected token '<'".
+app.use(function(req, res) {
+  console.warn('[404]', req.method, req.url);
+  res.status(404).json({ error: 'Route not found: ' + req.method + ' ' + req.url });
+});
+
+// ── Global error handler — catches unhandled errors in routes ───
+// Express requires exactly 4 arguments for error handlers.
+app.use(function(err, req, res, _next) {
+  console.error('[ServerError]', req.method, req.url, err.message);
+  res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+});
+
+// ── Daily cron: delete unverified accounts older than 14 days ───
+// Runs at 02:00 UTC every day. Safe to re-run — only targets accounts
+// where email_verified = false AND created_at < 14 days ago.
+cron.schedule('0 2 * * *', async () => {
+  const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+  console.log(`[Cron] Cleanup run — cutoff: ${cutoff}`);
+  try {
+    const { data: stale, error } = await supabaseAdmin
+      .from('profiles')
+      .select('id, email')
+      .eq('email_verified', false)
+      .lt('created_at', cutoff);
+
+    if (error) { console.error('[Cron] Query error:', error.message); return; }
+    if (!stale || stale.length === 0) { console.log('[Cron] No stale unverified accounts'); return; }
+
+    console.log(`[Cron] Deleting ${stale.length} unverified account(s)...`);
+    for (const row of stale) {
+      try {
+        const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(row.id);
+        if (delErr) console.error('[Cron] Delete failed for', row.id, ':', delErr.message);
+        else        console.log('[Cron] Deleted:', row.id, row.email);
+      } catch (e) {
+        console.error('[Cron] Exception deleting', row.id, ':', e.message);
+      }
+    }
+  } catch (err) {
+    console.error('[Cron] Unexpected error:', err.message);
+  }
+}, { timezone: 'UTC' });
+
+app.listen(PORT, async () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+
+  // Live Supabase admin connectivity test — runs every server start
+  console.log('[Startup] Testing Supabase admin client...');
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('profiles')
+      .select('id, subscription_status')
+      .limit(1);
+
+    if (error) {
+      console.error('[Startup] ❌ Supabase admin query FAILED:', error.message, '| code:', error.code);
+      if (error.code === '42501') {
+        console.error('[Startup]    RLS blocked the query — SUPABASE_SERVICE_ROLE_KEY is wrong');
+        console.error('[Startup]    Fix: get the service_role key from Supabase Dashboard → Settings → API');
+      }
+    } else {
+      console.log('[Startup] ✅ Supabase admin client can read profiles table');
+      if (data && data.length > 0) {
+        console.log('[Startup]    Sample row:', JSON.stringify(data[0]));
+      } else {
+        console.log('[Startup]    profiles table is empty (no rows yet)');
+      }
+    }
+  } catch (e) {
+    console.error('[Startup] ❌ Supabase admin test threw an exception:', e.message);
+  }
+});
