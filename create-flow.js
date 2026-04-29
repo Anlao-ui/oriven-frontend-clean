@@ -198,14 +198,6 @@ var CF_FLOWS = {
       optional:    false
     },
     {
-      key:         "webAudience",
-      q:           "Who is your target audience?",
-      desc:        "Be specific — this shapes the copy, tone, and messaging angle.",
-      type:        "textarea",
-      placeholder: "e.g. Freelance designers aged 25–40 who hate admin work…",
-      optional:    false
-    },
-    {
       key:  "webStyle",
       q:    "What design style do you want?",
       desc: "This sets the visual language and layout density of the page.",
@@ -223,16 +215,6 @@ var CF_FLOWS = {
         { val: "none",   label: "None" },
         { val: "subtle", label: "Subtle" },
         { val: "smooth", label: "Smooth" }
-      ]
-    },
-    {
-      key:  "webSections",
-      q:    "Which sections should the page include?",
-      desc: "Choose the layout structure for the landing page.",
-      options: [
-        { val: "hero-features-cta",               label: "Hero + Features + CTA" },
-        { val: "hero-features-testimonials-cta",  label: "Hero + Features + Testimonials + CTA" },
-        { val: "hero-features-pricing-cta",       label: "Hero + Features + Pricing + CTA" }
       ]
     },
     {
@@ -650,7 +632,6 @@ function _cfDispatch(){
   } else if(_cfType === "web"){
     if(!S._builder.webStyle)      S._builder.webStyle      = "modern";
     if(!S._builder.webAnimations) S._builder.webAnimations = "subtle";
-    if(!S._builder.webSections)   S._builder.webSections   = "hero-features-cta";
   }
 
   // Set up builder page (matches openBuilder() setup)

@@ -2170,6 +2170,27 @@ function _showWebBrandConfirm(){
     + '</div>'
 
     + '</div>' // wbc-cols
+
+    // Section picker
+    + '<div class="wbc-section-full">'
+    + '<div class="wbc-section-label">Page Sections</div>'
+    + '<div class="wbc-section-sub">Hero is always included. Click to toggle sections.</div>'
+    + '<div class="wbs-grid">'
+    + _wbsSectionItem("hero",     "Hero",             true,  true)
+    + _wbsSectionItem("features", "Features",         true,  false)
+    + _wbsSectionItem("cta",      "Call to Action",   true,  false)
+    + _wbsSectionItem("benefits", "Benefits",         false, false)
+    + _wbsSectionItem("pricing",  "Pricing",          false, false)
+    + _wbsSectionItem("testimonials","Testimonials",  false, false)
+    + _wbsSectionItem("faq",      "FAQ",              false, false)
+    + _wbsSectionItem("about",    "About",            false, false)
+    + _wbsSectionItem("contact",  "Contact",          false, false)
+    + _wbsSectionItem("banner",   "Banner",           false, false)
+    + _wbsSectionItem("showcase", "Product Showcase", false, false)
+    + _wbsSectionItem("stats",    "Stats & Numbers",  false, false)
+    + '</div>'
+    + '</div>'
+
     + '<div class="wbc-actions">'
     + '<button class="btn btn-p" onclick="generateWeb()">Generate Website</button>'
     + '</div>'
@@ -2190,6 +2211,24 @@ function _showWebBrandConfirm(){
       if(hx) hx.textContent = this.value;
     });
   });
+
+  // Wire up section toggles (Hero locked)
+  document.querySelectorAll(".wbs-check:not([disabled])").forEach(function(cb){
+    cb.addEventListener("change", function(){
+      var item = this.closest(".wbs-item");
+      if(item) item.classList.toggle("wbs-item-on", this.checked);
+    });
+  });
+}
+
+function _wbsSectionItem(id, label, checked, locked){
+  var cls = "wbs-item" + (checked ? " wbs-item-on" : "") + (locked ? " wbs-item-locked" : "");
+  var chk = checked ? " checked" : "";
+  var dis = locked  ? " disabled" : "";
+  return '<label class="' + cls + '">'
+    + '<input type="checkbox" class="wbs-check" id="wbs-' + id + '" value="' + id + '"' + chk + dis + '>'
+    + '<span class="wbs-label">' + label + (locked ? ' <span class="wbs-lock">always</span>' : '') + '</span>'
+    + '</label>';
 }
 
 function _wbcColorRow(label, key, hex){
@@ -2227,13 +2266,22 @@ function generateWeb(){
   if(msgEl)  msgEl.textContent = "Generating your landing page…";
   if(stepEl) stepEl.innerHTML  = "";
 
+  // Collect checked sections from the picker (falls back to default)
+  var _checkedSections = [];
+  document.querySelectorAll(".wbs-check:checked").forEach(function(cb){
+    _checkedSections.push(cb.value);
+  });
+  if(!_checkedSections.length) _checkedSections = ["hero","features","cta"];
+  if(!S._builder) S._builder = {};
+  S._builder._webSectionIds = _checkedSections;
+
   var _payload = {
-    brand_name:       br.name                                          || "Your Brand",
-    product:          _b.webPromotion                                  || "",
+    brand_name:       br.name          || "Your Brand",
+    product:          _b.webPromotion  || "",
     goal:             "sales",
-    style:            _b.webStyle                                      || "minimal",
-    animations:       _b.webAnimations                                 || "subtle",
-    sections:         (_b.webSections || "hero-features-cta").replace(/-/g, ","),
+    style:            _b.webStyle      || "minimal",
+    animations:       _b.webAnimations || "subtle",
+    sections:         _checkedSections.join(","),
     primary_color:    br.primary,
     secondary_color:  br.secondary,
     accent_color:     br.accent,
@@ -2268,6 +2316,61 @@ function generateWeb(){
   });
 }
 
+function _webEnableEdit(){
+  var frame = document.getElementById("web-preview");
+  if(!frame || !frame.contentDocument) return;
+  var doc = frame.contentDocument;
+
+  // Inject edit highlight styles
+  var styleId = "oriven-edit-style";
+  if(!doc.getElementById(styleId)){
+    var s = doc.createElement("style");
+    s.id = styleId;
+    s.textContent = "[contenteditable]{outline:2px dashed #BFA07A!important;outline-offset:2px;cursor:text;background:rgba(191,160,122,.08)!important;border-radius:3px!important;transition:outline .15s}"
+      + "[contenteditable]:focus{outline:2px solid #BFA07A!important;background:rgba(191,160,122,.15)!important}";
+    doc.head.appendChild(s);
+  }
+
+  // Make text elements editable
+  doc.querySelectorAll("h1,h2,h3,h4,h5,h6,p,button,a").forEach(function(el){
+    el.setAttribute("contenteditable", "true");
+    el.setAttribute("spellcheck", "false");
+  });
+
+  var editBtn = document.getElementById("bwr-edit-btn");
+  var doneBtn = document.getElementById("bwr-done-btn");
+  var editBar = document.getElementById("bwr-editbar");
+  if(editBtn) editBtn.style.display = "none";
+  if(doneBtn) doneBtn.style.display = "";
+  if(editBar) editBar.style.display = "";
+}
+
+function _webSaveEdit(){
+  var frame = document.getElementById("web-preview");
+  if(!frame || !frame.contentDocument) return;
+  var doc = frame.contentDocument;
+
+  // Remove edit styles
+  var styleEl = doc.getElementById("oriven-edit-style");
+  if(styleEl) styleEl.parentNode.removeChild(styleEl);
+
+  // Remove contenteditable
+  doc.querySelectorAll("[contenteditable]").forEach(function(el){
+    el.removeAttribute("contenteditable");
+    el.removeAttribute("spellcheck");
+  });
+
+  // Capture updated HTML
+  S._lastWebHTML = "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
+
+  var editBtn = document.getElementById("bwr-edit-btn");
+  var doneBtn = document.getElementById("bwr-done-btn");
+  var editBar = document.getElementById("bwr-editbar");
+  if(editBtn) editBtn.style.display = "";
+  if(doneBtn) doneBtn.style.display = "none";
+  if(editBar) editBar.style.display = "none";
+}
+
 function _webRegenBtn(stepEl){
   if(!stepEl) return;
   stepEl.innerHTML =
@@ -2285,10 +2388,13 @@ function _renderWebResult(html, resultBody, msgEl, stepEl, saveBtn){
     + '<div class="bwr-toolbar">'
     + '<span class="bwr-label">Landing Page Preview</span>'
     + '<div class="bwr-actions">'
+    + '<button id="bwr-edit-btn" class="bwr-btn bwr-btn-edit" onclick="_webEnableEdit()">Edit Text</button>'
+    + '<button id="bwr-done-btn" class="bwr-btn bwr-btn-done" onclick="_webSaveEdit()" style="display:none">Done Editing</button>'
     + '<button class="bwr-btn" onclick="_downloadWebPage()">Download HTML</button>'
     + '<button class="bwr-btn bwr-btn-zip" onclick="_downloadWebZip()">Download ZIP</button>'
     + '</div>'
     + '</div>'
+    + '<div id="bwr-editbar" class="bwr-editbar" style="display:none">Edit mode — click any text to edit it directly in the preview.</div>'
     + '<iframe id="web-preview" class="bwr-frame" sandbox="allow-scripts allow-same-origin"></iframe>'
     + '</div>'
     + _buildPublishGuide();

@@ -1856,6 +1856,41 @@ textarea.flow-inp{min-height:90px;resize:vertical}
 .wbc-font-role{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .wbc-font-name{font-size:14px;color:var(--text)}
 .wbc-actions{display:flex;gap:10px;padding-top:4px}
+.wbc-section-full{margin-bottom:20px}
+.wbc-section-sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+
+/* ── Web: section picker ─────────────────────────────────── */
+.wbs-grid{display:flex;flex-wrap:wrap;gap:8px}
+.wbs-item{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:20px;
+  border:1px solid var(--border);background:var(--bg2);
+  cursor:pointer;user-select:none;
+  font-size:12.5px;font-weight:500;color:var(--muted);
+  transition:background .12s,border-color .12s,color .12s;
+}
+.wbs-item:hover{border-color:var(--green);color:var(--green)}
+.wbs-item-on{
+  background:var(--green);border-color:var(--green);color:#fff;
+}
+.wbs-item-on:hover{background:var(--gm);border-color:var(--gm);color:#fff}
+.wbs-item-locked{cursor:default;opacity:.75}
+.wbs-check{display:none}
+.wbs-lock{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.04em;opacity:.7;
+}
+
+/* ── Web: edit mode indicator ────────────────────────────── */
+.bwr-editbar{
+  padding:8px 16px;font-size:12px;font-weight:600;
+  color:#92400E;background:#FEF3C7;
+  border-bottom:1px solid #FDE68A;
+}
+.bwr-btn-edit{border-color:var(--green);color:var(--green)}
+.bwr-btn-edit:hover{background:var(--green);color:#fff}
+.bwr-btn-done{border-color:#BFA07A;background:#BFA07A;color:#fff}
+.bwr-btn-done:hover{background:#a88a60;border-color:#a88a60}
 
 /* ── Web: result area ─────────────────────────────────────── */
 .builder-web-result{display:flex;flex-direction:column;gap:0}
