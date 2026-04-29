@@ -2093,16 +2093,99 @@ function _showBuilderResult(type, data){
     whtml += '<span class="bwr-label">Landing Page Preview</span>';
     whtml += '<button class="bwr-download" onclick="_downloadWebPage()">Download HTML</button>';
     whtml += '</div>';
-    whtml += '<iframe id="webPreviewFrame" class="bwr-frame" sandbox="allow-scripts allow-same-origin"></iframe>';
+    whtml += '<iframe id="web-preview" class="bwr-frame" sandbox="allow-scripts allow-same-origin"></iframe>';
     whtml += '</div>';
     body.innerHTML = whtml;
-    var frame = document.getElementById("webPreviewFrame");
+    var frame = document.getElementById("web-preview");
     if(frame) frame.srcdoc = data.html;
     S._lastWebHTML = data.html;
     return;
   }
 
   body.innerHTML = '<div class="builder-result-text">' + _formatBrief(data.result || "") + '</div>';
+}
+
+// ── Web generator — standalone fetch, called by "Generate Website" button ──
+
+function generateWeb(){
+  var _b = S._builder  || {};
+  var _c = S.brandCore || {};
+
+  var resultWrap = document.getElementById("builderResultWrap");
+  var resultBody = document.getElementById("builderResultBody");
+  var saveBtn    = document.getElementById("builderSaveBtn");
+  var stepEl     = document.getElementById("flowStep");
+  var msgEl      = document.getElementById("flowGuideMessage");
+
+  if(resultWrap) resultWrap.style.display = "";
+  if(resultBody) resultBody.innerHTML =
+    '<div class="builder-loading">'
+    + '<div class="builder-loading-dots"><span></span><span></span><span></span></div>'
+    + '<span>Building your landing page…</span>'
+    + '</div>';
+  if(saveBtn) saveBtn.disabled = true;
+  if(msgEl)  msgEl.textContent = "Generating your landing page…";
+  if(stepEl) stepEl.innerHTML  = "";
+
+  fetch("https://oriven-backand.onrender.com/api/generate-web", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      brand_name: _c.name         || "",
+      product:    _b.webPromotion || "",
+      audience:   _b.webAudience  || "",
+      tone:       _c.tone         || "",
+      color:      _c.palette      || "#52B788",
+      goal:       "conversion",
+      style:      _b.webStyle      || "modern",
+      animations: _b.webAnimations || "subtle",
+      sections:   (_b.webSections  || "hero-features-cta").replace(/-/g, " + ")
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    console.log("[Web] response:", data);
+    if(!data.html){
+      if(resultBody) resultBody.innerHTML =
+        '<div class="builder-error">' + (data.error || "No page was returned.") + '</div>';
+      if(msgEl) msgEl.textContent = "Something went wrong. Please try again.";
+      if(stepEl) stepEl.innerHTML =
+        '<div style="text-align:center;padding:24px 0">'
+        + '<button class="btn btn-p" onclick="generateWeb()" style="font-size:14px;padding:12px 28px">Try Again</button>'
+        + '</div>';
+      return;
+    }
+
+    var whtml = '<div class="builder-web-result">';
+    whtml += '<div class="bwr-toolbar">';
+    whtml += '<span class="bwr-label">Landing Page Preview</span>';
+    whtml += '<button class="bwr-download" onclick="_downloadWebPage()">Download HTML</button>';
+    whtml += '</div>';
+    whtml += '<iframe id="web-preview" class="bwr-frame" sandbox="allow-scripts allow-same-origin"></iframe>';
+    whtml += '</div>';
+    if(resultBody) resultBody.innerHTML = whtml;
+
+    var frame = document.getElementById("web-preview");
+    if(frame) frame.srcdoc = data.html;
+    S._lastWebHTML = data.html;
+
+    if(saveBtn) saveBtn.disabled = false;
+    if(msgEl)  msgEl.textContent = "Here’s your landing page. Download or regenerate below.";
+    if(stepEl) stepEl.innerHTML =
+      '<div style="text-align:center;padding:24px 0">'
+      + '<button class="btn btn-p" onclick="generateWeb()" style="font-size:14px;padding:12px 28px">Regenerate Website</button>'
+      + '</div>';
+  })
+  .catch(function(err){
+    console.error("[Web] fetch error:", err);
+    if(resultBody) resultBody.innerHTML =
+      '<div class="builder-error">Could not reach ORIVEN services. Please try again.</div>';
+    if(msgEl) msgEl.textContent = "Connection failed. Please try again.";
+    if(stepEl) stepEl.innerHTML =
+      '<div style="text-align:center;padding:24px 0">'
+      + '<button class="btn btn-p" onclick="generateWeb()" style="font-size:14px;padding:12px 28px">Try Again</button>'
+      + '</div>';
+  });
 }
 
 function _downloadWebPage(){

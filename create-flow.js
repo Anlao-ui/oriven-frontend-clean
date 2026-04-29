@@ -672,9 +672,29 @@ function _cfDispatch(){
   // Initialize S._flow so _flowGenerate() doesn't crash on S._flow.answers
   S._flow = { type: _cfType, stepIndex: 0, answers: {}, activeSteps: [] };
 
-  // Navigate then immediately trigger generation (skipping the flow wizard)
+  // Navigate then trigger generation (web shows a button; others auto-generate)
   navigate("builder");
-  setTimeout(function(){ _flowGenerate(); }, 90);
+  if(_cfType === "web"){
+    setTimeout(function(){
+      var msgEl  = document.getElementById("flowGuideMessage");
+      var stepEl = document.getElementById("flowStep");
+      var navEl  = document.getElementById("flowNav");
+      var progEl = document.getElementById("flowProgress");
+      var histEl = document.getElementById("flowHistory");
+      if(msgEl)  msgEl.textContent = "Ready. Click below to generate your landing page.";
+      if(navEl)  navEl.style.display  = "none";
+      if(progEl) progEl.innerHTML     = "";
+      if(histEl) histEl.innerHTML     = "";
+      if(stepEl) stepEl.innerHTML =
+        '<div style="text-align:center;padding:40px 0">'
+        + '<button class="btn btn-p" onclick="generateWeb()" style="font-size:15px;padding:14px 36px">'
+        + 'Generate Website'
+        + '</button>'
+        + '</div>';
+    }, 90);
+  } else {
+    setTimeout(function(){ _flowGenerate(); }, 90);
+  }
 }
 
 // ── HTML escape ───────────────────────────────────────────────
