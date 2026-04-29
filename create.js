@@ -2227,27 +2227,25 @@ function generateWeb(){
   if(msgEl)  msgEl.textContent = "Generating your landing page…";
   if(stepEl) stepEl.innerHTML  = "";
 
+  var _payload = {
+    brand_name:       br.name                                          || "Your Brand",
+    product:          _b.webPromotion                                  || "",
+    goal:             "sales",
+    style:            _b.webStyle                                      || "minimal",
+    animations:       _b.webAnimations                                 || "subtle",
+    sections:         (_b.webSections || "hero-features-cta").replace(/-/g, ","),
+    primary_color:    br.primary,
+    secondary_color:  br.secondary,
+    accent_color:     br.accent,
+    background_color: br.background,
+    text_color:       br.text
+  };
+  console.log("Payload size:", JSON.stringify(_payload).length);
+
   fetch("https://oriven-backand.onrender.com/api/generate-web", {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      brand_name:       br.name,
-      product:          _b.webPromotion  || "",
-      audience:         _b.webAudience   || "",
-      tone:             br.tone,
-      goal:             "conversion",
-      style:            _b.webStyle      || "modern",
-      animations:       _b.webAnimations || "subtle",
-      sections:         (_b.webSections  || "hero-features-cta").replace(/-/g, " + "),
-      primary_color:    br.primary,
-      secondary_color:  br.secondary,
-      accent_color:     br.accent,
-      background_color: br.background,
-      text_color:       br.text,
-      heading_font:     br.headingFont,
-      body_font:        br.bodyFont,
-      logo_url:         br.logoUrl
-    })
+    body:    JSON.stringify(_payload)
   })
   .then(function(r){ return r.json(); })
   .then(function(data){
