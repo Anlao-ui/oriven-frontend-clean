@@ -2318,31 +2318,42 @@ function generateWeb(){
 
 function _webEnableEdit(){
   var frame = document.getElementById("web-preview");
-  if(!frame || !frame.contentDocument) return;
-  var doc = frame.contentDocument;
+  if(!frame) return;
 
-  // Inject edit highlight styles
-  var styleId = "oriven-edit-style";
-  if(!doc.getElementById(styleId)){
-    var s = doc.createElement("style");
-    s.id = styleId;
-    s.textContent = "[contenteditable]{outline:2px dashed #BFA07A!important;outline-offset:2px;cursor:text;background:rgba(191,160,122,.08)!important;border-radius:3px!important;transition:outline .15s}"
-      + "[contenteditable]:focus{outline:2px solid #BFA07A!important;background:rgba(191,160,122,.15)!important}";
-    doc.head.appendChild(s);
-  }
+  // Upgrade sandbox so parent JS can access contentDocument
+  frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
 
-  // Make text elements editable
-  doc.querySelectorAll("h1,h2,h3,h4,h5,h6,p,button,a").forEach(function(el){
-    el.setAttribute("contenteditable", "true");
-    el.setAttribute("spellcheck", "false");
-  });
+  frame.onload = function(){
+    frame.onload = null;
+    var doc = frame.contentDocument;
+    if(!doc) return;
 
-  var editBtn = document.getElementById("bwr-edit-btn");
-  var doneBtn = document.getElementById("bwr-done-btn");
-  var editBar = document.getElementById("bwr-editbar");
-  if(editBtn) editBtn.style.display = "none";
-  if(doneBtn) doneBtn.style.display = "";
-  if(editBar) editBar.style.display = "";
+    // Inject edit highlight styles
+    if(!doc.getElementById("oriven-edit-style")){
+      var s = doc.createElement("style");
+      s.id = "oriven-edit-style";
+      s.textContent = "[contenteditable]{outline:2px dashed #BFA07A!important;outline-offset:2px;"
+        + "cursor:text;background:rgba(191,160,122,.08)!important;border-radius:3px!important;transition:outline .15s}"
+        + "[contenteditable]:focus{outline:2px solid #BFA07A!important;background:rgba(191,160,122,.15)!important}";
+      if(doc.head) doc.head.appendChild(s);
+    }
+
+    // Make text elements editable
+    doc.querySelectorAll("h1,h2,h3,h4,h5,h6,p,button,a").forEach(function(el){
+      el.setAttribute("contenteditable", "true");
+      el.setAttribute("spellcheck", "false");
+    });
+
+    var editBtn = document.getElementById("bwr-edit-btn");
+    var doneBtn = document.getElementById("bwr-done-btn");
+    var editBar = document.getElementById("bwr-editbar");
+    if(editBtn) editBtn.style.display = "none";
+    if(doneBtn) doneBtn.style.display = "";
+    if(editBar) editBar.style.display = "";
+  };
+
+  // Reload iframe with current HTML to apply expanded sandbox
+  frame.srcdoc = S._lastWebHTML || "";
 }
 
 function _webSaveEdit(){
@@ -2360,8 +2371,12 @@ function _webSaveEdit(){
     el.removeAttribute("spellcheck");
   });
 
-  // Capture updated HTML
+  // Capture updated HTML with edits applied
   S._lastWebHTML = "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
+
+  // Return to secure sandbox — reload with link blocker re-injected
+  frame.setAttribute("sandbox", "allow-scripts");
+  frame.srcdoc = _webInjectLinkBlocker(S._lastWebHTML);
 
   var editBtn = document.getElementById("bwr-edit-btn");
   var doneBtn = document.getElementById("bwr-done-btn");
@@ -2377,6 +2392,18 @@ function _webRegenBtn(stepEl){
     '<div style="text-align:center;padding:24px 0">'
     + '<button class="btn btn-p" onclick="generateWeb()" style="font-size:14px;padding:12px 28px">Try Again</button>'
     + '</div>';
+}
+
+// ── Link-blocker injection — prevents navigation inside preview ─
+
+function _webInjectLinkBlocker(html){
+  var script = '<script>document.addEventListener("click",function(e){'
+    + 'var a=e.target.closest("a");'
+    + 'if(a){e.preventDefault();e.stopPropagation();}'
+    + '},true);<\/script>';
+  var idx = html.indexOf("</body>");
+  if(idx !== -1) return html.slice(0, idx) + script + html.slice(idx);
+  return html + script;
 }
 
 // ── Shared renderer: iframe + actions + publish guide ─────────
@@ -2395,14 +2422,14 @@ function _renderWebResult(html, resultBody, msgEl, stepEl, saveBtn){
     + '</div>'
     + '</div>'
     + '<div id="bwr-editbar" class="bwr-editbar" style="display:none">Edit mode — click any text to edit it directly in the preview.</div>'
-    + '<iframe id="web-preview" class="bwr-frame" sandbox="allow-scripts allow-same-origin"></iframe>'
+    + '<iframe id="web-preview" class="bwr-frame" sandbox="allow-scripts"></iframe>'
     + '</div>'
     + _buildPublishGuide();
 
   if(resultBody) resultBody.innerHTML = whtml;
 
   var frame = document.getElementById("web-preview");
-  if(frame) frame.srcdoc = html;
+  if(frame) frame.srcdoc = _webInjectLinkBlocker(html);
 
   if(saveBtn) saveBtn.disabled = false;
   if(msgEl)  msgEl.textContent = "Your landing page is ready. Download or publish below.";

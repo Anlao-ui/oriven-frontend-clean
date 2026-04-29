@@ -200,21 +200,39 @@ var CF_FLOWS = {
     {
       key:  "webStyle",
       q:    "What design style do you want?",
-      desc: "This sets the visual language and layout density of the page.",
+      desc: "Sets the visual language and layout density of the page.",
       options: [
-        { val: "minimal", label: "Minimal" },
-        { val: "modern",  label: "Modern" },
-        { val: "bold",    label: "Bold" }
+        { val: "minimal",    label: "Minimal" },
+        { val: "modern",     label: "Modern" },
+        { val: "bold",       label: "Bold" },
+        { val: "luxury",     label: "Luxury" },
+        { val: "futuristic", label: "Futuristic" },
+        { val: "clean",      label: "Clean" },
+        { val: "corporate",  label: "Corporate" },
+        { val: "playful",    label: "Playful" },
+        { val: "elegant",    label: "Elegant" },
+        { val: "startup",    label: "Startup" },
+        { val: "dark",       label: "Dark" },
+        { val: "light",      label: "Light" }
       ]
     },
     {
       key:  "webAnimations",
-      q:    "Should the page include animations?",
-      desc: "Animations can improve feel but may slow load time.",
+      q:    "What animation style should the page use?",
+      desc: "Animations improve feel but may affect load time on slower devices.",
       options: [
-        { val: "none",   label: "None" },
-        { val: "subtle", label: "Subtle" },
-        { val: "smooth", label: "Smooth" }
+        { val: "none",               label: "None" },
+        { val: "subtle",             label: "Subtle" },
+        { val: "smooth",             label: "Smooth" },
+        { val: "fade-in",            label: "Fade In" },
+        { val: "slide-up",           label: "Slide Up" },
+        { val: "slide-in-left",      label: "Slide Left" },
+        { val: "slide-in-right",     label: "Slide Right" },
+        { val: "zoom-in",            label: "Zoom In" },
+        { val: "parallax",           label: "Parallax" },
+        { val: "staggered",          label: "Staggered" },
+        { val: "hover-effects",      label: "Hover Effects" },
+        { val: "micro-interactions", label: "Micro Interactions" }
       ]
     },
     {
