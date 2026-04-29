@@ -267,7 +267,8 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
   res.json({ received: true });
 });
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // ── Web generator — registered immediately after json middleware ──
 app.post('/api/generate-web', async (req, res) => {
