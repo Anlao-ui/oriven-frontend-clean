@@ -3170,6 +3170,42 @@ html{ background:#0B0B0B; }
   text-align:center;font-size:11.5px;color:rgba(240,237,230,0.22);
 }
 
+/* In-modal soft gate — appears over result bottom after generation */
+.gcm-gate{
+  position:relative;z-index:5;
+  margin-top:-110px;padding:110px 0 0;
+  background:linear-gradient(to bottom,transparent 0%,#141414 38%);
+  animation:gcGateFadeIn 0.5s ease both;
+}
+@keyframes gcGateFadeIn{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.gcm-gate-card{
+  background:#141414;padding:20px 4px 4px;text-align:center;
+}
+.gcm-gate-title{
+  font-size:17px;font-weight:600;color:#f0ede6;margin:0 0 8px;
+}
+.gcm-gate-sub{
+  font-size:13px;color:rgba(240,237,230,0.52);margin:0 0 20px;line-height:1.5;
+}
+.gcm-gate-actions{display:flex;flex-direction:column;gap:10px;}
+.gcm-gate-primary{
+  width:100%;padding:13px 20px;border-radius:10px;
+  background:var(--gm,#52B788);color:#0B0B0B;
+  font-size:14px;font-weight:700;border:none;cursor:pointer;
+  font-family:inherit;transition:opacity 0.15s;
+}
+.gcm-gate-primary:hover{opacity:0.88;}
+.gcm-gate-ghost{
+  background:transparent;border:none;
+  color:rgba(240,237,230,0.4);font-size:13px;
+  cursor:pointer;padding:6px;font-family:inherit;
+  transition:color 0.15s;
+}
+.gcm-gate-ghost:hover{color:rgba(240,237,230,0.72);}
+
 /* Shared loading animation */
 .gl-generating{
   display:flex;flex-direction:column;align-items:center;gap:14px;

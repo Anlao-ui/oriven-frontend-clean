@@ -136,9 +136,13 @@ function _guestShowCreateModal(){
     inp.value = "";
     setTimeout(function(){ inp.focus(); }, 350);
   }
-  // Reset result area
+  // Reset result area and in-modal gate
   var resultArea = document.getElementById("gcResultArea");
   if(resultArea) resultArea.style.display = "none";
+  var gcGate = document.getElementById("gcGate");
+  if(gcGate) gcGate.style.display = "none";
+  var gcFooter = document.querySelector("#guestCreateModal .gcm-footer");
+  if(gcFooter) gcFooter.style.display = "";
 }
 
 function _guestCreateBack(){
@@ -292,7 +296,7 @@ async function _guestGenerateImage(prompt, resultImg, secEl, secTextEl, labelEl)
     }
   } catch(e){ if(secEl) secEl.style.display = "none"; }
 
-  setTimeout(function(){ _showGuestGate(data.imageUrl); }, 1200);
+  setTimeout(function(){ _showGcGate(data.imageUrl); }, 2500);
 }
 
 async function _guestGenerateText(prompt, resultImg, labelEl){
@@ -320,7 +324,7 @@ async function _guestGenerateText(prompt, resultImg, labelEl){
       + _guestEsc(data.result)
       + '</div>';
   }
-  setTimeout(function(){ _showGuestGate(); }, 1400);
+  setTimeout(function(){ _showGcGate(); }, 2500);
 }
 
 function _guestEsc(s){
@@ -341,6 +345,27 @@ function _guestResetAfterError(){
   if(inputEl) inputEl.disabled    = false;
   if(resArea) resArea.style.display = "none";
   if(typeof toast === "function") toast("Could not generate — please try again.");
+}
+
+// ── In-modal soft gate ───────────────────────────────────────
+
+function _showGcGate(imageUrl){
+  if(imageUrl) _guestLastImageUrl = imageUrl;
+  var gate = document.getElementById("gcGate");
+  if(!gate) return;
+  var footer = document.querySelector("#guestCreateModal .gcm-footer");
+  if(footer) footer.style.display = "none";
+  gate.style.display = "";
+}
+
+function _gcGateCreate(){
+  _showGuestGate(_guestLastImageUrl);
+  setTimeout(function(){ _ggShow("signup"); }, 30);
+}
+
+function _gcGateLogin(){
+  _showGuestGate(_guestLastImageUrl);
+  setTimeout(function(){ _ggShow("login"); }, 30);
 }
 
 // ── Website builder lock ──────────────────────────────────────
