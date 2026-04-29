@@ -1,7 +1,5 @@
-/app        /                   301
-/app/*      /                   301
-/welcome    /index.html         200
-/demo       /demo/index.html    200
-/demo/      /demo/index.html    200
-/           /app.html           200
-/*          /app.html           200
+/app     /                   302
+/app/*   /                   302
+/welcome /welcome.html       200
+/demo    /demo/index.html    200
+/demo/   /demo/index.html    200
