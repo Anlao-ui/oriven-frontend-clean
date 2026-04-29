@@ -1955,7 +1955,7 @@ async function runBuilder(){
     if(stepEl && stepEl.querySelector(".flow-generating")) stepEl.innerHTML = "";
 
     var msgEl = document.getElementById("flowGuideMessage");
-    if(msgEl) msgEl.textContent = "Here’s your " + type + ". You can regenerate or save it to Studio.";
+    if(msgEl) msgEl.textContent = "Here's your " + type + ". You can regenerate or save it to Studio.";
   } catch(e){
     console.error("[Builder/" + type + "] error:", e);
     if(resultBody) resultBody.innerHTML =
@@ -2088,28 +2088,128 @@ function _showBuilderResult(type, data){
       body.innerHTML = '<div class="builder-error">No page was returned.</div>';
       return;
     }
-    var whtml = '<div class="builder-web-result">';
-    whtml += '<div class="bwr-toolbar">';
-    whtml += '<span class="bwr-label">Landing Page Preview</span>';
-    whtml += '<button class="bwr-download" onclick="_downloadWebPage()">Download HTML</button>';
-    whtml += '</div>';
-    whtml += '<iframe id="web-preview" class="bwr-frame" sandbox="allow-scripts allow-same-origin"></iframe>';
-    whtml += '</div>';
-    body.innerHTML = whtml;
-    var frame = document.getElementById("web-preview");
-    if(frame) frame.srcdoc = data.html;
-    S._lastWebHTML = data.html;
+    _renderWebResult(
+      data.html, body,
+      document.getElementById("flowGuideMessage"),
+      document.getElementById("flowStep"),
+      document.getElementById("builderSaveBtn")
+    );
     return;
   }
 
   body.innerHTML = '<div class="builder-result-text">' + _formatBrief(data.result || "") + '</div>';
 }
 
-// ── Web generator — standalone fetch, called by "Generate Website" button ──
+// ════════════════════════════════════════════════════════════════
+// WEB GENERATOR — Brand-aware landing page generation
+// ════════════════════════════════════════════════════════════════
 
-function generateWeb(){
+// ── Helpers: resolve brand identity from brandCore + any builder overrides ──
+
+function _webBrand(){
   var _b = S._builder  || {};
   var _c = S.brandCore || {};
+  var colors = (_c.colors || []);
+  var fonts  = (_c.fonts  || []);
+  var logos  = (_c.logos  || {});
+  return {
+    name:       _c.name || "",
+    primary:    _b._webPrimary    || (colors[0] && colors[0].hex) || "#1A4229",
+    secondary:  _b._webSecondary  || (colors[1] && colors[1].hex) || "#265E38",
+    accent:     _b._webAccent     || (colors[2] && colors[2].hex) || "#BFA07A",
+    background: _b._webBackground || (colors[3] && colors[3].hex) || "#F6F3EE",
+    text:       _b._webText       || (colors[4] && colors[4].hex) || "#18181A",
+    headingFont:_b._webHeadingFont || (fonts[0] && fonts[0].family) || "Georgia, serif",
+    bodyFont:   _b._webBodyFont    || (fonts[1] && fonts[1].family) || "system-ui, sans-serif",
+    logoUrl:    (logos.primary && logos.primary.url) || (logos.dark && logos.dark.url) || "",
+    tone:       Array.isArray(_c.tone) ? _c.tone.join(", ") : (_c.tone || "")
+  };
+}
+
+// ── Step 1: Brand confirmation panel ─────────────────────────
+
+function _showWebBrandConfirm(){
+  var br     = _webBrand();
+  var msgEl  = document.getElementById("flowGuideMessage");
+  var stepEl = document.getElementById("flowStep");
+  var navEl  = document.getElementById("flowNav");
+  var progEl = document.getElementById("flowProgress");
+  var histEl = document.getElementById("flowHistory");
+
+  if(navEl)  navEl.style.display  = "none";
+  if(progEl) progEl.innerHTML     = "";
+  if(histEl) histEl.innerHTML     = "";
+  if(msgEl)  msgEl.textContent    = "Confirm your brand identity before generating.";
+
+  var logoHtml = '<div class="wbc-logo-empty">' + (br.name || "No logo") + '</div>';
+  if(br.logoUrl) logoHtml = '<img src="' + br.logoUrl + '" class="wbc-logo-img" alt="Logo">';
+
+  var html = '<div class="wbc-panel">'
+    + '<div class="wbc-title">Brand Identity</div>'
+    + '<div class="wbc-sub">Your website will use these settings. Click a swatch to change a color.</div>'
+    + '<div class="wbc-logo-wrap">' + logoHtml + '</div>'
+    + '<div class="wbc-cols">'
+
+    // Colors column
+    + '<div class="wbc-section">'
+    + '<div class="wbc-section-label">Colors</div>'
+    + _wbcColorRow("Primary",    "_webPrimary",    br.primary)
+    + _wbcColorRow("Secondary",  "_webSecondary",  br.secondary)
+    + _wbcColorRow("Accent",     "_webAccent",     br.accent)
+    + _wbcColorRow("Background", "_webBackground", br.background)
+    + _wbcColorRow("Text",       "_webText",       br.text)
+    + '</div>'
+
+    // Typography column
+    + '<div class="wbc-section">'
+    + '<div class="wbc-section-label">Typography</div>'
+    + '<div class="wbc-font-row"><span class="wbc-font-role">Heading</span>'
+    + '<span class="wbc-font-name" style="font-family:' + br.headingFont + '">' + br.headingFont + '</span></div>'
+    + '<div class="wbc-font-row"><span class="wbc-font-role">Body</span>'
+    + '<span class="wbc-font-name" style="font-family:' + br.bodyFont + '">' + br.bodyFont + '</span></div>'
+    + '</div>'
+
+    + '</div>' // wbc-cols
+    + '<div class="wbc-actions">'
+    + '<button class="btn btn-p" onclick="generateWeb()">Generate Website</button>'
+    + '</div>'
+    + '</div>';
+
+  if(stepEl) stepEl.innerHTML = html;
+
+  // Wire up color pickers
+  ["_webPrimary","_webSecondary","_webAccent","_webBackground","_webText"].forEach(function(key){
+    var inp = document.getElementById("wbc-inp-" + key);
+    if(!inp) return;
+    inp.addEventListener("input", function(){
+      if(!S._builder) S._builder = {};
+      S._builder[key] = this.value;
+      var sw = document.getElementById("wbc-sw-" + key);
+      var hx = document.getElementById("wbc-hx-" + key);
+      if(sw) sw.style.background = this.value;
+      if(hx) hx.textContent = this.value;
+    });
+  });
+}
+
+function _wbcColorRow(label, key, hex){
+  return '<label class="wbc-color-row">'
+    + '<div class="wbc-swatch-wrap">'
+    + '<div class="wbc-swatch" id="wbc-sw-' + key + '" style="background:' + hex + '"></div>'
+    + '<input type="color" class="wbc-color-inp" id="wbc-inp-' + key + '" value="' + hex + '">'
+    + '</div>'
+    + '<div class="wbc-color-info">'
+    + '<span class="wbc-color-label">' + label + '</span>'
+    + '<span class="wbc-color-hex" id="wbc-hx-' + key + '">' + hex + '</span>'
+    + '</div>'
+    + '</label>';
+}
+
+// ── Step 2: Fetch + render ────────────────────────────────────
+
+function generateWeb(){
+  var _b  = S._builder || {};
+  var br  = _webBrand();
 
   var resultWrap = document.getElementById("builderResultWrap");
   var resultBody = document.getElementById("builderResultBody");
@@ -2131,62 +2231,96 @@ function generateWeb(){
     method:  "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      brand_name: _c.name         || "",
-      product:    _b.webPromotion || "",
-      audience:   _b.webAudience  || "",
-      tone:       _c.tone         || "",
-      color:      _c.palette      || "#52B788",
-      goal:       "conversion",
-      style:      _b.webStyle      || "modern",
-      animations: _b.webAnimations || "subtle",
-      sections:   (_b.webSections  || "hero-features-cta").replace(/-/g, " + ")
+      brand_name:       br.name,
+      product:          _b.webPromotion  || "",
+      audience:         _b.webAudience   || "",
+      tone:             br.tone,
+      goal:             "conversion",
+      style:            _b.webStyle      || "modern",
+      animations:       _b.webAnimations || "subtle",
+      sections:         (_b.webSections  || "hero-features-cta").replace(/-/g, " + "),
+      primary_color:    br.primary,
+      secondary_color:  br.secondary,
+      accent_color:     br.accent,
+      background_color: br.background,
+      text_color:       br.text,
+      heading_font:     br.headingFont,
+      body_font:        br.bodyFont,
+      logo_url:         br.logoUrl
     })
   })
   .then(function(r){ return r.json(); })
   .then(function(data){
-    console.log("[Web] response:", data);
+    console.log("[Web] response received, html length:", data.html ? data.html.length : 0);
     if(!data.html){
       if(resultBody) resultBody.innerHTML =
         '<div class="builder-error">' + (data.error || "No page was returned.") + '</div>';
       if(msgEl) msgEl.textContent = "Something went wrong. Please try again.";
-      if(stepEl) stepEl.innerHTML =
-        '<div style="text-align:center;padding:24px 0">'
-        + '<button class="btn btn-p" onclick="generateWeb()" style="font-size:14px;padding:12px 28px">Try Again</button>'
-        + '</div>';
+      _webRegenBtn(stepEl);
       return;
     }
-
-    var whtml = '<div class="builder-web-result">';
-    whtml += '<div class="bwr-toolbar">';
-    whtml += '<span class="bwr-label">Landing Page Preview</span>';
-    whtml += '<button class="bwr-download" onclick="_downloadWebPage()">Download HTML</button>';
-    whtml += '</div>';
-    whtml += '<iframe id="web-preview" class="bwr-frame" sandbox="allow-scripts allow-same-origin"></iframe>';
-    whtml += '</div>';
-    if(resultBody) resultBody.innerHTML = whtml;
-
-    var frame = document.getElementById("web-preview");
-    if(frame) frame.srcdoc = data.html;
-    S._lastWebHTML = data.html;
-
-    if(saveBtn) saveBtn.disabled = false;
-    if(msgEl)  msgEl.textContent = "Here’s your landing page. Download or regenerate below.";
-    if(stepEl) stepEl.innerHTML =
-      '<div style="text-align:center;padding:24px 0">'
-      + '<button class="btn btn-p" onclick="generateWeb()" style="font-size:14px;padding:12px 28px">Regenerate Website</button>'
-      + '</div>';
+    _renderWebResult(data.html, resultBody, msgEl, stepEl, saveBtn);
   })
   .catch(function(err){
     console.error("[Web] fetch error:", err);
     if(resultBody) resultBody.innerHTML =
       '<div class="builder-error">Could not reach ORIVEN services. Please try again.</div>';
     if(msgEl) msgEl.textContent = "Connection failed. Please try again.";
-    if(stepEl) stepEl.innerHTML =
-      '<div style="text-align:center;padding:24px 0">'
-      + '<button class="btn btn-p" onclick="generateWeb()" style="font-size:14px;padding:12px 28px">Try Again</button>'
-      + '</div>';
+    _webRegenBtn(stepEl);
   });
 }
+
+function _webRegenBtn(stepEl){
+  if(!stepEl) return;
+  stepEl.innerHTML =
+    '<div style="text-align:center;padding:24px 0">'
+    + '<button class="btn btn-p" onclick="generateWeb()" style="font-size:14px;padding:12px 28px">Try Again</button>'
+    + '</div>';
+}
+
+// ── Shared renderer: iframe + actions + publish guide ─────────
+
+function _renderWebResult(html, resultBody, msgEl, stepEl, saveBtn){
+  S._lastWebHTML = html;
+
+  var whtml = '<div class="builder-web-result">'
+    + '<div class="bwr-toolbar">'
+    + '<span class="bwr-label">Landing Page Preview</span>'
+    + '<div class="bwr-actions">'
+    + '<button class="bwr-btn" onclick="_downloadWebPage()">Download HTML</button>'
+    + '<button class="bwr-btn bwr-btn-zip" onclick="_downloadWebZip()">Download ZIP</button>'
+    + '</div>'
+    + '</div>'
+    + '<iframe id="web-preview" class="bwr-frame" sandbox="allow-scripts allow-same-origin"></iframe>'
+    + '</div>'
+    + _buildPublishGuide();
+
+  if(resultBody) resultBody.innerHTML = whtml;
+
+  var frame = document.getElementById("web-preview");
+  if(frame) frame.srcdoc = html;
+
+  if(saveBtn) saveBtn.disabled = false;
+  if(msgEl)  msgEl.textContent = "Your landing page is ready. Download or publish below.";
+  if(stepEl) stepEl.innerHTML =
+    '<div style="text-align:center;padding:16px 0">'
+    + '<button class="btn btn-g btn-sm" onclick="generateWeb()">Regenerate</button>'
+    + '</div>';
+}
+
+function _buildPublishGuide(){
+  return '<div class="bwr-publish">'
+    + '<div class="bwr-publish-title">How to publish your website</div>'
+    + '<ol class="bwr-publish-steps">'
+    + '<li>Click <strong>Download ZIP</strong> above and unzip the folder.</li>'
+    + '<li>Go to <strong>Netlify</strong> (netlify.com) or <strong>Vercel</strong> (vercel.com) and create a free account.</li>'
+    + '<li>Drag and drop your folder onto the deploy area — or click <em>Add new site</em> and upload.</li>'
+    + '<li>Your site will be live instantly with a public URL. You can add a custom domain in settings.</li>'
+    + '</ol>'
+    + '</div>';
+}
+
+// ── Download: HTML file ───────────────────────────────────────
 
 function _downloadWebPage(){
   var html = S._lastWebHTML || "";
@@ -2194,11 +2328,35 @@ function _downloadWebPage(){
   var blob = new Blob([html], { type: "text/html" });
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement("a");
-  a.href     = url;
-  a.download = "landing-page.html";
+  a.href = url; a.download = "index.html";
   document.body.appendChild(a);
   a.click();
   setTimeout(function(){ URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
+}
+
+// ── Download: ZIP file ────────────────────────────────────────
+
+function _downloadWebZip(){
+  var html = S._lastWebHTML || "";
+  if(!html){ console.warn("[Web] No HTML to zip"); return; }
+
+  if(typeof JSZip === "undefined"){
+    console.warn("[Web] JSZip not loaded, falling back to HTML download");
+    _downloadWebPage();
+    return;
+  }
+
+  var zip = new JSZip();
+  zip.file("index.html", html);
+  zip.generateAsync({ type: "blob" })
+    .then(function(blob){
+      var url = URL.createObjectURL(blob);
+      var a   = document.createElement("a");
+      a.href = url; a.download = "landing-page.zip";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
+    });
 }
 
 
