@@ -388,7 +388,7 @@
   <a href="/" class="ob-logo" aria-label="ORIVEN">
     <img src="/assets/orivenlogo.png" alt="ORIVEN" class="ob-logo-img">
   </a>
-  <a href="/app" class="ob-header-signin">Sign in</a>
+  <a href="/" class="ob-header-signin">Sign in</a>
 </header>
 
 <!-- ─── Steps ───────────────────────────────────────── -->
@@ -550,12 +550,12 @@
       <div class="ob-gate">
         <h2 class="ob-gate-title">Create your account to continue</h2>
         <div class="ob-gate-btns">
-          <a href="/app" class="ob-btn ob-btn--primary ob-btn--wide">
+          <a href="/" class="ob-btn ob-btn--primary ob-btn--wide">
             Create account <span class="ob-arr">→</span>
           </a>
-          <a href="/app" class="ob-btn ob-btn--ghost ob-btn--wide">Sign in</a>
+          <a href="/" class="ob-btn ob-btn--ghost ob-btn--wide">Sign in</a>
         </div>
-        <p class="ob-gate-note">Already have an account? <a href="/app">Sign in</a></p>
+        <p class="ob-gate-note">Already have an account? <a href="/">Sign in</a></p>
       </div>
 
     </div>
@@ -580,7 +580,7 @@
     );
     var _r = await _sb.auth.getSession();
     if (_r.data && _r.data.session) {
-      window.location.replace('/app');
+      window.location.replace('/');
       return;
     }
   } catch(_e) {}
