@@ -80,13 +80,55 @@ function _guestShowIntro(){
 }
 
 function _guestOnboardStart(){
+  var intro = document.getElementById("gobIntro");
+  var pv    = document.getElementById("gobPreview");
+  if(intro){
+    intro.style.transition = "opacity 0.25s ease";
+    intro.style.opacity    = "0";
+    setTimeout(function(){ intro.style.display = "none"; }, 250);
+  }
+  if(pv){
+    pv.style.display    = "block";
+    pv.style.opacity    = "0";
+    pv.style.transition = "";
+    pv.scrollTop        = 0;
+    setTimeout(function(){
+      requestAnimationFrame(function(){
+        pv.style.transition = "opacity 0.35s ease";
+        pv.style.opacity    = "1";
+      });
+    }, 180);
+  }
+}
+
+function _guestPreviewBack(){
+  var pv    = document.getElementById("gobPreview");
+  var intro = document.getElementById("gobIntro");
+  if(pv){
+    pv.style.transition = "opacity 0.2s ease";
+    pv.style.opacity    = "0";
+    setTimeout(function(){ pv.style.display = "none"; }, 200);
+  }
+  if(intro){
+    intro.style.display   = "flex";
+    intro.style.opacity   = "0";
+    intro.style.transition = "";
+    setTimeout(function(){
+      requestAnimationFrame(function(){
+        intro.style.transition = "opacity 0.3s ease";
+        intro.style.opacity    = "1";
+      });
+    }, 160);
+  }
+}
+
+function _guestPreviewContinue(){
   var overlay = document.getElementById("guestOnboard");
   if(overlay){
     overlay.style.transition = "opacity 0.25s ease";
     overlay.style.opacity    = "0";
     setTimeout(function(){ overlay.style.display = "none"; }, 250);
   }
-  // Go straight to the create modal — no tour
   setTimeout(function(){ _guestShowCreateModal(); }, 200);
 }
 
@@ -151,8 +193,25 @@ function _guestCreateBack(){
     modal.style.opacity = "0";
     setTimeout(function(){ modal.style.display = "none"; }, 280);
   }
-  // Return to intro screen
-  setTimeout(function(){ _guestShowIntro(); }, 200);
+  // Return to preview screen (inside guestOnboard overlay)
+  var overlay = document.getElementById("guestOnboard");
+  var pv      = document.getElementById("gobPreview");
+  var intro   = document.getElementById("gobIntro");
+  if(intro) intro.style.display = "none";
+  if(overlay){
+    overlay.style.display   = "block";
+    overlay.style.opacity   = "0";
+    overlay.style.transition = "";
+    requestAnimationFrame(function(){
+      overlay.style.transition = "opacity 0.3s ease";
+      overlay.style.opacity    = "1";
+    });
+  }
+  if(pv){
+    pv.style.display = "block";
+    pv.style.opacity = "1";
+    pv.scrollTop     = 0;
+  }
 }
 
 // ── Type selection ────────────────────────────────────────────

@@ -1851,6 +1851,118 @@
     </div>
   </div>
 
+  <!-- ── Value preview screen ── -->
+  <div id="gobPreview" class="gob-preview" style="display:none">
+    <div class="gob-blob gob-blob-1"></div>
+    <div class="gob-blob gob-blob-2"></div>
+
+    <div class="gob-pv-inner">
+
+      <button class="gob-pv-back" onclick="_guestPreviewBack()">
+        <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2L4 6l4 4"/></svg>
+        Back
+      </button>
+
+      <p class="gob-pv-eyebrow">One prompt. Three outputs.</p>
+
+      <div class="gob-pv-prompt-demo">
+        <span class="gob-pv-prompt-tag">Prompt</span>
+        <span class="gob-pv-prompt-text">"Summer launch for an eco-friendly juice brand"</span>
+      </div>
+
+      <!-- Card 1: Ad copy -->
+      <div class="gob-pv-card">
+        <div class="gob-pv-card-hd">
+          <span class="gob-pv-tag gob-pv-tag-copy">Ad copy</span>
+        </div>
+        <p class="gob-pv-headline">"Summer just got healthier."</p>
+        <p class="gob-pv-body">Introducing our cold-pressed juice range. Crafted for the modern lifestyle — no sugar, no shortcuts.</p>
+        <span class="gob-pv-cta-pill">Shop now &rarr;</span>
+      </div>
+
+      <!-- Card 2: AI visual -->
+      <div class="gob-pv-card">
+        <div class="gob-pv-card-hd">
+          <span class="gob-pv-tag gob-pv-tag-image">Visual</span>
+          <span class="gob-pv-card-note">AI-generated image</span>
+        </div>
+        <div class="gob-pv-img-wrap">
+          <svg viewBox="0 0 480 260" xmlns="http://www.w3.org/2000/svg" width="100%" aria-hidden="true">
+            <defs>
+              <radialGradient id="pvG1" cx="28%" cy="38%" r="55%">
+                <stop offset="0%" stop-color="#1A4229" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#0C0F0D" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="pvG2" cx="75%" cy="68%" r="45%">
+                <stop offset="0%" stop-color="#52B788" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#0C0F0D" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="pvG3" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#265E38" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="transparent"/>
+              </radialGradient>
+            </defs>
+            <rect width="480" height="260" fill="#111510"/>
+            <ellipse cx="134" cy="99" rx="160" ry="120" fill="url(#pvG1)"/>
+            <ellipse cx="360" cy="175" rx="120" ry="95" fill="url(#pvG2)"/>
+            <ellipse cx="240" cy="130" rx="90" ry="70" fill="url(#pvG3)"/>
+            <!-- Bottle silhouette -->
+            <rect x="211" y="44" width="58" height="172" rx="29" fill="rgba(82,183,136,0.12)" stroke="rgba(82,183,136,0.28)" stroke-width="1.5"/>
+            <ellipse cx="240" cy="44" rx="22" ry="10" fill="rgba(82,183,136,0.18)" stroke="rgba(82,183,136,0.3)" stroke-width="1"/>
+            <rect x="229" y="34" width="22" height="18" rx="5" fill="rgba(82,183,136,0.1)" stroke="rgba(82,183,136,0.25)" stroke-width="1"/>
+            <!-- Label area suggestion -->
+            <rect x="221" y="95" width="38" height="60" rx="4" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+            <line x1="229" y1="115" x2="251" y2="115" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="229" y1="124" x2="248" y2="124" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-linecap="round"/>
+            <line x1="229" y1="131" x2="245" y2="131" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-linecap="round"/>
+            <!-- Shadow -->
+            <ellipse cx="240" cy="216" rx="42" ry="8" fill="rgba(0,0,0,0.35)"/>
+            <text x="16" y="247" font-size="9.5" fill="rgba(240,237,230,0.25)" font-family="system-ui,sans-serif" letter-spacing=".04em">AI-generated &bull; No watermarks &bull; Brand colours applied</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Card 3: Campaign -->
+      <div class="gob-pv-card">
+        <div class="gob-pv-card-hd">
+          <span class="gob-pv-tag gob-pv-tag-camp">Campaign</span>
+          <span class="gob-pv-card-note">3 ads &plus; images</span>
+        </div>
+        <div class="gob-pv-camp-list">
+          <div class="gob-pv-camp-item">
+            <span class="gob-pv-camp-n">1</span>
+            <div>
+              <div class="gob-pv-camp-hl">"The choice is clear."</div>
+              <div class="gob-pv-camp-sub">Lifestyle visual &mdash; benefit-led conversion</div>
+            </div>
+          </div>
+          <div class="gob-pv-camp-item">
+            <span class="gob-pv-camp-n">2</span>
+            <div>
+              <div class="gob-pv-camp-hl">"Feel the difference."</div>
+              <div class="gob-pv-camp-sub">Social proof angle &mdash; testimonial format</div>
+            </div>
+          </div>
+          <div class="gob-pv-camp-item">
+            <span class="gob-pv-camp-n">3</span>
+            <div>
+              <div class="gob-pv-camp-hl">"Only 48 hours."</div>
+              <div class="gob-pv-camp-sub">Urgency-led &mdash; flash offer format</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="gob-pv-cta">
+        <p class="gob-pv-cta-label">Now try it yourself</p>
+        <button class="btn btn-p gob-pv-try-btn" onclick="_guestPreviewContinue()">Try it free</button>
+        <p class="gob-pv-cta-note">No account needed &middot; 1 free result</p>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <!-- ════════════════════════════════════════════════════════════
