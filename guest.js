@@ -132,6 +132,39 @@ function _guestPreviewContinue(){
   setTimeout(function(){ _guestShowCreateModal(); }, 200);
 }
 
+// ── Inline preview try section ────────────────────────────────
+
+var _pvSelectedType = "image";
+
+function _pvSetType(type){
+  _pvSelectedType = type;
+  document.querySelectorAll(".gob-pv-type-btn").forEach(function(b){
+    b.classList.toggle("gob-pv-type-on", b.dataset.pvtype === type);
+  });
+  var inp = document.getElementById("pvInput");
+  var ph  = {
+    image:    "e.g. A clean product shot for a skincare brand…",
+    campaign: "e.g. Summer launch for an eco clothing brand…",
+    copy:     "e.g. Product description for a premium coffee brand…"
+  };
+  if(inp) inp.placeholder = ph[type] || "Describe your idea…";
+}
+
+function _pvContinue(){
+  var pvInp  = document.getElementById("pvInput");
+  var prefill = pvInp ? pvInp.value.trim() : "";
+  _guestPreviewContinue();
+  // After the modal opens, apply pre-selected type and pre-filled input
+  setTimeout(function(){
+    _guestSetType(_pvSelectedType);
+    var gcInp = document.getElementById("gcInput");
+    if(gcInp && prefill){
+      gcInp.value = prefill;
+      gcInp.blur();
+    }
+  }, 420);
+}
+
 // ── Tab guard — intercept locked sidebar items ────────────────
 
 function _guestInstallTabGuard(){
