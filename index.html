@@ -735,9 +735,17 @@
         <span id="sidebarUserDot" style="display:none">U</span>
         <span id="wsDot" style="display:none">W</span>
         <span id="wsNameDisp" style="display:none">My Workspace</span>
-        <div class="sb-identity">
+
+        <!-- Authenticated state — hidden until session confirmed -->
+        <div class="sb-identity" id="sbIdentityAuth" style="display:none">
           <div class="sb-identity-name" id="sidebarUserName">Account</div>
           <div class="sb-identity-sub"><span data-i18n="brandWorkspace">Brand Workspace</span> &middot; <span class="sb-signout" onclick="authSignOut()" data-i18n="signOut">Sign out</span></div>
+        </div>
+
+        <!-- Guest / unauthenticated state — shown by default -->
+        <div class="sb-identity" id="sbIdentityGuest">
+          <div class="sb-identity-name">Oriven AI</div>
+          <div class="sb-identity-sub"><span class="sb-signout" onclick="if(typeof _showGuestGate==='function'){_showGuestGate();setTimeout(function(){_ggShow('login')},30)}">Sign in</span></div>
         </div>
       </div>
 

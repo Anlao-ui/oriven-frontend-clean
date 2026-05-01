@@ -460,7 +460,25 @@ function updateSidebarUser(user){
   var dotEl     = document.getElementById("sidebarUserDot");
   if(nameEl) nameEl.textContent = firstName;
   if(dotEl)  dotEl.textContent  = initial;
+  // Switch sidebar to authenticated state
+  var authEl  = document.getElementById("sbIdentityAuth");
+  var guestEl = document.getElementById("sbIdentityGuest");
+  if(authEl)  authEl.style.display  = "";
+  if(guestEl) guestEl.style.display = "none";
+  // Show plan/usage row
+  var usageWrap = document.querySelector(".sb-usage-wrap");
+  if(usageWrap) usageWrap.style.display = "";
   console.log("[Auth] Sidebar updated for:", firstName);
+}
+
+function updateSidebarGuest(){
+  var authEl  = document.getElementById("sbIdentityAuth");
+  var guestEl = document.getElementById("sbIdentityGuest");
+  if(authEl)  authEl.style.display  = "none";
+  if(guestEl) guestEl.style.display = "";
+  // Hide plan/usage row — not relevant for guests
+  var usageWrap = document.querySelector(".sb-usage-wrap");
+  if(usageWrap) usageWrap.style.display = "none";
 }
 
 // ── BrandCore: save to Supabase ───────────────────────────────

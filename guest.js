@@ -19,6 +19,7 @@ function showGuestLanding(){
   _guestLastImageUrl = null;
 
   showApp();
+  if(typeof updateSidebarGuest === "function") updateSidebarGuest();
 
   // Hook navigate() to block locked tabs
   if(typeof navigate === "function" && !_originalNavigate){
