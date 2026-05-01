@@ -1920,7 +1920,7 @@ async function runBuilder(){
       product:    _b.webPromotion || "",
       audience:   _b.webAudience  || "",
       tone:       _c.tone        || "",
-      color:      _c.palette     || "#52B788",
+      color:      _c.palette     || "#B7FF2A",
       goal:       "conversion",
       style:      _b.webStyle      || "modern",
       animations: _b.webAnimations || "subtle",
@@ -2114,8 +2114,8 @@ function _webBrand(){
   var logos  = (_c.logos  || {});
   return {
     name:       _c.name || "",
-    primary:    _b._webPrimary    || (colors[0] && colors[0].hex) || "#1A4229",
-    secondary:  _b._webSecondary  || (colors[1] && colors[1].hex) || "#265E38",
+    primary:    _b._webPrimary    || (colors[0] && colors[0].hex) || "#B7FF2A",
+    secondary:  _b._webSecondary  || (colors[1] && colors[1].hex) || "#9FE81F",
     accent:     _b._webAccent     || (colors[2] && colors[2].hex) || "#BFA07A",
     background: _b._webBackground || (colors[3] && colors[3].hex) || "#F6F3EE",
     text:       _b._webText       || (colors[4] && colors[4].hex) || "#18181A",

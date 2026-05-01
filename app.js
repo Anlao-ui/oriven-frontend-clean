@@ -526,11 +526,11 @@ function refreshDash(){
 // ── Brand reader ──────────────────────────────────────────────
 function getBrandContext(){
   var bc=S.brandCore;
-  if(!bc) return {name:"ORIVEN",color:"#1A4229",accent:"#265E38",tone:["Strategic"],wordsUse:["clarity","impact"],promise:"",industry:"",audience:""};
+  if(!bc) return {name:"ORIVEN",color:"#0A0A0A",accent:"#B7FF2A",tone:["Strategic"],wordsUse:["clarity","impact"],promise:"",industry:"",audience:""};
   return {
     name:bc.name,
-    color:bc.colors&&bc.colors[0]?bc.colors[0].hex:"#1A4229",
-    accent:bc.colors&&bc.colors[1]?bc.colors[1].hex:"#265E38",
+    color:bc.colors&&bc.colors[0]?bc.colors[0].hex:"#0A0A0A",
+    accent:bc.colors&&bc.colors[1]?bc.colors[1].hex:"#B7FF2A",
     support:bc.colors&&bc.colors[2]?bc.colors[2].hex:"#BFA07A",
     tone:bc.tone||["Strategic"],
     wordsUse:bc.wordsUse||[],
@@ -600,14 +600,14 @@ function buildGradient(parsed,bctx){
   if(adj.indexOf("bright")>=0||adj.indexOf("warm")>=0)
     return "linear-gradient(135deg,"+bctx.accent+" 0%,"+bctx.support+" 100%)";
   if(adj.indexOf("minimal")>=0||adj.indexOf("clean")>=0)
-    return "linear-gradient(160deg,"+bctx.color+" 0%,#0d2518 100%)";
+    return "linear-gradient(160deg,"+bctx.color+" 0%,#000000 100%)";
   if(adj.indexOf("bold")>=0||adj.indexOf("powerful")>=0)
     return "linear-gradient(120deg,#0a0a0a 0%,"+bctx.color+" 100%)";
   if(adj.indexOf("luxury")>=0||adj.indexOf("premium")>=0)
     return "linear-gradient(145deg,#1a1208 0%,"+bctx.color+" 60%,"+bctx.accent+" 100%)";
   // Default: use brand color with dark depth
   var dirs=["135deg","150deg","160deg","120deg","175deg"];
-  return "linear-gradient("+pick(dirs)+","+bctx.color+" 0%,#0a1f12 100%)";
+  return "linear-gradient("+pick(dirs)+","+bctx.color+" 0%,#000000 100%)";
 }
 
 // ── Headline generator ─────────────────────────────────────────
@@ -1225,8 +1225,8 @@ function buildBC(name,ind,tone,aud,desc){
     name:name,ind:ind,tone:tone,aud:aud,desc:desc,
     logos:{},
     colors:[
-      {hex:"#1A4229",name:"Forest Green",role:"Primary"},
-      {hex:"#265E38",name:"Verdant",role:"Accent"},
+      {hex:"#B7FF2A",name:"Neon Green",role:"Primary"},
+      {hex:"#9FE81F",name:"Lime",role:"Accent"},
       {hex:"#BFA07A",name:"Warm Sand",role:"Support"},
       {hex:"#F6F3EE",name:"Off-White",role:"Background"},
       {hex:"#18181A",name:"Charcoal",role:"Text"}
@@ -1294,8 +1294,8 @@ function runGenBrand(){
       desc:payload.description,
       logos:prevLogos,
       colors:[
-        {hex:vi.primaryColor||"#1A4229",name:"Primary",role:"Primary"},
-        {hex:vi.secondaryColor||"#265E38",name:"Secondary",role:"Accent"},
+        {hex:vi.primaryColor||"#B7FF2A",name:"Primary",role:"Primary"},
+        {hex:vi.secondaryColor||"#9FE81F",name:"Secondary",role:"Accent"},
         {hex:vi.accentColor||"#BFA07A",name:"Accent",role:"Support"},
         {hex:"#F6F3EE",name:"Background",role:"Background"},
         {hex:"#18181A",name:"Text",role:"Text"}
@@ -1337,7 +1337,7 @@ function saveBCManual(){
   S.brandCore={
     name:name,tone:["Strategic","Premium"],
     logos:prevLogos,
-    colors:[{hex:document.getElementById("bcsPrimary").value||"#1A4229",name:"Primary",role:"Primary"}],
+    colors:[{hex:document.getElementById("bcsPrimary").value||"#B7FF2A",name:"Primary",role:"Primary"}],
     fonts:[
       {role:"Heading",family:document.getElementById("bcsHead").value||"Instrument Serif",usage:"Headlines"},
       {role:"Body",family:document.getElementById("bcsBody").value||"Geist",usage:"Body text"}
@@ -1355,7 +1355,7 @@ function openAddColorModal(){
   document.getElementById("colorModalTtl").textContent="Add Brand Color";
   document.getElementById("colorHex").value="";
   document.getElementById("colorName").value="";
-  document.getElementById("colorPrev").style.background="#1A4229";
+  document.getElementById("colorPrev").style.background="#B7FF2A";
   S._editCI=null; openModal("modal-addcolor");
 }
 function editColor(i){

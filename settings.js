@@ -207,8 +207,8 @@ function _applyTheme(mode){
 
 var ACCENT_PALETTES = {
   green: {
-    light: { green:"#1A4229", gm:"#265E38", glt:"#E5EDE7", gpale:"#F0F5F1", deep:"#0D2B1A" },
-    dark:  { green:"#2A6641", gm:"#3A8055", glt:"#1A2E22", gpale:"#1A2520", deep:"#0D2B1A" }
+    light: { green:"#B7FF2A", gm:"#9FE81F", glt:"rgba(183,255,42,0.07)", gpale:"rgba(183,255,42,0.04)", deep:"#0A0A0A" },
+    dark:  { green:"#B7FF2A", gm:"#9FE81F", glt:"rgba(183,255,42,0.08)", gpale:"rgba(183,255,42,0.05)", deep:"#000000" }
   },
   blue: {
     light: { green:"#1e3a5f", gm:"#1971C2", glt:"#DBEAFE", gpale:"#EFF6FF", deep:"#0D1F3C" },

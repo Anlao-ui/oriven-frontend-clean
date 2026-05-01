@@ -8,14 +8,14 @@
   --bg:         #0C0F0D;
   --bg2:        #111412;
   --bg3:        #161b17;
-  --green:      #52B788;
-  --green-dark: #1A4229;
-  --green-mid:  #2D6A4F;
+  --green:      #B7FF2A;
+  --green-dark: #0A0A0A;
+  --green-mid:  #9FE81F;
   --text:       #F0EDE6;
   --muted:      rgba(240,237,230,0.5);
   --dim:        rgba(240,237,230,0.35);
   --border:     rgba(255,255,255,0.08);
-  --border-g:   rgba(82,183,136,0.25);
+  --border-g:   rgba(183,255,42,0.25);
   --max-w:      1100px;
 }
 
@@ -159,7 +159,7 @@ body {
 .mk-feat-card:hover { border-color: var(--border-g); }
 .mk-feat-icon {
   width: 42px; height: 42px; border-radius: 10px;
-  background: rgba(82,183,136,0.1);
+  background: rgba(183,255,42,0.1);
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 18px;
 }
@@ -179,7 +179,7 @@ body {
 .mk-step-num {
   font-family: 'Instrument Serif', Georgia, serif;
   font-size: 44px; font-weight: 400;
-  color: rgba(82,183,136,0.28); line-height: 1;
+  color: rgba(183,255,42,0.28); line-height: 1;
   flex-shrink: 0; width: 46px;
 }
 .mk-step-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
@@ -187,7 +187,7 @@ body {
 
 /* ── CTA band ── */
 .mk-cta-band {
-  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
+  background: #B7FF2A;
   border-top: 1px solid var(--border-g);
   border-bottom: 1px solid var(--border-g);
 }
@@ -198,10 +198,10 @@ body {
 .mk-cta-band-title {
   font-family: 'Instrument Serif', Georgia, serif;
   font-size: clamp(26px, 3.5vw, 42px); font-weight: 400;
-  color: #fff; margin-bottom: 14px; line-height: 1.15;
+  color: #000; margin-bottom: 14px; line-height: 1.15;
 }
 .mk-cta-band-sub {
-  font-size: 15px; color: rgba(255,255,255,.62);
+  font-size: 15px; color: rgba(0,0,0,.62);
   margin: 0 auto 36px; max-width: 420px; line-height: 1.72;
 }
 .mk-cta-band .mk-btn-primary {
@@ -222,7 +222,7 @@ body {
 }
 .mk-output-img-mock {
   width: 100%; aspect-ratio: 1 / 1;
-  background: linear-gradient(135deg, #1A4229 0%, #2D6A4F 45%, #0E2B1D 100%);
+  background: #B7FF2A;
   border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 18px; position: relative; overflow: hidden;
@@ -230,7 +230,7 @@ body {
 .mk-output-img-mock::before {
   content: '';
   position: absolute; inset: 0;
-  background: radial-gradient(circle at 38% 42%, rgba(82,183,136,0.28) 0%, transparent 60%);
+  background: radial-gradient(circle at 38% 42%, rgba(183,255,42,0.28) 0%, transparent 60%);
 }
 .mk-output-img-mock svg { position: relative; z-index: 1; opacity: .35; }
 .mk-output-img-label {
@@ -246,8 +246,8 @@ body {
 .mk-output-chip {
   font-size: 11px; font-weight: 600; letter-spacing: .06em;
   color: var(--green);
-  background: rgba(82,183,136,0.1);
-  border: 1px solid rgba(82,183,136,0.2);
+  background: rgba(183,255,42,0.1);
+  border: 1px solid rgba(183,255,42,0.2);
   border-radius: 20px; padding: 4px 10px;
 }
 .mk-output-caption {
@@ -267,7 +267,7 @@ body {
 }
 .mk-benefit-mark {
   width: 36px; height: 36px; border-radius: 9px;
-  background: rgba(82,183,136,0.1);
+  background: rgba(183,255,42,0.1);
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 14px;
 }
@@ -351,16 +351,16 @@ body {
 }
 .mk-article-callout p { margin-bottom: 0; font-size: 15px; }
 .mk-article-cta {
-  background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+  background: #B7FF2A;
   border-radius: 16px; padding: 40px 36px; text-align: center;
   margin-top: 64px; border: 1px solid var(--border-g);
 }
 .mk-article-cta h3 {
   font-family: 'Instrument Serif', Georgia, serif;
   font-size: 26px; font-weight: 400;
-  color: #fff; margin-bottom: 10px !important;
+  color: #000; margin-bottom: 10px !important;
 }
-.mk-article-cta p { font-size: 15px; color: rgba(255,255,255,.62); margin-bottom: 26px; }
+.mk-article-cta p { font-size: 15px; color: rgba(0,0,0,.62); margin-bottom: 26px; }
 .mk-article-cta .mk-btn-primary { background: #fff; color: var(--green-dark); }
 
 /* ── Divider ── */

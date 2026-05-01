@@ -283,8 +283,8 @@ app.post('/api/generate-web', async (req, res) => {
   // Resolve colors with fallbacks
   const bgColor   = background_color || '#0a0a0a';
   const txtColor  = text_color       || '#f0f0f0';
-  const primColor = primary_color    || '#1A4229';
-  const secColor  = secondary_color  || '#265E38';
+  const primColor = primary_color    || '#B7FF2A';
+  const secColor  = secondary_color  || '#9FE81F';
   const accColor  = accent_color     || '#BFA07A';
 
   const userPrompt = prompt || [
@@ -393,9 +393,9 @@ function _verificationEmailHtml(firstName, verifyUrl) {
 <head><meta charset="UTF-8"><title>Verify your ORIVEN email</title></head>
 <body style="margin:0;padding:0;background:#F5F3F0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
   <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 24px rgba(0,0,0,.08)">
-    <div style="background:#1A4229;padding:32px 40px 28px">
-      <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-.5px">ORIVEN</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.6);margin-top:4px">Brand Intelligence Platform</div>
+    <div style="background:#0A0A0A;padding:32px 40px 28px">
+      <div style="font-size:22px;font-weight:700;color:#B7FF2A;letter-spacing:-.5px">ORIVEN</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:4px">Brand Intelligence Platform</div>
     </div>
     <div style="padding:36px 40px">
       <p style="margin:0 0 8px;font-size:20px;font-weight:600;color:#111">Hi ${firstName},</p>
@@ -403,18 +403,18 @@ function _verificationEmailHtml(firstName, verifyUrl) {
         Thanks for joining ORIVEN. Please verify your email address to keep your account active.
         You have <strong>14 days</strong> from sign-up to complete this.
       </p>
-      <a href="${verifyUrl}" style="display:inline-block;background:#1A4229;color:#fff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:10px">
+      <a href="${verifyUrl}" style="display:inline-block;background:#B7FF2A;color:#000;font-size:14px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:10px">
         Verify Email Address
       </a>
       <p style="margin:24px 0 0;font-size:12px;color:#999;line-height:1.6">
         Or paste this link into your browser:<br>
-        <a href="${verifyUrl}" style="color:#1A4229;word-break:break-all">${verifyUrl}</a>
+        <a href="${verifyUrl}" style="color:#555;word-break:break-all">${verifyUrl}</a>
       </p>
     </div>
     <div style="padding:20px 40px;border-top:1px solid #F0EDE8">
       <p style="margin:0;font-size:12px;color:#999;line-height:1.6">
         If you didn't create an ORIVEN account, you can safely ignore this email.<br>
-        Questions? <a href="mailto:studio.oriven@outlook.com" style="color:#1A4229">studio.oriven@outlook.com</a>
+        Questions? <a href="mailto:studio.oriven@outlook.com" style="color:#555">studio.oriven@outlook.com</a>
       </p>
     </div>
   </div>
@@ -468,7 +468,7 @@ async function _briefToDallEPrompt(fullBrief, contextHint) {
 The prompt must:
 - Be 150–300 characters
 - Describe a specific, photorealistic or design-art visual scene
-- Reference brand colours from the brief by name or hex if present — e.g. "deep forest green (#1A4229) background"
+- Reference brand colours from the brief by name or hex if present — e.g. "neon green (#B7FF2A) accent on black background"
 - Match the composition, mood, and format requirements in the brief
 - NOT mention text, headlines, logos, buttons, or UI elements
 - NOT start with "Generate" or "Create" — just describe what is seen
@@ -1351,15 +1351,15 @@ app.post('/api/send-invite', async (req, res) => {
   <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.07);">
 
     <!-- Header -->
-    <div style="background:#1A4229;padding:28px 32px;">
-      <div style="font-size:20px;font-weight:700;color:#fff;letter-spacing:-.01em;">ORIVEN</div>
-      <div style="font-size:12px;color:#74C69D;margin-top:3px;letter-spacing:.04em;">AI BRAND STUDIO</div>
+    <div style="background:#0A0A0A;padding:28px 32px;">
+      <div style="font-size:20px;font-weight:700;color:#B7FF2A;letter-spacing:-.01em;">ORIVEN</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:3px;letter-spacing:.04em;">AI BRAND STUDIO</div>
     </div>
 
     <!-- Body -->
     <div style="padding:32px 32px 28px;">
       <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#18181A;line-height:1.25;">
-        You've been invited to join<br><span style="color:#1A4229;">${senderWorkspace}</span>
+        You've been invited to join<br><span style="color:#18181A;">${senderWorkspace}</span>
       </h1>
       <p style="margin:0 0 22px;color:#555;font-size:14px;line-height:1.6;">
         Hi ${recipientName}, you've been invited to collaborate as a <strong>${roleLabel}</strong> in the
@@ -1369,20 +1369,20 @@ app.post('/api/send-invite', async (req, res) => {
       ${personalNote}
 
       <!-- Role chip -->
-      <div style="display:inline-block;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:#15803D;margin-bottom:24px;">
+      <div style="display:inline-block;background:rgba(183,255,42,0.1);border:1px solid rgba(183,255,42,0.3);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:#3A7A06;margin-bottom:24px;">
         Role: ${roleLabel}
       </div>
 
       <!-- CTA -->
       <div style="text-align:center;margin:8px 0 28px;">
-        <a href="https://oriven.app" style="display:inline-block;background:#1A4229;color:#fff;font-size:14px;font-weight:600;text-decoration:none;padding:13px 32px;border-radius:8px;letter-spacing:.01em;">
+        <a href="https://oriven.app" style="display:inline-block;background:#B7FF2A;color:#000;font-size:14px;font-weight:600;text-decoration:none;padding:13px 32px;border-radius:8px;letter-spacing:.01em;">
           Accept Invitation &rarr;
         </a>
       </div>
 
       <p style="margin:0;font-size:12px;color:#999;line-height:1.6;border-top:1px solid #F0EDE8;padding-top:18px;">
         If you weren't expecting this invite, you can ignore this email.<br>
-        Questions? Reply to <a href="mailto:studio.oriven@outlook.com" style="color:#1A4229;">studio.oriven@outlook.com</a>
+        Questions? Reply to <a href="mailto:studio.oriven@outlook.com" style="color:#555;">studio.oriven@outlook.com</a>
       </p>
     </div>
   </div>

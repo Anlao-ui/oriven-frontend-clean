@@ -55,7 +55,7 @@ function renderAssets(){
   var html="";
   S.assets.forEach(function(a){
     var isCopy=a.category==="copy";
-    var bg=a.brandColor||"#1A4229";
+    var bg=a.brandColor||"#B7FF2A";
     var thumb=isCopy
       ?'<div style="font-size:11px;font-weight:600;color:var(--c2)">Copy</div>'
       :'<div style="width:48px;height:48px;border-radius:10px;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff">'+(a.brandName||"A").charAt(0)+"</div>";
@@ -65,7 +65,7 @@ function renderAssets(){
     html+='<div class="aov">';
     html+='<button class="aov-btn" onclick="openRename('+a.id+')" title="Rename"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12h10M10.5 2.5a1.5 1.5 0 0 1 2.1 2.1L4.5 12.7l-3 .8.8-3L10.5 2.5z"/></svg></button>';
     html+='<button class="aov-btn" onclick="toast(\'Exported\')" title="Export"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1v9M4 7l3 3 3-3M2 12h10"/></svg></button>';
-    html+='<button class="aov-btn" onclick="addAssetToCampaign('+a.id+')" title="Use in campaign" style="background:rgba(26,66,41,.3)"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h8M7 3v8"/></svg></button>';
+    html+='<button class="aov-btn" onclick="addAssetToCampaign('+a.id+')" title="Use in campaign" style="background:rgba(183,255,42,0.3)"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h8M7 3v8"/></svg></button>';
     html+='<button class="aov-btn" onclick="delAsset('+a.id+')" title="Delete" style="background:rgba(239,68,68,.3)"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h10M5 4V2h4v2M11 4l-1 8H4L3 4"/></svg></button>';
     html+="</div></div>";
   });
@@ -390,7 +390,7 @@ function renderCampaignDetail(camp){
   if(linkedAssets.length){
     html+='<div class="camp-asset-row">';
     linkedAssets.forEach(function(a){
-      var bg=a.brandColor||"#1A4229";
+      var bg=a.brandColor||"#B7FF2A";
       html+='<div class="camp-asset-thumb" style="background:linear-gradient(135deg,'+bg+'33,'+bg+'66)">';
       html+='<span style="font-size:16px;font-weight:700;color:'+bg+'">'+( a.brandName||"A").charAt(0)+"</span></div>";
     });
@@ -403,7 +403,7 @@ function renderCampaignDetail(camp){
   html+='<div style="margin:20px 0 12px;font-size:13px;font-weight:600;color:var(--charcoal)">Preview Formats</div>';
   html+='<div class="camp-preview-grid">';
   var bc=S.brandCore;
-  var col=bc?bc.colors[0].hex:"#1A4229";
+  var col=bc?bc.colors[0].hex:"#B7FF2A";
   var bn=bc?bc.name:"ORIVEN";
   [
     {label:"Square Post",w:1,h:1,tag:"1080 × 1080"},
@@ -414,7 +414,7 @@ function renderCampaignDetail(camp){
     var pw=140; var ph=Math.round(pw/fmt.w);
     if(ph>180) ph=180;
     html+='<div class="camp-preview-item">';
-    html+='<div class="camp-preview-frame" style="width:'+pw+'px;height:'+ph+'px;background:linear-gradient(135deg,'+col+' 0%,#0a1f12 100%);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer" onclick="generatePreview(\''+fmt.label+'\')">';
+    html+='<div class="camp-preview-frame" style="width:'+pw+'px;height:'+ph+'px;background:linear-gradient(135deg,'+col+' 0%,#000000 100%);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer" onclick="generatePreview(\''+fmt.label+'\')">';
     html+='<div style="font-size:9px;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase">'+bn+"</div>";
     html+='<div style="font-size:'+(pw>100?12:10)+'px;font-weight:700;color:#fff;text-align:center;padding:0 8px;line-height:1.2">'+camp.name+"</div>";
     html+='<div style="font-size:8px;color:rgba(255,255,255,.35);margin-top:2px">'+fmt.tag+"</div></div>";
@@ -484,7 +484,7 @@ function renderAssetPicker(){
   var html="";
   S.assets.forEach(function(a){
     var sel=currentCampAssets.indexOf(a.id)>=0;
-    var bg=a.brandColor||"#1A4229";
+    var bg=a.brandColor||"#B7FF2A";
     html+='<div class="nc-asset-pick'+(sel?" selected":"")+'" data-id="'+a.id+'" onclick="toggleAssetPick(this)">';
     html+='<div style="width:32px;height:32px;border-radius:7px;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">'+(a.brandName||"A").charAt(0)+"</div>";
     html+='<div style="overflow:hidden"><div style="font-size:12px;font-weight:500;color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+a.name+"</div>";
@@ -515,40 +515,40 @@ function toggleAssetPick(el){
 // TEMPLATES
 // ═══════════════════════════════════════════════════════════════
 var TEMPLATES=[
-  {id:1,name:"Instagram Launch Post",type:"Instagram 1080x1080",cat:"social",bg:"linear-gradient(135deg,#1A4229,#0A1F12)"},
-  {id:2,name:"Story Announcement",type:"Instagram Story",cat:"social",bg:"linear-gradient(160deg,#265E38,#1A4229)"},
+  {id:1,name:"Instagram Launch Post",type:"Instagram 1080x1080",cat:"social",bg:"#0A0A0A"},
+  {id:2,name:"Story Announcement",type:"Instagram Story",cat:"social",bg:"#0A0A0A"},
   {id:3,name:"Website Hero",type:"Web Section",cat:"web",bg:"var(--bg3)"},
   {id:4,name:"Testimonial Graphic",type:"Social Various",cat:"social",bg:"var(--charcoal)"},
   {id:5,name:"Founder Quote",type:"LinkedIn 1200x627",cat:"social",bg:"#2A1F14"},
-  {id:6,name:"Product Reveal",type:"Instagram 1080x1080",cat:"social",bg:"linear-gradient(135deg,#0A2015,#1A4229)"},
+  {id:6,name:"Product Reveal",type:"Instagram 1080x1080",cat:"social",bg:"#0A0A0A"},
   {id:7,name:"Ad Banner",type:"Display 728x90",cat:"ads",bg:"var(--green)"},
   {id:8,name:"Email Header",type:"Email 600x200",cat:"email",bg:"var(--bg2)"},
   {id:9,name:"Product Description",type:"Ecommerce Copy",cat:"copy",bg:"var(--sf2)"},
   {id:10,name:"Headline Variants",type:"Multi-use Copy",cat:"copy",bg:"var(--gpale)"},
-  {id:11,name:"CTA Bundle",type:"Web and Email Copy",cat:"copy",bg:"#EEF7EE"},
-  {id:12,name:"Carousel Series",type:"Instagram Carousel",cat:"social",bg:"linear-gradient(135deg,#1A4229,#3A7A4A)"}
+  {id:11,name:"CTA Bundle",type:"Web and Email Copy",cat:"copy",bg:"#F6F3EE"},
+  {id:12,name:"Carousel Series",type:"Instagram Carousel",cat:"social",bg:"#0A0A0A"}
 ];
 var tplFilter="all";
 
 // ═══ INSPIRATION ══════════════════════════════════════════════
 
 var INSP_CARDS=[
-  {id:1,cat:"social",title:"Minimal Product Launch",desc:"Clean whitespace, centered type, one hero visual.",type:"image",prompt:"Create a minimal Instagram post for a premium product launch. Clean layout, strong typography.",tall:false,wide:false,style:"dark",bg:"#1A4229",bg2:"#0d2a1a",lbl:"LAUNCH",hl:"Something beautiful arrives.",sub:"01.03.2025"},
+  {id:1,cat:"social",title:"Minimal Product Launch",desc:"Clean whitespace, centered type, one hero visual.",type:"image",prompt:"Create a minimal Instagram post for a premium product launch. Clean layout, strong typography.",tall:false,wide:false,style:"dark",bg:"#0A0A0A",bg2:"#000000",lbl:"LAUNCH",hl:"Something beautiful arrives.",sub:"01.03.2025"},
   {id:2,cat:"social",title:"Bold Brand Story",desc:"High-contrast storytelling for Instagram feed.",type:"image",prompt:"Create a bold high-contrast Instagram post about our brand journey and founding vision.",tall:true,wide:false,style:"dark",bg:"#18181A",bg2:"#2C2C2E",lbl:"STORY",hl:"This is how we build.",sub:"Chapter 1"},
-  {id:3,cat:"social",title:"Feature Spotlight",desc:"Highlight a single product feature in a carousel-ready frame.",type:"image",prompt:"Create an Instagram carousel post spotlighting a key product feature with clean visual design.",tall:false,wide:true,style:"dark",bg:"#265E38",bg2:"#1A4229",lbl:"NEW",hl:"Feature Release",sub:"Swipe to explore"},
+  {id:3,cat:"social",title:"Feature Spotlight",desc:"Highlight a single product feature in a carousel-ready frame.",type:"image",prompt:"Create an Instagram carousel post spotlighting a key product feature with clean visual design.",tall:false,wide:true,style:"dark",bg:"#0A0A0A",bg2:"#000000",lbl:"NEW",hl:"Feature Release",sub:"Swipe to explore"},
   {id:4,cat:"social",title:"Testimonial Quote Card",desc:"Premium quote layout for social proof content.",type:"image",prompt:"Create a premium testimonial quote card for social media with strong typography and brand feel.",tall:false,wide:false,style:"light",bg:"#FAF8F5",bg2:"#EEE9E1",lbl:"TESTIMONIAL",hl:"The most consistent brand system.",sub:"Sarah K., Head of Brand"},
   {id:5,cat:"ads",title:"Bold Product Ad",desc:"Strong headline, clear CTA, brand-forward layout.",type:"ads",prompt:"Create a bold display ad creative for a product launch with a strong headline and clear CTA.",tall:false,wide:false,style:"dark",bg:"#1A1A2E",bg2:"#16213E",lbl:"AD",hl:"Stop guessing. Start building.",cta:"Try free"},
   {id:6,cat:"ads",title:"Retargeting Hook Ad",desc:"Conversational tone, problem-aware copy.",type:"ads",prompt:"Create a retargeting ad with a conversational hook that addresses a brand consistency problem.",tall:false,wide:true,style:"dark",bg:"#2D1B69",bg2:"#1A0A3D",lbl:"RETARGET",hl:"Still struggling with consistency?",sub:"You are not alone."},
-  {id:7,cat:"ads",title:"Social Proof Ad",desc:"Metric-driven ad with strong credibility signals.",type:"ads",prompt:"Create a social proof ad featuring brand metrics and a clear value proposition.",tall:true,wide:false,style:"light",bg:"#F0F5F1",bg2:"#E5EDE7",lbl:"SOCIAL PROOF",metric:"500+",metricSub:"brands trust us",cta:"Start free"},
+  {id:7,cat:"ads",title:"Social Proof Ad",desc:"Metric-driven ad with strong credibility signals.",type:"ads",prompt:"Create a social proof ad featuring brand metrics and a clear value proposition.",tall:true,wide:false,style:"light",bg:"#F6F3EE",bg2:"#EEE9E1",lbl:"SOCIAL PROOF",metric:"500+",metricSub:"brands trust us",cta:"Start free"},
   {id:8,cat:"poster",title:"Minimal Launch Poster",desc:"Premium typography, generous whitespace, editorial feel.",type:"image",prompt:"Create a minimal premium brand poster for a product launch with editorial typography.",tall:true,wide:false,style:"light",bg:"#F6F3EE",bg2:"#EEE9E1",lbl:"BRAND",hl:"The Art of Consistency.",sub:"2025"},
   {id:9,cat:"poster",title:"Dark Premium Poster",desc:"Rich dark background, gold and accent details.",type:"image",prompt:"Create a dark premium brand poster with strong visual contrast and a luxury editorial feel.",tall:false,wide:false,style:"dark",bg:"#0A0A0A",bg2:"#1A1208",lbl:"PREMIUM",hl:"Quality is not an afterthought.",sub:"Limited Collection"},
-  {id:10,cat:"poster",title:"Event Announcement",desc:"Date-forward layout for launches and events.",type:"image",prompt:"Create a premium event announcement poster with strong date typography and brand identity.",tall:false,wide:true,style:"dark",bg:"#1A4229",bg2:"#0d2a1a",bigNum:"03",bigSub:"MARCH",hl:"Brand Summit",sub:"Annual Brand Strategy Event"},
-  {id:11,cat:"campaign",title:"Product Launch Series",desc:"Three-phase campaign: teaser, reveal, conversion.",type:"campaign",prompt:"Create a 3-phase product launch campaign with teaser, reveal, and conversion content.",tall:false,wide:true,style:"dark",bg:"#1A4229",bg2:"#265E38",lbl:"PHASE 1",hl:"Launch Campaign",sub:"Teaser - Reveal - Convert"},
+  {id:10,cat:"poster",title:"Event Announcement",desc:"Date-forward layout for launches and events.",type:"image",prompt:"Create a premium event announcement poster with strong date typography and brand identity.",tall:false,wide:true,style:"dark",bg:"#0A0A0A",bg2:"#000000",bigNum:"03",bigSub:"MARCH",hl:"Brand Summit",sub:"Annual Brand Strategy Event"},
+  {id:11,cat:"campaign",title:"Product Launch Series",desc:"Three-phase campaign: teaser, reveal, conversion.",type:"campaign",prompt:"Create a 3-phase product launch campaign with teaser, reveal, and conversion content.",tall:false,wide:true,style:"dark",bg:"#0A0A0A",bg2:"#111111",lbl:"PHASE 1",hl:"Launch Campaign",sub:"Teaser - Reveal - Convert"},
   {id:12,cat:"campaign",title:"Brand Awareness Push",desc:"Educational content series to build brand recognition.",type:"campaign",prompt:"Create a brand awareness campaign with educational posts and consistent visual language.",tall:false,wide:false,style:"dark",bg:"#2D1B69",bg2:"#1A0A3D",lbl:"AWARENESS",hl:"Make them remember you.",sub:"5-post LinkedIn series"},
   {id:13,cat:"campaign",title:"Seasonal Drop",desc:"Limited-time urgency campaign for seasonal moments.",type:"campaign",prompt:"Create a seasonal brand campaign for a limited product drop with urgency and premium visual language.",tall:true,wide:false,style:"dark",bg:"#7F1D1D",bg2:"#991B1B",lbl:"LIMITED",hl:"Season Drop.",sub:"Only this week"},
   {id:14,cat:"identity",title:"Monochrome Color System",desc:"Minimal tonal palette built for clarity and premium feel.",type:"image",prompt:"Create a minimal brand color system with tonal variations and usage guidelines.",tall:false,wide:false,style:"light",bg:"#F6F3EE",bg2:"#EEE9E1",palette:true},
   {id:15,cat:"identity",title:"Serif Typographic Brand",desc:"Editorial serif heading style with clean body pairing.",type:"image",prompt:"Create a brand typography system with an editorial serif display font and clean body pairing.",tall:false,wide:true,style:"dark",bg:"#18181A",bg2:"#2C2C2E",typo:true},
-  {id:16,cat:"identity",title:"Bold Logo Direction",desc:"Symbol-driven logo mark with strong geometric form.",type:"image",prompt:"Create a bold logo direction for a brand with a geometric symbol mark and strong visual identity.",tall:true,wide:false,style:"dark",bg:"#1A4229",bg2:"#0d2a1a",logomark:true},
+  {id:16,cat:"identity",title:"Bold Logo Direction",desc:"Symbol-driven logo mark with strong geometric form.",type:"image",prompt:"Create a bold logo direction for a brand with a geometric symbol mark and strong visual identity.",tall:true,wide:false,style:"dark",bg:"#0A0A0A",bg2:"#000000",logomark:true},
   {id:17,cat:"content",title:"Behind the Brand Story",desc:"Authentic founder or team narrative content.",type:"text",prompt:"Write a behind-the-brand story post about the founding vision and what drives the team.",tall:false,wide:false,style:"light",bg:"#FFF8E1",bg2:"#FFF3CD",lbl:"BEHIND THE BRAND",hl:"Why we built this.",sub:"Read the story"},
   {id:18,cat:"content",title:"Value Proposition Carousel",desc:"5-slide LinkedIn carousel breaking down the core value.",type:"text",prompt:"Create a 5-slide LinkedIn carousel post breaking down our core brand value proposition.",tall:false,wide:true,style:"light",bg:"#EDF2FF",bg2:"#E0EAFF",lbl:"CAROUSEL",hl:"5 reasons brands trust us.",sub:"Swipe through"},
   {id:19,cat:"content",title:"Visual Abstract Concept",desc:"Abstract, mood-driven visual for brand storytelling.",type:"image",prompt:"Create an abstract visual concept for brand storytelling that communicates clarity and ambition.",tall:true,wide:false,style:"light",bg:"#F3E8FF",bg2:"#E9D5FF",lbl:"ABSTRACT",hl:"Visual Direction",sub:"Brand storytelling concept"},
@@ -556,7 +556,7 @@ var INSP_CARDS=[
 ];
 
 function renderCardPreview(card,bc){
-  var col=(bc&&bc.colors&&bc.colors[0])?bc.colors[0].hex:"#1A4229";
+  var col=(bc&&bc.colors&&bc.colors[0])?bc.colors[0].hex:"#B7FF2A";
   var isLight=card.style==="light";
   var textPrimary=isLight?"#18181A":"#fff";
   var textMuted=isLight?"rgba(24,24,26,.45)":"rgba(255,255,255,.45)";
@@ -564,7 +564,7 @@ function renderCardPreview(card,bc){
   var parts=[];
 
   if(card.palette){
-    var shades=["#1A4229","#265E38","#4A9060","#8FC9A0","#D4EDD9"];
+    var shades=["#B7FF2A","#9FE81F","#7ACC15","#5BAA0C","#3D7A06"];
     if(bc&&bc.colors) shades=bc.colors.slice(0,5).map(function(x){return x.hex;});
     parts.push('<div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px">');
     shades.slice(0,5).forEach(function(h){parts.push('<div style="width:30px;height:52px;border-radius:8px;background:'+h+'"></div>');});
