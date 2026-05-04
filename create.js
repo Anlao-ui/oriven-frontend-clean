@@ -1953,6 +1953,11 @@ async function runBuilder(){
     trackEvent("completed_generation", _currentUser || null);
     if(saveBtn){ saveBtn.disabled = false; }
 
+    // Soft paywall: fire after last free generation
+    if(typeof isLastFreeCreditUsed === "function" && typeof showSoftPaywall === "function"){
+      isLastFreeCreditUsed().then(function(isLast){ if(isLast) setTimeout(showSoftPaywall, 450); });
+    }
+
     // Clear the generating spinner left in #flowStep by _flowGenerate()
     var stepEl = document.getElementById("flowStep");
     if(stepEl && stepEl.querySelector(".flow-generating")) stepEl.innerHTML = "";

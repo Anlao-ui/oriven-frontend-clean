@@ -150,6 +150,14 @@ function consumeUsage(){
   });
 }
 
+// ── Public: true when all free credits are now consumed ───────
+async function isLastFreeCreditUsed(){
+  var plan = await _getCachedPlan();
+  if(plan !== "free") return false;
+  var d = _getCounts();
+  return d.monthlyCount >= PLAN_LIMITS.free.limit;
+}
+
 // ── Public: combined gate — check then consume ─────────────────
 // Returns true if generation is allowed (and usage consumed).
 // Returns false and shows an in-feed message if blocked.
@@ -157,6 +165,10 @@ async function gateUsage(){
   var result = await checkUsageLimit();
   if(!result.allowed){
     _showLimitMessage(result.message);
+    // Show soft paywall for free users who hit the wall mid-session
+    if((_cachedPlan || "free") === "free" && typeof showSoftPaywall === "function"){
+      setTimeout(showSoftPaywall, 400);
+    }
     return false;
   }
   consumeUsage();

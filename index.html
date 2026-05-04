@@ -1812,6 +1812,39 @@
   <div class="modal-ft"><button class="btn btn-g" onclick="closeModal('modal-invite')">Cancel</button><button class="btn btn-p" id="teamInviteSendBtn" onclick="addTeamMember()">Send Invite</button></div>
 </div></div>
 
+<!-- SOFT PAYWALL MODAL -->
+<div id="softPaywallModal" style="display:none">
+  <div class="sp-card">
+    <button class="sp-close" onclick="closeSoftPaywall()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l10 10M13 3L3 13" stroke-linecap="round"/></svg>
+    </button>
+    <div class="sp-accent-bar"></div>
+    <div class="sp-body">
+      <div class="sp-title">Your brand is taking shape</div>
+      <div class="sp-sub">Want to continue building?</div>
+      <div class="sp-progress-section">
+        <div class="sp-progress-header">
+          <span class="sp-progress-label">Your progress</span>
+          <span class="sp-progress-pct" id="spProgressPct">60%</span>
+        </div>
+        <div class="sp-progress-track"><div class="sp-progress-fill" id="spProgressFill"></div></div>
+        <div class="sp-progress-list" id="spProgressList"></div>
+      </div>
+      <button class="sp-cta-primary" onclick="closeSoftPaywallNoBar();openModal('modal-paywall')">Continue building</button>
+      <button class="sp-cta-secondary" onclick="closeSoftPaywall()">Maybe later</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPGRADE BAR -->
+<div id="upgradeBar" style="display:none">
+  <div class="upgrade-bar-inner">
+    <span>You've reached your limit —</span>
+    <button class="upgrade-bar-link" onclick="openModal('modal-paywall')">unlock more</button>
+  </div>
+  <button class="upgrade-bar-dismiss" onclick="hideUpgradeBar()">×</button>
+</div>
+
 <!-- PAYWALL MODAL -->
 <div class="mbk" id="modal-paywall">
   <div class="modal" style="width:680px;padding:0;overflow:visible">
@@ -1895,6 +1928,7 @@
 <script src="assistant.js"></script>
 <script src="settings.js"></script>
 <script src="usage.js"></script>
+<script src="paywall.js"></script>
 <script src="team.js"></script>
 <script src="create-flow.js"></script>
 
