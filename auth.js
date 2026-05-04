@@ -163,6 +163,7 @@ async function handleSignUp(){
     _authClearInputErr(["suFirst","suEmail","suPass"]);
     console.log("[Auth] Account created and signed in:", result.data.user.id);
     await onUserSignedIn(result.data.user);
+    trackEvent("created_account", result.data.user);
   } catch(err){
     console.error("[Auth] Sign up error:", err.message);
     showAuthError("signup", _authMapError(err));
@@ -219,6 +220,7 @@ async function syncSubscriptionFromDB(){
 
 async function onUserSignedIn(user){
   _currentUser = user;
+  linkSessionToUser(user.id);
   console.log("[Auth] User signed in:", user.id);
   updateSidebarUser(user);
   showApp();
@@ -657,6 +659,8 @@ async function selectPlan(plan){
 // ── Session restore on page load ─────────────────────────────
 
 document.addEventListener("DOMContentLoaded", async function(){
+  trackEvent("visited_site");
+
   // Handle email verification token from verify link in email
   await _handleVerifyToken();
 

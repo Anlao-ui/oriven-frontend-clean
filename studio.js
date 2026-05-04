@@ -10,19 +10,28 @@ function refreshStudio(){
 }
 
 function switchStudioTab(name){
-  // Activate the correct panel
   document.querySelectorAll(".studio-panel").forEach(function(p){p.classList.remove("active");});
   var panelEl=document.getElementById("tab-"+name);
   if(panelEl) panelEl.classList.add("active");
 
-  // Show panel view, hide hub
   var hub=document.getElementById("studioHubView");
   var pv=document.getElementById("studioPanelView");
   var titleEl=document.getElementById("studioPanelTitle");
-  if(hub) hub.style.display="none";
-  if(pv) pv.classList.remove("hidden");
   var titles={saved:"Saved",brandcore:"Brand Core",check:"Brand Check",campaigns:"Campaigns"};
   if(titleEl) titleEl.textContent=titles[name]||name;
+
+  if(hub){
+    hub.style.transition="opacity 0.22s ease";
+    hub.style.opacity="0";
+    setTimeout(function(){
+      hub.style.display="none";
+      hub.style.opacity="";
+      hub.style.transition="";
+      if(pv) pv.classList.remove("hidden");
+    }, 220);
+  } else {
+    if(pv) pv.classList.remove("hidden");
+  }
 
   if(name==="saved") renderAssets();
   if(name==="campaigns") renderCampaigns();
@@ -32,8 +41,23 @@ function switchStudioTab(name){
 function showStudioHub(){
   var hub=document.getElementById("studioHubView");
   var pv=document.getElementById("studioPanelView");
-  if(hub) hub.style.display="";
   if(pv) pv.classList.add("hidden");
+  if(hub){
+    hub.style.display="";
+    hub.style.opacity="0";
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        hub.style.transition="opacity 0.3s ease";
+        hub.style.opacity="1";
+        setTimeout(function(){hub.style.opacity="";hub.style.transition="";},320);
+      });
+    });
+  }
+}
+
+function _bbHover(node, active){
+  var line=document.getElementById("bb-line-"+node);
+  if(line) line.classList.toggle("bb-line-active",active);
 }
 
 // ═══ SAVED ════════════════════════════════════════════════════

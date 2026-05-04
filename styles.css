@@ -830,78 +830,86 @@ body.dark-mode .dash-hl-grad{
 #page-studio{padding:0}
 #page-studio.active{display:block;height:100vh;overflow:hidden;position:relative}
 
-/* ── Hub outer ── */
-.sh-outer{
-  height:100%;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:0 40px;text-align:center;
-}
-.sh-hero{margin-bottom:24px}
-.sh-title{
-  font-family:'Instrument Serif',serif;
-  font-size:clamp(40px,5.5vw,68px);
-  color:var(--charcoal);letter-spacing:-2.4px;line-height:1.0;
-  margin-bottom:12px;
-}
-.sh-sub{font-size:16px;color:var(--muted);max-width:380px;margin:0 auto}
-
-/* ── Hub 2×2 card grid ── */
-.sh-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;max-width:920px;width:100%}
-.sh-card{
-  position:relative;overflow:hidden;
-  background:var(--surface);border:1.5px solid var(--border);border-radius:20px;
-  padding:28px 28px 56px;min-height:148px;
-  display:flex;flex-direction:column;gap:6px;
-  cursor:pointer;text-align:left;
-  transition:transform .32s cubic-bezier(.34,1.38,.64,1),box-shadow .32s ease;
-}
-.sh-card::before{
-  content:'';position:absolute;inset:0;border-radius:19px;
-  background-size:220% 220%;opacity:0;
-  transition:opacity .34s ease;
-  animation:cardGradDrift 8s ease infinite alternate;
-}
-.sh-card:hover{transform:scale(1.02);box-shadow:0 12px 40px rgba(0,0,0,.13)}
-.sh-card:hover::before{opacity:1}
-.sh-card:hover .sh-card-label{color:#fff}
-.sh-card:hover .sh-card-desc{color:rgba(255,255,255,.82)}
-.sh-card:hover .sh-card-ico{background:rgba(255,255,255,.18)}
-.sh-card:hover .sh-card-ico svg{stroke:#fff}
-.sh-card:active{transform:scale(1.01)}
-/* Lift content above the ::before gradient layer */
-.sh-card-ico,
-.sh-card-label,
-.sh-card-desc,
-.sh-card-arr{position:relative;z-index:1}
-/* Card type gradients */
-.sh-card-saved::before{background-image:linear-gradient(135deg,#3B5BDB,#748FFC,#A5B4FF)}
-.sh-card-bc::before{background-image:var(--green)}
-.sh-card-check::before{background-image:linear-gradient(135deg,#D9480F,#F76707,#FF9A56)}
-.sh-card-camp::before{background-image:linear-gradient(135deg,#5F3DC4,#845EF7,#B197FC)}
-/* Card icons */
-.sh-card-ico{
-  width:46px;height:46px;border-radius:13px;
+/* ─── Brand Brain Hub ─────────────────────────────────────────── */
+.bb-hub{
+  position:absolute;inset:0;
   display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:background .28s ease;
+  background:#0A0A0A;
 }
-.sh-card-ico svg{width:24px;height:24px;transition:stroke .28s ease}
-.sh-card-saved .sh-card-ico{background:#EDF2FF}
-.sh-card-saved .sh-card-ico svg{stroke:#3B5BDB}
-.sh-card-bc .sh-card-ico{background:#F3FBF0}
-.sh-card-bc .sh-card-ico svg{stroke:var(--green)}
-.sh-card-check .sh-card-ico{background:#FFF4E6}
-.sh-card-check .sh-card-ico svg{stroke:#E8590C}
-.sh-card-camp .sh-card-ico{background:#F0EFFF}
-.sh-card-camp .sh-card-ico svg{stroke:#6741D9}
-.sh-card-label{font-size:17px;font-weight:700;color:var(--charcoal);transition:color .28s ease}
-.sh-card-desc{font-size:13px;color:var(--muted);line-height:1.6;transition:color .28s ease}
-.sh-card-arr{
-  position:absolute;bottom:22px;right:22px;
-  opacity:0;transform:translateX(-4px);
-  transition:opacity .2s,transform .2s;
+.bb-system-label{
+  position:absolute;top:28px;left:50%;transform:translateX(-50%);
+  font-size:9px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;
+  color:rgba(183,255,42,0.28);pointer-events:none;user-select:none;
 }
-.sh-card-arr svg{width:17px;height:17px;stroke:rgba(255,255,255,.85)}
-.sh-card:hover .sh-card-arr{opacity:1;transform:translateX(0)}
+.bb-canvas{
+  position:relative;
+  width:min(480px,80vmin);
+  height:min(480px,80vmin);
+}
+.bb-svg{
+  position:absolute;inset:0;width:100%;height:100%;overflow:visible;
+}
+.bb-line{
+  stroke:rgba(183,255,42,0.15);stroke-width:0.8;
+  transition:stroke 0.3s ease,stroke-width 0.3s ease;
+}
+.bb-line.bb-line-active{
+  stroke:rgba(183,255,42,0.52);stroke-width:1.1;
+}
+.bb-core{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:26%;height:26%;border-radius:50%;
+  border:1.5px solid #B7FF2A;
+  background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  box-shadow:inset 0 0 32px rgba(183,255,42,0.04);
+  animation:bbCorePulse 4s ease-in-out infinite;
+  z-index:2;
+}
+.bb-core-dot{
+  width:4px;height:4px;border-radius:50%;
+  background:#B7FF2A;opacity:0.65;
+}
+.bb-core-name{
+  font-size:clamp(9px,1.5vmin,12px);font-weight:600;letter-spacing:0.07em;
+  color:rgba(255,255,255,0.88);
+}
+@keyframes bbCorePulse{
+  0%,100%{
+    transform:translate(-50%,-50%) scale(1);
+    box-shadow:inset 0 0 32px rgba(183,255,42,0.04),0 0 0 rgba(183,255,42,0);
+  }
+  50%{
+    transform:translate(-50%,-50%) scale(1.016);
+    box-shadow:inset 0 0 32px rgba(183,255,42,0.07),0 0 18px rgba(183,255,42,0.06);
+  }
+}
+.bb-node{
+  position:absolute;transform:translate(-50%,-50%);
+  width:16%;height:16%;border-radius:50%;
+  border:1px solid rgba(183,255,42,0.38);
+  background:#0A0A0A;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  cursor:pointer;z-index:2;
+  transition:transform 0.28s cubic-bezier(.34,1.38,.64,1),border-color 0.28s ease,box-shadow 0.28s ease;
+}
+.bb-node:hover{
+  transform:translate(-50%,-50%) scale(1.1);
+  border-color:#B7FF2A;
+  box-shadow:0 0 20px rgba(183,255,42,0.1);
+}
+.bb-node-ico{
+  width:clamp(12px,2vmin,17px);height:clamp(12px,2vmin,17px);
+  stroke:rgba(183,255,42,0.55);flex-shrink:0;
+  transition:stroke 0.28s ease;fill:none;
+}
+.bb-node:hover .bb-node-ico{stroke:#B7FF2A;}
+.bb-node-label{
+  font-size:clamp(6px,1.05vmin,10px);font-weight:600;letter-spacing:0.06em;
+  color:rgba(255,255,255,0.42);transition:color 0.28s ease;white-space:nowrap;
+}
+.bb-node:hover .bb-node-label{color:rgba(255,255,255,0.88);}
 
 /* ── Panel view ── */
 .sh-panel-view{

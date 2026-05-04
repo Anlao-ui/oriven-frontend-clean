@@ -86,6 +86,7 @@ function _guestShowEntry(){
 }
 
 function _guestOnboardTryFree(){
+  trackEvent("clicked_try");
   var overlay = document.getElementById("guestOnboard");
   if(overlay){
     overlay.style.transition = "opacity 0.25s ease";
@@ -613,6 +614,7 @@ async function _ggDoSignup(){
 
     _ggClearErr(["ggFirst","ggEmail","ggPass"]);
     _guestOnSignedIn(result.data.user);
+    trackEvent("created_account", result.data.user);
   } catch(err){
     showErr(_ggMapError(err));
     _ggMarkErr(["ggEmail","ggPass"]);

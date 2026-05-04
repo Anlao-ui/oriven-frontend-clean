@@ -1862,6 +1862,8 @@ async function runBuilder(){
     if(!allowed) return;
   }
 
+  trackEvent("started_generation", _currentUser || null);
+
   var resultWrap = document.getElementById("builderResultWrap");
   var resultBody = document.getElementById("builderResultBody");
   var saveBtn    = document.getElementById("builderSaveBtn");
@@ -1948,6 +1950,7 @@ async function runBuilder(){
     }
     S._lastBuilderResult = { type: type, data: data };
     _showBuilderResult(type, data);
+    trackEvent("completed_generation", _currentUser || null);
     if(saveBtn){ saveBtn.disabled = false; }
 
     // Clear the generating spinner left in #flowStep by _flowGenerate()
