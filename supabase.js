@@ -7,9 +7,11 @@ var SUPABASE_ANON_KEY = "sb_publishable_O7XoiC1YmV94lhwV5o8YBA_7zJ2HA7K";
 
 // ── Backend base URL ──────────────────────────────────────────
 // Single definition — every API fetch across all scripts uses this.
-// DEV:  http://localhost:3000
-// PROD: https://oriven-backand.onrender.com
-var API_BASE_URL = "http://localhost:5500";
+// Express serves both static files and the API from the same origin,
+// so window.location.origin resolves correctly in all environments:
+//   Local:      http://localhost:5500
+//   Production: https://orivenai.com
+var API_BASE_URL = window.location.origin;
 
 // ── Dev mode flag ─────────────────────────────────────────────
 // Detected once here — consumed by auth.js and usage.js to bypass
