@@ -455,6 +455,8 @@ function ucStartOver() {
 // ── ucGenerateFromFlow — called by _cfDispatchUGC() with flow answers ──
 async function ucGenerateFromFlow(answers) {
   var adFeeling    = _ucAdFeeling || 'viral';
+  var adGoal       = (answers.ucGoal    && answers.ucGoal.val)    || '';
+  var adContext    = (answers.ucContext  && answers.ucContext.val) || '';
   var customScript = (_ucScriptMode === 'custom' && answers.ucCustomScript && answers.ucCustomScript.val)
     ? answers.ucCustomScript.val.trim()
     : null;
@@ -493,9 +495,9 @@ async function ucGenerateFromFlow(answers) {
     }
 
     console.log('[UGC] Sending → adFeeling:', adFeeling,
+      '| adGoal:', adGoal,
       '| avatarId:', _ucSelectedCreator.avatarId,
       '| voiceId:', _ucSelectedCreator.voiceId,
-      '| background:', _ucSelectedBg,
       '| format:', _ucVideoFormat);
 
     var result = await apiFetch('/api/generate-ugc', {
@@ -503,7 +505,8 @@ async function ucGenerateFromFlow(answers) {
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body:    JSON.stringify({
         adFeeling:    adFeeling,
-        background:   _ucSelectedBg   || null,
+        adGoal:       adGoal,
+        adContext:    adContext,
         format:       _ucVideoFormat  || 'vertical',
         customScript: customScript,
         avatarId:     _ucSelectedCreator.avatarId,

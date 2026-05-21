@@ -1728,7 +1728,7 @@ app.post('/api/generate-ugc', async (req, res) => {
   console.log("UGC ROUTE HIT");
   console.log("UGC BODY", JSON.stringify(req.body));
 
-  const { adFeeling, avatarId, voiceId, avatarStyle, brandName, brandDesc, background, customScript, format } = req.body || {};
+  const { adFeeling, adGoal, adContext, avatarId, voiceId, avatarStyle, brandName, brandDesc, background, customScript, format } = req.body || {};
 
   const formatDimensions = {
     vertical:  { width: 720,  height: 1280 },
@@ -1742,7 +1742,7 @@ app.post('/api/generate-ugc', async (req, res) => {
   const heygenKey = process.env.HEYGEN_API_KEY;
   if (!heygenKey) return res.status(500).json({ error: 'HeyGen API key not configured' });
 
-  console.log('[UGC] Received → adFeeling:', adFeeling, '| avatarId:', avatarId, '| avatarStyle:', avatarStyle || 'normal', '| background:', background, '| format:', format, '| scriptMode:', customScript ? 'custom' : 'ai');
+  console.log('[UGC] Received → adFeeling:', adFeeling, '| adGoal:', adGoal, '| avatarId:', avatarId, '| format:', format, '| scriptMode:', customScript ? 'custom' : 'ai');
 
   // ── Cinematic brief registry — each style is a full creative direction ──
   const CREATOR_BRIEFS = {
@@ -1823,7 +1823,7 @@ app.post('/api/generate-ugc', async (req, res) => {
   } else {
     if (!_requireEnv('ANTHROPIC_API_KEY', res, 'Anthropic')) return;
     try {
-      // Ad feeling → directorial instruction (shapes hook structure and energy)
+      // Ad feeling → directorial instruction (energy, pacing, sentence structure)
       const feelingInstruction = {
         viral:       'Make this spread. Rapid-fire energy, punchy hooks designed to be shared. Short sentences. Bold, declarative statements.',
         cinematic:   'Write like a film director narrating a moment — evocative, visual language. Every sentence paints a picture. Slow and deliberate. Emotionally charged.',
@@ -1835,14 +1835,23 @@ app.post('/api/generate-ugc', async (req, res) => {
         high_energy: 'Maximum energy from the first word. Fast pace, exclamation, nonstop forward momentum. There is no gear below fifth.',
       }[adFeeling] || 'Write in a genuine, natural first-person voice with authentic energy.';
 
+      // Ad goal → hook angle + CTA direction
+      const goalInstruction = {
+        sales:     'GOAL: Drive immediate purchase. Build desire fast, remove hesitation, close with urgency. CTA should push "buy now", "get it", "grab yours".',
+        awareness: 'GOAL: Build brand recall and desire. Plant the seed — intrigue over hard sell. CTA should invite discovery: "check it out", "learn more", "look it up".',
+        downloads: 'GOAL: Drive app installs. Highlight how fast and easy it is to get started. CTA should push "download it", "get the app", "it\'s free to start".',
+        clicks:    'GOAL: Pull to a link or page. Create enough curiosity that clicking feels inevitable. CTA should be "link in bio", "tap the link", "click below".',
+        launch:    'GOAL: Announce a new launch. Create FOMO and excitement for something that just dropped. CTA should signal scarcity or newness: "just launched", "early access", "be first".',
+      }[adGoal] || '';
+
       const system = `You are an expert UGC ad scriptwriter and creative director for TikTok, Instagram Reels, and YouTube Shorts.
 
 AD FEELING — apply this to every sentence (HIGHEST PRIORITY): ${feelingInstruction}
-
+${goalInstruction ? `\nAD GOAL — shape your hook angle and CTA around this: ${goalInstruction}` : ''}
 Script rules:
 - Open with a strong attention-grabbing hook that stops the scroll in the first 3 seconds
 - Speak in a genuine first-person voice as an authentic creator
-- End with a clear, natural call-to-action
+- End with a clear, natural call-to-action aligned with the goal above
 - First person only — no "you should" constructions at the start
 - No stage directions, brackets, parenthetical actions, or scene descriptions
 - Output ONLY the spoken script — nothing else, no titles, no labels
@@ -1850,16 +1859,18 @@ Script rules:
 
       const userMsg = [
         'Write a UGC ad script.',
-        brandName  ? `Brand: ${brandName}` : '',
-        brandDesc  ? `About the brand: ${brandDesc}` : '',
+        brandName   ? `Brand: ${brandName}` : '',
+        brandDesc   ? `About the brand: ${brandDesc}` : '',
+        adContext   ? `Additional context: ${adContext}` : '',
         `Ad feeling: ${adFeeling || 'viral'}`,
+        adGoal      ? `Ad goal: ${adGoal}` : '',
         '',
         'Output ONLY the spoken script.',
       ].filter(Boolean).join('\n');
 
       script = (await callAnthropic(system, userMsg)).trim();
       if (!script) return res.status(500).json({ error: 'Anthropic returned an empty script' });
-      console.log('[UGC] Script generated (', script.length, 'chars ) | feeling:', adFeeling);
+      console.log('[UGC] Script generated (', script.length, 'chars ) | feeling:', adFeeling, '| goal:', adGoal || 'none');
     } catch (err) {
       console.error('[UGC] Script generation error:', err.message);
       return res.status(500).json({ error: 'Failed to write script: ' + err.message });

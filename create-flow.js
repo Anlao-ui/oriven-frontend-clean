@@ -279,9 +279,20 @@ var CF_FLOWS = {
       desc: "Select the AI creator that will deliver your ad."
     },
     {
-      key:  "ucAdFeeling",
-      q:    "What should the ad feel like?",
-      desc: "Controls hook structure, script energy, pacing, and call-to-action.",
+      key:  "ucScriptMode",
+      q:    "How do you want the script?",
+      desc: "ORIVEN AI can write a high-converting script, or bring your own.",
+      options: [
+        { val: "ai",     label: "Write with AI",     desc: "ORIVEN generates a script tailored to your brand" },
+        { val: "custom", label: "Use my own script", desc: "Paste a script you've already written" }
+      ]
+    },
+    {
+      key:            "ucAdFeeling",
+      q:              "What should the ad feel like?",
+      desc:           "Controls hook structure, script energy, pacing, and call-to-action.",
+      conditional:    "ucScriptMode",
+      conditionalVal: "ai",
       options: [
         { val: "viral",       label: "Viral",       desc: "Punchy, shareable, built to spread" },
         { val: "cinematic",   label: "Cinematic",   desc: "Evocative, visual, emotionally charged" },
@@ -294,23 +305,29 @@ var CF_FLOWS = {
       ]
     },
     {
-      key:  "ucFormat",
-      q:    "What format should the video be in?",
-      desc: "Choose based on where you'll publish the ad.",
+      key:            "ucGoal",
+      q:              "What's the goal of this ad?",
+      desc:           "Shapes the hook angle, CTA style, and script structure.",
+      conditional:    "ucScriptMode",
+      conditionalVal: "ai",
       options: [
-        { val: "vertical",  label: "Vertical (9:16)",  desc: "TikTok, Reels, Stories — default" },
-        { val: "square",    label: "Square (1:1)",      desc: "Works across all platforms" },
-        { val: "landscape", label: "Landscape (16:9)",  desc: "YouTube, website embeds, ads" }
+        { val: "sales",     label: "Drive Sales",     desc: "Push toward immediate purchase" },
+        { val: "awareness", label: "Brand Awareness", desc: "Introduce the brand and create desire" },
+        { val: "downloads", label: "App Downloads",   desc: "Drive installs and first opens" },
+        { val: "clicks",    label: "Website Clicks",  desc: "Pull traffic to a specific page or offer" },
+        { val: "launch",    label: "Product Launch",  desc: "Announce something new with impact" }
       ]
     },
     {
-      key:  "ucScriptMode",
-      q:    "How do you want the script handled?",
-      desc: "ORIVEN can write a high-converting script, or you can bring your own.",
-      options: [
-        { val: "ai",     label: "Generate with AI",  desc: "ORIVEN writes a script tailored to your brand" },
-        { val: "custom", label: "Use My Own Script", desc: "Paste a script you've already written" }
-      ]
+      key:            "ucContext",
+      q:              "Any context for the AI? (optional)",
+      desc:           "Product name, key benefit, or anything specific the script should mention.",
+      type:           "textarea",
+      placeholder:    "e.g. ORIVEN AI — the brand OS for modern founders. Key benefit: saves 10+ hours a week.",
+      optional:       true,
+      maxChars:       400,
+      conditional:    "ucScriptMode",
+      conditionalVal: "ai"
     },
     {
       key:            "ucCustomScript",
@@ -322,6 +339,15 @@ var CF_FLOWS = {
       maxChars:       900,
       conditional:    "ucScriptMode",
       conditionalVal: "custom"
+    },
+    {
+      key:  "ucFormat",
+      q:    "What format should the video be in?",
+      desc: "Choose the native ratio for where you'll publish the ad.",
+      options: [
+        { val: "vertical",  label: "Vertical (9:16)",  desc: "TikTok, Reels, Stories — native social" },
+        { val: "landscape", label: "Landscape (16:9)", desc: "YouTube, website embeds, paid ads" }
+      ]
     }
   ],
 
