@@ -1898,9 +1898,31 @@ Script rules:
 
   // ── Step 2: Submit to HeyGen ──────────────────────────────────
   try {
+    // Format-specific composition profiles.
+    // Vertical: closeUp style + scale 1.5 fills the 9:16 portrait canvas
+    //   without letterboxing. offset.y nudges the face into the upper-center
+    //   sweet-spot used by TikTok/Reels creators.
+    // Landscape: normal wide framing, no scaling needed.
+    const compositionProfiles = {
+      vertical:  { avatar_style: 'closeUp', scale: 1.5, offset: { x: 0, y: 0.05 } },
+      landscape: { avatar_style: 'normal',  scale: 1.0, offset: { x: 0, y: 0    } },
+    };
+    const composition = compositionProfiles[format] || compositionProfiles.vertical;
+
+    console.log('[UGC] Composition → style:', composition.avatar_style,
+      '| scale:', composition.scale,
+      '| offset:', JSON.stringify(composition.offset),
+      '| format:', format || 'vertical');
+
     const videoInput = {
-      character: { type: 'avatar', avatar_id: avatarId, avatar_style: avatarStyle || 'normal' },
-      voice:     { type: 'text',   input_text: script,  voice_id: voiceId, speed: feelingSpeed },
+      character: {
+        type:         'avatar',
+        avatar_id:    avatarId,
+        avatar_style: composition.avatar_style,
+        scale:        composition.scale,
+        offset:       composition.offset,
+      },
+      voice: { type: 'text', input_text: script, voice_id: voiceId, speed: feelingSpeed },
     };
     // Only inject background when we have an explicit solid-color mapping.
     // Unset → HeyGen uses the avatar's natural built-in scene.
