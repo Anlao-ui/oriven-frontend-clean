@@ -611,9 +611,9 @@ function _cfRenderOptions(step){
     opts.style.transform = "none";
 
     var capturedStep  = step;
-    var _cfActiveFmt  = "vertical";  // default format tab
+    var _cfActiveFmt = "landscape";  // locked to landscape — portrait/square coming later
 
-    // Filter grid cards by the active format tab
+    // Format filter — kept for future multi-format support
     function _applyFmtFilter(grid){
       grid.querySelectorAll(".cf-avatar-card").forEach(function(card){
         var ratio = card.dataset.ratio || "all";
@@ -621,8 +621,7 @@ function _cfRenderOptions(step){
       });
     }
 
-    // Async: load video metadata to detect native aspect ratio
-    // Uses loadedmetadata (downloads only container headers, not full video)
+    // Ratio detection — runs in background, prepares data for future filtering
     function _detectRatios(avatars, cardMap, grid){
       avatars.slice(0, 50).forEach(function(avatar){
         var card = cardMap[avatar.avatar_id];
@@ -630,24 +629,18 @@ function _cfRenderOptions(step){
         var vid  = document.createElement("video");
         var done = false;
         var timer = setTimeout(function(){
-          if(done) return; done = true;
-          vid.src = "";
-          // no update — stays 'all', filter unchanged
+          if(done) return; done = true; vid.src = "";
         }, 5000);
         vid.addEventListener("loadedmetadata", function(){
-          if(done) return; done = true;
-          clearTimeout(timer);
-          var w = vid.videoWidth, h = vid.videoHeight;
-          vid.src = "";
+          if(done) return; done = true; clearTimeout(timer);
+          var w = vid.videoWidth, h = vid.videoHeight; vid.src = "";
           if(!w || !h) return;
           var r = w / h;
           card.dataset.ratio = r < 0.75 ? "vertical" : r > 1.4 ? "landscape" : "square";
           _applyFmtFilter(grid);
         });
         vid.addEventListener("error", function(){
-          if(done) return; done = true;
-          clearTimeout(timer);
-          vid.src = "";
+          if(done) return; done = true; clearTimeout(timer); vid.src = "";
         });
         vid.preload = "metadata";
         vid.src = avatar.preview_video_url;
@@ -679,32 +672,18 @@ function _cfRenderOptions(step){
       opts.className = "cf-options cf-avatar-grid-wrap";
       console.log("[UGC] Fetched", avatars.length, "avatars from HeyGen");
 
-      // ── Format tabs ────────────────────────────────────────────
-      var tabsEl = document.createElement("div");
-      tabsEl.className = "cf-fmt-tabs";
-
-      var FMT_TABS = [
-        { val: "vertical",  label: "Vertical",  ratio: "9:16" },
-        { val: "square",    label: "Square",    ratio: "1:1"  },
-        { val: "landscape", label: "Landscape", ratio: "16:9" },
-      ];
-      FMT_TABS.forEach(function(fmt){
-        var btn = document.createElement("button");
-        btn.type      = "button";
-        btn.className = "cf-fmt-tab" + (fmt.val === "vertical" ? " cf-fmt-tab-active" : "");
-        btn.dataset.fmt = fmt.val;
-        btn.innerHTML = '<span class="cf-fmt-ratio">' + fmt.ratio + '</span>'
-                      + '<span class="cf-fmt-label">' + fmt.label + '</span>';
-        btn.onclick = function(){
-          _cfActiveFmt = fmt.val;
-          tabsEl.querySelectorAll(".cf-fmt-tab").forEach(function(t){
-            t.classList.toggle("cf-fmt-tab-active", t.dataset.fmt === fmt.val);
-          });
-          _applyFmtFilter(grid);
-        };
-        tabsEl.appendChild(btn);
-      });
-      opts.appendChild(tabsEl);
+      // ── Format indicator (locked to Landscape) ─────────────────
+      // Vertical and Square support coming in a future release.
+      var fmtBar = document.createElement("div");
+      fmtBar.className = "cf-fmt-bar";
+      fmtBar.innerHTML =
+        '<span class="cf-fmt-bar-label">Format</span>'
+        + '<span class="cf-fmt-bar-active">'
+        + '<span class="cf-fmt-bar-ratio">16:9</span>'
+        + 'Cinematic Landscape'
+        + '</span>'
+        + '<span class="cf-fmt-bar-note">Vertical &amp; Square coming soon</span>';
+      opts.appendChild(fmtBar);
 
       // ── Avatar grid ────────────────────────────────────────────
       var grid    = document.createElement("div");
