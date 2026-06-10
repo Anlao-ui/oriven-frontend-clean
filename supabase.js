@@ -23,7 +23,7 @@ if (ORIVEN_DEV) console.log("[ORIVEN] Dev mode active — subscription and usage
 //   Production: https://oriven-backand.onrender.com
 var API_BASE_URL = ORIVEN_DEV
   ? "http://localhost:5500"
-  : "https://oriven-backand.onrender.com";
+  : "https://oriven-backand-clean.onrender.com";
 
 var SB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
