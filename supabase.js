@@ -1,5 +1,3 @@
-alert("SUPABASE TEST 2026");
-
 // ═══ SUPABASE CLIENT ══════════════════════════════════════════
 // Initialized once — available globally as SB across all scripts.
 // The anon key is intentionally public (publishable key).
