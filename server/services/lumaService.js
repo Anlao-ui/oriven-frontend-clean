@@ -60,22 +60,34 @@ async function generateVideo(prompt, aspectRatio, apiKey, options) {
   const dur = _normaliseDuration(duration);
   if (dur) body.duration = dur;
 
-  const endpoint = `${LUMA_BASE}/generations/video`;
+  // Luma docs are inconsistent — reference page shows /generations/video,
+  // the guide and curl examples show /generations. Try /generations/video
+  // first; if that returns 403 or 404, retry with /generations.
+  const endpoints = [
+    `${LUMA_BASE}/generations/video`,
+    `${LUMA_BASE}/generations`,
+  ];
 
-  // Log the full request for debugging (key is masked)
-  console.log('[Luma] →', 'POST', endpoint);
-  console.log('[Luma] → body:', JSON.stringify(body));
+  const headers = {
+    'Content-Type':  'application/json',
+    'Authorization': `Bearer ${key}`,
+    'Accept':        'application/json',
+  };
+
+  console.log('[Luma] → POST body:', JSON.stringify(body));
   console.log('[Luma] → Authorization: Bearer', key.slice(0, 12) + '...' + key.slice(-4));
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${key}`,
-      'Accept':        'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+  let response, endpoint;
+  for (const ep of endpoints) {
+    endpoint = ep;
+    console.log('[Luma] → trying POST', endpoint);
+    response = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(body) });
+    console.log('[Luma] ← HTTP', response.status, 'from', endpoint);
+    // Only retry on auth/not-found — any other status (200, 201, 4xx validation) stops here
+    if (response.status !== 403 && response.status !== 404 && response.status !== 405) break;
+    if (ep === endpoints[endpoints.length - 1]) break; // last endpoint, stop
+    console.log('[Luma] → retrying with next endpoint…');
+  }
 
   let data;
   try {

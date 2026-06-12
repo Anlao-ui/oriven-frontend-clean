@@ -2442,6 +2442,61 @@ app.get('/api/ugc-video-status/:videoId', async (req, res) => {
   }
 });
 
+// ── GET /api/video-ads/test-auth ──────────────────────────────────
+// Hits the lightest authenticated Luma endpoint (list generations, limit 1).
+// Purpose: confirm key validity and auth format without generating anything.
+// Remove this route once the integration is confirmed working.
+app.get('/api/video-ads/test-auth', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const apiKey = (process.env.LUMA_API_KEY || '').trim();
+  if (!apiKey) return res.status(503).json({ error: 'LUMA_API_KEY not set' });
+
+  const LUMA_BASE = 'https://api.lumalabs.ai/dream-machine/v1';
+
+  // Try three endpoints in order — first success wins.
+  // This tells us exactly which paths Luma accepts with this key.
+  const tests = [
+    { label: 'GET /generations?limit=1',      url: `${LUMA_BASE}/generations?limit=1` },
+    { label: 'GET /generations/camera_motion/list', url: `${LUMA_BASE}/generations/camera_motion/list` },
+    { label: 'POST /generations (dry-run body)',    url: `${LUMA_BASE}/generations`, method: 'POST',
+      body: JSON.stringify({ prompt: 'test', model: 'ray-2', aspect_ratio: '16:9' }) },
+  ];
+
+  const results = [];
+  for (const t of tests) {
+    try {
+      const opts = {
+        method: t.method || 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Accept': 'application/json',
+          ...(t.body ? { 'Content-Type': 'application/json' } : {}),
+        },
+        ...(t.body ? { body: t.body } : {}),
+      };
+      console.log('[VideoAds/test-auth] →', opts.method, t.url);
+      const r    = await fetch(t.url, opts);
+      let   body = '';
+      try { body = JSON.stringify(await r.json()); } catch (_) { body = await r.text(); }
+      console.log('[VideoAds/test-auth] ←', r.status, body.slice(0, 300));
+      results.push({ label: t.label, status: r.status, body: body.slice(0, 500) });
+      if (r.ok) break; // stop on first success
+    } catch (err) {
+      console.error('[VideoAds/test-auth] network error:', err.message);
+      results.push({ label: t.label, status: 'network-error', body: err.message });
+    }
+  }
+
+  return res.json({
+    keyPrefix: apiKey.slice(0, 15),
+    keyLength: apiKey.length,
+    authHeader: `Bearer ${apiKey.slice(0, 12)}...`,
+    results,
+  });
+});
+
 // ── POST /api/video-ads/generate ──────────────────────────────────
 // Builds a Luma AI prompt via Anthropic then submits to Luma Dream Machine.
 // LUMA_API_KEY is read from env only — never hardcoded or sent to frontend.
