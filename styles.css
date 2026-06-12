@@ -7055,3 +7055,89 @@ button.lp-cta-btn { cursor:pointer; border:none; }
   .lp-contact-grid{grid-template-columns:1fr}
   .lp-about-stat-row{grid-template-columns:1fr}
 }
+
+/* ── Creative Infrastructure marquee section ────────────────── */
+.lp-infra {
+  padding: 100px 0 108px;
+  border-top: 1px solid var(--lp-border);
+  overflow: hidden;
+}
+.lp-infra-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+.lp-infra-header .lp-section-sub {
+  margin: 0 auto;
+}
+
+/* Marquee wrapper — clips the infinite track */
+.lp-mq-wrap {
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.lp-mq-wrap:last-child { margin-bottom: 0; }
+
+/* Track — one long flex row, sized to content */
+.lp-mq-track {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  will-change: transform;
+}
+
+/* Animations */
+@keyframes lpMqRtl {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes lpMqLtr {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+.lp-mq-rtl { animation: lpMqRtl 38s linear infinite; }
+.lp-mq-ltr { animation: lpMqLtr 72s linear infinite; }
+
+/* Pill base */
+.lp-mq-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 100px;
+  border: 1px solid var(--lp-border);
+  background: rgba(255,255,255,.03);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--lp-white);
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: -.01em;
+  transition: border-color .18s;
+  cursor: default;
+  user-select: none;
+}
+.lp-mq-pill:hover { border-color: rgba(255,255,255,.22); }
+
+/* Systems pills — slightly elevated surface, icon in green */
+.lp-mq-pill-sys {
+  background: rgba(255,255,255,.04);
+  border-color: rgba(255,255,255,.1);
+}
+.lp-mq-pill-sys:hover { border-color: var(--lp-green); }
+
+/* Sparkle icon */
+.lp-mq-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: var(--lp-green);
+  opacity: 0.7;
+}
+
+/* Accessibility: respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .lp-mq-rtl,
+  .lp-mq-ltr { animation-play-state: paused; }
+}
