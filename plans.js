@@ -26,7 +26,8 @@ var CREDIT_COSTS = {
   presentation: 4,
   deck:         4,
   video:        10,
-  ugc:          10
+  ugc:          10,
+  videoads:     5
 };
 
 var ORIVEN_PLANS = {

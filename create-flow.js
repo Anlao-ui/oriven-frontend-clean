@@ -527,6 +527,63 @@ var CF_FLOWS = {
     }
   ],
 
+  // ── Video Ads ─────────────────────────────────────────────────
+  videoads: [
+    {
+      key:         "vaBrand",
+      q:           "What is your brand name?",
+      desc:        "This anchors the video to your brand identity and BrandCore.",
+      type:        "textarea",
+      placeholder: "e.g. ORIVEN, Nike, Huel, Notion, Gymshark…",
+      optional:    false
+    },
+    {
+      key:         "vaProduct",
+      q:           "What are you advertising?",
+      desc:        "Name the specific product, service, or offer this video is for.",
+      type:        "textarea",
+      placeholder: "e.g. Premium Creatine, AI Branding Platform, Monthly Membership, New Collection…",
+      optional:    false
+    },
+    {
+      key:         "vaConcept",
+      q:           "Describe your video concept.",
+      desc:        "The visual idea, setting, or scene. The more specific, the better the result.",
+      type:        "textarea",
+      placeholder: "e.g. Athlete training at dawn with dramatic lighting. Founder working at a minimal desk with soft focus brand product in foreground.",
+      optional:    false
+    },
+    {
+      key:         "vaAudience",
+      q:           "Who is this video targeting?",
+      desc:        "Be specific — this shapes tone, pacing, and emotional angle.",
+      type:        "textarea",
+      placeholder: "e.g. Gym enthusiasts aged 18–35. Startup founders. DTC brand owners. Luxury consumers.",
+      optional:    false
+    },
+    {
+      key:  "vaStyle",
+      q:    "What style should the video have?",
+      desc: "This drives the mood, pacing, and visual language of the ad.",
+      options: [
+        { val: "cinematic",   label: "Cinematic",   desc: "Sweeping, evocative, emotionally charged" },
+        { val: "minimal",     label: "Minimal",      desc: "Clean, spacious, premium restraint" },
+        { val: "bold",        label: "Bold",         desc: "High contrast, punchy, direct impact" },
+        { val: "luxury",      label: "Luxury",       desc: "Slow, deliberate, aspirational refinement" },
+        { val: "energetic",   label: "Energetic",    desc: "Fast, dynamic, high-intensity movement" }
+      ]
+    },
+    {
+      key:  "vaLength",
+      q:    "Target video length?",
+      desc: "Luma AI generates short-form video clips.",
+      options: [
+        { val: "5",  label: "5 seconds",  desc: "Punchy — perfect for paid social hooks" },
+        { val: "10", label: "10 seconds", desc: "Extended — more room for storytelling" }
+      ]
+    }
+  ],
+
   infographic: [
     {
       key:  "infographicType",
@@ -630,6 +687,10 @@ var CF_META = {
   infographic: {
     label: "Infographic",
     icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="4" height="10" rx="1"/><rect x="8" y="4" width="4" height="13" rx="1"/><rect x="15" y="1" width="4" height="16" rx="1"/></svg>'
+  },
+  videoads: {
+    label: "Video Ads",
+    icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3.5" width="13" height="13" rx="2.5"/><path d="M14.5 7.5L18.5 5v10l-4-2.5"/><polygon points="7 8 7 12.5 11.5 10.2" fill="currentColor" stroke="none"/></svg>'
   }
 };
 
@@ -1214,8 +1275,8 @@ function _cfLaunch(){
     var qEl   = document.getElementById("cfQuestionText");
     var dEl   = document.getElementById("cfQuestionDesc");
     var _typeName = (CF_META[_cfType] && CF_META[_cfType].label) || _cfType;
-    if(qEl)   qEl.textContent = _cfType === "ugc" ? "Generating your UGC video…" : "Building your " + _typeName + "…";
-    if(dEl)   dEl.textContent = _cfType === "ugc" ? "Submitting your brief to HeyGen." : "Sending your brief to ORIVEN AI.";
+    if(qEl)   qEl.textContent = _cfType === "ugc" ? "Generating your UGC video…" : _cfType === "videoads" ? "Generating your video ad…" : "Building your " + _typeName + "…";
+    if(dEl)   dEl.textContent = _cfType === "ugc" ? "Submitting your brief to HeyGen." : _cfType === "videoads" ? "Submitting your brief to Luma AI." : "Sending your brief to ORIVEN AI.";
 
     if(block){
       block.style.transition = "none";
@@ -1232,6 +1293,8 @@ function _cfLaunch(){
       closeAIFlow();
       if(_cfType === "ugc"){
         _cfDispatchUGC();
+      } else if(_cfType === "videoads"){
+        _cfDispatchVideoAds();
       } else {
         _cfDispatch();
       }
@@ -1361,6 +1424,40 @@ function _cfDispatchUGC(){
   // Trigger generation after overlay is visible
   setTimeout(function(){
     if(typeof ucGenerateFromFlow === "function") ucGenerateFromFlow(a);
+  }, 280);
+}
+
+// ── Video Ads flow dispatch — opens result overlay + triggers generation ──
+function _cfDispatchVideoAds(){
+  var a = _cfAnswers;
+
+  // Reset result UI
+  var statusWrap = document.getElementById("vaStatusWrap");
+  var videoWrap  = document.getElementById("vaVideoWrap");
+  var retryRow   = document.getElementById("vaRetryRow");
+  var newRow     = document.getElementById("vaNewRow");
+  if(statusWrap) statusWrap.innerHTML      = "";
+  if(videoWrap)  videoWrap.style.display   = "none";
+  if(retryRow)   retryRow.style.display    = "none";
+  if(newRow)     newRow.style.display      = "none";
+
+  // Open the result overlay
+  var overlay = document.getElementById("vaOverlay");
+  if(overlay){
+    overlay.style.display    = "flex";
+    overlay.style.opacity    = "0";
+    overlay.style.transition = "none";
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        overlay.style.transition = "opacity 0.25s ease";
+        overlay.style.opacity    = "1";
+      });
+    });
+  }
+
+  // Trigger generation after overlay is visible
+  setTimeout(function(){
+    if(typeof vaGenerateFromFlow === "function") vaGenerateFromFlow(a);
   }, 280);
 }
 

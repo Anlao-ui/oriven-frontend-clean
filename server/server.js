@@ -2414,6 +2414,82 @@ app.get('/api/ugc-video-status/:videoId', async (req, res) => {
   }
 });
 
+// ── POST /api/video-ads/generate ──────────────────────────────────
+// Builds a Luma AI prompt via Anthropic then submits to Luma Dream Machine.
+// LUMA_API_KEY is read from env only — never hardcoded or sent to frontend.
+app.post('/api/video-ads/generate', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { brand, product, concept, audience, style, length } = req.body || {};
+  if (!concept || !concept.trim()) return res.status(400).json({ error: 'Video concept is required' });
+
+  const apiKey = process.env.LUMA_API_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'Video Ads service is not configured' });
+
+  // Step 1: Use Anthropic to craft a rich cinematic Luma prompt
+  let lumaPrompt;
+  try {
+    const system = `You are an expert video ad director writing prompts for Luma AI Dream Machine.
+Generate one vivid, cinematic video prompt of 80–150 words.
+Focus on: camera movement, lighting, mood, subjects, brand feeling, and visual storytelling.
+Reply ONLY with the prompt — no quotes, no preamble.`;
+
+    const userMsg = [
+      brand    ? `Brand: ${brand}`       : '',
+      product  ? `Product: ${product}`   : '',
+      concept  ? `Concept: ${concept}`   : '',
+      audience ? `Audience: ${audience}` : '',
+      style    ? `Style: ${style}`       : '',
+      length   ? `Duration: ~${length}s` : '',
+    ].filter(Boolean).join('\n');
+
+    lumaPrompt = (await callAnthropic(system, userMsg)).trim();
+  } catch (err) {
+    console.warn('[VideoAds] Anthropic prompt build failed, using fallback:', err.message);
+    lumaPrompt = [
+      style   ? style + ' cinematic'             : 'cinematic',
+      product ? 'advertisement for ' + product   : 'brand advertisement',
+      concept || '',
+      'high production quality, professional video ad',
+    ].filter(Boolean).join(', ');
+  }
+
+  // Step 2: Submit to Luma AI
+  const { generateVideo } = require('./services/lumaService');
+  try {
+    const result = await generateVideo(lumaPrompt, '16:9', apiKey);
+    console.log('[VideoAds] Generation started:', result.id, '— user:', user.id);
+    return res.json({ generationId: result.id, status: result.state || 'queued' });
+  } catch (err) {
+    console.error('[VideoAds] Luma API error:', err.message);
+    return res.status(500).json({ error: 'Failed to start video generation' });
+  }
+});
+
+// ── GET /api/video-ads/status/:generationId ────────────────────────
+app.get('/api/video-ads/status/:generationId', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const apiKey = process.env.LUMA_API_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'Video Ads service is not configured' });
+
+  const { getVideoStatus } = require('./services/lumaService');
+  try {
+    const result = await getVideoStatus(req.params.generationId, apiKey);
+    return res.json({
+      status:        result.state                              || 'unknown',
+      videoUrl:      (result.assets && result.assets.video)   || null,
+      thumbnailUrl:  (result.assets && result.assets.image)   || null,
+      failureReason: result.failure_reason                     || null,
+    });
+  } catch (err) {
+    console.error('[VideoAds] Status error:', err.message);
+    return res.status(500).json({ error: 'Failed to check video status' });
+  }
+});
+
 // ── Public routes — all served by index.html (router handles view) ──
 app.get('/signup',     function(req, res) { res.sendFile(path.resolve(__dirname, '..', 'index.html')); });
 app.get('/login',      function(req, res) { res.sendFile(path.resolve(__dirname, '..', 'index.html')); });

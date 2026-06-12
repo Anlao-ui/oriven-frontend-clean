@@ -7141,3 +7141,81 @@ button.lp-cta-btn { cursor:pointer; border:none; }
   .lp-mq-rtl,
   .lp-mq-ltr { animation-play-state: paused; }
 }
+
+/* ── Video Ads create card ───────────────────────────────────── */
+.cr-card-videoads {
+  background: linear-gradient(140deg,#1a1520,#17141e);
+  border-color: rgba(183,255,42,.18);
+}
+.cr-card-videoads .cr-card-ico {
+  background: rgba(183,255,42,.07);
+  border-radius: 11px;
+  border: 1px solid rgba(183,255,42,.14);
+}
+.cr-card-videoads .cr-card-ico svg { stroke: #B7FF2A; }
+.cr-card-videoads .cr-card-chip {
+  background: rgba(183,255,42,.07);
+  color: rgba(183,255,42,.7);
+}
+.cr-card-videoads:hover { border-color: rgba(183,255,42,.35); }
+
+/* ── Video Ads result overlay ────────────────────────────────── */
+.va-panel { max-width: 540px; }
+.va-body {
+  padding: 28px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.va-status-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0 8px;
+  text-align: center;
+}
+.va-spinner { margin-bottom: 4px; }
+.va-spinner .spin {
+  width: 36px;
+  height: 36px;
+  border-width: 2.5px;
+  border-color: rgba(183,255,42,.2);
+  border-top-color: #B7FF2A;
+  border-style: solid;
+  border-radius: 50%;
+  animation: spin .9s linear infinite;
+  margin: 0 auto;
+}
+.va-status-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -.3px;
+}
+.va-status-error { color: #f87171; }
+.va-status-sub {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 300px;
+}
+.va-video-frame {
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+.va-video-el {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.va-dl-hint {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  margin: 8px 0 0;
+}
