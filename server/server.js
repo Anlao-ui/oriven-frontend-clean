@@ -2443,12 +2443,12 @@ app.get('/api/ugc-video-status/:videoId', async (req, res) => {
 });
 
 // ── GET /api/video-ads/test-auth ──────────────────────────────────
-// Hits the lightest authenticated Luma endpoint (list generations, limit 1).
-// Purpose: confirm key validity and auth format without generating anything.
+// Diagnostic-only route — no Oriven user auth required.
+// Confirms whether LUMA_API_KEY is accepted by the Luma API.
 // Remove this route once the integration is confirmed working.
 app.get('/api/video-ads/test-auth', async (req, res) => {
-  const user = await getUserFromToken(req);
-  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  // No getUserFromToken() here — this endpoint is intentionally open
+  // so it can be called directly (curl, browser tab) without a session.
 
   const apiKey = (process.env.LUMA_API_KEY || '').trim();
   if (!apiKey) return res.status(503).json({ error: 'LUMA_API_KEY not set' });
