@@ -10,7 +10,15 @@ const path       = require('path');
 const cron       = require('node-cron');
 // Resolve .env from the project root (parent of this server/ dir) so the key is
 // found whether the server is started from c:\files\ OR c:\files\server\
-require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
+// NOTE: dotenv does NOT override variables already present in the process
+// environment (e.g. set by Render dashboard). If a key shows the wrong value
+// at runtime, update it in the Render dashboard — not just in .env.
+const _dotenvPath = path.resolve(__dirname, '..', '.env');
+const _dotenvResult = require('dotenv').config({ path: _dotenvPath });
+console.log(
+  '[dotenv] Loaded from:', _dotenvPath,
+  '| error:', _dotenvResult.error ? _dotenvResult.error.message : 'none'
+);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '5500', 10);
@@ -110,16 +118,23 @@ const supabaseAdmin = createClient(
   _ck(process.env.HEYGEN_API_KEY,    'HEYGEN_API_KEY');
   _ck(process.env.LUMA_API_KEY,      'LUMA_API_KEY');
 
-  // Luma-specific diagnostics — helps confirm key format and whitespace
+  // Luma-specific diagnostics
+  // IMPORTANT: if the prefix below does not match your Render dashboard value,
+  // the Render dashboard is overriding the .env file (dotenv never overwrites
+  // variables already in the process environment). Fix: update Render dashboard.
   const _lumaRaw = process.env.LUMA_API_KEY || '';
-  console.log('LUMA KEY EXISTS:', !!_lumaRaw.trim());
-  if (_lumaRaw.trim()) {
-    const _lumaTrimmed = _lumaRaw.trim();
-    console.log('[Luma] key length:', _lumaTrimmed.length, '| prefix:', _lumaTrimmed.slice(0, 12) + '...');
+  const _lumaTrimmed = _lumaRaw.trim();
+  console.log('LUMA KEY EXISTS:', !!_lumaTrimmed);
+  if (_lumaTrimmed) {
+    console.log('[Luma] Loaded env file:', _dotenvPath);
+    console.log('[Luma] LUMA key prefix:', _lumaTrimmed.slice(0, 15));
+    console.log('[Luma] LUMA key length:', _lumaTrimmed.length);
     console.log('[Luma] starts-with luma-api-:', _lumaTrimmed.startsWith('luma-api-'));
     if (_lumaRaw !== _lumaTrimmed) {
       console.warn('[Luma] ⚠️  LUMA_API_KEY has leading/trailing whitespace — this will cause 403 errors');
     }
+  } else {
+    console.error('[Luma] ❌ LUMA_API_KEY is not set — Video Ads will return 503');
   }
 
   // ── Stripe ───────────────────────────────────────────────────────
