@@ -7095,8 +7095,8 @@ button.lp-cta-btn { cursor:pointer; border:none; }
   from { transform: translateX(-50%); }
   to   { transform: translateX(0); }
 }
-.lp-mq-rtl { animation: lpMqRtl 38s linear infinite; }
-.lp-mq-ltr { animation: lpMqLtr 72s linear infinite; }
+.lp-mq-rtl { animation: lpMqRtl 65s linear infinite; }
+.lp-mq-ltr { animation: lpMqLtr 120s linear infinite; }
 
 /* Pill base */
 .lp-mq-pill {
