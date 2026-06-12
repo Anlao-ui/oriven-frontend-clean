@@ -108,6 +108,7 @@ const supabaseAdmin = createClient(
   _ck(process.env.ANTHROPIC_API_KEY, 'ANTHROPIC_API_KEY');
   _ck(process.env.OPENAI_API_KEY,    'OPENAI_API_KEY');
   _ck(process.env.HEYGEN_API_KEY,    'HEYGEN_API_KEY');
+  _ck(process.env.LUMA_API_KEY,      'LUMA_API_KEY');
 
   // ── Stripe ───────────────────────────────────────────────────────
   const sk = process.env.STRIPE_SECRET_KEY;
