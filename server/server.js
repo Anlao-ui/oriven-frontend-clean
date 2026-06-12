@@ -110,6 +110,18 @@ const supabaseAdmin = createClient(
   _ck(process.env.HEYGEN_API_KEY,    'HEYGEN_API_KEY');
   _ck(process.env.LUMA_API_KEY,      'LUMA_API_KEY');
 
+  // Luma-specific diagnostics — helps confirm key format and whitespace
+  const _lumaRaw = process.env.LUMA_API_KEY || '';
+  console.log('LUMA KEY EXISTS:', !!_lumaRaw.trim());
+  if (_lumaRaw.trim()) {
+    const _lumaTrimmed = _lumaRaw.trim();
+    console.log('[Luma] key length:', _lumaTrimmed.length, '| prefix:', _lumaTrimmed.slice(0, 12) + '...');
+    console.log('[Luma] starts-with luma-api-:', _lumaTrimmed.startsWith('luma-api-'));
+    if (_lumaRaw !== _lumaTrimmed) {
+      console.warn('[Luma] ⚠️  LUMA_API_KEY has leading/trailing whitespace — this will cause 403 errors');
+    }
+  }
+
   // ── Stripe ───────────────────────────────────────────────────────
   const sk = process.env.STRIPE_SECRET_KEY;
   if (!sk || sk === 'missing') {
@@ -2425,8 +2437,9 @@ app.post('/api/video-ads/generate', async (req, res) => {
   const { brand, product, concept, audience, style, length } = req.body || {};
   if (!concept || !concept.trim()) return res.status(400).json({ error: 'Video concept is required' });
 
-  const apiKey = process.env.LUMA_API_KEY;
-  if (!apiKey) return res.status(503).json({ error: 'Video Ads service is not configured' });
+  const apiKey = (process.env.LUMA_API_KEY || '').trim();
+  console.log('[VideoAds] LUMA KEY EXISTS:', !!apiKey, '| length:', apiKey.length, '| prefix:', apiKey.slice(0, 12));
+  if (!apiKey) return res.status(503).json({ error: 'Video Ads service is not configured — set LUMA_API_KEY in Render environment variables' });
 
   // Step 1: Use Anthropic to craft a rich cinematic Luma prompt
   let lumaPrompt;
@@ -2473,8 +2486,8 @@ app.get('/api/video-ads/status/:generationId', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const apiKey = process.env.LUMA_API_KEY;
-  if (!apiKey) return res.status(503).json({ error: 'Video Ads service is not configured' });
+  const apiKey = (process.env.LUMA_API_KEY || '').trim();
+  if (!apiKey) return res.status(503).json({ error: 'Video Ads service is not configured — set LUMA_API_KEY in Render environment variables' });
 
   const { getVideoStatus } = require('./services/lumaService');
   try {

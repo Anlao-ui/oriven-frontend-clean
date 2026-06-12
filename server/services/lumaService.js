@@ -9,6 +9,7 @@
 // Base:   https://api.lumalabs.ai/dream-machine/v1
 // Create: POST /generations/video
 // Poll:   GET  /generations/{id}
+// Auth:   Authorization: Bearer <key>
 // ════════════════════════════════════════════════════════════════
 
 const LUMA_BASE = 'https://api.lumalabs.ai/dream-machine/v1';
@@ -18,20 +19,40 @@ const LUMA_BASE = 'https://api.lumalabs.ai/dream-machine/v1';
 // Luma uses its default rather than returning a validation error.
 function _normaliseDuration(raw) {
   if (!raw) return undefined;
-  const s = String(raw).replace(/[^0-9]/g, ''); // strip non-digits
+  const s = String(raw).replace(/[^0-9]/g, '');
   if (s === '5') return '5s';
   if (s === '9') return '9s';
-  return undefined; // omit unknown values
+  return undefined;
+}
+
+// Validate and sanitise the API key.
+// Returns the trimmed key, or throws with a clear message.
+function _sanitiseKey(apiKey) {
+  if (!apiKey) throw new Error('LUMA_API_KEY is not set');
+  const trimmed = String(apiKey).trim();
+  if (!trimmed) throw new Error('LUMA_API_KEY is empty after trimming whitespace');
+
+  // Log key diagnostics without exposing the full value
+  const prefix = trimmed.slice(0, 12);
+  console.log('[Luma] Key diagnostics:',
+    'prefix=' + prefix + '...',
+    'length=' + trimmed.length,
+    'starts-with-luma-api=' + trimmed.startsWith('luma-api-'),
+    'has-whitespace=' + (apiKey !== trimmed)
+  );
+
+  return trimmed;
 }
 
 // Submit a video generation job to Luma AI.
 // Returns the full generation object: { id, state, created_at, assets, failure_reason }
 async function generateVideo(prompt, aspectRatio, apiKey, options) {
+  const key = _sanitiseKey(apiKey);
   const { duration, model } = options || {};
 
   const body = {
     prompt:       prompt,
-    model:        model || 'ray-2',          // required — default ray-2
+    model:        model || 'ray-2',
     aspect_ratio: aspectRatio || '16:9',
     loop:         false,
   };
@@ -39,13 +60,18 @@ async function generateVideo(prompt, aspectRatio, apiKey, options) {
   const dur = _normaliseDuration(duration);
   if (dur) body.duration = dur;
 
-  console.log('[Luma] POST /generations/video body:', JSON.stringify(body));
+  const endpoint = `${LUMA_BASE}/generations/video`;
 
-  const response = await fetch(`${LUMA_BASE}/generations/video`, {
+  // Log the full request for debugging (key is masked)
+  console.log('[Luma] →', 'POST', endpoint);
+  console.log('[Luma] → body:', JSON.stringify(body));
+  console.log('[Luma] → Authorization: Bearer', key.slice(0, 12) + '...' + key.slice(-4));
+
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type':  'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+      'Authorization': `Bearer ${key}`,
       'Accept':        'application/json',
     },
     body: JSON.stringify(body),
@@ -55,19 +81,20 @@ async function generateVideo(prompt, aspectRatio, apiKey, options) {
   try {
     data = await response.json();
   } catch (_) {
-    const text = await response.text().catch(() => '(empty)');
-    throw new Error(`Luma returned non-JSON (HTTP ${response.status}): ${text.slice(0, 300)}`);
+    const text = await response.text().catch(() => '(empty body)');
+    const err  = `Luma returned non-JSON (HTTP ${response.status}): ${text.slice(0, 400)}`;
+    console.error('[Luma] ←', err);
+    throw new Error(err);
   }
 
-  console.log('[Luma] POST /generations/video response HTTP', response.status, ':', JSON.stringify(data));
+  console.log('[Luma] ← HTTP', response.status, JSON.stringify(data));
 
   if (!response.ok) {
-    // Extract the most useful error message from Luma's response
     const errMsg =
-      (data && (data.message || data.detail || data.error)) ||
+      (data && (data.detail || data.message || data.error)) ||
       JSON.stringify(data) ||
       `HTTP ${response.status}`;
-    throw new Error(errMsg);
+    throw new Error(`Luma ${response.status}: ${errMsg}`);
   }
 
   return data;
@@ -76,30 +103,36 @@ async function generateVideo(prompt, aspectRatio, apiKey, options) {
 // Poll the status of an existing generation.
 // Returns: { id, state, assets: { video }, failure_reason }
 async function getVideoStatus(generationId, apiKey) {
-  const response = await fetch(
-    `${LUMA_BASE}/generations/${encodeURIComponent(generationId)}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Accept':        'application/json',
-      },
-    }
-  );
+  const key      = _sanitiseKey(apiKey);
+  const endpoint = `${LUMA_BASE}/generations/${encodeURIComponent(generationId)}`;
+
+  console.log('[Luma] → GET', endpoint);
+
+  const response = await fetch(endpoint, {
+    headers: {
+      'Authorization': `Bearer ${key}`,
+      'Accept':        'application/json',
+    },
+  });
 
   let data;
   try {
     data = await response.json();
   } catch (_) {
-    const text = await response.text().catch(() => '(empty)');
-    throw new Error(`Luma status returned non-JSON (HTTP ${response.status}): ${text.slice(0, 300)}`);
+    const text = await response.text().catch(() => '(empty body)');
+    const err  = `Luma status returned non-JSON (HTTP ${response.status}): ${text.slice(0, 400)}`;
+    console.error('[Luma] ←', err);
+    throw new Error(err);
   }
+
+  console.log('[Luma] ← HTTP', response.status, JSON.stringify(data));
 
   if (!response.ok) {
     const errMsg =
-      (data && (data.message || data.detail || data.error)) ||
+      (data && (data.detail || data.message || data.error)) ||
       JSON.stringify(data) ||
       `HTTP ${response.status}`;
-    throw new Error(errMsg);
+    throw new Error(`Luma ${response.status}: ${errMsg}`);
   }
 
   return data;
