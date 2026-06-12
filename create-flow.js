@@ -578,8 +578,8 @@ var CF_FLOWS = {
       q:    "Target video length?",
       desc: "Luma AI generates short-form video clips.",
       options: [
-        { val: "5",  label: "5 seconds",  desc: "Punchy — perfect for paid social hooks" },
-        { val: "10", label: "10 seconds", desc: "Extended — more room for storytelling" }
+        { val: "5", label: "5 seconds", desc: "Punchy — perfect for paid social hooks" },
+        { val: "9", label: "9 seconds", desc: "Extended — more room for storytelling" }
       ]
     }
   ],

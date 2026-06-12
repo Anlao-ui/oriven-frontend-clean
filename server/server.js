@@ -2459,12 +2459,12 @@ Reply ONLY with the prompt — no quotes, no preamble.`;
   // Step 2: Submit to Luma AI
   const { generateVideo } = require('./services/lumaService');
   try {
-    const result = await generateVideo(lumaPrompt, '16:9', apiKey);
+    const result = await generateVideo(lumaPrompt, '16:9', apiKey, { duration: length });
     console.log('[VideoAds] Generation started:', result.id, '— user:', user.id);
     return res.json({ generationId: result.id, status: result.state || 'queued' });
   } catch (err) {
     console.error('[VideoAds] Luma API error:', err.message);
-    return res.status(500).json({ error: 'Failed to start video generation' });
+    return res.status(500).json({ error: err.message || 'Failed to start video generation' });
   }
 });
 
@@ -2487,7 +2487,7 @@ app.get('/api/video-ads/status/:generationId', async (req, res) => {
     });
   } catch (err) {
     console.error('[VideoAds] Status error:', err.message);
-    return res.status(500).json({ error: 'Failed to check video status' });
+    return res.status(500).json({ error: err.message || 'Failed to check video status' });
   }
 });
 
