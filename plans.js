@@ -45,8 +45,7 @@ var ORIVEN_PLANS = {
       "50 Creative Credits / Month",
       "Unlimited Brand Assistant",
       "3 Website Generations / Month",
-      "1 BrandCore Regeneration",
-      "Access To Inspiration Library"
+      "1 BrandCore Regeneration"
     ]
   },
   creator: {
@@ -65,8 +64,7 @@ var ORIVEN_PLANS = {
       "Unlimited Website Generations",
       "5 BrandCore Regenerations",
       "Premium Generation Quality",
-      "Priority Support",
-      "Access To Inspiration Library"
+      "Priority Support"
     ]
   },
   professional: {
@@ -87,8 +85,7 @@ var ORIVEN_PLANS = {
       "Shared BrandCore Systems",
       "Multi-User Collaboration",
       "Priority Support",
-      "Premium Generation Quality",
-      "Access To Inspiration Library"
+      "Premium Generation Quality"
     ]
   }
 };

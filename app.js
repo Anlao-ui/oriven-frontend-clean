@@ -449,8 +449,8 @@ function navigate(page){
     if(typeof openFAB==="function") openFAB();
     return;
   }
-  // Plan gate: free users cannot access Inspiration or Brand Assistant
-  if(page==="inspiration" || page==="aichat"){
+  // Plan gate: free users cannot access Brand Assistant
+  if(page==="aichat"){
     var _gatePlan = (typeof S!=="undefined" && S && S.currentPlan) ? S.currentPlan : "free";
     if(_gatePlan==="free"){
       if(typeof toast==="function") toast("Upgrade your plan to access this feature","warn");
