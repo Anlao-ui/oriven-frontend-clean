@@ -278,331 +278,237 @@
 
     <!-- CREATE -->
     <div class="page" id="page-create">
-      <div class="cr-outer">
+      <div class="cr2-wrap">
 
-        <!-- HERO -->
-        <div class="cr-hero">
-          <div class="cr-hero-glow"></div>
-          <div class="cr-eyebrow">
-            <span class="cr-eyebrow-dot" id="crEyebrowDot"></span>
-            <span class="cr-eyebrow-txt">Create System</span>
+        <!-- NO BRAND CORE STATE -->
+        <div class="cr2-empty" id="crEmpty">
+          <div class="cr2-empty-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <rect x="3" y="3" width="26" height="26" rx="6"/>
+              <path d="M10.5 16l5 5 7-9"/>
+            </svg>
           </div>
-          <h1 class="cr-headline">
-            <span data-i18n="createH1Line1">What will you</span><br>
-            <em data-i18n="createH1Line2">create today?</em>
-          </h1>
-          <p class="cr-sub" data-i18n="createSub">Your Brand Core shapes every output.</p>
+          <h2 class="cr2-empty-h">Everything starts with a Brand Core.</h2>
+          <p class="cr2-empty-sub">Before creating assets, generate your Brand Core.</p>
+          <div class="cr2-empty-pillars">
+            <span>Positioning</span>
+            <span>Audience</span>
+            <span>Messaging</span>
+            <span>Tone of Voice</span>
+            <span>Visual Direction</span>
+          </div>
+          <button class="cr2-empty-btn" onclick="navigate('brandcore')">Generate Brand Core</button>
         </div>
 
-        <!-- CREATION ECOSYSTEM -->
-        <div class="cr-grid">
+        <!-- HAS BRAND CORE STATE -->
+        <div class="cr2-active" id="crActive" style="display:none">
 
-          <div class="cr-card cr-card-ugc" onclick="openAIFlow('ugc')">
-            <div class="cr-card-top">
-              <div class="cr-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="5" width="15" height="14" rx="3"/>
-                  <path d="M17 9.5l5-2.5v10l-5-2.5"/>
-                </svg>
+          <!-- Section 1: Brand Core header -->
+          <div class="cr2-brand-bar">
+            <div class="cr2-brand-main">
+              <div class="cr2-brand-eyebrow">
+                <span class="cr2-brand-dot" id="crBrandDot"></span>
+                <span class="cr2-brand-status-txt">Brand Core Active</span>
+                <span class="cr2-bc-badge">Brand Core</span>
               </div>
-              <div class="cr-card-top-meta">
-                <span class="cr-card-tag">Video Production</span>
-                <span class="cr-credit-badge" title="Credits are used to generate content. Complex outputs use more credits.">10 Credits</span>
-              </div>
+              <div class="cr2-brand-name" id="crBrandName">—</div>
+              <p class="cr2-brand-desc">Everything you create is generated using your Brand Core. Your positioning, audience, messaging and identity are automatically applied to every output.</p>
             </div>
-            <div class="cr-card-body">
-              <div class="cr-card-title">UGC Creator</div>
-              <div class="cr-card-desc">Deploy AI creators for high-converting video ads. Real scripts, brand-aware, ready to launch.</div>
-            </div>
-            <div class="cr-card-foot">
-              <div class="cr-card-chips">
-                <span class="cr-card-chip">AI Scripted</span>
-                <span class="cr-card-chip">Brand Aware</span>
-              </div>
-              <div class="cr-card-arrow"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
+            <div class="cr2-brand-meta">
+              <span class="cr2-upd-label">Last updated</span>
+              <span class="cr2-upd-val" id="crBrandUpdated">—</span>
             </div>
           </div>
 
-          <div class="cr-card cr-card-campaign" onclick="openAIFlow('campaign')">
-            <div class="cr-card-top">
-              <div class="cr-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 19l4.5-10 4 7 2.5-4 5 7"/>
-                  <circle cx="7.5" cy="9" r="1.5" fill="currentColor" stroke="none"/>
-                  <path d="M3 23h18"/>
-                </svg>
-              </div>
-              <div class="cr-card-top-meta">
-                <span class="cr-card-tag">Campaign Builder</span>
-                <span class="cr-credit-badge" title="Credits are used to generate content. Complex outputs use more credits.">1 Credit</span>
-              </div>
-            </div>
-            <div class="cr-card-body">
-              <div class="cr-card-title" data-i18n="campaignTitle">Campaign</div>
-              <div class="cr-card-desc" data-i18n="campaignDesc">Launch multi-platform brand campaigns end to end. Visuals, copy, strategy — built together.</div>
-            </div>
-            <div class="cr-card-foot">
-              <div class="cr-card-chips">
-                <span class="cr-card-chip">Multi-Channel</span>
-                <span class="cr-card-chip">AI Built</span>
-              </div>
-              <div class="cr-card-arrow"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
-            </div>
-          </div>
+          <!-- Section 2: Creation tools -->
+          <div class="cr2-tools">
+            <h2 class="cr2-section-h">What would you like to create?</h2>
+            <div class="cr2-grid">
 
-          <div class="cr-card cr-card-image" onclick="openAIFlow('image')">
-            <div class="cr-card-top">
-              <div class="cr-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="3.5"/>
-                  <circle cx="8.5" cy="8.5" r="2"/>
-                  <path d="M3 16l5.5-5.5 4 4 3-3 5 5"/>
-                </svg>
-              </div>
-              <div class="cr-card-top-meta">
-                <span class="cr-card-tag">Visual Generation</span>
-                <span class="cr-credit-badge" title="Credits are used to generate content. Complex outputs use more credits.">1 Credit</span>
-              </div>
-            </div>
-            <div class="cr-card-body">
-              <div class="cr-card-title" data-i18n="imageTitle">Visuals</div>
-              <div class="cr-card-desc" data-i18n="imageDesc">On-brand images, ads, and social media designs.</div>
-            </div>
-            <div class="cr-card-foot">
-              <div class="cr-card-chips">
-                <span class="cr-card-chip">On-Brand</span>
-                <span class="cr-card-chip">AI Generated</span>
-              </div>
-              <div class="cr-card-arrow"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
-            </div>
-          </div>
+              <button class="cr2-card" onclick="openAIFlow('ugc')">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1.5" y="4" width="14" height="14" rx="2.5"/><path d="M15.5 8.5l5-2.5v10l-5-2.5"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">UGC Creator</div>
+                <div class="cr2-card-desc">AI video creators, brand-aware scripts, ready to launch.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
+                  <span class="cr2-credits">10 credits</span>
+                </div>
+              </button>
 
-          <div class="cr-card cr-card-text" onclick="openAIFlow('text')">
-            <div class="cr-card-top">
-              <div class="cr-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                  <path d="M4 6h16M4 12h10M4 18h13"/>
-                </svg>
-              </div>
-              <div class="cr-card-top-meta">
-                <span class="cr-card-tag">Brand Copy</span>
-                <span class="cr-credit-badge" title="Credits are used to generate content. Complex outputs use more credits.">1 Credit</span>
-              </div>
-            </div>
-            <div class="cr-card-body">
-              <div class="cr-card-title" data-i18n="textTitle">Text & Copy</div>
-              <div class="cr-card-desc" data-i18n="textDesc">Headlines, captions, and brand voice copy.</div>
-            </div>
-            <div class="cr-card-foot">
-              <div class="cr-card-chips">
-                <span class="cr-card-chip">Brand Voice</span>
-                <span class="cr-card-chip">AI Written</span>
-              </div>
-              <div class="cr-card-arrow"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
-            </div>
-          </div>
+              <button class="cr2-card" onclick="openAIFlow('campaign')">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 17l4-9 4 6 3-4 5 7"/><path d="M3 20h16"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Campaign</div>
+                <div class="cr2-card-desc">End-to-end brand campaigns across every platform.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
+                  <span class="cr2-credits">1 credit</span>
+                </div>
+              </button>
 
-          <div class="cr-card cr-card-web" onclick="openAIFlow('web')">
-            <div class="cr-card-top">
-              <div class="cr-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="3" width="20" height="15" rx="3"/>
-                  <path d="M2 7.5h20"/>
-                  <path d="M9 22h6M12 18v4"/>
-                </svg>
-              </div>
-              <div class="cr-card-top-meta">
-                <span class="cr-card-tag">Web & Pages</span>
-                <span class="cr-credit-badge" title="Credits are used to generate content. Complex outputs use more credits.">3 Credits</span>
-              </div>
-            </div>
-            <div class="cr-card-body">
-              <div class="cr-card-title" data-i18n="webTitle">Web</div>
-              <div class="cr-card-desc" data-i18n="webDesc">Brand-aligned landing pages and web assets.</div>
-            </div>
-            <div class="cr-card-foot">
-              <div class="cr-card-chips">
-                <span class="cr-card-chip">Brand Aligned</span>
-                <span class="cr-card-chip">AI Built</span>
-              </div>
-              <div class="cr-card-arrow"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
-            </div>
-          </div>
+              <button class="cr2-card" onclick="openAIFlow('image')">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="18" height="18" rx="3.5"/><circle cx="7.5" cy="7.5" r="2"/><path d="M2 14l5.5-5 4 4 3-3.5 5.5 6"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Visuals</div>
+                <div class="cr2-card-desc">On-brand images and social designs, generated instantly.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
+                  <span class="cr2-credits">1 credit</span>
+                </div>
+              </button>
 
-          <div class="cr-card cr-card-email" onclick="openAIFlow('email')">
-            <div class="cr-card-top">
-              <div class="cr-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="4" width="20" height="16" rx="2"/>
-                  <path d="M2 8l10 7 10-7"/>
-                </svg>
-              </div>
-              <div class="cr-card-top-meta">
-                <span class="cr-card-tag">Email Marketing</span>
-                <span class="cr-credit-badge" title="Credits are used to generate content. Complex outputs use more credits.">2 Credits</span>
-              </div>
-            </div>
-            <div class="cr-card-body">
-              <div class="cr-card-title">Email Designer</div>
-              <div class="cr-card-desc">Branded email campaigns — newsletters, launches, and promotions.</div>
-            </div>
-            <div class="cr-card-foot">
-              <div class="cr-card-chips">
-                <span class="cr-card-chip">Brand Aware</span>
-                <span class="cr-card-chip">AI Written</span>
-              </div>
-              <div class="cr-card-arrow"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
-            </div>
-          </div>
+              <button class="cr2-card" onclick="openAIFlow('text')">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+                    <path d="M4 5.5h14M4 10.5h9M4 15.5h11"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Text & Copy</div>
+                <div class="cr2-card-desc">Headlines and copy written in your brand voice, every time.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
+                  <span class="cr2-credits">1 credit</span>
+                </div>
+              </button>
 
-          <div class="cr-card cr-card-deck" onclick="openAIFlow('deck')">
-            <div class="cr-card-top">
-              <div class="cr-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="3" width="20" height="13" rx="2"/>
-                  <path d="M6 8h12M6 12h8"/>
-                  <path d="M9 21h6M12 16v5"/>
-                </svg>
-              </div>
-              <div class="cr-card-top-meta">
-                <span class="cr-card-tag">Presentations</span>
-                <span class="cr-credit-badge" title="Credits are used to generate content. Complex outputs use more credits.">4 Credits</span>
-              </div>
-            </div>
-            <div class="cr-card-body">
-              <div class="cr-card-title">Presentation</div>
-              <div class="cr-card-desc">Pitch decks, investor decks, and brand presentations.</div>
-            </div>
-            <div class="cr-card-foot">
-              <div class="cr-card-chips">
-                <span class="cr-card-chip">Brand Voice</span>
-                <span class="cr-card-chip">AI Built</span>
-              </div>
-              <div class="cr-card-arrow"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
-            </div>
-          </div>
+              <button class="cr2-card" onclick="openAIFlow('web')">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="2" width="20" height="14" rx="3"/><path d="M1 7h20M7 20h8M11 16v4"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Web</div>
+                <div class="cr2-card-desc">Brand-aligned landing pages and web assets built to convert.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
+                  <span class="cr2-credits">3 credits</span>
+                </div>
+              </button>
 
-          <div class="cr-card cr-card-poster" onclick="openAIFlow('poster')">
-            <div class="cr-card-top">
-              <div class="cr-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="2" width="18" height="20" rx="2"/>
-                  <rect x="6" y="5" width="12" height="8" rx="1"/>
-                  <path d="M6 17h12M6 20h8"/>
-                </svg>
-              </div>
-              <div class="cr-card-top-meta">
-                <span class="cr-card-tag">Print & Digital</span>
-                <span class="cr-credit-badge" title="Credits are used to generate content. Complex outputs use more credits.">2 Credits</span>
-              </div>
-            </div>
-            <div class="cr-card-body">
-              <div class="cr-card-title">Poster Generator</div>
-              <div class="cr-card-desc">High-impact branded posters for launches, events, and promotions.</div>
-            </div>
-            <div class="cr-card-foot">
-              <div class="cr-card-chips">
-                <span class="cr-card-chip">Brand Aligned</span>
-                <span class="cr-card-chip">AI Designed</span>
-              </div>
-              <div class="cr-card-arrow"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
-            </div>
-          </div>
+              <button class="cr2-card" onclick="openAIFlow('email')">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="4" width="20" height="15" rx="2.5"/><path d="M1 8.5l10 6.5 10-6.5"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Email</div>
+                <div class="cr2-card-desc">Branded email campaigns, newsletters, and promotions.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
+                  <span class="cr2-credits">2 credits</span>
+                </div>
+              </button>
 
-          <div class="cr-card cr-card-infographic" onclick="openAIFlow('infographic')">
-            <div class="cr-card-top">
-              <div class="cr-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="5" width="5" height="16" rx="1.5"/>
-                  <rect x="9.5" y="9" width="5" height="12" rx="1.5"/>
-                  <rect x="17" y="2" width="5" height="19" rx="1.5"/>
-                </svg>
-              </div>
-              <div class="cr-card-top-meta">
-                <span class="cr-card-tag">Data &amp; Visual</span>
-                <span class="cr-credit-badge" title="Credits are used to generate content. Complex outputs use more credits.">2 Credits</span>
-              </div>
-            </div>
-            <div class="cr-card-body">
-              <div class="cr-card-title">Infographic</div>
-              <div class="cr-card-desc">Data-driven visuals for processes, comparisons, and statistics.</div>
-            </div>
-            <div class="cr-card-foot">
-              <div class="cr-card-chips">
-                <span class="cr-card-chip">Brand Aligned</span>
-                <span class="cr-card-chip">AI Designed</span>
-              </div>
-              <div class="cr-card-arrow"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
-            </div>
-          </div>
+              <button class="cr2-card" onclick="openAIFlow('deck')">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="2" width="20" height="13" rx="2.5"/><path d="M5.5 7h11M5.5 10.5h7M9 19h4M11 15v4"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Presentation</div>
+                <div class="cr2-card-desc">Pitch decks and brand presentations that close deals.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
+                  <span class="cr2-credits">4 credits</span>
+                </div>
+              </button>
 
-          <div class="cr-card cr-card-videoads" onclick="openAIFlow('videoads')">
-            <div class="cr-card-top">
-              <div class="cr-card-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="5" width="15" height="14" rx="2.5"/>
-                  <path d="M17 9.5l5-2.5v10l-5-2.5"/>
-                  <polygon points="7 9 7 15 12.5 12" fill="currentColor" stroke="none"/>
-                </svg>
-              </div>
-              <div class="cr-card-top-meta">
-                <span class="cr-card-tag">Video Production</span>
-                <span class="cr-credit-badge" title="Credits are used to generate content. Complex outputs use more credits.">5 Credits</span>
-              </div>
+              <button class="cr2-card" onclick="openAIFlow('poster')">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3.5" y="1" width="15" height="20" rx="2.5"/><rect x="6" y="3.5" width="10" height="8" rx="1.5"/><path d="M6 15.5h10M6 18.5h7"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Poster</div>
+                <div class="cr2-card-desc">Branded posters for product launches, events, and announcements.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
+                  <span class="cr2-credits">2 credits</span>
+                </div>
+              </button>
+
+              <button class="cr2-card" onclick="openAIFlow('infographic')">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="6" width="5" height="14" rx="1.5"/><rect x="8.5" y="9" width="5" height="11" rx="1.5"/><rect x="16" y="3" width="5" height="17" rx="1.5"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Infographic</div>
+                <div class="cr2-card-desc">Data-driven visuals for insights and brand storytelling.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
+                  <span class="cr2-credits">2 credits</span>
+                </div>
+              </button>
+
+            </div><!-- /.cr2-grid -->
+          </div><!-- /.cr2-tools -->
+
+          <!-- Section 3: Coming Soon -->
+          <div class="cr2-coming">
+            <div class="cr2-coming-hd">
+              <h3 class="cr2-coming-title">Coming Soon</h3>
+              <p class="cr2-coming-sub">The next generation of Oriven creation systems.</p>
             </div>
-            <div class="cr-card-body">
-              <div class="cr-card-title">Video Ads</div>
-              <div class="cr-card-desc">Cinematic brand advertising videos, generated by Luma AI. Brief to video in minutes.</div>
-            </div>
-            <div class="cr-card-foot">
-              <div class="cr-card-chips">
-                <span class="cr-card-chip">AI Generated</span>
-                <span class="cr-card-chip">Brand Aware</span>
+            <div class="cr2-grid">
+
+              <div class="cr2-card cr2-card-soon">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1.5" y="4" width="14" height="14" rx="2.5"/><path d="M15.5 8.5l5-2.5v10l-5-2.5"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Video Ads</div>
+                <div class="cr2-card-desc">Cinematic brand advertising videos, generated by AI.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-soon-badge">Coming Soon</span>
+                </div>
               </div>
-              <div class="cr-card-arrow"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
-            </div>
-          </div>
 
-        </div>
-
-        <!-- HORIZON — Coming Soon -->
-        <div class="cr-horizon">
-          <div class="cr-horizon-hd">On the Horizon</div>
-          <div class="cr-horizon-list">
-
-            <div class="cr-hor-item cr-hor-motion">
-              <div class="cr-hor-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
-                  <path d="M19 12h4M19 8V4M19 20v-4"/>
-                </svg>
+              <div class="cr2-card cr2-card-soon">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 18a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3.5l2-3h7l2 3H19a2 2 0 0 1 2 2z"/><circle cx="11" cy="13" r="4"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Product Shoots</div>
+                <div class="cr2-card-desc">AI product photography for ecommerce, ads, and campaigns.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-soon-badge">Coming Soon</span>
+                </div>
               </div>
-              <div class="cr-hor-body">
-                <div class="cr-hor-title">Motion Graphics</div>
-                <div class="cr-hor-sub">Animations & logo motion</div>
-              </div>
-              <span class="cr-hor-badge">Soon</span>
-            </div>
 
-            <div class="cr-hor-item cr-hor-shoots">
-              <div class="cr-hor-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
+              <div class="cr2-card cr2-card-soon">
+                <div class="cr2-card-ico">
+                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="4 2.5 18 11 4 19.5 4 2.5"/><path d="M18 11h4M18 7V3.5M18 18.5V15"/>
+                  </svg>
+                </div>
+                <div class="cr2-card-title">Motion Graphics</div>
+                <div class="cr2-card-desc">Animated brand assets, logo motion, and video intros.</div>
+                <div class="cr2-card-foot">
+                  <span class="cr2-soon-badge">Coming Soon</span>
+                </div>
               </div>
-              <div class="cr-hor-body">
-                <div class="cr-hor-title">Product Shoots</div>
-                <div class="cr-hor-sub">AI product photography</div>
-              </div>
-              <span class="cr-hor-badge">Soon</span>
-            </div>
 
-          </div>
-        </div>
+            </div><!-- /.cr2-grid (coming soon) -->
+          </div><!-- /.cr2-coming -->
 
-      </div>
-    </div>
+        </div><!-- /#crActive -->
+
+      </div><!-- /.cr2-wrap -->
+    </div><!-- /#page-create -->
+
 
     <!-- CREATE WORKSPACE -->
     <div class="page" id="page-create-workspace">
@@ -2081,6 +1987,7 @@
 <script src="create-flow.js"></script>
 <script src="ugc.js"></script>
 <script src="videoads.js"></script>
+<script src="productshoots.js"></script>
 <script src="inspiration.js"></script>
 
 <!-- ════════════════════════════════════════════════════════════
@@ -2148,39 +2055,211 @@
 </div>
 
 
-<!-- UGC RESULT OVERLAY — shown after cfOverlay flow completes -->
-<!-- VIDEO ADS RESULT OVERLAY -->
-<div id="vaOverlay" class="cf-overlay" style="display:none;opacity:0" role="dialog" aria-modal="true" aria-label="Video Ads Generator">
+<!-- VIDEO ADS OVERLAY — self-contained multi-phase creator -->
+<div id="vaOverlay" class="cf-overlay" style="display:none;opacity:0" role="dialog" aria-modal="true" aria-label="Video Ads Creator">
   <div class="cf-panel va-panel">
 
+    <!-- Topbar -->
     <div class="cf-topbar">
       <div class="cf-type-pill">
         <span class="cf-type-icon">
-          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3.5" width="13" height="13" rx="2.5"/><path d="M14.5 7.5L18.5 5v10l-4-2.5"/><polygon points="7 8 7 12.5 11.5 10.2" fill="currentColor" stroke="none"/></svg>
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3.5" width="13" height="13" rx="2.5"/><path d="M14.5 7.5L18.5 5v10l-4-2.5"/><polygon points="7 8 7 12.5 11.5 10.2" fill="#F0B429" stroke="none"/></svg>
         </span>
         <span class="cf-type-label">Video Ads</span>
       </div>
-      <button class="cf-close-btn" onclick="vaClose()" aria-label="Close">
-        <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
-      </button>
+      <div class="va-topbar-right">
+        <button id="vaBackBtn" class="va-back-btn" onclick="vaBack()" style="display:none" aria-label="Back">
+          <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 1L3 6l5 5"/></svg>
+          Back
+        </button>
+        <button class="cf-close-btn" onclick="vaClose()" aria-label="Close">
+          <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
+        </button>
+      </div>
     </div>
 
-    <div class="va-body">
-      <div id="vaStatusWrap" class="va-status-wrap"></div>
-      <div id="vaVideoWrap" style="display:none">
-        <div id="vaVideoFrame" class="va-video-frame">
-          <video id="vaVideoEl" controls playsinline class="va-video-el"></video>
+    <!-- PHASE 1: Mode Selection -->
+    <div id="vaPhaseMode" class="va-phase">
+      <div class="va-phase-header">
+        <h3 class="va-phase-title">How do you want to create?</h3>
+        <p class="va-phase-sub">Choose your approach — each mode uses Luma AI to generate the video.</p>
+      </div>
+      <div class="va-modes">
+
+        <div class="va-mode-card va-mode-recommended" onclick="vaSelectMode('ai')" role="button" tabindex="0">
+          <div class="va-mode-icon">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2l1.5 4h4l-3.3 2.4 1.3 4L10 10l-3.5 2.4 1.3-4L4.5 6h4z"/></svg>
+          </div>
+          <div class="va-mode-body">
+            <div class="va-mode-name">AI Creates Everything</div>
+            <div class="va-mode-desc">Describe your product and goal — AI writes a cinematic script and generates your video</div>
+          </div>
+          <div class="va-mode-badge">Recommended</div>
+          <div class="va-mode-arrow"><svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
         </div>
-        <p class="va-dl-hint">Use the ⋯ menu on the video to download.</p>
+
+        <div class="va-mode-card" onclick="vaSelectMode('script')" role="button" tabindex="0">
+          <div class="va-mode-icon">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h12M4 9h8M4 13h5"/></svg>
+          </div>
+          <div class="va-mode-body">
+            <div class="va-mode-name">Create From Script</div>
+            <div class="va-mode-desc">Write your own script or creative brief and let Luma generate the video</div>
+          </div>
+          <div class="va-mode-arrow"><svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
+        </div>
+
+        <div class="va-mode-card" onclick="vaSelectMode('image')" role="button" tabindex="0">
+          <div class="va-mode-icon">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="16" height="13" rx="2.5"/><circle cx="7" cy="8.5" r="1.5"/><path d="M2 14l4.5-4 3 3 2.5-2 4 4"/></svg>
+          </div>
+          <div class="va-mode-body">
+            <div class="va-mode-name">Animate an Image</div>
+            <div class="va-mode-desc">Turn an existing image or Oriven-generated visual into a video ad</div>
+          </div>
+          <div class="va-mode-arrow"><svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg></div>
+        </div>
+
       </div>
-      <div id="vaRetryRow" class="uc-action-row" style="display:none">
-        <button class="btn btn-g" onclick="vaStartOver()">Try Again</button>
+    </div>
+
+    <!-- PHASE 2a: AI Script Form -->
+    <div id="vaPhaseAI" class="va-phase" style="display:none">
+      <div class="va-form">
+        <div class="va-form-row">
+          <label class="va-label" for="vaAiProduct">What are you promoting? *</label>
+          <input id="vaAiProduct" class="va-input" placeholder="e.g. Our new SaaS dashboard, Luxury skincare serum, Summer shoe collection">
+        </div>
+        <div class="va-form-row">
+          <label class="va-label" for="vaAiBrand">Brand name</label>
+          <input id="vaAiBrand" class="va-input" placeholder="e.g. Oriven">
+        </div>
+        <div class="va-form-row">
+          <label class="va-label" for="vaAiAudience">Target audience</label>
+          <input id="vaAiAudience" class="va-input" placeholder="e.g. Founders aged 28–45 interested in growth tools">
+        </div>
+        <div class="va-form-row">
+          <label class="va-label">Ad goal</label>
+          <div class="va-pill-select" id="vaAiGoalPills">
+            <button class="va-pill-opt active" data-val="awareness">Brand Awareness</button>
+            <button class="va-pill-opt" data-val="conversion">Drive Conversions</button>
+            <button class="va-pill-opt" data-val="engagement">Social Engagement</button>
+            <button class="va-pill-opt" data-val="launch">Product Launch</button>
+          </div>
+        </div>
+        <div class="va-form-row">
+          <label class="va-label">Visual style</label>
+          <div class="va-pill-select" id="vaAiStylePills">
+            <button class="va-pill-opt active" data-val="cinematic">Cinematic</button>
+            <button class="va-pill-opt" data-val="minimal">Minimal</button>
+            <button class="va-pill-opt" data-val="bold">Bold</button>
+            <button class="va-pill-opt" data-val="luxury">Luxury</button>
+            <button class="va-pill-opt" data-val="energetic">Energetic</button>
+          </div>
+        </div>
+        <div class="va-form-row">
+          <label class="va-label">Preset</label>
+          <div class="va-presets-row" id="vaAiPresets">
+            <button class="va-preset-btn" data-style="cinematic" data-goal="launch">Product Ad</button>
+            <button class="va-preset-btn" data-style="luxury" data-goal="awareness">Brand Story</button>
+            <button class="va-preset-btn" data-style="energetic" data-goal="engagement">Social Ad</button>
+            <button class="va-preset-btn" data-style="minimal" data-goal="conversion">SaaS Promo</button>
+            <button class="va-preset-btn" data-style="luxury" data-goal="conversion">Luxury Commercial</button>
+            <button class="va-preset-btn" data-style="bold" data-goal="launch">Startup Launch</button>
+            <button class="va-preset-btn" data-style="energetic" data-goal="awareness">Lifestyle Ad</button>
+            <button class="va-preset-btn" data-style="minimal" data-goal="engagement">UGC Style</button>
+          </div>
+        </div>
+        <div class="va-form-row">
+          <label class="va-label">Duration</label>
+          <div class="va-pill-select" id="vaAiDurPills">
+            <button class="va-pill-opt active" data-val="5">5 seconds</button>
+            <button class="va-pill-opt" data-val="10">10 seconds</button>
+          </div>
+        </div>
+        <div class="va-form-actions">
+          <button class="va-generate-btn" onclick="vaGenerateAI()">Generate Video Ad →</button>
+        </div>
       </div>
-      <div id="vaNewRow" class="uc-action-row" style="display:none">
-        <button class="btn btn-p" style="display:flex;align-items:center;gap:7px" onclick="vaStartOver()">
-          <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3.5" width="9" height="9" rx="2"/><path d="M10.5 7l4-1.5v6L10.5 10"/></svg>
-          Create Another
-        </button>
+    </div>
+
+    <!-- PHASE 2b: Script Form -->
+    <div id="vaPhaseScript" class="va-phase" style="display:none">
+      <div class="va-form">
+        <div class="va-form-row">
+          <label class="va-label" for="vaScriptText">Your script or creative brief *</label>
+          <textarea id="vaScriptText" class="va-textarea" rows="6" placeholder="Describe your video in detail: mood, visuals, messaging, camera movement. The more specific, the better the result.&#10;&#10;Example: A sleek product reveal shot in a minimal white studio. Camera slowly orbits the product. Warm rim lighting. Premium lifestyle feel. Ends on the brand logo."></textarea>
+        </div>
+        <div class="va-form-row">
+          <label class="va-label">Visual style</label>
+          <div class="va-pill-select" id="vaScriptStylePills">
+            <button class="va-pill-opt active" data-val="cinematic">Cinematic</button>
+            <button class="va-pill-opt" data-val="minimal">Minimal</button>
+            <button class="va-pill-opt" data-val="bold">Bold</button>
+            <button class="va-pill-opt" data-val="luxury">Luxury</button>
+            <button class="va-pill-opt" data-val="energetic">Energetic</button>
+          </div>
+        </div>
+        <div class="va-form-row">
+          <label class="va-label">Duration</label>
+          <div class="va-pill-select" id="vaScriptDurPills">
+            <button class="va-pill-opt active" data-val="5">5 seconds</button>
+            <button class="va-pill-opt" data-val="10">10 seconds</button>
+          </div>
+        </div>
+        <div class="va-form-actions">
+          <button class="va-generate-btn" onclick="vaGenerateScript()">Generate Video →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 2c: Image to Video Form -->
+    <div id="vaPhaseImage" class="va-phase" style="display:none">
+      <div class="va-form">
+        <div class="va-form-row">
+          <label class="va-label" for="vaImgUrl1">Start image URL *</label>
+          <input id="vaImgUrl1" class="va-input" type="url" placeholder="https://...your-image.jpg or .png">
+          <p class="va-input-hint">Paste a direct image URL — works with Oriven-generated visuals or any public image link</p>
+        </div>
+        <div class="va-form-row">
+          <label class="va-label" for="vaImgUrl2">End image URL <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <input id="vaImgUrl2" class="va-input" type="url" placeholder="https://...end-frame.jpg">
+          <p class="va-input-hint">Add a second image to control the final frame — creates a smooth transition between two visuals</p>
+        </div>
+        <div class="va-form-row">
+          <label class="va-label" for="vaImgPrompt">Animation prompt <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <input id="vaImgPrompt" class="va-input" placeholder="e.g. Slow cinematic pull back, golden light, premium feel">
+          <p class="va-input-hint">Describe the motion and mood — leave empty to let Luma decide</p>
+        </div>
+        <div class="va-form-row">
+          <label class="va-label">Duration</label>
+          <div class="va-pill-select" id="vaImgDurPills">
+            <button class="va-pill-opt active" data-val="5">5 seconds</button>
+            <button class="va-pill-opt" data-val="10">10 seconds</button>
+          </div>
+        </div>
+        <div class="va-form-actions">
+          <button class="va-generate-btn" onclick="vaGenerateImage()">Animate Image →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 3: Generation status + result -->
+    <div id="vaPhaseResult" class="va-phase" style="display:none">
+      <div class="va-body" style="padding:0">
+        <div id="vaStatusWrap" class="va-status-wrap"></div>
+        <div id="vaVideoWrap" style="display:none">
+          <div id="vaVideoFrame" class="va-video-frame">
+            <video id="vaVideoEl" controls playsinline class="va-video-el"></video>
+          </div>
+          <p class="va-dl-hint">Use the ⋯ menu on the video to download.</p>
+        </div>
+        <div id="vaRetryRow" class="uc-action-row" style="display:none">
+          <button class="va-generate-btn" style="max-width:200px;margin:0 auto" onclick="vaBack()">Try Again</button>
+        </div>
+        <div id="vaNewRow" class="uc-action-row" style="display:none">
+          <button class="va-generate-btn" onclick="vaStartOver()">Create Another Video Ad</button>
+        </div>
       </div>
     </div>
 
@@ -2217,6 +2296,42 @@
         <button class="btn btn-p" style="display:flex;align-items:center;gap:7px" onclick="ucStartOver()">
           <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3.5" width="9" height="9" rx="2"/><path d="M10.5 7l4-1.5v6L10.5 10"/></svg>
           Create Another
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PRODUCT SHOOTS RESULT OVERLAY -->
+<div id="psOverlay" class="cf-overlay" style="display:none;opacity:0" role="dialog" aria-modal="true" aria-label="Product Shoots Generator">
+  <div class="cf-panel ps-panel">
+
+    <div class="cf-topbar">
+      <div class="cf-type-pill">
+        <span class="cf-type-icon">
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h3l2-2.5h4L14 5h3a2 2 0 0 1 2 2z"/><circle cx="10" cy="11" r="3.5"/></svg>
+        </span>
+        <span class="cf-type-label">Product Shoots</span>
+      </div>
+      <button class="cf-close-btn" onclick="psClose()" aria-label="Close">
+        <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
+      </button>
+    </div>
+
+    <div class="ps-body">
+      <div id="psStatusWrap" class="ps-status-wrap"></div>
+      <div id="psResultWrap" class="ps-result-wrap" style="display:none">
+        <div id="psImageGrid" class="ps-image-grid"></div>
+        <p class="ps-dl-hint">Hover any image to reveal the download button.</p>
+      </div>
+      <div id="psRetryRow" class="uc-action-row" style="display:none">
+        <button class="btn btn-g" onclick="psStartOver()">Try Again</button>
+      </div>
+      <div id="psNewRow" class="uc-action-row" style="display:none">
+        <button class="btn btn-p" style="display:flex;align-items:center;gap:7px" onclick="psStartOver()">
+          <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7"/><circle cx="10" cy="11" r="3.5"/></svg>
+          New Shoot
         </button>
       </div>
     </div>

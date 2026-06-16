@@ -527,63 +527,6 @@ var CF_FLOWS = {
     }
   ],
 
-  // ── Video Ads ─────────────────────────────────────────────────
-  videoads: [
-    {
-      key:         "vaBrand",
-      q:           "What is your brand name?",
-      desc:        "This anchors the video to your brand identity and BrandCore.",
-      type:        "textarea",
-      placeholder: "e.g. ORIVEN, Nike, Huel, Notion, Gymshark…",
-      optional:    false
-    },
-    {
-      key:         "vaProduct",
-      q:           "What are you advertising?",
-      desc:        "Name the specific product, service, or offer this video is for.",
-      type:        "textarea",
-      placeholder: "e.g. Premium Creatine, AI Branding Platform, Monthly Membership, New Collection…",
-      optional:    false
-    },
-    {
-      key:         "vaConcept",
-      q:           "Describe your video concept.",
-      desc:        "The visual idea, setting, or scene. The more specific, the better the result.",
-      type:        "textarea",
-      placeholder: "e.g. Athlete training at dawn with dramatic lighting. Founder working at a minimal desk with soft focus brand product in foreground.",
-      optional:    false
-    },
-    {
-      key:         "vaAudience",
-      q:           "Who is this video targeting?",
-      desc:        "Be specific — this shapes tone, pacing, and emotional angle.",
-      type:        "textarea",
-      placeholder: "e.g. Gym enthusiasts aged 18–35. Startup founders. DTC brand owners. Luxury consumers.",
-      optional:    false
-    },
-    {
-      key:  "vaStyle",
-      q:    "What style should the video have?",
-      desc: "This drives the mood, pacing, and visual language of the ad.",
-      options: [
-        { val: "cinematic",   label: "Cinematic",   desc: "Sweeping, evocative, emotionally charged" },
-        { val: "minimal",     label: "Minimal",      desc: "Clean, spacious, premium restraint" },
-        { val: "bold",        label: "Bold",         desc: "High contrast, punchy, direct impact" },
-        { val: "luxury",      label: "Luxury",       desc: "Slow, deliberate, aspirational refinement" },
-        { val: "energetic",   label: "Energetic",    desc: "Fast, dynamic, high-intensity movement" }
-      ]
-    },
-    {
-      key:  "vaLength",
-      q:    "Target video length?",
-      desc: "Luma AI generates short-form video clips.",
-      options: [
-        { val: "5", label: "5 seconds", desc: "Punchy — perfect for paid social hooks" },
-        { val: "9", label: "9 seconds", desc: "Extended — more room for storytelling" }
-      ]
-    }
-  ],
-
   infographic: [
     {
       key:  "infographicType",
@@ -640,6 +583,76 @@ var CF_FLOWS = {
       placeholder: "e.g. Lead with the biggest statistic. Use brand green as accent. Include icons for each step.",
       optional:    true
     }
+  ],
+
+  // ── Product Shoots ─────────────────────────────────────────────
+  productshoots: [
+    {
+      key:         "psProduct",
+      q:           "What product are you showcasing?",
+      desc:        "Name the product you want photographed — be specific for better results.",
+      type:        "textarea",
+      placeholder: "e.g. Minimalist ceramic mug, Wireless noise-cancelling earbuds, Vitamin C serum bottle",
+      optional:    false
+    },
+    {
+      key:  "psType",
+      q:    "What type of product is it?",
+      desc: "This shapes the photography context, lighting, and environment.",
+      options: [
+        { val: "tech",     label: "Tech & Electronics", desc: "Gadgets, devices, accessories" },
+        { val: "fashion",  label: "Fashion & Apparel",  desc: "Clothing, footwear, accessories" },
+        { val: "beauty",   label: "Beauty & Skincare",  desc: "Cosmetics, fragrances, wellness" },
+        { val: "food",     label: "Food & Beverage",    desc: "Packaged products, drinks" },
+        { val: "home",     label: "Home & Lifestyle",   desc: "Homewares, decor, furniture" },
+        { val: "luxury",   label: "Luxury & Premium",   desc: "High-end goods, jewellery" }
+      ]
+    },
+    {
+      key:  "psStyle",
+      q:    "What style of shoot?",
+      desc: "Sets the mood, lighting, and visual language of the photograph.",
+      options: [
+        { val: "studio",       label: "Studio Clean",      desc: "Professional studio, pure background" },
+        { val: "luxury_dark",  label: "Luxury Dark",       desc: "Dramatic shadows, premium materials" },
+        { val: "minimal",      label: "Minimal White",     desc: "Bright, airy, ecommerce-ready" },
+        { val: "lifestyle",    label: "Lifestyle",         desc: "In-context, aspirational setting" },
+        { val: "dark_premium", label: "Dark Premium",      desc: "Moodboard-style, deep tones" },
+        { val: "bright_ecom",  label: "Bright Ecommerce",  desc: "High-key, conversion-optimised" }
+      ]
+    },
+    {
+      key:  "psBackground",
+      q:    "Background preference?",
+      desc: "The surface and environment surrounding the product.",
+      options: [
+        { val: "white",     label: "Pure White",       desc: "Clean, ecommerce standard" },
+        { val: "black",     label: "Black Studio",     desc: "Dramatic, premium feel" },
+        { val: "luxury",    label: "Textured Luxury",  desc: "Marble, stone, or premium materials" },
+        { val: "lifestyle", label: "Natural Setting",  desc: "Real-world editorial context" },
+        { val: "gradient",  label: "Soft Gradient",    desc: "Tonal gradient backdrop" }
+      ]
+    },
+    {
+      key:  "psRatio",
+      q:    "Aspect ratio?",
+      desc: "Choose the format for your intended use.",
+      options: [
+        { val: "1:1",  label: "Square 1:1",    desc: "Instagram, marketplace listings" },
+        { val: "4:5",  label: "Portrait 4:5",  desc: "Instagram feed, stories preview" },
+        { val: "16:9", label: "Landscape 16:9", desc: "Web banners, presentations" }
+      ]
+    },
+    {
+      key:  "psCount",
+      q:    "How many images?",
+      desc: "Each image is independently generated — more gives you variety to choose from.",
+      options: [
+        { val: "1", label: "1 Image",  desc: "Single focused shot (2 credits)" },
+        { val: "2", label: "2 Images", desc: "A/B hero shots (4 credits)" },
+        { val: "4", label: "4 Images", desc: "Full ecommerce set (8 credits)" }
+      ]
+    }
   ]
 
 };
@@ -688,10 +701,10 @@ var CF_META = {
     label: "Infographic",
     icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="4" height="10" rx="1"/><rect x="8" y="4" width="4" height="13" rx="1"/><rect x="15" y="1" width="4" height="16" rx="1"/></svg>'
   },
-  videoads: {
-    label: "Video Ads",
-    icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3.5" width="13" height="13" rx="2.5"/><path d="M14.5 7.5L18.5 5v10l-4-2.5"/><polygon points="7 8 7 12.5 11.5 10.2" fill="currentColor" stroke="none"/></svg>'
-  }
+  productshoots: {
+    label: "Product Shoots",
+    icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h3l2-2.5h4L14 5h3a2 2 0 0 1 2 2z"/><circle cx="10" cy="11" r="3.5"/></svg>'
+  },
 };
 
 // ── Open ──────────────────────────────────────────────────────
@@ -1275,8 +1288,8 @@ function _cfLaunch(){
     var qEl   = document.getElementById("cfQuestionText");
     var dEl   = document.getElementById("cfQuestionDesc");
     var _typeName = (CF_META[_cfType] && CF_META[_cfType].label) || _cfType;
-    if(qEl)   qEl.textContent = _cfType === "ugc" ? "Generating your UGC video…" : _cfType === "videoads" ? "Generating your video ad…" : "Building your " + _typeName + "…";
-    if(dEl)   dEl.textContent = _cfType === "ugc" ? "Submitting your brief to HeyGen." : _cfType === "videoads" ? "Submitting your brief to Luma AI." : "Sending your brief to ORIVEN AI.";
+    if(qEl)   qEl.textContent = _cfType === "ugc" ? "Generating your UGC video…" : "Building your " + _typeName + "…";
+    if(dEl)   dEl.textContent = _cfType === "ugc" ? "Submitting your brief to HeyGen." : "Sending your brief to ORIVEN AI.";
 
     if(block){
       block.style.transition = "none";
@@ -1293,8 +1306,8 @@ function _cfLaunch(){
       closeAIFlow();
       if(_cfType === "ugc"){
         _cfDispatchUGC();
-      } else if(_cfType === "videoads"){
-        _cfDispatchVideoAds();
+      } else if(_cfType === "productshoots"){
+        _cfDispatchProductShoots();
       } else {
         _cfDispatch();
       }
@@ -1427,22 +1440,20 @@ function _cfDispatchUGC(){
   }, 280);
 }
 
-// ── Video Ads flow dispatch — opens result overlay + triggers generation ──
-function _cfDispatchVideoAds(){
+// ── Product Shoots dispatch — opens result overlay + triggers generation ──
+function _cfDispatchProductShoots(){
   var a = _cfAnswers;
 
-  // Reset result UI
-  var statusWrap = document.getElementById("vaStatusWrap");
-  var videoWrap  = document.getElementById("vaVideoWrap");
-  var retryRow   = document.getElementById("vaRetryRow");
-  var newRow     = document.getElementById("vaNewRow");
+  var statusWrap = document.getElementById("psStatusWrap");
+  var resultWrap = document.getElementById("psResultWrap");
+  var retryRow   = document.getElementById("psRetryRow");
+  var newRow     = document.getElementById("psNewRow");
   if(statusWrap) statusWrap.innerHTML      = "";
-  if(videoWrap)  videoWrap.style.display   = "none";
+  if(resultWrap) resultWrap.style.display  = "none";
   if(retryRow)   retryRow.style.display    = "none";
   if(newRow)     newRow.style.display      = "none";
 
-  // Open the result overlay
-  var overlay = document.getElementById("vaOverlay");
+  var overlay = document.getElementById("psOverlay");
   if(overlay){
     overlay.style.display    = "flex";
     overlay.style.opacity    = "0";
@@ -1455,9 +1466,8 @@ function _cfDispatchVideoAds(){
     });
   }
 
-  // Trigger generation after overlay is visible
   setTimeout(function(){
-    if(typeof vaGenerateFromFlow === "function") vaGenerateFromFlow(a);
+    if(typeof psGenerateFromFlow === "function") psGenerateFromFlow(a);
   }, 280);
 }
 

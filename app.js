@@ -535,11 +535,39 @@ document.querySelectorAll(".mbk").forEach(function(b){
 });
 
 // ═══════════════════════════════════════════════════════════════
-// CREATE
+// CREATE — Card Grid
 // ═══════════════════════════════════════════════════════════════
-function _createRefreshHero(){
-  var dot = document.getElementById("crEyebrowDot");
-  if(dot) dot.className = "cr-eyebrow-dot" + (S.brandCore ? " active" : "");
+function _createRefreshHero(){ crRefresh(); }
+
+function crRefresh(){
+  var empty  = document.getElementById("crEmpty");
+  var active = document.getElementById("crActive");
+  if(!empty || !active) return;
+
+  if(S.brandCore){
+    empty.style.display  = "none";
+    active.style.display = "";
+
+    var nameEl = document.getElementById("crBrandName");
+    if(nameEl) nameEl.textContent = S.brandCore.name || "Your Brand";
+
+    var brandName = S.brandCore.name || "your Brand Core";
+    document.querySelectorAll(".cr2-brand-ref").forEach(function(el){
+      el.textContent = brandName;
+    });
+
+    var updEl = document.getElementById("crBrandUpdated");
+    if(updEl){
+      var d = S.brandCore.updatedAt || S.brandCore.updated_at ||
+              S.brandCore.createdAt || S.brandCore.created_at;
+      updEl.textContent = d
+        ? new Date(d).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+        : "Recently";
+    }
+  } else {
+    empty.style.display  = "";
+    active.style.display = "none";
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════

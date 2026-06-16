@@ -564,21 +564,24 @@ function extractHtml(raw) {
   return s;
 }
 
-// ── DALL-E 3 supported sizes: 1024x1024 | 1024x1792 | 1792x1024 ─
+// ── gpt-image-1 supported sizes: 1024x1024 | 1024x1536 | 1536x1024 ─
 async function callDallE(imagePrompt, size = '1024x1024') {
   const client = _getOpenAI();
   if (!client) throw new Error('OpenAI API key not configured (OPENAI_API_KEY missing)');
-  const validSizes = ['1024x1024', '1024x1792', '1792x1024'];
+  const validSizes = ['1024x1024', '1024x1536', '1536x1024'];
   const safeSize   = validSizes.includes(size) ? size : '1024x1024';
 
   const response = await client.images.generate({
-    model:   'dall-e-3',
+    model:   'gpt-image-1',
     prompt:  imagePrompt,
     n:       1,
     size:    safeSize,
-    quality: 'hd',
+    quality: 'high',
   });
-  return response.data[0].url;
+  const item = response.data[0];
+  if (item.url)      return item.url;
+  if (item.b64_json) return `data:image/png;base64,${item.b64_json}`;
+  throw new Error('No image URL or data in OpenAI response');
 }
 
 // ── Extract a concise DALL-E image prompt from a structured brief ─
@@ -2444,24 +2447,18 @@ app.get('/api/ugc-video-status/:videoId', async (req, res) => {
 
 // ── GET /api/video-ads/test-auth ──────────────────────────────────
 // Diagnostic-only route — no Oriven user auth required.
-// Confirms whether LUMA_API_KEY is accepted by the Luma API.
-// Remove this route once the integration is confirmed working.
+// Confirms whether LUMA_API_KEY is accepted by the Luma Agents API.
+// Remove this route once the integration is confirmed working in production.
 app.get('/api/video-ads/test-auth', async (req, res) => {
-  // No getUserFromToken() here — this endpoint is intentionally open
-  // so it can be called directly (curl, browser tab) without a session.
-
   const apiKey = (process.env.LUMA_API_KEY || '').trim();
   if (!apiKey) return res.status(503).json({ error: 'LUMA_API_KEY not set' });
 
-  const LUMA_BASE = 'https://api.lumalabs.ai/dream-machine/v1';
+  const AGENTS_BASE = 'https://agents.lumalabs.ai/v1';
 
-  // Try three endpoints in order — first success wins.
-  // This tells us exactly which paths Luma accepts with this key.
   const tests = [
-    { label: 'GET /generations?limit=1',      url: `${LUMA_BASE}/generations?limit=1` },
-    { label: 'GET /generations/camera_motion/list', url: `${LUMA_BASE}/generations/camera_motion/list` },
-    { label: 'POST /generations (dry-run body)',    url: `${LUMA_BASE}/generations`, method: 'POST',
-      body: JSON.stringify({ prompt: 'test', model: 'ray-2', aspect_ratio: '16:9' }) },
+    { label: 'POST /generations (Agents API, ray-3.2)', url: `${AGENTS_BASE}/generations`, method: 'POST',
+      body: JSON.stringify({ model: 'ray-3.2', type: 'video', prompt: 'diagnostic test',
+        aspect_ratio: '16:9', video: { resolution: '720p', duration: '5s' } }) },
   ];
 
   const results = [];
@@ -2482,7 +2479,6 @@ app.get('/api/video-ads/test-auth', async (req, res) => {
       try { body = JSON.stringify(await r.json()); } catch (_) { body = await r.text(); }
       console.log('[VideoAds/test-auth] ←', r.status, body.slice(0, 300));
       results.push({ label: t.label, status: r.status, body: body.slice(0, 500) });
-      if (r.ok) break; // stop on first success
     } catch (err) {
       console.error('[VideoAds/test-auth] network error:', err.message);
       results.push({ label: t.label, status: 'network-error', body: err.message });
@@ -2498,56 +2494,101 @@ app.get('/api/video-ads/test-auth', async (req, res) => {
 });
 
 // ── POST /api/video-ads/generate ──────────────────────────────────
-// Builds a Luma AI prompt via Anthropic then submits to Luma Dream Machine.
+// Three modes: 'ai' (Anthropic builds prompt) | 'script' (user prompt) | 'image' (image-to-video)
 // LUMA_API_KEY is read from env only — never hardcoded or sent to frontend.
 app.post('/api/video-ads/generate', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const { brand, product, concept, audience, style, length } = req.body || {};
-  if (!concept || !concept.trim()) return res.status(400).json({ error: 'Video concept is required' });
+  const { mode, brand, product, audience, goal, style, script, imageUrl, imageUrl2, prompt, length } = req.body || {};
+
+  // Validate duration first — Luma only accepts "5s" or "10s"
+  const normLength = String(length || '5').replace(/[^0-9]/g, '');
+  if (normLength !== '5' && normLength !== '10') {
+    return res.status(400).json({ error: `Invalid duration "${length}" — must be 5 or 10 seconds` });
+  }
 
   const apiKey = (process.env.LUMA_API_KEY || '').trim();
-  console.log('[VideoAds] LUMA KEY EXISTS:', !!apiKey, '| length:', apiKey.length, '| prefix:', apiKey.slice(0, 12));
   if (!apiKey) return res.status(503).json({ error: 'Video Ads service is not configured — set LUMA_API_KEY in Render environment variables' });
 
-  // Step 1: Use Anthropic to craft a rich cinematic Luma prompt
+  const { generateVideo } = require('./services/lumaService');
+
+  // ── Image-to-video mode ───────────────────────────────────────
+  if (mode === 'image') {
+    if (!imageUrl || !imageUrl.trim()) return res.status(400).json({ error: 'An image URL is required for image-to-video.' });
+    const keyframes = { frame0: { type: 'image', url: imageUrl.trim() } };
+    if (imageUrl2 && imageUrl2.trim()) keyframes.frame1 = { type: 'image', url: imageUrl2.trim() };
+    const lumaPrompt = (prompt && prompt.trim()) || '';
+    console.log('[VideoAds/image] keyframes:', JSON.stringify(keyframes), '| prompt:', lumaPrompt.slice(0, 80));
+    try {
+      const result = await generateVideo(lumaPrompt, '16:9', apiKey, { duration: length, keyframes });
+      console.log('[VideoAds/image] Generation started:', result.id, '— user:', user.id);
+      return res.json({ generationId: result.id, status: result.state || 'queued' });
+    } catch (err) {
+      console.error('[VideoAds/image] Luma error:', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── Script mode — user provides the creative brief directly ──
+  if (mode === 'script') {
+    if (!script || !script.trim()) return res.status(400).json({ error: 'A script or creative brief is required.' });
+    const lumaPrompt = [
+      script.trim(),
+      style ? `Visual style: ${style}.` : '',
+      'High production quality, professional video advertisement.',
+    ].filter(Boolean).join(' ');
+    console.log('[VideoAds/script] prompt:', lumaPrompt.slice(0, 120));
+    try {
+      const result = await generateVideo(lumaPrompt, '16:9', apiKey, { duration: length });
+      console.log('[VideoAds/script] Generation started:', result.id, '— user:', user.id);
+      return res.json({ generationId: result.id, status: result.state || 'queued' });
+    } catch (err) {
+      console.error('[VideoAds/script] Luma error:', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── AI mode (default) — Anthropic builds a cinematic prompt ──
+  if (!product || !product.trim()) return res.status(400).json({ error: 'Product or promotion description is required.' });
+
   let lumaPrompt;
   try {
-    const system = `You are an expert video ad director writing prompts for Luma AI Dream Machine.
-Generate one vivid, cinematic video prompt of 80–150 words.
-Focus on: camera movement, lighting, mood, subjects, brand feeling, and visual storytelling.
-Reply ONLY with the prompt — no quotes, no preamble.`;
+    const systemPrompt = `You are an expert video advertising director writing prompts for Luma AI Ray 3.2.
+Write one vivid, cinematic video ad prompt of 80–150 words.
+Focus on: camera movement, lighting, mood, visual storytelling, and brand feeling.
+The output is a video generation prompt — not a script. Describe what the viewer SEES.
+Reply ONLY with the prompt. No quotes, no preamble, no explanation.`;
 
-    const userMsg = [
-      brand    ? `Brand: ${brand}`       : '',
-      product  ? `Product: ${product}`   : '',
-      concept  ? `Concept: ${concept}`   : '',
-      audience ? `Audience: ${audience}` : '',
-      style    ? `Style: ${style}`       : '',
-      length   ? `Duration: ~${length}s` : '',
+    const userContext = [
+      product  ? `Promoting: ${product}`           : '',
+      brand    ? `Brand: ${brand}`                 : '',
+      audience ? `Target audience: ${audience}`    : '',
+      goal     ? `Ad goal: ${goal}`                : '',
+      style    ? `Visual style: ${style}`          : '',
+      length   ? `Duration: approximately ${length} seconds` : '',
     ].filter(Boolean).join('\n');
 
-    lumaPrompt = (await callAnthropic(system, userMsg)).trim();
+    lumaPrompt = (await callAnthropic(systemPrompt, userContext)).trim();
+    console.log('[VideoAds/ai] Anthropic prompt built:', lumaPrompt.slice(0, 120));
   } catch (err) {
-    console.warn('[VideoAds] Anthropic prompt build failed, using fallback:', err.message);
+    console.warn('[VideoAds/ai] Anthropic build failed, using fallback:', err.message);
     lumaPrompt = [
-      style   ? style + ' cinematic'             : 'cinematic',
-      product ? 'advertisement for ' + product   : 'brand advertisement',
-      concept || '',
-      'high production quality, professional video ad',
+      style   ? `${style} cinematic`                    : 'cinematic',
+      product ? `advertisement for ${product}`          : 'brand advertisement',
+      brand   ? `${brand} brand identity`               : '',
+      goal    ? goal                                    : '',
+      'high production quality, professional video ad.',
     ].filter(Boolean).join(', ');
   }
 
-  // Step 2: Submit to Luma AI
-  const { generateVideo } = require('./services/lumaService');
   try {
     const result = await generateVideo(lumaPrompt, '16:9', apiKey, { duration: length });
-    console.log('[VideoAds] Generation started:', result.id, '— user:', user.id);
+    console.log('[VideoAds/ai] Generation started:', result.id, '— user:', user.id);
     return res.json({ generationId: result.id, status: result.state || 'queued' });
   } catch (err) {
-    console.error('[VideoAds] Luma API error:', err.message);
-    return res.status(500).json({ error: err.message || 'Failed to start video generation' });
+    console.error('[VideoAds/ai] Luma error:', err.message);
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -2559,18 +2600,101 @@ app.get('/api/video-ads/status/:generationId', async (req, res) => {
   const apiKey = (process.env.LUMA_API_KEY || '').trim();
   if (!apiKey) return res.status(503).json({ error: 'Video Ads service is not configured — set LUMA_API_KEY in Render environment variables' });
 
-  const { getVideoStatus } = require('./services/lumaService');
+  const { getVideoStatus, _extractVideoUrl } = require('./services/lumaService');
   try {
     const result = await getVideoStatus(req.params.generationId, apiKey);
+    // Agents API: video URL lives in output[] array, not assets.video
     return res.json({
-      status:        result.state                              || 'unknown',
-      videoUrl:      (result.assets && result.assets.video)   || null,
-      thumbnailUrl:  (result.assets && result.assets.image)   || null,
-      failureReason: result.failure_reason                     || null,
+      status:        result.state           || 'unknown',
+      videoUrl:      _extractVideoUrl(result.output),
+      failureReason: result.failure_reason  || result.failure_code || null,
     });
   } catch (err) {
     console.error('[VideoAds] Status error:', err.message);
     return res.status(500).json({ error: err.message || 'Failed to check video status' });
+  }
+});
+
+// ── POST /api/product-shoots/generate ─────────────────────────────
+// Professional product photography via DALL-E 3.
+// System prompt always biases toward commercial product photography.
+// Anthropic builds the DALL-E prompt from structured user selections.
+app.post('/api/product-shoots/generate', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { product, type, style, background, ratio, count } = req.body || {};
+  if (!product || !product.trim()) return res.status(400).json({ error: 'Product description is required.' });
+
+  const openai = _getOpenAI();
+  if (!openai) return res.status(503).json({ error: 'OpenAI API key not configured.' });
+
+  // Validate count
+  const imageCount = Math.min(parseInt(count || '1', 10), 4);
+  if (isNaN(imageCount) || imageCount < 1) return res.status(400).json({ error: 'Invalid image count.' });
+
+  // Map aspect ratio to gpt-image-1 size (1536px replaces DALL-E 3's 1792px)
+  const sizeMap = { '1:1': '1024x1024', '4:5': '1024x1536', '16:9': '1536x1024' };
+  const dallESize = sizeMap[ratio] || '1024x1024';
+
+  // Style and background descriptors for Anthropic
+  const styleLabels = {
+    studio:       'clean professional studio photography with controlled lighting',
+    luxury_dark:  'luxury dark photography with dramatic directional lighting and deep shadows',
+    minimal:      'minimal bright photography with even soft lighting and airy feel',
+    lifestyle:    'lifestyle photography with the product in a natural aspirational setting',
+    dark_premium: 'dark premium moodboard-style photography with moody rich tones',
+    bright_ecom:  'high-key bright ecommerce photography optimised for conversion',
+  };
+  const bgLabels = {
+    white:     'pure white seamless background',
+    black:     'deep black studio background',
+    luxury:    'luxury textured surface (marble, slate, or polished stone)',
+    lifestyle: 'natural lifestyle setting with subtle environmental context',
+    gradient:  'soft tonal gradient background',
+  };
+
+  const styleDesc = styleLabels[style] || styleLabels.studio;
+  const bgDesc    = bgLabels[background] || bgLabels.white;
+  const typeDesc  = type || 'product';
+
+  // Build product photography prompt via Anthropic
+  let dallEPrompt;
+  try {
+    const system = `You are a professional product photographer and creative director.
+Convert a product brief into a single DALL-E 3 image generation prompt for commercial product photography.
+The output must always describe a real-looking, professionally lit product photograph — not an illustration, render, or painting.
+Always include: lighting setup, camera angle, depth of field, surface/background, and atmosphere.
+The product must be the clear hero of the image.
+Respond ONLY with the prompt text, 180–280 characters. No explanation, no quotes.`;
+
+    const brief = [
+      `Product: ${product.trim()}`,
+      `Category: ${typeDesc}`,
+      `Photography style: ${styleDesc}`,
+      `Background: ${bgDesc}`,
+      ratio ? `Aspect ratio: ${ratio}` : '',
+    ].filter(Boolean).join('\n');
+
+    dallEPrompt = (await callAnthropic(system, brief)).trim();
+    console.log('[ProductShoots] Anthropic prompt:', dallEPrompt.slice(0, 160));
+  } catch (err) {
+    console.warn('[ProductShoots] Anthropic failed, using fallback:', err.message);
+    dallEPrompt = `Professional commercial product photography of ${product.trim()}. ${styleDesc}. ${bgDesc}. Sharp focus, studio lighting, marketing-ready.`;
+  }
+
+  // Generate all images in parallel
+  console.log(`[ProductShoots] Model: gpt-image-1`);
+  console.log(`[ProductShoots] Endpoint: POST /v1/images/generations`);
+  console.log(`[ProductShoots] Size: ${dallESize} | Count: ${imageCount} | User: ${user.id}`);
+  try {
+    const tasks = Array.from({ length: imageCount }, () => callDallE(dallEPrompt, dallESize));
+    const urls  = await Promise.all(tasks);
+    console.log(`[ProductShoots] Response: ${urls.length} image(s) generated successfully`);
+    return res.json({ images: urls, prompt: dallEPrompt });
+  } catch (err) {
+    console.error('[ProductShoots] Response: ERROR —', err.message);
+    return res.status(500).json({ error: err.message || 'Image generation failed.' });
   }
 });
 

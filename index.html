@@ -1,14 +1,15 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ORIVEN — Brand Intelligence Platform. Build your brand once. Create every asset from it. AI-powered campaigns, videos, visuals, and copy — always on-brand.">
-  <title>ORIVEN — Brand Intelligence Platform</title>
+  <meta name=”description” content=”Oriven &mdash; Brand Operating System. Build your brand once. Create every asset from it. AI-powered campaigns, videos, visuals, and copy &mdash; always on-brand.”>
+  <title>Oriven &mdash; Brand Operating System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <style>
     /* Public-page router: all views hidden until the router activates one */
     .pub-view { display: none !important; }
@@ -16,26 +17,27 @@
 </head>
 <body class="public-page">
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: LANDING PAGE
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-landing" class="pub-view">
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      NAVIGATION
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <nav class="lp-nav" id="lpNav">
   <div class="lp-nav-inner">
     <a href="/" class="lp-logo">
       <img src="assets/orivenlogo.png" alt="ORIVEN" class="lp-logo-img">
     </a>
     <div class="lp-nav-links">
-      <a href="#hero"         class="lp-nav-link">Home</a>
-      <a href="#features"     class="lp-nav-link">Features</a>
-      <a href="#how-it-works" class="lp-nav-link">How It Works</a>
-      <a href="#about"         class="lp-nav-link">About</a>
-      <a href="#testimonials"  class="lp-nav-link">Testimonials</a>
-      <a href="#pricing"       class="lp-nav-link">Pricing</a>
-      <a href="#faq"          class="lp-nav-link">FAQ</a>
+      <a class="lp-nav-link lp-nav-active" data-scene="0" onclick="lpGoTo(0)">Home<span class="lp-nav-tip">Overview of Oriven</span></a>
+      <a class="lp-nav-link" data-scene="1" onclick="lpGoTo(1)">About<span class="lp-nav-tip">What Oriven is</span></a>
+      <a class="lp-nav-link" data-scene="2" onclick="lpGoTo(2)">AI Systems<span class="lp-nav-tip">The technology behind Oriven</span></a>
+      <a class="lp-nav-link" data-scene="3" onclick="lpGoTo(3)">Process<span class="lp-nav-tip">How Oriven builds brands</span></a>
+      <a class="lp-nav-link" data-scene="4" onclick="lpGoTo(4)">Reviews<span class="lp-nav-tip">What users think</span></a>
+      <a class="lp-nav-link" data-scene="5" onclick="lpGoTo(5)">Pricing<span class="lp-nav-tip">Plans and pricing</span></a>
+      <a class="lp-nav-link" data-scene="6" onclick="lpGoTo(6)">FAQ<span class="lp-nav-tip">Common questions</span></a>
+      <a class="lp-nav-link" data-scene="7" onclick="lpGoTo(7)">Contact<span class="lp-nav-tip">Get in touch</span></a>
     </div>
     <div class="lp-nav-right">
       <a href="/login" class="lp-nav-login">Log In</a>
@@ -49,1099 +51,843 @@
 
 <!-- Mobile menu -->
 <div class="lp-mobile-menu" id="lpMobileMenu">
-  <a href="#hero"         class="lp-mobile-link" onclick="closeMobile()">Home</a>
-  <a href="#features"     class="lp-mobile-link" onclick="closeMobile()">Features</a>
-  <a href="#how-it-works" class="lp-mobile-link" onclick="closeMobile()">How It Works</a>
-  <a href="#about"         class="lp-mobile-link" onclick="closeMobile()">About</a>
-  <a href="#testimonials"  class="lp-mobile-link" onclick="closeMobile()">Testimonials</a>
-  <a href="#pricing"       class="lp-mobile-link" onclick="closeMobile()">Pricing</a>
-  <a href="#faq"          class="lp-mobile-link" onclick="closeMobile()">FAQ</a>
-  <a href="/login"         class="lp-mobile-link" style="color:var(--lp-muted)">Log In</a>
-  <a href="#pricing" class="lp-mobile-cta" onclick="lpGetStarted(event)">Get Started →</a>
+  <a class="lp-mobile-link" onclick="lpGoTo(0);closeMobile()">Home</a>
+  <a class="lp-mobile-link" onclick="lpGoTo(1);closeMobile()">About</a>
+  <a class="lp-mobile-link" onclick="lpGoTo(2);closeMobile()">AI Systems</a>
+  <a class="lp-mobile-link" onclick="lpGoTo(3);closeMobile()">Process</a>
+  <a class="lp-mobile-link" onclick="lpGoTo(4);closeMobile()">Reviews</a>
+  <a class="lp-mobile-link" onclick="lpGoTo(5);closeMobile()">Pricing</a>
+  <a class="lp-mobile-link" onclick="lpGoTo(6);closeMobile()">FAQ</a>
+  <a class="lp-mobile-link" onclick="lpGoTo(7);closeMobile()">Contact</a>
+  <a href="/login" class="lp-mobile-link" style="color:var(--lp-muted)">Log In</a>
+  <a class="lp-mobile-cta" onclick="lpGetStarted(event)">Get Started</a>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     HERO
-     ═══════════════════════════════════════════════════════════ -->
-<section class="lp-hero" id="hero">
-  <div class="lp-hero-eyebrow">
-    <div class="lp-hero-eyebrow-dot"></div>
-    <span>Brand Intelligence Platform</span>
-  </div>
-  <h1 class="lp-hero-h1">Build your brand once.<br><em>Create every asset from it.</em></h1>
-  <p class="lp-hero-sub">ORIVEN learns your complete brand identity and uses it to generate the assets needed to grow your brand — campaigns, visuals, video ads, and more — always consistent, always on-brand.</p>
-  <div class="lp-hero-actions">
-    <a href="#pricing" class="lp-cta-btn lp-cta-btn-lg" onclick="lpGetStarted(event)">Get Started</a>
-    <a href="#how-it-works" class="lp-ghost-btn">How it works →</a>
-  </div>
-  <div class="lp-hero-note">
-    <span>Setup in minutes</span>
-    <span class="lp-note-dot">·</span>
-    <span>Cancel anytime</span>
-  </div>
-</section>
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FULLSCREEN SCENE STAGE
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div id="lp-stage">
 
-<!-- ═══════════════════════════════════════════════════════════
-     INTERACTIVE PREVIEW
-     ═══════════════════════════════════════════════════════════ -->
-<section class="lp-preview-section">
-  <div class="lp-container">
-    <div class="lp-prev-layout">
-    <div class="lp-prev-panel" id="lpPrevPanel">
-      <div class="lp-prev-panel-label">Features</div>
-      <div class="lp-prev-panel-item lp-prev-panel-active" data-screen="dashboard" onclick="lpNavClickPanel(this)">
-        <div class="lp-prev-panel-name">Dashboard</div>
-        <div class="lp-prev-panel-desc">Your command center for brand activity, performance and creative workflow.</div>
-      </div>
-      <div class="lp-prev-panel-item" data-screen="create" onclick="lpNavClickPanel(this)">
-        <div class="lp-prev-panel-name">Create</div>
-        <div class="lp-prev-panel-desc">Generate on-brand campaigns, videos, copy, and visuals in seconds.</div>
-      </div>
-      <div class="lp-prev-panel-item" data-screen="studio" onclick="lpNavClickPanel(this)">
-        <div class="lp-prev-panel-name">BrandCore</div>
-        <div class="lp-prev-panel-desc">Build your brand identity once — every output reflects it automatically.</div>
-      </div>
-      <div class="lp-prev-panel-item" data-screen="inspiration" onclick="lpNavClickPanel(this)">
-        <div class="lp-prev-panel-name">Inspiration</div>
-        <div class="lp-prev-panel-desc">Discover proven creative strategies and campaigns across industries.</div>
-      </div>
-      <div class="lp-prev-panel-item" data-screen="assistant" onclick="lpNavClickPanel(this)">
-        <div class="lp-prev-panel-name">Brand Assistant</div>
-        <div class="lp-prev-panel-desc">Your AI-powered brand strategist, available 24/7 for instant guidance.</div>
-      </div>
-      <div class="lp-prev-panel-item" data-screen="team" onclick="lpNavClickPanel(this)">
-        <div class="lp-prev-panel-name">Team</div>
-        <div class="lp-prev-panel-desc">Collaborate with shared brand intelligence across your entire team.</div>
-        <div class="lp-prev-panel-badge">Pro</div>
-      </div>
-      <div class="lp-prev-panel-item" data-screen="settings" onclick="lpNavClickPanel(this)">
-        <div class="lp-prev-panel-name">Settings</div>
-        <div class="lp-prev-panel-desc">Configure your workspace, billing, and integrations in one place.</div>
-      </div>
+<!-- ── SCENE 0: HOME / HERO ──────────────────────────────────────── -->
+<div class="lp-scene is-current" data-index="0">
+<div class="lp-hero" id="hero">
+  <!-- Left -->
+  <div class="lp-s-hero-left">
+    <div class="lp-s-eyebrow" data-in="fade-up">
+      <span class="lp-s-eyebrow-dot"></span>
+      Brand Operating System
     </div>
-    <div class="lp-prev-right">
-    <div class="lp-prev-frame">
+    <h1 class="lp-s-h1" data-in="fade-up">Turn any idea into a<br><em>brand people remember.</em></h1>
+    <p class="lp-s-sub" data-in="fade-up">ORIVEN connects the world&rsquo;s best AI &mdash; OpenAI, Claude, HeyGen, Luma &mdash; into one intelligent brand system. Build once. Generate everything.</p>
+    <div class="lp-s-actions" data-in="fade-up">
+      <a href="#" class="lp-cta-btn lp-cta-btn-lg" onclick="lpGetStarted(event)">Get Started</a>
+      <button class="lp-ghost-btn" onclick="typeof lpGoTo==='function'&&lpGoTo(3)">How It Works &darr;</button>
+    </div>
+    <div class="lp-s-note" data-in="fade-up">
+      <span>Setup in minutes</span><span class="lp-note-dot">&middot;</span><span>Cancel anytime</span>
+    </div>
+  </div>
+  <!-- Right: app preview -->
+  <div class="lp-s-hero-right" data-in="fade-right">
+    <div class="lp-s-prev-frame">
       <div class="lp-prev-chrome">
         <div class="lp-browser-dots"><span></span><span></span><span></span></div>
         <div class="lp-browser-url">orivenai.com/app</div>
       </div>
-      <div class="lp-prev-app">
+      <div class="lp-s-prev-body">
+        <div class="lp-s-prev-sidebar">
+          <div class="lp-s-sb-logo">
+            <svg viewBox="0 0 20 20" width="14" height="14" fill="none"><path d="M10 2l7 4v8l-7 4-7-4V6z" stroke="#000" stroke-width="1.5"/></svg>
+          </div>
+          <!-- Dashboard -->
+          <div class="lp-s-sb-dot active" onclick="lpPreviewNav(0)" style="cursor:pointer" title="Dashboard">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+          </div>
+          <!-- Create -->
+          <div class="lp-s-sb-dot" onclick="lpPreviewNav(1)" style="cursor:pointer" title="Create">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/></svg>
+          </div>
+          <!-- BrandCore -->
+          <div class="lp-s-sb-dot" onclick="lpPreviewNav(2)" style="cursor:pointer" title="BrandCore">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5 2.5v5L8 11.5 3 9V4z"/></svg>
+          </div>
+          <!-- Inspiration -->
+          <div class="lp-s-sb-dot" onclick="lpPreviewNav(3)" style="cursor:pointer" title="Inspiration">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 1.5a4 4 0 0 1 1.6 7.8V11H6.4V9.3A4 4 0 0 1 8 1.5z"/><path d="M6.4 12.5h3.2M6.9 14h2.2"/></svg>
+          </div>
+          <!-- Brand Assistant -->
+          <div class="lp-s-sb-dot" onclick="lpPreviewNav(4)" style="cursor:pointer" title="Brand Assistant">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H5.5L2 14V11z"/></svg>
+          </div>
+          <!-- Team -->
+          <div class="lp-s-sb-dot" onclick="lpPreviewNav(5)" style="cursor:pointer" title="Team">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5.5" r="2.3"/><path d="M1.5 13.5a4.5 4.5 0 0 1 9 0"/><circle cx="12" cy="5.5" r="1.8"/><path d="M14.5 13.5a3.5 3.5 0 0 0-4.3-3.3"/></svg>
+          </div>
+        </div>
+        <div class="lp-s-prev-main">
 
-        <!-- Sidebar -->
-        <div class="lp-prev-sidebar">
-          <div class="lp-prev-sb-top">
-            <div class="lp-prev-sb-logo">
-              <img src="assets/orivenlogo.png" alt="" style="width:22px;height:22px;object-fit:contain">
-              <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:-.2px">ORIVEN</span>
+          <!-- Screen 0: Dashboard -->
+          <div class="lp-prev-screen active" data-screen="0">
+            <div class="lp-prev-dash-hero">
+              <div class="lp-prev-dash-left">
+                <div class="lp-prev-eyebrow">
+                  <div class="lp-prev-eyebrow-dot"></div>
+                  <span>ORIVEN Intelligence</span>
+                </div>
+                <div class="lp-prev-dash-headline">Your brand is <em class="lp-prev-hl">ready.</em></div>
+                <div class="lp-prev-dash-status">BrandCore configured &amp; active</div>
+              </div>
+              <div class="lp-prev-dash-score-block">
+                <div class="lp-prev-db-score">78<span class="lp-prev-db-pct">%</span></div>
+                <div class="lp-prev-db-lbl">BrandCore Score</div>
+                <div class="lp-prev-db-bar" style="width:90px"><div class="lp-prev-db-fill" style="width:78%"></div></div>
+              </div>
+            </div>
+            <div class="lp-prev-dash-lower">
+              <div class="lp-prev-dash-col">
+                <div class="lp-prev-sec-lbl">Recent Activity</div>
+                <div class="lp-prev-acts">
+                  <div class="lp-prev-act-row"><div class="lp-prev-act-d" style="background:rgba(183,255,42,.55)"></div><span class="lp-prev-act-name">Video ad generated</span><span class="lp-prev-act-t">2h</span></div>
+                  <div class="lp-prev-act-row"><div class="lp-prev-act-d"></div><span class="lp-prev-act-name">Campaign drafted</span><span class="lp-prev-act-t">5h</span></div>
+                  <div class="lp-prev-act-row"><div class="lp-prev-act-d"></div><span class="lp-prev-act-name">BrandCore updated</span><span class="lp-prev-act-t">1d</span></div>
+                </div>
+              </div>
+              <div class="lp-prev-dash-col">
+                <div class="lp-prev-sec-lbl">BrandCore Score</div>
+                <div class="lp-prev-score-breakdown">
+                  <div class="lp-prev-sb-row"><span class="lp-prev-sb-lbl">Identity</span><div class="lp-prev-sb-track"><div class="lp-prev-sb-fill" style="width:90%"></div></div><span class="lp-prev-sb-val">90%</span></div>
+                  <div class="lp-prev-sb-row"><span class="lp-prev-sb-lbl">Voice</span><div class="lp-prev-sb-track"><div class="lp-prev-sb-fill" style="width:75%"></div></div><span class="lp-prev-sb-val">75%</span></div>
+                  <div class="lp-prev-sb-row"><span class="lp-prev-sb-lbl">Visual</span><div class="lp-prev-sb-track"><div class="lp-prev-sb-fill" style="width:65%;background:rgba(183,255,42,.4)"></div></div><span class="lp-prev-sb-val">65%</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="lp-prev-chip-row" style="margin-top:8px">
+              <span class="lp-prev-chip">12 Assets</span>
+              <span class="lp-prev-chip on">3 Campaigns</span>
+              <span class="lp-prev-chip">5 Videos</span>
             </div>
           </div>
-          <nav class="lp-prev-nav">
-            <div class="lp-prev-nav-item lp-prev-active" data-screen="dashboard" onclick="lpNavClick(this)">
-              <svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
-              <span>Dashboard</span>
+
+          <!-- Screen 1: Create -->
+          <div class="lp-prev-screen" data-screen="1">
+            <div class="lp-prev-eyebrow" style="margin-bottom:5px">
+              <div class="lp-prev-eyebrow-dot"></div>
+              <span>Create System</span>
             </div>
-            <div class="lp-prev-nav-item" data-screen="create" onclick="lpNavClick(this)">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/></svg>
-              <span>Create</span>
+            <div class="lp-prev-dash-headline" style="margin-bottom:8px">What will you <em class="lp-prev-hl">create today?</em></div>
+            <div class="lp-prev-cr-filts">
+              <button class="lp-prev-cr-filt lp-prev-cr-filt-active" onclick="lpCreateFilter('all',this)">All</button>
+              <button class="lp-prev-cr-filt" onclick="lpCreateFilter('campaign',this)">Campaigns</button>
+              <button class="lp-prev-cr-filt" onclick="lpCreateFilter('visual',this)">Visuals</button>
+              <button class="lp-prev-cr-filt" onclick="lpCreateFilter('ugc',this)">UGC</button>
+              <button class="lp-prev-cr-filt" onclick="lpCreateFilter('copy',this)">Copy</button>
+              <button class="lp-prev-cr-filt" onclick="lpCreateFilter('web',this)">Web</button>
             </div>
-            <div class="lp-prev-nav-item" data-screen="studio" onclick="lpNavClick(this)">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5 2.5v5L8 11.5 3 9V4z"/><path d="M8 11.5v3M3 4l5 2.5 5-2.5M8 6.5v5"/></svg>
-              <span>BrandCore</span>
+            <div class="lp-prev-cr-grid" id="lpCrGrid">
+              <div class="lp-prev-cr-card" data-cr-cat="ugc">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(255,94,58,.1)"><svg viewBox="0 0 16 16" fill="none" stroke="#FF5E3A" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="3" width="10" height="8" rx="2"/><path d="M11 7l4-2v6l-4-2"/></svg></div>
+                  <span class="lp-prev-cr-tag">Video Production</span>
+                </div>
+                <div class="lp-prev-cr-title">UGC Creator</div>
+              </div>
+              <div class="lp-prev-cr-card" data-cr-cat="campaign">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(167,139,250,.1)"><svg viewBox="0 0 16 16" fill="none" stroke="#A78BFA" stroke-width="1.4" stroke-linecap="round"><path d="M2 12l4-5 3 3.5 2-2.5 3 4"/><circle cx="5.5" cy="6.5" r="1.5" fill="#A78BFA" stroke="none"/></svg></div>
+                  <span class="lp-prev-cr-tag">Campaign Builder</span>
+                </div>
+                <div class="lp-prev-cr-title">Campaign</div>
+              </div>
+              <div class="lp-prev-cr-card" data-cr-cat="visual">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(59,130,246,.1)"><svg viewBox="0 0 16 16" fill="none" stroke="#3B82F6" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="2" width="12" height="9" rx="2"/><circle cx="5.5" cy="5.5" r="1.5"/><path d="M2 9l3.5-3.5 3 3 2-2 3.5 3.5"/></svg></div>
+                  <span class="lp-prev-cr-tag">Visual Generation</span>
+                </div>
+                <div class="lp-prev-cr-title">Visuals</div>
+              </div>
+              <div class="lp-prev-cr-card" data-cr-cat="copy">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(183,255,42,.07)"><svg viewBox="0 0 16 16" fill="none" stroke="#B7FF2A" stroke-width="1.4" stroke-linecap="round"><path d="M3 4h10M3 8h7M3 12h8"/></svg></div>
+                  <span class="lp-prev-cr-tag">Brand Copy</span>
+                </div>
+                <div class="lp-prev-cr-title">Text &amp; Copy</div>
+              </div>
+              <div class="lp-prev-cr-card" data-cr-cat="web">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(240,180,41,.1)"><svg viewBox="0 0 16 16" fill="none" stroke="#F0B429" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2" width="14" height="10" rx="2"/><path d="M1 5.5h14M6 15h4M8 12v3"/></svg></div>
+                  <span class="lp-prev-cr-tag">Web &amp; Pages</span>
+                </div>
+                <div class="lp-prev-cr-title">Web</div>
+              </div>
+              <div class="lp-prev-cr-card" data-cr-cat="copy">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(232,64,64,.1)"><svg viewBox="0 0 16 16" fill="none" stroke="#E84040" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="4" width="12" height="10" rx="1.5"/><path d="M2 7.5h12"/></svg></div>
+                  <span class="lp-prev-cr-tag">Email Marketing</span>
+                </div>
+                <div class="lp-prev-cr-title">Email Designer</div>
+              </div>
+              <div class="lp-prev-cr-card" data-cr-cat="web">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(99,102,241,.1)"><svg viewBox="0 0 16 16" fill="none" stroke="#6366F1" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="1.5" width="12" height="13" rx="2"/><path d="M5 5h6M5 8h6M5 11h4"/></svg></div>
+                  <span class="lp-prev-cr-tag">Presentations</span>
+                </div>
+                <div class="lp-prev-cr-title">Presentation</div>
+              </div>
+              <div class="lp-prev-cr-card" data-cr-cat="visual">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(236,72,153,.1)"><svg viewBox="0 0 16 16" fill="none" stroke="#EC4899" stroke-width="1.4" stroke-linecap="round"><rect x="1.5" y="1.5" width="13" height="13" rx="2.5"/><path d="M5.5 8h5M8 5.5v5"/></svg></div>
+                  <span class="lp-prev-cr-tag">Print &amp; Digital</span>
+                </div>
+                <div class="lp-prev-cr-title">Poster Generator</div>
+              </div>
+              <div class="lp-prev-cr-card" data-cr-cat="visual">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(20,184,166,.1)"><svg viewBox="0 0 16 16" fill="none" stroke="#14B8A6" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="4" width="12" height="9" rx="2"/><path d="M5 4V3M8 4V2M11 4V3M2 8h12"/></svg></div>
+                  <span class="lp-prev-cr-tag">Data &amp; Visual</span>
+                </div>
+                <div class="lp-prev-cr-title">Infographic</div>
+              </div>
+              <div class="lp-prev-cr-card" data-cr-cat="ugc">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(255,94,58,.08)"><svg viewBox="0 0 16 16" fill="none" stroke="#FF5E3A" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="2" width="12" height="9" rx="2"/><path d="M5 14h6M8 11v3"/></svg></div>
+                  <span class="lp-prev-cr-tag">Video Production</span>
+                </div>
+                <div class="lp-prev-cr-title">Video Ads</div>
+              </div>
+              <div class="lp-prev-cr-card" data-cr-cat="visual">
+                <div class="lp-prev-cr-card-top">
+                  <div class="lp-prev-cr-ico" style="background:rgba(251,146,60,.1)"><svg viewBox="0 0 16 16" fill="none" stroke="#FB923C" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="2" width="12" height="12" rx="2"/><circle cx="6" cy="6" r="1.5"/><path d="M2 11l3.5-4 3 3.5 2-2.5 3.5 5"/></svg></div>
+                  <span class="lp-prev-cr-tag">Product Photography</span>
+                </div>
+                <div class="lp-prev-cr-title">Product Shoots</div>
+              </div>
             </div>
-            <div class="lp-prev-nav-item" data-screen="inspiration" onclick="lpNavClick(this)">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5a4 4 0 0 1 1.6 7.67V11H6.4V9.17A4 4 0 0 1 8 1.5z"/><path d="M6.4 12.5h3.2M7 14.5h2" stroke-linecap="round"/></svg>
-              <span>Inspiration</span>
+          </div>
+
+          <!-- Screen 2: BrandCore -->
+          <div class="lp-prev-screen" data-screen="2">
+            <div class="lp-prev-bc-hdr">
+              <div>
+                <div class="lp-prev-bc-brand-name">Oriven Studio</div>
+                <div class="lp-prev-bc-tagline">Your brand intelligence</div>
+              </div>
+              <div class="lp-prev-bc-hdr-right">
+                <div class="lp-prev-bc-score-num">78<span>%</span></div>
+                <div class="lp-prev-bc-score-lbl">BrandCore Score</div>
+                <div class="lp-prev-db-bar" style="width:72px;margin-bottom:5px"><div class="lp-prev-db-fill" style="width:78%"></div></div>
+                <div class="lp-prev-bc-btns">
+                  <span class="lp-prev-bc-btn">Brand Check</span>
+                  <span class="lp-prev-bc-btn lp-prev-bc-btn-primary">Regenerate</span>
+                </div>
+              </div>
             </div>
-            <div class="lp-prev-nav-item" data-screen="assistant" onclick="lpNavClick(this)">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H5.5L2 14V11z"/><path d="M5.5 8h5M5.5 5.5h3"/></svg>
+            <div class="lp-prev-bc-section">
+              <div class="lp-prev-bc-section-lbl">Color System</div>
+              <div class="lp-prev-bc-row">
+                <div class="lp-prev-bc-sw" style="background:#B7FF2A"></div>
+                <div class="lp-prev-bc-sw" style="background:#0A0A0A;border:1px solid rgba(255,255,255,.12)"></div>
+                <div class="lp-prev-bc-sw" style="background:rgba(240,240,240,.9)"></div>
+                <div class="lp-prev-bc-sw" style="background:#A78BFA"></div>
+                <span class="lp-prev-bc-label">4 brand colours</span>
+              </div>
+            </div>
+            <div class="lp-prev-bc-section">
+              <div class="lp-prev-bc-section-lbl">Typography</div>
+              <div class="lp-prev-bc-typo">Geist &middot; Instrument Serif</div>
+            </div>
+            <div class="lp-prev-bc-row2">
+              <div>
+                <div class="lp-prev-bc-section-lbl">Brand Personality</div>
+                <div class="lp-prev-chip-row" style="margin-bottom:0">
+                  <span class="lp-prev-chip on" style="font-size:8px">Direct</span>
+                  <span class="lp-prev-chip on" style="font-size:8px">Bold</span>
+                  <span class="lp-prev-chip" style="font-size:8px">Minimal</span>
+                </div>
+              </div>
+              <div>
+                <div class="lp-prev-bc-section-lbl">Tone of Voice</div>
+                <div class="lp-prev-chip-row" style="margin-bottom:0">
+                  <span class="lp-prev-chip on" style="font-size:8px">Premium</span>
+                  <span class="lp-prev-chip" style="font-size:8px">Bold</span>
+                  <span class="lp-prev-chip" style="font-size:8px">Warm</span>
+                </div>
+              </div>
+            </div>
+            <div class="lp-prev-bc-section" style="margin-top:8px">
+              <div class="lp-prev-bc-section-lbl">Positioning</div>
+              <div class="lp-prev-bc-text">Premium AI brand intelligence for founders who move fast and think big.</div>
+            </div>
+          </div>
+
+          <!-- Screen 3: Inspiration -->
+          <div class="lp-prev-screen" data-screen="3">
+            <div class="lp-prev-eyebrow" style="margin-bottom:4px">
+              <div class="lp-prev-eyebrow-dot"></div>
+              <span>AI Creative Engine</span>
+            </div>
+            <div class="lp-prev-dash-headline" style="margin-bottom:2px">Find your <em class="lp-prev-hl">creative direction.</em></div>
+            <div style="font-size:8.5px;color:rgba(255,255,255,.22);margin-bottom:10px">60 curated starting points &mdash; click any to generate instantly.</div>
+            <div class="lp-prev-insp-filters">
+              <button class="lp-prev-insp-filt lp-prev-insp-filt-active">🔥 Campaigns</button>
+              <button class="lp-prev-insp-filt">🎨 Visuals</button>
+              <button class="lp-prev-insp-filt">📱 UGC</button>
+              <button class="lp-prev-insp-filt">🌐 Websites</button>
+              <button class="lp-prev-insp-filt">✍️ Copy</button>
+            </div>
+            <div class="lp-prev-insp-grid">
+              <div class="lp-prev-insp-card" style="background:rgba(255,94,58,.07)">
+                <div class="lp-prev-insp-tag">Campaign</div>
+                <div class="lp-prev-insp-name">Brand Launch</div>
+              </div>
+              <div class="lp-prev-insp-card" style="background:rgba(167,139,250,.07)">
+                <div class="lp-prev-insp-tag">Campaign</div>
+                <div class="lp-prev-insp-name">Product Drop</div>
+              </div>
+              <div class="lp-prev-insp-card" style="background:rgba(183,255,42,.05)">
+                <div class="lp-prev-insp-tag">Campaign</div>
+                <div class="lp-prev-insp-name">Social Series</div>
+              </div>
+              <div class="lp-prev-insp-card" style="background:rgba(59,130,246,.07)">
+                <div class="lp-prev-insp-tag">Campaign</div>
+                <div class="lp-prev-insp-name">Launch Week</div>
+              </div>
+              <div class="lp-prev-insp-card" style="background:rgba(240,180,41,.07)">
+                <div class="lp-prev-insp-tag">Campaign</div>
+                <div class="lp-prev-insp-name">Brand Story</div>
+              </div>
+              <div class="lp-prev-insp-card" style="background:rgba(232,64,64,.07)">
+                <div class="lp-prev-insp-tag">Campaign</div>
+                <div class="lp-prev-insp-name">Relaunch Kit</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Screen 4: Brand Assistant -->
+          <div class="lp-prev-screen" data-screen="4">
+            <div class="lp-prev-eyebrow" style="margin-bottom:8px">
+              <div class="lp-prev-eyebrow-dot"></div>
               <span>Brand Assistant</span>
             </div>
-            <div class="lp-prev-nav-item" data-screen="team" onclick="lpNavClick(this)">
-              <svg viewBox="0 0 16 16"><path d="M11 14v-1.5A2.5 2.5 0 0 0 8.5 10h-5A2.5 2.5 0 0 0 1 12.5V14"/><circle cx="6" cy="6" r="2.5"/><path d="M15 14v-1.3a2.5 2.5 0 0 0-1.9-2.4M10.5 2.1a2.5 2.5 0 0 1 0 4.8"/></svg>
-              <span>Team</span>
+            <div class="lp-prev-chat">
+              <div class="lp-prev-chat-bubble user">Write a launch caption for Instagram.</div>
+              <div class="lp-prev-chat-bubble ai">Bold. Intentional. Built for those who don&rsquo;t settle.<br><span style="color:rgba(183,255,42,.7)">Drop tonight. ✦</span></div>
+              <div class="lp-prev-chat-bubble user">Make it shorter.</div>
+              <div class="lp-prev-chat-bubble ai typing"><span></span><span></span><span></span></div>
             </div>
-          </nav>
-          <div class="lp-prev-sb-bottom">
-            <div class="lp-prev-nav-item" data-screen="settings" onclick="lpNavClick(this)">
-              <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M3 13l1.4-1.4M11.6 4.4L13 3"/></svg>
-              <span>Settings</span>
+            <div class="lp-prev-chat-ctrls">
+              <div class="lp-prev-chat-sel">Auto-detect &#9662;</div>
+              <div class="lp-prev-chat-sel">Square &#9662;</div>
+              <div class="lp-prev-chat-sel">Premium &#9662;</div>
             </div>
-          </div>
-        </div>
-
-        <!-- Content screens -->
-        <div class="lp-prev-content">
-
-          <!-- Dashboard -->
-          <div class="lp-prev-screen lp-prev-screen-active" id="lpScreen-dashboard">
-            <div class="lp-ps-header">
-              <div class="lp-ps-eyebrow"><div class="lp-ps-dot"></div><span>Brand Workspace</span></div>
-              <div class="lp-ps-title">Brand <em>Intelligence</em></div>
-              <div class="lp-ps-badge">Level 4 Intelligence</div>
-            </div>
-            <div class="lp-ps-metrics">
-              <div class="lp-ps-metric">
-                <div class="lp-ps-metric-val">4</div>
-                <div class="lp-ps-metric-lbl">Intelligence Level</div>
-                <div class="lp-ps-bar"><div class="lp-ps-bar-fill" style="width:40%"></div></div>
-              </div>
-              <div class="lp-ps-metric">
-                <div class="lp-ps-metric-val">12</div>
-                <div class="lp-ps-metric-lbl">Assets Created</div>
-                <div class="lp-ps-bar"><div class="lp-ps-bar-fill" style="width:60%;background:rgba(183,255,42,.5)"></div></div>
-              </div>
-              <div class="lp-ps-metric">
-                <div class="lp-ps-metric-val">3</div>
-                <div class="lp-ps-metric-lbl">Campaigns</div>
-                <div class="lp-ps-bar"><div class="lp-ps-bar-fill" style="width:30%;background:rgba(167,139,250,.7)"></div></div>
-              </div>
-            </div>
-            <div class="lp-ps-quickrow">
-              <div class="lp-ps-qcard" onclick="lpNavClick(document.querySelector('[data-screen=create]'))">
-                <div class="lp-ps-qcard-ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/></svg></div>
-                <div><div class="lp-ps-qcard-ttl">Create</div><div class="lp-ps-qcard-sub">Generate assets</div></div>
-                <div class="lp-ps-qcard-arr">→</div>
-              </div>
-              <div class="lp-ps-qcard" onclick="lpNavClick(document.querySelector('[data-screen=studio]'))">
-                <div class="lp-ps-qcard-ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5 2.5v5L8 11.5 3 9V4z"/><path d="M8 11.5v3M3 4l5 2.5 5-2.5M8 6.5v5"/></svg></div>
-                <div><div class="lp-ps-qcard-ttl">BrandCore</div><div class="lp-ps-qcard-sub">Brand Intelligence</div></div>
-                <div class="lp-ps-qcard-arr">→</div>
-              </div>
-            </div>
-            <div class="lp-ps-feed-hd">Recent Activity</div>
-            <div class="lp-ps-feed">
-              <div class="lp-ps-feed-item"><div class="lp-ps-feed-dot" style="background:#B7FF2A"></div><div class="lp-ps-feed-txt">Campaign assets generated from BrandCore</div><div class="lp-ps-feed-time">4m</div></div>
-              <div class="lp-ps-feed-item"><div class="lp-ps-feed-dot" style="background:#A78BFA"></div><div class="lp-ps-feed-txt">BrandCore updated — intelligence improved</div><div class="lp-ps-feed-time">1h</div></div>
-              <div class="lp-ps-feed-item"><div class="lp-ps-feed-dot" style="background:#3B82F6"></div><div class="lp-ps-feed-txt">Product visual saved to Studio</div><div class="lp-ps-feed-time">3h</div></div>
+            <div class="lp-prev-chat-inputrow">
+              <div class="lp-prev-chat-inputbox">Ask your brand assistant anything…</div>
+              <div class="lp-prev-chat-sendbtn"><svg viewBox="0 0 16 16" fill="none"><path d="M14 8L2 2l2.5 6L2 14l12-6z" fill="rgba(0,0,0,.8)"/></svg></div>
             </div>
           </div>
 
-          <!-- Create — 9 active generators + 3 Coming Soon -->
-          <div class="lp-prev-screen" id="lpScreen-create">
-            <div class="lp-ps-header" style="margin-bottom:8px">
-              <div class="lp-ps-eyebrow"><div class="lp-ps-dot"></div><span>Creation Studio</span></div>
-              <div class="lp-ps-title">What would you like to <em>create?</em></div>
-              <div class="lp-ps-value-hint">Every asset powered by your BrandCore — on-brand, every time.</div>
+          <!-- Screen 5: Team -->
+          <div class="lp-prev-screen" data-screen="5">
+            <div class="lp-prev-eyebrow" style="margin-bottom:3px">
+              <div class="lp-prev-eyebrow-dot"></div>
+              <span>Brand Workspace</span>
             </div>
-            <div class="lp-ps-tool-grid lp-pstg-9">
-              <div class="lp-ps-tool">
-                <div class="lp-ps-tool-ico" style="background:rgba(255,94,58,.1);border-color:rgba(255,94,58,.22)"><svg viewBox="0 0 24 24" fill="none" stroke="#FF5E3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="5" width="15" height="14" rx="3"/><path d="M17 9.5l5-2.5v10l-5-2.5"/></svg></div>
-                <div class="lp-ps-tool-ttl">UGC Creator</div>
-                <div class="lp-ps-tool-sub">AI creator videos</div>
+            <div class="lp-prev-dash-headline" style="margin-bottom:8px">Your team. <em class="lp-prev-hl">One intelligence.</em></div>
+            <div class="lp-prev-tm-stats">
+              <div class="lp-prev-tm-stat">
+                <div class="lp-prev-tm-stat-val">2</div>
+                <div class="lp-prev-tm-stat-lbl">Members</div>
               </div>
-              <div class="lp-ps-tool">
-                <div class="lp-ps-tool-ico" style="background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.22)"><svg viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M3 19l4.5-10 4 7 2.5-4 5 7"/><circle cx="7.5" cy="9" r="1.5" fill="#A78BFA" stroke="none"/></svg></div>
-                <div class="lp-ps-tool-ttl">Campaign</div>
-                <div class="lp-ps-tool-sub">Multi-channel ads</div>
+              <div class="lp-prev-tm-stat">
+                <div class="lp-prev-tm-stat-val">78%</div>
+                <div class="lp-prev-tm-stat-lbl">Intelligence</div>
               </div>
-              <div class="lp-ps-tool">
-                <div class="lp-ps-tool-ico" style="background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.22)"><svg viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="3" y="3" width="18" height="18" rx="3.5"/><circle cx="8.5" cy="8.5" r="2"/><path d="M3 16l5.5-5.5 4 4 3-3 5 5"/></svg></div>
-                <div class="lp-ps-tool-ttl">Visuals</div>
-                <div class="lp-ps-tool-sub">Brand imagery</div>
-              </div>
-              <div class="lp-ps-tool">
-                <div class="lp-ps-tool-ico" style="background:rgba(183,255,42,.08);border-color:rgba(183,255,42,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#B7FF2A" stroke-width="1.5" stroke-linecap="round" width="13" height="13"><path d="M4 6h16M4 12h10M4 18h13"/></svg></div>
-                <div class="lp-ps-tool-ttl">Text &amp; Copy</div>
-                <div class="lp-ps-tool-sub">Brand-voice copy</div>
-              </div>
-              <div class="lp-ps-tool">
-                <div class="lp-ps-tool-ico" style="background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.22)"><svg viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="3" width="20" height="15" rx="3"/><path d="M2 7.5h20"/><path d="M9 22h6M12 18v4"/></svg></div>
-                <div class="lp-ps-tool-ttl">Web Builder</div>
-                <div class="lp-ps-tool-sub">Landing pages</div>
-              </div>
-              <div class="lp-ps-tool">
-                <div class="lp-ps-tool-ico" style="background:rgba(20,184,166,.1);border-color:rgba(20,184,166,.22)"><svg viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="5" width="5" height="16" rx="1.5"/><rect x="9.5" y="9" width="5" height="12" rx="1.5"/><rect x="17" y="2" width="5" height="19" rx="1.5"/></svg></div>
-                <div class="lp-ps-tool-ttl">Infographic</div>
-                <div class="lp-ps-tool-sub">Data visualisation</div>
-              </div>
-              <div class="lp-ps-tool">
-                <div class="lp-ps-tool-ico" style="background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8l10 7 10-7"/></svg></div>
-                <div class="lp-ps-tool-ttl">Email Designer</div>
-                <div class="lp-ps-tool-sub">Email campaigns</div>
-              </div>
-              <div class="lp-ps-tool">
-                <div class="lp-ps-tool-ico" style="background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="3" width="20" height="13" rx="2"/><path d="M6 8h12M6 12h8"/><path d="M9 21h6M12 16v5"/></svg></div>
-                <div class="lp-ps-tool-ttl">Presentation</div>
-                <div class="lp-ps-tool-sub">Pitch decks</div>
-              </div>
-              <div class="lp-ps-tool">
-                <div class="lp-ps-tool-ico" style="background:rgba(192,132,252,.08);border-color:rgba(192,132,252,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#C084FC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="3" y="2" width="18" height="20" rx="2"/><rect x="6" y="5" width="12" height="8" rx="1"/><path d="M6 17h12M6 20h8"/></svg></div>
-                <div class="lp-ps-tool-ttl">Poster Generator</div>
-                <div class="lp-ps-tool-sub">Branded posters</div>
+              <div class="lp-prev-tm-stat">
+                <div class="lp-prev-tm-stat-val lp-prev-tm-stat-on">Active</div>
+                <div class="lp-prev-tm-stat-lbl">Workspace</div>
               </div>
             </div>
-            <div class="lp-ps-horizon">
-              <div class="lp-ps-horizon-hd">On the Horizon</div>
-              <div class="lp-ps-horizon-list">
-                <div class="lp-ps-hor-item">
-                  <div class="lp-ps-hor-ico" style="background:#0A0A14;border-color:rgba(120,80,220,.25)"><svg viewBox="0 0 24 24" fill="none" stroke="#7850DC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><polygon points="5 3 19 12 5 21 5 3"/><path d="M19 12h4M19 8V4M19 20v-4"/></svg></div>
-                  <span class="lp-ps-hor-name">Motion Graphics</span>
-                  <span class="lp-ps-hor-badge">Soon</span>
-                </div>
-                <div class="lp-ps-hor-item">
-                  <div class="lp-ps-hor-ico" style="background:#130A08;border-color:rgba(255,94,58,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#FF5E3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><rect x="2" y="5" width="20" height="14" rx="2"/><polygon points="10 9 10 15 16 12" fill="#FF5E3A" stroke="none"/></svg></div>
-                  <span class="lp-ps-hor-name">Video Ads</span>
-                  <span class="lp-ps-hor-badge">Soon</span>
-                </div>
-                <div class="lp-ps-hor-item">
-                  <div class="lp-ps-hor-ico" style="background:#060D0C;border-color:rgba(0,168,150,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="#00A896" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="10" height="10"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
-                  <span class="lp-ps-hor-name">Product Shoots</span>
-                  <span class="lp-ps-hor-badge">Soon</span>
-                </div>
-              </div>
+            <div class="lp-prev-sec-lbl" style="margin-top:8px">Active Projects</div>
+            <div class="lp-prev-tm-projs">
+              <div class="lp-prev-tm-proj"><div class="lp-prev-tm-proj-dot"></div><span class="lp-prev-tm-proj-name">Brand Launch Campaign</span><span class="lp-prev-act-t">Active</span></div>
+              <div class="lp-prev-tm-proj"><div class="lp-prev-tm-proj-dot"></div><span class="lp-prev-tm-proj-name">Social Media Kit</span><span class="lp-prev-act-t">Active</span></div>
             </div>
-          </div>
-
-          <!-- BrandCore — rich realistic data (Apex Athletic) -->
-          <div class="lp-prev-screen" id="lpScreen-studio">
-            <div class="lp-ps-header" style="margin-bottom:6px">
-              <div class="lp-ps-eyebrow"><div class="lp-ps-dot"></div><span>Brand Intelligence</span></div>
-              <div class="lp-ps-title" style="font-size:19px">Your Brand <em>DNA</em></div>
-              <div class="lp-ps-value-hint">Build your brand once. Every generator uses it automatically.</div>
-            </div>
-            <div class="lp-ps-bc-card">
-              <div class="lp-ps-bc-row">
-                <div class="lp-ps-bc-label">Brand</div>
-                <div style="display:flex;align-items:center;gap:8px">
-                  <div style="width:24px;height:24px;border-radius:5px;background:linear-gradient(135deg,#1A1208,#2A1808);border:1px solid rgba(255,107,43,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:9px;font-weight:800;color:#FF6B2B;letter-spacing:-.5px">A</span></div>
-                  <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.8)">Apex Athletic</span>
-                  <span style="font-size:10px;color:rgba(255,255,255,.28);font-style:italic">Move without limits.</span>
-                </div>
-              </div>
-              <div class="lp-ps-bc-row">
-                <div class="lp-ps-bc-label">Colors</div>
-                <div style="display:flex;align-items:center;gap:5px;flex:1">
-                  <div style="width:14px;height:14px;border-radius:3px;background:#1A1A1A;border:1px solid rgba(255,255,255,.12)"></div>
-                  <div style="width:14px;height:14px;border-radius:3px;background:#FF6B2B"></div>
-                  <div style="width:14px;height:14px;border-radius:3px;background:#F5F5F0;border:1px solid rgba(255,255,255,.1)"></div>
-                  <span style="font-size:9px;color:rgba(255,255,255,.25);margin-left:3px">Midnight · Ember · Chalk</span>
-                </div>
-              </div>
-              <div class="lp-ps-bc-row">
-                <div class="lp-ps-bc-label">Typography</div>
-                <div class="lp-ps-bc-val" style="display:flex;gap:5px;flex-wrap:wrap"><span class="lp-ps-bc-tag">Geist</span><span class="lp-ps-bc-tag">Instrument Serif</span></div>
-              </div>
-              <div class="lp-ps-bc-row">
-                <div class="lp-ps-bc-label">Personality</div>
-                <div class="lp-ps-bc-val" style="display:flex;gap:5px;flex-wrap:wrap"><span class="lp-ps-bc-tag">Bold</span><span class="lp-ps-bc-tag">Athletic</span><span class="lp-ps-bc-tag">Premium</span></div>
-              </div>
-              <div class="lp-ps-bc-row">
-                <div class="lp-ps-bc-label">Tone</div>
-                <div class="lp-ps-bc-val" style="display:flex;gap:5px;flex-wrap:wrap"><span class="lp-ps-bc-tag">Confident</span><span class="lp-ps-bc-tag">Direct</span><span class="lp-ps-bc-tag">Action-led</span></div>
-              </div>
-              <div class="lp-ps-bc-row">
-                <div class="lp-ps-bc-label">Audience</div>
-                <div class="lp-ps-bc-val" style="color:rgba(255,255,255,.55)">Serious athletes, 22–38, performance-first</div>
-              </div>
-              <div class="lp-ps-bc-row">
-                <div class="lp-ps-bc-label">Positioning</div>
-                <div class="lp-ps-bc-val" style="color:rgba(255,255,255,.55)">Premium performance for the serious athlete</div>
-              </div>
-              <div class="lp-ps-bc-row">
-                <div class="lp-ps-bc-label">Visual Direction</div>
-                <div class="lp-ps-bc-val" style="color:rgba(255,255,255,.55)">Dark, high-contrast. Bold type. Editorial sports photography.</div>
-              </div>
-              <div class="lp-ps-bc-row" style="border:none">
-                <div class="lp-ps-bc-label">Brand Score</div>
-                <div style="flex:1;display:flex;align-items:center;gap:8px">
-                  <div style="flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden"><div style="width:87%;height:100%;background:linear-gradient(90deg,#B7FF2A,rgba(183,255,42,.45));border-radius:3px"></div></div>
-                  <span style="font-size:11px;font-weight:700;color:#B7FF2A;flex-shrink:0">87</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Inspiration — clickable category tabs with real examples -->
-          <div class="lp-prev-screen" id="lpScreen-inspiration">
-            <div class="lp-ps-header" style="margin-bottom:8px">
-              <div class="lp-ps-eyebrow"><div class="lp-ps-dot"></div><span>Creative Intelligence</span></div>
-              <div class="lp-ps-title" style="font-size:19px">Find your <em>creative direction.</em></div>
-              <div class="lp-ps-value-hint">One click to turn any idea into branded content.</div>
-            </div>
-            <div class="lp-ps-filter-row">
-              <div class="lp-ps-filter active" data-filter="campaigns" onclick="lpInspiFilter(this)">Campaigns</div>
-              <div class="lp-ps-filter" data-filter="visuals" onclick="lpInspiFilter(this)">Visuals</div>
-              <div class="lp-ps-filter" data-filter="ugc" onclick="lpInspiFilter(this)">UGC</div>
-              <div class="lp-ps-filter" data-filter="websites" onclick="lpInspiFilter(this)">Websites</div>
-              <div class="lp-ps-filter" data-filter="copy" onclick="lpInspiFilter(this)">Copy</div>
-            </div>
-            <!-- Campaigns -->
-            <div class="lp-ps-ideas lp-inspi-group" id="lpInspi-campaigns">
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#12053A,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#A78BFA"></div><div class="lp-ps-idea-hl">Product arrives.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#A78BFA">Campaign</div><div class="lp-ps-idea-title">Product Launch Campaign</div></div>
-              </div>
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#1A0808,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#FF5E3A"></div><div class="lp-ps-idea-hl">My story is the brand.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#FF5E3A">Campaign</div><div class="lp-ps-idea-title">Founder Story Campaign</div></div>
-              </div>
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#0D1A08,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#B7FF2A"></div><div class="lp-ps-idea-hl">Built together.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#B7FF2A">Campaign</div><div class="lp-ps-idea-title">Community Growth Campaign</div></div>
-              </div>
-            </div>
-            <!-- Visuals -->
-            <div class="lp-ps-ideas lp-inspi-group" id="lpInspi-visuals" style="display:none">
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#1A1208,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#F59E0B"></div><div class="lp-ps-idea-hl">Premium. Minimal.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#F59E0B">Visual</div><div class="lp-ps-idea-title">Luxury Product Visual</div></div>
-              </div>
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#08121A,#06091A)"><div class="lp-ps-idea-glow" style="background:#38BDF8"></div><div class="lp-ps-idea-hl">One feature. Front and center.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#38BDF8">Visual</div><div class="lp-ps-idea-title">Feature Spotlight</div></div>
-              </div>
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#06080F,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#6366F1"></div><div class="lp-ps-idea-hl">Clean. Sharp. Scalable.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#6366F1">Visual</div><div class="lp-ps-idea-title">Minimal SaaS Graphic</div></div>
-              </div>
-            </div>
-            <!-- UGC -->
-            <div class="lp-ps-ideas lp-inspi-group" id="lpInspi-ugc" style="display:none">
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#1A0808,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#FF5E3A"></div><div class="lp-ps-idea-hl">Here's how I started.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#FF5E3A">UGC</div><div class="lp-ps-idea-title">Founder Story</div></div>
-              </div>
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#12053A,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#A78BFA"></div><div class="lp-ps-idea-hl">I didn't expect this.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#A78BFA">UGC</div><div class="lp-ps-idea-title">Customer Testimonial</div></div>
-              </div>
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#081A12,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#10B981"></div><div class="lp-ps-idea-hl">The fix nobody talks about.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#10B981">UGC</div><div class="lp-ps-idea-title">Problem → Solution</div></div>
-              </div>
-            </div>
-            <!-- Websites -->
-            <div class="lp-ps-ideas lp-inspi-group" id="lpInspi-websites" style="display:none">
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#0A1828,#06091A)"><div class="lp-ps-idea-glow" style="background:#3B82F6"></div><div class="lp-ps-idea-hl">Built to convert.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#3B82F6">Website</div><div class="lp-ps-idea-title">Startup Landing Page</div></div>
-              </div>
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#14080A,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#EC4899"></div><div class="lp-ps-idea-hl">Work that speaks.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#EC4899">Website</div><div class="lp-ps-idea-title">Agency Website</div></div>
-              </div>
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#081A12,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#10B981"></div><div class="lp-ps-idea-hl">This is my craft.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#10B981">Website</div><div class="lp-ps-idea-title">Portfolio Website</div></div>
-              </div>
-            </div>
-            <!-- Copy -->
-            <div class="lp-ps-ideas lp-inspi-group" id="lpInspi-copy" style="display:none">
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#0D1A08,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#B7FF2A"></div><div class="lp-ps-idea-hl">Most people won't.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#B7FF2A">Copy</div><div class="lp-ps-idea-title">Launch Post</div></div>
-              </div>
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#1A0808,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#FF5E3A"></div><div class="lp-ps-idea-hl">The day everything changed.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#FF5E3A">Copy</div><div class="lp-ps-idea-title">Founder Story Post</div></div>
-              </div>
-              <div class="lp-ps-idea">
-                <div class="lp-ps-idea-thumb" style="background:linear-gradient(140deg,#14080A,#0A0A0A)"><div class="lp-ps-idea-glow" style="background:#EC4899"></div><div class="lp-ps-idea-hl">Limited. Real.</div></div>
-                <div class="lp-ps-idea-body"><div class="lp-ps-idea-cat" style="color:#EC4899">Copy</div><div class="lp-ps-idea-title">Sales Announcement</div></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Brand Assistant -->
-          <div class="lp-prev-screen" id="lpScreen-assistant">
-            <div class="lp-ps-header" style="margin-bottom:8px">
-              <div class="lp-ps-eyebrow"><div class="lp-ps-dot"></div><span>Brand Intelligence</span></div>
-              <div class="lp-ps-title" style="font-size:19px">Your brand's <em>AI advisor.</em></div>
-              <div class="lp-ps-value-hint">Knows your BrandCore. Ready to help with anything.</div>
-            </div>
-            <div class="lp-ps-ast-chat">
-              <div class="lp-ps-ast-msg lp-ps-ast-ai">
-                <div class="lp-ps-ast-ava"><svg viewBox="0 0 14 14" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 10V3.5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2H4.5L1.5 11.5V10z"/><path d="M4 7h6M4 5.5h4"/></svg></div>
-                <div class="lp-ps-ast-bbl lp-ps-ast-bbl-ai">Welcome back. I've loaded your Apex Athletic BrandCore and I'm ready whenever you are.</div>
-              </div>
-              <div class="lp-ps-ast-msg lp-ps-ast-user">
-                <div class="lp-ps-ast-bbl lp-ps-ast-bbl-user">Write a campaign brief for our new product launch targeting serious athletes.</div>
-              </div>
-              <div class="lp-ps-ast-msg lp-ps-ast-ai">
-                <div class="lp-ps-ast-ava"><svg viewBox="0 0 14 14" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 10V3.5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2H4.5L1.5 11.5V10z"/><path d="M4 7h6M4 5.5h4"/></svg></div>
-                <div class="lp-ps-ast-bbl lp-ps-ast-bbl-ai"><strong style="color:rgba(255,255,255,.85)">Campaign: "No Limits"</strong><br>Target: Performance athletes 22–38.<br>Hook: "Some push limits. You eliminate them."<br>Channels: Instagram, YouTube, paid social.<br>Visuals: Dark, high-contrast, Ember orange.</div>
-              </div>
-            </div>
-            <div class="lp-ps-ast-input-row">
-              <svg viewBox="0 0 14 14" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="flex-shrink:0"><path d="M1.5 10V3.5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2H4.5L1.5 11.5V10z"/><path d="M4 7h6M4 5.5h4"/></svg>
-              <div class="lp-ps-ast-input-placeholder">Ask your brand assistant anything…</div>
-              <div class="lp-ps-ast-send-btn"><svg viewBox="0 0 12 12" fill="none" stroke="#B7FF2A" stroke-width="1.8" stroke-linecap="round"><path d="M10 6L2 2l1.5 4L2 10l8-4z"/></svg></div>
-            </div>
-          </div>
-
-          <!-- Team — you + example members + Business Plan badge -->
-          <div class="lp-prev-screen" id="lpScreen-team">
-            <div class="lp-ps-header" style="margin-bottom:8px">
-              <div class="lp-ps-eyebrow"><div class="lp-ps-dot"></div><span>Brand Workspace</span></div>
-              <div class="lp-ps-title" style="font-size:19px">Your team. <em>One BrandCore.</em></div>
-              <div class="lp-ps-value-hint">Every teammate generates on-brand assets automatically.</div>
-            </div>
-            <div class="lp-ps-biz-badge">Professional Plan Feature</div>
-            <div class="lp-ps-team">
-              <div class="lp-ps-member">
-                <div class="lp-ps-avatar" style="background:rgba(183,255,42,.12);color:#B7FF2A">Y</div>
-                <div class="lp-ps-member-info"><div class="lp-ps-member-name">You</div><div class="lp-ps-member-email">Workspace Owner</div></div>
-                <div class="lp-ps-role-badge admin">Admin</div>
-              </div>
-              <div class="lp-ps-member" style="opacity:.55">
-                <div class="lp-ps-avatar" style="background:rgba(167,139,250,.12);color:#A78BFA">A</div>
-                <div class="lp-ps-member-info"><div class="lp-ps-member-name">Alex R.</div><div class="lp-ps-member-email">alex@brand.co</div></div>
-                <div class="lp-ps-role-badge">Editor</div>
-              </div>
-              <div class="lp-ps-member" style="opacity:.55">
-                <div class="lp-ps-avatar" style="background:rgba(56,189,248,.12);color:#38BDF8">S</div>
-                <div class="lp-ps-member-info"><div class="lp-ps-member-name">Sarah M.</div><div class="lp-ps-member-email">sarah@brand.co</div></div>
-                <div class="lp-ps-role-badge">Editor</div>
-              </div>
-              <div class="lp-ps-member" style="opacity:.55;border:none">
-                <div class="lp-ps-avatar" style="background:rgba(244,63,94,.12);color:#F43F5E">J</div>
-                <div class="lp-ps-member-info"><div class="lp-ps-member-name">Jordan K.</div><div class="lp-ps-member-email">jordan@brand.co</div></div>
-                <div class="lp-ps-role-badge">Viewer</div>
-              </div>
-            </div>
-            <div class="lp-ps-team-intel">
-              <div class="lp-ps-eyebrow" style="margin-bottom:5px"><div class="lp-ps-dot"></div><span>Shared BrandCore</span></div>
-              <div style="font-size:11px;color:rgba(255,255,255,.3);line-height:1.5">All team members share the same brand intelligence. Every generation stays on-brand automatically — no briefing required.</div>
-            </div>
-          </div>
-
-          <!-- Settings — workspace, profile, notifications, billing, integrations -->
-          <div class="lp-prev-screen" id="lpScreen-settings">
-            <div class="lp-ps-header" style="margin-bottom:10px">
-              <div class="lp-ps-eyebrow"><div class="lp-ps-dot"></div><span>Configuration</span></div>
-              <div class="lp-ps-title" style="font-size:19px">Settings</div>
-            </div>
-            <div class="lp-ps-settings-layout">
-              <div class="lp-ps-settings-nav">
-                <div class="lp-ps-sn-group">
-                  <div class="lp-ps-sn-label">Workspace</div>
-                  <div class="lp-ps-sn-item lp-ps-sn-active">Workspace</div>
-                  <div class="lp-ps-sn-item">Profile</div>
-                </div>
-                <div class="lp-ps-sn-group">
-                  <div class="lp-ps-sn-label">Preferences</div>
-                  <div class="lp-ps-sn-item">Notifications</div>
-                  <div class="lp-ps-sn-item">Integrations</div>
-                </div>
-                <div class="lp-ps-sn-group">
-                  <div class="lp-ps-sn-label">Subscription</div>
-                  <div class="lp-ps-sn-item">Billing</div>
-                </div>
-              </div>
-              <div class="lp-ps-settings-panel">
-                <div class="lp-ps-set-eyebrow">Workspace</div>
-                <div class="lp-ps-set-title">Workspace Settings</div>
-                <div class="lp-ps-set-sub">Manage your brand workspace and preferences.</div>
-                <div class="lp-ps-set-card">
-                  <div class="lp-ps-set-card-label">Workspace Name</div>
-                  <div class="lp-ps-set-card-field">My Brand Workspace</div>
-                </div>
-                <div class="lp-ps-set-card">
-                  <div class="lp-ps-set-card-label">Brand Lock</div>
-                  <div class="lp-ps-set-tgl-row">
-                    <div class="lp-ps-set-tgl-body">
-                      <div class="lp-ps-set-tgl-ttl">Lock BrandCore</div>
-                      <div class="lp-ps-set-tgl-sub">Keep brand identity fixed across all generations.</div>
+            <div class="lp-prev-tm-lower">
+              <div>
+                <div class="lp-prev-sec-lbl">Team Members <span class="lp-prev-tm-invite">+ Invite</span></div>
+                <div class="lp-prev-team">
+                  <div class="lp-prev-team-row">
+                    <div class="lp-prev-team-av" style="background:#B7FF2A;color:#000">A</div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600">Alex M.</div>
+                      <div style="font-size:8px;color:rgba(255,255,255,.3)">Admin &middot; Owner</div>
                     </div>
-                    <div class="lp-ps-set-tgl on"></div>
+                  </div>
+                  <div class="lp-prev-team-row">
+                    <div class="lp-prev-team-av" style="background:#A78BFA">J</div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:10px;color:rgba(255,255,255,.75);font-weight:600">Jordan R.</div>
+                      <div style="font-size:8px;color:rgba(255,255,255,.3)">Member</div>
+                    </div>
                   </div>
                 </div>
-                <div class="lp-ps-set-card">
-                  <div class="lp-ps-set-card-label">AI Language</div>
-                  <div class="lp-ps-set-card-field">English (US)</div>
+              </div>
+              <div>
+                <div class="lp-prev-sec-lbl">Recent Activity</div>
+                <div class="lp-prev-acts">
+                  <div class="lp-prev-act-row"><div class="lp-prev-act-d" style="background:rgba(183,255,42,.55)"></div><span class="lp-prev-act-name">Caption generated</span><span class="lp-prev-act-t">2h</span></div>
+                  <div class="lp-prev-act-row"><div class="lp-prev-act-d"></div><span class="lp-prev-act-name">BrandCore updated</span><span class="lp-prev-act-t">5h</span></div>
+                  <div class="lp-prev-act-row"><div class="lp-prev-act-d"></div><span class="lp-prev-act-name">Jordan invited</span><span class="lp-prev-act-t">1d</span></div>
                 </div>
               </div>
             </div>
           </div>
 
-        </div><!-- end lp-prev-content -->
-      </div><!-- end lp-prev-app -->
-    </div><!-- end lp-prev-frame -->
-    <div class="lp-prev-hint">
-      Explore the preview — <a href="#pricing" class="lp-prev-hint-link" onclick="lpGetStarted(event)">get started</a> with your own workspace
+        </div>
+      </div>
     </div>
-    </div><!-- end lp-prev-right -->
-    </div><!-- end lp-prev-layout -->
+    <div class="lp-prev-try-label">Try it yourself</div>
   </div>
-</section>
+</div>
+</div><!-- /scene 0 -->
 
-<!-- ═══════════════════════════════════════════════════════════
-     CREATIVE INFRASTRUCTURE
-     ═══════════════════════════════════════════════════════════ -->
-<section class="lp-infra" aria-label="Creative infrastructure">
-
-  <div class="lp-container lp-infra-header">
-    <h2 class="lp-section-title">Everything your brand needs.</h2>
-  </div>
-
-  <!-- Row 1: Systems — right to left -->
-  <div class="lp-mq-wrap" aria-hidden="true">
-    <div class="lp-mq-track lp-mq-rtl">
-      <!-- Set A -->
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>GPT-4o</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>Claude</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>HeyGen</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>GPT-4o</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>Claude</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>HeyGen</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>GPT-4o</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>Claude</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>HeyGen</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>GPT-4o</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>Claude</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>HeyGen</span>
-      <!-- Set B — duplicate for seamless loop -->
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>GPT-4o</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>Claude</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>HeyGen</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>GPT-4o</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>Claude</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>HeyGen</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>GPT-4o</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>Claude</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>HeyGen</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>GPT-4o</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>Claude</span>
-      <span class="lp-mq-pill lp-mq-pill-sys"><svg class="lp-mq-icon" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.2 4.8L12 6l-4.8 1.2L6 12 4.8 7.2 0 6l4.8-1.2Z"/></svg>HeyGen</span>
+<!-- ── SCENE 1: ABOUT ─────────────────────────────────────────────── -->
+<div class="lp-scene" data-index="1" id="about">
+<div class="lp-s-about">
+  <div data-in="fade-right">
+    <div class="lp-about-tag">Our Philosophy</div>
+    <h2 class="lp-about-title">Not a content generator.<br>A <em>brand intelligence system.</em></h2>
+    <p class="lp-about-body">Most AI tools generate content from scratch. Every prompt starts cold &mdash; no context, no brand knowledge, no consistency.</p>
+    <p class="lp-about-body">ORIVEN learns your brand first. Colors, tone, audience, positioning &mdash; all stored as living intelligence that powers every tool automatically.</p>
+    <div class="lp-about-pillars">
+      <div class="lp-about-pillar"><div class="lp-about-pillar-dot"></div><span>Brand identity first, generation second</span></div>
+      <div class="lp-about-pillar"><div class="lp-about-pillar-dot"></div><span>Consistency without effort</span></div>
+      <div class="lp-about-pillar"><div class="lp-about-pillar-dot"></div><span>Intelligence that grows over time</span></div>
     </div>
   </div>
-
-  <!-- Row 2: Outputs — left to right -->
-  <div class="lp-mq-wrap" aria-hidden="true">
-    <div class="lp-mq-track lp-mq-ltr">
-      <!-- Set A -->
-      <span class="lp-mq-pill">UGC Videos</span>
-      <span class="lp-mq-pill">Campaigns</span>
-      <span class="lp-mq-pill">Visuals</span>
-      <span class="lp-mq-pill">Websites</span>
-      <span class="lp-mq-pill">Email Design</span>
-      <span class="lp-mq-pill">Presentations</span>
-      <span class="lp-mq-pill">Posters</span>
-      <span class="lp-mq-pill">Infographics</span>
-      <span class="lp-mq-pill">Video Ads</span>
-      <span class="lp-mq-pill">Motion Graphics</span>
-      <span class="lp-mq-pill">Product Shoots</span>
-      <span class="lp-mq-pill">Copywriting</span>
-      <span class="lp-mq-pill">UGC Videos</span>
-      <span class="lp-mq-pill">Campaigns</span>
-      <span class="lp-mq-pill">Visuals</span>
-      <span class="lp-mq-pill">Websites</span>
-      <span class="lp-mq-pill">Email Design</span>
-      <span class="lp-mq-pill">Presentations</span>
-      <span class="lp-mq-pill">Posters</span>
-      <span class="lp-mq-pill">Infographics</span>
-      <span class="lp-mq-pill">Video Ads</span>
-      <span class="lp-mq-pill">Motion Graphics</span>
-      <span class="lp-mq-pill">Product Shoots</span>
-      <span class="lp-mq-pill">Copywriting</span>
-      <!-- Set B — duplicate for seamless loop -->
-      <span class="lp-mq-pill">UGC Videos</span>
-      <span class="lp-mq-pill">Campaigns</span>
-      <span class="lp-mq-pill">Visuals</span>
-      <span class="lp-mq-pill">Websites</span>
-      <span class="lp-mq-pill">Email Design</span>
-      <span class="lp-mq-pill">Presentations</span>
-      <span class="lp-mq-pill">Posters</span>
-      <span class="lp-mq-pill">Infographics</span>
-      <span class="lp-mq-pill">Video Ads</span>
-      <span class="lp-mq-pill">Motion Graphics</span>
-      <span class="lp-mq-pill">Product Shoots</span>
-      <span class="lp-mq-pill">Copywriting</span>
-      <span class="lp-mq-pill">UGC Videos</span>
-      <span class="lp-mq-pill">Campaigns</span>
-      <span class="lp-mq-pill">Visuals</span>
-      <span class="lp-mq-pill">Websites</span>
-      <span class="lp-mq-pill">Email Design</span>
-      <span class="lp-mq-pill">Presentations</span>
-      <span class="lp-mq-pill">Posters</span>
-      <span class="lp-mq-pill">Infographics</span>
-      <span class="lp-mq-pill">Video Ads</span>
-      <span class="lp-mq-pill">Motion Graphics</span>
-      <span class="lp-mq-pill">Product Shoots</span>
-      <span class="lp-mq-pill">Copywriting</span>
+  <div data-in="fade-left">
+    <div class="lp-about-stats-row">
+      <div class="lp-about-stat"><div class="lp-about-stat-val" data-count-up data-count-target="10" data-count-suffix="×">10×</div><div class="lp-about-stat-lbl">Faster asset creation vs. manual</div></div>
+      <div class="lp-about-stat"><div class="lp-about-stat-val" data-count-up data-count-target="100" data-count-suffix="%">100%</div><div class="lp-about-stat-lbl">Brand consistency across all outputs</div></div>
+    </div>
+    <div class="lp-about-stat" style="margin-top:16px">
+      <div class="lp-about-stat-val" data-count-up data-count-target="1" data-count-suffix="">1</div>
+      <div class="lp-about-stat-lbl">BrandCore powers every tool &mdash; one source of truth for your entire brand</div>
+    </div>
+    <div class="lp-about-quote">
+      <strong>The fundamental problem with AI content tools is they don&rsquo;t know your brand.</strong> ORIVEN solves this by building brand knowledge before generation begins.
     </div>
   </div>
+</div>
+</div><!-- /scene 1 -->
 
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════
-     FEATURES — outcomes, not tools
-     ═══════════════════════════════════════════════════════════ -->
-<section class="lp-features lp-fade-in" id="features">
-  <div class="lp-features-hd">
-    <div class="lp-section-eyebrow">
-      <div class="lp-section-eyebrow-dot"></div>
-      <span>Product overview</span>
-    </div>
-    <h2 class="lp-section-title">Five core systems.<br><em>One brand engine.</em></h2>
-    <p class="lp-section-sub">Every system is powered by BrandCore — one source of truth for your brand identity, applied automatically across every output.</p>
+<!-- ── SCENE 2: AI SYSTEMS ───────────────────────────────────────── -->
+<div class="lp-scene" data-index="2">
+<div class="lp-s-ai">
+  <div class="lp-s-ai-hdr">
+    <div class="lp-s-ai-eyebrow" data-in="fade-up">Connected Intelligence</div>
+    <h2 class="lp-s-ai-title" data-in="fade-up">Every AI. <em>One brand engine.</em></h2>
+    <p class="lp-s-ai-sub" data-in="fade-up">Oriven connects the world&rsquo;s most powerful AI into a single, brand-aware workflow. One input. Every output.</p>
   </div>
-  <div class="lp-feats-6 lp-stagger">
-
-    <div class="lp-feat">
-      <div class="lp-feat-ico">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      </div>
-      <div class="lp-feat-title">Dashboard</div>
-      <div class="lp-feat-desc">Your central command center. Track activity, generations, brand progress, and workspace insights — all in one view.</div>
-      <div class="lp-feat-tag">Mission Control</div>
+  <div class="lp-s-ai-providers" data-in="fade-right">
+    <div class="lp-s-ai-provider">
+      <div class="lp-s-ai-pico" style="background:rgba(255,255,255,.06)"><span style="color:#fff;font-size:10px;font-weight:800">GPT</span></div>
+      <div><div class="lp-s-ai-pname">OpenAI</div><div class="lp-s-ai-psub">Images &middot; Copy &middot; Strategy</div></div>
     </div>
-
-    <div class="lp-feat">
-      <div class="lp-feat-ico">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/></svg>
-      </div>
-      <div class="lp-feat-title">Create</div>
-      <div class="lp-feat-desc">Generate campaigns, visuals, websites, UGC content, and copy — all powered by your BrandCore identity automatically.</div>
-      <div class="lp-feat-tag">Asset Generation</div>
+    <div class="lp-s-ai-provider">
+      <div class="lp-s-ai-pico" style="background:rgba(200,162,114,.1)"><span style="color:#C8A272;font-size:9px;font-weight:800">CLA</span></div>
+      <div><div class="lp-s-ai-pname">Claude</div><div class="lp-s-ai-psub">Brand voice &middot; Campaigns</div></div>
     </div>
-
-    <div class="lp-feat">
-      <div class="lp-feat-ico">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5 2.5v5L8 11.5 3 9V4z"/><path d="M8 11.5v3M3 4l5 2.5 5-2.5M8 6.5v5"/></svg>
-      </div>
-      <div class="lp-feat-title">BrandCore</div>
-      <div class="lp-feat-desc">Build and manage your complete brand system — colors, typography, positioning, personality, audience, and visual direction.</div>
-      <div class="lp-feat-tag">Brand Intelligence</div>
+    <div class="lp-s-ai-provider">
+      <div class="lp-s-ai-pico" style="background:rgba(101,163,255,.08)"><span style="color:#65A3FF;font-size:9px;font-weight:800">LMA</span></div>
+      <div><div class="lp-s-ai-pname">Luma AI</div><div class="lp-s-ai-psub">Video ads &middot; Cinematic</div></div>
     </div>
-
-    <div class="lp-feat">
-      <div class="lp-feat-ico">
-        <svg viewBox="0 0 24 24"><path d="M9 21h6M12 3a6 6 0 0 1 6 6c0 2.8-1.7 5-3 6.5H9C7.7 14 6 11.8 6 9a6 6 0 0 1 6-6z"/><path d="M9 17h6"/></svg>
-      </div>
-      <div class="lp-feat-title">Inspiration</div>
-      <div class="lp-feat-desc">Discover proven creative concepts and instantly launch any of them into a pre-filled generator with one click.</div>
-      <div class="lp-feat-tag">Creative Direction</div>
-    </div>
-
-    <div class="lp-feat">
-      <div class="lp-feat-ico">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H5.5L2 14V11z"/><path d="M5.5 8h5M5.5 5.5h3"/></svg>
-      </div>
-      <div class="lp-feat-title">Brand Assistant</div>
-      <div class="lp-feat-desc">Your AI-powered brand strategist with full BrandCore awareness. Ask anything about your brand — get instant, on-brand answers.</div>
-      <div class="lp-feat-tag">Brand Strategy</div>
-    </div>
-
-    <div class="lp-feat">
-      <div class="lp-feat-ico">
-        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      </div>
-      <div class="lp-feat-title">Team</div>
-      <div class="lp-feat-desc">Collaborate with team members and manage shared brand systems. Keep every stakeholder aligned to one brand intelligence.</div>
-      <div class="lp-feat-tag">Brand Workspace</div>
-      <div class="lp-feat-badge">Professional Plan</div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════
-     HOW IT WORKS
-     ═══════════════════════════════════════════════════════════ -->
-<section class="lp-how lp-fade-in" id="how-it-works">
-  <div class="lp-how-inner">
-    <div class="lp-how-hd">
-      <div class="lp-section-eyebrow" style="justify-content:center">
-        <div class="lp-section-eyebrow-dot"></div>
-        <span>The process</span>
-      </div>
-      <h2 class="lp-section-title">Three steps to<br><em>brand intelligence.</em></h2>
-    </div>
-    <div class="lp-how-timeline">
-
-      <div class="lp-how-step" data-step="1" onclick="lpHowStep(1)">
-        <div class="lp-how-step-marker">1</div>
-        <div class="lp-how-step-head">
-          <div class="lp-how-step-title">Build Your BrandCore</div>
-          <div class="lp-how-step-toggle">+</div>
-        </div>
-        <div class="lp-how-step-body">Set up your brand identity manually or let AI build it from a single description. Either way it takes 5 to 10 minutes and becomes the foundation for every asset ORIVEN generates.</div>
-        <div class="lp-how-step-divider"></div>
-      </div>
-
-      <div class="lp-how-step" data-step="2" onclick="lpHowStep(2)">
-        <div class="lp-how-step-marker">2</div>
-        <div class="lp-how-step-head">
-          <div class="lp-how-step-title">Generate Branded Assets</div>
-          <div class="lp-how-step-toggle">+</div>
-        </div>
-        <div class="lp-how-step-body">The AI analyzes and internalizes your complete brand identity — your tone, colors, audience, and positioning. Brand intelligence grows with every generation and feedback signal.</div>
-        <div class="lp-how-step-divider"></div>
-      </div>
-
-      <div class="lp-how-step" data-step="3" onclick="lpHowStep(3)">
-        <div class="lp-how-step-marker">3</div>
-        <div class="lp-how-step-head">
-          <div class="lp-how-step-title">Scale Consistently</div>
-          <div class="lp-how-step-toggle">+</div>
-        </div>
-        <div class="lp-how-step-body">Create campaigns, visuals, video ads, and copy on demand. Every asset automatically reflects your brand identity without additional prompting or manual correction.</div>
-        <div class="lp-how-step-divider"></div>
-      </div>
-
+    <div class="lp-s-ai-provider">
+      <div class="lp-s-ai-pico" style="background:rgba(255,94,58,.08)"><span style="color:#FF5E3A;font-size:9px;font-weight:800">HEY</span></div>
+      <div><div class="lp-s-ai-pname">HeyGen</div><div class="lp-s-ai-psub">UGC &middot; AI presenters</div></div>
     </div>
   </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════
-     ABOUT
-     ═══════════════════════════════════════════════════════════ -->
-<section class="lp-about lp-fade-in" id="about">
-  <div class="lp-about-inner">
-    <div class="lp-about-left lp-slide-left">
-      <div class="lp-about-tag">Our Philosophy</div>
-      <h2 class="lp-about-title">Not a content generator.<br>A <em>brand intelligence system.</em></h2>
-      <p class="lp-about-body">Most AI tools generate content from scratch. Every prompt starts cold — no context, no brand knowledge, no consistency.</p>
-      <p class="lp-about-body">ORIVEN is different. Before generating a single asset, ORIVEN learns your brand. Your colors, your tone, your audience, your positioning — all stored as living intelligence.</p>
-      <p class="lp-about-body">The result: every asset ORIVEN creates is already on-brand. Not because you prompted it perfectly — because the system knows your brand.</p>
-      <div class="lp-about-pillars">
-        <div class="lp-about-pillar"><div class="lp-about-pillar-dot"></div><span>Brand identity first, generation second</span></div>
-        <div class="lp-about-pillar"><div class="lp-about-pillar-dot"></div><span>Consistency without effort</span></div>
-        <div class="lp-about-pillar"><div class="lp-about-pillar-dot"></div><span>Intelligence that grows over time</span></div>
-        <div class="lp-about-pillar"><div class="lp-about-pillar-dot"></div><span>Built for everyone building a brand</span></div>
-      </div>
+  <div class="lp-s-ai-center" data-in="scale">
+    <div class="lp-s-ai-arrow"></div>
+    <div class="lp-s-ai-hub">
+      <img src="assets/orivenlogo.png" alt="ORIVEN">
     </div>
-    <div class="lp-about-visual lp-slide-right">
-      <div class="lp-about-stats-row">
-        <div class="lp-about-stat">
-          <div class="lp-about-stat-val">10×</div>
-          <div class="lp-about-stat-lbl">Faster asset creation vs. manual</div>
-        </div>
-        <div class="lp-about-stat">
-          <div class="lp-about-stat-val">100%</div>
-          <div class="lp-about-stat-lbl">Brand consistency across all outputs</div>
-        </div>
-      </div>
-      <div class="lp-about-stat">
-        <div class="lp-about-stat-val">1</div>
-        <div class="lp-about-stat-lbl">BrandCore powers every tool in ORIVEN — one source of truth for your entire brand</div>
-      </div>
-      <div class="lp-about-quote">
-        <strong>The fundamental problem with AI content tools is they don't know your brand.</strong> ORIVEN solves this by building brand knowledge before generation begins.
-      </div>
+    <div class="lp-s-ai-arrow flip"></div>
+  </div>
+  <div class="lp-s-ai-outputs" data-in="fade-left">
+    <div class="lp-s-ai-output"><div class="lp-s-ai-out-dot"></div><div class="lp-s-ai-out-name">Brand Identity</div></div>
+    <div class="lp-s-ai-output"><div class="lp-s-ai-out-dot"></div><div class="lp-s-ai-out-name">Campaign Assets</div></div>
+    <div class="lp-s-ai-output"><div class="lp-s-ai-out-dot"></div><div class="lp-s-ai-out-name">Video Ads</div></div>
+    <div class="lp-s-ai-output"><div class="lp-s-ai-out-dot"></div><div class="lp-s-ai-out-name">UGC Content</div></div>
+    <div class="lp-s-ai-output"><div class="lp-s-ai-out-dot"></div><div class="lp-s-ai-out-name">Product Shoots</div></div>
+    <div class="lp-s-ai-output"><div class="lp-s-ai-out-dot"></div><div class="lp-s-ai-out-name">Copy &amp; Strategy</div></div>
+  </div>
+</div>
+</div><!-- /scene 2 -->
+
+<!-- ── SCENE 3: PROCESS ──────────────────────────────────────────── -->
+<div class="lp-scene" data-index="3" id="process">
+<div class="lp-s-proc">
+  <div class="lp-s-proc-eyebrow" data-in="fade-up">How It Works</div>
+  <h2 class="lp-s-proc-title" data-in="fade-up">From idea to brand,<br><em>in minutes.</em></h2>
+  <div class="lp-s-proc-steps">
+    <div class="lp-s-proc-step" data-proc-step>
+      <div class="lp-s-proc-num">01</div>
+      <h3 class="lp-s-proc-step-h">Generate Brand</h3>
+      <p class="lp-s-proc-step-p">Tell Oriven about your business in one sentence. In minutes, AI builds your complete brand identity &mdash; colors, tone, positioning, and personality &mdash; stored as living intelligence.</p>
+    </div>
+    <div class="lp-s-proc-step" data-proc-step>
+      <div class="lp-s-proc-num">02</div>
+      <h3 class="lp-s-proc-step-h">Generate Assets</h3>
+      <p class="lp-s-proc-step-p">Select any tool. Oriven connects OpenAI, Claude, HeyGen, and Luma AI to generate campaigns, videos, visuals, and product shots &mdash; always on-brand, automatically.</p>
+    </div>
+    <div class="lp-s-proc-step" data-proc-step>
+      <div class="lp-s-proc-num">03</div>
+      <h3 class="lp-s-proc-step-h">Scale Consistently</h3>
+      <p class="lp-s-proc-step-p">Create at any volume without losing your brand voice. Every asset automatically reflects your identity &mdash; no re-prompting, no briefing, no drift.</p>
     </div>
   </div>
-</section>
+</div>
+</div><!-- /scene 3 -->
 
-<!-- ═══════════════════════════════════════════════════════════
-     TESTIMONIALS
-     ═══════════════════════════════════════════════════════════ -->
-<section class="lp-testimonials lp-fade-in" id="testimonials">
-  <div class="lp-testi-inner">
-    <div class="lp-testi-hd">
-      <div class="lp-section-eyebrow" style="justify-content:center">
-        <div class="lp-section-eyebrow-dot"></div>
-        <span>Early users</span>
-      </div>
-      <h2 class="lp-section-title" style="text-align:center">Real brands.<br><em>Real results.</em></h2>
-    </div>
-
-    <!-- Set 1 -->
-    <div class="lp-testi-set active" id="lpTestiSet0">
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"I spent a week trying to get consistent brand assets from other AI tools. With ORIVEN, I set up my BrandCore once and <em>everything just worked</em>. Launched our first campaign the same day."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#B7FF2A">M</div>
-          <div><div class="lp-testi-name">Maya C.</div><div class="lp-testi-role">Skincare Founder</div></div>
-        </div>
-      </div>
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"Our content output went from 3 pieces a week to 20+. <em>The brand consistency is what surprised me most</em> — every asset looks like it came from the same designer."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#A78BFA">J</div>
-          <div><div class="lp-testi-name">Jordan E.</div><div class="lp-testi-role">Startup Growth Lead</div></div>
-        </div>
-      </div>
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"I use ORIVEN on every client project. The BrandCore idea is genuinely smart — <em>it thinks about the brand before it touches the brief.</em> That changes everything."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#3B82F6">S</div>
-          <div><div class="lp-testi-name">Sam R.</div><div class="lp-testi-role">Brand Designer</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Set 2 -->
-    <div class="lp-testi-set" id="lpTestiSet1">
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"We went from inconsistent social assets to a fully coherent brand presence in one week. <em>ORIVEN essentially became our creative department.</em> The BrandCore system is unlike anything else."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#22D3EE">A</div>
-          <div><div class="lp-testi-name">Alex P.</div><div class="lp-testi-role">E-commerce Founder</div></div>
-        </div>
-      </div>
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"I was skeptical about AI brand tools — they always feel generic. <em>ORIVEN is different because it actually learns your brand first.</em> The output quality is genuinely impressive."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#F59E0B">C</div>
-          <div><div class="lp-testi-name">Chloe M.</div><div class="lp-testi-role">Creative Director</div></div>
-        </div>
-      </div>
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"We built our entire go-to-market creative stack with ORIVEN. <em>What would have taken a full team of designers took us three days.</em> The ROI is absurd."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#FF5C28">R</div>
-          <div><div class="lp-testi-name">Ryan M.</div><div class="lp-testi-role">Startup Founder</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Set 3 -->
-    <div class="lp-testi-set" id="lpTestiSet2">
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"The campaign builder alone is worth it. <em>Give it a brief and it generates full multi-channel campaigns</em> that actually sound like our brand. My team has stopped second-guessing every asset."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#EC4899">P</div>
-          <div><div class="lp-testi-name">Priya S.</div><div class="lp-testi-role">Marketing Manager</div></div>
-        </div>
-      </div>
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"I recommend ORIVEN to every early-stage client. <em>The ability to formalize a brand identity and immediately generate assets from it</em> is a complete game changer for small teams."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#8B5CF6">T</div>
-          <div><div class="lp-testi-name">Tom W.</div><div class="lp-testi-role">Brand Consultant</div></div>
-        </div>
-      </div>
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"Our clients expect agency-quality work and ORIVEN helps us deliver it faster. <em>The brand consistency across different asset types is remarkable</em> — nothing else comes close."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#10B981">E</div>
-          <div><div class="lp-testi-name">Elena R.</div><div class="lp-testi-role">Agency Creative Director</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Set 4 -->
-    <div class="lp-testi-set" id="lpTestiSet3">
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"Building a personal brand from scratch is overwhelming. ORIVEN made it manageable. <em>I had a full brand identity, campaign assets, and content strategy within a day.</em> Nothing else comes close."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#F97316">J</div>
-          <div><div class="lp-testi-name">Jamie L.</div><div class="lp-testi-role">Personal Brand Builder</div></div>
-        </div>
-      </div>
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"I create content for multiple brands simultaneously. <em>ORIVEN's BrandCore system means I can switch between them without losing context</em> — every output is immediately on-brand."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#06B6D4">M</div>
-          <div><div class="lp-testi-name">Marco T.</div><div class="lp-testi-role">Content Creator</div></div>
-        </div>
-      </div>
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"We were spending €2k/month on a design agency for brand assets. <em>ORIVEN does what they did in hours instead of weeks</em> and it's always on-brand. The savings paid for years of subscription."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#D946EF">S</div>
-          <div><div class="lp-testi-name">Sara K.</div><div class="lp-testi-role">E-commerce Owner</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Set 5 -->
-    <div class="lp-testi-set" id="lpTestiSet4">
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"Every client I bring to ORIVEN walks away impressed. <em>The BrandCore setup alone surfaces brand clarity they've never had before</em> — then the asset generation seals it."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#14B8A6">D</div>
-          <div><div class="lp-testi-name">Dev P.</div><div class="lp-testi-role">Marketing Consultant</div></div>
-        </div>
-      </div>
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"As a freelancer handling brand work for multiple clients, I needed a system. <em>ORIVEN's brand profiles let me keep each client's identity completely separate</em> — and the outputs are always right."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#6366F1">N</div>
-          <div><div class="lp-testi-name">Nadia F.</div><div class="lp-testi-role">Freelancer</div></div>
-        </div>
-      </div>
-      <div class="lp-testi-card">
-        <div class="lp-testi-stars"><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span><span class="lp-testi-star">★</span></div>
-        <div class="lp-testi-quote">"We built our entire agency workflow around ORIVEN's BrandCore system. <em>Client onboarding, asset production, campaign work — it's all faster and more consistent.</em> It's become our unfair advantage."</div>
-        <div class="lp-testi-person">
-          <div class="lp-testi-avatar" style="background:#EF4444">C</div>
-          <div><div class="lp-testi-name">Chris M.</div><div class="lp-testi-role">Agency Owner</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Carousel controls -->
-    <div class="lp-testi-controls">
-      <button class="lp-testi-btn" onclick="lpTestiNav(-1)" aria-label="Previous">
-        <svg viewBox="0 0 14 14"><path d="M9 2L5 7l4 5"/></svg>
-      </button>
-      <div class="lp-testi-dots">
-        <div class="lp-testi-dot active" onclick="lpTestiGoto(0)"></div>
-        <div class="lp-testi-dot" onclick="lpTestiGoto(1)"></div>
-        <div class="lp-testi-dot" onclick="lpTestiGoto(2)"></div>
-        <div class="lp-testi-dot" onclick="lpTestiGoto(3)"></div>
-        <div class="lp-testi-dot" onclick="lpTestiGoto(4)"></div>
-      </div>
-      <button class="lp-testi-btn" onclick="lpTestiNav(1)" aria-label="Next">
-        <svg viewBox="0 0 14 14"><path d="M5 2l4 5-4 5"/></svg>
-      </button>
-    </div>
-
+<!-- ── SCENE 4: REVIEWS ──────────────────────────────────────────── -->
+<div class="lp-scene" data-index="4" id="reviews">
+<div class="lp-s-testi">
+  <div class="lp-s-testi-hdr">
+    <div class="lp-s-testi-eyebrow" data-in="fade-up">Reviews</div>
+    <h2 class="lp-s-testi-title" data-in="fade-up">Real brands.<br><em>Real results.</em></h2>
   </div>
-</section>
+  <div class="lp-s-testi-carousel">
+    <button class="lp-tc-arrow lp-tc-prev" id="lpTestiPrev" onclick="lpTestiNav(-1)" aria-label="Previous">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>
+    </button>
+    <div class="lp-tc-viewport">
+      <div class="lp-tc-track" id="lpTestiTrack">
 
-<!-- ═══════════════════════════════════════════════════════════
-     PRICING
-     ═══════════════════════════════════════════════════════════ -->
-<section class="lp-pricing lp-fade-in" id="pricing">
-  <div class="lp-pricing-inner">
-    <div class="lp-pricing-hd">
-      <div class="lp-section-eyebrow" style="justify-content:center">
-        <div class="lp-section-eyebrow-dot"></div>
-        <span>Pricing</span>
-      </div>
-      <h2 class="lp-section-title" style="text-align:center">Transparent, flexible<br><em>pricing.</em></h2>
-      <p class="lp-section-sub" style="margin:0 auto;text-align:center">Cancel anytime. No lock-in.</p>
-    </div>
-    <!-- Rendered by plans.js on DOMContentLoaded -->
-    <div class="lp-pricing-grid" id="lpPricingGrid"></div>
+        <!-- Card 1 -->
+        <div class="lp-tc-card" data-in="fade-up">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;I spent a week trying to get consistent brand assets from other AI tools. With ORIVEN, I set up my BrandCore once and <em>everything just worked</em>. Launched our first campaign the same day.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#B7FF2A;color:#000">M</div>
+              <div><div class="lp-s-tcard-name">Maya C.</div><div class="lp-s-tcard-role">Skincare Founder</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="lp-tc-card" data-in="fade-up">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;Our content output went from 3 pieces a week to 20+. <em>The brand consistency is what surprised me most</em> &mdash; every asset looks like it came from the same designer.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#A78BFA">J</div>
+              <div><div class="lp-s-tcard-name">Jordan E.</div><div class="lp-s-tcard-role">Startup Growth Lead</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="lp-tc-card" data-in="fade-up">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;I use ORIVEN on every client project. The BrandCore idea is genuinely smart &mdash; <em>it thinks about the brand before it touches the brief.</em> That changes everything.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#3B82F6">S</div>
+              <div><div class="lp-s-tcard-name">Sam R.</div><div class="lp-s-tcard-role">Brand Designer</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;We launched 3 product lines in one month. ORIVEN kept our brand consistent across all of them <em>without any extra work from our team.</em>&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#F59E0B">A</div>
+              <div><div class="lp-s-tcard-name">Alex T.</div><div class="lp-s-tcard-role">E-commerce Founder</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;The BrandCore feature is genuinely different. <em>Our entire team is now working from the same brand intelligence.</em> No more inconsistent assets across departments.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#EC4899">P</div>
+              <div><div class="lp-s-tcard-name">Priya S.</div><div class="lp-s-tcard-role">Marketing Director</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;I pitched ORIVEN to a client struggling with brand consistency for years. <em>We set up their BrandCore in an afternoon.</em> Six months of problems solved in one day.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#10B981">D</div>
+              <div><div class="lp-s-tcard-name">David K.</div><div class="lp-s-tcard-role">Creative Agency Owner</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 7 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;Video ads used to take us 3 weeks to produce. <em>With ORIVEN, we're generating them in a day.</em> The quality surprised our entire performance team.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#F97316">R</div>
+              <div><div class="lp-s-tcard-name">Riya M.</div><div class="lp-s-tcard-role">DTC Brand Owner</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 8 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;Our ROAS improved 40% after switching to ORIVEN-generated creatives. <em>They perform better because they're actually on-brand</em> &mdash; not just visually good.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#06B6D4">T</div>
+              <div><div class="lp-s-tcard-name">Theo B.</div><div class="lp-s-tcard-role">Growth Marketer</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 9 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;I used to charge clients for brand strategy work that took 6 weeks. <em>ORIVEN produces the foundation in a day.</em> I now offer it as a premium upsell service.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#8B5CF6">C</div>
+              <div><div class="lp-s-tcard-name">Chloe R.</div><div class="lp-s-tcard-role">Brand Strategist</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 10 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;<em>Built our entire brand from scratch in two days.</em> Launched our first campaign the same week. As a solo founder, ORIVEN is the team I couldn't afford to hire.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#EF4444">M</div>
+              <div><div class="lp-s-tcard-name">Marcus L.</div><div class="lp-s-tcard-role">SaaS Founder</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 11 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;Our Instagram engagement doubled after switching to ORIVEN-generated content. <em>The visual consistency is something our followers actually comment on.</em>&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#D946EF">H</div>
+              <div><div class="lp-s-tcard-name">Hana Y.</div><div class="lp-s-tcard-role">Wellness Brand</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 12 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;I manage ad accounts for 8 brands. ORIVEN is the first tool I open for every new creative brief. <em>The speed-to-output ratio is unmatched</em> by anything else I've tried.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#84CC16;color:#000">J</div>
+              <div><div class="lp-s-tcard-name">James W.</div><div class="lp-s-tcard-role">Media Buyer</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 13 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;I run a personal brand with 200k followers. ORIVEN keeps every post, video, and campaign feeling like <em>&lsquo;me&rsquo;</em> &mdash; without constant reprompting or drift.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#14B8A6">S</div>
+              <div><div class="lp-s-tcard-name">Sofia N.</div><div class="lp-s-tcard-role">Content Creator</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 14 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;We went from 3 different agencies producing inconsistent assets to <em>one ORIVEN-powered workflow</em>. Our brand has never been more coherent across channels.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#6366F1">L</div>
+              <div><div class="lp-s-tcard-name">Luca B.</div><div class="lp-s-tcard-role">Head of Brand</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 15 -->
+        <div class="lp-tc-card">
+          <div class="lp-s-tcard">
+            <div class="lp-s-tcard-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="lp-s-tcard-quote">&ldquo;ORIVEN is the only AI tool that actually understands branding. <em>Not just content generation &mdash; genuine brand intelligence</em> that improves every output automatically.&rdquo;</div>
+            <div class="lp-s-tcard-person">
+              <div class="lp-s-tcard-av" style="background:#F472B6">N</div>
+              <div><div class="lp-s-tcard-name">Nina A.</div><div class="lp-s-tcard-role">Startup CMO</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /track -->
+    </div><!-- /viewport -->
+    <button class="lp-tc-arrow lp-tc-next" id="lpTestiNext" onclick="lpTestiNav(1)" aria-label="Next">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>
+    </button>
+  </div><!-- /carousel -->
+  <div class="lp-tc-indicators" id="lpTestiIndicators">
+    <div class="lp-tc-dot active" onclick="lpTestiGoto(0)"></div>
+    <div class="lp-tc-dot" onclick="lpTestiGoto(1)"></div>
+    <div class="lp-tc-dot" onclick="lpTestiGoto(2)"></div>
+    <div class="lp-tc-dot" onclick="lpTestiGoto(3)"></div>
+    <div class="lp-tc-dot" onclick="lpTestiGoto(4)"></div>
   </div>
-</section>
+</div>
+</div><!-- /scene 4 -->
 
-<!-- ═══════════════════════════════════════════════════════════
-     FAQ
-     ═══════════════════════════════════════════════════════════ -->
-<section class="lp-faq lp-fade-in" id="faq">
-  <div class="lp-faq-inner">
-    <div class="lp-faq-hd">
-      <div class="lp-section-eyebrow" style="justify-content:center">
-        <div class="lp-section-eyebrow-dot"></div>
-        <span>Questions</span>
-      </div>
-      <h2 class="lp-section-title" style="text-align:center">Frequently asked.</h2>
-    </div>
-    <div class="lp-faq-list">
 
-      <div class="lp-faq-item">
-        <div class="lp-faq-q" onclick="toggleFaq(this)">
-          What is ORIVEN?
-          <div class="lp-faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8"/></svg></div>
-        </div>
-        <div class="lp-faq-a">ORIVEN is a Brand Intelligence Platform. Unlike standard AI tools that generate from blank context, ORIVEN learns your complete brand identity first — then generates every asset from that foundation. The result is consistent, on-brand content without constant re-prompting.</div>
-      </div>
-
-      <div class="lp-faq-item">
-        <div class="lp-faq-q" onclick="toggleFaq(this)">
-          What is BrandCore?
-          <div class="lp-faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8"/></svg></div>
-        </div>
-        <div class="lp-faq-a">BrandCore is the central identity system inside ORIVEN. It stores everything that defines your brand — your name, positioning, colors, fonts, tone of voice, target audience, key messages, and competitive differentiation. Every generation ORIVEN produces is filtered through your BrandCore automatically.</div>
-      </div>
-
-      <div class="lp-faq-item">
-        <div class="lp-faq-q" onclick="toggleFaq(this)">
-          Can I generate UGC videos with ORIVEN?
-          <div class="lp-faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8"/></svg></div>
-        </div>
-        <div class="lp-faq-a">Yes. ORIVEN includes a full UGC Creator tool powered by HeyGen. Choose from real AI creators, select a voice (with audio preview), and either write your own script or let ORIVEN's AI write one based on your brand. Videos are generated in minutes and can be used directly as ad creatives.</div>
-      </div>
-
-      <div class="lp-faq-item">
-        <div class="lp-faq-q" onclick="toggleFaq(this)">
-          Who is ORIVEN for?
-          <div class="lp-faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8"/></svg></div>
-        </div>
-        <div class="lp-faq-a">ORIVEN is built for founders, startups, e-commerce brands, and marketing teams who need to create high-quality brand assets quickly without sacrificing consistency. It's especially powerful for small teams where one person handles brand and marketing.</div>
-      </div>
-
-      <div class="lp-faq-item">
-        <div class="lp-faq-q" onclick="toggleFaq(this)">
-          Do I need design or branding experience?
-          <div class="lp-faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8"/></svg></div>
-        </div>
-        <div class="lp-faq-a">No. ORIVEN is designed for non-designers. If you have a brand (even a rough one), ORIVEN can formalize it into a complete BrandCore. If you're starting from scratch, the AI can generate your entire brand identity from a single sentence description.</div>
-      </div>
-
-    </div>
+<!-- ── SCENE 5: PRICING ──────────────────────────────────────────── -->
+<div class="lp-scene" data-index="5" id="pricing">
+<div class="lp-s-pricing">
+  <div class="lp-s-pricing-hdr">
+    <div class="lp-s-pricing-eyebrow" data-in="fade-up">Pricing</div>
+    <h2 class="lp-s-pricing-title" data-in="fade-up">Transparent, flexible<br><em>pricing.</em></h2>
+    <p class="lp-s-pricing-sub" data-in="fade-up">Cancel anytime. No lock-in.</p>
   </div>
-</section>
+  <div class="lp-pricing-grid" id="lpPricingGrid" data-in="fade-up"></div>
+</div>
+</div><!-- /scene 5 -->
 
-<!-- ═══════════════════════════════════════════════════════════
-     FINAL CTA
-     ═══════════════════════════════════════════════════════════ -->
-<section class="lp-final lp-fade-in">
-  <div class="lp-final-h">Build your brand once.<br><em>Create every asset from it.</em></div>
-  <p class="lp-final-sub">Start with your BrandCore. Generate campaigns, videos, and visuals in minutes.</p>
-  <div class="lp-final-actions">
-    <a href="#pricing" class="lp-cta-btn lp-cta-btn-lg" onclick="lpGetStarted(event)">Get Started</a>
-    <a href="#faq" class="lp-ghost-btn">Have questions? Read the FAQ</a>
+<!-- ── SCENE 6: FAQ ───────────────────────────────────────────────── -->
+<div class="lp-scene" data-index="6" id="faq">
+<div class="lp-s-faq">
+  <div class="lp-s-faq-hdr">
+    <div class="lp-s-faq-eyebrow" data-in="fade-up">Questions</div>
+    <h2 class="lp-s-faq-title" data-in="fade-up">Frequently <em>asked.</em></h2>
   </div>
-  <p class="lp-final-note">Setup in minutes · Cancel anytime</p>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════
-     FOOTER
-     ═══════════════════════════════════════════════════════════ -->
-<footer class="lp-footer">
-  <div class="lp-footer-top">
-    <div class="lp-footer-grid">
-
-      <!-- Brand -->
-      <div class="lp-footer-brand">
-        <div class="lp-footer-logo">
-          <img src="assets/orivenlogo.png" alt="ORIVEN">
-          <span class="lp-footer-logo-txt">ORIVEN</span>
-        </div>
-        <p class="lp-footer-tagline">Build your BrandCore once.<br>Generate everything from it.</p>
-      </div>
-
-      <!-- Resources -->
-      <div class="lp-footer-col">
-        <div class="lp-footer-col-hd">Resources</div>
-        <a href="/about" class="lp-footer-link">About</a>
-        <a href="/contact" class="lp-footer-link">Contact</a>
-        <a href="/security" class="lp-footer-link">Security</a>
-      </div>
-
-      <!-- Legal -->
-      <div class="lp-footer-col">
-        <div class="lp-footer-col-hd">Legal</div>
-        <a href="/terms" class="lp-footer-link">Terms of Service</a>
-        <a href="/privacy" class="lp-footer-link">Privacy Policy</a>
-        <a href="/refund-policy" class="lp-footer-link">Refund Policy</a>
-        <a href="/cookie-policy" class="lp-footer-link">Cookie Policy</a>
-      </div>
-
+  <div class="lp-faq-list">
+    <div class="lp-faq-item" data-in="fade-left">
+      <div class="lp-faq-q" onclick="toggleFaq(this)">What is ORIVEN?<div class="lp-faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8"/></svg></div></div>
+      <div class="lp-faq-a">ORIVEN is a Brand Intelligence Platform. Unlike standard AI tools that generate from blank context, ORIVEN learns your complete brand identity first &mdash; then generates every asset from that foundation. The result is consistent, on-brand content without constant re-prompting.</div>
+    </div>
+    <div class="lp-faq-item" data-in="fade-right">
+      <div class="lp-faq-q" onclick="toggleFaq(this)">What is BrandCore?<div class="lp-faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8"/></svg></div></div>
+      <div class="lp-faq-a">BrandCore is the central identity system inside ORIVEN. It stores everything that defines your brand &mdash; name, positioning, colors, fonts, tone of voice, target audience, and competitive differentiation. Every generation ORIVEN produces is filtered through your BrandCore automatically.</div>
+    </div>
+    <div class="lp-faq-item" data-in="fade-left">
+      <div class="lp-faq-q" onclick="toggleFaq(this)">Can I generate UGC videos?<div class="lp-faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8"/></svg></div></div>
+      <div class="lp-faq-a">Yes. ORIVEN includes a full UGC Creator tool powered by HeyGen. Choose from real AI creators, select a voice, and let ORIVEN&rsquo;s AI write a brand-aligned script. Videos are generated in minutes and can be used directly as ad creatives.</div>
+    </div>
+    <div class="lp-faq-item" data-in="fade-right">
+      <div class="lp-faq-q" onclick="toggleFaq(this)">Who is ORIVEN for?<div class="lp-faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8"/></svg></div></div>
+      <div class="lp-faq-a">Founders, startups, e-commerce brands, and marketing teams who need to create high-quality brand assets quickly without sacrificing consistency. Especially powerful for small teams where one person handles brand and marketing.</div>
+    </div>
+    <div class="lp-faq-item" data-in="fade-left">
+      <div class="lp-faq-q" onclick="toggleFaq(this)">Do I need design experience?<div class="lp-faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8"/></svg></div></div>
+      <div class="lp-faq-a">No. ORIVEN is designed for non-designers. If you&rsquo;re starting from scratch, the AI generates your entire brand identity from a single sentence description.</div>
     </div>
   </div>
+</div>
+</div><!-- /scene 6 -->
 
-  <div class="lp-footer-bottom">
-    <div class="lp-footer-bottom-inner">
-      <span class="lp-footer-copy">© 2026 ORIVEN</span>
-      <span class="lp-footer-sep">·</span>
-      <span class="lp-footer-copy">KVK: 42039993</span>
-      <span class="lp-footer-sep">·</span>
-      <a href="mailto:studio.oriven@outlook.com" class="lp-footer-copy lp-footer-email">studio.oriven@outlook.com</a>
-      <span class="lp-footer-sep">·</span>
-      <span class="lp-footer-copy">All rights reserved.</span>
-      <button class="lp-scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
-        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10V2M2 6l4-4 4 4"/></svg>
-      </button>
+<!-- ── SCENE 7: CONTACT (FINAL) ──────────────────────────────── -->
+<div class="lp-scene lp-scene-footer" data-index="7" id="contact">
+<div class="lp-s-contact-wrap">
+  <!-- CTA -->
+  <div class="lp-s-contact">
+    <div class="lp-s-contact-eyebrow" data-in="fade-up">Contact</div>
+    <h2 class="lp-s-contact-title" data-in="fade-up">Ready to build<br>your <em>brand?</em></h2>
+    <p class="lp-s-contact-sub" data-in="fade-up">Have a question before starting? We&rsquo;re happy to help you find the right plan.</p>
+    <div class="lp-s-contact-actions" data-in="fade-up">
+      <a href="#" class="lp-cta-btn lp-cta-btn-lg" onclick="lpGetStarted(event)">Get Started</a>
+      <a href="mailto:studio.oriven@outlook.com" class="lp-ghost-btn">Contact Us</a>
     </div>
   </div>
-</footer>
+  <!-- Footer integrated -->
+  <footer class="lp-footer">
+    <div class="lp-footer-top">
+      <div class="lp-footer-grid">
+        <div class="lp-footer-brand">
+          <div class="lp-footer-logo">
+            <img src="assets/orivenlogo.png" alt="ORIVEN">
+            <span class="lp-footer-logo-txt">ORIVEN</span>
+          </div>
+          <p class="lp-footer-tagline">Build your BrandCore once.<br>Generate everything from it.</p>
+        </div>
+        <div class="lp-footer-col">
+          <div class="lp-footer-col-hd">Platform</div>
+          <a onclick="lpGoTo(0)" class="lp-footer-link" style="cursor:pointer">Home</a>
+          <a onclick="lpGoTo(3)" class="lp-footer-link" style="cursor:pointer">How It Works</a>
+          <a onclick="lpGoTo(5)" class="lp-footer-link" style="cursor:pointer">Pricing</a>
+          <a onclick="lpGoTo(6)" class="lp-footer-link" style="cursor:pointer">FAQ</a>
+        </div>
+        <div class="lp-footer-col">
+          <div class="lp-footer-col-hd">Resources</div>
+          <a onclick="lpGoTo(1)" class="lp-footer-link" style="cursor:pointer">About</a>
+          <a href="mailto:studio.oriven@outlook.com" class="lp-footer-link">Contact</a>
+          <a href="/security" class="lp-footer-link">Security</a>
+        </div>
+        <div class="lp-footer-col">
+          <div class="lp-footer-col-hd">Legal</div>
+          <a href="/terms" class="lp-footer-link">Terms of Service</a>
+          <a href="/privacy" class="lp-footer-link">Privacy Policy</a>
+          <a href="/refund-policy" class="lp-footer-link">Refund Policy</a>
+          <a href="/cookie-policy" class="lp-footer-link">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="lp-footer-bottom">
+      <div class="lp-footer-bottom-inner">
+        <span class="lp-footer-copy">&copy; 2026 ORIVEN</span>
+        <span class="lp-footer-sep">&middot;</span>
+        <span class="lp-footer-copy">KVK: 42039993</span>
+        <span class="lp-footer-sep">&middot;</span>
+        <a href="mailto:studio.oriven@outlook.com" class="lp-footer-copy lp-footer-email">studio.oriven@outlook.com</a>
+        <span class="lp-footer-sep">&middot;</span>
+        <span class="lp-footer-copy">All rights reserved.</span>
+        <button class="lp-scroll-top" onclick="typeof lpGoTo==='function'?lpGoTo(0):void 0" aria-label="Back to top">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10V2M2 6l4-4 4 4"/></svg>
+        </button>
+      </div>
+    </div>
+  </footer>
+</div>
+</div><!-- /scene 7 -->
+
+
+</div><!-- /lp-stage -->
+
+<!-- progress dots -->
+<div id="lp-progress" aria-hidden="true">
+  <div class="lp-pg-dot is-on" data-target="0"></div>
+  <div class="lp-pg-dot" data-target="1"></div>
+  <div class="lp-pg-dot" data-target="2"></div>
+  <div class="lp-pg-dot" data-target="3"></div>
+  <div class="lp-pg-dot" data-target="4"></div>
+  <div class="lp-pg-dot" data-target="5"></div>
+  <div class="lp-pg-dot" data-target="6"></div>
+  <div class="lp-pg-dot" data-target="7"></div>
+</div>
+
 </div><!-- /view-landing -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: LOGIN
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-login" class="pub-view">
 <div class="au-view-wrap">
 <nav class="au-nav">
@@ -1172,9 +918,9 @@
 </div><!-- /.au-view-wrap -->
 </div><!-- /view-login -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: SIGNUP
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-signup" class="pub-view">
 <div class="au-view-wrap">
 <nav class="au-nav">
@@ -1189,9 +935,15 @@
     <div class="au-title">Create your account</div>
     <div class="au-sub">Join ORIVEN and build your brand intelligence system.</div>
     <div id="auErrorSignup" class="au-error"></div>
-    <div class="au-field">
-      <label class="au-label">Full Name</label>
-      <input type="text" id="auNameSignup" class="au-input" placeholder="Your full name" autocomplete="name">
+    <div style="display:flex;gap:12px">
+      <div class="au-field" style="flex:1">
+        <label class="au-label">First Name</label>
+        <input type="text" id="auFirstNameSignup" class="au-input" placeholder="First name" autocomplete="given-name">
+      </div>
+      <div class="au-field" style="flex:1">
+        <label class="au-label">Last Name</label>
+        <input type="text" id="auLastNameSignup" class="au-input" placeholder="Last name" autocomplete="family-name">
+      </div>
     </div>
     <div class="au-field">
       <label class="au-label">Email</label>
@@ -1200,6 +952,10 @@
     <div class="au-field">
       <label class="au-label">Password</label>
       <input type="password" id="auPassSignup" class="au-input" placeholder="Minimum 6 characters" autocomplete="new-password">
+    </div>
+    <div class="au-field">
+      <label class="au-label">Confirm Password</label>
+      <input type="password" id="auPassConfirmSignup" class="au-input" placeholder="Repeat your password" autocomplete="new-password">
     </div>
     <button id="auSubmitSignup" class="au-btn" onclick="auSignup()">Create Account</button>
     <div class="au-divider"></div>
@@ -1210,9 +966,9 @@
 </div><!-- /.au-view-wrap -->
 </div><!-- /view-signup -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: PLAN SELECTION
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-plan" class="pub-view">
 <div class="pl-view-wrap">
 
@@ -1270,9 +1026,9 @@
 </div><!-- /.pl-view-wrap -->
 </div><!-- /view-plan -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: TERMS OF SERVICE  /terms
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-terms" class="pub-view">
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
@@ -1280,7 +1036,7 @@
       <img src="assets/orivenlogo.png" alt="ORIVEN">
       <span>ORIVEN</span>
     </a>
-    <a href="/" class="lp-legal-nav-back">← Back to home</a>
+    <a href="/" class="lp-legal-nav-back">â† Back to home</a>
   </nav>
   <div class="lp-legal-content">
     <div class="lp-legal-inner">
@@ -1306,7 +1062,7 @@
 
       <div class="lp-legal-section">
         <h2>4. Subscription Plans and Credits</h2>
-        <p>ORIVEN offers paid subscription plans. Each plan includes a monthly allocation of Creative Credits used to generate assets. Credits reset monthly and do not carry over. Prices are listed in euros (€) and may be subject to applicable taxes. By subscribing, you authorize recurring charges to your payment method.</p>
+        <p>ORIVEN offers paid subscription plans. Each plan includes a monthly allocation of Creative Credits used to generate assets. Credits reset monthly and do not carry over. Prices are listed in euros (â‚¬) and may be subject to applicable taxes. By subscribing, you authorize recurring charges to your payment method.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1338,20 +1094,20 @@
         <h2>10. Contact</h2>
         <p>For questions about these Terms, contact us at <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a>.</p>
         <div class="lp-legal-highlight">
-          <p>ORIVEN · KVK: 42039993 · Netherlands · studio.oriven@outlook.com</p>
+          <p>ORIVEN Â· KVK: 42039993 Â· Netherlands Â· studio.oriven@outlook.com</p>
         </div>
       </div>
     </div>
   </div>
   <footer class="lp-legal-footer">
-    <div class="lp-legal-footer-inner">© 2026 ORIVEN · KVK: 42039993 · Netherlands · All rights reserved.</div>
+    <div class="lp-legal-footer-inner">Â© 2026 ORIVEN Â· KVK: 42039993 Â· Netherlands Â· All rights reserved.</div>
   </footer>
 </div>
 </div><!-- /view-terms -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: PRIVACY POLICY  /privacy
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-privacy" class="pub-view">
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
@@ -1359,7 +1115,7 @@
       <img src="assets/orivenlogo.png" alt="ORIVEN">
       <span>ORIVEN</span>
     </a>
-    <a href="/" class="lp-legal-nav-back">← Back to home</a>
+    <a href="/" class="lp-legal-nav-back">â† Back to home</a>
   </nav>
   <div class="lp-legal-content">
     <div class="lp-legal-inner">
@@ -1376,7 +1132,7 @@
       <div class="lp-legal-section">
         <h2>2. Data Controller</h2>
         <div class="lp-legal-highlight">
-          <p>ORIVEN · KVK: 42039993 · Netherlands<br>Email: <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a></p>
+          <p>ORIVEN Â· KVK: 42039993 Â· Netherlands<br>Email: <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a></p>
         </div>
       </div>
 
@@ -1385,7 +1141,7 @@
         <ul>
           <li>Account data: name, email address, hashed password</li>
           <li>Usage data: features used, credits consumed, generation history</li>
-          <li>Payment data: processed via Stripe — we do not store card details</li>
+          <li>Payment data: processed via Stripe â€” we do not store card details</li>
           <li>Technical data: IP address, browser type, device information, session tokens</li>
         </ul>
       </div>
@@ -1405,11 +1161,11 @@
         <h2>5. Sharing Your Information</h2>
         <p>We do not sell your personal data. We share data only with trusted service providers that are necessary to operate ORIVEN. Each provider receives only the data required to deliver their specific functionality:</p>
         <ul>
-          <li><strong style="color:rgba(240,240,240,.75)">Supabase</strong> — Platform infrastructure, user authentication, and database storage</li>
-          <li><strong style="color:rgba(240,240,240,.75)">Stripe</strong> — Secure payment processing and subscription management</li>
-          <li><strong style="color:rgba(240,240,240,.75)">OpenAI</strong> — AI content generation (campaigns, copy, visuals, websites, and other generators)</li>
-          <li><strong style="color:rgba(240,240,240,.75)">Anthropic</strong> — AI content generation (brand analysis, BrandCore intelligence, and strategic outputs)</li>
-          <li><strong style="color:rgba(240,240,240,.75)">HeyGen</strong> — AI video generation (UGC Creator video production)</li>
+          <li><strong style="color:rgba(240,240,240,.75)">Supabase</strong> â€” Platform infrastructure, user authentication, and database storage</li>
+          <li><strong style="color:rgba(240,240,240,.75)">Stripe</strong> â€” Secure payment processing and subscription management</li>
+          <li><strong style="color:rgba(240,240,240,.75)">OpenAI</strong> â€” AI content generation (campaigns, copy, visuals, websites, and other generators)</li>
+          <li><strong style="color:rgba(240,240,240,.75)">Anthropic</strong> â€” AI content generation (brand analysis, BrandCore intelligence, and strategic outputs)</li>
+          <li><strong style="color:rgba(240,240,240,.75)">HeyGen</strong> â€” AI video generation (UGC Creator video production)</li>
         </ul>
         <p>No personally identifiable information is included in AI generation prompts sent to OpenAI, Anthropic, or HeyGen. Prompts contain only brand-related content you choose to provide within the platform.</p>
       </div>
@@ -1441,14 +1197,14 @@
     </div>
   </div>
   <footer class="lp-legal-footer">
-    <div class="lp-legal-footer-inner">© 2026 ORIVEN · KVK: 42039993 · Netherlands · All rights reserved.</div>
+    <div class="lp-legal-footer-inner">Â© 2026 ORIVEN Â· KVK: 42039993 Â· Netherlands Â· All rights reserved.</div>
   </footer>
 </div>
 </div><!-- /view-privacy -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: REFUND POLICY  /refund-policy
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-refund-policy" class="pub-view">
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
@@ -1456,7 +1212,7 @@
       <img src="assets/orivenlogo.png" alt="ORIVEN">
       <span>ORIVEN</span>
     </a>
-    <a href="/" class="lp-legal-nav-back">← Back to home</a>
+    <a href="/" class="lp-legal-nav-back">â† Back to home</a>
   </nav>
   <div class="lp-legal-content">
     <div class="lp-legal-inner">
@@ -1472,7 +1228,7 @@
 
       <div class="lp-legal-section">
         <h2>2. Subscription Cancellation</h2>
-        <p>You may cancel your subscription at any time from your account settings. Cancellation takes effect at the end of the current billing period. You will continue to have full access to the Service until the billing period ends — no credits are lost upon cancellation.</p>
+        <p>You may cancel your subscription at any time from your account settings. Cancellation takes effect at the end of the current billing period. You will continue to have full access to the Service until the billing period ends â€” no credits are lost upon cancellation.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1502,19 +1258,19 @@
 
       <div class="lp-legal-section">
         <h2>6. Processing Time</h2>
-        <p>Approved refunds are processed within 5–10 business days. Funds are returned to your original payment method via Stripe. Processing times may vary depending on your bank or card issuer.</p>
+        <p>Approved refunds are processed within 5â€“10 business days. Funds are returned to your original payment method via Stripe. Processing times may vary depending on your bank or card issuer.</p>
       </div>
     </div>
   </div>
   <footer class="lp-legal-footer">
-    <div class="lp-legal-footer-inner">© 2026 ORIVEN · KVK: 42039993 · Netherlands · All rights reserved.</div>
+    <div class="lp-legal-footer-inner">Â© 2026 ORIVEN Â· KVK: 42039993 Â· Netherlands Â· All rights reserved.</div>
   </footer>
 </div>
 </div><!-- /view-refund-policy -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: COOKIE POLICY  /cookie-policy
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-cookie-policy" class="pub-view">
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
@@ -1522,7 +1278,7 @@
       <img src="assets/orivenlogo.png" alt="ORIVEN">
       <span>ORIVEN</span>
     </a>
-    <a href="/" class="lp-legal-nav-back">← Back to home</a>
+    <a href="/" class="lp-legal-nav-back">â† Back to home</a>
   </nav>
   <div class="lp-legal-content">
     <div class="lp-legal-inner">
@@ -1544,9 +1300,9 @@
       <div class="lp-legal-section">
         <h2>3. Types of Cookies We Use</h2>
         <ul>
-          <li><strong style="color:rgba(240,240,240,.7)">Essential cookies</strong> — Required for the Service to function. These include authentication tokens and session management cookies. They cannot be disabled without breaking the Service.</li>
-          <li><strong style="color:rgba(240,240,240,.7)">Preference cookies</strong> — Remember your settings and interface choices (e.g., theme, sidebar state).</li>
-          <li><strong style="color:rgba(240,240,240,.7)">Analytics cookies</strong> — Anonymous, aggregated data used to understand usage patterns and improve the platform. No personally identifiable information is linked.</li>
+          <li><strong style="color:rgba(240,240,240,.7)">Essential cookies</strong> â€” Required for the Service to function. These include authentication tokens and session management cookies. They cannot be disabled without breaking the Service.</li>
+          <li><strong style="color:rgba(240,240,240,.7)">Preference cookies</strong> â€” Remember your settings and interface choices (e.g., theme, sidebar state).</li>
+          <li><strong style="color:rgba(240,240,240,.7)">Analytics cookies</strong> â€” Anonymous, aggregated data used to understand usage patterns and improve the platform. No personally identifiable information is linked.</li>
         </ul>
       </div>
 
@@ -1554,9 +1310,9 @@
         <h2>4. Managing Your Cookie Preferences</h2>
         <p>Essential cookies are necessary for the Service and cannot be turned off. You can control optional cookies through your browser settings. Common browser cookie controls:</p>
         <ul>
-          <li>Chrome: Settings → Privacy and Security → Cookies</li>
-          <li>Firefox: Preferences → Privacy & Security → Cookies</li>
-          <li>Safari: Preferences → Privacy → Cookies</li>
+          <li>Chrome: Settings â†’ Privacy and Security â†’ Cookies</li>
+          <li>Firefox: Preferences â†’ Privacy & Security â†’ Cookies</li>
+          <li>Safari: Preferences â†’ Privacy â†’ Cookies</li>
         </ul>
         <p>Note: disabling cookies may affect the functionality of the Service, including your ability to stay signed in.</p>
       </div>
@@ -1568,14 +1324,14 @@
     </div>
   </div>
   <footer class="lp-legal-footer">
-    <div class="lp-legal-footer-inner">© 2026 ORIVEN · KVK: 42039993 · Netherlands · All rights reserved.</div>
+    <div class="lp-legal-footer-inner">Â© 2026 ORIVEN Â· KVK: 42039993 Â· Netherlands Â· All rights reserved.</div>
   </footer>
 </div>
 </div><!-- /view-cookie-policy -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: SECURITY  /security
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-security" class="pub-view">
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
@@ -1583,7 +1339,7 @@
       <img src="assets/orivenlogo.png" alt="ORIVEN">
       <span>ORIVEN</span>
     </a>
-    <a href="/" class="lp-legal-nav-back">← Back to home</a>
+    <a href="/" class="lp-legal-nav-back">â† Back to home</a>
   </nav>
   <div class="lp-legal-content">
     <div class="lp-legal-inner">
@@ -1612,7 +1368,7 @@
         <ul>
           <li>All data in transit is encrypted using TLS 1.2 or higher</li>
           <li>Passwords are hashed using industry-standard algorithms and never stored in plain text</li>
-          <li>Payment data is handled exclusively by Stripe (PCI-DSS Level 1 compliant) — ORIVEN never stores card numbers</li>
+          <li>Payment data is handled exclusively by Stripe (PCI-DSS Level 1 compliant) â€” ORIVEN never stores card numbers</li>
           <li>Data at rest is encrypted by our infrastructure provider</li>
         </ul>
       </div>
@@ -1643,14 +1399,14 @@
     </div>
   </div>
   <footer class="lp-legal-footer">
-    <div class="lp-legal-footer-inner">© 2026 ORIVEN · KVK: 42039993 · Netherlands · All rights reserved.</div>
+    <div class="lp-legal-footer-inner">Â© 2026 ORIVEN Â· KVK: 42039993 Â· Netherlands Â· All rights reserved.</div>
   </footer>
 </div>
 </div><!-- /view-security -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: CONTACT  /contact
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-contact" class="pub-view">
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
@@ -1658,13 +1414,13 @@
       <img src="assets/orivenlogo.png" alt="ORIVEN">
       <span>ORIVEN</span>
     </a>
-    <a href="/" class="lp-legal-nav-back">← Back to home</a>
+    <a href="/" class="lp-legal-nav-back">â† Back to home</a>
   </nav>
   <div class="lp-legal-content">
     <div class="lp-legal-inner">
       <div class="lp-legal-header">
         <h1>Contact</h1>
-        <div class="lp-legal-date">We typically respond within 1–2 business days.</div>
+        <div class="lp-legal-date">We typically respond within 1â€“2 business days.</div>
       </div>
 
       <div class="lp-legal-section">
@@ -1677,7 +1433,7 @@
           </div>
           <div class="lp-contact-card">
             <div class="lp-contact-card-lbl">Response Time</div>
-            <div class="lp-contact-card-val">1–2 business days</div>
+            <div class="lp-contact-card-val">1â€“2 business days</div>
           </div>
         </div>
       </div>
@@ -1698,22 +1454,22 @@
           <li>Subscription and billing questions</li>
           <li>Account access and authentication</li>
           <li>Platform features and usage</li>
-          <li>Refund requests — see our <a href="/refund-policy" class="lp-legal-email">Refund Policy</a></li>
-          <li>Privacy and data requests — see our <a href="/privacy" class="lp-legal-email">Privacy Policy</a></li>
-          <li>Security concerns — see our <a href="/security" class="lp-legal-email">Security</a> page</li>
+          <li>Refund requests â€” see our <a href="/refund-policy" class="lp-legal-email">Refund Policy</a></li>
+          <li>Privacy and data requests â€” see our <a href="/privacy" class="lp-legal-email">Privacy Policy</a></li>
+          <li>Security concerns â€” see our <a href="/security" class="lp-legal-email">Security</a> page</li>
         </ul>
       </div>
     </div>
   </div>
   <footer class="lp-legal-footer">
-    <div class="lp-legal-footer-inner">© 2026 ORIVEN · KVK: 42039993 · Netherlands · All rights reserved.</div>
+    <div class="lp-legal-footer-inner">Â© 2026 ORIVEN Â· KVK: 42039993 Â· Netherlands Â· All rights reserved.</div>
   </footer>
 </div>
 </div><!-- /view-contact -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      VIEW: ABOUT  /about
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-about" class="pub-view">
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
@@ -1721,7 +1477,7 @@
       <img src="assets/orivenlogo.png" alt="ORIVEN">
       <span>ORIVEN</span>
     </a>
-    <a href="/" class="lp-legal-nav-back">← Back to home</a>
+    <a href="/" class="lp-legal-nav-back">â† Back to home</a>
   </nav>
   <div class="lp-legal-content">
     <div class="lp-legal-inner">
@@ -1732,13 +1488,13 @@
 
       <div class="lp-legal-section">
         <h2>Our Mission</h2>
-        <p>ORIVEN exists to give every brand a single source of truth — a BrandCore — that powers every creative output. No more off-brand assets. No more starting from scratch. No more inconsistency across channels.</p>
-        <p>We believe that a well-defined brand should be the engine behind every campaign, visual, video, and piece of copy — not something revisited once a year in a brand guidelines PDF.</p>
+        <p>ORIVEN exists to give every brand a single source of truth â€” a BrandCore â€” that powers every creative output. No more off-brand assets. No more starting from scratch. No more inconsistency across channels.</p>
+        <p>We believe that a well-defined brand should be the engine behind every campaign, visual, video, and piece of copy â€” not something revisited once a year in a brand guidelines PDF.</p>
       </div>
 
       <div class="lp-legal-section">
         <h2>What is ORIVEN?</h2>
-        <p>ORIVEN is a brand intelligence platform built for founders, marketers, and creative teams. You define your brand once — your identity, voice, values, and visual language — and ORIVEN generates campaigns, visuals, video scripts, copy, presentations, and web content that are always on-brand.</p>
+        <p>ORIVEN is a brand intelligence platform built for founders, marketers, and creative teams. You define your brand once â€” your identity, voice, values, and visual language â€” and ORIVEN generates campaigns, visuals, video scripts, copy, presentations, and web content that are always on-brand.</p>
         <p>Every output is shaped by your BrandCore. Every asset knows who you are.</p>
       </div>
 
@@ -1755,7 +1511,7 @@
             <div class="lp-about-stat-lbl">BrandCore for everything</div>
           </div>
           <div class="lp-about-stat">
-            <div class="lp-about-stat-num">∞</div>
+            <div class="lp-about-stat-num">âˆž</div>
             <div class="lp-about-stat-lbl">On-brand outputs</div>
           </div>
         </div>
@@ -1773,21 +1529,21 @@
     </div>
   </div>
   <footer class="lp-legal-footer">
-    <div class="lp-legal-footer-inner">© 2026 ORIVEN · KVK: 42039993 · Netherlands · All rights reserved.</div>
+    <div class="lp-legal-footer-inner">Â© 2026 ORIVEN Â· KVK: 42039993 Â· Netherlands Â· All rights reserved.</div>
   </footer>
 </div>
 </div><!-- /view-about -->
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      SHARED: Supabase + API client
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 <script src="plans.js"></script>
 
-<!-- ═══════════════════════════════════════════════════════════
-     ROUTER — shows the correct view based on the current URL path
-     ═══════════════════════════════════════════════════════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     ROUTER â€” shows the correct view based on the current URL path
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <script>
 (function(){
   var path = window.location.pathname;
@@ -1801,25 +1557,25 @@
   var el = document.getElementById('view-' + active);
   if(el) el.classList.remove('pub-view');
   var titles = {
-    login:           'Log In — ORIVEN',
-    signup:          'Create Account — ORIVEN',
-    plan:            'Choose Your Plan — ORIVEN',
-    terms:           'Terms of Service — ORIVEN',
-    privacy:         'Privacy Policy — ORIVEN',
-    'refund-policy': 'Refund Policy — ORIVEN',
-    'cookie-policy': 'Cookie Policy — ORIVEN',
-    security:        'Security — ORIVEN',
-    contact:         'Contact — ORIVEN',
-    about:           'About — ORIVEN'
+    login:           'Log In â€” ORIVEN',
+    signup:          'Create Account â€” ORIVEN',
+    plan:            'Choose Your Plan â€” ORIVEN',
+    terms:           'Terms of Service â€” ORIVEN',
+    privacy:         'Privacy Policy â€” ORIVEN',
+    'refund-policy': 'Refund Policy â€” ORIVEN',
+    'cookie-policy': 'Cookie Policy â€” ORIVEN',
+    security:        'Security â€” ORIVEN',
+    contact:         'Contact â€” ORIVEN',
+    about:           'About â€” ORIVEN'
   };
   if(titles[active]) document.title = titles[active];
   window._pubView = active;
 })();
 </script>
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      PAGE TRANSITIONS
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <script>
 (function(){
   var FADE = 210;
@@ -1837,17 +1593,17 @@
     '/about':        'about'
   };
   var PAGE_TITLES = {
-    'landing':       'ORIVEN — Brand Intelligence Platform',
-    'login':         'Log In — ORIVEN',
-    'signup':        'Create Account — ORIVEN',
-    'plan':          'Choose Your Plan — ORIVEN',
-    'terms':         'Terms of Service — ORIVEN',
-    'privacy':       'Privacy Policy — ORIVEN',
-    'refund-policy': 'Refund Policy — ORIVEN',
-    'cookie-policy': 'Cookie Policy — ORIVEN',
-    'security':      'Security — ORIVEN',
-    'contact':       'Contact — ORIVEN',
-    'about':         'About — ORIVEN'
+    'landing':       'ORIVEN â€” Brand Intelligence Platform',
+    'login':         'Log In â€” ORIVEN',
+    'signup':        'Create Account â€” ORIVEN',
+    'plan':          'Choose Your Plan â€” ORIVEN',
+    'terms':         'Terms of Service â€” ORIVEN',
+    'privacy':       'Privacy Policy â€” ORIVEN',
+    'refund-policy': 'Refund Policy â€” ORIVEN',
+    'cookie-policy': 'Cookie Policy â€” ORIVEN',
+    'security':      'Security â€” ORIVEN',
+    'contact':       'Contact â€” ORIVEN',
+    'about':         'About â€” ORIVEN'
   };
 
   function lpNavigate(href){
@@ -1899,14 +1655,14 @@
 })();
 </script>
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      LANDING SCRIPTS
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <script>
-// ── Landing page routing helpers ──────────────────────────────
-// Live session check at the button — no localStorage, no caching.
-// No session → account creation (/signup).
-// Existing authenticated session → choose plan (/plan).
+// â”€â”€ Landing page routing helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Live session check at the button â€” no localStorage, no caching.
+// No session â†’ account creation (/signup).
+// Existing authenticated session â†’ choose plan (/plan).
 function _lpResolveRoute(callback){
   SB.auth.getSession().then(function(r){
     if(!r.data || !r.data.session){ callback('/signup'); return; }
@@ -1925,21 +1681,10 @@ function lpStartPlan(planId, btn){
 }
 
 if(window._pubView === 'landing'){
-// ── Pricing cards ──────────────────────────────────────────────
+// â”€â”€ Pricing cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 renderLPPricingCards(document.getElementById('lpPricingGrid'));
 
-// ── Nav scroll background ──────────────────────────────────────
-(function(){
-  var nav = document.getElementById('lpNav');
-  function onScroll(){
-    if(window.scrollY > 40) nav.classList.add('lp-nav-scrolled');
-    else nav.classList.remove('lp-nav-scrolled');
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-})();
-
-// ── Mobile hamburger ───────────────────────────────────────────
+// -- Mobile hamburger -------------------------------------------------------------------------
 var ham  = document.getElementById('lpHamburger');
 var menu = document.getElementById('lpMobileMenu');
 ham.addEventListener('click', function(){
@@ -1953,7 +1698,7 @@ function closeMobile(){
   document.body.style.overflow = '';
 }
 
-// ── FAQ accordion ──────────────────────────────────────────────
+// -- FAQ accordion ----------------------------------------------------------------------------
 function toggleFaq(btn){
   var item = btn.parentElement;
   var wasOpen = item.classList.contains('open');
@@ -1961,120 +1706,291 @@ function toggleFaq(btn){
   if(!wasOpen) item.classList.add('open');
 }
 
-// ── Scroll-triggered animations ───────────────────────────────
-if('IntersectionObserver' in window){
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.isIntersecting){
-        e.target.classList.add('visible');
-        io.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.07, rootMargin: '0px 0px -40px 0px' });
-  document.querySelectorAll(
-    '.lp-fade-in, .lp-stagger, .lp-slide-left, .lp-slide-right'
-  ).forEach(function(el){ io.observe(el); });
+// -- Preview interactivity --------------------------------------------------------------------
+function lpPreviewNav(idx){
+  document.querySelectorAll('.lp-s-sb-dot').forEach(function(d,i){
+    d.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.lp-prev-screen').forEach(function(s,i){
+    s.classList.toggle('active', i === idx);
+  });
 }
 
-// ── Active nav section indicator ──────────────────────────────
-(function(){
-  var sectionIds = ['hero','features','how-it-works','about','testimonials','pricing','faq'];
-  var linkMap = {};
-  document.querySelectorAll('.lp-nav-link').forEach(function(el){
-    var id = (el.getAttribute('href') || '').replace('#','');
-    linkMap[id] = el;
+function lpCreateFilter(cat, btn){
+  document.querySelectorAll('.lp-prev-cr-filt').forEach(function(b){
+    b.classList.remove('lp-prev-cr-filt-active');
   });
-  function setActive(id){
-    Object.keys(linkMap).forEach(function(k){ linkMap[k].classList.remove('lp-nav-active'); });
-    if(linkMap[id]) linkMap[id].classList.add('lp-nav-active');
+  btn.classList.add('lp-prev-cr-filt-active');
+  document.querySelectorAll('#lpCrGrid .lp-prev-cr-card').forEach(function(card){
+    card.style.display = (cat === 'all' || card.dataset.crCat === cat) ? '' : 'none';
+  });
+}
+
+// -- Reviews carousel -------------------------------------------------------------------------
+var _lpTestiPage = 0;
+var _LP_TESTI_PAGES = 5; // 15 reviews / 3 per page
+
+function lpTestiNav(dir){
+  lpTestiGoto((_lpTestiPage + dir + _LP_TESTI_PAGES) % _LP_TESTI_PAGES);
+}
+
+function lpTestiGoto(page){
+  _lpTestiPage = page;
+  var track = document.getElementById('lpTestiTrack');
+  if(track) track.style.transform = 'translateX(-' + (page * 20) + '%)';
+  document.querySelectorAll('#lpTestiIndicators .lp-tc-dot').forEach(function(d,i){
+    d.classList.toggle('active', i === page);
+  });
+}
+
+// -- Scene entrance animations ----------------------------------------------------------------
+function lpOnSceneEnter(idx){
+  if(typeof gsap === 'undefined') return;
+  if(idx === 1) { lpAnimAbout(); }
+  if(idx === 2) { lpAnimAiHub(); }
+  if(idx === 3) { lpAnimProcess(); }
+  if(idx === 4) { lpAnimReviews(); }
+  if(idx === 5) { lpAnimPricing(); }
+  if(idx === 6) { lpAnimFaq(); }
+  if(idx === 7) { lpAnimContact(); }
+}
+
+function _lpCountNum(el, target, dur, fmt){
+  var n = 0;
+  var steps = Math.max(target, 30);
+  var iv = Math.max(Math.round(dur / steps), 16);
+  var inc = target / steps;
+  var timer = setInterval(function(){
+    n = Math.min(n + inc, target);
+    var done = n >= target;
+    el.textContent = fmt(Math.round(done ? target : n), done);
+    if(done) clearInterval(timer);
+  }, iv);
+}
+
+function lpAnimAbout(){
+  document.querySelectorAll('[data-count-up]').forEach(function(el, i){
+    var target = parseInt(el.dataset.countTarget, 10);
+    var suffix = el.dataset.countSuffix || '';
+    el.textContent = '0' + suffix; // reset immediately before parent fades in
+    setTimeout(function(){
+      _lpCountNum(el, target, 900, function(n){ return n + suffix; });
+    }, 300 + i * 130);
+  });
+}
+
+function lpAnimAiHub(){
+  var hub = document.querySelector('.lp-s-ai-hub');
+  if(!hub) return;
+  hub.classList.remove('is-breathing');
+  requestAnimationFrame(function(){ hub.classList.add('is-breathing'); });
+}
+
+function lpAnimProcess(){
+  document.querySelectorAll('[data-proc-step]').forEach(function(step, i){
+    gsap.killTweensOf(step);
+    gsap.fromTo(step,
+      { opacity: 0, y: 44 },
+      { opacity: 1, y: 0, duration: 0.65, delay: 0.12 + i * 0.40, ease: 'power3.out' }
+    );
+  });
+}
+
+function lpAnimFaq(){
+  var items = document.querySelectorAll('.lp-faq-item[data-in]');
+  items.forEach(function(el, i){
+    var dir = el.dataset.in === 'fade-left' ? -1 : 1;
+    gsap.killTweensOf(el);
+    gsap.fromTo(el,
+      { opacity: 0, x: dir * (window.innerWidth * 0.7) },
+      { opacity: 1, x: 0, duration: 0.62, delay: 0.10 + i * 0.09, ease: 'power3.out' }
+    );
+  });
+}
+
+function lpAnimReviews(){
+  var cards = document.querySelectorAll('#lpTestiTrack .lp-tc-card');
+  // Also reset carousel to page 0 on replay
+  lpTestiGoto(0);
+  [0, 1, 2].forEach(function(i){
+    var card = cards[i];
+    if(!card) return;
+    gsap.killTweensOf(card);
+    gsap.set(card, { opacity: 0, y: 48 });
+    gsap.to(card, { opacity: 1, y: 0, duration: 0.65, delay: 0.22 + i * 0.18, ease: 'power3.out' });
+  });
+}
+
+function lpAnimPricing(){
+  document.querySelectorAll('#lpPricingGrid .lp-plan-price-num').forEach(function(el, i){
+    var full  = el.textContent.trim();
+    var match = full.match(/([\d.]+)/);
+    if(!match) return;
+    var intPart = Math.floor(parseFloat(match[0]));
+    var prefix  = full.slice(0, full.indexOf(match[0]));
+    el.textContent = prefix + '0'; // reset immediately before grid fades in
+    setTimeout(function(){
+      _lpCountNum(el, intPart, 700, function(n, done){ return done ? full : prefix + n; });
+    }, 420 + i * 140);
+  });
+}
+
+function lpAnimContact(){
+  var els = document.querySelectorAll('#contact .lp-s-contact [data-in]');
+  els.forEach(function(el, i){
+    gsap.killTweensOf(el);
+    gsap.fromTo(el,
+      { opacity: 0, y: 32 },
+      { opacity: 1, y: 0, duration: 0.7, delay: 0.10 + i * 0.22, ease: 'power3.out' }
+    );
+  });
+}
+
+// -- Scene controller -------------------------------------------------------------------------
+(function(){
+  var stage = document.getElementById('lp-stage');
+  if(!stage) return;
+
+  var scenes   = Array.from(stage.querySelectorAll('.lp-scene'));
+  var dots     = Array.from(document.querySelectorAll('.lp-pg-dot'));
+  var navLinks = Array.from(document.querySelectorAll('.lp-nav-link[data-scene]'));
+  var cur      = 0;
+  var busy     = false;
+  var touchY0  = 0;
+  var wheelAcc = 0;
+  var wheelTimer = null;
+
+  function hasGSAP(){ return typeof gsap !== 'undefined'; }
+
+  // Boot
+  document.body.style.overflow = 'hidden';
+  scenes[0].classList.add('is-current');
+  updateDots(0);
+  updateNavLinks(0);
+  setTimeout(function(){ animIn(scenes[0]); lpOnSceneEnter(0); }, 120);
+
+  // Input handlers
+  window.addEventListener('wheel', onWheel, { passive: false });
+  window.addEventListener('touchstart', function(e){ touchY0 = e.touches[0].clientY; }, { passive: true });
+  window.addEventListener('touchend', function(e){
+    var dy = touchY0 - e.changedTouches[0].clientY;
+    if(Math.abs(dy) > 44) navigate(dy > 0 ? 1 : -1);
+  }, { passive: true });
+  window.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowDown' || e.key === 'PageDown'){ e.preventDefault(); navigate(1); return; }
+    if(e.key === 'ArrowUp'   || e.key === 'PageUp')  { e.preventDefault(); navigate(-1); return; }
+    if(e.key === ' '){ e.preventDefault(); navigate(e.shiftKey ? -1 : 1); }
+  });
+
+  dots.forEach(function(d){
+    d.addEventListener('click', function(){ lpGoTo(parseInt(d.dataset.target, 10)); });
+  });
+
+  function onWheel(e){
+    // Let footer scene scroll internally before advancing
+    if(cur === scenes.length - 1){
+      var sc = scenes[cur];
+      if(e.deltaY < 0 && sc.scrollTop > 0) return;
+      if(e.deltaY > 0 && sc.scrollTop < sc.scrollHeight - sc.clientHeight - 2) return;
+    }
+    e.preventDefault();
+    clearTimeout(wheelTimer);
+    wheelAcc += e.deltaY;
+    wheelTimer = setTimeout(function(){
+      var dir = wheelAcc > 0 ? 1 : -1;
+      wheelAcc = 0;
+      navigate(dir);
+    }, 60);
   }
-  if('IntersectionObserver' in window){
-    var sio = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        if(e.isIntersecting) setActive(e.target.id);
+
+  function navigate(dir){ go(cur + dir, dir); }
+
+  window.lpGoTo = function(idx){
+    if(idx === cur || busy) return;
+    go(idx, idx > cur ? 1 : -1);
+  };
+
+  function go(toIdx, dir){
+    if(toIdx < 0 || toIdx >= scenes.length || busy) return;
+    busy = true;
+    var fromEl = scenes[cur];
+    var toEl   = scenes[toIdx];
+
+    toEl.classList.add('is-current');
+
+    if(hasGSAP()){
+      gsap.to(fromEl, {
+        opacity: 0, scale: dir > 0 ? 0.95 : 1.04, y: dir > 0 ? -24 : 24,
+        duration: 0.42, ease: 'power2.inOut',
+        onComplete: function(){
+          fromEl.classList.remove('is-current');
+          gsap.set(fromEl, { y: 0, scale: 1 });
+        }
       });
-    }, { threshold: 0.25, rootMargin: '-64px 0px -50% 0px' });
-    sectionIds.forEach(function(id){
-      var el = document.getElementById(id);
-      if(el) sio.observe(el);
+      gsap.fromTo(toEl,
+        { opacity: 0, scale: dir > 0 ? 1.04 : 0.95, y: dir > 0 ? 24 : -24 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.48, delay: 0.06, ease: 'power2.out',
+          onComplete: function(){ afterGo(toIdx); }
+        }
+      );
+    } else {
+      fromEl.style.opacity = '0';
+      setTimeout(function(){
+        fromEl.classList.remove('is-current');
+        fromEl.style.opacity = '';
+        toEl.style.opacity = '0';
+        requestAnimationFrame(function(){
+          toEl.style.opacity = '1';
+          setTimeout(function(){ afterGo(toIdx); }, 440);
+        });
+      }, 400);
+    }
+  }
+
+  function afterGo(toIdx){
+    cur = toIdx;
+    busy = false;
+    updateDots(toIdx);
+    updateNavLinks(toIdx);
+    animIn(scenes[toIdx]);
+    lpOnSceneEnter(toIdx);
+  }
+
+  function animIn(scene){
+    var els = Array.from(scene.querySelectorAll('[data-in]'));
+    if(!els.length || !hasGSAP()) return;
+    els.forEach(function(el, i){
+      var type = el.dataset.in;
+      var from = { opacity: 0 };
+      if(type === 'fade-up')         { from.y = 28; }
+      else if(type === 'fade-right') { from.x = 36; }
+      else if(type === 'fade-left')  { from.x = -36; }
+      else if(type === 'scale')      { from.scale = 0.88; }
+      else                           { from.y = 20; }
+      gsap.fromTo(el, from, {
+        opacity: 1, y: 0, x: 0, scale: 1,
+        duration: 0.55, delay: 0.06 + i * 0.07, ease: 'power3.out'
+      });
+    });
+  }
+
+  function updateDots(idx){
+    dots.forEach(function(d, i){ d.classList.toggle('is-on', i === idx); });
+  }
+
+  function updateNavLinks(idx){
+    navLinks.forEach(function(a){
+      a.classList.toggle('lp-nav-active', parseInt(a.dataset.scene, 10) === idx);
     });
   }
 })();
 
-// ── How It Works vertical timeline ────────────────────────────
-function lpHowStep(n){
-  var t = document.querySelector('.lp-how-step[data-step="' + n + '"]');
-  if(t) t.classList.toggle('lp-how-step-open');
-}
-
-// ── Interactive preview ────────────────────────────────────────
-var _LP_INFO = {
-  dashboard:   { title:"Dashboard",       desc:"Your command center for everything happening across your brand. Track activity, monitor performance and manage your creative workflow from one place." },
-  create:      { title:"Create",          desc:"Generate campaigns, visuals, websites, presentations, posters, emails and branded content powered by your BrandCore." },
-  studio:      { title:"BrandCore",       desc:"Build your brand once and use it across every asset you generate. BrandCore stores your identity, positioning, voice and visual direction." },
-  inspiration: { title:"Inspiration",     desc:"Discover proven creative ideas and instantly turn them into branded content with one click." },
-  assistant:   { title:"Brand Assistant", desc:"Your AI-powered brand strategist. Ask questions, brainstorm ideas, improve campaigns and get guidance based on your brand context." },
-  team:        { title:"Team",            desc:"Collaborate with teammates using shared BrandCores, creative workflows and centralized brand systems.", badge:"Professional Plan Feature" },
-  settings:    { title:"Settings",        desc:"Manage your workspace, subscription, preferences, intelligence settings and platform experience." }
-};
-
-function lpNavClick(el){
-  var screen = el.dataset.screen;
-  if(!screen) return;
-  document.querySelectorAll('.lp-prev-nav-item').forEach(function(n){ n.classList.remove('lp-prev-active'); });
-  el.classList.add('lp-prev-active');
-  document.querySelectorAll('.lp-prev-screen').forEach(function(s){ s.classList.remove('lp-prev-screen-active'); });
-  var target = document.getElementById('lpScreen-' + screen);
-  if(target) target.classList.add('lp-prev-screen-active');
-  // Update left feature panel
-  document.querySelectorAll('.lp-prev-panel-item').forEach(function(p){ p.classList.remove('lp-prev-panel-active'); });
-  var panelItem = document.querySelector('.lp-prev-panel-item[data-screen="' + screen + '"]');
-  if(panelItem) panelItem.classList.add('lp-prev-panel-active');
-  // Reset inspiration to Campaigns tab when navigating to it
-  if(screen === 'inspiration'){
-    var firstFilter = document.querySelector('#lpScreen-inspiration .lp-ps-filter[data-filter="campaigns"]');
-    if(firstFilter) lpInspiFilter(firstFilter);
-  }
-}
-
-function lpNavClickPanel(el){
-  var screen = el.dataset.screen;
-  if(!screen) return;
-  var navItem = document.querySelector('.lp-prev-nav-item[data-screen="' + screen + '"]');
-  if(navItem) lpNavClick(navItem);
-}
-
-function lpInspiFilter(el){
-  var screen = document.getElementById('lpScreen-inspiration');
-  if(!screen) return;
-  screen.querySelectorAll('.lp-ps-filter').forEach(function(f){ f.classList.remove('active'); });
-  el.classList.add('active');
-  var cat = el.dataset.filter;
-  screen.querySelectorAll('.lp-inspi-group').forEach(function(g){ g.style.display = 'none'; });
-  var target = document.getElementById('lpInspi-' + cat);
-  if(target) target.style.display = '';
-}
-
-// ── Testimonial carousel ───────────────────────────────────────
-var lpTestiPage = 0;
-var lpTestiTotal = 5;
-
-function lpTestiNav(dir){
-  lpTestiGoto((lpTestiPage + dir + lpTestiTotal) % lpTestiTotal);
-}
-function lpTestiGoto(n){
-  document.querySelectorAll('.lp-testi-set')[lpTestiPage].classList.remove('active');
-  document.querySelectorAll('.lp-testi-dot')[lpTestiPage].classList.remove('active');
-  lpTestiPage = n;
-  document.querySelectorAll('.lp-testi-set')[lpTestiPage].classList.add('active');
-  document.querySelectorAll('.lp-testi-dot')[lpTestiPage].classList.add('active');
-}
 }
 </script>
 
-<!-- ═══════════════════════════════════════════════════════════
-     AUTH SCRIPTS — Login + Signup
-     ═══════════════════════════════════════════════════════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     AUTH SCRIPTS â€” Login + Signup
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <script>
 function _auSetError(elId, msg){
   var el = document.getElementById(elId);
@@ -2090,12 +2006,12 @@ function auMapError(err){
   if(/already registered|already in use/i.test(msg)) return 'An account with this email already exists. Try logging in instead.';
   if(/invalid.*email/i.test(msg)) return 'Please enter a valid email address.';
   if(/password.*at least/i.test(msg)) return 'Password must be at least 6 characters.';
-  if(/too many requests|rate.?limit/i.test(msg)) return 'Too many attempts — please wait a moment and try again.';
+  if(/too many requests|rate.?limit/i.test(msg)) return 'Too many attempts â€” please wait a moment and try again.';
   if(/network|failed to fetch/i.test(msg)) return 'Connection error. Please check your internet and try again.';
   return msg || 'Something went wrong. Please try again.';
 }
 
-// ── LOGIN ────────────────────────────────────────────────────────────
+// â”€â”€ LOGIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if(window._pubView === 'login'){
   if(ORIVEN_DEV) document.getElementById('devOnboardingLink').style.display = 'block';
   SB.auth.getSession().then(function(r){
@@ -2119,7 +2035,7 @@ async function auLogin(){
     document.getElementById('auPassLogin').classList.add('au-err');
     document.getElementById('auPassLogin').focus(); return;
   }
-  btn.disabled = true; btn.textContent = 'Signing in…';
+  btn.disabled = true; btn.textContent = 'Signing in...';
   try {
     var res = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(res.error) throw res.error;
@@ -2130,7 +2046,7 @@ async function auLogin(){
   }
 }
 
-// ── SIGNUP ───────────────────────────────────────────────────────────
+// â”€â”€ SIGNUP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if(window._pubView === 'signup'){
   // Guard for direct URL access: authenticated users don't need to create another account
   SB.auth.getSession().then(function(r){
@@ -2142,20 +2058,21 @@ if(window._pubView === 'signup'){
 }
 
 async function auSignup(){
-  var name  = (document.getElementById('auNameSignup').value  || '').trim();
-  var email = (document.getElementById('auEmailSignup').value || '').trim();
-  var pass  = document.getElementById('auPassSignup').value || '';
-  var btn   = document.getElementById('auSubmitSignup');
+  var firstName   = (document.getElementById('auFirstNameSignup').value   || '').trim();
+  var lastName    = (document.getElementById('auLastNameSignup').value    || '').trim();
+  var email       = (document.getElementById('auEmailSignup').value       || '').trim();
+  var pass        = document.getElementById('auPassSignup').value         || '';
+  var passConfirm = document.getElementById('auPassConfirmSignup').value  || '';
+  var btn         = document.getElementById('auSubmitSignup');
   _auSetError('auErrorSignup', '');
-  ['auNameSignup','auEmailSignup','auPassSignup'].forEach(function(id){ document.getElementById(id).classList.remove('au-err'); });
-  if(!name){ _auSetError('auErrorSignup', 'Please enter your name.'); document.getElementById('auNameSignup').classList.add('au-err'); document.getElementById('auNameSignup').focus(); return; }
+  ['auFirstNameSignup','auLastNameSignup','auEmailSignup','auPassSignup','auPassConfirmSignup'].forEach(function(id){ document.getElementById(id).classList.remove('au-err'); });
+  if(!firstName){ _auSetError('auErrorSignup', 'Please enter your first name.'); document.getElementById('auFirstNameSignup').classList.add('au-err'); document.getElementById('auFirstNameSignup').focus(); return; }
+  if(!lastName){ _auSetError('auErrorSignup', 'Please enter your last name.'); document.getElementById('auLastNameSignup').classList.add('au-err'); document.getElementById('auLastNameSignup').focus(); return; }
   if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ _auSetError('auErrorSignup', 'Please enter a valid email address.'); document.getElementById('auEmailSignup').classList.add('au-err'); document.getElementById('auEmailSignup').focus(); return; }
   if(!pass || pass.length < 6){ _auSetError('auErrorSignup', 'Password must be at least 6 characters.'); document.getElementById('auPassSignup').classList.add('au-err'); document.getElementById('auPassSignup').focus(); return; }
+  if(passConfirm !== pass){ _auSetError('auErrorSignup', 'Passwords do not match.'); document.getElementById('auPassConfirmSignup').classList.add('au-err'); document.getElementById('auPassConfirmSignup').focus(); return; }
   btn.disabled = true; btn.textContent = 'Creating account…';
   try {
-    var nameParts = name.split(/\s+/);
-    var firstName = nameParts[0];
-    var lastName  = nameParts.slice(1).join(' ') || '';
     var signupRes = await apiFetch('/api/signup', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: pass })
@@ -2172,9 +2089,9 @@ async function auSignup(){
 }
 </script>
 
-<!-- ═══════════════════════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      PLAN SCRIPTS
-     ═══════════════════════════════════════════════════════════ -->
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <script>
 var _plUser = null;
 var _plBusy = false;
@@ -2188,7 +2105,7 @@ if(window._pubView === 'plan'){
       history.replaceState(null, '', '/plan');
       var el = document.getElementById('plError');
       if(el){
-        el.textContent = 'Payment canceled — no charge was made. Choose a plan to continue.';
+        el.textContent = 'Payment canceled â€” no charge was made. Choose a plan to continue.';
         el.style.display = 'block';
         el.style.color = 'rgba(240,240,240,.55)';
         el.style.background = 'rgba(255,255,255,.04)';
@@ -2217,8 +2134,8 @@ async function selectPlan(plan, btn){
   document.querySelectorAll('.pl-btn').forEach(function(b){ b.disabled = true; });
   var isPrimary = btn.classList.contains('pl-btn-primary');
   btn.innerHTML = isPrimary
-    ? '<span class="pl-spinner"></span>Redirecting…'
-    : '<span class="pl-spinner-w"></span>Redirecting…';
+    ? '<span class="pl-spinner"></span>Redirectingâ€¦'
+    : '<span class="pl-spinner-w"></span>Redirectingâ€¦';
   try {
     var res = await apiFetch('/api/create-checkout-session', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },

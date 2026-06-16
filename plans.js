@@ -27,7 +27,8 @@ var CREDIT_COSTS = {
   deck:         4,
   video:        10,
   ugc:          10,
-  videoads:     5
+  videoads:       5,
+  productshoots:  2   // per image — frontend multiplies by count
 };
 
 var ORIVEN_PLANS = {
