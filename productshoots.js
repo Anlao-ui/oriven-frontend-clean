@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════
-// Product Shoots — AI product photography via DALL-E 3
-// System always biases toward commercial product photography.
+// Product Shoots — AI product photography via gpt-image-1
+// Uses the same AIML architecture as Visuals, Logos, and Campaign Images.
 // API key and prompt engineering live exclusively on the server.
 // ════════════════════════════════════════════════════════════════
 
@@ -34,15 +34,14 @@ async function psGenerateFromFlow(answers) {
   if (retryRow)   retryRow.style.display     = 'none';
   if (newRow)     newRow.style.display       = 'none';
 
-  // Extract answers (CF_FLOWS passes {val, label} objects for option steps, raw strings for textarea)
-  var product    = _psVal(answers.psProduct);
-  var type       = _psVal(answers.psType);
-  var style      = _psVal(answers.psStyle);
-  var background = _psVal(answers.psBackground);
-  var ratio      = _psVal(answers.psRatio)      || '1:1';
-  var count      = _psVal(answers.psCount)      || '1';
+  // Extract answers from simplified 4-field flow
+  var product      = _psVal(answers.psProduct);
+  var style        = _psVal(answers.psStyle);
+  var goal         = _psVal(answers.psGoal);
+  var notes        = _psVal(answers._extraNotes);
+  var customPrompt = (answers._aiPrompt && answers._aiPrompt.val) ? answers._aiPrompt.val : '';
 
-  _psShowGenerating(parseInt(count, 10));
+  _psShowGenerating();
 
   var token = '';
   try {
@@ -55,7 +54,13 @@ async function psGenerateFromFlow(answers) {
     return;
   }
 
-  var payload = { product, type, style, background, ratio, count };
+  var payload = {
+    product,
+    style,
+    goal,
+    notes:        notes        || undefined,
+    customPrompt: customPrompt || undefined,
+  };
 
   try {
     var result = await apiFetch('/api/product-shoots/generate', {
@@ -73,9 +78,9 @@ async function psGenerateFromFlow(answers) {
       throw new Error('No images returned. Please try again.');
     }
 
-    _psShowResult(data.images, ratio);
+    _psShowResult(data.images, data.ratio || '1:1');
 
-    // Deduct credits: 2 per image
+    // Deduct 2 credits per image
     var creditCost = data.images.length * 2;
     apiFetch('/api/increment-usage', {
       method:  'POST',
@@ -96,15 +101,13 @@ function _psVal(answer) {
   return answer.val || answer.label || '';
 }
 
-function _psShowGenerating(count) {
+function _psShowGenerating() {
   var wrap = document.getElementById('psStatusWrap');
   if (!wrap) return;
-  var noun = count === 1 ? 'image' : count + ' images';
   wrap.innerHTML =
     '<div class="ps-spinner"><div class="spin"></div></div>'
-    + '<div class="ps-status-title">Generating your product ' + noun + '…</div>'
-    + '<div class="ps-status-sub">AI is building a professional product photography prompt and rendering '
-    + noun + ' via DALL-E 3. This takes 15–45 seconds.</div>';
+    + '<div class="ps-status-title">Generating your product image…</div>'
+    + '<div class="ps-status-sub">AI is crafting a professional photography prompt and rendering via gpt-image-1. This takes 15–45 seconds.</div>';
 }
 
 function _psShowResult(images, ratio) {

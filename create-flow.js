@@ -1,4 +1,4 @@
-// ════════════════════════════════════════════════════════════════
+﻿// ════════════════════════════════════════════════════════════════
 // AI CONVERSATION FLOW
 // Replaces the form-based builder for Image, Text, and Campaign.
 // Keys are aligned with S._builder / FLOWS in create.js so the
@@ -7,63 +7,28 @@
 
 var CF_FLOWS = {
 
+  // ── Visuals ──────────────────────────────────────────────────
+  // Brand Core supplies: name, audience, tone, colors, positioning, visual direction.
+  // User provides: visual type, format, and optional extra instructions.
   image: [
     {
       key:  "imgVisualType",
       q:    "What type of visual do you need?",
-      desc: "This defines the structure, composition, and intended use of the visual.",
+      desc: "Your Brand Core colors, tone, and visual direction are applied automatically.",
       options: [
-        { val: "poster",        label: "Poster" },
-        { val: "advertisement", label: "Advertisement" },
-        { val: "social",        label: "Social Media Post" },
-        { val: "product",       label: "Product Visual" },
-        { val: "website",       label: "Website Graphic" },
+        { val: "social",        label: "Social Post" },
+        { val: "advertisement", label: "Ad" },
         { val: "banner",        label: "Banner" },
+        { val: "poster",        label: "Poster" },
+        { val: "website",       label: "Website Graphic" },
         { val: "presentation",  label: "Presentation Graphic" },
         { val: "custom",        label: "Custom" }
       ]
     },
     {
-      key:  "imgPurpose",
-      q:    "What is the purpose of this visual?",
-      desc: "This shapes the composition, message hierarchy, and call-to-action intensity.",
-      options: [
-        { val: "promote",   label: "Promote Product" },
-        { val: "launch",    label: "Launch Campaign" },
-        { val: "awareness", label: "Build Awareness" },
-        { val: "leads",     label: "Generate Leads" },
-        { val: "sales",     label: "Increase Sales" },
-        { val: "inform",    label: "Share Information" }
-      ]
-    },
-    {
-      key:         "imgAbout",
-      q:           "What should the visual be about?",
-      desc:        "Describe the product, service, or concept this visual represents.",
-      type:        "textarea",
-      placeholder: "e.g. Premium creatine supplement. AI branding platform. Marketing service. Luxury fashion product.",
-      optional:    false
-    },
-    {
-      key:         "imgTextContent",
-      q:           "What text should appear on the visual?",
-      desc:        "Leave blank to let AI generate on-brand copy using your BrandCore tone and positioning.",
-      type:        "textarea",
-      placeholder: "e.g. Launch Your Brand Faster. 20% Off This Week. Built For Performance. (Leave blank for AI-generated copy)",
-      optional:    true
-    },
-    {
-      key:         "imgScene",
-      q:           "Describe the scene or imagery.",
-      desc:        "This is the most important field — be as specific as possible about setting, mood, and visual elements.",
-      type:        "textarea",
-      placeholder: "e.g. Black supplement container on a dark premium background. Modern SaaS dashboard floating in a futuristic environment. Athlete training under dramatic lighting.",
-      optional:    false
-    },
-    {
       key:  "imgFormat",
-      q:    "Preferred format?",
-      desc: "This sets the dimensions and aspect ratio of the output.",
+      q:    "What format?",
+      desc: "Sets the dimensions and aspect ratio of the output.",
       options: [
         { val: "1:1",  label: "Square 1:1" },
         { val: "4:5",  label: "Portrait 4:5" },
@@ -73,19 +38,23 @@ var CF_FLOWS = {
     },
     {
       key:         "_extraNotes",
-      q:           "Anything else?",
-      desc:        "Optional direction for aesthetic, tone, contrast, or creative focus.",
+      q:           "Any additional instructions?",
+      desc:        "Describe the scene, subject, or anything specific. Leave blank to let Oriven decide.",
       type:        "textarea",
-      placeholder: "e.g. Minimal design. Focus on trust. Premium aesthetic. High contrast.",
+      placeholder: "e.g. Product on a dark premium background. Minimal composition. Focus on the logo.",
       optional:    true
-    }
+    },
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
   ],
 
+  // ── Text & Copy ───────────────────────────────────────────────
+  // Brand Core supplies: name, tone, audience, positioning, messaging.
+  // User provides: content type, goal, optional extra context.
   text: [
     {
       key:  "txtType",
       q:    "What type of content are you creating?",
-      desc: "This shapes the format, length, and structure of the output.",
+      desc: "Your Brand Core tone of voice and messaging are applied automatically.",
       options: [
         { val: "headline",     label: "Headline" },
         { val: "body_copy",    label: "Body Copy" },
@@ -97,8 +66,8 @@ var CF_FLOWS = {
     },
     {
       key:  "txtPurpose",
-      q:    "What is the purpose of this text?",
-      desc: "This defines the goal and shapes how the copy is written.",
+      q:    "What is the goal?",
+      desc: "This shapes the angle and intensity of the copy.",
       options: [
         { val: "launch",      label: "Product Launch" },
         { val: "awareness",   label: "Build Awareness" },
@@ -109,48 +78,20 @@ var CF_FLOWS = {
       ]
     },
     {
-      key:  "txtObjective",
-      q:    "What is the writing objective?",
-      desc: "This shapes the angle, structure, and intensity of the copy.",
-      options: [
-        { val: "promote",  label: "Promote" },
-        { val: "educate",  label: "Educate" },
-        { val: "convert",  label: "Convert" },
-        { val: "engage",   label: "Engage" },
-        { val: "inspire",  label: "Inspire" },
-        { val: "announce", label: "Announce" }
-      ]
+      key:         "_extraNotes",
+      q:           "Any additional instructions?",
+      desc:        "Optional context, specific messages, or creative direction.",
+      type:        "textarea",
+      placeholder: "e.g. Include a sense of urgency. Mention the free trial. Keep it punchy.",
+      optional:    true
     },
-    {
-      key:  "txtCtaStyle",
-      q:    "What CTA style do you want?",
-      desc: "Defines how the call-to-action is delivered in the copy.",
-      options: [
-        { val: "direct",  label: "Direct Action" },
-        { val: "soft",    label: "Soft Nudge" },
-        { val: "urgency", label: "Urgency" },
-        { val: "none",    label: "No CTA" }
-      ]
-    },
-    {
-      key:  "_extraNotes",
-      q:    "Anything else you'd like to add?",
-      desc: "The more specific your input, the better the final result.",
-      type: "textarea",
-      placeholder: "Add context, key messages, product details, or anything specific…",
-      optional: true
-    }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
   ],
 
+  // ── Campaign ──────────────────────────────────────────────────
+  // Brand Core supplies: name, audience, tone, positioning, visual direction, colors.
+  // User provides: goal, campaign type, optional extra instructions.
   campaign: [
-    {
-      key:         "campPromotion",
-      q:           "What are you promoting?",
-      desc:        "Name the product, service, or offer this campaign is for.",
-      type:        "textarea",
-      placeholder: "e.g. Protein Powder, Marketing Agency, AI Tool, Online Course, Mobile App…",
-      optional:    false
-    },
     {
       key:  "campGoal",
       q:    "What is the goal of this campaign?",
@@ -165,49 +106,31 @@ var CF_FLOWS = {
       ]
     },
     {
-      key:  "campCount",
-      q:    "How many ads should be generated?",
-      desc: "Each ad will use a different creative angle within your BrandCore.",
+      key:  "campType",
+      q:    "What type of campaign?",
+      desc: "This defines the channel mix and content format.",
       options: [
-        { val: "3", label: "3 Ads" },
-        { val: "4", label: "4 Ads" },
-        { val: "5", label: "5 Ads" }
+        { val: "social",    label: "Social Media" },
+        { val: "paid_ads",  label: "Paid Ads" },
+        { val: "email",     label: "Email Campaign" },
+        { val: "content",   label: "Content Marketing" },
+        { val: "multichannel", label: "Multi-Channel" }
       ]
     },
     {
-      key:         "campAudience",
-      q:           "Who is this campaign targeting?",
-      desc:        "Be specific — this shapes the hook, tone, and message angle.",
-      type:        "textarea",
-      placeholder: "e.g. Gym Owners, Startup Founders, Small Businesses, Content Creators…",
-      optional:    false
-    },
-    {
-      key:         "campOffer",
-      q:           "What is the main offer or message?",
-      desc:        "The core reason someone should stop and pay attention.",
-      type:        "textarea",
-      placeholder: "e.g. 20% Off, Free Trial, Limited Launch, New Collection, Book A Demo…",
-      optional:    false
-    },
-    {
-      key:         "campVisuals",
-      q:           "Describe the visuals you want.",
-      desc:        "This directly drives visual generation — be specific about setting, mood, and style.",
-      type:        "textarea",
-      placeholder: "e.g. Dark gym with athletes training. Premium black supplement containers with dramatic lighting. Minimal luxury workspace with modern technology.",
-      optional:    false
-    },
-    {
       key:         "_extraNotes",
-      q:           "Anything else the campaign should include?",
-      desc:        "Optional direction for tone, urgency, trust signals, or creative focus.",
+      q:           "Any additional instructions?",
+      desc:        "Specific offers, urgency signals, tone direction, or creative focus.",
       type:        "textarea",
-      placeholder: "e.g. Include urgency. Focus on trust. Highlight premium quality. Keep it minimal.",
+      placeholder: "e.g. Focus on the limited-time offer. Emphasise premium quality. Include social proof.",
       optional:    true
-    }
+    },
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
   ],
 
+  // ── UGC Creator ───────────────────────────────────────────────
+  // Brand Core supplies: name, positioning, audience, tone.
+  // User picks a creator, script mode, and optional product context.
   ugc: [
     {
       key:  "ucAvatar",
@@ -220,47 +143,16 @@ var CF_FLOWS = {
       q:    "How do you want the script?",
       desc: "ORIVEN AI can write a high-converting script, or bring your own.",
       options: [
-        { val: "ai",     label: "Write with AI",     desc: "ORIVEN generates a script tailored to your brand" },
+        { val: "ai",     label: "Write with AI",     desc: "ORIVEN generates a script tailored to your Brand Core" },
         { val: "custom", label: "Use my own script", desc: "Paste a script you've already written" }
       ]
     },
     {
-      key:            "ucAdFeeling",
-      q:              "What should the ad feel like?",
-      desc:           "Controls hook structure, script energy, pacing, and call-to-action.",
-      conditional:    "ucScriptMode",
-      conditionalVal: "ai",
-      options: [
-        { val: "viral",       label: "Viral",       desc: "Punchy, shareable, built to spread" },
-        { val: "cinematic",   label: "Cinematic",   desc: "Evocative, visual, emotionally charged" },
-        { val: "emotional",   label: "Emotional",   desc: "Heart-led, personal, drives connection" },
-        { val: "aggressive",  label: "Aggressive",  desc: "Direct, bold, no fluff — buy now energy" },
-        { val: "luxury",      label: "Luxury",      desc: "Slow, deliberate, aspirational" },
-        { val: "startup",     label: "Startup",     desc: "Scrappy, exciting, disruption energy" },
-        { val: "friendly",    label: "Friendly",    desc: "Warm, helpful, genuinely likeable" },
-        { val: "high_energy", label: "High Energy", desc: "Fast, loud, nonstop excitement" }
-      ]
-    },
-    {
-      key:            "ucGoal",
-      q:              "What's the goal of this ad?",
-      desc:           "Shapes the hook angle, CTA style, and script structure.",
-      conditional:    "ucScriptMode",
-      conditionalVal: "ai",
-      options: [
-        { val: "sales",     label: "Drive Sales",     desc: "Push toward immediate purchase" },
-        { val: "awareness", label: "Brand Awareness", desc: "Introduce the brand and create desire" },
-        { val: "downloads", label: "App Downloads",   desc: "Drive installs and first opens" },
-        { val: "clicks",    label: "Website Clicks",  desc: "Pull traffic to a specific page or offer" },
-        { val: "launch",    label: "Product Launch",  desc: "Announce something new with impact" }
-      ]
-    },
-    {
       key:            "ucContext",
-      q:              "Any context for the AI? (optional)",
-      desc:           "Product name, key benefit, or anything specific the script should mention.",
+      q:              "What product or service is this ad for? Any desired angle?",
+      desc:           "Optional — your Brand Core is already applied. Add anything specific the script should mention.",
       type:           "textarea",
-      placeholder:    "e.g. ORIVEN AI — the brand OS for modern founders. Key benefit: saves 10+ hours a week.",
+      placeholder:    "e.g. New protein powder launch. Angle: speed and recovery for serious athletes.",
       optional:       true,
       maxChars:       400,
       conditional:    "ucScriptMode",
@@ -277,34 +169,30 @@ var CF_FLOWS = {
       conditional:    "ucScriptMode",
       conditionalVal: "custom"
     },
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
   ],
 
+  // ── Web ───────────────────────────────────────────────────────
+  // Brand Core supplies: name, audience, tone, positioning, colors, visual direction.
+  // User provides: website type, goal, optional extra instructions.
   web: [
     {
       key:  "webType",
       q:    "What type of website do you need?",
-      desc: "This defines the structure, sections, and layout approach.",
+      desc: "Your Brand Core identity and visual direction are applied automatically.",
       options: [
-        { val: "landing",   label: "Landing Page",       desc: "Single goal — one offer, one CTA" },
-        { val: "business",  label: "Business Website",   desc: "Services, team, contact, and about" },
-        { val: "portfolio", label: "Portfolio",           desc: "Showcase work or personal brand" },
-        { val: "ecommerce", label: "E-commerce Store",   desc: "Products, cart, and checkout flow" },
-        { val: "agency",    label: "Agency Website",     desc: "Services, case studies, and contact" },
-        { val: "saas",      label: "SaaS Website",       desc: "Features, pricing, and signup" }
+        { val: "landing",   label: "Landing Page",     desc: "Single goal — one offer, one CTA" },
+        { val: "business",  label: "Business Website", desc: "Services, team, contact, and about" },
+        { val: "portfolio", label: "Portfolio",         desc: "Showcase work or personal brand" },
+        { val: "ecommerce", label: "E-commerce",        desc: "Products, cart, and checkout flow" },
+        { val: "agency",    label: "Agency Website",   desc: "Services, case studies, and contact" },
+        { val: "saas",      label: "SaaS Website",     desc: "Features, pricing, and signup" }
       ]
     },
     {
-      key:         "webAbout",
-      q:           "What is the website about?",
-      desc:        "Describe the brand, product, or service this site represents.",
-      type:        "textarea",
-      placeholder: "e.g. AI Branding Platform, Fitness Supplement Brand, Marketing Agency, Personal Brand…",
-      optional:    false
-    },
-    {
       key:  "webGoal",
-      q:    "What is the primary goal of the website?",
-      desc: "Every element — headline, CTA, layout — will orient toward this.",
+      q:    "What is the primary goal?",
+      desc: "Every headline, CTA, and layout section will orient toward this.",
       options: [
         { val: "sales",     label: "Generate Sales" },
         { val: "leads",     label: "Collect Leads" },
@@ -315,86 +203,36 @@ var CF_FLOWS = {
       ]
     },
     {
-      key:         "webAudience",
-      q:           "Who is the target audience?",
-      desc:        "The more specific, the more relevant the copy and layout.",
-      type:        "textarea",
-      placeholder: "e.g. Startup Founders, Gym Enthusiasts, Small Businesses, Creators, Agencies…",
-      optional:    false
-    },
-    {
-      key:         "webSections",
-      q:           "What sections should the website include?",
-      desc:        "List the sections you need — these become the page structure.",
-      type:        "textarea",
-      placeholder: "e.g. Hero, Features, Testimonials, Pricing, FAQ, Contact",
-      optional:    false
-    },
-    {
-      key:         "webStyle",
-      q:           "Describe the style you want.",
-      desc:        "This drives the visual direction — be specific about mood, aesthetic, and feel.",
-      type:        "textarea",
-      placeholder: "e.g. Minimal and premium. Dark and futuristic. Luxury black and gold. Clean SaaS design. Modern technology aesthetic.",
-      optional:    false
-    },
-    {
       key:         "_extraNotes",
-      q:           "Anything else the website should include?",
-      desc:        "Optional notes on CTAs, trust signals, mobile focus, or creative direction.",
+      q:           "Any additional instructions?",
+      desc:        "Specific sections, CTAs, trust signals, or design preferences.",
       type:        "textarea",
-      placeholder: "e.g. Strong call-to-actions. Trust-building sections. Focus on conversions. Mobile-first design.",
+      placeholder: "e.g. Include testimonials and pricing. Mobile-first. Strong hero CTA.",
       optional:    true
-    }
+    },
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
   ],
 
-  // ── Email Designer ────────────────────────────────────────────
+  // ── Email ─────────────────────────────────────────────────────
+  // Brand Core supplies: name, audience, tone, messaging, positioning.
+  // User provides: email type, desired action, optional extra instructions.
   email: [
     {
       key:  "emailType",
-      q:    "What type of email are you creating?",
-      desc: "This shapes the structure, urgency, and tone of the email.",
+      q:    "What is the email objective?",
+      desc: "Your Brand Core tone and audience are applied automatically.",
       options: [
-        { val: "newsletter",    label: "Newsletter" },
-        { val: "product_launch",label: "Product Launch" },
-        { val: "welcome",       label: "Welcome Email" },
-        { val: "sales",         label: "Sales Email" },
-        { val: "promotion",     label: "Promotion" },
-        { val: "announcement",  label: "Announcement" }
+        { val: "newsletter",     label: "Newsletter" },
+        { val: "product_launch", label: "Product Launch" },
+        { val: "welcome",        label: "Welcome Email" },
+        { val: "sales",          label: "Sales Email" },
+        { val: "promotion",      label: "Promotion" },
+        { val: "announcement",   label: "Announcement" }
       ]
-    },
-    {
-      key:  "emailGoal",
-      q:    "What is the primary goal of this email?",
-      desc: "Every section — headline, body, CTA — will orient toward this goal.",
-      options: [
-        { val: "drive_sales",   label: "Drive Sales" },
-        { val: "build_trust",   label: "Build Trust" },
-        { val: "engagement",    label: "Increase Engagement" },
-        { val: "promote",       label: "Promote a Product" },
-        { val: "nurture",       label: "Nurture Leads" },
-        { val: "announce",      label: "Make an Announcement" }
-      ]
-    },
-    {
-      key:         "emailAudience",
-      q:           "Who is this email going to?",
-      desc:        "Be specific — the more you describe your audience, the more targeted the copy.",
-      type:        "textarea",
-      placeholder: "e.g. Existing customers, new subscribers, warm leads, gym enthusiasts aged 25–40…",
-      optional:    false
-    },
-    {
-      key:         "emailMessage",
-      q:           "What is the core message of this email?",
-      desc:        "The main thing you want readers to know, feel, or do after reading.",
-      type:        "textarea",
-      placeholder: "e.g. Introducing our new summer collection. 30% off this week only. Your free trial starts now.",
-      optional:    false
     },
     {
       key:         "emailCta",
-      q:           "What should the call-to-action be?",
+      q:           "What is the desired action?",
       desc:        "The single action you want readers to take — keep it clear and direct.",
       type:        "textarea",
       placeholder: "e.g. Shop Now. Claim Your Discount. Book a Call. Start Free Trial.",
@@ -402,48 +240,38 @@ var CF_FLOWS = {
     },
     {
       key:         "_extraNotes",
-      q:           "Any additional details for the email?",
-      desc:        "Tone adjustments, specific offers, urgency signals, or copy direction.",
+      q:           "Any additional instructions?",
+      desc:        "Specific offers, urgency signals, or tone direction.",
       type:        "textarea",
-      placeholder: "e.g. Include a sense of urgency. Mention the 48-hour deadline. Keep it short and punchy.",
+      placeholder: "e.g. Mention the 48-hour deadline. Keep it short and punchy. Include a P.S. line.",
       optional:    true
-    }
+    },
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
   ],
 
-  // ── Presentation Generator ────────────────────────────────────
+  // ── Presentation ──────────────────────────────────────────────
+  // Brand Core supplies: name, audience, tone, positioning, colors, fonts.
+  // User provides: topic, goal, slide count, optional extra instructions.
   deck: [
     {
-      key:  "deckType",
-      q:    "What type of presentation is this?",
-      desc: "The type determines the narrative structure, section order, and tone.",
-      options: [
-        { val: "pitch",     label: "Pitch Deck" },
-        { val: "investor",  label: "Investor Deck" },
-        { val: "sales",     label: "Sales Deck" },
-        { val: "overview",  label: "Company Overview" },
-        { val: "launch",    label: "Product Launch" },
-        { val: "custom",    label: "Custom" }
-      ]
-    },
-    {
-      key:         "deckGoal",
-      q:           "What is the goal of this presentation?",
-      desc:        "What should the audience think, feel, or do by the end?",
+      key:         "deckTopic",
+      q:           "What is this presentation about?",
+      desc:        "Your Brand Core identity and positioning are applied automatically.",
       type:        "textarea",
-      placeholder: "e.g. Secure Series A funding. Close the enterprise deal. Launch the product to press.",
+      placeholder: "e.g. AI branding platform for DTC brands. Q3 performance review. New product launch.",
       optional:    false
     },
     {
-      key:         "deckAudience",
-      q:           "Who is the audience?",
-      desc:        "Knowing who's in the room shapes the level of detail, language, and persuasion angle.",
+      key:         "deckGoal",
+      q:           "What is the goal?",
+      desc:        "What should the audience think, feel, or do by the end?",
       type:        "textarea",
-      placeholder: "e.g. Venture capitalists, enterprise buyers, press and media, internal leadership team…",
+      placeholder: "e.g. Secure Series A funding. Close the enterprise deal. Inform the leadership team.",
       optional:    false
     },
     {
       key:  "deckSlides",
-      q:    "How many slides should the deck have?",
+      q:    "How many slides?",
       desc: "Choose a length that fits your context — less is often more.",
       options: [
         { val: "5",  label: "5 slides" },
@@ -453,29 +281,24 @@ var CF_FLOWS = {
       ]
     },
     {
-      key:         "deckTopic",
-      q:           "What is this presentation about?",
-      desc:        "Describe the product, company, or idea being presented.",
-      type:        "textarea",
-      placeholder: "e.g. AI branding platform for DTC brands. Revenue-cycle management SaaS. Premium supplement brand.",
-      optional:    false
-    },
-    {
       key:         "_extraNotes",
-      q:           "Anything else to include in the deck?",
-      desc:        "Specific slides, sections, talking points, or tone direction.",
+      q:           "Any additional instructions?",
+      desc:        "Specific slides, talking points, or tone direction.",
       type:        "textarea",
-      placeholder: "e.g. Include a market size slide. Emphasise the founder story. Keep language non-technical.",
+      placeholder: "e.g. Include a market size slide. Keep language non-technical. Emphasise the founder story.",
       optional:    true
-    }
+    },
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
   ],
 
-  // ── Poster Generator ─────────────────────────────────────────
+  // ── Poster ───────────────────────────────────────────────────
+  // Brand Core supplies: name, tone, colors, visual direction, positioning.
+  // User provides: purpose, format, optional extra instructions.
   poster: [
     {
       key:  "posterType",
-      q:    "What type of poster is this?",
-      desc: "The category shapes the visual structure, hierarchy, and urgency level.",
+      q:    "What is the poster for?",
+      desc: "Your Brand Core colors and visual direction are applied automatically.",
       options: [
         { val: "product",     label: "Product" },
         { val: "launch",      label: "Launch" },
@@ -486,176 +309,281 @@ var CF_FLOWS = {
       ]
     },
     {
-      key:         "posterHeadline",
-      q:           "What is the main headline?",
-      desc:        "The dominant line — bold, memorable, and impossible to ignore.",
-      type:        "textarea",
-      placeholder: "e.g. The Future of Fitness. Launch Day is Here. Join the Movement.",
-      optional:    false
-    },
-    {
-      key:         "posterBody",
-      q:           "What supporting copy should the poster include?",
-      desc:        "Secondary text — product details, event info, key message.",
-      type:        "textarea",
-      placeholder: "e.g. Premium creatine, zero fillers. 10% OFF launch price. Apply before 1 July.",
-      optional:    false
-    },
-    {
-      key:         "posterCta",
-      q:           "What is the call-to-action or URL?",
-      desc:        "The action or destination at the bottom of the poster.",
-      type:        "textarea",
-      placeholder: "e.g. Shop Now — oriven.ai  |  Scan the QR code  |  Visit us at Stand 14",
-      optional:    true
-    },
-    {
-      key:         "posterVisual",
-      q:           "Describe the visual style you want.",
-      desc:        "This drives the colour, layout, and typographic direction of the poster.",
-      type:        "textarea",
-      placeholder: "e.g. Dark background, bold white type. Minimal and premium. High-contrast neon on black.",
-      optional:    false
-    },
-    {
-      key:         "_extraNotes",
-      q:           "Any other details for the poster?",
-      desc:        "Specific layout requests, brand elements, or creative direction.",
-      type:        "textarea",
-      placeholder: "e.g. Include the brand logo at top. Use the brand green as accent. Make it feel luxury.",
-      optional:    true
-    }
-  ],
-
-  infographic: [
-    {
-      key:  "infographicType",
-      q:    "What type of infographic is this?",
-      desc: "The format shapes how data is arranged, the visual hierarchy, and the reading flow.",
+      key:  "posterFormat",
+      q:    "What format?",
+      desc: "Sets the dimensions and orientation of the poster.",
       options: [
-        { val: "process",    label: "Process" },
-        { val: "timeline",   label: "Timeline" },
-        { val: "statistics", label: "Statistics" },
-        { val: "comparison", label: "Comparison" },
-        { val: "guide",      label: "Guide" },
-        { val: "funnel",     label: "Marketing Funnel" },
-        { val: "roadmap",    label: "Roadmap" },
-        { val: "custom",     label: "Custom" }
+        { val: "portrait",  label: "Portrait (A4/A3)" },
+        { val: "square",    label: "Square" },
+        { val: "landscape", label: "Landscape" },
+        { val: "story",     label: "Story 9:16" },
+        { val: "banner",    label: "Wide Banner" }
       ]
     },
     {
+      key:         "_extraNotes",
+      q:           "Any additional instructions?",
+      desc:        "Headline, copy, call-to-action, scene, or any specific creative direction.",
+      type:        "textarea",
+      placeholder: "e.g. Headline: Launch Day Is Here. Include the URL oriven.ai. Dark premium aesthetic.",
+      optional:    true
+    },
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+  ],
+
+  // ── Infographic ───────────────────────────────────────────────
+  // Brand Core supplies: name, audience, tone, colors, visual direction.
+  // User provides: topic, data/content, optional extra instructions.
+  infographic: [
+    {
       key:         "infographicTopic",
       q:           "What is this infographic about?",
-      desc:        "The subject or theme the infographic explains.",
+      desc:        "Your Brand Core visual style and audience are applied automatically.",
       type:        "textarea",
       placeholder: "e.g. How our onboarding works. The 5 stages of brand building. Q3 performance highlights.",
       optional:    false
     },
     {
       key:         "infographicData",
-      q:           "What data or information should be visualised?",
-      desc:        "Enter the facts, steps, stats, or content to include.",
+      q:           "What data or content should be included?",
+      desc:        "Enter the facts, steps, stats, or key points to visualise.",
       type:        "textarea",
-      placeholder: "e.g. Step 1: Sign up. Step 2: Complete BrandCore. Step 3: Generate content. Or: 83% of buyers trust visual content.",
+      placeholder: "e.g. Step 1: Sign up. Step 2: Build Brand Core. Step 3: Generate assets. Or: 83% of buyers trust visual content.",
       optional:    false
-    },
-    {
-      key:         "infographicAudience",
-      q:           "Who is the target audience?",
-      desc:        "Knowing the audience shapes language, complexity, and visual style.",
-      type:        "textarea",
-      placeholder: "e.g. Marketing managers at SMEs. Early-stage founders. Social media audiences aged 25–40.",
-      optional:    false
-    },
-    {
-      key:         "infographicCta",
-      q:           "What call-to-action should appear at the end?",
-      desc:        "Drive viewers to take the next step.",
-      type:        "textarea",
-      placeholder: "e.g. Visit oriven.ai. Book a free call. Download the full report.",
-      optional:    true
     },
     {
       key:         "_extraNotes",
-      q:           "Any other details for the infographic?",
-      desc:        "Specific layout, data emphasis, or creative direction.",
+      q:           "Any additional instructions?",
+      desc:        "Layout preferences, data emphasis, call-to-action, or creative direction.",
       type:        "textarea",
-      placeholder: "e.g. Lead with the biggest statistic. Use brand green as accent. Include icons for each step.",
+      placeholder: "e.g. Lead with the biggest stat. Include icons for each step. CTA: Visit oriven.ai.",
       optional:    true
-    }
+    },
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
   ],
 
-  // ── Product Shoots ─────────────────────────────────────────────
+  // ── Product Shoots ────────────────────────────────────────────
+  // Uses the same gpt-image-1 stack as Visuals, Logos, and Campaign Images.
+  // User provides: product, style, goal, optional notes.
   productshoots: [
     {
       key:         "psProduct",
-      q:           "What product are you showcasing?",
-      desc:        "Name the product you want photographed — be specific for better results.",
+      q:           "What product are you shooting?",
+      desc:        "Describe it clearly — name, material, colour, and size give better results.",
       type:        "textarea",
-      placeholder: "e.g. Minimalist ceramic mug, Wireless noise-cancelling earbuds, Vitamin C serum bottle",
+      placeholder: "e.g. Matte black ceramic mug, 30ml Vitamin C serum in amber glass bottle",
       optional:    false
     },
     {
-      key:  "psType",
-      q:    "What type of product is it?",
-      desc: "This shapes the photography context, lighting, and environment.",
-      options: [
-        { val: "tech",     label: "Tech & Electronics", desc: "Gadgets, devices, accessories" },
-        { val: "fashion",  label: "Fashion & Apparel",  desc: "Clothing, footwear, accessories" },
-        { val: "beauty",   label: "Beauty & Skincare",  desc: "Cosmetics, fragrances, wellness" },
-        { val: "food",     label: "Food & Beverage",    desc: "Packaged products, drinks" },
-        { val: "home",     label: "Home & Lifestyle",   desc: "Homewares, decor, furniture" },
-        { val: "luxury",   label: "Luxury & Premium",   desc: "High-end goods, jewellery" }
-      ]
-    },
-    {
       key:  "psStyle",
-      q:    "What style of shoot?",
-      desc: "Sets the mood, lighting, and visual language of the photograph.",
+      q:    "Photography style?",
+      desc: "Sets the lighting, mood, and visual language of the photograph.",
       options: [
-        { val: "studio",       label: "Studio Clean",      desc: "Professional studio, pure background" },
-        { val: "luxury_dark",  label: "Luxury Dark",       desc: "Dramatic shadows, premium materials" },
-        { val: "minimal",      label: "Minimal White",     desc: "Bright, airy, ecommerce-ready" },
-        { val: "lifestyle",    label: "Lifestyle",         desc: "In-context, aspirational setting" },
-        { val: "dark_premium", label: "Dark Premium",      desc: "Moodboard-style, deep tones" },
-        { val: "bright_ecom",  label: "Bright Ecommerce",  desc: "High-key, conversion-optimised" }
+        { val: "studio",      label: "Studio Clean",  desc: "Pure background, controlled lighting" },
+        { val: "lifestyle",   label: "Lifestyle",     desc: "In-context, aspirational setting" },
+        { val: "minimal",     label: "Minimal White", desc: "Bright, airy, ecommerce-ready" },
+        { val: "dark_premium",label: "Dark Premium",  desc: "Moody deep tones, dramatic shadows" }
       ]
     },
     {
-      key:  "psBackground",
-      q:    "Background preference?",
-      desc: "The surface and environment surrounding the product.",
+      key:  "psGoal",
+      q:    "What is this image for?",
+      desc: "The destination shapes composition, crop, and atmosphere.",
       options: [
-        { val: "white",     label: "Pure White",       desc: "Clean, ecommerce standard" },
-        { val: "black",     label: "Black Studio",     desc: "Dramatic, premium feel" },
-        { val: "luxury",    label: "Textured Luxury",  desc: "Marble, stone, or premium materials" },
-        { val: "lifestyle", label: "Natural Setting",  desc: "Real-world editorial context" },
-        { val: "gradient",  label: "Soft Gradient",    desc: "Tonal gradient backdrop" }
+        { val: "ecommerce",   label: "E-commerce",    desc: "Product listing, marketplace" },
+        { val: "social",      label: "Social Media",  desc: "Thumb-stopping, shareable" },
+        { val: "advertising", label: "Ad / Campaign", desc: "Brand-aligned, persuasive" },
+        { val: "website",     label: "Website Hero",  desc: "Full-bleed, editorial" }
       ]
     },
     {
-      key:  "psRatio",
-      q:    "Aspect ratio?",
-      desc: "Choose the format for your intended use.",
+      key:         "_extraNotes",
+      q:           "Any additional direction?",
+      desc:        "Specific composition, angle, props, or creative detail.",
+      type:        "textarea",
+      placeholder: "e.g. Shot from above. Coffee beans scattered around the mug. Dark walnut surface.",
+      optional:    true
+    },
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+  ],
+
+  motiongraphics: [
+    {
+      key:  "mgStyle",
+      q:    "What type of motion do you need?",
+      desc: "Your Brand Core colors and visual identity are applied automatically.",
       options: [
-        { val: "1:1",  label: "Square 1:1",    desc: "Instagram, marketplace listings" },
-        { val: "4:5",  label: "Portrait 4:5",  desc: "Instagram feed, stories preview" },
-        { val: "16:9", label: "Landscape 16:9", desc: "Web banners, presentations" }
+        { val: "logo",       label: "Logo Animation",     desc: "Animated logo reveal or loop" },
+        { val: "kinetic",    label: "Kinetic Typography", desc: "Text-driven motion graphic" },
+        { val: "social",     label: "Social Motion Post", desc: "Animated social media asset" },
+        { val: "intro",      label: "Intro / Outro",      desc: "Video intro or outro sequence" },
+        { val: "transition", label: "Transition Pack",    desc: "Brand-aligned transition effects" },
+        { val: "custom",     label: "Custom",             desc: "Describe what you need" }
       ]
     },
     {
-      key:  "psCount",
-      q:    "How many images?",
-      desc: "Each image is independently generated — more gives you variety to choose from.",
+      key:  "mgDuration",
+      q:    "Duration?",
+      desc: "Sets the length of the motion graphic.",
       options: [
-        { val: "1", label: "1 Image",  desc: "Single focused shot (2 credits)" },
-        { val: "2", label: "2 Images", desc: "A/B hero shots (4 credits)" },
-        { val: "4", label: "4 Images", desc: "Full ecommerce set (8 credits)" }
+        { val: "5",  label: "5 seconds",  desc: "Logo loops, social posts, transitions" },
+        { val: "10", label: "10 seconds", desc: "Intros, outros, longer sequences" }
       ]
-    }
+    },
+    {
+      key:         "mgNotes",
+      q:           "Additional instructions?",
+      desc:        "Specific animation style, text to include, or creative direction.",
+      type:        "textarea",
+      placeholder: "e.g. Smooth reveal with green accent. Text: 'Built for Brands'. Minimalist style.",
+      optional:    true
+    },
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
   ]
 
 };
+
+// ── Prompt builder ────────────────────────────────────────────
+// Constructs a human-readable AI brief from CF_FLOW answers + Brand Core.
+// This is shown in the prompt-preview step and sent as customPrompt if edited.
+
+function _cfBuildPrompt(type, answers, bc) {
+  function v(key) {
+    var a = answers[key];
+    if (!a) return '';
+    return (typeof a === 'string') ? a : (a.val || a.label || '');
+  }
+  var name  = (bc && bc.name) || '';
+  var tone  = (bc && (bc.toneOfVoice || (Array.isArray(bc.tone) ? bc.tone[0] : ''))) || '';
+  var aud   = (bc && (bc.audience || bc.aud)) || '';
+  var msg   = (bc && bc.messaging)   || '';
+  var pos   = (bc && bc.positioning) || '';
+  var per   = (bc && bc.personality) || '';
+  var clrs  = (bc && bc.colors)      || [];
+  var col1  = clrs[0] ? (clrs[0].hex || clrs[0] || '') : ((bc && bc.primaryColor)   || '');
+  var col2  = clrs[1] ? (clrs[1].hex || clrs[1] || '') : ((bc && bc.secondaryColor) || '');
+  var notes = v('_extraNotes');
+
+  var bcParts = [];
+  if (name) bcParts.push('Brand: ' + name);
+  if (tone) bcParts.push('Tone of voice: ' + tone);
+  if (aud)  bcParts.push('Target audience: ' + aud);
+  if (msg)  bcParts.push('Key message: ' + msg);
+  if (pos)  bcParts.push('Positioning: ' + pos);
+  if (per)  bcParts.push('Brand personality: ' + per);
+  if (col1) bcParts.push('Primary color: ' + col1);
+  if (col2) bcParts.push('Secondary color: ' + col2);
+  var bc_ = bcParts.length ? '\n\nBrand identity applied:\n' + bcParts.join('\n') : '';
+
+  var p = '';
+  var bn = name || 'the brand';
+
+  if (type === 'image') {
+    p  = 'Create a brand-aligned ' + (v('imgVisualType') || 'visual') + ' for ' + bn + '.';
+    if (notes) p += '\n\n' + notes;
+    p += bc_;
+    if (v('imgFormat')) p += '\nFormat: ' + v('imgFormat');
+
+  } else if (type === 'text') {
+    p  = 'Write ' + (v('txtType') || 'copy') + ' for ' + bn;
+    if (v('txtPurpose')) p += '. Goal: ' + v('txtPurpose');
+    p += '.';
+    if (notes) p += '\n\n' + notes;
+    p += bc_;
+
+  } else if (type === 'campaign') {
+    p  = 'Create a ' + (v('campType') || 'multi-channel') + ' campaign for ' + bn;
+    if (v('campGoal')) p += '. Goal: ' + v('campGoal');
+    p += '.';
+    if (notes) p += '\n\n' + notes;
+    p += bc_;
+
+  } else if (type === 'web') {
+    p  = 'Build a ' + (v('webType') || 'website') + ' for ' + bn;
+    if (v('webGoal')) p += '. Primary goal: ' + v('webGoal');
+    p += '.';
+    if (notes) p += '\n\n' + notes;
+    p += bc_;
+
+  } else if (type === 'email') {
+    p  = 'Write a ' + (v('emailType') || 'email') + ' for ' + bn + '.';
+    if (v('emailCta')) p += '\nDesired action: ' + v('emailCta');
+    if (notes) p += '\n\n' + notes;
+    p += bc_;
+
+  } else if (type === 'deck') {
+    p  = 'Build a ' + (v('deckSlides') || '10') + '-slide presentation for ' + bn + '.';
+    if (v('deckTopic')) p += '\nTopic: ' + v('deckTopic');
+    if (v('deckGoal'))  p += '\nGoal: '  + v('deckGoal');
+    if (notes) p += '\n\n' + notes;
+    p += bc_;
+
+  } else if (type === 'poster') {
+    p  = 'Design a ' + (v('posterType') || 'product') + ' poster for ' + bn + '.';
+    if (v('posterFormat')) p += ' Format: ' + v('posterFormat') + '.';
+    if (notes) p += '\n\n' + notes;
+    p += bc_;
+
+  } else if (type === 'infographic') {
+    p  = 'Create an infographic for ' + bn;
+    if (v('infographicTopic')) p += ': ' + v('infographicTopic');
+    p += '.';
+    if (v('infographicData')) p += '\n\nContent: ' + v('infographicData');
+    if (notes) p += '\n\n' + notes;
+    p += bc_;
+
+  } else if (type === 'productshoots') {
+    p  = 'Generate a professional product photograph';
+    if (v('psProduct')) p += ' of ' + v('psProduct');
+    p += '.';
+    if (v('psStyle'))  p += '\nStyle: ' + v('psStyle');
+    if (v('psGoal'))   p += ' | Goal: ' + v('psGoal');
+    if (notes)         p += '\n\n' + notes;
+    p += bc_;
+
+  } else if (type === 'motiongraphics') {
+    var dur   = v('mgDuration') || '5';
+    var style = v('mgStyle')    || 'social';
+    var mgn   = v('mgNotes')    || '';
+    p  = 'Create a ' + dur + '-second ' + style + ' motion graphic for ' + bn + '.';
+    if (mgn) p += '\n\nCreative direction: ' + mgn;
+    p += bc_;
+
+  } else if (type === 'ugc') {
+    var script = v('ucCustomScript');
+    if (script) {
+      p = script;
+    } else {
+      p = 'Write a UGC-style 30-second video script for ' + bn + '.';
+      if (v('ucContext')) p += '\n\n' + v('ucContext');
+      p += bc_;
+    }
+
+  } else {
+    p = 'Generate content for ' + bn + '.' + bc_;
+  }
+
+  return p.trim();
+}
+
+// ── Brand Core check list (for prompt-preview panel) ──────────
+
+function _cfBCChecks(bc) {
+  if (!bc) return [];
+  var logos = bc.logos || {};
+  var hasLogo = !!(
+    (logos.primary   && logos.primary.url   && logos.primary.source   !== 'placeholder') ||
+    (logos.icon      && logos.icon.url      && logos.icon.source      !== 'placeholder')
+  );
+  return [
+    { label: 'Logo',              ok: hasLogo },
+    { label: 'Brand Colors',      ok: !!(bc.colors && bc.colors.length > 0 || bc.primaryColor) },
+    { label: 'Tone of Voice',     ok: !!(bc.toneOfVoice || bc.tone) },
+    { label: 'Audience',          ok: !!(bc.audience || bc.aud) },
+    { label: 'Messaging',         ok: !!bc.messaging },
+    { label: 'Brand Personality', ok: !!bc.personality },
+  ];
+}
 
 // ── State ─────────────────────────────────────────────────────
 var _cfType      = null;
@@ -705,6 +633,10 @@ var CF_META = {
     label: "Product Shoots",
     icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h3l2-2.5h4L14 5h3a2 2 0 0 1 2 2z"/><circle cx="10" cy="11" r="3.5"/></svg>'
   },
+  motiongraphics: {
+    label: "Motion Graphics",
+    icon: '<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="3.5 2 16.5 10 3.5 18 3.5 2"/><path d="M16.5 10h3M16.5 6.5V3.5M16.5 16.5V13.5"/></svg>'
+  },
 };
 
 // ── Open ──────────────────────────────────────────────────────
@@ -725,6 +657,29 @@ function openAIFlow(type, preseeded){
     var cost = CREDIT_COSTS[type] || 1;
     creditPill.textContent = cost + " Credit" + (cost !== 1 ? "s" : "");
     creditPill.className = "cf-credit-pill cf-credit-pill--" + type;
+  }
+
+  // Populate Brand Core bar
+  var bcBar    = document.getElementById("cfBrandBar");
+  var bcName   = document.getElementById("cfBrandBarName");
+  var bcDetail = document.getElementById("cfBrandBarDetail");
+  if(bcBar){
+    var bc = (typeof S !== "undefined") ? S.brandCore : null;
+    if(bc){
+      if(bcName) bcName.textContent = bc.name || "Your Brand";
+      var details = [];
+      var tone = bc.toneOfVoice || (Array.isArray(bc.tone) ? bc.tone[0] : "");
+      var aud  = bc.audience || bc.aud || "";
+      var clrs = bc.colors || [];
+      var primaryHex = clrs[0] ? (clrs[0].hex || "") : "";
+      if(tone)       details.push(tone);
+      if(primaryHex) details.push(primaryHex);
+      if(aud)        details.push(aud);
+      if(bcDetail) bcDetail.textContent = details.join(" · ");
+      bcBar.style.display = "";
+    } else {
+      bcBar.style.display = "none";
+    }
   }
 
   // Clear state
@@ -876,6 +831,107 @@ function _cfRenderOptions(step){
   var opts = document.getElementById("cfOptions");
   var free = document.getElementById("cfFreeInput");
   if(!opts) return;
+
+  // ── Prompt preview — final step before generation ────────────
+  if(step.type === "prompt-preview"){
+    opts.className = "cf-options cf-preview-panel";
+
+    var bc       = (typeof S !== "undefined") ? S.brandCore : null;
+    var prompt   = _cfBuildPrompt(_cfType, _cfAnswers, bc);
+    var checks   = _cfBCChecks(bc);
+    var hasBC    = !!bc;
+    var missing  = hasBC ? checks.filter(function(c){ return !c.ok; }).length : 0;
+
+    // Brand Core Applied panel
+    var panelHtml;
+    if(!hasBC){
+      panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-none">'
+        + '<div class="cf-pv-bc-hdr">'
+        + '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1L.5 13h13z"/><path d="M7 6v4M7 11v.5"/></svg>'
+        + ' No Brand Core set</div>'
+        + '<p class="cf-pv-bc-sub">Add your Brand Core in Settings to personalise every generation.</p>'
+        + '</div>';
+    } else if(missing === 0){
+      panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-ok">'
+        + '<div class="cf-pv-bc-hdr">Brand Core Applied</div>'
+        + '<div class="cf-pv-bc-checks">' + checks.map(function(c){
+            return '<span class="cf-pv-bc-ck cf-pv-bc-ck-ok">'
+              + '<svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>'
+              + ' ' + _cfEsc(c.label) + '</span>';
+          }).join('') + '</div>'
+        + '</div>';
+    } else {
+      panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-partial">'
+        + '<div class="cf-pv-bc-hdr">'
+        + '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1L.5 13h13z"/><path d="M7 6v4M7 11v.5"/></svg>'
+        + ' Missing Brand Core information</div>'
+        + '<div class="cf-pv-bc-checks">' + checks.map(function(c){
+            if(c.ok){
+              return '<span class="cf-pv-bc-ck cf-pv-bc-ck-ok">'
+                + '<svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>'
+                + ' ' + _cfEsc(c.label) + '</span>';
+            }
+            return '<span class="cf-pv-bc-ck cf-pv-bc-ck-miss">'
+              + '<svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/></svg>'
+              + ' ' + _cfEsc(c.label) + '</span>';
+          }).join('') + '</div>'
+        + '</div>';
+    }
+
+    // Logo Source selector (motion graphics only)
+    var logoHtml = '';
+    if(_cfType === 'motiongraphics'){
+      var logos   = bc && bc.logos ? bc.logos : {};
+      var logoUrl = (logos.primary && logos.primary.url && logos.primary.source !== 'placeholder' && logos.primary.url)
+                 || (logos.icon    && logos.icon.url    && logos.icon.source    !== 'placeholder' && logos.icon.url)
+                 || '';
+      logoHtml = '<div class="cf-pv-logo-section">'
+        + '<div class="cf-pv-logo-label">Logo Source</div>'
+        + '<div class="cf-pv-logo-opts">';
+      if(logoUrl){
+        logoHtml += '<label class="cf-pv-logo-opt">'
+          + '<input type="radio" name="cfLogoSrc" value="brand-logo" data-url="' + _cfEsc(logoUrl) + '">'
+          + '<span class="cf-pv-logo-dot"></span>'
+          + '<img src="' + _cfEsc(logoUrl) + '" class="cf-pv-logo-thumb" alt="">'
+          + 'Use Brand Core Logo'
+          + '</label>';
+      } else {
+        logoHtml += '<label class="cf-pv-logo-opt cf-pv-logo-opt-dis">'
+          + '<input type="radio" name="cfLogoSrc" value="brand-logo" disabled>'
+          + '<span class="cf-pv-logo-dot"></span>'
+          + 'Use Brand Core Logo <span class="cf-pv-logo-hint">(add logo in Brand Core)</span>'
+          + '</label>';
+      }
+      logoHtml += '<label class="cf-pv-logo-opt">'
+        + '<input type="radio" name="cfLogoSrc" value="none" checked>'
+        + '<span class="cf-pv-logo-dot"></span>'
+        + 'No Logo'
+        + '</label>'
+        + '</div></div>';
+    }
+
+    opts.innerHTML = panelHtml
+      + logoHtml
+      + '<div class="cf-pv-prompt-wrap">'
+      + '<div class="cf-pv-prompt-lbl">AI Prompt Preview'
+      + '<span class="cf-pv-prompt-hint">Editable — changes apply to this generation</span></div>'
+      + '<textarea class="cf-pv-ta" id="cfPreviewTa" rows="6">' + _cfEsc(prompt) + '</textarea>'
+      + '</div>'
+      + '<button class="cf-pv-gen-btn" onclick="cfLaunchFromPreview()">'
+      + 'Generate '
+      + '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M8 3l4 4-4 4"/></svg>'
+      + '</button>';
+
+    opts.style.opacity = "0";
+    opts.style.transform = "translateY(10px)";
+    opts.style.transition = "none";
+    requestAnimationFrame(function(){
+      opts.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+      opts.style.opacity   = "1";
+      opts.style.transform = "translateY(0)";
+    });
+    return;
+  }
 
   // ── Avatar picker — format tabs + real HeyGen thumbnails + ratio detection ──
   if(step.type === "avatar-picker"){
@@ -1178,6 +1234,20 @@ function cfSkipStep(){
   _cfAdvance(step, "Skipped");
 }
 
+// ── Launch from prompt preview ────────────────────────────────
+function cfLaunchFromPreview(){
+  var ta = document.getElementById("cfPreviewTa");
+  if(ta && ta.value.trim()) _cfAnswers._aiPrompt = { val: ta.value.trim(), label: "Custom prompt" };
+
+  // Logo source — only relevant for motiongraphics
+  var logoRadio = document.querySelector('input[name="cfLogoSrc"]:checked');
+  if(logoRadio){
+    _cfAnswers._logoSource = { val: logoRadio.value, url: logoRadio.dataset.url || "" };
+  }
+
+  _cfLaunch();
+}
+
 // ── Advance: move Q to history, show next ─────────────────────
 function _cfAdvance(step, answerLabel){
   _cfStopTyping();
@@ -1260,8 +1330,10 @@ function _cfAppendHistory(question, answer){
 function _cfUpdateProgress(stepIndex){
   var steps = CF_FLOWS[_cfType];
   var total = steps ? steps.length : 1;
-  var pct   = Math.round((stepIndex / total) * 100);
-  var fill  = document.getElementById("cfProgressFill");
+  var step  = steps ? steps[stepIndex] : null;
+  // Prompt-preview is the final checkpoint — show 100%
+  var pct = (step && step.type === "prompt-preview") ? 100 : Math.round((stepIndex / total) * 100);
+  var fill = document.getElementById("cfProgressFill");
   if(fill) fill.style.width = pct + "%";
 }
 
@@ -1308,6 +1380,8 @@ function _cfLaunch(){
         _cfDispatchUGC();
       } else if(_cfType === "productshoots"){
         _cfDispatchProductShoots();
+      } else if(_cfType === "motiongraphics"){
+        _cfDispatchMotionGraphics();
       } else {
         _cfDispatch();
       }
@@ -1468,6 +1542,33 @@ function _cfDispatchProductShoots(){
 
   setTimeout(function(){
     if(typeof psGenerateFromFlow === "function") psGenerateFromFlow(a);
+  }, 280);
+}
+
+// ── Motion Graphics dispatch — opens stub overlay + passes answers ──
+function _cfDispatchMotionGraphics(){
+  var a = _cfAnswers;
+
+  var overlay = document.getElementById("mgOverlay");
+  if(overlay){
+    overlay.style.display    = "flex";
+    overlay.style.opacity    = "0";
+    overlay.style.transition = "none";
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        overlay.style.transition = "opacity 0.25s ease";
+        overlay.style.opacity    = "1";
+      });
+    });
+  }
+
+  // Resolve logo URL from the prompt-preview selection
+  var logoSrc = a._logoSource || {};
+  var logoUrl = (logoSrc.val === 'brand-logo' && logoSrc.url) ? logoSrc.url : '';
+  var customPrompt = (a._aiPrompt && a._aiPrompt.val) ? a._aiPrompt.val : '';
+
+  setTimeout(function(){
+    if(typeof mgGenerateFromFlow === "function") mgGenerateFromFlow(a, { logoUrl: logoUrl, customPrompt: customPrompt });
   }, 280);
 }
 

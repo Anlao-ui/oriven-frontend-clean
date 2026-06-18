@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name=”description” content=”Oriven &mdash; Brand Operating System. Build your brand once. Create every asset from it. AI-powered campaigns, videos, visuals, and copy &mdash; always on-brand.”>
   <title>Oriven &mdash; Brand Operating System</title>
+  <link rel="icon" href="assets/orivenlogo.png" type="image/png">
+  <link rel="shortcut icon" href="assets/orivenlogo.png">
+  <link rel="apple-touch-icon" href="assets/orivenlogo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -78,7 +81,7 @@
       Brand Operating System
     </div>
     <h1 class="lp-s-h1" data-in="fade-up">Turn any idea into a<br><em>brand people remember.</em></h1>
-    <p class="lp-s-sub" data-in="fade-up">ORIVEN connects the world&rsquo;s best AI &mdash; OpenAI, Claude, HeyGen, Luma &mdash; into one intelligent brand system. Build once. Generate everything.</p>
+    <p class="lp-s-sub" data-in="fade-up">ORIVEN connects the world&rsquo;s best AI &mdash; OpenAI, Claude, Hailuo AI &mdash; into one intelligent brand system. Build once. Generate everything.</p>
     <div class="lp-s-actions" data-in="fade-up">
       <a href="#" class="lp-cta-btn lp-cta-btn-lg" onclick="lpGetStarted(event)">Get Started</a>
       <button class="lp-ghost-btn" onclick="typeof lpGoTo==='function'&&lpGoTo(3)">How It Works &darr;</button>
@@ -498,12 +501,8 @@
       <div><div class="lp-s-ai-pname">Claude</div><div class="lp-s-ai-psub">Brand voice &middot; Campaigns</div></div>
     </div>
     <div class="lp-s-ai-provider">
-      <div class="lp-s-ai-pico" style="background:rgba(101,163,255,.08)"><span style="color:#65A3FF;font-size:9px;font-weight:800">LMA</span></div>
-      <div><div class="lp-s-ai-pname">Luma AI</div><div class="lp-s-ai-psub">Video ads &middot; Cinematic</div></div>
-    </div>
-    <div class="lp-s-ai-provider">
-      <div class="lp-s-ai-pico" style="background:rgba(255,94,58,.08)"><span style="color:#FF5E3A;font-size:9px;font-weight:800">HEY</span></div>
-      <div><div class="lp-s-ai-pname">HeyGen</div><div class="lp-s-ai-psub">UGC &middot; AI presenters</div></div>
+      <div class="lp-s-ai-pico" style="background:rgba(100,210,180,.08)"><span style="color:#64D2B4;font-size:9px;font-weight:800">HAI</span></div>
+      <div><div class="lp-s-ai-pname">Hailuo AI</div><div class="lp-s-ai-psub">UGC &middot; Video generation</div></div>
     </div>
   </div>
   <div class="lp-s-ai-center" data-in="scale">
@@ -538,7 +537,7 @@
     <div class="lp-s-proc-step" data-proc-step>
       <div class="lp-s-proc-num">02</div>
       <h3 class="lp-s-proc-step-h">Generate Assets</h3>
-      <p class="lp-s-proc-step-p">Select any tool. Oriven connects OpenAI, Claude, HeyGen, and Luma AI to generate campaigns, videos, visuals, and product shots &mdash; always on-brand, automatically.</p>
+      <p class="lp-s-proc-step-p">Select any tool. Oriven connects OpenAI, Claude, and Hailuo AI to generate campaigns, videos, visuals, and product shots &mdash; always on-brand, automatically.</p>
     </div>
     <div class="lp-s-proc-step" data-proc-step>
       <div class="lp-s-proc-num">03</div>
@@ -896,7 +895,6 @@
 <div class="au-page">
   <div class="au-card">
     <div class="au-brand">
-      <img src="assets/orivenlogo.png" alt="ORIVEN">
       <span class="au-brand-txt">ORIVEN</span>
     </div>
     <div class="au-title">Welcome back</div>
@@ -929,7 +927,6 @@
 <div class="au-page">
   <div class="au-card">
     <div class="au-brand">
-      <img src="assets/orivenlogo.png" alt="ORIVEN">
       <span class="au-brand-txt">ORIVEN</span>
     </div>
     <div class="au-title">Create your account</div>
@@ -1557,7 +1554,7 @@
   var el = document.getElementById('view-' + active);
   if(el) el.classList.remove('pub-view');
   var titles = {
-    login:           'Log In â€” ORIVEN',
+    login:           'Login | Oriven',
     signup:          'Create Account â€” ORIVEN',
     plan:            'Choose Your Plan â€” ORIVEN',
     terms:           'Terms of Service â€” ORIVEN',
@@ -1594,7 +1591,7 @@
   };
   var PAGE_TITLES = {
     'landing':       'ORIVEN â€” Brand Intelligence Platform',
-    'login':         'Log In â€” ORIVEN',
+    'login':         'Login | Oriven',
     'signup':        'Create Account â€” ORIVEN',
     'plan':          'Choose Your Plan â€” ORIVEN',
     'terms':         'Terms of Service â€” ORIVEN',
@@ -2013,7 +2010,8 @@ function auMapError(err){
 
 // â”€â”€ LOGIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if(window._pubView === 'login'){
-  if(ORIVEN_DEV) document.getElementById('devOnboardingLink').style.display = 'block';
+  var devLink = document.getElementById('devOnboardingLink');
+  if(ORIVEN_DEV && devLink) devLink.style.display = 'block';
   SB.auth.getSession().then(function(r){
     if(r.data && r.data.session) window.location.href = '/app';
   });

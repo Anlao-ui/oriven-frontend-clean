@@ -2733,6 +2733,32 @@ textarea.flow-inp{min-height:90px;resize:vertical}
   width:0%;
 }
 
+/* ── Brand Core bar ── */
+.cf-brand-bar{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 20px;
+  background:rgba(183,255,42,.035);
+  border-bottom:1px solid rgba(183,255,42,.08);
+  flex-shrink:0;overflow:hidden;
+}
+.cf-brand-bar-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:#B7FF2A;box-shadow:0 0 0 2px rgba(183,255,42,.18);
+  flex-shrink:0;animation:dashDotPulse 2.5s ease-in-out infinite;
+}
+.cf-brand-bar-label{
+  font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(183,255,42,.55);flex-shrink:0;
+}
+.cf-brand-bar-name{
+  font-size:11.5px;font-weight:700;color:rgba(255,255,255,.72);flex-shrink:0;
+}
+.cf-brand-bar-sep{color:rgba(255,255,255,.18);flex-shrink:0;}
+.cf-brand-bar-detail{
+  font-size:11px;color:rgba(255,255,255,.28);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
 /* ── History area ── */
 .cf-history{
   flex-shrink:0;
@@ -3155,6 +3181,156 @@ textarea.flow-inp{min-height:90px;resize:vertical}
 }
 .cf-continue-btn:hover{ background:var(--green);transform:translateY(-1px); }
 .cf-continue-btn:active{ transform:translateY(0); }
+
+/* ── Prompt Preview step ─────────────────────────────────────── */
+.cf-preview-panel{
+  display:flex;flex-direction:column;gap:12px;width:100%;
+}
+
+/* Brand Core Applied panel */
+.cf-pv-bc-panel{
+  border-radius:10px;padding:11px 14px;
+  border:1px solid transparent;
+}
+.cf-pv-bc-ok{
+  background:rgba(159,232,31,.06);
+  border-color:rgba(159,232,31,.18);
+}
+.cf-pv-bc-partial{
+  background:rgba(251,146,60,.05);
+  border-color:rgba(251,146,60,.18);
+}
+.cf-pv-bc-none{
+  background:rgba(255,255,255,.03);
+  border-color:var(--border);
+}
+.cf-pv-bc-hdr{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:700;letter-spacing:.03em;
+  margin-bottom:8px;
+}
+.cf-pv-bc-ok    .cf-pv-bc-hdr{ color:var(--gm); }
+.cf-pv-bc-partial .cf-pv-bc-hdr{ color:rgba(251,146,60,.9); }
+.cf-pv-bc-none  .cf-pv-bc-hdr{ color:var(--muted); }
+.cf-pv-bc-sub{
+  font-size:11.5px;color:var(--muted);margin:0;
+}
+.cf-pv-bc-checks{
+  display:flex;flex-wrap:wrap;gap:6px 10px;
+}
+.cf-pv-bc-ck{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:500;
+}
+.cf-pv-bc-ck-ok   { color:var(--gm); }
+.cf-pv-bc-ck-miss { color:rgba(251,146,60,.8); }
+
+/* Logo Source (motion graphics) */
+.cf-pv-logo-section{
+  display:flex;flex-direction:column;gap:7px;
+}
+.cf-pv-logo-label{
+  font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--muted);
+}
+.cf-pv-logo-opts{
+  display:flex;flex-direction:column;gap:6px;
+}
+.cf-pv-logo-opt{
+  display:flex;align-items:center;gap:9px;
+  cursor:pointer;padding:8px 11px;
+  border-radius:8px;border:1px solid var(--border);
+  background:transparent;
+  font-size:13px;color:var(--charcoal);
+  transition:border-color .15s,background .15s;
+  user-select:none;
+}
+.cf-pv-logo-opt:has(input:checked){
+  border-color:var(--gm);
+  background:rgba(159,232,31,.05);
+}
+.cf-pv-logo-opt-dis{
+  opacity:.45;cursor:default;
+}
+.cf-pv-logo-opt input[type="radio"]{
+  display:none;
+}
+.cf-pv-logo-dot{
+  width:14px;height:14px;border-radius:50%;
+  border:2px solid var(--border);flex-shrink:0;
+  position:relative;transition:border-color .14s;
+}
+.cf-pv-logo-opt:has(input:checked) .cf-pv-logo-dot{
+  border-color:var(--gm);
+}
+.cf-pv-logo-opt:has(input:checked) .cf-pv-logo-dot::after{
+  content:'';position:absolute;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  width:6px;height:6px;border-radius:50%;
+  background:var(--gm);
+}
+.cf-pv-logo-thumb{
+  width:22px;height:22px;object-fit:contain;border-radius:4px;flex-shrink:0;
+}
+.cf-pv-logo-hint{
+  color:var(--muted);font-size:11px;
+}
+
+/* Editable prompt textarea */
+.cf-pv-prompt-wrap{
+  display:flex;flex-direction:column;gap:6px;
+}
+.cf-pv-prompt-lbl{
+  font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--muted);
+  display:flex;align-items:center;gap:8px;
+}
+.cf-pv-prompt-hint{
+  font-size:10.5px;font-weight:400;letter-spacing:0;text-transform:none;
+  color:var(--m2);
+}
+.cf-pv-ta{
+  width:100%;padding:11px 13px;
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  background:var(--sf2);
+  color:var(--charcoal);
+  font-size:12.5px;line-height:1.6;
+  resize:vertical;
+  transition:border-color .15s,background .15s;
+  min-height:120px;
+  font-family:inherit;
+}
+.cf-pv-ta:focus{
+  outline:none;border-color:var(--gm);
+  background:var(--surface);
+}
+
+/* Generate button */
+.cf-pv-gen-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 26px;
+  background:var(--gm);border:none;
+  border-radius:26px;color:#000;
+  font-size:14px;font-weight:700;
+  cursor:pointer;
+  transition:background .14s,transform .1s,box-shadow .14s;
+  align-self:flex-start;
+  box-shadow:0 0 0 0 rgba(159,232,31,0);
+}
+.cf-pv-gen-btn:hover{
+  background:var(--green);
+  transform:translateY(-1px);
+  box-shadow:0 4px 18px rgba(159,232,31,.22);
+}
+.cf-pv-gen-btn:active{ transform:translateY(0);box-shadow:none; }
+
+/* Dark mode overrides for preview */
+body.dark-mode .cf-pv-ta{
+  background:var(--sf2);border-color:var(--border);color:var(--charcoal);
+}
+body.dark-mode .cf-pv-ta:focus{ background:var(--surface); }
+body.dark-mode .cf-pv-logo-opt{ background:transparent;border-color:var(--border);color:var(--charcoal); }
 
 /* ── Dark mode overrides ── */
 body.dark-mode .cf-panel{ background:var(--surface);border-color:var(--border); }
@@ -7351,8 +7527,7 @@ button.lp-cta-btn { cursor:pointer; border:none; }
 .au-nav-logo img { width: 40px; height: 40px; object-fit: contain; }
 .au-page { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 24px 48px; }
 .au-card { width: 100%; max-width: 420px; background: #111111; border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 36px 32px; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
-.au-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 28px; }
-.au-brand img { width: 26px; height: 26px; object-fit: contain; }
+.au-brand { display: flex; align-items: center; margin-bottom: 28px; }
 .au-brand-txt { font-size: 14px; font-weight: 700; color: rgba(240,240,240,.6); letter-spacing: -.2px; }
 .au-title { font-family: 'Instrument Serif', serif; font-size: 26px; color: #F0F0F0; letter-spacing: -.7px; font-weight: 400; margin-bottom: 6px; line-height: 1.1; }
 .au-sub { font-size: 13px; color: rgba(240,240,240,.38); margin-bottom: 28px; line-height: 1.5; }
@@ -8819,6 +8994,66 @@ button.lp-cta-btn { cursor:pointer; border:none; }
   border-radius: 20px;
   padding: 3px 10px;
 }
+.cr2-exp-badge {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: rgba(255,184,0,.75);
+  background: rgba(255,184,0,.08);
+  border: 1px solid rgba(255,184,0,.18);
+  border-radius: 20px;
+  padding: 2px 8px;
+  margin-left: 6px;
+  position: relative;
+  top: -1px;
+}
+
+/* ── Beta badge (Motion Graphics) — orange ─────────────────────── */
+.cr2-beta-badge {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: rgba(255,120,30,.85);
+  background: rgba(255,120,30,.09);
+  border: 1px solid rgba(255,120,30,.22);
+  border-radius: 20px;
+  padding: 2px 8px;
+  margin-left: 6px;
+  position: relative;
+  top: -1px;
+}
+
+/* ── Section heading row (heading + page-level badge) ──────────── */
+.cr2-section-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.cr2-section-row .cr2-section-h {
+  margin-bottom: 0;
+}
+.cr2-page-exp-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 20px;
+  padding: 3px 9px;
+}
+
 
 /* ── Responsive ────────────────────────────────────────────────── */
 @media (max-width: 720px) {

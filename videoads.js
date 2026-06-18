@@ -1,13 +1,15 @@
 // ════════════════════════════════════════════════════════════════
 // Video Ads — self-contained multi-phase creator
 // Three modes: AI Script | Your Script | Image to Video
-// API key never touches the frontend — all Luma calls go via server.
+// Provider: AIML API (kling-video/v1/standard/text-to-video) via AIML_API_KEY
+// API key never touches the frontend — all provider calls go via server.
 // ════════════════════════════════════════════════════════════════
 
-var _vaGenerationId = null;
-var _vaPollTimer    = null;
-var _vaMode         = null;   // 'ai' | 'script' | 'image'
-var _vaPhase        = 'mode'; // 'mode' | 'form' | 'result'
+var _vaGenerationId  = null;
+var _vaPollTimer     = null;
+var _vaMode          = null;   // 'ai' | 'script' | 'image'
+var _vaPhase         = 'mode'; // 'mode' | 'form' | 'result'
+var _vaPendingSubmit = null;   // form data held while prompt preview is shown
 
 // ── Overlay lifecycle ─────────────────────────────────────────────
 
@@ -39,7 +41,7 @@ function vaStartOver() {
 
 function _vaShowPhase(phase) {
   _vaPhase = phase;
-  var phases = ['vaPhaseMode','vaPhaseAI','vaPhaseScript','vaPhaseImage','vaPhaseResult'];
+  var phases = ['vaPhaseMode','vaPhaseAI','vaPhaseScript','vaPhaseImage','vaPhasePreview','vaPhaseResult'];
   phases.forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
@@ -53,6 +55,11 @@ function _vaShowPhase(phase) {
 }
 
 function vaBack() {
+  if (_vaPhase === 'vaPhasePreview') {
+    _vaPendingSubmit = null;
+    _vaShowPhase('vaPhaseAI');
+    return;
+  }
   if (_vaPhase === 'vaPhaseAI' || _vaPhase === 'vaPhaseScript' || _vaPhase === 'vaPhaseImage') {
     _vaShowPhase('vaPhaseMode');
     _vaMode = null;
@@ -140,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ── Mode: AI Creates Everything ───────────────────────────────────
 
-async function vaGenerateAI() {
+function vaGenerateAI() {
   var product  = (document.getElementById('vaAiProduct')  || {}).value || '';
   var brand    = (document.getElementById('vaAiBrand')    || {}).value || '';
   var audience = (document.getElementById('vaAiAudience') || {}).value || '';
@@ -153,7 +160,7 @@ async function vaGenerateAI() {
     return;
   }
 
-  await _vaSubmit({
+  _vaPendingSubmit = {
     mode:     'ai',
     brand:    brand.trim(),
     product:  product.trim(),
@@ -161,7 +168,97 @@ async function vaGenerateAI() {
     goal:     goal,
     style:    style,
     length:   duration,
-  });
+  };
+
+  _vaShowAIPreview(_vaPendingSubmit);
+}
+
+// ── Prompt preview for AI mode ────────────────────────────────────
+
+function _vaShowAIPreview(data) {
+  var bc = (typeof S !== 'undefined') ? S.brandCore : null;
+
+  // Build scene-based preview prompt — this is what gets sent to Kling as customPrompt
+  var bn    = (data.brand || (bc && bc.name) || 'the brand');
+  var dur   = parseInt(data.length || '5', 10);
+  var dur2  = dur <= 7 ? 5 : 10;
+  var t1    = Math.round(dur2 * 0.33);
+  var t2    = Math.round(dur2 * 0.72);
+  var prod  = data.product || 'product';
+  var styl  = data.style   || '';
+
+  var prompt = 'Scene 1 [0s–' + t1 + 's]: '
+    + (styl ? styl + ' ' : '')
+    + 'static close-up of ' + prod + ' on a clean surface, soft studio lighting.'
+    + '\nScene 2 [' + t1 + 's–' + t2 + 's]: Slow push-in revealing product detail,'
+    + ' warm rim light from the right.'
+    + '\nScene 3 [' + t2 + 's–' + dur2 + 's]: Product centred full-frame, '
+    + bn + ' name fades in below on dark background.';
+
+  // Brand Core checks
+  function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var logos   = (bc && bc.logos) ? bc.logos : {};
+  var hasLogo = !!(
+    (logos.primary && logos.primary.url && logos.primary.source !== 'placeholder') ||
+    (logos.icon    && logos.icon.url    && logos.icon.source    !== 'placeholder')
+  );
+  var checks = [
+    { label: 'Logo',              ok: hasLogo },
+    { label: 'Brand Colors',      ok: !!(bc && (bc.colors && bc.colors.length > 0 || bc.primaryColor)) },
+    { label: 'Tone of Voice',     ok: !!(bc && (bc.toneOfVoice || bc.tone)) },
+    { label: 'Audience',          ok: !!(bc && (bc.audience || bc.aud)) },
+    { label: 'Messaging',         ok: !!( bc && bc.messaging) },
+    { label: 'Brand Personality', ok: !!(bc && bc.personality) },
+  ];
+  var missing = bc ? checks.filter(function(c){ return !c.ok; }).length : -1;
+
+  var panelHtml;
+  if (!bc) {
+    panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-none">'
+      + '<div class="cf-pv-bc-hdr"><svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1L.5 13h13z"/><path d="M7 6v4M7 11v.5"/></svg> No Brand Core set</div>'
+      + '<p class="cf-pv-bc-sub">Add your Brand Core in Settings to personalise every generation.</p>'
+      + '</div>';
+  } else if (missing === 0) {
+    panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-ok">'
+      + '<div class="cf-pv-bc-hdr">Brand Core Applied</div>'
+      + '<div class="cf-pv-bc-checks">' + checks.map(function(c){
+          return '<span class="cf-pv-bc-ck cf-pv-bc-ck-ok"><svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg> ' + _esc(c.label) + '</span>';
+        }).join('') + '</div>'
+      + '</div>';
+  } else {
+    panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-partial">'
+      + '<div class="cf-pv-bc-hdr"><svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1L.5 13h13z"/><path d="M7 6v4M7 11v.5"/></svg> Missing Brand Core information</div>'
+      + '<div class="cf-pv-bc-checks">' + checks.map(function(c){
+          if (c.ok) return '<span class="cf-pv-bc-ck cf-pv-bc-ck-ok"><svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg> ' + _esc(c.label) + '</span>';
+          return '<span class="cf-pv-bc-ck cf-pv-bc-ck-miss"><svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/></svg> ' + _esc(c.label) + '</span>';
+        }).join('') + '</div>'
+      + '</div>';
+  }
+
+  var form = document.getElementById('vaPreviewForm');
+  if (form) {
+    form.innerHTML = panelHtml
+      + '<div class="cf-pv-prompt-wrap" style="margin-top:14px">'
+      + '<div class="cf-pv-prompt-lbl">AI Prompt Preview'
+      + '<span class="cf-pv-prompt-hint">Editable — changes apply to this generation</span></div>'
+      + '<textarea class="cf-pv-ta" id="vaPreviewTa" rows="7">' + _esc(prompt) + '</textarea>'
+      + '</div>'
+      + '<div class="va-form-actions" style="margin-top:16px">'
+      + '<button class="va-generate-btn" onclick="vaGenerateFromPreview()">Generate Video Ad →</button>'
+      + '</div>';
+  }
+
+  _vaShowPhase('vaPhasePreview');
+}
+
+async function vaGenerateFromPreview() {
+  if (!_vaPendingSubmit) return;
+  var ta = document.getElementById('vaPreviewTa');
+  var customPrompt = ta ? ta.value.trim() : '';
+  var submitData = Object.assign({}, _vaPendingSubmit);
+  if (customPrompt) submitData.customPrompt = customPrompt;
+  _vaPendingSubmit = null;
+  await _vaSubmit(submitData);
 }
 
 // ── Mode: Create From Script ──────────────────────────────────────
@@ -287,9 +384,9 @@ function _vaShowGenerating(mode) {
   if (!statusWrap) return;
 
   var msgs = {
-    ai:     ['Generating your video ad…', 'Oriven AI is writing your script, then Luma is rendering your video. This usually takes 1–3 minutes.'],
-    script: ['Rendering your video…',     'Luma AI is generating from your script. This usually takes 1–3 minutes.'],
-    image:  ['Animating your image…',     'Luma AI is bringing your image to life. This usually takes 1–3 minutes.'],
+    ai:     ['Generating your video ad…', 'Oriven AI is writing your script and rendering your video. This usually takes 2–5 minutes.'],
+    script: ['Rendering your video…',     'Your video is being generated. This usually takes 2–5 minutes.'],
+    image:  ['Animating your image…',     'Your image is being brought to life. This usually takes 2–5 minutes.'],
   };
   var m = msgs[mode] || msgs.ai;
 
@@ -297,7 +394,7 @@ function _vaShowGenerating(mode) {
     '<div class="va-spinner"><div class="spin"></div></div>'
     + '<div class="va-status-title">' + m[0] + '</div>'
     + '<div class="va-status-sub">' + m[1] + '</div>'
-    + '<div class="va-audio-note">Generated videos do not include audio — this is a current Luma API limitation.</div>';
+    + '<div class="va-audio-note">Generated videos may not include audio depending on the selected model.</div>';
 }
 
 function _vaShowVideo(videoUrl) {
