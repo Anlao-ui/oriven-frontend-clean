@@ -19,6 +19,13 @@ console.log(
   '[dotenv] Loaded from:', _dotenvPath,
   '| error:', _dotenvResult.error ? _dotenvResult.error.message : 'none'
 );
+// Also load .env.local for local-only overrides (not committed, not on Render)
+const _dotenvLocalPath = path.resolve(__dirname, '..', '.env.local');
+const _dotenvLocalResult = require('dotenv').config({ path: _dotenvLocalPath, override: true });
+console.log(
+  '[dotenv.local] Loaded from:', _dotenvLocalPath,
+  '| error:', _dotenvLocalResult.error ? _dotenvLocalResult.error.message : 'none'
+);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '5500', 10);
@@ -136,6 +143,12 @@ const supabaseAdmin = createClient(
   } else {
     console.error('[Luma] ❌ LUMA_API_KEY is not set — Video Ads will return 503');
   }
+
+  // AIML API — all AI generation routes
+  const _aiml   = require('./providers/aimlProvider');
+  const _router = require('./services/modelRouter');
+  _aiml.diagnose();
+  _router.logSummary();
 
   // ── Stripe ───────────────────────────────────────────────────────
   const sk = process.env.STRIPE_SECRET_KEY;
@@ -353,7 +366,6 @@ app.use(express.urlencoded({ limit: '20mb', extended: true }));
 
 // ── Web generator — registered immediately after json middleware ──
 app.post('/api/generate-web', async (req, res) => {
-  if (!_requireEnv('ANTHROPIC_API_KEY', res, 'Anthropic')) return;
   const {
     brand_name, product, goal,
     style, animations, sections,
@@ -425,14 +437,7 @@ TECHNICAL REQUIREMENTS:
 OUTPUT: Return ONLY the HTML document. No explanation, no preamble, no markdown fences. Start directly with <!DOCTYPE html>.`;
 
   try {
-    const response = await anthropic.messages.create({
-      model:      'claude-opus-4-6',
-      max_tokens: 8000,
-      system:     systemPrompt,
-      messages:   [{ role: 'user', content: userPrompt }]
-    });
-
-    let raw = response.content[0].text.trim();
+    let raw = (await _aimlText('web', systemPrompt, userPrompt, { max_tokens: 8000 })).trim();
 
     // Strip markdown code fences if Claude wrapped the output
     raw = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
@@ -628,8 +633,124 @@ function _buildBrandSection(bc) {
   return lines.map(l => '  - ' + l).join('\n');
 }
 
+// ── Provider-aware generation helpers ────────────────────────────
+// All routes call these. Provider dispatch is determined by the
+// model router — changing a provider requires only a router edit.
+
+// Size ↔ ratio conversion utilities
+function _sizeToRatio(size) {
+  const map = { '1024x1024': '1:1', '1024x1536': '9:16', '1536x1024': '16:9', '1792x1024': '16:9', '1024x1792': '9:16' };
+  return map[size] || '1:1';
+}
+
+function _ratioToSize(ratio) {
+  const map = { '1:1': '1024x1024', '9:16': '1024x1536', '16:9': '1536x1024' };
+  return map[ratio] || '1024x1024';
+}
+
+// ── Low-level Anthropic helpers ───────────────────────────────────
+
+async function _anthropicText(model, system, user, opts = {}) {
+  if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'missing') {
+    throw new Error('ANTHROPIC_API_KEY is not configured.');
+  }
+  const params = {
+    model:      model,
+    max_tokens: opts.max_tokens  || 4096,
+    messages:   [{ role: 'user', content: user }],
+  };
+  if (system) params.system = system;
+  const response = await anthropic.messages.create(params);
+  return response.content[0].text;
+}
+
+async function _anthropicVision(model, system, user, imageDataUrl, opts = {}) {
+  if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'missing') {
+    throw new Error('ANTHROPIC_API_KEY is not configured.');
+  }
+  const match = imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) throw new Error('Invalid image data URL for vision analysis.');
+  const [, mediaType, b64data] = match;
+  const response = await anthropic.messages.create({
+    model,
+    max_tokens: opts.max_tokens || 512,
+    system,
+    messages: [{
+      role:    'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64data } },
+        { type: 'text',  text: user },
+      ],
+    }],
+  });
+  return response.content[0].text;
+}
+
+// ── Dispatcher: text generation ───────────────────────────────────
+// Routes to Anthropic or AIML based on router config.
+
+async function _aimlText(taskType, system, user, opts = {}) {
+  const router = require('./services/modelRouter');
+  const route  = router.routeTask(taskType);
+
+  if (route.provider === 'anthropic') {
+    return _anthropicText(route.model, system, user, opts);
+  }
+
+  // AIML text (used for video-ads / motion-graphics if ever re-routed)
+  const aiml = require('./providers/aimlProvider');
+  return aiml.generateText(system, user, { model: route.model, ...opts });
+}
+
+// ── Dispatcher: image generation ─────────────────────────────────
+// Routes to OpenAI direct (callDallE) or AIML based on router config.
+// Product Shoots, and any future AIML image tasks, use the AIML path.
+
+async function _aimlImage(taskType, prompt, opts = {}) {
+  const router = require('./services/modelRouter');
+  const route  = router.routeTask(taskType);
+
+  if (route.provider === 'openai') {
+    const size = opts.aspect_ratio ? _ratioToSize(opts.aspect_ratio) : (opts.size || '1024x1024');
+    console.log(`[${taskType}] Provider: OPENAI | Model: ${route.model} | Endpoint: /v1/images/generations (direct SDK)`);
+    return callDallE(prompt, size);
+  }
+
+  // AIML image path — uses AIML_API_KEY via aimlProvider
+  const aiml     = require('./providers/aimlProvider');
+  const endpoint = route.endpoint || '/v1/images/generations';
+  console.log(`[${taskType}] Provider: AIML | Model: ${route.model} | Endpoint: ${endpoint}`);
+  const urls = await aiml.generateImage(prompt, { model: route.model, ...opts });
+  return urls[0] || null;
+}
+
+// ── Dispatcher: vision analysis ───────────────────────────────────
+// Routes to Anthropic or AIML based on router config.
+
+async function _aimlVision(taskType, system, user, imageDataUrl, opts = {}) {
+  const router = require('./services/modelRouter');
+  const route  = router.routeTask(taskType);
+
+  if (route.provider === 'anthropic') {
+    return _anthropicVision(route.model, system, user, imageDataUrl, opts);
+  }
+
+  // AIML vision fallback
+  const aiml = require('./providers/aimlProvider');
+  return aiml.generateTextWithVision(system, user, imageDataUrl, { model: route.model, ...opts });
+}
+
+// ── Image prompt builder ──────────────────────────────────────────
+// Turns a brief into a focused image generation prompt via Anthropic,
+// then the caller passes the result to _aimlImage for rendering.
+
+async function _briefToImagePrompt(brief, contextHint, taskType) {
+  const system = `You are a visual art director. Convert this brief into a single vivid image generation prompt of 150–300 characters. Describe what's seen — composition, color palette, mood, lighting. Reference brand colors by hex if provided. No text, logos, or UI elements. Output ONLY the prompt.`;
+  const user   = (contextHint ? `Context: ${contextHint}\n\nBrief:\n` : 'Brief:\n') + brief.slice(0, 2000);
+  return _aimlText(taskType || 'visuals-copy', system, user, { max_tokens: 300 });
+}
+
 app.post('/api/generate-text', async (req, res) => {
-  if (!_requireEnv('ANTHROPIC_API_KEY', res, 'Anthropic')) return;
   const { prompt, type, brandContext } = req.body;
   if (!prompt) return res.status(400).json({ error: 'prompt is required' });
 
@@ -658,11 +779,11 @@ Be specific and direct. No preamble or filler.${hasBrand ? `\n\nBRAND CONTEXT:\n
   }
 
   try {
-    const result = await callAnthropic(systemPrompt, prompt);
-    console.log(`[Text/${type || 'default'}] Anthropic → response ready`);
+    const result = await _aimlText('text-copy', systemPrompt, prompt);
+    console.log(`[Text/${type || 'default'}] AIML → response ready`);
     res.json({ result });
   } catch (err) {
-    console.error(`[Text/${type || 'default'}] Anthropic error:`, err.message);
+    console.error(`[Text/${type || 'default'}] AIML error:`, err.message);
     res.status(500).json({ error: 'Failed to generate text. Please try again.' });
   }
 });
@@ -692,16 +813,10 @@ DESIGN REQUIREMENTS:
 - Write all copy based on the brief — zero placeholder text`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 4096,
-      system,
-      messages: [{ role: 'user', content: prompt }]
-    });
-    const html = extractHtml(response.content[0].text);
+    const html = extractHtml(await _aimlText('email', system, prompt, { max_tokens: 4096 }));
     res.json({ html });
   } catch (err) {
-    console.error('[Email] Anthropic error:', err.message);
+    console.error('[Email] AIML error:', err.message);
     res.status(500).json({ error: 'Failed to generate email. Please try again.' });
   }
 });
@@ -753,13 +868,7 @@ RULES:
 - Every slide must have a strong, memorable title.`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 3000,
-      system,
-      messages: [{ role: 'user', content: prompt }]
-    });
-    const raw = response.content[0].text.trim();
+    const raw = (await _aimlText('presentations', system, prompt, { max_tokens: 3000 })).trim();
     let parsed;
     try {
       // Strip markdown fences if present
@@ -771,7 +880,7 @@ RULES:
     }
     res.json({ slides: parsed.slides || [] });
   } catch (err) {
-    console.error('[Deck] Anthropic error:', err.message);
+    console.error('[Deck] AIML error:', err.message);
     res.status(500).json({ error: 'Failed to generate deck. Please try again.' });
   }
 });
@@ -830,16 +939,10 @@ POSTER MUST INCLUDE ALL OF THESE SECTIONS:
 6. Footer (tagline or brand detail)`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 4096,
-      system,
-      messages: [{ role: 'user', content: prompt }]
-    });
-    const html = extractHtml(response.content[0].text);
+    const html = extractHtml(await _aimlText('poster', system, prompt, { max_tokens: 4096 }));
     res.json({ html });
   } catch (err) {
-    console.error('[Poster] Anthropic error:', err.message);
+    console.error('[Poster] AIML error:', err.message);
     res.status(500).json({ error: 'Failed to generate poster. Please try again.' });
   }
 });
@@ -890,16 +993,10 @@ INFOGRAPHIC MUST INCLUDE ALL OF THESE:
 4. CTA footer (brand-coloured, action-oriented)`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 4096,
-      system,
-      messages: [{ role: 'user', content: prompt }]
-    });
-    const html = extractHtml(response.content[0].text);
+    const html = extractHtml(await _aimlText('infographic', system, prompt, { max_tokens: 4096 }));
     res.json({ html });
   } catch (err) {
-    console.error('[Infographic] Anthropic error:', err.message);
+    console.error('[Infographic] AIML error:', err.message);
     res.status(500).json({ error: 'Failed to generate infographic. Please try again.' });
   }
 });
@@ -944,20 +1041,8 @@ app.post('/api/generate-image', async (req, res) => {
         }
 
         console.log(`[Image] Running ${uploadType || 'reference'} vision analysis…`);
-        const visionResult = await anthropic.messages.create({
-          model: 'claude-opus-4-6',
-          max_tokens: 160,
-          system: visionSystem,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64data } },
-              { type: 'text', text: visionPrompt }
-            ]
-          }]
-        });
-
-        const analysis = visionResult.content[0].text.trim();
+        const imageDataUrl = `data:${mediaType};base64,${b64data}`;
+        const analysis = (await _aimlVision('vision', visionSystem, visionPrompt, imageDataUrl, { max_tokens: 160 })).trim();
         finalPrompt = finalPrompt + '\n\n' + promptLabel + ': ' + analysis;
         console.log(`[Image] Vision analysis appended (${uploadType || 'reference'}).`);
       }
@@ -976,11 +1061,11 @@ app.post('/api/generate-image', async (req, res) => {
   console.log(`[Image] Final prompt length: ${finalPrompt.length}`);
 
   try {
-    const imageUrl = await callDallE(finalPrompt, resolvedSize);
-    console.log('[Image] DALL-E → image ready');
+    const imageUrl = await _aimlImage('visuals', finalPrompt, { aspect_ratio: _sizeToRatio(resolvedSize) });
+    console.log('[Image] AIML → image ready');
     res.json({ imageUrl });
   } catch (err) {
-    console.error('[Image] DALL-E error:', err.message);
+    console.error('[Image] AIML error:', err.message);
     res.status(500).json({ error: 'Failed to generate image. ' + err.message });
   }
 });
@@ -1013,8 +1098,8 @@ Reply ONLY with valid JSON (no markdown fences, no extra text):
   try {
     // Run copy generation and visual prompt extraction in parallel
     const [rawCopy, rawVisual] = await Promise.all([
-      callAnthropic(copySystem, prompt),
-      _briefToDallEPrompt(prompt, `${adFormat || 'feed'} advertisement visual`)
+      _aimlText('ads-copy', copySystem, prompt),
+      _briefToImagePrompt(prompt, `${adFormat || 'feed'} advertisement visual`, 'visuals-copy'),
     ]);
 
     // Parse ad copy JSON
@@ -1031,13 +1116,13 @@ Reply ONLY with valid JSON (no markdown fences, no extra text):
     return res.status(500).json({ error: 'Failed to generate ad copy' });
   }
 
-  console.log(`[Ads] Step 3 — DALL-E → size: ${resolvedSize}`);
+  console.log(`[Ads] Step 3 — AIML image → ratio: ${_sizeToRatio(resolvedSize)}`);
   let imageUrl = null;
   try {
-    imageUrl = await callDallE(dallePrompt, resolvedSize);
-    console.log('[Ads] Step 3 — DALL-E → image ready');
+    imageUrl = await _aimlImage('visuals', dallePrompt, { aspect_ratio: _sizeToRatio(resolvedSize) });
+    console.log('[Ads] Step 3 — AIML → image ready');
   } catch (err) {
-    console.warn('[Ads] Step 3 — DALL-E failed (non-fatal):', err.message);
+    console.warn('[Ads] Step 3 — AIML image failed (non-fatal):', err.message);
   }
 
   res.json({
@@ -1080,7 +1165,7 @@ Rules:
   CRITICAL: must be 100% text-free. Must reference brand colours from the brief if provided.
   Describes subject, composition, mood, and colour palette. No text/letters/logos/UI in image.`;
 
-    const raw     = await callAnthropic(system, prompt);
+    const raw     = await _aimlText('campaigns-copy', system, prompt);
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
     try {
       variations = JSON.parse(cleaned);
@@ -1091,7 +1176,7 @@ Rules:
     }
     console.log(`[Campaign] Step 1 — ${variations.length} variations ready`);
   } catch (err) {
-    console.error('[Campaign] Anthropic error:', err.message);
+    console.error('[Campaign] AIML error:', err.message);
     return res.status(500).json({ error: 'Failed to generate campaign variations' });
   }
 
@@ -1102,7 +1187,7 @@ Rules:
       const imgPrompt = (v.imagePrompt || '').trim();
       if (!imgPrompt) return null;
       try {
-        const url = await callDallE(imgPrompt, resolvedSize);
+        const url = await _aimlImage('campaigns-image', imgPrompt, { aspect_ratio: _sizeToRatio(resolvedSize) });
         console.log(`[Campaign] Image ${i + 1}/${variations.length} ready`);
         return url;
       } catch (err) {
@@ -1226,15 +1311,7 @@ Desired Brand Feeling: ${brandFeeling || 'not specified'}
 Generate the complete BrandCore JSON now. Every field must be specific to this brand — no generic placeholders.`;
 
   try {
-    // Use a higher token limit than the shared callAnthropic() helper (which is capped at 1024)
-    const params = {
-      model:      'claude-opus-4-6',
-      max_tokens: 3000,
-      system,
-      messages:   [{ role: 'user', content: userPrompt }]
-    };
-    const response = await anthropic.messages.create(params);
-    const raw = response.content[0].text;
+    const raw = await _aimlText('brand-core', system, userPrompt, { max_tokens: 3000 });
 
     const cleaned = raw
       .replace(/^```(?:json)?\s*/i, '')
@@ -1267,10 +1344,7 @@ app.post('/api/brand-check', async (req, res) => {
   } = req.body;
   if (!brandName) return res.status(400).json({ error: 'brandName is required' });
 
-  const openai = _getOpenAI();
-  if (!openai) return res.status(503).json({ error: 'OpenAI API key not configured' });
-
-  console.log('[BrandCheck] OpenAI → analysing brand:', brandName);
+  console.log('[BrandCheck] AIML → analysing brand:', brandName);
   try {
     const system = `You are a world-class brand strategist with 20 years of experience advising high-growth companies, DTC brands, and funded startups.
 
@@ -1339,28 +1413,21 @@ Rules:
 
     const userMsg = `Perform a comprehensive brand audit for the following brand identity. Evaluate quality rigorously — not just whether fields are filled in. Return your full strategic analysis as JSON.\n\n${lines.join('\n')}`;
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      response_format: { type: 'json_object' },
-      max_tokens: 1200,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user',   content: userMsg },
-      ],
-    });
+    const raw = await _aimlText('brand-core', system, userMsg, { max_tokens: 1200 });
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
 
     let report;
     try {
-      report = JSON.parse(response.choices[0].message.content);
+      report = JSON.parse(cleaned);
     } catch {
       console.error('[BrandCheck] JSON parse failed');
       return res.status(500).json({ error: 'Failed to parse brand check output' });
     }
 
-    console.log('[BrandCheck] OpenAI → analysis ready for:', brandName, '| Score:', report.score);
+    console.log('[BrandCheck] AIML → analysis ready for:', brandName, '| Score:', report.score);
     res.json(report);
   } catch (err) {
-    console.error('[BrandCheck] OpenAI error:', err.message);
+    console.error('[BrandCheck] AIML error:', err.message);
     res.status(500).json({ error: 'Failed to run brand check' });
   }
 });
@@ -1883,13 +1950,13 @@ Style direction: ${styleDirection || 'minimal premium'}
 Colour palette: ${colorPalette || 'professional neutral palette'}
 Brand description: ${description || 'a professional brand'}`;
 
-    const rawPrompt = await callAnthropic(system, userMsg);
-    const dallePrompt = rawPrompt.trim().replace(/^["']|["']$/g, '').slice(0, 450);
+    const rawPrompt = await _aimlText('logo-copy', system, userMsg);
+    const imagePrompt = rawPrompt.trim().replace(/^["']|["']$/g, '').slice(0, 450);
 
-    console.log(`[LogoGen] DALL-E prompt: ${dallePrompt}`);
-    const imageUrl = await callDallE(dallePrompt, '1024x1024');
+    console.log(`[LogoGen] Image prompt: ${imagePrompt}`);
+    const imageUrl = await _aimlImage('logo', imagePrompt, { aspect_ratio: '1:1' });
     console.log(`[LogoGen] ✅ Logo generated for: ${brandName}`);
-    res.json({ imageUrl, prompt: dallePrompt });
+    res.json({ imageUrl, prompt: imagePrompt });
   } catch (err) {
     console.error('[LogoGen] Error:', err.message);
     res.status(500).json({ error: 'Failed to generate logo: ' + err.message });
@@ -2169,7 +2236,6 @@ app.post('/api/generate-ugc', async (req, res) => {
     script = customScript.trim();
     console.log('[UGC] Using custom script (', script.length, 'chars )');
   } else {
-    if (!_requireEnv('ANTHROPIC_API_KEY', res, 'Anthropic')) return;
     try {
       // Ad feeling → directorial instruction (energy, pacing, sentence structure)
       const feelingInstruction = {
@@ -2230,8 +2296,8 @@ Script rules:
         'Output ONLY the spoken script.',
       ].filter(Boolean).join('\n');
 
-      script = (await callAnthropic(system, userMsg)).trim();
-      if (!script) return res.status(500).json({ error: 'Anthropic returned an empty script' });
+      script = (await _aimlText('ugc-script', system, userMsg, { max_tokens: 1024 })).trim();
+      if (!script) return res.status(500).json({ error: 'AIML returned an empty script' });
       console.log('[UGC] Script generated (', script.length, 'chars ) | feeling:', adFeeling, '| goal:', adGoal || 'none');
     } catch (err) {
       console.error('[UGC] Script generation error:', err.message);
@@ -2309,7 +2375,6 @@ Script rules:
 // Standalone script-only endpoint (used by test page / direct integrations).
 // Aligned with the simplified UGC flow — no product/niche/audience required.
 app.post('/api/generate-ugc-script', async (req, res) => {
-  if (!_requireEnv('ANTHROPIC_API_KEY', res, 'Anthropic')) return;
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -2361,7 +2426,7 @@ Rules: first-person only, no stage directions, no brackets, output ONLY the spok
   ].filter(Boolean).join('\n');
 
   try {
-    const script = (await callAnthropic(system, userMsg)).trim();
+    const script = (await _aimlText('ugc-script', system, userMsg, { max_tokens: 1024 })).trim();
     if (!script) return res.status(500).json({ error: 'Empty script generated' });
 
     console.log('[UGC] Script generated | user:', user.id);
@@ -2495,37 +2560,39 @@ app.get('/api/video-ads/test-auth', async (req, res) => {
 
 // ── POST /api/video-ads/generate ──────────────────────────────────
 // Three modes: 'ai' (Anthropic builds prompt) | 'script' (user prompt) | 'image' (image-to-video)
-// LUMA_API_KEY is read from env only — never hardcoded or sent to frontend.
+// Provider: AIML API via aimlProvider (AIML_API_KEY).
+// API key is read from env only — never hardcoded or sent to frontend.
 app.post('/api/video-ads/generate', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const { mode, brand, product, audience, goal, style, script, imageUrl, imageUrl2, prompt, length } = req.body || {};
+  const { mode, brand, product, audience, goal, style, script, imageUrl, imageUrl2, prompt, length, brandCore, customPrompt } = req.body || {};
 
-  // Validate duration first — Luma only accepts "5s" or "10s"
-  const normLength = String(length || '5').replace(/[^0-9]/g, '');
-  if (normLength !== '5' && normLength !== '10') {
-    return res.status(400).json({ error: `Invalid duration "${length}" — must be 5 or 10 seconds` });
+  const aiml = require('./providers/aimlProvider');
+  if (!aiml.isConfigured()) {
+    return res.status(503).json({ error: 'Video Ads is not configured — set AIML_API_KEY in environment variables.' });
   }
 
-  const apiKey = (process.env.LUMA_API_KEY || '').trim();
-  if (!apiKey) return res.status(503).json({ error: 'Video Ads service is not configured — set LUMA_API_KEY in Render environment variables' });
-
-  const { generateVideo } = require('./services/lumaService');
+  const _rawDuration = Number(String(length || '5').replace(/[^0-9]/g, '')) || 5;
+  const normDuration = _rawDuration <= 7 ? 5 : 10;
+  const t1 = Math.round(normDuration * 0.33);
+  const t2  = Math.round(normDuration * 0.72);
 
   // ── Image-to-video mode ───────────────────────────────────────
   if (mode === 'image') {
     if (!imageUrl || !imageUrl.trim()) return res.status(400).json({ error: 'An image URL is required for image-to-video.' });
-    const keyframes = { frame0: { type: 'image', url: imageUrl.trim() } };
-    if (imageUrl2 && imageUrl2.trim()) keyframes.frame1 = { type: 'image', url: imageUrl2.trim() };
-    const lumaPrompt = (prompt && prompt.trim()) || '';
-    console.log('[VideoAds/image] keyframes:', JSON.stringify(keyframes), '| prompt:', lumaPrompt.slice(0, 80));
+    const vidPrompt = (prompt && prompt.trim()) || `Slow cinematic push-in on product. Soft studio lighting. Product holds centre-frame throughout.`;
+    console.log('[VideoAds/image] image:', imageUrl.slice(0, 80), '| image2:', imageUrl2 ? imageUrl2.slice(0, 40) : 'none');
     try {
-      const result = await generateVideo(lumaPrompt, '16:9', apiKey, { duration: length, keyframes });
-      console.log('[VideoAds/image] Generation started:', result.id, '— user:', user.id);
-      return res.json({ generationId: result.id, status: result.state || 'queued' });
+      const result = await aiml.generateVideoFromImage(imageUrl.trim(), vidPrompt, {
+        image_end_url: imageUrl2 ? imageUrl2.trim() : undefined,
+        duration:      normDuration,
+        aspect_ratio:  '16:9',
+      });
+      console.log('[VideoAds/image] Generation started:', result.generationId, '— user:', user.id);
+      return res.json({ generationId: result.generationId, status: 'queued' });
     } catch (err) {
-      console.error('[VideoAds/image] Luma error:', err.message);
+      console.error('[VideoAds/image] error:', err.message);
       return res.status(500).json({ error: err.message });
     }
   }
@@ -2533,167 +2600,285 @@ app.post('/api/video-ads/generate', async (req, res) => {
   // ── Script mode — user provides the creative brief directly ──
   if (mode === 'script') {
     if (!script || !script.trim()) return res.status(400).json({ error: 'A script or creative brief is required.' });
-    const lumaPrompt = [
-      script.trim(),
-      style ? `Visual style: ${style}.` : '',
-      'High production quality, professional video advertisement.',
-    ].filter(Boolean).join(' ');
-    console.log('[VideoAds/script] prompt:', lumaPrompt.slice(0, 120));
+    console.log('[VideoAds/script] prompt:', script.trim().slice(0, 120));
     try {
-      const result = await generateVideo(lumaPrompt, '16:9', apiKey, { duration: length });
-      console.log('[VideoAds/script] Generation started:', result.id, '— user:', user.id);
-      return res.json({ generationId: result.id, status: result.state || 'queued' });
+      const result = await aiml.generateVideo(script.trim(), { duration: normDuration, aspect_ratio: '16:9' });
+      console.log('[VideoAds/script] Generation started:', result.generationId, '— user:', user.id);
+      return res.json({ generationId: result.generationId, status: 'queued' });
     } catch (err) {
-      console.error('[VideoAds/script] Luma error:', err.message);
+      console.error('[VideoAds/script] error:', err.message);
       return res.status(500).json({ error: err.message });
     }
   }
 
-  // ── AI mode (default) — Anthropic builds a cinematic prompt ──
+  // ── AI mode (default) — Anthropic builds a scene-based Kling prompt ──
   if (!product || !product.trim()) return res.status(400).json({ error: 'Product or promotion description is required.' });
 
-  let lumaPrompt;
-  try {
-    const systemPrompt = `You are an expert video advertising director writing prompts for Luma AI Ray 3.2.
-Write one vivid, cinematic video ad prompt of 80–150 words.
-Focus on: camera movement, lighting, mood, visual storytelling, and brand feeling.
-The output is a video generation prompt — not a script. Describe what the viewer SEES.
-Reply ONLY with the prompt. No quotes, no preamble, no explanation.`;
+  let vidPrompt;
+  if (customPrompt && customPrompt.trim()) {
+    vidPrompt = customPrompt.trim();
+    console.log('[VideoAds/ai] 1. Custom prompt from preview:', vidPrompt.slice(0, 120));
+  } else {
+    try {
+      const systemPrompt = `You are a video director writing prompts for Kling AI video generation.
 
-    const userContext = [
-      product  ? `Promoting: ${product}`           : '',
-      brand    ? `Brand: ${brand}`                 : '',
-      audience ? `Target audience: ${audience}`    : '',
-      goal     ? `Ad goal: ${goal}`                : '',
-      style    ? `Visual style: ${style}`          : '',
-      length   ? `Duration: approximately ${length} seconds` : '',
-    ].filter(Boolean).join('\n');
+Write a concrete scene-by-scene visual description — 50 to 80 words total.
 
-    lumaPrompt = (await callAnthropic(systemPrompt, userContext)).trim();
-    console.log('[VideoAds/ai] Anthropic prompt built:', lumaPrompt.slice(0, 120));
-  } catch (err) {
-    console.warn('[VideoAds/ai] Anthropic build failed, using fallback:', err.message);
-    lumaPrompt = [
-      style   ? `${style} cinematic`                    : 'cinematic',
-      product ? `advertisement for ${product}`          : 'brand advertisement',
-      brand   ? `${brand} brand identity`               : '',
-      goal    ? goal                                    : '',
-      'high production quality, professional video ad.',
-    ].filter(Boolean).join(', ');
+Use this exact format:
+Scene 1 [0s–${t1}s]: <camera movement> + <subject> + <action>
+Scene 2 [${t1}s–${t2}s]: <camera movement> + <subject> + <action>
+Scene 3 [${t2}s–${normDuration}s]: <product or brand name clearly visible> + <closing shot>
+
+Rules:
+- Camera: "slow push in", "static overhead", "tracking left", "quick cut to close-up"
+- Lighting: "soft backlight", "warm golden rim", "cool studio fill", "neon edge light"
+- Name the real product, surface, material, and any people
+- End on the product or brand name clearly readable on screen
+- No "represents", "powerful", "evokes", "dynamic" — only what the camera sees
+- Output ONLY the prompt. No preamble, no quotes.`;
+
+      const userContext = [
+        `Promoting: ${product.trim()}`,
+        brand    ? `Brand: ${brand}`       : '',
+        style    ? `Visual style: ${style}` : '',
+        goal     ? `Goal: ${goal}`          : '',
+        audience ? `Audience: ${audience}`  : '',
+        `Duration: ${normDuration} seconds`,
+      ].filter(Boolean).join('\n');
+
+      console.log('[VideoAds/ai] 1. User brief:', JSON.stringify({ product: product.trim(), brand, style, goal, duration: normDuration }));
+      vidPrompt = (await _aimlText('video-ads-copy', systemPrompt, userContext)).trim();
+      console.log('[VideoAds/ai] 2. Generated prompt:', vidPrompt);
+    } catch (err) {
+      console.warn('[VideoAds/ai] Anthropic build failed, using fallback:', err.message);
+      vidPrompt = `Scene 1 [0s–${t1}s]: Static close-up shot of ${product.trim()} on a clean surface, soft studio lighting. Scene 2 [${t1}s–${t2}s]: Slow push-in revealing product detail, warm rim light. Scene 3 [${t2}s–${normDuration}s]: Product centred, ${brand || 'brand'} name fades in below.`;
+    }
   }
 
+  console.log(`[VideoAds/ai] 3. Final Kling prompt: ${vidPrompt}`);
   try {
-    const result = await generateVideo(lumaPrompt, '16:9', apiKey, { duration: length });
-    console.log('[VideoAds/ai] Generation started:', result.id, '— user:', user.id);
-    return res.json({ generationId: result.id, status: result.state || 'queued' });
+    const result = await aiml.generateVideo(vidPrompt, { duration: normDuration, aspect_ratio: '16:9' });
+    console.log('[VideoAds/ai] Generation started:', result.generationId, '— user:', user.id);
+    return res.json({ generationId: result.generationId, status: 'queued' });
   } catch (err) {
-    console.error('[VideoAds/ai] Luma error:', err.message);
+    console.error('[VideoAds/ai] error:', err.message);
     return res.status(500).json({ error: err.message });
   }
 });
 
 // ── GET /api/video-ads/status/:generationId ────────────────────────
+// Polls AIML API for video generation status.
 app.get('/api/video-ads/status/:generationId', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const apiKey = (process.env.LUMA_API_KEY || '').trim();
-  if (!apiKey) return res.status(503).json({ error: 'Video Ads service is not configured — set LUMA_API_KEY in Render environment variables' });
+  const aiml = require('./providers/aimlProvider');
+  if (!aiml.isConfigured()) {
+    return res.status(503).json({ error: 'Video Ads is not configured — set AIML_API_KEY in environment variables.' });
+  }
 
-  const { getVideoStatus, _extractVideoUrl } = require('./services/lumaService');
   try {
-    const result = await getVideoStatus(req.params.generationId, apiKey);
-    // Agents API: video URL lives in output[] array, not assets.video
+    const result = await aiml.getVideoStatus(req.params.generationId);
     return res.json({
-      status:        result.state           || 'unknown',
-      videoUrl:      _extractVideoUrl(result.output),
-      failureReason: result.failure_reason  || result.failure_code || null,
+      status:        result.status,
+      videoUrl:      result.videoUrl,
+      failureReason: result.failureReason,
     });
   } catch (err) {
     console.error('[VideoAds] Status error:', err.message);
-    return res.status(500).json({ error: err.message || 'Failed to check video status' });
+    return res.status(500).json({ error: err.message || 'Failed to check video status.' });
+  }
+});
+
+// ── POST /api/motion-graphics/generate ────────────────────────────
+// Generates branded motion graphic videos via AIML API (kling-video).
+// Anthropic writes a cinematic video prompt with Brand Core injection.
+// Returns { generationId, status: 'queued' } — client polls /status/:id.
+app.post('/api/motion-graphics/generate', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { style, duration, notes, brandCore, logoUrl, customPrompt } = req.body || {};
+
+  const aiml = require('./providers/aimlProvider');
+  if (!aiml.isConfigured()) {
+    return res.status(503).json({ error: 'Motion Graphics is not available — set AIML_API_KEY in environment variables.' });
+  }
+
+  // Style → animation-specific visual instructions for Kling
+  const styleMap = {
+    logo:       { label: 'Logo Reveal',        motion: 'The brand logo animates onto screen — it must visibly appear, scale up or slide in, and hold centre-frame.' },
+    kinetic:    { label: 'Kinetic Typography', motion: 'Text elements fly, snap, and animate across the frame — words must appear, move, and land with precision.' },
+    social:     { label: 'Social Motion Post', motion: 'Bold graphic elements animate in from off-screen, stop sharply, and hold for impact.' },
+    intro:      { label: 'Brand Intro',        motion: 'A dramatic reveal sequence: elements build from black, converge, and settle into a final branded frame.' },
+    transition: { label: 'Transition Video',   motion: 'Shapes sweep across frame left-to-right, wiping from one colour field to another.' },
+    custom:     { label: 'Motion Graphic',     motion: 'Branded graphic elements animate with intentional movement and visual rhythm.' },
+  };
+  const styleInfo    = styleMap[style] || styleMap.custom;
+  const normDuration = parseInt(duration || '5', 10) <= 7 ? 5 : 10;
+
+  // Extract only the visual elements from Brand Core (colours + name — no brand strategy in video prompts)
+  const bc    = brandCore || {};
+  const bcName = bc.name || '';
+  const bcClrs = (() => {
+    const clrs = bc.colors || [];
+    const c1   = clrs[0] ? (clrs[0].hex || clrs[0]) : (bc.primaryColor   || '');
+    const c2   = clrs[1] ? (clrs[1].hex || clrs[1]) : (bc.secondaryColor || '');
+    return [c1, c2].filter(Boolean).join(' and ');
+  })();
+  const t1 = Math.round(normDuration * 0.4);
+  const t2  = Math.round(normDuration * 0.8);
+
+  // Anthropic builds a short scene-based prompt for Kling (skipped if user provided customPrompt)
+  let videoPrompt;
+  if (customPrompt && customPrompt.trim()) {
+    videoPrompt = customPrompt.trim();
+    console.log('[MotionGraphics] 1. Custom prompt from preview:', videoPrompt.slice(0, 120));
+  } else {
+    try {
+      const systemPrompt = `You are a motion graphics director writing prompts for Kling AI video generation.
+
+Write a short, concrete scene-by-scene description — 40 to 60 words total.
+
+Use this exact format:
+[0s–${t1}s]: <what literally appears and how it moves>
+[${t1}s–${t2}s]: <what happens next — specific motion>
+[${t2}s–${normDuration}s]: <final frame — what is visible>
+
+Strict rules:
+- Describe EXACTLY what the viewer sees — no metaphors, no moods
+- ${styleInfo.motion}
+- Specify direction: "slides in from left", "fades up", "scales from 0 to full", "rotates in"
+- Name colours when relevant
+- No "powerful", "dynamic", "evokes", "cinematic" — only visual facts
+- Output ONLY the prompt. No preamble, no quotes.`;
+
+      const userContext = [
+        `Animation type: ${styleInfo.label}`,
+        bcName ? `Brand name: ${bcName}` : '',
+        bcClrs ? `Brand colours: ${bcClrs}` : '',
+        notes  ? `Direction: ${notes}` : '',
+      ].filter(Boolean).join('\n');
+
+      console.log('[MotionGraphics] 1. User brief:', JSON.stringify({ style, duration: normDuration, notes: notes || '', brand: bcName }));
+      videoPrompt = (await _aimlText('motion-graphics-copy', systemPrompt, userContext)).trim();
+      console.log('[MotionGraphics] 2. Generated prompt:', videoPrompt);
+    } catch (err) {
+      console.warn('[MotionGraphics] Anthropic failed, using fallback:', err.message);
+      videoPrompt = `[0s–${t1}s]: ${bcName || 'Brand'} logo fades in from black, centred on screen. [${t1}s–${t2}s]: Logo scales up smoothly${bcClrs ? ', ' + bcClrs + ' glow' : ''}. [${t2}s–${normDuration}s]: Logo holds full-frame on solid background.`;
+    }
+  }
+
+  console.log(`[MotionGraphics] 3. Final Kling prompt: ${videoPrompt}`);
+  console.log(`[MotionGraphics]    Model: kling-video | Duration: ${normDuration}s | logoUrl: ${logoUrl ? 'yes' : 'no'} | User: ${user.id}`);
+  try {
+    // If logo URL provided, use image-to-video so the brand logo is preserved
+    const genOpts = { duration: normDuration, aspect_ratio: '16:9' };
+    const result = logoUrl
+      ? await aiml.generateVideoFromImage(logoUrl, videoPrompt, genOpts)
+      : await aiml.generateVideo(videoPrompt, genOpts);
+    console.log('[MotionGraphics] Generation queued:', result.generationId);
+    return res.json({ generationId: result.generationId, status: 'queued' });
+  } catch (err) {
+    console.error('[MotionGraphics] Generation error:', err.message);
+    return res.status(500).json({ error: err.message || 'Motion graphic generation failed.' });
+  }
+});
+
+// ── GET /api/motion-graphics/status/:generationId ─────────────────
+// Polls AIML API for motion graphic video generation status.
+app.get('/api/motion-graphics/status/:generationId', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const aiml = require('./providers/aimlProvider');
+  if (!aiml.isConfigured()) {
+    return res.status(503).json({ error: 'Motion Graphics is not configured — set AIML_API_KEY in environment variables.' });
+  }
+
+  try {
+    const result = await aiml.getVideoStatus(req.params.generationId);
+    return res.json({
+      status:        result.status,
+      videoUrl:      result.videoUrl,
+      failureReason: result.failureReason,
+    });
+  } catch (err) {
+    console.error('[MotionGraphics] Status error:', err.message);
+    return res.status(500).json({ error: err.message || 'Failed to check motion graphic status.' });
   }
 });
 
 // ── POST /api/product-shoots/generate ─────────────────────────────
-// Professional product photography via DALL-E 3.
-// System prompt always biases toward commercial product photography.
-// Anthropic builds the DALL-E prompt from structured user selections.
+// Professional product photography via gpt-image-1 (same stack as Visuals/Logos).
+// Anthropic builds the photography prompt from product + style + goal.
 app.post('/api/product-shoots/generate', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const { product, type, style, background, ratio, count } = req.body || {};
+  const { product, style, goal, notes, customPrompt } = req.body || {};
   if (!product || !product.trim()) return res.status(400).json({ error: 'Product description is required.' });
 
-  const openai = _getOpenAI();
-  if (!openai) return res.status(503).json({ error: 'OpenAI API key not configured.' });
+  // Derive aspect ratio from goal (ecommerce/social → square; advertising/website → wide)
+  const ratioFromGoal = { ecommerce: '1:1', social: '1:1', advertising: '16:9', website: '16:9' };
+  const aimlRatio = ratioFromGoal[goal] || '1:1';
 
-  // Validate count
-  const imageCount = Math.min(parseInt(count || '1', 10), 4);
-  if (isNaN(imageCount) || imageCount < 1) return res.status(400).json({ error: 'Invalid image count.' });
-
-  // Map aspect ratio to gpt-image-1 size (1536px replaces DALL-E 3's 1792px)
-  const sizeMap = { '1:1': '1024x1024', '4:5': '1024x1536', '16:9': '1536x1024' };
-  const dallESize = sizeMap[ratio] || '1024x1024';
-
-  // Style and background descriptors for Anthropic
   const styleLabels = {
-    studio:       'clean professional studio photography with controlled lighting',
-    luxury_dark:  'luxury dark photography with dramatic directional lighting and deep shadows',
-    minimal:      'minimal bright photography with even soft lighting and airy feel',
-    lifestyle:    'lifestyle photography with the product in a natural aspirational setting',
-    dark_premium: 'dark premium moodboard-style photography with moody rich tones',
-    bright_ecom:  'high-key bright ecommerce photography optimised for conversion',
+    studio:       'clean professional studio photography, pure background, controlled key lighting',
+    lifestyle:    'lifestyle photography in a natural aspirational setting, soft ambient light',
+    minimal:      'minimal white photography, bright even lighting, airy and ecommerce-ready',
+    dark_premium: 'dark premium photography, dramatic directional light, deep moody shadows',
   };
-  const bgLabels = {
-    white:     'pure white seamless background',
-    black:     'deep black studio background',
-    luxury:    'luxury textured surface (marble, slate, or polished stone)',
-    lifestyle: 'natural lifestyle setting with subtle environmental context',
-    gradient:  'soft tonal gradient background',
+  const goalLabels = {
+    ecommerce:   'product listing — sharp focus, clean composition, product fills the frame',
+    social:      'social media — creative composition, lifestyle feel, thumb-stopping',
+    advertising: 'advertising — brand-aligned, persuasive, high production value',
+    website:     'website hero — editorial, full-bleed composition, premium presentation',
   };
 
   const styleDesc = styleLabels[style] || styleLabels.studio;
-  const bgDesc    = bgLabels[background] || bgLabels.white;
-  const typeDesc  = type || 'product';
+  const goalDesc  = goalLabels[goal]   || goalLabels.ecommerce;
 
-  // Build product photography prompt via Anthropic
   let dallEPrompt;
-  try {
-    const system = `You are a professional product photographer and creative director.
-Convert a product brief into a single DALL-E 3 image generation prompt for commercial product photography.
-The output must always describe a real-looking, professionally lit product photograph — not an illustration, render, or painting.
-Always include: lighting setup, camera angle, depth of field, surface/background, and atmosphere.
-The product must be the clear hero of the image.
-Respond ONLY with the prompt text, 180–280 characters. No explanation, no quotes.`;
+  if (customPrompt && customPrompt.trim()) {
+    dallEPrompt = customPrompt.trim();
+    console.log('[ProductShoots] 1. Custom prompt from preview:', dallEPrompt.slice(0, 120));
+  } else {
+    try {
+      const system = `You are a professional product photographer and creative director.
+Write a single image generation prompt for gpt-image-1 to create commercial product photography.
+The image must look like a real photograph — not a render, illustration, or CGI.
+Include: lighting setup, camera angle, depth of field, surface, and background.
+Keep the product as the clear hero of the frame.
+Output ONLY the prompt. 2–3 sentences. No quotes, no preamble.`;
 
-    const brief = [
-      `Product: ${product.trim()}`,
-      `Category: ${typeDesc}`,
-      `Photography style: ${styleDesc}`,
-      `Background: ${bgDesc}`,
-      ratio ? `Aspect ratio: ${ratio}` : '',
-    ].filter(Boolean).join('\n');
+      const brief = [
+        `Product: ${product.trim()}`,
+        `Style: ${styleDesc}`,
+        `Goal: ${goalDesc}`,
+        notes ? `Creative direction: ${notes.trim()}` : '',
+      ].filter(Boolean).join('\n');
 
-    dallEPrompt = (await callAnthropic(system, brief)).trim();
-    console.log('[ProductShoots] Anthropic prompt:', dallEPrompt.slice(0, 160));
-  } catch (err) {
-    console.warn('[ProductShoots] Anthropic failed, using fallback:', err.message);
-    dallEPrompt = `Professional commercial product photography of ${product.trim()}. ${styleDesc}. ${bgDesc}. Sharp focus, studio lighting, marketing-ready.`;
+      console.log('[ProductShoots] 1. User brief:', JSON.stringify({ product: product.trim(), style, goal }));
+      dallEPrompt = (await _aimlText('product-shoots-copy', system, brief)).trim();
+      console.log('[ProductShoots] 2. Generated prompt:', dallEPrompt.slice(0, 200));
+    } catch (err) {
+      console.warn('[ProductShoots] Prompt build failed, using fallback:', err.message);
+      dallEPrompt = `Professional commercial product photograph of ${product.trim()}. ${styleDesc}. ${goalDesc}. Sharp focus, high resolution, marketing-ready.`;
+    }
   }
 
-  // Generate all images in parallel
-  console.log(`[ProductShoots] Model: gpt-image-1`);
-  console.log(`[ProductShoots] Endpoint: POST /v1/images/generations`);
-  console.log(`[ProductShoots] Size: ${dallESize} | Count: ${imageCount} | User: ${user.id}`);
+  const _psRoute = require('./services/modelRouter').routeTask('product-shoots');
+  console.log('[ProductShoots] Provider:', _psRoute.provider.toUpperCase());
+  console.log('[ProductShoots] Model:', _psRoute.model);
+  console.log('[ProductShoots] Endpoint:', _psRoute.endpoint || '/v1/images/generations');
+  console.log(`[ProductShoots] 3. Final prompt (ratio ${aimlRatio}): ${dallEPrompt.slice(0, 180)}`);
   try {
-    const tasks = Array.from({ length: imageCount }, () => callDallE(dallEPrompt, dallESize));
-    const urls  = await Promise.all(tasks);
-    console.log(`[ProductShoots] Response: ${urls.length} image(s) generated successfully`);
-    return res.json({ images: urls, prompt: dallEPrompt });
+    const url = await _aimlImage('product-shoots', dallEPrompt, { aspect_ratio: aimlRatio });
+    console.log('[ProductShoots] Image generated successfully');
+    return res.json({ images: [url], ratio: aimlRatio, prompt: dallEPrompt });
   } catch (err) {
-    console.error('[ProductShoots] Response: ERROR —', err.message);
+    console.error('[ProductShoots] Error:', err.message);
     return res.status(500).json({ error: err.message || 'Image generation failed.' });
   }
 });
