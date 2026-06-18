@@ -28,7 +28,7 @@ function _readRaw() {
 
 function _key() {
   const key = _readRaw();
-  if (!key) throw new Error('AIML_API_KEY is not configured — set it in .env.local');
+  if (!key) throw new Error('AIML_API_KEY is not configured — set it in .env');
   return key;
 }
 
@@ -62,8 +62,8 @@ function diagnose() {
     console.log('[AIML] default video model    :', DEFAULT_VID_MODEL);
     console.log('[AIML] configured             : true ✅');
   } else {
-    console.error('[AIML] ❌ AIML_API_KEY not set — Motion Graphics and Video Ads will return 503');
-    console.error('[AIML]    Set AIML_API_KEY in .env.local (local) or Render dashboard (prod)');
+    console.error('[AIML] ❌ AIML_API_KEY not set — image and video generation will return 503');
+    console.error('[AIML]    Set AIML_API_KEY in .env (local) or Render dashboard (prod)');
   }
   console.log('──────────────────────────────────────────────────────');
   console.log('');
@@ -165,9 +165,12 @@ async function generateText(systemOrMessages, userPrompt, options = {}) {
   const body  = {
     model,
     messages,
-    max_tokens:  options.max_tokens  || 4096,
-    temperature: options.temperature ?? 0.7,
+    max_tokens: options.max_tokens || 4096,
   };
+  // Claude models reject temperature — only send it for non-Claude models.
+  if (!model.startsWith('claude') && options.temperature !== undefined) {
+    body.temperature = options.temperature;
+  }
 
   const masked = _readRaw().slice(0, 5) + '[...]';
   console.log('[AIML/txt] → POST /v1/chat/completions | model:', model, '| key prefix:', masked);

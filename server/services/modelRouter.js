@@ -1,189 +1,164 @@
 // ════════════════════════════════════════════════════════════════
 // Oriven Model Router
 //
-// Single source of truth for every AI provider and model used in
-// the platform. To swap a model or move a task to a different
-// provider: edit one entry below. Routes never hard-code providers.
+// Single source of truth for every AI provider and model.
+// Provider: AIML API for all AI tasks (text, code, vision, image, video).
+// To swap a model: edit one entry in MODELS below.
 //
 // Usage:  const route = routeTask('ads-copy');
 // Returns: { provider, model, type, label [, endpoint] }
 // ════════════════════════════════════════════════════════════════
 
-// ── Provider catalogue ────────────────────────────────────────
-// Add or change models here — routes update automatically.
-
 const MODELS = {
 
-  // ── Anthropic (text, reasoning, vision) ──────────────────────
-  // Used for: all copy, web, email, campaigns, brand strategy,
-  //           posters, infographics, presentations, UGC scripts,
-  //           logo prompts, product shoot prompts, vision analysis.
-  // Best available model: claude-opus-4-8
-  anthropic: {
-    quality:   'claude-opus-4-8',  // copy, campaigns, brand strategy
-    creative:  'claude-opus-4-8',  // ad copy, UGC scripts, email text
-    reasoning: 'claude-opus-4-8',  // brand core, positioning, web
-    code:      'claude-opus-4-8',  // structured HTML output (posters, infographics)
-    vision:    'claude-opus-4-8',  // image analysis + style extraction
-    fast:      'claude-haiku-4-5-20251001',  // lightweight / future low-cost tasks
-  },
-
-  // ── OpenAI (image generation) ─────────────────────────────────
-  // Used for: visuals, logos, product shoots, campaign images,
-  //           poster visuals, infographic visuals.
-  openai: {
-    image: 'gpt-image-1',   // highest-quality image generation
-  },
-
-  // ── AIML API (image + video) ──────────────────────────────────
-  // Routes: product-shoots (image), video-ads, motion-graphics, UGC video.
+  // ── AIML — Text & Vision ─────────────────────────────────────
+  // claude-opus-4-8 via AIML proxy — used for all natural language tasks.
   aiml: {
-    image: 'gpt-image-1',                           // product shoots via AIML proxy
-    video: 'kling-video/v1/standard/text-to-video', // video ads + motion graphics + UGC
-    // Future video upgrades (uncomment to activate):
-    // video: 'kling-video/v2/standard/text-to-video',
-    // ugc:   'kling-video/v2/pro/text-to-video',
+    text:  'claude-opus-4-8',                     // copy, campaigns, brand, scripts, prompts
+    code:  'Qwen3-Coder-480B-A35B-Instruct',      // web pages, HTML/CSS, structured output
+    image: 'gpt-image-1',                         // all image generation via AIML proxy
+    video: 'kling-video/v1.6/pro/text-to-video',  // video ads, motion graphics, UGC
   },
 
 };
 
 // ── Task routing table ────────────────────────────────────────
-// Each entry maps an Oriven task type to a provider + model.
-// "endpoint" is only needed for AIML tasks (AIML requires explicit
-//  endpoint routing; Anthropic + OpenAI use their SDK defaults).
+// All tasks resolve to provider: 'aiml'.
+// endpoint is required for image and video tasks; omitted for text/vision.
 
 const TASKS = {
 
-  // ── Anthropic — Text & Copy ───────────────────────────────────
+  // ── Text & Copy ───────────────────────────────────────────────
   'text-copy': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.creative,
+    model:    MODELS.aiml.text,
     label:    'Text & Copy',
   },
   'ads-copy': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.creative,
+    model:    MODELS.aiml.text,
     label:    'Ad Copy',
   },
 
-  // ── Anthropic — Web ──────────────────────────────────────────
+  // ── Web / Code ────────────────────────────────────────────────
   'web': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.code,
+    model:    MODELS.aiml.code,
     label:    'Web',
   },
 
-  // ── Anthropic — Email ─────────────────────────────────────────
+  // ── Email ─────────────────────────────────────────────────────
   'email': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.creative,
+    model:    MODELS.aiml.text,
     label:    'Email',
   },
 
-  // ── Anthropic — Campaigns ─────────────────────────────────────
+  // ── Campaigns ─────────────────────────────────────────────────
   'campaigns-copy': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.quality,
+    model:    MODELS.aiml.text,
     label:    'Campaign Copy',
   },
 
-  // ── Anthropic — Presentations ─────────────────────────────────
+  // ── Presentations ─────────────────────────────────────────────
   'presentations': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.quality,
+    model:    MODELS.aiml.text,
     label:    'Presentations',
   },
 
-  // ── Anthropic — Posters ───────────────────────────────────────
+  // ── Posters ───────────────────────────────────────────────────
   'poster': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.code,
+    model:    MODELS.aiml.code,
     label:    'Poster',
   },
 
-  // ── Anthropic — Infographics ──────────────────────────────────
+  // ── Infographics ──────────────────────────────────────────────
   'infographic': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.code,
+    model:    MODELS.aiml.code,
     label:    'Infographic',
   },
 
-  // ── Anthropic — Brand Core & Strategy ────────────────────────
+  // ── Brand Core & Strategy ─────────────────────────────────────
   'brand-core': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.reasoning,
+    model:    MODELS.aiml.text,
     label:    'Brand Core',
   },
 
-  // ── Anthropic — Visual Prompt Building ───────────────────────
-  // Used to craft image prompts before handing off to OpenAI.
+  // ── Image Prompt Building ─────────────────────────────────────
   'visuals-copy': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.quality,
+    model:    MODELS.aiml.text,
     label:    'Visual Prompt',
   },
   'logo-copy': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.quality,
+    model:    MODELS.aiml.text,
     label:    'Logo Prompt',
   },
   'product-shoots-copy': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.quality,
+    model:    MODELS.aiml.text,
     label:    'Product Shoot Prompt',
   },
   'motion-graphics-copy': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.quality,
+    model:    MODELS.aiml.text,
     label:    'Motion Graphics Prompt',
   },
   'video-ads-copy': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.creative,
+    model:    MODELS.aiml.text,
     label:    'Video Ad Prompt',
   },
 
-  // ── Anthropic — UGC ──────────────────────────────────────────
+  // ── UGC ───────────────────────────────────────────────────────
   'ugc-script': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'text',
-    model:    MODELS.anthropic.creative,
+    model:    MODELS.aiml.text,
     label:    'UGC Script',
   },
 
-  // ── Anthropic — Vision Analysis ───────────────────────────────
+  // ── Vision Analysis ───────────────────────────────────────────
   'vision': {
-    provider: 'anthropic',
+    provider: 'aiml',
     type:     'vision',
-    model:    MODELS.anthropic.vision,
+    model:    MODELS.aiml.text,
     label:    'Vision Analysis',
   },
 
-  // ── OpenAI — Image Generation ────────────────────────────────
+  // ── Image Generation ──────────────────────────────────────────
   'visuals': {
-    provider: 'openai',
+    provider: 'aiml',
     type:     'image',
-    model:    MODELS.openai.image,
+    model:    MODELS.aiml.image,
+    endpoint: '/v1/images/generations',
     label:    'Visuals',
   },
   'logo': {
-    provider: 'openai',
+    provider: 'aiml',
     type:     'image',
-    model:    MODELS.openai.image,
+    model:    MODELS.aiml.image,
+    endpoint: '/v1/images/generations',
     label:    'Logo',
   },
   'product-shoots': {
@@ -194,19 +169,21 @@ const TASKS = {
     label:    'Product Shoot',
   },
   'campaigns-image': {
-    provider: 'openai',
+    provider: 'aiml',
     type:     'image',
-    model:    MODELS.openai.image,
+    model:    MODELS.aiml.image,
+    endpoint: '/v1/images/generations',
     label:    'Campaign Visual',
   },
   'posters-image': {
-    provider: 'openai',
+    provider: 'aiml',
     type:     'image',
-    model:    MODELS.openai.image,
+    model:    MODELS.aiml.image,
+    endpoint: '/v1/images/generations',
     label:    'Poster Visual',
   },
 
-  // ── AIML — Motion Graphics (video) ───────────────────────────
+  // ── Video Generation ──────────────────────────────────────────
   'motion-graphics': {
     provider: 'aiml',
     type:     'video',
@@ -214,8 +191,6 @@ const TASKS = {
     endpoint: '/v2/video/generations',
     label:    'Motion Graphics',
   },
-
-  // ── AIML — Video Generation (unchanged) ──────────────────────
   'video-ads': {
     provider: 'aiml',
     type:     'video',
@@ -234,9 +209,6 @@ const TASKS = {
 };
 
 // ── routeTask() ───────────────────────────────────────────────
-// Returns full routing config for a task type.
-// Throws immediately on unknown type so bugs surface at call-time.
-
 function routeTask(type) {
   const task = TASKS[type];
   if (!task) {
@@ -255,19 +227,15 @@ function routeTask(type) {
 }
 
 // ── logSummary() ──────────────────────────────────────────────
-// Prints active provider + model config at startup.
-
 function logSummary() {
   console.log('');
   console.log('── Model Router ──────────────────────────────────────');
-  console.log('[Router] Anthropic quality   :', MODELS.anthropic.quality);
-  console.log('[Router] Anthropic creative  :', MODELS.anthropic.creative);
-  console.log('[Router] Anthropic reasoning :', MODELS.anthropic.reasoning);
-  console.log('[Router] Anthropic vision    :', MODELS.anthropic.vision);
-  console.log('[Router] OpenAI image        :', MODELS.openai.image);
-  console.log('[Router] AIML image          :', MODELS.aiml.image);
-  console.log('[Router] AIML video          :', MODELS.aiml.video);
-  console.log('[Router] Task count          :', Object.keys(TASKS).length, 'task types registered');
+  console.log('[Router] Provider             : AIML (single gateway)');
+  console.log('[Router] AIML text model      :', MODELS.aiml.text);
+  console.log('[Router] AIML code model      :', MODELS.aiml.code);
+  console.log('[Router] AIML image model     :', MODELS.aiml.image);
+  console.log('[Router] AIML video model     :', MODELS.aiml.video);
+  console.log('[Router] Task count           :', Object.keys(TASKS).length, 'task types registered');
   console.log('──────────────────────────────────────────────────────');
   console.log('');
 }

@@ -1,7 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const Anthropic = require('@anthropic-ai/sdk');
-const OpenAI = require('openai');
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
 const nodemailer = require('nodemailer');
@@ -19,39 +17,16 @@ console.log(
   '[dotenv] Loaded from:', _dotenvPath,
   '| error:', _dotenvResult.error ? _dotenvResult.error.message : 'none'
 );
-// Also load .env.local for local-only overrides (not committed, not on Render)
-const _dotenvLocalPath = path.resolve(__dirname, '..', '.env.local');
-const _dotenvLocalResult = require('dotenv').config({ path: _dotenvLocalPath, override: true });
-console.log(
-  '[dotenv.local] Loaded from:', _dotenvLocalPath,
-  '| error:', _dotenvLocalResult.error ? _dotenvLocalResult.error.message : 'none'
-);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '5500', 10);
 
-// Anthropic and Stripe are initialized eagerly with a 'missing' sentinel so
-// the process always starts. Routes call _requireEnv() and get a clean 503
-// if a key is absent rather than a confusing auth error from the SDK.
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || 'missing' });
 console.log(
   "[Config] Stripe key suffix:",
   process.env.STRIPE_SECRET_KEY?.slice(-4)
 );
 const stripe    = new Stripe(process.env.STRIPE_SECRET_KEY            || 'missing');
 
-// OpenAI is initialized LAZILY — only on first use — so a missing key or
-// empty balance never prevents startup or blocks unrelated services
-// (HeyGen avatar/voice loading, Supabase, Stripe, Anthropic all remain up).
-let _openaiInstance = null;
-function _getOpenAI() {
-  if (!_openaiInstance) {
-    const key = process.env.OPENAI_API_KEY;
-    if (!key) return null;
-    _openaiInstance = new OpenAI({ apiKey: key });
-  }
-  return _openaiInstance;
-}
 
 // ── Resolved config constants ─────────────────────────────────────
 // Single definition for every value that would otherwise be duplicated
@@ -120,13 +95,8 @@ const supabaseAdmin = createClient(
     if (!val || val === 'missing') { console.error('❌ [ENV] ' + label + ' is not set'); }
     else { console.log('✅ [ENV] ' + label + ' = ' + val.slice(0, 10) + '...'); }
   };
-  _ck(process.env.ANTHROPIC_API_KEY, 'ANTHROPIC_API_KEY');
-  _ck(process.env.OPENAI_API_KEY,    'OPENAI_API_KEY');
-  _ck(process.env.HEYGEN_API_KEY,    'HEYGEN_API_KEY');
-  _ck(process.env.AIML_API_KEY,      'AIML_API_KEY');
+  _ck(process.env.AIML_API_KEY, 'AIML_API_KEY');
 
-  // Note: LUMA_API_KEY is no longer used — Video Ads now routes through AIML (Kling).
-  // AIML_API_KEY is checked below via aimlProvider.diagnose().
 
   // AIML API — all AI generation routes
   const _aiml   = require('./providers/aimlProvider');
@@ -528,18 +498,6 @@ app.use((req, _res, next) => {
 
 // ── Shared helpers ──────────────────────────────────────────────
 
-async function callAnthropic(systemPrompt, userPrompt) {
-  if (!process.env.ANTHROPIC_API_KEY) throw new Error('Anthropic API key not configured (ANTHROPIC_API_KEY missing)');
-  const params = {
-    model: 'claude-opus-4-6',
-    max_tokens: 1024,
-    messages: [{ role: 'user', content: userPrompt }],
-  };
-  if (systemPrompt) params.system = systemPrompt;
-  const response = await anthropic.messages.create(params);
-  return response.content[0].text;
-}
-
 // ── Strip markdown/quote fences from HTML output ────────────────
 function extractHtml(raw) {
   let s = (raw || '').trim();
@@ -553,31 +511,10 @@ function extractHtml(raw) {
   return s;
 }
 
-// ── gpt-image-1 supported sizes: 1024x1024 | 1024x1536 | 1536x1024 ─
-async function callDallE(imagePrompt, size = '1024x1024') {
-  const client = _getOpenAI();
-  if (!client) throw new Error('OpenAI API key not configured (OPENAI_API_KEY missing)');
-  const validSizes = ['1024x1024', '1024x1536', '1536x1024'];
-  const safeSize   = validSizes.includes(size) ? size : '1024x1024';
 
-  const response = await client.images.generate({
-    model:   'gpt-image-1',
-    prompt:  imagePrompt,
-    n:       1,
-    size:    safeSize,
-    quality: 'high',
-  });
-  const item = response.data[0];
-  if (item.url)      return item.url;
-  if (item.b64_json) return `data:image/png;base64,${item.b64_json}`;
-  throw new Error('No image URL or data in OpenAI response');
-}
-
-// ── Extract a concise DALL-E image prompt from a structured brief ─
-// Uses Anthropic to translate a multi-section brief into a vivid,
-// DALL-E-optimised image description (150–300 characters).
+// ── Extract a concise image prompt from a structured brief via AIML ─
 async function _briefToDallEPrompt(fullBrief, contextHint) {
-  const system = `You are a visual art director. Convert the following structured brief into a single DALL-E 3 image generation prompt.
+  const system = `You are a visual art director. Convert the following structured brief into a single image generation prompt.
 
 The prompt must:
 - Be 150–300 characters
@@ -592,13 +529,8 @@ Output ONLY the image prompt. No labels. No explanation. No quotes.`;
   const userMsg = (contextHint ? 'Context: ' + contextHint + '\n\n' : '')
     + 'Brief:\n' + fullBrief.slice(0, 2000);
 
-  const response = await anthropic.messages.create({
-    model:      'claude-opus-4-6',
-    max_tokens: 200,
-    system,
-    messages:   [{ role: 'user', content: userMsg }]
-  });
-  return response.content[0].text.trim().slice(0, 450);
+  const result = await _aimlText('visuals-copy', system, userMsg, { max_tokens: 200 });
+  return result.trim().slice(0, 450);
 }
 
 // ── Text — Anthropic only ───────────────────────────────────────
@@ -617,9 +549,8 @@ function _buildBrandSection(bc) {
   return lines.map(l => '  - ' + l).join('\n');
 }
 
-// ── Provider-aware generation helpers ────────────────────────────
-// All routes call these. Provider dispatch is determined by the
-// model router — changing a provider requires only a router edit.
+// ── Generation helpers — all routes through AIML ─────────────────
+// Provider and model are determined entirely by modelRouter.js.
 
 // Size ↔ ratio conversion utilities
 function _sizeToRatio(size) {
@@ -632,95 +563,26 @@ function _ratioToSize(ratio) {
   return map[ratio] || '1024x1024';
 }
 
-// ── Low-level Anthropic helpers ───────────────────────────────────
-
-async function _anthropicText(model, system, user, opts = {}) {
-  if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'missing') {
-    throw new Error('ANTHROPIC_API_KEY is not configured.');
-  }
-  const params = {
-    model:      model,
-    max_tokens: opts.max_tokens  || 4096,
-    messages:   [{ role: 'user', content: user }],
-  };
-  if (system) params.system = system;
-  const response = await anthropic.messages.create(params);
-  return response.content[0].text;
-}
-
-async function _anthropicVision(model, system, user, imageDataUrl, opts = {}) {
-  if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'missing') {
-    throw new Error('ANTHROPIC_API_KEY is not configured.');
-  }
-  const match = imageDataUrl.match(/^data:([^;]+);base64,(.+)$/);
-  if (!match) throw new Error('Invalid image data URL for vision analysis.');
-  const [, mediaType, b64data] = match;
-  const response = await anthropic.messages.create({
-    model,
-    max_tokens: opts.max_tokens || 512,
-    system,
-    messages: [{
-      role:    'user',
-      content: [
-        { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64data } },
-        { type: 'text',  text: user },
-      ],
-    }],
-  });
-  return response.content[0].text;
-}
-
-// ── Dispatcher: text generation ───────────────────────────────────
-// Routes to Anthropic or AIML based on router config.
-
 async function _aimlText(taskType, system, user, opts = {}) {
   const router = require('./services/modelRouter');
   const route  = router.routeTask(taskType);
-
-  if (route.provider === 'anthropic') {
-    return _anthropicText(route.model, system, user, opts);
-  }
-
-  // AIML text (used for video-ads / motion-graphics if ever re-routed)
-  const aiml = require('./providers/aimlProvider');
+  const aiml   = require('./providers/aimlProvider');
   return aiml.generateText(system, user, { model: route.model, ...opts });
 }
-
-// ── Dispatcher: image generation ─────────────────────────────────
-// Routes to OpenAI direct (callDallE) or AIML based on router config.
-// Product Shoots, and any future AIML image tasks, use the AIML path.
 
 async function _aimlImage(taskType, prompt, opts = {}) {
   const router = require('./services/modelRouter');
   const route  = router.routeTask(taskType);
-
-  if (route.provider === 'openai') {
-    const size = opts.aspect_ratio ? _ratioToSize(opts.aspect_ratio) : (opts.size || '1024x1024');
-    console.log(`[${taskType}] Provider: OPENAI | Model: ${route.model} | Endpoint: /v1/images/generations (direct SDK)`);
-    return callDallE(prompt, size);
-  }
-
-  // AIML image path — uses AIML_API_KEY via aimlProvider
-  const aiml     = require('./providers/aimlProvider');
-  const endpoint = route.endpoint || '/v1/images/generations';
-  console.log(`[${taskType}] Provider: AIML | Model: ${route.model} | Endpoint: ${endpoint}`);
+  const aiml   = require('./providers/aimlProvider');
+  console.log(`[${taskType}] Provider: AIML | Model: ${route.model} | Endpoint: /v1/images/generations`);
   const urls = await aiml.generateImage(prompt, { model: route.model, ...opts });
   return urls[0] || null;
 }
 
-// ── Dispatcher: vision analysis ───────────────────────────────────
-// Routes to Anthropic or AIML based on router config.
-
 async function _aimlVision(taskType, system, user, imageDataUrl, opts = {}) {
   const router = require('./services/modelRouter');
   const route  = router.routeTask(taskType);
-
-  if (route.provider === 'anthropic') {
-    return _anthropicVision(route.model, system, user, imageDataUrl, opts);
-  }
-
-  // AIML vision fallback
-  const aiml = require('./providers/aimlProvider');
+  const aiml   = require('./providers/aimlProvider');
   return aiml.generateTextWithVision(system, user, imageDataUrl, { model: route.model, ...opts });
 }
 
@@ -1948,167 +1810,44 @@ Brand description: ${description || 'a professional brand'}`;
 });
 
 // ════════════════════════════════════════════════════════════════
-// HEYGEN — AI UGC VIDEO GENERATION
+// UGC — AI VIDEO GENERATION (AIML / Kling)
 // ════════════════════════════════════════════════════════════════
 
-const HEYGEN_BASE = 'https://api.heygen.com';
-
-// Safely extract an array from either v1 or v2 HeyGen response shapes:
-//   v1: { code: 100, data: { avatars: [...] } }
-//   v2: { error: null, data: { avatars: [...] } }
-function _heygenExtract(parsed, key) {
-  if (!parsed) return [];
-  if (parsed.data && Array.isArray(parsed.data[key])) return parsed.data[key];
-  if (Array.isArray(parsed[key])) return parsed[key];
-  return [];
-}
-
-// Known-good public HeyGen stock avatars — used as last-resort fallback
-// when the API key is missing or the account has no avatars yet.
-const HEYGEN_FALLBACK_AVATARS = [
-  { avatar_id: 'Abigail_expressive_2024112501', avatar_name: 'Abigail (Upper Body)', gender: 'female' },
-  { avatar_id: 'Abigail_standing_office_front', avatar_name: 'Abigail Office Front', gender: 'female' },
-  { avatar_id: 'Aditya_public_1',               avatar_name: 'Aditya (Blue blazer)',  gender: 'male'   },
-  { avatar_id: 'Aditya_public_4',               avatar_name: 'Aditya (Brown blazer)', gender: 'male'   },
+// Static creator presets — displayed in the UGC avatar picker.
+// Avatar-based video is no longer used; these represent creator styles
+// that inform the video prompt sent to Kling.
+const UGC_PRESET_AVATARS = [
+  { avatar_id: 'creator_founder',   avatar_name: 'Startup Founder',    gender: 'neutral' },
+  { avatar_id: 'creator_lifestyle', avatar_name: 'Lifestyle Creator',   gender: 'neutral' },
+  { avatar_id: 'creator_tech',      avatar_name: 'Tech Reviewer',       gender: 'neutral' },
+  { avatar_id: 'creator_fitness',   avatar_name: 'Fitness Creator',     gender: 'neutral' },
 ];
 
-const HEYGEN_FALLBACK_VOICES = [
-  { voice_id: 'f38a635bee7a4d1f9b0a654a31d050d2', name: 'Chill Brian',  language: 'English', gender: 'male'   },
-  { voice_id: 'cef3bc4e0a84424cafcde6f2cf466c97', name: 'Ivy',          language: 'English', gender: 'female' },
-  { voice_id: 'f8c69e517f424cafaecde32dde57096b', name: 'Allison',       language: 'English', gender: 'female' },
-  { voice_id: 'd2f4f24783d04e22ab49ee8fdc3715e0', name: 'Chill Brian 2', language: 'English', gender: 'male'   },
+const UGC_PRESET_VOICES = [
+  { voice_id: 'v_warm',       name: 'Warm',       language: 'English', gender: 'female' },
+  { voice_id: 'v_dynamic',    name: 'Dynamic',    language: 'English', gender: 'male'   },
+  { voice_id: 'v_confident',  name: 'Confident',  language: 'English', gender: 'male'   },
+  { voice_id: 'v_energetic',  name: 'Energetic',  language: 'English', gender: 'female' },
 ];
 
 // ── GET /api/ugc-avatars ─────────────────────────────────────────
-// Fetches both v2 (user-created studio) + v1 (full stock library),
-// merges and deduplicates, quality-sorts, returns all.
-// Falls back to HEYGEN_FALLBACK_AVATARS when no API key is configured.
 app.get('/api/ugc-avatars', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
-
-  const apiKey = process.env.HEYGEN_API_KEY;
-  if (!apiKey) {
-    console.error('[UGC/Avatars] HEYGEN_API_KEY not set — returning static fallback');
-    return res.json({ avatars: HEYGEN_FALLBACK_AVATARS, fallback: true });
-  }
-
-  try {
-    // Fetch v2 (user-created) and v1 (stock library) in parallel
-    const [v2Res, v1Res] = await Promise.all([
-      fetch(`${HEYGEN_BASE}/v2/avatars`,    { headers: { 'X-Api-Key': apiKey } }),
-      fetch(`${HEYGEN_BASE}/v1/avatar.list`, { headers: { 'X-Api-Key': apiKey } }),
-    ]);
-
-    const [v2Body, v1Body] = await Promise.all([v2Res.text(), v1Res.text()]);
-    console.log('[UGC/Avatars] v2 HTTP', v2Res.status, '| v1 HTTP', v1Res.status);
-    console.log('[UGC/Avatars] v2 sample:', v2Body.slice(0, 400));
-    console.log('[UGC/Avatars] v1 sample:', v1Body.slice(0, 400));
-
-    let v2Data, v1Data;
-    try { v2Data = JSON.parse(v2Body); } catch (_) { v2Data = null; }
-    try { v1Data = JSON.parse(v1Body); } catch (_) { v1Data = null; }
-
-    // v2 returns user-created avatars; v1 returns the full stock library
-    const v2Avatars = _heygenExtract(v2Data, 'avatars');
-    let   v1Avatars = _heygenExtract(v1Data, 'avatars');
-
-    // If v1 returned 0 avatars, try talking_photo (for photo-based accounts)
-    if (!v1Avatars.length) {
-      const photos = _heygenExtract(v1Data, 'talking_photo');
-      if (photos.length) {
-        v1Avatars = photos.map(p => ({
-          avatar_id:         p.talking_photo_id || p.id,
-          avatar_name:       p.talking_photo_name || p.name || 'Photo Creator',
-          gender:            '',
-          preview_image_url: p.preview_image_url || '',
-          preview_video_url: p.preview_video_url || '',
-        }));
-      }
-    }
-
-    console.log('[UGC/Avatars] v2 count:', v2Avatars.length, '| v1 count:', v1Avatars.length);
-
-    // Merge: v2 (user's own) first, then v1 stock — deduplicate by avatar_id
-    const seen = new Set();
-    const merged = [...v2Avatars, ...v1Avatars].filter(a => {
-      if (!a.avatar_id || seen.has(a.avatar_id)) return false;
-      seen.add(a.avatar_id);
-      return true;
-    });
-
-    if (!merged.length) {
-      console.warn('[UGC/Avatars] No avatars found in either endpoint — using static fallback');
-      return res.json({ avatars: HEYGEN_FALLBACK_AVATARS, fallback: true });
-    }
-
-    // Quality sort: avatars with both preview_video_url + preview_image_url first,
-    // then image-only, then plain. This surfaces cinematic/premium avatars to the top.
-    const score = a => (a.preview_video_url ? 2 : 0) + (a.preview_image_url ? 1 : 0);
-    merged.sort((a, b) => score(b) - score(a));
-
-    console.log('[UGC/Avatars] Returning', merged.length, 'avatars (quality-sorted)');
-    return res.json({ avatars: merged });
-
-  } catch (err) {
-    console.error('[UGC/Avatars] Fetch error:', err.message);
-    return res.json({ avatars: HEYGEN_FALLBACK_AVATARS, fallback: true });
-  }
+  return res.json({ avatars: UGC_PRESET_AVATARS });
 });
 
 // ── GET /api/ugc-voices ──────────────────────────────────────────
 app.get('/api/ugc-voices', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
-
-  const apiKey = process.env.HEYGEN_API_KEY;
-  if (!apiKey) {
-    console.error('[UGC/Voices] HEYGEN_API_KEY is not set — returning static fallback voices');
-    return res.json({ voices: HEYGEN_FALLBACK_VOICES, fallback: true });
-  }
-
-  try {
-    console.log('[UGC/Voices] Fetching v2/voices…');
-    const v2Res  = await fetch(`${HEYGEN_BASE}/v2/voices`, { headers: { 'X-Api-Key': apiKey } });
-    const v2Body = await v2Res.text();
-    console.log('[UGC/Voices] v2 HTTP', v2Res.status);
-    console.log('[UGC/Voices] v2 body:', v2Body.slice(0, 600));
-
-    let v2Data;
-    try { v2Data = JSON.parse(v2Body); } catch (_) { v2Data = null; }
-
-    let voices = _heygenExtract(v2Data, 'voices');
-    console.log('[UGC/Voices] Total voices from API:', voices.length);
-
-    if (!voices.length) {
-      console.warn('[UGC/Voices] API returned 0 voices — using static fallback');
-      return res.json({ voices: HEYGEN_FALLBACK_VOICES, fallback: true });
-    }
-
-    // Normalise names (some have leading newlines / trailing spaces)
-    voices = voices.map(v => ({ ...v, name: (v.name || '').trim() || v.voice_id }));
-
-    // Prefer English voices; fall back to all if none match
-    const en = voices.filter(v => {
-      const lang = (v.language || '').toLowerCase();
-      return lang.includes('english') || lang.startsWith('en');
-    });
-    const result = (en.length ? en : voices).slice(0, 60);
-
-    console.log('[UGC/Voices] Returning', result.length, 'voices (English preferred)');
-    return res.json({ voices: result });
-
-  } catch (err) {
-    console.error('[UGC/Voices] Fetch error:', err.message);
-    console.warn('[UGC/Voices] Using static fallback due to error');
-    return res.json({ voices: HEYGEN_FALLBACK_VOICES, fallback: true });
-  }
+  return res.json({ voices: UGC_PRESET_VOICES });
 });
 
 console.log("UGC ROUTE REGISTERED");
 
 // ── POST /api/generate-ugc ──────────────────────────────────────
-// Combined: Anthropic writes the script, HeyGen generates the video.
+// AIML writes the script, Kling (via AIML) generates the video.
 // Frontend calls one endpoint, gets back a videoId to poll.
 app.post('/api/generate-ugc', async (req, res) => {
   const user = await getUserFromToken(req);
@@ -2127,21 +1866,9 @@ app.post('/api/generate-ugc', async (req, res) => {
           brandVisualDir, brandWords,
           background, customScript, format } = req.body || {};
 
-  const formatDimensions = {
-    vertical:  { width: 1080, height: 1920 },
-    square:    { width: 1080, height: 1080 },
-    landscape: { width: 1920, height: 1080 },
-  };
-  const dimension = formatDimensions[format] || formatDimensions.vertical;
-  console.log('UGC FORMAT', format || 'vertical');
-  console.log('HEYGEN DIMENSIONS', dimension.width, 'x', dimension.height);
-  if (!avatarId) return res.status(400).json({ error: 'Avatar ID is required' });
-  if (!voiceId)  return res.status(400).json({ error: 'Voice ID is required' });
-
-  const heygenKey = process.env.HEYGEN_API_KEY;
-  if (!heygenKey) return res.status(500).json({ error: 'HeyGen API key not configured' });
-
-  console.log('[UGC] Received → adFeeling:', adFeeling, '| adGoal:', adGoal, '| avatarId:', avatarId, '| format:', format, '| scriptMode:', customScript ? 'custom' : 'ai');
+  const formatAspect = { vertical: '9:16', square: '1:1', landscape: '16:9' };
+  const aspectRatio  = formatAspect[format] || '9:16';
+  console.log('[UGC] Received → adFeeling:', adFeeling, '| adGoal:', adGoal, '| format:', format, '| aspect:', aspectRatio, '| scriptMode:', customScript ? 'custom' : 'ai');
 
   // ── Cinematic brief registry — each style is a full creative direction ──
   const CREATOR_BRIEFS = {
@@ -2193,25 +1920,6 @@ app.post('/api/generate-ugc', async (req, res) => {
       language:  'Direct and measurable: "saves me two hours every day", "our entire team switched", "the ROI showed up immediately"',
       ctaStyle:  'Measured and clear: "try it free", "book the demo", "your workflow will thank you"',
     },
-  };
-
-  // Ad feeling → voice speed (real HeyGen parameter)
-  const feelingSpeed = {
-    viral:       1.08,
-    cinematic:   0.9,
-    emotional:   0.93,
-    aggressive:  1.12,
-    luxury:      0.85,
-    startup:     1.05,
-    friendly:    1.0,
-    high_energy: 1.15,
-  }[adFeeling] || 1.0;
-
-  // Background: solid color only for styles that use it.
-  // All others leave background unset — HeyGen uses the avatar's natural scene.
-  const bgHeyGenMap = {
-    white_studio: { type: 'color', value: '#FFFFFF' },
-    minimal_dark: { type: 'color', value: '#0D0D0D' },
   };
 
   // ── Step 1: Script — use provided or generate with AI ────────
@@ -2289,69 +1997,23 @@ Script rules:
     }
   }
 
-  // ── Step 2: Submit to HeyGen ──────────────────────────────────
+  // ── Step 2: Generate video via AIML (Kling) ──────────────────
   try {
-    // Format-specific composition profiles.
-    // Vertical: closeUp style + scale 1.5 fills the 9:16 portrait canvas
-    //   without letterboxing. offset.y nudges the face into the upper-center
-    //   sweet-spot used by TikTok/Reels creators.
-    // Landscape: normal wide framing, no scaling needed.
-    const compositionProfiles = {
-      vertical:  { avatar_style: 'closeUp', scale: 1.5, offset: { x: 0, y: 0.05 } },
-      square:    { avatar_style: 'closeUp', scale: 1.2, offset: { x: 0, y: 0    } },
-      landscape: { avatar_style: 'normal',  scale: 1.0, offset: { x: 0, y: 0    } },
-    };
-    const composition = compositionProfiles[format] || compositionProfiles.vertical;
-
-    console.log('[UGC] Composition → style:', composition.avatar_style,
-      '| scale:', composition.scale,
-      '| offset:', JSON.stringify(composition.offset),
-      '| format:', format || 'vertical');
-
-    const videoInput = {
-      character: {
-        type:         'avatar',
-        avatar_id:    avatarId,
-        avatar_style: composition.avatar_style,
-        scale:        composition.scale,
-        offset:       composition.offset,
-      },
-      voice: { type: 'text', input_text: script, voice_id: voiceId, speed: feelingSpeed },
-    };
-    // Only inject background when we have an explicit solid-color mapping.
-    // Unset → HeyGen uses the avatar's natural built-in scene.
-    const heygenBg = bgHeyGenMap[background];
-    if (heygenBg) videoInput.background = heygenBg;
-
-    const heygenPayload = {
-      video_inputs: [videoInput],
-      dimension,
-      test: false,
-    };
-    console.log('[UGC] HeyGen payload:', JSON.stringify(heygenPayload));
-
-    const heygenRes = await fetch(`${HEYGEN_BASE}/v2/video/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Api-Key': heygenKey },
-      body: JSON.stringify(heygenPayload),
+    const aiml      = require('./providers/aimlProvider');
+    const router    = require('./services/modelRouter');
+    const vidRoute  = router.routeTask('ugc-video');
+    const videoPrompt = `${adFeeling ? adFeeling + ' style' : 'energetic'} social media ad video. ${script.slice(0, 300)}`;
+    console.log('[UGC] Submitting to AIML Kling | model:', vidRoute.model, '| aspect:', aspectRatio);
+    const { generationId } = await aiml.generateVideo(videoPrompt, {
+      model:        vidRoute.model,
+      aspect_ratio: aspectRatio,
+      duration:     5,
     });
-
-    const heygenData = await heygenRes.json();
-
-    if (!heygenRes.ok || heygenData.error) {
-      const errMsg = (heygenData.error && (heygenData.error.message || JSON.stringify(heygenData.error))) || heygenData.message || 'HeyGen error';
-      console.error('[UGC] HeyGen submission failed:', errMsg);
-      return res.status(400).json({ error: errMsg });
-    }
-
-    const videoId = heygenData.data && heygenData.data.video_id;
-    if (!videoId) return res.status(500).json({ error: 'HeyGen did not return a video ID' });
-
-    console.log('[UGC] Video submitted to HeyGen:', videoId, '| user:', user.id);
-    return res.json({ ok: true, videoId, status: 'processing' });
+    console.log('[UGC] Video submitted to AIML:', generationId, '| user:', user.id);
+    return res.json({ ok: true, videoId: generationId, status: 'processing' });
   } catch (err) {
-    console.error('[UGC] HeyGen submission error:', err.message);
-    return res.status(500).json({ error: 'Failed to submit to HeyGen: ' + err.message });
+    console.error('[UGC] AIML video submission error:', err.message);
+    return res.status(500).json({ error: 'Failed to submit video: ' + err.message });
   }
 });
 
@@ -2422,48 +2084,31 @@ Rules: first-person only, no stage directions, no brackets, output ONLY the spok
 });
 
 // ── POST /api/generate-ugc-video ─────────────────────────────────
+// Generates a video from a script via AIML (Kling text-to-video).
+// avatarId and voiceId are accepted for API compatibility but unused.
 app.post('/api/generate-ugc-video', async (req, res) => {
   const user = await getUserFromToken(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const { script, avatarId, voiceId } = req.body || {};
+  const { script } = req.body || {};
   if (!script || !script.trim()) return res.status(400).json({ error: 'Script is required' });
-  if (!avatarId)                  return res.status(400).json({ error: 'Avatar ID is required' });
-  if (!voiceId)                   return res.status(400).json({ error: 'Voice ID is required' });
-
-  const apiKey = process.env.HEYGEN_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'HeyGen API key not configured' });
 
   try {
-    const response = await fetch(`${HEYGEN_BASE}/v2/video/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
-      body: JSON.stringify({
-        video_inputs: [{
-          character: { type: 'avatar', avatar_id: avatarId, avatar_style: 'normal' },
-          voice:     { type: 'text',   input_text: script.trim(), voice_id: voiceId, speed: 1.0 }
-        }],
-        dimension: { width: 720, height: 1280 },
-        test: false
-      })
+    const aiml     = require('./providers/aimlProvider');
+    const router   = require('./services/modelRouter');
+    const vidRoute = router.routeTask('ugc-video');
+    const videoPrompt = `Energetic social media ad video. ${script.trim().slice(0, 300)}`;
+    console.log('[UGC/video] Submitting to AIML Kling | model:', vidRoute.model);
+    const { generationId } = await aiml.generateVideo(videoPrompt, {
+      model:        vidRoute.model,
+      aspect_ratio: '9:16',
+      duration:     5,
     });
-
-    const data = await response.json();
-
-    if (!response.ok || data.error) {
-      const errMsg = (data.error && (data.error.message || JSON.stringify(data.error))) || data.message || 'HeyGen error';
-      console.error('[UGC] Generation failed:', errMsg);
-      return res.status(400).json({ error: errMsg });
-    }
-
-    const videoId = data.data && data.data.video_id;
-    if (!videoId) return res.status(500).json({ error: 'No video ID returned from HeyGen' });
-
-    console.log('[UGC] Generation started:', videoId, 'for user:', user.id);
-    return res.json({ ok: true, videoId, status: 'processing' });
+    console.log('[UGC/video] Submitted:', generationId, '| user:', user.id);
+    return res.json({ ok: true, videoId: generationId, status: 'processing' });
   } catch (err) {
-    console.error('[UGC] Generation error:', err.message);
-    return res.status(500).json({ error: 'Failed to start video generation' });
+    console.error('[UGC/video] Error:', err.message);
+    return res.status(500).json({ error: 'Failed to start video generation: ' + err.message });
   }
 });
 
@@ -2473,20 +2118,14 @@ app.get('/api/ugc-video-status/:videoId', async (req, res) => {
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
   const { videoId } = req.params;
-  const apiKey = process.env.HEYGEN_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'HeyGen API key not configured' });
-
   try {
-    const response = await fetch(`${HEYGEN_BASE}/v1/video_status.get?video_id=${encodeURIComponent(videoId)}`, {
-      headers: { 'X-Api-Key': apiKey }
-    });
-    const data = await response.json();
-    const video = (data && data.data) || {};
+    const aiml = require('./providers/aimlProvider');
+    const { status, videoUrl, failureReason } = await aiml.getVideoStatus(videoId);
     return res.json({
-      status:       video.status        || 'unknown',
-      videoUrl:     video.video_url     || null,
-      thumbnailUrl: video.thumbnail_url || null,
-      error:        video.error         || null
+      status,
+      videoUrl,
+      thumbnailUrl: null,
+      error:        failureReason || null,
     });
   } catch (err) {
     console.error('[UGC] Status error:', err.message);
@@ -2494,53 +2133,6 @@ app.get('/api/ugc-video-status/:videoId', async (req, res) => {
   }
 });
 
-// ── GET /api/video-ads/test-auth ──────────────────────────────────
-// Diagnostic-only route — no Oriven user auth required.
-// Confirms whether LUMA_API_KEY is accepted by the Luma Agents API.
-// Remove this route once the integration is confirmed working in production.
-app.get('/api/video-ads/test-auth', async (req, res) => {
-  const apiKey = (process.env.LUMA_API_KEY || '').trim();
-  if (!apiKey) return res.status(503).json({ error: 'LUMA_API_KEY not set' });
-
-  const AGENTS_BASE = 'https://agents.lumalabs.ai/v1';
-
-  const tests = [
-    { label: 'POST /generations (Agents API, ray-3.2)', url: `${AGENTS_BASE}/generations`, method: 'POST',
-      body: JSON.stringify({ model: 'ray-3.2', type: 'video', prompt: 'diagnostic test',
-        aspect_ratio: '16:9', video: { resolution: '720p', duration: '5s' } }) },
-  ];
-
-  const results = [];
-  for (const t of tests) {
-    try {
-      const opts = {
-        method: t.method || 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Accept': 'application/json',
-          ...(t.body ? { 'Content-Type': 'application/json' } : {}),
-        },
-        ...(t.body ? { body: t.body } : {}),
-      };
-      console.log('[VideoAds/test-auth] →', opts.method, t.url);
-      const r    = await fetch(t.url, opts);
-      let   body = '';
-      try { body = JSON.stringify(await r.json()); } catch (_) { body = await r.text(); }
-      console.log('[VideoAds/test-auth] ←', r.status, body.slice(0, 300));
-      results.push({ label: t.label, status: r.status, body: body.slice(0, 500) });
-    } catch (err) {
-      console.error('[VideoAds/test-auth] network error:', err.message);
-      results.push({ label: t.label, status: 'network-error', body: err.message });
-    }
-  }
-
-  return res.json({
-    keyPrefix: apiKey.slice(0, 15),
-    keyLength: apiKey.length,
-    authHeader: `Bearer ${apiKey.slice(0, 12)}...`,
-    results,
-  });
-});
 
 // ── POST /api/video-ads/generate ──────────────────────────────────
 // Three modes: 'ai' (Anthropic builds prompt) | 'script' (user prompt) | 'image' (image-to-video)
