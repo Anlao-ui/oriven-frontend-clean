@@ -123,26 +123,10 @@ const supabaseAdmin = createClient(
   _ck(process.env.ANTHROPIC_API_KEY, 'ANTHROPIC_API_KEY');
   _ck(process.env.OPENAI_API_KEY,    'OPENAI_API_KEY');
   _ck(process.env.HEYGEN_API_KEY,    'HEYGEN_API_KEY');
-  _ck(process.env.LUMA_API_KEY,      'LUMA_API_KEY');
+  _ck(process.env.AIML_API_KEY,      'AIML_API_KEY');
 
-  // Luma-specific diagnostics
-  // IMPORTANT: if the prefix below does not match your Render dashboard value,
-  // the Render dashboard is overriding the .env file (dotenv never overwrites
-  // variables already in the process environment). Fix: update Render dashboard.
-  const _lumaRaw = process.env.LUMA_API_KEY || '';
-  const _lumaTrimmed = _lumaRaw.trim();
-  console.log('LUMA KEY EXISTS:', !!_lumaTrimmed);
-  if (_lumaTrimmed) {
-    console.log('[Luma] Loaded env file:', _dotenvPath);
-    console.log('[Luma] LUMA key prefix:', _lumaTrimmed.slice(0, 15));
-    console.log('[Luma] LUMA key length:', _lumaTrimmed.length);
-    console.log('[Luma] starts-with luma-api-:', _lumaTrimmed.startsWith('luma-api-'));
-    if (_lumaRaw !== _lumaTrimmed) {
-      console.warn('[Luma] ⚠️  LUMA_API_KEY has leading/trailing whitespace — this will cause 403 errors');
-    }
-  } else {
-    console.error('[Luma] ❌ LUMA_API_KEY is not set — Video Ads will return 503');
-  }
+  // Note: LUMA_API_KEY is no longer used — Video Ads now routes through AIML (Kling).
+  // AIML_API_KEY is checked below via aimlProvider.diagnose().
 
   // AIML API — all AI generation routes
   const _aiml   = require('./providers/aimlProvider');
