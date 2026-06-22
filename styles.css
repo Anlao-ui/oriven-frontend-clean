@@ -1076,7 +1076,7 @@ textarea.inp{resize:vertical;min-height:80px}
   .st-quickrow{grid-template-columns:1fr}
 }
 @media(max-width:540px){
-  .st-outer{padding:56px 20px 40px}
+  .st-outer{padding:64px 20px 40px}
   .st-bc-grid{grid-template-columns:repeat(2,1fr)}
 }
 
@@ -2443,13 +2443,26 @@ textarea.flow-inp{min-height:90px;resize:vertical}
 @media(max-width:1040px){.plan-cards{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.plan-cards{grid-template-columns:1fr}}
 
-/* ── MOBILE HAMBURGER BUTTON ──────────────────────────────────── */
+/* ── MOBILE HEADER BAR (desktop: hidden; mobile: fixed strip at top) ── */
+#mobileBar{
+  display:none;position:fixed;top:0;left:0;right:0;
+  height:56px;z-index:1001;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  align-items:center;padding:0 8px;
+}
+.mb-wordmark{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  gap:8px;padding-right:44px;pointer-events:none;user-select:none;
+}
+.mb-wordmark img{width:20px;height:20px;object-fit:contain}
+.mb-name{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--charcoal);text-transform:uppercase}
+
+/* ── HAMBURGER BUTTON (lives inside #mobileBar on mobile) ──────── */
 #sbToggle{
-  display:none;position:fixed;top:10px;left:10px;z-index:1000;
-  width:36px;height:36px;border-radius:8px;
-  background:var(--surface);border:1px solid var(--border);
-  align-items:center;justify-content:center;cursor:pointer;
-  box-shadow:var(--sh);flex-shrink:0;
+  display:none;
+  width:44px;height:44px;border-radius:10px;
+  background:none;border:none;
+  align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
 }
 #sbToggle svg{width:18px;height:18px;stroke:var(--charcoal);fill:none;stroke-width:1.8;stroke-linecap:round}
 
@@ -2461,26 +2474,24 @@ textarea.flow-inp{min-height:90px;resize:vertical}
 
 /* ── TABLET / MOBILE BREAKPOINT ─────────────────────────────── */
 @media(max-width:768px){
-  /* ── 1. Show hamburger ── */
+  /* ── 1. Show mobile bar + hamburger ── */
+  #mobileBar{display:flex}
   #sbToggle{display:flex}
 
-  /* ── 3. Sidebar off-canvas drawer ── */
+  /* ── 3. Sidebar off-canvas drawer — starts below the 56px mobile bar ── */
   .sb{
-    position:fixed;left:-220px;top:0;height:100vh;z-index:999;
+    position:fixed;left:-220px;top:56px;height:calc(100vh - 56px);z-index:999;
     width:200px;min-width:200px;
     transition:left .25s ease;
     box-shadow:var(--shl);
   }
   .sb.sb-open{left:0}
 
-  /* ── 4. Logo area — make it a flex row so the hamburger (56px reserved
-          on the left) and the logo sit on the same baseline with natural
-          vertical centering. The hamburger lives outside .sb but the
-          reserved gap prevents any overlap when the drawer is open. ── */
+  /* ── 4. Logo area: clean padding, no hamburger clearance needed ── */
   .sb-logo{
     display:flex;
     align-items:center;
-    padding:14px 16px 14px 58px;  /* left gap clears the 36px button + 12px margin */
+    padding:14px 16px;
   }
   .sb-logo .logo{gap:8px}
 
@@ -2510,19 +2521,19 @@ textarea.flow-inp{min-height:90px;resize:vertical}
 
   /* Create */
   .cr-outer{padding:0 20px 60px}
-  .cr-hero{padding:56px 0 40px}
-  #page-create-workspace{padding:56px 20px 40px}
+  .cr-hero{padding:64px 0 40px}
+  #page-create-workspace{padding:64px 20px 40px}
 
   /* Studio */
-  #page-studio .st-outer{padding-top:56px}
-  #page-inspiration .ph{padding-top:56px}
+  #page-studio .st-outer{padding-top:64px}
+  #page-inspiration .ph{padding-top:64px}
 
   /* Brand Assistant — just needs extra top space */
   .chat-shell{padding:0 12px}
-  #page-aichat .chat-shell{padding-top:52px}
+  #page-aichat .chat-shell{padding-top:64px}
 
   /* Settings */
-  #page-settings .se-outer{padding-top:56px}
+  #page-settings .se-outer{padding-top:64px}
   .se-layout{grid-template-columns:1fr}
   .se-nav{position:static;display:flex;flex-direction:row;flex-wrap:wrap;gap:4px;padding:10px;border-radius:12px}
   .se-nav-group{display:contents}
@@ -2538,7 +2549,7 @@ textarea.flow-inp{min-height:90px;resize:vertical}
   /* Studio panel — slide in from right, clear hamburger */
   .sh-panel-view:not(.hidden){animation:spSlideIn 0.24s cubic-bezier(.22,.68,0,1.2) both}
   @keyframes spSlideIn{from{transform:translateX(22px);opacity:0}to{transform:translateX(0);opacity:1}}
-  .sh-panel-header{padding-top:calc(14px + 50px)} /* clear 36px hamburger + spacing */
+  .sh-panel-header{padding-top:calc(12px + 56px)} /* clear 56px mobile bar */
   .sh-back-btn{min-height:44px;padding:10px 14px;font-size:14px}
   .sh-back-btn svg{width:16px;height:16px}
   .studio-panel.active{padding-bottom:env(safe-area-inset-bottom,24px)}
@@ -2547,12 +2558,12 @@ textarea.flow-inp{min-height:90px;resize:vertical}
   .studio-tabs,.tabs-row{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
 
   /* Ideas page */
-  #page-inspiration .id-cont{padding-top:56px}
+  #page-inspiration .id-cont{padding-top:64px}
   .id-concept-grid{grid-template-columns:1fr}
   .sh-cards{grid-template-columns:1fr}
 
   /* Team page */
-  #page-team .tm-outer{padding-top:56px}
+  #page-team .tm-outer{padding-top:64px}
   .check-panel{grid-template-columns:1fr}
 }
 
@@ -3361,10 +3372,17 @@ body.dark-mode .cf-textarea:focus{ background:var(--surface); }
 /* Fill iOS status bar with app background color */
 html{ background:#0B0B0B; }
 
-/* ── Hamburger: account for notch / status bar ── */
+/* ── Mobile bar: grow to fill notch / Dynamic Island ── */
 @supports(padding-top:env(safe-area-inset-top)){
-  #sbToggle{
-    top:calc(10px + env(safe-area-inset-top));
+  @media(max-width:768px){
+    #mobileBar{
+      height:calc(56px + env(safe-area-inset-top));
+      padding-top:env(safe-area-inset-top);
+    }
+    .sb{
+      top:calc(56px + env(safe-area-inset-top));
+      height:calc(100vh - 56px - env(safe-area-inset-top));
+    }
   }
 }
 
@@ -4803,9 +4821,137 @@ body:not(.dark-mode) .gg-input:focus{ border-color:rgba(26,66,41,0.4); backgroun
 .pw-footer-note{font-size:11px;color:rgba(240,240,240,.18);}
 @media(max-width:680px){.pw-grid{grid-template-columns:1fr;}}
 
+/* Hard paywall mode — close button and skip button hidden */
+#modal-paywall.pw-hard .pw-close-btn,
+#modal-paywall.pw-hard .pw-skip-btn { display:none !important; }
+
+/* Flow step indicator in paywall (shown in hard mode only) */
+.pw-flow-steps{
+  display:none; align-items:center; gap:8px;
+  justify-content:center; margin-bottom:20px;
+}
+#modal-paywall.pw-hard .pw-flow-steps{ display:flex; }
+.pw-flow-step{
+  font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  color:rgba(240,240,240,.28); display:flex; align-items:center; gap:5px;
+}
+.pw-flow-step.pw-flow-done{ color:rgba(183,255,42,.7); }
+.pw-flow-step.pw-flow-active{ color:#fff; }
+.pw-flow-sep{ font-size:10px; color:rgba(240,240,240,.18); }
+
+/* Flow step indicator in onboarding overlay */
+.ob-flow-steps{
+  display:flex; align-items:center; gap:8px; justify-content:center;
+  margin-bottom:24px;
+}
+.ob-flow-step{
+  font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  color:rgba(240,240,240,.28); display:flex; align-items:center; gap:5px;
+}
+.ob-flow-step.ob-flow-done{ color:rgba(183,255,42,.7); }
+.ob-flow-step.ob-flow-active{ color:#fff; }
+.ob-flow-sep{ font-size:10px; color:rgba(240,240,240,.18); }
+
 /* ═══════════════════════════════════════════════════════════════
-   ONBOARDING PRODUCT TOUR OVERLAY
+   SPOTLIGHT ONBOARDING SYSTEM
    ═══════════════════════════════════════════════════════════════ */
+
+/* Spotlight ring — positioned over the spotlit nav item.
+   The massive box-shadow dims everything outside the ring while
+   the transparent interior lets the nav item show through. */
+#ob-ring{
+  display:none;
+  position:fixed;
+  z-index:8000;
+  background:transparent;
+  pointer-events:none;
+  opacity:0;
+  border-radius:12px;
+  transition:opacity .3s ease,
+             top .35s cubic-bezier(.4,0,.2,1),
+             left .35s cubic-bezier(.4,0,.2,1),
+             width .35s cubic-bezier(.4,0,.2,1),
+             height .35s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.78),
+             0 0 0 2px rgba(183,255,42,.75),
+             0 0 22px rgba(183,255,42,.18);
+}
+
+/* Full-screen backdrop for the final CTA step (no spotlight target) */
+#ob-backdrop{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.82);
+  z-index:8000;
+  pointer-events:auto;
+  opacity:0;
+  transition:opacity .3s ease;
+}
+
+/* Tooltip card */
+#ob-tooltip{
+  display:none;
+  position:fixed;
+  z-index:8001;
+  width:290px;
+  max-width:calc(100vw - 32px);
+  background:#111;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;
+  padding:20px 20px 16px;
+  opacity:0;
+  transition:opacity .22s ease;
+  box-shadow:0 16px 56px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.05);
+  pointer-events:auto;
+}
+#ob-tooltip.ob-tt-center{ width:420px; max-width:calc(100vw - 40px); }
+
+/* Left-pointing arrow on tooltip (hidden in centered mode).
+   --ob-arrow-top is set dynamically by _obRender() so the arrow
+   always points at the nav item's centre even when the card is
+   shifted to stay inside the viewport. */
+#ob-tooltip{ --ob-arrow-top: 18px; }
+#ob-tooltip.ob-tt-arrow::before{
+  content:'';position:absolute;left:-8px;top:var(--ob-arrow-top);
+  width:0;height:0;
+  border-top:8px solid transparent;
+  border-bottom:8px solid transparent;
+  border-right:8px solid rgba(255,255,255,.1);
+}
+#ob-tooltip.ob-tt-arrow::after{
+  content:'';position:absolute;left:-7px;top:var(--ob-arrow-top);
+  width:0;height:0;
+  border-top:8px solid transparent;
+  border-bottom:8px solid transparent;
+  border-right:8px solid #111;
+}
+
+.ob-tt-top{ display:flex;align-items:center;justify-content:space-between;margin-bottom:10px; }
+.ob-tt-section{ font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#B7FF2A; }
+.ob-tt-title{ font-size:16px;font-weight:600;color:#fff;line-height:1.35;margin:0 0 10px; }
+.ob-tt-title em{ font-style:italic;color:#B7FF2A; }
+.ob-tt-desc{ font-size:13px;color:rgba(240,240,240,.44);line-height:1.65;margin:0 0 20px; }
+.ob-tt-nav{ display:flex;align-items:center;justify-content:space-between; }
+.ob-tt-dots{ display:flex;gap:5px;align-items:center; }
+.ob-tt-dot{ display:inline-block;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .2s,transform .2s; }
+.ob-tt-dot.ob-tt-dot-active{ background:#B7FF2A;transform:scale(1.4); }
+.ob-tt-btns{ display:flex;gap:8px;align-items:center; }
+.ob-tt-back{
+  background:none;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);
+  border-radius:8px;padding:7px 14px;font-size:13px;font-family:inherit;cursor:pointer;
+  transition:border-color .15s,color .15s;
+}
+.ob-tt-back:hover{ border-color:rgba(255,255,255,.28);color:rgba(255,255,255,.8); }
+.ob-tt-next{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;
+  border-radius:8px;padding:7px 16px;font-size:13px;font-family:inherit;
+  cursor:pointer;font-weight:500;transition:background .15s;
+}
+.ob-tt-next:hover{ background:rgba(255,255,255,.14); }
+.ob-tt-next.ob-tt-cta{ background:#B7FF2A;color:#000;border-color:#B7FF2A;font-weight:600; }
+.ob-tt-next.ob-tt-cta:hover{ background:#c8ff4d; }
+
+/* ── Legacy overlay styles (kept as dead code — elements removed) ─ */
 #onboardingOverlay{
   position:fixed;inset:0;z-index:8000;
   background:rgba(0,0,0,.88);backdrop-filter:blur(8px);
@@ -4877,6 +5023,24 @@ body:not(.dark-mode) .gg-input:focus{ border-color:rgba(26,66,41,0.4); backgroun
 .ob-next-btn:hover{background:#c8ff4d;transform:translateY(-1px);box-shadow:0 5px 14px rgba(183,255,42,.22);}
 .ob-next-btn.ob-finish{background:#F0F0F0;color:#0A0A0A;}
 .ob-next-btn.ob-finish:hover{background:#fff;}
+
+/* Navigation hint — subtle cue below the tour card */
+.ob-nav-hint{
+  margin-top:14px;
+  text-align:center;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:.06em;
+  color:rgba(240,240,240,.28);
+  user-select:none;
+  pointer-events:none;
+}
+.ob-hint-mobile{ display:none; }
+.ob-hint-desktop{ display:inline; }
+@media(max-width:767px){
+  .ob-hint-desktop{ display:none; }
+  .ob-hint-mobile{ display:inline; }
+}
 
 /* ═══════════════════════════════════════════════════════════════
    BRANDCORE AI WIZARD
@@ -5294,6 +5458,7 @@ body:not(.dark-mode) .gg-input:focus{ border-color:rgba(26,66,41,0.4); backgroun
 
 /* Override app body rules for public pages */
 body.public-page {
+  display: block; /* override app body's display:flex — public pages need normal block flow for vertical scroll */
   height: auto;
   min-height: 100vh;
   overflow-x: hidden;
@@ -6209,14 +6374,14 @@ button.lp-cta-btn { cursor:pointer; border:none; }
   opacity: 0;
 }
 
-/* ── Mobile: scene system off, plain scroll ──────────────────── */
+/* ── Mobile landing: layout adjustments inside scenes ───────── */
+/* Scene transitions and overflow:hidden are preserved — only layout changes here. */
 @media (max-width: 820px) {
-  #lp-stage { position: relative; height: auto; overflow: visible; }
-  .lp-scene {
-    position: relative; opacity: 1; pointer-events: auto;
-    height: auto; min-height: 100vh; inset: auto;
-    flex-direction: column; justify-content: flex-start; padding-top: 80px;
-  }
+  /* Allow scenes with lots of content (FAQ, Pricing) to scroll internally.
+     The wheel/touch handlers detect scene position and only advance to the
+     next scene when the user has scrolled to the bottom of the current one. */
+  .lp-scene { overflow-y: auto; -webkit-overflow-scrolling: touch;
+               flex-direction: column; padding-top: 80px; }
   .lp-hero { grid-template-columns: 1fr; gap: 40px; padding: 0 24px; }
   .lp-s-hero-right { display: none; }
   .lp-s-h1 { font-size: clamp(32px, 8vw, 48px); }
@@ -9070,3 +9235,265 @@ button.lp-cta-btn { cursor:pointer; border:none; }
   .cr2-brand-name { font-size: 20px; }
   .cr2-brand-bar { padding: 18px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   MOBILE & TABLET RESPONSIVE OVERHAUL
+   Supplements the existing mobile blocks — no duplication intended.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Global: prevent horizontal overflow on all viewports ──────── */
+html { overflow-x: hidden; }
+body { overflow-x: hidden; max-width: 100%; }
+
+/* ── #mobileBar and .mb-wordmark CSS is defined in the main hamburger block ── */
+
+/* ══ TABLET LANDSCAPE (≤1024px) ════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .dash-outer { padding: 20px 24px 14px; }
+}
+
+/* ══ MOBILE (≤768px) — additions to existing 768px block ══════════ */
+@media (max-width: 768px) {
+
+  /* ── Overflow prevention ── */
+  .app, .mc, .page { overflow-x: hidden; }
+
+  /* ── Create page: top clearance for mobile bar ── */
+  .cr2-wrap { padding-top: 64px; }
+
+  /* ── Paywall modal: full viewport height safety ── */
+  .pw-modal {
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 20px;
+  }
+  .pw-header { padding: 24px 20px 18px; }
+  .pw-grid   { padding: 16px 16px 12px; }
+
+  /* ── Auth overlay: scrollable on small screens ── */
+  #authOverlay {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    align-items: flex-start;
+  }
+
+  /* ── All modals: bottom-sheet on mobile ── */
+  .mbk {
+    align-items: flex-end;
+  }
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 24px;
+  }
+
+  /* ── Touch targets: 44px minimum for all interactive controls ── */
+  .btn, .btn-primary, .btn-outline, .btn-ghost,
+  .pw-btn, .au-btn { min-height: 44px; }
+  .ob-tt-next, .ob-tt-back { min-height: 40px; }
+
+  /* ── Brand assistant: use full width ── */
+  .chat-outer { padding: 0 8px; }
+
+  /* ── Onboarding tooltip: crisp on mobile (bottom-sheet via JS) ── */
+  #ob-tooltip { border-radius: 20px; }
+
+  /* ── Landing page: hero actions stack vertically on mobile ── */
+  .lp-s-actions { flex-direction: column; gap: 10px; }
+  .lp-s-actions .lp-cta-btn,
+  .lp-s-actions .lp-ghost-btn { width: 100%; justify-content: center; }
+
+  /* ── Landing page: hamburger touch target 44px ── */
+  .lp-hamburger { padding: 11px; }
+
+  /* ── Dashboard: stack hero band on mobile ── */
+  .dash-hero-band { grid-template-columns: 1fr; }
+  .dash-lower     { grid-template-columns: 1fr; }
+
+  /* ── Settings: ensure nav items have touch targets ── */
+  .snav-item { min-height: 36px; display: flex; align-items: center; }
+
+}
+
+/* ══ SMALL MOBILE (≤480px) ═════════════════════════════════════════ */
+@media (max-width: 480px) {
+
+  /* ── Create page: tight on small phones ── */
+  .cr2-wrap { padding: 64px 12px 60px; }
+
+  /* ── Dashboard: single-column stats on small phones ── */
+  .dash-stats-row { grid-template-columns: 1fr; }
+
+  /* ── Paywall: compact header ── */
+  .pw-title  { font-size: 20px; }
+  .pw-sub    { font-size: 12px; }
+  .pw-card   { padding: 18px 14px; }
+
+  /* ── Plan popular tag: already tiny at 480px via existing CSS ── */
+
+  /* ── Onboarding tooltip: tighter on small phones ── */
+  #ob-tooltip { padding: 16px 16px 14px; }
+  .ob-tt-title { font-size: 15px; }
+  .ob-tt-desc  { font-size: 13px; }
+  .ob-tt-dot   { width: 5px; height: 5px; }
+
+  /* ── Dashboard hero band ── */
+  .dash-hero-band { padding: 16px; }
+
+  /* ── Settings nav: wrap more aggressively ── */
+  .snav-item { font-size: 11px; padding: 4px 8px; }
+
+  /* ── Modal: tighter padding ── */
+  .modal { padding: 20px 16px 24px; }
+
+  /* ── Auth form: full bleed on tiny screens ── */
+  .au-inner { padding: 24px 16px; }
+
+}
+
+/* ══ VERY SMALL (≤375px) ═══════════════════════════════════════════ */
+@media (max-width: 375px) {
+
+  /* ── Onboarding dots: scale down ── */
+  .ob-tt-dots { gap: 4px; }
+  .ob-tt-dot  { width: 4px; height: 4px; }
+  .ob-tt-next { font-size: 13px; padding: 8px 12px; }
+  .ob-tt-back { font-size: 13px; }
+
+  /* ── Plan card compact ── */
+  .pw-card { padding: 16px 12px; }
+  .pw-plan-name { font-size: 15px; }
+
+}
+
+/* ══ SAFE-AREA SUPPORT (supplements existing @supports blocks) ═════ */
+@supports (padding-top: env(safe-area-inset-top)) {
+  @media (max-width: 768px) {
+    /* Auth overlay pushed below notch */
+    #authOverlay { padding-top: calc(env(safe-area-inset-top) + 24px) !important; }
+    /* Mobile bar and sidebar safe-area handled in the main safe-area block above */
+  }
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 768px) {
+    .modal       { padding-bottom: calc(env(safe-area-inset-bottom) + 24px); }
+    .mc          { padding-bottom: env(safe-area-inset-bottom); }
+    #ob-tooltip  { bottom: calc(env(safe-area-inset-bottom) + 80px) !important; }
+  }
+}
+
+/* ══ COMPETITOR INTELLIGENCE v2 ════════════════════════════════════ */
+
+.ci-outer{display:flex;flex-direction:column;min-height:100%}
+
+/* ── Idle ── */
+#ciIdle{display:flex;flex-direction:column;align-items:center;gap:28px;padding:48px 24px 40px}
+.ci-idle-hd{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.ci-idle-ico{width:64px;height:64px;border-radius:18px;background:rgba(183,255,42,.06);border:1px solid rgba(183,255,42,.18);display:flex;align-items:center;justify-content:center;color:var(--gm);box-shadow:0 0 40px rgba(183,255,42,.08)}
+.ci-idle-ttl{font-size:18px;font-weight:700;color:var(--charcoal);letter-spacing:-.3px}
+.ci-idle-sub{font-size:13px;color:var(--muted);line-height:1.6;max-width:280px}
+.ci-input-wrap{display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px}
+.ci-url-field{display:flex;align-items:center;gap:10px;height:48px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:0 14px;transition:border-color .18s,box-shadow .18s}
+.ci-url-field:focus-within{border-color:rgba(183,255,42,.4);box-shadow:0 0 0 3px rgba(183,255,42,.07)}
+.ci-url-ico{color:var(--muted);flex-shrink:0}
+#ciUrl{flex:1;background:none;border:none;outline:none;font-size:13px;color:var(--charcoal)}
+#ciUrl::placeholder{color:var(--muted);opacity:.6}
+.ci-run-btn{height:48px;border-radius:12px;font-size:14px;font-weight:600;letter-spacing:-.1px}
+
+/* ── Results frame ── */
+.ci-results{display:flex;flex-direction:column}
+.ci-results-top{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.ci-results-brand{font-size:14px;font-weight:700;color:var(--charcoal);letter-spacing:-.15px}
+.ci-results-url{font-size:11px;color:var(--muted);margin-top:1px;opacity:.7}
+.ci-rerun-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);font-size:12px;color:var(--muted);cursor:pointer;transition:all .18s}
+.ci-rerun-btn:hover{background:rgba(255,255,255,.09);color:var(--charcoal)}
+
+/* ── Section wrapper ── */
+#ciResultsBody{padding:4px 0 40px}
+.ci-s{padding:20px 20px 0;margin-bottom:24px}
+.ci-s-lbl{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+
+/* ── Section 1: Snapshot ── */
+.ci-snap{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px}
+.ci-snap-name{font-size:22px;font-weight:800;color:var(--charcoal);letter-spacing:-.5px;margin-bottom:6px}
+.ci-snap-industry{display:inline-block;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);font-size:11px;color:var(--muted);margin-bottom:16px}
+.ci-snap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ci-snap-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px}
+.ci-snap-il{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.ci-snap-iv{font-size:14px;font-weight:600;color:var(--charcoal);letter-spacing:-.1px}
+
+/* ── Section 2: Visual Identity ── */
+.ci-vs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ci-vs-col{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.ci-vs-side{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.ci-vs-comp{color:var(--muted)}
+.ci-vs-user{color:rgba(183,255,42,.7)}
+.ci-swatches{display:flex;flex-wrap:wrap;gap:5px}
+.ci-swatch{width:20px;height:20px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);flex-shrink:0}
+.ci-vis-typo{font-size:14px;font-weight:600;color:var(--charcoal);letter-spacing:-.1px}
+.ci-vis-badges{display:flex;flex-wrap:wrap;gap:5px}
+.ci-vis-empty{font-size:12px;color:var(--muted);opacity:.5}
+
+/* ── Badges (shared) ── */
+.ci-badge{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:6px;font-size:11px;font-weight:500}
+.ci-badge-comp{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+.ci-badge-user{background:rgba(183,255,42,.08);border:1px solid rgba(183,255,42,.2);color:rgba(183,255,42,.9)}
+.ci-badge-overlap{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+
+/* ── Section 3: Positioning ── */
+.ci-pos-vs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.ci-pos-card{border-radius:12px;padding:16px;border:1px solid}
+.ci-pos-comp{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08)}
+.ci-pos-user{background:rgba(183,255,42,.04);border-color:rgba(183,255,42,.15)}
+.ci-pos-lbl{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.ci-pos-user .ci-pos-lbl{color:rgba(183,255,42,.6)}
+.ci-pos-val{font-size:16px;font-weight:700;color:var(--charcoal);letter-spacing:-.2px;line-height:1.3}
+.ci-overlap{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:2px}
+.ci-overlap-lbl{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);margin-right:2px}
+
+/* ── Section 4: Tone of Voice ── */
+.ci-tone-vs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ci-tone-col{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px}
+.ci-tone-side{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px}
+.ci-tone-comp{color:var(--muted)}
+.ci-tone-user{color:rgba(183,255,42,.7)}
+.ci-tone-badges{display:flex;flex-wrap:wrap;gap:6px}
+.ci-badge-tone-comp{display:inline-block;padding:5px 11px;border-radius:7px;font-size:12px;font-weight:500;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--charcoal)}
+.ci-badge-tone-user{display:inline-block;padding:5px 11px;border-radius:7px;font-size:12px;font-weight:500;background:rgba(183,255,42,.08);border:1px solid rgba(183,255,42,.22);color:rgba(183,255,42,.95)}
+
+/* ── Section 5: Differentiation ── */
+.ci-diff-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ci-diff-card{border-radius:12px;padding:16px;border:1px solid;display:flex;flex-direction:column;gap:6px}
+.ci-diff-lbl{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.ci-diff-val{font-size:15px;font-weight:700;letter-spacing:-.2px;line-height:1.3}
+.ci-diff-they{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08)}
+.ci-diff-they .ci-diff-lbl{color:var(--muted)}
+.ci-diff-they .ci-diff-val{color:var(--charcoal)}
+.ci-diff-you{background:rgba(183,255,42,.05);border-color:rgba(183,255,42,.18)}
+.ci-diff-you .ci-diff-lbl{color:rgba(183,255,42,.65)}
+.ci-diff-you .ci-diff-val{color:rgba(183,255,42,.95)}
+.ci-diff-opp{background:rgba(183,255,42,.08);border-color:rgba(183,255,42,.3);box-shadow:0 0 20px rgba(183,255,42,.06)}
+.ci-diff-opp .ci-diff-lbl{color:rgba(183,255,42,.7)}
+.ci-diff-opp .ci-diff-val{color:var(--charcoal)}
+.ci-diff-risk{background:rgba(255,160,50,.05);border-color:rgba(255,160,50,.2)}
+.ci-diff-risk .ci-diff-lbl{color:rgba(255,160,50,.7)}
+.ci-diff-risk .ci-diff-val{color:var(--charcoal)}
+
+/* ── Section 6: Strategic Insight ── */
+.ci-insight{display:flex;gap:12px;align-items:flex-start;background:rgba(183,255,42,.04);border:1px solid rgba(183,255,42,.12);border-left:3px solid rgba(183,255,42,.5);border-radius:12px;padding:16px}
+.ci-insight-ico{width:28px;height:28px;border-radius:8px;background:rgba(183,255,42,.1);display:flex;align-items:center;justify-content:center;color:var(--gm);flex-shrink:0;margin-top:1px}
+.ci-insight-text{font-size:13px;color:var(--charcoal);line-height:1.75;flex:1}
+
+/* ── Section 7: Verdict ── */
+.ci-verdict{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ci-verdict-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:4px}
+.ci-verdict-ico{font-size:15px;color:var(--gm);margin-bottom:2px}
+.ci-verdict-lbl{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+.ci-verdict-val{font-size:14px;font-weight:700;color:var(--charcoal);letter-spacing:-.1px;line-height:1.3}

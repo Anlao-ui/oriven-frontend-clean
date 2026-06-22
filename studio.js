@@ -266,7 +266,7 @@ function switchStudioTab(name){
   var hub=document.getElementById("studioHubView");
   var pv=document.getElementById("studioPanelView");
   var titleEl=document.getElementById("studioPanelTitle");
-  var titles={saved:"Saved",brandcore:"Brand Core",check:"Brand Check"};
+  var titles={saved:"Saved",brandcore:"Brand Core",check:"Brand Check",competitor:"Competitor Intelligence"};
   if(titleEl) titleEl.textContent=titles[name]||name;
 
   if(hub){
@@ -285,6 +285,7 @@ function switchStudioTab(name){
   if(name==="saved") renderAssets();
   if(name==="brandcore") refreshBC();
   if(name==="check") setTimeout(function(){ startBrandCheck(); }, 200);
+  if(name==="competitor" && typeof ciInit === "function") ciInit();
 }
 
 function showStudioHub(){

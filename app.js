@@ -444,6 +444,13 @@ function idShowHub(){
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════════
 function navigate(page){
+  // Block all navigation while the spotlight onboarding tour is active
+  if(window._obActive) return;
+
+  // Block all navigation while the hard paywall is showing
+  var _pw = document.getElementById("modal-paywall");
+  if(_pw && _pw.classList.contains("open") && _pw.classList.contains("pw-hard")) return;
+
   // "assistant" → open Brand Assistant workspace
   if(page==="assistant"){
     if(typeof openFAB==="function") openFAB();
@@ -451,12 +458,17 @@ function navigate(page){
   }
   // Plan gate: free users cannot access Brand Assistant
   if(page==="aichat"){
-    var _gatePlan = (typeof S!=="undefined" && S && S.currentPlan) ? S.currentPlan : "free";
-    if(_gatePlan==="free"){
+    // Use _dbSubscriptionStatus (set exclusively from Supabase in auth.js).
+    // null = still loading — do NOT block. "free" = confirmed free user — block.
+    var _gateSub = (typeof _dbSubscriptionStatus !== "undefined") ? _dbSubscriptionStatus : null;
+    console.log("[ACCESS] navigate('aichat') | _dbSubscriptionStatus:", _gateSub, "| will block:", _gateSub === "free");
+    if(_gateSub === "free"){
+      console.warn("[ACCESS] BLOCKING aichat — confirmed free plan from Supabase.");
       if(typeof toast==="function") toast("Upgrade your plan to access this feature","warn");
       if(typeof openPaywall==="function") openPaywall();
       return;
     }
+    // null (loading) or any paid plan → allow
   }
   document.querySelectorAll(".ni").forEach(function(e){e.classList.remove("active");});
   document.querySelectorAll(".page").forEach(function(e){e.classList.remove("active");});
@@ -479,8 +491,9 @@ function navigate(page){
 }
 
 function openBCRegen(){
-  var plan = (typeof S!=="undefined" && S && S.currentPlan) ? S.currentPlan : "free";
-  if(plan==="free"){
+  var _subSt = (typeof _dbSubscriptionStatus !== "undefined") ? _dbSubscriptionStatus : null;
+  console.log("[ACCESS] openBCRegen | _dbSubscriptionStatus:", _subSt);
+  if(_subSt === "free"){
     if(typeof toast==="function") toast("BrandCore regeneration requires a paid plan","warn");
     if(typeof openPaywall==="function") openPaywall();
     return;
@@ -531,7 +544,12 @@ function toast(msg,type){
 function openModal(id){document.getElementById(id).classList.add("open");}
 function closeModal(id){document.getElementById(id).classList.remove("open");}
 document.querySelectorAll(".mbk").forEach(function(b){
-  b.addEventListener("click",function(e){if(e.target===b) b.classList.remove("open");});
+  b.addEventListener("click",function(e){
+    if(e.target !== b) return;
+    // Hard paywall: never close on backdrop click
+    if(b.id === "modal-paywall" && b.classList.contains("pw-hard")) return;
+    b.classList.remove("open");
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════

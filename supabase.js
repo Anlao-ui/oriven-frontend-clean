@@ -33,9 +33,24 @@ console.log("[Supabase] Client initialized →", SUPABASE_URL);
 // All backend calls go through here. Catches HTML error pages (from
 // Render cold starts, 404s, or proxy errors) before they crash JSON.parse.
 // Returns: { ok, status, data }   Throws: readable Error
+// ── Auth token cache (refreshed on auth state change) ─────────
+var _apiToken = null;
+SB.auth.onAuthStateChange(function(event, session){
+  _apiToken = session && session.access_token ? session.access_token : null;
+});
+SB.auth.getSession().then(function(r){
+  _apiToken = r.data && r.data.session ? r.data.session.access_token : null;
+});
+
 async function apiFetch(path, options) {
   var url    = API_BASE_URL + path;
   var method = (options && options.method) || "GET";
+  // Auto-inject auth token so backend can verify subscription
+  var headers = Object.assign({}, options && options.headers);
+  if(!headers["Authorization"] && _apiToken){
+    headers["Authorization"] = "Bearer " + _apiToken;
+  }
+  options = Object.assign({}, options, { headers: headers });
   console.log("[API] →", method, url);
 
   var resp;
@@ -65,3 +80,22 @@ async function apiFetch(path, options) {
 
   return { ok: resp.ok, status: resp.status, data: data };
 }
+
+// ── Global fetch interceptor ──────────────────────────────────
+// Injects the session Bearer token on any raw fetch() call that
+// goes to our own backend (API_BASE_URL), so every generation
+// route receives auth even when called with plain fetch().
+(function(){
+  var _orig = window.fetch.bind(window);
+  window.fetch = function(input, init){
+    var url = typeof input === "string" ? input : (input && input.url) || "";
+    if(url && url.indexOf(API_BASE_URL) === 0 && _apiToken){
+      init = init ? Object.assign({}, init) : {};
+      init.headers = Object.assign({}, init.headers || {});
+      if(!init.headers["Authorization"]){
+        init.headers["Authorization"] = "Bearer " + _apiToken;
+      }
+    }
+    return _orig(input, init);
+  };
+})();

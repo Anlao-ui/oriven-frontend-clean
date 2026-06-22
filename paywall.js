@@ -8,11 +8,15 @@ function openPaywall(){
 }
 
 function _renderPaywallCards(){
-  // Always read the freshest plan — S.currentPlan is set by syncSubscriptionFromDB
+  // _dbSubscriptionStatus is the Supabase-authoritative value (set by _loadUserProfile).
+  // Only fall back to S.currentPlan or localStorage when DB hasn't loaded yet.
   var plan = "free";
   try {
-    if(typeof S !== "undefined" && S && S.currentPlan) plan = S.currentPlan;
-    else if(typeof loadSettings === "function"){
+    if(typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus !== null){
+      plan = _dbSubscriptionStatus;
+    } else if(typeof S !== "undefined" && S && S.currentPlan){
+      plan = S.currentPlan;
+    } else if(typeof loadSettings === "function"){
       var cfg = loadSettings();
       if(cfg && cfg.currentPlan) plan = cfg.currentPlan;
     }

@@ -5,6 +5,6 @@
 /app            /app.html       200
 /signup         /index.html     200
 /login          /index.html     200
-/plan           /index.html     200
+/plan           /app            302
 /onboarding     /app?tour=1     302
 /*              /index.html     200

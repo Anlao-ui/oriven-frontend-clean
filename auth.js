@@ -2,9 +2,11 @@
 // Handles: sign up, sign in, sign out, session restore,
 //          BrandCore save/load from Supabase.
 
-var _currentUser     = null;
-var _onboardingShown = false;
-var _postPayment     = false; // True when landing from Stripe ?success=true — suppresses subscription gate
+var _currentUser          = null;
+var _onboardingShown      = false;
+var _postPayment          = false; // True when landing from Stripe ?success=true — suppresses subscription gate
+var _dbPlanSet            = false; // True once _loadUserProfile() confirms a paid plan from Supabase
+var _dbSubscriptionStatus = null;  // null = not yet loaded | "free"/"creator"/"professional"/"starter"/"agency" = from Supabase
 
 // ── Route helpers ─────────────────────────────────────────────
 
@@ -173,6 +175,7 @@ async function handleSignUp(){
 
     _authClearInputErr(["suFirst","suEmail","suPass"]);
     console.log("[Auth] Account created and signed in:", result.data.user.id);
+    try { localStorage.setItem("oriven_needs_onboarding", "1"); } catch(_){}
     await onUserSignedIn(result.data.user);
     trackEvent("created_account", result.data.user);
   } catch(err){
@@ -187,10 +190,14 @@ async function handleSignUp(){
 
 async function authSignOut(){
   console.log("[Auth] Signing out");
-  _currentUser     = null;
-  _onboardingShown = false;
+  _currentUser          = null;
+  _onboardingShown      = false;
+  _dbSubscriptionStatus = null;
+  _dbPlanSet            = false;
   await SB.auth.signOut();
   S.brandCore = null;
+  if(typeof S !== "undefined" && S){ S.currentPlan = "free"; }
+  try { if(typeof saveSettings === "function") saveSettings({ currentPlan: "free" }); } catch(_){}
   // Clear guest generation flag so user gets a fresh try after logout
   localStorage.removeItem("guestGenerationUsed");
   showGuestLanding();
@@ -219,8 +226,15 @@ async function syncSubscriptionFromDB(){
     console.log("[Subscription] Synced from server:", JSON.stringify(data));
     var patch = {};
     if(data.subscription_status){
-      S.currentPlan = data.subscription_status;
-      patch.currentPlan = data.subscription_status;
+      var _syncStatus = data.subscription_status;
+      // Never downgrade a Supabase-confirmed paid plan based on a potentially stale backend response
+      if(_dbPlanSet && _syncStatus === "free"){
+        console.log("[Subscription] Backend returned 'free' but DB already confirmed paid plan — skipping");
+      } else {
+        S.currentPlan = _syncStatus;
+        patch.currentPlan = _syncStatus;
+        if(_syncStatus !== "free") _dbPlanSet = true;
+      }
     }
     var serverPending     = data.pending_plan      || null;
     var serverPendingDate = data.pending_plan_date || null;
@@ -238,65 +252,171 @@ async function syncSubscriptionFromDB(){
 }
 
 async function onUserSignedIn(user){
+  // Guard: if the same user is already initialised with a known plan, skip re-init.
+  // Prevents a second SIGNED_IN event (e.g. from a token refresh) from re-running
+  // the entire auth flow and potentially overwriting a correct plan with a stale value.
+  if(_currentUser && _currentUser.id === user.id && _dbSubscriptionStatus !== null){
+    console.log("[Auth] Session refresh — same user, status already loaded:", _dbSubscriptionStatus, "— skipping re-init");
+    return;
+  }
   _currentUser = user;
   linkSessionToUser(user.id);
   console.log("[Auth] User signed in:", user.id);
   updateSidebarUser(user);
-  showApp();
   _setAppRoute("/app");
-  navigate("dashboard");
-  // All background work fires in parallel — none delays the UI
+  // Fire non-blocking background work immediately
   loadBrandCoreFromDB(user);
-  syncSubscriptionFromDB();
+  // NOTE: syncSubscriptionFromDB() intentionally NOT called here.
+  // _loadUserProfile() below queries Supabase directly and is the single
+  // source of truth for plan state. Calling a second async backend source
+  // created race conditions that overwrote the correct plan with stale data.
   if(typeof initUsageTracking === "function") initUsageTracking(user);
-  _loadUserProfile(user);
+  // Subscription check determines whether to show app, onboarding, or redirect.
+  // showApp() and navigate() are called inside _loadUserProfile() to prevent
+  // the app from briefly flashing for unpaid users.
+  await _loadUserProfile(user);
 }
 
 // ── Profile: single consolidated query ───────────────────────
 
 async function _loadUserProfile(user){
+  // ── Diagnostic logging ─────────────────────────────────────────
+  console.log("[Profile] ══════════════════════════════════════");
+  console.log("[Profile] Auth user:", user.id, "| email:", user.email);
+  console.log("[Profile] Querying table: profiles | column: id =", user.id);
+  // Log current Supabase session so we can verify the JWT is present
+  try {
+    var _sesCheck = await SB.auth.getSession();
+    var _sesData  = _sesCheck.data && _sesCheck.data.session;
+    console.log("[Profile] SB session valid:", !!_sesData, "| access_token present:", !!(_sesData && _sesData.access_token));
+  } catch(_se){ console.warn("[Profile] Could not read SB session:", _se.message); }
+  // ──────────────────────────────────────────────────────────────
+
   try {
     var result = await SB.from("profiles")
-      .select("onboarding_completed, email_verified, created_at, subscription_status, pending_plan, pending_plan_date")
+      .select("*")
       .eq("id", user.id)
       .maybeSingle();
-    if(result.error) throw result.error;
-    var data = result.data;
 
-    // Email verification banner
-    if(data && !data.email_verified){
-      var createdAt   = data.created_at ? new Date(data.created_at) : new Date();
-      var daysElapsed = Math.floor((Date.now() - createdAt.getTime()) / (1000*60*60*24));
-      var daysLeft    = Math.max(0, 14 - daysElapsed);
-      _showVerifyBanner(daysLeft);
+    // Log the raw result unconditionally so we can see the full picture in the console
+    console.log("[Profile] Raw query result:", JSON.stringify({
+      data:   result.data,
+      error:  result.error ? {
+        message: result.error.message,
+        code:    result.error.code,
+        details: result.error.details,
+        hint:    result.error.hint
+      } : null,
+      status: result.status,
+      statusText: result.statusText
+    }));
+
+    if(result.error){
+      console.error("[Profile] Query ERROR — code:", result.error.code,
+        "| message:", result.error.message,
+        "| details:", result.error.details,
+        "| hint:", result.error.hint);
+      throw result.error;
     }
 
-    // Subscription sync from DB — dev mode always wins
+    var data = result.data;
+    console.log("[Profile] Query SUCCESS | data:", JSON.stringify(data));
+    if(data){ console.log("[Profile] subscription_status:", data.subscription_status); }
+    else     { console.warn("[Profile] data is null — no profile row found for user.id:", user.id); }
+
+    // Subscription gate — determines whether to reveal the app or enforce paywall
     if(typeof ORIVEN_DEV !== "undefined" && ORIVEN_DEV){
-      S.currentPlan = "professional";
-      if(typeof _updateSidebarPlan === "function") _updateSidebarPlan("professional");
+      // Dev mode: use actual DB subscription_status so the navbar reflects the real plan.
+      // Falls back to "professional" only when the DB has no value (new/test accounts).
+      var _devStatus = (data && typeof data.subscription_status === "string" && data.subscription_status.trim())
+        ? data.subscription_status.trim() : "professional";
+      _dbSubscriptionStatus = _devStatus;
+      S.currentPlan = _devStatus;
+      if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(_devStatus);
       if(typeof invalidatePlanCache === "function") invalidatePlanCache();
       if(typeof renderPlanPanel === "function") renderPlanPanel();
+      showApp();
+      navigate("dashboard");
+    } else if(_postPayment){
+      // Post-payment: DB may not reflect the new plan yet (webhook lag).
+      // Read DB anyway — if paid already, set status. If still "free", leave null (= pending).
+      var _ppRaw = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
+      if(_ppRaw && _ppRaw !== "free"){
+        _dbSubscriptionStatus = _ppRaw;
+        S.currentPlan = _ppRaw;
+        if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(_ppRaw);
+        console.log("[ACCESS] _postPayment | DB already shows paid plan:", _ppRaw);
+      } else {
+        _dbSubscriptionStatus = null; // webhook pending — gates will not block (null !== "free")
+        console.log("[ACCESS] _postPayment | DB still shows free/null — webhook pending. Waiting for syncSubscriptionFromDB().");
+      }
+      showApp();
+      navigate("dashboard");
     } else {
-      var _dbPlan = data && data.subscription_status;
-      var _isPaid = _dbPlan && typeof ORIVEN_PLANS !== "undefined" && ORIVEN_PLANS[_dbPlan];
+      var _dbPlan = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
+      _dbSubscriptionStatus = _dbPlan || "free"; // authoritative value — ONLY set from Supabase
+      var _isPaid = _dbSubscriptionStatus !== "free";
+      console.log("[ACCESS] _loadUserProfile | User:", user.id, "| DB subscription_status:", JSON.stringify(data && data.subscription_status), "| normalized:", _dbSubscriptionStatus, "| isPaid:", _isPaid, "| Paywall Decision:", !_isPaid, "| Access Granted:", _isPaid);
       if(_isPaid){
-        S.currentPlan = _dbPlan;
-        saveSettings({ currentPlan: _dbPlan });
+        // Confirmed paid subscriber — reveal the full product
+        _dbPlanSet = true;
+        S.currentPlan = _dbSubscriptionStatus;
+        saveSettings({ currentPlan: _dbSubscriptionStatus });
         if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(S.currentPlan);
         if(typeof invalidatePlanCache === "function") invalidatePlanCache();
         if(typeof renderPlanPanel === "function") renderPlanPanel();
-      } else if(!_postPayment){
-        // No valid paid subscription — redirect to plan selection
-        window.location.href = "/plan";
-        return;
+        showApp();
+        navigate("dashboard");
+      } else {
+        // No valid paid subscription — decide: onboarding gate OR hard paywall
+        //
+        // Primary signal: DB onboarding_completed field (reliable across devices,
+        // private browsing, and tab restores). Secondary: localStorage flag set
+        // immediately after account creation as a same-session fast-path.
+        var _dbCompleted = data ? data.onboarding_completed === true : false;
+        var _lsNeedsOb   = false;
+        try { _lsNeedsOb = localStorage.getItem("oriven_needs_onboarding") === "1"; } catch(_){}
+        var _needsOnboarding = !_dbCompleted || _lsNeedsOb;
+
+        console.log("[Onboarding] dbCompleted:", _dbCompleted, "| lsFlag:", _lsNeedsOb, "| willShow:", _needsOnboarding);
+
+        if(_needsOnboarding){
+          _obContext = "gate";
+          showApp();
+          showOnboarding();
+        } else {
+          // Onboarding done but not paid — hard paywall
+          showApp();
+          _showHardPaywall();
+          return;
+        }
       }
     }
-
-    var completed = data ? data.onboarding_completed === true : false;
-    console.log("[Onboarding] Status:", completed ? "completed" : "pending (awaits payment)");
   } catch(err){
-    console.error("[Profile] Load error (non-fatal):", err.message);
+    // Log everything available on the error so the root cause is visible in the console
+    console.error("[Profile] ✗ PROFILE LOAD FAILED");
+    console.error("[Profile]   err.message :", err.message);
+    console.error("[Profile]   err.code    :", err.code);
+    console.error("[Profile]   err.details :", err.details);
+    console.error("[Profile]   err.hint    :", err.hint);
+    console.error("[Profile]   err (full)  :", JSON.stringify(err));
+    console.error("[Profile]   user.id     :", user && user.id);
+    console.error("[Profile]   table       : profiles");
+    console.error("[Profile] Check: RLS policy allows SELECT for authenticated users? Column names correct? Profile row exists?");
+
+    // subscription_status is UNKNOWN — leave _dbSubscriptionStatus as null so
+    // access gates pass through rather than wrongly blocking a paid user.
+    _dbSubscriptionStatus = null;
+
+    // Clear any stale plan label from localStorage / initSettings.
+    // We must NOT display a cached plan name (e.g. "Professional") when
+    // we don't actually know the plan — that hides the real bug.
+    var _sbPlanEl = document.getElementById("sbPlanLabel");
+    if(_sbPlanEl){ _sbPlanEl.textContent = "—"; _sbPlanEl.className = "sb-plan-label sb-plan-free"; }
+
+    showApp();
+    navigate("dashboard");
+    if(typeof toast === "function") toast("Profile failed to load — please refresh the page.", "error");
   }
 }
 
@@ -315,132 +435,235 @@ async function markOnboardingComplete(){
   }
 }
 
-// ── Onboarding: UI ────────────────────────────────────────────
-// 2-step mini onboarding: intro → feature highlights → Enter ORIVEN
+// ── Onboarding: spotlight product tour ───────────────────────
+// Steps 1-7: spotlight the nav item + tooltip to the right.
+// Step 8: full-screen backdrop + centered CTA card.
+// window._obActive: guards navigate() from firing during the tour.
 
-var _obStep       = 1;
-var _obTotalSteps = 5; // 5 for Starter/Creator, 6 for Professional (Team step)
+var _obStep    = 1;
+var _obContext = "tour"; // "gate" = pre-payment; "tour" = post-payment/dev
 
-function _obConfigureSteps(){
-  var plan = (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : "free";
-  var isProfessionalPlan = (plan === "professional");
-  _obTotalSteps = isProfessionalPlan ? 6 : 5;
-
-  // Show/hide Team step and its dot
-  var teamStep = document.getElementById("obStep6");
-  var teamDot  = document.getElementById("obDot6");
-  if(teamStep) teamStep.style.display = isProfessionalPlan ? ""  : "none";
-  if(teamDot)  teamDot.style.display  = isProfessionalPlan ? ""  : "none";
-}
+var _OB_STEPS = [
+  { page:"dashboard",   section:"Dashboard",       title:"Your brand, <em>at a glance.</em>",                      desc:"Oriven is your AI Brand Operating System. The Dashboard shows your brand intelligence level, recent activity, and workspace — everything you need to run a complete brand in one place." },
+  { page:"create",      section:"Create",           title:"Every content type. <em>One platform.</em>",              desc:"Campaigns, visuals, video ads, product shoots, motion graphics, landing pages, and brand copy — all generated from your BrandCore in seconds. No re-briefing. No starting from scratch." },
+  { page:"studio",      section:"BrandCore",        title:"Strategy, positioning <em>and identity — built in.</em>",  desc:"BrandCore is the intelligence layer every Oriven output draws from. Your audience, tone, messaging, visual identity, and positioning — structured and always on. Build it once. Use it everywhere." },
+  { page:"inspiration", section:"Inspiration",      title:"Research and ideas, <em>always ready.</em>",              desc:"Explore AI-curated creative concepts across campaigns, visuals, web, and copy. Pick a direction and activate it with one click — your BrandCore ensures every idea stays aligned." },
+  { page:"assistant",   section:"Brand Assistant",  title:"Your AI brand strategist. <em>Always on.</em>",           desc:"The Brand Assistant thinks like a senior strategist trained on your brand. Ask it anything — positioning, strategy, campaign direction, copy feedback. It always responds in your brand voice." },
+  { page:"team",        section:"Team",             title:"One brand. <em>Built to scale.</em>",                     desc:"Invite your team, share your BrandCore, and build brand intelligence together. Multi-user collaboration, shared workspaces, and aligned outputs — available on Professional plans." },
+  { page:"settings",    section:"Settings",         title:"Your workspace, <em>your way.</em>",                      desc:"Manage your account, subscription, language, appearance, and AI preferences. Everything that shapes how Oriven works for you — all in one place, always available." },
+  { page:null,          section:"You’re ready", title:"Your brand operating system <em>is ready.</em>",          desc:"You’ve seen how Oriven helps create, manage and scale a complete brand. Unlock full access to start building." }
+];
 
 function showOnboarding(){
-  var el = document.getElementById("onboardingOverlay");
-  if(!el) return;
-
-  _obConfigureSteps();
   _obStep = 1;
+  window._obActive = true;
 
-  // Reset all steps
-  for(var i = 1; i <= 6; i++){
-    var s = document.getElementById("obStep" + i);
-    if(s){ s.classList.remove("ob-active","ob-exit"); }
-  }
+  // Temporarily show the Team nav item (normally hidden) so step 6 can spotlight it
+  var teamNav = document.getElementById("teamNavItem");
+  if(teamNav){ teamNav._obWasHidden = (teamNav.style.display === "none"); teamNav.style.display = ""; }
 
-  // Show overlay
-  el.style.opacity = "0";
-  el.style.display = "flex";
-  el.style.transition = "opacity 0.4s ease";
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      el.style.opacity = "1";
-      setTimeout(function(){
-        var s1 = document.getElementById("obStep1");
-        if(s1) s1.classList.add("ob-active");
-        _obUpdateNav();
-      }, 100);
-    });
-  });
+  // Block interactions with the main content area during the tour
+  var mc = document.querySelector(".mc");
+  if(mc) mc.style.pointerEvents = "none";
 
-  _obSetDots(1);
-  console.log("[Onboarding] Tour shown — Step 1 of", _obTotalSteps);
+  _obRender(1);
+  console.log("[Onboarding] Spotlight tour started — " + _OB_STEPS.length + " steps");
 }
 
 function hideOnboarding(){
-  var el = document.getElementById("onboardingOverlay");
-  if(el){
-    el.style.transition = "opacity 0.28s ease";
+  window._obActive = false;
+
+  // Restore main content interactions
+  var mc = document.querySelector(".mc");
+  if(mc) mc.style.pointerEvents = "";
+
+  // Restore Team nav visibility
+  var teamNav = document.getElementById("teamNavItem");
+  if(teamNav && teamNav._obWasHidden){ teamNav.style.display = "none"; teamNav._obWasHidden = false; }
+
+  ["ob-ring","ob-backdrop","ob-tooltip"].forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
     el.style.opacity = "0";
-    setTimeout(function(){
-      el.style.display = "none";
-      el.style.opacity = "";
-      el.style.transition = "";
-    }, 300);
-  }
+    setTimeout(function(){ el.style.display = "none"; el.style.opacity = ""; }, 280);
+  });
 }
 
-function _obSetDots(active){
-  for(var i = 1; i <= 6; i++){
-    var d = document.getElementById("obDot" + i);
-    if(!d) continue;
-    if(i === active) d.classList.add("ob-dot-active");
-    else             d.classList.remove("ob-dot-active");
-  }
-}
+function _obRender(step){
+  var s        = _OB_STEPS[step - 1];
+  if(!s) return;
+  var total    = _OB_STEPS.length;
+  var isLast   = (step === total);
+  var isMobile = window.innerWidth <= 768;
 
-function _obUpdateNav(){
-  var backBtn = document.getElementById("obBackBtn");
-  var nextBtn = document.getElementById("obNextBtn");
-  var isLast  = (_obStep === _obTotalSteps);
+  var ring  = document.getElementById("ob-ring");
+  var bd    = document.getElementById("ob-backdrop");
+  var tt    = document.getElementById("ob-tooltip");
+  var navEl = s.page ? document.querySelector('.ni[data-page="' + s.page + '"]') : null;
 
-  if(backBtn){
-    backBtn.style.visibility = _obStep > 1 ? "visible" : "hidden";
+  // ── Spotlight vs full-screen backdrop ─────────────────────────
+  // On mobile the sidebar is off-canvas so the spotlight ring would
+  // target invisible elements — use backdrop + bottom-sheet for all steps.
+  if(navEl && !isLast && !isMobile){
+    if(bd){ bd.style.opacity = "0"; setTimeout(function(){ bd.style.display = "none"; }, 250); }
+    if(ring){
+      var pad = 8;
+      var r   = navEl.getBoundingClientRect();
+      ring.style.top    = (r.top    - pad) + "px";
+      ring.style.left   = (r.left   - pad) + "px";
+      ring.style.width  = (r.width  + pad * 2) + "px";
+      ring.style.height = (r.height + pad * 2) + "px";
+      ring.style.display = "block";
+      requestAnimationFrame(function(){ ring.style.opacity = "1"; });
+    }
+  } else {
+    if(ring){ ring.style.opacity = "0"; setTimeout(function(){ ring.style.display = "none"; }, 250); }
+    if(bd){ bd.style.display = "block"; requestAnimationFrame(function(){ bd.style.opacity = "1"; }); }
   }
-  if(nextBtn){
-    nextBtn.textContent = isLast ? "Enter ORIVEN →" : "Next →";
-    if(isLast){
-      nextBtn.classList.add("ob-finish");
-      nextBtn.onclick = function(){ obFinish(); };
-    } else {
-      nextBtn.classList.remove("ob-finish");
-      nextBtn.onclick = function(){ obGoTo(_obStep + 1); };
+
+  // ── Tooltip content ────────────────────────────────────────────
+  if(!tt) return;
+
+  var secEl  = document.getElementById("ob-tt-section");
+  var titEl  = document.getElementById("ob-tt-title");
+  var descEl = document.getElementById("ob-tt-desc");
+  var dotsEl = document.getElementById("ob-tt-dots");
+  var backBtn = document.getElementById("ob-tt-back");
+  var nextBtn = document.getElementById("ob-tt-next");
+
+  if(secEl)  secEl.textContent = s.section;
+  if(titEl)  titEl.innerHTML   = s.title;
+  if(descEl) descEl.textContent = s.desc;
+
+  if(dotsEl){
+    dotsEl.innerHTML = "";
+    for(var i = 1; i <= total; i++){
+      var d = document.createElement("span");
+      d.className = "ob-tt-dot" + (i === step ? " ob-tt-dot-active" : "");
+      dotsEl.appendChild(d);
     }
   }
+
+  if(backBtn){
+    backBtn.style.visibility = step > 1 ? "visible" : "hidden";
+    backBtn.onclick = function(){ obGoTo(_obStep - 1); };
+  }
+  if(nextBtn){
+    nextBtn.textContent = isLast ? "Choose Your Plan →" : "Next →";
+    nextBtn.className   = "ob-tt-next" + (isLast ? " ob-tt-cta" : "");
+    nextBtn.onclick     = isLast ? function(){ obFinish(); } : function(){ obGoTo(_obStep + 1); };
+  }
+
+  tt.style.opacity = "0";
+  tt.style.display = "block";
+
+  requestAnimationFrame(function(){
+    if(isMobile){
+      // ── Mobile: bottom-sheet card above thumb zone ─────────────
+      tt.style.top      = "auto";
+      tt.style.bottom   = "80px";
+      tt.style.left     = "12px";
+      tt.style.right    = "12px";
+      tt.style.width    = "auto";
+      tt.style.maxWidth = "none";
+      tt.style.transform = "none";
+      tt.classList.remove("ob-tt-center");
+      tt.classList.remove("ob-tt-arrow");
+    } else if(navEl && !isLast){
+      // ── Desktop: spotlight tooltip beside nav item ─────────────
+      tt.style.bottom   = "";
+      tt.style.right    = "";
+      tt.style.width    = "";
+      tt.style.maxWidth = "";
+
+      var r       = navEl.getBoundingClientRect();
+      var margin  = 24;
+      var ttH     = tt.offsetHeight;
+      var ttW     = tt.offsetWidth || 290;
+
+      // Preferred: align tooltip top with nav item top
+      var top  = r.top;
+      var left = r.right + 18;
+
+      // Flip left if it clips the right edge
+      if(left + ttW + margin > window.innerWidth){
+        left = Math.max(margin, r.left - ttW - 18);
+      }
+
+      // Clamp vertically — keep 24px from both edges
+      var maxTop = window.innerHeight - ttH - margin;
+      var minTop = margin;
+      top = Math.min(maxTop, Math.max(minTop, top));
+
+      // Recompute arrow position so it always points at the nav item's
+      // center even when the tooltip card has been shifted up or down
+      var navCenter = r.top + r.height / 2;
+      var arrowTop  = navCenter - top - 8; // 8px = half arrow height
+      arrowTop = Math.max(8, Math.min(arrowTop, ttH - 24));
+      tt.style.setProperty("--ob-arrow-top", arrowTop + "px");
+
+      tt.style.top       = top + "px";
+      tt.style.left      = left + "px";
+      tt.style.transform = "";
+      tt.classList.add("ob-tt-arrow");
+      tt.classList.remove("ob-tt-center");
+    } else {
+      // ── Desktop: centered final step ──────────────────────────
+      tt.style.bottom   = "";
+      tt.style.right    = "";
+      tt.style.width    = "";
+      tt.style.maxWidth = "";
+      tt.style.left      = "50%";
+      tt.style.top       = "50%";
+      tt.style.transform = "translate(-50%,-50%)";
+      tt.classList.add("ob-tt-center");
+      tt.classList.remove("ob-tt-arrow");
+    }
+    requestAnimationFrame(function(){ tt.style.opacity = "1"; });
+  });
 }
 
 function obGoTo(step){
-  if(step < 1 || step > _obTotalSteps || step === _obStep) return;
-
-  var prev   = _obStep;
-  var prevEl = document.getElementById("obStep" + prev);
-  var nextEl = document.getElementById("obStep" + step);
-
-  if(prevEl){ prevEl.classList.add("ob-exit"); prevEl.classList.remove("ob-active"); }
-
-  setTimeout(function(){
-    if(prevEl) prevEl.classList.remove("ob-exit");
-
-    if(nextEl){
-      nextEl.classList.remove("ob-exit","ob-active");
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){ nextEl.classList.add("ob-active"); });
-      });
-    }
-
-    _obStep = step;
-    _obSetDots(step);
-    _obUpdateNav();
-    console.log("[Onboarding] Step →", step, "of", _obTotalSteps);
-  }, 250);
+  if(step < 1 || step > _OB_STEPS.length) return;
+  var tt   = document.getElementById("ob-tooltip");
+  var ring = document.getElementById("ob-ring");
+  if(tt)   tt.style.opacity   = "0";
+  if(ring) ring.style.opacity = "0";
+  _obStep = step;
+  setTimeout(function(){ _obRender(step); }, 180);
+  console.log("[Onboarding] Step →", step, "of", _OB_STEPS.length);
 }
 
 function obFinish(){
-  console.log("[Onboarding] Tour complete");
+  console.log("[Onboarding] Tour complete — context:", _obContext);
   markOnboardingComplete();
-  hideOnboarding();
-  setTimeout(function(){
-    navigate("dashboard");
-  }, 300);
+
+  if(_obContext === "gate"){
+    try { localStorage.removeItem("oriven_needs_onboarding"); } catch(_){}
+    _obContext = "tour";
+    hideOnboarding();
+    setTimeout(function(){ _showHardPaywall(); }, 300);
+  } else {
+    hideOnboarding();
+    setTimeout(function(){ navigate("dashboard"); }, 300);
+  }
 }
+
+// ── Keyboard: onboarding navigation + hard paywall Escape block ─
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape"){
+    if(_paywallHard){
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if(window._obActive) return; // Escape does nothing during tour
+  }
+  if(window._obActive){
+    if(e.key === "ArrowRight" || e.key === "ArrowDown")      obGoTo(_obStep + 1);
+    else if(e.key === "ArrowLeft" || e.key === "ArrowUp")    obGoTo(_obStep - 1);
+  }
+});
 
 // ── Email verification helpers ────────────────────────────────
 
@@ -610,15 +833,29 @@ async function deleteBCFromDB(){
 
 async function checkSubscriptionStatus(){
   if(typeof ORIVEN_DEV !== "undefined" && ORIVEN_DEV){
-    if(typeof S !== "undefined" && S) S.currentPlan = "professional";
+    // On dev, return the actual DB value if _loadUserProfile() already set it.
+    // Never override a Supabase-confirmed plan with a hardcoded string.
+    if(_dbSubscriptionStatus !== null) return _dbSubscriptionStatus;
+    // Only fall back to "professional" for brand-new dev sessions before DB loads.
+    if(typeof S !== "undefined" && S && S.currentPlan && S.currentPlan !== "free") return S.currentPlan;
     return "professional";
   }
+
+  // Return the session-authoritative value when already loaded by _loadUserProfile().
+  // This value came directly from Supabase at sign-in and is the source of truth.
+  // Only do a live DB query when _dbSubscriptionStatus is null (post-payment webhook lag).
+  if(_dbSubscriptionStatus !== null){
+    var _isPaidCheck = _dbSubscriptionStatus !== "free";
+    console.log("[Paywall] checkSubscriptionStatus | cached from session:", _dbSubscriptionStatus, "| Paywall Decision:", !_isPaidCheck, "| Access Granted:", _isPaidCheck);
+    return _dbSubscriptionStatus;
+  }
+
   if(typeof SB === "undefined"){
     console.error("[Paywall] SB client not initialized — cannot check subscription");
     return "free";
   }
 
-  // Always fetch a fresh user object — never use a cached value
+  // Live query — only reached during post-payment webhook lag or very early in session
   var userResult = await SB.auth.getUser();
   var user = userResult.data && userResult.data.user;
   if(!user){
@@ -647,7 +884,11 @@ async function checkSubscriptionStatus(){
       if(resp.error.code === "42703"){
         console.error("[Paywall] FIX: run this in Supabase SQL Editor:\n  ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status text default 'free';");
       }
-      return "free"; // fail-safe — never block the user on a DB error
+      // Fall back to the in-memory plan set by _loadUserProfile() rather than
+      // hardcoding "free" — a DB error must NOT override a confirmed paid plan.
+      var _cachedPlan = (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : "free";
+      console.warn("[Paywall] Using cached plan as fallback:", _cachedPlan);
+      return _cachedPlan;
     }
 
     if(!resp.data){
@@ -658,31 +899,39 @@ async function checkSubscriptionStatus(){
         { onConflict: "id" }
       );
       if(upsert.error) console.error("[Paywall] Could not upsert profile:", upsert.error.message);
-      return "free";
+      // Use cached plan in case the upsert path fires for a paid user mid-session
+      var _cachedPlan2 = (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : "free";
+      return _cachedPlan2;
     }
 
     // We have a real row — read the value directly, do NOT fall back silently
     var status = resp.data.subscription_status;
     if(!status){
-      console.warn("[Paywall] subscription_status is null/empty in DB — treating as free. " +
-        "Run the ALTER TABLE SQL, then set it to 'creator' or 'professional' for paid users.");
-      return "free";
+      console.warn("[Paywall] subscription_status is null/empty in DB — checking cached plan");
+      var _cachedPlan3 = (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : "free";
+      return _cachedPlan3;
     }
 
     var isPaid = status !== "free";
     console.log("[Paywall] subscription_status:", status, "→", isPaid
       ? "✓ SUBSCRIBED — paywall will NOT show"
       : "✗ FREE — paywall will show");
+    // Cache the live result so subsequent calls use it without another DB query
+    _dbSubscriptionStatus = status;
+    if(typeof S !== "undefined" && S && isPaid){ S.currentPlan = status; }
     return status;
 
   } catch(err){
     console.error("[Paywall] Unexpected JS error:", err.message);
-    return "free";
+    var _cachedPlan4 = (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : "free";
+    console.warn("[Paywall] Using cached plan as fallback:", _cachedPlan4);
+    return _cachedPlan4;
   }
 }
 
 async function maybeShowPaywall(){
-  console.log("[Paywall] Triggered — checking subscription before showing paywall...");
+  console.log("[Paywall] maybeShowPaywall() called — S.currentPlan at call time:", (typeof S !== "undefined" && S) ? S.currentPlan : "S not defined");
+  console.trace("[Paywall] call stack (shows which function triggered this):");
   var status = await checkSubscriptionStatus();
   if(status !== "free"){
     console.log("[Paywall] Subscribed user (" + status + ") — paywall suppressed");
@@ -692,7 +941,22 @@ async function maybeShowPaywall(){
   if(typeof openPaywall === "function") openPaywall();
 }
 
+// Hard paywall — shown after onboarding, cannot be dismissed until payment
+var _paywallHard = false;
+
+function _showHardPaywall(){
+  _paywallHard = true;
+  var modal = document.getElementById("modal-paywall");
+  if(modal) modal.classList.add("pw-hard");
+  if(typeof openPaywall === "function") openPaywall();
+  console.log("[Paywall] Hard paywall shown — awaiting plan selection");
+}
+
 function closePaywall(){
+  if(_paywallHard){
+    console.log("[Paywall] Hard paywall — dismiss blocked");
+    return;
+  }
   if(typeof closeModal === "function") closeModal("modal-paywall");
   console.log("[Paywall] Dismissed by user");
 }
@@ -722,6 +986,15 @@ async function selectPlan(plan){
 
 document.addEventListener("DOMContentLoaded", async function(){
   trackEvent("visited_site");
+
+  // Reset the authoritative subscription state — only _loadUserProfile() may set it.
+  // _dbSubscriptionStatus = null means "not yet loaded from Supabase".
+  // Access gates check this variable; null → don't block (waiting for DB).
+  _dbSubscriptionStatus = null;
+  _dbPlanSet = false;
+  // Keep S.currentPlan reset for UI display consistency (navbar shows blank until DB loads)
+  if(typeof S !== "undefined" && S){ S.currentPlan = "free"; }
+  try { if(typeof saveSettings === "function") saveSettings({ currentPlan: "free" }); } catch(_){}
 
   // Capture path before any redirects fire
   var _loadPath = window.location.pathname;
@@ -760,21 +1033,30 @@ document.addEventListener("DOMContentLoaded", async function(){
     await onUserSignedIn(session.user);
 
     // Fire onboarding tour after payment or dev ?tour=1
+    // Use checkSubscriptionStatus() (direct Supabase query) rather than
+    // syncSubscriptionFromDB() (backend API) — Supabase is the single source of truth.
     if(_stripeOk){
       setTimeout(async function(){
-        await syncSubscriptionFromDB();
-        var plan = typeof S !== "undefined" && S && S.currentPlan;
-        var hasPaid = plan && typeof ORIVEN_PLANS !== "undefined" && ORIVEN_PLANS[plan];
-        if(hasPaid){
+        var status = await checkSubscriptionStatus();
+        if(status && status !== "free"){
+          _dbSubscriptionStatus = status;
+          S.currentPlan = status;
+          if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
+          if(typeof invalidatePlanCache === "function") invalidatePlanCache();
+          if(typeof renderPlanPanel === "function") renderPlanPanel();
           toast("Your subscription is now active — welcome to ORIVEN!");
           setTimeout(function(){ showOnboarding(); }, 600);
         } else {
           // Webhook may not have arrived yet — retry once after a short delay
           toast("Payment received — activating your account...");
           setTimeout(async function(){
-            await syncSubscriptionFromDB();
-            plan = typeof S !== "undefined" && S && S.currentPlan;
-            if(plan && typeof ORIVEN_PLANS !== "undefined" && ORIVEN_PLANS[plan]){
+            status = await checkSubscriptionStatus();
+            _dbSubscriptionStatus = status;
+            if(status && status !== "free"){
+              S.currentPlan = status;
+              if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
+              if(typeof invalidatePlanCache === "function") invalidatePlanCache();
+              if(typeof renderPlanPanel === "function") renderPlanPanel();
               toast("Your subscription is now active — welcome to ORIVEN!");
               setTimeout(function(){ showOnboarding(); }, 400);
             } else {
@@ -786,9 +1068,8 @@ document.addEventListener("DOMContentLoaded", async function(){
     } else if(_tourParam){
       // Only show tour for users with an active paid subscription
       setTimeout(async function(){
-        await syncSubscriptionFromDB();
-        var plan = typeof S !== "undefined" && S && S.currentPlan;
-        if(plan && typeof ORIVEN_PLANS !== "undefined" && ORIVEN_PLANS[plan]) showOnboarding();
+        var status = await checkSubscriptionStatus();
+        if(status && status !== "free") showOnboarding();
       }, 500);
     }
   } else {
@@ -800,6 +1081,10 @@ document.addEventListener("DOMContentLoaded", async function(){
   SB.auth.onAuthStateChange(function(event, _session){
     console.log("[Auth] Auth state change:", event);
     if(event === "SIGNED_OUT"){
+      _dbSubscriptionStatus = null;
+      _dbPlanSet = false;
+      if(typeof S !== "undefined" && S){ S.currentPlan = "free"; }
+      try { if(typeof saveSettings === "function") saveSettings({ currentPlan: "free" }); } catch(_){}
       S.brandCore = null;
       showGuestLanding();
     }

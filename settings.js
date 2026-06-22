@@ -1182,8 +1182,12 @@ function initPlan(){
     cfg = loadSettings();
   }
 
-  // Always sync the sidebar label on page load
-  _updateSidebarPlan(cfg.currentPlan || "free");
+  // Sync sidebar — ONLY use Supabase-authoritative value (_dbSubscriptionStatus).
+  // Do NOT fall back to localStorage: a stale cached plan hides profile load errors.
+  // auth.js will call _updateSidebarPlan() with the real value once the DB responds.
+  if(typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus !== null){
+    _updateSidebarPlan(_dbSubscriptionStatus);
+  }
   renderPlanPanel();
 }
 
@@ -1294,9 +1298,20 @@ function renderPlanPanel(){
   if(!container) return;
 
   var cfg         = loadSettings();
-  // S.currentPlan (live session state) is authoritative — it's written by the auth
-  // sync immediately after login and is always at least as fresh as localStorage.
-  var currentId   = (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : (cfg.currentPlan || "free");
+  // _dbSubscriptionStatus is the single source of truth — set exclusively from Supabase
+  // by _loadUserProfile() in auth.js. Fall back to S.currentPlan, then localStorage.
+  // Never infer, hardcode, or default to a paid plan.
+  // Use _dbSubscriptionStatus (Supabase) exclusively. Fall back to S.currentPlan only
+  // when the DB value is not yet loaded (null = still in flight, not failed).
+  // Never fall back to localStorage: stale cached values hide profile load failures.
+  var currentId;
+  if(typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus !== null){
+    currentId = _dbSubscriptionStatus;
+  } else if(typeof S !== "undefined" && S && S.currentPlan){
+    currentId = S.currentPlan;
+  } else {
+    currentId = null; // unknown — don't display any plan name until Supabase responds
+  }
   var pendingId   = (typeof S !== "undefined" && S && S.pendingPlan !== undefined) ? S.pendingPlan : (cfg.pendingPlan || null);
   var renewalStr  = _formatPlanDate(cfg.planRenewalDate);
   var currentData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === currentId; });
@@ -1433,9 +1448,12 @@ function _updateSidebarPlan(planId){
   var el = document.getElementById("sbPlanLabel");
   if(!el) return;
   var plan = ORIVEN_PLANS[planId];
-  var name = plan ? plan.name : "No Subscription";
+  // If planId is a valid string but not in ORIVEN_PLANS (e.g. "agency"), capitalise it.
+  // This way any plan stored in Supabase displays correctly without hardcoding.
+  var name = plan ? plan.name
+    : (planId && planId !== "free" ? planId.charAt(0).toUpperCase() + planId.slice(1) : "No Subscription");
   el.textContent = name;
-  el.className = "sb-plan-label sb-plan-" + (plan ? planId : "free");
+  el.className = "sb-plan-label sb-plan-" + (planId || "free");
 }
 
 function _formatPlanDate(iso){

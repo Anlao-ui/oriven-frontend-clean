@@ -129,9 +129,15 @@
 
 <div class="toast" id="toast"></div>
 <div id="sbOverlay" onclick="closeSidebar()"></div>
-<button id="sbToggle" onclick="toggleSidebar()" aria-label="Menu">
-  <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4.5h14M2 9h14M2 13.5h14"/></svg>
-</button>
+<div id="mobileBar">
+  <button id="sbToggle" onclick="toggleSidebar()" aria-label="Menu">
+    <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4.5h14M2 9h14M2 13.5h14"/></svg>
+  </button>
+  <div class="mb-wordmark" aria-hidden="true">
+    <img src="assets/orivenlogo.png" alt="">
+    <span class="mb-name">ORIVEN</span>
+  </div>
+</div>
 
 <div class="app">
 
@@ -714,6 +720,7 @@
               </div>
               <div class="bcp-hdr-actions">
                 <button class="bcp-action-btn" onclick="switchStudioTab('check')">Brand Check</button>
+                <button class="bcp-action-btn" onclick="switchStudioTab('competitor')">Competitor Intel</button>
                 <button class="bcp-action-btn bcp-action-btn-primary" onclick="openModal('modal-bc-regen')">Regenerate</button>
               </div>
             </div>
@@ -910,6 +917,56 @@
 
               <!-- Results -->
               <div class="scd hidden" id="ckScore"></div>
+
+            </div>
+          </div>
+
+          <!-- ── COMPETITOR INTELLIGENCE v2 ── -->
+          <div class="studio-panel" id="tab-competitor">
+            <div class="ci-outer">
+
+              <!-- Idle -->
+              <div id="ciIdle">
+                <div class="ci-idle-hd">
+                  <div class="ci-idle-ico">
+                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="13" cy="13" r="10"/><circle cx="13" cy="13" r="5"/><circle cx="13" cy="13" r="1.5" fill="currentColor" stroke="none"/><line x1="13" y1="3" x2="13" y2="0.5"/><line x1="13" y1="25.5" x2="13" y2="23"/><line x1="3" y1="13" x2="0.5" y2="13"/><line x1="25.5" y1="13" x2="23" y2="13"/></svg>
+                  </div>
+                  <div class="ci-idle-ttl">Competitor Intelligence</div>
+                  <div class="ci-idle-sub">Enter a competitor's website. Get instant brand intelligence — positioning, visual identity, tone, and your strategic advantage.</div>
+                </div>
+                <div class="ci-input-wrap">
+                  <div class="ci-url-field">
+                    <svg class="ci-url-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="6"/><path d="M1 7h12M7 1a9.5 9.5 0 0 1 0 12M7 1a9.5 9.5 0 0 0 0 12"/></svg>
+                    <input type="url" id="ciUrl" placeholder="https://competitor.com" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')startCompetitorAnalysis()"/>
+                  </div>
+                  <button class="btn btn-p ci-run-btn" onclick="startCompetitorAnalysis()">Analyze Competitor</button>
+                </div>
+              </div>
+
+              <!-- Analyzing -->
+              <div class="bc-analyzing hidden" id="ciAnalyzing">
+                <div class="bc-analyze-hd">
+                  <div class="bc-analyze-orb"></div>
+                  <div class="bc-analyze-ttl">Analyzing Competitor</div>
+                  <div class="bc-analyze-sub" id="ciAnalyzeSub">Reading brand signals…</div>
+                </div>
+                <div class="bc-steps" id="ciSteps"></div>
+              </div>
+
+              <!-- Results -->
+              <div class="ci-results hidden" id="ciResults">
+                <div class="ci-results-top">
+                  <div>
+                    <div class="ci-results-brand" id="ciResultsBrand"></div>
+                    <div class="ci-results-url" id="ciResultsUrl"></div>
+                  </div>
+                  <button class="ci-rerun-btn" onclick="ciReset()">
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.5 2A5.5 5.5 0 1 0 11 6.5"/><polyline points="8,0 10.5,2 8,4.5"/></svg>
+                    New Analysis
+                  </button>
+                </div>
+                <div id="ciResultsBody"></div>
+              </div>
 
             </div>
           </div>
@@ -1854,7 +1911,7 @@
 <!-- PAYWALL MODAL — premium dark design -->
 <div class="mbk" id="modal-paywall">
   <div class="modal pw-modal">
-    <!-- Close -->
+    <!-- Close (hidden in hard paywall mode via .pw-hard CSS) -->
     <button onclick="closePaywall()" class="pw-close-btn" title="Close">
       <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
     </button>
@@ -1866,7 +1923,7 @@
         <span>Choose Your Plan</span>
       </div>
       <h2 class="pw-title">Unlock <em>ORIVEN.</em></h2>
-      <p class="pw-sub">Enterprise-grade brand intelligence. Built for brands that create at scale.</p>
+      <p class="pw-sub">Everything your brand needs, powered by AI. Cancel anytime.</p>
     </div>
 
     <!-- Plans — rendered by plans.js / paywall.js -->
@@ -1880,91 +1937,27 @@
   </div>
 </div>
 
-<!-- ONBOARDING PRODUCT TOUR OVERLAY -->
-<div id="onboardingOverlay" style="display:none">
+<!-- SPOTLIGHT ONBOARDING — ring + tooltip, no full-screen takeover -->
 
-  <!-- Skip -->
-  <button class="ob-tour-skip" onclick="obFinish()">Skip tour</button>
+<!-- Steps 1-7: box-shadow ring spotlights the target nav item -->
+<div id="ob-ring" style="display:none"></div>
 
-  <!-- Card -->
-  <div class="ob-tour-card">
+<!-- Step 8: full-screen backdrop for the final CTA -->
+<div id="ob-backdrop" style="display:none"></div>
 
-    <!-- Step 1: Dashboard -->
-    <div class="ob-step" id="obStep1">
-      <div class="ob-tour-icon ob-icon-dashboard">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="2" width="9" height="9" rx="2"/><rect x="13" y="2" width="9" height="9" rx="2"/><rect x="2" y="13" width="9" height="9" rx="2"/><rect x="13" y="13" width="9" height="9" rx="2"/></svg>
-      </div>
-      <div class="ob-tour-section">Dashboard</div>
-      <div class="ob-tour-title">Your brand <em>intelligence hub.</em></div>
-      <div class="ob-tour-desc">Monitor your brand's intelligence level, track recent creative activity, and get a real-time view of your entire workspace at a glance.</div>
+<!-- Tooltip card — repositioned per step by _obRender() -->
+<div id="ob-tooltip" style="display:none">
+  <div class="ob-tt-top">
+    <span class="ob-tt-section" id="ob-tt-section"></span>
+  </div>
+  <h3 class="ob-tt-title" id="ob-tt-title"></h3>
+  <p class="ob-tt-desc" id="ob-tt-desc"></p>
+  <div class="ob-tt-nav">
+    <div class="ob-tt-dots" id="ob-tt-dots"></div>
+    <div class="ob-tt-btns">
+      <button class="ob-tt-back" id="ob-tt-back" style="visibility:hidden">← Back</button>
+      <button class="ob-tt-next" id="ob-tt-next">Next →</button>
     </div>
-
-    <!-- Step 2: Create -->
-    <div class="ob-step" id="obStep2">
-      <div class="ob-tour-icon ob-icon-create">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M12 2l2.5 6.5L21 10l-4.5 4.4 1.3 6.6L12 17.8l-5.8 3.2 1.3-6.6L3 10l6.5-1.5L12 2z"/></svg>
-      </div>
-      <div class="ob-tour-section">Create</div>
-      <div class="ob-tour-title">Generate any <em>brand asset.</em></div>
-      <div class="ob-tour-desc">Campaigns, visuals, UGC video ads, brand copy, and landing pages — all generated from your BrandCore identity without re-prompting.</div>
-    </div>
-
-    <!-- Step 3: Studio -->
-    <div class="ob-step" id="obStep3">
-      <div class="ob-tour-icon ob-icon-studio">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M12 2l2.5 5.5L20 9l-4 3.9 1 5.6L12 16l-5 2.5 1-5.6L4 9l5.5-1.5L12 2z"/></svg>
-      </div>
-      <div class="ob-tour-section">BrandCore</div>
-      <div class="ob-tour-title">Your brand <em>lives here.</em></div>
-      <div class="ob-tour-desc">Your complete brand identity in one place — colors, typography, personality, tone of voice, positioning, and logo system. Every generation draws from it.</div>
-    </div>
-
-    <!-- Step 4: Inspiration -->
-    <div class="ob-step" id="obStep4">
-      <div class="ob-tour-icon ob-icon-inspiration">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M12 2a7 7 0 0 1 2.8 13.4V17H9.2v-1.6A7 7 0 0 1 12 2z"/><path d="M9.2 19.5h5.6M10 21.5h4"/></svg>
-      </div>
-      <div class="ob-tour-section">Inspiration</div>
-      <div class="ob-tour-title">Find your <em>creative direction.</em></div>
-      <div class="ob-tour-desc">36 AI-curated creative concepts across Campaign, Visual, Web, and Text. Pick a direction and activate it with one click.</div>
-    </div>
-
-    <!-- Step 5: Settings -->
-    <div class="ob-step" id="obStep5">
-      <div class="ob-tour-icon ob-icon-settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
-      </div>
-      <div class="ob-tour-section">Settings</div>
-      <div class="ob-tour-title">Manage your <em>workspace.</em></div>
-      <div class="ob-tour-desc">Control appearance, language, your subscription, and every ORIVEN AI intelligence preference — all in one place.</div>
-    </div>
-
-    <!-- Step 6: Team (Business only — hidden for other plans) -->
-    <div class="ob-step" id="obStep6" style="display:none">
-      <div class="ob-tour-icon ob-icon-team">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      </div>
-      <div class="ob-tour-section" style="color:#A78BFA">Team</div>
-      <div class="ob-tour-title">Your team. <em>One intelligence.</em></div>
-      <div class="ob-tour-desc">Invite members, share your BrandCore, and build brand intelligence together inside a unified workspace that grows smarter over time.</div>
-    </div>
-
-    <!-- Navigation -->
-    <div class="ob-tour-nav">
-      <div class="ob-dots" id="obDotContainer">
-        <div class="ob-dot" id="obDot1"></div>
-        <div class="ob-dot" id="obDot2"></div>
-        <div class="ob-dot" id="obDot3"></div>
-        <div class="ob-dot" id="obDot4"></div>
-        <div class="ob-dot" id="obDot5"></div>
-        <div class="ob-dot ob-dot-team" id="obDot6" style="display:none"></div>
-      </div>
-      <div class="ob-tour-btns">
-        <button class="ob-back-btn" id="obBackBtn" onclick="obGoTo(_obStep - 1)" style="visibility:hidden">← Back</button>
-        <button class="ob-next-btn" id="obNextBtn" onclick="obGoTo(_obStep + 1)">Next →</button>
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -1989,6 +1982,7 @@
 <script src="productshoots.js"></script>
 <script src="motiongraphics.js"></script>
 <script src="inspiration.js"></script>
+<script src="competitor.js"></script>
 
 <!-- ════════════════════════════════════════════════════════════
      AI CONVERSATION FLOW OVERLAY
@@ -2406,8 +2400,8 @@
     <div class="gob-logo">
       <img src="assets/orivenlogo.png" alt="ORIVEN" class="gob-logo-img">
     </div>
-    <h1 class="gob-headline">Your brand,<br><em>built by AI.</em></h1>
-    <p class="gob-sub">One idea. A complete brand identity — ready in minutes.</p>
+    <h1 class="gob-headline">The AI Brand<br><em>Operating System.</em></h1>
+    <p class="gob-sub">Create, manage and scale your brand from one place.</p>
     <div class="gob-ctas">
       <button class="gob-try" onclick="_guestOnboardTryFree()">
         Try for free
