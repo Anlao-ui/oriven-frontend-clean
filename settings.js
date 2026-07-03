@@ -1603,14 +1603,16 @@ function _renderGadsAccounts(accounts){
   }
   if(errEl) errEl.style.display = "none";
 
+  function h(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
   listEl.innerHTML = accounts.map(function(a){
     var meta = [];
     if(a.currency) meta.push(a.currency);
     if(a.timezone) meta.push(a.timezone);
     return '<div class="int-account-row">'
-      + '<div class="int-account-name">' + _esc(a.name) + '</div>'
-      + '<div class="int-account-id">ID: ' + _esc(a.customer_id) + '</div>'
-      + (meta.length ? '<div class="int-account-meta">' + _esc(meta.join(' · ')) + '</div>' : '')
+      + '<div class="int-account-name">' + h(a.name) + '</div>'
+      + '<div class="int-account-id">ID: ' + h(a.customer_id) + '</div>'
+      + (meta.length ? '<div class="int-account-meta">' + h(meta.join(' \xb7 ')) + '</div>' : '')
       + '</div>';
   }).join('');
 
