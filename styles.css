@@ -4868,6 +4868,11 @@ body.dark-mode .int-connected{border-color:rgba(255,255,255,.07);}
   background:#22C55E;margin-right:6px;flex-shrink:0;vertical-align:middle;
 }
 .int-status-warn{background:#F59E0B;}
+.int-account-row{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:8px;background:var(--surface-2,rgba(0,0,0,.04));margin-bottom:6px;}
+body.dark-mode .int-account-row{background:rgba(255,255,255,.05);}
+.int-account-name{font-size:13px;font-weight:500;color:var(--text);}
+.int-account-id{font-size:12px;color:var(--text-2);}
+.int-account-meta{font-size:11px;color:var(--text-2);}
 
 /* Hard paywall mode — close button and skip button hidden */
 #modal-paywall.pw-hard .pw-close-btn,

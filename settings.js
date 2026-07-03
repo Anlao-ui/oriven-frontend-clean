@@ -1575,6 +1575,7 @@ async function _loadGadsStatus(){
         statusEl.innerHTML = '<span class="int-status-dot' + (isExpired ? " int-status-warn" : "") + '"></span>'
           + (isExpired ? "Token expired — reconnect" : "Active");
       }
+      _renderGadsAccounts(data.google_ads_accounts || []);
     } else {
       if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; connectBtn.style.display = ""; }
       if(connectedEl) connectedEl.style.display = "none";
@@ -1582,6 +1583,62 @@ async function _loadGadsStatus(){
   } catch(err){
     if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; }
     console.error("[Google Ads] Status load failed:", err.message);
+  }
+}
+
+function _renderGadsAccounts(accounts){
+  var wrap    = document.getElementById("gads-accounts-wrap");
+  var listEl  = document.getElementById("gads-accounts-list");
+  var errEl   = document.getElementById("gads-accounts-error");
+  var loadEl  = document.getElementById("gads-accounts-loading");
+  if(!wrap || !listEl) return;
+  if(loadEl) loadEl.style.display = "none";
+  if(errEl)  errEl.style.display  = "none";
+
+  if(!accounts || accounts.length === 0){
+    wrap.style.display = "none";
+    return;
+  }
+
+  listEl.innerHTML = accounts.map(function(a){
+    var meta = [];
+    if(a.currency) meta.push(a.currency);
+    if(a.timezone) meta.push(a.timezone);
+    return '<div class="int-account-row">'
+      + '<div class="int-account-name">' + _esc(a.name) + '</div>'
+      + '<div class="int-account-id">ID: ' + _esc(a.customer_id) + '</div>'
+      + (meta.length ? '<div class="int-account-meta">' + _esc(meta.join(' · ')) + '</div>' : '')
+      + '</div>';
+  }).join('');
+
+  wrap.style.display = "";
+}
+
+async function refreshGadsAccounts(){
+  var btn    = document.getElementById("gads-refresh-btn");
+  var loadEl = document.getElementById("gads-accounts-loading");
+  var errEl  = document.getElementById("gads-accounts-error");
+  var wrap   = document.getElementById("gads-accounts-wrap");
+  if(btn)    { btn.disabled = true; btn.textContent = "Refreshing…"; }
+  if(loadEl) { loadEl.style.display = ""; }
+  if(errEl)  { errEl.style.display  = "none"; }
+  if(wrap)   { wrap.style.display   = "none"; }
+
+  try {
+    var result = await apiFetch("/api/google/accounts");
+    if(!result.ok){
+      var msg = (result.data && result.data.error) ? result.data.error : "Could not fetch accounts";
+      if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
+      if(loadEl) loadEl.style.display = "none";
+    } else {
+      _renderGadsAccounts(result.data.accounts || []);
+    }
+  } catch(err){
+    if(errEl){ errEl.textContent = "Network error — try again"; errEl.style.display = ""; }
+    if(loadEl) loadEl.style.display = "none";
+    console.error("[Google Ads] Account refresh failed:", err.message);
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = "Refresh accounts"; }
   }
 }
 
