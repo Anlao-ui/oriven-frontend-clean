@@ -329,7 +329,8 @@
         }).join('')
       + '</div>'
       + '<div id="ads-detail-ads-wrap"><div class="ads-loading-wrap"><div class="ads-spinner"></div>Loading ads…</div></div>'
-      + '<div id="ads-detail-kw-wrap" style="margin-top:20px"></div>';
+      + '<div id="ads-detail-kw-wrap" style="margin-top:20px"></div>'
+      + '<div id="ads-detail-st-wrap" style="margin-top:20px"></div>';
   }
 
   async function _loadCampaignDetail(campaignId) {
@@ -343,6 +344,7 @@
       }
       _renderDetailAds(res.data.ads || []);
       _renderDetailKeywords(res.data.keywords || []);
+      _renderDetailSearchTerms(res.data.search_terms || []);
     } catch(err) {
       var w = $('ads-detail-ads-wrap');
       if(w) w.innerHTML = '<p style="color:#ef4444;font-size:13px">' + h(err.message || 'Network error') + '</p>';
@@ -410,13 +412,42 @@
       + '</tbody></table></div>';
   }
 
-  // ── AI Analysis ──────────────────────────────────────────────
-  window.analyzeAds = async function() {
-    if(!_s.overview || !_s.campaigns) {
-      if(typeof toast === 'function') toast('Load account data first.', 'err');
-      return;
-    }
+  function _renderDetailSearchTerms(searchTerms) {
+    var el = $('ads-detail-st-wrap');
+    if(!el || !searchTerms || searchTerms.length === 0) return;
 
+    var wasted = searchTerms.filter(function(s){ return s.spend > 0.1 && s.conversions === 0; });
+    el.innerHTML = '<div class="ads-section-hd" style="margin-top:4px">'
+      + '<div class="ads-section-title">Search Terms (' + searchTerms.length + ')'
+      + (wasted.length > 0 ? ' <span style="font-size:11px;color:#f59e0b;font-weight:500;margin-left:6px">⚠ ' + wasted.length + ' with spend, 0 conv</span>' : '')
+      + '</div></div>'
+      + '<div class="ads-table-wrap"><table class="ads-table"><thead><tr>'
+      + '<th>Search Term</th><th>Ad Group</th><th>Status</th>'
+      + '<th class="ads-num">Spend</th><th class="ads-num">Clicks</th>'
+      + '<th class="ads-num">CTR</th><th class="ads-num">Conv.</th>'
+      + '</tr></thead><tbody>'
+      + searchTerms.map(function(s) {
+          var isWasted = s.spend > 0.1 && s.conversions === 0;
+          return '<tr' + (isWasted ? ' style="background:rgba(245,158,11,.04)"' : '') + '>'
+            + '<td class="ads-name" style="max-width:240px" title="' + h(s.term) + '">'
+            + (isWasted ? '<span title="Spend with no conversions" style="color:#f59e0b;margin-right:4px">⚠</span>' : '')
+            + h(s.term) + '</td>'
+            + '<td style="font-size:12px;color:var(--muted)">' + h(s.ad_group || '—') + '</td>'
+            + '<td><span class="badge ' + (s.status === 'ADDED' ? 'bg-green' : s.status === 'EXCLUDED' ? 'bg-warm' : 'bg-grey') + '">'
+            + (s.status === 'ADDED' ? 'Added' : s.status === 'EXCLUDED' ? 'Excluded' : (s.status || 'Unknown')) + '</span></td>'
+            + '<td class="ads-num">' + fmtMoney(s.spend) + '</td>'
+            + '<td class="ads-num">' + fmtNum(s.clicks) + '</td>'
+            + '<td class="ads-num">' + fmtPct(s.ctr) + '</td>'
+            + '<td class="ads-num">' + fmtNum(s.conversions) + '</td>'
+            + '</tr>';
+        }).join('')
+      + '</tbody></table></div>';
+  }
+
+  // ── AI Analysis ──────────────────────────────────────────────
+  // Backend fetches its own fresh data from Google Ads API.
+  // Frontend only passes the desired date range.
+  window.analyzeAds = async function() {
     var btn    = $('ads-analyze-btn');
     var result = $('ads-analysis-result');
     var errEl  = $('ads-analysis-error');
@@ -429,22 +460,65 @@
       var res = await apiFetch('/api/ads/analyze', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          overview:   _s.overview,
-          campaigns:  _s.campaigns,
-          account:    _s.account,
-          date_range: _s.dateRange
-        })
+        body:    JSON.stringify({ date_range: _s.dateRange })
       });
 
       if(!res.ok) throw new Error((res.data && res.data.error) || 'Analysis failed (HTTP ' + res.status + ')');
 
       var data = res.data;
 
+      // Update Oriven Score ring with AI-computed score
+      if(typeof data.score === 'number') {
+        var s   = Math.max(0, Math.min(100, data.score));
+        var arc = $('ads-score-arc');
+        var num = $('ads-score-num');
+        if(arc) {
+          arc.style.strokeDasharray  = CIRCUMFERENCE;
+          arc.style.strokeDashoffset = CIRCUMFERENCE * (1 - s / 100);
+          arc.style.stroke = s >= 70 ? '#B7FF2A' : s >= 45 ? '#f59e0b' : '#ef4444';
+        }
+        if(num) num.textContent = s;
+      }
+
+      // Render strengths / weaknesses / opportunities on the score card
+      var card = $('ads-score-card');
+      if(card && (data.strengths || data.weaknesses || data.opportunities)) {
+        var oldSw = card.querySelector('[data-sw]');
+        if(oldSw) oldSw.remove();
+        var sw = document.createElement('div');
+        sw.setAttribute('data-sw', '1');
+        sw.style.marginTop = '14px';
+        var swHtml = '';
+        if(data.strengths && data.strengths.length) {
+          swHtml += '<div style="margin-bottom:8px">'
+            + '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gm);margin-bottom:4px">Strengths</div>'
+            + data.strengths.map(function(t){ return '<div style="font-size:12px;color:var(--muted);padding:2px 0">✓ ' + h(t) + '</div>'; }).join('')
+            + '</div>';
+        }
+        if(data.weaknesses && data.weaknesses.length) {
+          swHtml += '<div style="margin-bottom:8px">'
+            + '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#ef4444;margin-bottom:4px">Weaknesses</div>'
+            + data.weaknesses.map(function(t){ return '<div style="font-size:12px;color:var(--muted);padding:2px 0">✗ ' + h(t) + '</div>'; }).join('')
+            + '</div>';
+        }
+        if(data.opportunities && data.opportunities.length) {
+          swHtml += '<div>'
+            + '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#60a5fa;margin-bottom:4px">Opportunities</div>'
+            + data.opportunities.map(function(t){ return '<div style="font-size:12px;color:var(--muted);padding:2px 0">→ ' + h(t) + '</div>'; }).join('')
+            + '</div>';
+        }
+        sw.innerHTML = swHtml;
+        var scoreWrap = card.querySelector('.ads-score-wrap');
+        if(scoreWrap) scoreWrap.appendChild(sw);
+      }
+
       // Render findings
-      if(result && data.findings && data.findings.length) {
-        result.innerHTML = '<div class="ads-findings">'
-          + data.findings.map(function(f) {
+      var findings = data.findings || [];
+      var html = '';
+
+      if(findings.length) {
+        html += '<div class="ads-findings">'
+          + findings.map(function(f) {
               var sevColor = f.severity === 'high' ? '#ef4444' : f.severity === 'medium' ? '#f59e0b' : '#60a5fa';
               return '<div class="ads-finding">'
                 + '<div class="ads-finding-hd">'
@@ -458,52 +532,33 @@
                 + '</div>';
             }).join('')
           + '</div>';
-        result.style.display = '';
       }
 
-      // Update Oriven Score from AI if provided
-      if(data.score && typeof data.score.overall === 'number') {
-        var s   = Math.max(0, Math.min(100, data.score.overall));
-        var arc = $('ads-score-arc');
-        var num = $('ads-score-num');
-        if(arc) {
-          arc.style.strokeDasharray  = CIRCUMFERENCE;
-          arc.style.strokeDashoffset = CIRCUMFERENCE * (1 - s / 100);
-          arc.style.stroke = s >= 70 ? '#B7FF2A' : s >= 45 ? '#f59e0b' : '#ef4444';
-        }
-        if(num) num.textContent = s;
+      // Render inline recommendations from the analyze response
+      var recs = data.recommendations || [];
+      if(recs.length) {
+        var recTypeIcon = { budget:'💰', keyword:'🔑', negative:'🚫', bid:'📈', copy:'✏️', structure:'🏗' };
+        var recPriColor = { high:'#ef4444', medium:'#f59e0b', low:'#60a5fa' };
+        html += '<div class="ads-section-hd" style="margin-top:20px"><div class="ads-section-title">Recommendations</div></div>'
+          + '<div class="ads-findings">'
+          + recs.map(function(r) {
+              var ico   = recTypeIcon[r.type] || '→';
+              var color = recPriColor[r.priority] || '#60a5fa';
+              return '<div class="ads-finding">'
+                + '<div class="ads-finding-hd">'
+                + '<div class="ads-finding-ico" style="background:rgba(96,165,250,.1);font-size:14px;display:flex;align-items:center;justify-content:center">' + ico + '</div>'
+                + '<div>'
+                + '<div class="ads-finding-title">' + h(r.title || r.type) + '</div>'
+                + '<div class="ads-finding-sev" style="color:' + color + '">' + h((r.priority || 'medium').toUpperCase()) + ' · ' + h(r.campaign || '') + '</div>'
+                + '</div></div>'
+                + '<div class="ads-finding-detail">' + h(r.detail) + '</div>'
+                + '</div>';
+            }).join('')
+          + '</div>';
+      }
 
-        // Strengths / weaknesses / opportunities
-        var card = $('ads-score-card');
-        if(card && (data.score.strengths || data.score.weaknesses || data.score.opportunities)) {
-          var sw = document.createElement('div');
-          sw.style.marginTop = '14px';
-          var swHtml = '';
-          if(data.score.strengths && data.score.strengths.length) {
-            swHtml += '<div style="margin-bottom:8px">'
-              + '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gm);margin-bottom:4px">Strengths</div>'
-              + data.score.strengths.map(function(t){ return '<div style="font-size:12px;color:var(--muted);padding:2px 0">✓ ' + h(t) + '</div>'; }).join('')
-              + '</div>';
-          }
-          if(data.score.weaknesses && data.score.weaknesses.length) {
-            swHtml += '<div style="margin-bottom:8px">'
-              + '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#ef4444;margin-bottom:4px">Weaknesses</div>'
-              + data.score.weaknesses.map(function(t){ return '<div style="font-size:12px;color:var(--muted);padding:2px 0">✗ ' + h(t) + '</div>'; }).join('')
-              + '</div>';
-          }
-          if(data.score.opportunities && data.score.opportunities.length) {
-            swHtml += '<div>'
-              + '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#60a5fa;margin-bottom:4px">Opportunities</div>'
-              + data.score.opportunities.map(function(t){ return '<div style="font-size:12px;color:var(--muted);padding:2px 0">→ ' + h(t) + '</div>'; }).join('')
-              + '</div>';
-          }
-          sw.innerHTML = swHtml;
-          // Remove old SW block if exists, then append
-          var oldSw = card.querySelector('[data-sw]');
-          if(oldSw) oldSw.remove();
-          sw.setAttribute('data-sw', '1');
-          card.querySelector('.ads-score-wrap').appendChild(sw);
-        }
+      if(result) {
+        if(html) { result.innerHTML = html; result.style.display = ''; }
       }
 
     } catch(err) {
@@ -514,12 +569,8 @@
   };
 
   // ── AI Recommendations ───────────────────────────────────────
+  // Backend fetches its own fresh data. Frontend only passes date range.
   window.generateAdsRecommendations = async function() {
-    if(!_s.overview || !_s.campaigns) {
-      if(typeof toast === 'function') toast('Load account data first.', 'err');
-      return;
-    }
-
     var btn    = $('ads-recommend-btn');
     var result = $('ads-recommend-result');
     var errEl  = $('ads-recommend-error');
@@ -532,12 +583,7 @@
       var res = await apiFetch('/api/ads/recommend', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          overview:   _s.overview,
-          campaigns:  _s.campaigns,
-          account:    _s.account,
-          date_range: _s.dateRange
-        })
+        body:    JSON.stringify({ date_range: _s.dateRange })
       });
 
       if(!res.ok) throw new Error((res.data && res.data.error) || 'Recommendations failed (HTTP ' + res.status + ')');
