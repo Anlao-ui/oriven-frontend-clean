@@ -146,6 +146,7 @@
       <button class="ap-nl ni" data-page="studio">Brand</button>
       <button class="ap-nl ni" data-page="assets">Assets</button>
       <button class="ap-nl ni" data-page="aichat">Assistant</button>
+      <button class="ap-nl ni" data-page="ads">Ads</button>
       <button class="ap-nl ni" data-page="integrations">Integrations</button>
     </div>
 
@@ -174,6 +175,7 @@
     <button class="ap-mob-link ni" data-page="studio" onclick="apCloseMob()">Brand</button>
     <button class="ap-mob-link ni" data-page="assets" onclick="apCloseMob()">Assets</button>
     <button class="ap-mob-link ni" data-page="aichat" onclick="apCloseMob()">Assistant</button>
+    <button class="ap-mob-link ni" data-page="ads" onclick="apCloseMob()">Ads</button>
     <button class="ap-mob-link ni" data-page="integrations" onclick="apCloseMob()">Integrations</button>
   </div>
   <div class="ap-mob-bottom">
@@ -2508,6 +2510,139 @@
       </div>
     </div><!-- /#page-integrations -->
 
+    <!-- ════════════════════════════════════════════════════════════
+         ADS DASHBOARD — campaign performance, AI analysis, recommendations
+         ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-ads">
+      <div class="ads-page">
+
+        <!-- Header: title + account bar + date range -->
+        <div class="ads-hdr">
+          <div>
+            <h1 class="ads-title">Ads</h1>
+            <div class="ads-account-bar" id="ads-account-bar"></div>
+          </div>
+          <div class="ads-date-row">
+            <button class="ads-date-pill" data-range="LAST_7_DAYS" onclick="setAdsDateRange('LAST_7_DAYS')">7d</button>
+            <button class="ads-date-pill active" data-range="LAST_30_DAYS" onclick="setAdsDateRange('LAST_30_DAYS')">30d</button>
+            <button class="ads-date-pill" data-range="LAST_90_DAYS" onclick="setAdsDateRange('LAST_90_DAYS')">90d</button>
+          </div>
+        </div>
+
+        <!-- Empty state: no active account -->
+        <div id="ads-empty" style="display:none">
+          <div class="ads-empty">
+            <div class="ads-empty-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8h4M6 11h6M14 8l2 2 3-3"/></svg>
+            </div>
+            <div class="ads-empty-title">No active ad account selected</div>
+            <div class="ads-empty-sub">Go to Integrations to connect your Google Ads account and select an active account to start viewing data.</div>
+            <button class="btn btn-p" onclick="navigate('integrations')">Open Integrations</button>
+          </div>
+        </div>
+
+        <!-- Dashboard shell -->
+        <div id="ads-dash" style="display:none">
+
+          <!-- Global error -->
+          <div id="ads-main-error" style="display:none;font-size:13px;color:#ef4444;padding:8px 0 16px"></div>
+
+          <!-- Loading indicator -->
+          <div id="ads-loading" class="ads-loading-wrap" style="display:none">
+            <div class="ads-spinner"></div>Loading account data…
+          </div>
+
+          <!-- ── Campaigns list view ── -->
+          <div id="ads-campaigns-view" style="display:none">
+
+            <!-- KPI cards -->
+            <div class="ads-kpis" id="ads-kpis"></div>
+
+            <!-- Campaigns table -->
+            <div class="ads-section">
+              <div class="ads-section-hd">
+                <div class="ads-section-title">Campaigns</div>
+              </div>
+              <div class="ads-table-wrap">
+                <table class="ads-table">
+                  <thead>
+                    <tr>
+                      <th>Campaign</th>
+                      <th>Status</th>
+                      <th class="ads-num">Spend</th>
+                      <th class="ads-num">Impr.</th>
+                      <th class="ads-num">Clicks</th>
+                      <th class="ads-num">CTR</th>
+                      <th class="ads-num">Conv.</th>
+                      <th class="ads-num">CPA</th>
+                      <th class="ads-num">ROAS</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ads-campaigns-tbody"></tbody>
+                </table>
+              </div>
+              <div id="ads-campaigns-empty" style="display:none;text-align:center;padding:32px;font-size:13px;color:var(--muted)">No campaigns found for this date range.</div>
+            </div>
+
+            <!-- Oriven Score -->
+            <div class="ads-score-card" id="ads-score-card" style="display:none">
+              <div class="ads-score-wrap">
+                <div class="ads-score-ring-wrap">
+                  <svg viewBox="0 0 120 120" width="120" height="120">
+                    <circle class="ads-score-track" cx="60" cy="60" r="50"/>
+                    <circle class="ads-score-fill" id="ads-score-arc" cx="60" cy="60" r="50" style="stroke-dasharray:314.16;stroke-dashoffset:314.16"/>
+                  </svg>
+                  <div class="ads-score-num" id="ads-score-num">—</div>
+                </div>
+                <div style="flex:1;min-width:180px">
+                  <div class="ads-score-info-title">Oriven Score</div>
+                  <div class="ads-score-sub">AI-powered account health · 0–100</div>
+                  <div id="ads-score-breakdown"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Analysis -->
+            <div class="ads-ai-card">
+              <div class="ads-card-hd">
+                <div>
+                  <div class="ads-card-title">AI Analysis</div>
+                  <div class="ads-card-sub">Identify wasted spend, low CTR, conversion issues, and scaling opportunities.</div>
+                </div>
+                <button class="btn btn-p btn-sm" id="ads-analyze-btn" onclick="analyzeAds()">Analyze with AI</button>
+              </div>
+              <div id="ads-analysis-error" style="display:none;font-size:13px;color:#ef4444;margin-top:10px"></div>
+              <div id="ads-analysis-result" style="display:none"></div>
+            </div>
+
+            <!-- AI Recommendations -->
+            <div class="ads-ai-card">
+              <div class="ads-card-hd">
+                <div>
+                  <div class="ads-card-title">AI Recommendations</div>
+                  <div class="ads-card-sub">Generate headlines, descriptions, keywords, negative keywords, and budget recommendations.</div>
+                </div>
+                <button class="btn btn-g btn-sm" id="ads-recommend-btn" onclick="generateAdsRecommendations()">Generate Recommendations</button>
+              </div>
+              <div id="ads-recommend-error" style="display:none;font-size:13px;color:#ef4444;margin-top:10px"></div>
+              <div id="ads-recommend-result" style="display:none"></div>
+            </div>
+
+          </div><!-- /#ads-campaigns-view -->
+
+          <!-- ── Campaign detail view ── -->
+          <div id="ads-campaign-view" style="display:none">
+            <button class="ads-back-btn" onclick="backToAdsCampaigns()">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="14" height="14"><path d="M10 4L6 8l4 4"/></svg>
+              All Campaigns
+            </button>
+            <div id="ads-campaign-detail"></div>
+          </div>
+
+        </div><!-- /#ads-dash -->
+      </div><!-- /.ads-page -->
+    </div><!-- /#page-ads -->
+
 </div><!-- /mc -->
 </div><!-- /app -->
 
@@ -3176,6 +3311,7 @@
 <script src="create.js"></script>
 <script src="assistant.js"></script>
 <script src="settings.js"></script>
+<script src="ads.js"></script>
 <script src="usage.js"></script>
 <script src="paywall.js"></script>
 <script src="team.js"></script>
@@ -5552,6 +5688,9 @@ _loadCamps();
       if(page === 'integrations' && typeof initIntegrations === 'function'){
         setTimeout(function(){ initIntegrations(); }, 0);
       }
+      if(page === 'ads' && typeof initAdsDashboard === 'function'){
+        setTimeout(function(){ initAdsDashboard(); }, 0);
+      }
     };
   }
 
@@ -5563,6 +5702,7 @@ _loadCamps();
       campaigns:'campaigns', 'campaign-workspace':'campaigns', 'new-campaign':'campaigns',
       assets:'assets',
       aichat:'aichat', assistant:'aichat',
+      ads:'ads',
       integrations:'integrations',
       settings:'settings',
       competitor:'brain', market:'brain', opportunities:'brain',
