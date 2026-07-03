@@ -4868,11 +4868,35 @@ body.dark-mode .int-connected{border-color:rgba(255,255,255,.07);}
   background:#22C55E;margin-right:6px;flex-shrink:0;vertical-align:middle;
 }
 .int-status-warn{background:#F59E0B;}
-.int-account-row{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:8px;background:var(--surface-2,rgba(0,0,0,.04));margin-bottom:6px;}
+.int-account-row{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:10px;background:var(--surface-2,rgba(0,0,0,.04));margin-bottom:6px;cursor:pointer;border:1px solid transparent;transition:background .12s,border-color .12s;}
+.int-account-row:hover:not(.int-account-selected){background:var(--bg2,rgba(0,0,0,.07));}
 body.dark-mode .int-account-row{background:rgba(255,255,255,.05);}
+body.dark-mode .int-account-row:hover:not(.int-account-selected){background:rgba(255,255,255,.08);}
+.int-account-selected{background:var(--gpale,rgba(183,255,42,.07))!important;border-color:rgba(183,255,42,.3)!important;}
+body.dark-mode .int-account-selected{background:rgba(183,255,42,.08)!important;}
+.int-account-row-inner{display:flex;align-items:flex-start;gap:10px;}
+.int-account-check{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gm,#B7FF2A);margin-top:2px;}
 .int-account-name{font-size:13px;font-weight:500;color:var(--text);}
 .int-account-id{font-size:12px;color:var(--text-2);}
 .int-account-meta{font-size:11px;color:var(--text-2);}
+.int-account-active-badge{display:inline-block;font-size:10px;font-weight:600;background:var(--gpale,rgba(183,255,42,.12));color:var(--gm,#B7FF2A);border-radius:20px;padding:1px 8px;margin-left:6px;vertical-align:middle;letter-spacing:.01em;}
+
+/* ── INTEGRATIONS PAGE ──────────────────────────────────────── */
+.intg-page{max-width:720px;margin:0 auto;padding:48px 24px 80px;}
+.intg-hdr{margin-bottom:36px;}
+.intg-title{font-size:22px;font-weight:700;color:var(--charcoal,#111);margin:0 0 10px;letter-spacing:-.01em;}
+.intg-sub{font-size:14px;color:var(--muted);line-height:1.65;max-width:520px;margin:0;}
+.intg-section-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;}
+.intg-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 24px;margin-bottom:10px;transition:border-color .15s;}
+.intg-card-top{display:flex;align-items:center;gap:16px;}
+.intg-card-logo{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:10px;overflow:hidden;}
+.intg-card-body{flex:1;min-width:0;}
+.intg-card-name{font-size:14px;font-weight:600;color:var(--charcoal,#111);}
+body.dark-mode .intg-card-name{color:var(--text,#e8e8e8);}
+.intg-card-desc{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.5;}
+.intg-card-coming{opacity:.65;}
+.intg-card-info{margin-top:20px;padding-top:20px;border-top:1px solid var(--border);}
+@media(max-width:600px){.intg-page{padding:32px 16px 80px;}.intg-card{padding:16px;}.intg-card-top{flex-wrap:wrap;gap:12px;}}
 
 /* Hard paywall mode — close button and skip button hidden */
 #modal-paywall.pw-hard .pw-close-btn,

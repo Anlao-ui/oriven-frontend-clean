@@ -39,7 +39,8 @@ function showApp(){
     };
     setTimeout(function(){
       if(_oar.connected){
-        if(typeof toast === "function") toast("Google Ads connected — visit Settings → Integrations to manage.");
+        if(typeof toast === "function") toast("Google Ads connected successfully!");
+        if(typeof navigate === "function") navigate('integrations');
       } else if(_oar.error){
         var msg = _errMap[_oar.error] || "Google connection failed.";
         if(typeof toast === "function") toast(msg, "err");

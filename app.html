@@ -146,6 +146,7 @@
       <button class="ap-nl ni" data-page="studio">Brand</button>
       <button class="ap-nl ni" data-page="assets">Assets</button>
       <button class="ap-nl ni" data-page="aichat">Assistant</button>
+      <button class="ap-nl ni" data-page="integrations">Integrations</button>
     </div>
 
     <!-- Right: Credits + Avatar -->
@@ -173,6 +174,7 @@
     <button class="ap-mob-link ni" data-page="studio" onclick="apCloseMob()">Brand</button>
     <button class="ap-mob-link ni" data-page="assets" onclick="apCloseMob()">Assets</button>
     <button class="ap-mob-link ni" data-page="aichat" onclick="apCloseMob()">Assistant</button>
+    <button class="ap-mob-link ni" data-page="integrations" onclick="apCloseMob()">Integrations</button>
   </div>
   <div class="ap-mob-bottom">
     <button class="ap-mob-link" onclick="apCloseMob();navigate('settings')">Settings</button>
@@ -2295,63 +2297,19 @@
               </div>
             </div>
 
-            <!-- Integrations -->
+            <!-- Integrations — moved to dedicated page -->
             <div class="spanel" id="sp-integrations">
               <div class="se-panel-hd">
                 <div class="se-panel-eyebrow">Integrations</div>
                 <div class="se-panel-title">Integrations</div>
-                <div class="se-panel-sub">Connect external platforms to ORIVEN for future analytics and automation.</div>
+                <div class="se-panel-sub">Connect your advertising platforms from the Integrations page.</div>
               </div>
-
-              <!-- Google Ads card -->
-              <div class="se-card">
-                <div class="int-row">
-                  <div class="int-icon">
-                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
-                      <rect width="40" height="40" rx="10" fill="white"/>
-                      <path d="M30.4 20.23c0-.68-.06-1.34-.17-1.96H20.4v3.71h5.62a4.8 4.8 0 0 1-2.08 3.15v2.62h3.37c1.97-1.82 3.1-4.49 3.1-7.52z" fill="#4285F4"/>
-                      <path d="M20.4 31c2.82 0 5.18-.93 6.9-2.52l-3.37-2.62c-.93.63-2.13 1-3.53 1-2.71 0-5.01-1.83-5.83-4.29h-3.48v2.7A10.4 10.4 0 0 0 20.4 31z" fill="#34A853"/>
-                      <path d="M14.57 22.57a6.25 6.25 0 0 1 0-4.01v-2.7H11.1a10.4 10.4 0 0 0 0 9.41l3.47-2.7z" fill="#FBBC05"/>
-                      <path d="M20.4 12.27c1.53 0 2.9.53 3.98 1.56l2.98-2.98A10.39 10.39 0 0 0 20.4 8a10.4 10.4 0 0 0-9.3 5.86l3.47 2.7c.82-2.46 3.12-4.29 5.83-4.29z" fill="#EA4335"/>
-                    </svg>
-                  </div>
-                  <div class="int-info">
-                    <div class="int-name">Google Ads</div>
-                    <div class="int-desc">Connect your Google account to enable future campaign performance analytics and optimization inside ORIVEN.</div>
-                  </div>
-                  <div class="int-action" id="gads-action-area">
-                    <button class="btn btn-p btn-sm" id="gads-connect-btn" onclick="connectGoogleAds()">Connect Google Ads</button>
-                  </div>
+              <div class="se-card" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                <div style="flex:1;min-width:180px">
+                  <div style="font-size:14px;font-weight:500;color:var(--charcoal)">Manage Integrations</div>
+                  <div style="font-size:13px;color:var(--muted);margin-top:4px">Google Ads, Meta Ads, TikTok Ads and more.</div>
                 </div>
-
-                <!-- Connected state — hidden until status loads -->
-                <div class="int-connected" id="gads-connected-info" style="display:none">
-                  <div class="int-field-row">
-                    <span class="int-field-label">Connected as</span>
-                    <span class="int-field-val" id="gads-email-val">—</span>
-                  </div>
-                  <div class="int-field-row">
-                    <span class="int-field-label">Connected on</span>
-                    <span class="int-field-val" id="gads-date-val">—</span>
-                  </div>
-                  <div class="int-field-row">
-                    <span class="int-field-label">Status</span>
-                    <span class="int-field-val" id="gads-status-text">
-                      <span class="int-status-dot"></span>Active
-                    </span>
-                  </div>
-                  <!-- Google Ads accounts list -->
-                  <div id="gads-accounts-loading" style="display:none;font-size:13px;color:var(--text-2);margin-top:12px;">Loading accounts…</div>
-                  <div id="gads-accounts-error" style="display:none;font-size:13px;color:#ef4444;margin-top:12px;"></div>
-                  <div id="gads-accounts-wrap" style="display:none;margin-top:16px;">
-                    <div style="font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Connected Accounts</div>
-                    <div id="gads-accounts-list"></div>
-                  </div>
-                  <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
-                    <button class="btn btn-g btn-sm" id="gads-refresh-btn" onclick="refreshGadsAccounts()">Refresh accounts</button>
-                    <button class="btn btn-g btn-sm" id="gads-disconnect-btn" onclick="disconnectGoogleAds()">Disconnect</button>
-                  </div>
-                </div>
+                <button class="btn btn-p btn-sm" onclick="navigate('integrations')">Open Integrations</button>
               </div>
             </div>
 
@@ -2443,6 +2401,112 @@
         </div>
       </div>
     </div><!-- /#page-assets -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         INTEGRATIONS — advertising platform hub
+         ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-integrations">
+      <div class="intg-page">
+        <div class="intg-hdr">
+          <h1 class="intg-title">Integrations</h1>
+          <p class="intg-sub">Connect your advertising platforms to unlock campaign analytics, optimization, reporting, and AI insights.</p>
+        </div>
+
+        <!-- Section label: Connected (shown when Google Ads is connected) -->
+        <div id="intg-section-hdr-connected" class="intg-section-label" style="display:none">Connected</div>
+
+        <!-- Google Ads card -->
+        <div class="intg-card" id="intg-gads-card">
+          <div class="intg-card-top">
+            <div class="intg-card-logo">
+              <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                <rect width="40" height="40" rx="10" fill="white"/>
+                <path d="M30.4 20.23c0-.68-.06-1.34-.17-1.96H20.4v3.71h5.62a4.8 4.8 0 0 1-2.08 3.15v2.62h3.37c1.97-1.82 3.1-4.49 3.1-7.52z" fill="#4285F4"/>
+                <path d="M20.4 31c2.82 0 5.18-.93 6.9-2.52l-3.37-2.62c-.93.63-2.13 1-3.53 1-2.71 0-5.01-1.83-5.83-4.29h-3.48v2.7A10.4 10.4 0 0 0 20.4 31z" fill="#34A853"/>
+                <path d="M14.57 22.57a6.25 6.25 0 0 1 0-4.01v-2.7H11.1a10.4 10.4 0 0 0 0 9.41l3.47-2.7z" fill="#FBBC05"/>
+                <path d="M20.4 12.27c1.53 0 2.9.53 3.98 1.56l2.98-2.98A10.39 10.39 0 0 0 20.4 8a10.4 10.4 0 0 0-9.3 5.86l3.47 2.7c.82-2.46 3.12-4.29 5.83-4.29z" fill="#EA4335"/>
+              </svg>
+            </div>
+            <div class="intg-card-body">
+              <div class="intg-card-name">Google Ads</div>
+              <div class="intg-card-desc">Sync campaign performance, bidding signals, and conversion data directly into ORIVEN.</div>
+            </div>
+            <div id="gads-action-area" style="flex-shrink:0">
+              <button class="btn btn-p btn-sm" id="gads-connect-btn" onclick="connectGoogleAds()">Connect</button>
+              <span class="badge bg-green" id="gads-connected-badge" style="display:none">Connected</span>
+            </div>
+          </div>
+
+          <!-- Connected details — hidden until _loadGadsStatus confirms connection -->
+          <div class="intg-card-info" id="gads-connected-info" style="display:none">
+            <div class="int-field-row">
+              <span class="int-field-label">Connected as</span>
+              <span class="int-field-val" id="gads-email-val">—</span>
+            </div>
+            <div class="int-field-row">
+              <span class="int-field-label">Connected on</span>
+              <span class="int-field-val" id="gads-date-val">—</span>
+            </div>
+            <div class="int-field-row">
+              <span class="int-field-label">Status</span>
+              <span class="int-field-val" id="gads-status-text">
+                <span class="int-status-dot"></span>Active
+              </span>
+            </div>
+
+            <div id="gads-accounts-loading" style="display:none;font-size:13px;color:var(--muted);margin-top:16px">Loading accounts…</div>
+            <div id="gads-accounts-error" style="display:none;font-size:13px;color:#ef4444;margin-top:12px"></div>
+            <div id="gads-accounts-wrap" style="display:none;margin-top:20px">
+              <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Connected Accounts</div>
+              <div id="gads-accounts-list"></div>
+            </div>
+
+            <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-g btn-sm" id="gads-refresh-btn" onclick="refreshGadsAccounts()">Refresh accounts</button>
+              <button class="btn btn-g btn-sm" id="gads-disconnect-btn" onclick="disconnectGoogleAds()">Disconnect</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Available section -->
+        <div class="intg-section-label" style="margin-top:28px;margin-bottom:12px">Available</div>
+
+        <!-- Meta Ads — coming soon -->
+        <div class="intg-card intg-card-coming">
+          <div class="intg-card-top">
+            <div class="intg-card-logo">
+              <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                <rect width="40" height="40" rx="10" fill="#1877F2"/>
+                <path d="M26.5 20c0-3.6-2.9-6.5-6.5-6.5S13.5 16.4 13.5 20c0 3.2 2.4 5.9 5.5 6.4v-4.5h-1.6V20H19v-1.4c0-1.6 1-2.5 2.4-2.5.7 0 1.4.1 2.1.2v1.6h-1.2c-.7 0-.9.4-.9.8V20h2l-.3 1.9H21.4v4.5c3.1-.5 5.1-3.2 5.1-6.4z" fill="white"/>
+              </svg>
+            </div>
+            <div class="intg-card-body">
+              <div class="intg-card-name">Meta Ads</div>
+              <div class="intg-card-desc">Sync Facebook and Instagram ad performance, audience insights, and ROAS into ORIVEN.</div>
+            </div>
+            <div><span class="badge bg-grey">Coming soon</span></div>
+          </div>
+        </div>
+
+        <!-- TikTok Ads — coming soon -->
+        <div class="intg-card intg-card-coming">
+          <div class="intg-card-top">
+            <div class="intg-card-logo">
+              <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                <rect width="40" height="40" rx="10" fill="#010101"/>
+                <path d="M24.6 11.5h-3v12.2c0 1.4-1.1 2.5-2.5 2.5a2.5 2.5 0 0 1-2.5-2.5c0-1.4 1.1-2.5 2.5-2.5.3 0 .5 0 .8.1v-3.1a5.6 5.6 0 0 0-.8-.1 5.5 5.5 0 0 0-5.5 5.5c0 3 2.5 5.5 5.5 5.5s5.5-2.5 5.5-5.5v-8.7c1 .8 2.3 1.3 3.7 1.3V13c-1.9 0-3.7-1.4-3.7-1.5z" fill="white"/>
+                <path d="M24.6 11.5h-3v12.2c0 1.4-1.1 2.5-2.5 2.5a2.5 2.5 0 0 1-2.5-2.5c0-1.4 1.1-2.5 2.5-2.5.3 0 .5 0 .8.1v-3.1a5.6 5.6 0 0 0-.8-.1 5.5 5.5 0 0 0-5.5 5.5c0 3 2.5 5.5 5.5 5.5s5.5-2.5 5.5-5.5v-8.7c1 .8 2.3 1.3 3.7 1.3V13c-1.9 0-3.7-1.4-3.7-1.5z" fill="#69C9D0" opacity=".35"/>
+              </svg>
+            </div>
+            <div class="intg-card-body">
+              <div class="intg-card-name">TikTok Ads</div>
+              <div class="intg-card-desc">Connect TikTok Ads campaigns to track performance and optimize creative with AI.</div>
+            </div>
+            <div><span class="badge bg-grey">Coming soon</span></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /#page-integrations -->
 
 </div><!-- /mc -->
 </div><!-- /app -->
@@ -5485,6 +5549,9 @@ _loadCamps();
       _origNavigate.apply(this, arguments);
       _syncApNav(page);
       _syncMbn(page);
+      if(page === 'integrations' && typeof initIntegrations === 'function'){
+        setTimeout(function(){ initIntegrations(); }, 0);
+      }
     };
   }
 
@@ -5496,6 +5563,7 @@ _loadCamps();
       campaigns:'campaigns', 'campaign-workspace':'campaigns', 'new-campaign':'campaigns',
       assets:'assets',
       aichat:'aichat', assistant:'aichat',
+      integrations:'integrations',
       settings:'settings',
       competitor:'brain', market:'brain', opportunities:'brain',
       website:'brain', health:'brain', alerts:'brain'

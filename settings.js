@@ -1517,6 +1517,10 @@ function _initSettingsNav(){
 // INTEGRATIONS
 // ════════════════════════════════════════════════════════════════
 
+// Global active ad account — set on login or when user selects an account.
+// Shape: { platform: 'google_ads', account_id: '...', account_name: '...' } | null
+window._activeAdAccount = window._activeAdAccount || null;
+
 function initIntegrations(){
   // Show pending OAuth result (from Google OAuth return redirect)
   var _oar = window._pendingOAuthResult;
@@ -1541,20 +1545,24 @@ function initIntegrations(){
 }
 
 async function _loadGadsStatus(){
-  var connectBtn  = document.getElementById("gads-connect-btn");
-  var connectedEl = document.getElementById("gads-connected-info");
+  var connectBtn     = document.getElementById("gads-connect-btn");
+  var connectedEl    = document.getElementById("gads-connected-info");
+  var connectedBadge = document.getElementById("gads-connected-badge");
+  var connectedHdr   = document.getElementById("intg-section-hdr-connected");
   if(connectBtn){ connectBtn.disabled = true; connectBtn.textContent = "Loading…"; }
 
   try {
     var result = await apiFetch("/api/google/status");
     if(!result.ok){
-      if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; }
+      if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
       return;
     }
     var data = result.data;
     if(data.connected){
-      if(connectBtn) connectBtn.style.display = "none";
-      if(connectedEl) connectedEl.style.display = "";
+      if(connectBtn)     connectBtn.style.display     = "none";
+      if(connectedBadge) connectedBadge.style.display = "";
+      if(connectedEl)    connectedEl.style.display    = "";
+      if(connectedHdr)   connectedHdr.style.display   = "";
 
       var emailEl  = document.getElementById("gads-email-val");
       var dateEl   = document.getElementById("gads-date-val");
@@ -1570,24 +1578,32 @@ async function _loadGadsStatus(){
         statusEl.innerHTML = '<span class="int-status-dot' + (isExpired ? " int-status-warn" : "") + '"></span>'
           + (isExpired ? "Token expired — reconnect" : "Active");
       }
+
+      // Persist active account from DB into local state
+      if(data.active_ad_account && data.active_ad_account.account_id){
+        window._activeAdAccount = data.active_ad_account;
+      }
+
       var storedAccounts = data.google_ads_accounts || [];
+      var activeId = window._activeAdAccount && window._activeAdAccount.account_id;
       if(storedAccounts.length > 0){
-        _renderGadsAccounts(storedAccounts);
+        _renderGadsAccounts(storedAccounts, activeId);
       } else {
-        // No accounts stored yet — auto-fetch from Google Ads API
         refreshGadsAccounts();
       }
     } else {
-      if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; connectBtn.style.display = ""; }
-      if(connectedEl) connectedEl.style.display = "none";
+      if(connectBtn)     { connectBtn.disabled = false; connectBtn.textContent = "Connect"; connectBtn.style.display = ""; }
+      if(connectedBadge) connectedBadge.style.display = "none";
+      if(connectedEl)    connectedEl.style.display    = "none";
+      if(connectedHdr)   connectedHdr.style.display   = "none";
     }
   } catch(err){
-    if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; }
+    if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
     console.error("[Google Ads] Status load failed:", err.message);
   }
 }
 
-function _renderGadsAccounts(accounts){
+function _renderGadsAccounts(accounts, activeAccountId){
   var wrap    = document.getElementById("gads-accounts-wrap");
   var listEl  = document.getElementById("gads-accounts-list");
   var errEl   = document.getElementById("gads-accounts-error");
@@ -1605,14 +1621,26 @@ function _renderGadsAccounts(accounts){
 
   function h(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+  var activeId = activeAccountId || (window._activeAdAccount && window._activeAdAccount.account_id) || null;
+
   listEl.innerHTML = accounts.map(function(a){
+    var isSelected = activeId && String(a.customer_id) === String(activeId);
     var meta = [];
     if(a.currency) meta.push(a.currency);
     if(a.timezone) meta.push(a.timezone);
-    return '<div class="int-account-row">'
-      + '<div class="int-account-name">' + h(a.name) + '</div>'
-      + '<div class="int-account-id">ID: ' + h(a.customer_id) + '</div>'
+    var safeId   = h(a.customer_id);
+    var safeName = h(a.name);
+    return '<div class="int-account-row' + (isSelected ? ' int-account-selected' : '') + '" '
+      + 'onclick="selectGadsAccount(\'' + safeId + '\',\'' + safeName.replace(/'/g,'&apos;') + '\')">'
+      + '<div class="int-account-row-inner">'
+      + '<div class="int-account-check">' + (isSelected ? '✓' : '') + '</div>'
+      + '<div>'
+      + '<div class="int-account-name">' + safeName
+      + (isSelected ? ' <span class="int-account-active-badge">Active</span>' : '') + '</div>'
+      + '<div class="int-account-id">ID: ' + safeId + '</div>'
       + (meta.length ? '<div class="int-account-meta">' + h(meta.join(' \xb7 ')) + '</div>' : '')
+      + '</div>'
+      + '</div>'
       + '</div>';
   }).join('');
 
@@ -1637,7 +1665,10 @@ async function refreshGadsAccounts(){
       if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
     } else {
       try {
-        _renderGadsAccounts(result.data.accounts || []);
+        var activeId = window._activeAdAccount && window._activeAdAccount.account_id;
+        _renderGadsAccounts(result.data.accounts || [], activeId);
+        var statusEl = document.getElementById("gads-status-text");
+        if(statusEl) statusEl.innerHTML = '<span class="int-status-dot"></span>Active';
       } catch(renderErr){
         console.error("[Google Ads] Render error:", renderErr);
         if(errEl){ errEl.textContent = "Display error: " + renderErr.message; errEl.style.display = ""; }
@@ -1677,11 +1708,16 @@ async function disconnectGoogleAds(){
     var result = await apiFetch("/api/google/disconnect", { method: "POST" });
     if(result.ok){
       toast("Google Ads disconnected.");
+      window._activeAdAccount = null;
 
-      var connectBtn  = document.getElementById("gads-connect-btn");
-      var connectedEl = document.getElementById("gads-connected-info");
-      if(connectBtn){ connectBtn.style.display = ""; connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; }
-      if(connectedEl) connectedEl.style.display = "none";
+      var connectBtn     = document.getElementById("gads-connect-btn");
+      var connectedEl    = document.getElementById("gads-connected-info");
+      var connectedBadge = document.getElementById("gads-connected-badge");
+      var connectedHdr   = document.getElementById("intg-section-hdr-connected");
+      if(connectBtn)     { connectBtn.style.display = ""; connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
+      if(connectedEl)    connectedEl.style.display    = "none";
+      if(connectedBadge) connectedBadge.style.display = "none";
+      if(connectedHdr)   connectedHdr.style.display   = "none";
     } else {
       toast("Could not disconnect — please try again.", "err");
       if(btn){ btn.disabled = false; btn.textContent = "Disconnect"; }
@@ -1689,6 +1725,50 @@ async function disconnectGoogleAds(){
   } catch(err){
     toast("Disconnect failed — please try again.", "err");
     if(btn){ btn.disabled = false; btn.textContent = "Disconnect"; }
+  }
+}
+
+async function selectGadsAccount(accountId, accountName){
+  // Optimistic UI: mark selected immediately before API round-trip
+  window._activeAdAccount = { platform: 'google_ads', account_id: String(accountId), account_name: String(accountName || '') };
+  document.querySelectorAll('.int-account-row').forEach(function(row){
+    row.classList.remove('int-account-selected');
+    var check = row.querySelector('.int-account-check');
+    if(check) check.textContent = '';
+    var badge = row.querySelector('.int-account-active-badge');
+    if(badge) badge.remove();
+    var nameEl = row.querySelector('.int-account-name');
+    if(nameEl) nameEl.classList.remove('_has-active-badge');
+  });
+  // Find the clicked row by account ID text and highlight it
+  document.querySelectorAll('.int-account-row').forEach(function(row){
+    var idEl = row.querySelector('.int-account-id');
+    if(idEl && idEl.textContent.indexOf(String(accountId)) !== -1){
+      row.classList.add('int-account-selected');
+      var check = row.querySelector('.int-account-check');
+      if(check) check.textContent = '✓';
+      var nameEl = row.querySelector('.int-account-name');
+      if(nameEl && !nameEl.querySelector('.int-account-active-badge')){
+        var badge = document.createElement('span');
+        badge.className = 'int-account-active-badge';
+        badge.textContent = 'Active';
+        nameEl.appendChild(badge);
+      }
+    }
+  });
+
+  try {
+    var result = await apiFetch('/api/google/active-account', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ account_id: accountId, account_name: accountName || '' })
+    });
+    if(!result.ok){
+      toast('Could not set active account — please try again.', 'err');
+    }
+  } catch(err){
+    console.error('[Google Ads] selectGadsAccount error:', err.message);
+    toast('Could not set active account — please try again.', 'err');
   }
 }
 
