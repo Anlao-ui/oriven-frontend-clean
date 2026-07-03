@@ -67,7 +67,13 @@ function _studioRefreshMain(){
   // ── Section 8: Visual Direction ───────────────────────────────
   _bcRenderVisual();
 
-  // ── Section 9: Logo System ────────────────────────────────────
+  // ── Section 9: Mission ────────────────────────────────────────
+  _bcRenderMission();
+
+  // ── Section 10: Vision ────────────────────────────────────────
+  _bcRenderVision();
+
+  // ── Section 11: Logo System ───────────────────────────────────
   _bcRenderLogos();
 
   // ── Moodboard ─────────────────────────────────────────────────
@@ -178,6 +184,32 @@ function _bcRenderAudience(){
     :'<div class="bcp-empty-field">Target audience not defined</div>';
 }
 
+// ── Mission ────────────────────────────────────────────────────
+function _bcRenderMission(){
+  var sec=document.getElementById("bcMissionSection");
+  var el=document.getElementById("bcProfileMission");
+  if(!el) return;
+  var bc=S.brandCore;
+  var val=bc.mission||"";
+  if(sec) sec.style.display = val ? "" : "none";
+  el.innerHTML=val
+    ?'<div class="bcp-statement">'+val+'</div>'
+    :'';
+}
+
+// ── Vision ─────────────────────────────────────────────────────
+function _bcRenderVision(){
+  var sec=document.getElementById("bcVisionSection");
+  var el=document.getElementById("bcProfileVision");
+  if(!el) return;
+  var bc=S.brandCore;
+  var val=bc.vision||"";
+  if(sec) sec.style.display = val ? "" : "none";
+  el.innerHTML=val
+    ?'<div class="bcp-statement">'+val+'</div>'
+    :'';
+}
+
 // ── Visual Direction ───────────────────────────────────────────
 function _bcRenderVisual(){
   var el=document.getElementById("bcProfileVisual");
@@ -266,7 +298,7 @@ function switchStudioTab(name){
   var hub=document.getElementById("studioHubView");
   var pv=document.getElementById("studioPanelView");
   var titleEl=document.getElementById("studioPanelTitle");
-  var titles={saved:"Saved",brandcore:"Brand Core",check:"Brand Check",competitor:"Competitor Intelligence"};
+  var titles={saved:"Saved",brandcore:"Brand Core",check:"Brand Check"};
   if(titleEl) titleEl.textContent=titles[name]||name;
 
   if(hub){
@@ -285,7 +317,7 @@ function switchStudioTab(name){
   if(name==="saved") renderAssets();
   if(name==="brandcore") refreshBC();
   if(name==="check") setTimeout(function(){ startBrandCheck(); }, 200);
-  if(name==="competitor" && typeof ciInit === "function") ciInit();
+  // competitor tab removed — CI is now a standalone page
 }
 
 function showStudioHub(){

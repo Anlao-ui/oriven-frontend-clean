@@ -25,6 +25,27 @@ function showApp(){
   var app     = document.querySelector(".app");
   if(overlay) overlay.style.display = "none";
   if(app)     app.style.display     = "";
+  // Show Google OAuth result toast (set by _loadUserProfile on return from OAuth)
+  var _oar = window._pendingOAuthResult;
+  if(_oar){
+    window._pendingOAuthResult = null;
+    var _errMap = {
+      access_denied: "Google sign-in was cancelled.",
+      token_exchange: "Google connection failed — please try again.",
+      invalid_state: "Session expired — please try again.",
+      db: "Could not save connection — please try again.",
+      network: "Network error — please try again.",
+      missing_params: "OAuth error — please try again."
+    };
+    setTimeout(function(){
+      if(_oar.connected){
+        if(typeof toast === "function") toast("Google Ads connected — visit Settings → Integrations to manage.");
+      } else if(_oar.error){
+        var msg = _errMap[_oar.error] || "Google connection failed.";
+        if(typeof toast === "function") toast(msg, "err");
+      }
+    }, 600);
+  }
 }
 
 function showAuthPage(){
@@ -208,8 +229,13 @@ async function authSignOut(){
 
 async function syncSubscriptionFromDB(){
   if(typeof ORIVEN_DEV !== "undefined" && ORIVEN_DEV){
-    if(typeof S !== "undefined" && S) S.currentPlan = "professional";
-    if(typeof _updateSidebarPlan === "function") _updateSidebarPlan("professional");
+    // Dev mode: use actual _dbSubscriptionStatus set by _loadUserProfile() — never hardcode.
+    // If _dbSubscriptionStatus is not yet loaded, fall back to "free" (not "professional").
+    var _devSyncPlan = (_dbSubscriptionStatus && _dbSubscriptionStatus !== null)
+      ? _dbSubscriptionStatus : "free";
+    console.log("[PW-CHAIN] syncSubscriptionFromDB (dev) | _dbSubscriptionStatus:", _dbSubscriptionStatus, "→ using:", _devSyncPlan);
+    if(typeof S !== "undefined" && S) S.currentPlan = _devSyncPlan;
+    if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(_devSyncPlan);
     if(typeof invalidatePlanCache === "function") invalidatePlanCache();
     if(typeof renderPlanPanel === "function") renderPlanPanel();
     return;
@@ -280,6 +306,18 @@ async function onUserSignedIn(user){
 // ── Profile: single consolidated query ───────────────────────
 
 async function _loadUserProfile(user){
+  // Detect Google OAuth return — store result, clean URL
+  try {
+    var _oqp = new URLSearchParams(window.location.search);
+    var _ogc = _oqp.get("google_connected");
+    var _oge = _oqp.get("google_error");
+    if(_ogc === "1" || _oge){
+      window.history.replaceState({}, "", window.location.pathname);
+      window._pendingOAuthResult = { connected: _ogc === "1", error: _oge || null };
+      console.log("[Google OAuth] Return detected | connected:", _ogc === "1", "| error:", _oge || null);
+    }
+  } catch(_){}
+
   // ── Diagnostic logging ─────────────────────────────────────────
   console.log("[Profile] ══════════════════════════════════════");
   console.log("[Profile] Auth user:", user.id, "| email:", user.email);
@@ -326,17 +364,28 @@ async function _loadUserProfile(user){
 
     // Subscription gate — determines whether to reveal the app or enforce paywall
     if(typeof ORIVEN_DEV !== "undefined" && ORIVEN_DEV){
-      // Dev mode: use actual DB subscription_status so the navbar reflects the real plan.
-      // Falls back to "professional" only when the DB has no value (new/test accounts).
-      var _devStatus = (data && typeof data.subscription_status === "string" && data.subscription_status.trim())
-        ? data.subscription_status.trim() : "professional";
+      // Dev mode: always read from DB — never hardcode a plan.
+      // Falls back to "free" (not "professional") when the DB has no value.
+      var _devRaw = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
+      var _devStatus = _devRaw || "free";
+      console.log("[PW-CHAIN] _loadUserProfile (dev) | DB subscription_status raw:", JSON.stringify(_devRaw), "→ _devStatus:", _devStatus, "| source:", _devRaw ? "Supabase profiles.subscription_status" : "fallback default (no DB value)");
       _dbSubscriptionStatus = _devStatus;
       S.currentPlan = _devStatus;
       if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(_devStatus);
       if(typeof invalidatePlanCache === "function") invalidatePlanCache();
       if(typeof renderPlanPanel === "function") renderPlanPanel();
       showApp();
-      navigate("dashboard");
+      // Check if onboarding is needed in dev mode too (new accounts should see the tour)
+      var _devObCompleted = data ? data.onboarding_completed === true : false;
+      var _devObNeeded = false;
+      try { _devObNeeded = localStorage.getItem("oriven_needs_onboarding") === "1"; } catch(_){}
+      if(!_devObCompleted || _devObNeeded){
+        _obContext = "gate";
+        navigate("campaigns");
+        showOnboarding();
+      } else {
+        navigate("dashboard");
+      }
     } else if(_postPayment){
       // Post-payment: DB may not reflect the new plan yet (webhook lag).
       // Read DB anyway — if paid already, set status. If still "free", leave null (= pending).
@@ -356,6 +405,8 @@ async function _loadUserProfile(user){
       var _dbPlan = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
       _dbSubscriptionStatus = _dbPlan || "free"; // authoritative value — ONLY set from Supabase
       var _isPaid = _dbSubscriptionStatus !== "free";
+      var _statusSource = _dbPlan ? ("Supabase profiles.subscription_status = '" + _dbPlan + "'") : ("no DB value — defaulting to 'free'");
+      console.log("[PW-CHAIN] _loadUserProfile | user:", user.id, "| _dbSubscriptionStatus:", _dbSubscriptionStatus, "| source:", _statusSource, "| isPaid:", _isPaid);
       console.log("[ACCESS] _loadUserProfile | User:", user.id, "| DB subscription_status:", JSON.stringify(data && data.subscription_status), "| normalized:", _dbSubscriptionStatus, "| isPaid:", _isPaid, "| Paywall Decision:", !_isPaid, "| Access Granted:", _isPaid);
       if(_isPaid){
         // Confirmed paid subscriber — reveal the full product
@@ -383,11 +434,48 @@ async function _loadUserProfile(user){
         if(_needsOnboarding){
           _obContext = "gate";
           showApp();
+          navigate("campaigns");
           showOnboarding();
         } else {
-          // Onboarding done but not paid — hard paywall
+          // Onboarding done, free user — check whether their free campaign has been used
           showApp();
-          _showHardPaywall();
+          console.log("[PW-CHAIN] _loadUserProfile | onboarding done, sub=free | user:", user.id);
+          console.log("[PW-CHAIN] DB profile data.free_campaign_used:", data && data.free_campaign_used);
+
+          // Sync free_campaign_used from DB profile (survives logout / new devices)
+          var _dbUsedFlag = data && data.free_campaign_used === true;
+          var _scopedKey  = "oriven_fcused_" + user.id;
+          var _legacyKey  = "oriven_free_campaign_used";
+          if(_dbUsedFlag){
+            try { localStorage.setItem(_scopedKey, "1"); } catch(_){}
+            console.log("[PW-CHAIN] Synced free_campaign_used from DB → localStorage key:", _scopedKey);
+          }
+          var _lsScopedFlag = false;
+          var _lsLegacyFlag = false;
+          try { _lsScopedFlag = localStorage.getItem(_scopedKey) === "1"; } catch(_){}
+          try { _lsLegacyFlag = localStorage.getItem(_legacyKey) === "1"; } catch(_){}
+          // Migrate legacy key if present
+          if(!_lsScopedFlag && _lsLegacyFlag){
+            try { localStorage.setItem(_scopedKey, "1"); _lsScopedFlag = true; } catch(_){}
+            console.log("[PW-CHAIN] Migrated legacy localStorage key to scoped key for user:", user.id);
+          }
+          var _isUsed = _dbUsedFlag || _lsScopedFlag || _lsLegacyFlag;
+          console.log("[PW-CHAIN] Page load check | _dbSubscriptionStatus:", _dbSubscriptionStatus, "| free_campaign_used:", _isUsed, "| db:", _dbUsedFlag, "| ls-scoped:", _lsScopedFlag, "| ls-legacy:", _lsLegacyFlag);
+
+          if(_isUsed){
+            console.log("[PW-CHAIN] LOCKING free user on page load — will show campaigns + hard paywall");
+            window._paywallInitNav = true;
+            navigate("campaigns");
+            window._paywallInitNav = false;
+            setTimeout(function(){
+              console.log("[PW-CHAIN] Page-load paywall timeout fired | calling openFreePaywall");
+              if(typeof openFreePaywall === "function") openFreePaywall();
+              else console.error("[PW-CHAIN] openFreePaywall NOT FOUND at timeout");
+            }, 200);
+          } else {
+            console.log("[PW-CHAIN] Free user, campaign NOT yet used — allowing normal access");
+            navigate("campaigns");
+          }
           return;
         }
       }
@@ -444,23 +532,20 @@ var _obStep    = 1;
 var _obContext = "tour"; // "gate" = pre-payment; "tour" = post-payment/dev
 
 var _OB_STEPS = [
-  { page:"dashboard",   section:"Dashboard",       title:"Your brand, <em>at a glance.</em>",                      desc:"Oriven is your AI Brand Operating System. The Dashboard shows your brand intelligence level, recent activity, and workspace — everything you need to run a complete brand in one place." },
-  { page:"create",      section:"Create",           title:"Every content type. <em>One platform.</em>",              desc:"Campaigns, visuals, video ads, product shoots, motion graphics, landing pages, and brand copy — all generated from your BrandCore in seconds. No re-briefing. No starting from scratch." },
-  { page:"studio",      section:"BrandCore",        title:"Strategy, positioning <em>and identity — built in.</em>",  desc:"BrandCore is the intelligence layer every Oriven output draws from. Your audience, tone, messaging, visual identity, and positioning — structured and always on. Build it once. Use it everywhere." },
-  { page:"inspiration", section:"Inspiration",      title:"Research and ideas, <em>always ready.</em>",              desc:"Explore AI-curated creative concepts across campaigns, visuals, web, and copy. Pick a direction and activate it with one click — your BrandCore ensures every idea stays aligned." },
-  { page:"assistant",   section:"Brand Assistant",  title:"Your AI brand strategist. <em>Always on.</em>",           desc:"The Brand Assistant thinks like a senior strategist trained on your brand. Ask it anything — positioning, strategy, campaign direction, copy feedback. It always responds in your brand voice." },
-  { page:"team",        section:"Team",             title:"One brand. <em>Built to scale.</em>",                     desc:"Invite your team, share your BrandCore, and build brand intelligence together. Multi-user collaboration, shared workspaces, and aligned outputs — available on Professional plans." },
-  { page:"settings",    section:"Settings",         title:"Your workspace, <em>your way.</em>",                      desc:"Manage your account, subscription, language, appearance, and AI preferences. Everything that shapes how Oriven works for you — all in one place, always available." },
-  { page:null,          section:"You’re ready", title:"Your brand operating system <em>is ready.</em>",          desc:"You’ve seen how Oriven helps create, manage and scale a complete brand. Unlock full access to start building." }
+  { page:"campaigns", section:"Campaign Studio", title:"Where campaigns <em>come to life.</em>",         desc:"This is where you create new campaigns and marketing assets. Generate copy, visuals, and full campaign strategies — all tailored to your brand in seconds." },
+  { page:"studio",    section:"Brand",           title:"Your brand <em>foundation.</em>",                desc:"This is your brand foundation. Everything Oriven generates uses this information — your tone, audience, positioning, and visual identity." },
+  { page:"assets",    section:"Assets",          title:"Your <em>content library.</em>",                 desc:"This is where all generated content is stored and managed. Every campaign, asset, and output lives here — ready to use or remix." },
+  { page:"aichat",    section:"Assistant",       title:"Your AI <em>brand strategist.</em>",             desc:"This AI assistant helps with campaigns, branding and marketing decisions. Ask anything — it knows your brand inside out." },
+  { page:"campaigns", section:"Campaign Studio", title:"Let’s create your <em>first campaign.</em>",     desc:"You’ve seen what Oriven can do. Now let’s build something real for your brand." }
 ];
 
 function showOnboarding(){
   _obStep = 1;
   window._obActive = true;
 
-  // Temporarily show the Team nav item (normally hidden) so step 6 can spotlight it
+  // Keep Team nav hidden — it's no longer a tour step
   var teamNav = document.getElementById("teamNavItem");
-  if(teamNav){ teamNav._obWasHidden = (teamNav.style.display === "none"); teamNav.style.display = ""; }
+  if(teamNav){ teamNav._obWasHidden = false; }
 
   // Block interactions with the main content area during the tour
   var mc = document.querySelector(".mc");
@@ -549,7 +634,7 @@ function _obRender(step){
     backBtn.onclick = function(){ obGoTo(_obStep - 1); };
   }
   if(nextBtn){
-    nextBtn.textContent = isLast ? "Choose Your Plan →" : "Next →";
+    nextBtn.textContent = isLast ? "Start Creating →" : "Next →";
     nextBtn.className   = "ob-tt-next" + (isLast ? " ob-tt-cta" : "");
     nextBtn.onclick     = isLast ? function(){ obFinish(); } : function(){ obGoTo(_obStep + 1); };
   }
@@ -637,16 +722,13 @@ function obGoTo(step){
 function obFinish(){
   console.log("[Onboarding] Tour complete — context:", _obContext);
   markOnboardingComplete();
-
-  if(_obContext === "gate"){
-    try { localStorage.removeItem("oriven_needs_onboarding"); } catch(_){}
-    _obContext = "tour";
-    hideOnboarding();
-    setTimeout(function(){ _showHardPaywall(); }, 300);
-  } else {
-    hideOnboarding();
-    setTimeout(function(){ navigate("dashboard"); }, 300);
-  }
+  try { localStorage.removeItem("oriven_needs_onboarding"); } catch(_){}
+  _obContext = "tour";
+  hideOnboarding();
+  setTimeout(function(){
+    navigate("campaigns");
+    setTimeout(function(){ if(typeof openNewCampaign === "function") openNewCampaign(); }, 400);
+  }, 300);
 }
 
 // ── Keyboard: onboarding navigation + hard paywall Escape block ─
@@ -833,12 +915,14 @@ async function deleteBCFromDB(){
 
 async function checkSubscriptionStatus(){
   if(typeof ORIVEN_DEV !== "undefined" && ORIVEN_DEV){
-    // On dev, return the actual DB value if _loadUserProfile() already set it.
-    // Never override a Supabase-confirmed plan with a hardcoded string.
-    if(_dbSubscriptionStatus !== null) return _dbSubscriptionStatus;
-    // Only fall back to "professional" for brand-new dev sessions before DB loads.
-    if(typeof S !== "undefined" && S && S.currentPlan && S.currentPlan !== "free") return S.currentPlan;
-    return "professional";
+    // Dev: use _dbSubscriptionStatus (set by _loadUserProfile from Supabase) — never hardcode.
+    if(_dbSubscriptionStatus !== null){
+      console.log("[PW-CHAIN] checkSubscriptionStatus (dev) | cached:", _dbSubscriptionStatus);
+      return _dbSubscriptionStatus;
+    }
+    // Not yet loaded — fall back to "free", not "professional"
+    console.log("[PW-CHAIN] checkSubscriptionStatus (dev) | _dbSubscriptionStatus null → defaulting to free");
+    return "free";
   }
 
   // Return the session-authoritative value when already loaded by _loadUserProfile().
@@ -952,19 +1036,70 @@ function _showHardPaywall(){
   console.log("[Paywall] Hard paywall shown — awaiting plan selection");
 }
 
+// Free-campaign conversion paywall — shown after first campaign is generated
+function openFreePaywall(){
+  console.log("[PW-CHAIN] openFreePaywall() called | _paywallHard was:", _paywallHard);
+  _paywallHard = true;
+  var modal = document.getElementById("modal-paywall");
+  console.log("[PW-CHAIN] modal-paywall element:", modal ? "FOUND" : "NOT FOUND IN DOM");
+  if(modal){
+    modal.classList.add("pw-hard");
+    console.log("[PW-CHAIN] Added pw-hard class | classList:", modal.className);
+  }
+
+  var titleEl = document.querySelector("#modal-paywall .pw-title");
+  var subEl   = document.querySelector("#modal-paywall .pw-sub");
+  var eyeEl   = document.querySelector("#modal-paywall .pw-eyebrow span");
+  console.log("[PW-CHAIN] Title element:", titleEl ? "found" : "NOT FOUND");
+  console.log("[PW-CHAIN] Sub element:", subEl ? "found" : "NOT FOUND");
+  if(titleEl)  titleEl.innerHTML = "🎁 Your Free Campaign Is Ready";
+  if(subEl)    subEl.textContent = "You’ve successfully generated your first campaign. To download, save, edit, manage or continue creating campaigns, choose a plan.";
+  if(eyeEl)    eyeEl.textContent = "One Free Campaign Delivered";
+
+  console.log("[PW-CHAIN] Calling openPaywall() | typeof openPaywall:", typeof openPaywall);
+  if(typeof openPaywall === "function"){
+    openPaywall();
+  } else {
+    console.error("[PW-CHAIN] openPaywall is NOT a function — paywall.js may not be loaded yet");
+  }
+  console.log("[PW-CHAIN] openFreePaywall() complete | modal classList:", modal ? modal.className : "N/A");
+}
+window.openFreePaywall = openFreePaywall;
+
 function closePaywall(){
+  console.log("[PW-CHAIN] closePaywall() called | _paywallHard:", _paywallHard);
   if(_paywallHard){
-    console.log("[Paywall] Hard paywall — dismiss blocked");
+    console.log("[PW-CHAIN] closePaywall() BLOCKED — hard paywall active");
     return;
   }
   if(typeof closeModal === "function") closeModal("modal-paywall");
-  console.log("[Paywall] Dismissed by user");
+  console.log("[PW-CHAIN] closePaywall() completed — modal closed");
+}
+
+// After successful Stripe payment: navigate to the page the user came from
+function _postPaymentNavigate(){
+  var returnPage = null;
+  try { returnPage = localStorage.getItem("oriven_post_payment_return"); } catch(_){}
+  if(returnPage){
+    try { localStorage.removeItem("oriven_post_payment_return"); } catch(_){}
+    if(typeof navigate === "function") navigate(returnPage);
+  } else {
+    showOnboarding();
+  }
 }
 
 async function selectPlan(plan){
   console.log("[Paywall] Plan selected:", plan);
   var btn = document.querySelector('[onclick="selectPlan(\'' + plan + '\')"]');
   if(btn){ btn.disabled = true; btn.textContent = "Redirecting…"; }
+
+  // Save return destination — if free user is converting from campaign-workspace, send them back there
+  try {
+    var _cwrPg = document.getElementById("page-campaign-workspace");
+    if(_cwrPg && _cwrPg.classList.contains("active")){
+      localStorage.setItem("oriven_post_payment_return", "campaign-workspace");
+    }
+  } catch(_){}
 
   try {
     var u = S.user || (await SB.auth.getUser()).data.user;
@@ -986,6 +1121,16 @@ async function selectPlan(plan){
 
 document.addEventListener("DOMContentLoaded", async function(){
   trackEvent("visited_site");
+  console.log("[PW-CHAIN] ══ DOMContentLoaded | localStorage snapshot:");
+  try {
+    var _lsSnap = {};
+    for(var _k = 0; _k < localStorage.length; _k++){
+      var _key = localStorage.key(_k);
+      if(_key && (_key.indexOf('oriven_fc') !== -1 || _key.indexOf('oriven_free') !== -1))
+        _lsSnap[_key] = localStorage.getItem(_key);
+    }
+    console.log("[PW-CHAIN] Paywall-related localStorage keys:", JSON.stringify(_lsSnap));
+  } catch(_){}
 
   // Reset the authoritative subscription state — only _loadUserProfile() may set it.
   // _dbSubscriptionStatus = null means "not yet loaded from Supabase".
@@ -1045,7 +1190,7 @@ document.addEventListener("DOMContentLoaded", async function(){
           if(typeof invalidatePlanCache === "function") invalidatePlanCache();
           if(typeof renderPlanPanel === "function") renderPlanPanel();
           toast("Your subscription is now active — welcome to ORIVEN!");
-          setTimeout(function(){ showOnboarding(); }, 600);
+          setTimeout(_postPaymentNavigate, 600);
         } else {
           // Webhook may not have arrived yet — retry once after a short delay
           toast("Payment received — activating your account...");
@@ -1058,7 +1203,7 @@ document.addEventListener("DOMContentLoaded", async function(){
               if(typeof invalidatePlanCache === "function") invalidatePlanCache();
               if(typeof renderPlanPanel === "function") renderPlanPanel();
               toast("Your subscription is now active — welcome to ORIVEN!");
-              setTimeout(function(){ showOnboarding(); }, 400);
+              setTimeout(_postPaymentNavigate, 400);
             } else {
               toast("Subscription pending — please refresh in a moment.");
             }
@@ -1090,3 +1235,368 @@ document.addEventListener("DOMContentLoaded", async function(){
     }
   });
 });
+
+// ════════════════════════════════════════════════════════════════
+// BRAND ONBOARDING — multi-step questionnaire for new free users
+// Replaces the spotlight nav tour when _obContext === "gate"
+// ════════════════════════════════════════════════════════════════
+
+var _obBrandStep    = 1;
+var _obBrandTotal   = 7;
+var _obBrandAnswers = {};
+
+var _OB_BRAND_STEPS = [
+  null, // 1-indexed
+  { q: "What's your business called?",                   type: "text",   id: "obBrandName",     placeholder: "e.g. Luna Coffee, Apex Media, Brightfield" },
+  { q: "What industry are you in?",                      type: "chips",  group: "industry",     single: true,  opts: ["E-commerce","SaaS","Professional Services","Hospitality","Health & Wellness","Fashion","Food & Beverage","Real Estate","Education","Other"] },
+  { q: "Who are your customers?",                        type: "text",   id: "obBrandAudience", placeholder: "e.g. Small business owners aged 25–45 who want to grow online" },
+  { q: "What are you trying to achieve?",                type: "chips",  group: "goals",        single: false, opts: ["Build brand awareness","Generate leads","Drive sales","Grow social following","Launch a new product","Scale existing business"] },
+  { q: "How would you describe your brand's personality?", type: "chips", group: "style",       single: true,  opts: ["Modern & Clean","Bold & Energetic","Luxury & Premium","Playful & Creative","Professional & Trusted","Minimalist"] },
+  { q: "What do you sell or offer?",                     type: "text",   id: "obBrandOffer",    placeholder: "e.g. SEO services, handmade jewellery, SaaS analytics tool" },
+  { q: "Which campaign types interest you?",             type: "chips",  group: "campaigns",    single: false, opts: ["Meta Ads","Google Ads","TikTok Ads","Email","Landing Pages","Social Content"] }
+];
+
+function showBrandOnboarding(){
+  _obBrandStep    = 1;
+  _obBrandAnswers = {};
+  window._obActive = true;
+  var overlay = document.getElementById("obBrandOverlay");
+  if(overlay){ overlay.style.display = "flex"; }
+  _obBrandRender();
+}
+
+function _obBrandRender(){
+  var step = _obBrandStep;
+  var def  = _OB_BRAND_STEPS[step];
+  if(!def) return;
+
+  // Update progress dots
+  var prog = document.getElementById("obBrandProgress");
+  if(prog){
+    var dots = "";
+    for(var i = 1; i <= _obBrandTotal; i++){
+      dots += '<div class="obd-dot' + (i === step ? " obd-dot-active" : (i < step ? " obd-dot-done" : "")) + '"></div>';
+    }
+    prog.innerHTML = dots;
+  }
+
+  // Update step counter
+  var ctr = document.getElementById("obBrandCounter");
+  if(ctr) ctr.textContent = step + " / " + _obBrandTotal;
+
+  // Render question
+  var qEl = document.getElementById("obBrandQuestion");
+  if(qEl) qEl.textContent = def.q;
+
+  // Render input area
+  var body = document.getElementById("obBrandBody");
+  if(!body) return;
+  if(def.type === "text"){
+    var saved = _obBrandAnswers["txt_" + step] || "";
+    body.innerHTML = '<input class="obd-input" id="' + def.id + '" type="text" placeholder="' + (def.placeholder||"") + '" value="' + _escObBrand(saved) + '" autocomplete="off">';
+    var inp = document.getElementById(def.id);
+    if(inp){ inp.focus(); inp.addEventListener("keydown", function(e){ if(e.key==="Enter") obBrandNext(); }); }
+  } else if(def.type === "chips"){
+    var saved2 = _obBrandAnswers["chips_" + step] || [];
+    var html = '<div class="obd-chips">';
+    def.opts.forEach(function(opt){
+      var sel = saved2.indexOf(opt) !== -1 ? " obd-chip-sel" : "";
+      html += '<button class="obd-chip' + sel + '" onclick="obBrandToggleChip(this,' + def.single + ')">' + opt + '</button>';
+    });
+    html += "</div>";
+    body.innerHTML = html;
+  }
+
+  // Nav buttons
+  var backBtn = document.getElementById("obBrandBack");
+  var nextBtn = document.getElementById("obBrandNext");
+  if(backBtn) backBtn.style.visibility = (step === 1) ? "hidden" : "visible";
+  if(nextBtn) nextBtn.textContent = (step === _obBrandTotal) ? "Finish →" : "Next →";
+}
+
+function _escObBrand(s){ return String(s||"").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+window.obBrandToggleChip = function(el, single){
+  if(single){
+    el.closest(".obd-chips").querySelectorAll(".obd-chip").forEach(function(c){ c.classList.remove("obd-chip-sel"); });
+    el.classList.add("obd-chip-sel");
+  } else {
+    el.classList.toggle("obd-chip-sel");
+  }
+};
+
+function _obBrandCollect(){
+  var step = _obBrandStep;
+  var def  = _OB_BRAND_STEPS[step];
+  if(!def) return;
+  if(def.type === "text"){
+    var inp = document.getElementById(def.id);
+    if(inp) _obBrandAnswers["txt_" + step] = inp.value.trim();
+  } else if(def.type === "chips"){
+    var sel = [];
+    document.querySelectorAll(".obd-chips .obd-chip-sel").forEach(function(c){ sel.push(c.textContent.trim()); });
+    _obBrandAnswers["chips_" + step] = sel;
+  }
+}
+
+window.obBrandNext = function(){
+  _obBrandCollect();
+  if(_obBrandStep < _obBrandTotal){
+    _obBrandStep++;
+    _obBrandRender();
+  } else {
+    _obBrandFinish();
+  }
+};
+
+window.obBrandBack = function(){
+  _obBrandCollect();
+  if(_obBrandStep > 1){
+    _obBrandStep--;
+    _obBrandRender();
+  }
+};
+
+window.obBrandSkip = function(){
+  _obBrandFinish();
+};
+
+function _obBrandFinish(){
+  // Save collected brand data as a starter BrandCore
+  try {
+    var bc = {};
+    if(_obBrandAnswers["txt_1"]) bc.name     = _obBrandAnswers["txt_1"];
+    var ind = _obBrandAnswers["chips_2"];
+    if(ind && ind.length) bc.industry = ind[0];
+    if(_obBrandAnswers["txt_3"]) bc.audience  = _obBrandAnswers["txt_3"];
+    var goals = _obBrandAnswers["chips_4"];
+    if(goals && goals.length) bc.positioning = "Goals: " + goals.join(", ");
+    var style = _obBrandAnswers["chips_5"];
+    if(style && style.length) bc.personality = style[0];
+    if(_obBrandAnswers["txt_6"]) bc.messaging = _obBrandAnswers["txt_6"];
+    if(bc.name){
+      // Merge into existing BrandCore or create new
+      var existing = {};
+      try { existing = JSON.parse(localStorage.getItem("oriven_bc") || "{}"); } catch(_){}
+      Object.assign(existing, bc);
+      localStorage.setItem("oriven_bc", JSON.stringify(existing));
+      if(typeof S !== "undefined" && S) S.brandCore = existing;
+    }
+  } catch(_){}
+
+  // Mark onboarding complete in DB + clear localStorage flag
+  markOnboardingComplete();
+  try { localStorage.removeItem("oriven_needs_onboarding"); } catch(_){}
+
+  // Close overlay
+  var overlay = document.getElementById("obBrandOverlay");
+  if(overlay) overlay.style.display = "none";
+  window._obActive = false;
+  _obContext = "tour";
+
+  // Show product tour, then reward screen
+  setTimeout(function(){ _showFreeProductTour(); }, 250);
+}
+
+function _showRewardScreen(){
+  var overlay = document.getElementById("obRewardOverlay");
+  if(overlay) overlay.style.display = "flex";
+}
+
+window.rewardStartCreating = function(){
+  var overlay = document.getElementById("obRewardOverlay");
+  if(overlay) overlay.style.display = "none";
+  navigate("campaigns");
+};
+
+// ════════════════════════════════════════════════════════════════
+// FREE PRODUCT TOUR — 4 slides shown after brand onboarding
+// ════════════════════════════════════════════════════════════════
+
+var _obTourStep  = 1;
+var _obTourTotal = 4;
+
+var _obTourSlides = [
+  {
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>',
+    iconCls: "ob-icon-create",
+    section: "Campaign Studio",
+    title: "Create campaigns that <em>move your brand forward.</em>",
+    desc: "Generate full campaigns — copy, visuals, strategy — tailored to your brand in seconds. No templates, no guessing."
+  },
+  {
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>',
+    iconCls: "ob-icon-studio",
+    section: "Brand Profile",
+    title: "Your brand identity, <em>all in one place.</em>",
+    desc: "Tone of voice, visual identity, audience, and positioning — Oriven keeps your brand consistent across every campaign."
+  },
+  {
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>',
+    iconCls: "ob-icon-inspiration",
+    section: "Brand Assets",
+    title: "All your creative assets, <em>organized for you.</em>",
+    desc: "Access templates, inspiration, and every campaign you've generated — ready to remix and build on at any time."
+  },
+  {
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 12h.01M12 12h.01M16 12h.01" stroke-width="2.5"/></svg>',
+    iconCls: "ob-icon-dashboard",
+    section: "AI Assistant",
+    title: "Your personal brand strategist, <em>always on.</em>",
+    desc: "Ask anything — campaign ideas, copy feedback, competitor questions, strategy. The Assistant knows your brand inside out."
+  }
+];
+
+function _showFreeProductTour(){
+  _obTourStep = 1;
+  var overlay = document.getElementById("obTourOverlay");
+  if(overlay){ overlay.style.display = "flex"; }
+  _obTourRender();
+}
+
+function _obTourRender(){
+  var slide = _obTourSlides[_obTourStep - 1];
+  if(!slide) return;
+
+  var iconEl    = document.getElementById("obTourIcon");
+  var sectionEl = document.getElementById("obTourSection");
+  var titleEl   = document.getElementById("obTourTitle");
+  var descEl    = document.getElementById("obTourDesc");
+  var dotsEl    = document.getElementById("obTourDots");
+  var backBtn   = document.getElementById("obTourBack");
+  var nextBtn   = document.getElementById("obTourNext");
+
+  if(iconEl){ iconEl.className = "ob-tour-icon " + slide.iconCls; iconEl.innerHTML = slide.icon; }
+  if(sectionEl) sectionEl.textContent = slide.section;
+  if(titleEl)   titleEl.innerHTML     = slide.title;
+  if(descEl)    descEl.textContent    = slide.desc;
+
+  // Dots
+  if(dotsEl){
+    dotsEl.innerHTML = "";
+    for(var i = 1; i <= _obTourTotal; i++){
+      var d = document.createElement("div");
+      d.className = "ob-dot" + (i === _obTourStep ? " ob-dot-active" : "");
+      dotsEl.appendChild(d);
+    }
+  }
+
+  // Back button visibility
+  if(backBtn) backBtn.style.visibility = _obTourStep > 1 ? "visible" : "hidden";
+
+  // Next button label
+  if(nextBtn){
+    if(_obTourStep === _obTourTotal){
+      nextBtn.textContent = "Claim Your Free Campaign →";
+      nextBtn.className   = "ob-next-btn ob-finish";
+    } else {
+      nextBtn.textContent = "Next";
+      nextBtn.className   = "ob-next-btn";
+    }
+  }
+}
+
+window.obTourNext = function(){
+  if(_obTourStep < _obTourTotal){
+    _obTourStep++;
+    _obTourRender();
+  } else {
+    obTourFinish();
+  }
+};
+
+window.obTourBack = function(){
+  if(_obTourStep > 1){ _obTourStep--; _obTourRender(); }
+};
+
+window.obTourFinish = function(){
+  var overlay = document.getElementById("obTourOverlay");
+  if(overlay) overlay.style.display = "none";
+  setTimeout(function(){ _showRewardScreen(); }, 200);
+};
+
+// ════════════════════════════════════════════════════════════════
+// FREE TRIAL GUARD — gate export/download/copy for free users
+// ════════════════════════════════════════════════════════════════
+
+function _isFreeUser(){
+  var sub = (typeof _dbSubscriptionStatus !== "undefined") ? _dbSubscriptionStatus : "UNDEFINED";
+  var result = sub === "free";
+  console.log("[PW-CHAIN] _isFreeUser() →", result, "| _dbSubscriptionStatus:", sub);
+  return result;
+}
+
+function _freeCampaignUsed(){
+  try {
+    var _uid = (_currentUser && _currentUser.id) ? _currentUser.id : null;
+    if(!_uid){
+      console.log("[PW-CHAIN] _freeCampaignUsed() → false (no uid, _currentUser:", _currentUser, ")");
+      return false;
+    }
+    var scopedKey  = "oriven_fcused_" + _uid;
+    var legacyKey  = "oriven_free_campaign_used";
+    var scoped     = localStorage.getItem(scopedKey);
+    var legacy     = localStorage.getItem(legacyKey);
+    console.log("[PW-CHAIN] _freeCampaignUsed() | uid:", _uid, "| scoped (", scopedKey, "):", scoped, "| legacy:", legacy);
+    // If only the legacy key exists, migrate it to the scoped key
+    if(scoped !== "1" && legacy === "1"){
+      console.log("[PW-CHAIN] Migrating legacy key → scoped key for uid:", _uid);
+      try { localStorage.setItem(scopedKey, "1"); } catch(_){}
+      return true;
+    }
+    var result = scoped === "1";
+    console.log("[PW-CHAIN] _freeCampaignUsed() →", result);
+    return result;
+  } catch(e){
+    console.error("[PW-CHAIN] _freeCampaignUsed() ERROR:", e);
+    return false;
+  }
+}
+
+window._cwsFreeGuard = function(action){
+  var free = _isFreeUser();
+  var used = _freeCampaignUsed();
+  console.log("[PW-CHAIN] _cwsFreeGuard('" + action + "') | free:", free, "| used:", used);
+  if(!free) return true; // paid users: always allowed
+  openFreePaywall();
+  return false;
+};
+
+window._getCurrentUser = function(){ return _currentUser; };
+
+// ── Paywall diagnostic helper — call window._paywallDiag() in browser console ──
+window._paywallDiag = function(){
+  console.group("[PW-DIAG] ══ Paywall State Report ══");
+  var sub = typeof _dbSubscriptionStatus !== "undefined" ? _dbSubscriptionStatus : "UNDEFINED";
+  var uid = _currentUser && _currentUser.id ? _currentUser.id : null;
+  console.log("_dbSubscriptionStatus:", sub);
+  console.log("_currentUser.id:", uid);
+  if(uid){
+    console.log("localStorage oriven_fcused_" + uid + ":", localStorage.getItem("oriven_fcused_" + uid));
+    console.log("localStorage oriven_free_campaign_used (legacy):", localStorage.getItem("oriven_free_campaign_used"));
+  }
+  console.log("_isFreeUser():", typeof _isFreeUser === "function" ? _isFreeUser() : "FUNCTION NOT FOUND");
+  console.log("_freeCampaignUsed():", typeof _freeCampaignUsed === "function" ? _freeCampaignUsed() : "FUNCTION NOT FOUND");
+  console.log("_paywallHard:", typeof _paywallHard !== "undefined" ? _paywallHard : "UNDEFINED");
+  console.log("openFreePaywall:", typeof openFreePaywall);
+  console.log("openPaywall:", typeof openPaywall);
+  console.log("openModal:", typeof openModal);
+  var pwEl = document.getElementById("modal-paywall");
+  if(pwEl){
+    var cs = window.getComputedStyle(pwEl);
+    console.group("modal-paywall DOM");
+    console.log("className:", pwEl.className);
+    console.log("style.display:", pwEl.style.display);
+    console.log("computed display:", cs.display);
+    console.log("computed opacity:", cs.opacity);
+    console.log("computed z-index:", cs.zIndex);
+    console.log("computed visibility:", cs.visibility);
+    console.log("has .open:", pwEl.classList.contains("open"));
+    console.log("has .pw-hard:", pwEl.classList.contains("pw-hard"));
+    console.log("children count:", pwEl.children.length);
+    console.groupEnd();
+  } else {
+    console.error("modal-paywall element NOT FOUND in DOM");
+  }
+  console.groupEnd();
+};

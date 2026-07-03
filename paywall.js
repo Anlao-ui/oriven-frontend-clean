@@ -3,8 +3,21 @@
 // ════════════════════════════════════════════════════════════════
 
 function openPaywall(){
+  console.log("[PW-CHAIN] openPaywall() called | typeof openModal:", typeof openModal);
   _renderPaywallCards();
-  if(typeof openModal === "function") openModal("modal-paywall");
+  var pwEl = document.getElementById("modal-paywall");
+  if(!pwEl){
+    console.error("[PW-CHAIN] openPaywall() — modal-paywall element NOT FOUND in DOM");
+    return;
+  }
+  console.log("[PW-CHAIN] openPaywall() — modal-paywall before open | className:", pwEl.className, "| style.display:", pwEl.style.display);
+  if(typeof openModal === "function"){
+    openModal("modal-paywall");
+    var cs = window.getComputedStyle(pwEl);
+    console.log("[PW-CHAIN] openPaywall() — modal-paywall after open | className:", pwEl.className, "| computed opacity:", cs.opacity, "| computed display:", cs.display, "| computed z-index:", cs.zIndex);
+  } else {
+    console.error("[PW-CHAIN] openModal is NOT a function — app.js may not be loaded");
+  }
 }
 
 function _renderPaywallCards(){
@@ -35,6 +48,63 @@ function _renderPaywallCards(){
     btn.disabled    = true;
     btn.className   = "pw-btn";
   });
+}
+
+// ════════════════════════════════════════════════════════════════
+// CONTEXTUAL UPGRADE PROMPTS — shown when a specific limit is hit
+// ════════════════════════════════════════════════════════════════
+
+var _LIMIT_MSGS = {
+  brand: {
+    title:   "Brand limit reached.",
+    sub:     "Upgrade to manage more brands from one Brand Brain system.",
+    upgrade: "creator"
+  },
+  competitor: {
+    title:   "Competitor limit reached.",
+    sub:     "Upgrade to track more competitors and stay ahead of the market.",
+    upgrade: "creator"
+  },
+  website: {
+    title:   "Website limit reached.",
+    sub:     "Upgrade to monitor multiple websites and catch brand drift everywhere.",
+    upgrade: "creator"
+  },
+  credits: {
+    title:   "Create credits used.",
+    sub:     "Upgrade for more credits and keep generating on-brand content.",
+    upgrade: "creator"
+  },
+  brief: {
+    title:   "Daily Brief requires Creator.",
+    sub:     "Upgrade to receive your Brand Brief every morning instead of weekly.",
+    upgrade: "creator"
+  },
+  history: {
+    title:   "Extended history requires Professional.",
+    sub:     "Upgrade to access up to 365 days of brand intelligence history.",
+    upgrade: "professional"
+  }
+};
+
+function openLimitReached(type){
+  var m = _LIMIT_MSGS[type] || {
+    title:   "Plan limit reached.",
+    sub:     "Upgrade to get more intelligence, monitoring and scale.",
+    upgrade: "creator"
+  };
+
+  var titleEl = document.querySelector("#modal-paywall .pw-title");
+  var subEl   = document.querySelector("#modal-paywall .pw-sub");
+  if(titleEl) titleEl.innerHTML = m.title + ' <em>Upgrade to ' + (_upLabel(m.upgrade)) + '.</em>';
+  if(subEl)   subEl.textContent = m.sub;
+
+  openPaywall();
+}
+
+function _upLabel(planId){
+  var p = typeof ORIVEN_PLANS !== "undefined" && ORIVEN_PLANS[planId];
+  return p ? p.name : (planId ? planId.charAt(0).toUpperCase() + planId.slice(1) : "a higher plan");
 }
 
 // ════════════════════════════════════════════════════════════════

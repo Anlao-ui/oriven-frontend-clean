@@ -145,8 +145,16 @@ async function gateUsage(creditCost){
   var plan = await _getCachedPlan();
 
   if(!ORIVEN_PLANS[plan]){
-    if(typeof openPaywall === "function") openPaywall();
-    return false;
+    var _fCampUsed = false;
+    try { _fCampUsed = localStorage.getItem("oriven_free_campaign_used") === "1"; } catch(_){}
+    if(_fCampUsed){
+      if(typeof openPaywall === "function") openPaywall();
+      return false;
+    }
+    // Allow the one free generation — mark campaign as used and refresh UI
+    try { localStorage.setItem("oriven_free_campaign_used", "1"); } catch(_){}
+    setTimeout(_refreshUsageUI, 0);
+    return true;
   }
 
   var result = await checkUsageLimit(cost);
@@ -199,9 +207,12 @@ async function _refreshUsageUI(){
   var cfg  = ORIVEN_PLANS[plan];
 
   if(!cfg){
-    badge.textContent = "No Subscription";
-    badge.className   = "usage-badge usage-badge-free";
-    if(planLabel){ planLabel.textContent = "No Subscription"; planLabel.className = "sb-plan-label sb-plan-free"; }
+    var _freeUsed = false;
+    try { _freeUsed = localStorage.getItem("oriven_free_campaign_used") === "1"; } catch(_){}
+    var _freeCred = _freeUsed ? 0 : 1;
+    badge.textContent = _freeCred + (_freeCred === 1 ? " campaign left" : " campaigns left");
+    badge.className   = "usage-badge " + (_freeCred === 0 ? "usage-badge-empty" : "usage-badge-ok");
+    if(planLabel){ planLabel.textContent = "Free Trial"; planLabel.className = "sb-plan-label sb-plan-free"; }
     return;
   }
 

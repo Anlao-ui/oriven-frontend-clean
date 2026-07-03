@@ -602,6 +602,7 @@ async function _ggDoSignup(){
     var result = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(result.error) throw result.error;
     _ggClearErr(["ggFirst","ggEmail","ggPass"]);
+    try { localStorage.setItem('oriven_needs_onboarding', '1'); } catch(_){}
     _guestOnSignedIn(result.data.user);
     trackEvent("created_account", result.data.user);
   } catch(err){

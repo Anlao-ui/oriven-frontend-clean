@@ -1348,20 +1348,49 @@ function renderPlanPanel(){
   }
   html += '</div>';
 
-  // ── Credits usage block ───────────────────────────────────────
+  // ── Plan Usage block ──────────────────────────────────────────
   if(currentData){
-    var usedCr  = (typeof _getCounts === "function") ? (_getCounts().monthlyCount || 0) : 0;
-    var totalCr = currentData.credits || currentData.limit || 0;
-    var remCr   = Math.max(0, totalCr - usedCr);
-    var pctCr   = totalCr > 0 ? Math.min(100, Math.round((usedCr / totalCr) * 100)) : 0;
-    var barClr  = pctCr >= 90 ? "#EF4444" : pctCr >= 70 ? "#F59E0B" : "var(--gm)";
-    html += '<div class="plan-credits-block">';
-    html +=   '<div class="plan-credits-hd">';
-    html +=     '<span class="plan-credits-label">Creative Credits</span>';
-    html +=     '<span class="plan-credits-count">' + remCr + ' / ' + totalCr + '</span>';
+    var usedCr   = (typeof _getCounts === "function") ? (_getCounts().monthlyCount || 0) : 0;
+    var totalCr  = currentData.credits || currentData.limit || 0;
+    var remCr    = Math.max(0, totalCr - usedCr);
+    var pctCr    = totalCr > 0 ? Math.min(100, Math.round((usedCr / totalCr) * 100)) : 0;
+    var crBarClr = pctCr >= 90 ? "#EF4444" : pctCr >= 70 ? "#F59E0B" : "var(--gm)";
+
+    // Derive current usage from app state
+    var usedBrands  = 1; // always 1 brand per workspace in current version
+    var totalBrands = currentData.brands || 1;
+    var pctBrands   = Math.min(100, Math.round((usedBrands / totalBrands) * 100));
+
+    var usedComp  = (typeof _ciLastReport !== "undefined" && _ciLastReport) ? 1 : 0;
+    var totalComp = currentData.competitors || 2;
+    var pctComp   = Math.min(100, Math.round((usedComp / totalComp) * 100));
+
+    var usedWeb  = (typeof _webReport !== "undefined" && _webReport) ? 1 : 0;
+    var totalWeb = currentData.websites || 1;
+    var pctWeb   = Math.min(100, Math.round((usedWeb / totalWeb) * 100));
+
+    function _usageRow(label, used, total, pct, barColor){
+      var color = barColor || (pct >= 90 ? "#EF4444" : pct >= 70 ? "#F59E0B" : "var(--gm)");
+      return '<div class="plan-usage-row">'
+        + '<div class="plan-usage-row-lbl">' + label + '</div>'
+        + '<div class="plan-usage-row-right">'
+        +   '<div class="plan-usage-bar"><div class="plan-usage-fill" style="width:' + pct + '%;background:' + color + '"></div></div>'
+        +   '<div class="plan-usage-count">' + used + ' / ' + total + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+
+    html += '<div class="plan-usage-block">';
+    html +=   '<div class="plan-usage-title">Plan Usage</div>';
+    html +=   _usageRow("Brands",          usedBrands, totalBrands, pctBrands);
+    html +=   _usageRow("Competitors",     usedComp,   totalComp,   pctComp);
+    html +=   _usageRow("Websites",        usedWeb,    totalWeb,    pctWeb);
+    html +=   _usageRow("Create Credits",  usedCr,     totalCr,     pctCr, crBarClr);
+    html +=   '<div class="plan-usage-meta">';
+    html +=     '<div class="plan-usage-meta-item"><span class="plan-usage-meta-lbl">Brand Brief</span><span class="plan-usage-meta-val">' + (currentData.brief || "—") + '</span></div>';
+    html +=     '<div class="plan-usage-meta-item"><span class="plan-usage-meta-lbl">Monitoring</span><span class="plan-usage-meta-val">Active</span></div>';
+    html +=     '<div class="plan-usage-meta-item"><span class="plan-usage-meta-lbl">Historical Tracking</span><span class="plan-usage-meta-val">' + (currentData.historyLabel || "30 days") + '</span></div>';
     html +=   '</div>';
-    html +=   '<div class="plan-credits-bar"><div class="plan-credits-fill" style="width:'+pctCr+'%;background:'+barClr+'"></div></div>';
-    html +=   '<div class="plan-credits-sub">' + remCr + ' credits remaining · ' + (100 - pctCr) + '% of monthly quota · resets on billing date</div>';
     html += '</div>';
   }
 
@@ -1479,7 +1508,120 @@ function _initSettingsNav(){
     item.classList.add("active");
     var panel = document.getElementById("sp-" + item.getAttribute("data-sp"));
     if(panel) panel.classList.add("active");
+    if(item.getAttribute("data-sp") === "integrations") initIntegrations();
   });
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// INTEGRATIONS
+// ════════════════════════════════════════════════════════════════
+
+var _integrationsLoaded = false;
+
+function initIntegrations(){
+  // Show pending OAuth result (from Google OAuth return redirect)
+  var _oar = window._pendingOAuthResult;
+  if(_oar){
+    window._pendingOAuthResult = null;
+    var _errMap = {
+      access_denied: "Google sign-in was cancelled.",
+      token_exchange: "Google connection failed — please try again.",
+      invalid_state: "Session expired — please try again.",
+      db: "Could not save connection — please try again.",
+      network: "Network error — please try again."
+    };
+    setTimeout(function(){
+      if(_oar.connected){
+        toast("Google Ads connected successfully!");
+      } else if(_oar.error){
+        toast(_errMap[_oar.error] || "Google connection failed.", "err");
+      }
+    }, 100);
+  }
+  // Only hit the API once per session unless forced
+  if(_integrationsLoaded) return;
+  _integrationsLoaded = true;
+  _loadGadsStatus();
+}
+
+async function _loadGadsStatus(){
+  var connectBtn  = document.getElementById("gads-connect-btn");
+  var connectedEl = document.getElementById("gads-connected-info");
+  if(connectBtn){ connectBtn.disabled = true; connectBtn.textContent = "Loading…"; }
+
+  try {
+    var result = await apiFetch("/api/google/status");
+    if(!result.ok){
+      if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; }
+      return;
+    }
+    var data = result.data;
+    if(data.connected){
+      if(connectBtn) connectBtn.style.display = "none";
+      if(connectedEl) connectedEl.style.display = "";
+
+      var emailEl  = document.getElementById("gads-email-val");
+      var dateEl   = document.getElementById("gads-date-val");
+      var statusEl = document.getElementById("gads-status-text");
+
+      if(emailEl)  emailEl.textContent = data.google_email || "—";
+      if(dateEl && data.connected_at){
+        var d = new Date(data.connected_at);
+        dateEl.textContent = d.toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" });
+      }
+      if(statusEl){
+        var isExpired = data.status === "expired";
+        statusEl.innerHTML = '<span class="int-status-dot' + (isExpired ? " int-status-warn" : "") + '"></span>'
+          + (isExpired ? "Token expired — reconnect" : "Active");
+      }
+    } else {
+      if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; connectBtn.style.display = ""; }
+      if(connectedEl) connectedEl.style.display = "none";
+    }
+  } catch(err){
+    if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; }
+    console.error("[Google Ads] Status load failed:", err.message);
+  }
+}
+
+async function connectGoogleAds(){
+  var btn = document.getElementById("gads-connect-btn");
+  if(btn){ btn.disabled = true; btn.textContent = "Connecting…"; }
+  try {
+    var result = await apiFetch("/api/google/auth-url");
+    if(!result.ok){
+      toast("Could not initiate Google connection — please try again.", "err");
+      if(btn){ btn.disabled = false; btn.textContent = "Connect Google Ads"; }
+      return;
+    }
+    window.location.href = result.data.url;
+  } catch(err){
+    toast("Connection error — please try again.", "err");
+    if(btn){ btn.disabled = false; btn.textContent = "Connect Google Ads"; }
+  }
+}
+
+async function disconnectGoogleAds(){
+  var btn = document.getElementById("gads-disconnect-btn");
+  if(btn){ btn.disabled = true; btn.textContent = "Disconnecting…"; }
+  try {
+    var result = await apiFetch("/api/google/disconnect", { method: "POST" });
+    if(result.ok){
+      toast("Google Ads disconnected.");
+      _integrationsLoaded = false; // allow reload on next panel open
+      var connectBtn  = document.getElementById("gads-connect-btn");
+      var connectedEl = document.getElementById("gads-connected-info");
+      if(connectBtn){ connectBtn.style.display = ""; connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; }
+      if(connectedEl) connectedEl.style.display = "none";
+    } else {
+      toast("Could not disconnect — please try again.", "err");
+      if(btn){ btn.disabled = false; btn.textContent = "Disconnect"; }
+    }
+  } catch(err){
+    toast("Disconnect failed — please try again.", "err");
+    if(btn){ btn.disabled = false; btn.textContent = "Disconnect"; }
+  }
 }
 
 

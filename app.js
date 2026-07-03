@@ -451,11 +451,35 @@ function navigate(page){
   var _pw = document.getElementById("modal-paywall");
   if(_pw && _pw.classList.contains("open") && _pw.classList.contains("pw-hard")) return;
 
-  // "assistant" → open Brand Assistant workspace
-  if(page==="assistant"){
-    if(typeof openFAB==="function") openFAB();
+  // Global free-user lock: any navigation away from campaign-workspace triggers paywall.
+  // _paywallInitNav bypasses this ONLY during initial page-load navigation (see _loadUserProfile).
+  if(!window._paywallInitNav && page !== "campaign-workspace"){
+    var _isFreeUserType = typeof _isFreeUser;
+    var _freeCampUsedType = typeof _freeCampaignUsed;
+    console.log("[PW-CHAIN] navigate('" + page + "') guard | _isFreeUser type:", _isFreeUserType, "| _freeCampaignUsed type:", _freeCampUsedType);
+    if(_isFreeUserType === "function" && _freeCampUsedType === "function"){
+      var _fug_free = _isFreeUser();
+      var _fug_used = _freeCampaignUsed();
+      console.log("[PW-CHAIN] navigate guard result | free:", _fug_free, "| used:", _fug_used, "| will block:", (_fug_free && _fug_used));
+      if(_fug_free && _fug_used){
+        console.log("[PW-CHAIN] BLOCKING navigate('" + page + "') — calling openFreePaywall");
+        if(typeof openFreePaywall === "function") openFreePaywall();
+        else console.error("[PW-CHAIN] openFreePaywall NOT FOUND in navigate guard");
+        return;
+      }
+    } else {
+      console.warn("[PW-CHAIN] navigate guard SKIPPED — functions not available yet");
+    }
+  }
+
+  // "soon" → coming soon toast
+  if(page==="soon"){
+    if(typeof toast==="function") toast("Coming in Oriven 2.0 — stay tuned","info");
     return;
   }
+  // "intelligence" → alias for competitor page
+  if(page==="intelligence"){ navigate("competitor"); return; }
+  // "assistant" → highlight nav item + open Brand Assistant panel
   // Plan gate: free users cannot access Brand Assistant
   if(page==="aichat"){
     // Use _dbSubscriptionStatus (set exclusively from Supabase in auth.js).
@@ -472,22 +496,40 @@ function navigate(page){
   }
   document.querySelectorAll(".ni").forEach(function(e){e.classList.remove("active");});
   document.querySelectorAll(".page").forEach(function(e){e.classList.remove("active");});
+  // close sidebar drawer on mobile when navigating
+  var sb=document.querySelector(".sb"); if(sb) sb.classList.remove("sb-open");
+  var sbo=document.getElementById("sbOverlay"); if(sbo) sbo.classList.remove("active");
   // highlight sidebar item — workspace shares "create" or "assistant" highlight depending on mode
-  var niPage=page==="create-workspace"?(S._cwsType==="assistant"?"assistant":"create"):page==="templates"?"inspiration":page;
+  var niPage=page==="create-workspace"?(S._cwsType==="assistant"?"assistant":"create"):page==="templates"?"inspiration":page==="campaign-workspace"?"campaigns":page;
   var ni=document.querySelector('[data-page="'+niPage+'"]');
   if(ni) ni.classList.add("active");
   var pg=document.getElementById("page-"+page);
   if(pg) pg.classList.add("active");
   var mc=document.querySelector(".mc");
-  if(mc) mc.classList.toggle("mc-locked", page==="dashboard"||page==="team");
-  if(page==="dashboard")  refreshDash();
-  if(page==="brandcore")  refreshBC();
-  if(page==="studio")     refreshStudio();
-  if(page==="inspiration") renderInspiration();
-  if(page==="aichat")     initChat();
-  if(page==="create")     { S._cwsHistory=[]; if(typeof _createRefreshHero==="function") _createRefreshHero(); }
-  if(page==="team")       { if(typeof initTeamPage==="function") initTeamPage(); }
-  if(page==="ugc")        { if(typeof ugcInit==="function") ugcInit(); }
+  if(mc) mc.classList.toggle("mc-locked", page==="team");
+  if(page==="dashboard")    { navigate("campaigns"); return; }
+  if(page==="campaigns")    { if(typeof renderCampaignHub==="function") renderCampaignHub(); }
+  if(page==="campaign-workspace") { if(typeof refreshCampaignWorkspace==="function") refreshCampaignWorkspace(); }
+  if(page==="brain")        refreshBrain();
+  if(page==="brandcore")    { navigate("studio"); return; }
+  if(page==="studio")       refreshStudio();
+  if(page==="assistant")    { if(typeof openFAB==="function") openFAB(); }
+  if(page==="competitor")   { if(typeof ciInit==="function") ciInit(); }
+  // Legacy sub-page redirects (pages still exist but no longer in nav)
+  if(page==="positioning")  { navigate("studio"); return; }
+  if(page==="audience")     { navigate("studio"); return; }
+  if(page==="tov")          { navigate("studio"); return; }
+  if(page==="identity")     { navigate("studio"); return; }
+  if(page==="market")        refreshMarket();
+  if(page==="opportunities") refreshOpportunities();
+  if(page==="website")       refreshWebsite();
+  if(page==="health")        refreshHealth();
+  if(page==="alerts")        refreshAlerts();
+  if(page==="inspiration")  renderInspiration();
+  if(page==="aichat")       initChat();
+  if(page==="create")       { S._cwsHistory=[]; if(typeof _createRefreshHero==="function") _createRefreshHero(); }
+  if(page==="team")         { if(typeof initTeamPage==="function") initTeamPage(); }
+  if(page==="ugc")          { if(typeof ugcInit==="function") ugcInit(); }
 }
 
 function openBCRegen(){
@@ -552,6 +594,16 @@ document.querySelectorAll(".mbk").forEach(function(b){
   });
 });
 
+// ESC key: block when hard paywall is open
+document.addEventListener("keydown", function(e){
+  if(e.key !== "Escape" && e.keyCode !== 27) return;
+  var pw = document.getElementById("modal-paywall");
+  if(pw && pw.classList.contains("open") && pw.classList.contains("pw-hard")){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+}, true);
+
 // ═══════════════════════════════════════════════════════════════
 // CREATE — Card Grid
 // ═══════════════════════════════════════════════════════════════
@@ -591,6 +643,999 @@ function crRefresh(){
 // ═══════════════════════════════════════════════════════════════
 // DASHBOARD
 // ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// PHASE 4 — Daily Brief + Website Monitor + Brand Health + Alerts
+// ══════════════════════════════════════════════════════════════
+
+// ── State ──────────────────────────────────────────────────────
+var _briefReport  = null;
+var _webReport    = null;
+
+(function _loadPhase4Cache(){
+  try {
+    var b = localStorage.getItem("oriven_brief");
+    var w = localStorage.getItem("oriven_web");
+    if(b) _briefReport = JSON.parse(b);
+    if(w) _webReport   = JSON.parse(w);
+  } catch(_){}
+})();
+
+// ══════════════════════════════════════════════════════════════
+// DAILY BRIEF (on Brand Brain home)
+// ══════════════════════════════════════════════════════════════
+
+function _initBriefUI(){
+  var today = new Date().toDateString();
+  if(_briefReport && _briefReport._day === today){
+    _renderBrief(_briefReport);
+  } else {
+    document.getElementById("bbBriefPrompt").style.display  = "";
+    document.getElementById("bbBriefLoading").style.display = "none";
+    document.getElementById("bbBriefResult").style.display  = "none";
+  }
+}
+
+async function generateDailyBrief(){
+  var btn = document.getElementById("bbBriefBtn");
+  if(btn) btn.disabled = true;
+  document.getElementById("bbBriefPrompt").style.display  = "none";
+  document.getElementById("bbBriefResult").style.display  = "none";
+  document.getElementById("bbBriefLoading").style.display = "";
+
+  try {
+    var bc  = S.brandCore || {};
+    var mkt = _mrReport  && _mrReport.competitive  ? _mrReport.competitive.whitespace : null;
+    var ci  = _ciLastReport && _ciLastReport.insight ? _ciLastReport.insight : null;
+    var opp = _oppReport && _oppReport.opportunities && _oppReport.opportunities[0]
+              ? _oppReport.opportunities[0].title : null;
+
+    var r = await apiFetch("/api/daily-brief", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ brandCore: bc, marketContext: mkt, competitorContext: ci, opportunityContext: opp })
+    });
+    if(!r.ok) throw new Error(r.data && r.data.error || "Generation failed");
+    _briefReport = r.data;
+    _briefReport._day = new Date().toDateString();
+    _briefReport._ts  = Date.now();
+    try{ localStorage.setItem("oriven_brief", JSON.stringify(_briefReport)); }catch(_){}
+    _renderBrief(_briefReport);
+  } catch(e){
+    if(typeof toast==="function") toast("Brief generation failed: " + e.message, "error");
+    document.getElementById("bbBriefPrompt").style.display  = "";
+    document.getElementById("bbBriefLoading").style.display = "none";
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
+
+function _renderBrief(brief){
+  document.getElementById("bbBriefPrompt").style.display  = "none";
+  document.getElementById("bbBriefLoading").style.display = "none";
+  document.getElementById("bbBriefResult").style.display  = "";
+
+  var dateEl = document.getElementById("bbBriefDate");
+  var hdEl   = document.getElementById("bbBriefHeadline");
+  var itemsEl= document.getElementById("bbBriefItems");
+  var focEl  = document.getElementById("bbBriefFocus");
+
+  if(dateEl) dateEl.textContent = brief.date || new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  if(hdEl)   hdEl.textContent   = brief.headline || "";
+  if(focEl)  focEl.textContent  = brief.focus || "";
+
+  if(itemsEl && brief.items){
+    itemsEl.innerHTML = brief.items.map(function(it){
+      return '<div class="bb-brief-item">'
+        + '<span class="bb-brief-item-type '+(it.type||"insight")+'">'+_escH(it.type||"insight")+'</span>'
+        + '<div class="bb-brief-item-body">'
+        + '<div class="bb-brief-item-title">'+_escH(it.title)+'</div>'
+        + '<div class="bb-brief-item-body-text">'+_escH(it.body)+'</div>'
+        + '</div></div>';
+    }).join("");
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// WEBSITE MONITOR
+// ══════════════════════════════════════════════════════════════
+
+function refreshWebsite(){
+  if(_webReport){
+    _renderWebsiteReport(_webReport);
+    var inp = document.getElementById("webUrlInput");
+    if(inp && !inp.value) inp.value = _webReport.url || "";
+  } else {
+    document.getElementById("webResults").style.display  = "none";
+    document.getElementById("webLoading").style.display  = "none";
+  }
+}
+
+async function runWebsiteMonitor(){
+  var inp = document.getElementById("webUrlInput");
+  var url = inp ? inp.value.trim() : "";
+  if(!url){
+    if(typeof toast==="function") toast("Enter your website URL","warn");
+    return;
+  }
+  if(!/^https?:\/\//i.test(url)) url = "https://" + url;
+
+  var btn = document.getElementById("webRunBtn");
+  if(btn) btn.disabled = true;
+  document.getElementById("webResults").style.display  = "none";
+  document.getElementById("webLoading").style.display  = "";
+
+  try {
+    var r = await apiFetch("/api/website-monitor", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ url: url, brandCore: S.brandCore || {} })
+    });
+    if(!r.ok) throw new Error(r.data && r.data.error || "Monitor failed");
+    _webReport = r.data;
+    _webReport._ts = Date.now();
+    try{ localStorage.setItem("oriven_web", JSON.stringify(_webReport)); }catch(_){}
+    _renderWebsiteReport(_webReport);
+    refreshAlerts();
+  } catch(e){
+    if(typeof toast==="function") toast("Website monitor failed: " + e.message, "error");
+    document.getElementById("webLoading").style.display = "none";
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
+
+function _renderWebsiteReport(rep){
+  document.getElementById("webLoading").style.display  = "none";
+  document.getElementById("webResults").style.display  = "";
+
+  // Timestamp
+  var tsEl = document.getElementById("webTimestamp");
+  if(tsEl && rep._ts) tsEl.textContent = "Analysed " + new Date(rep._ts).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+
+  // Score band
+  var band = document.getElementById("webScoreBand");
+  if(band){
+    var score = Math.max(0,Math.min(100, rep.score || 0));
+    var grade = rep.grade || "?";
+    var circ  = 2 * Math.PI * 24; // r=24 → 150.8
+    var offset= (circ * (1 - score/100)).toFixed(1);
+    var scoreColor = score>=80?"var(--gm)":score>=60?"#60a5fa":score>=40?"#fbbf24":"#ef4444";
+    band.innerHTML =
+      '<div class="mon-score-ring">'
+      + '<svg class="mon-score-ring-svg" viewBox="0 0 56 56">'
+      + '<circle class="mon-score-ring-bg" cx="28" cy="28" r="24"/>'
+      + '<circle class="mon-score-ring-fill" cx="28" cy="28" r="24"'
+      + ' stroke="'+scoreColor+'" stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="'+offset+'"/>'
+      + '</svg>'
+      + '<div class="mon-score-ring-num">'+score+'%</div>'
+      + '</div>'
+      + '<div class="mon-score-body">'
+      + '<div class="mon-score-grade" style="color:'+scoreColor+'">'+_escH(grade)+'</div>'
+      + '<div class="mon-score-label">Brand Consistency</div>'
+      + '<div class="mon-score-url">'+_escH(rep.url||"")+'</div>'
+      + '</div>';
+  }
+
+  // Summary
+  var sumEl = document.getElementById("webSummary");
+  if(sumEl) sumEl.textContent = rep.summary || "";
+
+  // Strengths
+  var strEl = document.getElementById("webStrengths");
+  if(strEl && rep.strengths){
+    strEl.innerHTML = rep.strengths.map(function(s){
+      return '<div class="mon-list-item">'+_escH(s)+'</div>';
+    }).join("");
+  }
+
+  // Issues
+  var issEl = document.getElementById("webIssues");
+  if(issEl && rep.issues){
+    issEl.innerHTML = rep.issues.map(function(iss){
+      return '<div class="mon-issue">'
+        + '<div class="mon-issue-sev '+(iss.severity||"low")+'">'+_escH(iss.severity||"")+'</div>'
+        + '<div class="mon-issue-body">'
+        + '<div class="mon-issue-area">'+_escH(iss.area)+'</div>'
+        + '<div class="mon-issue-desc">'+_escH(iss.desc)+'</div>'
+        + '</div></div>';
+    }).join("");
+  }
+
+  // Recommendations
+  var recEl = document.getElementById("webRecs");
+  if(recEl && rep.recommendations){
+    recEl.innerHTML = rep.recommendations.map(function(rec){
+      return '<div class="mon-list-item">'+_escH(rec)+'</div>';
+    }).join("");
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// BRAND HEALTH
+// ══════════════════════════════════════════════════════════════
+
+function refreshHealth(){
+  var bc    = S.brandCore;
+  var intel = _dashComputeIntel();
+  var el    = document.getElementById("healthBody");
+  if(!el) return;
+
+  // Compute pillar scores
+  var pillars = [
+    {
+      name:   "Brand Core",
+      weight: 35,
+      score:  intel.pct,
+      status: intel.pct >= 80 ? "Strong" : intel.pct >= 50 ? "In progress" : "Incomplete",
+      nav: "studio",
+      actionLbl: "Open Brand Core"
+    },
+    {
+      name:   "Competitor Intelligence",
+      weight: 20,
+      score:  (_ciLastReport || _ciLastUrl) ? 100 : 0,
+      status: (_ciLastReport || _ciLastUrl) ? "Report available" : "No analysis run",
+      nav: "intelligence",
+      actionLbl: "Run analysis"
+    },
+    {
+      name:   "Market Research",
+      weight: 20,
+      score:  _mrReport ? 100 : 0,
+      status: _mrReport ? "Report available" : "Not generated",
+      nav: "market",
+      actionLbl: "Generate research"
+    },
+    {
+      name:   "Website Consistency",
+      weight: 15,
+      score:  _webReport ? (_webReport.score || 0) : 0,
+      status: _webReport ? (_webReport.grade + " — " + _webReport.score + "%") : "Not monitored",
+      nav: "website",
+      actionLbl: "Monitor website"
+    },
+    {
+      name:   "Opportunities",
+      weight: 10,
+      score:  _oppReport ? 100 : 0,
+      status: _oppReport ? (_oppReport.opportunities ? _oppReport.opportunities.length + " identified" : "Generated") : "Not generated",
+      nav: "opportunities",
+      actionLbl: "Find opportunities"
+    }
+  ];
+
+  // Weighted overall
+  var overall = Math.round(pillars.reduce(function(sum,p){ return sum + (p.score * p.weight / 100); }, 0));
+  var circ = 2 * Math.PI * 28; // r=28 → 175.9
+  var offset = (circ * (1-overall/100)).toFixed(1);
+  var color = overall>=80?"var(--gm)":overall>=60?"#60a5fa":overall>=40?"#fbbf24":"#ef4444";
+  var statusMsg = overall>=80?"Your brand is in great shape."
+    : overall>=60?"Good foundation — a few gaps to close."
+    : overall>=40?"Growing — focus on the lower-scoring pillars."
+    : "Early stage — build your Brand Core first.";
+
+  var html = '<div class="health-overview">'
+    + '<div class="health-ring-wrap">'
+    + '<svg class="health-ring-svg" viewBox="0 0 64 64">'
+    + '<circle class="health-ring-bg" cx="32" cy="32" r="28"/>'
+    + '<circle class="health-ring-fill" cx="32" cy="32" r="28" stroke="'+color+'"'
+    + ' stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="'+offset+'"/>'
+    + '</svg>'
+    + '<div style="text-align:center">'
+    + '<div class="health-ring-num">'+overall+'%</div>'
+    + '<div class="health-ring-lbl">Overall</div>'
+    + '</div></div>'
+    + '<div>'
+    + '<div class="health-score-title">Brand Health Score</div>'
+    + '<div class="health-score-sub">'+statusMsg+'</div>'
+    + (overall < 100 ? '<button class="health-score-btn" onclick="navigate(\'studio\')">Improve your score →</button>' : '')
+    + '</div></div>';
+
+  html += '<div class="health-pillars">';
+  pillars.forEach(function(p){
+    var pColor = p.score>=80?"var(--gm)":p.score>=60?"#60a5fa":p.score>=40?"#fbbf24":"#ef4444";
+    html += '<div class="health-pillar">'
+      + '<div class="health-pillar-hd">'
+        + '<div class="health-pillar-name">'+_escH(p.name)+'<span style="font-size:10px;font-weight:500;color:var(--muted);margin-left:6px">'+p.weight+'%</span></div>'
+        + '<div class="health-pillar-pct" style="color:'+pColor+'">'+p.score+'%</div>'
+      + '</div>'
+      + '<div class="health-pillar-bar-bg"><div class="health-pillar-bar" style="width:'+p.score+'%;background:'+pColor+'"></div></div>'
+      + '<div class="health-pillar-status">'+_escH(p.status)
+        + (p.score < 100 ? ' — <span style="color:var(--gm);cursor:pointer;font-weight:600" onclick="navigate(\''+p.nav+'\')" >'+_escH(p.actionLbl)+'</span>' : '')
+      + '</div>'
+      + '</div>';
+  });
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════════════════════════
+
+function refreshAlerts(){
+  var el = document.getElementById("alertsBody");
+  if(!el) return;
+
+  var bc     = S.brandCore;
+  var intel  = bc ? _dashComputeIntel() : { pct:0 };
+  var alerts = [];
+
+  // Brand Core incomplete
+  if(!bc || !bc.name){
+    alerts.push({ sev:"high", icon:"core", title:"Brand Core not configured", desc:"Your Brand Brain has no data to work with. Set up your Brand Core first.", fn:"navigate('studio')", lbl:"Set up Brand Core" });
+  } else if(intel.pct < 50){
+    alerts.push({ sev:"high", icon:"core", title:"Brand Core is "+intel.pct+"% complete", desc:"Fill in the missing pillars to get the most from every Brand Brain feature.", fn:"navigate('studio')", lbl:"Complete Brand Core" });
+  } else if(intel.pct < 80){
+    alerts.push({ sev:"medium", icon:"core", title:"Brand Core at "+intel.pct+"% — room to grow", desc:"You have a solid foundation. A few more pillars will unlock the full Brand Brain experience.", fn:"navigate('studio')", lbl:"Review Brand Core" });
+  }
+
+  // No competitor intelligence
+  if(!_ciLastReport && !_ciLastUrl){
+    alerts.push({ sev:"medium", icon:"search", title:"No competitor analysis run", desc:"Understanding your competitive landscape sharpens your positioning and content.", fn:"navigate('competitor')", lbl:"Run competitor analysis" });
+  }
+
+  // No market research
+  if(!_mrReport){
+    alerts.push({ sev:"medium", icon:"chart", title:"Market research not generated", desc:"See where your market is heading and where your brand fits within it.", fn:"navigate('market')", lbl:"Generate market research" });
+  }
+
+  // No website monitored
+  if(!_webReport){
+    alerts.push({ sev:"low", icon:"monitor", title:"Website not monitored", desc:"Check whether your website is consistent with your brand voice and positioning.", fn:"navigate('website')", lbl:"Monitor your website" });
+  }
+
+  // No opportunities
+  if(!_oppReport){
+    alerts.push({ sev:"low", icon:"star", title:"Opportunities not scanned", desc:"Your Brand Brain can identify strategic growth moves specific to your position.", fn:"navigate('opportunities')", lbl:"Find opportunities" });
+  }
+
+  // No daily brief today
+  var today = new Date().toDateString();
+  if(!_briefReport || _briefReport._day !== today){
+    alerts.push({ sev:"low", icon:"brief", title:"Today's brief not generated", desc:"Start the day with a strategic intelligence brief from your Brand Brain.", fn:"generateDailyBrief();navigate('brain')", lbl:"Generate brief" });
+  }
+
+  // Website issues (if monitored and has high-severity issues)
+  if(_webReport && _webReport.issues){
+    var highIssues = _webReport.issues.filter(function(i){ return i.severity==="high"; });
+    if(highIssues.length){
+      alerts.push({ sev:"high", icon:"monitor", title:highIssues.length+" high-severity website issue"+(highIssues.length>1?"s":"")+" found", desc:highIssues[0].area+": "+highIssues[0].desc, fn:"navigate('website')", lbl:"View website report" });
+    }
+  }
+
+  // Update sidebar alert dot
+  var dot = document.getElementById("sbAlertDot");
+  var highCount = alerts.filter(function(a){ return a.sev==="high"; }).length;
+  if(dot) dot.style.display = highCount > 0 ? "" : "none";
+
+  if(!alerts.length){
+    el.innerHTML = '<div class="alerts-empty">'
+      + '<div class="alerts-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="22" height="22"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>'
+      + '<div class="alerts-empty-title">No alerts</div>'
+      + '<div class="alerts-empty-sub">Your Brand Brain is fully configured. Keep it active to stay ahead.</div>'
+      + '</div>';
+    return;
+  }
+
+  var iconSvg = {
+    core:    '<path d="M8 1.5l5 2.5v5L8 11.5 3 9V4z"/>',
+    search:  '<circle cx="6" cy="6" r="4"/><path d="M10.5 10.5L14 14"/>',
+    chart:   '<path d="M2 10l3-3 3 3 3-5 3 4"/>',
+    monitor: '<rect x="1" y="1.5" width="14" height="10" rx="1.5"/><path d="M5 13h6M8 11.5v2"/>',
+    star:    '<path d="M8 1.5l1.3 4H14l-3.5 2.5 1.3 4L8 9.7l-3.8 2.3 1.3-4L2 5.5h4.7z"/>',
+    brief:   '<circle cx="8" cy="8" r="6.5"/><path d="M8 5v3.5l2.5 1.5"/>'
+  };
+
+  el.innerHTML = '<div class="alerts-list">'
+    + alerts.map(function(a){
+        return '<div class="alert-item '+a.sev+'">'
+          + '<div class="alert-icon '+a.sev+'"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">'+(iconSvg[a.icon]||iconSvg.brief)+'</svg></div>'
+          + '<div class="alert-body">'
+            + '<div class="alert-title">'+_escH(a.title)+'</div>'
+            + '<div class="alert-desc">'+_escH(a.desc)+'</div>'
+            + '<button class="alert-action" onclick="'+a.fn+'">'+_escH(a.lbl)+' →</button>'
+          + '</div></div>';
+      }).join("")
+    + '</div>';
+}
+
+// ══════════════════════════════════════════════════════════════
+// INTELLIGENCE — Market Research + Opportunities
+// ══════════════════════════════════════════════════════════════
+
+// State stored per session (cleared on reload — cached in localStorage)
+var _mrReport  = null;
+var _oppReport = null;
+
+(function _loadIntelCache(){
+  try {
+    var mr  = localStorage.getItem("oriven_mr");
+    var opp = localStorage.getItem("oriven_opp");
+    if(mr)  _mrReport  = JSON.parse(mr);
+    if(opp) _oppReport = JSON.parse(opp);
+  } catch(_){}
+})();
+
+function refreshMarket(){
+  if(_mrReport) _renderMarket(_mrReport);
+  else           _showMarketPrompt();
+}
+
+function refreshOpportunities(){
+  if(_oppReport) _renderOpportunities(_oppReport);
+  else           _showOppPrompt();
+}
+
+function _showMarketPrompt(){
+  document.getElementById("mktPrompt").style.display   = "";
+  document.getElementById("mktLoading").style.display  = "none";
+  document.getElementById("mktResults").style.display  = "none";
+  var sub = document.getElementById("mktPromptSub");
+  if(sub) sub.textContent = S.brandCore && S.brandCore.name
+    ? "Your Brand Core is loaded — click Generate to run your market research report."
+    : "Add your Brand Core first to get the most relevant market insights.";
+}
+
+function _showOppPrompt(){
+  document.getElementById("oppPrompt").style.display   = "";
+  document.getElementById("oppLoading").style.display  = "none";
+  document.getElementById("oppResults").style.display  = "none";
+}
+
+async function generateMarketResearch(){
+  var btn = document.getElementById("mktGenBtn");
+  if(btn) btn.disabled = true;
+  document.getElementById("mktPrompt").style.display   = "none";
+  document.getElementById("mktResults").style.display  = "none";
+  document.getElementById("mktLoading").style.display  = "";
+
+  try {
+    var r = await apiFetch("/api/market-research", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ brandCore: S.brandCore || {} })
+    });
+    if(!r.ok) throw new Error(r.data && r.data.error || "Generation failed");
+    _mrReport = r.data;
+    _mrReport._ts = Date.now();
+    try{ localStorage.setItem("oriven_mr", JSON.stringify(_mrReport)); }catch(_){}
+    _renderMarket(_mrReport);
+  } catch(e){
+    if(typeof toast==="function") toast("Market research failed: " + e.message, "error");
+    _showMarketPrompt();
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
+
+async function generateOpportunities(){
+  var btn = document.getElementById("oppGenBtn");
+  if(btn) btn.disabled = true;
+  document.getElementById("oppPrompt").style.display   = "none";
+  document.getElementById("oppResults").style.display  = "none";
+  document.getElementById("oppLoading").style.display  = "";
+
+  try {
+    var r = await apiFetch("/api/opportunities", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        brandCore:      S.brandCore || {},
+        marketResearch: _mrReport || null,
+        competitorReport: (typeof _ciLastReport !== "undefined") ? _ciLastReport : null
+      })
+    });
+    if(!r.ok) throw new Error(r.data && r.data.error || "Generation failed");
+    _oppReport = r.data;
+    _oppReport._ts = Date.now();
+    try{ localStorage.setItem("oriven_opp", JSON.stringify(_oppReport)); }catch(_){}
+    _renderOpportunities(_oppReport);
+  } catch(e){
+    if(typeof toast==="function") toast("Opportunity scan failed: " + e.message, "error");
+    _showOppPrompt();
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
+
+function _renderMarket(report){
+  document.getElementById("mktPrompt").style.display  = "none";
+  document.getElementById("mktLoading").style.display = "none";
+  document.getElementById("mktResults").style.display = "";
+
+  // Timestamp
+  var ts = document.getElementById("mktTimestamp");
+  if(ts && report._ts) ts.textContent = "Generated " + new Date(report._ts).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+
+  // Overview band
+  var ov = document.getElementById("mktOverview");
+  if(ov && report.market){
+    var m=report.market;
+    var matColor = {emerging:"var(--gm)",growing:"#60a5fa",mature:"#fbbf24",declining:"#f87171"}[m.maturity]||"var(--muted)";
+    ov.innerHTML = ['Name','Size','Growth','Maturity'].map(function(lbl){
+      var key=lbl.toLowerCase(); var val=m[key]||"—";
+      return '<div class="intel-mkt-tile"><div class="intel-mkt-tile-lbl">'+lbl+'</div>'
+        + (key==="maturity"
+          ? '<div class="intel-mkt-tile-val pill" style="background:'+matColor+'18;border-color:'+matColor+'50;color:'+matColor+'">'+_escH(val)+'</div>'
+          : '<div class="intel-mkt-tile-val">'+_escH(val)+'</div>')
+        + '</div>';
+    }).join("");
+  }
+
+  // Trends
+  var tEl = document.getElementById("mktTrends");
+  if(tEl && report.trends){
+    tEl.innerHTML = report.trends.map(function(t){
+      return '<div class="intel-trend-card">'
+        + '<div class="intel-trend-hd"><div class="intel-trend-title">'+_escH(t.title)+'</div>'
+        + '<span class="intel-impact '+(t.impact||"low")+'">'+_escH(t.impact||"")+'</span></div>'
+        + '<div class="intel-trend-desc">'+_escH(t.desc)+'</div></div>';
+    }).join("");
+  }
+
+  // Segments
+  var sEl = document.getElementById("mktSegments");
+  if(sEl && report.segments){
+    sEl.innerHTML = report.segments.map(function(seg){
+      var fitClass = (seg.fit||"").toLowerCase().includes("strong")?"strong":(seg.fit||"").toLowerCase().includes("medium")?"medium":"weak";
+      return '<div class="intel-seg-row">'
+        + '<div class="intel-seg-fit '+fitClass+'">'+_escH(seg.fit||"")+'</div>'
+        + '<div class="intel-seg-body"><div class="intel-seg-name">'+_escH(seg.name)+'</div>'
+        + '<div class="intel-seg-desc">'+_escH(seg.desc)+'</div></div></div>';
+    }).join("");
+  }
+
+  // Competitive
+  var cEl = document.getElementById("mktCompetitive");
+  if(cEl && report.competitive){
+    var c=report.competitive;
+    var intClass=(c.intensity||"").toLowerCase();
+    cEl.innerHTML = '<div class="intel-comp-row"><span class="intel-comp-lbl">Competitive Intensity</span>'
+      + '<span class="intel-comp-intensity '+intClass+'">'+_escH(c.intensity||"")+'</span></div>'
+      + '<div class="intel-comp-dynamics">'+_escH(c.dynamics)+'</div>'
+      + (c.whitespace ? '<div class="intel-comp-whitespace"><div class="intel-comp-ws-lbl">Market Whitespace</div>'+_escH(c.whitespace)+'</div>' : '');
+  }
+
+  // Summary
+  var sumEl = document.getElementById("mktSummary");
+  if(sumEl && report.summary) sumEl.textContent = report.summary;
+}
+
+function _renderOpportunities(report){
+  document.getElementById("oppPrompt").style.display  = "none";
+  document.getElementById("oppLoading").style.display = "none";
+  document.getElementById("oppResults").style.display = "";
+
+  // Timestamp
+  var ts = document.getElementById("oppTimestamp");
+  if(ts && report._ts) ts.textContent = "Generated " + new Date(report._ts).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+
+  // Summary
+  var sumSec = document.getElementById("oppSummarySection");
+  var sumEl  = document.getElementById("oppSummary");
+  if(sumEl && report.summary){
+    sumEl.textContent = report.summary;
+    if(sumSec) sumSec.style.display="";
+  }
+
+  // Opportunity cards
+  var listEl = document.getElementById("oppList");
+  if(!listEl || !report.opportunities) return;
+  listEl.innerHTML = report.opportunities.map(function(opp, i){
+    var effortDot  = "intel-opp-badge-dot " + (opp.effort  || "medium");
+    var impactDot  = "intel-opp-badge-dot " + (opp.impact  || "medium");
+    return '<div class="intel-opp-card">'
+      + '<div class="intel-opp-hd">'
+        + '<div class="intel-opp-num">'+(i+1)+'</div>'
+        + '<div class="intel-opp-title">'+_escH(opp.title)+'</div>'
+        + '<div class="intel-opp-cat">'+_escH(opp.category||"")+'</div>'
+      + '</div>'
+      + '<div class="intel-opp-desc">'+_escH(opp.desc)+'</div>'
+      + (opp.why ? '<div class="intel-opp-why">'+_escH(opp.why)+'</div>' : '')
+      + '<div class="intel-opp-meta">'
+        + '<span class="intel-opp-badge"><span class="'+effortDot+'"></span>'+_escH(opp.effort||"")+' effort</span>'
+        + '<span class="intel-opp-badge"><span class="'+impactDot+'"></span>'+_escH(opp.impact||"")+' impact</span>'
+      + '</div>'
+      + (opp.action ? '<div class="intel-opp-action" style="margin-top:12px"><div class="intel-opp-action-lbl">First Step</div>'+_escH(opp.action)+'</div>' : '')
+      + '</div>';
+  }).join("");
+}
+
+// ══════════════════════════════════════════════════════════════
+// BRAND SUB-PAGES — helpers
+// ══════════════════════════════════════════════════════════════
+
+function _bspShow(bodyId, emptyId, hasContent){
+  var b=document.getElementById(bodyId), e=document.getElementById(emptyId);
+  if(b) b.style.display = hasContent ? "" : "none";
+  if(e) e.style.display = hasContent ? "none" : "";
+}
+
+// ── Positioning ──────────────────────────────────────────────
+function refreshPositioning(){
+  var bc=S.brandCore;
+  var pos   = bc && (bc.positioning || bc.promise || bc.diff);
+  var tag   = bc && bc.tagline;
+  var ind   = bc && (bc.ind || bc.industry);
+  var diff  = bc && bc.diff && (bc.positioning || bc.promise) ? bc.diff : null;
+  var has   = !!(pos || tag);
+  _bspShow("posBody","posEmpty",has);
+  if(!has) return;
+
+  var html = "";
+  if(pos){
+    html += '<div class="bsp-card"><div class="bsp-card-lbl">Positioning Statement</div>'
+          + '<div class="bsp-card-val large">' + _escH(pos) + '</div></div>';
+  }
+  var below = "";
+  if(diff && diff !== pos){
+    below += '<div class="bsp-card"><div class="bsp-card-lbl">Differentiation</div>'
+           + '<div class="bsp-card-val">' + _escH(diff) + '</div></div>';
+  }
+  if(tag){
+    below += '<div class="bsp-card"><div class="bsp-card-lbl">Tagline</div>'
+           + '<div class="bsp-card-val large">&ldquo;' + _escH(tag) + '&rdquo;</div></div>';
+  }
+  if(ind){
+    below += '<div class="bsp-card"><div class="bsp-card-lbl">Industry / Category</div>'
+           + '<div class="bsp-card-val">' + _escH(ind) + '</div></div>';
+  }
+  if(below){
+    html += '<div class="bsp-grid">' + below + '</div>';
+  }
+  document.getElementById("posBody").innerHTML = html;
+}
+
+// ── Audience ─────────────────────────────────────────────────
+function refreshAudience(){
+  var bc = S.brandCore;
+  var aud = bc && (bc.audience || bc.aud || "");
+  _bspShow("audBody","audEmpty",!!aud);
+  if(!aud) return;
+
+  // Try to split into meaningful segments if the text uses newlines or bullet patterns
+  var segments = aud.split(/\n{2,}|\n(?=[•\-\*])/).map(function(s){ return s.replace(/^[•\-\*]\s*/,"").trim(); }).filter(Boolean);
+
+  var html = "";
+  if(segments.length > 1){
+    html += '<div class="bsp-card"><div class="bsp-card-lbl">Who They Are</div>'
+          + '<div class="bsp-card-val large">' + _escH(segments[0]) + '</div></div>';
+    var extraHtml = "";
+    segments.slice(1).forEach(function(seg){
+      extraHtml += '<div class="bsp-card"><div class="bsp-card-val">' + _escH(seg) + '</div></div>';
+    });
+    if(extraHtml) html += '<div class="bsp-grid">' + extraHtml + '</div>';
+  } else {
+    html += '<div class="bsp-card"><div class="bsp-card-lbl">Target Audience</div>'
+          + '<div class="bsp-card-val large">' + _escH(aud) + '</div></div>';
+  }
+  document.getElementById("audBody").innerHTML = html;
+}
+
+// ── Tone of Voice ─────────────────────────────────────────────
+function refreshTov(){
+  var bc=S.brandCore;
+  var persArr = bc && (Array.isArray(bc.personality) ? bc.personality
+    : (typeof bc.personality==="string" && bc.personality.trim()
+        ? bc.personality.split(/[,;]/).map(function(s){return s.trim();}).filter(Boolean)
+        : null));
+  var toneArr = bc && (Array.isArray(bc.tone) ? bc.tone : null);
+  var tovStr  = bc && bc.toneOfVoice;
+  var has = !!(persArr && persArr.length || toneArr && toneArr.length || tovStr);
+  _bspShow("tovBody","tovEmpty",has);
+  if(!has) return;
+
+  var html="";
+
+  // Personality traits as large accent tags
+  var traits = persArr || toneArr || [];
+  if(traits.length){
+    html += '<div class="bsp-card"><div class="bsp-card-lbl">Brand Personality</div>'
+          + '<div class="bsp-tags">'
+          + traits.map(function(t){ return '<span class="bsp-tag accent">'+_escH(t)+'</span>'; }).join("")
+          + '</div></div>';
+  }
+
+  // Tone descriptors (if different from personality)
+  if(toneArr && toneArr.length && persArr && persArr.length){
+    html += '<div class="bsp-card"><div class="bsp-card-lbl">Tone Descriptors</div>'
+          + '<div class="bsp-tags">'
+          + toneArr.map(function(t){ return '<span class="bsp-tag">'+_escH(t)+'</span>'; }).join("")
+          + '</div></div>';
+  }
+
+  // Full tone of voice prose
+  if(tovStr){
+    html += '<div class="bsp-card"><div class="bsp-card-lbl">How We Sound</div>'
+          + '<div class="bsp-card-val">' + _escH(tovStr) + '</div></div>';
+  }
+
+  // Generate writing principles from personality if we have enough data
+  if(traits.length >= 2){
+    var rules = _tovRules(traits, tovStr);
+    if(rules.dos.length || rules.donts.length){
+      html += '<div class="bsp-card"><div class="bsp-card-lbl">Writing Principles</div>'
+            + '<div class="bsp-rules">'
+            + '<div class="bsp-rule-col"><div class="bsp-rule-hd do">Write like this</div>'
+            + rules.dos.map(function(r){return '<div class="bsp-rule-item do">'+_escH(r)+'</div>';}).join("")
+            + '</div>'
+            + '<div class="bsp-rule-col"><div class="bsp-rule-hd dont">Avoid this</div>'
+            + rules.donts.map(function(r){return '<div class="bsp-rule-item dont">'+_escH(r)+'</div>';}).join("")
+            + '</div></div></div>';
+    }
+  }
+
+  document.getElementById("tovBody").innerHTML = html;
+}
+
+function _tovRules(traits, tovStr){
+  // Map common personality traits to writing rules
+  var ruleMap = {
+    "bold":      {do:"Use strong, confident statements",     dont:"Hedge with 'maybe' or 'perhaps'"},
+    "playful":   {do:"Use light humour and personality",     dont:"Sound overly formal or stiff"},
+    "strategic": {do:"Lead with insight and clear logic",    dont:"Use vague or generic language"},
+    "warm":      {do:"Write as if talking to a friend",      dont:"Use cold, transactional phrasing"},
+    "expert":    {do:"Share knowledge with confidence",      dont:"Over-explain or talk down"},
+    "minimal":   {do:"Keep sentences short and direct",      dont:"Use unnecessary filler words"},
+    "innovative":{do:"Use forward-looking, fresh language",  dont:"Rely on industry clichés"},
+    "friendly":  {do:"Use first and second person (we/you)", dont:"Sound distant or impersonal"},
+    "premium":   {do:"Use refined, considered language",     dont:"Use slang or casual shorthand"},
+    "authentic": {do:"Be honest, specific and human",        dont:"Use buzzwords or hype"},
+    "inspiring": {do:"Paint a clear vision and outcome",     dont:"Stay in problem-space language"},
+    "clear":     {do:"Be direct — one idea per sentence",    dont:"Write complex, nested clauses"},
+  };
+  var dos=[], donts=[];
+  traits.slice(0,4).forEach(function(t){
+    var key = t.toLowerCase().trim();
+    if(ruleMap[key]){ dos.push(ruleMap[key].do); donts.push(ruleMap[key].dont); }
+  });
+  // fallback generics if no matches
+  if(!dos.length){
+    dos   = ["Be direct and specific","Use active voice","Write for your audience first"];
+    donts = ["Use jargon or buzzwords","Write passive, weak sentences","Sound like everyone else"];
+  }
+  return {dos:dos.slice(0,3), donts:donts.slice(0,3)};
+}
+
+// ── Identity ──────────────────────────────────────────────────
+function refreshIdentity(){
+  var bc    = S.brandCore;
+  var colors= bc && (bc.colors || []);
+  var fonts = bc && (bc.fonts  || []);
+  var logos = bc && bc.logos;
+  var has   = !!(colors.length || fonts.length || (logos && Object.keys(logos).some(function(k){ return logos[k] && logos[k].url; })));
+  _bspShow("identBody","identEmpty",has);
+  if(!has) return;
+
+  var html = "";
+
+  // Colors
+  if(colors.length){
+    html += '<div class="bsp-card"><div class="bsp-card-lbl">Color System</div>'
+          + '<div class="bsp-colors">'
+          + colors.map(function(c){
+              var hex = c.hex || "#888";
+              return '<div class="bsp-color-row">'
+                + '<div class="bsp-color-swatch" style="background:'+hex+'"></div>'
+                + '<div class="bsp-color-info">'
+                + '<div class="bsp-color-name">'+(c.name||hex)+'</div>'
+                + '<div class="bsp-color-hex">'+hex+'</div>'
+                + '</div>'
+                + (c.role ? '<div class="bsp-color-role">'+_escH(c.role)+'</div>' : '')
+                + '</div>';
+            }).join("")
+          + '</div></div>';
+  }
+
+  // Typography
+  if(fonts.length){
+    html += '<div class="bsp-card"><div class="bsp-card-lbl">Typography</div>'
+          + '<div class="bsp-fonts">'
+          + fonts.map(function(f,i){
+              var name   = (typeof f==="string") ? f : (f.name || f.family || f);
+              var role   = (typeof f==="object" && f.role) ? f.role : (i===0 ? "Heading" : "Body");
+              var sample = i===0 ? "Aa — The quick brown fox" : "The quick brown fox jumps";
+              return '<div class="bsp-font-row">'
+                + '<div class="bsp-font-sample" style="font-family:\''+name+'\',sans-serif">'+sample+'</div>'
+                + '<div class="bsp-font-meta"><div class="bsp-font-name">'+_escH(name)+'</div>'
+                + '<div class="bsp-font-role">'+_escH(role)+'</div></div>'
+                + '</div>';
+            }).join("")
+          + '</div></div>';
+  }
+
+  // Logos
+  if(logos){
+    var logoSlots = [{key:"primary",lbl:"Primary"},{key:"secondary",lbl:"Secondary"},{key:"icon",lbl:"Icon / Mark"}];
+    var hasAnyLogo = logoSlots.some(function(s){ return logos[s.key] && logos[s.key].url && logos[s.key].source!=="placeholder"; });
+    if(hasAnyLogo){
+      html += '<div class="bsp-card"><div class="bsp-card-lbl">Logo System</div>'
+            + '<div class="bsp-logos">'
+            + logoSlots.map(function(s){
+                var entry = logos[s.key];
+                if(entry && entry.url && entry.source!=="placeholder"){
+                  return '<div class="bsp-logo-box"><img class="bsp-logo-img" src="'+entry.url+'" alt="'+s.lbl+' logo"/><div class="bsp-logo-lbl">'+s.lbl+'</div></div>';
+                }
+                return '<div class="bsp-logo-box" style="opacity:.3;justify-content:center"><div class="bsp-logo-lbl">'+s.lbl+'</div></div>';
+              }).join("")
+            + '</div></div>';
+    }
+  }
+
+  // Visual direction
+  var vd = bc.visualDirection || bc.styleDirection;
+  if(vd){
+    html += '<div class="bsp-card"><div class="bsp-card-lbl">Visual Direction</div>'
+          + '<div class="bsp-card-val">'+_escH(vd)+'</div></div>';
+  }
+
+  document.getElementById("identBody").innerHTML = html;
+}
+
+// Safe HTML escape used by all sub-page renderers
+function _escH(s){
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ══════════════════════════════════════════════════════════════
+// BRAND BRAIN — refreshBrain()
+// Populates the Brand Brain home page with live Brand Core data.
+// ══════════════════════════════════════════════════════════════
+function refreshBrain(){
+  var bc   = S.brandCore;
+  var intel= _dashComputeIntel();
+
+  // Greeting
+  var h = new Date().getHours();
+  var greet = h < 12 ? "Good morning." : h < 18 ? "Good afternoon." : "Good evening.";
+  var headEl = document.getElementById("bbHeadline");
+  if(headEl) headEl.textContent = greet;
+
+  var dot = document.getElementById("bbEyebrowDot");
+  if(dot) dot.className = "bb-eyebrow-dot" + (bc ? " active" : "");
+
+  var subEl = document.getElementById("bbSub");
+  if(subEl) subEl.textContent = bc
+    ? "Your Brand Brain is active and learning."
+    : "Set up your Brand Core to activate your Brand Brain.";
+
+  // Brand tag (name + score)
+  var tag      = document.getElementById("bbBrandTag");
+  var tagName  = document.getElementById("bbBrandTagName");
+  var tagScore = document.getElementById("bbBrandTagScore");
+  if(tag && tagName && tagScore){
+    if(bc && bc.name){
+      tagName.textContent  = bc.name;
+      tagScore.textContent = intel.pct + "%";
+      tag.style.display    = "";
+    } else {
+      tag.style.display = "none";
+    }
+  }
+
+  // Health score ring (circumference = 2π×24 ≈ 150.8)
+  var numEl  = document.getElementById("bbHealthNum");
+  var ringEl = document.getElementById("bbRingFill");
+  var subH   = document.getElementById("bbHealthSub");
+  if(numEl)  numEl.textContent  = intel.pct + "%";
+  if(ringEl) ringEl.style.strokeDashoffset = (150.8 * (1 - intel.pct / 100)).toFixed(1);
+  if(subH)   subH.textContent   = bc ? intel.msg : "Configure your Brand Core to begin";
+
+  // Metrics
+  var bcVal      = document.getElementById("bbMetricBCVal");
+  var intelVal   = document.getElementById("bbMetricIntelVal");
+  var contentVal = document.getElementById("bbMetricContentVal");
+  if(bcVal)      bcVal.textContent    = bc ? intel.pct + "%" : "—";
+  if(intelVal)   intelVal.textContent = (typeof _ciLastUrl !== "undefined" && _ciLastUrl) ? "1 Report" : "—";
+  if(contentVal) contentVal.textContent = (S.savedItems && S.savedItems.length) ? S.savedItems.length : "—";
+
+  // Snapshot — what the brain knows
+  var snap = document.getElementById("bbSnapshot");
+  if(snap){
+    if(!bc || !bc.name){
+      snap.innerHTML = '<div class="bb-snapshot-empty"><span>Brand Core not configured — </span><span class="bb-snapshot-cta" onclick="navigate(\'studio\')">Set it up →</span></div>';
+    } else {
+      var chips = [];
+      // Brand name
+      chips.push({lbl:"Brand", val: bc.name, filled: true});
+      // Industry
+      if(bc.ind || bc.desc) chips.push({lbl:"Industry", val: bc.ind || bc.desc, filled: true});
+      // Positioning
+      var pos = bc.positioning || bc.promise || bc.diff;
+      if(pos) chips.push({lbl:"Positioning", val: pos, filled: true});
+      // Audience
+      var aud = bc.audience || bc.aud;
+      if(aud) chips.push({lbl:"Audience", val: aud, filled: true});
+      // Tone
+      var tone = bc.toneOfVoice || (Array.isArray(bc.tone) ? bc.tone.join(", ") : bc.tone);
+      if(tone) chips.push({lbl:"Tone", val: tone, filled: true});
+      // Tagline
+      if(bc.tagline) chips.push({lbl:"Tagline", val: bc.tagline, filled: true});
+
+      var html = chips.map(function(c){
+        return '<div class="bb-know-chip">'
+          + '<div class="bb-know-chip-dot ' + (c.filled ? "filled" : "empty") + '"></div>'
+          + '<span class="bb-know-chip-lbl">' + c.lbl + '</span>'
+          + '<span class="bb-know-chip-val">' + (c.val||"—") + '</span>'
+          + '</div>';
+      }).join("");
+
+      // Color swatches
+      var colors = (bc.colors || []).slice(0, 5);
+      if(colors.length){
+        var swHtml = '<div class="bb-know-chip">'
+          + '<div class="bb-know-chip-dot filled"></div>'
+          + '<span class="bb-know-chip-lbl">Colors</span>'
+          + '<span class="bb-know-swatches">'
+          + colors.map(function(c){
+              var hex = (typeof c === "string") ? c : (c.hex || "");
+              return hex ? '<div class="bb-know-swatch" style="background:' + hex + '" title="' + hex + '"></div>' : "";
+            }).join("")
+          + '</span></div>';
+        html += swHtml;
+      }
+
+      snap.innerHTML = html;
+    }
+  }
+
+  // Recommended actions
+  _refreshBrainActions(bc, intel);
+
+  // Daily Brief + Alerts (sidebar dot)
+  _initBriefUI();
+  refreshAlerts();
+}
+
+function _refreshBrainActions(bc, intel){
+  var el = document.getElementById("bbActions");
+  if(!el) return;
+
+  var actions = [];
+
+  if(!bc || !bc.name){
+    actions.push({
+      title: "Generate your Brand Core",
+      desc:  "Answer a few questions and ORIVEN builds your complete brand identity in minutes.",
+      icon:  '<path d="M8 1l1.5 4H14l-3.8 2.8 1.4 4.3L8 9.8l-3.6 2.3 1.4-4.3L2 5h4.5z"/>',
+      fn:    "openBCWizard()"
+    });
+  } else {
+    if(intel.pct < 60){
+      actions.push({
+        title: "Complete your Brand Core",
+        desc:  "You have " + (100 - intel.pct) + "% remaining. Stronger brand data = better AI outputs.",
+        icon:  '<path d="M8 1.5l5 2.5v5L8 11.5 3 9V4z"/>',
+        fn:    "navigate('studio')"
+      });
+    }
+    if(typeof _ciLastUrl === "undefined" || !_ciLastUrl){
+      actions.push({
+        title: "Run your first Competitor Analysis",
+        desc:  "Enter a competitor URL and get a full brand intelligence report.",
+        icon:  '<circle cx="6" cy="6" r="4"/><path d="M10.5 10.5L14 14"/>',
+        fn:    "navigate('competitor')"
+      });
+    }
+    actions.push({
+      title: "Create branded content",
+      desc:  "Your Brand Brain is ready. Generate a campaign, social post or visual now.",
+      icon:  '<circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/>',
+      fn:    "navigate('create')"
+    });
+  }
+
+  el.innerHTML = actions.map(function(a){
+    return '<div class="bb-action-item" onclick="' + a.fn + '">'
+      + '<div class="bb-action-ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + a.icon + '</svg></div>'
+      + '<div class="bb-action-body"><div class="bb-action-title">' + a.title + '</div><div class="bb-action-desc">' + a.desc + '</div></div>'
+      + '<div class="bb-action-arrow">›</div>'
+      + '</div>';
+  }).join("");
+}
+
 function refreshDash(){
   var intel = _dashComputeIntel();
 
@@ -1219,9 +2264,13 @@ function initChat(){
   var feed=document.getElementById("chatFeed");
   if(!feed) return;
   if(S.chatHistory.length===0){
+    feed.innerHTML='';
     feed.classList.add('feed-welcome');
-    feed.innerHTML='<div class="chat-welcome"><div class="chat-welcome-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M16 3L19 11H27L21 16L23 24L16 19.5L9 24L11 16L5 11H13Z"/></svg></div><h2>Brand Assistant</h2><p>Ask me anything about your brand. I can help you refine ideas, answer brand questions, and support your creative process.</p><div class="chat-suggestions"><div class="chat-sug" onclick="sendSuggestion(this)">How should I describe my brand voice?</div><div class="chat-sug" onclick="sendSuggestion(this)">What makes a strong brand identity?</div><div class="chat-sug" onclick="sendSuggestion(this)">Help me refine my brand positioning</div><div class="chat-sug" onclick="sendSuggestion(this)">Give me feedback on my brand strategy</div></div></div>';
+    var welcome=document.getElementById("chatWelcome");
+    if(welcome) welcome.style.display='';
   } else {
+    var welcome=document.getElementById("chatWelcome");
+    if(welcome) welcome.style.display='none';
     renderChatHistory();
   }
 }
@@ -1244,7 +2293,6 @@ function sendChat(){
   var prompt=input.value.trim();
   if(!prompt) return;
   input.value="";
-  // Auto-resize textarea back to 1 row
   input.style.height="auto";
   S.chatHistory.push({role:"user",text:prompt});
   renderChatHistory();
@@ -1256,24 +2304,75 @@ function sendChat(){
   typingDiv.innerHTML='<div class="chat-ai-avatar"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M10 2L12.5 7.5H18L13.5 11L15 16.5L10 13.5L5 16.5L6.5 11L2 7.5H7.5Z"/></svg></div><div class="chat-bubble ai-bubble"><div class="chat-typing"><span></span><span></span><span></span></div></div>';
   feed.appendChild(typingDiv);
   feed.scrollTop=feed.scrollHeight;
-  // Vary response delay slightly for authenticity
-  var delay=900+Math.floor(Math.random()*800);
-  setTimeout(function(){
-    var outTypeEl=document.getElementById("chatOutType");
-    var outputType=outTypeEl?outTypeEl.value:"auto";
-    var response=generateResponse(prompt,outputType);
-    S.chatHistory.push({role:"ai",text:prompt,response:response});
-    var typingEl=document.getElementById(typingId);
-    if(typingEl) typingEl.remove();
-    appendAIMessage(response,feed);
+
+  // Build conversation history — exclude the current message (last item) to avoid duplication
+  var prevHistory = S.chatHistory.slice(-11, -1).map(function(m){
+    var txt = m.text || (m.response && m.response.text) || '';
+    return (m.role==='user' ? 'User: ' : 'Assistant: ') + txt;
+  }).join('\n');
+
+  var fullPrompt = prevHistory ? prevHistory + '\nUser: ' + prompt : prompt;
+
+  // Send raw brandCore — server reads toneOfVoice, personality, audience, etc. directly
+  var payload = { prompt: fullPrompt, type: 'assistant' };
+  if(S.brandCore && S.brandCore.name) payload.brandContext = S.brandCore;
+
+  var apiBase = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
+  console.log('[Assistant] → POST', apiBase + '/api/generate-text', '| brand:', (S.brandCore && S.brandCore.name) || 'none');
+
+  function _showError(errText){
+    var el=document.getElementById(typingId); if(el) el.remove();
+    var response={type:'text',label:'AI Marketing Strategist',text:errText};
+    appendAIMessage(response, feed);
     feed.scrollTop=feed.scrollHeight;
-  },delay);
+  }
+
+  fetch(apiBase+'/api/generate-text', {
+    method:  'POST',
+    headers: {'Content-Type':'application/json'},
+    body:    JSON.stringify(payload)
+  })
+  .then(function(r){
+    console.log('[Assistant] ← HTTP', r.status);
+    return r.json().then(function(d){ return { ok: r.ok, status: r.status, data: d }; });
+  })
+  .then(function(res){
+    var d = res.data;
+    if(!res.ok){
+      var errMsg = (d && d.error) ? d.error : ('Server returned ' + res.status);
+      console.error('[Assistant] Server error:', errMsg);
+      _showError('Assistant error: ' + errMsg);
+      return;
+    }
+    if(!d || !d.result){
+      console.error('[Assistant] Empty result in response:', d);
+      _showError('The assistant returned an empty response. Please try again.');
+      return;
+    }
+    var text = d.result.trim();
+    console.log('[Assistant] Response received, length:', text.length);
+    var response={type:'text',label:'AI Marketing Strategist',text:text};
+    S.chatHistory.push({role:"ai",text:prompt,response:response});
+    var el=document.getElementById(typingId); if(el) el.remove();
+    appendAIMessage(response, feed);
+    feed.scrollTop=feed.scrollHeight;
+  })
+  .catch(function(err){
+    console.error('[Assistant] Network/parse error:', err);
+    var msg = 'Unable to reach the assistant. ';
+    if(!apiBase) msg += 'API URL not configured.';
+    else if(err && err.message && err.message.indexOf('JSON')!==-1) msg += 'Server returned an unexpected response (not JSON). Check if the server is running.';
+    else msg += 'Check your connection and try again.';
+    _showError(msg);
+  });
 }
 function renderChatHistory(){
   var feed=document.getElementById("chatFeed");
   if(!feed) return;
   feed.classList.remove('feed-welcome');
   feed.innerHTML="";
+  var welcome=document.getElementById("chatWelcome");
+  if(welcome) welcome.style.display='none';
   S.chatHistory.forEach(function(msg){
     if(msg.role==="user"){
       var div=document.createElement("div");
@@ -1319,13 +2418,19 @@ function renderResultHTML(response){
   }
   return inner;
 }
+function _escChat(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
 function appendAIMessage(response,feed){
   var div=document.createElement("div");
   div.className="chat-msg ai";
   var inner='<div class="chat-ai-avatar"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M10 2L12.5 7.5H18L13.5 11L15 16.5L10 13.5L5 16.5L6.5 11L2 7.5H7.5Z"/></svg></div>';
-  inner+='<div class="chat-bubble ai-bubble"><div class="chat-result-label">'+response.label+"</div>";
-  inner+=renderResultHTML(response);
-  inner+='<div class="chat-actions"><button class="btn btn-sm btn-g" onclick="saveFromChat(this)">Save Asset</button></div>';
+  inner+='<div class="chat-bubble ai-bubble">';
+  if(response.type==='text'){
+    inner+='<div class="chat-text-response">'+_escChat(response.text||'')+'</div>';
+  } else {
+    if(response.label) inner+='<div class="chat-result-label">'+response.label+'</div>';
+    inner+=renderResultHTML(response);
+    inner+='<div class="chat-actions"><button class="btn btn-sm btn-g" onclick="saveFromChat(this)">Save Asset</button></div>';
+  }
   inner+="</div></div>";
   div.innerHTML=inner;
   feed.appendChild(div);
@@ -1338,9 +2443,9 @@ function saveFromChat(btn){
 }
 // Auto-resize textarea
 document.addEventListener("DOMContentLoaded",function(){
-  // Dashboard is active by default — lock mc scroll immediately
-  var mc=document.querySelector(".mc");
-  if(mc) mc.classList.add("mc-locked");
+  // Brand Brain is the new home — mc scrolls freely (no mc-locked)
+  refreshBrain();
+  refreshAlerts(); // also sets sidebar alert dot on load
 
   var ci=document.getElementById("chatInput");
   if(ci){
@@ -1386,6 +2491,13 @@ function refreshBC(){
   var wdn=document.getElementById("wsNameDisp");
   if(wdn){ wdn.textContent=bc.name; document.getElementById("wsDot").textContent=bc.name.charAt(0).toUpperCase(); }
   refreshDash();
+  refreshBrain();
+  refreshPositioning();
+  refreshAudience();
+  refreshTov();
+  refreshIdentity();
+  refreshHealth();
+  refreshAlerts();
 }
 function updateStudioBCPanel(){
   var bc=S.brandCore;

@@ -5,9 +5,10 @@
 //             Differentiation · Strategic Insight · Final Verdict
 // ═══════════════════════════════════════════════════════════════════
 
-var _ciRunning  = false;
-var _ciStepTimer = null;
-var _ciLastUrl  = "";
+var _ciRunning    = false;
+var _ciStepTimer  = null;
+var _ciLastUrl    = "";
+var _ciLastReport = null; // full report object — read by Opportunities page
 
 // ── Lifecycle ──────────────────────────────────────────────────────
 
@@ -80,6 +81,7 @@ function startCompetitorAnalysis(){
       _ciShowIdle();
       return;
     }
+    _ciLastReport = data;
     _ciShowResults(data, bc);
   })
   .catch(function(){

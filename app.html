@@ -127,22 +127,71 @@
   </button>
 </div>
 
+<!-- Ambient background canvas — sits behind entire app -->
+<canvas id="appAmbient" aria-hidden="true"></canvas>
+
 <div class="toast" id="toast"></div>
 <div id="sbOverlay" onclick="closeSidebar()"></div>
-<div id="mobileBar">
-  <button id="sbToggle" onclick="toggleSidebar()" aria-label="Menu">
-    <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4.5h14M2 9h14M2 13.5h14"/></svg>
-  </button>
-  <div class="mb-wordmark" aria-hidden="true">
-    <img src="assets/orivenlogo.png" alt="">
-    <span class="mb-name">ORIVEN</span>
+<!-- ═══ TOP NAVIGATION ══════════════════════════════════════════ -->
+<nav class="ap-nav" id="apNav">
+  <div class="ap-nav-inner">
+    <!-- Logo -->
+    <a href="#" class="ap-logo" onclick="event.preventDefault();navigate('brain')">
+      <img src="assets/orivenlogo.png" alt="ORIVEN" class="ap-logo-img">
+    </a>
+
+    <!-- Center nav links — .ni class keeps navigate() compat -->
+    <div class="ap-nav-links">
+      <button class="ap-nl ni" data-page="campaigns">Campaign Studio</button>
+      <button class="ap-nl ni" data-page="studio">Brand</button>
+      <button class="ap-nl ni" data-page="assets">Assets</button>
+      <button class="ap-nl ni" data-page="aichat">Assistant</button>
+    </div>
+
+    <!-- Right: Credits + Avatar -->
+    <div class="ap-nav-right">
+      <button class="ap-credits-btn" onclick="navigate('settings')" title="Credits & Plan">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="11" height="11"><path d="M7 1l1.2 3.8H12l-3 2.2 1.1 3.5L7 8.2l-3.1 2.3L5 7l-3-2.2h3.8z"/></svg>
+        <span id="apNavCredits">—</span>
+        <span class="ap-credits-label">credits</span>
+      </button>
+      <div class="ap-avatar" id="apNavAvatar" onclick="navigate('settings')" title="Account">A</div>
+    </div>
+
+    <!-- Mobile hamburger -->
+    <button class="ap-hamburger" id="apHamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+</nav>
+
+<!-- Mobile full-screen nav -->
+<div class="ap-mob-nav" id="apMobNav">
+  <button class="ap-mob-close" id="apMobClose">&#x2715;</button>
+  <div class="ap-mob-links">
+    <button class="ap-mob-link ni" data-page="campaigns" onclick="apCloseMob()">Campaign Studio</button>
+    <button class="ap-mob-link ni" data-page="studio" onclick="apCloseMob()">Brand</button>
+    <button class="ap-mob-link ni" data-page="assets" onclick="apCloseMob()">Assets</button>
+    <button class="ap-mob-link ni" data-page="aichat" onclick="apCloseMob()">Assistant</button>
+  </div>
+  <div class="ap-mob-bottom">
+    <button class="ap-mob-link" onclick="apCloseMob();navigate('settings')">Settings</button>
+    <div class="ap-mob-credits">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="11" height="11"><path d="M7 1l1.2 3.8H12l-3 2.2 1.1 3.5L7 8.2l-3.1 2.3L5 7l-3-2.2h3.8z"/></svg>
+      <span id="apNavCreditsMob">—</span> credits
+    </div>
+  </div>
+</div>
+
+<!-- Hidden compat elements — JS writes user info here -->
+<div id="mobileBar" style="display:none">
+  <button id="sbToggle" onclick="toggleSidebar()" aria-label="Menu"></button>
 </div>
 
 <div class="app">
 
-  <!-- SIDEBAR -->
-  <aside class="sb" id="sidebar">
+  <!-- Sidebar kept hidden — JS (auth.js, usage.js) writes to IDs inside -->
+  <aside class="sb" id="sidebar" style="display:none!important;width:0;overflow:hidden;position:absolute">
 
     <!-- TOP: logo + main navigation -->
     <div class="sb-top">
@@ -155,31 +204,81 @@
         </div>
       </div>
       <nav class="sb-nav">
-        <div class="ni active" data-page="dashboard">
-          <svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
-          <span>Dashboard</span>
+
+        <!-- ── CAMPAIGNS ─────────────────────────────────────────── -->
+        <div class="ni" data-page="campaigns">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 7.5h14M5 3v4.5M11 3v4.5"/></svg>
+          <span>Campaigns</span>
         </div>
-        <div class="ni" data-page="create">
-          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/></svg>
-          <span>Create</span>
+
+        <div class="sb-divider"></div>
+
+        <!-- ── BRAND PROFILE ──────────────────────────────────────── -->
+        <div class="sb-section">Brand Profile</div>
+
+        <div class="ni sb-sub" data-page="brain">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2C5.24 2 3 4.02 3 6.5c0 1.4.65 2.64 1.67 3.47V12h6.66V9.97A4.42 4.42 0 0 0 13 6.5C13 4.02 10.76 2 8 2z"/><path d="M6 12v1.5a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V12"/><path d="M6 7h4M7 9h2"/></svg>
+          <span>Daily Brief</span>
         </div>
+
         <div class="ni" data-page="studio">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5 2.5v5L8 11.5 3 9V4z"/><path d="M8 11.5v3M3 4l5 2.5 5-2.5M8 6.5v5"/></svg>
-          <span>BrandCore</span>
+          <span>Brand Profile</span>
         </div>
-        <div class="ni" data-page="inspiration">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5a4 4 0 0 1 1.6 7.67V11H6.4V9.17A4 4 0 0 1 8 1.5z"/><path d="M6.4 12.5h3.2M7 14.5h2" stroke-linecap="round"/></svg>
-          <span>Inspiration</span>
-        </div>
-        <div class="ni" data-page="assistant">
+
+        <!-- ── INTELLIGENCE ───────────────────────────────────────── -->
+        <div class="sb-section">Intelligence</div>
+
+        <div class="ni sb-sub" data-page="assistant">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H5.5L2 14V11z"/><path d="M5.5 8h5M5.5 5.5h3"/></svg>
-          <span>Brand Assistant</span>
+          <span>Assistant</span>
         </div>
+
+        <div class="ni sb-sub" data-page="competitor">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="4"/><path d="M10.5 10.5L14 14"/><path d="M6 4v4M4 6h4"/></svg>
+          <span>Competitors</span>
+        </div>
+
+        <div class="ni sb-sub" data-page="market">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 12l3-4 3 2 3-5 3 3"/><path d="M1 14h14"/></svg>
+          <span>Market Research</span>
+        </div>
+
+        <!-- ── MONITOR ────────────────────────────────────────────── -->
+        <div class="sb-section">Monitor</div>
+
+        <div class="ni sb-sub" data-page="website">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="2" width="14" height="10" rx="1.5"/><path d="M5 14h6M8 12v2"/></svg>
+          <span>Website</span>
+        </div>
+        <div class="ni sb-sub" data-page="health">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v3.5l2.5 1.5"/></svg>
+          <span>Brand Health</span>
+        </div>
+        <div class="ni sb-sub" data-page="alerts">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 1.5a4.5 4.5 0 0 0-4.5 4.5v2L2 10h12l-1.5-2V6A4.5 4.5 0 0 0 8 1.5z"/><path d="M6.5 10v.5a1.5 1.5 0 0 0 3 0V10"/></svg>
+          <span>Alerts</span>
+          <span class="sb-alert-dot" id="sbAlertDot" style="display:none"></span>
+        </div>
+
+        <!-- Create page kept accessible via URL but removed from nav -->
+        <div class="ni" data-page="create" style="display:none">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/></svg>
+          <span>Create</span>
+        </div>
+
         <!-- Team nav — only visible for Business plan (shown by usage.js) -->
         <div class="ni" data-page="team" id="teamNavItem" style="display:none">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M11 14v-1.5a3 3 0 0 0-3-3H4a3 3 0 0 0-3 3V14"/><circle cx="6" cy="6" r="2.5"/><path d="M15 14v-1.5a3 3 0 0 0-2-2.83"/><path d="M11 4.13a2.5 2.5 0 0 1 0 4.74"/></svg>
           <span>Team</span>
         </div>
+
+        <!-- Inspiration — hidden from main nav, still accessible via URL -->
+        <div class="ni" data-page="inspiration" id="inspirationNavItem" style="display:none">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5a4 4 0 0 1 1.6 7.67V11H6.4V9.17A4 4 0 0 1 8 1.5z"/><path d="M6.4 12.5h3.2M7 14.5h2" stroke-linecap="round"/></svg>
+          <span>Inspiration</span>
+        </div>
+
       </nav>
     </div>
 
@@ -235,7 +334,664 @@
   <div class="mc">
 
     <!-- DASHBOARD -->
-    <div class="page active" id="page-dashboard">
+    <!-- ══════════════════════════════════════════════════════════
+         BRAND BRAIN — Command Center (replaces Dashboard as home)
+         ══════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-brain">
+      <div class="bb-outer ap-home-outer">
+
+        <!-- Greeting -->
+        <div class="bb-greeting">
+          <div class="bb-greeting-left">
+            <div class="bb-eyebrow">
+              <span class="bb-eyebrow-dot" id="bbEyebrowDot"></span>
+              <span>Brand Brain</span>
+            </div>
+            <h1 class="bb-headline" id="bbHeadline">Good morning.</h1>
+            <p class="bb-sub" id="bbSub">Set up your Brand Core to activate your Brand Brain.</p>
+          </div>
+          <div class="bb-brand-tag" id="bbBrandTag" style="display:none">
+            <span class="bb-brand-tag-dot"></span>
+            <span id="bbBrandTagName"></span>
+            <span class="bb-brand-tag-sep">·</span>
+            <span id="bbBrandTagScore">0%</span>
+          </div>
+        </div>
+
+        <!-- Health Score + Metrics -->
+        <div class="bb-top-row">
+          <div class="bb-health-card">
+            <div class="bb-health-score-wrap">
+              <div class="bb-health-num" id="bbHealthNum">0%</div>
+              <div class="bb-health-ring-wrap">
+                <svg class="bb-health-ring" viewBox="0 0 56 56">
+                  <circle class="bb-ring-bg" cx="28" cy="28" r="24"/>
+                  <circle class="bb-ring-fill" id="bbRingFill" cx="28" cy="28" r="24"
+                    stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+                </svg>
+              </div>
+            </div>
+            <div class="bb-health-label">Brand Health Score</div>
+            <div class="bb-health-sub" id="bbHealthSub">Configure your Brand Core to begin</div>
+          </div>
+          <div class="bb-metrics">
+            <div class="bb-metric" id="bbMetricBC">
+              <div class="bb-metric-ico">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5 2.5v5L8 11.5 3 9V4z"/></svg>
+              </div>
+              <div class="bb-metric-body">
+                <div class="bb-metric-val" id="bbMetricBCVal">—</div>
+                <div class="bb-metric-lbl">Brand Core</div>
+              </div>
+            </div>
+            <div class="bb-metric" id="bbMetricIntel">
+              <div class="bb-metric-ico">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="6" cy="6" r="4"/><path d="M10.5 10.5L14 14"/></svg>
+              </div>
+              <div class="bb-metric-body">
+                <div class="bb-metric-val" id="bbMetricIntelVal">—</div>
+                <div class="bb-metric-lbl">Intelligence</div>
+              </div>
+            </div>
+            <div class="bb-metric" id="bbMetricMonitor">
+              <div class="bb-metric-ico">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="2" width="14" height="10" rx="1.5"/><path d="M5 14h6M8 12v2"/></svg>
+              </div>
+              <div class="bb-metric-body">
+                <div class="bb-metric-val">Soon</div>
+                <div class="bb-metric-lbl">Website Monitor</div>
+              </div>
+            </div>
+            <div class="bb-metric" id="bbMetricContent">
+              <div class="bb-metric-ico">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/></svg>
+              </div>
+              <div class="bb-metric-body">
+                <div class="bb-metric-val" id="bbMetricContentVal">—</div>
+                <div class="bb-metric-lbl">Content Created</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- What the Brain Knows -->
+        <div class="bb-section">
+          <div class="bb-section-hd">
+            <span class="bb-section-label">What Your Brand Brain Knows</span>
+          </div>
+          <div class="bb-snapshot" id="bbSnapshot">
+            <div class="bb-snapshot-empty">
+              <span>Brand Core not configured — </span>
+              <span class="bb-snapshot-cta" onclick="navigate('studio')">Set it up →</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommended Actions -->
+        <div class="bb-section" id="bbActionsSection">
+          <div class="bb-section-hd">
+            <span class="bb-section-label">Recommended Actions</span>
+          </div>
+          <div class="bb-actions" id="bbActions"></div>
+        </div>
+
+        <!-- Daily Brief -->
+        <div class="bb-section" id="bbBriefSection">
+          <div class="bb-section-hd">
+            <span class="bb-section-label">Daily Brief</span>
+            <button class="bb-brief-gen-btn" id="bbBriefBtn" onclick="generateDailyBrief()">
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="11" height="11"><path d="M7 1v12M1 7h12"/></svg>
+              Generate
+            </button>
+          </div>
+
+          <!-- Prompt state -->
+          <div class="bb-brief-prompt" id="bbBriefPrompt">
+            <span>Start your day with a brand intelligence brief.</span>
+            <button onclick="generateDailyBrief()">Generate today's brief →</button>
+          </div>
+
+          <!-- Loading -->
+          <div class="bb-brief-loading" id="bbBriefLoading" style="display:none">
+            <div class="bb-brief-loading-ring"></div>
+            <span>Generating brief…</span>
+          </div>
+
+          <!-- Result -->
+          <div class="bb-brief-result" id="bbBriefResult" style="display:none">
+            <div class="bb-brief-date" id="bbBriefDate"></div>
+            <div class="bb-brief-headline" id="bbBriefHeadline"></div>
+            <div class="bb-brief-items" id="bbBriefItems"></div>
+            <div class="bb-brief-focus" id="bbBriefFocus"></div>
+          </div>
+        </div>
+
+        <!-- Explore Brand Brain -->
+        <div class="bb-section">
+          <div class="bb-section-hd">
+            <span class="bb-section-label">Explore Brand Brain</span>
+          </div>
+          <div class="bb-explore-grid">
+            <div class="bb-explore-card" onclick="navigate('website')">
+              <div class="bb-explore-ico">
+                <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="16" height="16"><rect x="1" y="3" width="16" height="11" rx="1.5"/><path d="M6 16h6M9 14v2"/><path d="M4 8l3 3 4-5"/></svg>
+              </div>
+              <div class="bb-explore-body">
+                <div class="bb-explore-name">Website Monitor</div>
+                <div class="bb-explore-desc">Check if your site matches your brand voice.</div>
+              </div>
+              <div class="bb-explore-arrow">›</div>
+            </div>
+            <div class="bb-explore-card" onclick="navigate('health')">
+              <div class="bb-explore-ico">
+                <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="16" height="16"><circle cx="9" cy="9" r="7"/><path d="M9 5v4.5l3 1.5"/></svg>
+              </div>
+              <div class="bb-explore-body">
+                <div class="bb-explore-name">Brand Health</div>
+                <div class="bb-explore-desc">See how your brand scores across every pillar.</div>
+              </div>
+              <div class="bb-explore-arrow">›</div>
+            </div>
+            <div class="bb-explore-card" onclick="navigate('market')">
+              <div class="bb-explore-ico">
+                <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="16" height="16"><path d="M2 13l4-5 4 3 4-7"/><path d="M1 16h16"/></svg>
+              </div>
+              <div class="bb-explore-body">
+                <div class="bb-explore-name">Market Research</div>
+                <div class="bb-explore-desc">AI-powered trends, segments, and whitespace.</div>
+              </div>
+              <div class="bb-explore-arrow">›</div>
+            </div>
+            <div class="bb-explore-card" onclick="navigate('opportunities')">
+              <div class="bb-explore-ico">
+                <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="16" height="16"><path d="M9 2l1.4 4.3H15l-3.7 2.7 1.4 4.3L9 10.8l-3.7 2.5 1.4-4.3L3 6.3h4.6z"/></svg>
+              </div>
+              <div class="bb-explore-body">
+                <div class="bb-explore-name">Opportunities</div>
+                <div class="bb-explore-desc">Strategic growth opportunities ranked by impact.</div>
+              </div>
+              <div class="bb-explore-arrow">›</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /#page-brain -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         CAMPAIGN HUB — primary dashboard (Oriven 3.0)
+         ════════════════════════════════════════════════════════════ -->
+    <div class="page active" id="page-campaigns">
+      <div class="camp-hub">
+
+        <!-- Header -->
+        <div class="camp-hub-hdr">
+          <div>
+            <h1 class="camp-hub-title">Campaign Studio</h1>
+            <p class="camp-hub-sub" id="campHubSub">Build ads, landing pages, emails, and more — all powered by your brand.</p>
+          </div>
+          <button class="camp-new-btn" onclick="openNewCampaign()">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 1v10M1 6h10"/></svg>
+            New Campaign
+          </button>
+        </div>
+
+        <!-- Pinned / Recents Row (shown when campaigns exist) -->
+        <div id="campHubPinned" style="display:none">
+          <div class="camp-hub-sect-hd">Continue working</div>
+          <div class="camp-hub-recent-row" id="campHubRecentRow"></div>
+        </div>
+
+        <!-- Campaign Grid (shown when campaigns exist) -->
+        <div id="campHubGrid" style="display:none">
+          <div class="camp-hub-sect-hd" id="campHubGridHd">All Campaigns</div>
+          <div class="camp-card-grid" id="campCardGrid"></div>
+        </div>
+
+        <!-- Empty State (shown when no campaigns) -->
+        <div class="camp-hub-empty" id="campHubEmpty">
+          <div class="camp-hub-empty-ico">
+            <svg viewBox="0 0 56 56" fill="none"><rect x="6" y="14" width="44" height="28" rx="4" stroke="currentColor" stroke-width="1.5"/><path d="M6 23h44M18 14v9M38 14v9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="28" cy="37" r="3" stroke="currentColor" stroke-width="1.4"/></svg>
+          </div>
+          <h2 class="camp-hub-empty-title">Launch your first campaign.</h2>
+          <p class="camp-hub-empty-sub">Describe your business once. AI builds everything — ads, landing pages, emails, videos. All perfectly aligned with your brand.</p>
+          <button class="camp-new-btn camp-new-btn-lg" onclick="openNewCampaign()">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 1v10M1 6h10"/></svg>
+            New Campaign
+          </button>
+        </div>
+
+      </div>
+    </div><!-- /#page-campaigns -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         CAMPAIGN WORKSPACE — individual campaign editor
+         ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-campaign-workspace">
+      <div class="cwr">
+
+        <!-- Top bar -->
+        <div class="cwr-topbar">
+          <button class="cwr-back" onclick="navigate('campaigns')">
+            <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 1L3 5l4 4"/></svg>
+            All Campaigns
+          </button>
+          <div class="cwr-meta">
+            <span class="cwr-name" id="cwsCampName"></span>
+            <span class="cwr-type-badge" id="cwsCampType"></span>
+          </div>
+        </div>
+
+        <!-- Asset area -->
+        <div class="cwr-scroll">
+          <div class="cwr-asset-wrap" id="cwsMainInner">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Edit drawer (email / landing page) -->
+        <div class="cwr-edit-drawer" id="cwrEditDrawer" style="display:none">
+          <div class="cwr-edit-hdr">
+            <span class="cwr-edit-title">Edit</span>
+            <button class="cwr-edit-close" onclick="document.getElementById('cwrEditDrawer').style.display='none'">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
+            </button>
+          </div>
+          <div class="cwr-edit-body" id="cwrEditBody">
+            <!-- Fields populated by JS -->
+          </div>
+          <div class="cwr-edit-foot">
+            <button class="cwr-edit-apply" onclick="cwsApplyEdit()">Apply Changes</button>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /#page-campaign-workspace -->
+
+    <!-- COMPETITOR INTELLIGENCE (standalone page) -->
+    <div class="page" id="page-competitor">
+      <div class="ci-page-outer">
+        <div class="bsp-breadcrumb" style="margin-bottom:24px"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Competitor Intelligence</span></div>
+
+        <div class="ci-outer">
+
+          <!-- Idle -->
+          <div id="ciIdle">
+            <div class="ci-idle-hd">
+              <div class="ci-idle-ico">
+                <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="13" cy="13" r="10"/><circle cx="13" cy="13" r="5"/><circle cx="13" cy="13" r="1.5" fill="currentColor" stroke="none"/><line x1="13" y1="3" x2="13" y2="0.5"/><line x1="13" y1="25.5" x2="13" y2="23"/><line x1="3" y1="13" x2="0.5" y2="13"/><line x1="25.5" y1="13" x2="23" y2="13"/></svg>
+              </div>
+              <div class="ci-idle-ttl">Competitor Intelligence</div>
+              <div class="ci-idle-sub">Enter a competitor's website. Get instant brand intelligence — positioning, visual identity, tone, and your strategic advantage.</div>
+            </div>
+            <div class="ci-input-wrap">
+              <div class="ci-url-field">
+                <svg class="ci-url-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="6"/><path d="M1 7h12M7 1a9.5 9.5 0 0 1 0 12M7 1a9.5 9.5 0 0 0 0 12"/></svg>
+                <input type="url" id="ciUrl" placeholder="https://competitor.com" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')startCompetitorAnalysis()"/>
+              </div>
+              <button class="btn btn-p ci-run-btn" onclick="startCompetitorAnalysis()">Analyze Competitor</button>
+            </div>
+          </div>
+
+          <!-- Analyzing -->
+          <div class="bc-analyzing hidden" id="ciAnalyzing">
+            <div class="bc-analyze-hd">
+              <div class="bc-analyze-orb"></div>
+              <div class="bc-analyze-ttl">Analyzing Competitor</div>
+              <div class="bc-analyze-sub" id="ciAnalyzeSub">Reading brand signals…</div>
+            </div>
+            <div class="bc-steps" id="ciSteps"></div>
+          </div>
+
+          <!-- Results -->
+          <div class="ci-results hidden" id="ciResults">
+            <div class="ci-results-top">
+              <div>
+                <div class="ci-results-brand" id="ciResultsBrand"></div>
+                <div class="ci-results-url" id="ciResultsUrl"></div>
+              </div>
+              <button class="ci-rerun-btn" onclick="ciReset()">
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.5 2A5.5 5.5 0 1 0 11 6.5"/><polyline points="8,0 10.5,2 8,4.5"/></svg>
+                New Analysis
+              </button>
+            </div>
+            <div id="ciResultsBody"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         BRAND SUB-PAGES: Positioning / Audience / Tov / Identity
+         ══════════════════════════════════════════════════════════ -->
+
+    <!-- POSITIONING -->
+    <div class="page" id="page-positioning">
+      <div class="bsp-outer">
+        <div class="bsp-header">
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Positioning</span></div>
+          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Core</button>
+        </div>
+        <h1 class="bsp-title">Positioning</h1>
+        <p class="bsp-desc">How your brand is placed in the market — your promise, differentiation, and unique space.</p>
+
+        <div class="bsp-body" id="posBody">
+          <!-- Populated by refreshPositioning() -->
+        </div>
+
+        <div class="bsp-empty" id="posEmpty" style="display:none">
+          <div class="bsp-empty-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 16h6m12 0h6M16 4v6m0 12v6M8.9 8.9l4 4m6 6l4 4M23.1 8.9l-4 4m-6 6l-4 4"/></svg>
+          </div>
+          <div class="bsp-empty-title">No positioning defined yet</div>
+          <div class="bsp-empty-sub">Complete your Brand Core to define how your brand stands apart.</div>
+          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Core →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIENCE -->
+    <div class="page" id="page-audience">
+      <div class="bsp-outer">
+        <div class="bsp-header">
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Audience</span></div>
+          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Core</button>
+        </div>
+        <h1 class="bsp-title">Audience</h1>
+        <p class="bsp-desc">Who your brand speaks to — their needs, motivations, and what they care about most.</p>
+
+        <div class="bsp-body" id="audBody">
+          <!-- Populated by refreshAudience() -->
+        </div>
+
+        <div class="bsp-empty" id="audEmpty" style="display:none">
+          <div class="bsp-empty-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M22 28v-3a6 6 0 0 0-6-6H8a6 6 0 0 0-6 6v3"/><circle cx="12" cy="11" r="5"/><path d="M27 28v-2.5a5 5 0 0 0-4-4.9"/><path d="M22 8.1a5 5 0 0 1 0 7.5"/></svg>
+          </div>
+          <div class="bsp-empty-title">No audience defined yet</div>
+          <div class="bsp-empty-sub">Describe your target audience in Brand Core to unlock audience insights.</div>
+          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Core →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TONE OF VOICE -->
+    <div class="page" id="page-tov">
+      <div class="bsp-outer">
+        <div class="bsp-header">
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Tone of Voice</span></div>
+          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Core</button>
+        </div>
+        <h1 class="bsp-title">Tone of Voice</h1>
+        <p class="bsp-desc">The personality and communication style that makes your brand instantly recognisable.</p>
+
+        <div class="bsp-body" id="tovBody">
+          <!-- Populated by refreshTov() -->
+        </div>
+
+        <div class="bsp-empty" id="tovEmpty" style="display:none">
+          <div class="bsp-empty-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V8a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H11L4 28V22z"/><path d="M10 13h12M10 18h8"/></svg>
+          </div>
+          <div class="bsp-empty-title">No tone defined yet</div>
+          <div class="bsp-empty-sub">Add personality traits and tone descriptors in Brand Core.</div>
+          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Core →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- IDENTITY -->
+    <div class="page" id="page-identity">
+      <div class="bsp-outer">
+        <div class="bsp-header">
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Identity</span></div>
+          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Core</button>
+        </div>
+        <h1 class="bsp-title">Identity</h1>
+        <p class="bsp-desc">Your visual language — colors, typography, and logos that make your brand instantly visible.</p>
+
+        <div class="bsp-body" id="identBody">
+          <!-- Populated by refreshIdentity() -->
+        </div>
+
+        <div class="bsp-empty" id="identEmpty" style="display:none">
+          <div class="bsp-empty-icon">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="16" cy="16" r="6"/><circle cx="16" cy="16" r="13"/></svg>
+          </div>
+          <div class="bsp-empty-title">No identity defined yet</div>
+          <div class="bsp-empty-sub">Add your colors, fonts, and logos in Brand Core to build your visual identity.</div>
+          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Core →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         INTELLIGENCE PAGES: Market Research / Opportunities
+         ══════════════════════════════════════════════════════════ -->
+
+    <!-- MARKET RESEARCH -->
+    <div class="page" id="page-market">
+      <div class="intel-outer">
+        <div class="bsp-header">
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Market Research</span></div>
+          <button class="intel-gen-btn" id="mktGenBtn" onclick="generateMarketResearch()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v14M1 8h14"/></svg>
+            Generate Research
+          </button>
+        </div>
+        <h1 class="bsp-title">Market Research</h1>
+        <p class="bsp-desc">AI-powered analysis of your market — trends, audience segments, competitive dynamics, and whitespace.</p>
+
+        <!-- Empty / prompt state -->
+        <div class="intel-prompt" id="mktPrompt">
+          <div class="intel-prompt-inner">
+            <div class="intel-prompt-icon">
+              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="M4 30l6-8 6 4 6-10 6 6"/><path d="M2 36h36"/><circle cx="32" cy="10" r="5"/><path d="M32 7v3l2 1"/></svg>
+            </div>
+            <div class="intel-prompt-title">Ready to analyze your market</div>
+            <div class="intel-prompt-sub" id="mktPromptSub">Your Brand Core is loaded — click Generate to run your market research report.</div>
+            <button class="intel-prompt-btn" onclick="generateMarketResearch()">Generate Market Research →</button>
+          </div>
+        </div>
+
+        <!-- Loading state -->
+        <div class="intel-loading" id="mktLoading" style="display:none">
+          <div class="intel-loading-ring"></div>
+          <div class="intel-loading-text">Analyzing your market<span class="intel-loading-dots"></span></div>
+        </div>
+
+        <!-- Results -->
+        <div class="intel-results" id="mktResults" style="display:none">
+          <div class="intel-meta-row">
+            <span class="intel-meta-ts" id="mktTimestamp"></span>
+            <button class="intel-regen-btn" onclick="generateMarketResearch()">Regenerate</button>
+          </div>
+
+          <!-- Market overview -->
+          <div class="intel-section">
+            <div class="intel-section-label">Market Overview</div>
+            <div class="intel-market-band" id="mktOverview"></div>
+          </div>
+
+          <!-- Trends -->
+          <div class="intel-section">
+            <div class="intel-section-label">Key Trends</div>
+            <div class="intel-trend-grid" id="mktTrends"></div>
+          </div>
+
+          <!-- Audience segments -->
+          <div class="intel-section">
+            <div class="intel-section-label">Audience Segments</div>
+            <div class="intel-seg-list" id="mktSegments"></div>
+          </div>
+
+          <!-- Competitive landscape -->
+          <div class="intel-section">
+            <div class="intel-section-label">Competitive Landscape</div>
+            <div class="intel-comp-card" id="mktCompetitive"></div>
+          </div>
+
+          <!-- Summary -->
+          <div class="intel-section">
+            <div class="intel-section-label">Strategic Summary</div>
+            <div class="intel-summary-card" id="mktSummary"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPPORTUNITIES -->
+    <div class="page" id="page-opportunities">
+      <div class="intel-outer">
+        <div class="bsp-header">
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Opportunities</span></div>
+          <button class="intel-gen-btn" id="oppGenBtn" onclick="generateOpportunities()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v14M1 8h14"/></svg>
+            Find Opportunities
+          </button>
+        </div>
+        <h1 class="bsp-title">Opportunities</h1>
+        <p class="bsp-desc">Strategic growth opportunities identified by your Brand Brain — ranked by impact, grounded in your positioning.</p>
+
+        <!-- Empty / prompt state -->
+        <div class="intel-prompt" id="oppPrompt">
+          <div class="intel-prompt-inner">
+            <div class="intel-prompt-icon">
+              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="M20 4l3 9.5H33l-8 5.8 3 9.2-8-5.8-8 5.8 3-9.2-8-5.8h10z"/><path d="M20 32v4"/></svg>
+            </div>
+            <div class="intel-prompt-title">Ready to find your opportunities</div>
+            <div class="intel-prompt-sub" id="oppPromptSub">Your Brand Brain will analyze your positioning and identify the highest-leverage growth opportunities.</div>
+            <button class="intel-prompt-btn" onclick="generateOpportunities()">Find Opportunities →</button>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="intel-loading" id="oppLoading" style="display:none">
+          <div class="intel-loading-ring"></div>
+          <div class="intel-loading-text">Scanning for opportunities<span class="intel-loading-dots"></span></div>
+        </div>
+
+        <!-- Results -->
+        <div class="intel-results" id="oppResults" style="display:none">
+          <div class="intel-meta-row">
+            <span class="intel-meta-ts" id="oppTimestamp"></span>
+            <button class="intel-regen-btn" onclick="generateOpportunities()">Regenerate</button>
+          </div>
+
+          <!-- Summary -->
+          <div class="intel-section" id="oppSummarySection" style="display:none">
+            <div class="intel-section-label">Overview</div>
+            <div class="intel-summary-card" id="oppSummary"></div>
+          </div>
+
+          <!-- Opportunity cards -->
+          <div class="intel-section">
+            <div class="intel-section-label">Opportunities</div>
+            <div class="intel-opp-list" id="oppList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         MONITOR PAGES: Website / Brand Health / Alerts
+         ══════════════════════════════════════════════════════════ -->
+
+    <!-- WEBSITE MONITOR -->
+    <div class="page" id="page-website">
+      <div class="intel-outer">
+        <div class="bsp-header">
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Website Monitor</span></div>
+        </div>
+        <h1 class="bsp-title">Website Monitor</h1>
+        <p class="bsp-desc">Analyse how consistently your website reflects your brand — messaging, tone, and positioning.</p>
+
+        <!-- URL input -->
+        <div class="mon-url-row" id="webUrlRow">
+          <input class="mon-url-input" id="webUrlInput" type="url" placeholder="https://yourwebsite.com" />
+          <button class="intel-gen-btn" id="webRunBtn" onclick="runWebsiteMonitor()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="12" height="12"><path d="M1 8h14M8 2l6 6-6 6"/></svg>
+            Analyse
+          </button>
+        </div>
+
+        <!-- Loading -->
+        <div class="intel-loading" id="webLoading" style="display:none">
+          <div class="intel-loading-ring"></div>
+          <div class="intel-loading-text">Scanning your website<span class="intel-loading-dots"></span></div>
+        </div>
+
+        <!-- Results -->
+        <div class="intel-results" id="webResults" style="display:none">
+          <div class="intel-meta-row">
+            <span class="intel-meta-ts" id="webTimestamp"></span>
+            <button class="intel-regen-btn" onclick="runWebsiteMonitor()">Re-analyse</button>
+          </div>
+
+          <!-- Score + grade -->
+          <div class="mon-score-band" id="webScoreBand"></div>
+
+          <!-- Summary -->
+          <div class="intel-section">
+            <div class="intel-section-label">Overview</div>
+            <div class="intel-summary-card" id="webSummary"></div>
+          </div>
+
+          <!-- Strengths -->
+          <div class="intel-section">
+            <div class="intel-section-label">Strengths</div>
+            <div class="mon-list" id="webStrengths"></div>
+          </div>
+
+          <!-- Issues -->
+          <div class="intel-section">
+            <div class="intel-section-label">Issues Found</div>
+            <div class="mon-issues" id="webIssues"></div>
+          </div>
+
+          <!-- Recommendations -->
+          <div class="intel-section">
+            <div class="intel-section-label">Recommendations</div>
+            <div class="mon-list mon-list-action" id="webRecs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BRAND HEALTH -->
+    <div class="page" id="page-health">
+      <div class="intel-outer">
+        <div class="bsp-header">
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Brand Health</span></div>
+        </div>
+        <h1 class="bsp-title">Brand Health</h1>
+        <p class="bsp-desc">A composite view of your brand's strength across every pillar — from identity to intelligence.</p>
+
+        <div id="healthBody">
+          <!-- Populated by refreshHealth() -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="page" id="page-alerts">
+      <div class="intel-outer">
+        <div class="bsp-header">
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Alerts</span></div>
+          <button class="intel-regen-btn" onclick="refreshAlerts()">Refresh</button>
+        </div>
+        <h1 class="bsp-title">Alerts</h1>
+        <p class="bsp-desc">Smart notifications from your Brand Brain — gaps to fill, actions to take, things to know.</p>
+
+        <div id="alertsBody">
+          <!-- Populated by refreshAlerts() -->
+        </div>
+      </div>
+    </div>
+
+    <!-- LEGACY DASHBOARD (kept for backward-compat with any internal references) -->
+    <div class="page" id="page-dashboard">
       <div class="dash-outer">
 
         <!-- S1: AI STATUS HERO -->
@@ -306,7 +1062,7 @@
             <span>Tone of Voice</span>
             <span>Visual Direction</span>
           </div>
-          <button class="cr2-empty-btn" onclick="navigate('brandcore')">Generate Brand Core</button>
+          <button class="cr2-empty-btn" onclick="navigate('studio')">Generate Brand Core</button>
         </div>
 
         <!-- HAS BRAND CORE STATE -->
@@ -640,35 +1396,38 @@
     <!-- ASSISTANT (was AI Chat) -->
     <div class="page" id="page-aichat">
       <div class="chat-shell">
-        <div class="chat-feed" id="chatFeed"></div>
-        <div class="chat-input-area">
-          <div class="chat-controls">
-            <select class="chat-ctrl-sel" id="chatOutType">
-              <option value="auto">Auto-detect</option>
-              <option value="poster">Poster</option>
-              <option value="instagram">Instagram Post</option>
-              <option value="headline">Headlines</option>
-              <option value="copy">Brand Copy</option>
-              <option value="caption">Caption</option>
-              <option value="ad_copy">Ad Ideas</option>
-              <option value="campaign">Campaign Ideas</option>
-            </select>
-            <select class="chat-ctrl-sel">
-              <option>Square</option><option>Portrait</option>
-              <option>Story</option><option>Landscape</option>
-            </select>
-            <select class="chat-ctrl-sel">
-              <option>Premium</option><option>Bold</option>
-              <option>Minimal</option><option>Warm</option><option>Modern</option>
-            </select>
+
+        <!-- Welcome state — hidden after first message -->
+        <div class="chat-welcome" id="chatWelcome">
+          <div class="chat-welcome-ico">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M16 3c7.2 0 12 5.4 12 10.5S22 25 16 25c-1.8 0-3.5-.4-5-.9L4 28l1.8-6.3C4.7 19.8 4 17.8 4 15.5 4 9.4 8.8 3 16 3z"/><circle cx="10" cy="16" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/><circle cx="22" cy="16" r="1.2" fill="currentColor" stroke="none"/></svg>
           </div>
-          <div class="chat-input-box">
-            <textarea id="chatInput" rows="1" placeholder="Ask your brand assistant anything — refine ideas, get guidance, or ask questions…"></textarea>
-            <button class="chat-send" onclick="sendChat()">
-              <svg viewBox="0 0 16 16"><path d="M14 8L2 2l2.5 6L2 14l12-6z"/></svg>
-            </button>
+          <h2 class="chat-welcome-title">Your AI Marketing Strategist</h2>
+          <p class="chat-welcome-sub">I know your brand, your campaigns, and your goals.<br>Ask me anything — or choose a starting point below.</p>
+          <div class="chat-prompts-grid">
+            <button class="chat-prompt-chip" onclick="sendSuggestedPrompt('Write a Meta ad for my next campaign')">Write a Meta ad for my next campaign</button>
+            <button class="chat-prompt-chip" onclick="sendSuggestedPrompt('Explain my brand positioning')">Explain my brand positioning</button>
+            <button class="chat-prompt-chip" onclick="sendSuggestedPrompt('Create a landing page for my primary offer')">Create a landing page for my primary offer</button>
+            <button class="chat-prompt-chip" onclick="sendSuggestedPrompt('Write 5 email subject lines')">Write 5 email subject lines</button>
+            <button class="chat-prompt-chip" onclick="sendSuggestedPrompt('Analyze my target audience and suggest messaging angles')">Analyze my target audience</button>
+            <button class="chat-prompt-chip" onclick="sendSuggestedPrompt('Build me a full campaign strategy')">Build me a full campaign strategy</button>
+            <button class="chat-prompt-chip" onclick="sendSuggestedPrompt('What content should I be creating right now?')">What content should I create right now?</button>
+            <button class="chat-prompt-chip" onclick="sendSuggestedPrompt('Write Google ad headlines and descriptions')">Write Google ad headlines</button>
           </div>
         </div>
+
+        <div class="chat-feed" id="chatFeed"></div>
+
+        <div class="chat-input-area">
+          <div class="chat-input-box">
+            <textarea id="chatInput" rows="1" placeholder="Ask your AI strategist anything…"></textarea>
+            <button class="chat-send" onclick="sendChat()">
+              <svg viewBox="0 0 16 16" fill="currentColor"><path d="M14 8L2 2l2.5 6L2 14l12-6z"/></svg>
+            </button>
+          </div>
+          <div class="chat-input-hint">Oriven knows your brand, campaigns, and assets.</div>
+        </div>
+
       </div>
     </div>
 
@@ -720,7 +1479,6 @@
               </div>
               <div class="bcp-hdr-actions">
                 <button class="bcp-action-btn" onclick="switchStudioTab('check')">Brand Check</button>
-                <button class="bcp-action-btn" onclick="switchStudioTab('competitor')">Competitor Intel</button>
                 <button class="bcp-action-btn bcp-action-btn-primary" onclick="openModal('modal-bc-regen')">Regenerate</button>
               </div>
             </div>
@@ -795,7 +1553,23 @@
             </div>
           </div>
 
-          <!-- SECTION 9: Logo System -->
+          <!-- SECTION 9: Mission -->
+          <div class="bcp-section" id="bcMissionSection">
+            <div class="bcp-section-hd">
+              <div class="bcp-section-label">Mission</div>
+            </div>
+            <div class="bcp-statement-card" id="bcProfileMission"></div>
+          </div>
+
+          <!-- SECTION 10: Vision -->
+          <div class="bcp-section" id="bcVisionSection">
+            <div class="bcp-section-hd">
+              <div class="bcp-section-label">Vision</div>
+            </div>
+            <div class="bcp-statement-card" id="bcProfileVision"></div>
+          </div>
+
+          <!-- SECTION 11: Logo System -->
           <div class="bcp-section">
             <div class="bcp-section-hd">
               <div class="bcp-section-label">Logo System</div>
@@ -817,6 +1591,76 @@
         </div>
 
       </div><!-- /bcp-scroll -->
+
+      <!-- AI Brand Insights — right rail (always visible alongside brand content) -->
+      <div class="bcp-insights-panel" id="bcInsightsPanel">
+
+        <div class="bcp-ip-header">
+          <div class="bcp-ip-title">AI Insights</div>
+          <button class="bcp-ip-refresh" onclick="switchStudioTab('check')" title="Run brand check">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 7A5 5 0 1 1 9 2.3M12 1v3.5H8.5"/></svg>
+          </button>
+        </div>
+
+        <!-- No brand configured -->
+        <div class="bcp-ip-no-brand" id="bcIpNoBrand">
+          <div class="bcp-ip-empty-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" width="22" height="22"><path d="M12 2l2.5 5.5L20 9l-4 3.9 1 5.6L12 16l-5 2.5 1-5.6L4 9l5.5-1.5L12 2z"/></svg>
+          </div>
+          <div class="bcp-ip-empty-text">Set up your brand to unlock AI insights about your strengths, gaps, and opportunities.</div>
+          <button class="bcp-ip-gen-btn" onclick="openBCWizard()">Set up Brand</button>
+        </div>
+
+        <!-- Brand exists, no analysis yet -->
+        <div class="bcp-ip-run-check" id="bcIpRunCheck" style="display:none">
+          <div class="bcp-ip-empty-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" width="22" height="22"><path d="M12 22a9 9 0 0 0 0-18 9 9 0 0 0 0 18zM12 8v4l3 3"/></svg>
+          </div>
+          <div class="bcp-ip-empty-text">Run a brand check to get AI insights about your positioning, strengths, and opportunities.</div>
+          <button class="bcp-ip-gen-btn" onclick="switchStudioTab('check')">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="10" height="10"><path d="M6 1l1 3.2H10l-2.5 1.9.9 2.9L6 7.5l-2.4 1.5.9-2.9L2 4.2h3z"/></svg>
+            Analyze Brand
+          </button>
+        </div>
+
+        <!-- Insights results -->
+        <div class="bcp-ip-results" id="bcIpResults" style="display:none">
+          <div class="bcp-ip-score-row">
+            <div class="bcp-ip-score-num" id="bcIpScoreNum">—</div>
+            <div class="bcp-ip-score-lbl">Brand Score</div>
+          </div>
+          <div class="bcp-ip-section">
+            <div class="bcp-ip-sect-label bcp-ip-strength">Strengths</div>
+            <div class="bcp-ip-items" id="bcIpStrengths"></div>
+          </div>
+          <div class="bcp-ip-section">
+            <div class="bcp-ip-sect-label bcp-ip-opp">Opportunities</div>
+            <div class="bcp-ip-items" id="bcIpOpportunities"></div>
+          </div>
+          <div class="bcp-ip-section">
+            <div class="bcp-ip-sect-label">Recommendations</div>
+            <div class="bcp-ip-items" id="bcIpRecommendations"></div>
+          </div>
+        </div>
+
+        <!-- Quick actions — always shown -->
+        <div class="bcp-ip-actions">
+          <div class="bcp-ip-acts-label">Quick Actions</div>
+          <button class="bcp-ip-act-btn" onclick="navigate('campaigns')">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="12" height="12"><path d="M7 1v12M1 7h12"/></svg>
+            New Campaign
+          </button>
+          <button class="bcp-ip-act-btn" onclick="navigate('aichat')">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="12" height="12"><path d="M2 2h10a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H4.5L2 12V3a1 1 0 0 1 1-1z"/></svg>
+            Ask Assistant
+          </button>
+          <button class="bcp-ip-act-btn" onclick="switchStudioTab('check')">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="12" height="12"><path d="M5 7l2 2 4-4M7 1.5l4.5 2.2v4.6L7 10.5l-4.5-2.2V3.7z"/></svg>
+            Brand Check
+          </button>
+        </div>
+
+      </div><!-- /bcp-insights-panel -->
 
       <!-- ── Panel overlay (fixed over full app when active) ── -->
       <div class="sh-panel-view hidden" id="studioPanelView">
@@ -917,56 +1761,6 @@
 
               <!-- Results -->
               <div class="scd hidden" id="ckScore"></div>
-
-            </div>
-          </div>
-
-          <!-- ── COMPETITOR INTELLIGENCE v2 ── -->
-          <div class="studio-panel" id="tab-competitor">
-            <div class="ci-outer">
-
-              <!-- Idle -->
-              <div id="ciIdle">
-                <div class="ci-idle-hd">
-                  <div class="ci-idle-ico">
-                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="13" cy="13" r="10"/><circle cx="13" cy="13" r="5"/><circle cx="13" cy="13" r="1.5" fill="currentColor" stroke="none"/><line x1="13" y1="3" x2="13" y2="0.5"/><line x1="13" y1="25.5" x2="13" y2="23"/><line x1="3" y1="13" x2="0.5" y2="13"/><line x1="25.5" y1="13" x2="23" y2="13"/></svg>
-                  </div>
-                  <div class="ci-idle-ttl">Competitor Intelligence</div>
-                  <div class="ci-idle-sub">Enter a competitor's website. Get instant brand intelligence — positioning, visual identity, tone, and your strategic advantage.</div>
-                </div>
-                <div class="ci-input-wrap">
-                  <div class="ci-url-field">
-                    <svg class="ci-url-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="6"/><path d="M1 7h12M7 1a9.5 9.5 0 0 1 0 12M7 1a9.5 9.5 0 0 0 0 12"/></svg>
-                    <input type="url" id="ciUrl" placeholder="https://competitor.com" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')startCompetitorAnalysis()"/>
-                  </div>
-                  <button class="btn btn-p ci-run-btn" onclick="startCompetitorAnalysis()">Analyze Competitor</button>
-                </div>
-              </div>
-
-              <!-- Analyzing -->
-              <div class="bc-analyzing hidden" id="ciAnalyzing">
-                <div class="bc-analyze-hd">
-                  <div class="bc-analyze-orb"></div>
-                  <div class="bc-analyze-ttl">Analyzing Competitor</div>
-                  <div class="bc-analyze-sub" id="ciAnalyzeSub">Reading brand signals…</div>
-                </div>
-                <div class="bc-steps" id="ciSteps"></div>
-              </div>
-
-              <!-- Results -->
-              <div class="ci-results hidden" id="ciResults">
-                <div class="ci-results-top">
-                  <div>
-                    <div class="ci-results-brand" id="ciResultsBrand"></div>
-                    <div class="ci-results-url" id="ciResultsUrl"></div>
-                  </div>
-                  <button class="ci-rerun-btn" onclick="ciReset()">
-                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.5 2A5.5 5.5 0 1 0 11 6.5"/><polyline points="8,0 10.5,2 8,4.5"/></svg>
-                    New Analysis
-                  </button>
-                </div>
-                <div id="ciResultsBody"></div>
-              </div>
 
             </div>
           </div>
@@ -1228,6 +2022,10 @@
             <div class="se-nav-group">
               <div class="se-nav-label">Subscription</div>
               <div class="snav-item" data-sp="plan">Your Plan</div>
+            </div>
+            <div class="se-nav-group">
+              <div class="se-nav-label">Integrations</div>
+              <div class="snav-item" data-sp="integrations">Integrations</div>
             </div>
             <div class="se-nav-group">
               <div class="se-nav-label">Workspace</div>
@@ -1497,6 +2295,56 @@
               </div>
             </div>
 
+            <!-- Integrations -->
+            <div class="spanel" id="sp-integrations">
+              <div class="se-panel-hd">
+                <div class="se-panel-eyebrow">Integrations</div>
+                <div class="se-panel-title">Integrations</div>
+                <div class="se-panel-sub">Connect external platforms to ORIVEN for future analytics and automation.</div>
+              </div>
+
+              <!-- Google Ads card -->
+              <div class="se-card">
+                <div class="int-row">
+                  <div class="int-icon">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                      <rect width="40" height="40" rx="10" fill="white"/>
+                      <path d="M30.4 20.23c0-.68-.06-1.34-.17-1.96H20.4v3.71h5.62a4.8 4.8 0 0 1-2.08 3.15v2.62h3.37c1.97-1.82 3.1-4.49 3.1-7.52z" fill="#4285F4"/>
+                      <path d="M20.4 31c2.82 0 5.18-.93 6.9-2.52l-3.37-2.62c-.93.63-2.13 1-3.53 1-2.71 0-5.01-1.83-5.83-4.29h-3.48v2.7A10.4 10.4 0 0 0 20.4 31z" fill="#34A853"/>
+                      <path d="M14.57 22.57a6.25 6.25 0 0 1 0-4.01v-2.7H11.1a10.4 10.4 0 0 0 0 9.41l3.47-2.7z" fill="#FBBC05"/>
+                      <path d="M20.4 12.27c1.53 0 2.9.53 3.98 1.56l2.98-2.98A10.39 10.39 0 0 0 20.4 8a10.4 10.4 0 0 0-9.3 5.86l3.47 2.7c.82-2.46 3.12-4.29 5.83-4.29z" fill="#EA4335"/>
+                    </svg>
+                  </div>
+                  <div class="int-info">
+                    <div class="int-name">Google Ads</div>
+                    <div class="int-desc">Connect your Google account to enable future campaign performance analytics and optimization inside ORIVEN.</div>
+                  </div>
+                  <div class="int-action" id="gads-action-area">
+                    <button class="btn btn-p btn-sm" id="gads-connect-btn" onclick="connectGoogleAds()">Connect Google Ads</button>
+                  </div>
+                </div>
+
+                <!-- Connected state — hidden until status loads -->
+                <div class="int-connected" id="gads-connected-info" style="display:none">
+                  <div class="int-field-row">
+                    <span class="int-field-label">Connected as</span>
+                    <span class="int-field-val" id="gads-email-val">—</span>
+                  </div>
+                  <div class="int-field-row">
+                    <span class="int-field-label">Connected on</span>
+                    <span class="int-field-val" id="gads-date-val">—</span>
+                  </div>
+                  <div class="int-field-row">
+                    <span class="int-field-label">Status</span>
+                    <span class="int-field-val" id="gads-status-text">
+                      <span class="int-status-dot"></span>Active
+                    </span>
+                  </div>
+                  <button class="btn btn-g btn-sm" id="gads-disconnect-btn" style="margin-top:16px" onclick="disconnectGoogleAds()">Disconnect</button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -1538,8 +2386,115 @@
       </div>
     </div>
 
+    <!-- ════════════════════════════════════════════════════════════
+         ASSETS — saved asset library
+         ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-assets">
+      <div class="asl-outer">
+        <div class="asl-hdr">
+          <div>
+            <h1 class="asl-title">Assets</h1>
+            <p class="asl-sub">All your generated content, organized in one place.</p>
+          </div>
+          <button class="asl-create-btn" onclick="navigate('campaigns')">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="11" height="11"><path d="M6 1v10M1 6h10"/></svg>
+            New Campaign
+          </button>
+        </div>
+
+        <!-- Search -->
+        <div class="asl-search-wrap">
+          <svg class="asl-search-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="14" height="14"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3.5 3.5"/></svg>
+          <input type="text" class="asl-search-inp" id="aslSearchInp" placeholder="Search assets…" oninput="aslSearchFilter(this.value)">
+        </div>
+
+        <!-- Filters — mirrors the 6 campaign types exactly -->
+        <div class="asl-filters">
+          <button class="asl-filter asl-filter-active" data-filter="all" onclick="aslFilter(this,'all')">All</button>
+          <button class="asl-filter" data-filter="meta-ads" onclick="aslFilter(this,'meta-ads')">Meta Ads</button>
+          <button class="asl-filter" data-filter="google-ads" onclick="aslFilter(this,'google-ads')">Google Ads</button>
+          <button class="asl-filter" data-filter="tiktok-ads" onclick="aslFilter(this,'tiktok-ads')">TikTok Ads</button>
+          <button class="asl-filter" data-filter="email" onclick="aslFilter(this,'email')">Email</button>
+          <button class="asl-filter" data-filter="landing-page" onclick="aslFilter(this,'landing-page')">Landing Pages</button>
+          <button class="asl-filter" data-filter="social" onclick="aslFilter(this,'social')">Social</button>
+        </div>
+
+        <!-- Asset grid — populated by aslRender() -->
+        <div class="asl-grid" id="aslGrid"></div>
+
+        <!-- Empty state -->
+        <div class="asl-empty" id="aslEmpty" style="display:none">
+          <div class="asl-empty-ico">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" width="48" height="48"><rect x="6" y="12" width="36" height="28" rx="3"/><path d="M6 20h36M14 12V20M34 12V20"/><path d="M16 32h16M16 27h10"/></svg>
+          </div>
+          <div class="asl-empty-title">No assets yet</div>
+          <div class="asl-empty-sub">Create a campaign and generate content — it will appear here.</div>
+          <button class="asl-empty-btn" onclick="navigate('campaigns')">Create Campaign →</button>
+        </div>
+      </div>
+    </div><!-- /#page-assets -->
+
 </div><!-- /mc -->
 </div><!-- /app -->
+
+<!-- Campaign Type Selection Overlay -->
+<div class="ct-overlay" id="campTypeOverlay">
+  <div class="ct-panel">
+    <div class="ct-panel-hdr">
+      <div>
+        <h2 class="ct-title">What are you building?</h2>
+        <p class="ct-sub">Choose a campaign type to get started</p>
+      </div>
+      <button class="ct-close" onclick="closeCampTypeOverlay()">
+        <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
+      </button>
+    </div>
+    <div class="ct-grid">
+      <button class="ct-card" onclick="selectCampType('meta-ads','Meta Ads')">
+        <div class="ct-card-ico ct-ico-meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="22" height="22"><path d="M4 8c0-2.2 1.8-4 4-4 2 0 3.5 1.2 4 3 .5-1.8 2-3 4-3 2.2 0 4 1.8 4 4 0 5-8 10-8 10S4 13 4 8z"/></svg>
+        </div>
+        <div class="ct-card-name">Meta Ads</div>
+        <div class="ct-card-desc">Facebook &amp; Instagram — Feed, Stories, Reels, Audience Network</div>
+      </button>
+      <button class="ct-card" onclick="selectCampType('google-ads','Google Ads')">
+        <div class="ct-card-ico ct-ico-google">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="22" height="22"><circle cx="11" cy="11" r="7"/><path d="M11 8v3h3"/><path d="M21 21l-4-4"/></svg>
+        </div>
+        <div class="ct-card-name">Google Ads</div>
+        <div class="ct-card-desc">Search, Display, Performance Max &amp; Shopping</div>
+      </button>
+      <button class="ct-card" onclick="selectCampType('tiktok-ads','TikTok Ads')">
+        <div class="ct-card-ico ct-ico-tiktok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="22" height="22"><path d="M9 12a4 4 0 100 8 4 4 0 000-8z"/><path d="M9 12V4h4a4 4 0 004 4"/></svg>
+        </div>
+        <div class="ct-card-name">TikTok Ads</div>
+        <div class="ct-card-desc">Feed Ads, Spark Ads, Video &amp; Creative Concepts</div>
+      </button>
+      <button class="ct-card" onclick="selectCampType('email','Email Campaign')">
+        <div class="ct-card-ico ct-ico-email">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="22" height="22"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8l10 7 10-7"/></svg>
+        </div>
+        <div class="ct-card-name">Email Campaign</div>
+        <div class="ct-card-desc">Strategy, Sequences, Newsletters &amp; Retention</div>
+      </button>
+      <button class="ct-card" onclick="selectCampType('landing-page','Landing Page')">
+        <div class="ct-card-ico ct-ico-landing">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="22" height="22"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v6"/></svg>
+        </div>
+        <div class="ct-card-name">Landing Page</div>
+        <div class="ct-card-desc">Copy, Sections, CTAs &amp; Conversion Strategy</div>
+      </button>
+      <button class="ct-card" onclick="selectCampType('social','Social Content')">
+        <div class="ct-card-ico ct-ico-social">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="22" height="22"><path d="M18 4a2 2 0 110 4 2 2 0 010-4zM6 10a2 2 0 110 4 2 2 0 010-4zM18 16a2 2 0 110 4 2 2 0 010-4z"/><path d="M8 12l8-5M8 13l8 5"/></svg>
+        </div>
+        <div class="ct-card-name">Social Content</div>
+        <div class="ct-card-desc">Posts, Captions, Calendars &amp; Creative Concepts</div>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- MODALS -->
 <!-- BrandCore AI Wizard — full-screen stepped experience -->
@@ -1687,6 +2642,129 @@
 </div>
 
 <!-- Keep old modal-genbrand as a shell that opens the wizard -->
+<!-- ════════════════════════════════════════════════════════════════
+     NEW CAMPAIGN MODAL — 4-step creation flow
+     ════════════════════════════════════════════════════════════════ -->
+<div class="mbk" id="modal-new-campaign">
+  <div class="modal ncc-modal">
+
+    <!-- Modal header row: step bar + close, always separated -->
+    <div class="ncc-modal-head">
+      <div class="ncc-stepbar" id="nccStepbar">
+        <div class="ncc-stepdot ncc-stepdot-on" data-s="1"><span>1</span></div>
+        <div class="ncc-stepline"></div>
+        <div class="ncc-stepdot" data-s="2"><span>2</span></div>
+        <div class="ncc-stepline"></div>
+        <div class="ncc-stepdot" data-s="3"><span>3</span></div>
+        <div class="ncc-stepline"></div>
+        <div class="ncc-stepdot" data-s="4"><span>4</span></div>
+      </div>
+      <button class="ncc-close" onclick="closeModal('modal-new-campaign')">
+        <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
+      </button>
+    </div>
+
+    <!-- Step 1: Goal -->
+    <div class="ncc-body" id="nccBody1">
+      <div class="ncc-type-row" id="nccTypeRow">
+        <span class="ncc-type-pill" id="nccTypePill">Campaign</span>
+      </div>
+      <div class="ncc-hd">What's the goal of this campaign?</div>
+      <div class="fg">
+        <label class="lbl">Campaign Name *</label>
+        <input class="inp" id="nccName" placeholder="e.g. Summer Protein Launch">
+      </div>
+      <div class="fg">
+        <label class="lbl">Campaign Goal *</label>
+        <input class="inp" id="nccGoal" placeholder="e.g. Launch product, grow email list, drive sales">
+      </div>
+    </div>
+
+    <!-- Step 2: Business / Product Information -->
+    <div class="ncc-body" id="nccBody2" style="display:none">
+      <div class="ncc-hd">Tell us about your business.</div>
+      <div class="fg">
+        <label class="lbl">Describe your business or product *</label>
+        <textarea class="inp ncc-desc" id="nccDesc" rows="3" placeholder="e.g. We sell premium protein powder for people who want to lose weight while building muscle. Our brand is premium but approachable."></textarea>
+      </div>
+      <div class="fg">
+        <label class="lbl">Key Offer / Value Proposition</label>
+        <input class="inp" id="nccOffer" placeholder="e.g. 30-day money-back guarantee, free shipping over $50">
+      </div>
+      <div class="fg">
+        <label class="lbl">Target Audience</label>
+        <input class="inp" id="nccAudience" placeholder="e.g. Busy professionals aged 25–40 who want to get fit">
+      </div>
+      <div class="fg">
+        <label class="lbl">Reference Images <span style="font-size:11px;font-weight:400;color:var(--t3)">optional</span></label>
+        <p style="font-size:12px;color:var(--t3);margin:0 0 8px">Upload product photos to guide the visual style.</p>
+        <label class="ncc-upload-label" for="nccRefImgInput">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v7M5 6l3-3 3 3"/><path d="M3 11v1a1 1 0 001 1h8a1 1 0 001-1v-1"/></svg>
+          <span>Click to upload images</span>
+        </label>
+        <input type="file" id="nccRefImgInput" accept="image/*" multiple style="display:none" onchange="nccHandleImages(this)">
+        <div class="ncc-img-previews" id="nccImgPreviews"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: Creative Format Selection (rendered dynamically per campaign type) -->
+    <div class="ncc-body" id="nccBody3" style="display:none">
+      <div class="ncc-hd" id="nccFmtHd">Choose your creative formats.</div>
+      <p class="ncc-sub" id="nccFmtSub">Select one or more. AI generates each selected format.</p>
+      <div class="ncc-fmt-grid" id="nccFmtGrid"></div>
+    </div>
+
+    <!-- Step 4: Review -->
+    <div class="ncc-body" id="nccBody4" style="display:none">
+      <div class="ncc-hd">Ready to generate.</div>
+      <div class="ncc-review-card" id="nccReview">
+        <!-- Populated by JS -->
+      </div>
+      <button class="ncc-gen-btn" onclick="startCampaignGeneration()">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 1l1.5 4H13l-3.5 2.5L11 12 7 9.5 3 12l1.5-4.5L1 5h4.5z"/></svg>
+        Generate Campaign
+      </button>
+      <p class="ncc-gen-note">AI builds all selected modules at once. Review and edit anything after.</p>
+    </div>
+
+    <!-- Footer nav buttons -->
+    <div class="ncc-footer">
+      <button class="ncc-btn-back" id="nccBack" onclick="nccPrev()" style="visibility:hidden">← Back</button>
+      <button class="ncc-btn-next" id="nccNext" onclick="nccNext()">Continue →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     CAMPAIGN GENERATION OVERLAY — AI thinking experience
+     ════════════════════════════════════════════════════════════════ -->
+<div id="camp-gen-overlay" style="display:none">
+  <div class="cgo-inner">
+    <div id="cgoErrorState" style="display:none" class="cgo-error-state">
+      <div class="cgo-error-ico">⚠</div>
+      <div class="cgo-error-title">Generation failed</div>
+      <div class="cgo-error-sub" id="cgoErrorMsg">Something went wrong. Please try again.</div>
+      <div class="cgo-error-btns">
+        <button class="cgo-retry-btn" onclick="cgoRetry()">Try Again</button>
+        <button class="cgo-dismiss-btn" onclick="cgoDismiss()">Dismiss</button>
+      </div>
+    </div>
+    <div class="cgo-orb">
+      <div class="cgo-orb-ring"></div>
+      <img src="assets/orivenlogo.png" alt="Oriven" class="cgo-orb-img">
+    </div>
+    <div class="cgo-header">
+      <div class="cgo-title">Building your campaign</div>
+      <div class="cgo-camp-name" id="cgoName"></div>
+    </div>
+    <div class="cgo-bar-track"><div class="cgo-bar-fill" id="cgoBarFill" style="width:0%"></div></div>
+    <div class="cgo-modules" id="cgoModules"></div>
+    <div class="cgo-ai-label" id="cgoAiLabel">Analyzing your brand profile…</div>
+    <button class="cgo-view-btn" id="cgoViewBtn" style="display:none" onclick="cgoOpenWorkspace()">View Campaign →</button>
+  </div>
+</div>
+
 <div class="mbk" id="modal-genbrand" style="display:none"></div>
 
 <div class="glov" id="glov"><div class="glov-inner">
@@ -1933,6 +3011,57 @@
     <div class="pw-footer">
       <button onclick="closePaywall()" class="pw-skip-btn">Maybe later</button>
       <span class="pw-footer-note">Secure payment via Stripe &middot; Cancel anytime</span>
+    </div>
+  </div>
+</div>
+
+<!-- BRAND ONBOARDING OVERLAY ─────────────────────────────────── -->
+<div class="obd-overlay" id="obBrandOverlay" style="display:none">
+  <div class="obd-card">
+    <div class="obd-logo">Oriven</div>
+    <div class="obd-progress" id="obBrandProgress"></div>
+    <div class="obd-counter" id="obBrandCounter"></div>
+    <div class="obd-question" id="obBrandQuestion"></div>
+    <div id="obBrandBody"></div>
+    <div class="obd-nav">
+      <button class="obd-skip" onclick="obBrandSkip()">Skip setup</button>
+      <div class="obd-btns">
+        <button class="obd-back" id="obBrandBack" onclick="obBrandBack()" style="visibility:hidden">← Back</button>
+        <button class="obd-next" id="obBrandNext" onclick="obBrandNext()">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REWARD SCREEN ─────────────────────────────────────────────── -->
+<div class="obd-reward-overlay" id="obRewardOverlay" style="display:none">
+  <div class="obd-reward-card">
+    <div class="obd-reward-icon">🎁</div>
+    <div class="obd-reward-title">Welcome to Oriven.</div>
+    <div class="obd-reward-sub">Your brand profile is set up. You've received a free campaign credit — use it to see exactly what Oriven can do for your brand.</div>
+    <div class="obd-reward-credit">
+      <div class="obd-reward-credit-label">Your Free Credit</div>
+      <div class="obd-reward-credit-value">1 Campaign</div>
+      <div class="obd-reward-credit-hint">Generate, preview, and inspect your results — no payment needed.</div>
+    </div>
+    <button class="obd-reward-cta" onclick="rewardStartCreating()">Start Creating →</button>
+    <div class="obd-reward-fine">To download or export your campaign, you'll need a paid plan.</div>
+  </div>
+</div>
+
+<!-- PRODUCT TOUR OVERLAY ───────────────────────────────────────── -->
+<div id="obTourOverlay" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,.9);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:24px;">
+  <div class="ob-tour-card">
+    <div id="obTourIcon" class="ob-tour-icon ob-icon-create"></div>
+    <div id="obTourSection" class="ob-tour-section"></div>
+    <h2 id="obTourTitle" class="ob-tour-title"></h2>
+    <p id="obTourDesc" class="ob-tour-desc"></p>
+    <div class="ob-tour-nav">
+      <div id="obTourDots" class="ob-dots"></div>
+      <div class="ob-tour-btns">
+        <button id="obTourBack" class="ob-back-btn" onclick="obTourBack()" style="visibility:hidden">← Back</button>
+        <button id="obTourNext" class="ob-next-btn" onclick="obTourNext()">Next</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2653,6 +3782,2025 @@
     <button class="gcta-login" onclick="_guestLoginClick()">Log in</button>
   </div>
 </div>
+
+<!-- Mobile bottom nav (≤768px only) -->
+<nav id="mobileBottomNav" aria-label="Main navigation">
+  <button class="mbn-item" data-mbn="brain" onclick="navigate('brain')">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 3C7 3 4.5 5.2 4.5 8c0 1.6.7 3 1.8 4v2.5h7.4V12A5 5 0 0 0 15.5 8C15.5 5.2 13 3 10 3z"/><path d="M7 12.5v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1"/></svg>
+    <span>Home</span>
+  </button>
+  <button class="mbn-item" data-mbn="studio" onclick="navigate('studio')">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2l6.5 3.5v7L10 16l-6.5-3.5v-7z"/><path d="M10 16V9M3.5 5.5L10 9l6.5-3.5M10 2v7"/></svg>
+    <span>Brand</span>
+  </button>
+  <button class="mbn-item mbn-create-btn" onclick="openNewCampaign()">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
+  </button>
+  <button class="mbn-item" data-mbn="campaigns" onclick="navigate('campaigns')">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="16" height="11" rx="1.8"/><path d="M2 9.5h16M6 5v4.5M14 5v4.5"/></svg>
+    <span>Campaigns</span>
+  </button>
+  <button class="mbn-item" data-mbn="aichat" onclick="navigate('aichat')">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.5V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6.5L3 17V13.5z"/></svg>
+    <span>Chat</span>
+  </button>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════════
+     CAMPAIGN WORKSPACE — JavaScript
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+
+// ── Data storage ──────────────────────────────────────────────────
+var _campaigns = [];
+var _activeCampaign = null;
+var _nccStep = 1;
+var _nccStart = 'scratch';   // kept for compat, no longer used in UI
+var _nccTemplate = null;     // kept for compat, no longer used in UI
+var _nccMods = [];           // kept for compat; populated from _nccFormats at generation
+var _nccFormats = [];        // selected creative formats for this campaign
+var _cwsMod = 'overview';
+
+// ── Campaign type → human label mapping ──────────────────────────
+var _TYPE_LABELS = {
+  'meta-ads':'Meta Ads','google-ads':'Google Ads','tiktok-ads':'TikTok Ads',
+  'email':'Email Campaign','landing-page':'Landing Page','social':'Social Content'
+};
+
+// ── Creative format options per campaign type ─────────────────────
+var _FMT_OPTIONS = {
+  'meta-ads':[
+    {val:'image-ad',      label:'Image Ad',          desc:'Static creative for Feed & Stories'},
+    {val:'video-ad',      label:'Video Ad',           desc:'Motion creative with hook & CTA'},
+    {val:'carousel-ad',   label:'Carousel Ad',        desc:'Multi-image swipeable format'},
+    {val:'ugc-style',     label:'UGC Style Ad',       desc:'Authentic, creator-style creative'},
+    {val:'lifestyle',     label:'Lifestyle Creative', desc:'Aspirational, in-context visuals'},
+    {val:'product',       label:'Product Creative',   desc:'Product-forward direct response'}
+  ],
+  'google-ads':[
+    {val:'search-ads',    label:'Search Ads',         desc:'Headlines, descriptions & keywords'},
+    {val:'display-ads',   label:'Display Ads',        desc:'Banner concepts & copy'},
+    {val:'performance-max',label:'Performance Max',   desc:'Full asset group for PMax'},
+    {val:'shopping-ads',  label:'Shopping Ads',       desc:'Product titles & descriptions'},
+    {val:'youtube',       label:'YouTube Assets',     desc:'Video companion & bumper ads'}
+  ],
+  'tiktok-ads':[
+    {val:'ugc-video',     label:'UGC Video',          desc:'Creator-style authentic concept'},
+    {val:'spark-ad',      label:'Spark Ad',           desc:'Boosted organic-style content'},
+    {val:'product-demo',  label:'Product Demo',       desc:'Feature walkthrough format'},
+    {val:'problem-solution',label:'Problem / Solution',desc:'Pain-to-gain narrative'},
+    {val:'trend-based',   label:'Trend Based',        desc:'Sound / trend-driven concept'},
+    {val:'voiceover',     label:'Voiceover Video',    desc:'Script & scene directions'}
+  ],
+  'email':[
+    {val:'promo-email',   label:'Promotional Email',  desc:'Sales & offer driven'},
+    {val:'newsletter',    label:'Newsletter',         desc:'Value-led brand content'},
+    {val:'welcome-flow',  label:'Welcome Flow',       desc:'Onboarding email sequence'},
+    {val:'abandoned-cart',label:'Abandoned Cart',     desc:'Recovery sequence'},
+    {val:'retention',     label:'Retention Email',    desc:'Re-engagement & loyalty'},
+    {val:'launch-email',  label:'Launch Email',       desc:'Product or campaign announcement'}
+  ],
+  'landing-page':[
+    {val:'lead-gen',      label:'Lead Generation',    desc:'Capture emails & leads'},
+    {val:'product-page',  label:'Product Page',       desc:'Direct-to-purchase page'},
+    {val:'sales-page',    label:'Sales Page',         desc:'Long-form conversion copy'},
+    {val:'waitlist',      label:'Waitlist Page',      desc:'Pre-launch interest capture'},
+    {val:'launch-page',   label:'Launch Page',        desc:'Event or product launch'}
+  ],
+  'social':[
+    {val:'ig-posts',      label:'Instagram Posts',    desc:'Feed-optimized captions & concepts'},
+    {val:'ig-carousel',   label:'Instagram Carousel', desc:'Multi-slide educational content'},
+    {val:'linkedin-posts',label:'LinkedIn Posts',     desc:'Thought leadership content'},
+    {val:'tiktok-ideas',  label:'TikTok Ideas',       desc:'Short-form video concepts'},
+    {val:'content-cal',   label:'Content Calendar',   desc:'Planned posting schedule'},
+    {val:'short-scripts', label:'Short Form Scripts', desc:'Reels & TikTok scripts'}
+  ]
+};
+
+function _loadCamps(){
+  try { _campaigns = JSON.parse(localStorage.getItem('oriven_campaigns')||'[]'); } catch(_){ _campaigns=[]; }
+}
+function _saveCamps(){
+  try { localStorage.setItem('oriven_campaigns', JSON.stringify(_campaigns)); } catch(_){}
+}
+
+// ── Module metadata ───────────────────────────────────────────────
+var _MOD_META = {
+  'overview':       { label:'Overview',       icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="2" width="12" height="10" rx="1.2"/><path d="M1 6h12M4 2v4"/></svg>' },
+  'strategy':       { label:'Strategy',       icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 11l3-4 2.5 2 3-5 2 2"/></svg>' },
+  'meta-ads':       { label:'Meta Ads',       icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="3" width="12" height="8" rx="1.2"/><path d="M1 6h12M4 3v3"/></svg>' },
+  'google-ads':     { label:'Google Ads',     icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><path d="M7 4.5v3.5l2 1"/></svg>' },
+  'tiktok-ads':     { label:'TikTok Ads',     icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="1" width="8" height="12" rx="1.5"/><circle cx="7" cy="9" r="2"/><path d="M7 7V3"/></svg>' },
+  'landing-page':   { label:'Landing Page',   icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="2" width="12" height="8" rx="1.2"/><path d="M4 12h6M7 10v2"/></svg>' },
+  'emails':         { label:'Email Sequence', icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="3" width="12" height="8" rx="1.2"/><path d="M1 5.5l6 3.5 6-3.5"/></svg>' },
+  'social-posts':   { label:'Social Posts',   icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="3" width="12" height="8" rx="1.2"/><circle cx="7" cy="7" r="2.5"/></svg>' },
+  'ugc-videos':     { label:'UGC Videos',     icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="2" width="12" height="10" rx="1.2"/><circle cx="7" cy="7" r="2.5"/></svg>' },
+  'banners':        { label:'Banners',         icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="4" width="12" height="6" rx="1.2"/></svg>' },
+  'voice-overs':    { label:'Voice Overs',    icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="5" r="2.5"/><path d="M3 9.5c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>' },
+  'product-images': { label:'Product Images', icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="3" width="12" height="8" rx="1.2"/><circle cx="7" cy="7" r="2.5"/></svg>' },
+  'brand-copy':     { label:'Brand Copy',     icon:'<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 4h8M3 7h8M3 10h5"/></svg>' }
+};
+
+// ── Template presets ──────────────────────────────────────────────
+var _TPL_MODS = {
+  'product-launch': ['strategy','meta-ads','landing-page','emails','social-posts'],
+  'black-friday':   ['strategy','meta-ads','emails','banners','social-posts'],
+  'saas-launch':    ['strategy','google-ads','landing-page','emails','brand-copy'],
+  'restaurant':     ['strategy','social-posts','google-ads','brand-copy'],
+  'fitness':        ['strategy','tiktok-ads','ugc-videos','social-posts','emails'],
+  'fashion':        ['strategy','meta-ads','product-images','social-posts','emails'],
+  'coffee-shop':    ['strategy','social-posts','google-ads','banners'],
+  'creator-launch': ['strategy','tiktok-ads','emails','social-posts'],
+  'agency':         ['strategy','google-ads','landing-page','emails','brand-copy'],
+  'app-launch':     ['strategy','meta-ads','google-ads','landing-page','emails'],
+  'holiday-sale':   ['strategy','meta-ads','emails','banners','social-posts'],
+  'course-launch':  ['strategy','meta-ads','landing-page','emails','social-posts']
+};
+
+// ── CAMPAIGN HUB ─────────────────────────────────────────────────
+window.renderCampaignHub = function(){
+  _loadCamps();
+  var empty  = document.getElementById('campHubEmpty');
+  var pinned = document.getElementById('campHubPinned');
+  var grid   = document.getElementById('campHubGrid');
+  var cardGrid = document.getElementById('campCardGrid');
+  var recentRow = document.getElementById('campHubRecentRow');
+  if(!empty) return;
+
+  if(_campaigns.length === 0){
+    empty.style.display  = '';
+    if(pinned) pinned.style.display = 'none';
+    if(grid) grid.style.display   = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // Recent row (up to 3 most recent)
+  if(recentRow && pinned){
+    var recent = _campaigns.slice(0,3);
+    recentRow.innerHTML = recent.map(function(c){ return _renderRecentCard(c); }).join('');
+    pinned.style.display = '';
+  }
+
+  // Full grid
+  if(cardGrid && grid){
+    cardGrid.innerHTML = _campaigns.map(function(c){ return _renderCampCard(c); }).join('');
+    grid.style.display = '';
+  }
+};
+
+function _renderRecentCard(c){
+  var completedMods = c.modules.filter(function(m){ return c.generated && c.generated[m] && c.generated[m].ready; }).length;
+  return '<div class="camp-recent-card" onclick="openCampaignWorkspace(\''+c.id+'\')">'+
+    '<div class="camp-recent-name">'+_esc(c.name)+'</div>'+
+    '<div class="camp-recent-goal">'+_esc(c.goal)+'</div>'+
+    '<div class="camp-recent-prog">'+completedMods+' / '+c.modules.length+' modules</div>'+
+    '</div>';
+}
+
+function _renderCampCard(c){
+  var pct = c.progress || 0;
+  var modChips = c.modules.map(function(m){
+    var done = c.generated && c.generated[m] && c.generated[m].ready;
+    var meta = _MOD_META[m] || {label:m};
+    return '<span class="camp-card-mod'+(done?' camp-card-mod-done':'')+'">'+meta.label+(done?' ✓':'')+'</span>';
+  }).join('');
+  var d = new Date(c.created);
+  var dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  return '<div class="camp-card" onclick="openCampaignWorkspace(\''+c.id+'\')">'+
+    '<div class="camp-card-top">'+
+      '<div class="camp-card-name">'+_esc(c.name)+'</div>'+
+      '<div class="camp-card-date">'+dateStr+'</div>'+
+    '</div>'+
+    '<div class="camp-card-goal">'+_esc(c.goal)+'</div>'+
+    '<div class="camp-card-mods">'+modChips+'</div>'+
+    '<div class="camp-card-prog-wrap">'+
+      '<div class="camp-card-prog-hd"><span>Progress</span><span>'+pct+'%</span></div>'+
+      '<div class="camp-card-prog-track"><div class="camp-card-prog-fill" style="width:'+pct+'%"></div></div>'+
+    '</div>'+
+  '</div>';
+}
+
+// ── NEW CAMPAIGN MODAL ────────────────────────────────────────────
+window.openNewCampaign = function(){
+  _nccStep = 1;
+  _nccStart = 'scratch';
+  _nccTemplate = null;
+  _nccReset();
+  _nccShowStep(1);
+  if(typeof openModal === 'function') openModal('modal-new-campaign');
+};
+
+window.openNewCampaignFromTemplate = function(tpl){
+  _nccTemplate = tpl;
+  _nccStart = 'template';
+  _nccMods = (_TPL_MODS[tpl] || ['strategy','meta-ads','landing-page','emails']).slice();
+  _nccStep = 2;
+  _nccReset();
+  _nccShowStep(2);
+  if(typeof openModal === 'function') openModal('modal-new-campaign');
+};
+
+function _nccReset(){
+  _nccFormats = [];
+  _nccMods = [];
+  window._nccRefImages = [];
+  var n=document.getElementById('nccName');     if(n) n.value='';
+  var g=document.getElementById('nccGoal');     if(g) g.value='';
+  var d=document.getElementById('nccDesc');     if(d) d.value='';
+  var a=document.getElementById('nccAudience'); if(a) a.value='';
+  var o=document.getElementById('nccOffer');    if(o) o.value='';
+  var grid=document.getElementById('nccFmtGrid'); if(grid) grid.innerHTML='';
+  var fi=document.getElementById('nccRefImgInput'); if(fi) fi.value='';
+  var pv=document.getElementById('nccImgPreviews'); if(pv) pv.innerHTML='';
+}
+
+window.nccHandleImages = function(input){
+  var files = Array.prototype.slice.call(input.files || []);
+  window._nccRefImages = window._nccRefImages || [];
+  files.forEach(function(file){
+    if(!file.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var dataUrl = e.target.result;
+      window._nccRefImages.push(dataUrl);
+      var pv = document.getElementById('nccImgPreviews');
+      if(!pv) return;
+      var idx = window._nccRefImages.length - 1;
+      var thumb = document.createElement('div');
+      thumb.className = 'ncc-img-thumb';
+      thumb.setAttribute('data-idx', idx);
+      thumb.innerHTML = '<img src="'+dataUrl+'" alt="Reference image"><button class="ncc-img-remove" onclick="nccRemoveImage('+idx+',this.closest(\'.ncc-img-thumb\'))">×</button>';
+      pv.appendChild(thumb);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+};
+
+window.nccRemoveImage = function(idx, thumb){
+  if(window._nccRefImages) window._nccRefImages[idx] = null;
+  if(thumb) thumb.remove();
+};
+
+function _nccShowStep(n){
+  [1,2,3,4].forEach(function(i){
+    var b = document.getElementById('nccBody'+i);
+    if(b) b.style.display = (i===n) ? '' : 'none';
+  });
+  /* Update type pill on step 1 */
+  if(n===1){
+    var pill = document.getElementById('nccTypePill');
+    if(pill) pill.textContent = _TYPE_LABELS[window._selectedCampaignType] || 'Campaign';
+  }
+  /* Render format grid on step 3 */
+  if(n===3) _renderFmtGrid();
+  /* Update step dots */
+  document.querySelectorAll('#nccStepbar .ncc-stepdot').forEach(function(dot){
+    var s = parseInt(dot.getAttribute('data-s'),10);
+    dot.classList.toggle('ncc-stepdot-on', s===n);
+    dot.classList.toggle('ncc-stepdot-done', s<n);
+  });
+  /* Back / Next buttons */
+  var back = document.getElementById('nccBack');
+  var next = document.getElementById('nccNext');
+  if(back) back.style.visibility = n===1 ? 'hidden' : '';
+  if(next){
+    if(n===4){ next.style.display='none'; } else { next.style.display=''; next.textContent = 'Continue →'; }
+  }
+  if(n===4) _nccPopulateReview();
+}
+
+function _renderFmtGrid(){
+  var grid = document.getElementById('nccFmtGrid');
+  var hd   = document.getElementById('nccFmtHd');
+  if(!grid) return;
+  var type = window._selectedCampaignType || 'meta-ads';
+  var opts = _FMT_OPTIONS[type] || _FMT_OPTIONS['meta-ads'];
+  var typeLbl = _TYPE_LABELS[type] || 'Campaign';
+  if(hd) hd.textContent = typeLbl + ' — Choose your formats.';
+  grid.innerHTML = opts.map(function(opt){
+    var sel = _nccFormats.indexOf(opt.val) !== -1;
+    return '<div class="ncc-fmt-item'+(sel?' ncc-fmt-sel':'')+'" onclick="nccToggleFmt(this,\''+opt.val+'\')">'+
+      '<div class="ncc-fmt-check"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="10" height="10"><path d="M1.5 5l2.5 3 4.5-5.5"/></svg></div>'+
+      '<div class="ncc-fmt-body">'+
+        '<div class="ncc-fmt-name">'+opt.label+'</div>'+
+        '<div class="ncc-fmt-desc">'+opt.desc+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+window.nccToggleFmt = function(el, val){
+  var idx = _nccFormats.indexOf(val);
+  if(idx === -1){ _nccFormats.push(val); el.classList.add('ncc-fmt-sel'); }
+  else          { _nccFormats.splice(idx,1); el.classList.remove('ncc-fmt-sel'); }
+};
+
+window.nccNext = function(){
+  if(!_nccValidate(_nccStep)) return;
+  if(_nccStep < 4){ _nccStep++; _nccShowStep(_nccStep); }
+};
+
+window.nccPrev = function(){
+  if(_nccStep > 1){ _nccStep--; _nccShowStep(_nccStep); }
+};
+
+function _nccValidate(step){
+  if(step===1){
+    var n=document.getElementById('nccName');
+    var g=document.getElementById('nccGoal');
+    if(!n||!n.value.trim()){ n&&n.focus(); if(typeof toast==='function') toast('Enter a campaign name','warn'); return false; }
+    if(!g||!g.value.trim()){ g&&g.focus(); if(typeof toast==='function') toast('Enter your campaign goal','warn'); return false; }
+  }
+  if(step===2){
+    var d=document.getElementById('nccDesc');
+    if(!d||!d.value.trim()){ d&&d.focus(); if(typeof toast==='function') toast('Describe your business or product','warn'); return false; }
+  }
+  if(step===3 && _nccFormats.length===0){
+    if(typeof toast==='function') toast('Select at least one creative format','warn'); return false;
+  }
+  return true;
+}
+
+window.nccSelectStart = function(type){
+  _nccStart = type;
+  var s = document.getElementById('nccOptScratch');
+  var t = document.getElementById('nccOptTpl');
+  var tp = document.getElementById('nccTplPicker');
+  if(s) s.classList.toggle('ncc-start-sel', type==='scratch');
+  if(t) t.classList.toggle('ncc-start-sel', type==='template');
+  if(tp) tp.style.display = type==='template' ? '' : 'none';
+  if(type==='scratch'){ _nccTemplate=null; }
+};
+
+window.nccPickTpl = function(tpl){
+  _nccTemplate = tpl;
+  _nccMods = (_TPL_MODS[tpl] || ['strategy','meta-ads','landing-page','emails']).slice();
+  // Update checkboxes
+  var boxes = document.querySelectorAll('#nccBody3 input[type=checkbox]');
+  boxes.forEach(function(cb){
+    var on = _nccMods.indexOf(cb.value)!==-1;
+    cb.checked = on;
+    var lbl = cb.closest('.ncc-mod-item');
+    if(lbl) lbl.classList.toggle('ncc-mod-checked', on);
+  });
+  // Highlight selected template card
+  document.querySelectorAll('.ncc-tpl-card').forEach(function(el){ el.classList.remove('ncc-tpl-sel'); });
+  event.target.classList.add('ncc-tpl-sel');
+};
+
+window.nccToggleMod = function(cb){
+  var val = cb.value;
+  var idx = _nccMods.indexOf(val);
+  if(cb.checked && idx===-1) _nccMods.push(val);
+  if(!cb.checked && idx!==-1) _nccMods.splice(idx,1);
+  var lbl = cb.closest('.ncc-mod-item');
+  if(lbl) lbl.classList.toggle('ncc-mod-checked', cb.checked);
+};
+
+function _nccPopulateReview(){
+  var name  = (document.getElementById('nccName')||{}).value || '—';
+  var goal  = (document.getElementById('nccGoal')||{}).value || '—';
+  var desc  = (document.getElementById('nccDesc')||{}).value || '';
+  var type  = window._selectedCampaignType || 'meta-ads';
+  var typeLbl = _TYPE_LABELS[type] || 'Campaign';
+  var opts  = _FMT_OPTIONS[type] || [];
+  var fmtLabels = _nccFormats.map(function(f){
+    var m = opts.filter(function(o){ return o.val===f; })[0];
+    return m ? m.label : f;
+  });
+  var box = document.getElementById('nccReview');
+  if(!box) return;
+  box.innerHTML =
+    '<div class="ncc-rv-row"><span class="ncc-rv-lbl">Type</span><span class="ncc-rv-val"><span class="ncc-rv-type-pill">'+typeLbl+'</span></span></div>'+
+    '<div class="ncc-rv-row"><span class="ncc-rv-lbl">Campaign</span><span class="ncc-rv-val">'+_esc(name)+'</span></div>'+
+    '<div class="ncc-rv-row"><span class="ncc-rv-lbl">Goal</span><span class="ncc-rv-val">'+_esc(goal)+'</span></div>'+
+    (desc ? '<div class="ncc-rv-row"><span class="ncc-rv-lbl">Business</span><span class="ncc-rv-val ncc-rv-desc">'+_esc(desc.substring(0,120))+(desc.length>120?'…':'')+'</span></div>' : '')+
+    (fmtLabels.length ? '<div class="ncc-rv-row"><span class="ncc-rv-lbl">Formats</span><span class="ncc-rv-val">'+fmtLabels.map(function(l){ return '<span class="ncc-rv-mod">'+l+'</span>'; }).join('')+'</span></div>' : '');
+}
+
+// ── GENERATION OVERLAY ────────────────────────────────────────────
+window.startCampaignGeneration = function(){
+  // Gate: free user who has already generated their one free campaign
+  var _scg_isFree = typeof _isFreeUser === 'function' && _isFreeUser();
+  var _scg_used   = typeof _freeCampaignUsed === 'function' && _freeCampaignUsed();
+  console.log('[PW-CHAIN] startCampaignGeneration | _isFreeUser type:', typeof _isFreeUser, '| isFree:', _scg_isFree, '| _freeCampaignUsed type:', typeof _freeCampaignUsed, '| used:', _scg_used);
+  if(_scg_isFree && _scg_used){
+    if(typeof closeModal === 'function') closeModal('modal-new-campaign');
+    console.log('[PW-CHAIN] startCampaignGeneration BLOCKED — calling openFreePaywall');
+    if(typeof openFreePaywall === 'function') openFreePaywall();
+    else console.error('[PW-CHAIN] openFreePaywall NOT FOUND in startCampaignGeneration');
+    return;
+  }
+
+  var name     = (document.getElementById('nccName')||{}).value||'My Campaign';
+  var goal     = (document.getElementById('nccGoal')||{}).value||'';
+  var audience = (document.getElementById('nccAudience')||{}).value||'';
+  var desc     = (document.getElementById('nccDesc')||{}).value||'';
+  var offer    = (document.getElementById('nccOffer')||{}).value||'';
+  if(typeof closeModal==='function') closeModal('modal-new-campaign');
+
+  var bpRef = null;
+  try { var _bp=JSON.parse(localStorage.getItem('oriven_bc')||'{}'); bpRef=_bp.name||null; } catch(e){}
+
+  /* Map campaign type to the workspace module key */
+  var typeKey = window._selectedCampaignType || 'meta-ads';
+  var _typeToMod = {
+    'meta-ads':'meta-ads','google-ads':'google-ads','tiktok-ads':'tiktok-ads',
+    'email':'emails','landing-page':'landing-page','social':'social-posts'
+  };
+  var baseModule = _typeToMod[typeKey] || typeKey;
+
+  var camp = {
+    id: 'cmp_'+Date.now(),
+    name: name,
+    goal: goal,
+    targetAudience: audience,
+    description: desc,
+    offer: offer,
+    campaignType: typeKey,
+    formats: _nccFormats.slice(),
+    refImages: (window._nccRefImages || []).filter(Boolean),
+    modules: [baseModule],
+    status: 'active',
+    brandProfileRef: bpRef,
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
+    progress: 0,
+    generated: {},
+    versionHistory: [],
+    exportHistory: []
+  };
+  window._nccRefImages = [];
+
+  var overlay = document.getElementById('camp-gen-overlay');
+  if(!overlay) return;
+  var nameEl  = document.getElementById('cgoName');
+  var barFill = document.getElementById('cgoBarFill');
+  var modsEl  = document.getElementById('cgoModules');
+  var aiLbl   = document.getElementById('cgoAiLabel');
+
+  if(nameEl)  nameEl.textContent = name;
+  if(barFill) barFill.style.width = '0%';
+  overlay.style.display = 'flex';
+  overlay.classList.add('cgo-entering');
+  setTimeout(function(){ overlay.classList.remove('cgo-entering'); }, 50);
+
+  var modLabels = {
+    strategy:'Campaign Strategy', 'meta-ads':'Meta Ads', 'google-ads':'Google Ads',
+    'tiktok-ads':'TikTok Ads', 'landing-page':'Landing Page', emails:'Email Sequence',
+    social:'Social Posts', 'video-scripts':'Video Scripts', seo:'SEO Content',
+    banners:'Ad Banners', 'product-photos':'Product Photos', 'brand-copy':'Brand Copy',
+    'voice-over':'Voice Over Script', overview:'Overview'
+  };
+  var aiLabels = {
+    strategy:'Planning your campaign strategy…',
+    'meta-ads':'Crafting high-converting ad copy…',
+    'google-ads':'Writing search ad headlines…',
+    'tiktok-ads':'Scripting video hooks…',
+    'landing-page':'Building landing page sections…',
+    emails:'Writing email sequences…',
+    social:'Creating social content…',
+    'video-scripts':'Scripting video narratives…',
+    seo:'Researching keywords and content…',
+    banners:'Designing ad banner specs…',
+    'product-photos':'Briefing product photography…',
+    'brand-copy':'Aligning brand voice…',
+    'voice-over':'Writing voice over scripts…'
+  };
+
+  /* Type-aware overlay steps */
+  var _CAMP_STEPS = {
+    'meta-ads':    [{ key:'copy',     label:'Generating Ad Copy'       }, { key:'visual',  label:'Generating Creative'       }, { key:'final',    label:'Finalizing Advertisement'  }],
+    'email':       [{ key:'copy',     label:'Writing Email Copy'        }, { key:'build',   label:'Building HTML Template'    }, { key:'final',    label:'Finalizing Email'          }],
+    'landing-page':[{ key:'copy',     label:'Writing Page Copy'         }, { key:'build',   label:'Building Page Structure'   }, { key:'final',    label:'Finalizing Layout'         }],
+    'google-ads':  [{ key:'research', label:'Researching Keywords'      }, { key:'copy',    label:'Writing Ad Copy'           }, { key:'final',    label:'Finalizing Ads'            }],
+    'tiktok-ads':  [{ key:'hook',     label:'Writing Video Hook'        }, { key:'script',  label:'Scripting Content'         }, { key:'final',    label:'Generating Video'          }],
+    'social':      [{ key:'copy',     label:'Writing Caption'           }, { key:'visual',  label:'Generating Creative'       }, { key:'final',    label:'Finalizing Post'           }]
+  };
+  var genItems = _CAMP_STEPS[camp.campaignType] || [{ key:'gen', label:'Generating…' }];
+
+  /* Start API call immediately — runs in parallel with the animation */
+  var _genPromise = _buildCampaignPromise(camp);
+
+  if(modsEl){
+    modsEl.innerHTML = genItems.map(function(gi){
+      return '<div class="cgo-mod-row cgo-mod-queued" id="cgoMod_'+gi.key+'">' +
+        '<span class="cgo-mod-status-ico"></span>' +
+        '<span class="cgo-mod-name">'+gi.label+'</span>' +
+        '<span class="cgo-mod-badge">Queued</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  var stepDuration = 900;
+  genItems.forEach(function(gi, i){
+    var startT = 400 + i * stepDuration;
+    setTimeout(function(){
+      var row = document.getElementById('cgoMod_'+gi.key);
+      if(row){ row.className='cgo-mod-row cgo-mod-gen'; row.querySelector('.cgo-mod-badge').textContent='Generating…'; }
+      if(aiLbl) aiLbl.textContent = aiLabels[camp.modules[0]] || 'Generating '+gi.label+'…';
+      if(barFill) barFill.style.width = Math.round((i+0.5)/genItems.length*90)+'%';
+    }, startT);
+    setTimeout(function(){
+      var row = document.getElementById('cgoMod_'+gi.key);
+      if(row){ row.className='cgo-mod-row cgo-mod-done'; row.querySelector('.cgo-mod-badge').textContent='Done'; }
+      if(barFill) barFill.style.width = Math.round((i+1)/genItems.length*90)+'%';
+    }, startT + stepDuration - 120);
+  });
+
+  var _cgoCompleted = false;
+  var totalTime     = 400 + genItems.length * stepDuration + 600;
+  var _genStartTime = Date.now();
+
+  function _cgoFinishUI(label){
+    if(_cgoCompleted) return;
+    _cgoCompleted = true;
+    // Mark free campaign as used on successful generation
+    var _isFreeGen = (typeof _dbSubscriptionStatus !== 'undefined') && _dbSubscriptionStatus === 'free';
+    console.log('[PW-CHAIN] _cgoFinishUI | _dbSubscriptionStatus:', (typeof _dbSubscriptionStatus !== 'undefined' ? _dbSubscriptionStatus : 'UNDEFINED'), '| isFreeGen:', _isFreeGen);
+    if(_isFreeGen){
+      var _persUser = (typeof _getCurrentUser === 'function') ? _getCurrentUser() : null;
+      var _persUid  = _persUser && _persUser.id ? _persUser.id : null;
+      console.log('[PW-CHAIN] _cgoFinishUI | _getCurrentUser:', typeof _getCurrentUser, '| uid:', _persUid);
+      if(_persUid){
+        var _scopedKey = 'oriven_fcused_' + _persUid;
+        try { localStorage.setItem(_scopedKey, '1'); } catch(_){}
+        console.log('[PW-CHAIN] localStorage SET:', _scopedKey, '=', localStorage.getItem(_scopedKey));
+      } else {
+        console.error('[PW-CHAIN] Cannot set localStorage flag — uid is null');
+      }
+      // Persist to Supabase profiles so it survives logout and new devices
+      // NOTE: requires free_campaign_used boolean column in profiles table
+      if(_persUid && typeof SB !== 'undefined'){
+        try {
+          SB.from('profiles').update({ free_campaign_used: true }).eq('id', _persUid)
+            .then(function(r){
+              if(r && r.error) console.warn('[PW-CHAIN] DB persist FAILED:', r.error.message, r.error.code);
+              else console.log('[PW-CHAIN] DB persist SUCCESS: free_campaign_used=true for uid:', _persUid);
+            });
+        } catch(e){ console.error('[PW-CHAIN] DB persist EXCEPTION:', e); }
+      } else {
+        console.warn('[PW-CHAIN] DB persist SKIPPED | uid:', _persUid, '| SB type:', typeof SB);
+      }
+    }
+    if(barFill) barFill.style.width = '100%';
+    if(aiLbl && label) aiLbl.textContent = label;
+    var viewBtn = document.getElementById('cgoViewBtn');
+    if(viewBtn) viewBtn.style.display = '';
+    setTimeout(function(){
+      overlay.style.display = 'none';
+      if(viewBtn) viewBtn.style.display = 'none';
+      if(typeof navigate === 'function') navigate('campaign-workspace');
+    }, 1000);
+  }
+
+  function _cgoShowError(msg){
+    if(_cgoCompleted) return;
+    var errEl  = document.getElementById('cgoErrorState');
+    var msgEl  = document.getElementById('cgoErrorMsg');
+    var inner  = overlay.querySelector('.cgo-inner');
+    if(msgEl && msg) msgEl.textContent = msg;
+    if(errEl) errEl.style.display = '';
+    if(inner){ inner.style.opacity = '0.25'; inner.style.pointerEvents = 'none'; }
+  }
+
+  var _readyLabels = { 'meta-ads':'Ad ready ✓','email':'Email ready ✓','landing-page':'Page ready ✓','google-ads':'Ads ready ✓','tiktok-ads':'Video generating ✓','social':'Post ready ✓' };
+  var _safetyT = setTimeout(function(){ _cgoShowError('Generation is taking too long. Please try again.'); }, 120000);
+
+  console.log('[Oriven] Generation started — type:', camp.campaignType, 'formats:', camp.formats);
+
+  _genPromise.then(function(generatedData){
+    camp.generated = generatedData;
+    camp.progress  = 100;
+    _campaigns.unshift(camp);
+    _saveCamps();
+    _activeCampaign = camp;
+    console.log('[Oriven] Generation complete — type:', camp.campaignType);
+
+    /* Wait for animation minimum before revealing result */
+    var elapsed   = Date.now() - _genStartTime;
+    var remaining = Math.max(0, totalTime - elapsed);
+    setTimeout(function(){
+      clearTimeout(_safetyT);
+      _cgoFinishUI(_readyLabels[camp.campaignType] || 'Campaign ready ✓');
+    }, remaining);
+  }).catch(function(err){
+    console.error('[Oriven] Generation error:', err);
+    clearTimeout(_safetyT);
+    _cgoShowError((err && err.message) || 'Generation failed. Please try again.');
+  });
+};
+
+window.cgoOpenWorkspace = function(){
+  var overlay = document.getElementById('camp-gen-overlay');
+  if(overlay) overlay.style.display = 'none';
+  var viewBtn = document.getElementById('cgoViewBtn');
+  if(viewBtn) viewBtn.style.display = 'none';
+  if(typeof navigate === 'function') navigate('campaign-workspace');
+};
+
+window.cgoRetry = function(){
+  var overlay = document.getElementById('camp-gen-overlay');
+  if(overlay) overlay.style.display = 'none';
+  var errEl   = document.getElementById('cgoErrorState');
+  var inner   = overlay && overlay.querySelector('.cgo-inner');
+  if(errEl)  errEl.style.display = 'none';
+  if(inner){ inner.style.opacity = ''; inner.style.pointerEvents = ''; }
+  if(typeof openNewCampaign === 'function') openNewCampaign('__direct__');
+};
+
+window.cgoDismiss = function(){
+  var overlay = document.getElementById('camp-gen-overlay');
+  if(overlay) overlay.style.display = 'none';
+  var errEl   = document.getElementById('cgoErrorState');
+  var inner   = overlay && overlay.querySelector('.cgo-inner');
+  if(errEl)  errEl.style.display = 'none';
+  if(inner){ inner.style.opacity = ''; inner.style.pointerEvents = ''; }
+  if(typeof navigate === 'function') navigate('campaigns');
+};
+
+function _calcProgress(c){
+  if(!c.generated || !c.modules.length) return 0;
+  var done = c.modules.filter(function(m){ return c.generated[m]&&c.generated[m].ready; }).length;
+  return Math.round(done/c.modules.length*100);
+}
+
+function _genContent(c){
+  var out = {};
+  c.modules.forEach(function(m){ out[m] = _buildModContent(m, c); });
+  return out;
+}
+
+/* ── Async campaign generation — one real API call per type ──────── */
+function _buildCampaignPromise(camp){
+  var type    = camp.campaignType;
+  var formats = camp.formats || [];
+  var apiBase = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
+
+  function brief(){
+    return [
+      camp.name           ? 'Campaign: '        + camp.name           : null,
+      camp.goal           ? 'Goal: '            + camp.goal           : null,
+      camp.description    ? 'Business: '        + camp.description    : null,
+      camp.offer          ? 'Key offer: '       + camp.offer          : null,
+      camp.targetAudience ? 'Target audience: ' + camp.targetAudience : null
+    ].filter(Boolean).join('\n');
+  }
+
+  function post(endpoint, body){
+    var ctrl = new AbortController();
+    var t    = setTimeout(function(){ ctrl.abort(); }, 45000);
+    console.log('[Oriven] API call →', endpoint);
+    return fetch(apiBase + endpoint, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+      signal:  ctrl.signal
+    }).then(function(r){
+      clearTimeout(t);
+      if(!r.ok) return r.json().then(function(e){ throw new Error(e.error || ('HTTP '+r.status)); });
+      return r.json();
+    }).then(function(data){
+      console.log('[Oriven] API response ←', endpoint, data);
+      return data;
+    }).catch(function(err){
+      clearTimeout(t);
+      var msg = (err && err.name === 'AbortError') ? 'Request timed out — please try again.' : (err && err.message) || 'Unknown error';
+      console.error('[Oriven] API error on', endpoint, ':', msg);
+      throw new Error(msg);
+    });
+  }
+
+  function parseJson(text){
+    try { return JSON.parse((text||'').replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim()); }
+    catch(e){ return null; }
+  }
+
+  function getAuthToken(){
+    try {
+      if(typeof SB !== 'undefined' && SB.auth && SB.auth.getSession){
+        return SB.auth.getSession().then(function(s){
+          return (s && s.data && s.data.session && s.data.session.access_token) || '';
+        });
+      }
+    } catch(_){}
+    return Promise.resolve('');
+  }
+
+  function generateVideo(script){
+    return getAuthToken().then(function(token){
+      return fetch(apiBase + '/api/video-ads/generate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body:    JSON.stringify({ mode: 'script', script: script, length: 5 })
+      }).then(function(r){ if(!r.ok) throw new Error('video HTTP '+r.status); return r.json(); });
+    });
+  }
+
+  /* Meta Ads — video ad or image ad */
+  if(type === 'meta-ads'){
+    var hasVideoFmt = formats.some(function(f){ return f==='video-ad' || f==='ugc-style'; });
+    var fmtLabel    = formats.length ? formats.join(', ') : 'Image Ad';
+
+    if(hasVideoFmt){
+      /* Video ad: generate copy + kick off real video */
+      var vidCopyPrompt = brief() + '\nPlatform: Meta Ads (Facebook / Instagram)\nFormat: ' + fmtLabel +
+        '\n\nGenerate a Meta video ad. Reply ONLY with valid JSON (no markdown, no fences):\n' +
+        '{"headline":"30-char max","body":"primary text up to 125 chars","cta":"max 4 words",' +
+        '"videoPrompt":"Kling AI video prompt 50-80 words: concrete camera movement + subject + action + lighting"}';
+      return post('/api/generate-text', { prompt: vidCopyPrompt })
+        .then(function(d){
+          var p = parseJson(d.result||'') || {};
+          var vidScript = p.videoPrompt || brief();
+          return generateVideo(vidScript).then(function(vidData){
+            var r = {};
+            r['meta-ads'] = _modMeta({ ready:true, headline:p.headline||'', body:p.body||'', cta:p.cta||'', videoGenerationId:vidData.generationId||null, videoStatus:vidData.generationId?'processing':null });
+            return r;
+          }).catch(function(){
+            var r = {};
+            r['meta-ads'] = _modMeta({ ready:true, headline:p.headline||'', body:p.body||'', cta:p.cta||'' });
+            return r;
+          });
+        });
+    }
+
+    /* Image ad (default) */
+    var prompt = brief() + '\nPlatform: Meta Ads (Facebook / Instagram)\nSelected formats: ' + fmtLabel;
+    var refImg = camp.refImages && camp.refImages[0] ? camp.refImages[0] : undefined;
+    var adBody = { prompt:prompt, size:'1024x1024', adFormat:'feed' };
+    if(refImg) adBody.refImageData = refImg;
+    return post('/api/generate-ad', adBody)
+      .then(function(d){
+        var r = {};
+        r['meta-ads'] = _modMeta({ ready:true, imageUrl:d.imageUrl||null, headline:d.headline||'', body:d.body||'', cta:d.cta||'', title:d.title||'' });
+        return r;
+      });
+  }
+
+  /* Email Campaign — full HTML email */
+  if(type === 'email'){
+    var fmtLine = formats.length ? 'Email type: ' + formats.join(', ') : '';
+    var prompt  = brief() + (fmtLine ? '\n'+fmtLine : '') + '\nGenerate one complete, ready-to-send HTML marketing email.';
+    return post('/api/generate-email', { prompt:prompt })
+      .then(function(d){
+        var r = {};
+        r['emails'] = _modMeta({ ready:true, html:d.html||'' });
+        return r;
+      });
+  }
+
+  /* Landing Page — full HTML page */
+  if(type === 'landing-page'){
+    var fmtLine = formats.length ? formats.join(', ') : 'landing page';
+    return post('/api/generate-web', {
+      brand_name: camp.name,
+      product:    camp.description || camp.goal,
+      goal:       'conversion',
+      web_type:   fmtLine,
+      prompt:     brief() + '\nPage type: ' + fmtLine
+    }).then(function(d){
+      var r = {};
+      r['landing-page'] = _modMeta({ ready:true, html:d.html||'' });
+      return r;
+    });
+  }
+
+  /* Google Ads — structured copy */
+  if(type === 'google-ads'){
+    var fmtLine = formats.length ? 'Ad formats: ' + formats.join(', ') : 'Ad formats: Search Ads, Display Ads';
+    var prompt  = brief() + '\nPlatform: Google Ads\n' + fmtLine +
+      '\n\nGenerate final, upload-ready Google Ads. Reply ONLY with valid JSON (no markdown, no fences):\n' +
+      '{"headlines":["H1 max30","H2 max30","H3 max30","H4 max30","H5 max30"],' +
+      '"descriptions":["Desc1 max90","Desc2 max90"],' +
+      '"keywords":["kw1","kw2","kw3","kw4","kw5"],' +
+      '"callouts":["Short callout","Short callout","Short callout","Short callout"]}';
+    return post('/api/generate-text', { prompt:prompt })
+      .then(function(d){
+        var p = parseJson(d.result||'') || {};
+        var r = {};
+        r['google-ads'] = _modMeta({ ready:true, headlines:p.headlines||[], descriptions:p.descriptions||[], keywords:p.keywords||[], callouts:p.callouts||[] });
+        return r;
+      });
+  }
+
+  /* TikTok Ads — hook + full script + real video */
+  if(type === 'tiktok-ads'){
+    var fmtLine = formats.length ? 'Format: ' + formats.join(', ') : 'Format: UGC Video';
+    var prompt  = brief() + '\nPlatform: TikTok\n' + fmtLine +
+      '\n\nGenerate a complete, ready-to-film TikTok ad. Reply ONLY with valid JSON (no markdown, no fences):\n' +
+      '{"hook":"opening 3-second line (max 15 words)","script":"full word-for-word script with scene direction (include camera/action notes)",' +
+      '"caption":"post caption (max 150 chars)","cta":"call to action (max 5 words)","hashtags":["tag1","tag2","tag3"],' +
+      '"videoPrompt":"Kling AI video prompt 50-80 words: concrete camera movement + subject + action + lighting for this TikTok ad"}';
+    return post('/api/generate-text', { prompt:prompt })
+      .then(function(d){
+        var p = parseJson(d.result||'') || {};
+        var vidScript = p.videoPrompt || p.script || brief();
+        return generateVideo(vidScript).then(function(vidData){
+          var r = {};
+          r['tiktok-ads'] = _modMeta({ ready:true, hook:p.hook||'', script:p.script||'', caption:p.caption||'', cta:p.cta||'', hashtags:p.hashtags||[], videoGenerationId:vidData.generationId||null, videoStatus:vidData.generationId?'processing':null });
+          return r;
+        }).catch(function(){
+          /* Video generation failed — still return the script */
+          var r = {};
+          r['tiktok-ads'] = _modMeta({ ready:true, hook:p.hook||'', script:p.script||'', caption:p.caption||'', cta:p.cta||'', hashtags:p.hashtags||[] });
+          return r;
+        });
+      });
+  }
+
+  /* Social Content — image post or script */
+  if(type === 'social'){
+    var hasVisual = formats.some(function(f){ return f==='ig-posts'||f==='linkedin'; });
+    var prompt    = brief() + '\nPlatform: Social Media\nFormats: ' + (formats.join(', ')||'post');
+    if(hasVisual){
+      return post('/api/generate-ad', { prompt:prompt+'\nGenerate a compelling social media post with visual.', size:'1024x1024', adFormat:'social' })
+        .then(function(d){
+          var r = {};
+          r['social-posts'] = _modMeta({ ready:true, imageUrl:d.imageUrl||null, caption:d.body||'', headline:d.headline||'', cta:d.cta||'' });
+          return r;
+        });
+    } else {
+      var scriptPrompt = prompt + '\n\nGenerate ready-to-publish social content. Reply ONLY with valid JSON (no markdown):\n' +
+        '{"caption":"full caption with emojis","script":"video or carousel script","slides":["Slide 1 text","Slide 2 text","Slide 3 text"],"hashtags":["tag1","tag2","tag3"]}';
+      return post('/api/generate-text', { prompt:scriptPrompt })
+        .then(function(d){
+          var p = parseJson(d.result||'') || {};
+          var r = {};
+          r['social-posts'] = _modMeta({ ready:true, caption:p.caption||'', script:p.script||'', slides:p.slides||[], hashtags:p.hashtags||[] });
+          return r;
+        });
+    }
+  }
+
+  /* Fallback — synchronous local generation */
+  return Promise.resolve(_genContent(camp));
+}
+
+function _modMeta(data){
+  data._meta = {
+    generatedAt: new Date().toISOString(),
+    model: 'claude-sonnet-4-6',
+    version: 1,
+    campaign: _activeCampaign ? _activeCampaign.id : null
+  };
+  return data;
+}
+
+/* ── Video generation polling ─────────────────────────────────────── */
+var _cwsVideoPollTimer = null;
+function _startVideoPolling(mod, generationId){
+  if(_cwsVideoPollTimer){ clearInterval(_cwsVideoPollTimer); _cwsVideoPollTimer = null; }
+  var apiBase  = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
+  var attempts = 0;
+
+  function poll(){
+    if(attempts++ > 60){ clearInterval(_cwsVideoPollTimer); return; }
+    var c = _activeCampaign;
+    if(!c || !c.generated || !c.generated[mod]){ clearInterval(_cwsVideoPollTimer); return; }
+    if(c.generated[mod].videoGenerationId !== generationId){ clearInterval(_cwsVideoPollTimer); return; }
+
+    var tokenP;
+    try {
+      tokenP = (typeof SB !== 'undefined' && SB.auth && SB.auth.getSession)
+        ? SB.auth.getSession().then(function(s){ return (s&&s.data&&s.data.session&&s.data.session.access_token)||''; })
+        : Promise.resolve('');
+    } catch(_){ tokenP = Promise.resolve(''); }
+
+    tokenP.then(function(token){
+      return fetch(apiBase + '/api/video-ads/status/' + encodeURIComponent(generationId), {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }).then(function(r){ return r.json(); })
+    .then(function(d){
+      var c2 = _activeCampaign;
+      if(!c2 || !c2.generated || !c2.generated[mod] || c2.generated[mod].videoGenerationId !== generationId){
+        clearInterval(_cwsVideoPollTimer); return;
+      }
+      var gen = c2.generated[mod];
+      if(d.status === 'completed' && d.videoUrl){
+        gen.videoStatus = 'completed';
+        gen.videoUrl    = d.videoUrl;
+        _saveCamps();
+        clearInterval(_cwsVideoPollTimer); _cwsVideoPollTimer = null;
+        _renderCwsModule(mod);
+      } else if(d.status === 'failed'){
+        gen.videoStatus = 'failed';
+        _saveCamps();
+        clearInterval(_cwsVideoPollTimer); _cwsVideoPollTimer = null;
+        _renderCwsModule(mod);
+      }
+    }).catch(function(){});
+  }
+
+  _cwsVideoPollTimer = setInterval(poll, 8000);
+  setTimeout(poll, 3000);
+}
+
+/* ── Delete asset ─────────────────────────────────────────────────── */
+window.cwsDeleteAsset = function(mod){
+  if(typeof _cwsFreeGuard === 'function' && !_cwsFreeGuard('delete')) return;
+  if(!window.confirm('Delete this asset? This cannot be undone.')) return;
+  var c = _activeCampaign;
+  if(!c || !c.generated) return;
+  delete c.generated[mod];
+  if(_cwsVideoPollTimer){ clearInterval(_cwsVideoPollTimer); _cwsVideoPollTimer = null; }
+  _saveCamps();
+  navigate('campaigns');
+};
+
+function _buildModContent(mod, c){
+  var name = c.name;
+  var goal = c.goal;
+  if(mod==='strategy') return _modMeta({ ready:true, sections:[
+    { title:'Target Audience', body:'Based on your brand profile and campaign goal, your primary audience is purchase-ready buyers motivated by '+goal.toLowerCase()+'. They are research-driven, respond to social proof, and expect brand consistency across every touchpoint.'+(c.targetAudience?' Specifically: '+c.targetAudience+'.':'') },
+    { title:'Pain Points', body:'Your audience struggles with finding a solution they can trust. They have likely tried alternatives that disappointed them. Your campaign should lead with the outcome they want, not the product itself.' },
+    { title:'Marketing Angle', body:'Position your offer as the obvious choice for someone who is serious about results. Use contrast: what they\'ve tried before vs what you offer. Make the decision feel easy and risk-free.' },
+    { title:'Messaging Hierarchy', body:'1. Lead with the outcome\n2. Prove it with social proof\n3. Eliminate objections\n4. Clear, urgent CTA' },
+    { title:'Campaign Objective', body:goal },
+    { title:'Tone', body:'Confident, direct, outcome-focused. Avoid jargon. Write like you\'re talking to one person.' },
+    { title:'Primary CTA', body:'Start today — low-friction, low-commitment entry point.' }
+  ]});
+  if(mod==='meta-ads') return _modMeta({ ready:true, headline:'Finally. A solution that actually works.', body:'Tired of results that don\'t last? '+name+' was built for people who are serious about '+goal.toLowerCase()+'. Join thousands who switched — results in weeks, not months.', cta:'Shop Now' });
+  if(mod==='google-ads') return { ready:true, variants:[
+    { label:'Search Ad 1', headline1:name+' — Official Site', headline2:'Built for '+goal, desc:'Trusted by thousands. Premium quality, proven results. Get started today with no commitment required.' },
+    { label:'Search Ad 2', headline1:'Why '+name+' Outperforms', headline2:'See the difference for yourself', desc:'Compare results. Real outcomes for real people. Free to start, easy to scale. Join today.' }
+  ]};
+  if(mod==='tiktok-ads') return { ready:true, scripts:[
+    { label:'Script A — Hook + Reveal (15s)', lines:['Hook (0–3s): "If you\'re serious about '+goal.split(' ').slice(0,4).join(' ')+'..."','Problem (3–8s): "Most people try [generic solution] and get nowhere."','Solution (8–12s): "Here\'s what actually works: "+name','CTA (12–15s): "Link in bio. Try it today."'] },
+    { label:'Script B — Testimonial Style (20s)', lines:['Hook: "I tried everything. Nothing worked until..."','Build: walk through transformation journey','Reveal: '+name+' as the solution','CTA: strong close with urgency'] }
+  ]};
+  if(mod==='landing-page') return { ready:true, sections:[
+    { type:'hero', headline:'Built for people who want real results.', sub:''+name+' — '+goal+'. Set up in minutes. See results fast.', cta:'Get Started Free' },
+    { type:'features', items:['Proven to work', 'No long-term commitment', 'Premium quality', 'Built around your goals'] },
+    { type:'social-proof', items:['★★★★★ "Best decision I\'ve made." — Alex K.','★★★★★ "Results within two weeks." — Maya C.','★★★★★ "I tell everyone about this." — Jordan E.'] },
+    { type:'cta', headline:'Ready to start?', sub:'Join thousands who already made the switch.', cta:'Get Started Today' }
+  ]};
+  if(mod==='emails') return { ready:true, sequence:[
+    { label:'Email 1 — Welcome', subject:'You made a great decision. Here\'s what happens next.', preview:'Welcome to '+name+'. Here\'s everything you need to get started today.', body:'Short welcome. Confirm what they signed up for. One clear next step. No overwhelm.' },
+    { label:'Email 2 — Education (Day 3)', subject:'Most people skip this step. Don\'t.', preview:'The one thing that makes the biggest difference in your results.', body:'Educational content. Establish authority. Build trust. Light CTA toward getting started.' },
+    { label:'Email 3 — Social Proof (Day 7)', subject:'"I was skeptical too." Here\'s what changed.', preview:'Real results from real people. No fluff.', body:'Case study / testimonials. Overcome objections. CTA to purchase/upgrade.' },
+    { label:'Email 4 — Urgency (Day 10)', subject:'Last chance: your offer expires soon.', preview:'This won\'t be available forever. Here\'s why it matters.', body:'Urgency + final value recap + strong CTA.' }
+  ]};
+  if(mod==='social-posts') return { ready:true, posts:[
+    { platform:'Instagram', caption:'The difference between [before state] and [after state] isn\'t luck. It\'s choosing the right solution. That\'s what '+name+' was built for. 💪 Link in bio.', hashtags:'#'+name.replace(/\s+/g,'')+'#Results#Premium' },
+    { platform:'Instagram', caption:'We get asked constantly: "What\'s your secret?" The answer is simpler than you think. It starts with choosing better. 👉 Link in bio.', hashtags:'#Quality#SmartChoices' },
+    { platform:'LinkedIn', caption:'Why do most people fail at '+goal.toLowerCase()+'? They mistake effort for strategy. Here\'s what we learned building '+name+'...' }
+  ]};
+  if(mod==='banners') return { ready:true, sizes:[
+    { size:'1200×628 (Facebook/OG)', headline:name, sub:goal, cta:'Learn More' },
+    { size:'300×250 (Display)', headline:'Try '+name, sub:'Results guaranteed', cta:'Start Now' },
+    { size:'160×600 (Skyscraper)', headline:name, sub:goal.split(' ').slice(0,5).join(' '), cta:'Start' }
+  ]};
+  if(mod==='voice-overs') return { ready:true, scripts:[
+    { label:'15-second spot', text:'Tired of '+goal.toLowerCase().replace(/^launch /,'')+' solutions that don\'t deliver? '+name+' was built different. Real results. No compromise. Visit us today.' },
+    { label:'30-second spot', text:'If you\'re serious about getting real results, you already know: most options overpromise and underdeliver. '+name+' was built from the ground up for people who want real outcomes. Premium quality. Proven approach. Start today.' }
+  ]};
+  if(mod==='product-images') return { ready:true, shots:[
+    { label:'Hero shot', brief:'Clean white or lifestyle background. Product centered. Premium lighting. Shows full product clearly.' },
+    { label:'Lifestyle shot', brief:'Product in use in a real-world setting. Aspirational. Target audience visible.' },
+    { label:'Detail shot', brief:'Close-up of key feature or premium finish. Shows quality.' },
+    { label:'Social media square', brief:'Product + brand colors + clean composition. Optimized for Instagram grid.' }
+  ]};
+  if(mod==='brand-copy') return { ready:true, pieces:[
+    { label:'Tagline', text:name+' — Built for results.' },
+    { label:'One-liner', text:'The '+goal.toLowerCase().split(' ').slice(1,5).join(' ')+' solution for people who take it seriously.' },
+    { label:'About paragraph', text:name+' was built because most alternatives compromise on what matters. We built something different: a premium solution designed around real outcomes, not just aesthetics. If you\'re serious about '+goal.toLowerCase().replace(/^launch /,'')+', you\'ll notice the difference immediately.' },
+    { label:'CTA copy', text:'Get started today. No long-term commitment required.' }
+  ]};
+  return { ready:true, content:'Content for '+mod+' ready.' };
+}
+
+// ── CAMPAIGN WORKSPACE ────────────────────────────────────────────
+window.openCampaignWorkspace = function(id){
+  _loadCamps();
+  var camp = null;
+  for(var i=0;i<_campaigns.length;i++){ if(_campaigns[i].id===id){ camp=_campaigns[i]; break; } }
+  if(!camp) return;
+  _activeCampaign = camp;
+  if(typeof navigate==='function') navigate('campaign-workspace');
+};
+
+window.refreshCampaignWorkspace = function(){
+  if(!_activeCampaign){ if(typeof navigate==='function') navigate('campaigns'); return; }
+  var c = _activeCampaign;
+
+  var nameEl = document.getElementById('cwsCampName');
+  var typeEl = document.getElementById('cwsCampType');
+  if(nameEl) nameEl.textContent = c.name;
+  if(typeEl) typeEl.textContent = _TYPE_LABELS[c.campaignType] || '';
+
+  /* Go directly to the primary generated module — no sidebar */
+  var primaryMod = (c.modules && c.modules[0]) || 'overview';
+  _cwsMod = primaryMod;
+  _renderCwsModule(primaryMod);
+};
+
+window.cwsGoTo = function(mod){
+  _cwsMod = mod;
+  // Update nav active
+  document.querySelectorAll('.cws-nav-item').forEach(function(el){
+    el.classList.toggle('cws-nav-active', el.getAttribute('onclick')==="cwsGoTo('"+mod+"')");
+  });
+  _renderCwsModule(mod);
+};
+
+function _renderCwsModule(mod){
+  var c = _activeCampaign;
+  var container = document.getElementById('cwsMainInner');
+  if(!container || !c) return;
+
+  if(mod==='overview'){
+    container.innerHTML = _renderOverview(c);
+    return;
+  }
+
+  var meta = _MOD_META[mod]||{label:mod};
+  var gen  = c.generated && c.generated[mod];
+  if(!gen||!gen.ready){
+    container.innerHTML = '<div class="cws-mod-empty"><h3>'+meta.label+' not generated yet.</h3><button class="cws-regen-btn" onclick="regenModule(\''+mod+'\')">Generate Now</button></div>';
+    return;
+  }
+
+  /* Track active iframe key for download/edit helpers */
+  window._cwsActiveMod = mod;
+  window._cwsActiveKey = null;
+
+  var html = '<div class="cwr-asset-inner">';
+  html += '<div class="cws-mod-body">';
+
+  /* ── Video ads: player or generating state ───────────────────────── */
+  if(gen.videoUrl){
+    html += '<div class="cws-vid-wrap"><video class="cws-vid-player" controls playsinline src="'+_esc(gen.videoUrl)+'"></video></div>';
+    /* Show copy below video */
+    if(gen.headline||gen.body){
+      html += '<div class="cws-single-ad">';
+      if(gen.headline) html += '<div class="cws-ad-row"><span class="cws-ad-lbl">Headline</span><span class="cws-ad-val">'+_esc(gen.headline)+'</span></div>';
+      if(gen.body)     html += '<div class="cws-ad-row"><span class="cws-ad-lbl">Primary Text</span><span class="cws-ad-val">'+_esc(gen.body)+'</span></div>';
+      if(gen.cta)      html += '<div class="cws-ad-row"><span class="cws-ad-lbl">CTA</span><span class="cws-ad-val cws-ad-cta">'+_esc(gen.cta)+'</span></div>';
+      html += '</div>';
+    }
+    /* TikTok script below video */
+    if(gen.hook||gen.script){
+      html += '<div class="cws-tiktok">';
+      if(gen.hook) html += '<div class="cws-tiktok-hook"><div class="cws-tiktok-lbl">Opening Hook</div><div class="cws-tiktok-hook-text">'+_esc(gen.hook)+'</div></div>';
+      if(gen.script) html += '<div class="cws-tiktok-script"><div class="cws-tiktok-lbl">Full Script</div><div class="cws-tiktok-script-body">'+_esc(gen.script).replace(/\n/g,'<br>')+'</div></div>';
+      if(gen.caption||gen.cta||gen.hashtags){
+        html += '<div class="cws-tiktok-meta">';
+        if(gen.caption) html += '<div class="cws-tiktok-caption"><div class="cws-tiktok-lbl">Caption</div><div class="cws-tiktok-caption-text">'+_esc(gen.caption)+'</div></div>';
+        if(gen.cta)     html += '<div class="cws-tiktok-cta-row"><span class="cws-img-ad-cta-chip">'+_esc(gen.cta)+'</span></div>';
+        if(gen.hashtags&&gen.hashtags.length) html += '<div class="cws-tiktok-tags">'+gen.hashtags.map(function(t){ return '<span class="cws-gads-kw">#'+_esc(t.replace(/^#/,''))+'</span>'; }).join('')+'</div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+  }
+  /* ── Video generating (queued/processing) ───────────────────────── */
+  else if(gen.videoGenerationId && gen.videoStatus !== 'failed'){
+    html += '<div class="cws-vid-generating"><div class="cws-vid-gen-spin"></div>';
+    html += '<div class="cws-vid-gen-lbl">Video is generating — this usually takes 2–5 minutes.<br><span style="font-size:12px;opacity:.7">The page updates automatically when ready.</span></div></div>';
+    /* Show copy/script while video renders */
+    if(gen.hook||gen.script){
+      html += '<div class="cws-tiktok">';
+      if(gen.hook) html += '<div class="cws-tiktok-hook"><div class="cws-tiktok-lbl">Opening Hook</div><div class="cws-tiktok-hook-text">'+_esc(gen.hook)+'</div></div>';
+      if(gen.script) html += '<div class="cws-tiktok-script"><div class="cws-tiktok-lbl">Full Script</div><div class="cws-tiktok-script-body">'+_esc(gen.script).replace(/\n/g,'<br>')+'</div></div>';
+      if(gen.caption||gen.cta||gen.hashtags){
+        html += '<div class="cws-tiktok-meta">';
+        if(gen.caption) html += '<div class="cws-tiktok-caption"><div class="cws-tiktok-lbl">Caption</div><div class="cws-tiktok-caption-text">'+_esc(gen.caption)+'</div></div>';
+        if(gen.cta)     html += '<div class="cws-tiktok-cta-row"><span class="cws-img-ad-cta-chip">'+_esc(gen.cta)+'</span></div>';
+        if(gen.hashtags&&gen.hashtags.length) html += '<div class="cws-tiktok-tags">'+gen.hashtags.map(function(t){ return '<span class="cws-gads-kw">#'+_esc(t.replace(/^#/,''))+'</span>'; }).join('')+'</div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    } else if(gen.headline||gen.body){
+      html += '<div class="cws-single-ad">';
+      if(gen.headline) html += '<div class="cws-ad-row"><span class="cws-ad-lbl">Headline</span><span class="cws-ad-val">'+_esc(gen.headline)+'</span></div>';
+      if(gen.body)     html += '<div class="cws-ad-row"><span class="cws-ad-lbl">Primary Text</span><span class="cws-ad-val">'+_esc(gen.body)+'</span></div>';
+      if(gen.cta)      html += '<div class="cws-ad-row"><span class="cws-ad-lbl">CTA</span><span class="cws-ad-val cws-ad-cta">'+_esc(gen.cta)+'</span></div>';
+      html += '</div>';
+    }
+  }
+  /* ── Video failed ────────────────────────────────────────────────── */
+  else if(gen.videoStatus === 'failed'){
+    html += '<div class="cws-vid-failed">Video generation failed. Click ↻ Regenerate to try again.</div>';
+    if(gen.hook||gen.script){
+      html += '<div class="cws-tiktok">';
+      if(gen.hook) html += '<div class="cws-tiktok-hook"><div class="cws-tiktok-lbl">Opening Hook</div><div class="cws-tiktok-hook-text">'+_esc(gen.hook)+'</div></div>';
+      if(gen.script) html += '<div class="cws-tiktok-script"><div class="cws-tiktok-lbl">Full Script</div><div class="cws-tiktok-script-body">'+_esc(gen.script).replace(/\n/g,'<br>')+'</div></div>';
+      html += '</div>';
+    }
+  }
+  /* ── Meta Ads / Social: static image + copy ─────────────────────── */
+  else if(gen.imageUrl){
+    html += '<div class="cws-img-ad">';
+    if(gen.title) html += '<div class="cws-img-ad-concept">'+_esc(gen.title)+'</div>';
+    html += '<div class="cws-img-ad-visual"><img class="cws-img-ad-img" src="'+_esc(gen.imageUrl)+'" alt="Generated advertisement" /></div>';
+    if(gen.headline) html += '<div class="cws-img-ad-headline">'+_esc(gen.headline)+'</div>';
+    var _bodyText = gen.body || gen.caption || '';
+    if(_bodyText) html += '<div class="cws-img-ad-body">'+_esc(_bodyText)+'</div>';
+    if(gen.cta)  html += '<div class="cws-img-ad-cta-row"><span class="cws-img-ad-cta-chip">'+_esc(gen.cta)+'</span></div>';
+    html += '</div>';
+  }
+  /* ── Meta Ads: text-only (no image) ─────────────────────────────── */
+  else if((mod==='meta-ads') && gen.headline){
+    html += '<div class="cws-single-ad">';
+    html += '<div class="cws-ad-row"><span class="cws-ad-lbl">Headline</span><span class="cws-ad-val">'+_esc(gen.headline)+'</span></div>';
+    if(gen.body) html += '<div class="cws-ad-row"><span class="cws-ad-lbl">Primary Text</span><span class="cws-ad-val">'+_esc(gen.body)+'</span></div>';
+    if(gen.cta)  html += '<div class="cws-ad-row"><span class="cws-ad-lbl">CTA</span><span class="cws-ad-val cws-ad-cta">'+_esc(gen.cta)+'</span></div>';
+    html += '</div>';
+  }
+  /* ── Email: rendered HTML preview ───────────────────────────────── */
+  else if((mod==='emails') && gen.html){
+    var _eid = 'cws-iframe-'+Date.now();
+    window._cwsIframeStore = window._cwsIframeStore || {};
+    window._cwsIframeStore[_eid] = gen.html;
+    window._cwsActiveKey = _eid;
+    html += '<div class="cws-html-preview-wrap" id="cwsPreviewWrap">';
+    html += '<div class="cwr-preview-toggle"><button class="cwr-ptog cwr-ptog-on" id="cwrTogDesktop" onclick="cwsSetPreviewWidth(\'desktop\',this)">Desktop</button><button class="cwr-ptog" id="cwrTogTablet" onclick="cwsSetPreviewWidth(\'tablet\',this)">Tablet</button><button class="cwr-ptog" id="cwrTogMobile" onclick="cwsSetPreviewWidth(\'mobile\',this)">Mobile</button></div>';
+    html += '<iframe id="'+_eid+'" class="cws-html-preview" sandbox="allow-same-origin" scrolling="yes" data-iframe-key="'+_eid+'"></iframe>';
+    html += '</div>';
+  }
+  /* ── Landing Page: rendered HTML preview ────────────────────────── */
+  else if((mod==='landing-page') && gen.html){
+    var _lid = 'cws-iframe-'+Date.now();
+    window._cwsIframeStore = window._cwsIframeStore || {};
+    window._cwsIframeStore[_lid] = gen.html;
+    window._cwsActiveKey = _lid;
+    html += '<div class="cws-html-preview-wrap" id="cwsPreviewWrap">';
+    html += '<div class="cwr-preview-toggle"><button class="cwr-ptog cwr-ptog-on" id="cwrTogDesktop" onclick="cwsSetPreviewWidth(\'desktop\',this)">Desktop</button><button class="cwr-ptog" id="cwrTogTablet" onclick="cwsSetPreviewWidth(\'tablet\',this)">Tablet</button><button class="cwr-ptog" id="cwrTogMobile" onclick="cwsSetPreviewWidth(\'mobile\',this)">Mobile</button><button class="cwr-ptog-fullscreen" onclick="cwsOpenFullscreen(\''+_lid+'\')"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="11" height="11"><path d="M1 4.5V1h3.5M7.5 1H11v3.5M11 7.5V11H7.5M4.5 11H1V7.5"/></svg> Open Fullscreen</button></div>';
+    html += '<iframe id="'+_lid+'" class="cws-html-preview cws-html-preview-tall" sandbox="allow-same-origin" scrolling="yes" data-iframe-key="'+_lid+'"></iframe>';
+    html += '</div>';
+  }
+  /* ── Google Ads: structured copy ────────────────────────────────── */
+  else if((mod==='google-ads') && (gen.headlines||gen.descriptions)){
+    html += '<div class="cws-gads">';
+    if(gen.headlines && gen.headlines.length){
+      html += '<div class="cws-gads-section"><div class="cws-gads-lbl">Headlines <span class="cws-gads-count">'+gen.headlines.length+'</span></div>';
+      html += gen.headlines.map(function(h,i){ return '<div class="cws-gads-row"><span class="cws-gads-num">'+(i+1)+'</span><span class="cws-gads-text">'+_esc(h)+'</span><span class="cws-gads-chars">'+h.length+' / 30</span></div>'; }).join('');
+      html += '</div>';
+    }
+    if(gen.descriptions && gen.descriptions.length){
+      html += '<div class="cws-gads-section"><div class="cws-gads-lbl">Descriptions <span class="cws-gads-count">'+gen.descriptions.length+'</span></div>';
+      html += gen.descriptions.map(function(d,i){ return '<div class="cws-gads-row"><span class="cws-gads-num">'+(i+1)+'</span><span class="cws-gads-text">'+_esc(d)+'</span><span class="cws-gads-chars">'+d.length+' / 90</span></div>'; }).join('');
+      html += '</div>';
+    }
+    if(gen.keywords && gen.keywords.length){
+      html += '<div class="cws-gads-section"><div class="cws-gads-lbl">Keywords</div>';
+      html += '<div class="cws-gads-kw-wrap">'+gen.keywords.map(function(k){ return '<span class="cws-gads-kw">'+_esc(k)+'</span>'; }).join('')+'</div>';
+      html += '</div>';
+    }
+    if(gen.callouts && gen.callouts.length){
+      html += '<div class="cws-gads-section"><div class="cws-gads-lbl">Callout Extensions</div>';
+      html += '<div class="cws-gads-kw-wrap">'+gen.callouts.map(function(k){ return '<span class="cws-gads-kw">'+_esc(k)+'</span>'; }).join('')+'</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  /* ── TikTok Ads: hook + script ──────────────────────────────────── */
+  else if((mod==='tiktok-ads') && (gen.hook||gen.script)){
+    html += '<div class="cws-tiktok">';
+    if(gen.hook){
+      html += '<div class="cws-tiktok-hook"><div class="cws-tiktok-lbl">Opening Hook (0–3s)</div>';
+      html += '<div class="cws-tiktok-hook-text">'+_esc(gen.hook)+'</div></div>';
+    }
+    if(gen.script){
+      html += '<div class="cws-tiktok-script"><div class="cws-tiktok-lbl">Full Script</div>';
+      html += '<div class="cws-tiktok-script-body">'+_esc(gen.script).replace(/\n/g,'<br>')+'</div></div>';
+    }
+    if(gen.caption||gen.cta){
+      html += '<div class="cws-tiktok-meta">';
+      if(gen.caption) html += '<div class="cws-tiktok-caption"><div class="cws-tiktok-lbl">Caption</div><div class="cws-tiktok-caption-text">'+_esc(gen.caption)+'</div></div>';
+      if(gen.cta)     html += '<div class="cws-tiktok-cta-row"><span class="cws-img-ad-cta-chip">'+_esc(gen.cta)+'</span></div>';
+      if(gen.hashtags && gen.hashtags.length) html += '<div class="cws-tiktok-tags">'+gen.hashtags.map(function(t){ return '<span class="cws-gads-kw">#'+_esc(t.replace(/^#/,''))+'</span>'; }).join('')+'</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  /* ── Social Posts: script / carousel ───────────────────────────── */
+  else if(mod==='social-posts' && (gen.caption||gen.script)){
+    html += '<div class="cws-tiktok">';
+    if(gen.caption){ html += '<div class="cws-tiktok-script"><div class="cws-tiktok-lbl">Caption</div><div class="cws-tiktok-caption-text">'+_esc(gen.caption)+'</div></div>'; }
+    if(gen.script){  html += '<div class="cws-tiktok-script"><div class="cws-tiktok-lbl">Script</div><div class="cws-tiktok-script-body">'+_esc(gen.script).replace(/\n/g,'<br>')+'</div></div>'; }
+    if(gen.slides && gen.slides.length){
+      html += '<div class="cws-tiktok-script"><div class="cws-tiktok-lbl">Slides</div>';
+      html += gen.slides.map(function(s,i){ return '<div class="cws-gads-row"><span class="cws-gads-num">'+(i+1)+'</span><span class="cws-gads-text">'+_esc(s)+'</span></div>'; }).join('');
+      html += '</div>';
+    }
+    if(gen.hashtags && gen.hashtags.length) html += '<div class="cws-tiktok-tags">'+gen.hashtags.map(function(t){ return '<span class="cws-gads-kw">#'+_esc(t.replace(/^#/,''))+'</span>'; }).join('')+'</div>';
+    html += '</div>';
+  }
+  /* ── Legacy / fallback ──────────────────────────────────────────── */
+  else if(mod==='strategy' && gen.sections){
+    html += gen.sections.map(function(s){ return '<div class="cws-strat-block"><div class="cws-strat-ttl">'+_esc(s.title)+'</div><div class="cws-strat-body">'+_esc(s.body).replace(/\n/g,'<br>')+'</div></div>'; }).join('');
+  }
+  else if(gen.variants){ html += gen.variants.map(function(v){ var rows=''; if(v.headline) rows+='<div class="cws-ad-row"><span class="cws-ad-lbl">Headline</span><span class="cws-ad-val">'+_esc(v.headline)+'</span></div>'; if(v.body) rows+='<div class="cws-ad-row"><span class="cws-ad-lbl">Body</span><span class="cws-ad-val">'+_esc(v.body)+'</span></div>'; if(v.cta) rows+='<div class="cws-ad-row"><span class="cws-ad-lbl">CTA</span><span class="cws-ad-val cws-ad-cta">'+_esc(v.cta)+'</span></div>'; return '<div class="cws-ad-card">'+(v.label?'<div class="cws-ad-variant-lbl">'+_esc(v.label)+'</div>':'')+rows+'</div>'; }).join(''); }
+  else { html += '<div class="cws-strat-body" style="white-space:pre-wrap;font-size:13px;color:var(--t2)">'+_esc(JSON.stringify(gen,null,2))+'</div>'; }
+
+  html += '</div>'; /* /cws-mod-body */
+
+  /* ── Action bar ──────────────────────────────────────────────────── */
+  html += '<div class="cwr-action-bar">';
+  if(gen.html){
+    html += '<button class="cwr-ab-btn cwr-ab-primary" onclick="cwsEditHtml()">Edit</button>';
+    html += '<button class="cwr-ab-btn" onclick="cwsGatedDownloadHtml(\''+(mod==='emails'?'email.html':'landing-page.html')+'\',window._cwsActiveKey||\'\')" >Download</button>';
+    if(mod==='landing-page') html += '<button class="cwr-ab-btn" onclick="_cwsOpenInTab(window._cwsActiveKey||\'\')" >Open Full Page</button>';
+  }
+  if(gen.videoUrl){
+    html += '<button class="cwr-ab-btn" onclick="cwsGatedDownload(\'video\',\''+_esc(gen.videoUrl)+'\')">Download Video</button>';
+  } else if(gen.imageUrl){
+    html += '<button class="cwr-ab-btn" onclick="cwsGatedDownload(\'image\',\''+_esc(gen.imageUrl)+'\')">Download Image</button>';
+  }
+  if(!gen.html && !gen.videoUrl && !gen.imageUrl && !gen.videoGenerationId){
+    html += '<button class="cwr-ab-btn" onclick="cwsGatedCopy(\''+mod+'\')">Copy</button>';
+  }
+  html += '<button class="cwr-ab-btn cwr-ab-danger" onclick="cwsDeleteAsset(\''+mod+'\')">Delete</button>';
+  html += '<button class="cwr-ab-btn" onclick="regenModule(\''+mod+'\')">↻ Regenerate</button>';
+  html += '</div>';
+
+  html += '</div>'; /* /cwr-asset-inner */
+
+  container.innerHTML = html;
+
+  /* Populate any iframe previews — must happen after innerHTML is set */
+  container.querySelectorAll('iframe[data-iframe-key]').forEach(function(f){
+    var src = window._cwsIframeStore && window._cwsIframeStore[f.getAttribute('data-iframe-key')];
+    if(src){ var d = f.contentWindow.document; d.open(); d.write(src); d.close(); }
+  });
+
+  /* Start video polling if generation is in progress */
+  if(gen.videoGenerationId && gen.videoStatus !== 'completed' && gen.videoStatus !== 'failed'){
+    _startVideoPolling(mod, gen.videoGenerationId);
+  }
+}
+
+window._cwsRefreshIframe = function(key){
+  var f = document.getElementById(key);
+  var src = window._cwsIframeStore && window._cwsIframeStore[key];
+  if(f && src){ var d = f.contentWindow.document; d.open(); d.write(src); d.close(); }
+};
+window._cwsOpenInTab = function(key){
+  var src = window._cwsIframeStore && window._cwsIframeStore[key];
+  if(!src) return;
+  var w = window.open('about:blank','_blank');
+  if(w){ w.document.open(); w.document.write(src); w.document.close(); }
+};
+window._cwsDownloadHtml = function(filename, key){
+  var src = window._cwsIframeStore && window._cwsIframeStore[key];
+  if(!src) return;
+  var blob = new Blob([src], { type:'text/html' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+};
+
+/* ── Edit HTML drawer ────────────────────────────────────────────── */
+window.cwsEditHtml = function(){
+  var key = window._cwsActiveKey;
+  var src = key && window._cwsIframeStore && window._cwsIframeStore[key];
+  if(!src) return;
+
+  var drawer = document.getElementById('cwrEditDrawer');
+  var body   = document.getElementById('cwrEditBody');
+  if(!drawer || !body) return;
+
+  /* Extract links from the HTML for editing */
+  var tmp = document.createElement('div');
+  tmp.innerHTML = src;
+  var links = Array.from(tmp.querySelectorAll('a[href]'))
+    .map(function(a){ return { text: (a.textContent||'').trim().slice(0,40), href: a.getAttribute('href')||'' }; })
+    .filter(function(l){ return l.href && l.href !== '#' && l.href.indexOf('unsubscribe') === -1; })
+    .slice(0, 8);
+
+  body.innerHTML =
+    '<div class="cwr-edit-section">' +
+      '<div class="cwr-edit-lbl">HTML Source</div>' +
+      '<textarea class="cwr-edit-textarea" id="cwrEditHtmlSrc" spellcheck="false">'+_esc(src)+'</textarea>' +
+    '</div>' +
+    (links.length ? '<div class="cwr-edit-section"><div class="cwr-edit-lbl">Links &amp; CTAs</div>' +
+      links.map(function(l,i){
+        return '<div class="cwr-edit-link-row">' +
+          '<span class="cwr-edit-link-text">'+_esc(l.text)+'</span>' +
+          '<input class="cwr-edit-link-inp" data-link-idx="'+i+'" data-link-orig="'+_esc(l.href)+'" value="'+_esc(l.href)+'" />' +
+        '</div>';
+      }).join('') + '</div>' : '');
+
+  drawer.style.display = '';
+  window._cwrEditLinks = links;
+};
+
+window.cwsApplyEdit = function(){
+  if(typeof _cwsFreeGuard === 'function' && !_cwsFreeGuard('save')) return;
+  var key = window._cwsActiveKey;
+  if(!key) return;
+
+  var srcEl = document.getElementById('cwrEditHtmlSrc');
+  var newHtml = srcEl ? srcEl.value : null;
+  if(!newHtml) return;
+
+  /* Apply link edits */
+  var linkInputs = document.querySelectorAll('.cwr-edit-link-inp');
+  linkInputs.forEach(function(inp){
+    var orig = inp.getAttribute('data-link-orig');
+    var val  = inp.value.trim();
+    if(orig && val && orig !== val){
+      var escaped = orig.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      newHtml = newHtml.split(orig).join(val);
+    }
+  });
+
+  /* Save back to store and campaign */
+  window._cwsIframeStore[key] = newHtml;
+  var c = _activeCampaign;
+  if(c && c.generated){
+    var mod = window._cwsActiveMod;
+    if(c.generated[mod]) c.generated[mod].html = newHtml;
+    _saveCamps();
+  }
+
+  /* Refresh iframe */
+  var f = document.getElementById(key);
+  if(f){ var d = f.contentWindow.document; d.open(); d.write(newHtml); d.close(); }
+
+  document.getElementById('cwrEditDrawer').style.display = 'none';
+  if(typeof toast === 'function') toast('Changes applied','ok');
+};
+
+/* ── Preview width toggle ────────────────────────────────────────── */
+window.cwsSetPreviewWidth = function(mode, btn){
+  var wrap = document.getElementById('cwsPreviewWrap');
+  var frame = wrap && wrap.querySelector('iframe');
+  if(!frame) return;
+  document.querySelectorAll('.cwr-ptog').forEach(function(b){ b.classList.remove('cwr-ptog-on'); });
+  if(btn) btn.classList.add('cwr-ptog-on');
+  if(mode === 'mobile'){
+    frame.style.width  = '375px';
+    frame.style.margin = '0 auto';
+  } else if(mode === 'tablet'){
+    frame.style.width  = '768px';
+    frame.style.margin = '0 auto';
+  } else {
+    frame.style.width  = '';
+    frame.style.margin = '';
+  }
+};
+
+/* ── Landing page fullscreen overlay ────────────────────────────── */
+window.cwsOpenFullscreen = function(iframeKey){
+  var html = (window._cwsIframeStore && window._cwsIframeStore[iframeKey]) || '';
+  if(!html) return;
+  var overlay = document.createElement('div');
+  overlay.className = 'cws-lp-fullscreen';
+  overlay.id = 'cwsLpFullscreen';
+  overlay.innerHTML =
+    '<div class="cws-lp-fullscreen-bar">' +
+      '<span class="cws-lp-fullscreen-title">Landing Page Preview</span>' +
+      '<button class="cws-lp-fullscreen-close" onclick="cwsCloseFullscreen()">✕ Close</button>' +
+    '</div>' +
+    '<iframe class="cws-lp-fullscreen-frame" id="cwsLpFsFrame" sandbox="allow-same-origin" scrolling="yes"></iframe>';
+  document.body.appendChild(overlay);
+  var frame = document.getElementById('cwsLpFsFrame');
+  frame.contentWindow.document.open();
+  frame.contentWindow.document.write(html);
+  frame.contentWindow.document.close();
+  document.addEventListener('keydown', _cwsFsKeyHandler);
+};
+window.cwsCloseFullscreen = function(){
+  var el = document.getElementById('cwsLpFullscreen');
+  if(el) el.remove();
+  document.removeEventListener('keydown', _cwsFsKeyHandler);
+};
+function _cwsFsKeyHandler(e){
+  if(e.key === 'Escape') window.cwsCloseFullscreen();
+}
+
+/* ── Copy text content ───────────────────────────────────────────── */
+window.cwsCopyText = function(mod){
+  var c = _activeCampaign;
+  if(!c) return;
+  var gen = c.generated && c.generated[mod];
+  if(!gen) return;
+  var text = [gen.hook, gen.script, gen.caption, gen.headline, gen.body, gen.cta,
+    (gen.headlines||[]).join('\n'), (gen.descriptions||[]).join('\n')].filter(Boolean).join('\n\n');
+  navigator.clipboard && navigator.clipboard.writeText(text).then(function(){
+    if(typeof toast==='function') toast('Copied to clipboard','ok');
+  });
+};
+
+/* ── Gated export wrappers (free-trial paywall) ──────────────────── */
+window.cwsGatedDownload = function(type, url){
+  if(typeof _cwsFreeGuard === 'function' && !_cwsFreeGuard('download')) return;
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (type === 'video') ? 'video.mp4' : 'creative.png';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+window.cwsGatedDownloadHtml = function(filename, key){
+  if(typeof _cwsFreeGuard === 'function' && !_cwsFreeGuard('download')) return;
+  _cwsDownloadHtml(filename, key);
+};
+window.cwsGatedCopy = function(mod){
+  if(typeof _cwsFreeGuard === 'function' && !_cwsFreeGuard('copy')) return;
+  window.cwsCopyText(mod);
+};
+
+function _renderOverview(c){
+  var pct = c.progress||0;
+  var completedMods = c.modules.filter(function(m){ return c.generated&&c.generated[m]&&c.generated[m].ready; });
+  var d = new Date(c.created);
+  var dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  return '<div class="cws-overview">'+
+    '<div class="cws-ov-hdr">'+
+      '<div class="cws-ov-name">'+_esc(c.name)+'</div>'+
+      '<div class="cws-ov-date">Created '+dateStr+'</div>'+
+    '</div>'+
+    '<div class="cws-ov-goal">'+_esc(c.goal)+'</div>'+
+    '<div class="cws-ov-prog">'+
+      '<div class="cws-ov-prog-hd"><span>Campaign Progress</span><span class="cws-ov-prog-pct">'+pct+'%</span></div>'+
+      '<div class="cws-ov-prog-track"><div class="cws-ov-prog-fill" style="width:'+pct+'%"></div></div>'+
+    '</div>'+
+    '<div class="cws-ov-grid">'+
+      c.modules.map(function(m){
+        var meta=_MOD_META[m]||{label:m,icon:''};
+        var done=c.generated&&c.generated[m]&&c.generated[m].ready;
+        return '<div class="cws-ov-card'+(done?' cws-ov-done':'')+'" onclick="cwsGoTo(\''+m+'\')">'
+          +'<div class="cws-ov-card-ico">'+meta.icon+'</div>'
+          +'<div class="cws-ov-card-name">'+meta.label+'</div>'
+          +'<div class="cws-ov-card-status">'+(done?'Ready':'Pending')+'</div>'
+          +'</div>';
+      }).join('')+
+    '</div>'+
+    '<div class="cws-ov-actions">'+
+      '<button class="cws-act-sec" onclick="openAddModule()">+ Add Module</button>'+
+      '<button class="cws-act-sec" onclick="exportCampaign()">Export Campaign</button>'+
+      '<button class="cws-act-sec" onclick="duplicateCampaign(\''+c.id+'\')">Duplicate</button>'+
+      '<button class="cws-act-sec cws-act-danger" onclick="deleteCampaign(\''+c.id+'\')">Delete</button>'+
+    '</div>'+
+  '</div>';
+}
+
+window.openAddModule = function(){
+  if(typeof toast==='function') toast('Add Module — coming soon','info');
+};
+
+window.regenModule = function(mod){
+  if(typeof _cwsFreeGuard === 'function' && !_cwsFreeGuard('regenerate')) return;
+  var c = _activeCampaign;
+  if(!c) return;
+  if(typeof toast==='function') toast('Regenerating…','info');
+  var container = document.getElementById('cwsMainInner');
+  if(container) container.style.opacity = '0.4';
+
+  var prev = c.generated && c.generated[mod] ? JSON.parse(JSON.stringify(c.generated[mod])) : null;
+  if(prev){ if(!c.versionHistory) c.versionHistory = []; c.versionHistory.push({ module:mod, timestamp:new Date().toISOString(), data:prev }); }
+
+  _buildCampaignPromise(c).then(function(generatedData){
+    if(!c.generated) c.generated = {};
+    var newGen = generatedData[mod] || _buildModContent(mod, c);
+    if(newGen && newGen._meta) newGen._meta.version = ((prev&&prev._meta&&prev._meta.version)||0) + 1;
+    c.generated[mod] = newGen;
+    c.updated = new Date().toISOString();
+    _saveCamps();
+    if(container) container.style.opacity = '';
+    _renderCwsModule(mod);
+    if(typeof toast==='function') toast('Regenerated','ok');
+  }).catch(function(){
+    if(container) container.style.opacity = '';
+    if(typeof toast==='function') toast('Regeneration failed — try again','warn');
+  });
+};
+
+window.copyModContent = function(mod){
+  var c = _activeCampaign;
+  if(!c||!c.generated||!c.generated[mod]) return;
+  var gen = c.generated[mod];
+  var lines = [];
+  lines.push('=== '+(_MOD_META[mod]||{label:mod}).label+' ===');
+  lines.push('Campaign: '+c.name);
+  lines.push('Generated: '+(gen._meta&&gen._meta.generatedAt||''));
+  lines.push('');
+  if(gen.sections) gen.sections.forEach(function(s){ lines.push('— '+s.title+' —'); lines.push(s.body); lines.push(''); });
+  if(gen.variants) gen.variants.forEach(function(v){ lines.push('[ '+v.label+' ]'); if(v.headline) lines.push('Headline: '+v.headline); if(v.body) lines.push('Body: '+v.body); if(v.cta) lines.push('CTA: '+v.cta); if(v.headline1) lines.push('H1: '+v.headline1+' | H2: '+(v.headline2||'')); if(v.desc) lines.push('Desc: '+v.desc); lines.push(''); });
+  if(gen.scripts) gen.scripts.forEach(function(s){ lines.push('[ '+s.label+' ]'); lines.push(s.hook); if(s.body) lines.push(s.body); lines.push(''); });
+  if(gen.sequence) gen.sequence.forEach(function(e){ lines.push('Email '+(e.num||'')+': '+e.subject); lines.push(e.body||''); lines.push(''); });
+  if(gen.posts) gen.posts.forEach(function(p){ lines.push('['+p.platform+'] '+p.caption); if(p.tags) lines.push(p.tags); lines.push(''); });
+  if(gen.sections && !gen.sections[0].title) gen.sections.forEach(function(s){ lines.push(s); });
+  var txt = lines.join('\n');
+  if(navigator.clipboard){ navigator.clipboard.writeText(txt).catch(function(){}); }
+  if(typeof toast==='function') toast('Copied to clipboard','ok');
+};
+
+window.exportModule = function(mod){
+  var c = _activeCampaign;
+  if(!c||!c.generated||!c.generated[mod]) return;
+  // Trigger copyModContent first to get text, then download
+  var gen = c.generated[mod];
+  var lines = [(_MOD_META[mod]||{label:mod}).label+' — '+c.name,'Generated by Oriven','',''];
+  if(gen.sections) gen.sections.forEach(function(s){ if(s.title) lines.push('=== '+s.title+' ==='); lines.push(s.body||s); lines.push(''); });
+  if(gen.variants) gen.variants.forEach(function(v){ lines.push('--- '+v.label+' ---'); if(v.headline) lines.push('Headline: '+v.headline); if(v.body) lines.push(v.body); if(v.cta) lines.push('CTA: '+v.cta); lines.push(''); });
+  if(gen.scripts) gen.scripts.forEach(function(s){ lines.push('['+s.label+']'); lines.push(s.hook+'\n'+(s.body||'')); lines.push(''); });
+  if(gen.sequence) gen.sequence.forEach(function(e){ lines.push('Email '+e.num+': '+e.subject+'\n'+(e.body||'')); lines.push(''); });
+  if(gen.posts) gen.posts.forEach(function(p){ lines.push('['+p.platform+']\n'+p.caption+'\n'+(p.tags||'')); lines.push(''); });
+  var blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = c.name.replace(/\s+/g,'-').toLowerCase()+'-'+mod+'.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  // Log to export history
+  if(!c.exportHistory) c.exportHistory = [];
+  c.exportHistory.push({ module:mod, format:'txt', timestamp:new Date().toISOString() });
+  _saveCamps();
+  if(typeof toast==='function') toast('Exported '+mod+'.txt','ok');
+};
+
+window.exportCampaign = function(){
+  var c = _activeCampaign;
+  if(!c) return;
+  var lines = ['CAMPAIGN EXPORT: '+c.name,'Goal: '+c.goal,'Audience: '+(c.targetAudience||'—'),'Created: '+c.created,'Brand: '+(c.brandProfileRef||'—'),'','===========================',''];
+  c.modules.forEach(function(m){
+    var gen = c.generated&&c.generated[m];
+    if(!gen||!gen.ready) return;
+    lines.push('=== '+((_MOD_META[m]||{}).label||m)+' ===');
+    if(gen.sections) gen.sections.forEach(function(s){ if(s.title) lines.push('-- '+s.title+' --'); lines.push(s.body||''); lines.push(''); });
+    if(gen.variants) gen.variants.forEach(function(v){ lines.push('['+v.label+']'); if(v.headline) lines.push('Headline: '+v.headline); if(v.body) lines.push(v.body); lines.push(''); });
+    if(gen.sequence) gen.sequence.forEach(function(e){ lines.push('Email '+e.num+': '+e.subject+'\n'+(e.body||'')); lines.push(''); });
+    if(gen.posts) gen.posts.forEach(function(p){ lines.push('['+p.platform+']\n'+p.caption); lines.push(''); });
+    lines.push('');
+  });
+  var blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = c.name.replace(/\s+/g,'-').toLowerCase()+'-campaign.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  if(!c.exportHistory) c.exportHistory = [];
+  c.exportHistory.push({ module:'all', format:'txt', timestamp:new Date().toISOString() });
+  _saveCamps();
+  if(typeof toast==='function') toast('Campaign exported','ok');
+};
+
+window.duplicateCampaign = function(id){
+  var src = _campaigns.find(function(c){ return c.id===id; });
+  if(!src) return;
+  var copy = JSON.parse(JSON.stringify(src));
+  copy.id = 'cmp_'+Date.now();
+  copy.name = src.name+' (Copy)';
+  copy.created = new Date().toISOString();
+  copy.updated = new Date().toISOString();
+  copy.versionHistory = [];
+  copy.exportHistory = [];
+  _campaigns.unshift(copy);
+  _saveCamps();
+  _activeCampaign = copy;
+  if(typeof navigate==='function') navigate('campaign-workspace');
+  if(typeof toast==='function') toast('Campaign duplicated','ok');
+};
+
+window.deleteCampaign = function(id){
+  if(!confirm('Delete this campaign? This cannot be undone.')) return;
+  _campaigns = _campaigns.filter(function(c){ return c.id!==id; });
+  _saveCamps();
+  if(typeof navigate==='function') navigate('campaigns');
+};
+
+// ── Utility ───────────────────────────────────────────────────────
+function _esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+_loadCamps();
+
+})();
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     AMBIENT CANVAS + MOBILE NAV + PAGE TRANSITIONS
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  /* ── Ambient canvas ────────────────────────────────────────────
+     Lightweight node/line animation behind every app page.
+     Respects prefers-reduced-motion.
+  ── */
+  var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!prefersReduced){
+    var canvas = document.getElementById('appAmbient');
+    if(canvas){
+      var ctx = canvas.getContext('2d');
+      var W, H, nodes;
+      var NODE_COUNT = 18;
+      var MAX_DIST   = 260;
+
+      function resize(){
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+
+      function mkNode(){
+        return {
+          x:  Math.random() * W,
+          y:  Math.random() * H,
+          vx: (Math.random()-.5) * .28,
+          vy: (Math.random()-.5) * .28,
+          r:  Math.random() * 1.4 + .5,
+          p:  Math.random(),
+          pd: Math.random() > .5 ? 1 : -1
+        };
+      }
+
+      function init(){
+        nodes = [];
+        for(var i=0;i<NODE_COUNT;i++) nodes.push(mkNode());
+      }
+
+      var _raf;
+      function frame(){
+        ctx.clearRect(0,0,W,H);
+        var dark = document.body.classList.contains('dark-mode');
+        var nc = dark ? 'rgba(183,255,42,' : 'rgba(26,66,41,';
+        var lc = dark ? 'rgba(183,255,42,' : 'rgba(26,66,41,';
+
+        for(var i=0;i<nodes.length;i++){
+          var n=nodes[i];
+          n.x+=n.vx; n.y+=n.vy;
+          if(n.x<0||n.x>W) n.vx*=-1;
+          if(n.y<0||n.y>H) n.vy*=-1;
+          n.x=Math.max(0,Math.min(W,n.x));
+          n.y=Math.max(0,Math.min(H,n.y));
+          n.p+=n.pd*.006;
+          if(n.p>1||n.p<0) n.pd*=-1;
+        }
+
+        for(var i=0;i<nodes.length;i++){
+          for(var j=i+1;j<nodes.length;j++){
+            var dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+            var d=Math.sqrt(dx*dx+dy*dy);
+            if(d<MAX_DIST){
+              ctx.beginPath();
+              ctx.strokeStyle=lc+(1-d/MAX_DIST)*.055+')';
+              ctx.lineWidth=.7;
+              ctx.moveTo(nodes[i].x,nodes[i].y);
+              ctx.lineTo(nodes[j].x,nodes[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        for(var i=0;i<nodes.length;i++){
+          var n=nodes[i];
+          ctx.beginPath();
+          ctx.fillStyle=nc+(.08+n.p*.06)+')';
+          ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+          ctx.fill();
+        }
+        _raf=requestAnimationFrame(frame);
+      }
+
+      resize(); init(); frame();
+      window.addEventListener('resize',function(){ resize(); init(); });
+    }
+  }
+
+  /* ── Top nav + mobile bottom nav active state sync ─────────── */
+  var _origNavigate = window.navigate;
+  if(typeof _origNavigate === 'function'){
+    window.navigate = function(page){
+      _origNavigate.apply(this, arguments);
+      _syncApNav(page);
+      _syncMbn(page);
+    };
+  }
+
+  /* Map any page to the top-nav button that should light up */
+  function _syncApNav(page){
+    var map = {
+      brain:'brain', home:'brain',
+      studio:'studio', brandcore:'studio', positioning:'studio', audience:'studio', tov:'studio', identity:'studio',
+      campaigns:'campaigns', 'campaign-workspace':'campaigns', 'new-campaign':'campaigns',
+      assets:'assets',
+      aichat:'aichat', assistant:'aichat',
+      settings:'settings',
+      competitor:'brain', market:'brain', opportunities:'brain',
+      website:'brain', health:'brain', alerts:'brain'
+    };
+    var target = map[page] || null;
+    document.querySelectorAll('.ap-nl[data-page]').forEach(function(btn){
+      btn.classList.toggle('ap-nl-active', !!target && btn.getAttribute('data-page')===target);
+    });
+    /* Update mobile bottom nav too */
+    document.querySelectorAll('.ap-mob-link[data-page]').forEach(function(btn){
+      btn.classList.toggle('ap-mob-link-active', !!target && btn.getAttribute('data-page')===target);
+    });
+  }
+
+  function _syncMbn(page){
+    var map = { brain:'brain', campaigns:'campaigns', 'campaign-workspace':'campaigns',
+                studio:'studio', aichat:'aichat', assistant:'aichat',
+                assets:'assets', settings:'settings' };
+    var target = map[page] || null;
+    document.querySelectorAll('.mbn-item[data-mbn]').forEach(function(btn){
+      btn.classList.toggle('mbn-active', !!target && btn.getAttribute('data-mbn')===target);
+    });
+  }
+
+  /* ── Assets page: render from saved campaign data ──────────── */
+  window.navigate_assets_init = false;
+  window.aslRender = function(filter){
+    filter = filter || 'all';
+    var grid  = document.getElementById('aslGrid');
+    var empty = document.getElementById('aslEmpty');
+    if(!grid) return;
+    /* Pull assets from campaign generated content */
+    var camps = [];
+    try{ camps = JSON.parse(localStorage.getItem('oriven_campaigns')||'[]'); }catch(_){}
+    var items = [];
+    camps.forEach(function(c){
+      if(!c.generated) return;
+      Object.keys(c.generated).forEach(function(mod){
+        var g = c.generated[mod];
+        if(!g || !g.ready) return;
+        if(filter !== 'all' && mod !== filter) return;
+        items.push({ campaign: c.name, mod: mod, data: g, date: c.created, id: c.id });
+      });
+    });
+    /* Also pull from S.assets if available */
+    if(typeof S !== 'undefined' && S.assets){
+      S.assets.forEach(function(a){
+        if(filter === 'all' || (a.type && a.type === filter)){
+          items.push({ campaign: 'Saved', mod: a.type||'asset', data: a, date: a.savedAt||Date.now(), id: a.id });
+        }
+      });
+    }
+    if(items.length === 0){
+      grid.innerHTML = '';
+      if(empty) empty.style.display = '';
+      return;
+    }
+    if(empty) empty.style.display = 'none';
+    var modLabels = { strategy:'Campaign Strategy','meta-ads':'Meta Ads','google-ads':'Google Ads',
+      'landing-page':'Landing Page', emails:'Email Sequence', social:'Social Posts',
+      'video-scripts':'Video Scripts', seo:'SEO Content', overview:'Overview' };
+    grid.innerHTML = items.map(function(item){
+      var label = modLabels[item.mod] || item.mod;
+      var date = new Date(item.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      return '<div class="asl-card" onclick="openCampaignWorkspace(\''+item.id+'\')">'
+        +'<div class="asl-card-type">'+label+'</div>'
+        +'<div class="asl-card-camp">'+_escHtml(item.campaign)+'</div>'
+        +'<div class="asl-card-date">'+date+'</div>'
+        +'</div>';
+    }).join('');
+  };
+  function _escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  window.aslFilter = function(btn, filter){
+    document.querySelectorAll('.asl-filter').forEach(function(b){ b.classList.remove('asl-filter-active'); });
+    btn.classList.add('asl-filter-active');
+    window.aslRender(filter);
+  };
+
+  /* ── Mobile hamburger ──────────────────────────────────────── */
+  var _apHam  = document.getElementById('apHamburger');
+  var _apMNav = document.getElementById('apMobNav');
+  var _apMCls = document.getElementById('apMobClose');
+  window.apCloseMob = function(){
+    if(_apMNav) _apMNav.classList.remove('ap-mob-open');
+    if(_apHam)  _apHam.classList.remove('open');
+  };
+  if(_apHam) _apHam.addEventListener('click', function(){
+    var o = _apMNav.classList.toggle('ap-mob-open');
+    _apHam.classList.toggle('open', o);
+  });
+  if(_apMCls) _apMCls.addEventListener('click', window.apCloseMob);
+
+  /* ── Suggested prompts for Assistant ────────────────────────── */
+  window.sendSuggestedPrompt = function(prompt){
+    var inp     = document.getElementById('chatInput');
+    var welcome = document.getElementById('chatWelcome');
+    if(!inp) return;
+    inp.value = prompt;
+    if(welcome) welcome.style.display = 'none';
+    if(typeof sendChat === 'function') sendChat();
+  };
+
+  /* ── Brand Insights panel logic ──────────────────────────── */
+  function _refreshBrandInsights(){
+    var noBrand  = document.getElementById('bcIpNoBrand');
+    var runCheck = document.getElementById('bcIpRunCheck');
+    var results  = document.getElementById('bcIpResults');
+    if(!noBrand) return;
+    /* Check if brand is configured */
+    var bc = null;
+    try{ bc = JSON.parse(localStorage.getItem('oriven_brandcore')||'null'); }catch(_){}
+    if(!bc || !bc.name){
+      noBrand.style.display  = '';
+      runCheck.style.display = 'none';
+      results.style.display  = 'none';
+      return;
+    }
+    /* Check if brand check results exist */
+    var check = null;
+    try{ check = JSON.parse(localStorage.getItem('oriven_brand_check')||'null'); }catch(_){}
+    if(!check){
+      noBrand.style.display  = 'none';
+      runCheck.style.display = '';
+      results.style.display  = 'none';
+      return;
+    }
+    /* Show results */
+    noBrand.style.display  = 'none';
+    runCheck.style.display = 'none';
+    results.style.display  = '';
+    var scoreEl = document.getElementById('bcIpScoreNum');
+    if(scoreEl && check.score != null) scoreEl.textContent = check.score + '%';
+    function _fillItems(id, arr){
+      var el = document.getElementById(id);
+      if(!el) return;
+      var items = Array.isArray(arr) ? arr.slice(0,3) : [];
+      el.innerHTML = items.map(function(s){
+        return '<div class="bcp-ip-item">'+_escHtml(String(s))+'</div>';
+      }).join('') || '<div class="bcp-ip-item bcp-ip-dim">No data yet — run brand check.</div>';
+    }
+    _fillItems('bcIpStrengths',      check.strengths      || check.positives || []);
+    _fillItems('bcIpOpportunities',  check.opportunities  || check.gaps      || []);
+    _fillItems('bcIpRecommendations',check.recommendations|| check.actions   || []);
+  }
+
+  /* ── Wire up navigate() to page-specific init ──────────────── */
+  var _nav2 = window.navigate;
+  window.navigate = function(page){
+    _nav2.apply(this, arguments);
+    /* Fix 3: reset main scroll so every page starts at the top */
+    var _mc = document.querySelector('.mc');
+    if(_mc) _mc.scrollTop = 0;
+    if(page === 'assets') window.aslRender('all');
+    if(page === 'brain')  _updateApAvatar();
+    if(page === 'studio') _refreshBrandInsights();
+    if(page === 'campaign-workspace'){
+      if(typeof refreshCampaignWorkspace === 'function') refreshCampaignWorkspace();
+    }
+    /* Assistant: show/hide welcome based on chat history */
+    if(page === 'aichat'){
+      var feed    = document.getElementById('chatFeed');
+      var welcome = document.getElementById('chatWelcome');
+      if(feed && welcome) welcome.style.display = feed.children.length > 0 ? 'none' : '';
+    }
+  };
+
+  /* ── Populate avatar/credits in top nav ─────────────────────── */
+  function _updateApAvatar(){
+    var nameEl = document.getElementById('sidebarUserName');
+    var avatarEl = document.getElementById('apNavAvatar');
+    if(nameEl && avatarEl && nameEl.textContent){
+      var initial = (nameEl.textContent||'A').trim().charAt(0).toUpperCase();
+      avatarEl.textContent = initial;
+    }
+    /* Credits from usageBadge — extract leading number only */
+    var badge = document.getElementById('usageBadge');
+    var nav   = document.getElementById('apNavCredits');
+    var mob   = document.getElementById('apNavCreditsMob');
+    if(badge && nav){
+      var txt      = badge.textContent || '';
+      var numMatch = txt.match(/^(\d+)/);
+      var navTxt   = numMatch ? numMatch[1] : '—';
+      nav.textContent = navTxt;
+      if(mob) mob.textContent = navTxt;
+    }
+  }
+  /* Poll every 2s to pick up credits + name written by auth.js */
+  setInterval(_updateApAvatar, 2000);
+  _updateApAvatar();
+
+  /* Set initial active state — default landing is Campaign Studio */
+  _syncApNav('campaigns');
+  _syncMbn('campaigns');
+  if (typeof _updateApAvatar === 'function') _updateApAvatar();
+
+  /* ── Campaign type selection overlay ──────────────────────── */
+  /* Intercept openNewCampaign to show type picker first */
+  (function(){
+    var _origONC = window.openNewCampaign;
+    window.openNewCampaign = function(skipTypeSelect){
+      // Gate: free user who has already used their campaign
+      var _onc_isFree = typeof _isFreeUser === 'function' && _isFreeUser();
+      var _onc_used   = typeof _freeCampaignUsed === 'function' && _freeCampaignUsed();
+      console.log('[PW-CHAIN] openNewCampaign | isFree:', _onc_isFree, '| used:', _onc_used, '| skipTypeSelect:', skipTypeSelect);
+      if(_onc_isFree && _onc_used){
+        console.log('[PW-CHAIN] openNewCampaign BLOCKED — calling openFreePaywall');
+        if(typeof openFreePaywall === 'function') openFreePaywall();
+        else console.error('[PW-CHAIN] openFreePaywall NOT FOUND in openNewCampaign');
+        return;
+      }
+      if(skipTypeSelect === '__direct__'){
+        if(typeof _origONC === 'function') _origONC();
+        return;
+      }
+      var overlay = document.getElementById('campTypeOverlay');
+      if(overlay){ overlay.classList.add('ct-open'); return; }
+      if(typeof _origONC === 'function') _origONC();
+    };
+  })();
+
+  window.closeCampTypeOverlay = function(){
+    var overlay = document.getElementById('campTypeOverlay');
+    if(overlay) overlay.classList.remove('ct-open');
+  };
+
+  window.selectCampType = function(type){
+    window._selectedCampaignType = type;
+    window.closeCampTypeOverlay();
+    window.openNewCampaign('__direct__');
+    setTimeout(function(){
+      /* Update type pill in the modal step 1 */
+      var typeLabels = {
+        'meta-ads':'Meta Ads','google-ads':'Google Ads','tiktok-ads':'TikTok Ads',
+        'email':'Email Campaign','landing-page':'Landing Page','social':'Social Content'
+      };
+      var pill = document.getElementById('nccTypePill');
+      if(pill) pill.textContent = typeLabels[type] || 'Campaign';
+      /* Make back visible so user can return to type selector from step 1 */
+      var back = document.getElementById('nccBack');
+      if(back) back.style.visibility = '';
+    }, 80);
+  };
+
+  /* Close overlay on backdrop click */
+  var _ctOverlay = document.getElementById('campTypeOverlay');
+  if(_ctOverlay){
+    _ctOverlay.addEventListener('click', function(e){
+      if(e.target === _ctOverlay) window.closeCampTypeOverlay();
+    });
+  }
+
+  /* ── Back button fix ─────────────────────────────────────────────
+     Root cause: _nccShowStep(1) sets back.style.visibility = 'hidden',
+     leaving users stranded on step 1 with no way to return to the
+     type selector.
+
+     Fix: wrap nccPrev so that:
+     - Step 1 back → close modal, reopen type overlay
+     - Step 2-4 back → call original (go to prev step), then
+       un-hide back if we land on step 1 so the same "← back to types"
+       path is always available.
+  ─────────────────────────────────────────────────────────────────── */
+  (function(){
+    var _origPrev = window.nccPrev;
+
+    function _reopenTypeOverlay(){
+      if(typeof closeModal === 'function') closeModal('modal-new-campaign');
+      /* Brief delay lets the modal close animation finish */
+      setTimeout(function(){
+        var ov = document.getElementById('campTypeOverlay');
+        if(ov) ov.classList.add('ct-open');
+      }, 120);
+    }
+
+    function _ensureBackVisible(){
+      var back = document.getElementById('nccBack');
+      if(back && back.style.visibility === 'hidden') back.style.visibility = '';
+    }
+
+    function _currentStep(){
+      /* Determine step by which nccBody is currently visible */
+      for(var i = 1; i <= 4; i++){
+        var b = document.getElementById('nccBody' + i);
+        if(b && b.style.display !== 'none') return i;
+      }
+      return 1; /* default */
+    }
+
+    window.nccPrev = function(){
+      var step = _currentStep();
+      if(step <= 1){
+        /* On step 1: go back to type selection, not nowhere */
+        _reopenTypeOverlay();
+        return;
+      }
+      /* Steps 2–4: call original prev */
+      if(typeof _origPrev === 'function') _origPrev();
+      /* If we are now on step 1, un-hide back so user can reach type overlay */
+      _ensureBackVisible();
+    };
+  })();
+
+  /* aslSearchFilter — client-side filter on asset cards */
+  window.aslSearchFilter = function(q){
+    q = (q || '').toLowerCase().trim();
+    var cards = document.querySelectorAll('#aslGrid .asl-card');
+    cards.forEach(function(c){
+      var text = (c.textContent || '').toLowerCase();
+      c.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+    });
+  };
+
+})();
+</script>
 
 </body>
 </html>
