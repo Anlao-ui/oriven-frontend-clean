@@ -1517,8 +1517,6 @@ function _initSettingsNav(){
 // INTEGRATIONS
 // ════════════════════════════════════════════════════════════════
 
-var _integrationsLoaded = false;
-
 function initIntegrations(){
   // Show pending OAuth result (from Google OAuth return redirect)
   var _oar = window._pendingOAuthResult;
@@ -1539,9 +1537,6 @@ function initIntegrations(){
       }
     }, 100);
   }
-  // Only hit the API once per session unless forced
-  if(_integrationsLoaded) return;
-  _integrationsLoaded = true;
   _loadGadsStatus();
 }
 
@@ -1634,16 +1629,22 @@ async function refreshGadsAccounts(){
 
   try {
     var result = await apiFetch("/api/google/accounts");
+    if(loadEl) loadEl.style.display = "none";
     if(!result.ok){
-      var msg = (result.data && result.data.error) ? result.data.error : "Could not fetch accounts";
+      var msg = (result.data && result.data.error) ? result.data.error : "Could not fetch accounts (HTTP " + result.status + ")";
       if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
-      if(loadEl) loadEl.style.display = "none";
     } else {
-      _renderGadsAccounts(result.data.accounts || []);
+      try {
+        _renderGadsAccounts(result.data.accounts || []);
+      } catch(renderErr){
+        console.error("[Google Ads] Render error:", renderErr);
+        if(errEl){ errEl.textContent = "Display error: " + renderErr.message; errEl.style.display = ""; }
+      }
     }
   } catch(err){
-    if(errEl){ errEl.textContent = "Network error — try again"; errEl.style.display = ""; }
     if(loadEl) loadEl.style.display = "none";
+    var msg = err.message || "Network error — try again";
+    if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
     console.error("[Google Ads] Account refresh failed:", err.message);
   } finally {
     if(btn){ btn.disabled = false; btn.textContent = "Refresh accounts"; }
@@ -1674,7 +1675,7 @@ async function disconnectGoogleAds(){
     var result = await apiFetch("/api/google/disconnect", { method: "POST" });
     if(result.ok){
       toast("Google Ads disconnected.");
-      _integrationsLoaded = false; // allow reload on next panel open
+
       var connectBtn  = document.getElementById("gads-connect-btn");
       var connectedEl = document.getElementById("gads-connected-info");
       if(connectBtn){ connectBtn.style.display = ""; connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; }
