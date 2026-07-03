@@ -1575,7 +1575,13 @@ async function _loadGadsStatus(){
         statusEl.innerHTML = '<span class="int-status-dot' + (isExpired ? " int-status-warn" : "") + '"></span>'
           + (isExpired ? "Token expired — reconnect" : "Active");
       }
-      _renderGadsAccounts(data.google_ads_accounts || []);
+      var storedAccounts = data.google_ads_accounts || [];
+      if(storedAccounts.length > 0){
+        _renderGadsAccounts(storedAccounts);
+      } else {
+        // No accounts stored yet — auto-fetch from Google Ads API
+        refreshGadsAccounts();
+      }
     } else {
       if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect Google Ads"; connectBtn.style.display = ""; }
       if(connectedEl) connectedEl.style.display = "none";
@@ -1597,8 +1603,10 @@ function _renderGadsAccounts(accounts){
 
   if(!accounts || accounts.length === 0){
     wrap.style.display = "none";
+    if(errEl){ errEl.textContent = "No Google Ads accounts found. Make sure your Google account has access to a Google Ads account, then click Refresh accounts."; errEl.style.display = ""; }
     return;
   }
+  if(errEl) errEl.style.display = "none";
 
   listEl.innerHTML = accounts.map(function(a){
     var meta = [];

@@ -2341,14 +2341,16 @@
                     </span>
                   </div>
                   <!-- Google Ads accounts list -->
+                  <div id="gads-accounts-loading" style="display:none;font-size:13px;color:var(--text-2);margin-top:12px;">Loading accounts…</div>
+                  <div id="gads-accounts-error" style="display:none;font-size:13px;color:#ef4444;margin-top:12px;"></div>
                   <div id="gads-accounts-wrap" style="display:none;margin-top:16px;">
                     <div style="font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Connected Accounts</div>
                     <div id="gads-accounts-list"></div>
-                    <button class="btn btn-g btn-sm" id="gads-refresh-btn" style="margin-top:10px;font-size:12px;" onclick="refreshGadsAccounts()">Refresh accounts</button>
                   </div>
-                  <div id="gads-accounts-loading" style="display:none;font-size:13px;color:var(--text-2);margin-top:12px;">Loading accounts…</div>
-                  <div id="gads-accounts-error" style="display:none;font-size:13px;color:#ef4444;margin-top:12px;"></div>
-                  <button class="btn btn-g btn-sm" id="gads-disconnect-btn" style="margin-top:16px" onclick="disconnectGoogleAds()">Disconnect</button>
+                  <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-g btn-sm" id="gads-refresh-btn" onclick="refreshGadsAccounts()">Refresh accounts</button>
+                    <button class="btn btn-g btn-sm" id="gads-disconnect-btn" onclick="disconnectGoogleAds()">Disconnect</button>
+                  </div>
                 </div>
               </div>
             </div>
