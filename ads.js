@@ -328,6 +328,10 @@
           return '<div class="ads-kpi"><div class="ads-kpi-val">' + k.val + '</div><div class="ads-kpi-lbl">' + k.lbl + '</div></div>';
         }).join('')
       + '</div>'
+      // Campaign info bar — populated after detail loads
+      + '<div id="ads-detail-camp-info"></div>'
+      // Ad preview panel — hidden until a row is clicked
+      + '<div id="ads-ad-preview" class="ads-ad-preview" style="display:none"></div>'
       + '<div id="ads-detail-ads-wrap"><div class="ads-loading-wrap"><div class="ads-spinner"></div>Loading ads…</div></div>'
       + '<div id="ads-detail-kw-wrap" style="margin-top:20px"></div>'
       + '<div id="ads-detail-st-wrap" style="margin-top:20px"></div>';
@@ -342,14 +346,34 @@
         if(w) w.innerHTML = '<p style="color:#ef4444;font-size:13px">' + h(err) + '</p>';
         return;
       }
-      _renderDetailAds(res.data.ads || []);
-      _renderDetailKeywords(res.data.keywords || []);
-      _renderDetailSearchTerms(res.data.search_terms || []);
+      var d = res.data;
+      _renderCampaignInfoBar(d.campaign_info);
+      _renderDetailAds(d.ads || []);
+      _renderDetailKeywords(d.keywords || []);
+      _renderDetailSearchTerms(d.search_terms || []);
     } catch(err) {
       var w = $('ads-detail-ads-wrap');
       if(w) w.innerHTML = '<p style="color:#ef4444;font-size:13px">' + h(err.message || 'Network error') + '</p>';
     }
   }
+
+  function _renderCampaignInfoBar(info) {
+    var el = $('ads-detail-camp-info');
+    if(!el || !info) return;
+    var chips = [];
+    if(info.type)    chips.push(h(info.type.replace('_',' ')));
+    if(info.bidding) chips.push(h(info.bidding.replace(/_/g,' ')));
+    if(info.budget && info.budget.daily_euros > 0) {
+      chips.push(fmtMoney(info.budget.daily_euros) + '/day');
+    }
+    if(!chips.length) { el.style.display = 'none'; return; }
+    el.innerHTML = '<div class="ads-camp-info-bar">'
+      + chips.map(function(c){ return '<span class="ads-camp-chip">' + c + '</span>'; }).join('')
+      + '</div>';
+  }
+
+  // Index of ad data by id — populated when ads are rendered
+  var _adIndex = {};
 
   function _renderDetailAds(ads) {
     var el = $('ads-detail-ads-wrap');
@@ -361,18 +385,27 @@
       return;
     }
 
-    el.innerHTML = '<div class="ads-section-hd"><div class="ads-section-title">Ads (' + ads.length + ')</div></div>'
+    // Store ads by id for preview lookup
+    _adIndex = {};
+    ads.forEach(function(a){ if(a.id) _adIndex[String(a.id)] = a; });
+
+    el.innerHTML = '<div class="ads-section-hd">'
+      + '<div class="ads-section-title">Ads (' + ads.length + ')</div>'
+      + '<div style="font-size:11px;color:var(--muted)">Click a row to preview</div>'
+      + '</div>'
       + '<div class="ads-table-wrap">'
       + '<table class="ads-table">'
       + '<thead><tr>'
-      + '<th>Headline</th><th>Ad Group</th><th>Status</th>'
+      + '<th>Headline</th><th>Ad Group</th><th>Type</th><th>Status</th>'
       + '<th class="ads-num">Impr.</th><th class="ads-num">Clicks</th>'
       + '<th class="ads-num">CTR</th><th class="ads-num">Conv.</th>'
       + '</tr></thead><tbody>'
       + ads.map(function(a) {
-          return '<tr>'
-            + '<td class="ads-name" style="max-width:260px" title="' + h(a.headline) + '">' + h(a.headline || '—') + '</td>'
+          var typeLabel = _adTypeLabel(a.type);
+          return '<tr class="ads-ad-row" id="ads-ad-row-' + h(a.id) + '" onclick="window._previewAd(\'' + h(a.id) + '\')">'
+            + '<td class="ads-name" style="max-width:220px" title="' + h(a.headline) + '">' + h(a.headline || '—') + '</td>'
             + '<td style="font-size:12px;color:var(--muted)">' + h(a.ad_group) + '</td>'
+            + '<td><span class="ads-camp-chip" style="font-size:10px">' + typeLabel + '</span></td>'
             + '<td>' + statusBadge(a.status) + '</td>'
             + '<td class="ads-num">' + fmtNum(a.impressions) + '</td>'
             + '<td class="ads-num">' + fmtNum(a.clicks) + '</td>'
@@ -381,6 +414,165 @@
             + '</tr>';
         }).join('')
       + '</tbody></table></div>';
+  }
+
+  function _adTypeLabel(type) {
+    var map = {
+      'RESPONSIVE_SEARCH_AD':   'RSA',
+      'EXPANDED_TEXT_AD':       'ETA',
+      'RESPONSIVE_DISPLAY_AD':  'Display',
+      'IMAGE_AD':               'Image',
+      'VIDEO_AD':               'Video',
+      'CALL_ONLY_AD':           'Call',
+      'SHOPPING_PRODUCT_AD':    'Shopping',
+      'PERFORMANCE_MAX_AD':     'PMax',
+      'DEMAND_GEN_MULTI_ASSET_AD': 'DemandGen'
+    };
+    return map[type] || (type ? type.replace(/_AD$/, '').replace(/_/g,' ') : '?');
+  }
+
+  // Called when an ad row is clicked
+  window._previewAd = function(adId) {
+    var ad = _adIndex[String(adId)];
+    if(!ad) return;
+
+    // Highlight selected row
+    document.querySelectorAll('.ads-ad-row').forEach(function(r){ r.classList.remove('ads-ad-row-active'); });
+    var row = $('ads-ad-row-' + adId);
+    if(row) row.classList.add('ads-ad-row-active');
+
+    var panel = $('ads-ad-preview');
+    if(!panel) return;
+    panel.innerHTML = _buildAdPreviewHTML(ad);
+    panel.style.display = '';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  window.closeAdPreview = function() {
+    var panel = $('ads-ad-preview');
+    if(panel) panel.style.display = 'none';
+    document.querySelectorAll('.ads-ad-row').forEach(function(r){ r.classList.remove('ads-ad-row-active'); });
+  };
+
+  function _buildAdPreviewHTML(ad) {
+    var headlines     = ad.headlines_all     || (ad.headline ? [ad.headline] : []);
+    var descriptions  = ad.descriptions_all  || [];
+    var final_url     = ad.final_url         || '';
+    var display_url   = ad.display_url       || (final_url ? _trimUrl(final_url) : '');
+    var isDisplay     = ad.type === 'RESPONSIVE_DISPLAY_AD' || ad.type === 'IMAGE_AD';
+    var isRSA         = ad.type === 'RESPONSIVE_SEARCH_AD';
+
+    // Google Search Ad simulation (text ads)
+    var previewHtml = '';
+    if(!isDisplay && headlines.length > 0) {
+      var h1 = headlines[0] || '';
+      var h2 = headlines[1] || '';
+      var h3 = headlines[2] || '';
+      var previewHead = [h1, h2, h3].filter(Boolean).join(' | ');
+      var previewDesc = descriptions[0] || '';
+      var previewDesc2 = descriptions[1] || '';
+      previewHtml = '<div class="ads-google-sim">'
+        + '<div class="ads-google-sim-label">Ad</div>'
+        + '<div class="ads-google-sim-url">' + h(display_url || final_url) + '</div>'
+        + '<div class="ads-google-sim-headline">' + h(previewHead) + '</div>'
+        + '<div class="ads-google-sim-desc">' + h(previewDesc) + (previewDesc2 ? ' ' + h(previewDesc2) : '') + '</div>'
+        + '</div>';
+    }
+
+    // Full creative panel
+    var html = '<div class="ads-ad-preview-inner">'
+      + '<div class="ads-ad-preview-hd">'
+      + '<div>'
+      + '<span class="ads-ad-type-badge">' + _adTypeLabel(ad.type) + '</span> '
+      + statusBadge(ad.status)
+      + (ad.ad_group ? '<span style="font-size:11px;color:var(--muted);margin-left:8px">Ad Group: ' + h(ad.ad_group) + '</span>' : '')
+      + '</div>'
+      + '<button class="ads-back-btn" style="font-size:11px;padding:4px 10px" onclick="window.closeAdPreview()">✕ Close</button>'
+      + '</div>';
+
+    // Search Ad Simulation
+    if(previewHtml) {
+      html += '<div style="margin:14px 0">' + previewHtml + '</div>';
+    }
+
+    // Display ad long headline / business name
+    if(ad.business_name) {
+      html += '<div style="margin:8px 0;font-size:13px"><span style="color:var(--muted)">Business:</span> <strong>' + h(ad.business_name) + '</strong></div>';
+    }
+    if(ad.long_headline) {
+      html += '<div style="margin:8px 0;font-size:13px"><span style="color:var(--muted)">Long Headline:</span> ' + h(ad.long_headline) + '</div>';
+    }
+
+    // Final URL
+    if(final_url) {
+      html += '<div class="ads-ad-url-row">'
+        + '<span style="color:var(--muted);font-size:11px;margin-right:6px">Final URL</span>'
+        + '<a href="' + h(final_url) + '" target="_blank" rel="noopener" class="ads-ad-url-link">' + h(final_url) + '</a>'
+        + '</div>';
+    }
+
+    // Headlines list
+    if(headlines.length > 0) {
+      html += '<div class="ads-creative-section">'
+        + '<div class="ads-creative-label">Headlines (' + headlines.length + ')' + (isRSA ? ' — up to 3 shown per impression' : '') + '</div>'
+        + '<div class="ads-creative-list">'
+        + headlines.map(function(hl, i){ return '<div class="ads-creative-item"><span class="ads-creative-idx">' + (i+1) + '</span>' + h(hl) + '</div>'; }).join('')
+        + '</div></div>';
+    }
+
+    // Descriptions list
+    if(descriptions.length > 0) {
+      html += '<div class="ads-creative-section">'
+        + '<div class="ads-creative-label">Descriptions (' + descriptions.length + ')' + (isRSA ? ' — up to 2 shown per impression' : '') + '</div>'
+        + '<div class="ads-creative-list">'
+        + descriptions.map(function(d, i){ return '<div class="ads-creative-item"><span class="ads-creative-idx">' + (i+1) + '</span>' + h(d) + '</div>'; }).join('')
+        + '</div></div>';
+    }
+
+    // Image assets (display ads)
+    if(ad.marketing_images && ad.marketing_images.length > 0) {
+      html += '<div class="ads-creative-section">'
+        + '<div class="ads-creative-label">Images (' + ad.marketing_images.length + ')</div>'
+        + '<div style="font-size:12px;color:var(--muted)">Image assets attached — use the Google Ads UI to preview visual creatives.</div>'
+        + '</div>';
+    }
+
+    // Performance
+    html += '<div class="ads-creative-section">'
+      + '<div class="ads-creative-label">Performance (' + (_s.dateRange || 'LAST_30_DAYS').replace(/_/g,' ').toLowerCase() + ')</div>'
+      + '<div class="ads-kpis" style="margin-top:8px">'
+      + [
+          { lbl:'Spend',       val: fmtMoney(ad.spend) },
+          { lbl:'Impressions', val: fmtNum(ad.impressions) },
+          { lbl:'Clicks',      val: fmtNum(ad.clicks) },
+          { lbl:'CTR',         val: fmtPct(ad.ctr) },
+          { lbl:'Conversions', val: fmtNum(ad.conversions) }
+        ].map(function(k){ return '<div class="ads-kpi"><div class="ads-kpi-val">' + k.val + '</div><div class="ads-kpi-lbl">' + k.lbl + '</div></div>'; }).join('')
+      + '</div></div>';
+
+    // Performance insight
+    var insight = _adInsight(ad);
+    if(insight) {
+      html += '<div class="ads-ad-insight">' + h(insight) + '</div>';
+    }
+
+    html += '</div>'; // ads-ad-preview-inner
+    return html;
+  }
+
+  function _trimUrl(url) {
+    try {
+      var u = new URL(url);
+      return u.hostname;
+    } catch(_) { return url; }
+  }
+
+  function _adInsight(ad) {
+    if(ad.impressions > 1000 && ad.ctr < 1) return '⚠ Low CTR (' + fmtPct(ad.ctr) + ') with ' + fmtNum(ad.impressions) + ' impressions — consider testing new headlines.';
+    if(ad.impressions > 500 && ad.ctr > 5)  return '✓ Strong CTR (' + fmtPct(ad.ctr) + ') — this ad is performing well.';
+    if(ad.clicks > 50 && ad.conversions === 0) return '⚠ ' + fmtNum(ad.clicks) + ' clicks with 0 conversions — check the landing page experience.';
+    if(ad.conversions > 5 && ad.ctr > 3)    return '✓ Winning ad — strong CTR and conversion performance.';
+    return '';
   }
 
   function _renderDetailKeywords(keywords) {
