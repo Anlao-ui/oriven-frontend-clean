@@ -316,6 +316,9 @@ async function _loadUserProfile(user){
       window.history.replaceState({}, "", window.location.pathname);
       window._pendingOAuthResult = { connected: _ogc === "1", error: _oge || null };
       console.log("[Google OAuth] Return detected | connected:", _ogc === "1", "| error:", _oge || null);
+      // Navigate to Integrations after app finishes loading so the user sees the result.
+      // Delay is intentional: showApp() + navigate() are called after the profile await below.
+      setTimeout(function(){ if(typeof navigate === "function") navigate("integrations"); }, 600);
     }
   } catch(_){}
 

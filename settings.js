@@ -1555,6 +1555,11 @@ async function _loadGadsStatus(){
     var result = await apiFetch("/api/google/status");
     if(!result.ok){
       if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
+      var _statusErr = (result.data && result.data.error) || ("HTTP " + result.status);
+      console.error("[Google Ads] /api/google/status failed:", _statusErr);
+      if(typeof toast === "function"){
+        toast("Could not load connection status (" + _statusErr + ") — please refresh or reconnect.", "err");
+      }
       return;
     }
     var data = result.data;
