@@ -4880,6 +4880,13 @@ body.dark-mode .int-account-selected{background:rgba(183,255,42,.08)!important;}
 .int-account-id{font-size:12px;color:var(--text-2);}
 .int-account-meta{font-size:11px;color:var(--text-2);}
 .int-account-active-badge{display:inline-block;font-size:10px;font-weight:600;background:var(--gpale,rgba(183,255,42,.12));color:var(--gm,#B7FF2A);border-radius:20px;padding:1px 8px;margin-left:6px;vertical-align:middle;letter-spacing:.01em;}
+.int-account-type-badge{display:inline-block;font-size:10px;font-weight:600;border-radius:20px;padding:1px 8px;margin-left:6px;vertical-align:middle;letter-spacing:.01em;}
+.int-account-type-client{background:rgba(99,179,237,.12);color:#63b3ed;}
+.int-account-type-mcc{background:rgba(237,137,54,.12);color:#ed8935;}
+.int-account-row-mcc{cursor:default!important;opacity:.8;}
+.int-account-row-mcc:hover{background:var(--surface-2,rgba(0,0,0,.04))!important;}
+body.dark-mode .int-account-row-mcc:hover{background:rgba(255,255,255,.05)!important;}
+.int-account-mcc-warn{font-size:11px;color:#ed8935;margin-top:3px;}
 
 /* ── INTEGRATIONS PAGE ──────────────────────────────────────── */
 .intg-page{max-width:720px;margin:0 auto;padding:48px 24px 80px;}

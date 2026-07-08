@@ -1628,22 +1628,42 @@ function _renderGadsAccounts(accounts, activeAccountId){
 
   var activeId = activeAccountId || (window._activeAdAccount && window._activeAdAccount.account_id) || null;
 
+  // Auto-select the only eligible client account when nothing is active yet
+  var clientAccounts = accounts.filter(function(a){ return !a.is_manager; });
+  if(clientAccounts.length === 1 && !activeId){
+    var solo = clientAccounts[0];
+    activeId = String(solo.customer_id);
+    selectGadsAccount(solo.customer_id, solo.name || solo.customer_id, false, solo.parent_manager_id || null, solo.status || null);
+  }
+
   listEl.innerHTML = accounts.map(function(a){
     var isSelected = activeId && String(a.customer_id) === String(activeId);
+    var isMcc      = !!a.is_manager;
     var meta = [];
     if(a.currency) meta.push(a.currency);
     if(a.timezone) meta.push(a.timezone);
-    var safeId   = h(a.customer_id);
-    var safeName = h(a.name);
-    return '<div class="int-account-row' + (isSelected ? ' int-account-selected' : '') + '" '
-      + 'onclick="selectGadsAccount(\'' + safeId + '\',\'' + safeName.replace(/'/g,'&apos;') + '\')">'
+    var safeId        = h(a.customer_id);
+    var safeName      = h(a.name);
+    var safeParentId  = h(a.parent_manager_id || '');
+    var safeStatus    = h(a.status || '');
+
+    var typeBadge = isMcc
+      ? '<span class="int-account-type-badge int-account-type-mcc">Manager Account</span>'
+      : '<span class="int-account-type-badge int-account-type-client">Client Account</span>';
+
+    var onclick = isMcc
+      ? 'if(typeof toast==="function")toast("Manager Accounts cannot run campaigns — select a Client Account instead.","err");'
+      : 'selectGadsAccount(\'' + safeId + '\',\'' + safeName.replace(/'/g,'&apos;') + '\',' + isMcc + ',\'' + safeParentId + '\',\'' + safeStatus + '\')';
+
+    return '<div class="int-account-row' + (isSelected ? ' int-account-selected' : '') + (isMcc ? ' int-account-row-mcc' : '') + '" onclick="' + onclick + '">'
       + '<div class="int-account-row-inner">'
       + '<div class="int-account-check">' + (isSelected ? '✓' : '') + '</div>'
       + '<div>'
-      + '<div class="int-account-name">' + safeName
+      + '<div class="int-account-name">' + safeName + ' ' + typeBadge
       + (isSelected ? ' <span class="int-account-active-badge">Active</span>' : '') + '</div>'
       + '<div class="int-account-id">ID: ' + safeId + '</div>'
       + (meta.length ? '<div class="int-account-meta">' + h(meta.join(' \xb7 ')) + '</div>' : '')
+      + (isMcc ? '<div class="int-account-mcc-warn">Manager Account — select a Client Account below to run ads</div>' : '')
       + '</div>'
       + '</div>'
       + '</div>';
@@ -1733,9 +1753,21 @@ async function disconnectGoogleAds(){
   }
 }
 
-async function selectGadsAccount(accountId, accountName){
+async function selectGadsAccount(accountId, accountName, isManager, parentManagerId, status){
+  if(isManager){
+    if(typeof toast === 'function') toast('Manager Accounts cannot run campaigns — select a Client Account instead.', 'err');
+    return;
+  }
+
   // Optimistic UI: mark selected immediately before API round-trip
-  window._activeAdAccount = { platform: 'google_ads', account_id: String(accountId), account_name: String(accountName || '') };
+  window._activeAdAccount = {
+    platform:          'google_ads',
+    account_id:        String(accountId),
+    account_name:      String(accountName || ''),
+    is_manager:        false,
+    parent_manager_id: parentManagerId || null,
+    status:            status || null
+  };
   document.querySelectorAll('.int-account-row').forEach(function(row){
     row.classList.remove('int-account-selected');
     var check = row.querySelector('.int-account-check');
@@ -1766,7 +1798,13 @@ async function selectGadsAccount(accountId, accountName){
     var result = await apiFetch('/api/google/active-account', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ account_id: accountId, account_name: accountName || '' })
+      body:    JSON.stringify({
+        account_id:        accountId,
+        account_name:      accountName || '',
+        is_manager:        false,
+        parent_manager_id: parentManagerId || null,
+        status:            status || null
+      })
     });
     if(!result.ok){
       toast('Could not set active account — please try again.', 'err');
