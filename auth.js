@@ -314,10 +314,21 @@ async function _loadUserProfile(user){
     var _oge = _oqp.get("google_error");
     if(_ogc === "1" || _oge){
       window.history.replaceState({}, "", window.location.pathname);
-      window._pendingOAuthResult = { connected: _ogc === "1", error: _oge || null };
+      window._pendingOAuthResult = { provider: 'google', connected: _ogc === "1", error: _oge || null };
       console.log("[Google OAuth] Return detected | connected:", _ogc === "1", "| error:", _oge || null);
-      // Navigate to Integrations after app finishes loading so the user sees the result.
-      // Delay is intentional: showApp() + navigate() are called after the profile await below.
+      setTimeout(function(){ if(typeof navigate === "function") navigate("integrations"); }, 600);
+    }
+  } catch(_){}
+
+  // Detect TikTok Ads OAuth return — store result, clean URL
+  try {
+    var _otqp = new URLSearchParams(window.location.search);
+    var _otc  = _otqp.get("tiktok_connected");
+    var _ote  = _otqp.get("tiktok_error");
+    if(_otc === "1" || _ote){
+      window.history.replaceState({}, "", window.location.pathname);
+      window._pendingOAuthResult = { provider: 'tiktok', connected: _otc === "1", error: _ote || null };
+      console.log("[TikTok OAuth] Return detected | connected:", _otc === "1", "| error:", _ote || null);
       setTimeout(function(){ if(typeof navigate === "function") navigate("integrations"); }, 600);
     }
   } catch(_){}

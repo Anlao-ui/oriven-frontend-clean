@@ -1522,26 +1522,42 @@ function _initSettingsNav(){
 window._activeAdAccount = window._activeAdAccount || null;
 
 function initIntegrations(){
-  // Show pending OAuth result (from Google OAuth return redirect)
+  // Show pending OAuth result (from Google or TikTok OAuth return redirect)
   var _oar = window._pendingOAuthResult;
   if(_oar){
     window._pendingOAuthResult = null;
-    var _errMap = {
-      access_denied: "Google sign-in was cancelled.",
+    var _googleErrMap = {
+      access_denied:  "Google sign-in was cancelled.",
       token_exchange: "Google connection failed — please try again.",
-      invalid_state: "Session expired — please try again.",
-      db: "Could not save connection — please try again.",
-      network: "Network error — please try again."
+      invalid_state:  "Session expired — please try again.",
+      db:             "Could not save connection — please try again.",
+      network:        "Network error — please try again."
+    };
+    var _tiktokErrMap = {
+      access_denied:  "TikTok sign-in was cancelled.",
+      token_exchange: "TikTok connection failed — please try again.",
+      invalid_state:  "Session expired — please try again.",
+      db:             "Could not save connection — please try again.",
+      network:        "Network error — please try again."
     };
     setTimeout(function(){
-      if(_oar.connected){
-        toast("Google Ads connected successfully!");
-      } else if(_oar.error){
-        toast(_errMap[_oar.error] || "Google connection failed.", "err");
+      if(_oar.provider === 'tiktok'){
+        if(_oar.connected){
+          toast("TikTok Ads connected successfully!");
+        } else if(_oar.error){
+          toast(_tiktokErrMap[_oar.error] || "TikTok connection failed.", "err");
+        }
+      } else {
+        if(_oar.connected){
+          toast("Google Ads connected successfully!");
+        } else if(_oar.error){
+          toast(_googleErrMap[_oar.error] || "Google connection failed.", "err");
+        }
       }
     }, 100);
   }
   _loadGadsStatus();
+  _loadTadsStatus();
 }
 
 async function _loadGadsStatus(){
@@ -1815,6 +1831,233 @@ async function selectGadsAccount(accountId, accountName, isManager, parentManage
   }
 }
 
+
+// ════════════════════════════════════════════════════════════════
+// TIKTOK ADS INTEGRATION
+// ════════════════════════════════════════════════════════════════
+
+async function _loadTadsStatus(){
+  var connectBtn     = document.getElementById("tads-connect-btn");
+  var connectedEl    = document.getElementById("tads-connected-info");
+  var connectedBadge = document.getElementById("tads-connected-badge");
+  if(connectBtn){ connectBtn.disabled = true; connectBtn.textContent = "Loading…"; }
+
+  try {
+    var result = await apiFetch("/api/tiktok/status");
+    if(!result.ok){
+      if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
+      var _statusErr = (result.data && result.data.error) || ("HTTP " + result.status);
+      console.error("[TikTok Ads] /api/tiktok/status failed:", _statusErr);
+      return;
+    }
+    var data = result.data;
+    if(data.connected){
+      if(connectBtn)     connectBtn.style.display     = "none";
+      if(connectedBadge) connectedBadge.style.display = "";
+      if(connectedEl)    connectedEl.style.display    = "";
+
+      var userEl   = document.getElementById("tads-user-val");
+      var dateEl   = document.getElementById("tads-date-val");
+      var statusEl = document.getElementById("tads-status-text");
+
+      if(userEl)   userEl.textContent  = data.tiktok_display_name || "—";
+      if(dateEl)   dateEl.textContent  = data.connected_at
+        ? new Date(data.connected_at).toLocaleDateString()
+        : "—";
+      if(statusEl) statusEl.innerHTML  = '<span class="int-status-dot"></span>Active';
+
+      // Render cached accounts from status response
+      var storedAccounts = data.tiktok_ads_accounts || [];
+      if(storedAccounts.length){
+        _renderTadsAccounts(storedAccounts, data.active_ad_account && data.active_ad_account.account_id);
+      } else {
+        // No cached accounts — kick off a fresh fetch
+        refreshTadsAccounts();
+      }
+    } else {
+      if(connectBtn){ connectBtn.style.display = ""; connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
+      if(connectedBadge) connectedBadge.style.display = "none";
+      if(connectedEl)    connectedEl.style.display    = "none";
+    }
+  } catch(err){
+    if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
+    console.error("[TikTok Ads] Status load failed:", err.message);
+  }
+}
+
+function _renderTadsAccounts(accounts, activeAccountId){
+  var wrap   = document.getElementById("tads-accounts-wrap");
+  var listEl = document.getElementById("tads-accounts-list");
+  var errEl  = document.getElementById("tads-accounts-error");
+  var loadEl = document.getElementById("tads-accounts-loading");
+  if(!wrap || !listEl) return;
+  if(loadEl) loadEl.style.display = "none";
+  if(errEl)  errEl.style.display  = "none";
+
+  if(!accounts || accounts.length === 0){
+    wrap.style.display = "none";
+    if(errEl){ errEl.textContent = "No TikTok Ads accounts found. Make sure your account has access to a TikTok Ads Manager, then click Refresh accounts."; errEl.style.display = ""; }
+    return;
+  }
+
+  function h(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var activeId = activeAccountId || (window._activeTadsAccount && window._activeTadsAccount.account_id) || null;
+
+  // Auto-select sole account when nothing is active
+  if(accounts.length === 1 && !activeId){
+    var solo = accounts[0];
+    activeId = String(solo.advertiser_id);
+    selectTadsAccount(solo.advertiser_id, solo.advertiser_name || solo.advertiser_id, solo.currency || null);
+  }
+
+  listEl.innerHTML = accounts.map(function(a){
+    var isSelected = activeId && String(a.advertiser_id) === String(activeId);
+    var safeId   = h(a.advertiser_id);
+    var safeName = h(a.advertiser_name || a.advertiser_id);
+    var meta = [];
+    if(a.currency) meta.push(a.currency);
+    if(a.timezone) meta.push(a.timezone);
+    return '<div class="int-account-row' + (isSelected ? ' int-account-selected' : '') + '" '
+      + 'onclick="selectTadsAccount(\'' + safeId + '\',\'' + safeName.replace(/'/g,'&apos;') + '\',\'' + h(a.currency||'') + '\')">'
+      + '<div class="int-account-row-inner">'
+      + '<div class="int-account-check">' + (isSelected ? '✓' : '') + '</div>'
+      + '<div>'
+      + '<div class="int-account-name">' + safeName
+      + (isSelected ? ' <span class="int-account-active-badge">Active</span>' : '') + '</div>'
+      + '<div class="int-account-id">ID: ' + safeId + '</div>'
+      + (meta.length ? '<div class="int-account-meta">' + h(meta.join(' · ')) + '</div>' : '')
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  wrap.style.display = "";
+}
+
+async function refreshTadsAccounts(){
+  var btn    = document.getElementById("tads-refresh-btn");
+  var loadEl = document.getElementById("tads-accounts-loading");
+  var errEl  = document.getElementById("tads-accounts-error");
+  var wrap   = document.getElementById("tads-accounts-wrap");
+  if(btn)    { btn.disabled = true; btn.textContent = "Refreshing…"; }
+  if(loadEl) { loadEl.style.display = ""; }
+  if(errEl)  { errEl.style.display  = "none"; }
+  if(wrap)   { wrap.style.display   = "none"; }
+
+  try {
+    var result = await apiFetch("/api/tiktok/accounts");
+    if(loadEl) loadEl.style.display = "none";
+    if(!result.ok){
+      var msg = (result.data && result.data.error) ? result.data.error : "Could not fetch accounts (HTTP " + result.status + ")";
+      if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
+    } else {
+      try {
+        var activeId = window._activeTadsAccount && window._activeTadsAccount.account_id;
+        _renderTadsAccounts(result.data.accounts || [], activeId);
+      } catch(renderErr){
+        console.error("[TikTok Ads] Render error:", renderErr);
+        if(errEl){ errEl.textContent = "Display error: " + renderErr.message; errEl.style.display = ""; }
+      }
+    }
+  } catch(err){
+    if(loadEl) loadEl.style.display = "none";
+    var msg = err.message || "Network error — try again";
+    if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
+    console.error("[TikTok Ads] Account refresh failed:", err.message);
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = "Refresh accounts"; }
+  }
+}
+
+async function connectTikTokAds(){
+  var btn = document.getElementById("tads-connect-btn");
+  if(btn){ btn.disabled = true; btn.textContent = "Connecting…"; }
+  try {
+    var result = await apiFetch("/api/tiktok/auth-url");
+    if(!result.ok){
+      toast("Could not initiate TikTok connection — please try again.", "err");
+      if(btn){ btn.disabled = false; btn.textContent = "Connect"; }
+      return;
+    }
+    window.location.href = result.data.url;
+  } catch(err){
+    toast("Connection error — please try again.", "err");
+    if(btn){ btn.disabled = false; btn.textContent = "Connect"; }
+  }
+}
+
+async function disconnectTikTokAds(){
+  var btn = document.getElementById("tads-disconnect-btn");
+  if(btn){ btn.disabled = true; btn.textContent = "Disconnecting…"; }
+  try {
+    var result = await apiFetch("/api/tiktok/disconnect", { method: "POST" });
+    if(result.ok){
+      toast("TikTok Ads disconnected.");
+      window._activeTadsAccount = null;
+
+      var connectBtn     = document.getElementById("tads-connect-btn");
+      var connectedEl    = document.getElementById("tads-connected-info");
+      var connectedBadge = document.getElementById("tads-connected-badge");
+      if(connectBtn)     { connectBtn.style.display = ""; connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
+      if(connectedEl)    connectedEl.style.display    = "none";
+      if(connectedBadge) connectedBadge.style.display = "none";
+    } else {
+      toast("Could not disconnect — please try again.", "err");
+      if(btn){ btn.disabled = false; btn.textContent = "Disconnect"; }
+    }
+  } catch(err){
+    toast("Could not disconnect — please try again.", "err");
+    if(btn){ btn.disabled = false; btn.textContent = "Disconnect"; }
+    console.error("[TikTok Ads] Disconnect error:", err.message);
+  }
+}
+
+async function selectTadsAccount(advertiserId, advertiserName, currency){
+  window._activeTadsAccount = {
+    platform:        'tiktok_ads',
+    account_id:      String(advertiserId),
+    account_name:    String(advertiserName || ''),
+    currency:        currency || null
+  };
+
+  // Optimistic UI highlight
+  document.querySelectorAll('#tads-accounts-list .int-account-row').forEach(function(row){
+    row.classList.remove('int-account-selected');
+    var check = row.querySelector('.int-account-check');
+    if(check) check.textContent = '';
+    var badge = row.querySelector('.int-account-active-badge');
+    if(badge) badge.remove();
+  });
+  document.querySelectorAll('#tads-accounts-list .int-account-row').forEach(function(row){
+    var idEl = row.querySelector('.int-account-id');
+    if(idEl && idEl.textContent.indexOf(String(advertiserId)) !== -1){
+      row.classList.add('int-account-selected');
+      var check = row.querySelector('.int-account-check');
+      if(check) check.textContent = '✓';
+      var nameEl = row.querySelector('.int-account-name');
+      if(nameEl && !nameEl.querySelector('.int-account-active-badge')){
+        var badge = document.createElement('span');
+        badge.className = 'int-account-active-badge';
+        badge.textContent = 'Active';
+        nameEl.appendChild(badge);
+      }
+    }
+  });
+
+  try {
+    var result = await apiFetch('/api/tiktok/active-account', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ advertiser_id: advertiserId, advertiser_name: advertiserName || '', currency: currency || null })
+    });
+    if(!result.ok){
+      toast('Could not set active account — please try again.', 'err');
+    }
+  } catch(err){
+    console.error('[TikTok Ads] selectTadsAccount error:', err.message);
+    toast('Could not set active account — please try again.', 'err');
+  }
+}
 
 // ════════════════════════════════════════════════════════════════
 // BOOT
