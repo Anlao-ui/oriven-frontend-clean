@@ -1394,20 +1394,21 @@ function renderPlanPanel(){
     html += '</div>';
   }
 
-  // ── Paid plan cards (Starter · Premium · Business) ────────────
-  var paidPlans = ORIVEN_PAID_PLANS;
+  // ── Paid plan cards ────────────────────────────────────────────
   html += '<div class="plan-cards">';
-  paidPlans.forEach(function(plan){
-    var isCurrent = plan.id === currentId;
-    var isPending = plan.id === pendingId;
-    var isPopular = !!plan.popular;
+  ORIVEN_PAID_PLANS.forEach(function(plan){
+    var isCurrent    = plan.id === currentId;
+    var isPending    = plan.id === pendingId;
+    var isPopular    = !!plan.popular;
+    var isAgency     = !!plan.contactSales;
     var cls = 'plan-card';
-    if(isCurrent)  cls += ' plan-card--current';
-    if(isPending)  cls += ' plan-card--pending';
+    if(isCurrent)                            cls += ' plan-card--current';
+    if(isPending)                            cls += ' plan-card--pending';
     if(isPopular && !isCurrent && !isPending) cls += ' plan-card--popular';
+    if(isAgency)                             cls += ' plan-card--agency';
 
     html += '<div class="' + cls + '">';
-    if(isPopular) html += '<div class="plan-popular-tag">Most Popular</div>';
+    if(isPopular && !isAgency) html += '<div class="plan-popular-tag">Most Popular</div>';
 
     html += '<div class="plan-card-head">';
     html += '<span class="plan-card-name">' + plan.name + '</span>';
@@ -1415,24 +1416,34 @@ function renderPlanPanel(){
     else if(isPending) html += '<span class="plan-badge plan-badge--pending">Scheduled</span>';
     html += '</div>';
 
-    html += '<div class="plan-card-price">';
-    html += '<span class="plan-price-num">€' + plan.price + '</span>';
-    html += '<span class="plan-price-per">/month</span>';
-    html += '</div>';
+    // Price row — Agency shows "Contact Sales" instead of price
+    if(isAgency){
+      html += '<div class="plan-card-price"><span class="plan-price-cs">Contact Sales</span></div>';
+    } else {
+      html += '<div class="plan-card-price">';
+      html += '<span class="plan-price-num">€' + plan.price + '</span>';
+      html += '<span class="plan-price-per">/month</span>';
+      html += '</div>';
+    }
 
-    html += '<ul class="plan-features">';
-    plan.features.forEach(function(f){
-      html += '<li><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M2 7.5l3 3 7-6"/></svg>' + f + '</li>';
-    });
-    html += '</ul>';
+    // Feature list — Agency shows nothing yet
+    if(!isAgency && plan.features && plan.features.length){
+      html += '<ul class="plan-features">';
+      plan.features.forEach(function(f){
+        html += '<li><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M2 7.5l3 3 7-6"/></svg>' + f + '</li>';
+      });
+      html += '</ul>';
+    }
 
     html += '<div class="plan-card-action">';
-    if(isCurrent){
+    if(isAgency){
+      html += '<a href="mailto:hello@oriven.ai" class="btn btn-g btn-sm">Contact Sales</a>';
+    } else if(isCurrent){
       html += '<button class="btn btn-g btn-sm" disabled>Your Current Plan</button>';
     } else if(isPending){
       html += '<button class="btn btn-g btn-sm" disabled>Scheduled</button>';
     } else {
-      var planRank  = ORIVEN_PLAN_LIST.findIndex(function(p){ return p.id === plan.id; });
+      var planRank    = ORIVEN_PLAN_LIST.findIndex(function(p){ return p.id === plan.id; });
       var actionLabel = planRank > currentRank ? 'Upgrade' : 'Downgrade';
       html += '<button class="btn btn-p btn-sm" onclick="switchPlan(\'' + plan.id + '\')">' + actionLabel + '</button>';
     }
