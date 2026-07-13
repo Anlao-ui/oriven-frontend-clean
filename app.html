@@ -2674,6 +2674,22 @@
 
         </div><!-- /#ads-dash -->
       </div><!-- /.ads-page -->
+
+      <!-- Ad Inspector — right-side drawer, shown when an ad row is clicked -->
+      <div id="ads-inspector-overlay" class="ads-inspector-overlay" onclick="window.closeAdInspector()"></div>
+      <div id="ads-inspector" class="ads-inspector" role="complementary" aria-label="Ad Inspector">
+        <div class="ads-insp-hd">
+          <div style="flex:1;min-width:0">
+            <div class="ads-insp-title">Ad Inspector</div>
+            <div class="ads-insp-meta" id="ads-insp-meta"></div>
+          </div>
+          <button class="ads-insp-close" onclick="window.closeAdInspector()" aria-label="Close inspector">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+          </button>
+        </div>
+        <div id="ads-insp-body" class="ads-insp-body"></div>
+      </div>
+
     </div><!-- /#page-ads -->
 
 </div><!-- /mc -->

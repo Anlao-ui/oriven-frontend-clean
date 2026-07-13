@@ -19,11 +19,13 @@
 
   // ── State ───────────────────────────────────────────────────
   var _s = {
-    dateRange:  'LAST_30_DAYS',
-    overview:   null,
-    campaigns:  null,
-    account:    null,
-    loading:    false
+    dateRange:       'LAST_30_DAYS',
+    overview:        null,
+    campaigns:       null,
+    account:         null,
+    loading:         false,
+    currentCampInfo: null,  // campaign_info for the open campaign
+    currentKeywords: []     // keywords (with ad_group field) for the open campaign
   };
 
   // ── DOM helpers ─────────────────────────────────────────────
@@ -226,7 +228,7 @@
   function _renderOrivenScore(ov, camps) {
     if(!ov) return;
 
-    var ctrBench  = 3.0; // % industry benchmark for search
+    var ctrBench  = 3.0;
     var ctrScore  = Math.min(100, (ov.ctr / ctrBench) * 80 + (ov.ctr > 0 ? 20 : 0));
 
     var convRate  = ov.clicks > 0 ? (ov.conversions / ov.clicks) * 100 : 0;
@@ -250,7 +252,6 @@
       spendScore * 0.15
     )));
 
-    // Update ring
     var arc = $('ads-score-arc');
     var num = $('ads-score-num');
     if(arc) {
@@ -260,7 +261,6 @@
     }
     if(num) num.textContent = score;
 
-    // Score breakdown bars
     var brk = $('ads-score-breakdown');
     if(brk) {
       var metrics = [
@@ -295,6 +295,11 @@
     }
     if(!camp) return;
 
+    // Reset inspector state for the new campaign
+    _s.currentCampInfo = null;
+    _s.currentKeywords = [];
+    closeAdInspector(true); // close without animation reset of rows
+
     hide('ads-campaigns-view');
     show('ads-campaign-view');
 
@@ -305,6 +310,7 @@
   };
 
   window.backToAdsCampaigns = function() {
+    closeAdInspector(true);
     hide('ads-campaign-view');
     show('ads-campaigns-view');
   };
@@ -328,10 +334,7 @@
           return '<div class="ads-kpi"><div class="ads-kpi-val">' + k.val + '</div><div class="ads-kpi-lbl">' + k.lbl + '</div></div>';
         }).join('')
       + '</div>'
-      // Campaign info bar — populated after detail loads
       + '<div id="ads-detail-camp-info"></div>'
-      // Ad preview panel — hidden until a row is clicked
-      + '<div id="ads-ad-preview" class="ads-ad-preview" style="display:none"></div>'
       + '<div id="ads-detail-ads-wrap"><div class="ads-loading-wrap"><div class="ads-spinner"></div>Loading ads…</div></div>'
       + '<div id="ads-detail-kw-wrap" style="margin-top:20px"></div>'
       + '<div id="ads-detail-st-wrap" style="margin-top:20px"></div>';
@@ -347,6 +350,11 @@
         return;
       }
       var d = res.data;
+
+      // Cache for the inspector drawer
+      _s.currentCampInfo = d.campaign_info || null;
+      _s.currentKeywords = d.keywords || [];
+
       _renderCampaignInfoBar(d.campaign_info);
       _renderDetailAds(d.ads || []);
       _renderDetailKeywords(d.keywords || []);
@@ -385,13 +393,12 @@
       return;
     }
 
-    // Store ads by id for preview lookup
     _adIndex = {};
     ads.forEach(function(a){ if(a.id) _adIndex[String(a.id)] = a; });
 
     el.innerHTML = '<div class="ads-section-hd">'
       + '<div class="ads-section-title">Ads (' + ads.length + ')</div>'
-      + '<div style="font-size:11px;color:var(--muted)">Click a row to preview</div>'
+      + '<div style="font-size:11px;color:var(--muted)">Click a row to inspect</div>'
       + '</div>'
       + '<div class="ads-table-wrap">'
       + '<table class="ads-table">'
@@ -402,7 +409,7 @@
       + '</tr></thead><tbody>'
       + ads.map(function(a) {
           var typeLabel = _adTypeLabel(a.type);
-          return '<tr class="ads-ad-row" id="ads-ad-row-' + h(a.id) + '" onclick="window._previewAd(\'' + h(a.id) + '\')">'
+          return '<tr class="ads-ad-row" id="ads-ad-row-' + h(a.id) + '" onclick="window._openInspector(\'' + h(a.id) + '\')">'
             + '<td class="ads-name" style="max-width:220px" title="' + h(a.headline) + '">' + h(a.headline || '—') + '</td>'
             + '<td style="font-size:12px;color:var(--muted)">' + h(a.ad_group) + '</td>'
             + '<td><span class="ads-camp-chip" style="font-size:10px">' + typeLabel + '</span></td>'
@@ -418,21 +425,23 @@
 
   function _adTypeLabel(type) {
     var map = {
-      'RESPONSIVE_SEARCH_AD':   'RSA',
-      'EXPANDED_TEXT_AD':       'ETA',
-      'RESPONSIVE_DISPLAY_AD':  'Display',
-      'IMAGE_AD':               'Image',
-      'VIDEO_AD':               'Video',
-      'CALL_ONLY_AD':           'Call',
-      'SHOPPING_PRODUCT_AD':    'Shopping',
-      'PERFORMANCE_MAX_AD':     'PMax',
+      'RESPONSIVE_SEARCH_AD':      'RSA',
+      'EXPANDED_TEXT_AD':          'ETA',
+      'RESPONSIVE_DISPLAY_AD':     'Display',
+      'IMAGE_AD':                  'Image',
+      'VIDEO_AD':                  'Video',
+      'CALL_ONLY_AD':              'Call',
+      'SHOPPING_PRODUCT_AD':       'Shopping',
+      'PERFORMANCE_MAX_AD':        'PMax',
       'DEMAND_GEN_MULTI_ASSET_AD': 'DemandGen'
     };
     return map[type] || (type ? type.replace(/_AD$/, '').replace(/_/g,' ') : '?');
   }
 
-  // Called when an ad row is clicked
-  window._previewAd = function(adId) {
+  // ── Ad Inspector Drawer ──────────────────────────────────────
+
+  // Open inspector for a given ad ID (called by row click)
+  window._openInspector = function(adId) {
     var ad = _adIndex[String(adId)];
     if(!ad) return;
 
@@ -441,130 +450,61 @@
     var row = $('ads-ad-row-' + adId);
     if(row) row.classList.add('ads-ad-row-active');
 
-    var panel = $('ads-ad-preview');
-    if(!panel) return;
-    panel.innerHTML = _buildAdPreviewHTML(ad);
-    panel.style.display = '';
-    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    var overlay   = $('ads-inspector-overlay');
+    var inspector = $('ads-inspector');
+    var meta      = $('ads-insp-meta');
+    var body      = $('ads-insp-body');
+    if(!inspector || !body) return;
+
+    // Header meta row: type badge + status + ad group
+    if(meta) {
+      meta.innerHTML = '<span class="ads-ad-type-badge">' + _adTypeLabel(ad.type) + '</span>'
+        + statusBadge(ad.status)
+        + (ad.ad_group ? '<span style="font-size:11px;color:var(--muted)">' + h(ad.ad_group) + '</span>' : '');
+    }
+
+    body.innerHTML = _buildInspectorHTML(ad);
+
+    if(overlay)   overlay.classList.add('open');
+    inspector.classList.add('open');
+
+    // Scroll the inspector body to the top
+    body.scrollTop = 0;
+
+    // Close on Escape
+    document._adsInspEsc = function(e) {
+      if(e.key === 'Escape') closeAdInspector();
+    };
+    document.addEventListener('keydown', document._adsInspEsc);
   };
 
-  window.closeAdPreview = function() {
-    var panel = $('ads-ad-preview');
-    if(panel) panel.style.display = 'none';
-    document.querySelectorAll('.ads-ad-row').forEach(function(r){ r.classList.remove('ads-ad-row-active'); });
-  };
+  // Keep old name as alias
+  window._previewAd = window._openInspector;
 
-  function _buildAdPreviewHTML(ad) {
-    var headlines     = ad.headlines_all     || (ad.headline ? [ad.headline] : []);
-    var descriptions  = ad.descriptions_all  || [];
-    var final_url     = ad.final_url         || '';
-    var display_url   = ad.display_url       || (final_url ? _trimUrl(final_url) : '');
-    var isDisplay     = ad.type === 'RESPONSIVE_DISPLAY_AD' || ad.type === 'IMAGE_AD';
-    var isRSA         = ad.type === 'RESPONSIVE_SEARCH_AD';
-
-    // Google Search Ad simulation (text ads)
-    var previewHtml = '';
-    if(!isDisplay && headlines.length > 0) {
-      var h1 = headlines[0] || '';
-      var h2 = headlines[1] || '';
-      var h3 = headlines[2] || '';
-      var previewHead = [h1, h2, h3].filter(Boolean).join(' | ');
-      var previewDesc = descriptions[0] || '';
-      var previewDesc2 = descriptions[1] || '';
-      previewHtml = '<div class="ads-google-sim">'
-        + '<div class="ads-google-sim-label">Ad</div>'
-        + '<div class="ads-google-sim-url">' + h(display_url || final_url) + '</div>'
-        + '<div class="ads-google-sim-headline">' + h(previewHead) + '</div>'
-        + '<div class="ads-google-sim-desc">' + h(previewDesc) + (previewDesc2 ? ' ' + h(previewDesc2) : '') + '</div>'
-        + '</div>';
+  function closeAdInspector(silent) {
+    var overlay   = $('ads-inspector-overlay');
+    var inspector = $('ads-inspector');
+    if(overlay)   overlay.classList.remove('open');
+    if(inspector) inspector.classList.remove('open');
+    if(!silent) {
+      document.querySelectorAll('.ads-ad-row').forEach(function(r){ r.classList.remove('ads-ad-row-active'); });
     }
-
-    // Full creative panel
-    var html = '<div class="ads-ad-preview-inner">'
-      + '<div class="ads-ad-preview-hd">'
-      + '<div>'
-      + '<span class="ads-ad-type-badge">' + _adTypeLabel(ad.type) + '</span> '
-      + statusBadge(ad.status)
-      + (ad.ad_group ? '<span style="font-size:11px;color:var(--muted);margin-left:8px">Ad Group: ' + h(ad.ad_group) + '</span>' : '')
-      + '</div>'
-      + '<button class="ads-back-btn" style="font-size:11px;padding:4px 10px" onclick="window.closeAdPreview()">✕ Close</button>'
-      + '</div>';
-
-    // Search Ad Simulation
-    if(previewHtml) {
-      html += '<div style="margin:14px 0">' + previewHtml + '</div>';
+    if(document._adsInspEsc) {
+      document.removeEventListener('keydown', document._adsInspEsc);
+      delete document._adsInspEsc;
     }
-
-    // Display ad long headline / business name
-    if(ad.business_name) {
-      html += '<div style="margin:8px 0;font-size:13px"><span style="color:var(--muted)">Business:</span> <strong>' + h(ad.business_name) + '</strong></div>';
-    }
-    if(ad.long_headline) {
-      html += '<div style="margin:8px 0;font-size:13px"><span style="color:var(--muted)">Long Headline:</span> ' + h(ad.long_headline) + '</div>';
-    }
-
-    // Final URL
-    if(final_url) {
-      html += '<div class="ads-ad-url-row">'
-        + '<span style="color:var(--muted);font-size:11px;margin-right:6px">Final URL</span>'
-        + '<a href="' + h(final_url) + '" target="_blank" rel="noopener" class="ads-ad-url-link">' + h(final_url) + '</a>'
-        + '</div>';
-    }
-
-    // Headlines list
-    if(headlines.length > 0) {
-      html += '<div class="ads-creative-section">'
-        + '<div class="ads-creative-label">Headlines (' + headlines.length + ')' + (isRSA ? ' — up to 3 shown per impression' : '') + '</div>'
-        + '<div class="ads-creative-list">'
-        + headlines.map(function(hl, i){ return '<div class="ads-creative-item"><span class="ads-creative-idx">' + (i+1) + '</span>' + h(hl) + '</div>'; }).join('')
-        + '</div></div>';
-    }
-
-    // Descriptions list
-    if(descriptions.length > 0) {
-      html += '<div class="ads-creative-section">'
-        + '<div class="ads-creative-label">Descriptions (' + descriptions.length + ')' + (isRSA ? ' — up to 2 shown per impression' : '') + '</div>'
-        + '<div class="ads-creative-list">'
-        + descriptions.map(function(d, i){ return '<div class="ads-creative-item"><span class="ads-creative-idx">' + (i+1) + '</span>' + h(d) + '</div>'; }).join('')
-        + '</div></div>';
-    }
-
-    // Image assets (display ads)
-    if(ad.marketing_images && ad.marketing_images.length > 0) {
-      html += '<div class="ads-creative-section">'
-        + '<div class="ads-creative-label">Images (' + ad.marketing_images.length + ')</div>'
-        + '<div style="font-size:12px;color:var(--muted)">Image assets attached — use the Google Ads UI to preview visual creatives.</div>'
-        + '</div>';
-    }
-
-    // Performance
-    html += '<div class="ads-creative-section">'
-      + '<div class="ads-creative-label">Performance (' + (_s.dateRange || 'LAST_30_DAYS').replace(/_/g,' ').toLowerCase() + ')</div>'
-      + '<div class="ads-kpis" style="margin-top:8px">'
-      + [
-          { lbl:'Spend',       val: fmtMoney(ad.spend) },
-          { lbl:'Impressions', val: fmtNum(ad.impressions) },
-          { lbl:'Clicks',      val: fmtNum(ad.clicks) },
-          { lbl:'CTR',         val: fmtPct(ad.ctr) },
-          { lbl:'Conversions', val: fmtNum(ad.conversions) }
-        ].map(function(k){ return '<div class="ads-kpi"><div class="ads-kpi-val">' + k.val + '</div><div class="ads-kpi-lbl">' + k.lbl + '</div></div>'; }).join('')
-      + '</div></div>';
-
-    // Performance insight
-    var insight = _adInsight(ad);
-    if(insight) {
-      html += '<div class="ads-ad-insight">' + h(insight) + '</div>';
-    }
-
-    html += '</div>'; // ads-ad-preview-inner
-    return html;
   }
 
-  function _trimUrl(url) {
+  window.closeAdInspector  = closeAdInspector;
+  window.closeAdPreview    = closeAdInspector; // backward compat
+
+  // ── Inspector content builder ────────────────────────────────
+
+  function _trimDomain(url) {
     try {
       var u = new URL(url);
-      return u.hostname;
-    } catch(_) { return url; }
+      return { domain: u.hostname.replace(/^www\./, ''), path: u.pathname === '/' ? '' : u.pathname };
+    } catch(_) { return { domain: url, path: '' }; }
   }
 
   function _adInsight(ad) {
@@ -575,6 +515,194 @@
     return '';
   }
 
+  function _buildInspectorHTML(ad) {
+    var html       = '';
+    var campInfo   = _s.currentCampInfo || {};
+    var allKw      = _s.currentKeywords || [];
+    var headlines  = ad.headlines_all    || (ad.headline ? [ad.headline] : []);
+    var descs      = ad.descriptions_all || [];
+    var final_url  = ad.final_url        || '';
+    var disp_url   = ad.display_url      || '';
+    var isRSA      = ad.type === 'RESPONSIVE_SEARCH_AD';
+    var isDisplay  = ad.type === 'RESPONSIVE_DISPLAY_AD' || ad.type === 'IMAGE_AD';
+    var hasText    = headlines.length > 0;
+
+    // Keywords for this ad's ad group
+    var adGroupKw = allKw.filter(function(k){ return k.ad_group === ad.ad_group; });
+
+    // ── SECTION 1: Ad Preview ──────────────────────────────────
+    html += '<div class="ads-insp-sec">';
+    html += '<div class="ads-insp-sec-label">Ad Preview</div>';
+
+    if(hasText) {
+      var h1 = headlines[0] || '';
+      var h2 = headlines[1] || '';
+      var h3 = headlines[2] || '';
+      var previewHead = [h1, h2, h3].filter(Boolean).join(' | ');
+      var previewDesc  = descs[0] || '';
+      var previewDesc2 = descs[1] || '';
+
+      // Parse domain/path for the simulation
+      var parsed = _trimDomain(final_url || disp_url || '');
+      var simDomain = disp_url || parsed.domain;
+      var simPath   = parsed.path;
+
+      html += '<div class="ads-gsim">';
+      html += '<div class="ads-gsim-sponsored"><div class="ads-gsim-sponsored-dot"></div>Sponsored</div>';
+      html += '<div class="ads-gsim-url">' + h(simDomain) + '</div>';
+      if(simPath) html += '<div class="ads-gsim-breadcrumb">' + h(parsed.domain + simPath) + '</div>';
+      html += '<div class="ads-gsim-headline">' + h(previewHead) + '</div>';
+      if(previewDesc || previewDesc2) {
+        html += '<div class="ads-gsim-desc">' + h(previewDesc) + (previewDesc2 ? ' ' + h(previewDesc2) : '') + '</div>';
+      }
+      html += '</div>'; // .ads-gsim
+
+      // All headlines
+      if(headlines.length > 0) {
+        html += '<div class="ads-insp-asset-hd">Headlines (' + headlines.length + ')';
+        if(isRSA) html += '<span class="ads-insp-asset-note"> — up to 3 shown per impression</span>';
+        html += '</div>';
+        html += '<div class="ads-insp-asset-list">';
+        html += headlines.map(function(hl, i) {
+          return '<div class="ads-insp-asset-row"><span class="ads-insp-asset-num">' + (i+1) + '</span>' + h(hl) + '</div>';
+        }).join('');
+        html += '</div>';
+      }
+
+      // All descriptions
+      if(descs.length > 0) {
+        html += '<div class="ads-insp-asset-hd">Descriptions (' + descs.length + ')';
+        if(isRSA) html += '<span class="ads-insp-asset-note"> — up to 2 shown per impression</span>';
+        html += '</div>';
+        html += '<div class="ads-insp-asset-list">';
+        html += descs.map(function(d, i) {
+          return '<div class="ads-insp-asset-row"><span class="ads-insp-asset-num">' + (i+1) + '</span>' + h(d) + '</div>';
+        }).join('');
+        html += '</div>';
+      }
+
+      // Final URL
+      if(final_url) {
+        html += '<div class="ads-insp-url-chip">'
+          + '<span class="ads-insp-url-label">Final URL</span>'
+          + '<a href="' + h(final_url) + '" target="_blank" rel="noopener" class="ads-insp-url-val">' + h(final_url) + '</a>'
+          + '</div>';
+      }
+
+    } else if(isDisplay) {
+      html += '<div style="font-size:13px;color:var(--muted);font-style:italic">Display Ad — visual preview unavailable in Oriven.</div>';
+      if(ad.business_name) html += '<div style="margin-top:10px;font-size:13px"><span style="color:var(--muted)">Business:</span> <strong>' + h(ad.business_name) + '</strong></div>';
+      if(ad.long_headline) html += '<div style="margin-top:6px;font-size:13px"><span style="color:var(--muted)">Long Headline:</span> ' + h(ad.long_headline) + '</div>';
+      if(ad.marketing_images && ad.marketing_images.length > 0) {
+        html += '<div style="margin-top:8px;font-size:12px;color:var(--muted)">' + ad.marketing_images.length + ' image asset(s) attached — open Google Ads to preview visual creatives.</div>';
+      }
+    } else {
+      html += '<div style="font-size:13px;color:var(--muted);font-style:italic">No preview available for this ad type.</div>';
+    }
+
+    html += '</div>'; // Section 1
+
+    // ── SECTION 2: Ad Information ──────────────────────────────
+    html += '<div class="ads-insp-sec">';
+    html += '<div class="ads-insp-sec-label">Ad Information</div>';
+    html += '<div class="ads-insp-info-grid">';
+
+    var infoRows = [
+      { lbl:'Campaign',      val: h(campInfo.name   || '—') },
+      { lbl:'Campaign Type', val: h((campInfo.type   || '—').replace(/_/g,' ')) },
+      { lbl:'Ad Group',      val: h(ad.ad_group      || '—') },
+      { lbl:'Ad Type',       val: h(_adTypeLabel(ad.type)) },
+      { lbl:'Status',        val: statusBadge(ad.status) }
+    ];
+    if(campInfo.bidding) {
+      infoRows.push({ lbl:'Bidding', val: h(campInfo.bidding.replace(/_/g,' ')) });
+    }
+    if(campInfo.budget && campInfo.budget.daily_euros > 0) {
+      infoRows.push({ lbl:'Daily Budget', val: h(fmtMoney(campInfo.budget.daily_euros)) });
+    }
+
+    html += infoRows.map(function(r) {
+      return '<div class="ads-insp-info-cell">'
+        + '<div class="ads-insp-info-lbl">' + r.lbl + '</div>'
+        + '<div class="ads-insp-info-val">' + r.val + '</div>'
+        + '</div>';
+    }).join('');
+
+    html += '</div>'; // info grid
+    html += '</div>'; // Section 2
+
+    // ── SECTION 3: Performance ─────────────────────────────────
+    var clicks      = ad.clicks      || 0;
+    var impressions = ad.impressions || 0;
+    var spend       = ad.spend       || 0;
+    var conversions = ad.conversions || 0;
+    var ctr         = ad.ctr         || 0;
+    var cpc         = clicks > 0      ? spend / clicks       : 0;
+    var cpa         = conversions > 0  ? spend / conversions : 0;
+
+    html += '<div class="ads-insp-sec">';
+    html += '<div class="ads-insp-sec-label">Performance — ' + (_s.dateRange || 'LAST_30_DAYS').replace(/_/g,' ').toLowerCase() + '</div>';
+    html += '<div class="ads-insp-perf-grid">';
+    html += [
+      { lbl:'Clicks',      val:fmtNum(clicks),      accent:false },
+      { lbl:'Impressions', val:fmtNum(impressions),  accent:false },
+      { lbl:'CTR',         val:fmtPct(ctr),          accent:false },
+      { lbl:'CPC',         val:fmtMoney(cpc),        accent:false },
+      { lbl:'Spend',       val:fmtMoney(spend),       accent:false },
+      { lbl:'Conversions', val:fmtNum(conversions),  accent:true  },
+      { lbl:'Cost / Conv', val:fmtCPA(cpa),          accent:false }
+    ].map(function(k) {
+      return '<div class="ads-insp-stat' + (k.accent ? ' accent' : '') + '">'
+        + '<div class="ads-insp-stat-val">' + k.val + '</div>'
+        + '<div class="ads-insp-stat-lbl">' + k.lbl + '</div>'
+        + '</div>';
+    }).join('');
+    html += '</div>'; // perf grid
+
+    var insight = _adInsight(ad);
+    if(insight) html += '<div class="ads-insp-insight">' + h(insight) + '</div>';
+
+    html += '</div>'; // Section 3
+
+    // ── SECTION 4: Keywords ────────────────────────────────────
+    html += '<div class="ads-insp-sec">';
+
+    if(adGroupKw.length > 0) {
+      html += '<div class="ads-insp-sec-label">Keywords (' + adGroupKw.length + ') — ' + h(ad.ad_group || '') + '</div>';
+      html += '<div class="ads-insp-kw-wrap">';
+      html += '<table class="ads-insp-kw-table">';
+      html += '<thead><tr>'
+        + '<th>Keyword</th><th>Match</th><th>Status</th>'
+        + '<th class="r">Clicks</th><th class="r">CTR</th>'
+        + '</tr></thead><tbody>';
+      html += adGroupKw.map(function(k) {
+        var mt  = k.match_type || '';
+        var cls = mt === 'BROAD' ? 'ads-rec-broad' : mt === 'PHRASE' ? 'ads-rec-phrase' : 'ads-rec-exact';
+        var lbl = mt === 'BROAD' ? 'Broad' : mt === 'PHRASE' ? 'Phrase' : 'Exact';
+        return '<tr>'
+          + '<td class="ads-insp-kw-name" title="' + h(k.text) + '">' + h(k.text) + '</td>'
+          + '<td><span class="ads-rec-badge ' + cls + '">' + lbl + '</span></td>'
+          + '<td>' + statusBadge(k.status) + '</td>'
+          + '<td class="r">' + fmtNum(k.clicks) + '</td>'
+          + '<td class="r">' + fmtPct(k.ctr) + '</td>'
+          + '</tr>';
+      }).join('');
+      html += '</tbody></table>';
+      html += '</div>'; // kw-wrap
+    } else {
+      html += '<div class="ads-insp-sec-label">Keywords</div>';
+      html += '<div style="font-size:13px;color:var(--muted);font-style:italic">'
+        + (ad.ad_group
+            ? 'No keywords in "' + h(ad.ad_group) + '" for this date range.'
+            : 'No ad group data available.')
+        + '</div>';
+    }
+
+    html += '</div>'; // Section 4
+
+    return html;
+  }
+
   function _renderDetailKeywords(keywords) {
     var el = $('ads-detail-kw-wrap');
     if(!el || !keywords || keywords.length === 0) return;
@@ -583,7 +711,7 @@
       + '<div class="ads-table-wrap">'
       + '<table class="ads-table">'
       + '<thead><tr>'
-      + '<th>Keyword</th><th>Match</th><th>Status</th>'
+      + '<th>Keyword</th><th>Match</th><th>Ad Group</th><th>Status</th>'
       + '<th class="ads-num">Spend</th><th class="ads-num">Clicks</th>'
       + '<th class="ads-num">CTR</th><th class="ads-num">Conv.</th>'
       + '</tr></thead><tbody>'
@@ -594,6 +722,7 @@
           return '<tr>'
             + '<td class="ads-name">' + h(k.text) + '</td>'
             + '<td><span class="ads-rec-badge ' + cls + '">' + lbl + '</span></td>'
+            + '<td style="font-size:12px;color:var(--muted)">' + h(k.ad_group || '—') + '</td>'
             + '<td>' + statusBadge(k.status) + '</td>'
             + '<td class="ads-num">' + fmtMoney(k.spend) + '</td>'
             + '<td class="ads-num">' + fmtNum(k.clicks) + '</td>'
@@ -637,8 +766,6 @@
   }
 
   // ── AI Analysis ──────────────────────────────────────────────
-  // Backend fetches its own fresh data from Google Ads API.
-  // Frontend only passes the desired date range.
   window.analyzeAds = async function() {
     var btn    = $('ads-analyze-btn');
     var result = $('ads-analysis-result');
@@ -659,7 +786,6 @@
 
       var data = res.data;
 
-      // Update Oriven Score ring with AI-computed score
       if(typeof data.score === 'number') {
         var s   = Math.max(0, Math.min(100, data.score));
         var arc = $('ads-score-arc');
@@ -672,7 +798,6 @@
         if(num) num.textContent = s;
       }
 
-      // Render strengths / weaknesses / opportunities on the score card
       var card = $('ads-score-card');
       if(card && (data.strengths || data.weaknesses || data.opportunities)) {
         var oldSw = card.querySelector('[data-sw]');
@@ -704,7 +829,6 @@
         if(scoreWrap) scoreWrap.appendChild(sw);
       }
 
-      // Render findings
       var findings = data.findings || [];
       var html = '';
 
@@ -726,7 +850,6 @@
           + '</div>';
       }
 
-      // Render inline recommendations from the analyze response
       var recs = data.recommendations || [];
       if(recs.length) {
         var recTypeIcon = { budget:'💰', keyword:'🔑', negative:'🚫', bid:'📈', copy:'✏️', structure:'🏗' };
@@ -761,7 +884,6 @@
   };
 
   // ── AI Recommendations ───────────────────────────────────────
-  // Backend fetches its own fresh data. Frontend only passes date range.
   window.generateAdsRecommendations = async function() {
     var btn    = $('ads-recommend-btn');
     var result = $('ads-recommend-result');
@@ -785,7 +907,6 @@
       if(result) {
         var html = '<div class="ads-recs-grid">';
 
-        // Headlines
         if(data.headlines && data.headlines.length) {
           html += '<div class="ads-rec-section">'
             + '<div class="ads-rec-title">Headlines (' + data.headlines.length + ')</div>'
@@ -794,7 +915,6 @@
             + '</ul></div>';
         }
 
-        // Descriptions
         if(data.descriptions && data.descriptions.length) {
           html += '<div class="ads-rec-section">'
             + '<div class="ads-rec-title">Descriptions (' + data.descriptions.length + ')</div>'
@@ -803,7 +923,6 @@
             + '</ul></div>';
         }
 
-        // Keywords
         if(data.keywords && data.keywords.length) {
           html += '<div class="ads-rec-section">'
             + '<div class="ads-rec-title">Keywords to Add (' + data.keywords.length + ')</div>'
@@ -820,7 +939,6 @@
             + '</ul></div>';
         }
 
-        // Negative keywords
         if(data.negative_keywords && data.negative_keywords.length) {
           html += '<div class="ads-rec-section">'
             + '<div class="ads-rec-title">Negative Keywords (' + data.negative_keywords.length + ')</div>'
@@ -835,7 +953,6 @@
             + '</ul></div>';
         }
 
-        // Budget recommendations — full width
         if(data.budget_recommendations && data.budget_recommendations.length) {
           html += '<div class="ads-rec-section" style="grid-column:1/-1">'
             + '<div class="ads-rec-title">Budget Recommendations</div>'

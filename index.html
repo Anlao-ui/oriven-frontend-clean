@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name=”description” content=”Oriven &mdash; AI Campaign Studio. Launch complete marketing campaigns with AI. Describe your business once and generate ads, videos, landing pages, emails and more — all perfectly aligned with your brand.”>
-  <title>Oriven &mdash; AI Campaign Studio</title>
+  <meta name=”description” content=”Oriven — AI-powered marketing intelligence. Connect Google Ads, TikTok, and Meta in one platform. Get unified analytics, daily AI briefings, and actionable recommendations.”>
+  <title>Oriven &mdash; AI Marketing Intelligence Platform</title>
   <link rel="icon" href="assets/orivenlogo.png" type="image/png">
   <link rel="shortcut icon" href="assets/orivenlogo.png">
   <link rel="apple-touch-icon" href="assets/orivenlogo.png">
@@ -13,6 +13,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <style>
+    /* Hero elements start invisible — GSAP animates them in on load */
+    #ov-hero .ov-eyebrow,
+    #ov-hero .ov-h1,
+    #ov-hero .ov-hero-desc,
+    #ov-hero .ov-hero-btns a,
+    #ov-hero .ov-hero-int-pill { opacity: 0 }
+  </style>
   <style>
     /* Public-page router: all views hidden until the router activates one */
     .pub-view { display: none !important; }
@@ -41,27 +50,115 @@
     html, body { overflow: hidden !important; height: 100vh !important; }
 
     #lp-stage { position: relative !important; width: 100% !important; }
+
+    /* Sub-page views: scroll containers (same pattern as #view-landing) */
+    #view-about, #view-blog, #view-product, #view-solutions,
+    #view-product-google-ads, #view-product-meta-ads, #view-product-tiktok-ads,
+    #view-product-analytics, #view-product-ai-recommendations,
+    #view-product-reporting, #view-product-unified-dashboard,
+    #view-404 {
+      height: 100vh !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+    }
+
+    /* Global nav: always hidden unless body carries data-lpnav="1" */
+    #lpNav { display: none !important; }
+    body[data-lpnav="1"] #lpNav { display: flex !important; }
   </style>
 </head>
 <body class="public-page">
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     VIEW: LANDING PAGE
-     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
-<div id="view-landing" class="pub-view">
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     NAVIGATION
-     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <nav class="lp-nav" id="lpNav">
   <div class="lp-nav-inner">
     <a href="/" class="lp-logo">
       <img src="assets/orivenlogo.png" alt="ORIVEN" class="lp-logo-img">
     </a>
     <div class="lp-nav-links">
-      <a href="#features" class="lp-nav-link" onclick="ovNavTo(event,'#ov-brand-identity')">Features</a>
-      <a href="#pricing" class="lp-nav-link" onclick="ovNavTo(event,'#pricing')">Pricing</a>
-      <a href="#faq" class="lp-nav-link" onclick="ovNavTo(event,'#faq')">FAQ</a>
-      <a href="#contact" class="lp-nav-link" onclick="ovNavTo(event,'#ov-final')">Contact</a>
+
+      <!-- PRODUCT MEGA-MENU -->
+      <div class="lp-nav-item lp-has-dd" id="lpDdProduct">
+        <button class="lp-dd-trig" type="button" aria-haspopup="true" aria-expanded="false">
+          Product
+          <svg class="lp-dd-chev" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lp-dropdown lp-dd-mega" role="menu">
+
+          <!-- Col 1: Advertising Platforms -->
+          <div class="lp-dd-col">
+            <div class="lp-dd-colhead">Advertising Platforms</div>
+
+            <a href="/product/google-ads" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              </span>
+              <span class="lp-dd-item-inner">
+                <span class="lp-dd-item-name">Google Ads</span>
+                <span class="lp-dd-badge">Live</span>
+              </span>
+            </a>
+
+            <a href="/product/meta-ads" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="11" viewBox="5 0 30 22"><path fill="#0866FF" d="M20,11 C20,5.72 17.09,1.5 13.5,1.5 C9.91,1.5 7,5.72 7,11 C7,16.28 9.91,20.5 13.5,20.5 C17.09,20.5 20,16.28 20,11 M20,11 C20,5.72 22.91,1.5 26.5,1.5 C30.09,1.5 33,5.72 33,11 C33,16.28 30.09,20.5 26.5,20.5 C22.91,20.5 20,16.28 20,11 Z"/></svg>
+              </span>
+              <span class="lp-dd-item-inner">
+                <span class="lp-dd-item-name">Meta Ads</span>
+                <span class="lp-dd-badge">Live</span>
+              </span>
+            </a>
+
+            <a href="/product/tiktok-ads" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon" style="background:#000;border-color:#1a1a1a">
+                <svg width="14" height="16" viewBox="0 0 28 32"><g fill="#69C9D0" transform="translate(1.5,1.2)"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g><g fill="#EE1D52" transform="translate(-1.5,-1.2)"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g><g fill="white"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g></svg>
+              </span>
+              <span class="lp-dd-item-inner">
+                <span class="lp-dd-item-name">TikTok Ads</span>
+                <span class="lp-dd-badge">Live</span>
+              </span>
+            </a>
+          </div>
+
+          <!-- Col 2: Core Features -->
+          <div class="lp-dd-col">
+            <div class="lp-dd-colhead">Core Features</div>
+
+            <a href="/product/analytics" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1" y="8" width="4" height="7" rx="1" fill="rgba(183,255,42,.8)"/><rect x="6" y="4" width="4" height="11" rx="1" fill="rgba(183,255,42,.8)"/><rect x="11" y="1" width="4" height="14" rx="1" fill="rgba(183,255,42,.8)"/></svg>
+              </span>
+              <span>Analytics</span>
+            </a>
+
+            <a href="/product/ai-recommendations" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.3 4H14l-3.7 2.7 1.4 4.3L8 9.5l-3.7 2.5 1.4-4.3L2 5h4.7z" fill="rgba(183,255,42,.8)"/></svg>
+              </span>
+              <span>AI Recommendations</span>
+            </a>
+
+            <a href="/product/reporting" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="2.5" y="1" width="11" height="14" rx="1.5" stroke="rgba(183,255,42,.8)" stroke-width="1.3"/><line x1="5" y1="5" x2="11" y2="5" stroke="rgba(183,255,42,.8)" stroke-width="1.2"/><line x1="5" y1="8" x2="11" y2="8" stroke="rgba(183,255,42,.8)" stroke-width="1.2"/><line x1="5" y1="11" x2="8.5" y2="11" stroke="rgba(183,255,42,.8)" stroke-width="1.2"/></svg>
+              </span>
+              <span>Reporting</span>
+            </a>
+
+            <a href="/product/unified-dashboard" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="rgba(183,255,42,.8)"><rect x="1" y="1" width="6" height="6" rx="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.2"/></svg>
+              </span>
+              <span>Unified Dashboard</span>
+            </a>
+          </div>
+
+        </div><!-- /lp-dd-mega -->
+      </div><!-- /lpDdProduct -->
+
+      <a href="/solutions" class="lp-nav-link">Solutions</a>
+
+      <a href="/about" class="lp-nav-link">About</a>
+      <a href="/blog" class="lp-nav-link">Blog</a>
     </div>
     <div class="lp-nav-right">
       <a href="#" class="lp-nav-login" onclick="lpHandleLogin(event)">Login</a>
@@ -77,10 +174,29 @@
 <div class="lp-mobile-menu" id="lpMobileMenu">
   <button class="lp-mm-close" id="lpMmClose" aria-label="Close menu">&#x2715;</button>
   <nav class="lp-mm-nav">
-    <a href="#features" class="lp-mm-link" onclick="ovNavTo(event,'#ov-brand-identity');window.closeMobile();">Features</a>
-    <a href="#pricing" class="lp-mm-link" onclick="ovNavTo(event,'#pricing');window.closeMobile();">Pricing</a>
-    <a href="#reviews" class="lp-mm-link" onclick="ovNavTo(event,'#ov-reviews');window.closeMobile();">Reviews</a>
-    <a href="#faq" class="lp-mm-link" onclick="ovNavTo(event,'#faq');window.closeMobile();">FAQ</a>
+
+    <!-- Product accordion -->
+    <div class="lp-mm-item lp-mm-has-dd">
+      <button class="lp-mm-dd-trig" onclick="lpMmToggle(this)">
+        Product <span class="lp-mm-chev">&#8250;</span>
+      </button>
+      <div class="lp-mm-dd-items">
+        <div class="lp-mm-cat">Advertising Platforms</div>
+        <a href="#ov-integrations" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-integrations')">Google Ads</a>
+        <a href="#ov-integrations" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-integrations')">Meta Ads</a>
+        <a href="#ov-integrations" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-integrations')">TikTok Ads</a>
+        <div class="lp-mm-cat">Core Features</div>
+        <a href="#ov-dashboard" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-dashboard')">Analytics</a>
+        <a href="#ov-ai-recs" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-ai-recs')">AI Recommendations</a>
+        <a href="#ov-compare" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-compare')">Reporting</a>
+        <a href="#ov-dashboard" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-dashboard')">Unified Dashboard</a>
+      </div>
+    </div>
+
+    <a href="/solutions" class="lp-mm-link">Solutions</a>
+
+    <a href="/about" class="lp-mm-link">About</a>
+    <a href="/blog" class="lp-mm-link">Blog</a>
   </nav>
   <div class="lp-mm-divider"></div>
   <div class="lp-mm-actions">
@@ -92,424 +208,663 @@
 <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      FULLSCREEN SCENE STAGE
      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+
+
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     VIEW: LANDING PAGE
+     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div id="view-landing" class="pub-view">
 <div id="lp-stage">
 
 <!-- HERO -->
 <section id="ov-hero">
-  <canvas id="ov-canvas" aria-hidden="true"></canvas>
   <div id="ov-hero-content">
-    <div class="ov-eyebrow">AI Campaign Studio</div>
-    <h1 class="ov-h1">Launch complete marketing<br>campaigns with AI</h1>
-    <p class="ov-hero-sub">Strategy, ads, landing pages and content<br>generated in one workflow.</p>
+    <div class="ov-eyebrow">AI-Powered Marketing Intelligence</div>
+    <h1 class="ov-h1">Your Marketing Data Is Fragmented.<br><span class="ov-h1-accent">Oriven Brings It Together.</span></h1>
+    <p class="ov-hero-desc">Connect your ad accounts in minutes. Get unified analytics, AI-powered recommendations and daily performance briefs — all in one place.</p>
     <div class="ov-hero-btns">
-      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Start Creating</a>
-      <a href="#ov-brand-identity" class="ov-btn-ghost" onclick="ovNavTo(event,'#ov-brand-identity')">Explore Features</a>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+      <a href="#ov-dashboard" class="ov-btn-ghost" onclick="ovNavTo(event,'#ov-dashboard')">Learn More</a>
     </div>
-  </div>
-  <div class="ov-scroll-cue" aria-hidden="true">
-    <span>Scroll to explore</span>
-    <div class="ov-scroll-bar"></div>
-  </div>
-</section>
-
-<!-- VALUE STRIP -->
-<div class="ov-ai-strip" aria-hidden="true">
-  <div class="ov-ai-overflow">
-    <div class="ov-ai-track">
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Brand Identity</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Marketing Strategy</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Meta Ads</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Landing Pages</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Email Campaigns</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Social Content</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Creative Briefs</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Audience Research</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Funnels</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Campaign Assets</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Brand Identity</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Marketing Strategy</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Meta Ads</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Landing Pages</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Email Campaigns</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Social Content</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Creative Briefs</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Audience Research</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Funnels</span><span class="ov-ai-sep">·</span>
-      <span class="ov-ai-item"><span class="ov-ai-pip"></span>Campaign Assets</span><span class="ov-ai-sep">·</span>
-    </div>
-  </div>
-</div>
-
-<!-- CAMPAIGN GENERATOR -->
-<section id="ov-generator">
-  <div class="ov-gen-inner">
-    <div class="ov-gen-label">Generate your campaign</div>
-    <div class="ov-gen-field">
-      <span class="ov-gen-spark">✦</span>
-      <span class="ov-gen-text" id="ov-gen-text"></span>
-      <span class="ov-gen-cursor" aria-hidden="true"></span>
-    </div>
-    <div class="ov-gen-hint">Oriven handles everything from here</div>
-  </div>
-</section>
-
-<!-- 01 BRAND IDENTITY -->
-<section id="ov-brand-identity">
-  <div class="ov-bi-inner">
-    <div class="ov-section-label">01</div>
-    <h2 class="ov-bi-heading">Build Your Brand Identity</h2>
-    <div class="ov-bi-card" data-observe>
-      <div class="ov-bi-doc-header">
-        <div class="ov-bi-doc-title">
-          <span class="ov-bi-doc-spark">✦</span>
-          <span class="ov-bi-doc-name">ProFuel™</span>
-          <span class="ov-bi-doc-sub">Brand System</span>
-        </div>
-        <div class="ov-bi-doc-status"><span class="ov-bi-doc-dot"></span>Generated</div>
-      </div>
-      <div class="ov-bi-row">
-        <div class="ov-bi-key">Brand Name</div>
-        <div class="ov-bi-val">ProFuel™</div>
-      </div>
-      <div class="ov-bi-row">
-        <div class="ov-bi-key">Brand Voice</div>
-        <div class="ov-bi-val">Bold, Direct, Results-Driven</div>
-      </div>
-      <div class="ov-bi-row">
-        <div class="ov-bi-key">Target Audience</div>
-        <div class="ov-bi-val">Fitness Enthusiasts, 25–45</div>
-      </div>
-      <div class="ov-bi-row">
-        <div class="ov-bi-key">Brand Colors</div>
-        <div class="ov-bi-val ov-bi-colors">
-          <span class="ov-bi-swatch" style="background:#B7FF2A"></span>
-          <span class="ov-bi-swatch" style="background:#ffffff"></span>
-          <span class="ov-bi-swatch" style="background:#0d0d0f"></span>
-        </div>
-      </div>
-      <div class="ov-bi-row">
-        <div class="ov-bi-key">Positioning</div>
-        <div class="ov-bi-val">Premium Performance Supplement</div>
-      </div>
-      <div class="ov-bi-row">
-        <div class="ov-bi-key">Mission</div>
-        <div class="ov-bi-val">Fuel peak athletic performance</div>
-      </div>
-      <div class="ov-bi-row">
-        <div class="ov-bi-key">Logo Direction</div>
-        <div class="ov-bi-val">Wordmark · Modern Sans-Serif</div>
-      </div>
-      <div class="ov-bi-row">
-        <div class="ov-bi-key">Content Style</div>
-        <div class="ov-bi-val">High-contrast · Athletic · Minimal</div>
+    <div class="ov-hero-integrations">
+      <div class="ov-hero-int-logos">
+        <span class="ov-hero-int-pill ov-pill-google"><span class="ov-int-dot ov-int-dot-google"></span>Google Ads</span>
+        <span class="ov-hero-int-pill ov-pill-meta"><span class="ov-int-dot ov-int-dot-meta"></span>Meta Ads</span>
+        <span class="ov-hero-int-pill ov-pill-tiktok"><span class="ov-int-dot ov-int-dot-tiktok"></span>TikTok Ads</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 02 CAMPAIGN SETUP -->
-<section id="ov-campaign-setup">
-  <div class="ov-cs-inner">
+<!-- 02 THE PROBLEM -->
+<section id="ov-problem">
+  <div class="ov-problem-inner">
     <div class="ov-section-label">02</div>
-    <h2 class="ov-cs-heading">Choose What You Want To Create</h2>
-    <div class="ov-cs-grid" data-observe>
-      <div class="ov-cs-type ov-cs-meta">
-        <div class="ov-cs-vis"></div>
-        <div class="ov-cs-label"><span class="ov-cs-dot"></span>Meta Ads</div>
+    <h2 class="ov-section-h">Stop Switching Between Platforms</h2>
+    <p class="ov-section-sub">View every campaign, metric, and opportunity in one place.</p>
+    <div class="ov-prob-diagram" data-observe>
+      <div class="ov-prob-sources">
+        <div class="ov-prob-source">
+          <div class="ov-prob-src-bar ov-prob-src-google"></div>
+          <div class="ov-prob-src-body">
+            <div class="ov-prob-src-name"><span class="ov-ps-dot ov-ps-dot-google"></span>Google Ads Dashboard</div>
+            <div class="ov-prob-src-row"><span>ROAS</span><span class="ov-green">2.8&times;</span></div>
+            <div class="ov-prob-src-row"><span>Spend</span><span>&euro;4,850</span></div>
+            <div class="ov-prob-src-row"><span>CTR</span><span>2.9%</span></div>
+          </div>
+        </div>
+        <div class="ov-prob-source">
+          <div class="ov-prob-src-bar ov-prob-src-meta"></div>
+          <div class="ov-prob-src-body">
+            <div class="ov-prob-src-name"><span class="ov-ps-dot ov-ps-dot-meta"></span>Meta Ads Dashboard</div>
+            <div class="ov-prob-src-row"><span>ROAS</span><span class="ov-green">2.1&times;</span></div>
+            <div class="ov-prob-src-row"><span>Spend</span><span>&euro;4,320</span></div>
+            <div class="ov-prob-src-row"><span>Reach</span><span>186K</span></div>
+          </div>
+        </div>
+        <div class="ov-prob-source">
+          <div class="ov-prob-src-bar ov-prob-src-tiktok"></div>
+          <div class="ov-prob-src-body">
+            <div class="ov-prob-src-name"><span class="ov-ps-dot ov-ps-dot-tiktok"></span>TikTok Ads Dashboard</div>
+            <div class="ov-prob-src-row"><span>ROAS</span><span class="ov-green">2.4&times;</span></div>
+            <div class="ov-prob-src-row"><span>Spend</span><span>&euro;4,110</span></div>
+            <div class="ov-prob-src-row"><span>Impr.</span><span>78K</span></div>
+          </div>
+        </div>
       </div>
-      <div class="ov-cs-type ov-cs-google">
-        <div class="ov-cs-vis"></div>
-        <div class="ov-cs-label"><span class="ov-cs-dot"></span>Google Ads</div>
+      <div class="ov-prob-arrow" aria-hidden="true">
+        <div class="ov-prob-arrow-line"></div>
+        <div class="ov-prob-arrow-label">Oriven unifies it</div>
+        <div class="ov-prob-arrow-line"></div>
       </div>
-      <div class="ov-cs-type ov-cs-lp">
-        <div class="ov-cs-vis"></div>
-        <div class="ov-cs-label"><span class="ov-cs-dot"></span>Landing Pages</div>
-      </div>
-      <div class="ov-cs-type ov-cs-email">
-        <div class="ov-cs-vis"></div>
-        <div class="ov-cs-label"><span class="ov-cs-dot"></span>Email Campaigns</div>
-      </div>
-      <div class="ov-cs-type ov-cs-video">
-        <div class="ov-cs-vis"></div>
-        <div class="ov-cs-label"><span class="ov-cs-dot"></span>Video Concepts</div>
-      </div>
-      <div class="ov-cs-type ov-cs-social">
-        <div class="ov-cs-vis"></div>
-        <div class="ov-cs-label"><span class="ov-cs-dot"></span>Social Media Content</div>
-      </div>
-      <div class="ov-cs-type ov-cs-creative">
-        <div class="ov-cs-vis"></div>
-        <div class="ov-cs-label"><span class="ov-cs-dot"></span>Creative Assets</div>
-      </div>
-      <div class="ov-cs-type ov-cs-strategy">
-        <div class="ov-cs-vis"></div>
-        <div class="ov-cs-label"><span class="ov-cs-dot"></span>Marketing Strategy</div>
-      </div>
-      <div class="ov-cs-type ov-cs-funnel">
-        <div class="ov-cs-vis"></div>
-        <div class="ov-cs-label"><span class="ov-cs-dot"></span>Funnels</div>
-      </div>
-      <div class="ov-cs-type ov-cs-retarget">
-        <div class="ov-cs-vis"></div>
-        <div class="ov-cs-label"><span class="ov-cs-dot"></span>Retargeting Campaigns</div>
+      <div class="ov-prob-unified">
+        <div class="ov-pb-glow" aria-hidden="true"></div>
+        <div class="ov-pb-header">
+          <span class="ov-pb-logo-text">ORIVEN</span>
+          <span class="ov-pb-badge">Unified Intelligence</span>
+        </div>
+        <div class="ov-pb-divider"></div>
+        <div class="ov-pb-row"><span class="ov-pb-k">Total Spend</span><span class="ov-pb-v">&tilde;&euro;3,500</span></div>
+        <div class="ov-pb-row"><span class="ov-pb-k">Blended ROAS</span><span class="ov-pb-v ov-green">5.8&times;</span></div>
+        <div class="ov-pb-row"><span class="ov-pb-k">Conversions</span><span class="ov-pb-v">312</span></div>
+        <div class="ov-pb-row"><span class="ov-pb-k">AI Insights</span><span class="ov-pb-v ov-green">3 ready</span></div>
+        <div class="ov-pb-divider"></div>
+        <div class="ov-pb-ai-row"><span class="ov-pb-ai-pip"></span>AI brief ready &middot; budget reallocation suggested</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 03 GENERATE YOUR CAMPAIGN -->
-<section id="ov-showcase">
-  <div class="ov-showcase-inner">
+<!-- 03 DASHBOARD PREVIEW -->
+<section id="ov-dashboard">
+  <div class="ov-dash-inner">
     <div class="ov-section-label">03</div>
-    <h2 class="ov-section-h">Generate Your Campaign</h2>
-    <div class="ov-sc-input-bar" data-observe>
-      <div class="ov-sc-ib-left">
-        <span class="ov-sc-ib-spark">✦</span>
-        <div class="ov-sc-ib-text">
-          <div class="ov-sc-ib-label">Campaign Input</div>
-          <div class="ov-sc-ib-val">Premium Protein Powder · ProFuel™</div>
+    <h2 class="ov-section-h">Everything You Need In One Dashboard</h2>
+    <p class="ov-section-sub">Monitor performance, analyze campaigns, and uncover opportunities without jumping between platforms.</p>
+    <div class="ov-dash-mockup" data-observe>
+      <div class="ov-dash-topbar">
+        <div class="ov-dash-topbar-left">
+          <div class="ov-dash-win-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <span class="ov-dash-title-bar">ORIVEN &mdash; Dashboard</span>
+        </div>
+        <div class="ov-dash-topbar-right">
+          <span class="ov-dash-range">Jul 1 &ndash; Jul 10, 2026</span>
+          <span class="ov-dash-live"><span class="ov-dash-live-dot"></span>Live</span>
         </div>
       </div>
-      <div class="ov-sc-ib-right">
-        <div class="ov-sc-ib-count">9 outputs</div>
-        <div class="ov-sc-ib-status"><span class="ov-sc-ib-dot"></span>Complete</div>
+      <div class="ov-dash-kpi-row">
+        <div class="ov-dash-kpi"><div class="ov-dash-kpi-lbl">Total Spend</div><div class="ov-dash-kpi-val">&euro;7,200</div><div class="ov-dash-kpi-delta ov-delta-up">&#8593; 12% vs last week</div></div>
+        <div class="ov-dash-kpi"><div class="ov-dash-kpi-lbl">Blended ROAS</div><div class="ov-dash-kpi-val">3.6&times;</div><div class="ov-dash-kpi-delta ov-delta-up">&#8593; +0.4&times; improvement</div></div>
+        <div class="ov-dash-kpi"><div class="ov-dash-kpi-lbl">Conversions</div><div class="ov-dash-kpi-val">284</div><div class="ov-dash-kpi-delta ov-delta-up">&#8593; +28 this week</div></div>
+        <div class="ov-dash-kpi"><div class="ov-dash-kpi-lbl">Avg. CTR</div><div class="ov-dash-kpi-val">3.8%</div><div class="ov-dash-kpi-delta ov-delta-down">&#8595; &minus;0.2% vs prior</div></div>
+        <div class="ov-dash-kpi"><div class="ov-dash-kpi-lbl">Active Campaigns</div><div class="ov-dash-kpi-val">9</div><div class="ov-dash-kpi-delta ov-delta-neutral">Across 3 platforms</div></div>
       </div>
-    </div>
-    <div class="ov-showcase-grid" data-observe>
-
-      <div class="ov-so">
-        <div class="ov-so-tag">Instagram Ad</div>
-        <div class="ov-so-ig-header">
-          <div class="ov-so-ig-pic"></div>
-          <div class="ov-so-ig-meta">
-            <div class="ov-so-ig-name">ProFuel™</div>
-            <div class="ov-so-ig-sp">Sponsored</div>
-          </div>
-        </div>
-        <div class="ov-so-ad-bg">
-          <div class="ov-so-ad-h">Transform Your<br>Performance</div>
-          <div class="ov-so-ad-sub">30g protein. Zero compromise.</div>
-        </div>
-        <div class="ov-so-footer">
-          <div class="ov-so-cta-pill">Shop Now</div>
-          <div class="ov-so-meta">Est. CTR 1.2%</div>
-        </div>
-      </div>
-
-      <div class="ov-so">
-        <div class="ov-so-tag">Facebook Ad</div>
-        <div class="ov-so-fb">
-          <div class="ov-so-fb-badge">Sponsored · ProFuel™</div>
-          <div class="ov-so-fb-img"></div>
-          <div class="ov-so-fb-body">
-            <div class="ov-so-fb-h">Athletes Don't Compromise</div>
-            <div class="ov-so-fb-url">profuel.com</div>
-          </div>
-        </div>
-        <div class="ov-so-footer">
-          <div class="ov-so-cta-pill">Learn More</div>
-          <div class="ov-so-meta">Est. CTR 0.9%</div>
-        </div>
-      </div>
-
-      <div class="ov-so">
-        <div class="ov-so-tag">Landing Page</div>
-        <div class="ov-so-lp">
-          <div class="ov-so-lp-nav">
-            <span class="ov-so-lp-logo">ProFuel™</span>
-            <div class="ov-so-lp-nav-links">
-              <span>Shop</span><span>About</span><span>Blog</span>
+      <div class="ov-dash-body">
+        <div class="ov-dash-chart-area">
+          <div class="ov-dash-chart-head">
+            <span class="ov-dash-chart-title">Spend by platform &mdash; Last 7 days</span>
+            <div class="ov-dash-chart-legend">
+              <span><span class="ov-dash-leg-dot" style="background:#FBBC05"></span>Google</span>
+              <span><span class="ov-dash-leg-dot" style="background:#0866FF"></span>Meta</span>
+              <span><span class="ov-dash-leg-dot" style="background:#EE1D52"></span>TikTok</span>
             </div>
           </div>
-          <div class="ov-so-lp-hero">
-            <div class="ov-so-lp-h">Transform Your<br>Performance</div>
-            <div class="ov-so-lp-sub">30g protein. Zero compromise.</div>
-            <div class="ov-so-lp-btn">Buy Now — Free Delivery</div>
+          <div class="ov-dash-chart">
+            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:38%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:44%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:18%"></div></div><div class="ov-dash-bar-lbl">Mon</div></div>
+            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:52%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:30%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:22%"></div></div><div class="ov-dash-bar-lbl">Tue</div></div>
+            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:44%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:38%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:26%"></div></div><div class="ov-dash-bar-lbl">Wed</div></div>
+            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:60%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:28%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:20%"></div></div><div class="ov-dash-bar-lbl">Thu</div></div>
+            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:48%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:34%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:24%"></div></div><div class="ov-dash-bar-lbl">Fri</div></div>
+            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:32%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:42%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:28%"></div></div><div class="ov-dash-bar-lbl">Sat</div></div>
+            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:56%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:30%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:22%"></div></div><div class="ov-dash-bar-lbl">Sun</div></div>
           </div>
-          <div class="ov-so-lp-trust">⭐⭐⭐⭐⭐ 4.9 · 1,200 reviews</div>
         </div>
-      </div>
-
-      <div class="ov-so">
-        <div class="ov-so-tag">Email Campaign</div>
-        <div class="ov-so-email">
-          <div class="ov-so-em-from">From: ProFuel™ Team &lt;hello@profuel.com&gt;</div>
-          <div class="ov-so-em-subject">Ready to transform your performance?</div>
-          <div class="ov-so-em-hero"></div>
-          <div class="ov-so-em-line"></div>
-          <div class="ov-so-em-line ov-em-sm"></div>
-          <div class="ov-so-em-line ov-em-md"></div>
-          <div class="ov-so-em-line ov-em-sm"></div>
-          <div class="ov-so-em-btn">View Your Offer →</div>
-        </div>
-      </div>
-
-      <div class="ov-so">
-        <div class="ov-so-tag">Video Concept</div>
-        <div class="ov-so-video">
-          <div class="ov-so-scene">
-            <div class="ov-so-scene-n">SCENE 01 · 0:00–0:04</div>
-            <div class="ov-so-scene-d">Dark gym. Athlete pre-dawn.</div>
-            <div class="ov-so-scene-l">"Before the world wakes up..."</div>
+        <div class="ov-dash-plat-breakdown">
+          <div class="ov-dash-pb-head">Platform Breakdown</div>
+          <div class="ov-dash-pb-row">
+            <div class="ov-dash-pb-name"><span class="ov-dash-pb-dot" style="background:#FBBC05"></span>Google Ads</div>
+            <div class="ov-dash-pb-bar-wrap"><div class="ov-dash-pb-bar" style="width:61%;background:rgba(251,188,5,.6)"></div></div>
+            <div class="ov-dash-pb-vals"><span class="ov-green">4.2&times;</span><span>&euro;2,840</span></div>
           </div>
-          <div class="ov-so-scene-div"></div>
-          <div class="ov-so-scene">
-            <div class="ov-so-scene-n">SCENE 02 · 0:05–0:10</div>
-            <div class="ov-so-scene-d">Product close-up. Shake poured.</div>
-            <div class="ov-so-scene-l">"30g protein. Zero compromise."</div>
+          <div class="ov-dash-pb-row">
+            <div class="ov-dash-pb-name"><span class="ov-dash-pb-dot" style="background:#0866FF"></span>Meta Ads</div>
+            <div class="ov-dash-pb-bar-wrap"><div class="ov-dash-pb-bar" style="width:79%;background:rgba(8,102,255,.6)"></div></div>
+            <div class="ov-dash-pb-vals"><span class="ov-green">2.8&times;</span><span>&euro;3,100</span></div>
           </div>
-          <div class="ov-so-scene-div"></div>
-          <div class="ov-so-scene">
-            <div class="ov-so-scene-n">SCENE 03 · 0:11–0:15</div>
-            <div class="ov-so-scene-d">Results montage. Logo hold.</div>
-            <div class="ov-so-scene-l">"Fuel your performance."</div>
+          <div class="ov-dash-pb-row">
+            <div class="ov-dash-pb-name"><span class="ov-dash-pb-dot" style="background:#EE1D52"></span>TikTok Ads</div>
+            <div class="ov-dash-pb-bar-wrap"><div class="ov-dash-pb-bar" style="width:32%;background:rgba(238,29,82,.6)"></div></div>
+            <div class="ov-dash-pb-vals"><span class="ov-green">3.1&times;</span><span>&euro;1,260</span></div>
           </div>
         </div>
       </div>
-
-      <div class="ov-so">
-        <div class="ov-so-tag">Creative Brief</div>
-        <div class="ov-so-brief">
-          <div class="ov-so-brief-row">
-            <div class="ov-so-brief-k">Objective</div>
-            <div class="ov-so-brief-v">Conversion · Q1 Product Launch</div>
-          </div>
-          <div class="ov-so-brief-row">
-            <div class="ov-so-brief-k">Core Message</div>
-            <div class="ov-so-brief-v">"Performance is a choice"</div>
-          </div>
-          <div class="ov-so-brief-row">
-            <div class="ov-so-brief-k">Tone</div>
-            <div class="ov-so-brief-v">Confident · Direct · Aspirational</div>
-          </div>
-          <div class="ov-so-brief-row">
-            <div class="ov-so-brief-k">Visual Direction</div>
-            <div class="ov-so-brief-v">Dark · Cinematic · High-contrast</div>
-          </div>
-          <div class="ov-so-brief-row">
-            <div class="ov-so-brief-k">Key Emotion</div>
-            <div class="ov-so-brief-v">Determination → Pride → Achievement</div>
-          </div>
-        </div>
+      <div class="ov-dash-table">
+        <div class="ov-dash-table-hdr"><span>Campaign</span><span>Platform</span><span>Spend</span><span>ROAS</span><span>CTR</span><span>Status</span></div>
+        <div class="ov-dash-table-row"><span class="ov-dash-camp-name">Performance Max Q2</span><span><span class="ov-dash-tag ov-tag-google">Google</span></span><span>&euro;1,240</span><span class="ov-green">5.2&times;</span><span>4.1%</span><span><span class="ov-dash-status ov-status-on">Active</span></span></div>
+        <div class="ov-dash-table-row"><span class="ov-dash-camp-name">Advantage+ Shopping</span><span><span class="ov-dash-tag ov-tag-meta">Meta</span></span><span>&euro;1,840</span><span class="ov-green">3.4&times;</span><span>2.8%</span><span><span class="ov-dash-status ov-status-on">Active</span></span></div>
+        <div class="ov-dash-table-row"><span class="ov-dash-camp-name">Summer TopView</span><span><span class="ov-dash-tag ov-tag-tiktok">TikTok</span></span><span>&euro;620</span><span class="ov-green">3.8&times;</span><span>5.6%</span><span><span class="ov-dash-status ov-status-on">Active</span></span></div>
+        <div class="ov-dash-table-row"><span class="ov-dash-camp-name">Brand Search EU</span><span><span class="ov-dash-tag ov-tag-google">Google</span></span><span>&euro;880</span><span>2.1&times;</span><span>6.3%</span><span><span class="ov-dash-status ov-status-warn">Review</span></span></div>
       </div>
-
-      <div class="ov-so">
-        <div class="ov-so-tag">Marketing Strategy</div>
-        <div class="ov-so-strategy">
-          <div class="ov-so-strat-phase">
-            <div class="ov-so-strat-n">Phase 1 · Awareness</div>
-            <div class="ov-so-strat-item">→ Instagram &amp; TikTok content</div>
-            <div class="ov-so-strat-item">→ Influencer seeding</div>
-          </div>
-          <div class="ov-so-strat-phase">
-            <div class="ov-so-strat-n">Phase 2 · Conversion</div>
-            <div class="ov-so-strat-item">→ Retargeting campaigns</div>
-            <div class="ov-so-strat-item">→ 5-email nurture sequence</div>
-          </div>
-          <div class="ov-so-strat-phase">
-            <div class="ov-so-strat-n">Phase 3 · Retention</div>
-            <div class="ov-so-strat-item">→ Loyalty program launch</div>
-            <div class="ov-so-strat-item">→ Win-back campaign</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="ov-so">
-        <div class="ov-so-tag">Audience Analysis</div>
-        <div class="ov-so-audience">
-          <div class="ov-so-seg">
-            <div class="ov-so-seg-label">Primary Segment</div>
-            <div class="ov-so-seg-name">Competitive Athletes</div>
-            <div class="ov-so-seg-data">Age 22–35 · Male 72%</div>
-            <div class="ov-so-seg-data">Interest: Performance, Nutrition</div>
-            <div class="ov-so-seg-data">Avg LTV €82 · CVR 3.4%</div>
-          </div>
-          <div class="ov-so-seg-div"></div>
-          <div class="ov-so-seg">
-            <div class="ov-so-seg-label">Secondary Segment</div>
-            <div class="ov-so-seg-name">Health-Conscious Adults</div>
-            <div class="ov-so-seg-data">Age 28–45 · Female 61%</div>
-            <div class="ov-so-seg-data">Interest: Wellness, Lifestyle</div>
-            <div class="ov-so-seg-data">Avg LTV €94 · CVR 2.1%</div>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 </section>
 
-<!-- 04 RESULTS -->
-<section id="ov-results">
-  <div class="ov-results-inner">
+<!-- 04 AI RECOMMENDATIONS -->
+<section id="ov-ai-recs">
+  <div class="ov-ai-inner">
     <div class="ov-section-label">04</div>
-    <h2 class="ov-section-h">Real Results</h2>
-    <div class="ov-case-card" data-observe>
-      <div class="ov-case-header">
-        <span class="ov-case-tag">Case Study</span>
-        <span class="ov-case-brand">ProFuel™ · Fitness DTC · 90 days with Oriven</span>
-      </div>
-      <div class="ov-case-metrics">
-        <div class="ov-case-m">
-          <div class="ov-case-m-name">ROAS</div>
-          <div class="ov-case-m-flow">
-            <span class="ov-case-m-before">2.1×</span>
-            <span class="ov-case-m-arr">→</span>
-            <span class="ov-case-m-after">7.2×</span>
-          </div>
+    <h2 class="ov-section-h">This Isn&rsquo;t Just Analytics.<br>It&rsquo;s Marketing Intelligence.</h2>
+    <p class="ov-section-sub">Get actionable recommendations based on campaign performance and trends.</p>
+    <div class="ov-ai-grid">
+      <div class="ov-ai-card" data-observe>
+        <div class="ov-ai-card-head">
+          <div class="ov-ai-alert ov-ai-alert-warn"><span class="ov-ai-alert-icon">&#9660;</span><span>CTR dropped 22%</span></div>
+          <div class="ov-ai-platform-tag ov-tag-meta">Meta Ads</div>
         </div>
-        <div class="ov-case-m-div"></div>
-        <div class="ov-case-m">
-          <div class="ov-case-m-name">Lead Cost</div>
-          <div class="ov-case-m-flow">
-            <span class="ov-case-m-before">€14</span>
-            <span class="ov-case-m-arr">→</span>
-            <span class="ov-case-m-after">€4.80</span>
-          </div>
+        <div class="ov-ai-metrics">
+          <div class="ov-ai-metric"><span>Campaign</span><span>Summer Retargeting</span></div>
+          <div class="ov-ai-metric"><span>Current CTR</span><span class="ov-red">1.2%</span></div>
+          <div class="ov-ai-metric"><span>Prior CTR</span><span>1.9%</span></div>
+          <div class="ov-ai-metric"><span>Running</span><span>14 days</span></div>
         </div>
-        <div class="ov-case-m-div"></div>
-        <div class="ov-case-m">
-          <div class="ov-case-m-name">Monthly Revenue</div>
-          <div class="ov-case-m-flow">
-            <span class="ov-case-m-before">€12k</span>
-            <span class="ov-case-m-arr">→</span>
-            <span class="ov-case-m-after">€48k</span>
-          </div>
+        <div class="ov-ai-rec">
+          <div class="ov-ai-rec-label"><span class="ov-ai-rec-pip"></span>AI Recommendation</div>
+          <div class="ov-ai-rec-text">Creative fatigue detected. Audience has seen this ad 6.2&times; on average. Test 2&ndash;3 new creative variants before your CPM increases further.</div>
+          <div class="ov-ai-rec-action">Test new creatives</div>
         </div>
       </div>
-    </div>
-    <div class="ov-stats-context">Platform averages across all Oriven campaigns</div>
-    <div class="ov-stats-row">
-      <div class="ov-stat" data-observe>
-        <div class="ov-stat-num" id="rn-0">+0%</div>
-        <div class="ov-stat-lbl">Average ROAS lift</div>
-        <div class="ov-stat-sub">across all campaigns</div>
+      <div class="ov-ai-card ov-ai-card-highlight" data-observe style="transition-delay:.1s">
+        <div class="ov-ai-card-head">
+          <div class="ov-ai-alert ov-ai-alert-up"><span class="ov-ai-alert-icon">&#9650;</span><span>ROAS increased 31%</span></div>
+          <div class="ov-ai-platform-tag ov-tag-google">Google Ads</div>
+        </div>
+        <div class="ov-ai-metrics">
+          <div class="ov-ai-metric"><span>Campaign</span><span>Performance Max Q2</span></div>
+          <div class="ov-ai-metric"><span>Current ROAS</span><span class="ov-green">5.2&times;</span></div>
+          <div class="ov-ai-metric"><span>Prior ROAS</span><span>3.9&times;</span></div>
+          <div class="ov-ai-metric"><span>Budget headroom</span><span>&euro;1,200/mo</span></div>
+        </div>
+        <div class="ov-ai-rec">
+          <div class="ov-ai-rec-label"><span class="ov-ai-rec-pip"></span>AI Recommendation</div>
+          <div class="ov-ai-rec-text">Campaign outperforming your 3.5&times; target ROAS. Increasing daily budget by 15% is projected to add 38 conversions this month.</div>
+          <div class="ov-ai-rec-action">Increase budget 15%</div>
+        </div>
       </div>
-      <div class="ov-stat-div"></div>
-      <div class="ov-stat" data-observe style="transition-delay:.14s">
-        <div class="ov-stat-num" id="rn-1">+0%</div>
-        <div class="ov-stat-lbl">More leads generated</div>
-        <div class="ov-stat-sub">vs. pre-Oriven baseline</div>
-      </div>
-      <div class="ov-stat-div"></div>
-      <div class="ov-stat" data-observe style="transition-delay:.28s">
-        <div class="ov-stat-num" id="rn-2">0x</div>
-        <div class="ov-stat-lbl">Landing page conversion lift</div>
-        <div class="ov-stat-sub">median across customers</div>
+      <div class="ov-ai-card" data-observe style="transition-delay:.2s">
+        <div class="ov-ai-card-head">
+          <div class="ov-ai-alert ov-ai-alert-info"><span class="ov-ai-alert-icon">&#8644;</span><span>Budget reallocation opportunity</span></div>
+          <span style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);font-size:10px;padding:3px 8px;border-radius:4px;font-weight:700;letter-spacing:.04em">Cross-Platform</span>
+        </div>
+        <div class="ov-ai-metrics">
+          <div class="ov-ai-metric"><span>Meta ROAS</span><span>2.8&times;</span></div>
+          <div class="ov-ai-metric"><span>Google ROAS</span><span class="ov-green">5.2&times;</span></div>
+          <div class="ov-ai-metric"><span>Meta spend share</span><span>43%</span></div>
+          <div class="ov-ai-metric"><span>Google spend share</span><span>39%</span></div>
+        </div>
+        <div class="ov-ai-rec">
+          <div class="ov-ai-rec-label"><span class="ov-ai-rec-pip"></span>AI Recommendation</div>
+          <div class="ov-ai-rec-text">Meta receives more budget despite lower ROAS. Shifting 20% of Meta spend to Google is projected to improve blended ROAS from 3.6&times; to 4.1&times;.</div>
+          <div class="ov-ai-rec-action">Shift budget allocation</div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 05 REVIEWS -->
+<!-- 05 INTEGRATIONS -->
+<section id="ov-integrations">
+  <div class="ov-int-inner">
+    <div class="ov-section-label">05</div>
+    <h2 class="ov-section-h">Connect The Platforms You Already Use</h2>
+    <p class="ov-section-sub">Bring all your marketing data into one place. Connect in minutes &mdash; no credentials shared, OAuth only.</p>
+    <div class="ov-int-cards-grid">
+      <div class="ov-int-card-new ov-int-live" data-observe>
+        <div class="ov-int-card-logo">
+          <svg width="36" height="36" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+        </div>
+        <div class="ov-int-card-new-name">Google Ads</div>
+        <div class="ov-int-card-new-status ov-int-status-live">&#9679; Connected</div>
+        <div class="ov-int-card-new-desc">Search, Performance Max, Shopping, Display &amp; Video campaigns.</div>
+      </div>
+      <div class="ov-int-card-new ov-int-live" data-observe style="transition-delay:.07s">
+        <div class="ov-int-card-logo">
+          <svg width="40" height="22" viewBox="5 0 30 22" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#0866FF" d="M20,11 C20,5.72 17.09,1.5 13.5,1.5 C9.91,1.5 7,5.72 7,11 C7,16.28 9.91,20.5 13.5,20.5 C17.09,20.5 20,16.28 20,11 M20,11 C20,5.72 22.91,1.5 26.5,1.5 C30.09,1.5 33,5.72 33,11 C33,16.28 30.09,20.5 26.5,20.5 C22.91,20.5 20,16.28 20,11 Z"/>
+          </svg>
+        </div>
+        <div class="ov-int-card-new-name">Meta Ads</div>
+        <div class="ov-int-card-new-status ov-int-status-live">&#9679; Connected</div>
+        <div class="ov-int-card-new-desc">Facebook, Instagram, Advantage+ campaigns and audience insights.</div>
+      </div>
+      <div class="ov-int-card-new ov-int-live" data-observe style="transition-delay:.14s">
+        <div class="ov-int-card-logo">
+          <svg width="28" height="32" viewBox="0 0 28 32" xmlns="http://www.w3.org/2000/svg">
+            <g fill="#69C9D0" transform="translate(1.5,1.2)">
+              <ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/>
+              <rect x="12" y="2" width="3" height="23"/>
+              <path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/>
+            </g>
+            <g fill="#EE1D52" transform="translate(-1.5,-1.2)">
+              <ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/>
+              <rect x="12" y="2" width="3" height="23"/>
+              <path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/>
+            </g>
+            <g fill="white">
+              <ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/>
+              <rect x="12" y="2" width="3" height="23"/>
+              <path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/>
+            </g>
+          </svg>
+        </div>
+        <div class="ov-int-card-new-name">TikTok Ads</div>
+        <div class="ov-int-card-new-status ov-int-status-live">&#9679; Connected</div>
+        <div class="ov-int-card-new-desc">In-Feed, TopView, Spark Ads and creative performance data.</div>
+      </div>
+    </div>
+    <div class="ov-int-note">All connections use OAuth 2.0. Oriven receives read-only access. Your credentials are never stored.</div>
+  </div>
+</section>
+
+<!-- 06 CREATIVE OUTPUT -->
+<section id="ov-creative">
+  <div class="ov-creative-inner">
+    <div class="ov-section-label">06</div>
+    <h2 class="ov-section-h">Create Better Campaigns Faster</h2>
+    <p class="ov-section-sub">Generate ideas, creatives, and ad concepts powered by your own marketing intelligence.</p>
+
+    <div class="ov-creative-tabs" role="tablist">
+      <button class="ov-ctab ov-ctab-active" onclick="ovCTab(this,0)" role="tab" aria-selected="true">
+        <span class="ov-ctab-dot" style="background:#FBBC05"></span>Google Ads
+      </button>
+      <button class="ov-ctab" onclick="ovCTab(this,1)" role="tab">
+        <span class="ov-ctab-dot" style="background:#0866FF"></span>Meta Ads
+      </button>
+      <button class="ov-ctab" onclick="ovCTab(this,2)" role="tab">
+        <span class="ov-ctab-dot" style="background:#EE1D52"></span>TikTok Ads
+      </button>
+    </div>
+
+    <div class="ov-creative-stage" data-observe>
+
+    <div class="ov-creative-stage" data-observe>
+
+      <!-- GOOGLE ADS — 6 examples -->
+      <div class="ov-cpanel ov-cpanel-active" id="ovCPanel0">
+        <div class="ov-creative-grid">
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual ov-cex-vis-g">
+              <div class="ov-cex-gad-mini">
+                <span class="ov-cex-ad-badge">Ad</span>
+                <span class="ov-cex-mini-domain">brand.com &rsaquo; running</span>
+                <div class="ov-cex-mini-head">Premium Marathon Shoes</div>
+                <div class="ov-cex-mini-desc-line"></div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Search Ad</div>
+              <div class="ov-cex-headline">Premium Marathon Shoes &mdash; Free Next‑Day Delivery</div>
+              <div class="ov-cex-desc">Keyword-matched headline targeting high-intent runners.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">CTR 4.8%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual ov-cex-vis-g">
+              <div class="ov-cex-shop-mini">
+                <div class="ov-cex-shop-prod" style="background:rgba(251,188,5,.35)"><div class="ov-cex-shop-price">&euro;129</div></div>
+                <div class="ov-cex-shop-prod" style="background:rgba(66,133,244,.3)"><div class="ov-cex-shop-price">&euro;159</div></div>
+                <div class="ov-cex-shop-prod" style="background:rgba(52,168,83,.3)"><div class="ov-cex-shop-price">&euro;99</div></div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Shopping Ad</div>
+              <div class="ov-cex-headline">Pro Marathon X2 &mdash; Top Rated for 2026</div>
+              <div class="ov-cex-desc">Feed-powered product grid with star ratings and prices.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">ROAS 6.2&times;</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual ov-cex-vis-g">
+              <div class="ov-cex-pmax-mini">
+                <div class="ov-cex-pmax-fmt"><span class="ov-cex-pmax-icon">&#128269;</span><span>Search</span></div>
+                <div class="ov-cex-pmax-fmt"><span class="ov-cex-pmax-icon">&#127760;</span><span>Display</span></div>
+                <div class="ov-cex-pmax-fmt"><span class="ov-cex-pmax-icon">&#9654;</span><span>Video</span></div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Performance Max</div>
+              <div class="ov-cex-headline">AI-Optimised Across All Google Channels</div>
+              <div class="ov-cex-desc">Machine-learning allocates budget across Search, Display, YouTube.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">Conv +34%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual ov-cex-vis-g" style="background:linear-gradient(135deg,rgba(66,133,244,.15) 0%,rgba(66,133,244,.04) 100%)">
+              <div class="ov-cex-brand-mini">
+                <div class="ov-cex-brand-domain">brand.com</div>
+                <div class="ov-cex-brand-tagline">Your Running Partner Since 2018</div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Brand Campaign</div>
+              <div class="ov-cex-headline">Brand.com &mdash; Your Running Partner Since 2018</div>
+              <div class="ov-cex-desc">Branded keywords protecting search visibility from competitors.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">Impr. 2.1M</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 7-day</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual ov-cex-vis-g" style="background:linear-gradient(135deg,rgba(52,168,83,.14) 0%,rgba(183,255,42,.06) 100%)">
+              <div class="ov-cex-form-mini">
+                <div class="ov-cex-form-label">Full name</div>
+                <div class="ov-cex-form-field"></div>
+                <div class="ov-cex-form-label">Email</div>
+                <div class="ov-cex-form-field"></div>
+                <div class="ov-cex-form-btn">Get My Free Plan</div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Lead Generation</div>
+              <div class="ov-cex-headline">Get Your Free Training Plan Today</div>
+              <div class="ov-cex-desc">Lead form extension capturing emails directly from Search results.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">CPL &euro;4.20</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Avg.</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual ov-cex-vis-g" style="background:linear-gradient(135deg,rgba(234,67,53,.14) 0%,rgba(251,188,5,.06) 100%)">
+              <div class="ov-cex-retarg-mini">
+                <div class="ov-cex-retarg-line">&#9654; Still thinking?</div>
+                <div class="ov-cex-retarg-sub">Free shipping ends tonight</div>
+                <div class="ov-cex-retarg-cta">Return to cart &#8250;</div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Retargeting</div>
+              <div class="ov-cex-headline">Still Thinking It Over? Free Shipping Ends Tonight</div>
+              <div class="ov-cex-desc">RLSA retargeting recapturing high-intent cart abandoners.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">CTR 8.3%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- META ADS — 6 examples -->
+      <div class="ov-cpanel" id="ovCPanel1">
+        <div class="ov-creative-grid">
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual ov-cex-vis-m">
+              <div class="ov-cex-meta-feed-mini">
+                <div class="ov-cex-meta-header"><div class="ov-cex-meta-avi"></div><div><div class="ov-cex-meta-brand">Your Brand</div><div class="ov-cex-meta-spon">Sponsored</div></div></div>
+                <div class="ov-cex-meta-img-strip"></div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Feed Ad</div>
+              <div class="ov-cex-headline">Smarter Ads. Less Guesswork.</div>
+              <div class="ov-cex-desc">Single image feed ad with emotion-first hook and clear CTA.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">Reach 62K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual ov-cex-vis-m">
+              <div class="ov-cex-carousel-mini">
+                <div class="ov-cex-car-slide" style="background:rgba(8,102,255,.2)"><div class="ov-cex-car-n">01</div></div>
+                <div class="ov-cex-car-slide" style="background:rgba(8,102,255,.14)"><div class="ov-cex-car-n">02</div></div>
+                <div class="ov-cex-car-slide" style="background:rgba(8,102,255,.08)"><div class="ov-cex-car-n">03</div></div>
+                <div class="ov-cex-car-arrow">&#8250;</div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Carousel Ad</div>
+              <div class="ov-cex-headline">3 Reasons Runners Choose Us &mdash; Swipe to See</div>
+              <div class="ov-cex-desc">Multi-card format showcasing benefits, products, and social proof.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">CTR 2.9%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual" style="background:linear-gradient(180deg,#060616 0%,#0a0a24 100%)">
+              <div class="ov-cex-story-mini">
+                <div class="ov-cex-story-bar"></div>
+                <div class="ov-cex-story-copy">Only 48 Hours Left</div>
+                <div class="ov-cex-story-sub">Shop Now &#8250;</div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Story Ad</div>
+              <div class="ov-cex-headline">Only 48 Hours Left &mdash; Shop the 2026 Collection</div>
+              <div class="ov-cex-desc">Full-screen vertical Story format with countdown urgency element.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">Views 28K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 24h</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual ov-cex-vis-m">
+              <div class="ov-cex-leadform-mini">
+                <div class="ov-cex-lf-title">Free Performance Analysis</div>
+                <div class="ov-cex-lf-field"></div>
+                <div class="ov-cex-lf-field"></div>
+                <div class="ov-cex-lf-btn">Submit</div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Lead Form Ad</div>
+              <div class="ov-cex-headline">Get a Free Ad Performance Analysis</div>
+              <div class="ov-cex-desc">Native in-app lead form capturing quality leads without leaving Meta.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">CPL &euro;7.50</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Avg.</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual ov-cex-vis-m">
+              <div class="ov-cex-conv-mini">
+                <div class="ov-cex-conv-copy">Limited Stock — Shop the 2026 Collection</div>
+                <div class="ov-cex-conv-cta">Shop Now</div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Conversion Ad</div>
+              <div class="ov-cex-headline">Limited Stock &mdash; Shop the 2026 Collection Now</div>
+              <div class="ov-cex-desc">Dynamic product ad optimised for purchase conversions at scale.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">ROAS 4.8&times;</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 7-day</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual" style="background:linear-gradient(135deg,rgba(8,102,255,.12) 0%,rgba(80,0,120,.1) 100%)">
+              <div class="ov-cex-retarg-mini">
+                <div class="ov-cex-retarg-line">&#128717; You left something behind</div>
+                <div class="ov-cex-retarg-sub">Your cart is waiting &mdash; free delivery</div>
+                <div class="ov-cex-retarg-cta" style="color:rgba(8,102,255,.9)">Return to cart &#8250;</div>
+              </div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Retargeting Ad</div>
+              <div class="ov-cex-headline">You Left Something in Your Cart</div>
+              <div class="ov-cex-desc">Dynamic product retargeting recovering cart abandoners with urgency.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">Conv +44%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; vs control</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TIKTOK ADS — 6 examples -->
+      <div class="ov-cpanel" id="ovCPanel2">
+        <div class="ov-creative-grid">
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual" style="background:linear-gradient(160deg,#14001a 0%,#0a0010 100%)">
+              <div class="ov-cex-tt-mini">
+                <div class="ov-cex-tt-hook">Wait&hellip; this actually works?</div>
+                <div class="ov-cex-tt-sub">&#128680; We tested 3 angles. Here&rsquo;s what won.</div>
+              </div>
+              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">UGC Style</div>
+              <div class="ov-cex-headline">Wait&hellip; this actually works? We tested 3 ad angles.</div>
+              <div class="ov-cex-desc">Pattern-interrupt hook designed to stop the scroll in under 2 seconds.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">Views 142K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 48h</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual" style="background:linear-gradient(160deg,#001414 0%,#001a12 100%)">
+              <div class="ov-cex-tt-mini">
+                <div class="ov-cex-tt-stat" style="color:rgba(105,201,208,.9)">312% ROAS</div>
+                <div class="ov-cex-tt-hook" style="font-size:14px">The shoe that won. Here&rsquo;s why.</div>
+              </div>
+              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Product Ad</div>
+              <div class="ov-cex-headline">The Shoe That Won. Here&rsquo;s Why It Works.</div>
+              <div class="ov-cex-desc">Direct-to-camera product walkthrough with data-backed storytelling.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">CTR 5.6%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual" style="background:#000">
+              <div class="ov-cex-tt-mini" style="text-align:center">
+                <div class="ov-cex-tt-badge">NEW COLLECTION</div>
+                <div class="ov-cex-tt-hook" style="font-size:13px">Meet the 2026 Marathon Collection</div>
+              </div>
+              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Video Campaign</div>
+              <div class="ov-cex-headline">Meet the 2026 Marathon Collection</div>
+              <div class="ov-cex-desc">Branded video campaign driving awareness for new product launch.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">Views 89K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 7-day</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual" style="background:linear-gradient(160deg,#0a1a00 0%,#050d00 100%)">
+              <div class="ov-cex-tt-mini">
+                <div class="ov-cex-tt-handle" style="color:rgba(183,255,42,.8)">@topathlete</div>
+                <div class="ov-cex-tt-hook" style="font-size:13px">I trained with this for 30 days.</div>
+                <div class="ov-cex-tt-sub">The results shocked me &#128293;</div>
+              </div>
+              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Creator Campaign</div>
+              <div class="ov-cex-headline">@topathlete: I trained with this for 30 days</div>
+              <div class="ov-cex-desc">Creator partnership format leveraging established audience trust.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">Eng. 12.4K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 48h</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual" style="background:linear-gradient(160deg,#1a0004 0%,#0a0002 100%)">
+              <div class="ov-cex-tt-mini" style="text-align:center">
+                <div class="ov-cex-tt-badge" style="background:rgba(238,29,82,.2);color:rgba(238,29,82,.9)">BACK IN STOCK</div>
+                <div class="ov-cex-tt-hook" style="font-size:13px">Your size is available again</div>
+                <div class="ov-cex-tt-sub">Only 12 pairs left</div>
+              </div>
+              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Retargeting Ad</div>
+              <div class="ov-cex-headline">Back in Stock &mdash; Your Size Is Available Again</div>
+              <div class="ov-cex-desc">Dynamic inventory-triggered retargeting to interested past viewers.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">ROAS 3.8&times;</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 7-day</span></div>
+            </div>
+          </div>
+
+          <div class="ov-cex-card">
+            <div class="ov-cex-visual" style="background:linear-gradient(160deg,#0a0018 0%,#12001e 100%)">
+              <div class="ov-cex-tt-mini" style="text-align:center">
+                <div class="ov-cex-tt-circle">B</div>
+                <div class="ov-cex-tt-hook" style="font-size:12px">The brand runners trust</div>
+                <div class="ov-cex-tt-sub">Find out why &#8250;</div>
+              </div>
+              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
+            </div>
+            <div class="ov-cex-body">
+              <div class="ov-cex-type">Awareness Campaign</div>
+              <div class="ov-cex-headline">The Brand Runners Trust. Find Out Why.</div>
+              <div class="ov-cex-desc">Brand discovery reach campaign targeting cold audiences at scale.</div>
+              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">Reach 340K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 7-day</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- 07 COMPARISON -->
+<section id="ov-compare">
+  <div class="ov-compare-inner">
+    <div class="ov-section-label">07</div>
+    <h2 class="ov-section-h">Your Data Is Fragmented. Oriven Brings It Together.</h2>
+    <p class="ov-section-sub">Each platform gives you one piece of the picture. Oriven connects all three into a single intelligence layer.</p>
+    <div class="ov-feat-table-5" data-observe>
+      <div class="ov-feat-table-head">
+        <div>Feature</div>
+        <div class="ov-ft-cell"><span class="ov-feat-oriven-badge">ORIVEN</span></div>
+        <div class="ov-ft-cell"><span class="ov-ft-comp-lbl">Google Ads</span></div>
+        <div class="ov-ft-cell"><span class="ov-ft-comp-lbl">Meta Ads</span></div>
+        <div class="ov-ft-cell"><span class="ov-ft-comp-lbl">TikTok Ads</span></div>
+      </div>
+      <div class="ov-feat-table-row ov-feat-row-hi"><div>Cross-Platform Analytics</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div></div>
+      <div class="ov-feat-table-row ov-feat-row-hi"><div>Unified Dashboard</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div></div>
+      <div class="ov-feat-table-row ov-feat-row-hi"><div>AI Recommendations</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div></div>
+      <div class="ov-feat-table-row"><div>Campaign Monitoring</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div></div>
+      <div class="ov-feat-table-row ov-feat-row-hi"><div>Centralized Reporting</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div></div>
+      <div class="ov-feat-table-row ov-feat-row-hi"><div>Single Workspace</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div></div>
+      <div class="ov-feat-table-row ov-feat-row-hi"><div>Multi-Platform Insights</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div></div>
+      <div class="ov-feat-table-row"><div>Performance Trends</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 TESTIMONIALS -->
 <section id="ov-reviews" class="ov-reviews-section">
   <div class="ov-reviews-inner">
-    <div class="ov-section-label">05</div>
-    <h2 class="ov-section-h">Trusted By Growing Brands</h2>
-    <p class="ov-section-sub">Real results from founders, marketers, and agencies scaling with Oriven.</p>
-    <div class="ov-rev-stage" id="ovRevStage">
-      <div class="ov-rev-row" id="ovRevRow"></div>
-    </div>
+    <div class="ov-section-label">08</div>
+    <h2 class="ov-section-h">Trusted By Modern Marketers</h2>
+    <p class="ov-section-sub">Teams that connected their ad platforms to Oriven haven&rsquo;t gone back to the dashboard grind.</p>
+    <div class="ov-rev-stage" id="ovRevStage"><div class="ov-rev-row" id="ovRevRow"></div></div>
     <div class="ov-rev-nav">
       <button class="ov-rev-nav-btn" id="ovRevPrev" aria-label="Previous reviews">&#8592;</button>
       <span class="ov-rev-nav-dots" id="ovRevDots"></span>
@@ -518,147 +873,115 @@
   </div>
 </section>
 
-<!-- 06 PRICING -->
+<!-- 09 PRICING -->
 <section id="pricing" class="ov-pricing-section">
   <div class="ov-pricing-inner">
-    <div class="ov-section-label">06</div>
-    <h2 class="ov-section-h">Simple, transparent pricing</h2>
-    <p class="ov-section-sub">Choose the plan that fits your brand. Scale anytime.</p>
+    <div class="ov-section-label">09</div>
+    <h2 class="ov-section-h">Simple Pricing</h2>
+    <p class="ov-section-sub">Choose the plan that fits your growth stage.</p>
     <div class="ov-pricing-grid-4">
-      <!-- Starter -->
       <div class="ov-pc" data-observe>
-        <div class="ov-pc-head">
-          <div class="ov-pc-tier">Starter</div>
-        </div>
-        <div class="ov-pc-price-block">
-          <div class="ov-pc-price">€9.95<span>/mo</span></div>
-          <div class="ov-pc-credits">500 AI credits / month</div>
-        </div>
+        <div class="ov-pc-head"><div class="ov-pc-tier">Starter</div></div>
+        <div class="ov-pc-price-block"><div class="ov-pc-price">&euro;9.95<span>/mo</span></div><div class="ov-pc-credits">500 AI credits / month</div></div>
         <div class="ov-pc-desc">For individuals getting started with AI-powered ad analytics.</div>
-        <ul class="ov-pc-list">
-          <li>Google Ads Analytics</li>
-          <li>TikTok Ads Analytics</li>
-          <li>Meta Ads Analytics</li>
-          <li>Basic AI Recommendations</li>
-          <li>500 AI Credits / Month</li>
-          <li>1 Team Member</li>
-        </ul>
+        <ul class="ov-pc-list"><li>Google Ads Analytics</li><li>TikTok Ads Analytics</li><li>Meta Ads Analytics</li><li>Basic AI Recommendations</li><li>500 AI Credits / Month</li><li>1 Team Member</li></ul>
         <a href="#" class="ov-pc-btn" onclick="lpGetStarted(event)">Get Started</a>
       </div>
-      <!-- Creator — Most Popular -->
       <div class="ov-pc ov-pc-pro" data-observe style="transition-delay:.08s">
-        <div class="ov-pc-head">
-          <div class="ov-pc-badge">Most Popular</div>
-          <div class="ov-pc-tier">Creator</div>
-        </div>
-        <div class="ov-pc-price-block">
-          <div class="ov-pc-price">€29.95<span>/mo</span></div>
-          <div class="ov-pc-credits">2,500 AI credits / month</div>
-        </div>
+        <div class="ov-pc-head"><div class="ov-pc-badge">Most Popular</div><div class="ov-pc-tier">Creator</div></div>
+        <div class="ov-pc-price-block"><div class="ov-pc-price">&euro;29.95<span>/mo</span></div><div class="ov-pc-credits">2,500 AI credits / month</div></div>
         <div class="ov-pc-desc">For creators, founders, and growing brands running multi-channel ads.</div>
-        <ul class="ov-pc-list">
-          <li>Google Ads Analytics</li>
-          <li>TikTok Ads Analytics</li>
-          <li>Meta Ads Analytics</li>
-          <li>Advanced AI Recommendations</li>
-          <li>Social Media Posting</li>
-          <li>Content Calendar</li>
-          <li>2,500 AI Credits / Month</li>
-          <li>Up to 3 Team Members</li>
-        </ul>
+        <ul class="ov-pc-list"><li>Google Ads Analytics</li><li>TikTok Ads Analytics</li><li>Meta Ads Analytics</li><li>Advanced AI Recommendations</li><li>Daily Brief Reports</li><li>2,500 AI Credits / Month</li><li>Up to 3 Team Members</li></ul>
         <a href="#" class="ov-pc-btn ov-pc-btn-pro" onclick="lpGetStarted(event)">Get Started</a>
       </div>
-      <!-- Professional -->
       <div class="ov-pc" data-observe style="transition-delay:.16s">
-        <div class="ov-pc-head">
-          <div class="ov-pc-tier">Professional</div>
-        </div>
-        <div class="ov-pc-price-block">
-          <div class="ov-pc-price">€59.95<span>/mo</span></div>
-          <div class="ov-pc-credits">7,500 AI credits / month</div>
-        </div>
+        <div class="ov-pc-head"><div class="ov-pc-tier">Professional</div></div>
+        <div class="ov-pc-price-block"><div class="ov-pc-price">&euro;59.95<span>/mo</span></div><div class="ov-pc-credits">7,500 AI credits / month</div></div>
         <div class="ov-pc-desc">For professional teams scaling ad performance across all channels.</div>
-        <ul class="ov-pc-list">
-          <li>Google Ads Analytics</li>
-          <li>TikTok Ads Analytics</li>
-          <li>Meta Ads Analytics</li>
-          <li>Advanced AI Recommendations</li>
-          <li>Social Media Posting</li>
-          <li>Content Calendar</li>
-          <li>White-label Reports</li>
-          <li>Priority Support</li>
-          <li>7,500 AI Credits / Month</li>
-          <li>Up to 10 Team Members</li>
-        </ul>
+        <ul class="ov-pc-list"><li>Google Ads Analytics</li><li>TikTok Ads Analytics</li><li>Meta Ads Analytics</li><li>Advanced AI Recommendations</li><li>White-label Reports</li><li>Priority Support</li><li>7,500 AI Credits / Month</li><li>Up to 10 Team Members</li></ul>
         <a href="#" class="ov-pc-btn" onclick="lpGetStarted(event)">Get Started</a>
       </div>
-      <!-- Agency — Contact Sales -->
       <div class="ov-pc ov-pc-agency" data-observe style="transition-delay:.24s">
-        <div class="ov-pc-head">
-          <div class="ov-pc-badge ov-pc-badge-agency">Enterprise</div>
-          <div class="ov-pc-tier">Agency</div>
-        </div>
-        <div class="ov-pc-price-block">
-          <div class="ov-pc-price ov-pc-price-cs">Contact Sales</div>
-        </div>
+        <div class="ov-pc-head"><div class="ov-pc-badge ov-pc-badge-agency">Enterprise</div><div class="ov-pc-tier">Agency</div></div>
+        <div class="ov-pc-price-block"><div class="ov-pc-price ov-pc-price-cs">Contact Sales</div></div>
         <div class="ov-pc-desc">For agencies managing multiple brands at scale.</div>
-        <ul class="ov-pc-list"></ul>
-        <a href="mailto:hello@oriven.ai" class="ov-pc-btn ov-pc-btn-agency">Contact Sales</a>
+        <ul class="ov-pc-list"><li>Everything in Professional</li><li>Unlimited Ad Accounts</li><li>White-label Dashboard</li><li>Dedicated Account Manager</li><li>Custom AI Credits</li><li>SLA &amp; Priority Support</li></ul>
+        <a href="mailto:hello@orivenai.com" class="ov-pc-btn ov-pc-btn-agency">Contact Sales</a>
       </div>
     </div>
-    <p class="ov-pricing-note">All plans include a monthly AI credit allocation. Credits reset on your billing date and do not carry over.</p>
+    <p class="ov-pricing-note">All plans include a monthly AI credit allocation. Credits reset on your billing date.</p>
   </div>
 </section>
 
-<!-- 07 FAQ -->
+<!-- 10 FAQ -->
 <section id="faq" class="ov-faq-section">
   <div class="ov-faq-inner">
-    <div class="ov-section-label">07</div>
+    <div class="ov-section-label">10</div>
     <h2 class="ov-section-h">Frequently Asked Questions</h2>
     <div class="ov-faq-list">
-      <div class="ov-faq" data-observe>
-        <button class="ov-faq-q" onclick="ovFaq(this)"><span>What does Oriven actually generate?</span><span class="ov-faq-ic">+</span></button>
-        <div class="ov-faq-a">From a single product description, Oriven creates a complete marketing campaign: ad creatives, landing page copy, email sequences, social content, and video concepts — all brand-consistent and ready to deploy.</div>
-      </div>
-      <div class="ov-faq" data-observe style="transition-delay:.06s">
-        <button class="ov-faq-q" onclick="ovFaq(this)"><span>What channels does Oriven generate content for?</span><span class="ov-faq-ic">+</span></button>
-        <div class="ov-faq-a">Instagram, Facebook, Google Display, YouTube, email, landing pages, blog content, and video scripts — all brand-consistent and ready to deploy.</div>
-      </div>
-      <div class="ov-faq" data-observe style="transition-delay:.12s">
-        <button class="ov-faq-q" onclick="ovFaq(this)"><span>Do I need a marketing team to use Oriven?</span><span class="ov-faq-ic">+</span></button>
-        <div class="ov-faq-a">No. Oriven is designed for founders, solo marketers, and growing teams. You bring the product knowledge — we bring the marketing expertise.</div>
-      </div>
-      <div class="ov-faq" data-observe style="transition-delay:.18s">
-        <button class="ov-faq-q" onclick="ovFaq(this)"><span>Is usage unlimited?</span><span class="ov-faq-ic">+</span></button>
-        <div class="ov-faq-a">All plans have defined usage tiers — unlimited usage is not available while AI costs are being optimized. Starter includes 500 AI credits/month, Creator 2,500, Professional 7,500, and Agency is custom via Contact Sales.</div>
-      </div>
-      <div class="ov-faq" data-observe style="transition-delay:.24s">
-        <button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I customize the AI output?</span><span class="ov-faq-ic">+</span></button>
-        <div class="ov-faq-a">Yes. Every element — strategy, copy, creative direction, tone — can be edited, regenerated, and fine-tuned to match your exact vision.</div>
-      </div>
+      <div class="ov-faq" data-observe><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Oriven?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven is an AI-powered marketing intelligence platform. It connects your Google Ads, TikTok Ads, and Meta Ads accounts, unifies your performance data, and delivers daily AI-generated briefings with recommended actions.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.06s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which ad platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Currently Google Ads, TikTok Ads, and Meta Ads. LinkedIn Ads and Pinterest Ads are on the roadmap. Each integration uses OAuth &mdash; you never share your passwords with Oriven.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.12s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is the Daily Brief?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Every morning, Oriven generates an AI-written summary of your overnight ad performance. It covers top campaigns, budget status, ROAS changes, and specific recommended actions &mdash; delivered to your dashboard before you start your day.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.18s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does Oriven access my ad data?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven connects via OAuth &mdash; the same standard used by Slack, Notion, and other trusted apps. You authorize read-only access through your ad platform&rsquo;s official login flow. We never store your credentials.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.24s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Is there a free trial?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Connect your ad accounts and explore the dashboard for free. Paid plans unlock AI recommendations, Daily Briefs, and advanced analytics. No credit card required to start.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.30s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I cancel anytime?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Subscriptions can be cancelled at any time from your account settings. You keep full access until the end of your billing period. No lock-in, no cancellation fees.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.36s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which advertising platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven currently supports Google Ads, Meta Ads (Facebook &amp; Instagram), and TikTok Ads. All three platforms connect via OAuth with read-only access &mdash; no passwords shared, no credentials stored.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.42s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Do I need technical knowledge to use Oriven?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. Oriven is designed for marketers, agencies, and business owners &mdash; not developers. Connecting your ad accounts takes minutes and requires no code, no API setup, and no technical configuration.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.48s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I connect multiple advertising accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Oriven is built to support multiple connected accounts across platforms &mdash; ideal for agencies managing several clients or brands running ads across different business accounts.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.54s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How often is my campaign data updated?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Campaign data is refreshed regularly so your dashboard and Daily Brief always reflect current performance. Exact refresh intervals depend on each platform&rsquo;s API limits &mdash; typically within a few hours of your latest activity.</div></div>
     </div>
   </div>
 </section>
 
-<!-- 08 CONTACT / FINAL CTA -->
+<!-- 11 FINAL CTA -->
 <section id="ov-final">
-  <div class="ov-final-rings" aria-hidden="true">
-    <div class="ov-fr ov-fr-1"></div>
-    <div class="ov-fr ov-fr-2"></div>
-    <div class="ov-fr ov-fr-3"></div>
+  <div class="ov-frag-layer" aria-hidden="true">
+    <div class="ov-frag ov-frag-lg ov-frag-google" style="top:18%;left:4%;--rot:28deg;--dur:9s;--del:0s"></div>
+    <div class="ov-frag ov-frag-sm ov-frag-tiktok" style="top:62%;right:6%;--rot:-42deg;--dur:11s;--del:2.2s"></div>
+    <div class="ov-frag ov-frag-v ov-frag-meta" style="top:38%;right:4%;--rot:15deg;--dur:8.5s;--del:1.4s"></div>
+    <div class="ov-frag ov-frag-sm ov-frag-google" style="top:75%;left:12%;--rot:-22deg;--dur:10s;--del:3.1s"></div>
+    <div class="ov-frag ov-frag-meta" style="top:22%;right:18%;--rot:44deg;--dur:9.6s;--del:1.8s"></div>
+    <div class="ov-frag ov-frag-sm ov-frag-tiktok" style="top:50%;left:7%;--rot:62deg;--dur:8.2s;--del:4.5s"></div>
+  </div>
+  <div class="ov-final-network" aria-hidden="true">
+    <svg width="100%" height="100%" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" fill="none">
+      <line x1="120" y1="80"  x2="340" y2="160" stroke="rgba(183,255,42,.07)" stroke-width="1"/>
+      <line x1="340" y1="160" x2="600" y2="250" stroke="rgba(183,255,42,.1)"  stroke-width="1"/>
+      <line x1="600" y1="250" x2="860" y2="160" stroke="rgba(183,255,42,.1)"  stroke-width="1"/>
+      <line x1="860" y1="160" x2="1080" y2="80"  stroke="rgba(183,255,42,.07)" stroke-width="1"/>
+      <line x1="200" y1="380" x2="600" y2="250" stroke="rgba(183,255,42,.07)" stroke-width="1"/>
+      <line x1="1000" y1="400" x2="600" y2="250" stroke="rgba(183,255,42,.07)" stroke-width="1"/>
+      <line x1="480" y1="60"  x2="600" y2="250" stroke="rgba(183,255,42,.06)" stroke-width="1" stroke-dasharray="4 6"/>
+      <line x1="720" y1="60"  x2="600" y2="250" stroke="rgba(183,255,42,.06)" stroke-width="1" stroke-dasharray="4 6"/>
+      <line x1="100" y1="280" x2="340" y2="160" stroke="rgba(183,255,42,.04)" stroke-width="1" stroke-dasharray="3 7"/>
+      <line x1="1100" y1="300" x2="860" y2="160" stroke="rgba(183,255,42,.04)" stroke-width="1" stroke-dasharray="3 7"/>
+      <circle cx="120"  cy="80"  r="3" fill="rgba(251,188,5,.3)"/>
+      <circle cx="1080" cy="80"  r="3" fill="rgba(238,29,82,.25)"/>
+      <circle cx="480"  cy="60"  r="2.5" fill="rgba(8,102,255,.35)"/>
+      <circle cx="720"  cy="60"  r="2.5" fill="rgba(183,255,42,.3)"/>
+      <circle cx="340"  cy="160" r="3.5" fill="rgba(183,255,42,.2)"/>
+      <circle cx="860"  cy="160" r="3.5" fill="rgba(183,255,42,.2)"/>
+      <circle cx="200"  cy="380" r="3"   fill="rgba(251,188,5,.2)"/>
+      <circle cx="1000" cy="400" r="3"   fill="rgba(238,29,82,.2)"/>
+      <circle cx="100"  cy="280" r="2"   fill="rgba(183,255,42,.12)"/>
+      <circle cx="1100" cy="300" r="2"   fill="rgba(183,255,42,.12)"/>
+      <circle cx="600"  cy="250" r="7"   fill="rgba(183,255,42,.18)"/>
+      <circle cx="600"  cy="250" r="14"  fill="rgba(183,255,42,.05)"/>
+    </svg>
   </div>
   <div class="ov-final-inner">
-    <div class="ov-section-label">08</div>
-    <div class="ov-final-eyebrow">Your campaign is one prompt away</div>
-    <h2 class="ov-final-h2">Ready To Launch?</h2>
-    <p class="ov-final-sub">Strategy, ads, landing pages, and emails — built in minutes.</p>
+    <div class="ov-section-label">11</div>
+    <div class="ov-final-eyebrow">Ready to bring your marketing together?</div>
+    <h2 class="ov-final-h2">Bring Your Marketing<br>Together.</h2>
+    <p class="ov-final-sub">Stop switching between platforms and start making smarter marketing decisions.</p>
     <div class="ov-final-btns">
-      <a href="#" class="ov-btn-primary ov-btn-primary-lg" onclick="lpGetStarted(event)">Start Creating</a>
-      <a href="mailto:hello@oriven.ai" class="ov-btn-ghost">Contact Us</a>
+      <a href="#" class="ov-btn-primary ov-btn-primary-lg" onclick="lpGetStarted(event)">Get Started</a>
+      <a href="mailto:hello@orivenai.com" class="ov-btn-ghost">Contact Us</a>
     </div>
     <div class="ov-final-trust">
-      <span>✦ Setup in 2 minutes</span>
-      <span>✦ Cancel anytime</span>
+      <span>&#10022; Setup in under 5 minutes</span>
+      <span>&#10022; Cancel anytime</span>
+      <span>&#10022; No credit card required</span>
     </div>
   </div>
 </section>
@@ -668,38 +991,40 @@
   <div class="ov-footer-inner">
     <div class="ov-footer-top">
       <div class="ov-footer-brand">
-        <a href="/" class="ov-footer-logo">
-          <img src="assets/orivenlogo.png" alt="Oriven" class="ov-footer-logo-img">
-        </a>
-        <p class="ov-footer-tagline">AI campaign studio for ambitious brands.</p>
+        <a href="/" class="ov-footer-logo"><img src="assets/orivenlogo.png" alt="Oriven" class="ov-footer-logo-img"></a>
+        <p class="ov-footer-tagline">AI-powered marketing intelligence for modern teams.</p>
       </div>
       <nav class="ov-footer-nav" aria-label="Footer navigation">
         <div class="ov-footer-col">
           <div class="ov-footer-col-h">Product</div>
-          <a href="#ov-brand-identity" class="ov-footer-link" onclick="ovNavTo(event,'#ov-brand-identity')">Features</a>
+          <a href="#ov-dashboard" class="ov-footer-link" onclick="ovNavTo(event,'#ov-dashboard')">Dashboard</a>
+          <a href="#ov-ai-recs" class="ov-footer-link" onclick="ovNavTo(event,'#ov-ai-recs')">AI Insights</a>
           <a href="#pricing" class="ov-footer-link" onclick="ovNavTo(event,'#pricing')">Pricing</a>
           <a href="#faq" class="ov-footer-link" onclick="ovNavTo(event,'#faq')">FAQ</a>
         </div>
         <div class="ov-footer-col">
           <div class="ov-footer-col-h">Company</div>
-          <a href="mailto:hello@oriven.ai" class="ov-footer-link">Contact</a>
-          <a href="mailto:hello@oriven.ai" class="ov-footer-link">Support</a>
+          <a href="/about" class="ov-footer-link">About</a>
+          <a href="/blog" class="ov-footer-link">Blog</a>
+          <a href="mailto:hello@orivenai.com" class="ov-footer-link">Contact</a>
         </div>
         <div class="ov-footer-col">
           <div class="ov-footer-col-h">Legal</div>
           <a href="/privacy" class="ov-footer-link">Privacy Policy</a>
           <a href="/terms" class="ov-footer-link">Terms of Service</a>
+          <a href="/cookie-policy" class="ov-footer-link">Cookie Policy</a>
         </div>
       </nav>
     </div>
     <div class="ov-footer-bottom">
-      <span class="ov-footer-copy">&copy; 2026 Oriven. All rights reserved.</span>
-      <a href="#ov-hero" class="ov-footer-cta" onclick="ovNavTo(event,'#ov-hero')">↑ Back to Top</a>
+      <span class="ov-footer-copy">&copy; 2026 Oriven &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</span>
+      <a href="#ov-hero" class="ov-footer-cta" onclick="ovNavTo(event,'#ov-hero')">&#8593; Back to Top</a>
     </div>
   </div>
 </footer>
 
 </div><!-- /lp-stage -->
+
 
 <!-- progress dots removed -->
 
@@ -1224,72 +1549,990 @@
      VIEW: ABOUT  /about
      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div id="view-about" class="pub-view">
-<div class="lp-legal-wrap">
-  <nav class="lp-legal-nav">
-    <a href="/" class="lp-legal-nav-logo">
-      <img src="assets/orivenlogo.png" alt="ORIVEN">
-      <span>ORIVEN</span>
-    </a>
-    <a href="/" class="lp-legal-nav-back">â† Back to home</a>
-  </nav>
-  <div class="lp-legal-content">
-    <div class="lp-legal-inner">
-      <div class="lp-legal-header">
-        <h1>About ORIVEN</h1>
-        <div class="lp-legal-date">Brand intelligence for modern teams.</div>
-      </div>
+<div class="ov-sub-page">
 
-      <div class="lp-legal-section">
-        <h2>Our Mission</h2>
-        <p>ORIVEN exists to give every brand a single source of truth â€” a BrandCore â€” that powers every creative output. No more off-brand assets. No more starting from scratch. No more inconsistency across channels.</p>
-        <p>We believe that a well-defined brand should be the engine behind every campaign, visual, video, and piece of copy â€” not something revisited once a year in a brand guidelines PDF.</p>
-      </div>
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner">
+      <div class="ov-eyebrow">About Oriven</div>
+      <h1 class="ov-sp-h1">Built to solve a real problem<br>in advertising.</h1>
+      <p class="ov-sp-hero-sub">Marketing data is scattered across platforms. Oriven brings it together so you can spend less time in dashboards and more time making better decisions.</p>
+    </div>
+  </section>
 
-      <div class="lp-legal-section">
-        <h2>What is ORIVEN?</h2>
-        <p>ORIVEN is a brand intelligence platform built for founders, marketers, and creative teams. You define your brand once â€” your identity, voice, values, and visual language â€” and ORIVEN generates campaigns, visuals, video scripts, copy, presentations, and web content that are always on-brand.</p>
-        <p>Every output is shaped by your BrandCore. Every asset knows who you are.</p>
-      </div>
+  <!-- Our Story -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner" style="max-width:1100px;">
+      <div class="ov-about-story-grid">
 
-      <div class="lp-legal-section">
-        <h2>Built for Modern Brands</h2>
-        <p>Modern brands move fast. They publish across multiple channels, adapt to new audiences, and need to produce at scale without sacrificing quality or consistency. ORIVEN gives you the infrastructure to stay consistent while moving at speed.</p>
-        <div class="lp-about-stat-row">
-          <div class="lp-about-stat">
-            <div class="lp-about-stat-num">9+</div>
-            <div class="lp-about-stat-lbl">AI generators</div>
-          </div>
-          <div class="lp-about-stat">
-            <div class="lp-about-stat-num">1</div>
-            <div class="lp-about-stat-lbl">BrandCore for everything</div>
-          </div>
-          <div class="lp-about-stat">
-            <div class="lp-about-stat-num">âˆž</div>
-            <div class="lp-about-stat-lbl">On-brand outputs</div>
+        <!-- Left: Oriven logo -->
+        <div class="ov-about-story-img-wrap">
+          <div class="ov-about-story-logo-display">
+            <img src="assets/orivenlogo.png" alt="Oriven" class="ov-about-story-logo">
           </div>
         </div>
-      </div>
 
-      <div class="lp-legal-section">
-        <h2>Company</h2>
-        <div class="lp-legal-highlight">
-          <p><strong style="color:rgba(240,240,240,.8)">ORIVEN</strong><br>
-          Registered in the Netherlands<br>
-          KVK: 42039993<br>
-          Contact: <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a></p>
+        <!-- Right: story -->
+        <div class="ov-about-story-text">
+          <div class="ov-sp-tag" style="margin-bottom:20px;">Our Story</div>
+          <h2 class="ov-sp-h2" style="margin-bottom:28px;">Oriven started from<br>a real frustration.</h2>
+          <div class="ov-about-story-body">
+            <p>While working on e-commerce projects and running advertising campaigns, I constantly found myself switching between platforms just to understand what was happening.</p>
+            <p>Google Ads, Meta Ads and TikTok Ads all provided valuable information, but none of them showed the complete picture. Important data was spread across multiple dashboards, reports and interfaces.</p>
+            <p>The more campaigns I worked on, the more obvious the problem became. Marketing data is fragmented, and that fragmentation costs businesses both time and money.</p>
+            <p>I started building Oriven to solve that problem. The goal was simple: bring marketing intelligence together in one place and help businesses make faster, better advertising decisions.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Mission -->
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-about-centered">
+      <div class="ov-sp-tag">Our Mission</div>
+      <h2 class="ov-sp-h2">Marketing data is fragmented.<br>We&rsquo;re here to fix that.</h2>
+      <p class="ov-sp-sub">Businesses running ads across multiple platforms lose hours every week switching between tools, exporting reports, and trying to piece together a complete picture. That time and focus should go toward making better decisions — not manually stitching data together.</p>
+      <div class="ov-sp-feat-list">
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#9632;</span>
+          <div>
+            <div class="ov-sp-feat-name">Unified advertising data</div>
+            <div class="ov-sp-feat-desc">Google Ads, Meta Ads, and TikTok Ads connected in one place. One dashboard, one source of truth, zero platform-switching.</div>
+          </div>
+        </div>
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#9632;</span>
+          <div>
+            <div class="ov-sp-feat-name">Time back in your day</div>
+            <div class="ov-sp-feat-desc">Stop spending hours building reports. Oriven surfaces what matters automatically so your team can focus on decisions, not data entry.</div>
+          </div>
+        </div>
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#9632;</span>
+          <div>
+            <div class="ov-sp-feat-name">Decisions backed by insight</div>
+            <div class="ov-sp-feat-desc">Cross-platform visibility and AI analysis turn fragmented numbers into clear direction — so every budget decision is grounded in real performance.</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <footer class="lp-legal-footer">
-    <div class="lp-legal-footer-inner">Â© 2026 ORIVEN Â· KVK: 42039993 Â· Netherlands Â· All rights reserved.</div>
-  </footer>
+  </section>
+
+  <!-- Vision -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-about-centered">
+      <div class="ov-sp-tag">Our Vision</div>
+      <h2 class="ov-sp-h2">One place for every<br>advertising decision.</h2>
+      <p class="ov-sp-sub">We&rsquo;re building the platform that makes cross-platform advertising simple to understand and act on — regardless of how many platforms you run or how complex your campaigns get.</p>
+      <div class="ov-about-values-grid">
+        <div class="ov-about-value-card">
+          <div class="ov-about-value-num">01</div>
+          <div class="ov-about-value-title">Unified analytics</div>
+          <div class="ov-about-value-desc">All your advertising performance in one view. No switching tabs, no cross-referencing exports — a single, coherent picture of what&rsquo;s working.</div>
+        </div>
+        <div class="ov-about-value-card">
+          <div class="ov-about-value-num">02</div>
+          <div class="ov-about-value-title">Cross-platform visibility</div>
+          <div class="ov-about-value-desc">See how Google, Meta, and TikTok campaigns perform side by side. Understand the full funnel, not just isolated platform metrics.</div>
+        </div>
+        <div class="ov-about-value-card">
+          <div class="ov-about-value-num">03</div>
+          <div class="ov-about-value-title">Actionable insights</div>
+          <div class="ov-about-value-desc">Data that tells you what to do next. AI analysis surfaces specific opportunities and risks so the path forward is always clear.</div>
+        </div>
+        <div class="ov-about-value-card">
+          <div class="ov-about-value-num">04</div>
+          <div class="ov-about-value-title">Built for simplicity</div>
+          <div class="ov-about-value-desc">Powerful enough for agencies, simple enough for solo marketers. Oriven removes complexity without removing capability.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team -->
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-about-centered">
+      <div class="ov-sp-tag">The Team</div>
+      <h2 class="ov-sp-h2">A Small Team With A Clear Focus</h2>
+      <p class="ov-sp-sub">One founder, one clear problem to solve, and a platform built from firsthand experience running advertising campaigns across multiple platforms.</p>
+      <div class="ov-about-team" style="grid-template-columns:1fr;max-width:340px;margin:0 auto;">
+        <div class="ov-about-team-card">
+          <div class="ov-about-founder-photo-wrap">
+            <img src="assets/Alec Kauffmann.jpeg" alt="Alec Kauffmann" class="ov-about-founder-photo">
+          </div>
+          <div class="ov-about-team-name">Alec Kauffmann</div>
+          <div class="ov-about-team-role">Founder &amp; CEO</div>
+          <div class="ov-about-team-bio">Building Oriven to help businesses understand, manage and improve advertising performance through unified marketing intelligence.</div>
+        </div>
+      </div>
+      <div style="margin-top:40px;max-width:480px;margin-left:auto;margin-right:auto;padding:24px 28px;border:1px solid rgba(255,255,255,.06);border-radius:14px;background:rgba(255,255,255,.02);text-align:center;">
+        <p style="font-size:12px;color:rgba(255,255,255,.35);margin:0 0 6px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;">Company details</p>
+        <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.85;margin:0">ORIVEN &middot; Registered in the Netherlands &middot; KVK: 42039993<br>Contact: <a href="mailto:studio.oriven@outlook.com" style="color:rgba(183,255,42,.65);text-decoration:none">studio.oriven@outlook.com</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Start bringing your<br>data together.</h2>
+      <p class="ov-sp-cta-sub">Connect your ad accounts in minutes. Get your first Daily Brief tomorrow morning.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
 </div>
 </div><!-- /view-about -->
+
+<!-- VIEW: BLOG  /blog -->
+<div id="view-blog" class="pub-view">
+<div class="ov-sub-page">
+
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner ov-plat-centered">
+      <h1 class="ov-sp-h1">Oriven Blog</h1>
+      <p class="ov-sp-hero-sub">Insights, Updates and Ideas from the Oriven Team</p>
+    </div>
+  </section>
+
+  <!-- Articles -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-blog-art-grid">
+
+        <div class="ov-blog-art-card">
+          <div class="ov-blog-art-body">
+            <div class="ov-blog-art-title">Oriven AI Is Now Live</div>
+            <div class="ov-blog-art-desc">After months of planning, designing and building, Oriven is officially live. Learn more about our mission, the problem we're solving and what's coming next for the platform.</div>
+          </div>
+          <a href="#" class="ov-blog-art-btn" onclick="ovBlogModalOpen(1);return false">Read Article</a>
+        </div>
+
+        <div class="ov-blog-art-card">
+          <div class="ov-blog-art-body">
+            <div class="ov-blog-art-title">What You Can Do With Oriven</div>
+            <div class="ov-blog-art-desc">Discover how Oriven helps marketers and businesses connect advertising data, generate insights and make better decisions from one platform.</div>
+          </div>
+          <a href="#" class="ov-blog-art-btn" onclick="ovBlogModalOpen(2);return false">Read Article</a>
+        </div>
+
+        <div class="ov-blog-art-card">
+          <div class="ov-blog-art-body">
+            <div class="ov-blog-art-title">Why We Built Oriven</div>
+            <div class="ov-blog-art-desc">Marketing data is fragmented across multiple platforms. Learn how that challenge inspired the creation of Oriven and the vision behind the platform.</div>
+          </div>
+          <a href="#" class="ov-blog-art-btn" onclick="ovBlogModalOpen(3);return false">Read Article</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Blog Article Modal -->
+  <div id="ov-blog-modal" class="ov-blog-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="ov-blog-modal-overlay" onclick="ovBlogModalClose()"></div>
+    <div class="ov-blog-modal-card">
+      <button class="ov-blog-modal-close" onclick="ovBlogModalClose()" aria-label="Close article">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <div class="ov-blog-modal-title" id="ov-blog-modal-title"></div>
+      <div class="ov-blog-modal-body" id="ov-blog-modal-body"></div>
+    </div>
+  </div>
+
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-blog -->
+
+<!-- VIEW: PRODUCT  /product -->
+<div id="view-product" class="pub-view">
+<div class="ov-sub-page">
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+  <div class="ov-frag-layer" aria-hidden="true">
+    <div class="ov-frag ov-frag-lg" style="top:22%;left:4%;--rot:28deg;--dur:9s;--del:0s"></div>
+    <div class="ov-frag ov-frag-sm" style="top:65%;right:6%;--rot:-42deg;--dur:11s;--del:1.8s"></div>
+    <div class="ov-frag ov-frag-v" style="top:40%;right:4%;--rot:15deg;--dur:8s;--del:3s"></div>
+  </div>
+    <div class="ov-sp-hero-inner">
+      <div class="ov-eyebrow">The Platform</div>
+      <h1 class="ov-sp-h1">Unified Marketing<br>Intelligence</h1>
+      <p class="ov-sp-hero-sub">One platform to connect your ad accounts, understand your data, and act on AI-powered insights — every morning before you open your laptop.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+        <a href="/solutions" class="ov-btn-ghost">Who It's For &#8594;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Analytics -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner">
+      <div class="ov-sp-tag">Analytics</div>
+      <h2 class="ov-sp-h2">See every platform.<br>In one view.</h2>
+      <p class="ov-sp-sub">Connect Google Ads, TikTok, and Meta. Oriven pulls your data together and surfaces what actually matters — spend, ROAS, conversions, and trends — without the tab-switching.</p>
+      <div class="ov-sp-feat-list">
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#128202;</span>
+          <div>
+            <div class="ov-sp-feat-name">Cross-platform analytics</div>
+            <div class="ov-sp-feat-desc">Compare performance across Google, TikTok, and Meta in a single unified view. One date range. All platforms.</div>
+          </div>
+        </div>
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#128200;</span>
+          <div>
+            <div class="ov-sp-feat-name">Performance monitoring</div>
+            <div class="ov-sp-feat-desc">Track ROAS, CPA, impressions, and spend trends automatically. Know your numbers without opening a single dashboard.</div>
+          </div>
+        </div>
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#9889;</span>
+          <div>
+            <div class="ov-sp-feat-name">Instant date comparisons</div>
+            <div class="ov-sp-feat-desc">Compare yesterday vs last week vs last month — across all platforms — with a single click.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Recommendations -->
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner">
+      <div class="ov-sp-tag">AI Intelligence</div>
+      <h2 class="ov-sp-h2">Your AI analyst,<br>working overnight.</h2>
+      <p class="ov-sp-sub">Oriven's AI reads your campaign data every night and surfaces specific, actionable recommendations — not generic tips. It tells you which campaigns to scale, which to pause, and why.</p>
+      <div class="ov-sp-feat-list">
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#10022;</span>
+          <div>
+            <div class="ov-sp-feat-name">Optimization suggestions</div>
+            <div class="ov-sp-feat-desc">Specific actions based on your real campaign data — not generic best practices. Tailored to your accounts.</div>
+          </div>
+        </div>
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#128269;</span>
+          <div>
+            <div class="ov-sp-feat-name">Campaign insights</div>
+            <div class="ov-sp-feat-desc">AI-generated summaries explaining what changed, why it changed, and what it means for your budget allocation.</div>
+          </div>
+        </div>
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#128276;</span>
+          <div>
+            <div class="ov-sp-feat-name">Smart anomaly alerts</div>
+            <div class="ov-sp-feat-desc">Get notified the moment ROAS drops, spend spikes, or a campaign behaves unexpectedly. Always be first to know.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Daily Brief -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner">
+      <div class="ov-sp-tag">Reporting</div>
+      <h2 class="ov-sp-h2">Your Daily Brief.<br>Every morning at 6am.</h2>
+      <p class="ov-sp-sub">Oriven generates an AI-written performance summary every morning — before you open your laptop. Know exactly what happened yesterday and exactly what to do today.</p>
+      <div class="ov-sp-brief-demo">
+        <div class="ov-sp-brief-hdr">
+          <span class="ov-sp-brief-badge">Daily Brief</span>
+          <span class="ov-sp-brief-date">Monday, July 14 &middot; AI Generated at 06:00</span>
+        </div>
+        <div class="ov-sp-brief-body">Your campaigns spent <strong>&#8364;1,240</strong> yesterday across all platforms. Google Ads ROAS climbed to <strong>5.6&times;</strong> &mdash; your best result this month and well above your 4.0&times; target. TikTok impressions dropped 22% due to creative fatigue on your current ad set. Meta is on track and within projected monthly spend.</div>
+        <div class="ov-sp-brief-actions">
+          <div class="ov-sp-brief-action"><span class="ov-ba-tag ov-ba-scale">Scale</span>Increase Google Ads budget by 25% &mdash; campaigns are ROAS-positive with headroom</div>
+          <div class="ov-sp-brief-action"><span class="ov-ba-tag ov-ba-pause">Pause</span>Rotate TikTok creative set &mdash; CTR dropped to 0.4%, CPM spiking</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner">
+      <div class="ov-sp-tag">Dashboard</div>
+      <h2 class="ov-sp-h2">One source of truth.<br>Zero tab-switching.</h2>
+      <p class="ov-sp-sub">The Oriven dashboard is your marketing command center. Every metric, every platform, every campaign — in one place. Designed for speed and clarity, not complexity.</p>
+      <div class="ov-sp-dp-row">
+        <div class="ov-sp-dp"><span class="ov-sp-dp-dot ov-sp-dp-g"></span>Google Ads</div>
+        <div class="ov-sp-dp"><span class="ov-sp-dp-dot ov-sp-dp-t"></span>TikTok Ads</div>
+        <div class="ov-sp-dp"><span class="ov-sp-dp-dot ov-sp-dp-m"></span>Meta Ads</div>
+        <div class="ov-sp-dp ov-sp-dp-ai"><span>&#10022;</span>AI Intelligence</div>
+      </div>
+      <br>
+      <div class="ov-sp-feat-list" style="margin-top:16px">
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#128279;</span>
+          <div>
+            <div class="ov-sp-feat-name">Unified data layer</div>
+            <div class="ov-sp-feat-desc">All your ad platform data streams into a single normalized view. No exports, no spreadsheets, no manual work.</div>
+          </div>
+        </div>
+        <div class="ov-sp-feat">
+          <span class="ov-sp-feat-icon">&#127775;</span>
+          <div>
+            <div class="ov-sp-feat-name">Always up to date</div>
+            <div class="ov-sp-feat-desc">Data refreshes automatically. You always see the latest numbers — not yesterday's export that someone forgot to update.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ov-sp-cta">
+    <div class="ov-frag-layer" aria-hidden="true">
+      <div class="ov-frag ov-frag-lg" style="top:20%;left:5%;--rot:28deg;--dur:9s;--del:0s"></div>
+      <div class="ov-frag ov-frag-sm" style="top:65%;right:7%;--rot:-38deg;--dur:11s;--del:2s"></div>
+    </div>
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Ready to bring it<br>all together?</h2>
+      <p class="ov-sp-cta-sub">Connect your ad accounts in minutes. Get your first Daily Brief tomorrow morning.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product -->
+
+<!-- VIEW: SOLUTIONS  /solutions -->
+<div id="view-solutions" class="pub-view">
+<div class="ov-sub-page">
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner ov-plat-centered">
+      <div class="ov-eyebrow">Solutions</div>
+      <h1 class="ov-sp-h1">Built for every<br>marketing team</h1>
+      <p class="ov-sp-hero-sub">Whether you manage one brand or fifty accounts, Oriven adapts to how you work — giving you the intelligence you need without the overhead you don't.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+        <a href="/product" class="ov-btn-ghost">See the Platform &#8594;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Audience cards -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">Who It's For</div>
+      <h2 class="ov-sp-h2">One platform.<br>Every team size.</h2>
+      <p class="ov-sp-sub">Oriven is designed to work for teams of any size and structure — from solo marketers to agencies managing dozens of client accounts.</p>
+      <div class="ov-sp-audience-grid" style="text-align:left;">
+        <!-- Marketers -->
+        <div class="ov-sp-audience-card">
+          <div class="ov-sp-audience-icon">&#127919;</div>
+          <div class="ov-sp-audience-title">For Marketers</div>
+          <div class="ov-sp-audience-desc">Stop spending your morning switching between dashboards. Get one clear view of your campaign performance and know exactly where to focus today.</div>
+          <ul class="ov-sp-audience-list">
+            <li>Unified campaign visibility across all platforms</li>
+            <li>Daily AI brief delivered every morning</li>
+            <li>Faster, more confident budget decisions</li>
+            <li>Proactive alerts before problems compound</li>
+          </ul>
+        </div>
+        <!-- E-commerce -->
+        <div class="ov-sp-audience-card">
+          <div class="ov-sp-audience-icon">&#128722;</div>
+          <div class="ov-sp-audience-title">For E-commerce Brands</div>
+          <div class="ov-sp-audience-desc">Your ad spend is split across Google Shopping, TikTok Ads, and Meta. Oriven connects all three and tells you where your ROAS is strongest — so you can double down.</div>
+          <ul class="ov-sp-audience-list">
+            <li>Cross-channel ROAS tracking in one place</li>
+            <li>Ad performance ranked by return</li>
+            <li>Spend optimization recommendations</li>
+            <li>Growth insights powered by real data</li>
+          </ul>
+        </div>
+        <!-- Agencies -->
+        <div class="ov-sp-audience-card">
+          <div class="ov-sp-audience-icon">&#127970;</div>
+          <div class="ov-sp-audience-title">For Agencies</div>
+          <div class="ov-sp-audience-desc">Manage multiple client accounts without multiplying your reporting workload. Oriven centralizes everything so your team spends time on strategy — not spreadsheets.</div>
+          <ul class="ov-sp-audience-list">
+            <li>Multi-account management from one hub</li>
+            <li>Centralized cross-client reporting</li>
+            <li>Platform-level performance benchmarking</li>
+            <li>AI-generated client-ready summaries</li>
+          </ul>
+        </div>
+        <!-- Small business -->
+        <div class="ov-sp-audience-card">
+          <div class="ov-sp-audience-icon">&#127807;</div>
+          <div class="ov-sp-audience-title">For Small Businesses</div>
+          <div class="ov-sp-audience-desc">You don't need a data team. Oriven does the analysis for you — telling you in plain language what's working, what's not, and what to do next.</div>
+          <ul class="ov-sp-audience-list">
+            <li>Simple, jargon-free analytics overview</li>
+            <li>AI-powered guidance in plain language</li>
+            <li>No technical setup or training required</li>
+            <li>Actionable recommendations every morning</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shared benefits -->
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What Everyone Gets</div>
+      <h2 class="ov-sp-h2">The same intelligence.<br>For every team.</h2>
+      <p class="ov-sp-sub">Regardless of your industry or team size, every Oriven user gets the same core intelligence layer — unified data, AI analysis, and a Daily Brief that arrives before you start your day.</p>
+      <div class="ov-plat-feat-grid-4" style="text-align:left;">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Daily Brief</div>
+          <div class="ov-plat-feat-desc">An AI-written summary of what happened across all your campaigns, delivered every morning. No manual reporting.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">All Platforms Connected</div>
+          <div class="ov-plat-feat-desc">Google Ads, Meta Ads, and TikTok Ads all connected. Your data normalized and ready to compare in one place.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">AI Recommendations</div>
+          <div class="ov-plat-feat-desc">Specific actions based on your actual campaign performance — which to scale, which to pause, and why.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Unified Reporting</div>
+          <div class="ov-plat-feat-desc">Cross-platform performance reports generated automatically. Share clear summaries with your team or clients.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Your team deserves<br>better data.</h2>
+      <p class="ov-sp-cta-sub">Join the marketers who start every day with a clear picture of what's working and what to do next.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-solutions -->
+
+
 
 <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      SHARED: Supabase + API client
      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / GOOGLE ADS
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-google-ads" class="pub-view">
+<div class="ov-sub-page">
+
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner">
+      <div class="ov-eyebrow">Google Ads Intelligence</div>
+      <h1 class="ov-sp-h1">Your Google Ads data,<br>finally connected.</h1>
+      <p class="ov-sp-hero-sub">Oriven connects directly to your Google Ads account — pulling campaign data, spend, ROAS, and conversion metrics into a single unified view alongside Meta and TikTok.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Connect Google Ads</a>
+        <a href="/solutions" class="ov-btn-ghost">See all solutions &#8594;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Direct Connection -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">Direct Connection</div>
+      <h2 class="ov-sp-h2">Oriven connects directly<br>to your Google Ads account.</h2>
+      <p class="ov-sp-sub">Through this connection you get full visibility into your campaigns — no manual exports, no third-party workarounds.</p>
+      <div class="ov-plat-connect-grid">
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>View campaign performance</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Track advertising spend</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Monitor conversions</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Analyze ROAS</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Receive AI recommendations</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Generate campaign insights</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Create reports</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Share reports</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What You Get -->
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What You Get</div>
+      <h2 class="ov-sp-h2">Every metric that matters.<br>In one place.</h2>
+      <p class="ov-sp-sub">Connect your Google Ads account in minutes. Oriven normalizes your data and surfaces the numbers that matter — no exports, no formulas, no manual reporting.</p>
+      <div class="ov-plat-feat-grid">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Campaign Analytics</div>
+          <div class="ov-plat-feat-desc">View campaign performance in one place. Search, Shopping, Performance Max and Display — all tracked and compared.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">AI Recommendations</div>
+          <div class="ov-plat-feat-desc">Receive actionable suggestions based on your campaign data. Bid adjustments, budget shifts, and pause recommendations.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Performance Reporting</div>
+          <div class="ov-plat-feat-desc">Generate clear reports for teams and clients. Share performance summaries without manual data exports.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Cross-Platform Insights</div>
+          <div class="ov-plat-feat-desc">Compare Google performance against Meta and TikTok. Understand where your budget works hardest.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Data Synchronization</div>
+          <div class="ov-plat-feat-desc">Keep campaign data connected and updated. Oriven pulls the latest numbers so your view is always current.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Marketing Intelligence</div>
+          <div class="ov-plat-feat-desc">Turn fragmented campaign data into actionable insights. Know what changed, why it matters, and what to do next.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Start making better<br>Google Ads decisions.</h2>
+      <p class="ov-sp-cta-sub">Connect your account in under 5 minutes. No technical setup. No data team required.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-google-ads -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / META ADS
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-meta-ads" class="pub-view">
+<div class="ov-sub-page">
+
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner">
+      <div class="ov-eyebrow">Meta Ads Intelligence</div>
+      <h1 class="ov-sp-h1">Facebook &amp; Instagram campaigns,<br>clearly understood.</h1>
+      <p class="ov-sp-hero-sub">Connect Meta Ads to Oriven and get campaign performance across Facebook and Instagram — unified with Google and TikTok, analyzed by AI, delivered every morning.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Connect Meta Ads</a>
+        <a href="/solutions" class="ov-btn-ghost">See all solutions &#8594;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Direct Connection -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">Direct Connection</div>
+      <h2 class="ov-sp-h2">Oriven connects directly<br>to your Meta Ads account.</h2>
+      <p class="ov-sp-sub">Through this connection you get full visibility into your Facebook and Instagram campaigns — no manual exports, no third-party workarounds.</p>
+      <div class="ov-plat-connect-grid">
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Monitor campaign performance</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Analyze audience results</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Track spend and conversions</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Compare campaigns</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Receive AI recommendations</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Generate insights</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Create reports</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Share reports</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What You Get -->
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What You Get</div>
+      <h2 class="ov-sp-h2">From impressions to purchases.<br>All tracked.</h2>
+      <p class="ov-sp-sub">Meta campaigns are complex — multiple placements, objectives, and audiences. Oriven brings it into one clear view and tells you what the data actually means.</p>
+      <div class="ov-plat-feat-grid">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Campaign Analytics</div>
+          <div class="ov-plat-feat-desc">View campaign performance in one place. Facebook and Instagram campaigns tracked side by side with your other platforms.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">AI Recommendations</div>
+          <div class="ov-plat-feat-desc">Receive actionable suggestions based on your campaign data. Budget shifts, audience insights, and performance alerts.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Performance Reporting</div>
+          <div class="ov-plat-feat-desc">Generate clear reports for teams and clients. Share performance summaries without manual data exports.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Cross-Platform Insights</div>
+          <div class="ov-plat-feat-desc">Compare Meta performance against Google and TikTok. See where your budget drives the most return.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Data Synchronization</div>
+          <div class="ov-plat-feat-desc">Keep campaign data connected and updated. Oriven pulls the latest numbers so your view is always current.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Marketing Intelligence</div>
+          <div class="ov-plat-feat-desc">Turn fragmented Meta campaign data into actionable insights. Know what changed, why it matters, and what to do next.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Understand your Meta campaigns<br>every morning.</h2>
+      <p class="ov-sp-cta-sub">Connect Meta Ads in minutes. Oriven handles the analysis. You make the decisions.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-meta-ads -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / TIKTOK ADS
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-tiktok-ads" class="pub-view">
+<div class="ov-sub-page">
+
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner">
+      <div class="ov-eyebrow">TikTok Ads Intelligence</div>
+      <h1 class="ov-sp-h1">TikTok performance data,<br>without the guesswork.</h1>
+      <p class="ov-sp-hero-sub">Connect TikTok Ads to Oriven and track every campaign, video, and ad group alongside your Google and Meta data. One view, every platform.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Connect TikTok Ads</a>
+        <a href="/solutions" class="ov-btn-ghost">See all solutions &#8594;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Direct Connection -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">Direct Connection</div>
+      <h2 class="ov-sp-h2">Oriven connects directly<br>to your TikTok Ads account.</h2>
+      <p class="ov-sp-sub">Through this connection you get full visibility into your TikTok campaigns — no manual exports, no third-party workarounds.</p>
+      <div class="ov-plat-connect-grid">
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Track campaign performance</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Monitor engagement metrics</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Analyze conversions</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Review advertising spend</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Receive AI recommendations</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Generate insights</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Create reports</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Share reports</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What You Get -->
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What You Get</div>
+      <h2 class="ov-sp-h2">Your TikTok data,<br>finally readable.</h2>
+      <p class="ov-sp-sub">TikTok Ads Manager is powerful but complex. Oriven pulls your campaign data and makes it readable alongside everything else — no native dashboard switching required.</p>
+      <div class="ov-plat-feat-grid">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Campaign Analytics</div>
+          <div class="ov-plat-feat-desc">View campaign performance in one place. Track every campaign, ad group, and creative alongside your other platforms.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">AI Recommendations</div>
+          <div class="ov-plat-feat-desc">Receive actionable suggestions based on your campaign data. Budget reallocation, bid adjustments, and pause recommendations.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Performance Reporting</div>
+          <div class="ov-plat-feat-desc">Generate clear reports for teams and clients. Share TikTok performance summaries without manual data exports.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Cross-Platform Insights</div>
+          <div class="ov-plat-feat-desc">Compare TikTok performance against Google and Meta. Understand where your budget delivers the best return.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Data Synchronization</div>
+          <div class="ov-plat-feat-desc">Keep campaign data connected and updated. Oriven pulls the latest numbers so your view is always current.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Marketing Intelligence</div>
+          <div class="ov-plat-feat-desc">Turn fragmented TikTok data into actionable insights. Know what changed, why it matters, and what to do next.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Track TikTok the right way.<br>Start today.</h2>
+      <p class="ov-sp-cta-sub">Connect TikTok Ads to Oriven. Get a unified view with Google and Meta. Know your numbers every morning.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-tiktok-ads -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / ANALYTICS
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-analytics" class="pub-view">
+<div class="ov-sub-page">
+
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner ov-plat-centered">
+      <div class="ov-eyebrow">Analytics</div>
+      <h1 class="ov-sp-h1">Unified analytics across<br>every platform.</h1>
+      <p class="ov-sp-hero-sub">Stop switching between three dashboards. Oriven connects Google, Meta, and TikTok and shows you a single, normalized analytics view — updated daily, no manual work required.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+        <a href="/product/unified-dashboard" class="ov-btn-ghost">See the dashboard &#8594;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- What You Can Track -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What You Can Track</div>
+      <h2 class="ov-sp-h2">Every metric that moves<br>your business.</h2>
+      <p class="ov-sp-sub">Oriven normalizes data from Google Ads, Meta Ads, and TikTok Ads into a consistent format — so you can compare performance across platforms without building a data pipeline.</p>
+      <div class="ov-plat-feat-grid-4">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Campaign Performance</div>
+          <div class="ov-plat-feat-desc">Monitor campaign results across all connected platforms. See spend, ROAS, CTR, and conversions in one place.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Advertising Spend</div>
+          <div class="ov-plat-feat-desc">Track spending and budget allocation in real time. Know exactly where your money is going across every platform.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Conversions</div>
+          <div class="ov-plat-feat-desc">Measure conversion performance across campaigns. Track purchases, leads, and sign-ups from every connected platform.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">ROAS &amp; ROI</div>
+          <div class="ov-plat-feat-desc">Understand advertising efficiency and profitability. Compare return on ad spend across platforms and campaigns.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">See all your data<br>in one place.</h2>
+      <p class="ov-sp-cta-sub">Connect your ad accounts. Get unified analytics from day one. No setup required.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-analytics -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / AI RECOMMENDATIONS
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-ai-recommendations" class="pub-view">
+<div class="ov-sub-page">
+
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner ov-plat-centered">
+      <div class="ov-eyebrow">AI Recommendations</div>
+      <h1 class="ov-sp-h1">Not generic tips.<br>Your data. Your next move.</h1>
+      <p class="ov-sp-hero-sub">Oriven's AI analyses your actual campaign performance and tells you exactly what to do — which campaigns to scale, which to pause, and where to reallocate budget.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+        <a href="/product/analytics" class="ov-btn-ghost">See analytics &#8594;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- What AI Can Help With -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What AI Can Help With</div>
+      <h2 class="ov-sp-h2">Recommendations built on<br>your real performance.</h2>
+      <p class="ov-sp-sub">Every recommendation Oriven makes is derived from your connected ad account data — not industry benchmarks, not averages. Your campaigns. Your patterns. Your next step.</p>
+      <div class="ov-plat-feat-grid-4">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Campaign Optimization</div>
+          <div class="ov-plat-feat-desc">Identify opportunities to improve performance. Oriven surfaces which campaigns to scale, pause, or adjust based on your data.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Budget Suggestions</div>
+          <div class="ov-plat-feat-desc">Receive recommendations on budget allocation. Understand where your spend delivers the most return across all platforms.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Performance Insights</div>
+          <div class="ov-plat-feat-desc">Discover trends and hidden opportunities in your campaign data. Catch rising CPMs or declining ROAS before they compound.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Growth Opportunities</div>
+          <div class="ov-plat-feat-desc">Find actions that could improve results. Oriven identifies campaigns with headroom and tells you how to capture more volume.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Let AI do the analysis.<br>You make the calls.</h2>
+      <p class="ov-sp-cta-sub">Connect your ad accounts and get your first AI recommendations within 24 hours.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-ai-recommendations -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / REPORTING
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-reporting" class="pub-view">
+<div class="ov-sub-page">
+
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner ov-plat-centered">
+      <div class="ov-eyebrow">Reporting</div>
+      <h1 class="ov-sp-h1">Reports that write<br>themselves.</h1>
+      <p class="ov-sp-hero-sub">Oriven generates automated performance reports across every connected platform — delivered every morning before your day starts, without a single manual export or formula.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+        <a href="/product/analytics" class="ov-btn-ghost">See analytics &#8594;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- What Reporting Includes -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What Reporting Includes</div>
+      <h2 class="ov-sp-h2">Complete performance coverage.<br>Nothing missed.</h2>
+      <p class="ov-sp-sub">Every morning, Oriven analyses your campaign data from the previous day and generates a clear, plain-language performance summary — covering every connected platform in one report.</p>
+      <div class="ov-plat-feat-grid-4">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Automated Reports</div>
+          <div class="ov-plat-feat-desc">Generate reports automatically. Oriven handles data collection and report creation without any manual configuration.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Performance Summaries</div>
+          <div class="ov-plat-feat-desc">Understand campaign results quickly. A clear summary of spend, ROAS, conversions, and what changed — delivered every morning.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Cross-Platform Reporting</div>
+          <div class="ov-plat-feat-desc">View results from multiple platforms together. Google, Meta, and TikTok in one report — no tab switching, no manual aggregation.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Shareable Reports</div>
+          <div class="ov-plat-feat-desc">Export and share reports with teams or clients. Clear, readable summaries that communicate performance without requiring platform access.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Stop building reports.<br>Start reading them.</h2>
+      <p class="ov-sp-cta-sub">Connect your ad accounts and receive your first automated report within 24 hours.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-reporting -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / UNIFIED DASHBOARD
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-unified-dashboard" class="pub-view">
+<div class="ov-sub-page">
+
+  <!-- Hero -->
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner ov-plat-centered">
+      <div class="ov-eyebrow">Unified Dashboard</div>
+      <h1 class="ov-sp-h1">One dashboard.<br>Every platform.</h1>
+      <p class="ov-sp-hero-sub">The Oriven dashboard brings Google Ads, Meta Ads, and TikTok Ads into a single view — one source of truth for your entire advertising operation.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+        <a href="/product/analytics" class="ov-btn-ghost">See analytics &#8594;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- What You Can See -->
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What You Can See</div>
+      <h2 class="ov-sp-h2">Every platform.<br>One screen.</h2>
+      <p class="ov-sp-sub">The Oriven dashboard normalizes data from all your connected ad platforms into a consistent format — so you're always looking at the same metrics, the same way, regardless of platform.</p>
+      <div class="ov-plat-feat-grid-4">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Google Ads Overview</div>
+          <div class="ov-plat-feat-desc">View Google Ads performance. Campaign spend, ROAS, conversions, and CTR — all visible without logging into Google Ads Manager.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Meta Ads Overview</div>
+          <div class="ov-plat-feat-desc">Track Meta campaign performance. Facebook and Instagram results in one place, updated automatically alongside your other platforms.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">TikTok Ads Overview</div>
+          <div class="ov-plat-feat-desc">Monitor TikTok campaign results. Engagement, conversions, and spend tracked consistently with your Google and Meta data.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Unified Performance View</div>
+          <div class="ov-plat-feat-desc">See all advertising data in one dashboard. Compare platforms directly and understand your total advertising performance at a glance.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">See all your platforms<br>in one view.</h2>
+      <p class="ov-sp-cta-sub">Connect Google, Meta, and TikTok. Get your unified dashboard today.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-unified-dashboard -->
+
+<div id="view-404" class="pub-view" style="height:100vh;overflow-y:auto;overflow-x:hidden;">
+  <div class="ov-sub-page">
+    <div class="ov-sp-hero" style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:140px 24px 80px;">
+      <div style="font-size:96px;font-weight:800;color:rgba(255,255,255,.08);line-height:1;margin-bottom:16px;letter-spacing:-4px;">404</div>
+      <h1 style="font-size:clamp(28px,4vw,42px);font-weight:700;color:#fff;margin:0 0 16px;letter-spacing:-0.5px;">Page Not Found</h1>
+      <p style="font-size:16px;color:rgba(255,255,255,.5);max-width:420px;margin:0 0 40px;line-height:1.6;">The page you're looking for doesn't exist or has been moved.</p>
+      <a href="/" onclick="if(window.lpNavigate){event.preventDefault();window.lpNavigate('/')}" style="display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0a0a0f;font-size:14px;font-weight:600;padding:12px 28px;border-radius:10px;text-decoration:none;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        ← Return Home
+      </a>
+    </div>
+    <footer class="ov-sub-footer">
+      <div class="ov-sp-section" style="padding:32px 24px;border-top:1px solid rgba(255,255,255,.07);text-align:center;">
+        <p style="font-size:13px;color:rgba(255,255,255,.25);margin:0;">&copy; 2025 Oriven. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+</div><!-- /view-404 -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 <script src="plans.js"></script>
@@ -1304,21 +2547,45 @@
     '/login': 'login', '/signup': 'signup',
     '/terms': 'terms', '/privacy': 'privacy',
     '/refund-policy': 'refund-policy', '/cookie-policy': 'cookie-policy',
-    '/security': 'security', '/contact': 'contact', '/about': 'about'
+    '/security': 'security', '/contact': 'contact',
+    '/about': 'about', '/blog': 'blog', '/product': 'product', '/solutions': 'solutions',
+    '/product/google-ads':          'product-google-ads',
+    '/product/meta-ads':            'product-meta-ads',
+    '/product/tiktok-ads':          'product-tiktok-ads',
+    '/product/analytics':           'product-analytics',
+    '/product/ai-recommendations':  'product-ai-recommendations',
+    '/product/reporting':           'product-reporting',
+    '/product/unified-dashboard':   'product-unified-dashboard'
   };
-  var active = viewMap[path] || 'landing';
+  var active = (path === '/' || path === '') ? 'landing' : (viewMap[path] || '404');
   var el = document.getElementById('view-' + active);
   if(el) el.classList.remove('pub-view');
+
+  // Show global nav on content pages
+  var NAV_VIEWS = {
+    landing:1, about:1, blog:1, product:1, solutions:1,
+    'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1,
+    'product-analytics':1, 'product-ai-recommendations':1,
+    'product-reporting':1, 'product-unified-dashboard':1,
+    '404':1
+  };
+  document.body.dataset.lpnav = NAV_VIEWS[active] ? '1' : '0';
+
   var titles = {
-    login:           'Login | Oriven',
-    signup:          'Create Account â€” ORIVEN',
-    terms:           'Terms of Service â€” ORIVEN',
-    privacy:         'Privacy Policy â€” ORIVEN',
-    'refund-policy': 'Refund Policy â€” ORIVEN',
-    'cookie-policy': 'Cookie Policy â€” ORIVEN',
-    security:        'Security â€” ORIVEN',
-    contact:         'Contact â€” ORIVEN',
-    about:           'About â€” ORIVEN'
+    login: 'Login | Oriven', signup: 'Create Account – ORIVEN',
+    terms: 'Terms of Service – ORIVEN', privacy: 'Privacy Policy – ORIVEN',
+    'refund-policy': 'Refund Policy – ORIVEN', 'cookie-policy': 'Cookie Policy – ORIVEN',
+    security: 'Security – ORIVEN', contact: 'Contact – ORIVEN',
+    about: 'About – Oriven', blog: 'Blog – Oriven',
+    product: 'Product – Oriven', solutions: 'Solutions – Oriven',
+    'product-google-ads':         'Google Ads Intelligence – Oriven',
+    'product-meta-ads':           'Meta Ads Intelligence – Oriven',
+    'product-tiktok-ads':         'TikTok Ads Intelligence – Oriven',
+    'product-analytics':          'Analytics – Oriven',
+    'product-ai-recommendations': 'AI Recommendations – Oriven',
+    'product-reporting':          'Reporting – Oriven',
+    'product-unified-dashboard':  'Unified Dashboard – Oriven',
+    '404':                        'Page Not Found – Oriven'
   };
   if(titles[active]) document.title = titles[active];
   window._pubView = active;
@@ -1331,6 +2598,13 @@
 <script>
 (function(){
   var FADE = 210;
+  var NAV_VIEWS = {
+    landing:1, about:1, blog:1, product:1, solutions:1,
+    'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1,
+    'product-analytics':1, 'product-ai-recommendations':1,
+    'product-reporting':1, 'product-unified-dashboard':1,
+    '404':1
+  };
   var VIEW_MAP = {
     '/':             'landing',
     '/login':        'login',
@@ -1341,20 +2615,45 @@
     '/cookie-policy':'cookie-policy',
     '/security':     'security',
     '/contact':      'contact',
-    '/about':        'about'
+    '/about':        'about',
+    '/blog':         'blog',
+    '/product':      'product',
+    '/solutions':    'solutions',
+    '/product/google-ads':          'product-google-ads',
+    '/product/meta-ads':            'product-meta-ads',
+    '/product/tiktok-ads':          'product-tiktok-ads',
+    '/product/analytics':           'product-analytics',
+    '/product/ai-recommendations':  'product-ai-recommendations',
+    '/product/reporting':           'product-reporting',
+    '/product/unified-dashboard':   'product-unified-dashboard'
   };
   var PAGE_TITLES = {
-    'landing':       'ORIVEN â€” Brand Intelligence Platform',
-    'login':         'Login | Oriven',
-    'signup':        'Create Account â€” ORIVEN',
-    'terms':         'Terms of Service â€” ORIVEN',
-    'privacy':       'Privacy Policy â€” ORIVEN',
-    'refund-policy': 'Refund Policy â€” ORIVEN',
-    'cookie-policy': 'Cookie Policy â€” ORIVEN',
-    'security':      'Security â€” ORIVEN',
-    'contact':       'Contact â€” ORIVEN',
-    'about':         'About â€” ORIVEN'
+    'landing':                  'Oriven — AI Marketing Intelligence Platform',
+    'login':                    'Login | Oriven',
+    'signup':                   'Create Account – ORIVEN',
+    'terms':                    'Terms of Service – ORIVEN',
+    'privacy':                  'Privacy Policy – ORIVEN',
+    'refund-policy':            'Refund Policy – ORIVEN',
+    'cookie-policy':            'Cookie Policy – ORIVEN',
+    'security':                 'Security – ORIVEN',
+    'contact':                  'Contact – ORIVEN',
+    'about':                    'About – Oriven',
+    'blog':                     'Blog – Oriven',
+    'product':                  'Product – Oriven',
+    'solutions':                'Solutions – Oriven',
+    'product-google-ads':         'Google Ads Intelligence – Oriven',
+    'product-meta-ads':           'Meta Ads Intelligence – Oriven',
+    'product-tiktok-ads':         'TikTok Ads Intelligence – Oriven',
+    'product-analytics':          'Analytics – Oriven',
+    'product-ai-recommendations': 'AI Recommendations – Oriven',
+    'product-reporting':          'Reporting – Oriven',
+    'product-unified-dashboard':  'Unified Dashboard – Oriven',
+    '404':                        'Page Not Found – Oriven'
   };
+
+  function setNav(viewKey){
+    document.body.dataset.lpnav = NAV_VIEWS[viewKey] ? '1' : '0';
+  }
 
   function lpNavigate(href){
     var overlay = document.getElementById('lpTransitionOverlay');
@@ -1369,11 +2668,14 @@
       if(cur) cur.classList.add('pub-view');
 
       var next = document.getElementById('view-' + targetKey);
-      if(next) next.classList.remove('pub-view');
+      if(next){
+        next.classList.remove('pub-view');
+        next.scrollTop = 0;
+      }
 
       window._pubView = targetKey;
+      setNav(targetKey);
       history.pushState(null, '', href);
-      window.scrollTo(0, 0);
       if(PAGE_TITLES[targetKey]) document.title = PAGE_TITLES[targetKey];
 
       overlay.classList.remove('lp-t-in');
@@ -1384,7 +2686,7 @@
     var a = e.target.closest('a[href]');
     if(!a) return;
     var href = a.getAttribute('href');
-    if(!href || href.charAt(0) === '#' || href === '/' || href.indexOf('mailto:') === 0 || href.indexOf('http') === 0) return;
+    if(!href || href.charAt(0) === '#' || href.indexOf('mailto:') === 0 || href.indexOf('http') === 0) return;
     if(!VIEW_MAP.hasOwnProperty(href)) return;
     e.preventDefault();
     lpNavigate(href);
@@ -1397,9 +2699,12 @@
     var cur = document.getElementById('view-' + window._pubView);
     if(cur) cur.classList.add('pub-view');
     var next = document.getElementById('view-' + targetKey);
-    if(next) next.classList.remove('pub-view');
+    if(next){
+      next.classList.remove('pub-view');
+      next.scrollTop = 0;
+    }
     window._pubView = targetKey;
-    window.scrollTo(0, 0);
+    setNav(targetKey);
     if(PAGE_TITLES[targetKey]) document.title = PAGE_TITLES[targetKey];
   });
 
@@ -1411,6 +2716,31 @@
      LANDING SCRIPTS
      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <script>
+// â”€â”€ Blog category filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function ovCTab(btn, idx) {
+  var tabs = btn.closest('.ov-creative-tabs').querySelectorAll('.ov-ctab');
+  tabs.forEach(function(t){ t.classList.remove('ov-ctab-active'); t.setAttribute('aria-selected','false'); });
+  btn.classList.add('ov-ctab-active'); btn.setAttribute('aria-selected','true');
+  [0,1,2].forEach(function(i){
+    var p = document.getElementById('ovCPanel' + i);
+    if(p) p.classList.toggle('ov-cpanel-active', i === idx);
+  });
+}
+function ovBlogFilter(btn, cat) {
+  var btns = btn.closest('.ov-blog-cats').querySelectorAll('.ov-blog-cat-btn');
+  btns.forEach(function(b){ b.classList.remove('ov-cat-active'); });
+  btn.classList.add('ov-cat-active');
+  var featured = btn.closest('.ov-sub-page').querySelector('.ov-blog-featured');
+  var cards = btn.closest('.ov-sub-page').querySelectorAll('#ov-blog-grid .ov-blog-card');
+  if(cat === 'all') {
+    if(featured) featured.style.display = '';
+    cards.forEach(function(c){ c.style.display = ''; });
+  } else {
+    if(featured) featured.style.display = (featured.dataset.cat === cat) ? '' : 'none';
+    cards.forEach(function(c){ c.style.display = (c.dataset.cat === cat) ? '' : 'none'; });
+  }
+}
+
 // â”€â”€ Landing page routing helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Always go to account creation. Existing users can log in from there.
 function lpGetStarted(e){
@@ -1810,9 +3140,9 @@ function lpAnimProcess(){
     new IntersectionObserver(function(entries){
       if(entries[0].isIntersecting && !_counting) {
         _counting = true;
-        [{id:'rn-0',target:340,suffix:'%',prefix:'+',dec:0},
-         {id:'rn-1',target:210,suffix:'%',prefix:'+',dec:0},
-         {id:'rn-2',target:47, suffix:'x',prefix:'', dec:1}
+        [{id:'rn-0',target:2,suffix:'M+',prefix:'€',dec:0},
+         {id:'rn-1',target:12,suffix:'K+',prefix:'',dec:0},
+         {id:'rn-2',target:1000,suffix:'+',prefix:'',dec:0}
         ].forEach(function(cfg, idx){
           setTimeout(function(){
             var el = document.getElementById(cfg.id);
@@ -1913,6 +3243,229 @@ function ovNavTo(e, sel) {
   lv.scrollTo({ top: offset, behavior: 'smooth' });
 }
 
+
+// -- Interactive 3D Globe (Section 05) ----------------------------------
+(function(){
+  'use strict';
+  var canvas = document.getElementById('ov-globe-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W, H, R, cx, cy;
+
+  function setSize(){
+    var wrap = canvas.parentElement;
+    var mw = Math.min(wrap ? wrap.offsetWidth : 520, 560);
+    W  = canvas.width  = mw;
+    H  = canvas.height = Math.round(mw * 0.72);
+    R  = Math.min(W, H) * 0.40;
+    cx = W / 2;
+    cy = H / 2;
+  }
+
+  var rotY = 0.7, rotX = 0.28, velY = 0.003;
+  var dragging = false, sx0, sy0, ry0, rx0, pulse = 0;
+
+  var CITIES = [
+    [52.4,   4.9,  'Amsterdam'],
+    [51.5,  -0.1,  'London'],
+    [48.9,   2.4,  'Paris'],
+    [52.5,  13.4,  'Berlin'],
+    [40.7, -74.0,  'New York'],
+    [37.8,-122.4,  'San Francisco'],
+    [-33.9, 151.2, 'Sydney'],
+    [-23.5, -46.6, 'Sao Paulo'],
+    [35.7,  139.7, 'Tokyo'],
+    [25.2,   55.3, 'Dubai'],
+    [ 1.4,  103.8, 'Singapore'],
+    [55.8,   37.6, 'Moscow'],
+  ];
+
+  function ll3d(lat, lon){
+    var ph = (90 - lat) * Math.PI / 180;
+    var th = lon * Math.PI / 180;
+    return [Math.sin(ph)*Math.cos(th), Math.cos(ph), Math.sin(ph)*Math.sin(th)];
+  }
+
+  function rotP(p){
+    var x=p[0], y=p[1], z=p[2];
+    var cY=Math.cos(rotY), sY=Math.sin(rotY);
+    var x1=x*cY-z*sY, z1=x*sY+z*cY;
+    var cX=Math.cos(rotX), sX=Math.sin(rotX);
+    var y2=y*cX-z1*sX, z2=y*sX+z1*cX;
+    return [x1, y2, z2];
+  }
+
+  function proj(p){ return [cx+p[0]*R, cy-p[1]*R, p[2]]; }
+
+  function polyline(pts, color, lw){
+    if(pts.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for(var i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = lw;
+    ctx.stroke();
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+    pulse += 0.018;
+
+    // Ambient glow
+    var grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, R*1.4);
+    grd.addColorStop(0,   'rgba(183,255,42,0.055)');
+    grd.addColorStop(0.5, 'rgba(183,255,42,0.018)');
+    grd.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R*1.4, 0, Math.PI*2);
+    ctx.fill();
+
+    // Globe outline ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(183,255,42,0.22)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Clip to sphere interior
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI*2);
+    ctx.clip();
+
+    // Latitude lines
+    var lats = [-60, -30, 0, 30, 60];
+    for(var li=0;li<lats.length;li++){
+      var lat = lats[li];
+      var run = [];
+      for(var ln=-180;ln<=180;ln+=4){
+        var rp = rotP(ll3d(lat,ln));
+        if(rp[2] >= 0){ run.push(proj(rp)); }
+        else if(run.length){ polyline(run,'rgba(183,255,42,0.09)',0.75); run=[]; }
+      }
+      if(run.length) polyline(run,'rgba(183,255,42,0.09)',0.75);
+    }
+
+    // Longitude lines
+    var lons = [-150,-120,-90,-60,-30,0,30,60,90,120,150];
+    for(var loi=0;loi<lons.length;loi++){
+      var lon = lons[loi];
+      var run = [];
+      for(var lt=-85;lt<=85;lt+=4){
+        var rp = rotP(ll3d(lt,lon));
+        if(rp[2] >= 0){ run.push(proj(rp)); }
+        else if(run.length){ polyline(run,'rgba(183,255,42,0.05)',0.7); run=[]; }
+      }
+      if(run.length) polyline(run,'rgba(183,255,42,0.05)',0.7);
+    }
+
+    // Dot grid
+    for(var dlt=-84;dlt<=84;dlt+=15){
+      for(var dln=-180;dln<180;dln+=15){
+        var rp = rotP(ll3d(dlt,dln));
+        if(rp[2] < 0) continue;
+        var sp = proj(rp);
+        var al = rp[2]*0.25 + 0.05;
+        ctx.beginPath();
+        ctx.arc(sp[0],sp[1],1.3,0,Math.PI*2);
+        ctx.fillStyle = 'rgba(183,255,42,'+al+')';
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+
+    // City markers (drawn outside clip so labels are visible)
+    var vis = [];
+    for(var ci=0;ci<CITIES.length;ci++){
+      var c  = CITIES[ci];
+      var rp = rotP(ll3d(c[0],c[1]));
+      if(rp[2] > 0) vis.push({p:rp, s:proj(rp), name:c[2]});
+    }
+    vis.sort(function(a,b){ return a.p[2]-b.p[2]; });
+
+    for(var vi=0;vi<vis.length;vi++){
+      var v  = vis[vi];
+      var d  = v.p[2];
+      var al = Math.min(1, d*1.6);
+      var vx = v.s[0], vy = v.s[1];
+
+      // Pulse halo
+      var pr = 7 + Math.sin(pulse)*2.2;
+      ctx.beginPath();
+      ctx.arc(vx,vy,pr,0,Math.PI*2);
+      ctx.strokeStyle = 'rgba(183,255,42,'+(al*0.2)+')';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+
+      // Dot
+      ctx.beginPath();
+      ctx.arc(vx,vy,2.8,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(183,255,42,'+(al*0.95)+')';
+      ctx.fill();
+      // White core
+      ctx.beginPath();
+      ctx.arc(vx,vy,1.1,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,'+(al*0.6)+')';
+      ctx.fill();
+
+      // Label
+      if(d > 0.32){
+        ctx.font = '500 10px Geist,sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,'+(al*0.5)+')';
+        ctx.fillText(v.name, vx+10, vy+4);
+      }
+    }
+  }
+
+  var raf = null;
+  function frame(){
+    if(!dragging) rotY += velY;
+    draw();
+    raf = requestAnimationFrame(frame);
+  }
+
+  function evPos(e){
+    return e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY}
+                     : {x:e.clientX, y:e.clientY};
+  }
+
+  canvas.addEventListener('mousedown', function(e){
+    var p=evPos(e); dragging=true; sx0=p.x; sy0=p.y; ry0=rotY; rx0=rotX;
+    canvas.style.cursor='grabbing';
+  });
+  window.addEventListener('mousemove', function(e){
+    if(!dragging) return;
+    var p=evPos(e);
+    rotY = ry0 + (p.x-sx0)/R*1.5;
+    rotX = Math.max(-0.65, Math.min(0.65, rx0-(p.y-sy0)/R*1.1));
+  });
+  window.addEventListener('mouseup', function(){
+    dragging=false; canvas.style.cursor='grab';
+  });
+  canvas.addEventListener('touchstart', function(e){
+    var p=evPos(e); dragging=true; sx0=p.x; sy0=p.y; ry0=rotY; rx0=rotX;
+  },{passive:true});
+  window.addEventListener('touchmove', function(e){
+    if(!dragging) return;
+    var p=evPos(e);
+    rotY = ry0 + (p.x-sx0)/R*1.5;
+    rotX = Math.max(-0.65, Math.min(0.65, rx0-(p.y-sy0)/R*1.1));
+  },{passive:true});
+  window.addEventListener('touchend', function(){ dragging=false; });
+
+  // Pause when off-screen
+  if(window.IntersectionObserver){
+    new IntersectionObserver(function(entries){
+      if(entries[0].isIntersecting){ if(!raf) frame(); }
+      else { if(raf){ cancelAnimationFrame(raf); raf=null; } }
+    }).observe(canvas);
+  } else { frame(); }
+
+  setSize();
+  window.addEventListener('resize', setSize);
+  canvas.style.cursor = 'grab';
+})();
 } // end if(window._pubView === 'landing')
 
 // ── Campaign FAQ accordion ────────────────────────────────────────────
@@ -2495,6 +4048,387 @@ async function auSignup(){
 
   render(0);
   updateNav();
+})();
+</script>
+
+<script>
+/* ── Navigation dropdowns ────────────────────────────────────────── */
+(function(){
+  var OPEN_CLASS  = 'lp-dd-open';
+  var CLOSE_DELAY = 180; // ms grace period before hiding
+  var items = Array.prototype.slice.call(document.querySelectorAll('.lp-has-dd'));
+
+  function openItem(el){
+    clearTimeout(el._ddTimer);
+    items.forEach(function(other){ if(other !== el) closeNow(other); });
+    el.classList.add(OPEN_CLASS);
+    var trig = el.querySelector('.lp-dd-trig');
+    if(trig) trig.setAttribute('aria-expanded','true');
+  }
+
+  function closeNow(el){
+    clearTimeout(el._ddTimer);
+    el.classList.remove(OPEN_CLASS);
+    var trig = el.querySelector('.lp-dd-trig');
+    if(trig) trig.setAttribute('aria-expanded','false');
+  }
+
+  function scheduledClose(el){
+    clearTimeout(el._ddTimer);
+    el._ddTimer = setTimeout(function(){ closeNow(el); }, CLOSE_DELAY);
+  }
+
+  function closeAll(){ items.forEach(closeNow); }
+
+  items.forEach(function(el){
+    var dd = el.querySelector('.lp-dropdown');
+
+    // Desktop: hover open
+    el.addEventListener('mouseenter', function(){
+      if(window.innerWidth > 768) openItem(el);
+    });
+    el.addEventListener('mouseleave', function(){
+      if(window.innerWidth > 768) scheduledClose(el);
+    });
+
+    // Hovering the dropdown panel itself cancels the close timer
+    if(dd){
+      dd.addEventListener('mouseenter', function(){
+        if(window.innerWidth > 768) clearTimeout(el._ddTimer);
+      });
+      dd.addEventListener('mouseleave', function(){
+        if(window.innerWidth > 768) scheduledClose(el);
+      });
+    }
+
+    // Click / tap toggle (desktop + mobile)
+    var trig = el.querySelector('.lp-dd-trig');
+    if(trig){
+      trig.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(el.classList.contains(OPEN_CLASS)){
+          closeNow(el);
+        } else {
+          closeAll();
+          openItem(el);
+        }
+      });
+    }
+  });
+
+  // Tap / click outside closes all
+  document.addEventListener('click', function(e){
+    var inside = e.target.closest && e.target.closest('.lp-has-dd');
+    if(!inside) closeAll();
+  });
+
+  // Mobile accordion toggle
+  window.lpMmToggle = function(btn){
+    var item = btn.closest('.lp-mm-item');
+    if(!item) return;
+    var isOpen = item.classList.contains('lp-mm-open');
+    document.querySelectorAll('.lp-mm-item.lp-mm-open').forEach(function(i){
+      i.classList.remove('lp-mm-open');
+    });
+    if(!isOpen) item.classList.add('lp-mm-open');
+  };
+
+  window.lpCloseMm = function(){
+    var mm = document.getElementById('lpMobileMenu');
+    if(mm) mm.classList.remove('lp-mm-open');
+  };
+})();
+</script>
+
+<script>
+(function() {
+  var OV_ARTICLES = {
+    1: {
+      title: 'Oriven AI Is Now Live',
+      paragraphs: [
+        'After months of planning, designing and development, Oriven is officially live.',
+        'Our mission is simple: help businesses connect advertising data, generate insights and make better marketing decisions from a single platform.',
+        'This launch is only the beginning, and we are excited to continue improving the platform.'
+      ]
+    },
+    2: {
+      title: 'What You Can Do With Oriven',
+      paragraphs: [
+        'Oriven connects advertising platforms such as Google Ads, Meta Ads and TikTok Ads into a unified experience.',
+        'Users can analyze performance, track spending, monitor conversions, generate reports and receive AI-powered recommendations.',
+        'The goal is to reduce complexity and make marketing data easier to understand.'
+      ]
+    },
+    3: {
+      title: 'Why We Built Oriven',
+      paragraphs: [
+        'Marketing data is often spread across multiple platforms and dashboards.',
+        'Switching between tools wastes time and makes decision-making harder.',
+        'Oriven was created to solve that challenge by bringing marketing intelligence together in one place.'
+      ]
+    }
+  };
+
+  window.ovBlogModalOpen = function(id) {
+    var art = OV_ARTICLES[id];
+    if (!art) return;
+    document.getElementById('ov-blog-modal-title').textContent = art.title;
+    document.getElementById('ov-blog-modal-body').innerHTML = art.paragraphs.map(function(p) {
+      return '<p>' + p + '</p>';
+    }).join('');
+    var modal = document.getElementById('ov-blog-modal');
+    if (modal) { modal.setAttribute('aria-hidden','false'); modal.classList.add('is-open'); }
+  };
+
+  window.ovBlogModalClose = function() {
+    var modal = document.getElementById('ov-blog-modal');
+    if (modal) { modal.setAttribute('aria-hidden','true'); modal.classList.remove('is-open'); }
+  };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') window.ovBlogModalClose();
+  });
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HOMEPAGE SCROLL ANIMATIONS
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // Un-hide hero if motion is reduced (CSS hid it, nothing will animate it)
+    var hc = document.getElementById('ov-hero-content');
+    if (hc) { var kids = hc.children; for (var i=0;i<kids.length;i++) kids[i].style.opacity=''; }
+    return;
+  }
+  if (!window.gsap || !window.ScrollTrigger) return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  var scroller = document.getElementById('view-landing');
+  if (!scroller) return;
+
+  var ease = 'power3.out';
+
+  ScrollTrigger.defaults({
+    scroller: scroller,
+    once: true
+  });
+
+  // ── HERO — fires on page load, no scroll needed ──────────
+  var heroTl = gsap.timeline({ delay: 0.15 });
+  heroTl
+    .fromTo('#ov-hero .ov-eyebrow',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.7, ease: ease })
+    .fromTo('#ov-hero .ov-h1',
+      { opacity: 0, y: 38 },
+      { opacity: 1, y: 0, duration: 0.9, ease: ease }, '-=0.35')
+    .fromTo('#ov-hero .ov-hero-desc',
+      { opacity: 0, y: 22 },
+      { opacity: 1, y: 0, duration: 0.7, ease: ease }, '-=0.5')
+    .fromTo('#ov-hero .ov-hero-btns a',
+      { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.6, ease: ease, stagger: 0.1 }, '-=0.4')
+    .fromTo('.ov-hero-int-pill',
+      { opacity: 0, y: 12, scale: 0.93 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: ease, stagger: 0.09 }, '-=0.25');
+
+  // ── SECTION HEADER HELPER ────────────────────────────────
+  function sectionHeader(section, labelSel, h2Sel, subSel) {
+    var tl = gsap.timeline({
+      scrollTrigger: { trigger: section, start: 'top 84%' }
+    });
+    var lbl = labelSel && section.querySelector(labelSel);
+    var h2  = h2Sel    && section.querySelector(h2Sel);
+    var sub = subSel   && section.querySelector(subSel);
+    if (lbl) tl.fromTo(lbl, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5,  ease: ease });
+    if (h2)  tl.fromTo(h2,  { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.75, ease: ease }, '-=0.2');
+    if (sub) tl.fromTo(sub, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6,  ease: ease }, '-=0.45');
+    return tl;
+  }
+
+  // ── 02 PROBLEM ───────────────────────────────────────────
+  var probSec = document.getElementById('ov-problem');
+  if (probSec) {
+    sectionHeader(probSec, '.ov-section-label', '.ov-section-h', '.ov-section-sub');
+
+    var probDiag = probSec.querySelector('.ov-prob-diagram');
+    if (probDiag) {
+      var srcs = probDiag.querySelectorAll('.ov-prob-source');
+      var pTl = gsap.timeline({ scrollTrigger: { trigger: probDiag, start: 'top 80%' } });
+      if (srcs[0]) pTl.fromTo(srcs[0], { opacity:0, x:-60 }, { opacity:1, x:0, duration:0.85, ease:ease }, 0.15);
+      if (srcs[1]) pTl.fromTo(srcs[1], { opacity:0, y: 50 }, { opacity:1, y:0, duration:0.85, ease:ease }, 0.3);
+      if (srcs[2]) pTl.fromTo(srcs[2], { opacity:0, x: 60 }, { opacity:1, x:0, duration:0.85, ease:ease }, 0.45);
+      pTl
+        .fromTo('.ov-prob-arrow',   { opacity:0 }, { opacity:1, duration:0.5, ease:ease }, 0.75)
+        .fromTo('.ov-prob-unified', { opacity:0, y:36, scale:0.95 }, { opacity:1, y:0, scale:1, duration:0.9, ease:ease }, 0.85);
+    }
+  }
+
+  // ── 03 DASHBOARD ─────────────────────────────────────────
+  var dashSec = document.getElementById('ov-dashboard');
+  if (dashSec) {
+    sectionHeader(dashSec, '.ov-section-label', '.ov-section-h', '.ov-section-sub');
+
+    gsap.fromTo('.ov-dash-mockup',
+      { opacity:0, y:48, scale:0.97 },
+      { opacity:1, y:0,  scale:1,    duration:1.0, ease:ease,
+        scrollTrigger: { trigger:'.ov-dash-mockup', start:'top 82%' } });
+
+    gsap.fromTo('.ov-dash-kpi',
+      { opacity:0, y:22 },
+      { opacity:1, y:0, duration:0.6, ease:ease, stagger:0.08,
+        scrollTrigger: { trigger:'.ov-dash-kpi-row', start:'top 86%' } });
+
+    gsap.fromTo('.ov-dash-bar-seg',
+      { scaleY:0 },
+      { scaleY:1, transformOrigin:'bottom center', duration:0.75, ease:ease, stagger:0.035,
+        scrollTrigger: { trigger:'.ov-dash-chart', start:'top 86%' }, delay:0.15 });
+
+    // Platform breakdown bars — read & restore width
+    (function() {
+      var bars = dashSec.querySelectorAll('.ov-dash-pb-bar');
+      var targets = [];
+      bars.forEach(function(b) { targets.push(b.style.width); gsap.set(b, { width:0 }); });
+      bars.forEach(function(b, i) {
+        gsap.to(b, { width: targets[i], duration:1.1, ease:ease, delay: i * 0.14,
+          scrollTrigger: { trigger:'.ov-dash-plat-breakdown', start:'top 86%' } });
+      });
+    })();
+
+    gsap.fromTo('.ov-dash-table-row',
+      { opacity:0, y:14 },
+      { opacity:1, y:0, duration:0.5, ease:ease, stagger:0.08,
+        scrollTrigger: { trigger:'.ov-dash-table', start:'top 90%' }, delay:0.1 });
+  }
+
+  // ── 04 AI RECOMMENDATIONS ────────────────────────────────
+  var aiSec = document.getElementById('ov-ai-recs');
+  if (aiSec) {
+    sectionHeader(aiSec, '.ov-section-label', '.ov-section-h', '.ov-section-sub');
+    gsap.fromTo('.ov-ai-card',
+      { opacity:0, y:40 },
+      { opacity:1, y:0, duration:0.8, ease:ease, stagger:0.15,
+        scrollTrigger: { trigger:'.ov-ai-grid', start:'top 82%' } });
+  }
+
+  // ── 05 INTEGRATIONS ──────────────────────────────────────
+  var intSec = document.getElementById('ov-integrations');
+  if (intSec) {
+    sectionHeader(intSec, '.ov-section-label', '.ov-section-h', '.ov-section-sub');
+    gsap.fromTo('.ov-int-card-new',
+      { opacity:0, y:32 },
+      { opacity:1, y:0, duration:0.7, ease:ease, stagger:0.12,
+        scrollTrigger: { trigger:'.ov-int-cards-grid', start:'top 82%' } });
+    gsap.fromTo('.ov-int-note',
+      { opacity:0 },
+      { opacity:1, duration:0.6, ease:ease,
+        scrollTrigger: { trigger:'.ov-int-note', start:'top 96%' } });
+  }
+
+  // ── 06 CREATIVE ──────────────────────────────────────────
+  var crSec = document.getElementById('ov-creative');
+  if (crSec) {
+    sectionHeader(crSec, '.ov-section-label', '.ov-section-h', '.ov-section-sub');
+    gsap.fromTo('.ov-creative-tabs',
+      { opacity:0, y:20 },
+      { opacity:1, y:0, duration:0.6, ease:ease,
+        scrollTrigger: { trigger:'.ov-creative-tabs', start:'top 88%' } });
+    gsap.fromTo('.ov-cpanel-active .ov-cex-card',
+      { opacity:0, y:30 },
+      { opacity:1, y:0, duration:0.65, ease:ease, stagger:0.07,
+        scrollTrigger: { trigger:'.ov-creative-stage', start:'top 82%' } });
+  }
+
+  // ── 07 COMPARISON ────────────────────────────────────────
+  var cmpSec = document.getElementById('ov-compare');
+  if (cmpSec) {
+    sectionHeader(cmpSec, '.ov-section-label', '.ov-section-h', '.ov-section-sub');
+    gsap.fromTo('.ov-feat-table-5',
+      { opacity:0, y:44, scale:0.97 },
+      { opacity:1, y:0,  scale:1,    duration:0.9, ease:ease,
+        scrollTrigger: { trigger:'.ov-feat-table-5', start:'top 82%' } });
+    gsap.fromTo('.ov-feat-table-row',
+      { opacity:0, y:14 },
+      { opacity:1, y:0, duration:0.5, ease:ease, stagger:0.06, delay:0.3,
+        scrollTrigger: { trigger:'.ov-feat-table-5', start:'top 78%' } });
+  }
+
+  // ── 08 REVIEWS ───────────────────────────────────────────
+  var revSec = document.getElementById('ov-reviews');
+  if (revSec) {
+    sectionHeader(revSec, '.ov-section-label', '.ov-section-h', '.ov-section-sub');
+    gsap.fromTo('.ov-rev-stage',
+      { opacity:0, y:32 },
+      { opacity:1, y:0, duration:0.8, ease:ease,
+        scrollTrigger: { trigger:'.ov-rev-stage', start:'top 86%' } });
+  }
+
+  // ── 09 PRICING ───────────────────────────────────────────
+  var priceSec = document.getElementById('pricing');
+  if (priceSec) {
+    sectionHeader(priceSec, '.ov-section-label', '.ov-section-h', '.ov-section-sub');
+    // fromTo required: .ov-pc starts at opacity:0 in CSS
+    gsap.fromTo('.ov-pc',
+      { opacity:0, y:44 },
+      { opacity:1, y:0, duration:0.75, ease:ease, stagger:0.12,
+        clearProps: 'transform',
+        scrollTrigger: { trigger:'.ov-pricing-grid-4', start:'top 82%' } });
+  }
+
+  // ── 10 FAQ ───────────────────────────────────────────────
+  var faqSec = document.getElementById('faq');
+  if (faqSec) {
+    sectionHeader(faqSec, '.ov-section-label', '.ov-section-h', null);
+    // fromTo required: .ov-faq starts at opacity:0 in CSS
+    gsap.fromTo('.ov-faq',
+      { opacity:0, y:18 },
+      { opacity:1, y:0, duration:0.5, ease:ease, stagger:0.065,
+        clearProps: 'transform',
+        scrollTrigger: { trigger:'.ov-faq-list', start:'top 84%' } });
+  }
+
+  // ── 11 FINAL CTA ─────────────────────────────────────────
+  var finalSec = document.getElementById('ov-final');
+  if (finalSec) {
+    var finalInner = finalSec.querySelector('.ov-final-inner');
+    var finalLabel = finalSec.querySelector('.ov-section-label');
+    if (finalInner) {
+      var fTl = gsap.timeline({
+        scrollTrigger: { trigger: finalInner, start:'top 80%' }
+      });
+      if (finalLabel) fTl.fromTo(finalLabel, { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5, ease:ease });
+      fTl
+        .fromTo('.ov-final-eyebrow', { opacity:0, y:22 }, { opacity:1, y:0, duration:0.6,  ease:ease }, '-=0.2')
+        .fromTo('.ov-final-h2',      { opacity:0, y:40 }, { opacity:1, y:0, duration:0.85, ease:ease }, '-=0.3')
+        .fromTo('.ov-final-sub',     { opacity:0, y:26 }, { opacity:1, y:0, duration:0.7,  ease:ease }, '-=0.5')
+        .fromTo('.ov-final-btns a',  { opacity:0, y:20 }, { opacity:1, y:0, duration:0.55, ease:ease, stagger:0.1 }, '-=0.4')
+        .fromTo('.ov-final-trust',   { opacity:0 },        { opacity:1,      duration:0.5,  ease:ease }, '-=0.2');
+    }
+  }
+
+  // ── FOOTER ───────────────────────────────────────────────
+  var footer = document.querySelector('.ov-footer');
+  if (footer) {
+    gsap.fromTo('.ov-footer-brand',
+      { opacity:0, y:24 },
+      { opacity:1, y:0, duration:0.7, ease:ease,
+        scrollTrigger: { trigger:footer, start:'top 92%' } });
+    gsap.fromTo('.ov-footer-col',
+      { opacity:0, y:20 },
+      { opacity:1, y:0, duration:0.6, ease:ease, stagger:0.1, delay:0.18,
+        scrollTrigger: { trigger:footer, start:'top 92%' } });
+    var footerBottom = footer.querySelector('.ov-footer-bottom');
+    if (footerBottom) {
+      gsap.fromTo(footerBottom,
+        { opacity:0 },
+        { opacity:1, duration:0.6, ease:ease,
+          scrollTrigger: { trigger:footerBottom, start:'top 98%' } });
+    }
+  }
+
 })();
 </script>
 </body>
