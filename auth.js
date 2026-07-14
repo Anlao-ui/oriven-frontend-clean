@@ -333,6 +333,19 @@ async function _loadUserProfile(user){
     }
   } catch(_){}
 
+  // Detect Meta Ads OAuth return — store result, clean URL
+  try {
+    var _omqp = new URLSearchParams(window.location.search);
+    var _omc  = _omqp.get("meta_connected");
+    var _ome  = _omqp.get("meta_error");
+    if(_omc === "1" || _ome){
+      window.history.replaceState({}, "", window.location.pathname);
+      window._pendingOAuthResult = { provider: 'meta', connected: _omc === "1", error: _ome || null };
+      console.log("[Meta OAuth] Return detected | connected:", _omc === "1", "| error:", _ome || null);
+      setTimeout(function(){ if(typeof navigate === "function") navigate("integrations"); }, 600);
+    }
+  } catch(_){}
+
   // ── Diagnostic logging ─────────────────────────────────────────
   console.log("[Profile] ══════════════════════════════════════");
   console.log("[Profile] Auth user:", user.id, "| email:", user.email);

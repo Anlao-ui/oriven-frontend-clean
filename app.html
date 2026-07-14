@@ -2473,8 +2473,8 @@
         <!-- Available section -->
         <div class="intg-section-label" style="margin-top:28px;margin-bottom:12px">Available</div>
 
-        <!-- Meta Ads — coming soon -->
-        <div class="intg-card intg-card-coming">
+        <!-- Meta Ads card -->
+        <div class="intg-card" id="intg-meta-card">
           <div class="intg-card-top">
             <div class="intg-card-logo">
               <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
@@ -2486,7 +2486,40 @@
               <div class="intg-card-name">Meta Ads</div>
               <div class="intg-card-desc">Sync Facebook and Instagram ad performance, audience insights, and ROAS into ORIVEN.</div>
             </div>
-            <div><span class="badge bg-grey">Coming soon</span></div>
+            <div id="meta-action-area" style="flex-shrink:0">
+              <button class="btn btn-p btn-sm" id="meta-connect-btn" onclick="connectMetaAds()">Connect</button>
+              <span class="badge bg-green" id="meta-connected-badge" style="display:none">Connected</span>
+            </div>
+          </div>
+
+          <!-- Connected details — hidden until _loadMetaStatus confirms connection -->
+          <div class="intg-card-info" id="meta-connected-info" style="display:none">
+            <div class="int-field-row">
+              <span class="int-field-label">Connected as</span>
+              <span class="int-field-val" id="meta-user-val">—</span>
+            </div>
+            <div class="int-field-row">
+              <span class="int-field-label">Connected on</span>
+              <span class="int-field-val" id="meta-date-val">—</span>
+            </div>
+            <div class="int-field-row">
+              <span class="int-field-label">Status</span>
+              <span class="int-field-val" id="meta-status-text">
+                <span class="int-status-dot"></span>Active
+              </span>
+            </div>
+
+            <div id="meta-accounts-loading" style="display:none;font-size:13px;color:var(--muted);margin-top:16px">Loading accounts…</div>
+            <div id="meta-accounts-error" style="display:none;font-size:13px;color:#ef4444;margin-top:12px"></div>
+            <div id="meta-accounts-wrap" style="display:none;margin-top:20px">
+              <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Ad Accounts</div>
+              <div id="meta-accounts-list"></div>
+            </div>
+
+            <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-g btn-sm" id="meta-refresh-btn" onclick="refreshMetaAccounts()">Refresh accounts</button>
+              <button class="btn btn-g btn-sm" id="meta-disconnect-btn" onclick="disconnectMetaAds()">Disconnect</button>
+            </div>
           </div>
         </div>
 

@@ -1551,12 +1551,30 @@ function initIntegrations(){
       db:             "Could not save connection — please try again.",
       network:        "Network error — please try again."
     };
+    var _metaErrMap = {
+      access_denied:    "Meta sign-in was cancelled.",
+      token_exchange:   "Meta connection failed — please try again.",
+      invalid_state:    "Session expired — please try again.",
+      db:               "Could not save connection — please try again.",
+      network:          "Network error — please try again.",
+      not_configured:   "Meta Ads is not yet configured on the server.",
+      missing_token:    "Authentication error — please try again.",
+      invalid_token:    "Authentication error — please sign in and try again.",
+      auth_error:       "Authentication error — please try again.",
+      missing_params:   "OAuth error — please try again."
+    };
     setTimeout(function(){
       if(_oar.provider === 'tiktok'){
         if(_oar.connected){
           toast("TikTok Ads connected successfully!");
         } else if(_oar.error){
           toast(_tiktokErrMap[_oar.error] || "TikTok connection failed.", "err");
+        }
+      } else if(_oar.provider === 'meta'){
+        if(_oar.connected){
+          toast("Meta Ads connected successfully!");
+        } else if(_oar.error){
+          toast(_metaErrMap[_oar.error] || "Meta connection failed.", "err");
         }
       } else {
         if(_oar.connected){
@@ -1569,6 +1587,7 @@ function initIntegrations(){
   }
   _loadGadsStatus();
   _loadTadsStatus();
+  _loadMetaStatus();
 }
 
 async function _loadGadsStatus(){
@@ -2069,6 +2088,254 @@ async function selectTadsAccount(advertiserId, advertiserName, currency){
     toast('Could not set active account — please try again.', 'err');
   }
 }
+
+// ════════════════════════════════════════════════════════════════
+// META ADS INTEGRATION
+// ════════════════════════════════════════════════════════════════
+
+window._activeMetaAccount = window._activeMetaAccount || null;
+
+async function _loadMetaStatus(){
+  var connectBtn     = document.getElementById("meta-connect-btn");
+  var connectedEl    = document.getElementById("meta-connected-info");
+  var connectedBadge = document.getElementById("meta-connected-badge");
+  if(connectBtn){ connectBtn.disabled = true; connectBtn.textContent = "Loading…"; }
+
+  try {
+    var result = await apiFetch("/api/meta/status");
+    if(!result.ok){
+      if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
+      var _statusErr = (result.data && result.data.error) || ("HTTP " + result.status);
+      console.error("[Meta Ads] /api/meta/status failed:", _statusErr);
+      return;
+    }
+    var data = result.data;
+    if(data.connected){
+      if(connectBtn)     connectBtn.style.display     = "none";
+      if(connectedBadge) connectedBadge.style.display = "";
+      if(connectedEl)    connectedEl.style.display    = "";
+
+      var userEl   = document.getElementById("meta-user-val");
+      var dateEl   = document.getElementById("meta-date-val");
+      var statusEl = document.getElementById("meta-status-text");
+
+      if(userEl)   userEl.textContent  = data.meta_user_name || "—";
+      if(dateEl)   dateEl.textContent  = data.connected_at
+        ? new Date(data.connected_at).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" })
+        : "—";
+      if(statusEl){
+        var isExpired = data.status === "expired";
+        statusEl.innerHTML = '<span class="int-status-dot' + (isExpired ? " int-status-warn" : "") + '"></span>'
+          + (isExpired ? "Token expired — reconnect" : "Active");
+      }
+
+      // Restore active account from DB
+      if(data.active_ad_account && data.active_ad_account.account_id){
+        window._activeMetaAccount = data.active_ad_account;
+      }
+
+      var storedAccounts = data.meta_ads_accounts || [];
+      if(storedAccounts.length){
+        _renderMetaAccounts(storedAccounts, data.active_ad_account && data.active_ad_account.account_id);
+      } else {
+        refreshMetaAccounts();
+      }
+    } else {
+      if(connectBtn){ connectBtn.style.display = ""; connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
+      if(connectedBadge) connectedBadge.style.display = "none";
+      if(connectedEl)    connectedEl.style.display    = "none";
+    }
+  } catch(err){
+    if(connectBtn){ connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
+    console.error("[Meta Ads] Status load failed:", err.message);
+  }
+}
+
+function _metaAccountStatusLabel(status){
+  var map = { 1:"Active", 2:"Disabled", 3:"Unsettled", 9:"In Grace Period", 100:"Pending Closure", 101:"Closed" };
+  return map[status] || ("Status " + status);
+}
+
+function _renderMetaAccounts(accounts, activeAccountId){
+  var wrap   = document.getElementById("meta-accounts-wrap");
+  var listEl = document.getElementById("meta-accounts-list");
+  var errEl  = document.getElementById("meta-accounts-error");
+  var loadEl = document.getElementById("meta-accounts-loading");
+  if(!wrap || !listEl) return;
+  if(loadEl) loadEl.style.display = "none";
+  if(errEl)  errEl.style.display  = "none";
+
+  if(!accounts || accounts.length === 0){
+    wrap.style.display = "none";
+    if(errEl){ errEl.textContent = "No Meta Ads accounts found. Make sure your Facebook account has access to a Meta Ads Manager, then click Refresh accounts."; errEl.style.display = ""; }
+    return;
+  }
+
+  function h(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var activeId = activeAccountId || (window._activeMetaAccount && window._activeMetaAccount.account_id) || null;
+
+  // Auto-select the only account when nothing active
+  if(accounts.length === 1 && !activeId){
+    var solo = accounts[0];
+    activeId = String(solo.account_id);
+    selectMetaAccount(solo.account_id, solo.account_name || solo.account_id, solo.currency || null);
+  }
+
+  listEl.innerHTML = accounts.map(function(a){
+    var isSelected = activeId && String(a.account_id) === String(activeId);
+    var safeId   = h(a.account_id);
+    var safeName = h(a.account_name || a.account_id);
+    var meta = [];
+    if(a.currency) meta.push(a.currency);
+    if(a.timezone) meta.push(a.timezone);
+    var statusLabel = _metaAccountStatusLabel(a.status);
+    var isActive = a.status === 1;
+    return '<div class="int-account-row' + (isSelected ? ' int-account-selected' : '') + '" '
+      + 'onclick="selectMetaAccount(\'' + safeId.replace(/'/g,'&apos;') + '\',\'' + safeName.replace(/'/g,'&apos;') + '\',\'' + h(a.currency||'') + '\')">'
+      + '<div class="int-account-row-inner">'
+      + '<div class="int-account-check">' + (isSelected ? '✓' : '') + '</div>'
+      + '<div>'
+      + '<div class="int-account-name">' + safeName
+      + (isSelected ? ' <span class="int-account-active-badge">Active</span>' : '') + '</div>'
+      + '<div class="int-account-id">ID: ' + safeId + '</div>'
+      + (meta.length ? '<div class="int-account-meta">' + h(meta.join(' · ')) + '</div>' : '')
+      + (!isActive ? '<div class="int-account-mcc-warn">' + statusLabel + '</div>' : '')
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  wrap.style.display = "";
+}
+
+async function refreshMetaAccounts(){
+  var btn    = document.getElementById("meta-refresh-btn");
+  var loadEl = document.getElementById("meta-accounts-loading");
+  var errEl  = document.getElementById("meta-accounts-error");
+  var wrap   = document.getElementById("meta-accounts-wrap");
+  if(btn)    { btn.disabled = true; btn.textContent = "Refreshing…"; }
+  if(loadEl) { loadEl.style.display = ""; }
+  if(errEl)  { errEl.style.display  = "none"; }
+  if(wrap)   { wrap.style.display   = "none"; }
+
+  try {
+    var result = await apiFetch("/api/meta/accounts");
+    if(loadEl) loadEl.style.display = "none";
+    if(!result.ok){
+      var msg = (result.data && result.data.error) ? result.data.error : "Could not fetch accounts (HTTP " + result.status + ")";
+      if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
+    } else {
+      try {
+        var activeId = window._activeMetaAccount && window._activeMetaAccount.account_id;
+        _renderMetaAccounts(result.data.accounts || [], activeId);
+        var statusEl = document.getElementById("meta-status-text");
+        if(statusEl) statusEl.innerHTML = '<span class="int-status-dot"></span>Active';
+      } catch(renderErr){
+        console.error("[Meta Ads] Render error:", renderErr);
+        if(errEl){ errEl.textContent = "Display error: " + renderErr.message; errEl.style.display = ""; }
+      }
+    }
+  } catch(err){
+    if(loadEl) loadEl.style.display = "none";
+    var msg = err.message || "Network error — try again";
+    if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
+    console.error("[Meta Ads] Account refresh failed:", err.message);
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = "Refresh accounts"; }
+  }
+}
+
+async function connectMetaAds(){
+  var btn = document.getElementById("meta-connect-btn");
+  if(btn){ btn.disabled = true; btn.textContent = "Connecting…"; }
+  try {
+    var sessionResult = await SB.auth.getSession();
+    var session = sessionResult.data && sessionResult.data.session;
+    if(!session || !session.access_token){
+      toast("Please sign in before connecting Meta Ads.", "err");
+      if(btn){ btn.disabled = false; btn.textContent = "Connect"; }
+      return;
+    }
+    window.location.href = '/auth/meta?token=' + session.access_token;
+  } catch(err){
+    toast("Connection error — please try again.", "err");
+    if(btn){ btn.disabled = false; btn.textContent = "Connect"; }
+  }
+}
+
+async function disconnectMetaAds(){
+  var btn = document.getElementById("meta-disconnect-btn");
+  if(btn){ btn.disabled = true; btn.textContent = "Disconnecting…"; }
+  try {
+    var result = await apiFetch("/api/meta/disconnect", { method: "POST" });
+    if(result.ok){
+      toast("Meta Ads disconnected.");
+      window._activeMetaAccount = null;
+
+      var connectBtn     = document.getElementById("meta-connect-btn");
+      var connectedEl    = document.getElementById("meta-connected-info");
+      var connectedBadge = document.getElementById("meta-connected-badge");
+      if(connectBtn)     { connectBtn.style.display = ""; connectBtn.disabled = false; connectBtn.textContent = "Connect"; }
+      if(connectedEl)    connectedEl.style.display    = "none";
+      if(connectedBadge) connectedBadge.style.display = "none";
+    } else {
+      toast("Could not disconnect — please try again.", "err");
+      if(btn){ btn.disabled = false; btn.textContent = "Disconnect"; }
+    }
+  } catch(err){
+    toast("Could not disconnect — please try again.", "err");
+    if(btn){ btn.disabled = false; btn.textContent = "Disconnect"; }
+    console.error("[Meta Ads] Disconnect error:", err.message);
+  }
+}
+
+async function selectMetaAccount(accountId, accountName, currency){
+  window._activeMetaAccount = {
+    platform:     'meta_ads',
+    account_id:   String(accountId),
+    account_name: String(accountName || ''),
+    currency:     currency || null
+  };
+
+  // Optimistic UI highlight
+  document.querySelectorAll('#meta-accounts-list .int-account-row').forEach(function(row){
+    row.classList.remove('int-account-selected');
+    var check = row.querySelector('.int-account-check');
+    if(check) check.textContent = '';
+    var badge = row.querySelector('.int-account-active-badge');
+    if(badge) badge.remove();
+  });
+  document.querySelectorAll('#meta-accounts-list .int-account-row').forEach(function(row){
+    var idEl = row.querySelector('.int-account-id');
+    if(idEl && idEl.textContent.indexOf(String(accountId)) !== -1){
+      row.classList.add('int-account-selected');
+      var check = row.querySelector('.int-account-check');
+      if(check) check.textContent = '✓';
+      var nameEl = row.querySelector('.int-account-name');
+      if(nameEl && !nameEl.querySelector('.int-account-active-badge')){
+        var badge = document.createElement('span');
+        badge.className = 'int-account-active-badge';
+        badge.textContent = 'Active';
+        nameEl.appendChild(badge);
+      }
+    }
+  });
+
+  try {
+    var result = await apiFetch('/api/meta/active-account', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ account_id: accountId, account_name: accountName || '', currency: currency || null })
+    });
+    if(!result.ok){
+      toast('Could not set active account — please try again.', 'err');
+    }
+  } catch(err){
+    console.error('[Meta Ads] selectMetaAccount error:', err.message);
+    toast('Could not set active account — please try again.', 'err');
+  }
+}
+
 
 // ════════════════════════════════════════════════════════════════
 // BOOT
