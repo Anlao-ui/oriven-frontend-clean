@@ -19,13 +19,15 @@
 
   // ── State ───────────────────────────────────────────────────
   var _s = {
-    dateRange:       'LAST_30_DAYS',
-    overview:        null,
-    campaigns:       null,
-    account:         null,
-    loading:         false,
-    currentCampInfo: null,  // campaign_info for the open campaign
-    currentKeywords: []     // keywords (with ad_group field) for the open campaign
+    dateRange:        'LAST_30_DAYS',
+    overview:         null,
+    overviewDateRange: null,
+    campaigns:        null,
+    account:          null,
+    loading:          false,
+    platform:         'google',
+    currentCampInfo:  null,
+    currentKeywords:  []
   };
 
   // ── DOM helpers ─────────────────────────────────────────────
@@ -86,23 +88,109 @@
       + '</div>';
   }
 
+  // ── Platform helpers ─────────────────────────────────────────
+  var _PLATFORM_META = [
+    { id: 'google', label: 'Google Ads', color: '#4285F4' },
+    { id: 'meta',   label: 'Meta Ads',   color: '#0866FF' },
+    { id: 'tiktok', label: 'TikTok Ads', color: '#FF004F' }
+  ];
+
+  function _getActivePlatforms() {
+    var active = [];
+    if(window._activeAdAccount   && window._activeAdAccount.account_id)   active.push('google');
+    if(window._activeMetaAccount && window._activeMetaAccount.account_id) active.push('meta');
+    if(window._activeTadsAccount && window._activeTadsAccount.account_id) active.push('tiktok');
+    return active;
+  }
+
+  function _renderPlatformTabs(activePlatforms) {
+    var wrap = $('ads-platform-tabs');
+    if(!wrap) return;
+    if(activePlatforms.length <= 1) { wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+    var container = wrap.querySelector('.ads-ptabs');
+    if(!container) return;
+    container.innerHTML = _PLATFORM_META
+      .filter(function(p) { return activePlatforms.indexOf(p.id) !== -1; })
+      .map(function(p) {
+        var isActive = p.id === _s.platform;
+        return '<button class="ads-ptab' + (isActive ? ' active' : '') + '" id="ptab-' + p.id + '" onclick="switchAdsPlatform(\'' + p.id + '\')">'
+          + '<span class="ads-ptab-dot" style="background:' + p.color + '"></span>'
+          + p.label + '</button>';
+      }).join('');
+  }
+
+  function _setAccountBarWith(account) {
+    var bar = $('ads-account-bar');
+    if(!bar || !account) { if(bar) bar.innerHTML = ''; return; }
+    bar.innerHTML = '<span class="int-status-dot" style="margin-right:6px"></span>'
+      + '<span class="ads-account-name">' + h(account.account_name || account.account_id) + '</span>'
+      + '<span style="color:var(--muted);margin:0 6px">·</span>'
+      + '<span class="ads-account-id">ID: ' + h(account.account_id) + '</span>';
+  }
+
+  function _showPanel(platform) {
+    var panels = { google: 'ads-google-panel', meta: 'ads-meta-panel', tiktok: 'ads-tiktok-panel' };
+    Object.keys(panels).forEach(function(key) {
+      var el = $(panels[key]);
+      if(el) el.style.display = (key === platform) ? '' : 'none';
+    });
+  }
+
   // ── Entry point ─────────────────────────────────────────────
   window.initAdsDashboard = function() {
-    var account = window._activeAdAccount;
-
-    // Sync date pills to current state
     _syncDatePills();
 
-    if(!account || !account.account_id) {
+    var activePlatforms = _getActivePlatforms();
+
+    if(activePlatforms.length === 0) {
       _showEmpty();
       return;
     }
 
-    _s.account = account;
+    // Default to first available platform; keep current selection if still valid
+    if(activePlatforms.indexOf(_s.platform) === -1) {
+      _s.platform = activePlatforms[0];
+    }
+
     hide('ads-empty');
     show('ads-dash');
-    _updateAccountBar();
-    _loadOverview();
+    _renderPlatformTabs(activePlatforms);
+    _showPanel(_s.platform);
+
+    if(_s.platform === 'google') {
+      _s.account = window._activeAdAccount;
+      _updateAccountBar();
+      _loadOverview();
+    } else if(_s.platform === 'meta') {
+      _s.account = null;
+      _setAccountBarWith(window._activeMetaAccount);
+      _initMetaExplorer();
+    } else if(_s.platform === 'tiktok') {
+      _s.account = null;
+      _setAccountBarWith(window._activeTadsAccount);
+    }
+  };
+
+  window.switchAdsPlatform = function(platform) {
+    if(platform === _s.platform) return;
+    _s.platform = platform;
+    document.querySelectorAll('.ads-ptab').forEach(function(btn) {
+      btn.classList.toggle('active', btn.id === 'ptab-' + platform);
+    });
+    _showPanel(platform);
+    if(platform === 'google') {
+      _s.account = window._activeAdAccount;
+      _setAccountBarWith(window._activeAdAccount);
+      if(!_s.overview || _s.overviewDateRange !== _s.dateRange) _loadOverview();
+    } else if(platform === 'meta') {
+      _s.account = null;
+      _setAccountBarWith(window._activeMetaAccount);
+      _initMetaExplorer();
+    } else if(platform === 'tiktok') {
+      _s.account = null;
+      _setAccountBarWith(window._activeTadsAccount);
+    }
   };
 
   // ── Date range ───────────────────────────────────────────────
@@ -129,12 +217,7 @@
   }
 
   function _updateAccountBar() {
-    var bar = $('ads-account-bar');
-    if(!bar || !_s.account) return;
-    bar.innerHTML = '<span class="int-status-dot" style="margin-right:6px"></span>'
-      + '<span class="ads-account-name">' + h(_s.account.account_name || _s.account.account_id) + '</span>'
-      + '<span style="color:var(--muted);margin:0 6px">·</span>'
-      + '<span class="ads-account-id">ID: ' + h(_s.account.account_id) + '</span>';
+    _setAccountBarWith(_s.account);
   }
 
   // ── Load overview ────────────────────────────────────────────
@@ -158,8 +241,9 @@
         return;
       }
 
-      _s.overview  = res.data.overview;
-      _s.campaigns = res.data.campaigns;
+      _s.overview        = res.data.overview;
+      _s.overviewDateRange = _s.dateRange;
+      _s.campaigns       = res.data.campaigns;
       if(res.data.account) _s.account = Object.assign({}, _s.account, res.data.account);
 
       _renderKPIs(_s.overview);
@@ -990,5 +1074,378 @@
     if(ab) { ab.disabled = false; ab.textContent = 'Analyze with AI'; }
     if(rb) { rb.disabled = false; rb.textContent = 'Generate Recommendations'; }
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // META ADS EXPLORER
+  // ═══════════════════════════════════════════════════════════════
+
+  // Cache: loaded once per date range, reused when drilling down
+  var _ms = { campaigns: null, adsets: null, ads: null, loading: false, dateRange: null };
+
+  function _metaStatusBadge(status) {
+    var cls = (status === 'ACTIVE')   ? 'bg-green'
+            : (status === 'PAUSED')   ? 'bg-warm'
+            : (status === 'ARCHIVED') ? 'bg-grey'
+            :                           'bg-grey';
+    var lbl = (status === 'ACTIVE')   ? 'Active'
+            : (status === 'PAUSED')   ? 'Paused'
+            : (status === 'ARCHIVED') ? 'Archived'
+            : (status || 'Unknown');
+    return '<span class="badge ' + cls + '">' + lbl + '</span>';
+  }
+
+  function _fmtObjective(obj) {
+    if(!obj) return '—';
+    return obj.replace(/_/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  }
+
+  async function _initMetaExplorer() {
+    // Use cached data if the date range hasn't changed
+    if(_ms.campaigns && _ms.dateRange === _s.dateRange) {
+      hide('meta-campaign-view');
+      _renderMetaCampaigns(_ms.campaigns);
+      return;
+    }
+    if(_ms.loading) return;
+    _ms.loading = true;
+
+    hide('meta-campaigns-view');
+    hide('meta-campaign-view');
+    hide('meta-main-error');
+    show('meta-loading');
+
+    try {
+      var range = _s.dateRange;
+      var qs = '?date_range=' + range;
+      var [cRes, aRes, adRes] = await Promise.all([
+        apiFetch('/api/meta/campaigns' + qs),
+        apiFetch('/api/meta/adsets'    + qs),
+        apiFetch('/api/meta/ads'       + qs)
+      ]);
+
+      hide('meta-loading');
+
+      if(!cRes.ok) {
+        var errEl = $('meta-main-error');
+        var msg = (cRes.data && cRes.data.error) || 'Could not load Meta data (HTTP ' + cRes.status + ')';
+        if(errEl) { errEl.textContent = msg; errEl.style.display = ''; }
+        return;
+      }
+
+      _ms.campaigns  = cRes.data.campaigns  || [];
+      _ms.adsets     = aRes.ok ? (aRes.data.adsets || [])  : [];
+      _ms.ads        = adRes.ok ? (adRes.data.ads  || [])  : [];
+      _ms.dateRange  = range;
+
+      _renderMetaCampaigns(_ms.campaigns);
+
+    } catch(err) {
+      hide('meta-loading');
+      var errEl = $('meta-main-error');
+      if(errEl) { errEl.textContent = err.message || 'Network error — try again'; errEl.style.display = ''; }
+    } finally {
+      _ms.loading = false;
+    }
+  }
+
+  function _renderMetaKPIs(campaigns) {
+    var el = $('meta-kpis');
+    if(!el) return;
+    var totSpend = 0, totImpr = 0, totClicks = 0, totConv = 0;
+    campaigns.forEach(function(c) {
+      totSpend  += c.spend        || 0;
+      totImpr   += c.impressions  || 0;
+      totClicks += c.clicks       || 0;
+      totConv   += c.conversions  || 0;
+    });
+    var ctr = totImpr > 0 ? (totClicks / totImpr) * 100 : 0;
+    var kpis = [
+      { lbl: 'Spend',       val: fmtMoney(totSpend)    },
+      { lbl: 'Impressions', val: fmtNum(totImpr)        },
+      { lbl: 'Clicks',      val: fmtNum(totClicks)      },
+      { lbl: 'CTR',         val: fmtPct(ctr)            },
+      { lbl: 'Conversions', val: fmtNum(totConv),  accent: true }
+    ];
+    el.innerHTML = kpis.map(function(k) {
+      return '<div class="ads-kpi' + (k.accent ? ' ads-kpi-accent' : '') + '">'
+        + '<div class="ads-kpi-val">' + k.val + '</div>'
+        + '<div class="ads-kpi-lbl">' + k.lbl + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function _renderMetaCampaigns(campaigns) {
+    _renderMetaKPIs(campaigns);
+
+    var tbody = $('meta-campaigns-tbody');
+    var empty = $('meta-campaigns-empty');
+    if(!tbody) return;
+
+    if(!campaigns || campaigns.length === 0) {
+      tbody.innerHTML = '';
+      if(empty) empty.style.display = '';
+      show('meta-campaigns-view');
+      return;
+    }
+    if(empty) empty.style.display = 'none';
+
+    tbody.innerHTML = campaigns.map(function(c) {
+      return '<tr onclick="openMetaCampaign(\'' + h(String(c.campaign_id)) + '\')" style="cursor:pointer">'
+        + '<td class="ads-name" title="' + h(c.campaign_name) + '">' + h(c.campaign_name) + '</td>'
+        + '<td>' + _metaStatusBadge(c.status) + '</td>'
+        + '<td style="font-size:12px;color:var(--muted)">' + _fmtObjective(c.objective) + '</td>'
+        + '<td class="ads-num">' + fmtMoney(c.spend) + '</td>'
+        + '<td class="ads-num">' + fmtNum(c.impressions) + '</td>'
+        + '<td class="ads-num">' + fmtNum(c.clicks) + '</td>'
+        + '<td class="ads-num">' + fmtPct(c.ctr) + '</td>'
+        + '<td class="ads-num">' + fmtNum(c.conversions) + '</td>'
+        + '</tr>';
+    }).join('');
+
+    show('meta-campaigns-view');
+  }
+
+  window.openMetaCampaign = function(campaignId) {
+    var camp = null;
+    for(var i = 0; i < (_ms.campaigns || []).length; i++) {
+      if(String(_ms.campaigns[i].campaign_id) === String(campaignId)) { camp = _ms.campaigns[i]; break; }
+    }
+    if(!camp) return;
+
+    var adsets = (_ms.adsets || []).filter(function(a) { return String(a.campaign_id) === String(campaignId); });
+    var ads    = (_ms.ads    || []).filter(function(a) { return String(a.campaign_id) === String(campaignId); });
+
+    hide('meta-campaigns-view');
+    show('meta-campaign-view');
+
+    var detail = $('meta-campaign-detail');
+    if(!detail) return;
+    detail.innerHTML = _buildMetaCampaignDetail(camp, adsets, ads);
+  };
+
+  window.backToMetaCampaigns = function() {
+    hide('meta-campaign-view');
+    show('meta-campaigns-view');
+  };
+
+  function _buildMetaCampaignDetail(camp, adsets, ads) {
+    var kpis = [
+      { lbl: 'Spend',       val: fmtMoney(camp.spend)       },
+      { lbl: 'Impressions', val: fmtNum(camp.impressions)    },
+      { lbl: 'Clicks',      val: fmtNum(camp.clicks)         },
+      { lbl: 'CTR',         val: fmtPct(camp.ctr)      },
+      { lbl: 'Conversions', val: fmtNum(camp.conversions)    }
+    ];
+
+    var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">'
+      + '<h2 class="ads-detail-title" style="margin:0">' + h(camp.campaign_name) + '</h2>'
+      + _metaStatusBadge(camp.status)
+      + (camp.objective ? '<span class="badge bg-grey" style="font-size:10px">' + _fmtObjective(camp.objective) + '</span>' : '')
+      + '</div>'
+      + '<div class="ads-kpis" style="margin-bottom:28px">'
+      + kpis.map(function(k) {
+          return '<div class="ads-kpi"><div class="ads-kpi-val">' + k.val + '</div><div class="ads-kpi-lbl">' + k.lbl + '</div></div>';
+        }).join('')
+      + '</div>';
+
+    // Ad Sets section
+    html += '<div class="ads-section">'
+      + '<div class="ads-section-hd"><div class="ads-section-title">Ad Sets (' + adsets.length + ')</div></div>';
+
+    if(adsets.length === 0) {
+      html += '<p style="font-size:13px;color:var(--muted)">No ad sets found.</p>';
+    } else {
+      html += '<div class="ads-table-wrap"><table class="ads-table"><thead><tr>'
+        + '<th>Ad Set</th><th>Status</th><th>Goal</th>'
+        + '<th class="ads-num">Spend</th><th class="ads-num">Impr.</th><th class="ads-num">Clicks</th><th class="ads-num">Conv.</th>'
+        + '</tr></thead><tbody>'
+        + adsets.map(function(s) {
+            var goal = (s.optimization_goal || '').replace(/_/g,' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+            return '<tr onclick="openMetaAdset(\'' + h(String(s.adset_id)) + '\')" style="cursor:pointer">'
+              + '<td class="ads-name">' + h(s.adset_name) + '</td>'
+              + '<td>' + _metaStatusBadge(s.status) + '</td>'
+              + '<td style="font-size:12px;color:var(--muted)">' + h(goal || '—') + '</td>'
+              + '<td class="ads-num">' + fmtMoney(s.spend) + '</td>'
+              + '<td class="ads-num">' + fmtNum(s.impressions) + '</td>'
+              + '<td class="ads-num">' + fmtNum(s.clicks) + '</td>'
+              + '<td class="ads-num">' + fmtNum(s.conversions) + '</td>'
+              + '</tr>';
+          }).join('')
+        + '</tbody></table></div>';
+    }
+    html += '</div>';
+
+    // Ads section (all ads for this campaign)
+    html += '<div id="meta-ads-section" class="ads-section" style="margin-top:8px">'
+      + '<div class="ads-section-hd"><div class="ads-section-title">Ads (' + ads.length + ')</div></div>';
+
+    if(ads.length === 0) {
+      html += '<p style="font-size:13px;color:var(--muted)">No ads found.</p>';
+    } else {
+      html += '<div class="ads-table-wrap"><table class="ads-table"><thead><tr>'
+        + '<th>Ad</th><th>Status</th>'
+        + '<th class="ads-num">Spend</th><th class="ads-num">Impr.</th><th class="ads-num">Clicks</th><th class="ads-num">CTR</th><th class="ads-num">Conv.</th>'
+        + '</tr></thead><tbody>'
+        + ads.map(function(a) {
+            return '<tr onclick="openMetaAd(\'' + h(String(a.ad_id)) + '\')" style="cursor:pointer">'
+              + '<td class="ads-name">' + h(a.ad_name) + '</td>'
+              + '<td>' + _metaStatusBadge(a.status) + '</td>'
+              + '<td class="ads-num">' + fmtMoney(a.spend) + '</td>'
+              + '<td class="ads-num">' + fmtNum(a.impressions) + '</td>'
+              + '<td class="ads-num">' + fmtNum(a.clicks) + '</td>'
+              + '<td class="ads-num">' + fmtPct(a.ctr) + '</td>'
+              + '<td class="ads-num">' + fmtNum(a.conversions) + '</td>'
+              + '</tr>';
+          }).join('')
+        + '</tbody></table></div>';
+    }
+    html += '</div>';
+
+    return html;
+  }
+
+  // Filter ad sets view by adset_id — highlights the row and scrolls ads into view
+  window.openMetaAdset = function(adsetId) {
+    var rows = document.querySelectorAll('#meta-campaign-detail .ads-table tbody tr');
+    rows.forEach(function(r) {
+      r.style.background = '';
+    });
+    // Find the adset row and highlight it
+    var adsetRows = document.querySelectorAll('#meta-campaign-detail .ads-table');
+    if(adsetRows[0]) {
+      var trs = adsetRows[0].querySelectorAll('tbody tr');
+      var adsets = (_ms.adsets || []);
+      for(var i = 0; i < adsets.length; i++) {
+        if(String(adsets[i].adset_id) === String(adsetId) && trs[i]) {
+          trs[i].style.background = 'rgba(183,255,42,.07)';
+          trs[i].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    }
+    // Filter ads section to show only this adset's ads
+    var adsForSet = (_ms.ads || []).filter(function(a) { return String(a.adset_id) === String(adsetId); });
+    var section = $('meta-ads-section');
+    if(!section) return;
+    var title = section.querySelector('.ads-section-title');
+    var adset = (_ms.adsets || []).filter(function(s) { return String(s.adset_id) === String(adsetId); })[0];
+    var adsetName = adset ? adset.adset_name : 'Ad Set';
+    if(title) title.textContent = 'Ads in "' + adsetName + '" (' + adsForSet.length + ')';
+
+    var wrap = section.querySelector('.ads-table-wrap');
+    if(adsForSet.length === 0) {
+      if(wrap) wrap.innerHTML = '<p style="font-size:13px;color:var(--muted);padding:12px 0">No ads in this ad set for the selected date range.</p>';
+    } else {
+      if(wrap) {
+        wrap.innerHTML = '<table class="ads-table"><thead><tr>'
+          + '<th>Ad</th><th>Status</th>'
+          + '<th class="ads-num">Spend</th><th class="ads-num">Impr.</th><th class="ads-num">Clicks</th><th class="ads-num">CTR</th><th class="ads-num">Conv.</th>'
+          + '</tr></thead><tbody>'
+          + adsForSet.map(function(a) {
+              return '<tr onclick="openMetaAd(\'' + h(String(a.ad_id)) + '\')" style="cursor:pointer">'
+                + '<td class="ads-name">' + h(a.ad_name) + '</td>'
+                + '<td>' + _metaStatusBadge(a.status) + '</td>'
+                + '<td class="ads-num">' + fmtMoney(a.spend) + '</td>'
+                + '<td class="ads-num">' + fmtNum(a.impressions) + '</td>'
+                + '<td class="ads-num">' + fmtNum(a.clicks) + '</td>'
+                + '<td class="ads-num">' + fmtPct(a.ctr) + '</td>'
+                + '<td class="ads-num">' + fmtNum(a.conversions) + '</td>'
+                + '</tr>';
+            }).join('')
+          + '</tbody></table>';
+      }
+    }
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Open Meta ad in the inspector drawer (reuses the existing drawer)
+  window.openMetaAd = function(adId) {
+    var ad = null;
+    for(var i = 0; i < (_ms.ads || []).length; i++) {
+      if(String(_ms.ads[i].ad_id) === String(adId)) { ad = _ms.ads[i]; break; }
+    }
+    if(!ad) return;
+
+    var insp    = $('ads-inspector');
+    var overlay = $('ads-inspector-overlay');
+    var meta    = $('ads-insp-meta');
+    var body    = $('ads-insp-body');
+    if(!insp || !body) return;
+
+    if(meta) meta.innerHTML = _metaStatusBadge(ad.status);
+    body.innerHTML = _buildMetaAdInspector(ad);
+
+    if(overlay) overlay.classList.add('open');
+    insp.classList.add('open');
+  };
+
+  function _buildMetaAdInspector(ad) {
+    var html = '';
+
+    // Creative preview
+    if(ad.image_url || ad.video_thumbnail) {
+      var src = ad.image_url || ad.video_thumbnail;
+      html += '<div class="meta-ad-preview">'
+        + '<img class="meta-ad-preview-img" src="' + h(src) + '" alt="" onerror="this.style.display=\'none\'">'
+        + '<div class="meta-ad-preview-body">'
+        + (ad.headline    ? '<div class="meta-ad-preview-headline">' + h(ad.headline) + '</div>' : '')
+        + (ad.primary_text ? '<div class="meta-ad-preview-text">' + h(ad.primary_text) + '</div>' : '')
+        + (ad.call_to_action ? '<span class="meta-ad-preview-cta">' + h(ad.call_to_action.replace(/_/g,' ')) + '</span>' : '')
+        + '</div></div>';
+    } else if(ad.headline || ad.primary_text) {
+      html += '<div class="ads-insp-sec">'
+        + '<div class="ads-insp-sec-label">Ad Copy</div>'
+        + (ad.headline    ? '<div style="font-size:14px;font-weight:700;color:var(--charcoal);margin-bottom:6px">' + h(ad.headline) + '</div>' : '')
+        + (ad.primary_text ? '<div style="font-size:13px;color:var(--muted);line-height:1.55">' + h(ad.primary_text) + '</div>' : '')
+        + (ad.call_to_action ? '<div style="margin-top:8px"><span class="meta-ad-preview-cta">' + h(ad.call_to_action.replace(/_/g,' ')) + '</span></div>' : '')
+        + '</div>';
+    }
+
+    // Performance
+    html += '<div class="ads-insp-sec">'
+      + '<div class="ads-insp-sec-label">Performance</div>'
+      + '<div class="ads-insp-perf-grid">'
+      + [
+          { lbl: 'Spend',       val: fmtMoney(ad.spend),       accent: false },
+          { lbl: 'Impressions', val: fmtNum(ad.impressions),   accent: false },
+          { lbl: 'Clicks',      val: fmtNum(ad.clicks),        accent: false },
+          { lbl: 'CTR',         val: fmtPct(ad.ctr),           accent: false },
+          { lbl: 'Conversions', val: fmtNum(ad.conversions),   accent: true  }
+        ].map(function(s) {
+          return '<div class="ads-insp-stat' + (s.accent ? ' accent' : '') + '">'
+            + '<div class="ads-insp-stat-val">' + s.val + '</div>'
+            + '<div class="ads-insp-stat-lbl">' + s.lbl + '</div>'
+            + '</div>';
+        }).join('')
+      + '</div></div>';
+
+    // Ad info
+    html += '<div class="ads-insp-sec">'
+      + '<div class="ads-insp-sec-label">Ad Information</div>'
+      + '<div class="ads-insp-info-grid">'
+      + (ad.ad_name ? '<div class="ads-insp-info-cell full"><div class="ads-insp-info-lbl">Ad Name</div><div class="ads-insp-info-val">' + h(ad.ad_name) + '</div></div>' : '')
+      + (ad.ad_id   ? '<div class="ads-insp-info-cell"><div class="ads-insp-info-lbl">Ad ID</div><div class="ads-insp-info-val">' + h(ad.ad_id) + '</div></div>' : '')
+      + (ad.adset_id ? '<div class="ads-insp-info-cell"><div class="ads-insp-info-lbl">Ad Set ID</div><div class="ads-insp-info-val">' + h(ad.adset_id) + '</div></div>' : '')
+      + '</div></div>';
+
+    if(ad.destination_url) {
+      html += '<div class="ads-insp-url-chip">'
+        + '<span class="ads-insp-url-label">URL</span>'
+        + '<a class="ads-insp-url-val" href="' + h(ad.destination_url) + '" target="_blank" rel="noopener noreferrer">' + h(ad.destination_url) + '</a>'
+        + '</div>';
+    }
+
+    return html;
+  }
+
+  // Invalidate Meta cache when date range changes (reuse _s.dateRange)
+  var _origSetDateRange = window.setAdsDateRange;
+  window.setAdsDateRange = function(range) {
+    _origSetDateRange(range);
+    // If currently on Meta tab and range changed, reload
+    if(_s.platform === 'meta' && _ms.dateRange !== _s.dateRange) {
+      _ms.campaigns = null; // invalidate cache
+      _initMetaExplorer();
+    }
+  };
 
 })();
