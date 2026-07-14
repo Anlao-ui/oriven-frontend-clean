@@ -2256,7 +2256,7 @@ async function connectMetaAds(){
       if(btn){ btn.disabled = false; btn.textContent = "Connect"; }
       return;
     }
-    window.location.href = '/auth/meta?token=' + session.access_token;
+    window.location.href = API_BASE_URL + '/auth/meta?token=' + session.access_token;
   } catch(err){
     toast("Connection error — please try again.", "err");
     if(btn){ btn.disabled = false; btn.textContent = "Connect"; }
