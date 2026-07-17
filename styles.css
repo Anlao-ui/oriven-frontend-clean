@@ -29941,6 +29941,75 @@ body.dark-mode .rpt-plat-metric strong { color: rgba(255,255,255,.88); }
 .prf-ai-act:hover { opacity: 1; background: rgba(183,255,42,.07); }
 
 /* ════════════════════════════════════════════════════════════
+   ADS MANAGER PAGE
+   ════════════════════════════════════════════════════════════ */
+.adm-wrap { padding: 24px 28px; max-width: 1160px; margin: 0 auto; }
+.adm-hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+.adm-title { font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 4px; }
+.adm-sub { font-size: 13px; color: rgba(255,255,255,.4); margin: 0; }
+.adm-hdr-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.adm-date-pills { display: flex; gap: 3px; background: rgba(255,255,255,.06); border-radius: 20px; padding: 3px; }
+.adm-pill { padding: 4px 12px; font-size: 12px; font-weight: 600; border-radius: 16px; border: none; background: transparent; color: rgba(255,255,255,.4); cursor: pointer; transition: background .15s, color .15s; }
+.adm-pill:hover { color: rgba(255,255,255,.7); }
+.adm-pill.active { background: rgba(255,255,255,.1); color: #fff; }
+.adm-refresh-btn { display: flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); color: rgba(255,255,255,.55); cursor: pointer; transition: background .15s, color .15s; }
+.adm-refresh-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+
+.adm-plat-tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+.adm-ptab { padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 20px; border: 1px solid rgba(255,255,255,.12); background: transparent; color: rgba(255,255,255,.45); cursor: pointer; transition: background .15s, color .15s, border-color .15s; letter-spacing: .2px; }
+.adm-ptab:hover { color: rgba(255,255,255,.75); border-color: rgba(255,255,255,.22); }
+.adm-ptab.active { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.2); }
+
+.adm-connect-banner { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; }
+.adm-connect-ico { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,.06); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: rgba(255,255,255,.35); }
+.adm-connect-copy { flex: 1; min-width: 0; }
+.adm-connect-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+.adm-connect-sub { font-size: 13px; color: rgba(255,255,255,.4); }
+
+.adm-loading { display: flex; align-items: center; gap: 10px; padding: 40px 0; color: rgba(255,255,255,.4); font-size: 13px; }
+.adm-spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.12); border-top-color: rgba(255,255,255,.55); border-radius: 50%; animation: admSpin .7s linear infinite; flex-shrink: 0; }
+@keyframes admSpin { to { transform: rotate(360deg); } }
+
+.adm-kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 24px; }
+.adm-kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 14px 16px; }
+.adm-kpi-lbl { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.adm-kpi-val { font-size: 20px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+
+.adm-table-wrap { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; overflow: hidden; }
+.adm-table-hd { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.adm-table-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.6); }
+.adm-table-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.4); }
+.adm-table-scroll { overflow-x: auto; }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.adm-table th { padding: 10px 14px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .4px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.05); white-space: nowrap; }
+.adm-table td { padding: 11px 14px; color: rgba(255,255,255,.8); border-bottom: 1px solid rgba(255,255,255,.04); vertical-align: middle; }
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: rgba(255,255,255,.025); }
+.adm-num { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.adm-table-empty { text-align: center; padding: 32px; color: rgba(255,255,255,.25); font-size: 13px; }
+
+.adm-status { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+.adm-status-active { background: rgba(74,222,128,.15); color: #4ade80; }
+.adm-status-paused { background: rgba(251,191,36,.12); color: #fbbf24; }
+
+.adm-plat-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-right: 4px; vertical-align: middle; letter-spacing: .2px; }
+.adm-plat-google { background: rgba(66,133,244,.18); color: #4285F4; }
+.adm-plat-meta   { background: rgba(24,119,242,.18); color: #1877F2; }
+.adm-plat-tiktok { background: rgba(254,44,85,.15);  color: #FE2C55; }
+
+.adm-view-btn { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.45); text-decoration: none; padding: 4px 9px; border-radius: 6px; border: 1px solid rgba(255,255,255,.1); transition: color .12s, background .12s; white-space: nowrap; display: inline-block; }
+.adm-view-btn:hover { color: #fff; background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2); }
+
+.adm-no-data { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 24px; text-align: center; color: rgba(255,255,255,.25); }
+.adm-no-data-title { font-size: 16px; font-weight: 600; color: rgba(255,255,255,.5); }
+.adm-no-data-sub { font-size: 13px; color: rgba(255,255,255,.3); max-width: 320px; }
+.adm-cta-btn { margin-top: 8px; padding: 8px 20px; font-size: 13px; font-weight: 600; border-radius: 8px; border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); cursor: pointer; transition: background .15s, color .15s; }
+.adm-cta-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+
+@media (max-width: 900px) { .adm-kpi-strip { grid-template-columns: repeat(3,1fr); } }
+@media (max-width: 600px) { .adm-wrap { padding: 16px; } .adm-kpi-strip { grid-template-columns: repeat(2,1fr); } .adm-hdr { flex-direction: column; } }
+
+/* ════════════════════════════════════════════════════════════
    REPORTS PAGE — scoped under #page-reports to override legacy rpt-* styles
    ════════════════════════════════════════════════════════════ */
 
