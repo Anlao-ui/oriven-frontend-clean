@@ -908,89 +908,120 @@
         <div class="adm-hdr">
           <div>
             <h1 class="adm-title">Ads Manager</h1>
-            <p class="adm-sub">Live performance across all connected accounts</p>
+            <p class="adm-sub">Create, publish and manage your campaigns</p>
           </div>
-          <div class="adm-hdr-actions">
-            <div class="adm-date-pills">
-              <button class="adm-pill active" onclick="admRange(this,'7d')">7d</button>
-              <button class="adm-pill" onclick="admRange(this,'30d')">30d</button>
-              <button class="adm-pill" onclick="admRange(this,'90d')">90d</button>
+          <button class="adm-refresh-btn" onclick="initAdsManager()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="13" height="13"><path d="M13 3v4H9"/><path d="M3 13v-4h4"/><path d="M13 7A6 6 0 0 0 3.07 9M3 9a6 6 0 0 0 9.93 4"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Platform section tabs -->
+        <div class="adm-psec-tabs">
+          <button class="adm-psec-tab active" data-sec="google" onclick="admSwitchSection('google',this)">
+            <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11"><path d="M10.9 6.1c0-.4 0-.8-.1-1.1H6v2.1h2.8a2.4 2.4 0 0 1-1 1.5v1.2h1.7c1-1 1.4-2.3 1.4-3.7z" fill="#4285F4"/><path d="M6 11c1.4 0 2.6-.5 3.5-1.3l-1.7-1.3a3.2 3.2 0 0 1-1.8.5 3.2 3.2 0 0 1-3-2.1H1.3v1.3A5.3 5.3 0 0 0 6 11z" fill="#34A853"/><path d="M3 6.8a3.1 3.1 0 0 1 0-1.6V3.9H1.3a5.3 5.3 0 0 0 0 4.2L3 6.8z" fill="#FBBC05"/><path d="M6 2.7c.8 0 1.5.3 2 .8L9.6 1.9A5.3 5.3 0 0 0 1.3 3.9L3 5.2a3.2 3.2 0 0 1 3-2.5z" fill="#EA4335"/></svg>
+            Google Ads
+          </button>
+          <button class="adm-psec-tab" data-sec="meta" onclick="admSwitchSection('meta',this)">
+            <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11"><rect width="12" height="12" rx="3" fill="#1877F2"/><path d="M8.1 6a2.1 2.1 0 1 0-4.2 0c0 1 .7 1.8 1.7 2V7H4.7V6h.9V5.3c0-.6.3-.9.9-.9h.5V5.2h-.4c-.2 0-.2.1-.2.3V6h.7L7 7H6.4v1c1-.2 1.7-1 1.7-2z" fill="white"/></svg>
+            Meta Ads
+          </button>
+        </div>
+
+        <!-- ── Google Ads Section ── -->
+        <div class="adm-sec" id="admSecGoogle">
+          <div class="adm-sec-hdr">
+            <div class="adm-conn-row" id="admGConnRow">
+              <div class="adm-conn-loading" id="admGConnLoad"><span class="adm-pub-spin"></span> Checking…</div>
+              <div class="adm-conn-ok" id="admGConnOk" style="display:none">
+                <span class="adm-conn-dot adm-conn-ok-dot"></span>
+                <span id="admGConnAcct">Google Ads Connected</span>
+                <button class="adm-conn-change" onclick="_orvNav('connect','page-integrations')">Change Account</button>
+              </div>
+              <div class="adm-conn-no" id="admGConnNo" style="display:none">
+                <span class="adm-conn-dot adm-conn-no-dot"></span>
+                Not connected
+                <button class="adm-conn-connect" onclick="_orvNav('connect','page-integrations')">Connect Google Ads →</button>
+              </div>
             </div>
-            <button class="adm-refresh-btn" onclick="initAdsManager()">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="13" height="13"><path d="M13 3v4H9"/><path d="M3 13v-4h4"/><path d="M13 7A6 6 0 0 0 3.07 9M3 9a6 6 0 0 0 9.93 4"/></svg>
-              Refresh
-            </button>
+            <button class="adm-new-btn" onclick="admNewCampaign('google')">+ New Google Ads Campaign</button>
+          </div>
+
+          <div class="adm-table-wrap" id="admGTableWrap" style="display:none">
+            <div class="adm-table-hd">
+              <div class="adm-table-title">Campaigns</div>
+              <div class="adm-table-badge" id="admGCampCount">0 campaigns</div>
+            </div>
+            <div class="adm-table-scroll">
+              <table class="adm-table">
+                <thead><tr><th>Campaign</th><th>Status</th><th>Created</th><th></th></tr></thead>
+                <tbody id="admGTbody"></tbody>
+              </table>
+            </div>
+            <div id="admGTableEmpty" class="adm-table-empty" style="display:none">No Google Ads campaigns yet.</div>
+          </div>
+
+          <div class="adm-no-data" id="admGNoData" style="display:none">
+            <svg viewBox="0 0 56 56" fill="none" width="40" height="40"><rect x="6" y="12" width="44" height="32" rx="4" stroke="currentColor" stroke-width="1.5" stroke-opacity=".3"/><path d="M16 28h24M16 34h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-opacity=".3"/></svg>
+            <div class="adm-no-data-title">No Google Ads campaigns</div>
+            <div class="adm-no-data-sub">Create a campaign or send one from the Campaigns page.</div>
+            <div class="adm-no-data-actions">
+              <button class="adm-cta-btn" onclick="admNewCampaign('google')">+ New Campaign</button>
+              <button class="adm-cta-btn adm-cta-sec" onclick="_orvNav('campaigns','page-campaigns')">Go to Campaigns</button>
+            </div>
           </div>
         </div>
 
-        <!-- Platform tabs -->
-        <div id="admPlatTabs" style="display:none">
-          <div class="adm-plat-tabs" id="admPlatTabsInner"></div>
-        </div>
-
-        <!-- No platforms connected -->
-        <div class="adm-connect-banner" id="admConnectBanner" style="display:none">
-          <div class="adm-connect-ico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="3.5" cy="12" r="2"/><circle cx="20.5" cy="12" r="2"/><circle cx="12" cy="3.5" r="2"/><circle cx="12" cy="20.5" r="2"/><path d="M5.5 11 10 4.8M5.5 13 10 19.2M14 4.8l4.5 6.3M14 19.2l4.5-6.3"/></svg>
+        <!-- ── Meta Ads Section ── -->
+        <div class="adm-sec" id="admSecMeta" style="display:none">
+          <div class="adm-sec-hdr">
+            <div class="adm-conn-row" id="admMConnRow">
+              <div class="adm-conn-loading" id="admMConnLoad"><span class="adm-pub-spin"></span> Checking…</div>
+              <div class="adm-conn-ok" id="admMConnOk" style="display:none">
+                <span class="adm-conn-dot adm-conn-ok-dot"></span>
+                <span id="admMConnAcct">Meta Ads Connected</span>
+                <button class="adm-conn-change" onclick="_orvNav('connect','page-integrations')">Change Account</button>
+              </div>
+              <div class="adm-conn-no" id="admMConnNo" style="display:none">
+                <span class="adm-conn-dot adm-conn-no-dot"></span>
+                Not connected
+                <button class="adm-conn-connect" onclick="_orvNav('connect','page-integrations')">Connect Meta Ads →</button>
+              </div>
+            </div>
+            <button class="adm-new-btn" onclick="admNewCampaign('meta')">+ New Meta Ads Campaign</button>
           </div>
-          <div class="adm-connect-copy">
-            <div class="adm-connect-title">No ad accounts connected</div>
-            <div class="adm-connect-sub">Connect Google Ads or Meta Ads to manage your live campaigns here.</div>
+
+          <div class="adm-table-wrap" id="admMTableWrap" style="display:none">
+            <div class="adm-table-hd">
+              <div class="adm-table-title">Campaigns</div>
+              <div class="adm-table-badge" id="admMCampCount">0 campaigns</div>
+            </div>
+            <div class="adm-table-scroll">
+              <table class="adm-table">
+                <thead><tr><th>Campaign</th><th>Status</th><th>Created</th><th></th></tr></thead>
+                <tbody id="admMTbody"></tbody>
+              </table>
+            </div>
+            <div id="admMTableEmpty" class="adm-table-empty" style="display:none">No Meta Ads campaigns yet.</div>
           </div>
-          <button class="btn btn-p btn-sm" onclick="_orvNav('connect','page-integrations')">Connect Accounts</button>
-        </div>
 
-        <!-- Loading -->
-        <div class="adm-loading" id="admLoading">
-          <div class="adm-spinner"></div>
-          Checking connections…
-        </div>
-
-        <!-- KPI summary strip -->
-        <div class="adm-kpi-strip" id="admKpiStrip" style="display:none">
-          <div class="adm-kpi"><div class="adm-kpi-lbl">Spend</div><div class="adm-kpi-val" id="admKpiSpend">—</div></div>
-          <div class="adm-kpi"><div class="adm-kpi-lbl">Impressions</div><div class="adm-kpi-val" id="admKpiImpr">—</div></div>
-          <div class="adm-kpi"><div class="adm-kpi-lbl">Clicks</div><div class="adm-kpi-val" id="admKpiClicks">—</div></div>
-          <div class="adm-kpi"><div class="adm-kpi-lbl">CTR</div><div class="adm-kpi-val" id="admKpiCtr">—</div></div>
-          <div class="adm-kpi"><div class="adm-kpi-lbl">Conversions</div><div class="adm-kpi-val" id="admKpiConv">—</div></div>
-          <div class="adm-kpi"><div class="adm-kpi-lbl">ROAS</div><div class="adm-kpi-val" id="admKpiRoas">—</div></div>
-        </div>
-
-        <!-- Campaigns table -->
-        <div class="adm-table-wrap" id="admTableWrap" style="display:none">
-          <div class="adm-table-hd">
-            <div class="adm-table-title">Campaigns</div>
-            <div class="adm-table-badge" id="admCampCount">0 campaigns</div>
+          <div class="adm-no-data" id="admMNoData" style="display:none">
+            <svg viewBox="0 0 56 56" fill="none" width="40" height="40"><rect x="6" y="12" width="44" height="32" rx="4" stroke="currentColor" stroke-width="1.5" stroke-opacity=".3"/><path d="M16 28h24M16 34h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-opacity=".3"/></svg>
+            <div class="adm-no-data-title">No Meta Ads campaigns</div>
+            <div class="adm-no-data-sub">Create a campaign or send one from the Campaigns page.</div>
+            <div class="adm-no-data-actions">
+              <button class="adm-cta-btn" onclick="admNewCampaign('meta')">+ New Campaign</button>
+              <button class="adm-cta-btn adm-cta-sec" onclick="_orvNav('campaigns','page-campaigns')">Go to Campaigns</button>
+            </div>
           </div>
-          <div class="adm-table-scroll">
-            <table class="adm-table">
-              <thead>
-                <tr>
-                  <th>Campaign</th>
-                  <th>Status</th>
-                  <th class="adm-num">Spend</th>
-                  <th class="adm-num">Impr.</th>
-                  <th class="adm-num">Clicks</th>
-                  <th class="adm-num">CTR</th>
-                  <th class="adm-num">Conv.</th>
-                  <th class="adm-num">CPA</th>
-                  <th class="adm-num">ROAS</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="admTbody"></tbody>
-            </table>
-          </div>
-          <div id="admTableEmpty" class="adm-table-empty" style="display:none">No campaigns found for this period.</div>
         </div>
 
-        <!-- Connected but no data -->
-        <div class="adm-no-data" id="admNoData" style="display:none">
-          <svg viewBox="0 0 56 56" fill="none" width="48" height="48"><rect x="6" y="12" width="44" height="32" rx="4" stroke="currentColor" stroke-width="1.5" stroke-opacity=".3"/><path d="M16 28h24M16 34h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-opacity=".3"/></svg>
-          <div class="adm-no-data-title">No campaign data for this period</div>
-          <div class="adm-no-data-sub">Generate and publish a campaign through Oriven, or wait for your connected accounts to run campaigns.</div>
-          <button class="adm-cta-btn" onclick="_orvNav('overview','page-overview')">Create Campaign →</button>
-        </div>
+        <!-- Legacy hidden elements kept for compat with any stray refs -->
+        <div id="admConnectBanner" style="display:none"></div>
+        <div id="admLoading"       style="display:none"></div>
+        <div id="admKpiStrip"      style="display:none"></div>
+        <div id="admNoData"        style="display:none"></div>
+        <div id="admTableWrap"     style="display:none"><table><tbody id="admTbody"></tbody></table></div>
 
       </div>
     </div><!-- /#page-ads-manager -->
@@ -1326,6 +1357,10 @@
           <div class="cwr-meta">
             <span class="cwr-name" id="cwsCampName"></span>
             <span class="cwr-type-badge" id="cwsCampType"></span>
+          </div>
+          <div class="cwr-topbar-right">
+            <button class="cwr-adm-btn" id="cwrSendAdmBtn" onclick="cwsSendToAdsManager()" style="display:none">Send To Ads Manager</button>
+            <button class="cwr-del-btn" onclick="cwsDeleteCampaign()">Delete</button>
           </div>
         </div>
 
@@ -2939,6 +2974,8 @@
                 <span class="con-detail-val" id="conAccGoogle">—</span>
               </div>
             </div>
+            <!-- Account list injected here when connected -->
+            <div id="conAcctListGoogle" class="con-acct-list" style="display:none"></div>
             <div class="con-card-foot">
               <button class="con-btn-connect" id="conBtnGoogle" onclick="conConnect('google')">Connect Google Ads →</button>
               <button class="con-btn-disconnect" id="conBtnGoogleDisc" style="display:none" onclick="conDisconnect('google')">Disconnect</button>
@@ -2967,6 +3004,8 @@
                 <span class="con-detail-val" id="conAccMeta">—</span>
               </div>
             </div>
+            <!-- Account list injected here when connected -->
+            <div id="conAcctListMeta" class="con-acct-list" style="display:none"></div>
             <div class="con-card-foot">
               <button class="con-btn-connect" id="conBtnMeta" onclick="conConnect('meta')">Connect Meta Ads →</button>
               <button class="con-btn-disconnect" id="conBtnMetaDisc" style="display:none" onclick="conDisconnect('meta')">Disconnect</button>
@@ -5097,8 +5136,8 @@ function _renderRecentCard(c){
     '</div>';
 }
 
-var _STATUS_LABELS = { draft:'Draft', generated:'Generated', 'ready-to-publish':'Ready to Publish', published:'Published', active:'Active', paused:'Paused', archived:'Archived' };
-var _STATUS_CLS    = { draft:'clib-status-draft', generated:'clib-status-generated', 'ready-to-publish':'clib-status-ready', published:'clib-status-published', active:'clib-status-active', paused:'clib-status-paused', archived:'clib-status-archived' };
+var _STATUS_LABELS = { draft:'Draft', generated:'Generated', 'ready-to-publish':'Ready to Publish', publishing:'Publishing…', published:'Published', active:'Active', paused:'Paused', archived:'Archived', failed:'Failed' };
+var _STATUS_CLS    = { draft:'clib-status-draft', generated:'clib-status-generated', 'ready-to-publish':'clib-status-ready', publishing:'clib-status-publishing', published:'clib-status-published', active:'clib-status-active', paused:'clib-status-paused', archived:'clib-status-archived', failed:'clib-status-failed' };
 
 var _PLAT_ICONS = {
   google: '<svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><path d="M10.9 6.1c0-.4 0-.8-.1-1.1H6v2.1h2.8a2.4 2.4 0 0 1-1 1.5v1.2h1.7c1-1 1.4-2.3 1.4-3.7z" fill="#4285F4"/><path d="M6 11c1.4 0 2.6-.5 3.5-1.3l-1.7-1.3a3.2 3.2 0 0 1-1.8.5 3.2 3.2 0 0 1-3-2.1H1.3v1.3A5.3 5.3 0 0 0 6 11z" fill="#34A853"/><path d="M3 6.8a3.1 3.1 0 0 1 0-1.6V3.9H1.3a5.3 5.3 0 0 0 0 4.2L3 6.8z" fill="#FBBC05"/><path d="M6 2.7c.8 0 1.5.3 2 .8L9.6 1.9A5.3 5.3 0 0 0 1.3 3.9L3 5.2a3.2 3.2 0 0 1 3-2.5z" fill="#EA4335"/></svg>',
@@ -5117,6 +5156,12 @@ function _renderCampCard(c){
   var creativeTag = c.creativeMode === 'videos' ? '<span class="camp-card-creative-tag">Video</span>' : '<span class="camp-card-creative-tag">Images</span>';
   var d = new Date(c.created);
   var dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  var inAdsMgr = (status === 'ready-to-publish' || status === 'published' || status === 'paused' || status === 'archived');
+  var admAction = inAdsMgr
+    ? '<button class="camp-card-act-adm camp-card-act-adm-in" onclick="event.stopPropagation();_orvNav(\'adsmanager\',\'page-ads-manager\')">In Ads Manager →</button>'
+    : (status === 'generated'
+        ? '<button class="camp-card-act-adm" onclick="event.stopPropagation();sendToAdsManager(\''+c.id+'\')">Send To Ads Manager</button>'
+        : '');
   return '<div class="camp-card" data-status="'+status+'" data-name="'+_esc((c.name||'').toLowerCase())+'"'+platAttr+' onclick="openCampaignWorkspace(\''+c.id+'\')">'+
     '<div class="camp-card-top">'+
       '<div class="camp-card-name">'+_esc(c.name)+'</div>'+
@@ -5128,6 +5173,12 @@ function _renderCampCard(c){
     '</div>'+
     '<div class="camp-card-plat">'+platIcon+'<span class="camp-card-plat-name">'+_esc(platName)+'</span></div>'+
     '<div class="camp-card-goal">'+_esc(c.goal||'—')+'</div>'+
+    '<div class="camp-card-actions" onclick="event.stopPropagation()">'+
+      admAction+
+      '<button class="camp-card-act-del" title="Delete" onclick="event.stopPropagation();deleteCampaign(\''+c.id+'\')">'+
+        '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="12" height="12"><path d="M2 3.5h10M5 3.5V2.5h4v1M5.5 6.5v4M8.5 6.5v4M3 3.5l.8 8h6.4l.8-8"/></svg>'+
+      '</button>'+
+    '</div>'+
   '</div>';
 }
 
@@ -5990,6 +6041,18 @@ window.refreshCampaignWorkspace = function(){
     typeEl.textContent = platLabel + (statusLabel ? ' · ' + statusLabel : '');
   }
 
+  /* Update Ads Manager topbar button */
+  var admBtn = document.getElementById('cwrSendAdmBtn');
+  if (admBtn) {
+    var inAdsMgr = (['ready-to-publish','published','paused','archived'].indexOf(c.status||'') !== -1);
+    admBtn.style.display = '';
+    if (inAdsMgr) {
+      admBtn.textContent = 'View in Ads Manager';
+    } else {
+      admBtn.textContent = 'Send To Ads Manager';
+    }
+  }
+
   /* CGR campaigns (from the main generate flow) get a rich detail view */
   if(c.id && c.id.indexOf('cgr_') === 0 && c.pkg){
     _renderCgrWorkspace(c);
@@ -6738,6 +6801,198 @@ function _esc(s){
 }
 
 _loadCamps();
+
+// ── Campaign lifecycle actions ────────────────────────────────────
+
+window.sendToAdsManager = function(campId) {
+  _loadCamps();
+  for (var i = 0; i < _campaigns.length; i++) {
+    if (_campaigns[i].id === campId) {
+      _campaigns[i].status = 'ready-to-publish';
+      _campaigns[i].updated = new Date().toISOString();
+      _saveCamps();
+      break;
+    }
+  }
+  if (typeof renderCampaignHub === 'function') renderCampaignHub();
+  if (typeof toast === 'function') toast('Campaign queued for publishing', 'ok');
+};
+
+window.cwsSendToAdsManager = function() {
+  if (!_activeCampaign) return;
+  var inAdsMgr = (['ready-to-publish','published','paused','archived'].indexOf(_activeCampaign.status||'') !== -1);
+  if (inAdsMgr) {
+    if (typeof _orvNav === 'function') _orvNav('adsmanager', 'page-ads-manager');
+    return;
+  }
+  window.sendToAdsManager(_activeCampaign.id);
+  _activeCampaign.status = 'ready-to-publish';
+  refreshCampaignWorkspace();
+  setTimeout(function() {
+    if (typeof _orvNav === 'function') _orvNav('adsmanager', 'page-ads-manager');
+  }, 500);
+};
+
+window.cwsDeleteCampaign = function() {
+  if (!_activeCampaign) return;
+  deleteCampaign(_activeCampaign.id);
+  if (typeof navigate === 'function') navigate('campaigns');
+};
+
+window.admPublishCampaign = function(campId, accountId, accountName, accountExtra) {
+  _loadCamps();
+  var camp = null;
+  for (var i = 0; i < _campaigns.length; i++) {
+    if (_campaigns[i].id === campId) { camp = _campaigns[i]; break; }
+  }
+  if (!camp || !camp.pkg) { if (typeof toast === 'function') toast('Campaign data not found', 'error'); return; }
+  if (!camp.platform) { if (typeof toast === 'function') toast('No platform set for this campaign', 'error'); return; }
+
+  var platform = camp.platform;
+
+  /* Set status → publishing immediately so UI reflects progress */
+  _loadCamps();
+  for (var i = 0; i < _campaigns.length; i++) {
+    if (_campaigns[i].id === campId) { _campaigns[i].status = 'publishing'; _saveCamps(); break; }
+  }
+  if (typeof initAdsManager === 'function') initAdsManager();
+
+  function _doPublish() {
+    apiFetch('/api/publish/' + platform, {
+      method: 'POST',
+      body: JSON.stringify({ pkg: camp.pkg })
+    }).then(function(r) {
+      _loadCamps();
+      for (var j = 0; j < _campaigns.length; j++) {
+        if (_campaigns[j].id !== campId) continue;
+        if (r.ok) {
+          _campaigns[j].status = 'published';
+          _campaigns[j].publishedAt = new Date().toISOString();
+          _campaigns[j].platformCampaignId = (r.data && r.data.campaignId) ? String(r.data.campaignId) : null;
+          if (r.data && r.data.adSetId) _campaigns[j].platformAdSetId = String(r.data.adSetId);
+          if (accountId) {
+            _campaigns[j].destinationAccountId   = accountId;
+            _campaigns[j].destinationAccountName = accountName || accountId;
+          }
+          delete _campaigns[j].failureReason;
+        } else {
+          _campaigns[j].status = 'failed';
+          _campaigns[j].failureReason = (r.data && r.data.error) ? r.data.error : 'Unknown error';
+        }
+        _saveCamps();
+        break;
+      }
+      if (typeof initAdsManager === 'function') initAdsManager();
+      var platLabel = { google:'Google Ads', meta:'Meta Ads' }[platform] || platform;
+      if (typeof toast === 'function') {
+        if (r.ok) toast('Campaign published to ' + platLabel, 'ok');
+        else toast('Publish failed: ' + ((r.data && r.data.error) || 'Unknown error'), 'error');
+      }
+    }).catch(function(e) {
+      _loadCamps();
+      for (var j = 0; j < _campaigns.length; j++) {
+        if (_campaigns[j].id !== campId) continue;
+        _campaigns[j].status = 'failed';
+        _campaigns[j].failureReason = (e && e.message) ? e.message : 'Network error';
+        _saveCamps();
+        break;
+      }
+      if (typeof initAdsManager === 'function') initAdsManager();
+      if (typeof toast === 'function') toast('Publish failed: ' + ((e && e.message) || 'Network error'), 'error');
+    });
+  }
+
+  if (accountId) {
+    /* Switch active account first, then publish */
+    var setBody = platform === 'google'
+      ? { account_id: accountId, account_name: accountName || '', is_manager: false, parent_manager_id: (accountExtra && accountExtra.parent_manager_id) || null }
+      : { account_id: accountId, account_name: accountName || '', currency: (accountExtra && accountExtra.currency) || null };
+    apiFetch('/api/' + platform + '/active-account', {
+      method: 'POST',
+      body: JSON.stringify(setBody)
+    }).then(function(r) {
+      _doPublish();
+    }).catch(function() { _doPublish(); });
+  } else {
+    _doPublish();
+  }
+};
+
+window.admRetryPublish = function(campId) {
+  _loadCamps();
+  for (var i = 0; i < _campaigns.length; i++) {
+    if (_campaigns[i].id === campId) {
+      _campaigns[i].status = 'ready-to-publish';
+      delete _campaigns[i].failureReason;
+      _saveCamps();
+      break;
+    }
+  }
+  if (typeof initAdsManager === 'function') initAdsManager();
+};
+
+window.admPauseCampaign = function(campId) {
+  _loadCamps();
+  for (var i = 0; i < _campaigns.length; i++) {
+    if (_campaigns[i].id === campId) {
+      _campaigns[i].status = 'paused';
+      _campaigns[i].updated = new Date().toISOString();
+      _saveCamps();
+      break;
+    }
+  }
+  if (typeof initAdsManager === 'function') initAdsManager();
+  if (typeof toast === 'function') toast('Campaign paused', 'ok');
+};
+
+window.admResumeCampaign = function(campId) {
+  _loadCamps();
+  for (var i = 0; i < _campaigns.length; i++) {
+    if (_campaigns[i].id === campId) {
+      _campaigns[i].status = 'published';
+      _campaigns[i].updated = new Date().toISOString();
+      _saveCamps();
+      break;
+    }
+  }
+  if (typeof initAdsManager === 'function') initAdsManager();
+  if (typeof toast === 'function') toast('Campaign resumed', 'ok');
+};
+
+window.admArchiveCampaign = function(campId) {
+  _loadCamps();
+  for (var i = 0; i < _campaigns.length; i++) {
+    if (_campaigns[i].id === campId) {
+      _campaigns[i].status = 'archived';
+      _campaigns[i].updated = new Date().toISOString();
+      _saveCamps();
+      break;
+    }
+  }
+  if (typeof initAdsManager === 'function') initAdsManager();
+  if (typeof toast === 'function') toast('Campaign archived', 'ok');
+};
+
+window.admDeleteCampaign = function(campId) {
+  _loadCamps();
+  _campaigns = _campaigns.filter(function(c){ return c.id !== campId; });
+  _saveCamps();
+  if (typeof initAdsManager === 'function') initAdsManager();
+  if (typeof toast === 'function') toast('Campaign deleted', 'ok');
+};
+
+/* Public bridge — lets other script blocks (e.g. CGR IIFE) store campaigns
+   without needing access to the closure-scoped _campaigns/_saveCamps */
+window._orvStoreCampaign = function(campObj) {
+  _loadCamps();
+  for (var _i = 0; _i < _campaigns.length; _i++) {
+    if (_campaigns[_i].id === campObj.id) return; // deduplicate
+  }
+  _campaigns.unshift(campObj);
+  if (_campaigns.length > 50) _campaigns = _campaigns.slice(0, 50);
+  _saveCamps();
+  if (typeof renderCampaignHub === 'function') setTimeout(renderCampaignHub, 0);
+};
 
 })();
 </script>
@@ -7983,16 +8238,21 @@ function _conFetchStatus(platform) {
         if (platform === 'google') {
           var accs = d.google_ads_accounts || [];
           detail = { accounts: accs.length ? accs.length + ' account' + (accs.length !== 1 ? 's' : '') : d.google_email || '—' };
-          /* Restore active ad account from DB if present */
-          if (d.active_ad_account && d.active_ad_account.account_id) window._activeAdAccount = d.active_ad_account;
+          window._activeAdAccount = d.active_ad_account || null;
+          setTimeout(function() { _conRenderAccountList('google', accs, d.active_ad_account); }, 0);
         } else if (platform === 'meta') {
           var mAccs = d.meta_ads_accounts || [];
           detail = { accounts: mAccs.length ? mAccs.length + ' account' + (mAccs.length !== 1 ? 's' : '') : '—', business: d.meta_user_name || '—' };
-          if (d.active_ad_account && d.active_ad_account.account_id) window._activeMetaAccount = d.active_ad_account;
+          window._activeMetaAccount = d.active_ad_account || null;
+          setTimeout(function() { _conRenderAccountList('meta', mAccs, d.active_ad_account); }, 0);
         } else if (platform === 'tiktok') {
           detail = { displayName: d.tiktok_display_name || '—' };
           if (d.active_ad_account && d.active_ad_account.account_id) window._activeTadsAccount = d.active_ad_account;
         }
+      } else {
+        /* Hide account list when disconnected */
+        var _listEl = document.getElementById('conAcctList' + (platform === 'google' ? 'Google' : platform === 'meta' ? 'Meta' : ''));
+        if (_listEl) { _listEl.style.display = 'none'; _listEl.innerHTML = ''; }
       }
       _conApplyCard(platform, !!d.connected, detail);
     })
@@ -8001,6 +8261,69 @@ function _conFetchStatus(platform) {
       _conApplyCard(platform, false);
     });
 }
+
+/* Render per-account rows inside the integration card */
+function _conRenderAccountList(platform, accounts, activeAccount) {
+  var elId = platform === 'google' ? 'conAcctListGoogle' : 'conAcctListMeta';
+  var el = document.getElementById(elId);
+  if (!el) return;
+  if (!accounts || !accounts.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+
+  var activeId = activeAccount && activeAccount.account_id ? String(activeAccount.account_id).replace(/-/g,'') : null;
+
+  var rows = accounts.map(function(a) {
+    var aId   = platform === 'google' ? (a.customer_id || a.account_id || '') : (a.account_id || '');
+    var aIdClean = String(aId).replace(/-/g,'');
+    var aName = platform === 'google' ? (a.account_name || a.name || aId) : (a.account_name || aId);
+    var isActive = activeId && aIdClean === activeId;
+    var idDisplay = platform === 'google' ? 'Customer ID: ' + aId : 'Account ID: ' + aId;
+
+    /* Build onclick args safely */
+    var extraJson = platform === 'google'
+      ? JSON.stringify({ is_manager: !!a.is_manager, status: a.status || '', parent_manager_id: a.parent_manager_id || null })
+      : JSON.stringify({ currency: a.currency || '' });
+    var escapedName = (aName || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    var escapedExtra = extraJson.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+    return '<div class="con-acct-row' + (isActive ? ' con-acct-active' : '') + '">'
+      + '<div class="con-acct-info">'
+      +   '<div class="con-acct-name">' + _conEsc(aName) + '</div>'
+      +   '<div class="con-acct-id">' + _conEsc(idDisplay) + '</div>'
+      + '</div>'
+      + (isActive
+          ? '<span class="con-acct-badge">Active</span>'
+          : '<button class="con-acct-set" onclick="conSetActive(\'' + platform + '\',\'' + _conEsc(String(aIdClean)) + '\',\'' + escapedName + '\',' + escapedExtra + ')">Set Active</button>'
+        )
+      + '</div>';
+  }).join('');
+
+  el.innerHTML = '<div class="con-acct-list-hdr">Ad Accounts</div>' + rows;
+  el.style.display = '';
+}
+
+function _conEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+window.conSetActive = function(platform, accountId, accountName, extra) {
+  extra = extra || {};
+  var body = platform === 'google'
+    ? { account_id: accountId, account_name: accountName, is_manager: !!extra.is_manager, status: extra.status || '', parent_manager_id: extra.parent_manager_id || null }
+    : { account_id: accountId, account_name: accountName, currency: extra.currency || '' };
+
+  apiFetch('/api/' + platform + '/active-account', { method: 'POST', body: JSON.stringify(body) })
+    .then(function(r) {
+      if (r.ok) {
+        if (platform === 'google') window._activeAdAccount = r.data && r.data.active_ad_account;
+        if (platform === 'meta')   window._activeMetaAccount = r.data && r.data.active_ad_account;
+        if (typeof toast === 'function') toast('Active account updated');
+        _conFetchStatus(platform);
+      } else {
+        if (typeof toast === 'function') toast('Failed to set account — please try again', 'err');
+      }
+    })
+    .catch(function() {
+      if (typeof toast === 'function') toast('Network error — please try again', 'err');
+    });
+};
 
 window.initIntegrations = function() {
   console.log('[Connect] initIntegrations — fetching live status from server');
@@ -8308,8 +8631,23 @@ function _prfRenderBars(campaigns) {
 window._admActiveRange = 'LAST_7_DAYS';
 window._admActivePlatform = (function(){ try { return localStorage.getItem('_admPlatform')||'all'; } catch(_){ return 'all'; } })();
 window._admConnectedPlatforms = [];
-window._admAllCampaigns = [];
-window._admPlatKpis = {};
+window._admGoogleStatus = null;
+window._admMetaStatus   = null;
+
+/* Read the selected account from an inline selector and publish */
+window.admPublishFromSelector = function(campId, platform) {
+  var sel = document.getElementById('adm-acct-' + campId.replace(/[^a-z0-9]/gi, '_'));
+  if (!sel) { admPublishCampaign(campId); return; }
+  var opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) {
+    if (typeof toast === 'function') toast('Please select a destination account first', 'err');
+    return;
+  }
+  var accountId   = opt.value;
+  var accountName = opt.getAttribute('data-name') || opt.text;
+  var extra       = { currency: opt.getAttribute('data-currency'), parent_manager_id: opt.getAttribute('data-parent') };
+  admPublishCampaign(campId, accountId, accountName, extra);
+};
 
 var _ADM_PLAT_LABELS = { all:'All Platforms', google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads' };
 var _ADM_PLAT_LINKS  = { google:'https://ads.google.com/', meta:'https://adsmanager.facebook.com/' };
@@ -8319,132 +8657,198 @@ window.admRange = function(btn, range) {
   btn.classList.add('active');
   var MAP = { '7d':'LAST_7_DAYS', '30d':'LAST_30_DAYS', '90d':'LAST_90_DAYS' };
   window._admActiveRange = MAP[range] || 'LAST_7_DAYS';
-  if (window._admConnectedPlatforms.length > 0) _admLoadData(window._admConnectedPlatforms, window._admActiveRange);
-};
-
-window.admSwitchPlatform = function(platform) {
-  window._admActivePlatform = platform;
-  try { localStorage.setItem('_admPlatform', platform); } catch(_){}
-  document.querySelectorAll('.adm-ptab').forEach(function(t){ t.classList.toggle('active', t.dataset.plat === platform); });
-  _admApplyView();
 };
 
 window.initAdsManager = function() {
-  var elBanner   = document.getElementById('admConnectBanner');
-  var elLoading  = document.getElementById('admLoading');
-  var elKpis     = document.getElementById('admKpiStrip');
-  var elTable    = document.getElementById('admTableWrap');
-  var elNoData   = document.getElementById('admNoData');
-  var elTabs     = document.getElementById('admPlatTabs');
-  if (elBanner)  elBanner.style.display  = 'none';
-  if (elLoading) elLoading.style.display = '';
-  if (elKpis)    elKpis.style.display    = 'none';
-  if (elTable)   elTable.style.display   = 'none';
-  if (elNoData)  elNoData.style.display  = 'none';
-  if (elTabs)    elTabs.style.display    = 'none';
-  var statuses = {};
-  var pending = 2;
-  function _check() {
-    pending--;
-    if (pending > 0) return;
-    if (elLoading) elLoading.style.display = 'none';
-    var connected = ['google','meta'].filter(function(p){ return statuses[p]; });
-    window._admConnectedPlatforms = connected;
-    if (!connected.length) { if (elBanner) elBanner.style.display = ''; return; }
-    _admBuildTabs(connected);
-    _admLoadData(connected, window._admActiveRange || 'LAST_7_DAYS');
-  }
+  window._admGoogleStatus = null;
+  window._admMetaStatus   = null;
+  window._admConnectedPlatforms = [];
+
+  var allCamps;
+  try { allCamps = JSON.parse(localStorage.getItem('oriven_campaigns') || '[]'); } catch(_){ allCamps = []; }
+  var OPERATIONAL = ['ready-to-publish', 'publishing', 'published', 'paused', 'archived', 'failed'];
+  var gCamps = allCamps.filter(function(c){ return OPERATIONAL.indexOf(c.status||'') !== -1 && c.platform === 'google'; });
+  var mCamps = allCamps.filter(function(c){ return OPERATIONAL.indexOf(c.status||'') !== -1 && c.platform === 'meta'; });
+
+  /* Render tables immediately with connection unknown */
+  _admRenderPlatformSection('google', gCamps, null);
+  _admRenderPlatformSection('meta',   mCamps, null);
+
+  /* Async: resolve connection status */
   ['google','meta'].forEach(function(p) {
-    apiFetch('/api/'+p+'/status').then(function(r){ statuses[p] = r.ok && r.data && r.data.connected; _check(); }).catch(function(){ statuses[p]=false; _check(); });
+    apiFetch('/api/'+p+'/status').then(function(r) {
+      var st = (r.ok && r.data) ? r.data : null;
+      if (p === 'google') { window._admGoogleStatus = st; }
+      else                { window._admMetaStatus   = st; }
+      if (st && st.connected) window._admConnectedPlatforms.push(p);
+      var camps = p === 'google' ? gCamps : mCamps;
+      _admRenderPlatformSection(p, camps, st);
+    }).catch(function() {
+      var camps = p === 'google' ? gCamps : mCamps;
+      _admRenderPlatformSection(p, camps, { connected: false });
+    });
   });
 };
 
-function _admBuildTabs(connected) {
-  var wrap  = document.getElementById('admPlatTabs');
-  var inner = document.getElementById('admPlatTabsInner');
-  if (!wrap || !inner) return;
-  var active = window._admActivePlatform;
-  if (active !== 'all' && connected.indexOf(active) === -1) { active = 'all'; window._admActivePlatform = 'all'; }
-  inner.innerHTML = ['all'].concat(connected).map(function(p) {
-    return '<button class="adm-ptab'+(p===active?' active':'')+'" data-plat="'+p+'" onclick="admSwitchPlatform(\''+p+'\')">'+(_ADM_PLAT_LABELS[p]||p)+'</button>';
-  }).join('');
-  wrap.style.display = '';
-}
+window.admSwitchSection = function(sec, btn) {
+  document.querySelectorAll('.adm-psec-tab').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  var secs = { google: 'admSecGoogle', meta: 'admSecMeta' };
+  Object.keys(secs).forEach(function(k) {
+    var el = document.getElementById(secs[k]);
+    if (el) el.style.display = k === sec ? '' : 'none';
+  });
+};
 
-function _admLoadData(platforms, range) {
-  var elLoading = document.getElementById('admLoading');
-  if (elLoading) elLoading.style.display = '';
-  window._admAllCampaigns = [];
-  window._admPlatKpis = {};
-  var pending = platforms.length;
-  function _done() {
-    pending--;
-    if (pending > 0) return;
-    if (elLoading) elLoading.style.display = 'none';
-    _admApplyView();
-  }
-  if (platforms.indexOf('google') !== -1) {
-    apiFetch('/api/ads/overview?date_range='+range).then(function(r) {
-      if (r.ok && r.data && r.data.overview) {
-        var o = r.data.overview;
-        window._admPlatKpis['google'] = { spend:o.spend||0, impr:o.impressions||0, clicks:o.clicks||0, ctr:o.ctr||0, conv:o.conversions||0, convVal:o.conversions_value||0 };
-        (r.data.campaigns||[]).forEach(function(c) {
-          window._admAllCampaigns.push({ name:c.name, platform:'google', status:c.status, spend:c.spend, impressions:c.impressions, clicks:c.clicks, ctr:c.ctr, conv:c.conversions, cpa:c.cpa, roas:c.roas });
-        });
-      }
-      _done();
-    }).catch(_done);
-  }
-  if (platforms.indexOf('meta') !== -1) {
-    apiFetch('/api/meta/campaigns?date_range='+range).then(function(r) {
-      if (r.ok && r.data && r.data.campaigns) {
-        var mk = { spend:0, impr:0, clicks:0, ctr:0, conv:0, convVal:0 };
-        var ctrSum=0, ctrN=0;
-        r.data.campaigns.forEach(function(c) {
-          mk.spend+=c.spend||0; mk.impr+=c.impressions||0; mk.clicks+=c.clicks||0; mk.conv+=c.conversions||0;
-          if(c.ctr){ ctrSum+=c.ctr; ctrN++; }
-          var cpa = (c.spend>0 && c.conversions>0) ? c.spend/c.conversions : 0;
-          window._admAllCampaigns.push({ name:c.campaign_name, platform:'meta', status:c.status, spend:c.spend, impressions:c.impressions, clicks:c.clicks, ctr:c.ctr, conv:c.conversions, cpa:cpa, roas:0 });
-        });
-        mk.ctr = mk.impr>0 ? (mk.clicks/mk.impr)*100 : (ctrN>0 ? ctrSum/ctrN : 0);
-        window._admPlatKpis['meta'] = mk;
-      }
-      _done();
-    }).catch(_done);
-  }
-}
+window.admNewCampaign = function(platform) {
+  window._ov3Platform = platform;
+  if (typeof _orvNav === 'function') _orvNav('create', 'page-create');
+};
 
-function _admApplyView() {
-  var plat = window._admActivePlatform || 'all';
-  var camps, kpis;
-  if (plat === 'all') {
-    camps = window._admAllCampaigns;
-    kpis = { spend:0, impr:0, clicks:0, ctr:0, conv:0, convVal:0 };
-    Object.keys(window._admPlatKpis).forEach(function(p) {
-      var k=window._admPlatKpis[p]; kpis.spend+=k.spend||0; kpis.impr+=k.impr||0; kpis.clicks+=k.clicks||0; kpis.conv+=k.conv||0; kpis.convVal+=k.convVal||0;
-    });
-    kpis.ctr = kpis.impr>0 ? (kpis.clicks/kpis.impr)*100 : 0;
+function _admRenderPlatformSection(platform, camps, status) {
+  var prefix = platform === 'google' ? 'G' : 'M';
+  var elLoad  = document.getElementById('adm'+prefix+'ConnLoad');
+  var elOk    = document.getElementById('adm'+prefix+'ConnOk');
+  var elNo    = document.getElementById('adm'+prefix+'ConnNo');
+  var elAcct  = document.getElementById('adm'+prefix+'ConnAcct');
+  var elTable = document.getElementById('adm'+prefix+'TableWrap');
+  var elNoD   = document.getElementById('adm'+prefix+'NoData');
+  var elBadge = document.getElementById('adm'+prefix+'CampCount');
+  var elEmpty = document.getElementById('adm'+prefix+'TableEmpty');
+  var tbody   = document.getElementById('adm'+prefix+'Tbody');
+
+  /* Connection status bar */
+  if (status === null) {
+    /* Still loading */
+    if (elLoad) elLoad.style.display = '';
+    if (elOk)   elOk.style.display   = 'none';
+    if (elNo)   elNo.style.display   = 'none';
+  } else if (status && status.connected) {
+    if (elLoad) elLoad.style.display = 'none';
+    if (elOk)   elOk.style.display   = '';
+    if (elNo)   elNo.style.display   = 'none';
+    if (elAcct) {
+      var active = status.active_ad_account;
+      var acctLabel = active ? (active.account_name || active.name || active.account_id || 'Connected') : 'Connected';
+      elAcct.textContent = acctLabel;
+    }
   } else {
-    camps = window._admAllCampaigns.filter(function(c){ return c.platform===plat; });
-    kpis = window._admPlatKpis[plat] || { spend:0, impr:0, clicks:0, ctr:0, conv:0, convVal:0 };
+    if (elLoad) elLoad.style.display = 'none';
+    if (elOk)   elOk.style.display   = 'none';
+    if (elNo)   elNo.style.display   = '';
   }
-  var hasConn = Object.keys(window._admPlatKpis).length > 0;
-  var elKpis  = document.getElementById('admKpiStrip');
-  var elTable = document.getElementById('admTableWrap');
-  var elNoData= document.getElementById('admNoData');
-  if (!hasConn) { if(elKpis)elKpis.style.display='none'; if(elTable)elTable.style.display='none'; if(elNoData)elNoData.style.display=''; return; }
-  if (elKpis)  elKpis.style.display  = '';
+
+  /* Campaigns table */
+  if (!camps.length) {
+    if (elTable) elTable.style.display = 'none';
+    if (elNoD)   elNoD.style.display   = '';
+    return;
+  }
   if (elTable) elTable.style.display = '';
-  if (elNoData)elNoData.style.display= 'none';
-  function _s(id,v){ var el=document.getElementById(id); if(el) el.textContent=v||'—'; }
-  var roas = kpis.spend>0 && kpis.convVal>0 ? kpis.convVal/kpis.spend : 0;
-  _s('admKpiSpend',  '€'+_admFmt(kpis.spend));
-  _s('admKpiImpr',   _admFmt(kpis.impr));
-  _s('admKpiClicks', _admFmt(kpis.clicks));
-  _s('admKpiCtr',    kpis.ctr>0 ? kpis.ctr.toFixed(2)+'%' : '—');
-  _s('admKpiConv',   _admFmt(kpis.conv));
-  _s('admKpiRoas',   roas>0 ? roas.toFixed(2)+'x' : '—');
-  _admRenderTable(camps);
+  if (elNoD)   elNoD.style.display   = 'none';
+
+  if (!tbody) return;
+
+  var sorted = camps.slice().sort(function(a,b){
+    return new Date(b.created || b.updated || 0) - new Date(a.created || a.updated || 0);
+  });
+  if (elBadge) elBadge.textContent = sorted.length + ' campaign' + (sorted.length === 1 ? '' : 's');
+  if (elEmpty) elEmpty.style.display = 'none';
+
+  var S_LABELS = { 'ready-to-publish':'Ready to Publish', publishing:'Publishing…', published:'Published', paused:'Paused', archived:'Archived', failed:'Failed' };
+  var S_CLS    = { 'ready-to-publish':'adm-status-ready', publishing:'adm-status-publishing', published:'adm-status-active', paused:'adm-status-paused', archived:'adm-status-arch', failed:'adm-status-failed' };
+  var connected   = window._admConnectedPlatforms || [];
+  var platConn    = status && status.connected;
+
+  tbody.innerHTML = sorted.map(function(c) {
+    var st      = c.status || 'draft';
+    var sLabel  = S_LABELS[st] || st;
+    var sCls    = S_CLS[st]    || 'adm-status-paused';
+    var d       = new Date(c.created || Date.now());
+    var dateStr = d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+    var safeId  = c.id.replace(/[^a-z0-9]/gi, '_');
+
+    var acctSub = '';
+    if ((st === 'published' || st === 'paused') && c.destinationAccountName) {
+      acctSub = '<div class="adm-camp-sub">'+_admEsc(c.destinationAccountName)+'</div>';
+    }
+
+    var acts = '<div class="adm-act-group">';
+
+    if (st === 'ready-to-publish') {
+      if (platConn && status) {
+        var active   = status.active_ad_account;
+        var allAccts = platform === 'google' ? (status.google_ads_accounts || []) : (status.meta_ads_accounts || []);
+        var hasActive = active && active.account_id;
+
+        if (allAccts.length > 0) {
+          /* Always show selector — even 1 account — so admPublishFromSelector always sets active account in DB */
+          acts += '<select class="adm-acct-sel" id="adm-acct-'+safeId+'" onclick="event.stopPropagation()">';
+          if (!hasActive) acts += '<option value="" disabled selected>Select account…</option>';
+          allAccts.forEach(function(a) {
+            var aId   = platform === 'google' ? (a.customer_id || a.account_id) : a.account_id;
+            var aName = platform === 'google' ? (a.account_name || a.name) : a.account_name;
+            var aCur  = a.currency || '';
+            var aPar  = a.parent_manager_id || '';
+            var isSel = hasActive && (String(aId).replace(/-/g,'') === String(active.account_id||'').replace(/-/g,''));
+            acts += '<option value="'+_admEsc(String(aId))+'" data-name="'+_admEsc(aName||'')+'" data-currency="'+_admEsc(aCur)+'" data-parent="'+_admEsc(aPar)+'"'+(isSel?' selected':'')+'>'+_admEsc(aName||String(aId))+'</option>';
+          });
+          acts += '</select>';
+          acts += '<button class="adm-act-btn adm-act-publish" onclick="event.stopPropagation();admPublishFromSelector(\''+c.id+'\',\''+platform+'\')">Publish →</button>';
+        } else if (hasActive) {
+          /* No accounts list cached but active account known — allow publish */
+          var acctLbl = active.account_name || active.account_id;
+          acts += '<span class="adm-acct-name">'+_admEsc(acctLbl)+'</span>';
+          acts += '<button class="adm-act-btn adm-act-publish" onclick="event.stopPropagation();admPublishCampaign(\''+c.id+'\')">Publish →</button>';
+        } else {
+          /* Connected but no accounts found and no active set */
+          acts += '<span class="adm-fail-reason">No accounts found — reconnect in Integrations</span>';
+          acts += '<button class="adm-act-btn adm-act-connect" onclick="event.stopPropagation();_orvNav(\'connect\',\'page-integrations\')">Integrations →</button>';
+        }
+      } else {
+        var platLabel = platform === 'google' ? 'Google Ads' : 'Meta Ads';
+        acts += '<button class="adm-act-btn adm-act-connect" onclick="event.stopPropagation();_orvNav(\'connect\',\'page-integrations\')">Connect '+_admEsc(platLabel)+'</button>';
+      }
+      acts += '<button class="adm-act-btn adm-act-del" title="Delete" onclick="event.stopPropagation();admDeleteCampaign(\''+c.id+'\')">'
+            + '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="12" height="12"><path d="M2 3.5h10M5 3.5V2.5h4v1M5.5 6.5v4M8.5 6.5v4M3 3.5l.8 8h6.4l.8-8"/></svg>'
+            + '</button>';
+
+    } else if (st === 'publishing') {
+      acts += '<span class="adm-publishing-ind"><span class="adm-pub-spin"></span>Publishing…</span>';
+
+    } else if (st === 'failed') {
+      var reason = c.failureReason ? c.failureReason.slice(0, 80) : 'Unknown error';
+      acts += '<span class="adm-fail-reason" title="'+_admEsc(c.failureReason||'')+'">'+_admEsc(reason)+'</span>';
+      acts += '<button class="adm-act-btn adm-act-retry" onclick="event.stopPropagation();admRetryPublish(\''+c.id+'\')">Retry</button>';
+      acts += '<button class="adm-act-btn adm-act-del" title="Delete" onclick="event.stopPropagation();admDeleteCampaign(\''+c.id+'\')">'
+            + '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="12" height="12"><path d="M2 3.5h10M5 3.5V2.5h4v1M5.5 6.5v4M8.5 6.5v4M3 3.5l.8 8h6.4l.8-8"/></svg>'
+            + '</button>';
+
+    } else if (st === 'published') {
+      var viewUrl = '';
+      if (c.platformCampaignId && platform === 'google') viewUrl = 'https://ads.google.com/aw/campaigns?campaignId='+c.platformCampaignId;
+      else if (platform === 'meta') viewUrl = 'https://adsmanager.facebook.com/';
+      if (viewUrl) acts += '<a href="'+viewUrl+'" target="_blank" rel="noopener" class="adm-view-btn" onclick="event.stopPropagation()">View →</a>';
+      acts += '<button class="adm-act-btn adm-act-pause" onclick="event.stopPropagation();admPauseCampaign(\''+c.id+'\')">Pause</button>';
+      acts += '<button class="adm-act-btn adm-act-arch" onclick="event.stopPropagation();admArchiveCampaign(\''+c.id+'\')">Archive</button>';
+
+    } else if (st === 'paused') {
+      acts += '<button class="adm-act-btn adm-act-resume" onclick="event.stopPropagation();admResumeCampaign(\''+c.id+'\')">Resume</button>';
+      acts += '<button class="adm-act-btn adm-act-arch" onclick="event.stopPropagation();admArchiveCampaign(\''+c.id+'\')">Archive</button>';
+      acts += '<button class="adm-act-btn adm-act-del" title="Delete" onclick="event.stopPropagation();admDeleteCampaign(\''+c.id+'\')">'
+            + '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="12" height="12"><path d="M2 3.5h10M5 3.5V2.5h4v1M5.5 6.5v4M8.5 6.5v4M3 3.5l.8 8h6.4l.8-8"/></svg>'
+            + '</button>';
+    }
+
+    acts += '</div>';
+
+    return '<tr onclick="openCampaignWorkspace(\''+c.id+'\')" style="cursor:pointer">'+
+      '<td>'+_admEsc(c.name||'Untitled')+acctSub+'</td>'+
+      '<td><span class="adm-status '+sCls+'">'+sLabel+'</span></td>'+
+      '<td>'+dateStr+'</td>'+
+      '<td onclick="event.stopPropagation()">'+acts+'</td>'+
+    '</tr>';
+  }).join('');
 }
 
 function _admFmt(n) {
@@ -8455,41 +8859,6 @@ function _admFmt(n) {
 }
 
 function _admEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-function _admRenderTable(camps) {
-  var tbody   = document.getElementById('admTbody');
-  var badge   = document.getElementById('admCampCount');
-  var emptyEl = document.getElementById('admTableEmpty');
-  if (!tbody) return;
-  if (!camps.length) {
-    tbody.innerHTML = '';
-    if (emptyEl) emptyEl.style.display = '';
-    if (badge) badge.textContent = '0 campaigns';
-    return;
-  }
-  if (emptyEl) emptyEl.style.display = 'none';
-  var sorted = camps.slice().sort(function(a,b){ return (b.spend||0)-(a.spend||0); });
-  if (badge) badge.textContent = sorted.length+' campaign'+(sorted.length===1?'':'s');
-  var showPlat = window._admActivePlatform === 'all';
-  tbody.innerHTML = sorted.map(function(c) {
-    var act = c.status==='ENABLED'||c.status==='ACTIVE';
-    var sLbl = act?'Active':(c.status==='PAUSED'?'Paused':(c.status||'—'));
-    var sCls = act ? 'adm-status adm-status-active' : 'adm-status adm-status-paused';
-    var link = _ADM_PLAT_LINKS[c.platform]||'#';
-    return '<tr>'+
-      '<td>'+(showPlat?'<span class="adm-plat-tag adm-plat-'+c.platform+'">'+(_ADM_PLAT_LABELS[c.platform]||c.platform)+'</span> ':'')+_admEsc(c.name)+'</td>'+
-      '<td><span class="'+sCls+'">'+sLbl+'</span></td>'+
-      '<td class="adm-num">€'+(c.spend||0).toFixed(2)+'</td>'+
-      '<td class="adm-num">'+_admFmt(c.impressions)+'</td>'+
-      '<td class="adm-num">'+_admFmt(c.clicks)+'</td>'+
-      '<td class="adm-num">'+(c.ctr>0?c.ctr.toFixed(2)+'%':'—')+'</td>'+
-      '<td class="adm-num">'+(c.conv>0?_admFmt(c.conv):'—')+'</td>'+
-      '<td class="adm-num">'+(c.cpa>0?'€'+c.cpa.toFixed(2):'—')+'</td>'+
-      '<td class="adm-num">'+(c.roas>0?c.roas.toFixed(2)+'x':'—')+'</td>'+
-      '<td><a href="'+link+'" target="_blank" rel="noopener" class="adm-view-btn">View →</a></td>'+
-    '</tr>';
-  }).join('');
-}
 
 /* ── Reports page ── */
 window.rptFilter = function(btn, filter) {
@@ -8951,14 +9320,13 @@ window.rptExport = function(format) {
 
     /* Save to campaigns library */
     var campId = 'cgr_'+Date.now();
-    try {
-      _loadCamps();
-      var modKey = platform==='meta'?'meta-ads': platform==='tiktok'?'tiktok-ads':'google-ads';
-      var gen = {}; gen[modKey] = { ready:true, data:pkg };
-      _campaigns.unshift({
+    var modKey = platform==='meta'?'meta-ads': platform==='tiktok'?'tiktok-ads':'google-ads';
+    var gen = {}; gen[modKey] = { ready:true, data:pkg };
+    if (typeof window._orvStoreCampaign === 'function') {
+      window._orvStoreCampaign({
         id: campId,
         name: pkg.campaignName||prompt||'Campaign',
-        goal: s.goal||'—',
+        goal: (pkg.strategy && pkg.strategy.goal)||'—',
         platform: platform,
         creativeMode: creativeMode,
         status: 'generated',
@@ -8968,12 +9336,9 @@ window.rptExport = function(format) {
         generated: gen,
         pkg: pkg
       });
-      if(_campaigns.length>50) _campaigns=_campaigns.slice(0,50);
-      _saveCamps();
-      /* Show saved badge */
       var sb = document.getElementById('cgrSavedBadge');
       if(sb) sb.style.display = '';
-    } catch(e){}
+    }
 
     /* Route to platform renderer */
     var platEl = document.getElementById('cgrPlatformContent');
