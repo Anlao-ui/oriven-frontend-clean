@@ -7811,38 +7811,139 @@ window._orvNav = function(page, explicitPageId) {
 
 <script>
 /* ── Connect page ── */
-window.initIntegrations = function() {
-  var pd = window._orvPlatformData || {};
-  function _updateCard(platform, nameCap) {
-    var conn = pd[platform] && pd[platform].connected;
-    var statusEl = document.getElementById('conStatus' + nameCap);
-    var btnEl    = document.getElementById('conBtn'    + nameCap);
-    var btnDisc  = document.getElementById('conBtn'    + nameCap + 'Disc');
-    var cardEl   = document.getElementById('conCard'   + nameCap);
-    var dotHtml  = conn
-      ? '<div class="con-dot con-dot-on"></div>Connected'
-      : '<div class="con-dot con-dot-off"></div>Not connected';
-    if (statusEl) { statusEl.innerHTML = dotHtml; statusEl.className = 'con-card-status' + (conn ? ' connected' : ''); }
-    if (btnEl)   btnEl.style.display   = conn ? 'none' : '';
-    if (btnDisc) btnDisc.style.display = conn ? ''     : 'none';
-    if (cardEl)  cardEl.classList.toggle('con-card-connected', !!conn);
+
+/* _conApplyCard(platform, connected, detail)
+   Updates the card UI for a single platform.
+   detail: { email, accounts, displayName } — optional, shown when connected.          */
+function _conApplyCard(platform, connected, detail) {
+  var cap      = platform === 'tiktok' ? 'Tiktok' : platform.charAt(0).toUpperCase() + platform.slice(1);
+  var statusEl = document.getElementById('conStatus' + cap);
+  var btnEl    = document.getElementById('conBtn'    + cap);
+  var btnDisc  = document.getElementById('conBtn'    + cap + 'Disc');
+  var cardEl   = document.getElementById('conCard'   + cap);
+  var accEl    = document.getElementById('conAcc'    + cap);
+  var bizEl    = platform === 'meta' ? document.getElementById('conBizMeta') : null;
+
+  var dotHtml = connected
+    ? '<div class="con-dot con-dot-on"></div>Connected'
+    : '<div class="con-dot con-dot-off"></div>Not connected';
+  if (statusEl) { statusEl.innerHTML = dotHtml; statusEl.className = 'con-card-status' + (connected ? ' connected' : ''); }
+  if (btnEl)   btnEl.style.display   = connected ? 'none' : '';
+  if (btnDisc) btnDisc.style.display = connected ? ''     : 'none';
+  if (cardEl)  cardEl.classList.toggle('con-card-connected', !!connected);
+
+  if (connected && detail) {
+    if (accEl)  accEl.textContent  = detail.accounts  || detail.email || detail.displayName || '—';
+    if (bizEl)  bizEl.textContent  = detail.business   || '—';
   }
-  _updateCard('google', 'Google');
-  _updateCard('meta',   'Meta');
-  _updateCard('tiktok', 'Tiktok');
+
+  /* Sync into the platform data store so overview + performance pages stay consistent */
+  if (!window._orvPlatformData) window._orvPlatformData = { google:{connected:false}, meta:{connected:false}, tiktok:{connected:false} };
+  window._orvPlatformData[platform].connected = !!connected;
+
+  /* Sync the legacy flags used by the settings usage card */
+  if (platform === 'google') window._gadsConnected  = !!connected;
+  if (platform === 'meta')   window._metaConnected  = !!connected;
+  if (platform === 'tiktok') window._tiktokConnected = !!connected;
+}
+
+/* _conFetchStatus(platform) — calls the server status endpoint and applies the result */
+function _conFetchStatus(platform) {
+  console.log('[Connect] Fetching status for', platform);
+  var ep = { google: '/api/google/status', meta: '/api/meta/status', tiktok: '/api/tiktok/status' }[platform];
+  if (!ep) return;
+
+  /* Show loading state */
+  var cap      = platform === 'tiktok' ? 'Tiktok' : platform.charAt(0).toUpperCase() + platform.slice(1);
+  var statusEl = document.getElementById('conStatus' + cap);
+  if (statusEl) statusEl.innerHTML = '<div class="con-dot con-dot-off"></div>Checking…';
+
+  apiFetch(ep)
+    .then(function(result) {
+      if (!result.ok) {
+        console.error('[Connect]', platform, 'status error HTTP', result.status);
+        _conApplyCard(platform, false);
+        return;
+      }
+      var d = result.data;
+      console.log('[Connect]', platform, 'status:', d.connected ? 'connected' : 'disconnected',
+        '| email:', d.google_email || d.meta_user_name || d.tiktok_display_name || '—');
+
+      var detail = null;
+      if (d.connected) {
+        if (platform === 'google') {
+          var accs = d.google_ads_accounts || [];
+          detail = { accounts: accs.length ? accs.length + ' account' + (accs.length !== 1 ? 's' : '') : d.google_email || '—' };
+          /* Restore active ad account from DB if present */
+          if (d.active_ad_account && d.active_ad_account.account_id) window._activeAdAccount = d.active_ad_account;
+        } else if (platform === 'meta') {
+          var mAccs = d.meta_ads_accounts || [];
+          detail = { accounts: mAccs.length ? mAccs.length + ' account' + (mAccs.length !== 1 ? 's' : '') : '—', business: d.meta_user_name || '—' };
+          if (d.active_ad_account && d.active_ad_account.account_id) window._activeMetaAccount = d.active_ad_account;
+        } else if (platform === 'tiktok') {
+          detail = { displayName: d.tiktok_display_name || '—' };
+          if (d.active_ad_account && d.active_ad_account.account_id) window._activeTadsAccount = d.active_ad_account;
+        }
+      }
+      _conApplyCard(platform, !!d.connected, detail);
+    })
+    .catch(function(err) {
+      console.error('[Connect]', platform, 'fetch failed:', err.message);
+      _conApplyCard(platform, false);
+    });
+}
+
+window.initIntegrations = function() {
+  console.log('[Connect] initIntegrations — fetching live status from server');
+
+  /* Show toast for pending OAuth result */
+  var _oar = window._pendingOAuthResult;
+  if (_oar) {
+    window._pendingOAuthResult = null;
+    var _errMap = {
+      access_denied:  'Authorisation denied.',
+      token_exchange: 'Connection failed — please try again.',
+      invalid_state:  'Session expired — please try again.',
+      db:             'Could not save — please try again.',
+      network:        'Network error — please try again.',
+      not_configured: 'Platform not yet configured on the server.',
+      missing_token:  'Authentication error — please try again.',
+      invalid_token:  'Authentication error — please try again.',
+      auth_error:     'Authentication error — please try again.',
+      missing_params: 'OAuth error — please try again.'
+    };
+    var _names = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads' };
+    setTimeout(function() {
+      if (_oar.connected) {
+        if (typeof toast === 'function') toast((_names[_oar.provider] || 'Account') + ' connected!');
+      } else if (_oar.error) {
+        if (typeof toast === 'function') toast(_errMap[_oar.error] || 'Connection failed.', 'err');
+      }
+    }, 200);
+  }
+
+  /* Fetch real connection status from server for all platforms */
+  _conFetchStatus('google');
+  _conFetchStatus('meta');
+  _conFetchStatus('tiktok');
 };
 
 window.conConnect = function(platform) {
-  var _ab = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
+  var cap = platform === 'tiktok' ? 'Tiktok' : platform.charAt(0).toUpperCase() + platform.slice(1);
+  var btn = document.getElementById('conBtn' + cap);
+  if (btn) { btn.textContent = 'Connecting…'; btn.disabled = true; }
   var ep = { google: '/api/google/auth-url', meta: '/api/meta/auth-url', tiktok: '/api/tiktok/auth-url' }[platform];
   if (!ep) return;
-  var btn = document.getElementById('conBtn' + platform.charAt(0).toUpperCase() + platform.slice(1));
-  if (btn) { btn.textContent = 'Connecting…'; btn.disabled = true; }
-  fetch(_ab + ep)
-    .then(function(r) { return r.json(); })
-    .then(function(d) { if (d.url) window.location.href = d.url; else throw new Error('no url'); })
+  apiFetch(ep)
+    .then(function(result) {
+      if (result.ok && result.data && result.data.url) {
+        window.location.href = result.data.url;
+      } else {
+        throw new Error('no url');
+      }
+    })
     .catch(function() {
-      if (btn) { btn.textContent = 'Connect ' + platform.charAt(0).toUpperCase() + platform.slice(1) + ' Ads →'; btn.disabled = false; }
+      if (btn) { btn.textContent = 'Connect ' + cap + ' Ads →'; btn.disabled = false; }
       if (typeof toast === 'function') toast('Connection failed — please try again.', 'err');
     });
 };
@@ -7850,11 +7951,9 @@ window.conConnect = function(platform) {
 window.conDisconnect = function(platform) {
   var names = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads' };
   if (!confirm('Disconnect ' + (names[platform] || platform) + '? Live analytics will stop but your campaign data will be kept.')) return;
-  var _ab = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
-  fetch(_ab + '/api/' + platform + '/disconnect', { method: 'POST' })
+  apiFetch('/api/' + platform + '/disconnect', { method: 'POST' })
     .then(function() {
-      if (window._orvPlatformData && window._orvPlatformData[platform]) window._orvPlatformData[platform].connected = false;
-      window.initIntegrations();
+      _conApplyCard(platform, false);
       if (typeof toast === 'function') toast((names[platform] || platform) + ' disconnected.');
     })
     .catch(function() {

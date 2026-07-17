@@ -316,7 +316,12 @@ async function _loadUserProfile(user){
       window.history.replaceState({}, "", window.location.pathname);
       window._pendingOAuthResult = { provider: 'google', connected: _ogc === "1", error: _oge || null };
       console.log("[Google OAuth] Return detected | connected:", _ogc === "1", "| error:", _oge || null);
-      setTimeout(function(){ if(typeof navigate === "function") navigate("integrations"); }, 600);
+      /* Navigate after session is established so apiFetch has a valid token */
+      setTimeout(function(){
+        console.log("[Google OAuth] Navigating to integrations — token present:", !!_apiToken);
+        if(typeof _orvNav === "function") _orvNav("connect", "page-integrations");
+        else if(typeof navigate === "function") navigate("integrations");
+      }, 800);
     }
   } catch(_){}
 
@@ -329,7 +334,11 @@ async function _loadUserProfile(user){
       window.history.replaceState({}, "", window.location.pathname);
       window._pendingOAuthResult = { provider: 'tiktok', connected: _otc === "1", error: _ote || null };
       console.log("[TikTok OAuth] Return detected | connected:", _otc === "1", "| error:", _ote || null);
-      setTimeout(function(){ if(typeof navigate === "function") navigate("integrations"); }, 600);
+      setTimeout(function(){
+        console.log("[TikTok OAuth] Navigating to integrations — token present:", !!_apiToken);
+        if(typeof _orvNav === "function") _orvNav("connect", "page-integrations");
+        else if(typeof navigate === "function") navigate("integrations");
+      }, 800);
     }
   } catch(_){}
 
@@ -342,7 +351,11 @@ async function _loadUserProfile(user){
       window.history.replaceState({}, "", window.location.pathname);
       window._pendingOAuthResult = { provider: 'meta', connected: _omc === "1", error: _ome || null };
       console.log("[Meta OAuth] Return detected | connected:", _omc === "1", "| error:", _ome || null);
-      setTimeout(function(){ if(typeof navigate === "function") navigate("integrations"); }, 600);
+      setTimeout(function(){
+        console.log("[Meta OAuth] Navigating to integrations — token present:", !!_apiToken);
+        if(typeof _orvNav === "function") _orvNav("connect", "page-integrations");
+        else if(typeof navigate === "function") navigate("integrations");
+      }, 800);
     }
   } catch(_){}
 
