@@ -1,14 +1,14 @@
-// ═══ AUTH + DATABASE ══════════════════════════════════════════
+﻿// â•â•â• AUTH + DATABASE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // Handles: sign up, sign in, sign out, session restore,
 //          BrandCore save/load from Supabase.
 
 var _currentUser          = null;
 var _onboardingShown      = false;
-var _postPayment          = false; // True when landing from Stripe ?success=true — suppresses subscription gate
+var _postPayment          = false; // True when landing from Stripe ?success=true â€” suppresses subscription gate
 var _dbPlanSet            = false; // True once _loadUserProfile() confirms a paid plan from Supabase
 var _dbSubscriptionStatus = null;  // null = not yet loaded | "free"/"creator"/"professional"/"starter"/"agency" = from Supabase
 
-// ── Route helpers ─────────────────────────────────────────────
+// â”€â”€ Route helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function _setAppRoute(route){
   try { history.replaceState(null, "", route); } catch(_){}
@@ -18,7 +18,7 @@ function _setAppRoute(route){
   }
 }
 
-// ── UI helpers ────────────────────────────────────────────────
+// â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function showApp(){
   var overlay = document.getElementById("authOverlay");
@@ -31,11 +31,11 @@ function showApp(){
     window._pendingOAuthResult = null;
     var _errMap = {
       access_denied: "Google sign-in was cancelled.",
-      token_exchange: "Google connection failed — please try again.",
-      invalid_state: "Session expired — please try again.",
-      db: "Could not save connection — please try again.",
-      network: "Network error — please try again.",
-      missing_params: "OAuth error — please try again."
+      token_exchange: "Google connection failed â€” please try again.",
+      invalid_state: "Session expired â€” please try again.",
+      db: "Could not save connection â€” please try again.",
+      network: "Network error â€” please try again.",
+      missing_params: "OAuth error â€” please try again."
     };
     setTimeout(function(){
       if(_oar.connected){
@@ -101,7 +101,7 @@ function _authMapError(err){
   if(/signup.*disabled|signups.*not allowed/i.test(msg))
     return "Account creation is currently unavailable.";
   if(/too many requests|rate.?limit/i.test(msg))
-    return "Too many attempts — please wait a moment and try again.";
+    return "Too many attempts â€” please wait a moment and try again.";
   if(/network|failed to fetch/i.test(msg))
     return "Connection error. Please check your internet and try again.";
   return msg || "Something went wrong. Please try again.";
@@ -125,10 +125,10 @@ function setAuthBtnLoading(btnId, loading){
   var btn = document.getElementById(btnId);
   if(!btn) return;
   btn.disabled = loading;
-  btn.textContent = loading ? "Please wait…" : btn.getAttribute("data-label");
+  btn.textContent = loading ? "Please waitâ€¦" : btn.getAttribute("data-label");
 }
 
-// ── Sign In ───────────────────────────────────────────────────
+// â”€â”€ Sign In â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function handleSignIn(){
   var email = (document.getElementById("siEmail").value||"").trim();
@@ -142,7 +142,7 @@ async function handleSignIn(){
   var errEl = document.getElementById("authErrorSi");
   if(errEl){ errEl.style.display="none"; }
   var btn = document.getElementById("authSigninBtn");
-  if(btn){ btn.disabled=true; btn.textContent="Signing in…"; }
+  if(btn){ btn.disabled=true; btn.textContent="Signing inâ€¦"; }
   console.log("[Auth] Signing in:", email);
   try {
     document.activeElement && document.activeElement.blur();
@@ -159,7 +159,7 @@ async function handleSignIn(){
   }
 }
 
-// ── Sign Up ───────────────────────────────────────────────────
+// â”€â”€ Sign Up â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function handleSignUp(){
   var firstName = (document.getElementById("suFirst").value||"").trim();
@@ -181,7 +181,7 @@ async function handleSignUp(){
   var errEl = document.getElementById("authErrorSu");
   if(errEl){ errEl.style.display="none"; }
   var btn = document.getElementById("authSignupBtn");
-  if(btn){ btn.disabled=true; btn.textContent="Creating account…"; }
+  if(btn){ btn.disabled=true; btn.textContent="Creating accountâ€¦"; }
   console.log("[Auth] Signing up:", email);
   try {
     var signupResult = await apiFetch("/api/signup", {
@@ -208,7 +208,7 @@ async function handleSignUp(){
   }
 }
 
-// ── Sign Out ──────────────────────────────────────────────────
+// â”€â”€ Sign Out â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function authSignOut(){
   console.log("[Auth] Signing out");
@@ -226,15 +226,15 @@ async function authSignOut(){
   toast("Signed out");
 }
 
-// ── After sign in: update UI, load BrandCore, show app ───────
+// â”€â”€ After sign in: update UI, load BrandCore, show app â”€â”€â”€â”€â”€â”€â”€
 
 async function syncSubscriptionFromDB(){
   if(typeof ORIVEN_DEV !== "undefined" && ORIVEN_DEV){
-    // Dev mode: use actual _dbSubscriptionStatus set by _loadUserProfile() — never hardcode.
+    // Dev mode: use actual _dbSubscriptionStatus set by _loadUserProfile() â€” never hardcode.
     // If _dbSubscriptionStatus is not yet loaded, fall back to "free" (not "professional").
     var _devSyncPlan = (_dbSubscriptionStatus && _dbSubscriptionStatus !== null)
       ? _dbSubscriptionStatus : "free";
-    console.log("[PW-CHAIN] syncSubscriptionFromDB (dev) | _dbSubscriptionStatus:", _dbSubscriptionStatus, "→ using:", _devSyncPlan);
+    console.log("[PW-CHAIN] syncSubscriptionFromDB (dev) | _dbSubscriptionStatus:", _dbSubscriptionStatus, "â†’ using:", _devSyncPlan);
     if(typeof S !== "undefined" && S) S.currentPlan = _devSyncPlan;
     if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(_devSyncPlan);
     if(typeof invalidatePlanCache === "function") invalidatePlanCache();
@@ -256,7 +256,7 @@ async function syncSubscriptionFromDB(){
       var _syncStatus = data.subscription_status;
       // Never downgrade a Supabase-confirmed paid plan based on a potentially stale backend response
       if(_dbPlanSet && _syncStatus === "free"){
-        console.log("[Subscription] Backend returned 'free' but DB already confirmed paid plan — skipping");
+        console.log("[Subscription] Backend returned 'free' but DB already confirmed paid plan â€” skipping");
       } else {
         S.currentPlan = _syncStatus;
         patch.currentPlan = _syncStatus;
@@ -283,7 +283,7 @@ async function onUserSignedIn(user){
   // Prevents a second SIGNED_IN event (e.g. from a token refresh) from re-running
   // the entire auth flow and potentially overwriting a correct plan with a stale value.
   if(_currentUser && _currentUser.id === user.id && _dbSubscriptionStatus !== null){
-    console.log("[Auth] Session refresh — same user, status already loaded:", _dbSubscriptionStatus, "— skipping re-init");
+    console.log("[Auth] Session refresh â€” same user, status already loaded:", _dbSubscriptionStatus, "â€” skipping re-init");
     return;
   }
   _currentUser = user;
@@ -304,10 +304,10 @@ async function onUserSignedIn(user){
   await _loadUserProfile(user);
 }
 
-// ── Profile: single consolidated query ───────────────────────
+// â”€â”€ Profile: single consolidated query â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function _loadUserProfile(user){
-  // Detect Google OAuth return — store result, clean URL
+  // Detect Google OAuth return â€” store result, clean URL
   try {
     var _oqp = new URLSearchParams(window.location.search);
     var _ogc = _oqp.get("google_connected");
@@ -320,7 +320,7 @@ async function _loadUserProfile(user){
     }
   } catch(_){}
 
-  // Detect TikTok Ads OAuth return — store result, clean URL
+  // Detect TikTok Ads OAuth return â€” store result, clean URL
   try {
     var _otqp = new URLSearchParams(window.location.search);
     var _otc  = _otqp.get("tiktok_connected");
@@ -333,7 +333,7 @@ async function _loadUserProfile(user){
     }
   } catch(_){}
 
-  // Detect Meta Ads OAuth return — store result, clean URL
+  // Detect Meta Ads OAuth return â€” store result, clean URL
   try {
     var _omqp = new URLSearchParams(window.location.search);
     var _omc  = _omqp.get("meta_connected");
@@ -346,8 +346,8 @@ async function _loadUserProfile(user){
     }
   } catch(_){}
 
-  // ── Diagnostic logging ─────────────────────────────────────────
-  console.log("[Profile] ══════════════════════════════════════");
+  // â”€â”€ Diagnostic logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  console.log("[Profile] â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
   console.log("[Profile] Auth user:", user.id, "| email:", user.email);
   console.log("[Profile] Querying table: profiles | column: id =", user.id);
   // Log current Supabase session so we can verify the JWT is present
@@ -356,7 +356,7 @@ async function _loadUserProfile(user){
     var _sesData  = _sesCheck.data && _sesCheck.data.session;
     console.log("[Profile] SB session valid:", !!_sesData, "| access_token present:", !!(_sesData && _sesData.access_token));
   } catch(_se){ console.warn("[Profile] Could not read SB session:", _se.message); }
-  // ──────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   try {
     var result = await SB.from("profiles")
@@ -378,7 +378,7 @@ async function _loadUserProfile(user){
     }));
 
     if(result.error){
-      console.error("[Profile] Query ERROR — code:", result.error.code,
+      console.error("[Profile] Query ERROR â€” code:", result.error.code,
         "| message:", result.error.message,
         "| details:", result.error.details,
         "| hint:", result.error.hint);
@@ -388,15 +388,15 @@ async function _loadUserProfile(user){
     var data = result.data;
     console.log("[Profile] Query SUCCESS | data:", JSON.stringify(data));
     if(data){ console.log("[Profile] subscription_status:", data.subscription_status); }
-    else     { console.warn("[Profile] data is null — no profile row found for user.id:", user.id); }
+    else     { console.warn("[Profile] data is null â€” no profile row found for user.id:", user.id); }
 
-    // Subscription gate — determines whether to reveal the app or enforce paywall
+    // Subscription gate â€” determines whether to reveal the app or enforce paywall
     if(typeof ORIVEN_DEV !== "undefined" && ORIVEN_DEV){
-      // Dev mode: always read from DB — never hardcode a plan.
+      // Dev mode: always read from DB â€” never hardcode a plan.
       // Falls back to "free" (not "professional") when the DB has no value.
       var _devRaw = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
       var _devStatus = _devRaw || "free";
-      console.log("[PW-CHAIN] _loadUserProfile (dev) | DB subscription_status raw:", JSON.stringify(_devRaw), "→ _devStatus:", _devStatus, "| source:", _devRaw ? "Supabase profiles.subscription_status" : "fallback default (no DB value)");
+      console.log("[PW-CHAIN] _loadUserProfile (dev) | DB subscription_status raw:", JSON.stringify(_devRaw), "â†’ _devStatus:", _devStatus, "| source:", _devRaw ? "Supabase profiles.subscription_status" : "fallback default (no DB value)");
       _dbSubscriptionStatus = _devStatus;
       S.currentPlan = _devStatus;
       if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(_devStatus);
@@ -409,14 +409,14 @@ async function _loadUserProfile(user){
       try { _devObNeeded = localStorage.getItem("oriven_needs_onboarding") === "1"; } catch(_){}
       if(!_devObCompleted || _devObNeeded){
         _obContext = "gate";
-        navigate("campaigns");
+        navigate("overview");
         showOnboarding();
       } else {
-        navigate("dashboard");
+        navigate("overview");
       }
     } else if(_postPayment){
       // Post-payment: DB may not reflect the new plan yet (webhook lag).
-      // Read DB anyway — if paid already, set status. If still "free", leave null (= pending).
+      // Read DB anyway â€” if paid already, set status. If still "free", leave null (= pending).
       var _ppRaw = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
       if(_ppRaw && _ppRaw !== "free"){
         _dbSubscriptionStatus = _ppRaw;
@@ -424,20 +424,20 @@ async function _loadUserProfile(user){
         if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(_ppRaw);
         console.log("[ACCESS] _postPayment | DB already shows paid plan:", _ppRaw);
       } else {
-        _dbSubscriptionStatus = null; // webhook pending — gates will not block (null !== "free")
-        console.log("[ACCESS] _postPayment | DB still shows free/null — webhook pending. Waiting for syncSubscriptionFromDB().");
+        _dbSubscriptionStatus = null; // webhook pending â€” gates will not block (null !== "free")
+        console.log("[ACCESS] _postPayment | DB still shows free/null â€” webhook pending. Waiting for syncSubscriptionFromDB().");
       }
       showApp();
-      navigate("dashboard");
+      navigate("overview");
     } else {
       var _dbPlan = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
-      _dbSubscriptionStatus = _dbPlan || "free"; // authoritative value — ONLY set from Supabase
+      _dbSubscriptionStatus = _dbPlan || "free"; // authoritative value â€” ONLY set from Supabase
       var _isPaid = _dbSubscriptionStatus !== "free";
-      var _statusSource = _dbPlan ? ("Supabase profiles.subscription_status = '" + _dbPlan + "'") : ("no DB value — defaulting to 'free'");
+      var _statusSource = _dbPlan ? ("Supabase profiles.subscription_status = '" + _dbPlan + "'") : ("no DB value â€” defaulting to 'free'");
       console.log("[PW-CHAIN] _loadUserProfile | user:", user.id, "| _dbSubscriptionStatus:", _dbSubscriptionStatus, "| source:", _statusSource, "| isPaid:", _isPaid);
       console.log("[ACCESS] _loadUserProfile | User:", user.id, "| DB subscription_status:", JSON.stringify(data && data.subscription_status), "| normalized:", _dbSubscriptionStatus, "| isPaid:", _isPaid, "| Paywall Decision:", !_isPaid, "| Access Granted:", _isPaid);
       if(_isPaid){
-        // Confirmed paid subscriber — reveal the full product
+        // Confirmed paid subscriber â€” reveal the full product
         _dbPlanSet = true;
         S.currentPlan = _dbSubscriptionStatus;
         saveSettings({ currentPlan: _dbSubscriptionStatus });
@@ -445,9 +445,9 @@ async function _loadUserProfile(user){
         if(typeof invalidatePlanCache === "function") invalidatePlanCache();
         if(typeof renderPlanPanel === "function") renderPlanPanel();
         showApp();
-        navigate("dashboard");
+        navigate("overview");
       } else {
-        // No valid paid subscription — decide: onboarding gate OR hard paywall
+        // No valid paid subscription â€” decide: onboarding gate OR hard paywall
         //
         // Primary signal: DB onboarding_completed field (reliable across devices,
         // private browsing, and tab restores). Secondary: localStorage flag set
@@ -462,10 +462,10 @@ async function _loadUserProfile(user){
         if(_needsOnboarding){
           _obContext = "gate";
           showApp();
-          navigate("campaigns");
+          navigate("overview");
           showOnboarding();
         } else {
-          // Onboarding done, free user — check whether their free campaign has been used
+          // Onboarding done, free user â€” check whether their free campaign has been used
           showApp();
           console.log("[PW-CHAIN] _loadUserProfile | onboarding done, sub=free | user:", user.id);
           console.log("[PW-CHAIN] DB profile data.free_campaign_used:", data && data.free_campaign_used);
@@ -476,7 +476,7 @@ async function _loadUserProfile(user){
           var _legacyKey  = "oriven_free_campaign_used";
           if(_dbUsedFlag){
             try { localStorage.setItem(_scopedKey, "1"); } catch(_){}
-            console.log("[PW-CHAIN] Synced free_campaign_used from DB → localStorage key:", _scopedKey);
+            console.log("[PW-CHAIN] Synced free_campaign_used from DB â†’ localStorage key:", _scopedKey);
           }
           var _lsScopedFlag = false;
           var _lsLegacyFlag = false;
@@ -491,9 +491,9 @@ async function _loadUserProfile(user){
           console.log("[PW-CHAIN] Page load check | _dbSubscriptionStatus:", _dbSubscriptionStatus, "| free_campaign_used:", _isUsed, "| db:", _dbUsedFlag, "| ls-scoped:", _lsScopedFlag, "| ls-legacy:", _lsLegacyFlag);
 
           if(_isUsed){
-            console.log("[PW-CHAIN] LOCKING free user on page load — will show campaigns + hard paywall");
+            console.log("[PW-CHAIN] LOCKING free user on page load â€” will show campaigns + hard paywall");
             window._paywallInitNav = true;
-            navigate("campaigns");
+            navigate("overview");
             window._paywallInitNav = false;
             setTimeout(function(){
               console.log("[PW-CHAIN] Page-load paywall timeout fired | calling openFreePaywall");
@@ -501,8 +501,8 @@ async function _loadUserProfile(user){
               else console.error("[PW-CHAIN] openFreePaywall NOT FOUND at timeout");
             }, 200);
           } else {
-            console.log("[PW-CHAIN] Free user, campaign NOT yet used — allowing normal access");
-            navigate("campaigns");
+            console.log("[PW-CHAIN] Free user, campaign NOT yet used â€” allowing normal access");
+            navigate("overview");
           }
           return;
         }
@@ -510,7 +510,7 @@ async function _loadUserProfile(user){
     }
   } catch(err){
     // Log everything available on the error so the root cause is visible in the console
-    console.error("[Profile] ✗ PROFILE LOAD FAILED");
+    console.error("[Profile] âœ— PROFILE LOAD FAILED");
     console.error("[Profile]   err.message :", err.message);
     console.error("[Profile]   err.code    :", err.code);
     console.error("[Profile]   err.details :", err.details);
@@ -520,19 +520,19 @@ async function _loadUserProfile(user){
     console.error("[Profile]   table       : profiles");
     console.error("[Profile] Check: RLS policy allows SELECT for authenticated users? Column names correct? Profile row exists?");
 
-    // subscription_status is UNKNOWN — leave _dbSubscriptionStatus as null so
+    // subscription_status is UNKNOWN â€” leave _dbSubscriptionStatus as null so
     // access gates pass through rather than wrongly blocking a paid user.
     _dbSubscriptionStatus = null;
 
     // Clear any stale plan label from localStorage / initSettings.
     // We must NOT display a cached plan name (e.g. "Professional") when
-    // we don't actually know the plan — that hides the real bug.
+    // we don't actually know the plan â€” that hides the real bug.
     var _sbPlanEl = document.getElementById("sbPlanLabel");
-    if(_sbPlanEl){ _sbPlanEl.textContent = "—"; _sbPlanEl.className = "sb-plan-label sb-plan-free"; }
+    if(_sbPlanEl){ _sbPlanEl.textContent = "â€”"; _sbPlanEl.className = "sb-plan-label sb-plan-free"; }
 
     showApp();
-    navigate("dashboard");
-    if(typeof toast === "function") toast("Profile failed to load — please refresh the page.", "error");
+    navigate("overview");
+    if(typeof toast === "function") toast("Profile failed to load â€” please refresh the page.", "error");
   }
 }
 
@@ -551,7 +551,7 @@ async function markOnboardingComplete(){
   }
 }
 
-// ── Onboarding: spotlight product tour ───────────────────────
+// â”€â”€ Onboarding: spotlight product tour â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Steps 1-7: spotlight the nav item + tooltip to the right.
 // Step 8: full-screen backdrop + centered CTA card.
 // window._obActive: guards navigate() from firing during the tour.
@@ -560,18 +560,18 @@ var _obStep    = 1;
 var _obContext = "tour"; // "gate" = pre-payment; "tour" = post-payment/dev
 
 var _OB_STEPS = [
-  { page:"campaigns", section:"Campaign Studio", title:"Where campaigns <em>come to life.</em>",         desc:"This is where you create new campaigns and marketing assets. Generate copy, visuals, and full campaign strategies — all tailored to your brand in seconds." },
-  { page:"studio",    section:"Brand",           title:"Your brand <em>foundation.</em>",                desc:"This is your brand foundation. Everything Oriven generates uses this information — your tone, audience, positioning, and visual identity." },
-  { page:"assets",    section:"Assets",          title:"Your <em>content library.</em>",                 desc:"This is where all generated content is stored and managed. Every campaign, asset, and output lives here — ready to use or remix." },
-  { page:"aichat",    section:"Assistant",       title:"Your AI <em>brand strategist.</em>",             desc:"This AI assistant helps with campaigns, branding and marketing decisions. Ask anything — it knows your brand inside out." },
-  { page:"campaigns", section:"Campaign Studio", title:"Let’s create your <em>first campaign.</em>",     desc:"You’ve seen what Oriven can do. Now let’s build something real for your brand." }
+  { page:"campaigns", section:"Campaign Studio", title:"Where campaigns <em>come to life.</em>",         desc:"This is where you create new campaigns and marketing assets. Generate copy, visuals, and full campaign strategies â€” all tailored to your brand in seconds." },
+  { page:"studio",    section:"Brand",           title:"Your brand <em>foundation.</em>",                desc:"This is your brand foundation. Everything Oriven generates uses this information â€” your tone, audience, positioning, and visual identity." },
+  { page:"assets",    section:"Assets",          title:"Your <em>content library.</em>",                 desc:"This is where all generated content is stored and managed. Every campaign, asset, and output lives here â€” ready to use or remix." },
+  { page:"aichat",    section:"Assistant",       title:"Your AI <em>brand strategist.</em>",             desc:"This AI assistant helps with campaigns, branding and marketing decisions. Ask anything â€” it knows your brand inside out." },
+  { page:"campaigns", section:"Campaign Studio", title:"Letâ€™s create your <em>first campaign.</em>",     desc:"Youâ€™ve seen what Oriven can do. Now letâ€™s build something real for your brand." }
 ];
 
 function showOnboarding(){
   _obStep = 1;
   window._obActive = true;
 
-  // Keep Team nav hidden — it's no longer a tour step
+  // Keep Team nav hidden â€” it's no longer a tour step
   var teamNav = document.getElementById("teamNavItem");
   if(teamNav){ teamNav._obWasHidden = false; }
 
@@ -580,7 +580,7 @@ function showOnboarding(){
   if(mc) mc.style.pointerEvents = "none";
 
   _obRender(1);
-  console.log("[Onboarding] Spotlight tour started — " + _OB_STEPS.length + " steps");
+  console.log("[Onboarding] Spotlight tour started â€” " + _OB_STEPS.length + " steps");
 }
 
 function hideOnboarding(){
@@ -614,9 +614,9 @@ function _obRender(step){
   var tt    = document.getElementById("ob-tooltip");
   var navEl = s.page ? document.querySelector('.ni[data-page="' + s.page + '"]') : null;
 
-  // ── Spotlight vs full-screen backdrop ─────────────────────────
+  // â”€â”€ Spotlight vs full-screen backdrop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // On mobile the sidebar is off-canvas so the spotlight ring would
-  // target invisible elements — use backdrop + bottom-sheet for all steps.
+  // target invisible elements â€” use backdrop + bottom-sheet for all steps.
   if(navEl && !isLast && !isMobile){
     if(bd){ bd.style.opacity = "0"; setTimeout(function(){ bd.style.display = "none"; }, 250); }
     if(ring){
@@ -634,7 +634,7 @@ function _obRender(step){
     if(bd){ bd.style.display = "block"; requestAnimationFrame(function(){ bd.style.opacity = "1"; }); }
   }
 
-  // ── Tooltip content ────────────────────────────────────────────
+  // â”€â”€ Tooltip content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if(!tt) return;
 
   var secEl  = document.getElementById("ob-tt-section");
@@ -662,7 +662,7 @@ function _obRender(step){
     backBtn.onclick = function(){ obGoTo(_obStep - 1); };
   }
   if(nextBtn){
-    nextBtn.textContent = isLast ? "Start Creating →" : "Next →";
+    nextBtn.textContent = isLast ? "Start Creating â†’" : "Next â†’";
     nextBtn.className   = "ob-tt-next" + (isLast ? " ob-tt-cta" : "");
     nextBtn.onclick     = isLast ? function(){ obFinish(); } : function(){ obGoTo(_obStep + 1); };
   }
@@ -672,7 +672,7 @@ function _obRender(step){
 
   requestAnimationFrame(function(){
     if(isMobile){
-      // ── Mobile: bottom-sheet card above thumb zone ─────────────
+      // â”€â”€ Mobile: bottom-sheet card above thumb zone â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       tt.style.top      = "auto";
       tt.style.bottom   = "80px";
       tt.style.left     = "12px";
@@ -683,7 +683,7 @@ function _obRender(step){
       tt.classList.remove("ob-tt-center");
       tt.classList.remove("ob-tt-arrow");
     } else if(navEl && !isLast){
-      // ── Desktop: spotlight tooltip beside nav item ─────────────
+      // â”€â”€ Desktop: spotlight tooltip beside nav item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       tt.style.bottom   = "";
       tt.style.right    = "";
       tt.style.width    = "";
@@ -703,7 +703,7 @@ function _obRender(step){
         left = Math.max(margin, r.left - ttW - 18);
       }
 
-      // Clamp vertically — keep 24px from both edges
+      // Clamp vertically â€” keep 24px from both edges
       var maxTop = window.innerHeight - ttH - margin;
       var minTop = margin;
       top = Math.min(maxTop, Math.max(minTop, top));
@@ -721,7 +721,7 @@ function _obRender(step){
       tt.classList.add("ob-tt-arrow");
       tt.classList.remove("ob-tt-center");
     } else {
-      // ── Desktop: centered final step ──────────────────────────
+      // â”€â”€ Desktop: centered final step â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       tt.style.bottom   = "";
       tt.style.right    = "";
       tt.style.width    = "";
@@ -744,22 +744,22 @@ function obGoTo(step){
   if(ring) ring.style.opacity = "0";
   _obStep = step;
   setTimeout(function(){ _obRender(step); }, 180);
-  console.log("[Onboarding] Step →", step, "of", _OB_STEPS.length);
+  console.log("[Onboarding] Step â†’", step, "of", _OB_STEPS.length);
 }
 
 function obFinish(){
-  console.log("[Onboarding] Tour complete — context:", _obContext);
+  console.log("[Onboarding] Tour complete â€” context:", _obContext);
   markOnboardingComplete();
   try { localStorage.removeItem("oriven_needs_onboarding"); } catch(_){}
   _obContext = "tour";
   hideOnboarding();
   setTimeout(function(){
-    navigate("campaigns");
+    navigate("create");
     setTimeout(function(){ if(typeof openNewCampaign === "function") openNewCampaign(); }, 400);
   }, 300);
 }
 
-// ── Keyboard: onboarding navigation + hard paywall Escape block ─
+// â”€â”€ Keyboard: onboarding navigation + hard paywall Escape block â”€
 document.addEventListener("keydown", function(e){
   if(e.key === "Escape"){
     if(_paywallHard){
@@ -775,7 +775,7 @@ document.addEventListener("keydown", function(e){
   }
 });
 
-// ── Email verification helpers ────────────────────────────────
+// â”€â”€ Email verification helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function _showVerifyBanner(daysLeft){
   var banner = document.getElementById("verifyBanner");
@@ -784,11 +784,11 @@ function _showVerifyBanner(daysLeft){
   if(text){
     var timeStr;
     if(daysLeft <= 0){
-      timeStr = " — your account may be removed soon";
+      timeStr = " â€” your account may be removed soon";
     } else if(daysLeft === 1){
-      timeStr = " — only 1 day remaining";
+      timeStr = " â€” only 1 day remaining";
     } else if(daysLeft <= 3){
-      timeStr = " — only " + daysLeft + " days remaining";
+      timeStr = " â€” only " + daysLeft + " days remaining";
     } else {
       timeStr = " (" + daysLeft + " days remaining)";
     }
@@ -804,7 +804,7 @@ function _hideVerifyBanner(){
 
 async function resendVerificationEmail(){
   var btn = document.getElementById("verifyBannerResend");
-  if(btn){ btn.disabled = true; btn.textContent = "Sending…"; }
+  if(btn){ btn.disabled = true; btn.textContent = "Sendingâ€¦"; }
   try {
     var sessionResult = await SB.auth.getSession();
     var session = sessionResult.data && sessionResult.data.session;
@@ -814,10 +814,10 @@ async function resendVerificationEmail(){
       headers: { "Authorization": "Bearer " + session.access_token }
     });
     if(!result.ok) throw new Error(result.data.error || "Failed to send");
-    toast("Verification email sent — check your inbox");
+    toast("Verification email sent â€” check your inbox");
   } catch(err){
     console.error("[EmailVerify] Resend error:", err.message);
-    toast("Could not send — " + err.message, "warn");
+    toast("Could not send â€” " + err.message, "warn");
   } finally {
     if(btn){ btn.disabled = false; btn.textContent = "Resend Email"; }
   }
@@ -836,7 +836,7 @@ async function _handleVerifyToken(){
     });
     if(result.ok && result.data.ok){
       _hideVerifyBanner();
-      setTimeout(function(){ toast("Email verified — your account is confirmed!"); }, 600);
+      setTimeout(function(){ toast("Email verified â€” your account is confirmed!"); }, 600);
     } else {
       setTimeout(function(){ toast("Verification link is invalid or already used. Request a new one.", "warn"); }, 600);
     }
@@ -869,18 +869,18 @@ function updateSidebarGuest(){
   var guestEl = document.getElementById("sbIdentityGuest");
   if(authEl)  authEl.style.display  = "none";
   if(guestEl) guestEl.style.display = "";
-  // Hide plan/usage row — not relevant for guests
+  // Hide plan/usage row â€” not relevant for guests
   var usageWrap = document.querySelector(".sb-usage-wrap");
   if(usageWrap) usageWrap.style.display = "none";
 }
 
-// ── BrandCore: save to Supabase ───────────────────────────────
+// â”€â”€ BrandCore: save to Supabase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function saveBCToDB(){
   if(typeof SB === "undefined"){ console.warn("[DB] Supabase not initialized"); return; }
   var userResult = await SB.auth.getUser();
   var user = userResult.data && userResult.data.user;
-  if(!user){ console.log("[DB] Not logged in — BrandCore not saved to cloud"); return; }
+  if(!user){ console.log("[DB] Not logged in â€” BrandCore not saved to cloud"); return; }
   if(!S.brandCore){ console.log("[DB] No BrandCore to save"); return; }
   console.log("[DB] Saving BrandCore to Supabase for user:", user.id, "brand:", S.brandCore.name);
   try {
@@ -896,7 +896,7 @@ async function saveBCToDB(){
   }
 }
 
-// ── BrandCore: load from Supabase ────────────────────────────
+// â”€â”€ BrandCore: load from Supabase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function loadBrandCoreFromDB(user){
   if(typeof SB === "undefined"){ return; }
@@ -922,7 +922,7 @@ async function loadBrandCoreFromDB(user){
   }
 }
 
-// ── BrandCore: delete from Supabase ──────────────────────────
+// â”€â”€ BrandCore: delete from Supabase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function deleteBCFromDB(){
   if(typeof SB === "undefined"){ return; }
@@ -939,17 +939,17 @@ async function deleteBCFromDB(){
   }
 }
 
-// ── Paywall ───────────────────────────────────────────────────
+// â”€â”€ Paywall â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function checkSubscriptionStatus(){
   if(typeof ORIVEN_DEV !== "undefined" && ORIVEN_DEV){
-    // Dev: use _dbSubscriptionStatus (set by _loadUserProfile from Supabase) — never hardcode.
+    // Dev: use _dbSubscriptionStatus (set by _loadUserProfile from Supabase) â€” never hardcode.
     if(_dbSubscriptionStatus !== null){
       console.log("[PW-CHAIN] checkSubscriptionStatus (dev) | cached:", _dbSubscriptionStatus);
       return _dbSubscriptionStatus;
     }
-    // Not yet loaded — fall back to "free", not "professional"
-    console.log("[PW-CHAIN] checkSubscriptionStatus (dev) | _dbSubscriptionStatus null → defaulting to free");
+    // Not yet loaded â€” fall back to "free", not "professional"
+    console.log("[PW-CHAIN] checkSubscriptionStatus (dev) | _dbSubscriptionStatus null â†’ defaulting to free");
     return "free";
   }
 
@@ -963,15 +963,15 @@ async function checkSubscriptionStatus(){
   }
 
   if(typeof SB === "undefined"){
-    console.error("[Paywall] SB client not initialized — cannot check subscription");
+    console.error("[Paywall] SB client not initialized â€” cannot check subscription");
     return "free";
   }
 
-  // Live query — only reached during post-payment webhook lag or very early in session
+  // Live query â€” only reached during post-payment webhook lag or very early in session
   var userResult = await SB.auth.getUser();
   var user = userResult.data && userResult.data.user;
   if(!user){
-    console.log("[Paywall] No authenticated user — defaulting to free");
+    console.log("[Paywall] No authenticated user â€” defaulting to free");
     return "free";
   }
 
@@ -986,26 +986,26 @@ async function checkSubscriptionStatus(){
     // Always log the raw response so the cause is visible in the console
     var rawData  = resp.data  ? JSON.stringify(resp.data) : "null (no row)";
     var rawError = resp.error ? resp.error.message + " [code: " + resp.error.code + "]" : "none";
-    console.log("[Paywall] Supabase response — data:", rawData, "| error:", rawError);
+    console.log("[Paywall] Supabase response â€” data:", rawData, "| error:", rawError);
 
     if(resp.error){
       // Most common causes:
-      //   42703 — column does not exist (ALTER TABLE not yet run)
-      //   42501 — RLS blocking the SELECT
+      //   42703 â€” column does not exist (ALTER TABLE not yet run)
+      //   42501 â€” RLS blocking the SELECT
       console.error("[Paywall] Query failed:", resp.error.message);
       if(resp.error.code === "42703"){
         console.error("[Paywall] FIX: run this in Supabase SQL Editor:\n  ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status text default 'free';");
       }
       // Fall back to the in-memory plan set by _loadUserProfile() rather than
-      // hardcoding "free" — a DB error must NOT override a confirmed paid plan.
+      // hardcoding "free" â€” a DB error must NOT override a confirmed paid plan.
       var _cachedPlan = (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : "free";
       console.warn("[Paywall] Using cached plan as fallback:", _cachedPlan);
       return _cachedPlan;
     }
 
     if(!resp.data){
-      // Profile row does not exist — create it so future checks work
-      console.warn("[Paywall] No profile row found for user:", user.id, "— upserting defaults");
+      // Profile row does not exist â€” create it so future checks work
+      console.warn("[Paywall] No profile row found for user:", user.id, "â€” upserting defaults");
       var upsert = await SB.from("profiles").upsert(
         { id: user.id, email: user.email, subscription_status: "free", onboarding_completed: false },
         { onConflict: "id" }
@@ -1016,18 +1016,18 @@ async function checkSubscriptionStatus(){
       return _cachedPlan2;
     }
 
-    // We have a real row — read the value directly, do NOT fall back silently
+    // We have a real row â€” read the value directly, do NOT fall back silently
     var status = resp.data.subscription_status;
     if(!status){
-      console.warn("[Paywall] subscription_status is null/empty in DB — checking cached plan");
+      console.warn("[Paywall] subscription_status is null/empty in DB â€” checking cached plan");
       var _cachedPlan3 = (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : "free";
       return _cachedPlan3;
     }
 
     var isPaid = status !== "free";
-    console.log("[Paywall] subscription_status:", status, "→", isPaid
-      ? "✓ SUBSCRIBED — paywall will NOT show"
-      : "✗ FREE — paywall will show");
+    console.log("[Paywall] subscription_status:", status, "â†’", isPaid
+      ? "âœ“ SUBSCRIBED â€” paywall will NOT show"
+      : "âœ— FREE â€” paywall will show");
     // Cache the live result so subsequent calls use it without another DB query
     _dbSubscriptionStatus = status;
     if(typeof S !== "undefined" && S && isPaid){ S.currentPlan = status; }
@@ -1042,18 +1042,18 @@ async function checkSubscriptionStatus(){
 }
 
 async function maybeShowPaywall(){
-  console.log("[Paywall] maybeShowPaywall() called — S.currentPlan at call time:", (typeof S !== "undefined" && S) ? S.currentPlan : "S not defined");
+  console.log("[Paywall] maybeShowPaywall() called â€” S.currentPlan at call time:", (typeof S !== "undefined" && S) ? S.currentPlan : "S not defined");
   console.trace("[Paywall] call stack (shows which function triggered this):");
   var status = await checkSubscriptionStatus();
   if(status !== "free"){
-    console.log("[Paywall] Subscribed user (" + status + ") — paywall suppressed");
+    console.log("[Paywall] Subscribed user (" + status + ") â€” paywall suppressed");
     return;
   }
-  console.log("[Paywall] Free user — opening paywall modal");
+  console.log("[Paywall] Free user â€” opening paywall modal");
   if(typeof openPaywall === "function") openPaywall();
 }
 
-// Hard paywall — shown after onboarding, cannot be dismissed until payment
+// Hard paywall â€” shown after onboarding, cannot be dismissed until payment
 var _paywallHard = false;
 
 function _showHardPaywall(){
@@ -1061,10 +1061,10 @@ function _showHardPaywall(){
   var modal = document.getElementById("modal-paywall");
   if(modal) modal.classList.add("pw-hard");
   if(typeof openPaywall === "function") openPaywall();
-  console.log("[Paywall] Hard paywall shown — awaiting plan selection");
+  console.log("[Paywall] Hard paywall shown â€” awaiting plan selection");
 }
 
-// Free-campaign conversion paywall — shown after first campaign is generated
+// Free-campaign conversion paywall â€” shown after first campaign is generated
 function openFreePaywall(){
   console.log("[PW-CHAIN] openFreePaywall() called | _paywallHard was:", _paywallHard);
   _paywallHard = true;
@@ -1080,15 +1080,15 @@ function openFreePaywall(){
   var eyeEl   = document.querySelector("#modal-paywall .pw-eyebrow span");
   console.log("[PW-CHAIN] Title element:", titleEl ? "found" : "NOT FOUND");
   console.log("[PW-CHAIN] Sub element:", subEl ? "found" : "NOT FOUND");
-  if(titleEl)  titleEl.innerHTML = "🎁 Your Free Campaign Is Ready";
-  if(subEl)    subEl.textContent = "You’ve successfully generated your first campaign. To download, save, edit, manage or continue creating campaigns, choose a plan.";
+  if(titleEl)  titleEl.innerHTML = "ðŸŽ Your Free Campaign Is Ready";
+  if(subEl)    subEl.textContent = "Youâ€™ve successfully generated your first campaign. To download, save, edit, manage or continue creating campaigns, choose a plan.";
   if(eyeEl)    eyeEl.textContent = "One Free Campaign Delivered";
 
   console.log("[PW-CHAIN] Calling openPaywall() | typeof openPaywall:", typeof openPaywall);
   if(typeof openPaywall === "function"){
     openPaywall();
   } else {
-    console.error("[PW-CHAIN] openPaywall is NOT a function — paywall.js may not be loaded yet");
+    console.error("[PW-CHAIN] openPaywall is NOT a function â€” paywall.js may not be loaded yet");
   }
   console.log("[PW-CHAIN] openFreePaywall() complete | modal classList:", modal ? modal.className : "N/A");
 }
@@ -1097,11 +1097,11 @@ window.openFreePaywall = openFreePaywall;
 function closePaywall(){
   console.log("[PW-CHAIN] closePaywall() called | _paywallHard:", _paywallHard);
   if(_paywallHard){
-    console.log("[PW-CHAIN] closePaywall() BLOCKED — hard paywall active");
+    console.log("[PW-CHAIN] closePaywall() BLOCKED â€” hard paywall active");
     return;
   }
   if(typeof closeModal === "function") closeModal("modal-paywall");
-  console.log("[PW-CHAIN] closePaywall() completed — modal closed");
+  console.log("[PW-CHAIN] closePaywall() completed â€” modal closed");
 }
 
 // After successful Stripe payment: navigate to the page the user came from
@@ -1119,9 +1119,9 @@ function _postPaymentNavigate(){
 async function selectPlan(plan){
   console.log("[Paywall] Plan selected:", plan);
   var btn = document.querySelector('[onclick="selectPlan(\'' + plan + '\')"]');
-  if(btn){ btn.disabled = true; btn.textContent = "Redirecting…"; }
+  if(btn){ btn.disabled = true; btn.textContent = "Redirectingâ€¦"; }
 
-  // Save return destination — if free user is converting from campaign-workspace, send them back there
+  // Save return destination â€” if free user is converting from campaign-workspace, send them back there
   try {
     var _cwrPg = document.getElementById("page-campaign-workspace");
     if(_cwrPg && _cwrPg.classList.contains("active")){
@@ -1140,16 +1140,16 @@ async function selectPlan(plan){
     window.location.href = result.data.url;
   } catch(err) {
     console.error("[Paywall] Checkout error:", err);
-    toast("Could not start checkout — please try again");
+    toast("Could not start checkout â€” please try again");
     if(btn){ btn.disabled = false; btn.textContent = btn.getAttribute("data-label") || "Get Started"; }
   }
 }
 
-// ── Session restore on page load ─────────────────────────────
+// â”€â”€ Session restore on page load â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 document.addEventListener("DOMContentLoaded", async function(){
   trackEvent("visited_site");
-  console.log("[PW-CHAIN] ══ DOMContentLoaded | localStorage snapshot:");
+  console.log("[PW-CHAIN] â•â• DOMContentLoaded | localStorage snapshot:");
   try {
     var _lsSnap = {};
     for(var _k = 0; _k < localStorage.length; _k++){
@@ -1160,9 +1160,9 @@ document.addEventListener("DOMContentLoaded", async function(){
     console.log("[PW-CHAIN] Paywall-related localStorage keys:", JSON.stringify(_lsSnap));
   } catch(_){}
 
-  // Reset the authoritative subscription state — only _loadUserProfile() may set it.
+  // Reset the authoritative subscription state â€” only _loadUserProfile() may set it.
   // _dbSubscriptionStatus = null means "not yet loaded from Supabase".
-  // Access gates check this variable; null → don't block (waiting for DB).
+  // Access gates check this variable; null â†’ don't block (waiting for DB).
   _dbSubscriptionStatus = null;
   _dbPlanSet = false;
   // Keep S.currentPlan reset for UI display consistency (navbar shows blank until DB loads)
@@ -1187,13 +1187,13 @@ document.addEventListener("DOMContentLoaded", async function(){
     _loadPath = "/app";
   } else if(_stripeBail){
     history.replaceState(null, "", "/app");
-    toast("Checkout canceled — you can upgrade anytime.");
+    toast("Checkout canceled â€” you can upgrade anytime.");
   } else if(_tourParam){
     history.replaceState(null, "", "/app");
     _loadPath = "/app";
   }
 
-  // Hide app immediately — show only after auth confirmed
+  // Hide app immediately â€” show only after auth confirmed
   var app = document.querySelector(".app");
   if(app) app.style.display = "none";
 
@@ -1207,7 +1207,7 @@ document.addEventListener("DOMContentLoaded", async function(){
 
     // Fire onboarding tour after payment or dev ?tour=1
     // Use checkSubscriptionStatus() (direct Supabase query) rather than
-    // syncSubscriptionFromDB() (backend API) — Supabase is the single source of truth.
+    // syncSubscriptionFromDB() (backend API) â€” Supabase is the single source of truth.
     if(_stripeOk){
       setTimeout(async function(){
         var status = await checkSubscriptionStatus();
@@ -1217,11 +1217,11 @@ document.addEventListener("DOMContentLoaded", async function(){
           if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
           if(typeof invalidatePlanCache === "function") invalidatePlanCache();
           if(typeof renderPlanPanel === "function") renderPlanPanel();
-          toast("Your subscription is now active — welcome to ORIVEN!");
+          toast("Your subscription is now active â€” welcome to ORIVEN!");
           setTimeout(_postPaymentNavigate, 600);
         } else {
-          // Webhook may not have arrived yet — retry once after a short delay
-          toast("Payment received — activating your account...");
+          // Webhook may not have arrived yet â€” retry once after a short delay
+          toast("Payment received â€” activating your account...");
           setTimeout(async function(){
             status = await checkSubscriptionStatus();
             _dbSubscriptionStatus = status;
@@ -1230,10 +1230,10 @@ document.addEventListener("DOMContentLoaded", async function(){
               if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
               if(typeof invalidatePlanCache === "function") invalidatePlanCache();
               if(typeof renderPlanPanel === "function") renderPlanPanel();
-              toast("Your subscription is now active — welcome to ORIVEN!");
+              toast("Your subscription is now active â€” welcome to ORIVEN!");
               setTimeout(_postPaymentNavigate, 400);
             } else {
-              toast("Subscription pending — please refresh in a moment.");
+              toast("Subscription pending â€” please refresh in a moment.");
             }
           }, 3000);
         }
@@ -1246,7 +1246,7 @@ document.addEventListener("DOMContentLoaded", async function(){
       }, 500);
     }
   } else {
-    console.log("[Auth] No session — showing guest landing");
+    console.log("[Auth] No session â€” showing guest landing");
     showGuestLanding();
   }
 
@@ -1264,10 +1264,10 @@ document.addEventListener("DOMContentLoaded", async function(){
   });
 });
 
-// ════════════════════════════════════════════════════════════════
-// BRAND ONBOARDING — multi-step questionnaire for new free users
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// BRAND ONBOARDING â€” multi-step questionnaire for new free users
 // Replaces the spotlight nav tour when _obContext === "gate"
-// ════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 var _obBrandStep    = 1;
 var _obBrandTotal   = 7;
@@ -1277,7 +1277,7 @@ var _OB_BRAND_STEPS = [
   null, // 1-indexed
   { q: "What's your business called?",                   type: "text",   id: "obBrandName",     placeholder: "e.g. Luna Coffee, Apex Media, Brightfield" },
   { q: "What industry are you in?",                      type: "chips",  group: "industry",     single: true,  opts: ["E-commerce","SaaS","Professional Services","Hospitality","Health & Wellness","Fashion","Food & Beverage","Real Estate","Education","Other"] },
-  { q: "Who are your customers?",                        type: "text",   id: "obBrandAudience", placeholder: "e.g. Small business owners aged 25–45 who want to grow online" },
+  { q: "Who are your customers?",                        type: "text",   id: "obBrandAudience", placeholder: "e.g. Small business owners aged 25â€“45 who want to grow online" },
   { q: "What are you trying to achieve?",                type: "chips",  group: "goals",        single: false, opts: ["Build brand awareness","Generate leads","Drive sales","Grow social following","Launch a new product","Scale existing business"] },
   { q: "How would you describe your brand's personality?", type: "chips", group: "style",       single: true,  opts: ["Modern & Clean","Bold & Energetic","Luxury & Premium","Playful & Creative","Professional & Trusted","Minimalist"] },
   { q: "What do you sell or offer?",                     type: "text",   id: "obBrandOffer",    placeholder: "e.g. SEO services, handmade jewellery, SaaS analytics tool" },
@@ -1339,7 +1339,7 @@ function _obBrandRender(){
   var backBtn = document.getElementById("obBrandBack");
   var nextBtn = document.getElementById("obBrandNext");
   if(backBtn) backBtn.style.visibility = (step === 1) ? "hidden" : "visible";
-  if(nextBtn) nextBtn.textContent = (step === _obBrandTotal) ? "Finish →" : "Next →";
+  if(nextBtn) nextBtn.textContent = (step === _obBrandTotal) ? "Finish â†’" : "Next â†’";
 }
 
 function _escObBrand(s){ return String(s||"").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -1434,12 +1434,12 @@ function _showRewardScreen(){
 window.rewardStartCreating = function(){
   var overlay = document.getElementById("obRewardOverlay");
   if(overlay) overlay.style.display = "none";
-  navigate("campaigns");
+  navigate("create");
 };
 
-// ════════════════════════════════════════════════════════════════
-// FREE PRODUCT TOUR — 4 slides shown after brand onboarding
-// ════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// FREE PRODUCT TOUR â€” 4 slides shown after brand onboarding
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 var _obTourStep  = 1;
 var _obTourTotal = 4;
@@ -1450,28 +1450,28 @@ var _obTourSlides = [
     iconCls: "ob-icon-create",
     section: "Campaign Studio",
     title: "Create campaigns that <em>move your brand forward.</em>",
-    desc: "Generate full campaigns — copy, visuals, strategy — tailored to your brand in seconds. No templates, no guessing."
+    desc: "Generate full campaigns â€” copy, visuals, strategy â€” tailored to your brand in seconds. No templates, no guessing."
   },
   {
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>',
     iconCls: "ob-icon-studio",
     section: "Brand Profile",
     title: "Your brand identity, <em>all in one place.</em>",
-    desc: "Tone of voice, visual identity, audience, and positioning — Oriven keeps your brand consistent across every campaign."
+    desc: "Tone of voice, visual identity, audience, and positioning â€” Oriven keeps your brand consistent across every campaign."
   },
   {
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>',
     iconCls: "ob-icon-inspiration",
     section: "Brand Assets",
     title: "All your creative assets, <em>organized for you.</em>",
-    desc: "Access templates, inspiration, and every campaign you've generated — ready to remix and build on at any time."
+    desc: "Access templates, inspiration, and every campaign you've generated â€” ready to remix and build on at any time."
   },
   {
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 12h.01M12 12h.01M16 12h.01" stroke-width="2.5"/></svg>',
     iconCls: "ob-icon-dashboard",
     section: "AI Assistant",
     title: "Your personal brand strategist, <em>always on.</em>",
-    desc: "Ask anything — campaign ideas, copy feedback, competitor questions, strategy. The Assistant knows your brand inside out."
+    desc: "Ask anything â€” campaign ideas, copy feedback, competitor questions, strategy. The Assistant knows your brand inside out."
   }
 ];
 
@@ -1515,7 +1515,7 @@ function _obTourRender(){
   // Next button label
   if(nextBtn){
     if(_obTourStep === _obTourTotal){
-      nextBtn.textContent = "Claim Your Free Campaign →";
+      nextBtn.textContent = "Claim Your Free Campaign â†’";
       nextBtn.className   = "ob-next-btn ob-finish";
     } else {
       nextBtn.textContent = "Next";
@@ -1543,14 +1543,14 @@ window.obTourFinish = function(){
   setTimeout(function(){ _showRewardScreen(); }, 200);
 };
 
-// ════════════════════════════════════════════════════════════════
-// FREE TRIAL GUARD — gate export/download/copy for free users
-// ════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// FREE TRIAL GUARD â€” gate export/download/copy for free users
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 function _isFreeUser(){
   var sub = (typeof _dbSubscriptionStatus !== "undefined") ? _dbSubscriptionStatus : "UNDEFINED";
   var result = sub === "free";
-  console.log("[PW-CHAIN] _isFreeUser() →", result, "| _dbSubscriptionStatus:", sub);
+  console.log("[PW-CHAIN] _isFreeUser() â†’", result, "| _dbSubscriptionStatus:", sub);
   return result;
 }
 
@@ -1558,7 +1558,7 @@ function _freeCampaignUsed(){
   try {
     var _uid = (_currentUser && _currentUser.id) ? _currentUser.id : null;
     if(!_uid){
-      console.log("[PW-CHAIN] _freeCampaignUsed() → false (no uid, _currentUser:", _currentUser, ")");
+      console.log("[PW-CHAIN] _freeCampaignUsed() â†’ false (no uid, _currentUser:", _currentUser, ")");
       return false;
     }
     var scopedKey  = "oriven_fcused_" + _uid;
@@ -1568,12 +1568,12 @@ function _freeCampaignUsed(){
     console.log("[PW-CHAIN] _freeCampaignUsed() | uid:", _uid, "| scoped (", scopedKey, "):", scoped, "| legacy:", legacy);
     // If only the legacy key exists, migrate it to the scoped key
     if(scoped !== "1" && legacy === "1"){
-      console.log("[PW-CHAIN] Migrating legacy key → scoped key for uid:", _uid);
+      console.log("[PW-CHAIN] Migrating legacy key â†’ scoped key for uid:", _uid);
       try { localStorage.setItem(scopedKey, "1"); } catch(_){}
       return true;
     }
     var result = scoped === "1";
-    console.log("[PW-CHAIN] _freeCampaignUsed() →", result);
+    console.log("[PW-CHAIN] _freeCampaignUsed() â†’", result);
     return result;
   } catch(e){
     console.error("[PW-CHAIN] _freeCampaignUsed() ERROR:", e);
@@ -1592,9 +1592,9 @@ window._cwsFreeGuard = function(action){
 
 window._getCurrentUser = function(){ return _currentUser; };
 
-// ── Paywall diagnostic helper — call window._paywallDiag() in browser console ──
+// â”€â”€ Paywall diagnostic helper â€” call window._paywallDiag() in browser console â”€â”€
 window._paywallDiag = function(){
-  console.group("[PW-DIAG] ══ Paywall State Report ══");
+  console.group("[PW-DIAG] â•â• Paywall State Report â•â•");
   var sub = typeof _dbSubscriptionStatus !== "undefined" ? _dbSubscriptionStatus : "UNDEFINED";
   var uid = _currentUser && _currentUser.id ? _currentUser.id : null;
   console.log("_dbSubscriptionStatus:", sub);

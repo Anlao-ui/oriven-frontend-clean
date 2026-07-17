@@ -507,6 +507,19 @@ function navigate(page){
   if(pg) pg.classList.add("active");
   var mc=document.querySelector(".mc");
   if(mc) mc.classList.toggle("mc-locked", page==="team");
+  // New IA page aliases
+  if(page==="connect")     { navigate("integrations"); return; }
+  if(page==="analyze")     { navigate("ads"); return; }
+  if(page==="performance") { navigate("ads"); return; }
+  if(page==="reports"){
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+    var rp = document.getElementById('page-reports');
+    if(rp) rp.classList.add('active');
+    window._currentPage = 'reports';
+    if(typeof _syncOrvSidebar==='function') _syncOrvSidebar('reports');
+    return;
+  }
+
   if(page==="dashboard")    { navigate("campaigns"); return; }
   if(page==="campaigns")    { if(typeof renderCampaignHub==="function") renderCampaignHub(); }
   if(page==="campaign-workspace") { if(typeof refreshCampaignWorkspace==="function") refreshCampaignWorkspace(); }

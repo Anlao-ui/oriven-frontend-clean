@@ -15,15 +15,25 @@ function _studioRefreshMain(){
 
   var bc=S.brandCore;
 
-  // ── Toggle empty vs profile ────────────────────────────────────
+  // ── Toggle empty vs profile (class-based to avoid !important conflicts) ──
   var emptyEl   = document.getElementById("stBCEmpty2");
   var profileEl = document.getElementById("bcProfileContent");
-  if(emptyEl)   emptyEl.style.display   = bc ? "none" : "";
-  if(profileEl) profileEl.style.display = bc ? ""     : "none";
+  if(emptyEl)   emptyEl.classList.toggle("bb-show", !bc);
+  if(profileEl) profileEl.classList.toggle("bb-show", !!bc);
 
   // Eyebrow dot
   var dot=document.getElementById("stEyebrowDot");
-  if(dot) dot.className="bcp-eyebrow-dot"+(bc?" active":"");
+  if(dot) dot.className="bb-eyebrow-dot"+(bc?" active":"");
+
+  // Connected platforms count
+  var connEl=document.getElementById("bb-conn-count");
+  if(connEl){
+    var conn=0;
+    if(window._gadsConnected)  conn++;
+    if(window._metaConnected)  conn++;
+    if(window._tiktokConnected) conn++;
+    connEl.textContent=conn||"—";
+  }
 
   // Score display
   var scoreLbl = document.getElementById("stLevelBadge");
@@ -33,10 +43,10 @@ function _studioRefreshMain(){
   if(scoreFill) setTimeout(function(){ scoreFill.style.width=intel.pct+"%"; },80);
   if(scoreMsg)  scoreMsg.textContent = intel.msg;
 
-  // Quick access count
+  // Saved assets count (Overview stat card)
   var qa=document.getElementById("stQaAssets");
   var ac=(S.assets||[]).length;
-  if(qa) qa.textContent=ac+" item"+(ac===1?"":"s");
+  if(qa) qa.textContent=ac||"0";
 
   if(!bc) return;
 
@@ -186,28 +196,24 @@ function _bcRenderAudience(){
 
 // ── Mission ────────────────────────────────────────────────────
 function _bcRenderMission(){
-  var sec=document.getElementById("bcMissionSection");
   var el=document.getElementById("bcProfileMission");
   if(!el) return;
   var bc=S.brandCore;
   var val=bc.mission||"";
-  if(sec) sec.style.display = val ? "" : "none";
   el.innerHTML=val
     ?'<div class="bcp-statement">'+val+'</div>'
-    :'';
+    :'<div class="bcp-empty-field">Mission not defined</div>';
 }
 
 // ── Vision ─────────────────────────────────────────────────────
 function _bcRenderVision(){
-  var sec=document.getElementById("bcVisionSection");
   var el=document.getElementById("bcProfileVision");
   if(!el) return;
   var bc=S.brandCore;
   var val=bc.vision||"";
-  if(sec) sec.style.display = val ? "" : "none";
   el.innerHTML=val
     ?'<div class="bcp-statement">'+val+'</div>'
-    :'';
+    :'<div class="bcp-empty-field">Vision not defined</div>';
 }
 
 // ── Visual Direction ───────────────────────────────────────────
@@ -227,18 +233,14 @@ function _bcRenderLogos(){
   if(!el) return;
   var bc=S.brandCore;
   var logos=bc.logos||{};
-  var SLOTS=[
-    {key:"primary",   label:"Primary Logo",   hint:"Main brand mark for light backgrounds"},
-    {key:"secondary", label:"Secondary Logo",  hint:"Variant for dark backgrounds"},
-    {key:"icon",      label:"Brand Mark",      hint:"Compact icon for small placements"}
-  ];
-  // Never inject ORIVEN placeholders — show clean empty state if no real logos
-  var hasAnyLogo=SLOTS.some(function(s){ return logos[s.key]&&logos[s.key].url&&logos[s.key].source!=="placeholder"; });
+  // Pick first available logo (primary > secondary > icon)
+  var logo=logos.primary||logos.secondary||logos.icon||null;
+  var hasLogo=logo&&logo.url&&logo.source!=="placeholder";
 
-  if(!hasAnyLogo&&!logos.description){
+  if(!hasLogo){
     el.innerHTML='<div class="bcp-logo-empty">'
-      +'<div class="bcp-logo-empty-msg">No logo generated yet</div>'
-      +'<div class="bcp-logo-empty-sub">Generate a logo system with AI, or upload your own assets.</div>'
+      +'<div class="bcp-logo-empty-msg">No logo uploaded yet</div>'
+      +'<div class="bcp-logo-empty-sub">Generate a logo with AI or upload your own.</div>'
       +'<div class="bcp-logo-empty-actions">'
       +'<button class="bcp-action-btn bcp-action-btn-primary" onclick="openLogoAIModal()">Generate with AI</button>'
       +'<button class="bcp-action-btn" onclick="uploadLogo(\'primary\')">Upload Logo</button>'
@@ -246,22 +248,16 @@ function _bcRenderLogos(){
     return;
   }
 
-  el.innerHTML=SLOTS.map(function(slot){
-    var logo=logos[slot.key];
-    var hasLogo=logo&&logo.url&&logo.source!=="placeholder";
-    return '<div class="bcp-logo-slot">'
-      +(hasLogo
-        ?'<div class="bcp-logo-preview" onclick="uploadLogo(\''+slot.key+'\')"><img src="'+logo.url+'" alt="'+slot.label+'" class="bcp-logo-img"><div class="bcp-logo-overlay">Replace</div></div>'
-        :'<div class="bcp-logo-upload" onclick="uploadLogo(\''+slot.key+'\')"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" width="22" height="22"><path d="M10 13V3M6 7l4-4 4 4M3 16v1a1 1 0 001 1h12a1 1 0 001-1v-1" stroke-linecap="round"/></svg><span>Upload</span></div>'
-      )
-      +'<div class="bcp-logo-footer">'
-      +'<div class="bcp-logo-name">'+slot.label+'</div>'
-      +'<div class="bcp-logo-hint">'+slot.hint+'</div>'
-      +(hasLogo?'<button class="bcp-logo-remove" onclick="removeLogo(\''+slot.key+'\')">Remove</button>':'')
-      +'</div>'
-      +'</div>';
-  }).join("")
-  +(logos.description?'<div class="bcp-logo-desc-block"><div class="bcp-logo-desc-lbl">Logo Description</div><div class="bcp-logo-desc-txt">'+logos.description+'</div></div>':'');
+  el.innerHTML='<div class="bcp-logo-slot bb-logo-single">'
+    +'<div class="bcp-logo-preview" onclick="uploadLogo(\'primary\')">'
+    +'<img src="'+logo.url+'" alt="Logo" class="bcp-logo-img">'
+    +'<div class="bcp-logo-overlay">Replace</div>'
+    +'</div>'
+    +'<div class="bcp-logo-footer">'
+    +'<div class="bcp-logo-name">Logo</div>'
+    +'<button class="bcp-logo-remove" onclick="removeLogo(\'primary\')">Remove</button>'
+    +'</div>'
+    +'</div>';
 }
 
 // ── Moodboard / Visual References ─────────────────────────────
@@ -288,6 +284,14 @@ function _studioRenderBCGrid(){
   if(!bc){ grid.innerHTML=""; return; }
 
   // Profile rendering is now handled by _studioRefreshMain → individual _bcRender* functions.
+}
+
+function bbTab(name, btn){
+  document.querySelectorAll('.bb-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.bb-pane').forEach(function(p){ p.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  var pane=document.getElementById('bb-pane-'+name);
+  if(pane) pane.classList.add('active');
 }
 
 function switchStudioTab(name){
@@ -1017,3 +1021,118 @@ function useTpl(){
     toast(t.name+" loaded in Create");
   },100);
 }
+
+// ══════════════════════════════════════════════════════════
+// BRAND BRAIN — INLINE EDIT + PER-SECTION REGENERATE
+// ══════════════════════════════════════════════════════════
+
+var _bcpRenders = {
+  personality:    _bcRenderPersonality,
+  positioning:    _bcRenderPositioning,
+  mission:        _bcRenderMission,
+  vision:         _bcRenderVision,
+  toneOfVoice:    _bcRenderTone,
+  audience:       _bcRenderAudience,
+  visualDirection: _bcRenderVisual
+};
+
+function _bcpGetValue(key){
+  var bc = S.brandCore || {};
+  if(key === 'personality') return (bc.personality || []).join(', ');
+  return bc[key] || '';
+}
+
+function _bcpSetValue(key, val){
+  if(!S.brandCore) S.brandCore = {};
+  if(key === 'personality'){
+    S.brandCore.personality = val.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+  } else {
+    S.brandCore[key] = val;
+  }
+}
+
+window.bcpEdit = function(key, elId){
+  var el = document.getElementById(elId);
+  if(!el) return;
+  if(el.querySelector('.bb-edit-area')) return; // already editing
+  var cur = _bcpGetValue(key);
+  el.innerHTML =
+    '<textarea class="bb-edit-area" id="bce-'+key+'" rows="4">'+cur.replace(/</g,'&lt;')+'</textarea>'
+    +'<div class="bb-edit-actions">'
+    +'<button class="bb-edit-save" onclick="bcpSave(\''+key+'\',\''+elId+'\')">Save</button>'
+    +'<button class="bb-edit-cancel" onclick="bcpCancelEdit(\''+key+'\',\''+elId+'\')">Cancel</button>'
+    +'</div>';
+  var ta = document.getElementById('bce-'+key);
+  if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+};
+
+window.bcpSave = function(key, elId){
+  var ta = document.getElementById('bce-'+key);
+  if(!ta) return;
+  var val = ta.value;
+  _bcpSetValue(key, val);
+  if(typeof toast === 'function') toast('Saved');
+  if(typeof saveBrandCoreDB === 'function'){
+    try{ saveBrandCoreDB(); }catch(_){}
+  }
+  var renderFn = _bcpRenders[key];
+  if(renderFn) renderFn();
+};
+
+window.bcpCancelEdit = function(key, elId){
+  var renderFn = _bcpRenders[key];
+  if(renderFn) renderFn();
+};
+
+window.bcpRegenSection = function(key, elId){
+  var bc = S.brandCore;
+  if(!bc || !bc.name){
+    if(typeof toast === 'function') toast('Set up Brand Brain first', 'warn');
+    return;
+  }
+  var el = document.getElementById(elId);
+  if(el) el.innerHTML = '<div class="bcp-empty-field" style="color:rgba(183,255,42,.6)">Generating…</div>';
+
+  var apiBase = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
+  var brandContext = 'Brand: '+bc.name+'\n'
+    +(bc.description ? 'Description: '+bc.description+'\n' : '')
+    +(bc.audience    ? 'Audience: '+bc.audience+'\n'       : '')
+    +(bc.toneOfVoice ? 'Tone: '+bc.toneOfVoice+'\n'       : '');
+
+  var prompts = {
+    personality:    brandContext+'List 4 brand personality traits (single words, comma-separated). Output only the traits, nothing else.',
+    positioning:    brandContext+'Write a single positioning statement (1–2 sentences) that defines the brand\'s unique market position. Output only the statement.',
+    mission:        brandContext+'Write a brand mission statement (1–2 sentences). Output only the statement.',
+    vision:         brandContext+'Write a brand vision statement (1–2 sentences). Output only the statement.',
+    toneOfVoice:    brandContext+'Describe the brand\'s tone of voice in 1–2 sentences. Output only the description.',
+    audience:       brandContext+'Write a concise target audience description (2–3 sentences). Output only the description.',
+    visualDirection:brandContext+'Write a visual direction description for this brand (2–3 sentences). Output only the description.'
+  };
+
+  var prompt = prompts[key];
+  if(!prompt){
+    if(el) el.innerHTML = '<div class="bcp-empty-field">Unsupported section</div>';
+    return;
+  }
+
+  fetch(apiBase + '/api/generate-text', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    var result = (data && (data.result || data.text || data.content || '')).trim();
+    if(!result) throw new Error('Empty response');
+    _bcpSetValue(key, result);
+    if(typeof saveBrandCoreDB === 'function'){ try{ saveBrandCoreDB(); }catch(_){} }
+    var renderFn = _bcpRenders[key];
+    if(renderFn) renderFn();
+    if(typeof toast === 'function') toast('Regenerated');
+  })
+  .catch(function(err){
+    console.error('[bcpRegen]', key, err);
+    if(el) el.innerHTML = '<div class="bcp-empty-field" style="color:rgba(255,80,80,.7)">Generation failed — try again</div>';
+    if(typeof toast === 'function') toast('Generation failed', 'error');
+  });
+};

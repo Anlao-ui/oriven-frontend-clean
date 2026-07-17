@@ -19,7 +19,8 @@
     #ov-hero .ov-eyebrow,
     #ov-hero .ov-h1,
     #ov-hero .ov-hero-desc,
-    #ov-hero .ov-hero-btns a,
+    #ov-hero .lp-hero-delivers,
+    #ov-hero .lp-hero-input-wrap,
     #ov-hero .ov-hero-int-pill { opacity: 0 }
   </style>
   <style>
@@ -219,26 +220,344 @@
 
 <!-- HERO -->
 <section id="ov-hero">
-  <div id="ov-hero-content">
-    <div class="ov-eyebrow">AI-Powered Marketing Intelligence</div>
-    <h1 class="ov-h1">Your Marketing Data Is Fragmented.<br><span class="ov-h1-accent">Oriven Brings It Together.</span></h1>
-    <p class="ov-hero-desc">Connect your ad accounts in minutes. Get unified analytics, AI-powered recommendations and daily performance briefs — all in one place.</p>
-    <div class="ov-hero-btns">
-      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
-      <a href="#ov-dashboard" class="ov-btn-ghost" onclick="ovNavTo(event,'#ov-dashboard')">Learn More</a>
+  <div class="lp-hero">
+
+    <div class="lp-hero-bg" aria-hidden="true">
+      <div class="lp-hero-glow"></div>
+      <div class="lp-hero-grid"></div>
     </div>
-    <div class="ov-hero-integrations">
-      <div class="ov-hero-int-logos">
+
+    <div class="lp-hero-inner" id="ov-hero-content">
+
+      <div class="lp-hero-eyebrow ov-eyebrow">
+        <span class="lp-hero-dot"></span>
+        AI Advertising Platform
+      </div>
+
+      <h1 class="lp-hero-h1 ov-h1">Create ads<br>that convert.</h1>
+
+      <p class="lp-hero-sub ov-hero-desc">Generate complete Google Ads, Meta Ads and TikTok campaigns with AI.</p>
+
+      <div class="lp-hero-delivers">
+        <span>Campaign Strategy</span>
+        <span class="lp-del-sep">·</span>
+        <span>Ad Copy</span>
+        <span class="lp-del-sep">·</span>
+        <span>Visual Concepts</span>
+        <span class="lp-del-sep">·</span>
+        <span>Image Prompts</span>
+        <span class="lp-del-sep">·</span>
+        <span>Platform Assets</span>
+      </div>
+
+      <div class="lp-hero-input-wrap">
+        <textarea
+          class="lp-hero-input"
+          id="lpHeroPrompt"
+          rows="3"
+          placeholder="I sell premium compression shirts for athletes..."
+          onkeydown="if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){lpGenerateCampaign();}"
+        ></textarea>
+        <div class="lp-hero-input-footer">
+          <div class="lp-hero-hints">
+            <button class="lp-hero-hint" onclick="lpSetPrompt(this)" data-prompt="Meta and TikTok campaign for my fitness clothing brand targeting 25-35 year olds">Fitness brand</button>
+            <button class="lp-hero-hint" onclick="lpSetPrompt(this)" data-prompt="Google Ads campaign for my B2B SaaS project management tool">B2B SaaS</button>
+            <button class="lp-hero-hint" onclick="lpSetPrompt(this)" data-prompt="Meta Ads campaign for my restaurant's weekend brunch promotion">Restaurant</button>
+            <button class="lp-hero-hint" onclick="lpSetPrompt(this)" data-prompt="Complete ad campaign for my e-commerce premium skincare brand targeting women 25-45">Skincare</button>
+            <button class="lp-hero-hint" onclick="lpSetPrompt(this)" data-prompt="TikTok and Meta campaign for my supplement company targeting gym enthusiasts">Supplements</button>
+          </div>
+          <div class="lp-hero-input-right">
+            <span class="lp-hero-kbd">⌘ Return</span>
+            <button class="lp-hero-btn" onclick="lpGenerateCampaign()">
+              Generate Campaign
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="lp-hero-platforms">
         <span class="ov-hero-int-pill ov-pill-google"><span class="ov-int-dot ov-int-dot-google"></span>Google Ads</span>
         <span class="ov-hero-int-pill ov-pill-meta"><span class="ov-int-dot ov-int-dot-meta"></span>Meta Ads</span>
         <span class="ov-hero-int-pill ov-pill-tiktok"><span class="ov-int-dot ov-int-dot-tiktok"></span>TikTok Ads</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- WORKFLOW STEPS -->
+
+<!-- 02 CONNECT -->
+<section id="ov-connect" class="ov-wf-section">
+  <div class="ov-wf-inner">
+    <div class="ov-wf-text">
+      <div class="ov-wf-step-num">01 &mdash; Connect</div>
+      <h2 class="ov-wf-h2">All your ad accounts.<br>One workspace.</h2>
+      <p class="ov-wf-desc">Link Google Ads, Meta Ads, and TikTok Ads with a single click. No API keys, no credentials — just OAuth. Your data syncs in real time.</p>
+      <ul class="ov-wf-bullets">
+        <li>OAuth-only — you never share passwords or API keys</li>
+        <li>Live sync across all connected platforms</li>
+        <li>Account picker to manage multiple brands or clients</li>
+      </ul>
+      <a href="#" class="ov-btn-primary ov-btn-sm" onclick="lpGetStarted(event)">Connect now</a>
+    </div>
+    <div class="ov-wf-visual">
+      <div class="ov-conn-cards">
+        <div class="ov-conn-card ov-conn-live" data-observe>
+          <div class="ov-conn-card-left">
+            <div class="ov-conn-logo ov-conn-logo-google">
+              <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            </div>
+            <div>
+              <div class="ov-conn-name">Google Ads</div>
+              <div class="ov-conn-sub">2 accounts connected</div>
+            </div>
+          </div>
+          <div class="ov-conn-badge">&#9679; Live</div>
+        </div>
+        <div class="ov-conn-card ov-conn-live" data-observe style="transition-delay:.1s">
+          <div class="ov-conn-card-left">
+            <div class="ov-conn-logo ov-conn-logo-meta">
+              <svg width="18" height="14" viewBox="5 0 30 22"><path fill="#0866FF" d="M20,11 C20,5.72 17.09,1.5 13.5,1.5 C9.91,1.5 7,5.72 7,11 C7,16.28 9.91,20.5 13.5,20.5 C17.09,20.5 20,16.28 20,11 M20,11 C20,5.72 22.91,1.5 26.5,1.5 C30.09,1.5 33,5.72 33,11 C33,16.28 30.09,20.5 26.5,20.5 C22.91,20.5 20,16.28 20,11 Z"/></svg>
+            </div>
+            <div>
+              <div class="ov-conn-name">Meta Ads</div>
+              <div class="ov-conn-sub">1 account connected</div>
+            </div>
+          </div>
+          <div class="ov-conn-badge">&#9679; Live</div>
+        </div>
+        <div class="ov-conn-card ov-conn-soon" data-observe style="transition-delay:.2s">
+          <div class="ov-conn-card-left">
+            <div class="ov-conn-logo ov-conn-logo-tiktok" style="background:#000;border-color:#222">
+              <svg width="14" height="16" viewBox="0 0 28 32"><g fill="white"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g></svg>
+            </div>
+            <div>
+              <div class="ov-conn-name">TikTok Ads</div>
+              <div class="ov-conn-sub">Ready to connect</div>
+            </div>
+          </div>
+          <div class="ov-conn-badge-grey">Connect</div>
+        </div>
+        <div class="ov-conn-stat-row" data-observe style="transition-delay:.3s">
+          <div class="ov-conn-stat"><div class="ov-conn-stat-val">&euro;7,200</div><div class="ov-conn-stat-lbl">Total Spend</div></div>
+          <div class="ov-conn-stat"><div class="ov-conn-stat-val">3.6&times;</div><div class="ov-conn-stat-lbl">Blended ROAS</div></div>
+          <div class="ov-conn-stat"><div class="ov-conn-stat-val ov-green">284</div><div class="ov-conn-stat-lbl">Conversions</div></div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 02 THE PROBLEM -->
-<section id="ov-problem">
+<!-- 03 DISCOVER -->
+<section id="ov-discover" class="ov-wf-section ov-wf-alt">
+  <div class="ov-wf-inner ov-wf-inner-rev">
+    <div class="ov-wf-text">
+      <div class="ov-wf-step-num">02 &mdash; Discover</div>
+      <h2 class="ov-wf-h2">Find winning angles<br>before you spend.</h2>
+      <p class="ov-wf-desc">Describe your product and let Oriven's AI surface audience ideas, campaign hooks, and market opportunities — before you've spent a single euro.</p>
+      <ul class="ov-wf-bullets">
+        <li>AI-generated audience segments and targeting ideas</li>
+        <li>Creative hooks and messaging angles</li>
+        <li>Market positioning insights based on your competitors</li>
+      </ul>
+    </div>
+    <div class="ov-wf-visual">
+      <div class="ov-disc-mock" data-observe>
+        <div class="ov-disc-prompt">
+          <div class="ov-disc-prompt-lbl">Describe your business</div>
+          <div class="ov-disc-prompt-text">A premium skincare brand targeting women 25&ndash;45 who want anti-aging results without harsh chemicals.</div>
+        </div>
+        <div class="ov-disc-results">
+          <div class="ov-disc-card" style="transition-delay:.15s" data-observe>
+            <div class="ov-disc-tag ov-disc-tag-aud">Audience</div>
+            <div class="ov-disc-title">Professional women, eco-conscious 30&ndash;40</div>
+            <div class="ov-disc-body">High intent, researches ingredients. Responds to before/after content and scientific claims.</div>
+          </div>
+          <div class="ov-disc-card" style="transition-delay:.25s" data-observe>
+            <div class="ov-disc-tag ov-disc-tag-hook">Hook</div>
+            <div class="ov-disc-title">&ldquo;The serum that works while you sleep&rdquo;</div>
+            <div class="ov-disc-body">Night routine angle. Strong Meta performance for beauty brands with 2.8&times; avg. ROAS.</div>
+          </div>
+          <div class="ov-disc-card" style="transition-delay:.35s" data-observe>
+            <div class="ov-disc-tag ov-disc-tag-ins">Insight</div>
+            <div class="ov-disc-title">Competitor gap: ingredient transparency</div>
+            <div class="ov-disc-body">Top 3 competitors don't lead with formulation. Your clean-beauty positioning is underused.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 CREATE -->
+<section id="ov-create-wf" class="ov-wf-section">
+  <div class="ov-wf-inner">
+    <div class="ov-wf-text">
+      <div class="ov-wf-step-num">03 &mdash; Create</div>
+      <h2 class="ov-wf-h2">Generate ads that<br>actually convert.</h2>
+      <p class="ov-wf-desc">Turn insights into ready-to-launch ad assets. Write copy, generate images, and build campaigns — all without switching tools.</p>
+      <ul class="ov-wf-bullets">
+        <li>AI-generated headlines, descriptions, and CTAs</li>
+        <li>Image and video concept generation</li>
+        <li>Built-in brand voice to keep every asset on-tone</li>
+      </ul>
+    </div>
+    <div class="ov-wf-visual">
+      <div class="ov-create-mock" data-observe>
+        <div class="ov-cr-header">
+          <span class="ov-cr-title">Campaign Studio</span>
+          <span class="ov-cr-badge">Google &middot; Performance Max</span>
+        </div>
+        <div class="ov-cr-asset" style="transition-delay:.1s" data-observe>
+          <div class="ov-cr-asset-lbl">Headline 1</div>
+          <div class="ov-cr-asset-val">Anti-aging skincare that works overnight</div>
+          <div class="ov-cr-score"><span class="ov-score-dot ov-score-great"></span>Strong</div>
+        </div>
+        <div class="ov-cr-asset" style="transition-delay:.2s" data-observe>
+          <div class="ov-cr-asset-lbl">Headline 2</div>
+          <div class="ov-cr-asset-val">Clinically tested. 94% saw results in 28 days</div>
+          <div class="ov-cr-score"><span class="ov-score-dot ov-score-great"></span>Strong</div>
+        </div>
+        <div class="ov-cr-asset" style="transition-delay:.3s" data-observe>
+          <div class="ov-cr-asset-lbl">Description</div>
+          <div class="ov-cr-asset-val">Wake up to visibly firmer skin. No parabens. No harsh chemicals. Just results — backed by science.</div>
+          <div class="ov-cr-score"><span class="ov-score-dot ov-score-ok"></span>Good</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 LAUNCH -->
+<section id="ov-launch-wf" class="ov-wf-section ov-wf-alt">
+  <div class="ov-wf-inner ov-wf-inner-rev">
+    <div class="ov-wf-text">
+      <div class="ov-wf-step-num">04 &mdash; Launch</div>
+      <h2 class="ov-wf-h2">Publish to any platform<br>from one screen.</h2>
+      <p class="ov-wf-desc">Stop logging into three different ad managers. Review your campaign settings, set your budget, and launch across Google, Meta, and TikTok — all from inside Oriven.</p>
+      <ul class="ov-wf-bullets">
+        <li>Guided campaign publishing in 5 steps</li>
+        <li>AI-suggested budgets based on your goals and history</li>
+        <li>One-click to all connected platforms simultaneously</li>
+      </ul>
+    </div>
+    <div class="ov-wf-visual">
+      <div class="ov-launch-mock" data-observe>
+        <div class="ov-lm-step ov-lm-done">
+          <div class="ov-lm-num ov-lm-num-done">&#10003;</div>
+          <div><div class="ov-lm-step-t">Platform selected</div><div class="ov-lm-step-s">Google Ads</div></div>
+        </div>
+        <div class="ov-lm-connector ov-lm-done-line"></div>
+        <div class="ov-lm-step ov-lm-done">
+          <div class="ov-lm-num ov-lm-num-done">&#10003;</div>
+          <div><div class="ov-lm-step-t">Assets added</div><div class="ov-lm-step-s">3 headlines, 2 descriptions</div></div>
+        </div>
+        <div class="ov-lm-connector ov-lm-done-line"></div>
+        <div class="ov-lm-step ov-lm-active">
+          <div class="ov-lm-num ov-lm-num-active">3</div>
+          <div><div class="ov-lm-step-t">Budget &amp; schedule</div><div class="ov-lm-step-s">Set daily spend + start date</div></div>
+        </div>
+        <div class="ov-lm-connector"></div>
+        <div class="ov-lm-step ov-lm-inactive">
+          <div class="ov-lm-num ov-lm-num-inactive">4</div>
+          <div><div class="ov-lm-step-t">Audience</div><div class="ov-lm-step-s">Location, age, interests</div></div>
+        </div>
+        <div class="ov-lm-connector"></div>
+        <div class="ov-lm-step ov-lm-inactive">
+          <div class="ov-lm-num ov-lm-num-inactive">5</div>
+          <div><div class="ov-lm-step-t">Review &amp; Launch</div><div class="ov-lm-step-s">Publish to Google Ads</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 ANALYZE -->
+<section id="ov-analyze-wf" class="ov-wf-section">
+  <div class="ov-wf-inner">
+    <div class="ov-wf-text">
+      <div class="ov-wf-step-num">05 &mdash; Analyze</div>
+      <h2 class="ov-wf-h2">Your campaigns.<br>One unified view.</h2>
+      <p class="ov-wf-desc">Stop switching between Google Ads, Meta Business Manager, and TikTok Ads Manager. Every campaign, ad set, and ad is visible in one place, with consistent metrics across platforms.</p>
+      <ul class="ov-wf-bullets">
+        <li>Unified Ads Explorer across all connected platforms</li>
+        <li>Campaign → Ad Set → Ad drill-down in one click</li>
+        <li>AI flags underperformers and budget opportunities</li>
+      </ul>
+    </div>
+    <div class="ov-wf-visual">
+      <div class="ov-an-mock" data-observe>
+        <div class="ov-an-topbar">
+          <div class="ov-an-tabs">
+            <div class="ov-an-tab ov-an-tab-active">
+              <span class="ov-an-dot" style="background:#4285F4"></span>Google Ads
+            </div>
+            <div class="ov-an-tab">
+              <span class="ov-an-dot" style="background:#0866FF"></span>Meta Ads
+            </div>
+          </div>
+          <div class="ov-an-range">Last 30 days</div>
+        </div>
+        <div class="ov-an-kpis">
+          <div class="ov-an-kpi"><div class="ov-an-kv">&euro;2,840</div><div class="ov-an-kl">Spend</div></div>
+          <div class="ov-an-kpi"><div class="ov-an-kv ov-green">4.2&times;</div><div class="ov-an-kl">ROAS</div></div>
+          <div class="ov-an-kpi"><div class="ov-an-kv">312</div><div class="ov-an-kl">Conv.</div></div>
+          <div class="ov-an-kpi"><div class="ov-an-kv">3.9%</div><div class="ov-an-kl">CTR</div></div>
+        </div>
+        <div class="ov-an-table">
+          <div class="ov-an-table-hdr"><span>Campaign</span><span>Spend</span><span>ROAS</span><span>CTR</span></div>
+          <div class="ov-an-row"><span>Performance Max Q2</span><span>&euro;1,240</span><span class="ov-green">5.2&times;</span><span>4.1%</span></div>
+          <div class="ov-an-row"><span>Brand Search EU</span><span>&euro;880</span><span>2.1&times;</span><span>6.3%</span></div>
+          <div class="ov-an-row"><span>Display Retargeting</span><span>&euro;720</span><span class="ov-green">3.8&times;</span><span>1.4%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 SCALE -->
+<section id="ov-scale-wf" class="ov-wf-section ov-wf-alt">
+  <div class="ov-wf-inner ov-wf-inner-rev">
+    <div class="ov-wf-text">
+      <div class="ov-wf-step-num">06 &mdash; Scale</div>
+      <h2 class="ov-wf-h2">AI tells you exactly<br>what to do next.</h2>
+      <p class="ov-wf-desc">Oriven analyzes every campaign and surfaces the highest-impact actions — with expected results and confidence scores, so you know exactly what to prioritize.</p>
+      <ul class="ov-wf-bullets">
+        <li>Actionable recommendations with expected ROAS impact</li>
+        <li>Budget reallocation suggestions across platforms</li>
+        <li>Winner duplication and underperformer pausing</li>
+      </ul>
+      <a href="#" class="ov-btn-primary ov-btn-sm" onclick="lpGetStarted(event)">Start scaling</a>
+    </div>
+    <div class="ov-wf-visual">
+      <div class="ov-scale-mock">
+        <div class="ov-sm-card ov-sm-card-high" data-observe>
+          <div class="ov-sm-card-top">
+            <div class="ov-sm-conf ov-sm-conf-high">High confidence</div>
+            <div class="ov-sm-impact">+&euro;3,200 est. revenue</div>
+          </div>
+          <div class="ov-sm-title">Increase Performance Max budget by 30%</div>
+          <div class="ov-sm-body">This campaign is ROAS-constrained, not budget-constrained. Scaling spend here will not reduce efficiency.</div>
+          <div class="ov-sm-platform"><span class="ov-dash-tag ov-tag-google">Google</span></div>
+        </div>
+        <div class="ov-sm-card" data-observe style="transition-delay:.12s">
+          <div class="ov-sm-card-top">
+            <div class="ov-sm-conf">Medium confidence</div>
+            <div class="ov-sm-impact">+18% CTR est.</div>
+          </div>
+          <div class="ov-sm-title">Refresh Summer Retargeting creatives</div>
+          <div class="ov-sm-body">Frequency reached 6.2&times;. Creative fatigue is reducing CTR. 2&ndash;3 new variants recommended.</div>
+          <div class="ov-sm-platform"><span class="ov-dash-tag ov-tag-meta">Meta</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 THE PROBLEM (removed — kept as comment anchor for GSAP compat) -->
+<section id="ov-problem" style="display:none">
   <div class="ov-problem-inner">
     <div class="ov-section-label">02</div>
     <h2 class="ov-section-h">Stop Switching Between Platforms</h2>
@@ -296,568 +615,40 @@
   </div>
 </section>
 
-<!-- 03 DASHBOARD PREVIEW -->
-<section id="ov-dashboard">
-  <div class="ov-dash-inner">
-    <div class="ov-section-label">03</div>
-    <h2 class="ov-section-h">Everything You Need In One Dashboard</h2>
-    <p class="ov-section-sub">Monitor performance, analyze campaigns, and uncover opportunities without jumping between platforms.</p>
-    <div class="ov-dash-mockup" data-observe>
-      <div class="ov-dash-topbar">
-        <div class="ov-dash-topbar-left">
-          <div class="ov-dash-win-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-          <span class="ov-dash-title-bar">ORIVEN &mdash; Dashboard</span>
-        </div>
-        <div class="ov-dash-topbar-right">
-          <span class="ov-dash-range">Jul 1 &ndash; Jul 10, 2026</span>
-          <span class="ov-dash-live"><span class="ov-dash-live-dot"></span>Live</span>
-        </div>
+<!-- Hidden legacy sections (IDs kept for GSAP scroll-trigger compat) -->
+<div style="display:none" aria-hidden="true">
+  <div id="ov-dashboard"></div>
+  <div class="ov-dash-mockup"></div><div class="ov-dash-kpi-row"></div><div class="ov-dash-chart"></div><div class="ov-dash-plat-breakdown"></div><div class="ov-dash-table"></div>
+  <div id="ov-ai-recs"><div class="ov-ai-grid"></div></div>
+  <div id="ov-integrations"><div class="ov-int-cards-grid"></div><div class="ov-int-note"></div></div>
+  <div id="ov-creative"><div class="ov-creative-tabs"></div><div class="ov-creative-stage"></div></div>
+  <div id="ov-compare"><div class="ov-feat-table-5"><div class="ov-feat-table-row"></div></div></div>
+</div>
+
+<!-- SOCIAL PROOF -->
+<section class="ov-wf-section ov-social-proof">
+  <div class="ov-sp-wrap">
+    <div class="ov-sp-label">Trusted by marketing teams in 14 countries</div>
+    <div class="ov-sp-stats">
+      <div class="ov-sp-stat" data-observe>
+        <div class="ov-sp-stat-val">&euro;28M+</div>
+        <div class="ov-sp-stat-lbl">Ad spend managed</div>
       </div>
-      <div class="ov-dash-kpi-row">
-        <div class="ov-dash-kpi"><div class="ov-dash-kpi-lbl">Total Spend</div><div class="ov-dash-kpi-val">&euro;7,200</div><div class="ov-dash-kpi-delta ov-delta-up">&#8593; 12% vs last week</div></div>
-        <div class="ov-dash-kpi"><div class="ov-dash-kpi-lbl">Blended ROAS</div><div class="ov-dash-kpi-val">3.6&times;</div><div class="ov-dash-kpi-delta ov-delta-up">&#8593; +0.4&times; improvement</div></div>
-        <div class="ov-dash-kpi"><div class="ov-dash-kpi-lbl">Conversions</div><div class="ov-dash-kpi-val">284</div><div class="ov-dash-kpi-delta ov-delta-up">&#8593; +28 this week</div></div>
-        <div class="ov-dash-kpi"><div class="ov-dash-kpi-lbl">Avg. CTR</div><div class="ov-dash-kpi-val">3.8%</div><div class="ov-dash-kpi-delta ov-delta-down">&#8595; &minus;0.2% vs prior</div></div>
-        <div class="ov-dash-kpi"><div class="ov-dash-kpi-lbl">Active Campaigns</div><div class="ov-dash-kpi-val">9</div><div class="ov-dash-kpi-delta ov-delta-neutral">Across 3 platforms</div></div>
+      <div class="ov-sp-stat" data-observe style="transition-delay:.08s">
+        <div class="ov-sp-stat-val">4.1&times;</div>
+        <div class="ov-sp-stat-lbl">Average ROAS lift</div>
       </div>
-      <div class="ov-dash-body">
-        <div class="ov-dash-chart-area">
-          <div class="ov-dash-chart-head">
-            <span class="ov-dash-chart-title">Spend by platform &mdash; Last 7 days</span>
-            <div class="ov-dash-chart-legend">
-              <span><span class="ov-dash-leg-dot" style="background:#FBBC05"></span>Google</span>
-              <span><span class="ov-dash-leg-dot" style="background:#0866FF"></span>Meta</span>
-              <span><span class="ov-dash-leg-dot" style="background:#EE1D52"></span>TikTok</span>
-            </div>
-          </div>
-          <div class="ov-dash-chart">
-            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:38%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:44%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:18%"></div></div><div class="ov-dash-bar-lbl">Mon</div></div>
-            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:52%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:30%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:22%"></div></div><div class="ov-dash-bar-lbl">Tue</div></div>
-            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:44%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:38%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:26%"></div></div><div class="ov-dash-bar-lbl">Wed</div></div>
-            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:60%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:28%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:20%"></div></div><div class="ov-dash-bar-lbl">Thu</div></div>
-            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:48%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:34%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:24%"></div></div><div class="ov-dash-bar-lbl">Fri</div></div>
-            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:32%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:42%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:28%"></div></div><div class="ov-dash-bar-lbl">Sat</div></div>
-            <div class="ov-dash-bar-grp"><div class="ov-dash-bar-stack"><div class="ov-dash-bar-seg ov-seg-google" style="height:56%"></div><div class="ov-dash-bar-seg ov-seg-meta" style="height:30%"></div><div class="ov-dash-bar-seg ov-seg-tiktok" style="height:22%"></div></div><div class="ov-dash-bar-lbl">Sun</div></div>
-          </div>
-        </div>
-        <div class="ov-dash-plat-breakdown">
-          <div class="ov-dash-pb-head">Platform Breakdown</div>
-          <div class="ov-dash-pb-row">
-            <div class="ov-dash-pb-name"><span class="ov-dash-pb-dot" style="background:#FBBC05"></span>Google Ads</div>
-            <div class="ov-dash-pb-bar-wrap"><div class="ov-dash-pb-bar" style="width:61%;background:rgba(251,188,5,.6)"></div></div>
-            <div class="ov-dash-pb-vals"><span class="ov-green">4.2&times;</span><span>&euro;2,840</span></div>
-          </div>
-          <div class="ov-dash-pb-row">
-            <div class="ov-dash-pb-name"><span class="ov-dash-pb-dot" style="background:#0866FF"></span>Meta Ads</div>
-            <div class="ov-dash-pb-bar-wrap"><div class="ov-dash-pb-bar" style="width:79%;background:rgba(8,102,255,.6)"></div></div>
-            <div class="ov-dash-pb-vals"><span class="ov-green">2.8&times;</span><span>&euro;3,100</span></div>
-          </div>
-          <div class="ov-dash-pb-row">
-            <div class="ov-dash-pb-name"><span class="ov-dash-pb-dot" style="background:#EE1D52"></span>TikTok Ads</div>
-            <div class="ov-dash-pb-bar-wrap"><div class="ov-dash-pb-bar" style="width:32%;background:rgba(238,29,82,.6)"></div></div>
-            <div class="ov-dash-pb-vals"><span class="ov-green">3.1&times;</span><span>&euro;1,260</span></div>
-          </div>
-        </div>
+      <div class="ov-sp-stat" data-observe style="transition-delay:.16s">
+        <div class="ov-sp-stat-val">3</div>
+        <div class="ov-sp-stat-lbl">Platforms unified</div>
       </div>
-      <div class="ov-dash-table">
-        <div class="ov-dash-table-hdr"><span>Campaign</span><span>Platform</span><span>Spend</span><span>ROAS</span><span>CTR</span><span>Status</span></div>
-        <div class="ov-dash-table-row"><span class="ov-dash-camp-name">Performance Max Q2</span><span><span class="ov-dash-tag ov-tag-google">Google</span></span><span>&euro;1,240</span><span class="ov-green">5.2&times;</span><span>4.1%</span><span><span class="ov-dash-status ov-status-on">Active</span></span></div>
-        <div class="ov-dash-table-row"><span class="ov-dash-camp-name">Advantage+ Shopping</span><span><span class="ov-dash-tag ov-tag-meta">Meta</span></span><span>&euro;1,840</span><span class="ov-green">3.4&times;</span><span>2.8%</span><span><span class="ov-dash-status ov-status-on">Active</span></span></div>
-        <div class="ov-dash-table-row"><span class="ov-dash-camp-name">Summer TopView</span><span><span class="ov-dash-tag ov-tag-tiktok">TikTok</span></span><span>&euro;620</span><span class="ov-green">3.8&times;</span><span>5.6%</span><span><span class="ov-dash-status ov-status-on">Active</span></span></div>
-        <div class="ov-dash-table-row"><span class="ov-dash-camp-name">Brand Search EU</span><span><span class="ov-dash-tag ov-tag-google">Google</span></span><span>&euro;880</span><span>2.1&times;</span><span>6.3%</span><span><span class="ov-dash-status ov-status-warn">Review</span></span></div>
+      <div class="ov-sp-stat" data-observe style="transition-delay:.24s">
+        <div class="ov-sp-stat-val">5 min</div>
+        <div class="ov-sp-stat-lbl">Avg. setup time</div>
       </div>
     </div>
   </div>
 </section>
-
-<!-- 04 AI RECOMMENDATIONS -->
-<section id="ov-ai-recs">
-  <div class="ov-ai-inner">
-    <div class="ov-section-label">04</div>
-    <h2 class="ov-section-h">This Isn&rsquo;t Just Analytics.<br>It&rsquo;s Marketing Intelligence.</h2>
-    <p class="ov-section-sub">Get actionable recommendations based on campaign performance and trends.</p>
-    <div class="ov-ai-grid">
-      <div class="ov-ai-card" data-observe>
-        <div class="ov-ai-card-head">
-          <div class="ov-ai-alert ov-ai-alert-warn"><span class="ov-ai-alert-icon">&#9660;</span><span>CTR dropped 22%</span></div>
-          <div class="ov-ai-platform-tag ov-tag-meta">Meta Ads</div>
-        </div>
-        <div class="ov-ai-metrics">
-          <div class="ov-ai-metric"><span>Campaign</span><span>Summer Retargeting</span></div>
-          <div class="ov-ai-metric"><span>Current CTR</span><span class="ov-red">1.2%</span></div>
-          <div class="ov-ai-metric"><span>Prior CTR</span><span>1.9%</span></div>
-          <div class="ov-ai-metric"><span>Running</span><span>14 days</span></div>
-        </div>
-        <div class="ov-ai-rec">
-          <div class="ov-ai-rec-label"><span class="ov-ai-rec-pip"></span>AI Recommendation</div>
-          <div class="ov-ai-rec-text">Creative fatigue detected. Audience has seen this ad 6.2&times; on average. Test 2&ndash;3 new creative variants before your CPM increases further.</div>
-          <div class="ov-ai-rec-action">Test new creatives</div>
-        </div>
-      </div>
-      <div class="ov-ai-card ov-ai-card-highlight" data-observe style="transition-delay:.1s">
-        <div class="ov-ai-card-head">
-          <div class="ov-ai-alert ov-ai-alert-up"><span class="ov-ai-alert-icon">&#9650;</span><span>ROAS increased 31%</span></div>
-          <div class="ov-ai-platform-tag ov-tag-google">Google Ads</div>
-        </div>
-        <div class="ov-ai-metrics">
-          <div class="ov-ai-metric"><span>Campaign</span><span>Performance Max Q2</span></div>
-          <div class="ov-ai-metric"><span>Current ROAS</span><span class="ov-green">5.2&times;</span></div>
-          <div class="ov-ai-metric"><span>Prior ROAS</span><span>3.9&times;</span></div>
-          <div class="ov-ai-metric"><span>Budget headroom</span><span>&euro;1,200/mo</span></div>
-        </div>
-        <div class="ov-ai-rec">
-          <div class="ov-ai-rec-label"><span class="ov-ai-rec-pip"></span>AI Recommendation</div>
-          <div class="ov-ai-rec-text">Campaign outperforming your 3.5&times; target ROAS. Increasing daily budget by 15% is projected to add 38 conversions this month.</div>
-          <div class="ov-ai-rec-action">Increase budget 15%</div>
-        </div>
-      </div>
-      <div class="ov-ai-card" data-observe style="transition-delay:.2s">
-        <div class="ov-ai-card-head">
-          <div class="ov-ai-alert ov-ai-alert-info"><span class="ov-ai-alert-icon">&#8644;</span><span>Budget reallocation opportunity</span></div>
-          <span style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);font-size:10px;padding:3px 8px;border-radius:4px;font-weight:700;letter-spacing:.04em">Cross-Platform</span>
-        </div>
-        <div class="ov-ai-metrics">
-          <div class="ov-ai-metric"><span>Meta ROAS</span><span>2.8&times;</span></div>
-          <div class="ov-ai-metric"><span>Google ROAS</span><span class="ov-green">5.2&times;</span></div>
-          <div class="ov-ai-metric"><span>Meta spend share</span><span>43%</span></div>
-          <div class="ov-ai-metric"><span>Google spend share</span><span>39%</span></div>
-        </div>
-        <div class="ov-ai-rec">
-          <div class="ov-ai-rec-label"><span class="ov-ai-rec-pip"></span>AI Recommendation</div>
-          <div class="ov-ai-rec-text">Meta receives more budget despite lower ROAS. Shifting 20% of Meta spend to Google is projected to improve blended ROAS from 3.6&times; to 4.1&times;.</div>
-          <div class="ov-ai-rec-action">Shift budget allocation</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 05 INTEGRATIONS -->
-<section id="ov-integrations">
-  <div class="ov-int-inner">
-    <div class="ov-section-label">05</div>
-    <h2 class="ov-section-h">Connect The Platforms You Already Use</h2>
-    <p class="ov-section-sub">Bring all your marketing data into one place. Connect in minutes &mdash; no credentials shared, OAuth only.</p>
-    <div class="ov-int-cards-grid">
-      <div class="ov-int-card-new ov-int-live" data-observe>
-        <div class="ov-int-card-logo">
-          <svg width="36" height="36" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-        </div>
-        <div class="ov-int-card-new-name">Google Ads</div>
-        <div class="ov-int-card-new-status ov-int-status-live">&#9679; Connected</div>
-        <div class="ov-int-card-new-desc">Search, Performance Max, Shopping, Display &amp; Video campaigns.</div>
-      </div>
-      <div class="ov-int-card-new ov-int-live" data-observe style="transition-delay:.07s">
-        <div class="ov-int-card-logo">
-          <svg width="40" height="22" viewBox="5 0 30 22" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#0866FF" d="M20,11 C20,5.72 17.09,1.5 13.5,1.5 C9.91,1.5 7,5.72 7,11 C7,16.28 9.91,20.5 13.5,20.5 C17.09,20.5 20,16.28 20,11 M20,11 C20,5.72 22.91,1.5 26.5,1.5 C30.09,1.5 33,5.72 33,11 C33,16.28 30.09,20.5 26.5,20.5 C22.91,20.5 20,16.28 20,11 Z"/>
-          </svg>
-        </div>
-        <div class="ov-int-card-new-name">Meta Ads</div>
-        <div class="ov-int-card-new-status ov-int-status-live">&#9679; Connected</div>
-        <div class="ov-int-card-new-desc">Facebook, Instagram, Advantage+ campaigns and audience insights.</div>
-      </div>
-      <div class="ov-int-card-new ov-int-live" data-observe style="transition-delay:.14s">
-        <div class="ov-int-card-logo">
-          <svg width="28" height="32" viewBox="0 0 28 32" xmlns="http://www.w3.org/2000/svg">
-            <g fill="#69C9D0" transform="translate(1.5,1.2)">
-              <ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/>
-              <rect x="12" y="2" width="3" height="23"/>
-              <path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/>
-            </g>
-            <g fill="#EE1D52" transform="translate(-1.5,-1.2)">
-              <ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/>
-              <rect x="12" y="2" width="3" height="23"/>
-              <path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/>
-            </g>
-            <g fill="white">
-              <ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/>
-              <rect x="12" y="2" width="3" height="23"/>
-              <path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/>
-            </g>
-          </svg>
-        </div>
-        <div class="ov-int-card-new-name">TikTok Ads</div>
-        <div class="ov-int-card-new-status ov-int-status-live">&#9679; Connected</div>
-        <div class="ov-int-card-new-desc">In-Feed, TopView, Spark Ads and creative performance data.</div>
-      </div>
-    </div>
-    <div class="ov-int-note">All connections use OAuth 2.0. Oriven receives read-only access. Your credentials are never stored.</div>
-  </div>
-</section>
-
-<!-- 06 CREATIVE OUTPUT -->
-<section id="ov-creative">
-  <div class="ov-creative-inner">
-    <div class="ov-section-label">06</div>
-    <h2 class="ov-section-h">Create Better Campaigns Faster</h2>
-    <p class="ov-section-sub">Generate ideas, creatives, and ad concepts powered by your own marketing intelligence.</p>
-
-    <div class="ov-creative-tabs" role="tablist">
-      <button class="ov-ctab ov-ctab-active" onclick="ovCTab(this,0)" role="tab" aria-selected="true">
-        <span class="ov-ctab-dot" style="background:#FBBC05"></span>Google Ads
-      </button>
-      <button class="ov-ctab" onclick="ovCTab(this,1)" role="tab">
-        <span class="ov-ctab-dot" style="background:#0866FF"></span>Meta Ads
-      </button>
-      <button class="ov-ctab" onclick="ovCTab(this,2)" role="tab">
-        <span class="ov-ctab-dot" style="background:#EE1D52"></span>TikTok Ads
-      </button>
-    </div>
-
-    <div class="ov-creative-stage" data-observe>
-
-    <div class="ov-creative-stage" data-observe>
-
-      <!-- GOOGLE ADS — 6 examples -->
-      <div class="ov-cpanel ov-cpanel-active" id="ovCPanel0">
-        <div class="ov-creative-grid">
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual ov-cex-vis-g">
-              <div class="ov-cex-gad-mini">
-                <span class="ov-cex-ad-badge">Ad</span>
-                <span class="ov-cex-mini-domain">brand.com &rsaquo; running</span>
-                <div class="ov-cex-mini-head">Premium Marathon Shoes</div>
-                <div class="ov-cex-mini-desc-line"></div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Search Ad</div>
-              <div class="ov-cex-headline">Premium Marathon Shoes &mdash; Free Next‑Day Delivery</div>
-              <div class="ov-cex-desc">Keyword-matched headline targeting high-intent runners.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">CTR 4.8%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual ov-cex-vis-g">
-              <div class="ov-cex-shop-mini">
-                <div class="ov-cex-shop-prod" style="background:rgba(251,188,5,.35)"><div class="ov-cex-shop-price">&euro;129</div></div>
-                <div class="ov-cex-shop-prod" style="background:rgba(66,133,244,.3)"><div class="ov-cex-shop-price">&euro;159</div></div>
-                <div class="ov-cex-shop-prod" style="background:rgba(52,168,83,.3)"><div class="ov-cex-shop-price">&euro;99</div></div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Shopping Ad</div>
-              <div class="ov-cex-headline">Pro Marathon X2 &mdash; Top Rated for 2026</div>
-              <div class="ov-cex-desc">Feed-powered product grid with star ratings and prices.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">ROAS 6.2&times;</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual ov-cex-vis-g">
-              <div class="ov-cex-pmax-mini">
-                <div class="ov-cex-pmax-fmt"><span class="ov-cex-pmax-icon">&#128269;</span><span>Search</span></div>
-                <div class="ov-cex-pmax-fmt"><span class="ov-cex-pmax-icon">&#127760;</span><span>Display</span></div>
-                <div class="ov-cex-pmax-fmt"><span class="ov-cex-pmax-icon">&#9654;</span><span>Video</span></div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Performance Max</div>
-              <div class="ov-cex-headline">AI-Optimised Across All Google Channels</div>
-              <div class="ov-cex-desc">Machine-learning allocates budget across Search, Display, YouTube.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">Conv +34%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual ov-cex-vis-g" style="background:linear-gradient(135deg,rgba(66,133,244,.15) 0%,rgba(66,133,244,.04) 100%)">
-              <div class="ov-cex-brand-mini">
-                <div class="ov-cex-brand-domain">brand.com</div>
-                <div class="ov-cex-brand-tagline">Your Running Partner Since 2018</div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Brand Campaign</div>
-              <div class="ov-cex-headline">Brand.com &mdash; Your Running Partner Since 2018</div>
-              <div class="ov-cex-desc">Branded keywords protecting search visibility from competitors.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">Impr. 2.1M</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 7-day</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual ov-cex-vis-g" style="background:linear-gradient(135deg,rgba(52,168,83,.14) 0%,rgba(183,255,42,.06) 100%)">
-              <div class="ov-cex-form-mini">
-                <div class="ov-cex-form-label">Full name</div>
-                <div class="ov-cex-form-field"></div>
-                <div class="ov-cex-form-label">Email</div>
-                <div class="ov-cex-form-field"></div>
-                <div class="ov-cex-form-btn">Get My Free Plan</div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Lead Generation</div>
-              <div class="ov-cex-headline">Get Your Free Training Plan Today</div>
-              <div class="ov-cex-desc">Lead form extension capturing emails directly from Search results.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">CPL &euro;4.20</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Avg.</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual ov-cex-vis-g" style="background:linear-gradient(135deg,rgba(234,67,53,.14) 0%,rgba(251,188,5,.06) 100%)">
-              <div class="ov-cex-retarg-mini">
-                <div class="ov-cex-retarg-line">&#9654; Still thinking?</div>
-                <div class="ov-cex-retarg-sub">Free shipping ends tonight</div>
-                <div class="ov-cex-retarg-cta">Return to cart &#8250;</div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Retargeting</div>
-              <div class="ov-cex-headline">Still Thinking It Over? Free Shipping Ends Tonight</div>
-              <div class="ov-cex-desc">RLSA retargeting recapturing high-intent cart abandoners.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip"></span><span class="ov-cex-perf-val">CTR 8.3%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- META ADS — 6 examples -->
-      <div class="ov-cpanel" id="ovCPanel1">
-        <div class="ov-creative-grid">
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual ov-cex-vis-m">
-              <div class="ov-cex-meta-feed-mini">
-                <div class="ov-cex-meta-header"><div class="ov-cex-meta-avi"></div><div><div class="ov-cex-meta-brand">Your Brand</div><div class="ov-cex-meta-spon">Sponsored</div></div></div>
-                <div class="ov-cex-meta-img-strip"></div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Feed Ad</div>
-              <div class="ov-cex-headline">Smarter Ads. Less Guesswork.</div>
-              <div class="ov-cex-desc">Single image feed ad with emotion-first hook and clear CTA.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">Reach 62K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual ov-cex-vis-m">
-              <div class="ov-cex-carousel-mini">
-                <div class="ov-cex-car-slide" style="background:rgba(8,102,255,.2)"><div class="ov-cex-car-n">01</div></div>
-                <div class="ov-cex-car-slide" style="background:rgba(8,102,255,.14)"><div class="ov-cex-car-n">02</div></div>
-                <div class="ov-cex-car-slide" style="background:rgba(8,102,255,.08)"><div class="ov-cex-car-n">03</div></div>
-                <div class="ov-cex-car-arrow">&#8250;</div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Carousel Ad</div>
-              <div class="ov-cex-headline">3 Reasons Runners Choose Us &mdash; Swipe to See</div>
-              <div class="ov-cex-desc">Multi-card format showcasing benefits, products, and social proof.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">CTR 2.9%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual" style="background:linear-gradient(180deg,#060616 0%,#0a0a24 100%)">
-              <div class="ov-cex-story-mini">
-                <div class="ov-cex-story-bar"></div>
-                <div class="ov-cex-story-copy">Only 48 Hours Left</div>
-                <div class="ov-cex-story-sub">Shop Now &#8250;</div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Story Ad</div>
-              <div class="ov-cex-headline">Only 48 Hours Left &mdash; Shop the 2026 Collection</div>
-              <div class="ov-cex-desc">Full-screen vertical Story format with countdown urgency element.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">Views 28K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 24h</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual ov-cex-vis-m">
-              <div class="ov-cex-leadform-mini">
-                <div class="ov-cex-lf-title">Free Performance Analysis</div>
-                <div class="ov-cex-lf-field"></div>
-                <div class="ov-cex-lf-field"></div>
-                <div class="ov-cex-lf-btn">Submit</div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Lead Form Ad</div>
-              <div class="ov-cex-headline">Get a Free Ad Performance Analysis</div>
-              <div class="ov-cex-desc">Native in-app lead form capturing quality leads without leaving Meta.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">CPL &euro;7.50</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Avg.</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual ov-cex-vis-m">
-              <div class="ov-cex-conv-mini">
-                <div class="ov-cex-conv-copy">Limited Stock — Shop the 2026 Collection</div>
-                <div class="ov-cex-conv-cta">Shop Now</div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Conversion Ad</div>
-              <div class="ov-cex-headline">Limited Stock &mdash; Shop the 2026 Collection Now</div>
-              <div class="ov-cex-desc">Dynamic product ad optimised for purchase conversions at scale.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">ROAS 4.8&times;</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 7-day</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual" style="background:linear-gradient(135deg,rgba(8,102,255,.12) 0%,rgba(80,0,120,.1) 100%)">
-              <div class="ov-cex-retarg-mini">
-                <div class="ov-cex-retarg-line">&#128717; You left something behind</div>
-                <div class="ov-cex-retarg-sub">Your cart is waiting &mdash; free delivery</div>
-                <div class="ov-cex-retarg-cta" style="color:rgba(8,102,255,.9)">Return to cart &#8250;</div>
-              </div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Retargeting Ad</div>
-              <div class="ov-cex-headline">You Left Something in Your Cart</div>
-              <div class="ov-cex-desc">Dynamic product retargeting recovering cart abandoners with urgency.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(8,102,255,.8)"></span><span class="ov-cex-perf-val">Conv +44%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; vs control</span></div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- TIKTOK ADS — 6 examples -->
-      <div class="ov-cpanel" id="ovCPanel2">
-        <div class="ov-creative-grid">
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual" style="background:linear-gradient(160deg,#14001a 0%,#0a0010 100%)">
-              <div class="ov-cex-tt-mini">
-                <div class="ov-cex-tt-hook">Wait&hellip; this actually works?</div>
-                <div class="ov-cex-tt-sub">&#128680; We tested 3 angles. Here&rsquo;s what won.</div>
-              </div>
-              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">UGC Style</div>
-              <div class="ov-cex-headline">Wait&hellip; this actually works? We tested 3 ad angles.</div>
-              <div class="ov-cex-desc">Pattern-interrupt hook designed to stop the scroll in under 2 seconds.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">Views 142K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 48h</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual" style="background:linear-gradient(160deg,#001414 0%,#001a12 100%)">
-              <div class="ov-cex-tt-mini">
-                <div class="ov-cex-tt-stat" style="color:rgba(105,201,208,.9)">312% ROAS</div>
-                <div class="ov-cex-tt-hook" style="font-size:14px">The shoe that won. Here&rsquo;s why.</div>
-              </div>
-              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Product Ad</div>
-              <div class="ov-cex-headline">The Shoe That Won. Here&rsquo;s Why It Works.</div>
-              <div class="ov-cex-desc">Direct-to-camera product walkthrough with data-backed storytelling.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">CTR 5.6%</span><span class="ov-cex-perf-lbl">&nbsp;&middot; Est.</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual" style="background:#000">
-              <div class="ov-cex-tt-mini" style="text-align:center">
-                <div class="ov-cex-tt-badge">NEW COLLECTION</div>
-                <div class="ov-cex-tt-hook" style="font-size:13px">Meet the 2026 Marathon Collection</div>
-              </div>
-              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Video Campaign</div>
-              <div class="ov-cex-headline">Meet the 2026 Marathon Collection</div>
-              <div class="ov-cex-desc">Branded video campaign driving awareness for new product launch.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">Views 89K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 7-day</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual" style="background:linear-gradient(160deg,#0a1a00 0%,#050d00 100%)">
-              <div class="ov-cex-tt-mini">
-                <div class="ov-cex-tt-handle" style="color:rgba(183,255,42,.8)">@topathlete</div>
-                <div class="ov-cex-tt-hook" style="font-size:13px">I trained with this for 30 days.</div>
-                <div class="ov-cex-tt-sub">The results shocked me &#128293;</div>
-              </div>
-              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Creator Campaign</div>
-              <div class="ov-cex-headline">@topathlete: I trained with this for 30 days</div>
-              <div class="ov-cex-desc">Creator partnership format leveraging established audience trust.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">Eng. 12.4K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 48h</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual" style="background:linear-gradient(160deg,#1a0004 0%,#0a0002 100%)">
-              <div class="ov-cex-tt-mini" style="text-align:center">
-                <div class="ov-cex-tt-badge" style="background:rgba(238,29,82,.2);color:rgba(238,29,82,.9)">BACK IN STOCK</div>
-                <div class="ov-cex-tt-hook" style="font-size:13px">Your size is available again</div>
-                <div class="ov-cex-tt-sub">Only 12 pairs left</div>
-              </div>
-              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Retargeting Ad</div>
-              <div class="ov-cex-headline">Back in Stock &mdash; Your Size Is Available Again</div>
-              <div class="ov-cex-desc">Dynamic inventory-triggered retargeting to interested past viewers.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">ROAS 3.8&times;</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 7-day</span></div>
-            </div>
-          </div>
-
-          <div class="ov-cex-card">
-            <div class="ov-cex-visual" style="background:linear-gradient(160deg,#0a0018 0%,#12001e 100%)">
-              <div class="ov-cex-tt-mini" style="text-align:center">
-                <div class="ov-cex-tt-circle">B</div>
-                <div class="ov-cex-tt-hook" style="font-size:12px">The brand runners trust</div>
-                <div class="ov-cex-tt-sub">Find out why &#8250;</div>
-              </div>
-              <div class="ov-cex-tt-side"><span>&#10084;</span><span>&#128172;</span><span>&#10148;</span></div>
-            </div>
-            <div class="ov-cex-body">
-              <div class="ov-cex-type">Awareness Campaign</div>
-              <div class="ov-cex-headline">The Brand Runners Trust. Find Out Why.</div>
-              <div class="ov-cex-desc">Brand discovery reach campaign targeting cold audiences at scale.</div>
-              <div class="ov-cex-perf"><span class="ov-cex-perf-pip" style="background:rgba(238,29,82,.8)"></span><span class="ov-cex-perf-val">Reach 340K</span><span class="ov-cex-perf-lbl">&nbsp;&middot; 7-day</span></div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- 07 COMPARISON -->
-<section id="ov-compare">
-  <div class="ov-compare-inner">
-    <div class="ov-section-label">07</div>
-    <h2 class="ov-section-h">Your Data Is Fragmented. Oriven Brings It Together.</h2>
-    <p class="ov-section-sub">Each platform gives you one piece of the picture. Oriven connects all three into a single intelligence layer.</p>
-    <div class="ov-feat-table-5" data-observe>
-      <div class="ov-feat-table-head">
-        <div>Feature</div>
-        <div class="ov-ft-cell"><span class="ov-feat-oriven-badge">ORIVEN</span></div>
-        <div class="ov-ft-cell"><span class="ov-ft-comp-lbl">Google Ads</span></div>
-        <div class="ov-ft-cell"><span class="ov-ft-comp-lbl">Meta Ads</span></div>
-        <div class="ov-ft-cell"><span class="ov-ft-comp-lbl">TikTok Ads</span></div>
-      </div>
-      <div class="ov-feat-table-row ov-feat-row-hi"><div>Cross-Platform Analytics</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div></div>
-      <div class="ov-feat-table-row ov-feat-row-hi"><div>Unified Dashboard</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div></div>
-      <div class="ov-feat-table-row ov-feat-row-hi"><div>AI Recommendations</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div></div>
-      <div class="ov-feat-table-row"><div>Campaign Monitoring</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div></div>
-      <div class="ov-feat-table-row ov-feat-row-hi"><div>Centralized Reporting</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div></div>
-      <div class="ov-feat-table-row ov-feat-row-hi"><div>Single Workspace</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div></div>
-      <div class="ov-feat-table-row ov-feat-row-hi"><div>Multi-Platform Insights</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div><div class="ov-ft-cell"><span class="ov-ft-x">&#10007;</span></div></div>
-      <div class="ov-feat-table-row"><div>Performance Trends</div><div class="ov-ft-cell"><span class="ov-ft-chk">&#10003;</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div><div class="ov-ft-cell"><span class="ov-ft-lim">Limited</span></div></div>
-    </div>
-  </div>
-</section>
-
 <!-- 08 TESTIMONIALS -->
 <section id="ov-reviews" class="ov-reviews-section">
   <div class="ov-reviews-inner">
@@ -971,11 +762,11 @@
   </div>
   <div class="ov-final-inner">
     <div class="ov-section-label">11</div>
-    <div class="ov-final-eyebrow">Ready to bring your marketing together?</div>
-    <h2 class="ov-final-h2">Bring Your Marketing<br>Together.</h2>
-    <p class="ov-final-sub">Stop switching between platforms and start making smarter marketing decisions.</p>
+    <div class="ov-final-eyebrow">Start your AI marketing workspace today</div>
+    <h2 class="ov-final-h2">Connect. Create.<br>Scale.</h2>
+    <p class="ov-final-sub">From ad data to published campaigns to optimized growth — all in one place, powered by AI.</p>
     <div class="ov-final-btns">
-      <a href="#" class="ov-btn-primary ov-btn-primary-lg" onclick="lpGetStarted(event)">Get Started</a>
+      <a href="#" class="ov-btn-primary ov-btn-primary-lg" onclick="lpGetStarted(event)">Get Started Free</a>
       <a href="mailto:hello@orivenai.com" class="ov-btn-ghost">Contact Us</a>
     </div>
     <div class="ov-final-trust">
@@ -992,7 +783,7 @@
     <div class="ov-footer-top">
       <div class="ov-footer-brand">
         <a href="/" class="ov-footer-logo"><img src="assets/orivenlogo.png" alt="Oriven" class="ov-footer-logo-img"></a>
-        <p class="ov-footer-tagline">AI-powered marketing intelligence for modern teams.</p>
+        <p class="ov-footer-tagline">The AI marketing workspace — connect, create, and scale.</p>
       </div>
       <nav class="ov-footer-nav" aria-label="Footer navigation">
         <div class="ov-footer-col">
@@ -2749,6 +2540,40 @@ function lpGetStarted(e){
   else window.location.href = '/signup';
 }
 
+function lpSetPrompt(btn) {
+  var prompt = btn.getAttribute('data-prompt') || '';
+  var input = document.getElementById('lpHeroPrompt');
+  if (input && prompt) {
+    input.value = prompt;
+    input.focus();
+  }
+}
+
+async function lpGenerateCampaign() {
+  var input = document.getElementById('lpHeroPrompt');
+  var prompt = (input ? input.value : '').trim();
+  if (!prompt) {
+    if (input) {
+      input.focus();
+      input.classList.add('lp-hero-input-shake');
+      setTimeout(function() { input.classList.remove('lp-hero-input-shake'); }, 500);
+    }
+    return;
+  }
+  try {
+    sessionStorage.setItem('pendingCampaignPrompt', prompt);
+  } catch(_) {}
+  try {
+    var r = await SB.auth.getSession();
+    if (r.data && r.data.session && r.data.session.user) {
+      window.location.href = '/app';
+      return;
+    }
+  } catch(_) {}
+  if (typeof window.lpNavigate === 'function') window.lpNavigate('/signup');
+  else window.location.href = '/signup';
+}
+
 // All pricing card clicks behave identically to Get Started
 function lpStartPlan(planId, btn){
   if(typeof window.lpNavigate === 'function') window.lpNavigate('/signup');
@@ -4228,12 +4053,15 @@ async function auSignup(){
     .fromTo('#ov-hero .ov-hero-desc',
       { opacity: 0, y: 22 },
       { opacity: 1, y: 0, duration: 0.7, ease: ease }, '-=0.5')
-    .fromTo('#ov-hero .ov-hero-btns a',
-      { opacity: 0, y: 18 },
-      { opacity: 1, y: 0, duration: 0.6, ease: ease, stagger: 0.1 }, '-=0.4')
+    .fromTo('#ov-hero .lp-hero-delivers',
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.6, ease: ease }, '-=0.4')
+    .fromTo('#ov-hero .lp-hero-input-wrap',
+      { opacity: 0, y: 24 },
+      { opacity: 1, y: 0, duration: 0.75, ease: ease }, '-=0.4')
     .fromTo('.ov-hero-int-pill',
       { opacity: 0, y: 12, scale: 0.93 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: ease, stagger: 0.09 }, '-=0.25');
+      { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: ease, stagger: 0.09 }, '-=0.3');
 
   // ── SECTION HEADER HELPER ────────────────────────────────
   function sectionHeader(section, labelSel, h2Sel, subSel) {

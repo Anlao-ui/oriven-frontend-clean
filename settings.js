@@ -71,37 +71,14 @@ function initSettings(){
   applyLanguage();
 
   // Notification toggles
-  var nb = document.getElementById("tglNotifBrandCheck");
   var ng = document.getElementById("tglNotifGenComplete");
   var nu = document.getElementById("tglNotifUpdates");
-  if(nb) nb.classList.toggle("on", cfg.notifBrandCheck !== false);
+  var np = document.getElementById("tglNotifPublish");
+  var nb = document.getElementById("tglNotifBilling");
   if(ng) ng.classList.toggle("on", cfg.notifGenComplete !== false);
   if(nu) nu.classList.toggle("on", cfg.notifUpdates !== false);
-
-  // Intelligence toggles
-  var tglAI = document.getElementById("tglAILearning");
-  if(tglAI) tglAI.classList.toggle("on", cfg.aiLearning !== false);
-  _updateHint("hintAILearning", cfg.aiLearning !== false,
-    "Future personalization active", "No history used for recommendations");
-
-  var tglBC = document.getElementById("tglBrandConsistency");
-  if(tglBC) tglBC.classList.toggle("on", cfg.brandConsistency !== false);
-  _updateHint("hintBrandConsistency", cfg.brandConsistency !== false,
-    "Maximum brand consistency", "Creative freedom enabled");
-
-  // Workspace toggles
-  var tglGH = document.getElementById("tglGenHistory");
-  if(tglGH) tglGH.classList.toggle("on", cfg.generationHistory !== false);
-  _updateHint("hintGenHistory", cfg.generationHistory !== false,
-    "History is being saved", "Generations are not stored");
-
-  var tglAS = document.getElementById("tglAutoSave");
-  if(tglAS) tglAS.classList.toggle("on", cfg.autoSave !== false);
-  _updateHint("hintAutoSave", cfg.autoSave !== false,
-    "BrandCore changes are saved automatically", "Save manually required");
-
-  // Default view
-  _applyGeneratorView(cfg.generatorView || "grid");
+  if(np) np.classList.toggle("on", cfg.notifPublish !== false);
+  if(nb) nb.classList.toggle("on", cfg.notifBilling !== false);
 
   // Profile email
   _loadProfileEmail();
@@ -127,8 +104,10 @@ function saveWsName(){
 
 function _updateSidebarName(name){
   if(!name) return;
-  var el = document.getElementById("sidebarUserName");
-  if(el) el.textContent = name;
+  var el1 = document.getElementById("sidebarUserName");
+  var el2 = document.getElementById("orvSbName");
+  if(el1) el1.textContent = name;
+  if(el2) el2.textContent = name;
 }
 
 async function _loadProfileEmail(){
@@ -176,15 +155,22 @@ function setTheme(mode){
   // Re-apply accent because dark-mode CSS vars override :root values
   _applyAccent(loadSettings().accent || "green");
   saveSettings({ theme: mode });
-  toast(mode === "dark" ? "Dark mode enabled" : "Light mode enabled");
+  toast(mode === "dark" ? "Dark mode" : mode === "system" ? "Using system theme" : "Light mode");
 }
 
 function _applyTheme(mode){
-  document.body.classList.toggle("dark-mode", mode === "dark");
+  if(mode === "system"){
+    var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.body.classList.toggle("dark-mode", prefersDark);
+  } else {
+    document.body.classList.toggle("dark-mode", mode === "dark");
+  }
   var tl = document.getElementById("themeLight");
   var td = document.getElementById("themeDark");
-  if(tl) tl.classList.toggle("active", mode !== "dark");
-  if(td) td.classList.toggle("active",  mode === "dark");
+  var ts = document.getElementById("themeSystem");
+  if(tl) tl.classList.toggle("active", mode === "light" || !mode);
+  if(td) td.classList.toggle("active", mode === "dark");
+  if(ts) ts.classList.toggle("active", mode === "system");
 }
 
 
@@ -1297,173 +1283,162 @@ function renderPlanPanel(){
   var container = document.getElementById("planPanelContent");
   if(!container) return;
 
-  var cfg         = loadSettings();
-  // _dbSubscriptionStatus is the single source of truth — set exclusively from Supabase
-  // by _loadUserProfile() in auth.js. Fall back to S.currentPlan, then localStorage.
-  // Never infer, hardcode, or default to a paid plan.
-  // Use _dbSubscriptionStatus (Supabase) exclusively. Fall back to S.currentPlan only
-  // when the DB value is not yet loaded (null = still in flight, not failed).
-  // Never fall back to localStorage: stale cached values hide profile load failures.
+  var cfg = loadSettings();
   var currentId;
   if(typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus !== null){
     currentId = _dbSubscriptionStatus;
   } else if(typeof S !== "undefined" && S && S.currentPlan){
     currentId = S.currentPlan;
   } else {
-    currentId = null; // unknown — don't display any plan name until Supabase responds
+    currentId = null;
   }
   var pendingId   = (typeof S !== "undefined" && S && S.pendingPlan !== undefined) ? S.pendingPlan : (cfg.pendingPlan || null);
   var renewalStr  = _formatPlanDate(cfg.planRenewalDate);
   var currentData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === currentId; });
-  var currentRank = ORIVEN_PLAN_LIST.findIndex(function(p){ return p.id === currentId; });
+  var currentRank = currentData ? ORIVEN_PLAN_LIST.indexOf(currentData) : -1;
 
-  // Keep sidebar label in sync
   _updateSidebarPlan(currentId);
 
-  // ── Status bar ────────────────────────────────────────────────
-  var html = '<div class="plan-status-bar">';
-  html += '<div class="plan-status-left">';
-  html += '<span class="plan-status-badge">' + (currentData ? currentData.name : "No Subscription") + '</span>';
+  // Usage stats
+  var campaigns = (typeof S !== "undefined" && S && Array.isArray(S.campaigns)) ? S.campaigns.length : 0;
+  var connCount = (window._gadsConnected ? 1 : 0) + (window._metaConnected ? 1 : 0) + (window._tiktokConnected ? 1 : 0);
+  var usedCr    = (typeof _getCounts === "function") ? (_getCounts().monthlyCount || 0) : 0;
+  var totalCr   = currentData ? (currentData.credits || currentData.limit || 0) : 0;
+  var assets    = (typeof S !== "undefined" && S && Array.isArray(S.assets)) ? S.assets.length : 0;
+
+  function _uRow(label, val, sub){
+    return '<div class="sub-usage-row">'
+      + '<div class="sub-usage-lbl">' + label + '</div>'
+      + '<div class="sub-usage-right">'
+      + '<div class="sub-usage-val">' + val + '</div>'
+      + (sub ? '<div class="sub-usage-sub">' + sub + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  }
+
+  var html = '';
+
+  // ── Section 1: Current Plan + Usage ───────────────────────────
+  html += '<div class="sub-two-col">';
+
+  // Current plan card
+  html += '<div class="sub-plan-card">';
+  html += '<div class="sub-card-eyebrow">Current Plan</div>';
   if(!currentData){
-    html += '<span class="plan-status-renew">No active subscription — choose a plan to start creating</span>';
+    html += '<div class="sub-plan-name">Free</div>';
+    html += '<div class="sub-plan-price"><span class="sub-price-num">€0</span><span class="sub-price-per">/month</span></div>';
+    html += '<ul class="sub-features"><li>1 Campaign per month</li><li>Basic AI generation</li><li>Brand Brain (limited)</li></ul>';
+    html += '<div class="sub-plan-actions"><button class="btn btn-p btn-sm" onclick="switchPlan(\'starter\')">Upgrade to Starter</button></div>';
   } else {
-    html += '<span class="plan-status-renew">Renews on ' + renewalStr + '</span>';
-  }
-  html += '</div>';
-  if(pendingId){
-    var pendingData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === pendingId; });
-    var pendingName = pendingData ? pendingData.name : pendingId;
-    var pendingDate = _formatPlanDate(cfg.pendingPlanDate || cfg.planRenewalDate);
-    var isCancellation = pendingId === "free";
-    html += '<div class="plan-status-pending">';
-    html += '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" width="13" height="13"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>';
-    if(isCancellation){
-      html += 'Cancellation scheduled — full access active until <strong>' + pendingDate + '</strong>';
-      html += '<button class="plan-cancel-btn" onclick="cancelPlanChange()">Undo Cancellation</button>';
-    } else {
-      html += 'Scheduled change: <strong>' + pendingName + '</strong> starts ' + pendingDate;
-      html += '<button class="plan-cancel-btn" onclick="cancelPlanChange()">Cancel Change</button>';
-    }
-    html += '</div>';
-  }
-  html += '</div>';
-
-  // ── Plan Usage block ──────────────────────────────────────────
-  if(currentData){
-    var usedCr   = (typeof _getCounts === "function") ? (_getCounts().monthlyCount || 0) : 0;
-    var totalCr  = currentData.credits || currentData.limit || 0;
-    var remCr    = Math.max(0, totalCr - usedCr);
-    var pctCr    = totalCr > 0 ? Math.min(100, Math.round((usedCr / totalCr) * 100)) : 0;
-    var crBarClr = pctCr >= 90 ? "#EF4444" : pctCr >= 70 ? "#F59E0B" : "var(--gm)";
-
-    // Derive current usage from app state
-    var usedBrands  = 1; // always 1 brand per workspace in current version
-    var totalBrands = currentData.brands || 1;
-    var pctBrands   = Math.min(100, Math.round((usedBrands / totalBrands) * 100));
-
-    var usedComp  = (typeof _ciLastReport !== "undefined" && _ciLastReport) ? 1 : 0;
-    var totalComp = currentData.competitors || 2;
-    var pctComp   = Math.min(100, Math.round((usedComp / totalComp) * 100));
-
-    var usedWeb  = (typeof _webReport !== "undefined" && _webReport) ? 1 : 0;
-    var totalWeb = currentData.websites || 1;
-    var pctWeb   = Math.min(100, Math.round((usedWeb / totalWeb) * 100));
-
-    function _usageRow(label, used, total, pct, barColor){
-      var color = barColor || (pct >= 90 ? "#EF4444" : pct >= 70 ? "#F59E0B" : "var(--gm)");
-      return '<div class="plan-usage-row">'
-        + '<div class="plan-usage-row-lbl">' + label + '</div>'
-        + '<div class="plan-usage-row-right">'
-        +   '<div class="plan-usage-bar"><div class="plan-usage-fill" style="width:' + pct + '%;background:' + color + '"></div></div>'
-        +   '<div class="plan-usage-count">' + used + ' / ' + total + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-
-    html += '<div class="plan-usage-block">';
-    html +=   '<div class="plan-usage-title">Plan Usage</div>';
-    html +=   _usageRow("Brands",          usedBrands, totalBrands, pctBrands);
-    html +=   _usageRow("Competitors",     usedComp,   totalComp,   pctComp);
-    html +=   _usageRow("Websites",        usedWeb,    totalWeb,    pctWeb);
-    html +=   _usageRow("Create Credits",  usedCr,     totalCr,     pctCr, crBarClr);
-    html +=   '<div class="plan-usage-meta">';
-    html +=     '<div class="plan-usage-meta-item"><span class="plan-usage-meta-lbl">Brand Brief</span><span class="plan-usage-meta-val">' + (currentData.brief || "—") + '</span></div>';
-    html +=     '<div class="plan-usage-meta-item"><span class="plan-usage-meta-lbl">Monitoring</span><span class="plan-usage-meta-val">Active</span></div>';
-    html +=     '<div class="plan-usage-meta-item"><span class="plan-usage-meta-lbl">Historical Tracking</span><span class="plan-usage-meta-val">' + (currentData.historyLabel || "30 days") + '</span></div>';
-    html +=   '</div>';
-    html += '</div>';
-  }
-
-  // ── Paid plan cards ────────────────────────────────────────────
-  html += '<div class="plan-cards">';
-  ORIVEN_PAID_PLANS.forEach(function(plan){
-    var isCurrent    = plan.id === currentId;
-    var isPending    = plan.id === pendingId;
-    var isPopular    = !!plan.popular;
-    var isAgency     = !!plan.contactSales;
-    var cls = 'plan-card';
-    if(isCurrent)                            cls += ' plan-card--current';
-    if(isPending)                            cls += ' plan-card--pending';
-    if(isPopular && !isCurrent && !isPending) cls += ' plan-card--popular';
-    if(isAgency)                             cls += ' plan-card--agency';
-
-    html += '<div class="' + cls + '">';
-    if(isPopular && !isAgency) html += '<div class="plan-popular-tag">Most Popular</div>';
-
-    html += '<div class="plan-card-head">';
-    html += '<span class="plan-card-name">' + plan.name + '</span>';
-    if(isCurrent)      html += '<span class="plan-badge plan-badge--current">Current Plan</span>';
-    else if(isPending) html += '<span class="plan-badge plan-badge--pending">Scheduled</span>';
-    html += '</div>';
-
-    // Price row — Agency shows "Contact Sales" instead of price
-    if(isAgency){
-      html += '<div class="plan-card-price"><span class="plan-price-cs">Contact Sales</span></div>';
-    } else {
-      html += '<div class="plan-card-price">';
-      html += '<span class="plan-price-num">€' + plan.price + '</span>';
-      html += '<span class="plan-price-per">/month</span>';
+    if(pendingId){
+      var pData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === pendingId; });
+      var pName = pData ? pData.name : pendingId;
+      var pDate = _formatPlanDate(cfg.pendingPlanDate || cfg.planRenewalDate);
+      var isCancel = pendingId === "free";
+      html += '<div class="sub-pending-notice">';
+      if(isCancel){
+        html += 'Cancellation scheduled — access active until <strong>' + pDate + '</strong>';
+        html += ' <button class="sub-undo-btn" onclick="cancelPlanChange()">Undo</button>';
+      } else {
+        html += 'Changing to <strong>' + pName + '</strong> on ' + pDate;
+        html += ' <button class="sub-undo-btn" onclick="cancelPlanChange()">Cancel</button>';
+      }
       html += '</div>';
     }
-
-    // Feature list — Agency shows nothing yet
-    if(!isAgency && plan.features && plan.features.length){
-      html += '<ul class="plan-features">';
-      plan.features.forEach(function(f){
-        html += '<li><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M2 7.5l3 3 7-6"/></svg>' + f + '</li>';
-      });
+    html += '<div class="sub-plan-name">' + currentData.name + '</div>';
+    if(currentData.contactSales){
+      html += '<div class="sub-plan-price"><span class="sub-price-cs">Contact Sales</span></div>';
+    } else {
+      html += '<div class="sub-plan-price"><span class="sub-price-num">€' + currentData.price + '</span><span class="sub-price-per">/month</span></div>';
+    }
+    if(renewalStr) html += '<div class="sub-renewal">Renews ' + renewalStr + '</div>';
+    if(currentData.features && currentData.features.length){
+      html += '<ul class="sub-features">';
+      currentData.features.slice(0,5).forEach(function(f){ html += '<li>' + f + '</li>'; });
       html += '</ul>';
     }
-
-    html += '<div class="plan-card-action">';
-    if(isAgency){
-      html += '<a href="mailto:hello@oriven.ai" class="btn btn-g btn-sm">Contact Sales</a>';
-    } else if(isCurrent){
-      html += '<button class="btn btn-g btn-sm" disabled>Your Current Plan</button>';
-    } else if(isPending){
-      html += '<button class="btn btn-g btn-sm" disabled>Scheduled</button>';
-    } else {
-      var planRank    = ORIVEN_PLAN_LIST.findIndex(function(p){ return p.id === plan.id; });
-      var actionLabel = planRank > currentRank ? 'Upgrade' : 'Downgrade';
-      html += '<button class="btn btn-p btn-sm" onclick="switchPlan(\'' + plan.id + '\')">' + actionLabel + '</button>';
+    html += '<div class="sub-plan-actions">';
+    if(pendingId !== "free"){
+      html += '<button class="sub-cancel-link" onclick="_showCancelConfirm()">Cancel plan</button>';
     }
     html += '</div>';
+  }
+  html += '</div>';
+
+  // Usage card
+  html += '<div class="sub-usage-card">';
+  html += '<div class="sub-card-eyebrow">Usage</div>';
+  html += '<div class="sub-usage-list">';
+  html += _uRow('Campaigns Generated', campaigns, 'total in workspace');
+  html += _uRow('AI Credits Used', totalCr > 0 ? usedCr + ' / ' + totalCr : (usedCr || '—'), totalCr > 0 ? 'this billing period' : '');
+  html += _uRow('Saved Assets', assets, 'in your library');
+  html += _uRow('Connected Platforms', connCount + ' / 3', connCount === 0 ? 'none connected' : connCount + ' platform' + (connCount === 1 ? '' : 's') + ' active');
+  html += '</div>';
+  html += '<button class="btn btn-g btn-sm" style="margin-top:16px" onclick="navigate(\'integrations\')">Manage Integrations</button>';
+  html += '</div>';
+
+  html += '</div>'; // end sub-two-col
+
+  // ── Section 2: Plan comparison grid ───────────────────────────
+  html += '<div class="sub-plans-sep"></div>';
+  html += '<div class="sub-plans-hd">Available Plans</div>';
+  html += '<div class="sub-plans-grid">';
+
+  ORIVEN_PLAN_LIST.forEach(function(plan, rank){
+    var isCurrent = plan.id === currentId;
+    var isPending = plan.id === pendingId;
+    var isAgency  = !!plan.contactSales;
+    var isUp      = rank > currentRank;
+
+    html += '<div class="sub-pcard' + (isCurrent ? ' sub-pcard-active' : '') + '">';
+
+    // Top badge row
+    if(isCurrent){
+      html += '<div class="sub-pcard-badge sub-pcard-badge-cur">Current Plan</div>';
+    } else if(plan.popular){
+      html += '<div class="sub-pcard-badge sub-pcard-badge-pop">Most Popular</div>';
+    } else {
+      html += '<div class="sub-pcard-badge-gap"></div>';
+    }
+
+    html += '<div class="sub-pcard-name">' + plan.name + '</div>';
+
+    if(isAgency){
+      html += '<div class="sub-pcard-price sub-pcard-price-cs">Contact Sales</div>';
+    } else {
+      html += '<div class="sub-pcard-price">€' + plan.price + '<span class="sub-pcard-per">/mo</span></div>';
+    }
+
+    if(!isAgency && plan.features && plan.features.length){
+      html += '<ul class="sub-pcard-feats">';
+      plan.features.slice(0,4).forEach(function(f){ html += '<li>' + f + '</li>'; });
+      html += '</ul>';
+    } else if(isAgency){
+      html += '<div class="sub-pcard-agency-desc">Custom volume, unlimited team members, white-label &amp; dedicated support.</div>';
+    }
+
+    // CTA
+    if(isCurrent){
+      html += '<button class="sub-pcard-btn sub-pcard-btn-cur" disabled>Current Plan</button>';
+    } else if(isAgency){
+      html += '<a href="mailto:hello@oriven.ai" class="sub-pcard-btn sub-pcard-btn-outline">Contact Sales</a>';
+    } else if(isPending){
+      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" disabled>Scheduled</button>';
+    } else if(isUp){
+      html += '<button class="sub-pcard-btn sub-pcard-btn-up" onclick="switchPlan(\'' + plan.id + '\')">Upgrade</button>';
+    } else {
+      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" onclick="switchPlan(\'' + plan.id + '\')">Downgrade</button>';
+    }
 
     html += '</div>';
   });
-  html += '</div>';
 
-  // ── Cancel Plan section (paid users, no cancellation already pending) ──
+  html += '</div>'; // end sub-plans-grid
+
+  // Cancel confirm dialog
   if(currentData && pendingId !== "free"){
-    html += '<div class="plan-cancel-section">';
-    html += '<div class="plan-cancel-section-info">';
-    html += '<div class="plan-cancel-section-title">Cancel Plan</div>';
-    html += '<div class="plan-cancel-section-sub">Your access stays active until ' + renewalStr + '. After that, generation access will be disabled.</div>';
-    html += '</div>';
-    html += '<button class="btn btn-g btn-sm" onclick="_showCancelConfirm()">Cancel Plan</button>';
-    html += '</div>';
     html += '<div class="plan-cancel-confirm" id="planCancelConfirm" style="display:none">';
-    html += '<div class="plan-cancel-confirm-text">Cancel your <strong>' + (currentData ? currentData.name : "") + '</strong> plan? You\'ll keep full access until <strong>' + renewalStr + '</strong>. After that, generation access will be disabled.</div>';
+    html += '<div class="plan-cancel-confirm-text">Cancel your <strong>' + currentData.name + '</strong> plan? You\'ll keep full access until <strong>' + renewalStr + '</strong>.</div>';
     html += '<div class="plan-cancel-confirm-btns">';
     html += '<button class="btn btn-danger btn-sm" onclick="switchPlan(\'free\')">Yes, Cancel Plan</button>';
     html += '<button class="btn btn-g btn-sm" onclick="_hideCancelConfirm()">Keep Plan</button>';
@@ -2348,3 +2323,31 @@ document.addEventListener("DOMContentLoaded", function(){
   renderInspiration();
   renderAssets();
 });
+
+
+// ════════════════════════════════════════════════════════════════
+// SETTINGS MODAL
+// ════════════════════════════════════════════════════════════════
+
+function openSettingsModal(){
+  if(typeof openModal === "function") openModal("modal-settings");
+  // Reset nav to first tab
+  var firstNi = document.querySelector(".smd-ni");
+  if(firstNi) smdNav(firstNi);
+  // Populate fields
+  initSettings();
+}
+
+function smdNav(btn){
+  var key = btn.dataset.smd;
+  document.querySelectorAll(".smd-ni").forEach(function(b){ b.classList.remove("active"); });
+  btn.classList.add("active");
+  document.querySelectorAll(".smd-panel").forEach(function(p){ p.classList.remove("active"); });
+  var panel = document.getElementById("smdp-" + key);
+  if(panel) panel.classList.add("active");
+}
+
+function confirmDeleteAccount(){
+  if(!confirm("Permanently delete your ORIVEN account and all data? This cannot be undone.")) return;
+  toast("Contact support@oriven.ai to complete account deletion.", "warn");
+}

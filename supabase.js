@@ -50,8 +50,12 @@ async function apiFetch(path, options) {
   if(!headers["Authorization"] && _apiToken){
     headers["Authorization"] = "Bearer " + _apiToken;
   }
+  // Auto-set Content-Type for JSON bodies so express.json() parses req.body
+  if(options && options.body && typeof options.body === "string" && !headers["Content-Type"]){
+    headers["Content-Type"] = "application/json";
+  }
   options = Object.assign({}, options, { headers: headers });
-  console.log("[API] →", method, url);
+  console.log("[API] →", method, url, "| auth:", headers["Authorization"] ? "Bearer present" : "NO AUTH TOKEN", "| body size:", options.body ? options.body.length + " bytes" : "none");
 
   var resp;
   try {
@@ -61,7 +65,7 @@ async function apiFetch(path, options) {
     throw new Error("Could not reach ORIVEN services. Please check your connection and try again.");
   }
 
-  console.log("[API] ←", resp.status, url);
+  console.log("[API] ←", resp.status, url, "| ok:", resp.ok);
 
   // Read body as text first — safe regardless of content-type
   var text = await resp.text();
