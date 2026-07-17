@@ -712,6 +712,11 @@
           </div>
         </div>
 
+        <!-- Platform switcher — shown when at least one platform is connected -->
+        <div id="prfPlatTabs" style="display:none">
+          <div class="prf-plat-tabs" id="prfPlatTabsInner"></div>
+        </div>
+
         <div class="prf-connect-banner" id="prfConnectBanner">
           <div class="prf-cb-ico">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
@@ -7965,6 +7970,13 @@ window.conDisconnect = function(platform) {
 /* ── Performance page ── */
 window._prfActiveRange = 'LAST_30_DAYS';
 window._prfConnectedPlatforms = [];
+window._prfActivePlatform = (function() {
+  try { return localStorage.getItem('_prfPlatform') || 'all'; } catch(_){ return 'all'; }
+})();
+window._prfAllCampaigns = [];
+window._prfPlatKpis = {};
+
+var _PRF_PLAT_LABELS = { all: 'All Platforms', google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads' };
 
 window.prfRange = function(btn, range) {
   document.querySelectorAll('.prf-pill').forEach(function(b) { b.classList.remove('active'); });
@@ -7974,6 +7986,17 @@ window.prfRange = function(btn, range) {
   if (window._prfConnectedPlatforms.length > 0) {
     _prfLoadData(window._prfConnectedPlatforms, window._prfActiveRange);
   }
+};
+
+window.prfSwitchPlatform = function(platform) {
+  window._prfActivePlatform = platform;
+  try { localStorage.setItem('_prfPlatform', platform); } catch(_){}
+  /* Update tab active state */
+  document.querySelectorAll('.prf-ptab').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.plat === platform);
+  });
+  /* Re-render from stored data */
+  _prfApplyView();
 };
 
 window.prfInit = function() {
@@ -7987,9 +8010,12 @@ window.prfInit = function() {
     window._prfConnectedPlatforms = connected;
     if (connected.length === 0) {
       if (banner) banner.style.display = '';
+      var tabsWrap = document.getElementById('prfPlatTabs');
+      if (tabsWrap) tabsWrap.style.display = 'none';
       return;
     }
     if (banner) banner.style.display = 'none';
+    _prfBuildTabs(connected);
     _prfLoadData(connected, window._prfActiveRange || 'LAST_30_DAYS');
   }
   ['google', 'meta'].forEach(function(p) {
@@ -8001,6 +8027,23 @@ window.prfInit = function() {
 };
 
 window.initAdsDashboard = function() { window.prfInit(); };
+
+function _prfBuildTabs(connected) {
+  var wrap = document.getElementById('prfPlatTabs');
+  var inner = document.getElementById('prfPlatTabsInner');
+  if (!wrap || !inner) return;
+  /* Validate persisted platform — might not be connected anymore */
+  var validPlat = window._prfActivePlatform;
+  if (validPlat !== 'all' && connected.indexOf(validPlat) === -1) {
+    validPlat = 'all';
+    window._prfActivePlatform = 'all';
+  }
+  var tabs = ['all'].concat(connected);
+  inner.innerHTML = tabs.map(function(p) {
+    return '<button class="prf-ptab' + (p === validPlat ? ' active' : '') + '" data-plat="' + p + '" onclick="prfSwitchPlatform(\'' + p + '\')">' + (_PRF_PLAT_LABELS[p] || p) + '</button>';
+  }).join('');
+  wrap.style.display = '';
+}
 
 function _prfSet(id, v) {
   var el = document.getElementById(id);
@@ -8021,32 +8064,26 @@ function _prfEsc(s) {
 function _prfLoadData(platforms, range) {
   _prfSet('prfKpiSpend', '…'); _prfSet('prfKpiImpr', '…');
   _prfSet('prfKpiClicks', '…'); _prfSet('prfKpiConv', '…'); _prfSet('prfKpiRoas', '…');
-  var combined = { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0 };
-  var allCampaigns = [];
+  window._prfAllCampaigns = [];
+  window._prfPlatKpis = {};
   var pending = platforms.length;
+
   function _done() {
     pending--;
     if (pending > 0) return;
-    _prfSet('prfKpiSpend', '€' + _prfFmt(combined.spend));
-    _prfSet('prfKpiImpr', _prfFmt(combined.impr));
-    _prfSet('prfKpiClicks', _prfFmt(combined.clicks));
-    _prfSet('prfKpiConv', _prfFmt(combined.conv));
-    var roas = combined.spend > 0 && combined.convVal > 0 ? (combined.convVal / combined.spend) : 0;
-    _prfSet('prfKpiRoas', roas > 0 ? roas.toFixed(2) + 'x' : (combined.spend > 0 ? '—' : '—'));
-    _prfRenderTable(allCampaigns);
-    _prfRenderBars(allCampaigns);
+    _prfApplyView();
   }
+
   if (platforms.indexOf('google') !== -1) {
     apiFetch('/api/ads/overview?date_range=' + range).then(function(r) {
       if (r.ok && r.data && r.data.overview) {
         var o = r.data.overview;
-        combined.spend   += o.spend            || 0;
-        combined.impr    += o.impressions      || 0;
-        combined.clicks  += o.clicks           || 0;
-        combined.conv    += o.conversions      || 0;
-        combined.convVal += o.conversions_value|| 0;
+        window._prfPlatKpis['google'] = {
+          spend: o.spend || 0, impr: o.impressions || 0, clicks: o.clicks || 0,
+          conv: o.conversions || 0, convVal: o.conversions_value || 0
+        };
         (r.data.campaigns || []).forEach(function(c) {
-          allCampaigns.push({ name: c.name, platform: 'Google', status: c.status,
+          window._prfAllCampaigns.push({ name: c.name, platform: 'google', status: c.status,
             spend: c.spend, impressions: c.impressions, clicks: c.clicks,
             ctr: c.ctr, conv: c.conversions, roas: c.roas });
         });
@@ -8054,22 +8091,66 @@ function _prfLoadData(platforms, range) {
       _done();
     }).catch(function() { _done(); });
   }
+
   if (platforms.indexOf('meta') !== -1) {
     apiFetch('/api/meta/campaigns?date_range=' + range).then(function(r) {
       if (r.ok && r.data && r.data.campaigns) {
+        var metaKpi = { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0 };
         r.data.campaigns.forEach(function(c) {
-          combined.spend  += c.spend       || 0;
-          combined.impr   += c.impressions || 0;
-          combined.clicks += c.clicks      || 0;
-          combined.conv   += c.conversions || 0;
-          allCampaigns.push({ name: c.campaign_name, platform: 'Meta', status: c.status,
+          metaKpi.spend  += c.spend       || 0;
+          metaKpi.impr   += c.impressions || 0;
+          metaKpi.clicks += c.clicks      || 0;
+          metaKpi.conv   += c.conversions || 0;
+          window._prfAllCampaigns.push({ name: c.campaign_name, platform: 'meta', status: c.status,
             spend: c.spend, impressions: c.impressions, clicks: c.clicks,
             ctr: c.ctr, conv: c.conversions, roas: 0 });
         });
+        window._prfPlatKpis['meta'] = metaKpi;
       }
       _done();
     }).catch(function() { _done(); });
   }
+}
+
+function _prfApplyView() {
+  var plat = window._prfActivePlatform || 'all';
+  var campaigns;
+  var kpis;
+
+  if (plat === 'all') {
+    campaigns = window._prfAllCampaigns;
+    /* Sum all platforms */
+    kpis = { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0 };
+    Object.keys(window._prfPlatKpis).forEach(function(p) {
+      var k = window._prfPlatKpis[p];
+      kpis.spend   += k.spend   || 0;
+      kpis.impr    += k.impr    || 0;
+      kpis.clicks  += k.clicks  || 0;
+      kpis.conv    += k.conv    || 0;
+      kpis.convVal += k.convVal || 0;
+    });
+  } else {
+    campaigns = window._prfAllCampaigns.filter(function(c) { return c.platform === plat; });
+    kpis = window._prfPlatKpis[plat] || { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0 };
+  }
+
+  _prfSet('prfKpiSpend',  '€' + _prfFmt(kpis.spend));
+  _prfSet('prfKpiImpr',   _prfFmt(kpis.impr));
+  _prfSet('prfKpiClicks', _prfFmt(kpis.clicks));
+  _prfSet('prfKpiConv',   _prfFmt(kpis.conv));
+  var roas = kpis.spend > 0 && kpis.convVal > 0 ? (kpis.convVal / kpis.spend) : 0;
+  _prfSet('prfKpiRoas',   roas > 0 ? roas.toFixed(2) + 'x' : '—');
+
+  if (campaigns.length === 0 && Object.keys(window._prfPlatKpis).length > 0) {
+    /* Connected but no campaign data */
+    var tbody = document.getElementById('prfCampTbody');
+    var badge = document.getElementById('prfCampCount');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="prf-table-empty">No campaign data available for this period.</td></tr>';
+    if (badge) badge.textContent = '0 campaigns';
+  } else {
+    _prfRenderTable(campaigns);
+  }
+  _prfRenderBars(campaigns);
 }
 
 function _prfRenderTable(campaigns) {
@@ -8081,14 +8162,15 @@ function _prfRenderTable(campaigns) {
     if (badge) badge.textContent = '0 campaigns';
     return;
   }
-  campaigns.sort(function(a, b) { return (b.spend || 0) - (a.spend || 0); });
-  if (badge) badge.textContent = campaigns.length + ' campaign' + (campaigns.length === 1 ? '' : 's');
-  tbody.innerHTML = campaigns.map(function(c) {
+  var sorted = campaigns.slice().sort(function(a, b) { return (b.spend || 0) - (a.spend || 0); });
+  if (badge) badge.textContent = sorted.length + ' campaign' + (sorted.length === 1 ? '' : 's');
+  tbody.innerHTML = sorted.map(function(c) {
     var isActive = c.status === 'ENABLED' || c.status === 'ACTIVE';
     var statusLbl = isActive ? 'Active' : (c.status === 'PAUSED' ? 'Paused' : (c.status || '—'));
     var statusCls = isActive ? 'prf-status prf-status-active' : 'prf-status prf-status-paused';
+    var showPlat = window._prfActivePlatform === 'all';
     return '<tr>' +
-      '<td><span class="prf-plat-tag prf-plat-' + c.platform.toLowerCase() + '">' + c.platform + '</span> ' + _prfEsc(c.name) + '</td>' +
+      '<td>' + (showPlat ? '<span class="prf-plat-tag prf-plat-' + c.platform + '">' + _PRF_PLAT_LABELS[c.platform] + '</span> ' : '') + _prfEsc(c.name) + '</td>' +
       '<td><span class="' + statusCls + '">' + statusLbl + '</span></td>' +
       '<td class="prf-num">€' + (c.spend || 0).toFixed(2) + '</td>' +
       '<td class="prf-num">' + _prfFmt(c.impressions) + '</td>' +
@@ -8105,7 +8187,7 @@ function _prfRenderBars(campaigns) {
   var lockEl = document.getElementById('prfLockSpend');
   if (!barsEl) return;
   if (!campaigns.length) {
-    if (lockEl) { lockEl.style.display = ''; lockEl.textContent = 'No campaign data for this period'; }
+    if (lockEl) { lockEl.style.display = ''; lockEl.textContent = 'No data for this period'; }
     return;
   }
   if (lockEl) lockEl.style.display = 'none';
@@ -8114,7 +8196,7 @@ function _prfRenderBars(campaigns) {
   var maxSpend = Math.max.apply(null, top.map(function(c) { return c.spend || 0; }));
   barsEl.innerHTML = top.map(function(c) {
     var pct = maxSpend > 0 ? Math.max(5, Math.round((c.spend / maxSpend) * 95)) : 5;
-    var cls = c.platform === 'Meta' ? 'prf-bar prf-bar-meta' : 'prf-bar';
+    var cls = c.platform === 'meta' ? 'prf-bar prf-bar-meta' : 'prf-bar';
     return '<div class="' + cls + '" style="--bh:' + pct + '%" title="' + _prfEsc(c.name) + ': €' + (c.spend || 0).toFixed(2) + '"></div>';
   }).join('');
 }

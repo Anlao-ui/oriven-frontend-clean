@@ -29651,6 +29651,28 @@ body.dark-mode .rpt-plat-metric strong { color: rgba(255,255,255,.88); }
 .prf-pill:hover { color: rgba(255,255,255,.75); }
 .prf-pill.active { background: rgba(255,255,255,.1); color: #fff; }
 
+/* Platform switcher tabs */
+.prf-plat-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.prf-ptab {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: transparent;
+  color: rgba(255,255,255,.45);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+  letter-spacing: .2px;
+}
+.prf-ptab:hover { color: rgba(255,255,255,.75); border-color: rgba(255,255,255,.22); }
+.prf-ptab.active { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.2); }
+
 .prf-connect-banner {
   display: flex;
   align-items: center;
