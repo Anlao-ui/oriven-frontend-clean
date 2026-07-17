@@ -762,7 +762,7 @@
               </div>
             </div>
             <div class="prf-chart-body">
-              <div class="prf-bars">
+              <div class="prf-bars" id="prfBarsSpend">
                 <div class="prf-bar" style="--bh:38%"></div><div class="prf-bar" style="--bh:55%"></div>
                 <div class="prf-bar" style="--bh:42%"></div><div class="prf-bar" style="--bh:70%"></div>
                 <div class="prf-bar" style="--bh:61%"></div><div class="prf-bar" style="--bh:80%"></div>
@@ -771,7 +771,7 @@
                 <div class="prf-bar" style="--bh:88%"></div><div class="prf-bar" style="--bh:71%"></div>
                 <div class="prf-bar" style="--bh:59%"></div><div class="prf-bar" style="--bh:45%"></div>
               </div>
-              <div class="prf-chart-lock">
+              <div class="prf-chart-lock" id="prfLockSpend">
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="13" height="13"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>
                 Connect an account to see live data
               </div>
@@ -7806,6 +7806,7 @@ window._orvNav = function(page, explicitPageId) {
   var mc = document.querySelector('.mc');
   if (mc) mc.scrollTop = 0;
   if ((page === 'connect' || page === 'integrations') && typeof initIntegrations === 'function') setTimeout(initIntegrations, 0);
+  if ((page === 'analytics' || page === 'performance') && typeof prfInit === 'function') setTimeout(prfInit, 0);
 };
 </script>
 
@@ -7962,28 +7963,161 @@ window.conDisconnect = function(platform) {
 };
 
 /* ── Performance page ── */
+window._prfActiveRange = 'LAST_30_DAYS';
+window._prfConnectedPlatforms = [];
+
 window.prfRange = function(btn, range) {
   document.querySelectorAll('.prf-pill').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
+  var MAP = { '7d': 'LAST_7_DAYS', '30d': 'LAST_30_DAYS', '90d': 'LAST_90_DAYS' };
+  window._prfActiveRange = MAP[range] || 'LAST_30_DAYS';
+  if (window._prfConnectedPlatforms.length > 0) {
+    _prfLoadData(window._prfConnectedPlatforms, window._prfActiveRange);
+  }
 };
 
 window.prfInit = function() {
-  var pd = window._orvPlatformData || {};
-  var anyConn = ['google','meta','tiktok'].some(function(p){ return pd[p] && pd[p].connected; });
   var banner = document.getElementById('prfConnectBanner');
-  if (banner) banner.style.display = anyConn ? 'none' : '';
-  function _set(id, v) { var el = document.getElementById(id); if (el) el.textContent = (v != null) ? v : '—'; }
-  var combined = { spend: null, impr: null, clicks: null, conv: null, roas: null };
-  ['google','meta','tiktok'].forEach(function(p) {
-    if (!pd[p] || !pd[p].connected) return;
-    if (pd[p].spend   != null) combined.spend  = (combined.spend  || 0) + pd[p].spend;
-    if (pd[p].clicks  != null) combined.clicks = (combined.clicks || 0) + pd[p].clicks;
-    if (pd[p].conv    != null) combined.conv   = (combined.conv   || 0) + pd[p].conv;
+  var statuses = {};
+  var pending = 2;
+  function _tryShow() {
+    pending--;
+    if (pending > 0) return;
+    var connected = ['google', 'meta'].filter(function(p) { return statuses[p]; });
+    window._prfConnectedPlatforms = connected;
+    if (connected.length === 0) {
+      if (banner) banner.style.display = '';
+      return;
+    }
+    if (banner) banner.style.display = 'none';
+    _prfLoadData(connected, window._prfActiveRange || 'LAST_30_DAYS');
+  }
+  ['google', 'meta'].forEach(function(p) {
+    apiFetch('/api/' + p + '/status').then(function(r) {
+      statuses[p] = r.ok && r.data && r.data.connected;
+      _tryShow();
+    }).catch(function() { statuses[p] = false; _tryShow(); });
   });
-  _set('prfKpiSpend',  combined.spend  != null ? '€' + combined.spend.toLocaleString() : '—');
-  _set('prfKpiClicks', combined.clicks != null ? combined.clicks.toLocaleString() : '—');
-  _set('prfKpiConv',   combined.conv   != null ? combined.conv.toLocaleString() : '—');
 };
+
+window.initAdsDashboard = function() { window.prfInit(); };
+
+function _prfSet(id, v) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = (v != null && v !== '') ? v : '—';
+}
+
+function _prfFmt(n) {
+  if (n == null || isNaN(n)) return '—';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return Math.round(n).toLocaleString();
+}
+
+function _prfEsc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function _prfLoadData(platforms, range) {
+  _prfSet('prfKpiSpend', '…'); _prfSet('prfKpiImpr', '…');
+  _prfSet('prfKpiClicks', '…'); _prfSet('prfKpiConv', '…'); _prfSet('prfKpiRoas', '…');
+  var combined = { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0 };
+  var allCampaigns = [];
+  var pending = platforms.length;
+  function _done() {
+    pending--;
+    if (pending > 0) return;
+    _prfSet('prfKpiSpend', '€' + _prfFmt(combined.spend));
+    _prfSet('prfKpiImpr', _prfFmt(combined.impr));
+    _prfSet('prfKpiClicks', _prfFmt(combined.clicks));
+    _prfSet('prfKpiConv', _prfFmt(combined.conv));
+    var roas = combined.spend > 0 && combined.convVal > 0 ? (combined.convVal / combined.spend) : 0;
+    _prfSet('prfKpiRoas', roas > 0 ? roas.toFixed(2) + 'x' : (combined.spend > 0 ? '—' : '—'));
+    _prfRenderTable(allCampaigns);
+    _prfRenderBars(allCampaigns);
+  }
+  if (platforms.indexOf('google') !== -1) {
+    apiFetch('/api/ads/overview?date_range=' + range).then(function(r) {
+      if (r.ok && r.data && r.data.overview) {
+        var o = r.data.overview;
+        combined.spend   += o.spend            || 0;
+        combined.impr    += o.impressions      || 0;
+        combined.clicks  += o.clicks           || 0;
+        combined.conv    += o.conversions      || 0;
+        combined.convVal += o.conversions_value|| 0;
+        (r.data.campaigns || []).forEach(function(c) {
+          allCampaigns.push({ name: c.name, platform: 'Google', status: c.status,
+            spend: c.spend, impressions: c.impressions, clicks: c.clicks,
+            ctr: c.ctr, conv: c.conversions, roas: c.roas });
+        });
+      }
+      _done();
+    }).catch(function() { _done(); });
+  }
+  if (platforms.indexOf('meta') !== -1) {
+    apiFetch('/api/meta/campaigns?date_range=' + range).then(function(r) {
+      if (r.ok && r.data && r.data.campaigns) {
+        r.data.campaigns.forEach(function(c) {
+          combined.spend  += c.spend       || 0;
+          combined.impr   += c.impressions || 0;
+          combined.clicks += c.clicks      || 0;
+          combined.conv   += c.conversions || 0;
+          allCampaigns.push({ name: c.campaign_name, platform: 'Meta', status: c.status,
+            spend: c.spend, impressions: c.impressions, clicks: c.clicks,
+            ctr: c.ctr, conv: c.conversions, roas: 0 });
+        });
+      }
+      _done();
+    }).catch(function() { _done(); });
+  }
+}
+
+function _prfRenderTable(campaigns) {
+  var tbody = document.getElementById('prfCampTbody');
+  var badge = document.getElementById('prfCampCount');
+  if (!tbody) return;
+  if (!campaigns.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="prf-table-empty">No campaigns found for this period.</td></tr>';
+    if (badge) badge.textContent = '0 campaigns';
+    return;
+  }
+  campaigns.sort(function(a, b) { return (b.spend || 0) - (a.spend || 0); });
+  if (badge) badge.textContent = campaigns.length + ' campaign' + (campaigns.length === 1 ? '' : 's');
+  tbody.innerHTML = campaigns.map(function(c) {
+    var isActive = c.status === 'ENABLED' || c.status === 'ACTIVE';
+    var statusLbl = isActive ? 'Active' : (c.status === 'PAUSED' ? 'Paused' : (c.status || '—'));
+    var statusCls = isActive ? 'prf-status prf-status-active' : 'prf-status prf-status-paused';
+    return '<tr>' +
+      '<td><span class="prf-plat-tag prf-plat-' + c.platform.toLowerCase() + '">' + c.platform + '</span> ' + _prfEsc(c.name) + '</td>' +
+      '<td><span class="' + statusCls + '">' + statusLbl + '</span></td>' +
+      '<td class="prf-num">€' + (c.spend || 0).toFixed(2) + '</td>' +
+      '<td class="prf-num">' + _prfFmt(c.impressions) + '</td>' +
+      '<td class="prf-num">' + _prfFmt(c.clicks) + '</td>' +
+      '<td class="prf-num">' + (c.ctr != null && c.ctr > 0 ? c.ctr.toFixed(2) + '%' : '—') + '</td>' +
+      '<td class="prf-num">' + (c.conv > 0 ? _prfFmt(c.conv) : '—') + '</td>' +
+      '<td class="prf-num">' + (c.roas > 0 ? c.roas.toFixed(2) + 'x' : '—') + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function _prfRenderBars(campaigns) {
+  var barsEl = document.getElementById('prfBarsSpend');
+  var lockEl = document.getElementById('prfLockSpend');
+  if (!barsEl) return;
+  if (!campaigns.length) {
+    if (lockEl) { lockEl.style.display = ''; lockEl.textContent = 'No campaign data for this period'; }
+    return;
+  }
+  if (lockEl) lockEl.style.display = 'none';
+  document.querySelectorAll('.prf-chart-lock').forEach(function(l) { l.style.display = 'none'; });
+  var top = campaigns.slice(0, 14);
+  var maxSpend = Math.max.apply(null, top.map(function(c) { return c.spend || 0; }));
+  barsEl.innerHTML = top.map(function(c) {
+    var pct = maxSpend > 0 ? Math.max(5, Math.round((c.spend / maxSpend) * 95)) : 5;
+    var cls = c.platform === 'Meta' ? 'prf-bar prf-bar-meta' : 'prf-bar';
+    return '<div class="' + cls + '" style="--bh:' + pct + '%" title="' + _prfEsc(c.name) + ': €' + (c.spend || 0).toFixed(2) + '"></div>';
+  }).join('');
+}
 
 /* ── Reports page ── */
 window.rptFilter = function(btn, filter) {
