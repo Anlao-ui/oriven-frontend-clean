@@ -82,7 +82,7 @@ var GT_STEPS = [
       "Video — Scripts and video concepts",
       "Ads — High-converting ad creatives",
       "Campaign — Full multi-channel campaigns",
-      "Brand Assistant — AI brand guidance"
+      "Oriven — AI brand guidance"
     ],
     cta:       "Next",
     onAction:  function(){ gtAdvance(); }

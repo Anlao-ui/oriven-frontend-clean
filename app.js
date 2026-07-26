@@ -1835,7 +1835,7 @@ function _dashRenderCreateGrid(){
       action:"openAIFlow('web')"
     },
     {
-      label:"Brand AI",
+      label:"Oriven",
       desc:"AI guidance",
       icon:'<path d="M8.5 1.5l2 5.5H16l-4.3 3.2 1.6 5L8.5 12.5l-4.8 2.7 1.6-5L1 7H6.5Z"/>',
       action:"openFAB()"
@@ -2335,7 +2335,7 @@ function sendChat(){
 
   function _showError(errText){
     var el=document.getElementById(typingId); if(el) el.remove();
-    var response={type:'text',label:'AI Marketing Strategist',text:errText};
+    var response={type:'text',label:'Oriven',text:errText};
     appendAIMessage(response, feed);
     feed.scrollTop=feed.scrollHeight;
   }
@@ -2364,7 +2364,7 @@ function sendChat(){
     }
     var text = d.result.trim();
     console.log('[Assistant] Response received, length:', text.length);
-    var response={type:'text',label:'AI Marketing Strategist',text:text};
+    var response={type:'text',label:'Oriven',text:text};
     S.chatHistory.push({role:"ai",text:prompt,response:response});
     var el=document.getElementById(typingId); if(el) el.remove();
     appendAIMessage(response, feed);

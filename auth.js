@@ -575,7 +575,9 @@ var _obContext = "tour"; // "gate" = pre-payment; "tour" = post-payment/dev
 var _OB_STEPS = [
   { page:"campaigns", section:"Campaign Studio", title:"Where campaigns <em>come to life.</em>",         desc:"This is where you create new campaigns and marketing assets. Generate copy, visuals, and full campaign strategies â€” all tailored to your brand in seconds." },
   { page:"studio",    section:"Brand",           title:"Your brand <em>foundation.</em>",                desc:"This is your brand foundation. Everything Oriven generates uses this information â€” your tone, audience, positioning, and visual identity." },
+  { page:"creative-workspace", section:"Workspace", title:"Your <em>creative workspace.</em>",           desc:"Generate, compare, and score creative in one place â€” live previews, versions, and Oriven's suggestions, side by side." },
   { page:"assets",    section:"Assets",          title:"Your <em>content library.</em>",                 desc:"This is where all generated content is stored and managed. Every campaign, asset, and output lives here â€” ready to use or remix." },
+  { page:"autopilot", section:"Autopilot",       title:"Oriven, <em>working for you.</em>",              desc:"Autopilot continuously monitors your campaigns and recommends what to do next â€” you approve, it executes." },
   { page:"aichat",    section:"Assistant",       title:"Your AI <em>brand strategist.</em>",             desc:"This AI assistant helps with campaigns, branding and marketing decisions. Ask anything â€” it knows your brand inside out." },
   { page:"campaigns", section:"Campaign Studio", title:"Letâ€™s create your <em>first campaign.</em>",     desc:"Youâ€™ve seen what Oriven can do. Now letâ€™s build something real for your brand." }
 ];
@@ -1482,9 +1484,9 @@ var _obTourSlides = [
   {
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 12h.01M12 12h.01M16 12h.01" stroke-width="2.5"/></svg>',
     iconCls: "ob-icon-dashboard",
-    section: "AI Assistant",
+    section: "Oriven",
     title: "Your personal brand strategist, <em>always on.</em>",
-    desc: "Ask anything â€” campaign ideas, copy feedback, competitor questions, strategy. The Assistant knows your brand inside out."
+    desc: "Ask anything â€” campaign ideas, copy feedback, competitor questions, strategy. Oriven knows your brand inside out."
   }
 ];
 

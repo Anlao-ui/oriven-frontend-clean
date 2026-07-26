@@ -155,13 +155,7 @@ function _guestOnboardTryFree(){
 }
 
 function _guestOnboardLogin(){
-  var overlay = document.getElementById("guestOnboard");
-  if(overlay){
-    overlay.style.transition = "opacity 0.25s ease";
-    overlay.style.opacity    = "0";
-    setTimeout(function(){ overlay.style.display = "none"; }, 250);
-  }
-  setTimeout(function(){ _showGuestGate("login"); }, 200);
+  window.location.href = '/login';
 }
 
 // ── Tab guard ─────────────────────────────────────────────────
@@ -464,7 +458,7 @@ function _showGcGate(imageUrl){
 }
 
 function _gcGateCreate(){ _showGuestGate("signup"); }
-function _gcGateLogin(){  _showGuestGate("login");  }
+function _gcGateLogin(){  window.location.href = '/login'; }
 
 // ── Website builder lock ──────────────────────────────────────
 
@@ -549,7 +543,7 @@ function _ggShow(view){
 }
 
 function _guestSignupClick(){ _showGuestGate("signup"); }
-function _guestLoginClick(){  _showGuestGate("login");  }
+function _guestLoginClick(){  window.location.href = '/login'; }
 
 // ── Auth error helpers ────────────────────────────────────────
 

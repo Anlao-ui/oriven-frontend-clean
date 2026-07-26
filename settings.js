@@ -18,6 +18,7 @@ var SETTINGS_DEFAULTS = {
   notifBrandCheck:   true,
   notifGenComplete:  true,
   notifUpdates:      true,
+  notifAutopilot:    true,
   autoSave:          true,
   aiLearning:        true,
   brandConsistency:  true,
@@ -252,7 +253,7 @@ var LANG_STRINGS = {
     goodMorning:"Good morning", goodAfternoon:"Good afternoon",
     goodEvening:"Good evening", goodNight:"Good night",
     // Dashboard / FAB
-    brandAssistant:"Brand Assistant", openAIChat:"Start Creating",
+    brandAssistant:"Oriven", openAIChat:"Start Creating",
     // Studio
     savedAssets:"Saved Assets", brandCore:"Brand Core",
     brandCheck:"Brand Check", campaigns:"Campaigns",

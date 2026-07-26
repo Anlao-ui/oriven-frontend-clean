@@ -282,7 +282,7 @@ var CREATE_TYPES = {
   ads:       { label:"Ads",             outType:"ad_copy",  placeholder:"Describe the ad",                                                                        icon:"<path d='M2 5h12v8H2z'/><path d='M14 7l2-1v6l-2-1'/>" },
   campaign:  { label:"Campaign",        outType:"campaign", placeholder:"Describe the campaign",                                                                  icon:"<path d='M2 13L5 5l4 5 3-4 4 7'/><circle cx='5' cy='5' r='1'/>" },
   ideas:     { label:"Ideas",           outType:"headline", placeholder:"Describe what you need ideas for — e.g. 'Content ideas for a sustainable fashion brand'", icon:"<circle cx='8' cy='7' r='4'/><path d='M8 11v3M6 14h4'/>" },
-  assistant: { label:"Brand Assistant", outType:"copy",     placeholder:"Ask your Brand Assistant anything…",                                                     icon:"<path d='M8 1L10 6H15L11 9L12.5 14L8 11L3.5 14L5 9L1 6H6Z'/>" }
+  assistant: { label:"Oriven",          outType:"copy",     placeholder:"Ask Oriven anything…",                                                                   icon:"<path d='M8 1L10 6H15L11 9L12.5 14L8 11L3.5 14L5 9L1 6H6Z'/>" }
 };
 
 var CWS_CFG_MAP = {
@@ -631,7 +631,11 @@ function _buildImageBuilderPrompt(custom){
     presentation:  "presentation graphic",
     custom:        "brand visual",
     logo:          "logo",
-    ad_creative:   "ad creative"
+    ad_creative:   "ad creative",
+    hero:          "hero image",
+    carousel:      "carousel image",
+    mockup:        "product mockup",
+    seasonal:      "seasonal campaign visual"
   };
   var typeLabel = typeLabels[b.imgVisualType] || typeLabels[b.imgDesignType] || "brand visual";
   parts.push("Create a premium " + typeLabel + " for this brand.");
@@ -1312,7 +1316,12 @@ var FLOWS = {
         {val:"social",      label:"Social Post"},
         {val:"ad_creative", label:"Ad Creative"},
         {val:"poster",      label:"Poster"},
-        {val:"product",     label:"Product Image"}
+        {val:"product",     label:"Product Image"},
+        {val:"hero",        label:"Hero Image"},
+        {val:"banner",      label:"Banner"},
+        {val:"carousel",    label:"Carousel"},
+        {val:"mockup",      label:"Product Mockup"},
+        {val:"seasonal",    label:"Seasonal Campaign"}
       ]
     },
     {
@@ -1355,6 +1364,17 @@ var FLOWS = {
         {val:"rebrand",        label:"Rebranding"}
       ],
       when:function(a){ return a.imgDesignType === "logo"; }
+    },
+    {
+      key: "imgPurpose",
+      ai:  "What is the purpose?",
+      type:"pills",
+      options:[
+        {val:"promotion",       label:"Promotion"},
+        {val:"brand_awareness", label:"Brand awareness"},
+        {val:"seasonal_launch", label:"Seasonal launch"}
+      ],
+      when:function(a){ return ["hero","banner","carousel","mockup","seasonal"].indexOf(a.imgDesignType) !== -1; }
     },
     {
       key: "_brandcoreReview",
@@ -3639,7 +3659,7 @@ function openCreateWorkspace(type, outType){
         feed.innerHTML =
           '<div class="chat-welcome">'
           + '<div class="chat-welcome-icon"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M3.5 20V7a3.5 3.5 0 0 1 3.5-3.5h14A3.5 3.5 0 0 1 24.5 7v9a3.5 3.5 0 0 1-3.5 3.5H9L3.5 24.5V20z"/><path d="M9.5 13h9M9.5 9h6"/></svg></div>'
-          + '<h2>Brand Assistant</h2>'
+          + '<h2>Oriven</h2>'
           + '<p>' + welcomeMsg + '</p>'
           + '</div>';
       }
