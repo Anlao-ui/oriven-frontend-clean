@@ -3,7 +3,6 @@
 function refreshStudio(){
   renderAssets();
   updateStudioBCPanel();
-  resetCheckPanel();
   _studioRefreshMain();
   var sisc=document.getElementById("siSavedCount");
   if(sisc) sisc.textContent=S.assets.length+" asset"+(S.assets.length===1?"":"s");

@@ -444,12 +444,6 @@ function idShowHub(){
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════════
 function navigate(page){
-  // Block all navigation while the spotlight onboarding tour is active
-  if(window._obActive) return;
-
-  // Block all navigation while the hard paywall is showing
-  var _pw = document.getElementById("modal-paywall");
-  if(_pw && _pw.classList.contains("open") && _pw.classList.contains("pw-hard")) return;
 
   // Global free-user lock: any navigation away from campaign-workspace triggers paywall.
   // _paywallInitNav bypasses this ONLY during initial page-load navigation (see _loadUserProfile).
@@ -463,7 +457,8 @@ function navigate(page){
       console.log("[PW-CHAIN] navigate guard result | free:", _fug_free, "| used:", _fug_used, "| will block:", (_fug_free && _fug_used));
       if(_fug_free && _fug_used){
         console.log("[PW-CHAIN] BLOCKING navigate('" + page + "') — calling openFreePaywall");
-        if(typeof openFreePaywall === "function") openFreePaywall();
+        if(typeof _orvEndOnboardingIntoPaywall === "function") _orvEndOnboardingIntoPaywall();
+        else if(typeof openFreePaywall === "function") openFreePaywall();
         else console.error("[PW-CHAIN] openFreePaywall NOT FOUND in navigate guard");
         return;
       }
@@ -471,6 +466,16 @@ function navigate(page){
       console.warn("[PW-CHAIN] navigate guard SKIPPED — functions not available yet");
     }
   }
+
+  // Block all navigation while the spotlight onboarding tour is active
+  // (legitimate mid-tour case only -- the free-user-lock check above
+  // already handles "tour technically still active but generation is
+  // already done," which must show the paywall, not silently no-op).
+  if(window._obActive) return;
+
+  // Block all navigation while the hard paywall is showing
+  var _pw = document.getElementById("modal-paywall");
+  if(_pw && _pw.classList.contains("open") && _pw.classList.contains("pw-hard")) return;
 
   // "soon" → coming soon toast
   if(page==="soon"){

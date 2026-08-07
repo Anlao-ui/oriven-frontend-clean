@@ -426,9 +426,15 @@ window.crwsChatSend = function() {
   feed.appendChild(typingDiv);
   feed.scrollTop = feed.scrollHeight;
 
+  // Oriven 1.0 Global Context Engine (Epic 1) — read from the shared
+  // window.orvContext instead of building an isolated ctx object here.
+  if (window.orvContext) window.orvContext.asset = CRWS.currentAsset || null;
+  var oc = window.orvContext || {};
   var ctx = {
-    page: 'creative-workspace',
-    currentCampaign: CRWS.currentAsset ? { campaignId: CRWS.currentAsset.id, campaignName: CRWS.currentAsset.title, platform: CRWS.currentAsset.platform } : null
+    page: oc.page || 'creative-workspace',
+    currentCampaign: CRWS.currentAsset ? { campaignId: CRWS.currentAsset.id, campaignName: CRWS.currentAsset.title, platform: CRWS.currentAsset.platform } : null,
+    business: oc.business || null,
+    asset: CRWS.currentAsset || null
   };
 
   CRWS.chatHistory.push({ role: 'user', content: msg });

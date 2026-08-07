@@ -1,32 +1,34 @@
 // ════════════════════════════════════════════════════════════════
-// TEAM MANAGEMENT — Professional plan only, max 10 members
+// TEAM MANAGEMENT — seats capped per plan (Starter 1, Creator 1,
+// Professional 10 — includes the account owner as seat 1). Real,
+// server-persisted members (server.js /api/team/members, /api/send-invite)
+// — the server enforces the same limit independently, so this UI cap is
+// UX only, not the actual gate.
 // ════════════════════════════════════════════════════════════════
 
-var TEAM_MAX = 10;
+// Cached in-memory after the first fetch this page-view; refreshed by
+// initTeamPage() each time the Team page is opened.
+var _teamMembersCache = [];
+var TEAM_MAX = 1; // corrected from the real plan before first render — see _teamMax()
 
-var ROLE_DESCRIPTIONS = {
-  "Admin":  "Full access — manage team, invite and remove members, generate content",
-  "Editor": "Generate content and use all tools — cannot manage team members",
-  "Member": "Standard collaborative access — generate content and view assets",
-  "Viewer": "Read-only access — view content and assets, cannot generate"
-};
+async function _teamMax(){
+  var plan = (typeof _getCachedPlan === "function") ? await _getCachedPlan() : "free";
+  var cfg  = (typeof ORIVEN_PLANS !== "undefined") ? ORIVEN_PLANS[plan] : null;
+  return (cfg && cfg.teamMembers) ? cfg.teamMembers : 1;
+}
 
-function _teamKey(){
+async function _fetchTeam(){
   try {
-    if(S && S.user && S.user.id) return "oriven_team_" + S.user.id;
+    var res = await apiFetch("/api/team/members");
+    if(res.ok && res.data && Array.isArray(res.data.members)){
+      // Server rows use invitee_name/invitee_email -- map to the name/email
+      // shape the rest of this file already renders.
+      return res.data.members.map(function(m){
+        return { id: m.id, name: m.invitee_name, email: m.invitee_email, role: m.role, status: m.status, addedAt: m.created_at };
+      });
+    }
   } catch(_){}
-  return "oriven_team_anon";
-}
-
-function _readTeam(){
-  try {
-    var raw = localStorage.getItem(_teamKey());
-    return raw ? JSON.parse(raw) : [];
-  } catch(_){ return []; }
-}
-
-function _writeTeam(members){
-  try { localStorage.setItem(_teamKey(), JSON.stringify(members)); } catch(_){}
+  return [];
 }
 
 function _getInitials(str){
@@ -41,7 +43,7 @@ function renderTeamPage(){
   var container = document.getElementById("teamMemberList");
   if(!container) return;
 
-  var members = _readTeam();
+  var members = _teamMembersCache;
   var roleClass = {
     admin:  "tm-mbadge-admin",
     editor: "tm-mbadge-editor",
@@ -74,7 +76,7 @@ function renderTeamPage(){
           '<div class="tm-memail">' + _teamEsc(m.email) + '</div>' +
         '</div>' +
         '<span class="tm-mbadge ' + rc + '">' + _teamEsc(rl) + '</span>' +
-        '<button class="tm-mremove" onclick="removeTeamMember(' + i + ')" title="Remove member">' +
+        '<button class="tm-mremove" onclick="removeTeamMember(\'' + _teamEsc(m.id) + '\')" title="Remove member">' +
           '<svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' +
             '<path d="M2 2l8 8M10 2L2 10"/>' +
           '</svg>' +
@@ -82,7 +84,7 @@ function renderTeamPage(){
       '</div>';
   });
 
-  if(members.length < TEAM_MAX){
+  if(members.length + 1 < TEAM_MAX){
     html +=
       '<div class="tm-invite-row" onclick="openInviteModal()" role="button" tabindex="0">' +
         '<div class="tm-invite-row-icon">' +
@@ -107,7 +109,7 @@ function _updateTeamCounter(count){
 
 // ── Hero stats ────────────────────────────────────────────────
 function _renderTeamHero(){
-  var members  = _readTeam();
+  var members  = _teamMembersCache;
   var intelPct = "—";
   if(typeof _dashComputeIntel === "function"){
     var intel = _dashComputeIntel();
@@ -196,10 +198,12 @@ function _renderTeamActivity(){
 function _renderTeamAiInsights(){}
 
 // ── Open invite modal ─────────────────────────────────────────
-function openInviteModal(){
-  var members = _readTeam();
-  if(members.length >= TEAM_MAX){
-    if(typeof toast === "function") toast("Team is full — max " + TEAM_MAX + " members", "warn");
+async function openInviteModal(){
+  TEAM_MAX = await _teamMax();
+  // +1 -- the account owner is always seat 1, same accounting as the
+  // server's own check in /api/send-invite.
+  if(_teamMembersCache.length + 1 >= TEAM_MAX){
+    if(typeof toast === "function") toast("Team is full — your plan allows " + TEAM_MAX + " member" + (TEAM_MAX === 1 ? "" : "s") + " (including you)", "warn");
     return;
   }
   var nameEl  = document.getElementById("teamInviteName");
@@ -243,9 +247,10 @@ async function addTeamMember(){
     return;
   }
 
-  var members = _readTeam();
-  if(members.length >= TEAM_MAX){
-    if(typeof toast === "function") toast("Team is full — max " + TEAM_MAX + " members", "warn");
+  var members = _teamMembersCache;
+  TEAM_MAX = await _teamMax();
+  if(members.length + 1 >= TEAM_MAX){
+    if(typeof toast === "function") toast("Team is full — your plan allows " + TEAM_MAX + " member" + (TEAM_MAX === 1 ? "" : "s") + " (including you)", "warn");
     return;
   }
   if(members.some(function(m){ return m.email.toLowerCase() === email.toLowerCase(); })){
@@ -270,6 +275,9 @@ async function addTeamMember(){
       body:    JSON.stringify({ name:name, email:email, role:role, message:message, workspaceName:wsName })
     });
     if(!result.ok){
+      // The server's own seat-limit check (403 / TEAM_SEAT_LIMIT) lands here
+      // too -- same message shown either way, since the server is the real
+      // gate and this client check is just a faster first line.
       var errMsg = (result.data && result.data.error) || "Failed to send invite email";
       if(typeof toast === "function") toast(errMsg, "warn");
       if(sendBtn){ sendBtn.disabled = false; sendBtn.textContent = "Send Invite"; }
@@ -281,25 +289,31 @@ async function addTeamMember(){
     return;
   }
 
-  members.push({ name:name||email.split("@")[0], email:email, role:role, addedAt:new Date().toISOString() });
-  _writeTeam(members);
   if(typeof closeModal === "function") closeModal("modal-invite");
-  initTeamPage();
+  await initTeamPage(); // re-fetch from the server -- the new row is now real and persisted
   if(typeof toast === "function") toast("Invite sent to " + email);
 }
 
 // ── Remove member ─────────────────────────────────────────────
-function removeTeamMember(index){
-  var members = _readTeam();
-  if(index < 0 || index >= members.length) return;
-  var removed = members.splice(index, 1)[0];
-  _writeTeam(members);
-  initTeamPage();
-  if(typeof toast === "function") toast("Removed " + (removed.name || removed.email));
+async function removeTeamMember(id){
+  try {
+    var result = await apiFetch("/api/team/members/" + encodeURIComponent(id), { method: "DELETE" });
+    if(!result.ok){
+      if(typeof toast === "function") toast((result.data && result.data.error) || "Could not remove that team member", "warn");
+      return;
+    }
+  } catch(e){
+    if(typeof toast === "function") toast("Could not reach server — member not removed. " + e.message, "warn");
+    return;
+  }
+  await initTeamPage();
+  if(typeof toast === "function") toast("Team member removed");
 }
 
 // ── Entry point called by navigate("team") ────────────────────
-function initTeamPage(){
+async function initTeamPage(){
+  TEAM_MAX = await _teamMax();
+  _teamMembersCache = await _fetchTeam();
   _renderTeamHero();
   renderTeamPage();
   _renderTeamProjects();

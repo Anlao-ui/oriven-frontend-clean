@@ -218,7 +218,11 @@ async function authSignOut(){
   _dbPlanSet            = false;
   await SB.auth.signOut();
   S.brandCore = null;
-  if(typeof S !== "undefined" && S){ S.currentPlan = "free"; }
+  if(typeof S !== "undefined" && S){ S.currentPlan = "free"; S.campaigns = []; S.assets = []; }
+  // _campaigns/_loadCamps (app.html) is per-user-keyed via _orvCampaignsKey(),
+  // but reset the in-memory copy too so nothing stale renders before the
+  // next sign-in's own _loadCamps() call.
+  if(typeof window._campaigns !== "undefined") window._campaigns = [];
   try { if(typeof saveSettings === "function") saveSettings({ currentPlan: "free" }); } catch(_){}
   // Clear guest generation flag so user gets a fresh try after logout
   localStorage.removeItem("guestGenerationUsed");
@@ -298,6 +302,7 @@ async function onUserSignedIn(user){
   // source of truth for plan state. Calling a second async backend source
   // created race conditions that overwrote the correct plan with stale data.
   if(typeof initUsageTracking === "function") initUsageTracking(user);
+  if(typeof _syncBrowserTimezone === "function") _syncBrowserTimezone();
   // Subscription check determines whether to show app, onboarding, or redirect.
   // showApp() and navigate() are called inside _loadUserProfile() to prevent
   // the app from briefly flashing for unpaid users.
@@ -422,10 +427,10 @@ async function _loadUserProfile(user){
       try { _devObNeeded = localStorage.getItem("oriven_needs_onboarding") === "1"; } catch(_){}
       if(!_devObCompleted || _devObNeeded){
         _obContext = "gate";
-        navigate("overview");
+        navigate("create");
         showOnboarding();
       } else {
-        navigate("overview");
+        navigate("create");
       }
     } else if(_postPayment){
       // Post-payment: DB may not reflect the new plan yet (webhook lag).
@@ -441,7 +446,7 @@ async function _loadUserProfile(user){
         console.log("[ACCESS] _postPayment | DB still shows free/null â€” webhook pending. Waiting for syncSubscriptionFromDB().");
       }
       showApp();
-      navigate("overview");
+      navigate("create");
     } else {
       var _dbPlan = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
       _dbSubscriptionStatus = _dbPlan || "free"; // authoritative value â€” ONLY set from Supabase
@@ -458,7 +463,16 @@ async function _loadUserProfile(user){
         if(typeof invalidatePlanCache === "function") invalidatePlanCache();
         if(typeof renderPlanPanel === "function") renderPlanPanel();
         showApp();
-        navigate("overview");
+        navigate("create");
+        // Even a paid subscriber gets the tour once, e.g. if they subscribed
+        // before ever opening the app. Same DB-first check as the free branch.
+        var _paidDbCompleted = data ? data.onboarding_completed === true : false;
+        var _paidLsNeedsOb   = false;
+        try { _paidLsNeedsOb = localStorage.getItem("oriven_needs_onboarding") === "1"; } catch(_){}
+        if(!_paidDbCompleted || _paidLsNeedsOb){
+          _obContext = "gate";
+          showOnboarding();
+        }
       } else {
         // No valid paid subscription â€” decide: onboarding gate OR hard paywall
         //
@@ -475,7 +489,7 @@ async function _loadUserProfile(user){
         if(_needsOnboarding){
           _obContext = "gate";
           showApp();
-          navigate("overview");
+          navigate("create");
           showOnboarding();
         } else {
           // Onboarding done, free user â€” check whether their free campaign has been used
@@ -506,7 +520,7 @@ async function _loadUserProfile(user){
           if(_isUsed){
             console.log("[PW-CHAIN] LOCKING free user on page load â€” will show campaigns + hard paywall");
             window._paywallInitNav = true;
-            navigate("overview");
+            navigate("create");
             window._paywallInitNav = false;
             setTimeout(function(){
               console.log("[PW-CHAIN] Page-load paywall timeout fired | calling openFreePaywall");
@@ -515,7 +529,7 @@ async function _loadUserProfile(user){
             }, 200);
           } else {
             console.log("[PW-CHAIN] Free user, campaign NOT yet used â€” allowing normal access");
-            navigate("overview");
+            navigate("create");
           }
           return;
         }
@@ -544,7 +558,7 @@ async function _loadUserProfile(user){
     if(_sbPlanEl){ _sbPlanEl.textContent = "â€”"; _sbPlanEl.className = "sb-plan-label sb-plan-free"; }
 
     showApp();
-    navigate("overview");
+    navigate("create");
     if(typeof toast === "function") toast("Profile failed to load â€” please refresh the page.", "error");
   }
 }
@@ -564,169 +578,335 @@ async function markOnboardingComplete(){
   }
 }
 
-// â”€â”€ Onboarding: spotlight product tour â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Steps 1-7: spotlight the nav item + tooltip to the right.
-// Step 8: full-screen backdrop + centered CTA card.
-// window._obActive: guards navigate() from firing during the tour.
+// â”€â”€ Onboarding: spotlight product tour (Oriven 1.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Every frame spotlights a real element on the real, live app â€” never
+// a full-screen slideshow. Frames are grouped under 10 "major steps"
+// (the number shown to the user); several major steps (Campaigns hub
+// tabs, Business's 7 tabs) fan out into multiple frames so each tab
+// gets its own explanation, without inflating the visible step count.
+// The last two frames (Generate, Publish) are "interactive-wait": no
+// Next button, the tour waits for a real click on the real button.
+// window._obActive: guards the sidebar-lock + keyboard handlers.
 
-var _obStep    = 1;
+var _obStep    = 1;   // 1-based index into _OB_FRAMES
 var _obContext = "tour"; // "gate" = pre-payment; "tour" = post-payment/dev
 
-var _OB_STEPS = [
-  { page:"campaigns", section:"Campaign Studio", title:"Where campaigns <em>come to life.</em>",         desc:"This is where you create new campaigns and marketing assets. Generate copy, visuals, and full campaign strategies â€” all tailored to your brand in seconds." },
-  { page:"studio",    section:"Brand",           title:"Your brand <em>foundation.</em>",                desc:"This is your brand foundation. Everything Oriven generates uses this information â€” your tone, audience, positioning, and visual identity." },
-  { page:"creative-workspace", section:"Workspace", title:"Your <em>creative workspace.</em>",           desc:"Generate, compare, and score creative in one place â€” live previews, versions, and Oriven's suggestions, side by side." },
-  { page:"assets",    section:"Assets",          title:"Your <em>content library.</em>",                 desc:"This is where all generated content is stored and managed. Every campaign, asset, and output lives here â€” ready to use or remix." },
-  { page:"autopilot", section:"Autopilot",       title:"Oriven, <em>working for you.</em>",              desc:"Autopilot continuously monitors your campaigns and recommends what to do next â€” you approve, it executes." },
-  { page:"aichat",    section:"Assistant",       title:"Your AI <em>brand strategist.</em>",             desc:"This AI assistant helps with campaigns, branding and marketing decisions. Ask anything â€” it knows your brand inside out." },
-  { page:"campaigns", section:"Campaign Studio", title:"Letâ€™s create your <em>first campaign.</em>",     desc:"Youâ€™ve seen what Oriven can do. Now letâ€™s build something real for your brand." }
+function _obT(key, fallback){ return (typeof t === "function") ? t(key) : fallback; }
+
+function _obNav(page, pageId){ if(typeof _orvNav === "function") _orvNav(page, pageId); }
+function _obBizNav(tab){
+  _obNav("businessbrain", "page-business-brain");
+  if(typeof bizSwitchTab === "function") bizSwitchTab(tab);
+}
+
+var _OB_FRAMES = [
+  { majorStep:1, centered:true, titleKey:"obWelcomeTitle", descKey:"obWelcomeDesc" },
+  { majorStep:2, selector:'.orv-ni[data-orv-page="create"]', sectionKey:"obLaunchSection", titleKey:"obLaunchTitle", descKey:"obLaunchDesc",
+    onEnter:function(){ _obNav("create","page-create"); } },
+  { majorStep:3, selector:'.orv-ni[data-orv-page="performance"]', sectionKey:"obCampaignsSection", titleKey:"obCampaignsTitle", descKey:"obCampaignsDesc",
+    onEnter:function(){ _obNav("performance","page-performance"); } },
+  { majorStep:4, selector:'.orv-hub-tab[data-hub-target="performance"]', sectionKey:"obCampaignsSection", titleKey:"obOverviewTitle", descKey:"obOverviewDesc",
+    onEnter:function(){ _obNav("performance","page-performance"); } },
+  { majorStep:4, selector:'.orv-hub-tab[data-hub-target="adsmanager"]', sectionKey:"obCampaignsSection", titleKey:"obLiveCampaignsTitle", descKey:"obLiveCampaignsDesc",
+    onEnter:function(){ _obNav("adsmanager","page-ads-manager"); } },
+  { majorStep:4, selector:'.orv-hub-tab[data-hub-target="campaigns"]', sectionKey:"obCampaignsSection", titleKey:"obDraftsTitle", descKey:"obDraftsDesc",
+    onEnter:function(){ _obNav("campaigns","page-campaigns"); } },
+  { majorStep:5, selector:'.orv-ni[data-orv-page="intelligence"]', sectionKey:"obIntelligenceSection", titleKey:"obIntelligenceTitle", descKey:"obIntelligenceDesc",
+    onEnter:function(){ _obNav("intelligence","page-intelligence"); } },
+  { majorStep:6, selector:'.orv-ni[data-orv-page="autopilot"]', sectionKey:"obAutopilotSection", titleKey:"obAutopilotTitle", descKey:"obAutopilotDesc",
+    onEnter:function(){ _obNav("autopilot","page-autopilot"); } },
+  { majorStep:7, selector:'.orv-ni[data-orv-page="businessbrain"]', sectionKey:"obBusinessSection", titleKey:"obBusinessTitle", descKey:"obBusinessDesc",
+    onEnter:function(){ _obNav("businessbrain","page-business-brain"); } },
+  { majorStep:7, selector:'.prf-ptab[data-tab="overview"]', sectionKey:"obBusinessSection", titleKey:"bizTabOverview", descKey:"obBizTabOverviewDesc",
+    onEnter:function(){ _obBizNav("overview"); } },
+  { majorStep:7, selector:'.prf-ptab[data-tab="business"]', sectionKey:"obBusinessSection", titleKey:"bizTabBusiness", descKey:"obBizTabBusinessDesc",
+    onEnter:function(){ _obBizNav("business"); } },
+  { majorStep:7, selector:'.prf-ptab[data-tab="products"]', sectionKey:"obBusinessSection", titleKey:"bizTabProducts", descKey:"obBizTabProductsDesc",
+    onEnter:function(){ _obBizNav("products"); } },
+  { majorStep:7, selector:'.prf-ptab[data-tab="market"]', sectionKey:"obBusinessSection", titleKey:"bizTabMarket", descKey:"obBizTabMarketDesc",
+    onEnter:function(){ _obBizNav("market"); } },
+  { majorStep:7, selector:'.prf-ptab[data-tab="brand"]', sectionKey:"obBusinessSection", titleKey:"bizTabBrand", descKey:"obBizTabBrandDesc",
+    onEnter:function(){ _obBizNav("brand"); } },
+  { majorStep:7, selector:'.prf-ptab[data-tab="connections"]', sectionKey:"obBusinessSection", titleKey:"bizTabConnections", descKey:"obBizTabConnectionsDesc",
+    onEnter:function(){ _obBizNav("connections"); } },
+  { majorStep:7, selector:'.prf-ptab[data-tab="memory"]', sectionKey:"obBusinessSection", titleKey:"bizTabMemory", descKey:"obBizTabMemoryDesc",
+    onEnter:function(){ _obBizNav("memory"); } },
+  { majorStep:8, selector:'#orvNavSettingsBtn', sectionKey:"obSettingsSection", titleKey:"obSettingsTitle", descKey:"obSettingsDesc" },
+  { majorStep:9, selector:'#aicInput', sectionKey:"obYourTurnSection", titleKey:"obPromptTitle", descKey:"obPromptDesc",
+    onEnter:function(){ _obNav("create","page-create"); }, sidebarUnlocked:true },
+  { majorStep:9, selector:'.cr2-foot-group[aria-label="Platform"]', sectionKey:"obYourTurnSection", titleKey:"obPlatformTitle", descKey:"obPlatformDesc", sidebarUnlocked:true },
+  { majorStep:9, selector:'#ov3RefImgBtn', sectionKey:"obYourTurnSection", titleKey:"obUploadTitle", descKey:"obUploadDesc", sidebarUnlocked:true },
+  { majorStep:9, selector:'#aicGenBtn', sectionKey:"obYourTurnSection", titleKey:"obGenerateTitle", descKey:"obGenerateDesc",
+    sidebarUnlocked:true, waiting:"generate", waitingKey:"obWaitingGenerate" },
+  { majorStep:10, selector:'#cgrPublishBtns', sectionKey:"obYourTurnSection", titleKey:"obPublishTitle", descKey:"obPublishDesc",
+    sidebarUnlocked:true, waiting:"publish", waitingKey:"obWaitingPublish" }
 ];
+var _OB_MAJOR_TOTAL = 10;
+
+function _obLockSidebar(locked){
+  var sb = document.querySelector(".orv-sb");
+  if(sb) sb.style.pointerEvents = locked ? "none" : "";
+}
 
 function showOnboarding(){
   _obStep = 1;
   window._obActive = true;
-
-  // Keep Team nav hidden â€” it's no longer a tour step
-  var teamNav = document.getElementById("teamNavItem");
-  if(teamNav){ teamNav._obWasHidden = false; }
-
-  // Block interactions with the main content area during the tour
-  var mc = document.querySelector(".mc");
-  if(mc) mc.style.pointerEvents = "none";
-
+  _obLockSidebar(true);
+  _obAttachInteractiveListeners();
   _obRender(1);
-  console.log("[Onboarding] Spotlight tour started â€” " + _OB_STEPS.length + " steps");
+  console.log("[Onboarding] Spotlight tour started â€” " + _OB_FRAMES.length + " frames / " + _OB_MAJOR_TOTAL + " steps");
 }
 
-function hideOnboarding(){
+function hideOnboarding(instant){
   window._obActive = false;
+  _obLockSidebar(false);
 
-  // Restore main content interactions
-  var mc = document.querySelector(".mc");
-  if(mc) mc.style.pointerEvents = "";
-
-  // Restore Team nav visibility
-  var teamNav = document.getElementById("teamNavItem");
-  if(teamNav && teamNav._obWasHidden){ teamNav.style.display = "none"; teamNav._obWasHidden = false; }
-
+  var ms = instant ? 0 : 280;
   ["ob-ring","ob-backdrop","ob-tooltip"].forEach(function(id){
     var el = document.getElementById(id);
     if(!el) return;
     el.style.opacity = "0";
-    setTimeout(function(){ el.style.display = "none"; el.style.opacity = ""; }, 280);
+    if(instant){ el.style.display = "none"; el.style.opacity = ""; }
+    else setTimeout(function(){ el.style.display = "none"; el.style.opacity = ""; }, ms);
   });
 }
 
+// One-shot listeners, attached once per tour session (not per-render) so
+// Back/Forward through these frames never double-attaches a handler.
+var _obListenersAttached = false;
+function _obAttachInteractiveListeners(){
+  if(_obListenersAttached) return;
+  _obListenersAttached = true;
+
+  var genBtn = document.getElementById("aicGenBtn");
+  if(genBtn){
+    genBtn.addEventListener("click", function(){
+      if(!window._obActive) return;
+      var cur = _OB_FRAMES[_obStep - 1];
+      if(cur && cur.waiting === "generate") obGoTo(_obStep + 1);
+    });
+  }
+
+  // Delegated â€” #cgrPublishBtns is repopulated by _buildPublishSection each
+  // time a package renders, so a direct listener on the button wouldn't
+  // survive; delegate from the stable parent instead.
+  var pubWrap = document.getElementById("cgrPublishBtns");
+  if(pubWrap){
+    pubWrap.addEventListener("click", function(e){
+      if(!window._obActive) return;
+      var btn = e.target.closest(".cgr2-pub-btn, .cgr2-pub-connect");
+      if(!btn) return;
+      var cur = _OB_FRAMES[_obStep - 1];
+      if(cur && cur.waiting === "publish"){
+        markOnboardingComplete();
+        try { localStorage.removeItem("oriven_needs_onboarding"); } catch(_){}
+        hideOnboarding(true); // instant â€” a real modal (paywall or success) may open right behind this click
+      }
+    });
+  }
+}
+
+// Step 10's target (#cgrPublishBtns) only gets real content once async
+// generation finishes and _buildPublishSection runs inside the cgr IIFE.
+// Poll briefly rather than requiring a dispatched event or an edit inside
+// that IIFE â€” bounded, cheap, and self-contained to the tour.
+function _obWaitForPublishTarget(cb){
+  var el = document.getElementById("cgrPublishBtns");
+  if(el && el.children.length) { if(window._obActive) cb(el); return; }
+  var tries = 0;
+  var iv = setInterval(function(){
+    if(!window._obActive){ clearInterval(iv); return; } // tour torn down mid-poll — don't resurrect it
+    tries++;
+    var target = document.getElementById("cgrPublishBtns");
+    if(target && target.children.length){
+      clearInterval(iv);
+      cb(target);
+    } else if(tries > 100){ // ~20s safety timeout
+      clearInterval(iv);
+    }
+  }, 200);
+}
+
 function _obRender(step){
-  var s        = _OB_STEPS[step - 1];
-  if(!s) return;
-  var total    = _OB_STEPS.length;
-  var isLast   = (step === total);
-  var isMobile = window.innerWidth <= 768;
+  // obGoTo schedules this 180ms out; if hideOnboarding() runs in that window
+  // (e.g. a 403-triggered paywall takeover) this stale call must no-op
+  // instead of re-showing torn-down tour chrome.
+  if(!window._obActive) return;
+  var f = _OB_FRAMES[step - 1];
+  if(!f) return;
+
+  if(f.onEnter) f.onEnter();
+  _obLockSidebar(!f.sidebarUnlocked);
 
   var ring  = document.getElementById("ob-ring");
   var bd    = document.getElementById("ob-backdrop");
   var tt    = document.getElementById("ob-tooltip");
-  var navEl = s.page ? document.querySelector('.ni[data-page="' + s.page + '"]') : null;
 
-  // â”€â”€ Spotlight vs full-screen backdrop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // On mobile the sidebar is off-canvas so the spotlight ring would
-  // target invisible elements â€” use backdrop + bottom-sheet for all steps.
-  if(navEl && !isLast && !isMobile){
-    if(bd){ bd.style.opacity = "0"; setTimeout(function(){ bd.style.display = "none"; }, 250); }
-    if(ring){
-      var pad = 8;
-      var r   = navEl.getBoundingClientRect();
-      ring.style.top    = (r.top    - pad) + "px";
-      ring.style.left   = (r.left   - pad) + "px";
-      ring.style.width  = (r.width  + pad * 2) + "px";
-      ring.style.height = (r.height + pad * 2) + "px";
-      ring.style.display = "block";
-      requestAnimationFrame(function(){ ring.style.opacity = "1"; });
+  var renderAgainst = function(targetEl){
+    // â”€â”€ Spotlight ring (real element) vs full-screen backdrop (centered) â”€â”€
+    // Decided off actual on-screen visibility, not a hardcoded viewport
+    // width â€” the sidebar collapses to an icon rail on narrow screens but
+    // stays on-screen, so a real ring works at every width.
+    var r = targetEl ? targetEl.getBoundingClientRect() : null;
+    var visible = r && r.width > 0 && r.height > 0;
+
+    if(visible && !f.centered){
+      if(bd){ bd.style.opacity = "0"; setTimeout(function(){ bd.style.display = "none"; }, 250); }
+      if(ring){
+        var pad = 8;
+        ring.style.top    = (r.top    - pad) + "px";
+        ring.style.left   = (r.left   - pad) + "px";
+        ring.style.width  = (r.width  + pad * 2) + "px";
+        ring.style.height = (r.height + pad * 2) + "px";
+        ring.style.display = "block";
+        requestAnimationFrame(function(){ ring.style.opacity = "1"; });
+      }
+    } else {
+      if(ring){ ring.style.opacity = "0"; setTimeout(function(){ ring.style.display = "none"; }, 250); }
+      if(bd){ bd.style.display = "block"; requestAnimationFrame(function(){ bd.style.opacity = "1"; }); }
     }
-  } else {
-    if(ring){ ring.style.opacity = "0"; setTimeout(function(){ ring.style.display = "none"; }, 250); }
-    if(bd){ bd.style.display = "block"; requestAnimationFrame(function(){ bd.style.opacity = "1"; }); }
-  }
+    _obPositionTooltip(tt, visible ? targetEl : null);
+  };
 
-  // â”€â”€ Tooltip content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â”€â”€ Tooltip text content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if(!tt) return;
 
-  var secEl  = document.getElementById("ob-tt-section");
-  var titEl  = document.getElementById("ob-tt-title");
-  var descEl = document.getElementById("ob-tt-desc");
-  var dotsEl = document.getElementById("ob-tt-dots");
+  var secEl   = document.getElementById("ob-tt-section");
+  var titEl   = document.getElementById("ob-tt-title");
+  var descEl  = document.getElementById("ob-tt-desc");
+  var dotsEl  = document.getElementById("ob-tt-dots");
+  var stepEl  = document.getElementById("ob-tt-step");
   var backBtn = document.getElementById("ob-tt-back");
   var nextBtn = document.getElementById("ob-tt-next");
+  var skipBtn = document.getElementById("ob-tt-skip");
 
-  if(secEl)  secEl.textContent = s.section;
-  if(titEl)  titEl.innerHTML   = s.title;
-  if(descEl) descEl.textContent = s.desc;
+  if(secEl)  secEl.textContent  = f.sectionKey ? _obT(f.sectionKey, "") : "";
+  if(titEl)  titEl.innerHTML    = _obT(f.titleKey, "");
+  if(descEl) descEl.textContent = _obT(f.descKey, "");
+  if(stepEl){
+    var lbl = _obT("obStepOfLabel", "Step {n} of {total}").replace("{n}", f.majorStep).replace("{total}", _OB_MAJOR_TOTAL);
+    stepEl.textContent = lbl;
+  }
 
   if(dotsEl){
     dotsEl.innerHTML = "";
-    for(var i = 1; i <= total; i++){
+    for(var i = 1; i <= _OB_MAJOR_TOTAL; i++){
       var d = document.createElement("span");
-      d.className = "ob-tt-dot" + (i === step ? " ob-tt-dot-active" : "");
+      d.className = "ob-tt-dot" + (i === f.majorStep ? " ob-tt-dot-active" : "");
       dotsEl.appendChild(d);
     }
   }
 
   if(backBtn){
     backBtn.style.visibility = step > 1 ? "visible" : "hidden";
+    backBtn.textContent = _obT("obBackBtn", "â† Back");
     backBtn.onclick = function(){ obGoTo(_obStep - 1); };
   }
+  if(skipBtn){
+    skipBtn.textContent = _obT("obSkipBtn", "Skip Tour");
+    skipBtn.onclick = function(){ _obSkip(); };
+  }
   if(nextBtn){
-    nextBtn.textContent = isLast ? "Start Creating â†’" : "Next â†’";
-    nextBtn.className   = "ob-tt-next" + (isLast ? " ob-tt-cta" : "");
-    nextBtn.onclick     = isLast ? function(){ obFinish(); } : function(){ obGoTo(_obStep + 1); };
+    if(f.waiting){
+      nextBtn.textContent = _obT(f.waitingKey, "Waiting for youâ€¦");
+      nextBtn.className   = "ob-tt-next ob-tt-waiting";
+      nextBtn.onclick     = null;
+      nextBtn.disabled    = true;
+    } else {
+      nextBtn.disabled    = false;
+      nextBtn.textContent = _obT("obNextBtn", "Next â†’");
+      nextBtn.className   = "ob-tt-next";
+      nextBtn.onclick      = function(){ obGoTo(_obStep + 1); };
+    }
   }
 
   tt.style.opacity = "0";
   tt.style.display = "block";
 
+  if(f.centered){
+    renderAgainst(null);
+    return;
+  }
+  if(f.selector === '#cgrPublishBtns'){
+    // Step 10's content only exists once generation finishes rendering it.
+    _obWaitForPublishTarget(function(target){ renderAgainst(target); });
+    return;
+  }
+  renderAgainst(document.querySelector(f.selector));
+}
+
+function _obPositionTooltip(tt, targetEl){
+  if(!tt) return;
+  var isMobile = window.innerWidth <= 768;
+
   requestAnimationFrame(function(){
-    if(isMobile){
+    if(!targetEl){
+      // â”€â”€ Centered (Welcome, or any target that genuinely isn't visible) â”€â”€
+      tt.style.bottom    = "";
+      tt.style.right     = "";
+      tt.style.width     = "";
+      tt.style.maxWidth  = "";
+      tt.style.left      = "50%";
+      tt.style.top       = "50%";
+      tt.style.transform = "translate(-50%,-50%)";
+      tt.classList.add("ob-tt-center");
+      tt.classList.remove("ob-tt-arrow");
+    } else if(isMobile){
       // â”€â”€ Mobile: bottom-sheet card above thumb zone â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      tt.style.top      = "auto";
-      tt.style.bottom   = "80px";
-      tt.style.left     = "12px";
-      tt.style.right    = "12px";
-      tt.style.width    = "auto";
-      tt.style.maxWidth = "none";
+      // Confirmed by direct testing: for the interactive-wait frames
+      // (Generate, Publish) the real target sits low enough on Launch's
+      // page that the default bottom-anchored card fully covers it,
+      // silently blocking the exact tap the user is told to make. Flip to
+      // anchoring near the top instead whenever the card would overlap the
+      // real target's own position.
+      var tgtR      = targetEl.getBoundingClientRect();
+      var approxTtH = tt.offsetHeight || 260;
+      var wouldCover = tgtR.bottom > (window.innerHeight - 80 - approxTtH);
+      if(wouldCover){
+        tt.style.top = "12px";
+        // styles.css has a !important safe-area rule pinning #ob-tooltip's
+        // bottom (bottom:calc(env(safe-area-inset-bottom) + 80px)
+        // !important) for the normal bottom-sheet case -- a plain inline
+        // "auto" loses to that. setProperty(...,'important') is needed to
+        // actually win here (confirmed necessary by direct testing: without
+        // it the box stretched between top:12 and the still-pinned bottom).
+        tt.style.setProperty("bottom", "auto", "important");
+      } else {
+        tt.style.top    = "auto";
+        tt.style.bottom = "80px"; // baseline fallback; the !important safe-area rule (styles.css) supersedes this in browsers that support env()
+      }
+      tt.style.left      = "12px";
+      tt.style.right     = "12px";
+      tt.style.width     = "auto";
+      tt.style.maxWidth  = "none";
       tt.style.transform = "none";
       tt.classList.remove("ob-tt-center");
       tt.classList.remove("ob-tt-arrow");
-    } else if(navEl && !isLast){
-      // â”€â”€ Desktop: spotlight tooltip beside nav item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    } else {
+      // â”€â”€ Desktop: spotlight tooltip beside the target â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       tt.style.bottom   = "";
       tt.style.right    = "";
       tt.style.width    = "";
       tt.style.maxWidth = "";
 
-      var r       = navEl.getBoundingClientRect();
-      var margin  = 24;
-      var ttH     = tt.offsetHeight;
-      var ttW     = tt.offsetWidth || 290;
+      var r      = targetEl.getBoundingClientRect();
+      var margin = 24;
+      var ttH    = tt.offsetHeight;
+      var ttW    = tt.offsetWidth || 290;
 
-      // Preferred: align tooltip top with nav item top
       var top  = r.top;
       var left = r.right + 18;
 
-      // Flip left if it clips the right edge
       if(left + ttW + margin > window.innerWidth){
         left = Math.max(margin, r.left - ttW - 18);
       }
 
-      // Clamp vertically â€” keep 24px from both edges
       var maxTop = window.innerHeight - ttH - margin;
       var minTop = margin;
       top = Math.min(maxTop, Math.max(minTop, top));
 
-      // Recompute arrow position so it always points at the nav item's
-      // center even when the tooltip card has been shifted up or down
-      var navCenter = r.top + r.height / 2;
-      var arrowTop  = navCenter - top - 8; // 8px = half arrow height
+      var targetCenter = r.top + r.height / 2;
+      var arrowTop = targetCenter - top - 8;
       arrowTop = Math.max(8, Math.min(arrowTop, ttH - 24));
       tt.style.setProperty("--ob-arrow-top", arrowTop + "px");
 
@@ -735,46 +915,49 @@ function _obRender(step){
       tt.style.transform = "";
       tt.classList.add("ob-tt-arrow");
       tt.classList.remove("ob-tt-center");
-    } else {
-      // â”€â”€ Desktop: centered final step â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      tt.style.bottom   = "";
-      tt.style.right    = "";
-      tt.style.width    = "";
-      tt.style.maxWidth = "";
-      tt.style.left      = "50%";
-      tt.style.top       = "50%";
-      tt.style.transform = "translate(-50%,-50%)";
-      tt.classList.add("ob-tt-center");
-      tt.classList.remove("ob-tt-arrow");
     }
     requestAnimationFrame(function(){ tt.style.opacity = "1"; });
   });
 }
 
 function obGoTo(step){
-  if(step < 1 || step > _OB_STEPS.length) return;
+  if(step < 1 || step > _OB_FRAMES.length) return;
   var tt   = document.getElementById("ob-tooltip");
   var ring = document.getElementById("ob-ring");
   if(tt)   tt.style.opacity   = "0";
   if(ring) ring.style.opacity = "0";
   _obStep = step;
   setTimeout(function(){ _obRender(step); }, 180);
-  console.log("[Onboarding] Step â†’", step, "of", _OB_STEPS.length);
+  console.log("[Onboarding] Frame â†’", step, "of", _OB_FRAMES.length);
 }
 
-function obFinish(){
-  console.log("[Onboarding] Tour complete â€” context:", _obContext);
+function _obSkip(){
+  console.log("[Onboarding] Skipped â€” context:", _obContext);
+  // Critical launch-blocker fix — "Close" after the free generation has
+  // already run must hit the same paywall every other post-generation
+  // escape route hits, not just quietly end the tour.
+  if(_isFreeUser() && _freeCampaignUsed()){
+    _orvEndOnboardingIntoPaywall();
+    return;
+  }
   markOnboardingComplete();
   try { localStorage.removeItem("oriven_needs_onboarding"); } catch(_){}
   _obContext = "tour";
   hideOnboarding();
-  setTimeout(function(){
-    navigate("create");
-    setTimeout(function(){ if(typeof openNewCampaign === "function") openNewCampaign(); }, 400);
-  }, 300);
 }
+window.restartOnboarding = async function(){
+  var user = _currentUser;
+  if(!user) return;
+  try {
+    await SB.from("profiles").update({ onboarding_completed: false }).eq("id", user.id);
+  } catch(err){ console.error("[Onboarding] Restart error:", err.message); }
+  if(typeof closeModal === "function") closeModal("modal-settings");
+  _obListenersAttached = false; // re-arm the one-shot listeners for the new run
+  setTimeout(function(){ showOnboarding(); }, 200);
+};
 
-// â”€â”€ Keyboard: onboarding navigation + hard paywall Escape block â”€
+// â”€â”€ Keyboard: onboarding navigation (Escape=skip, arrows/Enter=nav) +
+// hard paywall Escape block â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener("keydown", function(e){
   if(e.key === "Escape"){
     if(_paywallHard){
@@ -782,11 +965,14 @@ document.addEventListener("keydown", function(e){
       e.stopPropagation();
       return;
     }
-    if(window._obActive) return; // Escape does nothing during tour
+    if(window._obActive){ e.preventDefault(); _obSkip(); return; }
   }
   if(window._obActive){
-    if(e.key === "ArrowRight" || e.key === "ArrowDown")      obGoTo(_obStep + 1);
-    else if(e.key === "ArrowLeft" || e.key === "ArrowUp")    obGoTo(_obStep - 1);
+    var cur = _OB_FRAMES[_obStep - 1];
+    var canAdvance = !(cur && cur.waiting);
+    if(e.key === "ArrowRight" || e.key === "ArrowDown"){ if(canAdvance) obGoTo(_obStep + 1); }
+    else if(e.key === "ArrowLeft" || e.key === "ArrowUp") obGoTo(_obStep - 1);
+    else if(e.key === "Enter"){ if(canAdvance) obGoTo(_obStep + 1); }
   }
 });
 
@@ -1095,9 +1281,9 @@ function openFreePaywall(){
   var eyeEl   = document.querySelector("#modal-paywall .pw-eyebrow span");
   console.log("[PW-CHAIN] Title element:", titleEl ? "found" : "NOT FOUND");
   console.log("[PW-CHAIN] Sub element:", subEl ? "found" : "NOT FOUND");
-  if(titleEl)  titleEl.innerHTML = "ðŸŽ Your Free Campaign Is Ready";
-  if(subEl)    subEl.textContent = "Youâ€™ve successfully generated your first campaign. To download, save, edit, manage or continue creating campaigns, choose a plan.";
-  if(eyeEl)    eyeEl.textContent = "One Free Campaign Delivered";
+  if(titleEl)  titleEl.innerHTML = _obT("obPaywallTitle", "Ready to Publish");
+  if(subEl)    subEl.textContent = _obT("obPaywallSub", "You've built your first campaign with Oriven. Choose a plan to publish it to your connected ad account.");
+  if(eyeEl)    eyeEl.textContent = _obT("obPaywallEyebrow", "Your First Campaign Is Ready");
 
   console.log("[PW-CHAIN] Calling openPaywall() | typeof openPaywall:", typeof openPaywall);
   if(typeof openPaywall === "function"){
@@ -1108,6 +1294,33 @@ function openFreePaywall(){
   console.log("[PW-CHAIN] openFreePaywall() complete | modal classList:", modal ? modal.className : "N/A");
 }
 window.openFreePaywall = openFreePaywall;
+
+// Critical launch-blocker fix — the single choke point every "this action
+// must show the paywall, not silently succeed" call site funnels through.
+// Opens the SAME paywall openFreePaywall() already shows (no new UI), and
+// permanently ends onboarding so it can never be resumed afterward: once
+// the paywall has appeared, the free generation is spent and there is
+// nothing left for the tour to walk the user through.
+function _orvEndOnboardingIntoPaywall(){
+  if(window._obActive && typeof hideOnboarding === "function") hideOnboarding(true);
+  window._obActive = false;
+  if(typeof markOnboardingComplete === "function") markOnboardingComplete();
+  try { localStorage.removeItem("oriven_needs_onboarding"); } catch(_){}
+  openFreePaywall();
+}
+window._orvEndOnboardingIntoPaywall = _orvEndOnboardingIntoPaywall;
+
+// Browser back/forward safety net -- _setAppRoute uses replaceState (no
+// real in-app history entries get pushed), so this mainly guards against
+// a user navigating back to a real prior URL in this tab; still, if it
+// fires while the free generation is locked, show the paywall rather
+// than letting the app end up in an unguarded state.
+window.addEventListener("popstate", function(){
+  if(typeof _isFreeUser === "function" && _isFreeUser() && typeof _freeCampaignUsed === "function" && _freeCampaignUsed()){
+    try { history.pushState(null, "", location.href); } catch(_){}
+    _orvEndOnboardingIntoPaywall();
+  }
+});
 
 function closePaywall(){
   console.log("[PW-CHAIN] closePaywall() called | _paywallHard:", _paywallHard);
@@ -1232,11 +1445,11 @@ document.addEventListener("DOMContentLoaded", async function(){
           if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
           if(typeof invalidatePlanCache === "function") invalidatePlanCache();
           if(typeof renderPlanPanel === "function") renderPlanPanel();
-          toast("Your subscription is now active â€” welcome to ORIVEN!");
+          if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast("Your subscription is now active â€” welcome to ORIVEN!");
           setTimeout(_postPaymentNavigate, 600);
         } else {
           // Webhook may not have arrived yet â€” retry once after a short delay
-          toast("Payment received â€” activating your account...");
+          if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast("Payment received â€” activating your account...");
           setTimeout(async function(){
             status = await checkSubscriptionStatus();
             _dbSubscriptionStatus = status;
@@ -1245,10 +1458,10 @@ document.addEventListener("DOMContentLoaded", async function(){
               if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
               if(typeof invalidatePlanCache === "function") invalidatePlanCache();
               if(typeof renderPlanPanel === "function") renderPlanPanel();
-              toast("Your subscription is now active â€” welcome to ORIVEN!");
+              if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast("Your subscription is now active â€” welcome to ORIVEN!");
               setTimeout(_postPaymentNavigate, 400);
             } else {
-              toast("Subscription pending â€” please refresh in a moment.");
+              if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast("Subscription pending â€” please refresh in a moment.");
             }
           }, 3000);
         }
@@ -1271,7 +1484,8 @@ document.addEventListener("DOMContentLoaded", async function(){
     if(event === "SIGNED_OUT"){
       _dbSubscriptionStatus = null;
       _dbPlanSet = false;
-      if(typeof S !== "undefined" && S){ S.currentPlan = "free"; }
+      if(typeof S !== "undefined" && S){ S.currentPlan = "free"; S.campaigns = []; S.assets = []; }
+      if(typeof window._campaigns !== "undefined") window._campaigns = [];
       try { if(typeof saveSettings === "function") saveSettings({ currentPlan: "free" }); } catch(_){}
       S.brandCore = null;
       showGuestLanding();
