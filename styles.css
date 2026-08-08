@@ -24113,6 +24113,26 @@ html, body { overflow: hidden !important; height: 100vh !important; }
 body { flex-direction: row !important; }
 .app { display: flex !important; flex-direction: row !important; height: 100vh !important; overflow: hidden !important; }
 
+/* Root-cause fix for "content shifted right" bugs across every route that
+   uses this pattern (not a per-page hack): most routes live nested INSIDE
+   .mc, which correctly fills the remaining width via its own flex:1. A
+   number of .page elements (e.g. #page-campaigns, #page-campaign-results)
+   are instead direct flex-item SIBLINGS of .mc right here in .app's row,
+   and .page{} declares no width/flex of its own -- so when one becomes
+   .active it shrink-to-fits its own content instead of stretching, while
+   .mc (empty, since no page is active inside it) absorbs the leftover
+   space in front of it, visually shoving the real content far to the
+   right with a huge empty gap after the sidebar.
+   This selector only matches .page elements that are ACTUALLY .app's
+   direct children (the affected pattern) -- it does nothing to the many
+   more routes correctly nested inside .mc, so it self-scopes to exactly
+   the affected routes without needing a maintained list of page IDs. An
+   overwhelming flex-grow (vs .mc's flex:1) makes the active page correctly
+   claim the real available main-content width; each page's own inner
+   max-width/margin:auto wrapper (e.g. .cgr-wrap) then centers properly
+   within that correctly-sized box, exactly as it always intended to. */
+.app > .page.active { flex: 9999 1 0%; width: auto; min-width: 0; max-width: 100%; }
+
 /* ── New sidebar ─────────────────────────────────────────────── */
 .orv-sb {
   display: flex !important;
@@ -31423,6 +31443,9 @@ body:not(.dark-mode) .con-acct-set:hover { background: rgba(0,0,0,.1); color: rg
 /* ════════════════════════════════════════════════════════════════
    CAMPAIGN RESULTS PAGE — #page-campaign-results
    ════════════════════════════════════════════════════════════════ */
+/* Flex-sizing fix generalized to `.app > .page.active` in the app-shell
+   section (styles.css ~24114) -- covers this page and every other route
+   using the same direct-.app-child pattern, not just this one. */
 #page-campaign-results { overflow-y: auto; }
 
 .cgr-wrap {
@@ -37174,6 +37197,218 @@ body.dark-mode .cr2-goal-desc { color: rgba(255,255,255,.4); }
 .crv-rec-item { display: flex; align-items: flex-start; gap: 8px; padding: 9px 14px; border-bottom: 1px solid rgba(255,255,255,.04); font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.45; }
 .crv-rec-item:last-child { border-bottom: none; }
 .crv-rec-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; margin-top: 5px; opacity: .7; }
+
+/* ── Meta Campaign Studio ──────────────────────────────────────────── */
+/* Preview-first workspace: three stages (Preview / Edit / Oriven Review),
+   no dashboard-style tabs, no small sidebar preview -- the ad simulation
+   is the hero, editing is one continuous page, review is a checklist. */
+/* #cgmMetaScreen is an in-page block (inside the already-centered
+   .cgr-wrap, max-width:1100px), not a modal -- no overlay/backdrop/fixed
+   sizing. It fills the space .crv-tabbar + .crv-layout used to occupy. */
+#cgmMetaScreen { border: 1px solid rgba(255,255,255,.1); border-radius: 16px; background: #1c1c1e; overflow: hidden; min-height: 78vh; display: flex; flex-direction: column; }
+
+.cst-dirty { font-size: 12px; color: #fbbf24; }
+.cst-saved { font-size: 12px; color: var(--green); }
+.cst-btn { font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; transition: opacity .12s, background .12s; }
+.cst-btn-ghost { background: rgba(255,255,255,.06); color: rgba(255,255,255,.8); }
+.cst-btn-ghost:hover { background: rgba(255,255,255,.1); }
+.cst-btn-primary { background: var(--green); color: #000; }
+.cst-btn-primary:hover { opacity: .88; }
+.cst-btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.cst-btn-lg { font-size: 14px; padding: 12px 28px; border-radius: 10px; }
+
+/* Stage bar: the three Preview/Edit/Review states + compact ad selector +
+   save controls. This replaces the old Copy/Audience/Creatives/Settings
+   tab bar and the small right-side "Live Preview" card entirely. */
+.cst-stagebar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,.08); flex-wrap: wrap; flex-shrink: 0; }
+.cst-stage-nav { display: flex; gap: 4px; background: rgba(255,255,255,.05); padding: 4px; border-radius: 11px; }
+.cst-stage-btn { font-size: 13px; font-weight: 600; padding: 9px 18px; border-radius: 8px; border: none; background: transparent; color: rgba(255,255,255,.5); cursor: pointer; transition: background .12s, color .12s; }
+.cst-stage-btn:hover { color: rgba(255,255,255,.8); }
+.cst-stage-btn-active { background: #2c2c2e; color: #fff; }
+.cst-ad-selector-bar { display: flex; align-items: center; gap: 8px; }
+.cst-ad-selector-bar label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: rgba(255,255,255,.35); }
+.cst-sel { font-size: 12.5px; padding: 7px 10px; border-radius: 7px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.05); color: #fff; max-width: 260px; }
+.cst-save-controls { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+
+.cst-stage-body { flex: 1; min-height: 0; }
+.cst-stage-panel { display: none; }
+.cst-stage-panel-active { display: block; }
+
+/* ── PREVIEW stage: the hero. Large, centered, immersive. ── */
+.cst-stage-panel[data-stage="preview"] { padding: 32px 24px 56px; box-sizing: border-box; background: radial-gradient(ellipse at top, rgba(255,255,255,.025), transparent 60%); }
+.cst-format-switcher { display: flex; gap: 6px; background: rgba(255,255,255,.05); padding: 4px; border-radius: 10px; flex-shrink: 0; width: max-content; margin: 0 auto 28px; }
+.cst-fmt-btn { font-size: 12.5px; font-weight: 600; padding: 8px 16px; border-radius: 7px; border: none; background: transparent; color: rgba(255,255,255,.5); cursor: pointer; white-space: nowrap; }
+.cst-fmt-btn-active { background: #2c2c2e; color: #fff; }
+.cst-preview-stage { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; gap: 12px; }
+
+/* Feed formats: large "device" card, capped so it stays readable on huge
+   screens, generous enough to actually inspect the ad (spec: not a 250px
+   sidebar card). A muted platform chrome bar + a faded "more content"
+   footer sell the feeling of being inside a real, scrollable feed. */
+.cst-mock-igfeed, .cst-mock-fbfeed { width: 100%; max-width: 470px; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.4); font-family: -apple-system, Helvetica, Arial, sans-serif; }
+.cst-platform-chrome { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f0f0f0; }
+.cst-platform-wordmark { font-size: 17px; font-weight: 700; color: #111; letter-spacing: -.02em; }
+.cst-platform-icons { display: flex; gap: 14px; color: #222; font-size: 16px; }
+.cst-ig-hd, .cst-fb-hd { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+.cst-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--green), #6ea800); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #0a0a0a; flex-shrink: 0; }
+.cst-ig-name, .cst-fb-name { font-size: 14px; font-weight: 600; color: #111; line-height: 1.25; }
+.cst-ig-spon, .cst-fb-spon { font-size: 11.5px; color: #8a8a8a; }
+.cst-dots { margin-left: auto; color: #444; font-size: 14px; letter-spacing: 1px; }
+.cst-ig-img, .cst-fb-img { width: 100%; aspect-ratio: 1/1; background: #eee; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.cst-fb-img { aspect-ratio: 1.91/1; }
+.cst-ig-img img, .cst-fb-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cst-img-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #aaa; font-size: 12px; }
+.cst-ig-actions { display: flex; align-items: center; gap: 16px; padding: 11px 14px 5px; font-size: 21px; color: #222; }
+.cst-ig-save { margin-left: auto; }
+.cst-ig-body, .cst-fb-body { padding: 0 14px 12px; font-size: 14px; color: #222; line-height: 1.45; }
+.cst-ig-body b, .cst-fb-body b { font-weight: 600; }
+.cst-fb-body { padding-top: 2px; }
+.cst-ig-cta-row, .cst-fb-cta-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; background: #f4f4f4; border-top: 1px solid #ececec; }
+.cst-ig-domain, .cst-fb-domain { font-size: 11px; color: #8a8a8a; text-transform: uppercase; letter-spacing: .02em; }
+.cst-ig-headline, .cst-fb-headline { font-size: 14px; font-weight: 600; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+.cst-cta-btn { font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 7px; background: #e4e6eb; color: #050505; border: none; flex-shrink: 0; cursor: default; }
+.cst-fb-action-row { display: flex; align-items: center; justify-content: space-around; padding: 8px 4px; border-top: 1px solid #ececec; }
+.cst-fb-action { font-size: 13px; color: #65676b; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+.cst-feed-more { width: 100%; max-width: 470px; height: 64px; border-radius: 14px; background: linear-gradient(to bottom, rgba(255,255,255,.05), transparent); border: 1px solid rgba(255,255,255,.05); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.22); font-size: 11.5px; }
+
+/* Story/Reels: full-screen vertical formats -- viewport-based, no scroll
+   needed per spec, but enlarged well beyond a small sidebar thumbnail. */
+.cst-mock-story, .cst-mock-reels { width: 300px; max-width: 82vw; aspect-ratio: 9/16; background: #000; border-radius: 26px; overflow: hidden; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,.55); border: 8px solid #0a0a0a; }
+.cst-story-bars { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; gap: 4px; z-index: 3; }
+.cst-story-bar { flex: 1; height: 2.5px; border-radius: 2px; background: rgba(255,255,255,.35); }
+.cst-story-bar-fill { width: 40%; height: 100%; background: #fff; border-radius: 2px; }
+.cst-story-hd { position: absolute; top: 22px; left: 14px; right: 14px; display: flex; align-items: center; gap: 8px; z-index: 3; }
+.cst-story-hd .cst-avatar { width: 28px; height: 28px; font-size: 11px; }
+.cst-story-hd-name { font-size: 13px; font-weight: 600; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.cst-story-media { position: absolute; inset: 0; background: linear-gradient(160deg, #232326, #101012); display: flex; align-items: center; justify-content: center; }
+.cst-story-media img, .cst-reels-media img { width: 100%; height: 100%; object-fit: cover; }
+.cst-story-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; background: linear-gradient(to top, rgba(0,0,0,.72), transparent); z-index: 2; }
+.cst-story-fade-top { position: absolute; left: 0; right: 0; top: 0; height: 22%; background: linear-gradient(to bottom, rgba(0,0,0,.55), transparent); z-index: 2; }
+.cst-story-foot { position: absolute; left: 16px; right: 16px; bottom: 22px; z-index: 3; display: flex; flex-direction: column; gap: 10px; }
+.cst-story-text { font-size: 13.5px; color: #fff; line-height: 1.35; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.cst-story-cta { align-self: flex-start; font-size: 12.5px; font-weight: 700; color: #fff; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.5); border-radius: 20px; padding: 7px 16px; display: flex; align-items: center; gap: 5px; }
+
+.cst-reels-media { position: absolute; inset: 0; background: linear-gradient(160deg, #1b1b1e, #0a0a0a); display: flex; align-items: center; justify-content: center; }
+.cst-reels-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 55%; background: linear-gradient(to top, rgba(0,0,0,.75), transparent); z-index: 2; }
+.cst-reels-rail { position: absolute; right: 12px; bottom: 84px; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 17px; color: #fff; font-size: 18px; }
+.cst-reels-rail span { font-size: 9px; font-weight: 600; margin-top: -8px; }
+.cst-reels-foot { position: absolute; left: 16px; right: 64px; bottom: 22px; z-index: 3; display: flex; flex-direction: column; gap: 7px; }
+.cst-reels-user { font-size: 13px; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.cst-reels-caption { font-size: 12.5px; color: #fff; line-height: 1.35; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.cst-reels-cta { align-self: flex-start; font-size: 12px; font-weight: 700; color: #000; background: #fff; border-radius: 7px; padding: 7px 14px; }
+.cst-mock-note { font-size: 11px; color: rgba(255,255,255,.32); text-align: center; }
+
+/* ── EDIT stage: one continuous page, collapsible sections instead of
+   Copy/Audience/Creatives/Settings tabs. ── */
+.cst-edit-wrap { max-width: 640px; margin: 0 auto; padding: 28px 24px 60px; display: flex; flex-direction: column; gap: 14px; }
+.cst-sec { border: 1px solid rgba(255,255,255,.08); border-radius: 12px; background: rgba(255,255,255,.02); overflow: hidden; }
+.cst-sec > summary { list-style: none; cursor: pointer; padding: 15px 18px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: #fff; }
+.cst-sec > summary::-webkit-details-marker { display: none; }
+.cst-sec-sub { font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,.35); margin-left: 8px; }
+.cst-sec-chev { transition: transform .15s; color: rgba(255,255,255,.4); flex-shrink: 0; }
+.cst-sec[open] > summary .cst-sec-chev { transform: rotate(90deg); }
+.cst-sec-body { padding: 4px 18px 18px; display: flex; flex-direction: column; gap: 14px; }
+.cst-fld { display: flex; flex-direction: column; gap: 6px; }
+.cst-fld label { font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,.55); }
+.cst-fld-hint { font-size: 10.5px; color: rgba(255,255,255,.3); line-height: 1.4; }
+.cst-fld-row { display: flex; gap: 12px; }
+.cst-fld-row .cst-fld { flex: 1; min-width: 0; }
+.cst-fld-static { font-size: 13px; color: rgba(255,255,255,.75); padding: 9px 11px; border-radius: 7px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); }
+.cst-goal-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,.65); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 6px 12px; align-self: flex-start; }
+.cst-goal-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+.cst-creative-thumb { width: 100%; max-width: 220px; aspect-ratio: 1/1; border-radius: 10px; overflow: hidden; background: rgba(255,255,255,.04); display: flex; align-items: center; justify-content: center; }
+.cst-creative-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ── ORIVEN REVIEW stage ── */
+.cst-review-wrap { max-width: 640px; margin: 0 auto; padding: 28px 24px 30px; }
+.cst-review-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.cst-review-row:last-child { border-bottom: none; }
+.cst-review-lbl { font-size: 12.5px; color: rgba(255,255,255,.45); }
+.cst-review-val { font-size: 13px; font-weight: 600; color: #fff; text-align: right; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cst-review-val-warn { color: #fbbf24; }
+.cst-review-sec-hd { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.35); margin: 22px 0 8px; }
+.cst-review-sec-hd:first-child { margin-top: 0; }
+.cst-check-list { display: flex; flex-direction: column; gap: 9px; }
+.cst-check-item { display: flex; align-items: center; gap: 9px; font-size: 13px; color: rgba(255,255,255,.75); }
+.cst-check-ok { color: var(--green); flex-shrink: 0; }
+.cst-check-warn-item { color: #fbbf24; }
+.cst-check-warn-icon { color: #fbbf24; flex-shrink: 0; }
+.cst-review-err { font-size: 12.5px; color: #f87171; background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.18); border-radius: 8px; padding: 10px 12px; line-height: 1.45; margin-top: 6px; }
+.cst-review-err-details { margin-top: 6px; font-size: 11px; color: rgba(255,255,255,.4); cursor: pointer; }
+.cst-review-foot-inline { max-width: 640px; margin: 0 auto; padding: 0 24px 28px; display: flex; justify-content: flex-end; }
+
+/* Responsive: tablet (~820px) and mobile (~390px) per QA matrix */
+@media (max-width: 1024px) {
+  .cst-mock-igfeed, .cst-mock-fbfeed, .cst-feed-more { max-width: 420px; }
+}
+@media (max-width: 600px) {
+  #cgmMetaScreen { border-radius: 12px; min-height: 0; }
+  .cst-stagebar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
+  .cst-save-controls { margin-left: 0; justify-content: space-between; }
+  .cst-stage-nav { width: 100%; justify-content: space-between; }
+  .cst-stage-btn { flex: 1; padding: 9px 6px; text-align: center; }
+  .cst-ad-selector-bar { width: 100%; }
+  .cst-sel { max-width: none; flex: 1; }
+  .cst-stage-panel[data-stage="preview"] { padding: 20px 12px 36px; }
+  .cst-mock-igfeed, .cst-mock-fbfeed, .cst-feed-more { max-width: 100%; }
+  .cst-mock-story, .cst-mock-reels { width: 220px; }
+  .cst-edit-wrap, .cst-review-wrap, .cst-review-foot-inline { padding-left: 16px; padding-right: 16px; }
+}
+
+/* Light mode: the Studio is intentionally a fixed-dark tool surface (matches
+   the existing Ads Manager modal/panel language, .adm-modal / .adm-camp-panel),
+   independent of the site-wide light/dark toggle -- so no overrides needed
+   here; verified not to visually clash when body.dark-mode is toggled. */
+
+/* ── Google Ads Preview / Edit / Oriven Review ─────────────────────── */
+/* Search-results simulation -- light chrome (matches how a real search
+   page looks, same reasoning as Meta's light feed-card mocks), no format
+   switcher needed since Google Search is the one placement this pipeline
+   actually publishes to. */
+.cst-mock-gsearch { width: 100%; max-width: 640px; margin: 0 auto; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.4); font-family: arial, sans-serif; }
+.cst-gs-searchbar { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid #ececec; }
+.cst-gs-logo { font-size: 18px; font-weight: 700; letter-spacing: -.02em; }
+.cst-gs-logo b:nth-child(1) { color: #4285F4; } .cst-gs-logo b:nth-child(2) { color: #EA4335; } .cst-gs-logo b:nth-child(3) { color: #FBBC05; } .cst-gs-logo b:nth-child(4) { color: #4285F4; } .cst-gs-logo b:nth-child(5) { color: #34A853; } .cst-gs-logo b:nth-child(6) { color: #EA4335; }
+.cst-gs-query-pill { flex: 1; display: flex; align-items: center; gap: 8px; background: #f1f3f4; border-radius: 24px; padding: 9px 16px; font-size: 14px; color: #202124; }
+.cst-gs-results { padding: 14px 18px 20px; }
+.cst-gs-ad-block { padding: 10px 0 18px; border-bottom: 1px solid #f0f0f0; margin-bottom: 14px; }
+.cst-gs-ad-tag { display: inline-block; font-size: 11px; font-weight: 700; color: #1a1a1a; background: #fce8b2; border-radius: 3px; padding: 1px 5px; margin-right: 6px; }
+.cst-gs-ad-url { font-size: 13px; color: #202124; margin: 4px 0 2px; display: flex; align-items: center; gap: 6px; }
+.cst-gs-ad-favicon { width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(135deg, var(--green), #6ea800); flex-shrink: 0; }
+.cst-gs-ad-hl { font-size: 20px; color: #1a0dab; line-height: 1.3; margin: 2px 0 4px; }
+.cst-gs-ad-desc { font-size: 14px; color: #4d5156; line-height: 1.55; }
+.cst-gs-organic { padding: 14px 0; opacity: .35; }
+.cst-gs-organic-url { font-size: 12.5px; color: #202124; margin-bottom: 3px; }
+.cst-gs-organic-hl { font-size: 18px; color: #1a0dab; margin-bottom: 3px; }
+.cst-gs-organic-desc { font-size: 13px; color: #4d5156; line-height: 1.5; }
+
+/* Editable list rows (headlines / descriptions / keywords) */
+.cst-list { display: flex; flex-direction: column; gap: 7px; }
+.cst-list-row { display: flex; align-items: center; gap: 8px; }
+.cst-list-row .crv-inp { flex: 1; }
+.cst-list-remove { width: 26px; height: 26px; flex-shrink: 0; border-radius: 6px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); color: rgba(255,255,255,.5); cursor: pointer; font-size: 14px; line-height: 1; }
+.cst-list-remove:hover { background: rgba(248,113,113,.12); color: #f87171; border-color: rgba(248,113,113,.25); }
+.cst-list-add { align-self: flex-start; font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 7px; border: 1px dashed rgba(255,255,255,.18); background: transparent; color: rgba(255,255,255,.55); cursor: pointer; }
+.cst-list-add:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+.cst-list-add:disabled { opacity: .35; cursor: not-allowed; }
+.cst-char-count { font-size: 10.5px; color: rgba(255,255,255,.3); text-align: right; }
+
+/* ── TikTok Ads Preview / Edit / Oriven Review ─────────────────────── */
+.cst-mock-tiktok { width: 300px; max-width: 82vw; aspect-ratio: 9/16; background: #000; border-radius: 26px; overflow: hidden; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,.55); border: 8px solid #0a0a0a; margin: 0 auto; }
+.cst-tt-top { position: absolute; top: 20px; left: 0; right: 0; z-index: 3; display: flex; justify-content: center; gap: 18px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.5); }
+.cst-tt-top-active { color: #fff; }
+.cst-tt-media { position: absolute; inset: 0; background: linear-gradient(160deg, #232326, #101012); display: flex; align-items: center; justify-content: center; }
+.cst-tt-media img { width: 100%; height: 100%; object-fit: cover; }
+.cst-tt-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,.78), transparent); z-index: 2; }
+.cst-tt-rail { position: absolute; right: 10px; bottom: 90px; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 17px; color: #fff; font-size: 18px; }
+.cst-tt-rail span { font-size: 8px; font-weight: 600; margin-top: -8px; }
+.cst-tt-foot { position: absolute; left: 14px; right: 62px; bottom: 20px; z-index: 3; display: flex; flex-direction: column; gap: 8px; }
+.cst-tt-user { font-size: 13px; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.cst-tt-sponsored { font-size: 10.5px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .04em; }
+.cst-tt-caption { font-size: 12.5px; color: #fff; line-height: 1.4; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.cst-tt-cta { align-self: flex-start; font-size: 12px; font-weight: 700; color: #000; background: #fff; border-radius: 6px; padding: 7px 14px; }
+.cst-tt-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; color: rgba(255,255,255,.35); font-size: 12px; text-align: center; padding: 0 24px; }
+
 /* ── V4 AI REVIEW ────────────────────────────────────────────────── */
 .v4r-wrap { padding: 0 0 40px; display: flex; flex-direction: column; gap: 24px; }
 

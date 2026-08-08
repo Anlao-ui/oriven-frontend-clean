@@ -1399,6 +1399,8 @@
                 <span class="con-detail-val" id="conAccTiktok">—</span>
               </div>
             </div>
+            <!-- Account list injected here when connected -->
+            <div id="conAcctListTiktok" class="con-acct-list" style="display:none"></div>
             <div class="con-card-foot">
               <button class="con-btn-connect" id="conBtnTiktok" onclick="conConnect('tiktok')" data-i18n="conConnectTiktokBtn">Connect TikTok Ads →</button>
               <button class="con-btn-disconnect" id="conBtnTiktokDisc" style="display:none" onclick="conDisconnect('tiktok')" data-i18n="conDisconnectBtn">Disconnect</button>
@@ -3717,6 +3719,108 @@
             </div>
 
           </div><!-- /.crv-layout -->
+
+          <!-- Meta Ad Preview & Editor — replaces the tab system above for
+               Meta campaigns (Preview / Edit / Oriven Review). Google/TikTok
+               keep .crv-tabbar + .crv-layout untouched; see _renderPackage. -->
+          <div id="cgmMetaScreen" style="display:none">
+            <div class="cst-stagebar">
+              <div class="cst-stage-nav" id="cgmStageNav">
+                <button type="button" class="cst-stage-btn cst-stage-btn-active" onclick="_cstSetStage('preview')" data-stage="preview">Preview</button>
+                <button type="button" class="cst-stage-btn" onclick="_cstSetStage('edit')" data-stage="edit">Edit</button>
+                <button type="button" class="cst-stage-btn" onclick="_cstSetStage('review')" data-stage="review">Oriven Review</button>
+              </div>
+              <div class="cst-ad-selector-bar" id="cstAdSelectorBar">
+                <label>Editing</label>
+                <select id="cstAdSelect" class="cst-sel" onchange="_cstAdSelectChanged()"></select>
+              </div>
+              <div class="cst-save-controls">
+                <span class="cst-dirty" id="cstDirtyBadge" style="display:none">Unsaved changes</span>
+                <span class="cst-saved" id="cstSavedBadge" style="display:none">Saved</span>
+                <button class="cst-btn cst-btn-ghost" id="cstSaveBtn" onclick="_cstSave()">Save changes</button>
+              </div>
+            </div>
+
+            <div class="cst-stage-body" id="cstStageBody">
+
+              <div class="cst-stage-panel cst-stage-panel-active" data-stage="preview">
+                <div class="cst-format-switcher" id="cstFormatSwitcher"></div>
+                <div class="cst-preview-stage" id="cstPreviewStage"></div>
+              </div>
+
+              <div class="cst-stage-panel" data-stage="edit">
+                <div class="cst-edit-wrap" id="cstEditBody"></div>
+              </div>
+
+              <div class="cst-stage-panel" data-stage="review">
+                <div class="cst-review-wrap" id="cstReviewBody"></div>
+                <div class="cst-review-foot-inline">
+                  <button class="cst-btn cst-btn-primary cst-btn-lg" id="cstPublishBtn" onclick="_cstDoPublish()">Publish to Meta Ads</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Google Ads Preview / Editor / Review -->
+          <div id="cggGoogleScreen" style="display:none">
+            <div class="cst-stagebar">
+              <div class="cst-stage-nav" id="cggStageNav">
+                <button type="button" class="cst-stage-btn cst-stage-btn-active" onclick="_cggSetStage('preview')" data-stage="preview">Preview</button>
+                <button type="button" class="cst-stage-btn" onclick="_cggSetStage('edit')" data-stage="edit">Edit</button>
+                <button type="button" class="cst-stage-btn" onclick="_cggSetStage('review')" data-stage="review">Oriven Review</button>
+              </div>
+              <div class="cst-save-controls">
+                <span class="cst-dirty" id="cggDirtyBadge" style="display:none">Unsaved changes</span>
+                <span class="cst-saved" id="cggSavedBadge" style="display:none">Saved</span>
+                <button class="cst-btn cst-btn-ghost" id="cggSaveBtn" onclick="_cggSave()">Save changes</button>
+              </div>
+            </div>
+            <div class="cst-stage-body" id="cggStageBody">
+              <div class="cst-stage-panel cst-stage-panel-active" data-stage="preview">
+                <div class="cst-preview-stage" id="cggPreviewStage"></div>
+              </div>
+              <div class="cst-stage-panel" data-stage="edit">
+                <div class="cst-edit-wrap" id="cggEditBody"></div>
+              </div>
+              <div class="cst-stage-panel" data-stage="review">
+                <div class="cst-review-wrap" id="cggReviewBody"></div>
+                <div class="cst-review-foot-inline">
+                  <button class="cst-btn cst-btn-primary cst-btn-lg" id="cggPublishBtn" onclick="_cggDoPublish()">Publish to Google Ads</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TikTok Ads Preview / Editor / Review -->
+          <div id="cgtTiktokScreen" style="display:none">
+            <div class="cst-stagebar">
+              <div class="cst-stage-nav" id="cgtStageNav">
+                <button type="button" class="cst-stage-btn cst-stage-btn-active" onclick="_cgtSetStage('preview')" data-stage="preview">Preview</button>
+                <button type="button" class="cst-stage-btn" onclick="_cgtSetStage('edit')" data-stage="edit">Edit</button>
+                <button type="button" class="cst-stage-btn" onclick="_cgtSetStage('review')" data-stage="review">Oriven Review</button>
+              </div>
+              <div class="cst-save-controls">
+                <span class="cst-dirty" id="cgtDirtyBadge" style="display:none">Unsaved changes</span>
+                <span class="cst-saved" id="cgtSavedBadge" style="display:none">Saved</span>
+                <button class="cst-btn cst-btn-ghost" id="cgtSaveBtn" onclick="_cgtSave()">Save changes</button>
+              </div>
+            </div>
+            <div class="cst-stage-body" id="cgtStageBody">
+              <div class="cst-stage-panel cst-stage-panel-active" data-stage="preview">
+                <div class="cst-preview-stage" id="cgtPreviewStage"></div>
+              </div>
+              <div class="cst-stage-panel" data-stage="edit">
+                <div class="cst-edit-wrap" id="cgtEditBody"></div>
+              </div>
+              <div class="cst-stage-panel" data-stage="review">
+                <div class="cst-review-wrap" id="cgtReviewBody"></div>
+                <div class="cst-review-foot-inline">
+                  <button class="cst-btn cst-btn-primary cst-btn-lg" id="cgtPublishBtn" onclick="_cgtDoPublish()">Publish to TikTok Ads</button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Pre-publish validation checklist -->
           <div class="crv-validation" id="cgrValidation" style="display:none">
@@ -9944,12 +10048,14 @@ function _conFetchStatus(platform) {
           setTimeout(function() { _conRenderAccountList('meta', mAccs, d.active_ad_account); }, 0);
           setTimeout(function() { _conRenderPageList(mPages, d.active_page); }, 0);
         } else if (platform === 'tiktok') {
-          detail = { displayName: d.tiktok_display_name || '—' };
+          var tAccs = d.tiktok_ads_accounts || [];
+          detail = { displayName: d.tiktok_display_name || '—', accounts: tAccs.length ? tAccs.length + ' account' + (tAccs.length !== 1 ? 's' : '') : '—' };
           if (d.active_ad_account && d.active_ad_account.account_id) window._activeTadsAccount = d.active_ad_account;
+          setTimeout(function() { _conRenderAccountList('tiktok', tAccs, d.active_ad_account); }, 0);
         }
       } else {
         /* Hide account list when disconnected */
-        var _listEl = document.getElementById('conAcctList' + (platform === 'google' ? 'Google' : platform === 'meta' ? 'Meta' : ''));
+        var _listEl = document.getElementById('conAcctList' + (platform === 'google' ? 'Google' : platform === 'meta' ? 'Meta' : platform === 'tiktok' ? 'Tiktok' : ''));
         if (_listEl) { _listEl.style.display = 'none'; _listEl.innerHTML = ''; }
         if (platform === 'meta') {
           var _pageListEl = document.getElementById('conPageListMeta');
@@ -9966,7 +10072,7 @@ function _conFetchStatus(platform) {
 
 /* Render per-account rows inside the integration card */
 function _conRenderAccountList(platform, accounts, activeAccount) {
-  var elId = platform === 'google' ? 'conAcctListGoogle' : 'conAcctListMeta';
+  var elId = platform === 'google' ? 'conAcctListGoogle' : platform === 'tiktok' ? 'conAcctListTiktok' : 'conAcctListMeta';
   var el = document.getElementById(elId);
   if (!el) return;
   if (!accounts || !accounts.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
@@ -9978,7 +10084,7 @@ function _conRenderAccountList(platform, accounts, activeAccount) {
     var aIdClean = String(aId).replace(/-/g,'');
     var aName = platform === 'google' ? (a.account_name || a.name || aId) : (a.account_name || aId);
     var isActive = activeId && aIdClean === activeId;
-    var idDisplay = platform === 'google' ? 'Customer ID: ' + aId : 'Account ID: ' + aId;
+    var idDisplay = platform === 'google' ? 'Customer ID: ' + aId : (platform === 'tiktok' ? 'Advertiser ID: ' + aId : 'Account ID: ' + aId);
 
     /* Build onclick args safely */
     var extraJson = platform === 'google'
@@ -10007,8 +10113,14 @@ function _conEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&
 
 window.conSetActive = function(platform, accountId, accountName, extra) {
   extra = extra || {};
+  /* TikTok's /api/tiktok/active-account expects advertiser_id/advertiser_name,
+     not account_id/account_name -- confirmed by reading that route's real
+     req.body destructuring before wiring this, not assumed from the
+     Google/Meta pattern. */
   var body = platform === 'google'
     ? { account_id: accountId, account_name: accountName, is_manager: !!extra.is_manager, status: extra.status || '', parent_manager_id: extra.parent_manager_id || null }
+    : platform === 'tiktok'
+    ? { advertiser_id: accountId, advertiser_name: accountName, currency: extra.currency || '' }
     : { account_id: accountId, account_name: accountName, currency: extra.currency || '' };
 
   apiFetch('/api/' + platform + '/active-account', { method: 'POST', body: JSON.stringify(body) })
@@ -10016,6 +10128,7 @@ window.conSetActive = function(platform, accountId, accountName, extra) {
       if (r.ok) {
         if (platform === 'google') window._activeAdAccount = r.data && r.data.active_ad_account;
         if (platform === 'meta')   window._activeMetaAccount = r.data && r.data.active_ad_account;
+        if (platform === 'tiktok') window._activeTadsAccount = r.data && r.data.active_ad_account;
         if (typeof toast === 'function') toast('Active account updated');
         _conFetchStatus(platform);
       } else {
@@ -11988,11 +12101,13 @@ function _admRenderPlatformSection(platform, camps, status) {
             acts += '<option value="'+_admEsc(String(aId))+'" data-name="'+_admEsc(aName||'')+'" data-currency="'+_admEsc(aCur)+'" data-parent="'+_admEsc(aPar)+'"'+(isSel?' selected':'')+'>'+_admEsc(aName||String(aId))+'</option>';
           });
           acts += '</select>';
+          if (platform === 'meta') acts += '<button class="adm-act-btn adm-act-edit" onclick="event.stopPropagation();openCampaignWorkspace(\''+c.id+'\')">Edit</button>';
           acts += '<button class="adm-act-btn adm-act-publish" onclick="event.stopPropagation();admPublishFromSelector(\''+c.id+'\',\''+platform+'\')">Publish →</button>';
         } else if (hasActive) {
           /* No accounts list cached but active account known — allow publish */
           var acctLbl = active.account_name || active.account_id;
           acts += '<span class="adm-acct-name">'+_admEsc(acctLbl)+'</span>';
+          if (platform === 'meta') acts += '<button class="adm-act-btn adm-act-edit" onclick="event.stopPropagation();openCampaignWorkspace(\''+c.id+'\')">Edit</button>';
           acts += '<button class="adm-act-btn adm-act-publish" onclick="event.stopPropagation();admPublishCampaign(\''+c.id+'\')">Publish →</button>';
         } else {
           /* Connected but no accounts found and no active set */
@@ -13504,6 +13619,15 @@ window.rptExport = function(format) {
     var platform = pkg.platform || window._ov3Platform || 'google';
     var creativeMode = window._cgrCreativeMode || 'images';
     var s = pkg.strategy || {};
+    /* Every platform now gets the redesigned Preview/Edit/Oriven Review
+       experience in place of the old Copy/Audience/Creatives/Settings tab
+       system -- each platform's screen is independently implemented
+       (separate functions/state, no shared internals) so Meta's completed,
+       tested implementation is never touched by Google/TikTok work. */
+    var isMeta   = (platform === 'meta');
+    var isGoogle = (platform === 'google');
+    var isTiktok = (platform === 'tiktok');
+    var isRedesigned = isMeta || isGoogle || isTiktok;
 
     /* Topbar */
     var nameEl = document.getElementById('cgrCampaignName');
@@ -13540,33 +13664,46 @@ window.rptExport = function(format) {
     var kwTab = document.getElementById('cgrTabKeywords');
     if(kwTab) kwTab.style.display = platform==='google' ? '' : 'none';
 
-    /* Render platform panels */
+    /* Toggle between the old tab system (now unused by any platform, but
+       left completely intact in the DOM/functions) and each platform's own
+       redesigned Preview/Edit/Oriven Review screen. */
+    var tabbarEl     = document.querySelector('.crv-tabbar');
+    var layoutEl     = document.querySelector('.crv-layout');
+    var metaScreenEl = document.getElementById('cgmMetaScreen');
+    var ggScreenEl   = document.getElementById('cggGoogleScreen');
+    var gtScreenEl   = document.getElementById('cgtTiktokScreen');
+    if (metaScreenEl) metaScreenEl.style.display = isMeta   ? '' : 'none';
+    if (ggScreenEl)   ggScreenEl.style.display   = isGoogle ? '' : 'none';
+    if (gtScreenEl)   gtScreenEl.style.display   = isTiktok ? '' : 'none';
+    if (tabbarEl) tabbarEl.style.display = isRedesigned ? 'none' : '';
+    if (layoutEl) layoutEl.style.display = isRedesigned ? 'none' : '';
+
+    /* Render platform panels — only for platforms still on the old tab
+       system (none currently; kept for forward-compatibility with any
+       future platform that hasn't been redesigned yet). */
     var platEl = document.getElementById('cgrPlatformContent');
-    if(platEl){
-      if(platform==='meta')        platEl.innerHTML = _renderMetaPackage(pkg);
-      else if(platform==='tiktok') platEl.innerHTML = _renderTikTokPackage(pkg);
-      else                         platEl.innerHTML = _renderGooglePackage(pkg);
+    if(platEl && !isRedesigned){
+      if(platform==='tiktok') platEl.innerHTML = _renderTikTokPackage(pkg);
+      else                    platEl.innerHTML = _renderGooglePackage(pkg);
       /* Activate first tab */
       var firstPanel = platEl.querySelector('.crv-panel');
       if(firstPanel) firstPanel.classList.add('crv-panel-active');
       document.querySelectorAll('.crv-tab').forEach(function(t){ t.classList.remove('crv-tab-active'); });
       var firstTab = document.querySelector('.crv-tab');
       if(firstTab) firstTab.classList.add('crv-tab-active');
-    }
 
-    /* AI Review panel */
-    if(platEl){
+      /* AI Review panel */
       var reviewPanel = document.createElement('div');
       reviewPanel.className = 'crv-panel';
       reviewPanel.setAttribute('data-tab', 'review');
       reviewPanel.innerHTML = _renderAiReview(pkg, platform);
       platEl.appendChild(reviewPanel);
-    }
 
-    /* Aside: preview, validation, recommendations */
-    _renderPreview(pkg, platform);
-    _renderValidation(pkg, platform);
-    _renderRecommendations(pkg, platform);
+      /* Aside: preview, validation, recommendations */
+      _renderPreview(pkg, platform);
+      _renderValidation(pkg, platform);
+      _renderRecommendations(pkg, platform);
+    }
 
     /* Save to campaigns library (skip when reopening an existing campaign) */
     var campId;
@@ -13587,8 +13724,13 @@ window.rptExport = function(format) {
       campId = window._cgrCurrentCampId || ('cgr_reopen_'+Date.now());
     }
 
-    /* Build publish section */
+    /* Build publish section (only relevant for platforms not yet
+       redesigned — each redesigned platform publishes from its own inline
+       Oriven Review stage instead, see _buildPublishSection). */
     _buildPublishSection(platform, campId);
+    if (isMeta)   _cgmInitMetaScreen(pkg, campId);
+    if (isGoogle) _cggInitGoogleScreen(pkg, campId);
+    if (isTiktok) _cgtInitTiktokScreen(pkg, campId);
 
     /* Show content */
     _cancelLoadingTimers();
@@ -13812,19 +13954,30 @@ window.rptExport = function(format) {
     var btns    = document.getElementById('cgrPublishBtns');
     if(!section || !btns) return;
     var html = '';
-    if(platform === 'google' || platform === 'all'){
+    /* Meta/Google/TikTok each publish from their own inline Oriven Review
+       stage now (see _cgmInitMetaScreen/_cggInitGoogleScreen/
+       _cgtInitTiktokScreen) — no duplicate publish button here for the
+       single-platform case, only a "Connect" prompt if not yet connected.
+       'all' (multi-platform generation) still uses this original row, since
+       that combined view isn't part of this redesign. */
+    if(platform === 'google'){
+      if(!window._gadsConnected)
+        html += '<button class="cgr2-pub-btn cgr2-pub-connect" onclick="bizGoTo(\'connections\')">Connect Google Ads</button>';
+    } else if(platform === 'meta'){
+      if(!window._metaConnected)
+        html += '<button class="cgr2-pub-btn cgr2-pub-connect" onclick="bizGoTo(\'connections\')">Connect Meta Ads</button>';
+    } else if(platform === 'tiktok'){
+      if(!window._tiktokConnected)
+        html += '<button class="cgr2-pub-btn cgr2-pub-connect" onclick="bizGoTo(\'connections\')">Connect TikTok Ads</button>';
+    } else if(platform === 'all'){
       if(window._gadsConnected)
         html += '<button class="cgr2-pub-btn cgr2-pub-google" onclick="cgrPublishTo(\'google\',\''+campId+'\')">Publish to Google Ads</button>';
       else
         html += '<button class="cgr2-pub-btn cgr2-pub-connect" onclick="bizGoTo(\'connections\')">Connect Google Ads</button>';
-    }
-    if(platform === 'meta' || platform === 'all'){
       if(window._metaConnected)
         html += '<button class="cgr2-pub-btn cgr2-pub-meta" onclick="cgrPublishTo(\'meta\',\''+campId+'\')">Publish to Meta Ads</button>';
       else
         html += '<button class="cgr2-pub-btn cgr2-pub-connect" onclick="bizGoTo(\'connections\')">Connect Meta Ads</button>';
-    }
-    if(platform === 'tiktok' || platform === 'all'){
       if(window._tiktokConnected)
         html += '<button class="cgr2-pub-btn cgr2-pub-tiktok" onclick="cgrPublishTo(\'tiktok\',\''+campId+'\')">Publish to TikTok Ads</button>';
       else
@@ -13870,6 +14023,1042 @@ window.rptExport = function(format) {
     }).catch(function(e){
       if(typeof orvToast==='function') orvToast((typeof t==='function'?t('toastPublishErrorPrefix'):'Publish error:')+' '+e.message, 'error');
     });
+  };
+
+  /* ══════════════════════════════════════════════════════════════════
+     META CAMPAIGN STUDIO
+     Preview-first workspace: three stages (Preview / Edit / Oriven Review) --
+     no dashboard-style Copy/Audience/Creatives/Settings tabs, no small
+     sidebar preview. Single source of truth: a deep-cloned copy of
+     camp.pkg, edited in place, persisted via the existing
+     window._orvUpdateCampPkg(id,pkg) helper on Save. Publish reads this
+     exact same pkg + the same /api/publish/meta contract the Ads Manager
+     publish flow already uses — no parallel campaign-state system.
+     ══════════════════════════════════════════════════════════════════ */
+  var _cst = { campId:null, pkg:null, stage:'preview', activeVariant:0, activeFormat:'igfeed', dirty:false, pageName:null, pageId:null, accountName:null, accountId:null };
+
+  function _cstEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function _cstTrunc(s,n){ s=String(s||''); return s.length>n ? s.slice(0,n)+'…' : s; }
+  function _cstDomain(url){
+    if(!url) return '';
+    try { return new URL(url).hostname.replace(/^www\./,''); }
+    catch(_) { return String(url).replace(/^https?:\/\//,'').split('/')[0]; }
+  }
+  function _cstInitial(name){ return (String(name||'?').trim().charAt(0)||'?').toUpperCase(); }
+  function _cstSplitList(s){ return String(s||'').split(',').map(function(x){return x.trim();}).filter(Boolean); }
+
+  /* Same fallback priority as server.js /api/publish/meta's imageUrl resolution. */
+  function _cstBestImage(pkg){
+    var m = pkg.metaAds || {};
+    if (m.imageUrl) return m.imageUrl;
+    if (m.uploadedImageUrl) return m.uploadedImageUrl;
+    var vcs = pkg.visualConcepts || [];
+    for (var i=0;i<vcs.length;i++){ if (vcs[i] && vcs[i].generatedImageUrl) return vcs[i].generatedImageUrl; }
+    return null;
+  }
+
+  /* Builds the real editable variants: one per pkg.concepts entry (each with
+     its own adCopy + matched visualConcepts image), or a single fallback
+     variant from pkg.metaAds when no concepts exist. Mirrors server.js's
+     variant-building logic exactly so Studio never implies content that
+     publish wouldn't actually send. */
+  function _cstVariants(pkg){
+    var m = pkg.metaAds || {};
+    var concepts = Array.isArray(pkg.concepts) ? pkg.concepts : [];
+    var visualConcepts = Array.isArray(pkg.visualConcepts) ? pkg.visualConcepts : [];
+    var fallbackImg = _cstBestImage(pkg);
+    if (!concepts.length) {
+      return [{ isFallback:true, angle:null, headline:m.headline||'', primaryText:m.primaryText||m.description||'', description:m.description||'', cta:m.cta||'', image:fallbackImg }];
+    }
+    return concepts.map(function(c, idx){
+      var copy = c.adCopy || {};
+      var vc = null;
+      for (var i=0;i<visualConcepts.length;i++){ if (visualConcepts[i] && visualConcepts[i].conceptRef===c.angle){ vc=visualConcepts[i]; break; } }
+      return {
+        isFallback:false, angle: c.angle || ('Concept '+(idx+1)),
+        headline: copy.headline || m.headline || '',
+        primaryText: copy.primaryText || m.primaryText || m.description || '',
+        description: copy.description || m.description || '',
+        cta: c.cta || m.cta || '',
+        image: (vc && vc.generatedImageUrl) || fallbackImg,
+      };
+    });
+  }
+
+  function _cstStructure(pkg){
+    var st = pkg.metaStructure || {};
+    return {
+      adSets: Math.max(1, Math.min(5, parseInt(st.adSets,10) || 1)),
+      adsPerAdSet: Math.max(1, Math.min(5, parseInt(st.adsPerAdSet,10) || 1)),
+    };
+  }
+
+  function _cstDestinationUrl(pkg){
+    var s = pkg.strategy || {};
+    var m = pkg.metaAds || {};
+    return s.landingPageUrl || m.finalUrl || pkg.websiteUrl || s.websiteUrl || '';
+  }
+
+  /* _campaigns itself lives in a different, unrelated closure (the earlier
+     draft-persistence IIFE) and is deliberately not exposed on window --
+     only window._loadCamps/_saveCamps/_orvUpdateCampPkg are. Reading it
+     here re-derives the same oriven_campaigns_<uid> key directly rather
+     than reaching into that other closure's private state. Writing pkg
+     still goes through the sanctioned window._orvUpdateCampPkg. */
+  function _cstCampaignsKey(){
+    var user = (typeof _getCurrentUser === 'function') ? _getCurrentUser() : (typeof window._getCurrentUser === 'function' ? window._getCurrentUser() : null);
+    return (user && user.id) ? ('oriven_campaigns_' + user.id) : null;
+  }
+  function _cstReadCampaigns(){
+    var key = _cstCampaignsKey();
+    if (!key) return [];
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(_) { return []; }
+  }
+  function _cstWriteCampaigns(arr){
+    var key = _cstCampaignsKey();
+    if (!key) return;
+    try { localStorage.setItem(key, JSON.stringify(arr)); } catch(_){}
+  }
+
+  /* Initializes the inline Meta Preview/Edit/Oriven Review screen from
+     _renderPackage — replaces the old modal's _cstOpen. pkg/campId are
+     already known at this point (this IS the campaign generation/review
+     screen), so no separate localStorage lookup is needed here; it's only
+     kept (_cstReadCampaigns/_cstWriteCampaigns below) for the post-publish
+     status update. */
+  function _cgmInitMetaScreen(pkg, campId){
+    var clonedPkg;
+    try { clonedPkg = JSON.parse(JSON.stringify(pkg)); } catch(_) { clonedPkg = pkg; }
+    _cst = { campId: campId, pkg: clonedPkg, stage:'preview', activeVariant: 0, activeFormat: 'igfeed', dirty: false, pageName: null, pageId: null, accountName: null, accountId: null };
+
+    _cstUpdateDirtyUI();
+    _cstRenderFormatSwitcher();
+    _cstRenderAdSelector();
+    _cstSetStage('preview');
+
+    /* Page/Account identity is fetched fresh, not assumed from a prior
+       Integrations-page visit, so this screen works standalone. */
+    apiFetch('/api/meta/status').then(function(r){
+      if (!r.ok || !r.data) return;
+      var d = r.data;
+      _cst.pageName = d.active_page && d.active_page.page_name ? d.active_page.page_name : null;
+      _cst.pageId = d.active_page && d.active_page.page_id ? d.active_page.page_id : null;
+      _cst.accountName = d.active_ad_account ? (d.active_ad_account.account_name || d.active_ad_account.account_id) : null;
+      _cst.accountId = d.active_ad_account ? d.active_ad_account.account_id : null;
+      _cstRenderActiveStage();
+    }).catch(function(){});
+  }
+
+  function _cstUpdateDirtyUI(){
+    var d = document.getElementById('cstDirtyBadge');
+    var s = document.getElementById('cstSavedBadge');
+    if (d) d.style.display = _cst.dirty ? '' : 'none';
+    if (s) s.style.display = 'none';
+  }
+  function _cstMarkDirty(){ _cst.dirty = true; _cstUpdateDirtyUI(); }
+
+  window._cstSave = function(){
+    if (!_cst.campId) return;
+    window._orvUpdateCampPkg(_cst.campId, _cst.pkg);
+    _cst.dirty = false;
+    var d = document.getElementById('cstDirtyBadge');
+    var s = document.getElementById('cstSavedBadge');
+    if (d) d.style.display = 'none';
+    if (s) { s.style.display = ''; setTimeout(function(){ if(s) s.style.display='none'; }, 2200); }
+  };
+
+  /* ── Stage switching: Preview / Edit / Oriven Review ── */
+  window._cstSetStage = function(stage){
+    _cst.stage = stage;
+    document.querySelectorAll('.cst-stage-btn').forEach(function(b){ b.classList.toggle('cst-stage-btn-active', b.getAttribute('data-stage')===stage); });
+    document.querySelectorAll('.cst-stage-panel').forEach(function(p){ p.classList.toggle('cst-stage-panel-active', p.getAttribute('data-stage')===stage); });
+    var adBar = document.getElementById('cstAdSelectorBar');
+    if (adBar) adBar.style.display = (stage==='review') ? 'none' : '';
+    _cstRenderActiveStage();
+  };
+
+  function _cstRenderActiveStage(){
+    if (_cst.stage === 'preview') _cstRenderPreview();
+    else if (_cst.stage === 'edit') _cstRenderEditSections();
+    else if (_cst.stage === 'review') _cstRenderReviewStage();
+  }
+
+  window._cstStructureChanged = function(){
+    var a = document.getElementById('cstAdSetsSel');
+    var b = document.getElementById('cstAdsPerSetSel');
+    _cst.pkg.metaStructure = {
+      adSets: parseInt((a&&a.value)||'1',10) || 1,
+      adsPerAdSet: parseInt((b&&b.value)||'1',10) || 1,
+    };
+    _cstMarkDirty();
+    _cstRenderAdSelector();
+  };
+
+  /* Compact ad selector -- a single dropdown, not an admin-dashboard tree.
+     Ad Sets are structurally real, distinct Meta objects at publish time,
+     but content-wise every Ad Set repeats the same M variants (this is how
+     /api/publish/meta actually builds ads — see its `j % variants.length`
+     mapping). The dropdown is built honestly around that: any Ad Set/Ad
+     combination that maps to a repeated variant is labelled as reused,
+     never presented as unique. */
+  function _cstRenderAdSelector(){
+    var pkg = _cst.pkg;
+    var struct = _cstStructure(pkg);
+    var variants = _cstVariants(pkg);
+    var vCount = variants.length;
+    var sel = document.getElementById('cstAdSelect');
+    if (!sel) return;
+
+    var html = '';
+    for (var i=0;i<struct.adSets;i++){
+      for (var j=0;j<struct.adsPerAdSet;j++){
+        var vIdx = j % Math.max(vCount,1);
+        var v = variants[vIdx] || variants[0];
+        var title = (v && !v.isFallback) ? v.angle : ('Ad '+(j+1));
+        var reused = (j >= vCount && vCount > 1) ? ' (reuses Ad '+(vIdx+1)+')' : '';
+        html += '<option value="'+vIdx+'"'+(vIdx===_cst.activeVariant ? ' selected' : '')+'>Ad Set '+(i+1)+' &middot; Ad '+(j+1)+' &middot; '+_cstEsc(title)+_cstEsc(reused)+'</option>';
+      }
+    }
+    sel.innerHTML = html;
+  }
+
+  window._cstAdSelectChanged = function(){
+    var sel = document.getElementById('cstAdSelect');
+    var vIdx = parseInt((sel && sel.value) || '0', 10) || 0;
+    _cstSelectAd(vIdx);
+  };
+
+  function _cstSelectAd(variantIdx){
+    _cst.activeVariant = variantIdx;
+    _cstRenderAdSelector();
+    _cstRenderActiveStage();
+  }
+
+  function _cstActiveVariant(){
+    var variants = _cstVariants(_cst.pkg);
+    return variants[_cst.activeVariant] || variants[0] || { headline:'', primaryText:'', description:'', cta:'', image:null, isFallback:true };
+  }
+
+  function _cstWriteField(field, value){
+    var pkg = _cst.pkg;
+    if (field === 'destinationUrl') {
+      pkg.strategy = pkg.strategy || {};
+      pkg.strategy.landingPageUrl = value;
+      return;
+    }
+    var concepts = Array.isArray(pkg.concepts) ? pkg.concepts : [];
+    if (concepts.length && concepts[_cst.activeVariant]) {
+      concepts[_cst.activeVariant].adCopy = concepts[_cst.activeVariant].adCopy || {};
+      if (field === 'cta') concepts[_cst.activeVariant].cta = value;
+      else concepts[_cst.activeVariant].adCopy[field] = value;
+    } else {
+      pkg.metaAds = pkg.metaAds || {};
+      pkg.metaAds[field] = value;
+    }
+  }
+
+  window._cstFieldInput = function(field, el){
+    _cstWriteField(field, el.value);
+    _cstMarkDirty();
+    /* Only re-render the ad selector's label text (angle names don't change
+       from copy edits, so no need) -- preview is re-rendered lazily when
+       the user switches to the Preview stage, keeping focus in this input
+       while typing. */
+  };
+
+  /* ── PREVIEW stage ── */
+  function _cstRenderFormatSwitcher(){
+    var formats = [['igfeed','Instagram Feed'],['fbfeed','Facebook Feed'],['story','Story'],['reels','Reels']];
+    var html = formats.map(function(f){
+      return '<button type="button" class="cst-fmt-btn'+(f[0]===_cst.activeFormat?' cst-fmt-btn-active':'')+'" onclick="_cstSetFormat(\''+f[0]+'\')">'+f[1]+'</button>';
+    }).join('');
+    var el = document.getElementById('cstFormatSwitcher');
+    if (el) el.innerHTML = html;
+  }
+
+  window._cstSetFormat = function(fmt){
+    _cst.activeFormat = fmt;
+    _cstRenderFormatSwitcher();
+    _cstRenderPreview();
+  };
+
+  function _cstImgOrEmpty(url, cls){
+    if (url) return '<img src="'+_cstEsc(url)+'" alt="">';
+    return '<div class="'+(cls||'cst-img-empty')+'">'
+      + '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
+      + '<span>No image yet</span></div>';
+  }
+
+  function _cstRenderPreview(){
+    var v = _cstActiveVariant();
+    var ctx = { pageName: _cst.pageName || 'Your Page', domain: _cstDomain(_cstDestinationUrl(_cst.pkg)) };
+    var fn = { igfeed:_cstRenderIgFeed, fbfeed:_cstRenderFbFeed, story:_cstRenderStory, reels:_cstRenderReels }[_cst.activeFormat] || _cstRenderIgFeed;
+    var stage = document.getElementById('cstPreviewStage');
+    if (stage) stage.innerHTML = fn(v, ctx);
+  }
+
+  function _cstRenderIgFeed(v, ctx){
+    return '<div class="cst-mock-igfeed">'
+      + '<div class="cst-platform-chrome"><div class="cst-platform-wordmark">Instagram</div><div class="cst-platform-icons">&#9825; &#9993;</div></div>'
+      + '<div class="cst-ig-hd"><div class="cst-avatar">'+_cstEsc(_cstInitial(ctx.pageName))+'</div>'
+      +   '<div><div class="cst-ig-name">'+_cstEsc(ctx.pageName)+'</div><div class="cst-ig-spon">Sponsored</div></div>'
+      +   '<div class="cst-dots">&bull;&bull;&bull;</div></div>'
+      + '<div class="cst-ig-img">'+_cstImgOrEmpty(v.image)+'</div>'
+      + '<div class="cst-ig-actions">&#9825; &#128172; &#10148;<span class="cst-ig-save">&#128278;</span></div>'
+      + '<div class="cst-ig-body"><b>'+_cstEsc(ctx.pageName)+'</b> '+_cstEsc(_cstTrunc(v.primaryText,150))+'</div>'
+      + '<div class="cst-ig-cta-row"><div><div class="cst-ig-domain">'+_cstEsc(ctx.domain)+'</div><div class="cst-ig-headline">'+_cstEsc(v.headline)+'</div></div>'
+      +   '<button type="button" class="cst-cta-btn">'+_cstEsc(v.cta||'Learn More')+'</button></div>'
+      + '</div>'
+      + '<div class="cst-feed-more">More posts below</div>';
+  }
+
+  function _cstRenderFbFeed(v, ctx){
+    return '<div class="cst-mock-fbfeed">'
+      + '<div class="cst-platform-chrome"><div class="cst-platform-wordmark">facebook</div><div class="cst-platform-icons">&#128269; &#9993;</div></div>'
+      + '<div class="cst-fb-hd"><div class="cst-avatar">'+_cstEsc(_cstInitial(ctx.pageName))+'</div>'
+      +   '<div><div class="cst-fb-name">'+_cstEsc(ctx.pageName)+'</div><div class="cst-fb-spon">Sponsored</div></div>'
+      +   '<div class="cst-dots">&bull;&bull;&bull;</div></div>'
+      + '<div class="cst-fb-body">'+_cstEsc(_cstTrunc(v.primaryText,200))+'</div>'
+      + '<div class="cst-fb-img">'+_cstImgOrEmpty(v.image)+'</div>'
+      + '<div class="cst-fb-cta-row"><div><div class="cst-fb-domain">'+_cstEsc(ctx.domain)+'</div><div class="cst-fb-headline">'+_cstEsc(v.headline)+'</div>'
+      +   (v.description ? '<div style="font-size:12px;color:#8a8a8a;margin-top:2px">'+_cstEsc(_cstTrunc(v.description,60))+'</div>' : '') + '</div>'
+      +   '<button type="button" class="cst-cta-btn">'+_cstEsc(v.cta||'Learn More')+'</button></div>'
+      + '<div class="cst-fb-action-row"><span class="cst-fb-action">&#128077; Like</span><span class="cst-fb-action">&#128172; Comment</span><span class="cst-fb-action">&#8663; Share</span></div>'
+      + '</div>'
+      + '<div class="cst-feed-more">More posts below</div>';
+  }
+
+  function _cstRenderStory(v, ctx){
+    return '<div class="cst-mock-story">'
+      + '<div class="cst-story-bars"><div class="cst-story-bar"><div class="cst-story-bar-fill"></div></div><div class="cst-story-bar"></div></div>'
+      + '<div class="cst-story-hd"><div class="cst-avatar">'+_cstEsc(_cstInitial(ctx.pageName))+'</div><div class="cst-story-hd-name">'+_cstEsc(ctx.pageName)+'</div></div>'
+      + '<div class="cst-story-media">'+_cstImgOrEmpty(v.image)+'</div>'
+      + '<div class="cst-story-fade-top"></div>'
+      + '<div class="cst-story-fade"></div>'
+      + '<div class="cst-story-foot">'
+      +   (v.primaryText ? '<div class="cst-story-text">'+_cstEsc(_cstTrunc(v.primaryText,90))+'</div>' : '')
+      +   '<div class="cst-story-cta">'+_cstEsc(v.cta||'Learn More')+' &uarr;</div>'
+      + '</div></div>';
+  }
+
+  function _cstRenderReels(v, ctx){
+    var hasVideo = false; /* no video asset exists anywhere in this pipeline today — never claim one */
+    return '<div class="cst-mock-reels">'
+      + '<div class="cst-reels-media">'+_cstImgOrEmpty(v.image)+'</div>'
+      + '<div class="cst-reels-fade"></div>'
+      + '<div class="cst-reels-rail">'
+      +   '<div>&#9825;<span>Like</span></div><div>&#128172;<span>Comment</span></div><div>&#8663;<span>Share</span></div>'
+      + '</div>'
+      + '<div class="cst-reels-foot">'
+      +   '<div class="cst-reels-user">'+_cstEsc(ctx.pageName)+'</div>'
+      +   (v.primaryText ? '<div class="cst-reels-caption">'+_cstEsc(_cstTrunc(v.primaryText,55))+'</div>' : '')
+      +   '<button type="button" class="cst-reels-cta">'+_cstEsc(v.cta||'Learn More')+'</button>'
+      + '</div></div>'
+      + (!hasVideo ? '<div class="cst-mock-note">Image preview — no video uploaded for this ad</div>' : '');
+  }
+
+  /* ── EDIT stage: one continuous page, collapsible sections. ── */
+  function _cstSec(id, title, sub, bodyHtml, openByDefault){
+    return '<details class="cst-sec"'+(openByDefault?' open':'')+'>'
+      + '<summary>'
+      +   '<span>'+_cstEsc(title)+(sub?'<span class="cst-sec-sub">'+_cstEsc(sub)+'</span>':'')+'</span>'
+      +   '<svg class="cst-sec-chev" viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg>'
+      + '</summary>'
+      + '<div class="cst-sec-body">'+bodyHtml+'</div>'
+      + '</details>';
+  }
+
+  function _cstRenderEditSections(){
+    var v = _cstActiveVariant();
+    var pkg = _cst.pkg;
+    var s = pkg.strategy || {};
+    var m = pkg.metaAds || {};
+    var a = m.audience || {};
+    var struct = _cstStructure(pkg);
+    var goal = s.goal || pkg.goal || 'Sales';
+
+    var adContent = '<div class="cst-fld"><label>Primary Text</label><textarea class="crv-inp crv-ta" style="min-height:80px" oninput="_cstFieldInput(\'primaryText\',this)">'+_cstEsc(v.primaryText)+'</textarea></div>'
+      + '<div class="cst-fld"><label>Headline</label><input class="crv-inp" type="text" value="'+_cstEsc(v.headline)+'" oninput="_cstFieldInput(\'headline\',this)"></div>'
+      + '<div class="cst-fld"><label>Description</label><input class="crv-inp" type="text" value="'+_cstEsc(v.description)+'" oninput="_cstFieldInput(\'description\',this)"></div>'
+      + '<div class="cst-fld"><label>CTA</label><input class="crv-inp" type="text" value="'+_cstEsc(v.cta)+'" oninput="_cstFieldInput(\'cta\',this)"></div>'
+      + '<div class="cst-fld"><label>Destination URL</label><input class="crv-inp" type="text" value="'+_cstEsc(_cstDestinationUrl(pkg))+'" placeholder="https://example.com" oninput="_cstFieldInput(\'destinationUrl\',this)"><div class="cst-fld-hint">Applies to every Ad in this campaign.</div></div>';
+
+    var creative = '<div class="cst-creative-thumb">'+_cstImgOrEmpty(v.image)+'</div>'
+      + '<div class="cst-fld-hint" style="margin-top:8px">'+(v.isFallback ? 'Single creative used across all Ads.' : ('Concept: <b style="color:rgba(255,255,255,.7)">'+_cstEsc(v.angle)+'</b>'))+'</div>';
+
+    var audience = '<div class="cst-fld-row">'
+      +   '<div class="cst-fld"><label>Age Range</label><input class="crv-inp" type="text" value="'+_cstEsc(a.ageRange||m.ageRange||'18-65')+'" oninput="_cstAudienceInput(\'ageRange\',this)"></div>'
+      +   '<div class="cst-fld"><label>Gender</label><input class="crv-inp" type="text" value="'+_cstEsc(a.gender||m.gender||'All Genders')+'" oninput="_cstAudienceInput(\'gender\',this)"></div>'
+      + '</div>'
+      + '<div class="cst-fld"><label>Countries / Regions</label><input class="crv-inp" type="text" value="'+_cstEsc(Array.isArray(a.locations)?a.locations.join(', '):(a.locations||a.countries||''))+'" placeholder="e.g. United States, Canada" oninput="_cstAudienceInput(\'locations\',this)"></div>'
+      + '<div class="cst-fld"><label>Interests</label><input class="crv-inp" type="text" value="'+_cstEsc(Array.isArray(a.interests)?a.interests.join(', '):(a.interests||''))+'" placeholder="e.g. fitness, health" oninput="_cstAudienceInput(\'interests\',this)"></div>'
+      + '<div class="cst-fld"><label>Target Audience</label><textarea class="crv-inp crv-ta" oninput="_cstAudienceTextInput(this)">'+_cstEsc(m.targetAudience||s.targetAudience||'')+'</textarea></div>';
+
+    var campaign = '<div class="cst-fld"><label>Campaign Goal</label><div class="cst-goal-pill"><span class="cst-goal-dot"></span>'+_cstEsc(goal)+'</div></div>'
+      + '<div class="cst-fld"><label>Daily Budget</label><input class="crv-inp" type="text" value="'+_cstEsc(s.budgetRecommendation||'')+'" placeholder="e.g. $20/day" oninput="_cstBudgetInput(this)"></div>'
+      + '<div class="cst-fld-row">'
+      +   '<div class="cst-fld"><label>Ad Sets</label><select id="cstAdSetsSel" class="cst-sel" onchange="_cstStructureChanged()" style="width:100%"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option></select></div>'
+      +   '<div class="cst-fld"><label>Ads per Ad Set</label><select id="cstAdsPerSetSel" class="cst-sel" onchange="_cstStructureChanged()" style="width:100%"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option></select></div>'
+      + '</div>'
+      + '<div class="cst-fld-hint">'+ (struct.adSets*struct.adsPerAdSet) +' total ads will be created on Meta.</div>';
+
+    var platform = '<div class="cst-fld-row">'
+      +   '<div class="cst-fld"><label>Platform</label><div class="cst-fld-static">Meta (Facebook &amp; Instagram)</div></div>'
+      +   '<div class="cst-fld"><label>Facebook Page</label><div class="cst-fld-static'+(_cst.pageName?'':' cst-review-val-warn')+'">'+_cstEsc(_cst.pageName||'Not connected')+'</div></div>'
+      + '</div>'
+      + '<div class="cst-fld"><label>Ad Account</label><div class="cst-fld-static'+(_cst.accountName?'':' cst-review-val-warn')+'">'+_cstEsc(_cst.accountName||'Not connected')+'</div></div>';
+
+    var html = _cstSec('adcontent','Ad Content', null, adContent, true)
+      + _cstSec('creative','Creative', null, creative, true)
+      + _cstSec('audience','Audience', null, audience, false)
+      + _cstSec('campaign','Campaign', null, campaign, false)
+      + _cstSec('platform','Platform', null, platform, false);
+
+    var body = document.getElementById('cstEditBody');
+    if (body) body.innerHTML = html;
+    /* Re-apply the structure select values (rebuilt fresh above). */
+    var aSel = document.getElementById('cstAdSetsSel');
+    var mSel = document.getElementById('cstAdsPerSetSel');
+    if (aSel) aSel.value = String(struct.adSets);
+    if (mSel) mSel.value = String(struct.adsPerAdSet);
+  }
+
+  window._cstAudienceInput = function(field, el){
+    var pkg = _cst.pkg;
+    pkg.metaAds = pkg.metaAds || {};
+    pkg.metaAds.audience = pkg.metaAds.audience || {};
+    if (field === 'locations') pkg.metaAds.audience.locations = _cstSplitList(el.value);
+    else if (field === 'interests') pkg.metaAds.audience.interests = _cstSplitList(el.value);
+    else pkg.metaAds.audience[field] = el.value;
+    _cstMarkDirty();
+  };
+  window._cstAudienceTextInput = function(el){
+    _cst.pkg.metaAds = _cst.pkg.metaAds || {};
+    _cst.pkg.metaAds.targetAudience = el.value;
+    _cstMarkDirty();
+  };
+  window._cstBudgetInput = function(el){
+    _cst.pkg.strategy = _cst.pkg.strategy || {};
+    _cst.pkg.strategy.budgetRecommendation = el.value;
+    _cstMarkDirty();
+  };
+
+  /* ── ORIVEN REVIEW stage ── */
+  function _cstRenderReviewStage(){
+    var pkg = _cst.pkg;
+    var struct = _cstStructure(pkg);
+    var variants = _cstVariants(pkg);
+    var m = pkg.metaAds || {};
+    var v = _cstActiveVariant();
+    var totalAds = struct.adSets * struct.adsPerAdSet;
+    var goal = (pkg.strategy && pkg.strategy.goal) || pkg.goal || 'Sales';
+    var destUrl = _cstDestinationUrl(pkg);
+    var hasImage = variants.some(function(x){ return !!x.image; });
+    var hasHeadline = variants.every(function(x){ return !!(x.headline && x.headline.trim()); });
+    var hasPrimary = variants.every(function(x){ return !!(x.primaryText && x.primaryText.trim()); });
+    var hasCta = variants.every(function(x){ return !!(x.cta && x.cta.trim()); });
+    var needsPixel = (goal === 'Sales' || goal === 'Leads');
+
+    var checks = [
+      { ok: hasPrimary, label: 'Primary text complete' },
+      { ok: hasHeadline, label: 'Headline complete' },
+      { ok: hasCta, label: 'CTA complete' },
+      { ok: hasImage, label: 'Creative image available' },
+      { ok: !!destUrl, label: 'Destination URL set' },
+      { ok: !!_cst.pageId, label: 'Facebook Page connected' },
+      { ok: !!_cst.accountId, label: 'Ad Account connected' },
+    ];
+    var checkHtml = '<div class="cst-check-list">' + checks.map(function(c){
+      return '<div class="cst-check-item'+(c.ok?'':' cst-check-warn-item')+'">'
+        + (c.ok ? '<span class="cst-check-ok">&#10003;</span>' : '<span class="cst-check-warn-icon">&#9888;</span>')
+        + _cstEsc(c.label) + '</div>';
+    }).join('') + '</div>';
+
+    var warnHtml = '';
+    if (needsPixel) warnHtml += '<div class="cst-check-item cst-check-warn-item"><span class="cst-check-warn-icon">&#9888;</span>Pixel required for '+_cstEsc(goal)+' objective — verified by Meta at publish time.</div>';
+
+    var rows = '';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cstEsc(goal)+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Sets</span><span class="cst-review-val">'+struct.adSets+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ads</span><span class="cst-review-val">'+totalAds+' ('+variants.length+' unique concept'+(variants.length!==1?'s':'')+')</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cstEsc((pkg.strategy&&pkg.strategy.budgetRecommendation)||'Not set')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Destination</span><span class="cst-review-val'+(destUrl?'':' cst-review-val-warn')+'">'+_cstEsc(destUrl||'Not set')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Facebook Page</span><span class="cst-review-val'+(_cst.pageName?'':' cst-review-val-warn')+'">'+_cstEsc(_cst.pageName||'Not connected')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Account</span><span class="cst-review-val'+(_cst.accountName?'':' cst-review-val-warn')+'">'+_cstEsc(_cst.accountName||'Not connected')+'</span></div>';
+
+    var err = '';
+    if (!_cst.pageId) err = 'Connect a Facebook Page before publishing.';
+    else if (!_cst.accountId) err = 'Connect a Meta Ad Account before publishing.';
+    else if (!hasImage) err = 'Add an image before publishing.';
+
+    var html = '<div class="cst-review-sec-hd">Checklist</div>' + checkHtml + warnHtml
+      + '<div class="cst-review-sec-hd">Summary</div>' + rows
+      + (err ? '<div class="cst-review-err">'+_cstEsc(err)+'</div>' : '');
+
+    var body = document.getElementById('cstReviewBody');
+    if (body) body.innerHTML = html;
+    var pubBtn = document.getElementById('cstPublishBtn');
+    if (pubBtn) pubBtn.disabled = !!err;
+  }
+
+  function _cstFriendlyError(raw){
+    var msg = String(raw||'Publish failed');
+    if (/connect a facebook page/i.test(msg) || /add an image/i.test(msg)) return { friendly: msg, tech: null };
+    if (/not connected|no active .*account selected/i.test(msg)) return { friendly: 'Connect a Meta Ad Account before publishing.', tech: msg };
+    if (/oauthexception|permission/i.test(msg)) return { friendly: "Meta couldn't publish this campaign. Check that your Meta account has permission to manage this ad account.", tech: msg };
+    return { friendly: msg, tech: null };
+  }
+
+  window._cstDoPublish = function(){
+    var pubBtn = document.getElementById('cstPublishBtn');
+    if (pubBtn) { pubBtn.disabled = true; pubBtn.textContent = 'Publishing…'; }
+
+    /* Save first so a mid-publish failure never leaves edited copy unsaved. */
+    window._orvUpdateCampPkg(_cst.campId, _cst.pkg);
+    _cst.dirty = false; _cstUpdateDirtyUI();
+
+    apiFetch('/api/publish/meta', {
+      method: 'POST',
+      body: JSON.stringify({ pkg: _cst.pkg, structure: _cstStructure(_cst.pkg) })
+    }).then(function(r){
+      if (pubBtn) { pubBtn.disabled = false; pubBtn.textContent = 'Publish to Meta Ads'; }
+      if (r.ok && r.data && r.data.ok) {
+        try {
+          var camps = _cstReadCampaigns();
+          for (var i=0;i<camps.length;i++){
+            if (camps[i].id === _cst.campId) {
+              camps[i].status = 'published';
+              camps[i].publishedAt = new Date().toISOString();
+              camps[i].platformCampaignId = r.data.campaignId ? String(r.data.campaignId) : null;
+              break;
+            }
+          }
+          _cstWriteCampaigns(camps);
+        } catch(_){}
+        if (typeof orvToast==='function') orvToast('Campaign published to Meta Ads', 'ok');
+        /* Inline success state — this is a page, not a modal, so there's
+           nothing to close; matches cgrPublishTo's existing behavior of
+           leaving the user on the review screen after publish. */
+        if (pubBtn) { pubBtn.disabled = true; pubBtn.textContent = 'Published to Meta Ads ✓'; }
+        var reviewBody = document.getElementById('cstReviewBody');
+        if (reviewBody) {
+          var existingErr = reviewBody.querySelector('.cst-review-err');
+          if (existingErr) existingErr.remove();
+        }
+      } else {
+        var e = _cstFriendlyError(r.data && r.data.error);
+        var body = document.getElementById('cstReviewBody');
+        if (body) {
+          var errHtml = '<div class="cst-review-err">'+_cstEsc(e.friendly)+'</div>';
+          if (e.tech) errHtml += '<div class="cst-review-err-details"><details><summary>Technical details</summary><div style="margin-top:6px">'+_cstEsc(e.tech)+'</div></details></div>';
+          var existing = body.querySelector('.cst-review-err');
+          if (existing) existing.outerHTML = errHtml; else body.innerHTML += errHtml;
+        }
+      }
+    }).catch(function(err){
+      if (pubBtn) { pubBtn.disabled = false; pubBtn.textContent = 'Publish to Meta Ads'; }
+      if (typeof orvToast==='function') orvToast('Publish error: '+(err.message||'Network error'), 'error');
+    });
+  };
+
+  /* ══════════════════════════════════════════════════════════════════
+     GOOGLE ADS PREVIEW / EDIT / ORIVEN REVIEW
+     Independent of the Meta _cst* implementation above (separate state,
+     separate functions, own `_cgg` prefix) so the completed, tested Meta
+     screen is never touched by this work. Same architecture principle:
+     single source of truth (a cloned pkg, committed via the existing
+     window._orvUpdateCampPkg on Save), and only ever shows fields that
+     /api/publish/google actually reads and sends to Google -- confirmed
+     by re-reading that route fresh before building this (headlines,
+     descriptions, keywords, destination URL, budget; NOT callouts/
+     sitelinks/structuredSnippets/negativeKeywords/audience targeting,
+     none of which the route currently sends, so none of which are shown
+     here as editable -- matches "never show a field that's ignored during
+     publishing"). Google publishes exactly 1 Campaign / 1 Ad Group / 1
+     Responsive Search Ad today -- no structure selector is shown, since
+     there is nothing real for it to control yet.
+     ══════════════════════════════════════════════════════════════════ */
+  var _cgg = { campId:null, pkg:null, stage:'preview', dirty:false, accountName:null, accountId:null };
+
+  function _cggEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function _cggTrunc(s,n){ s=String(s||''); return s.length>n ? s.slice(0,n)+'…' : s; }
+  function _cggDomain(url){
+    if(!url) return '';
+    try { return new URL(url).hostname.replace(/^www\./,''); }
+    catch(_) { return String(url).replace(/^https?:\/\//,'').split('/')[0]; }
+  }
+
+  function _cggCampaignsKey(){
+    var user = (typeof _getCurrentUser === 'function') ? _getCurrentUser() : (typeof window._getCurrentUser === 'function' ? window._getCurrentUser() : null);
+    return (user && user.id) ? ('oriven_campaigns_' + user.id) : null;
+  }
+  function _cggReadCampaigns(){
+    var key = _cggCampaignsKey();
+    if (!key) return [];
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(_) { return []; }
+  }
+  function _cggWriteCampaigns(arr){
+    var key = _cggCampaignsKey();
+    if (!key) return;
+    try { localStorage.setItem(key, JSON.stringify(arr)); } catch(_){}
+  }
+
+  function _cggDestinationUrl(pkg){
+    var s = pkg.strategy || {};
+    var g = pkg.googleAds || {};
+    return s.landingPageUrl || g.finalUrl || pkg.websiteUrl || s.websiteUrl || '';
+  }
+
+  window._cggInitGoogleScreen = function(pkg, campId){
+    var clonedPkg;
+    try { clonedPkg = JSON.parse(JSON.stringify(pkg)); } catch(_) { clonedPkg = pkg; }
+    _cgg = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null };
+    _cggUpdateDirtyUI();
+    _cggSetStage('preview');
+
+    apiFetch('/api/google/status').then(function(r){
+      if (!r.ok || !r.data) return;
+      var d = r.data;
+      _cgg.accountName = d.active_ad_account ? (d.active_ad_account.account_name || d.active_ad_account.account_id) : null;
+      _cgg.accountId = d.active_ad_account ? d.active_ad_account.account_id : null;
+      _cggRenderActiveStage();
+    }).catch(function(){});
+  };
+
+  function _cggUpdateDirtyUI(){
+    var d = document.getElementById('cggDirtyBadge');
+    var s = document.getElementById('cggSavedBadge');
+    if (d) d.style.display = _cgg.dirty ? '' : 'none';
+    if (s) s.style.display = 'none';
+  }
+  function _cggMarkDirty(){ _cgg.dirty = true; _cggUpdateDirtyUI(); }
+
+  window._cggSave = function(){
+    if (!_cgg.campId) return;
+    window._orvUpdateCampPkg(_cgg.campId, _cgg.pkg);
+    _cgg.dirty = false;
+    var d = document.getElementById('cggDirtyBadge');
+    var s = document.getElementById('cggSavedBadge');
+    if (d) d.style.display = 'none';
+    if (s) { s.style.display = ''; setTimeout(function(){ if(s) s.style.display='none'; }, 2200); }
+  };
+
+  window._cggSetStage = function(stage){
+    _cgg.stage = stage;
+    var nav = document.getElementById('cggStageNav');
+    var body = document.getElementById('cggStageBody');
+    if (nav) nav.querySelectorAll('.cst-stage-btn').forEach(function(b){ b.classList.toggle('cst-stage-btn-active', b.getAttribute('data-stage')===stage); });
+    if (body) body.querySelectorAll('.cst-stage-panel').forEach(function(p){ p.classList.toggle('cst-stage-panel-active', p.getAttribute('data-stage')===stage); });
+    _cggRenderActiveStage();
+  };
+
+  function _cggRenderActiveStage(){
+    if (_cgg.stage === 'preview') _cggRenderPreview();
+    else if (_cgg.stage === 'edit') _cggRenderEditSections();
+    else if (_cgg.stage === 'review') _cggRenderReviewStage();
+  }
+
+  /* ── PREVIEW: Google Search results simulation ── */
+  function _cggRenderPreview(){
+    var pkg = _cgg.pkg;
+    var g = pkg.googleAds || {};
+    var headlines = (g.headlines || []).filter(Boolean);
+    var descriptions = (g.descriptions || []).filter(Boolean);
+    var keywords = (g.keywords || []).filter(Boolean);
+    var destUrl = _cggDestinationUrl(pkg);
+    var domain = _cggDomain(destUrl) || 'yoursite.com';
+    var query = keywords[0] || pkg.campaignName || '';
+    var headlineText = headlines.slice(0,3).join(' | ') || '(no headline yet)';
+    var descText = descriptions[0] || '(no description yet)';
+
+    var html = '<div class="cst-mock-gsearch">'
+      + '<div class="cst-gs-searchbar"><div class="cst-gs-logo"><b>G</b><b>o</b><b>o</b><b>g</b><b>l</b><b>e</b></div>'
+      +   '<div class="cst-gs-query-pill">&#128269; '+_cggEsc(query)+'</div></div>'
+      + '<div class="cst-gs-results">'
+      +   '<div class="cst-gs-ad-block">'
+      +     '<span class="cst-gs-ad-tag">Ad</span>'
+      +     '<div class="cst-gs-ad-url"><span class="cst-gs-ad-favicon"></span>'+_cggEsc(domain)+'</div>'
+      +     '<div class="cst-gs-ad-hl">'+_cggEsc(headlineText)+'</div>'
+      +     '<div class="cst-gs-ad-desc">'+_cggEsc(descText)+'</div>'
+      +   '</div>'
+      +   '<div class="cst-gs-organic"><div class="cst-gs-organic-url">'+_cggEsc(domain)+' &rsaquo; about</div><div class="cst-gs-organic-hl">Related organic result</div><div class="cst-gs-organic-desc">Illustrative only — not part of your ad, shown for search-page context.</div></div>'
+      +   '<div class="cst-gs-organic"><div class="cst-gs-organic-url">example.com &rsaquo; category</div><div class="cst-gs-organic-hl">Another organic result</div><div class="cst-gs-organic-desc">Illustrative only — not part of your ad, shown for search-page context.</div></div>'
+      + '</div></div>';
+
+    var stage = document.getElementById('cggPreviewStage');
+    if (stage) stage.innerHTML = html;
+  }
+
+  /* ── EDIT: Ad Content (headlines/descriptions/URL), Keywords, Campaign, Platform ── */
+  function _cggSec(title, sub, bodyHtml, openByDefault){
+    return '<details class="cst-sec"'+(openByDefault?' open':'')+'>'
+      + '<summary><span>'+_cggEsc(title)+(sub?'<span class="cst-sec-sub">'+_cggEsc(sub)+'</span>':'')+'</span>'
+      + '<svg class="cst-sec-chev" viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></summary>'
+      + '<div class="cst-sec-body">'+bodyHtml+'</div></details>';
+  }
+
+  function _cggListEditor(items, field, opts){
+    opts = opts || {};
+    var max = opts.max || 99, maxlength = opts.maxlength || null, placeholder = opts.placeholder || '';
+    var rows = items.map(function(val, i){
+      return '<div class="cst-list-row">'
+        + '<input class="crv-inp" type="text" value="'+_cggEsc(val)+'"'+(maxlength?' maxlength="'+maxlength+'"':'')+' placeholder="'+_cggEsc(placeholder)+'" oninput="_cggListItemInput(\''+field+'\','+i+',this)">'
+        + '<button type="button" class="cst-list-remove" onclick="_cggListItemRemove(\''+field+'\','+i+')" aria-label="Remove">&times;</button>'
+        + '</div>';
+    }).join('');
+    var addBtn = '<button type="button" class="cst-list-add"'+(items.length>=max?' disabled':'')+' onclick="_cggListItemAdd(\''+field+'\')">+ Add</button>';
+    return '<div class="cst-list">'+rows+addBtn+'</div>';
+  }
+
+  function _cggRenderEditSections(){
+    var pkg = _cgg.pkg;
+    var g = pkg.googleAds || {};
+    var s = pkg.strategy || {};
+    var headlines = g.headlines || [];
+    var descriptions = g.descriptions || [];
+    var keywords = g.keywords || [];
+    var goal = s.goal || pkg.goal || 'Sales';
+
+    var adContent = '<div class="cst-fld"><label>Headlines <span class="cst-char-count">'+headlines.length+'/15 &middot; 30 characters each &middot; 3 minimum</span></label>'
+      + _cggListEditor(headlines, 'headlines', { max:15, maxlength:30, placeholder:'Headline' }) + '</div>'
+      + '<div class="cst-fld"><label>Descriptions <span class="cst-char-count">'+descriptions.length+'/4 &middot; 90 characters each &middot; 2 minimum</span></label>'
+      + _cggListEditor(descriptions, 'descriptions', { max:4, maxlength:90, placeholder:'Description' }) + '</div>'
+      + '<div class="cst-fld"><label>Destination URL</label><input class="crv-inp" type="text" value="'+_cggEsc(_cggDestinationUrl(pkg))+'" placeholder="https://example.com" oninput="_cggFieldInput(\'destinationUrl\',this)"></div>';
+
+    var keywordsHtml = '<div class="cst-fld">'
+      + _cggListEditor(keywords, 'keywords', { max:20, placeholder:'Keyword' })
+      + '<div class="cst-fld-hint">Match type: Broad, applied to every keyword. Keywords control when your ad is eligible to show — they are not displayed inside the ad itself.</div></div>';
+
+    var campaignHtml = '<div class="cst-fld"><label>Campaign Goal</label><div class="cst-goal-pill"><span class="cst-goal-dot"></span>'+_cggEsc(goal)+'</div></div>'
+      + '<div class="cst-fld"><label>Daily Budget</label><input class="crv-inp" type="text" value="'+_cggEsc(s.budgetRecommendation||'')+'" placeholder="e.g. $20/day" oninput="_cggBudgetInput(this)"></div>';
+
+    var platformHtml = '<div class="cst-fld-row">'
+      + '<div class="cst-fld"><label>Platform</label><div class="cst-fld-static">Google Ads (Search)</div></div>'
+      + '<div class="cst-fld"><label>Ad Account</label><div class="cst-fld-static'+(_cgg.accountName?'':' cst-review-val-warn')+'">'+_cggEsc(_cgg.accountName||'Not connected')+'</div></div>'
+      + '</div>';
+
+    var html = _cggSec('Ad Content', null, adContent, true)
+      + _cggSec('Keywords', keywords.length+' keyword'+(keywords.length!==1?'s':''), keywordsHtml, true)
+      + _cggSec('Campaign', null, campaignHtml, false)
+      + _cggSec('Platform', null, platformHtml, false);
+
+    var body = document.getElementById('cggEditBody');
+    if (body) body.innerHTML = html;
+  }
+
+  window._cggListItemInput = function(field, idx, el){
+    var pkg = _cgg.pkg;
+    pkg.googleAds = pkg.googleAds || {};
+    pkg.googleAds[field] = pkg.googleAds[field] || [];
+    pkg.googleAds[field][idx] = el.value;
+    _cggMarkDirty();
+  };
+  window._cggListItemAdd = function(field){
+    var pkg = _cgg.pkg;
+    pkg.googleAds = pkg.googleAds || {};
+    pkg.googleAds[field] = pkg.googleAds[field] || [];
+    pkg.googleAds[field].push('');
+    _cggMarkDirty();
+    _cggRenderEditSections();
+    var rows = document.querySelectorAll('#cggEditBody .cst-list-row input');
+    if (rows.length) rows[rows.length-1].focus();
+  };
+  window._cggListItemRemove = function(field, idx){
+    var pkg = _cgg.pkg;
+    if (!pkg.googleAds || !pkg.googleAds[field]) return;
+    pkg.googleAds[field].splice(idx, 1);
+    _cggMarkDirty();
+    _cggRenderEditSections();
+  };
+  window._cggFieldInput = function(field, el){
+    if (field === 'destinationUrl') {
+      _cgg.pkg.strategy = _cgg.pkg.strategy || {};
+      _cgg.pkg.strategy.landingPageUrl = el.value;
+    }
+    _cggMarkDirty();
+  };
+  window._cggBudgetInput = function(el){
+    _cgg.pkg.strategy = _cgg.pkg.strategy || {};
+    _cgg.pkg.strategy.budgetRecommendation = el.value;
+    _cggMarkDirty();
+  };
+
+  /* ── ORIVEN REVIEW ── */
+  function _cggRenderReviewStage(){
+    var pkg = _cgg.pkg;
+    var g = pkg.googleAds || {};
+    var s = pkg.strategy || {};
+    var headlines = (g.headlines||[]).filter(Boolean);
+    var descriptions = (g.descriptions||[]).filter(Boolean);
+    var keywords = (g.keywords||[]).filter(Boolean);
+    var destUrl = _cggDestinationUrl(pkg);
+    var goal = s.goal || pkg.goal || 'Sales';
+
+    var hasMinHeadlines = headlines.length >= 3;
+    var hasMinDescriptions = descriptions.length >= 2;
+    var hasKeywords = keywords.length > 0;
+    var hasDestUrl = !!destUrl;
+
+    var checks = [
+      { ok: hasMinHeadlines, label: headlines.length+' headline'+(headlines.length!==1?'s':'')+' (3 minimum required)' },
+      { ok: hasMinDescriptions, label: descriptions.length+' description'+(descriptions.length!==1?'s':'')+' (2 minimum required)' },
+      { ok: hasKeywords, label: 'Keywords configured' },
+      { ok: hasDestUrl, label: 'Landing page set' },
+      { ok: !!_cgg.accountId, label: 'Google Ads account connected' },
+    ];
+    var checkHtml = '<div class="cst-check-list">' + checks.map(function(c){
+      return '<div class="cst-check-item'+(c.ok?'':' cst-check-warn-item')+'">'+(c.ok?'<span class="cst-check-ok">&#10003;</span>':'<span class="cst-check-warn-icon">&#9888;</span>')+_cggEsc(c.label)+'</div>';
+    }).join('') + '</div>';
+
+    var rows = '';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cggEsc(goal)+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">1 Campaign &middot; 1 Ad Group &middot; 1 Responsive Search Ad</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cggEsc(s.budgetRecommendation||'Not set')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Landing Page</span><span class="cst-review-val'+(hasDestUrl?'':' cst-review-val-warn')+'">'+_cggEsc(destUrl||'Not set')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Account</span><span class="cst-review-val'+(_cgg.accountName?'':' cst-review-val-warn')+'">'+_cggEsc(_cgg.accountName||'Not connected')+'</span></div>';
+
+    var err = '';
+    if (!hasMinHeadlines) err = 'At least 3 headlines are required.';
+    else if (!hasMinDescriptions) err = 'At least 2 descriptions are required.';
+    else if (!_cgg.accountId) err = 'Connect a Google Ads account before publishing.';
+    else if (!hasDestUrl) err = 'Add a landing page URL before publishing.';
+
+    var html = '<div class="cst-review-sec-hd">Checklist</div>' + checkHtml
+      + '<div class="cst-review-sec-hd">Summary</div>' + rows
+      + (err ? '<div class="cst-review-err">'+_cggEsc(err)+'</div>' : '');
+
+    var body = document.getElementById('cggReviewBody');
+    if (body) body.innerHTML = html;
+    var pubBtn = document.getElementById('cggPublishBtn');
+    if (pubBtn) pubBtn.disabled = !!err;
+  }
+
+  /* ── PUBLISH — delegates to the existing, unmodified cgrPublishTo, which
+     already calls /api/publish/google with {campId, pkg}. This is the same
+     working publish mechanism Google already used before this redesign;
+     we only ensure the edited pkg is what it sends. ── */
+  window._cggDoPublish = function(){
+    window._orvUpdateCampPkg(_cgg.campId, _cgg.pkg);
+    _cgg.dirty = false; _cggUpdateDirtyUI();
+    _cgrPkg = _cgg.pkg; // the shared reference cgrPublishTo reads from
+    window.cgrPublishTo('google', _cgg.campId);
+  };
+
+  /* ══════════════════════════════════════════════════════════════════
+     TIKTOK ADS PREVIEW / EDIT / ORIVEN REVIEW
+     Independent of Meta's _cst* and Google's _cgg* implementations (own
+     `_cgt` prefix, own state) -- same single-source-of-truth architecture,
+     window._orvUpdateCampPkg on Save.
+
+     IMPORTANT, confirmed by re-reading /api/publish/tiktok fresh before
+     building this: that route creates ONLY the Campaign shell today
+     (POST /campaign/create/ -- name, objective_type, budget_mode, budget,
+     operation_status). There is no Ad Group or Ad creation, and TikTok's
+     Marketing API requires an "Identity" resource for any Ad that this
+     codebase has no support for at all. Of pkg.tiktokAds, only
+     `.objective` (legacy override) and `.budget` are ever read by
+     publish -- hook/script/cta/targetAudience are generated, previewable,
+     and editable/saveable here (real value: the user can see and edit
+     what Oriven generated), but are NOT currently sent to TikTok. The
+     Oriven Review stage says this explicitly rather than showing a false
+     green checkmark -- "what you see must match what the API creates". ── */
+  var _cgt = { campId:null, pkg:null, stage:'preview', dirty:false, accountName:null, accountId:null };
+
+  function _cgtEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function _cgtTrunc(s,n){ s=String(s||''); return s.length>n ? s.slice(0,n)+'…' : s; }
+  function _cgtInitial(name){ return (String(name||'?').trim().charAt(0)||'?').toUpperCase(); }
+
+  function _cgtCampaignsKey(){
+    var user = (typeof _getCurrentUser === 'function') ? _getCurrentUser() : (typeof window._getCurrentUser === 'function' ? window._getCurrentUser() : null);
+    return (user && user.id) ? ('oriven_campaigns_' + user.id) : null;
+  }
+  function _cgtReadCampaigns(){
+    var key = _cgtCampaignsKey();
+    if (!key) return [];
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(_) { return []; }
+  }
+  function _cgtWriteCampaigns(arr){
+    var key = _cgtCampaignsKey();
+    if (!key) return;
+    try { localStorage.setItem(key, JSON.stringify(arr)); } catch(_){}
+  }
+
+  window._cgtInitTiktokScreen = function(pkg, campId){
+    var clonedPkg;
+    try { clonedPkg = JSON.parse(JSON.stringify(pkg)); } catch(_) { clonedPkg = pkg; }
+    _cgt = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null };
+    _cgtUpdateDirtyUI();
+    _cgtSetStage('preview');
+
+    apiFetch('/api/tiktok/status').then(function(r){
+      if (!r.ok || !r.data) return;
+      var d = r.data;
+      _cgt.accountName = d.active_ad_account ? (d.active_ad_account.account_name || d.active_ad_account.account_id) : (d.tiktok_display_name || null);
+      _cgt.accountId = d.active_ad_account ? d.active_ad_account.account_id : null;
+      _cgtRenderActiveStage();
+    }).catch(function(){});
+  };
+
+  function _cgtUpdateDirtyUI(){
+    var d = document.getElementById('cgtDirtyBadge');
+    var s = document.getElementById('cgtSavedBadge');
+    if (d) d.style.display = _cgt.dirty ? '' : 'none';
+    if (s) s.style.display = 'none';
+  }
+  function _cgtMarkDirty(){ _cgt.dirty = true; _cgtUpdateDirtyUI(); }
+
+  window._cgtSave = function(){
+    if (!_cgt.campId) return;
+    window._orvUpdateCampPkg(_cgt.campId, _cgt.pkg);
+    _cgt.dirty = false;
+    var d = document.getElementById('cgtDirtyBadge');
+    var s = document.getElementById('cgtSavedBadge');
+    if (d) d.style.display = 'none';
+    if (s) { s.style.display = ''; setTimeout(function(){ if(s) s.style.display='none'; }, 2200); }
+  };
+
+  window._cgtSetStage = function(stage){
+    _cgt.stage = stage;
+    var nav = document.getElementById('cgtStageNav');
+    var body = document.getElementById('cgtStageBody');
+    if (nav) nav.querySelectorAll('.cst-stage-btn').forEach(function(b){ b.classList.toggle('cst-stage-btn-active', b.getAttribute('data-stage')===stage); });
+    if (body) body.querySelectorAll('.cst-stage-panel').forEach(function(p){ p.classList.toggle('cst-stage-panel-active', p.getAttribute('data-stage')===stage); });
+    _cgtRenderActiveStage();
+  };
+
+  function _cgtRenderActiveStage(){
+    if (_cgt.stage === 'preview') _cgtRenderPreview();
+    else if (_cgt.stage === 'edit') _cgtRenderEditSections();
+    else if (_cgt.stage === 'review') _cgtRenderReviewStage();
+  }
+
+  /* ── PREVIEW: TikTok vertical feed simulation ── */
+  function _cgtRenderPreview(){
+    var pkg = _cgt.pkg;
+    var tt = pkg.tiktokAds || {};
+    var caption = tt.hook || tt.script || '';
+    var displayName = _cgt.accountName || pkg.campaignName || 'Your Account';
+
+    var mediaHtml = '<div class="cst-tt-empty">'
+      + '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
+      + '<span>TikTok creative is text-only in this pipeline today — no image or video is attached.</span></div>';
+
+    var html = '<div class="cst-mock-tiktok">'
+      + '<div class="cst-tt-top"><span>Following</span><span class="cst-tt-top-active">For You</span></div>'
+      + '<div class="cst-tt-media">'+mediaHtml+'</div>'
+      + '<div class="cst-tt-fade"></div>'
+      + '<div class="cst-tt-rail"><div>&#9825;<span>Like</span></div><div>&#128172;<span>Comment</span></div><div>&#8663;<span>Share</span></div></div>'
+      + '<div class="cst-tt-foot">'
+      +   '<div class="cst-tt-user">@'+_cgtEsc(String(displayName).replace(/\s+/g,'').toLowerCase())+'</div>'
+      +   '<div class="cst-tt-sponsored">Sponsored</div>'
+      +   (caption ? '<div class="cst-tt-caption">'+_cgtEsc(_cgtTrunc(caption,90))+'</div>' : '')
+      +   '<button type="button" class="cst-tt-cta">'+_cgtEsc(tt.cta||'Learn More')+'</button>'
+      + '</div></div>';
+
+    var stage = document.getElementById('cgtPreviewStage');
+    if (stage) stage.innerHTML = html;
+  }
+
+  /* ── EDIT ── */
+  function _cgtSec(title, sub, bodyHtml, openByDefault){
+    return '<details class="cst-sec"'+(openByDefault?' open':'')+'>'
+      + '<summary><span>'+_cgtEsc(title)+(sub?'<span class="cst-sec-sub">'+_cgtEsc(sub)+'</span>':'')+'</span>'
+      + '<svg class="cst-sec-chev" viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></summary>'
+      + '<div class="cst-sec-body">'+bodyHtml+'</div></details>';
+  }
+
+  function _cgtRenderEditSections(){
+    var pkg = _cgt.pkg;
+    var tt = pkg.tiktokAds || {};
+    var s = pkg.strategy || {};
+    var goal = s.goal || pkg.goal || 'Sales';
+
+    var adContent = '<div class="cst-fld"><label>Hook</label><input class="crv-inp" type="text" value="'+_cgtEsc(tt.hook||'')+'" oninput="_cgtFieldInput(\'hook\',this)"><div class="cst-fld-hint">Generated by Oriven — not yet sent to TikTok (see Oriven Review).</div></div>'
+      + '<div class="cst-fld"><label>Script</label><textarea class="crv-inp crv-ta" style="min-height:110px" oninput="_cgtFieldInput(\'script\',this)">'+_cgtEsc(tt.script||'')+'</textarea></div>'
+      + '<div class="cst-fld"><label>CTA</label><input class="crv-inp" type="text" value="'+_cgtEsc(tt.cta||'')+'" oninput="_cgtFieldInput(\'cta\',this)"></div>';
+
+    var audienceHtml = '<div class="cst-fld"><label>Target Audience</label><textarea class="crv-inp crv-ta" oninput="_cgtFieldInput(\'targetAudience\',this)">'+_cgtEsc(tt.targetAudience||'')+'</textarea></div>';
+
+    var campaignHtml = '<div class="cst-fld"><label>Campaign Goal</label><div class="cst-goal-pill"><span class="cst-goal-dot"></span>'+_cgtEsc(goal)+'</div></div>'
+      + '<div class="cst-fld"><label>Daily Budget</label><input class="crv-inp" type="text" value="'+_cgtEsc(tt.budget||'')+'" placeholder="e.g. 30" oninput="_cgtBudgetInput(this)"><div class="cst-fld-hint">This is the one field from this section TikTok actually receives today.</div></div>';
+
+    var platformHtml = '<div class="cst-fld-row">'
+      + '<div class="cst-fld"><label>Platform</label><div class="cst-fld-static">TikTok Ads</div></div>'
+      + '<div class="cst-fld"><label>Ad Account</label><div class="cst-fld-static'+(_cgt.accountName?'':' cst-review-val-warn')+'">'+_cgtEsc(_cgt.accountName||'Not connected')+'</div></div>'
+      + '</div>';
+
+    var html = _cgtSec('Ad Content', null, adContent, true)
+      + _cgtSec('Audience', null, audienceHtml, false)
+      + _cgtSec('Campaign', null, campaignHtml, true)
+      + _cgtSec('Platform', null, platformHtml, false);
+
+    var body = document.getElementById('cgtEditBody');
+    if (body) body.innerHTML = html;
+  }
+
+  window._cgtFieldInput = function(field, el){
+    _cgt.pkg.tiktokAds = _cgt.pkg.tiktokAds || {};
+    _cgt.pkg.tiktokAds[field] = el.value;
+    _cgtMarkDirty();
+  };
+  window._cgtBudgetInput = function(el){
+    _cgt.pkg.tiktokAds = _cgt.pkg.tiktokAds || {};
+    _cgt.pkg.tiktokAds.budget = el.value;
+    _cgtMarkDirty();
+  };
+
+  /* ── ORIVEN REVIEW — honest about the real backend limitation ── */
+  function _cgtRenderReviewStage(){
+    var pkg = _cgt.pkg;
+    var tt = pkg.tiktokAds || {};
+    var s = pkg.strategy || {};
+    var goal = s.goal || pkg.goal || 'Sales';
+
+    var checks = [
+      { ok: !!(tt.hook && tt.hook.trim()), label: 'Hook complete' },
+      { ok: !!(tt.cta && tt.cta.trim()), label: 'CTA complete' },
+      { ok: !!(tt.budget || 30), label: 'Budget configured' },
+      { ok: !!_cgt.accountId, label: 'TikTok Ad Account connected' },
+    ];
+    var checkHtml = '<div class="cst-check-list">' + checks.map(function(c){
+      return '<div class="cst-check-item'+(c.ok?'':' cst-check-warn-item')+'">'+(c.ok?'<span class="cst-check-ok">&#10003;</span>':'<span class="cst-check-warn-icon">&#9888;</span>')+_cgtEsc(c.label)+'</div>';
+    }).join('') + '</div>';
+
+    var rows = '';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cgtEsc(goal)+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">1 Campaign (shell only)</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cgtEsc(tt.budget || '30 (default)')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Account</span><span class="cst-review-val'+(_cgt.accountName?'':' cst-review-val-warn')+'">'+_cgtEsc(_cgt.accountName||'Not connected')+'</span></div>';
+
+    var limitationNotice = '<div class="cst-review-err" style="color:#fbbf24;background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.2)">'
+      + '<b>TikTok publishing currently creates the Campaign only</b> (paused, with this budget and objective applied). '
+      + 'Ad Group and Ad creation aren\'t supported yet — TikTok requires an additional "Identity" setup this integration doesn\'t have. '
+      + 'Your Hook, Script and CTA are saved in Oriven but will not be sent to TikTok until that\'s built.'
+      + '</div>';
+
+    var err = '';
+    if (!_cgt.accountId) err = 'Connect a TikTok Ad Account before publishing.';
+
+    var html = '<div class="cst-review-sec-hd">Checklist</div>' + checkHtml
+      + '<div class="cst-review-sec-hd">Summary</div>' + rows
+      + '<div class="cst-review-sec-hd">Known limitation</div>' + limitationNotice
+      + (err ? '<div class="cst-review-err">'+_cgtEsc(err)+'</div>' : '');
+
+    var body = document.getElementById('cgtReviewBody');
+    if (body) body.innerHTML = html;
+    var pubBtn = document.getElementById('cgtPublishBtn');
+    if (pubBtn) pubBtn.disabled = !!err;
+  }
+
+  /* ── PUBLISH — delegates to the existing, unmodified cgrPublishTo, which
+     already calls /api/publish/tiktok with {campId, pkg}. Not rewriting
+     that route's behavior here; it still only creates the campaign shell,
+     exactly as disclosed in the Review stage above. ── */
+  window._cgtDoPublish = function(){
+    window._orvUpdateCampPkg(_cgt.campId, _cgt.pkg);
+    _cgt.dirty = false; _cgtUpdateDirtyUI();
+    _cgrPkg = _cgt.pkg;
+    window.cgrPublishTo('tiktok', _cgt.campId);
   };
 
   function _startVideoCreatives(pkg, campId){
@@ -14060,6 +15249,13 @@ window.rptExport = function(format) {
           _cgrPkg.visualConcepts[idx].generatedImageUrl = url;
           if(typeof window._orvUpdateCampPkg==='function' && window._cgrCurrentCampId){
             window._orvUpdateCampPkg(window._cgrCurrentCampId, _cgrPkg);
+          }
+          /* Keep the Meta screen's in-progress edit buffer in sync too, so
+             a later Save doesn't overwrite a freshly-generated image with
+             a stale clone, and refresh whichever stage is currently shown. */
+          if (typeof _cst !== 'undefined' && _cst.pkg && _cst.pkg.visualConcepts && _cst.pkg.visualConcepts[idx]) {
+            _cst.pkg.visualConcepts[idx].generatedImageUrl = url;
+            if (typeof _cstRenderActiveStage === 'function') _cstRenderActiveStage();
           }
         }
         var escapedPrompt = _esc(prompt);
