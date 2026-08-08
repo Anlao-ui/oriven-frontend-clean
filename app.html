@@ -14578,7 +14578,7 @@ window.rptExport = function(format) {
      Responsive Search Ad today -- no structure selector is shown, since
      there is nothing real for it to control yet.
      ══════════════════════════════════════════════════════════════════ */
-  var _cgg = { campId:null, pkg:null, stage:'preview', dirty:false, accountName:null, accountId:null };
+  var _cgg = { campId:null, pkg:null, stage:'preview', dirty:false, accountName:null, accountId:null, surface:'search', ytMode:'video' };
 
   function _cggEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function _cggTrunc(s,n){ s=String(s||''); return s.length>n ? s.slice(0,n)+'…' : s; }
@@ -14612,7 +14612,7 @@ window.rptExport = function(format) {
   window._cggInitGoogleScreen = function(pkg, campId){
     var clonedPkg;
     try { clonedPkg = JSON.parse(JSON.stringify(pkg)); } catch(_) { clonedPkg = pkg; }
-    _cgg = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null };
+    _cgg = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null, surface:'search', ytMode:'video' };
     _cggUpdateDirtyUI();
     _cggSetStage('preview');
 
@@ -14659,21 +14659,140 @@ window.rptExport = function(format) {
   }
 
   /* ── PREVIEW: Google Search results simulation ── */
-  function _cggRenderPreview(){
-    var pkg = _cgg.pkg;
+  /* ── Multi-surface Google Ads preview studio ──────────────────────────
+     Google Ads can appear across many surfaces, but THIS pipeline (traced
+     fresh in server.js before building this) only ever publishes one:
+     Campaign(SEARCH) -> Ad Group -> Responsive Search Ad. Every other
+     surface here is preview/planning only -- clearly labeled, never
+     implied as publishable. Asset facts below are all confirmed by
+     reading the actual code, not assumed:
+       - no video URL is ever written back into pkg anywhere in this
+         codebase (checked _pollCgrVideo's completion handler -- it only
+         renders a <video> into a throwaway DOM card, never persists a
+         field) -- so hasVideo is always false, for every platform, today.
+       - no product/Merchant Center schema exists in Google's AI
+         generation schema -- hasProductData is always false.
+       - no business/location schema exists either -- hasLocationData is
+         always false.
+     Images DO come from pkg.visualConcepts[].generatedImageUrl -- the
+     same shared, platform-agnostic field Meta reads, since image
+     generation (_startCreativesGeneration) runs unconditionally for every
+     platform's package, Google included. ── */
+  var _CGG_SURFACES = [
+    { key:'search',   label:'Search' },
+    { key:'shopping', label:'Shopping' },
+    { key:'display',  label:'Display' },
+    { key:'discover', label:'Discover' },
+    { key:'maps',     label:'Maps' },
+    { key:'gmail',    label:'Gmail' },
+    { key:'youtube',  label:'YouTube' },
+    { key:'pmax',     label:'Performance Max' },
+  ];
+
+  function _cggBestImage(pkg){
+    var vcs = pkg.visualConcepts || [];
+    for (var i=0;i<vcs.length;i++){ if (vcs[i] && vcs[i].generatedImageUrl) return vcs[i].generatedImageUrl; }
+    return null;
+  }
+
+  function _cggAssets(pkg){
     var g = pkg.googleAds || {};
     var headlines = (g.headlines || []).filter(Boolean);
     var descriptions = (g.descriptions || []).filter(Boolean);
     var keywords = (g.keywords || []).filter(Boolean);
+    var image = _cggBestImage(pkg);
+    return {
+      headlines: headlines, descriptions: descriptions, keywords: keywords, image: image,
+      hasHeadline: headlines.length > 0, hasDescription: descriptions.length > 0, hasImage: !!image,
+      hasVideo: false, hasProductData: false, hasLocationData: false,
+    };
+  }
+
+  /* level: 'ready' | 'preview' | 'missing' -- drives the status pill/dot */
+  function _cggSurfaceStatus(key){
+    if (key === 'search')   return { level:'ready',   label:'READY TO PUBLISH' };
+    if (key === 'shopping') return { level:'missing', label:'PREVIEW ONLY — Merchant Center required' };
+    if (key === 'maps')     return { level:'missing', label:'PREVIEW ONLY — location data required' };
+    if (key === 'youtube') {
+      var mode = _cgg.ytMode || 'video';
+      if (mode === 'image') return { level:'preview', label:'PREVIEW ONLY — campaign type not currently supported' };
+      return { level:'missing', label:'MISSING VIDEO' }; // video + shorts both need a video asset that never exists
+    }
+    if (key === 'pmax') return { level:'preview', label:'PREVIEW ONLY — campaign type not currently supported' };
+    return { level:'preview', label:'PREVIEW ONLY — campaign type not currently supported' }; // display, discover, gmail
+  }
+
+  function _cggEmptyState(title, detail){
+    return '<div class="cst-gsurf-empty">'
+      + '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16v.01"/></svg>'
+      + '<b>'+_cggEsc(title)+'</b><span>'+_cggEsc(detail)+'</span></div>';
+  }
+
+  function _cggImgPlaceholder(){
+    return '<div class="cst-img-empty"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>';
+  }
+
+  window._cggSetSurface = function(key){
+    _cgg.surface = key;
+    _cggRenderPreview();
+  };
+  window._cggSetYtMode = function(mode){
+    _cgg.ytMode = mode;
+    _cggRenderPreview();
+  };
+  window._cggToggleGmail = function(){
+    var el = document.getElementById('cggGmailExpand');
+    if (el) el.classList.toggle('cst-gmail-open');
+  };
+
+  function _cggRenderPreview(){
+    var pkg = _cgg.pkg;
+    var assets = _cggAssets(pkg);
     var destUrl = _cggDestinationUrl(pkg);
     var domain = _cggDomain(destUrl) || 'yoursite.com';
-    var query = keywords[0] || pkg.campaignName || '';
-    var headlineText = headlines.slice(0,3).join(' | ') || '(no headline yet)';
-    var descText = descriptions[0] || '(no description yet)';
+    var surface = _cgg.surface || 'search';
+    var ytMode = _cgg.ytMode || 'video';
 
-    var html = '<div class="cst-mock-gsearch">'
+    var navHtml = '<div class="cst-gsurf-nav">' + _CGG_SURFACES.map(function(s){
+      var st = s.key === 'youtube' ? _cggSurfaceStatus('youtube') : _cggSurfaceStatus(s.key);
+      var dotCls = st.level === 'ready' ? 'cst-gsurf-dot-ready' : (st.level === 'missing' ? 'cst-gsurf-dot-missing' : 'cst-gsurf-dot-preview');
+      return '<button type="button" class="cst-gsurf-btn'+(surface===s.key?' cst-gsurf-btn-active':'')+'" onclick="_cggSetSurface(\''+s.key+'\')"><span class="cst-gsurf-dot '+dotCls+'"></span>'+_cggEsc(s.label)+'</button>';
+    }).join('') + '</div>';
+
+    var subnavHtml = '';
+    if (surface === 'youtube') {
+      var ytModes = [['video','Video'],['image','Image / Feed'],['shorts','Shorts']];
+      subnavHtml = '<div class="cst-gsurf-subnav">' + ytModes.map(function(m){
+        return '<button type="button" class="cst-gsurf-sub-btn'+(ytMode===m[0]?' cst-gsurf-sub-btn-active':'')+'" onclick="_cggSetYtMode(\''+m[0]+'\')">'+m[1]+'</button>';
+      }).join('') + '</div>';
+    }
+
+    var status = surface === 'youtube' ? _cggSurfaceStatus('youtube') : _cggSurfaceStatus(surface);
+    var statusHtml = '<div class="cst-gsurf-status"><span class="cst-gsurf-status-pill cst-gsurf-status-'+status.level+'">'+_cggEsc(status.label)+'</span></div>';
+
+    var body = '';
+    if (surface === 'search')        body = _cggRenderSearchBody(assets, domain);
+    else if (surface === 'shopping') body = _cggEmptyState('Shopping preview unavailable', 'Shopping ads require product data synced from a Merchant Center feed. This campaign package has no product data, so Oriven can\'t show a real Shopping result — and won\'t fabricate a price or product.');
+    else if (surface === 'display')  body = _cggRenderBannerBody(assets, domain, 'cst-mock-display', 'cst-disp');
+    else if (surface === 'discover') body = _cggRenderDiscoverBody(assets, domain);
+    else if (surface === 'maps')     body = _cggEmptyState('Maps preview unavailable', 'Maps ads require real business/location information (address, hours, etc). This campaign package has no location data, so Oriven won\'t invent an address.');
+    else if (surface === 'gmail')    body = _cggRenderGmailBody(assets, domain);
+    else if (surface === 'youtube' && ytMode === 'video')  body = _cggEmptyState('No video asset available', 'No video was generated for this campaign — YouTube video ads need one. Nothing is fabricated here.');
+    else if (surface === 'youtube' && ytMode === 'image')  body = _cggRenderYtImageBody(assets, domain);
+    else if (surface === 'youtube' && ytMode === 'shorts') body = _cggEmptyState('No vertical video available', 'Shorts requires a vertical video asset, which doesn\'t exist for this campaign — Oriven won\'t substitute a static image for a video format.');
+    else if (surface === 'pmax')     body = _cggRenderPmaxBody(assets, domain);
+
+    var stage = document.getElementById('cggPreviewStage');
+    if (stage) stage.innerHTML = navHtml + subnavHtml + statusHtml + '<div class="cst-gsurf-body">' + body + '</div>';
+  }
+
+  function _cggRenderSearchBody(assets, domain){
+    var query = assets.keywords[0] || '';
+    var headlineText = assets.headlines.slice(0,3).join(' | ') || '(no headline yet)';
+    var descText = assets.descriptions[0] || '(no description yet)';
+    return '<div class="cst-mock-gsearch">'
       + '<div class="cst-gs-searchbar"><div class="cst-gs-logo"><b>G</b><b>o</b><b>o</b><b>g</b><b>l</b><b>e</b></div>'
-      +   '<div class="cst-gs-query-pill">&#128269; '+_cggEsc(query)+'</div></div>'
+      +   '<div class="cst-gs-query-pill">&#128269; '+_cggEsc(query||'your product or service')+'</div></div>'
       + '<div class="cst-gs-results">'
       +   '<div class="cst-gs-ad-block">'
       +     '<span class="cst-gs-ad-tag">Ad</span>'
@@ -14684,9 +14803,78 @@ window.rptExport = function(format) {
       +   '<div class="cst-gs-organic"><div class="cst-gs-organic-url">'+_cggEsc(domain)+' &rsaquo; about</div><div class="cst-gs-organic-hl">Related organic result</div><div class="cst-gs-organic-desc">Illustrative only — not part of your ad, shown for search-page context.</div></div>'
       +   '<div class="cst-gs-organic"><div class="cst-gs-organic-url">example.com &rsaquo; category</div><div class="cst-gs-organic-hl">Another organic result</div><div class="cst-gs-organic-desc">Illustrative only — not part of your ad, shown for search-page context.</div></div>'
       + '</div></div>';
+  }
 
-    var stage = document.getElementById('cggPreviewStage');
-    if (stage) stage.innerHTML = html;
+  function _cggRenderBannerBody(assets, domain, mockCls, p){
+    var hl = assets.headlines[0] || '';
+    var desc = assets.descriptions[0] || '';
+    if (!hl && !desc && !assets.image) return _cggEmptyState('No ad content yet', 'Generate headlines, a description, or an image for this campaign to preview it here.');
+    return '<div class="'+mockCls+'">'
+      + '<div class="'+p+'-img">'+(assets.image ? '<img src="'+_cggEsc(assets.image)+'" alt="">' : _cggImgPlaceholder())+'</div>'
+      + '<div class="'+p+'-body"><span class="'+p+'-adtag">Ad</span>'
+      +   '<div class="'+p+'-brand">'+_cggEsc(domain)+'</div>'
+      +   '<div class="'+p+'-hl">'+_cggEsc(hl||'(no headline yet)')+'</div>'
+      +   (desc ? '<div class="'+p+'-desc">'+_cggEsc(desc)+'</div>' : '')
+      +   '<button type="button" class="'+p+'-cta">Learn More</button>'
+      + '</div></div>';
+  }
+
+  function _cggRenderDiscoverBody(assets, domain){
+    var hl = assets.headlines[0] || '';
+    var desc = assets.descriptions[0] || '';
+    if (!hl && !desc && !assets.image) return _cggEmptyState('No ad content yet', 'Generate headlines, a description, or an image for this campaign to preview it here.');
+    return '<div class="cst-mock-discover">'
+      + '<div class="cst-disc-img">'+(assets.image ? '<img src="'+_cggEsc(assets.image)+'" alt="">' : _cggImgPlaceholder())+'</div>'
+      + '<div class="cst-disc-body">'
+      +   '<div class="cst-disc-brand-row"><div class="cst-avatar" style="width:22px;height:22px;font-size:10px">'+_cggEsc((domain||'?').charAt(0).toUpperCase())+'</div><span class="cst-disc-sponsored">'+_cggEsc(domain)+' &middot; Sponsored</span></div>'
+      +   '<div class="cst-disc-hl">'+_cggEsc(hl||'(no headline yet)')+'</div>'
+      +   (desc ? '<div class="cst-disc-desc">'+_cggEsc(desc)+'</div>' : '')
+      + '</div></div>';
+  }
+
+  function _cggRenderGmailBody(assets, domain){
+    var hl = assets.headlines[0] || '';
+    var desc = assets.descriptions[0] || '';
+    if (!hl && !desc) return _cggEmptyState('No ad content yet', 'Generate a headline and description for this campaign to preview it here.');
+    return '<div class="cst-mock-gmail">'
+      + '<div class="cst-gmail-row" onclick="_cggToggleGmail()">'
+      +   '<span class="cst-gmail-tag">Ad</span>'
+      +   '<div class="cst-gmail-preview"><div class="cst-gmail-subject">'+_cggEsc(domain)+' — '+_cggEsc(hl||'(no headline yet)')+'</div><div class="cst-gmail-snippet">'+_cggEsc(desc||'')+'</div></div>'
+      + '</div>'
+      + '<div class="cst-gmail-expanded" id="cggGmailExpand">'
+      +   (assets.image ? '<div class="cst-gmail-exp-img"><img src="'+_cggEsc(assets.image)+'" alt=""></div>' : '')
+      +   '<div class="cst-disp-brand">'+_cggEsc(domain)+'</div>'
+      +   '<div class="cst-disp-hl">'+_cggEsc(hl||'(no headline yet)')+'</div>'
+      +   (desc ? '<div class="cst-disp-desc">'+_cggEsc(desc)+'</div>' : '')
+      +   '<button type="button" class="cst-disp-cta">Learn More</button>'
+      + '</div></div>';
+  }
+
+  function _cggRenderYtImageBody(assets, domain){
+    var hl = assets.headlines[0] || '';
+    var desc = assets.descriptions[0] || '';
+    if (!hl && !desc && !assets.image) return _cggEmptyState('No ad content yet', 'Generate headlines, a description, or an image for this campaign to preview it here.');
+    return '<div class="cst-mock-ytimage">'
+      + '<div class="cst-yti-tag">Sponsored</div>'
+      + '<div class="cst-yti-img">'+(assets.image ? '<img src="'+_cggEsc(assets.image)+'" alt="">' : _cggImgPlaceholder())+'</div>'
+      + '<div class="cst-yti-body"><div class="cst-yti-hl">'+_cggEsc(hl||'(no headline yet)')+'</div>'
+      +   (desc ? '<div class="cst-yti-desc">'+_cggEsc(desc)+'</div>' : '')
+      +   '<button type="button" class="cst-disp-cta">Learn More</button></div></div>';
+  }
+
+  function _cggRenderPmaxBody(assets, domain){
+    var cards = [
+      { key:'search', icon:'&#128269;', label:'Search', snippet: assets.headlines[0] || 'No headline yet' },
+      { key:'shopping', icon:'&#128722;', label:'Shopping', snippet: 'Requires product data' },
+      { key:'youtube', icon:'&#9654;', label:'YouTube', snippet: 'No video asset available' },
+      { key:'discover', icon:'&#128240;', label:'Discover', snippet: assets.headlines[0] || 'No headline yet' },
+      { key:'gmail', icon:'&#9993;', label:'Gmail', snippet: assets.headlines[0] || 'No headline yet' },
+      { key:'maps', icon:'&#128205;', label:'Maps', snippet: 'Requires location data' },
+    ];
+    return '<div class="cst-pmax-intro">Performance Max distributes one campaign\'s assets across many Google surfaces automatically. Oriven doesn\'t publish Performance Max campaigns yet — this is a preview of how your generated assets could look if it did.</div>'
+      + '<div class="cst-pmax-grid">' + cards.map(function(c){
+        return '<button type="button" class="cst-pmax-card" onclick="_cggSetSurface(\''+c.key+'\')"><div class="cst-pmax-card-icon">'+c.icon+'</div><div class="cst-pmax-card-label">'+_cggEsc(c.label)+'</div><div class="cst-pmax-card-snippet">'+_cggEsc(c.snippet)+'</div></button>';
+      }).join('') + '</div>';
   }
 
   /* ── EDIT: Ad Content (headlines/descriptions/URL), Keywords, Campaign, Platform ── */
@@ -14823,8 +15011,16 @@ window.rptExport = function(format) {
     else if (!_cgg.accountId) err = 'Connect a Google Ads account before publishing.';
     else if (!hasDestUrl) err = 'Add a landing page URL before publishing.';
 
+    var surfaceRows = _CGG_SURFACES.map(function(sfc){
+      var st = _cggSurfaceStatus(sfc.key);
+      var cls = st.level === 'ready' ? 'cst-check-ok' : (st.level === 'missing' ? 'cst-check-warn-icon' : 'cst-gsurf-status-preview');
+      var icon = st.level === 'ready' ? '&#10003;' : (st.level === 'missing' ? '&#9888;' : '&#9679;');
+      return '<div class="cst-review-row"><span class="cst-review-lbl"><span class="'+cls+'" style="margin-right:7px">'+icon+'</span>'+_cggEsc(sfc.label)+'</span><span class="cst-review-val'+(st.level==='ready'?'':' cst-review-val-warn')+'" style="font-size:11.5px">'+_cggEsc(st.label)+'</span></div>';
+    }).join('');
+
     var html = '<div class="cst-review-sec-hd">Checklist</div>' + checkHtml
       + '<div class="cst-review-sec-hd">Summary</div>' + rows
+      + '<div class="cst-review-sec-hd">Where your ad can appear</div>' + surfaceRows
       + (err ? '<div class="cst-review-err">'+_cggEsc(err)+'</div>' : '');
 
     var body = document.getElementById('cggReviewBody');
