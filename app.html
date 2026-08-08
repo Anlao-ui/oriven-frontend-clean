@@ -14612,7 +14612,7 @@ window.rptExport = function(format) {
   window._cggInitGoogleScreen = function(pkg, campId){
     var clonedPkg;
     try { clonedPkg = JSON.parse(JSON.stringify(pkg)); } catch(_) { clonedPkg = pkg; }
-    _cgg = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null, surface:'search', ytMode:'video' };
+    _cgg = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null, surface:'search', ytMode:'video', businessName:null };
     _cggUpdateDirtyUI();
     _cggSetStage('preview');
 
@@ -14621,6 +14621,14 @@ window.rptExport = function(format) {
       var d = r.data;
       _cgg.accountName = d.active_ad_account ? (d.active_ad_account.account_name || d.active_ad_account.account_id) : null;
       _cgg.accountId = d.active_ad_account ? d.active_ad_account.account_id : null;
+      _cggRenderActiveStage();
+    }).catch(function(){});
+
+    // Only needed to validate Demand Gen's business-name requirement in
+    // Oriven Review below -- Search doesn't use it.
+    apiFetch('/api/business/profile').then(function(r){
+      if (!r.ok || !r.data) return;
+      _cgg.businessName = (r.data.company_name || '').trim() || null;
       _cggRenderActiveStage();
     }).catch(function(){});
   };
@@ -14917,11 +14925,26 @@ window.rptExport = function(format) {
       + _cggListEditor(keywords, 'keywords', { max:20, placeholder:'Keyword' })
       + '<div class="cst-fld-hint">Match type: Broad, applied to every keyword. Keywords control when your ad is eligible to show — they are not displayed inside the ad itself.</div></div>';
 
-    var campaignHtml = '<div class="cst-fld"><label>Campaign Goal</label><div class="cst-goal-pill"><span class="cst-goal-dot"></span>'+_cggEsc(goal)+'</div></div>'
+    var campaignType = g.campaignType || 'SEARCH';
+    var typeOptions = [
+      { v:'SEARCH',     label:'Search',              enabled:true,  note:'Keyword-targeted text ads — the original, fully working pipeline.' },
+      { v:'DEMAND_GEN', label:'Demand Gen',           enabled:true,  note:'Image + headline/description ad shown across Discover, Gmail and YouTube feeds.' },
+      { v:'SHOPPING',   label:'Shopping (blocked)',   enabled:false, note:'Requires a linked Google Merchant Center account — not connected in Oriven yet.' },
+      { v:'PERFORMANCE_MAX', label:'Performance Max (blocked)', enabled:false, note:'Requires a Logo asset plus separate square/landscape images — Oriven has no logo field and only generates one image type.' },
+      { v:'VIDEO',      label:'YouTube Video (blocked)', enabled:false, note:'Requires the video to already be uploaded to a YouTube channel — no YouTube upload integration exists.' },
+      { v:'MAPS',       label:'Local/Maps (blocked)', enabled:false, note:'Requires a verified Google Business Profile location — Oriven collects no location data.' },
+    ];
+    var typeSelectHtml = '<select class="crv-inp" onchange="_cggCampaignTypeInput(this)">'
+      + typeOptions.map(function(t){ return '<option value="'+t.v+'"'+(t.v===campaignType?' selected':'')+(t.enabled?'':' disabled')+'>'+_cggEsc(t.label)+'</option>'; }).join('')
+      + '</select>';
+    var activeTypeNote = (typeOptions.filter(function(t){ return t.v===campaignType; })[0] || {}).note || '';
+
+    var campaignHtml = '<div class="cst-fld"><label>Campaign Type</label>'+typeSelectHtml+'<div class="cst-fld-hint">'+_cggEsc(activeTypeNote)+'</div></div>'
+      + '<div class="cst-fld"><label>Campaign Goal</label><div class="cst-goal-pill"><span class="cst-goal-dot"></span>'+_cggEsc(goal)+'</div></div>'
       + '<div class="cst-fld"><label>Daily Budget</label><input class="crv-inp" type="text" value="'+_cggEsc(s.budgetRecommendation||'')+'" placeholder="e.g. $20/day" oninput="_cggBudgetInput(this)"></div>';
 
     var platformHtml = '<div class="cst-fld-row">'
-      + '<div class="cst-fld"><label>Platform</label><div class="cst-fld-static">Google Ads (Search)</div></div>'
+      + '<div class="cst-fld"><label>Platform</label><div class="cst-fld-static">Google Ads ('+_cggEsc((typeOptions.filter(function(t){return t.v===campaignType;})[0]||{}).label||campaignType)+')</div></div>'
       + '<div class="cst-fld"><label>Ad Account</label><div class="cst-fld-static'+(_cgg.accountName?'':' cst-review-val-warn')+'">'+_cggEsc(_cgg.accountName||'Not connected')+'</div></div>'
       + '</div>';
 
@@ -14970,6 +14993,12 @@ window.rptExport = function(format) {
     _cgg.pkg.strategy.budgetRecommendation = el.value;
     _cggMarkDirty();
   };
+  window._cggCampaignTypeInput = function(el){
+    _cgg.pkg.googleAds = _cgg.pkg.googleAds || {};
+    _cgg.pkg.googleAds.campaignType = el.value;
+    _cggMarkDirty();
+    _cggRenderEditSections();
+  };
 
   /* ── ORIVEN REVIEW ── */
   function _cggRenderReviewStage(){
@@ -14981,13 +15010,23 @@ window.rptExport = function(format) {
     var keywords = (g.keywords||[]).filter(Boolean);
     var destUrl = _cggDestinationUrl(pkg);
     var goal = s.goal || pkg.goal || 'Sales';
+    var campaignType = g.campaignType || 'SEARCH';
+    var hasImage = !!((pkg.visualConcepts||[]).filter(function(vc){ return vc && vc.generatedImageUrl; }).length || g.imageUrl);
 
-    var hasMinHeadlines = headlines.length >= 3;
-    var hasMinDescriptions = descriptions.length >= 2;
+    var hasMinHeadlines = headlines.length >= (campaignType==='DEMAND_GEN' ? 1 : 3);
+    var hasMinDescriptions = descriptions.length >= (campaignType==='DEMAND_GEN' ? 1 : 2);
     var hasKeywords = keywords.length > 0;
     var hasDestUrl = !!destUrl;
+    var hasBusinessName = !!_cgg.businessName;
 
-    var checks = [
+    var checks = campaignType === 'DEMAND_GEN' ? [
+      { ok: hasMinHeadlines, label: headlines.length+' headline'+(headlines.length!==1?'s':'')+' (1 minimum required)' },
+      { ok: hasMinDescriptions, label: descriptions.length+' description'+(descriptions.length!==1?'s':'')+' (1 minimum required)' },
+      { ok: hasImage, label: 'Creative image added' },
+      { ok: hasBusinessName, label: 'Business Profile company name set ('+_cggEsc(_cgg.businessName||'not set')+')' },
+      { ok: hasDestUrl, label: 'Landing page set' },
+      { ok: !!_cgg.accountId, label: 'Google Ads account connected' },
+    ] : [
       { ok: hasMinHeadlines, label: headlines.length+' headline'+(headlines.length!==1?'s':'')+' (3 minimum required)' },
       { ok: hasMinDescriptions, label: descriptions.length+' description'+(descriptions.length!==1?'s':'')+' (2 minimum required)' },
       { ok: hasKeywords, label: 'Keywords configured' },
@@ -15000,16 +15039,26 @@ window.rptExport = function(format) {
 
     var rows = '';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cggEsc(goal)+'</span></div>';
-    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">1 Campaign &middot; 1 Ad Group &middot; 1 Responsive Search Ad</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Type</span><span class="cst-review-val">'+_cggEsc(campaignType==='DEMAND_GEN'?'Demand Gen':'Search')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">'+(campaignType==='DEMAND_GEN' ? '1 Campaign &middot; 1 Ad Group &middot; 1 Multi-Asset Ad' : '1 Campaign &middot; 1 Ad Group &middot; 1 Responsive Search Ad')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cggEsc(s.budgetRecommendation||'Not set')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Landing Page</span><span class="cst-review-val'+(hasDestUrl?'':' cst-review-val-warn')+'">'+_cggEsc(destUrl||'Not set')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Account</span><span class="cst-review-val'+(_cgg.accountName?'':' cst-review-val-warn')+'">'+_cggEsc(_cgg.accountName||'Not connected')+'</span></div>';
 
     var err = '';
-    if (!hasMinHeadlines) err = 'At least 3 headlines are required.';
-    else if (!hasMinDescriptions) err = 'At least 2 descriptions are required.';
-    else if (!_cgg.accountId) err = 'Connect a Google Ads account before publishing.';
-    else if (!hasDestUrl) err = 'Add a landing page URL before publishing.';
+    if (campaignType === 'DEMAND_GEN') {
+      if (!hasMinHeadlines) err = 'At least 1 headline is required for Demand Gen.';
+      else if (!hasMinDescriptions) err = 'At least 1 description is required for Demand Gen.';
+      else if (!hasImage) err = 'Add an image before publishing a Demand Gen campaign.';
+      else if (!hasBusinessName) err = 'Add a Company Name in your Business Profile before publishing a Demand Gen campaign.';
+      else if (!_cgg.accountId) err = 'Connect a Google Ads account before publishing.';
+      else if (!hasDestUrl) err = 'Add a landing page URL before publishing.';
+    } else {
+      if (!hasMinHeadlines) err = 'At least 3 headlines are required.';
+      else if (!hasMinDescriptions) err = 'At least 2 descriptions are required.';
+      else if (!_cgg.accountId) err = 'Connect a Google Ads account before publishing.';
+      else if (!hasDestUrl) err = 'Add a landing page URL before publishing.';
+    }
 
     var surfaceRows = _CGG_SURFACES.map(function(sfc){
       var st = _cggSurfaceStatus(sfc.key);
@@ -15046,19 +15095,17 @@ window.rptExport = function(format) {
      `_cgt` prefix, own state) -- same single-source-of-truth architecture,
      window._orvUpdateCampPkg on Save.
 
-     IMPORTANT, confirmed by re-reading /api/publish/tiktok fresh before
-     building this: that route creates ONLY the Campaign shell today
-     (POST /campaign/create/ -- name, objective_type, budget_mode, budget,
-     operation_status). There is no Ad Group or Ad creation, and TikTok's
-     Marketing API requires an "Identity" resource for any Ad that this
-     codebase has no support for at all. Of pkg.tiktokAds, only
-     `.objective` (legacy override) and `.budget` are ever read by
-     publish -- hook/script/cta/targetAudience are generated, previewable,
-     and editable/saveable here (real value: the user can see and edit
-     what Oriven generated), but are NOT currently sent to TikTok. The
-     Oriven Review stage says this explicitly rather than showing a false
-     green checkmark -- "what you see must match what the API creates". ── */
-  var _cgt = { campId:null, pkg:null, stage:'preview', dirty:false, accountName:null, accountId:null };
+     UPDATED: /api/publish/tiktok now builds the full Campaign → AdGroup →
+     Ad graph (hook/script → ad text, CTA → call_to_action, budget →
+     campaign+adgroup budget, targetAudience is NOT mapped -- it's
+     freeform AI text with no structured age/gender/location fields to
+     read it from, so TikTok's own broad defaults apply instead, disclosed
+     in Oriven Review below). Publishing requires a TikTok account
+     Identity (TikTok phased out Custom/no-account ads starting Jan 2026)
+     and a creative image (no video is ever persisted into a campaign
+     package -- see app.html's video-asset fix) -- both are hard
+     prerequisites, checked before Publish is enabled. ── */
+  var _cgt = { campId:null, pkg:null, stage:'preview', dirty:false, accountName:null, accountId:null, identities:[], identityId:null, identityType:null, identityName:null };
 
   function _cgtEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function _cgtTrunc(s,n){ s=String(s||''); return s.length>n ? s.slice(0,n)+'…' : s; }
@@ -15082,7 +15129,7 @@ window.rptExport = function(format) {
   window._cgtInitTiktokScreen = function(pkg, campId){
     var clonedPkg;
     try { clonedPkg = JSON.parse(JSON.stringify(pkg)); } catch(_) { clonedPkg = pkg; }
-    _cgt = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null };
+    _cgt = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null, identities:[], identityId:null, identityType:null, identityName:null };
     _cgtUpdateDirtyUI();
     _cgtSetStage('preview');
 
@@ -15092,7 +15139,28 @@ window.rptExport = function(format) {
       _cgt.accountName = d.active_ad_account ? (d.active_ad_account.account_name || d.active_ad_account.account_id) : (d.tiktok_display_name || null);
       _cgt.accountId = d.active_ad_account ? d.active_ad_account.account_id : null;
       _cgtRenderActiveStage();
+      if (_cgt.accountId) _cgtLoadIdentities();
     }).catch(function(){});
+  };
+
+  function _cgtLoadIdentities(){
+    apiFetch('/api/tiktok/identities').then(function(r){
+      if (!r.ok || !r.data) return;
+      _cgt.identities = r.data.identities || [];
+      var activeId = r.data.active_identity_id || null;
+      var match = _cgt.identities.filter(function(idn){ return idn.identity_id === activeId; })[0];
+      if (match) { _cgt.identityId = match.identity_id; _cgt.identityType = match.identity_type; _cgt.identityName = match.display_name; }
+      else if (_cgt.identities.length === 1) { window._cgtSelectIdentity(_cgt.identities[0].identity_id); return; }
+      _cgtRenderActiveStage();
+    }).catch(function(){});
+  }
+
+  window._cgtSelectIdentity = function(identityId){
+    var idn = _cgt.identities.filter(function(i){ return i.identity_id === identityId; })[0];
+    if (!idn) return;
+    _cgt.identityId = idn.identity_id; _cgt.identityType = idn.identity_type; _cgt.identityName = idn.display_name;
+    apiFetch('/api/tiktok/active-identity', { method:'POST', body: JSON.stringify({ identity_id: idn.identity_id, identity_type: idn.identity_type, display_name: idn.display_name }) }).catch(function(){});
+    _cgtRenderActiveStage();
   };
 
   function _cgtUpdateDirtyUI(){
@@ -15133,11 +15201,14 @@ window.rptExport = function(format) {
     var pkg = _cgt.pkg;
     var tt = pkg.tiktokAds || {};
     var caption = tt.hook || tt.script || '';
-    var displayName = _cgt.accountName || pkg.campaignName || 'Your Account';
+    var displayName = _cgt.identityName || _cgt.accountName || pkg.campaignName || 'Your Account';
 
-    var mediaHtml = '<div class="cst-tt-empty">'
-      + '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
-      + '<span>TikTok creative is text-only in this pipeline today — no image or video is attached.</span></div>';
+    var ttImageUrl = tt.imageUrl || (((pkg.visualConcepts||[]).filter(function(vc){ return vc && vc.generatedImageUrl; })[0]) || {}).generatedImageUrl || null;
+    var mediaHtml = ttImageUrl
+      ? '<img src="'+_cgtEsc(ttImageUrl)+'" alt="">'
+      : '<div class="cst-tt-empty">'
+        + '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
+        + '<span>No creative image yet — add one before publishing (TikTok ads need at least one image).</span></div>';
 
     var html = '<div class="cst-mock-tiktok">'
       + '<div class="cst-tt-top"><span>Following</span><span class="cst-tt-top-active">For You</span></div>'
@@ -15178,10 +15249,18 @@ window.rptExport = function(format) {
     var campaignHtml = '<div class="cst-fld"><label>Campaign Goal</label><div class="cst-goal-pill"><span class="cst-goal-dot"></span>'+_cgtEsc(goal)+'</div></div>'
       + '<div class="cst-fld"><label>Daily Budget</label><input class="crv-inp" type="text" value="'+_cgtEsc(tt.budget||'')+'" placeholder="e.g. 30" oninput="_cgtBudgetInput(this)"><div class="cst-fld-hint">This is the one field from this section TikTok actually receives today.</div></div>';
 
+    var identityOptions = _cgt.identities.length
+      ? '<select class="crv-inp" onchange="_cgtSelectIdentity(this.value)">'
+        + '<option value="">Select an Identity…</option>'
+        + _cgt.identities.map(function(idn){ return '<option value="'+_cgtEsc(idn.identity_id)+'"'+(idn.identity_id===_cgt.identityId?' selected':'')+'>'+_cgtEsc(idn.display_name)+' ('+_cgtEsc(idn.identity_type)+')</option>'; }).join('')
+        + '</select>'
+      : '<div class="cst-fld-static cst-review-val-warn">No linked TikTok account found — link one in TikTok Ads Manager, then refresh.</div>';
+
     var platformHtml = '<div class="cst-fld-row">'
       + '<div class="cst-fld"><label>Platform</label><div class="cst-fld-static">TikTok Ads</div></div>'
       + '<div class="cst-fld"><label>Ad Account</label><div class="cst-fld-static'+(_cgt.accountName?'':' cst-review-val-warn')+'">'+_cgtEsc(_cgt.accountName||'Not connected')+'</div></div>'
-      + '</div>';
+      + '</div>'
+      + '<div class="cst-fld"><label>TikTok Identity</label>'+identityOptions+'<div class="cst-fld-hint">Required — ads must run under a linked TikTok account (TikTok phased out Custom Identity ads starting January 2026).</div></div>';
 
     var html = _cgtSec('Ad Content', null, adContent, true)
       + _cgtSec('Audience', null, audienceHtml, false)
@@ -15209,12 +15288,15 @@ window.rptExport = function(format) {
     var tt = pkg.tiktokAds || {};
     var s = pkg.strategy || {};
     var goal = s.goal || pkg.goal || 'Sales';
+    var ttImageUrl = tt.imageUrl || (((pkg.visualConcepts||[]).filter(function(vc){ return vc && vc.generatedImageUrl; })[0]) || {}).generatedImageUrl || null;
 
     var checks = [
       { ok: !!(tt.hook && tt.hook.trim()), label: 'Hook complete' },
       { ok: !!(tt.cta && tt.cta.trim()), label: 'CTA complete' },
       { ok: !!(tt.budget || 30), label: 'Budget configured' },
       { ok: !!_cgt.accountId, label: 'TikTok Ad Account connected' },
+      { ok: !!_cgt.identityId, label: 'TikTok Identity selected' },
+      { ok: !!ttImageUrl, label: 'Creative image added' },
     ];
     var checkHtml = '<div class="cst-check-list">' + checks.map(function(c){
       return '<div class="cst-check-item'+(c.ok?'':' cst-check-warn-item')+'">'+(c.ok?'<span class="cst-check-ok">&#10003;</span>':'<span class="cst-check-warn-icon">&#9888;</span>')+_cgtEsc(c.label)+'</div>';
@@ -15222,22 +15304,24 @@ window.rptExport = function(format) {
 
     var rows = '';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cgtEsc(goal)+'</span></div>';
-    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">1 Campaign (shell only)</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">1 Campaign → 1 Ad Group → 1 Ad</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cgtEsc(tt.budget || '30 (default)')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Account</span><span class="cst-review-val'+(_cgt.accountName?'':' cst-review-val-warn')+'">'+_cgtEsc(_cgt.accountName||'Not connected')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">TikTok Identity</span><span class="cst-review-val'+(_cgt.identityName?'':' cst-review-val-warn')+'">'+_cgtEsc(_cgt.identityName||'Not selected')+'</span></div>';
 
     var limitationNotice = '<div class="cst-review-err" style="color:#fbbf24;background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.2)">'
-      + '<b>TikTok publishing currently creates the Campaign only</b> (paused, with this budget and objective applied). '
-      + 'Ad Group and Ad creation aren\'t supported yet — TikTok requires an additional "Identity" setup this integration doesn\'t have. '
-      + 'Your Hook, Script and CTA are saved in Oriven but will not be sent to TikTok until that\'s built.'
+      + '<b>What Oriven sends to TikTok:</b> a Campaign, one Ad Group, and one Ad — your Hook/Script become the ad text, CTA maps to a TikTok call-to-action, and your Budget applies at both Campaign and Ad Group level, all created paused for your review. '
+      + '<b>Target Audience</b> is free-form AI text and is not sent — TikTok has no field for unstructured targeting text, so TikTok\'s own broad default targeting applies instead (this is disclosed, not a bug).'
       + '</div>';
 
     var err = '';
     if (!_cgt.accountId) err = 'Connect a TikTok Ad Account before publishing.';
+    else if (!_cgt.identityId) err = 'Select a TikTok Identity before publishing.';
+    else if (!ttImageUrl) err = 'Add a creative image before publishing.';
 
     var html = '<div class="cst-review-sec-hd">Checklist</div>' + checkHtml
       + '<div class="cst-review-sec-hd">Summary</div>' + rows
-      + '<div class="cst-review-sec-hd">Known limitation</div>' + limitationNotice
+      + '<div class="cst-review-sec-hd">What gets sent</div>' + limitationNotice
       + (err ? '<div class="cst-review-err">'+_cgtEsc(err)+'</div>' : '');
 
     var body = document.getElementById('cgtReviewBody');
@@ -15307,7 +15391,7 @@ window.rptExport = function(format) {
       }).then(function(data){
         if(data.error){ console.error('[cgr] Video generation error', i, ':', data.error); _cgrVideoErr(i, task.ref, data.error); done++; _checkVideoDone(done,scripts.length,pill); return; }
         console.log('[cgr] Video job submitted', i, '— videoId:', data.videoId, '— polling…');
-        _pollCgrVideo(data.videoId, i, task.ref, campId, function(){
+        _pollCgrVideo(data.videoId, i, task.ref, campId, pkg, function(){
           console.log('[cgr] Video generation complete', i);
           done++; _checkVideoDone(done, scripts.length, pill);
         });
@@ -15327,7 +15411,7 @@ window.rptExport = function(format) {
       +'<div class="cgr-creative-err-msg">'+_esc(msg)+'</div></div>';
   }
 
-  function _pollCgrVideo(videoId, idx, ref, campId, onDone){
+  function _pollCgrVideo(videoId, idx, ref, campId, pkg, onDone){
     if(!videoId){ _cgrVideoErr(idx, ref, 'No video ID returned'); onDone&&onDone(); return; }
     var apiBase = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
     fetch(apiBase + '/api/ugc-video-status/' + encodeURIComponent(videoId))
@@ -15344,15 +15428,29 @@ window.rptExport = function(format) {
             +'<a class="cgr-crv-btn" href="'+_esc(data.videoUrl)+'" download="'+_esc(ref.replace(/[^a-z0-9]/gi,'_'))+'.mp4" target="_blank">↓ Download</a>'
             +'</div></div>';
         }
+        // Persist the video URL into the campaign package -- previously
+        // this only ever rendered into the throwaway DOM card above and
+        // was never written back into pkg, so no publish path could ever
+        // reference a generated video (confirmed by code inspection: zero
+        // write-back existed anywhere in this file before this fix).
+        // Mirrors how _generateOneCreative persists images into
+        // pkg.visualConcepts[idx].generatedImageUrl.
+        if(pkg && campId){
+          if(!Array.isArray(pkg.videoAssets)) pkg.videoAssets = [];
+          var existing = pkg.videoAssets.filter(function(v){ return v && v.ref === ref; });
+          if(existing.length) existing[0].videoUrl = data.videoUrl;
+          else pkg.videoAssets.push({ ref: ref, videoUrl: data.videoUrl, createdAt: Date.now() });
+          try { window._orvUpdateCampPkg(campId, pkg); } catch(e){ console.error('[cgr] Failed to persist video URL:', e.message); }
+        }
         onDone&&onDone();
       } else if(data.status === 'failed' || data.error){
         _cgrVideoErr(idx, ref, data.error||'Generation failed');
         onDone&&onDone();
       } else {
-        setTimeout(function(){ _pollCgrVideo(videoId, idx, ref, campId, onDone); }, 5000);
+        setTimeout(function(){ _pollCgrVideo(videoId, idx, ref, campId, pkg, onDone); }, 5000);
       }
     })
-    .catch(function(){ setTimeout(function(){ _pollCgrVideo(videoId, idx, ref, campId, onDone); }, 8000); });
+    .catch(function(){ setTimeout(function(){ _pollCgrVideo(videoId, idx, ref, campId, pkg, onDone); }, 8000); });
   }
 
   /* ── AI Creatives Generation ─────────────────────────────────────
