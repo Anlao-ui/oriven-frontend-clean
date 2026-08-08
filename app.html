@@ -587,6 +587,38 @@
               <input type="file" id="ov3AssetInput" multiple accept="image/*" style="display:none" onchange="ov3HandleAssets(this)">
             </div>
 
+            <!-- Campaign Goal — required, right after platform selection.
+                 Oriven translates this one choice into the correct
+                 platform-specific objective/optimization config at publish
+                 time (server/services/campaignGoals.js) and steers AI copy
+                 tone at generation time — the user never sees Google/Meta/
+                 TikTok's own objective terminology. -->
+            <div class="cr2-goal-section">
+              <div class="cr2-goal-label">Campaign Goal <span class="cr2-goal-required">Required</span></div>
+              <div class="cr2-goal-grid" role="group" aria-label="Campaign Goal" id="cr2GoalGrid">
+                <button type="button" class="cr2-goal-card" data-goal="Sales" onclick="_cr2Goal(this,'Sales')">
+                  <div class="cr2-goal-icon">💰</div>
+                  <div class="cr2-goal-title">Sales</div>
+                  <div class="cr2-goal-desc">Drive purchases and revenue.</div>
+                </button>
+                <button type="button" class="cr2-goal-card" data-goal="Leads" onclick="_cr2Goal(this,'Leads')">
+                  <div class="cr2-goal-icon">📝</div>
+                  <div class="cr2-goal-title">Leads</div>
+                  <div class="cr2-goal-desc">Generate enquiries, quotes and sign-ups.</div>
+                </button>
+                <button type="button" class="cr2-goal-card" data-goal="Traffic" onclick="_cr2Goal(this,'Traffic')">
+                  <div class="cr2-goal-icon">🌐</div>
+                  <div class="cr2-goal-title">Traffic</div>
+                  <div class="cr2-goal-desc">Drive visitors to your website.</div>
+                </button>
+                <button type="button" class="cr2-goal-card" data-goal="Awareness" onclick="_cr2Goal(this,'Awareness')">
+                  <div class="cr2-goal-icon">📢</div>
+                  <div class="cr2-goal-title">Awareness</div>
+                  <div class="cr2-goal-desc">Increase reach and brand awareness.</div>
+                </button>
+              </div>
+            </div>
+
             <button class="cr2-gen-btn" id="aicGenBtn" onclick="aicGenerate()">
               <span data-i18n="dashCampaignLabel">Build Campaign</span>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
@@ -1334,9 +1366,15 @@
                 <span class="con-detail-lbl" data-i18n="conDetailConnectedAccounts">Connected Accounts</span>
                 <span class="con-detail-val" id="conAccMeta">—</span>
               </div>
+              <div class="con-detail-row">
+                <span class="con-detail-lbl" data-i18n="conDetailConnectedPage">Facebook Page</span>
+                <span class="con-detail-val" id="conPageMeta">—</span>
+              </div>
             </div>
             <!-- Account list injected here when connected -->
             <div id="conAcctListMeta" class="con-acct-list" style="display:none"></div>
+            <!-- Page list injected here when connected -->
+            <div id="conPageListMeta" class="con-acct-list" style="display:none"></div>
             <div class="con-card-foot">
               <button class="con-btn-connect" id="conBtnMeta" onclick="conConnect('meta')" data-i18n="conConnectMetaBtn">Connect Meta Ads →</button>
               <button class="con-btn-disconnect" id="conBtnMetaDisc" style="display:none" onclick="conDisconnect('meta')" data-i18n="conDisconnectBtn">Disconnect</button>
@@ -1629,6 +1667,7 @@
             <button class="adm-modal-save" id="admEditSaveBtn" onclick="admMetaSaveEdit()">Save Changes</button>
           </div>
         </div>
+      </div>
       <!-- Delete Confirmation Modal -->
       <div id="admDeleteModal" class="adm-modal-overlay" style="display:none" onclick="if(event.target===this)admCloseDeleteModal()">
         <div class="adm-modal adm-delete-modal">
@@ -1651,6 +1690,43 @@
           <div class="adm-modal-foot">
             <button class="adm-modal-cancel" onclick="admCloseDeleteModal()">Cancel</button>
             <button class="adm-modal-del-confirm" id="admDeleteConfirmBtn" onclick="admDoDelete()">Delete Campaign</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta Campaign Structure Modal (Ad Sets x Ads per Ad Set) -->
+      <div id="admMetaStructModal" class="adm-modal-overlay" style="display:none" onclick="if(event.target===this)admCloseMetaStructModal()">
+        <div class="adm-modal">
+          <div class="adm-modal-hdr">
+            <div class="adm-modal-title">Campaign Structure</div>
+            <button class="adm-modal-close" onclick="admCloseMetaStructModal()">
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="13" height="13"><path d="M2 2l10 10M12 2L2 12"/></svg>
+            </button>
+          </div>
+          <div class="adm-modal-body">
+            <div class="adm-modal-field">
+              <label class="adm-modal-lbl">Ad Sets</label>
+              <select id="admStructAdSets" class="adm-modal-inp">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+            <div class="adm-modal-field">
+              <label class="adm-modal-lbl">Ads per Ad Set</label>
+              <select id="admStructAdsPerSet" class="adm-modal-inp">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+            <div id="admStructHint" style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px">Each Ad gets a real, distinct Meta Ad Creative — not a duplicate.</div>
+          </div>
+          <div class="adm-modal-foot">
+            <button class="adm-modal-cancel" onclick="admCloseMetaStructModal()">Cancel</button>
+            <button class="adm-modal-save" onclick="admConfirmMetaStructPublish()">Publish</button>
           </div>
         </div>
       </div>
@@ -5848,6 +5924,11 @@ function _renderRecentCard(c){
 
 var _STATUS_LABELS = { draft:'Draft', generated:'Generated', 'ready-to-publish':'Ready to Publish', publishing:'Publishing…', published:'Published', active:'Active', paused:'Paused', archived:'Archived', failed:'Failed' };
 var _STATUS_CLS    = { draft:'clib-status-draft', generated:'clib-status-generated', 'ready-to-publish':'clib-status-ready', publishing:'clib-status-publishing', published:'clib-status-published', active:'clib-status-active', paused:'clib-status-paused', archived:'clib-status-archived', failed:'clib-status-failed' };
+// Campaign Goal badge — every campaign always has a goal (Sales/Leads/
+// Traffic/Awareness); campaigns saved before this sprint have none stored,
+// which defaults to Sales — that's what they actually were generated as
+// (every campaign was hardcoded to a Sales-style package before), not a guess.
+var _GOAL_CLS = { Sales:'cc3-goal-sales', Leads:'cc3-goal-leads', Traffic:'cc3-goal-traffic', Awareness:'cc3-goal-awareness' };
 
 var _PLAT_ICONS = {
   google: '<svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><path d="M10.9 6.1c0-.4 0-.8-.1-1.1H6v2.1h2.8a2.4 2.4 0 0 1-1 1.5v1.2h1.7c1-1 1.4-2.3 1.4-3.7z" fill="#4285F4"/><path d="M6 11c1.4 0 2.6-.5 3.5-1.3l-1.7-1.3a3.2 3.2 0 0 1-1.8.5 3.2 3.2 0 0 1-3-2.1H1.3v1.3A5.3 5.3 0 0 0 6 11z" fill="#34A853"/><path d="M3 6.8a3.1 3.1 0 0 1 0-1.6V3.9H1.3a5.3 5.3 0 0 0 0 4.2L3 6.8z" fill="#FBBC05"/><path d="M6 2.7c.8 0 1.5.3 2 .8L9.6 1.9A5.3 5.3 0 0 0 1.3 3.9L3 5.2a3.2 3.2 0 0 1 3-2.5z" fill="#EA4335"/></svg>',
@@ -5859,6 +5940,8 @@ function _renderCampCard(c){
   var status = c.status || 'draft';
   var statusLabel = _STATUS_LABELS[status] || 'Draft';
   var statusCls   = _STATUS_CLS[status]    || 'clib-status-draft';
+  var goal = c.goal || 'Sales';
+  var goalCls = _GOAL_CLS[goal] || 'cc3-goal-sales';
   var platAttr = c.platform ? ' data-platform="'+_esc(c.platform)+'"' : '';
   var platIcon = _PLAT_ICONS[c.platform] || '';
   var platName = {google:'Google Ads',meta:'Meta Ads',tiktok:'TikTok Ads'}[c.platform] || (c.platform||'');
@@ -5874,6 +5957,7 @@ function _renderCampCard(c){
   return '<div class="camp-card" data-status="'+status+'" data-name="'+_esc((c.name||'').toLowerCase())+'"'+platAttr+' onclick="openCampaignWorkspace(\''+c.id+'\')">'+
     '<div class="cc3-top">'+
       '<span class="clib-status-pill '+statusCls+'">'+statusLabel+'</span>'+
+      '<span class="cc3-goal-pill '+goalCls+'">'+_esc(goal)+'</span>'+
     '</div>'+
     '<div class="cc3-name">'+_esc(c.name)+'</div>'+
     '<div class="cc3-meta">'+
@@ -7574,7 +7658,7 @@ window.cwsDeleteCampaign = function() {
   if (typeof navigate === 'function') navigate('campaigns');
 };
 
-window.admPublishCampaign = function(campId, accountId, accountName, accountExtra) {
+window.admPublishCampaign = function(campId, accountId, accountName, accountExtra, structure) {
   _loadCamps();
   var camp = null;
   for (var i = 0; i < _campaigns.length; i++) {
@@ -7585,6 +7669,17 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
 
   var platform = camp.platform;
 
+  /* Meta publishing asks for the real object-graph structure (how many Ad
+     Sets, how many Ads per Ad Set) before doing anything — shown once, not
+     re-asked, and only for Meta. Google/TikTok are untouched. */
+  if (platform === 'meta' && !structure) {
+    window._admPendingMetaPublish = { campId: campId, accountId: accountId, accountName: accountName, accountExtra: accountExtra };
+    var m = document.getElementById('admMetaStructModal');
+    if (m) { m.style.display = 'flex'; return; }
+    /* No modal in DOM (shouldn't happen) — fall back to 1x1 rather than block publishing */
+    structure = { adSets: 1, adsPerAdSet: 1 };
+  }
+
   /* Set status → publishing immediately so UI reflects progress */
   _loadCamps();
   for (var i = 0; i < _campaigns.length; i++) {
@@ -7593,9 +7688,11 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
   if (typeof initAdsManager === 'function') initAdsManager();
 
   function _doPublish() {
+    var body = { pkg: camp.pkg };
+    if (platform === 'meta') body.structure = structure || { adSets: 1, adsPerAdSet: 1 };
     apiFetch('/api/publish/' + platform, {
       method: 'POST',
-      body: JSON.stringify({ pkg: camp.pkg })
+      body: JSON.stringify(body)
     }).then(function(r) {
       _loadCamps();
       for (var j = 0; j < _campaigns.length; j++) {
@@ -7605,6 +7702,8 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
           _campaigns[j].publishedAt = new Date().toISOString();
           _campaigns[j].platformCampaignId = (r.data && r.data.campaignId) ? String(r.data.campaignId) : null;
           if (r.data && r.data.adSetId) _campaigns[j].platformAdSetId = String(r.data.adSetId);
+          if (r.data && Array.isArray(r.data.adSets)) _campaigns[j].platformAdSetIds = r.data.adSets.map(function(a){ return a.id; });
+          if (r.data && Array.isArray(r.data.ads))    _campaigns[j].platformAdIds    = r.data.ads.map(function(a){ return a.id; });
           if (accountId) {
             _campaigns[j].destinationAccountId   = accountId;
             _campaigns[j].destinationAccountName = accountName || accountId;
@@ -7620,7 +7719,12 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
       if (typeof initAdsManager === 'function') initAdsManager();
       var platLabel = { google:'Google Ads', meta:'Meta Ads' }[platform] || platform;
       if (typeof toast === 'function') {
-        if (r.ok) { if (typeof window.notifAllowed !== 'function' || window.notifAllowed('notifPublish')) toast('Campaign published to ' + platLabel, 'ok'); }
+        if (r.ok) {
+          var structNote = (r.data && Array.isArray(r.data.adSets) && Array.isArray(r.data.ads))
+            ? ' (' + r.data.adSets.length + ' ad set' + (r.data.adSets.length !== 1 ? 's' : '') + ', ' + r.data.ads.length + ' ad' + (r.data.ads.length !== 1 ? 's' : '') + ')'
+            : '';
+          if (typeof window.notifAllowed !== 'function' || window.notifAllowed('notifPublish')) toast('Campaign published to ' + platLabel + structNote, 'ok');
+        }
         else toast('Publish failed: ' + ((r.data && r.data.error) || 'Unknown error'), 'error');
       }
     }).catch(function(e) {
@@ -7651,6 +7755,27 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
   } else {
     _doPublish();
   }
+};
+
+window.admCloseMetaStructModal = function() {
+  var m = document.getElementById('admMetaStructModal');
+  if (m) m.style.display = 'none';
+  window._admPendingMetaPublish = null;
+};
+
+window.admConfirmMetaStructPublish = function() {
+  var pending = window._admPendingMetaPublish;
+  var m = document.getElementById('admMetaStructModal');
+  if (m) m.style.display = 'none';
+  if (!pending) return;
+  var adSetsEl = document.getElementById('admStructAdSets');
+  var adsEl    = document.getElementById('admStructAdsPerSet');
+  var structure = {
+    adSets:      Math.max(1, Math.min(5, parseInt((adSetsEl && adSetsEl.value) || '1', 10) || 1)),
+    adsPerAdSet: Math.max(1, Math.min(5, parseInt((adsEl && adsEl.value) || '1', 10) || 1)),
+  };
+  window._admPendingMetaPublish = null;
+  window.admPublishCampaign(pending.campId, pending.accountId, pending.accountName, pending.accountExtra, structure);
 };
 
 window.admRetryPublish = function(campId) {
@@ -9751,6 +9876,7 @@ function _conApplyCard(platform, connected, detail) {
   var cardEl   = document.getElementById('conCard'   + cap);
   var accEl    = document.getElementById('conAcc'    + cap);
   var bizEl    = platform === 'meta' ? document.getElementById('conBizMeta') : null;
+  var pageEl   = platform === 'meta' ? document.getElementById('conPageMeta') : null;
 
   var dotHtml = connected
     ? '<div class="con-dot con-dot-on"></div>' + (typeof t==='function'?t('conStatusConnected'):'Connected')
@@ -9763,6 +9889,7 @@ function _conApplyCard(platform, connected, detail) {
   if (connected && detail) {
     if (accEl)  accEl.textContent  = detail.accounts  || detail.email || detail.displayName || '—';
     if (bizEl)  bizEl.textContent  = detail.business   || '—';
+    if (pageEl) pageEl.textContent = detail.page       || '—';
   }
 
   /* Sync into the platform data store so overview + performance pages stay consistent */
@@ -9806,9 +9933,16 @@ function _conFetchStatus(platform) {
           setTimeout(function() { _conRenderAccountList('google', accs, d.active_ad_account); }, 0);
         } else if (platform === 'meta') {
           var mAccs = d.meta_ads_accounts || [];
-          detail = { accounts: mAccs.length ? mAccs.length + ' account' + (mAccs.length !== 1 ? 's' : '') : '—', business: d.meta_user_name || '—' };
+          var mPages = d.meta_pages || [];
+          detail = {
+            accounts: mAccs.length ? mAccs.length + ' account' + (mAccs.length !== 1 ? 's' : '') : '—',
+            business: d.meta_user_name || '—',
+            page: d.active_page && d.active_page.page_name ? d.active_page.page_name : (mPages.length ? 'Not selected' : 'None found')
+          };
           window._activeMetaAccount = d.active_ad_account || null;
+          window._activeMetaPage = d.active_page || null;
           setTimeout(function() { _conRenderAccountList('meta', mAccs, d.active_ad_account); }, 0);
+          setTimeout(function() { _conRenderPageList(mPages, d.active_page); }, 0);
         } else if (platform === 'tiktok') {
           detail = { displayName: d.tiktok_display_name || '—' };
           if (d.active_ad_account && d.active_ad_account.account_id) window._activeTadsAccount = d.active_ad_account;
@@ -9817,6 +9951,10 @@ function _conFetchStatus(platform) {
         /* Hide account list when disconnected */
         var _listEl = document.getElementById('conAcctList' + (platform === 'google' ? 'Google' : platform === 'meta' ? 'Meta' : ''));
         if (_listEl) { _listEl.style.display = 'none'; _listEl.innerHTML = ''; }
+        if (platform === 'meta') {
+          var _pageListEl = document.getElementById('conPageListMeta');
+          if (_pageListEl) { _pageListEl.style.display = 'none'; _pageListEl.innerHTML = ''; }
+        }
       }
       _conApplyCard(platform, !!d.connected, detail);
     })
@@ -9882,6 +10020,55 @@ window.conSetActive = function(platform, accountId, accountName, extra) {
         _conFetchStatus(platform);
       } else {
         if (typeof toast === 'function') toast('Failed to set account — please try again', 'err');
+      }
+    })
+    .catch(function() {
+      if (typeof toast === 'function') toast('Network error — please try again', 'err');
+    });
+};
+
+/* Render per-page rows inside the Meta integration card — mirrors
+   _conRenderAccountList so Page selection looks/behaves identically to
+   Ad Account selection. A Page is required before publishing to Meta Ads
+   (object_story_spec.page_id has no valid fallback). */
+function _conRenderPageList(pages, activePage) {
+  var el = document.getElementById('conPageListMeta');
+  if (!el) return;
+  if (!pages || !pages.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+
+  var activeId = activePage && activePage.page_id ? String(activePage.page_id) : null;
+
+  var rows = pages.map(function(p) {
+    var pId = String(p.page_id || '');
+    var pName = p.page_name || pId;
+    var isActive = activeId && pId === activeId;
+    var escapedName = (pName || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+    return '<div class="con-acct-row' + (isActive ? ' con-acct-active' : '') + '">'
+      + '<div class="con-acct-info">'
+      +   '<div class="con-acct-name">' + _conEsc(pName) + '</div>'
+      +   '<div class="con-acct-id">' + _conEsc('Page ID: ' + pId) + '</div>'
+      + '</div>'
+      + (isActive
+          ? '<span class="con-acct-badge">Active</span>'
+          : '<button class="con-acct-set" onclick="conSetActivePage(\'' + _conEsc(pId) + '\',\'' + escapedName + '\')">Set Active</button>'
+        )
+      + '</div>';
+  }).join('');
+
+  el.innerHTML = '<div class="con-acct-list-hdr">Facebook Pages</div>' + rows;
+  el.style.display = '';
+}
+
+window.conSetActivePage = function(pageId, pageName) {
+  apiFetch('/api/meta/active-page', { method: 'POST', body: JSON.stringify({ page_id: pageId, page_name: pageName }) })
+    .then(function(r) {
+      if (r.ok) {
+        window._activeMetaPage = r.data && r.data.active_page;
+        if (typeof toast === 'function') toast('Active Facebook Page updated');
+        _conFetchStatus('meta');
+      } else {
+        if (typeof toast === 'function') toast('Failed to set page — please try again', 'err');
       }
     })
     .catch(function() {
@@ -11769,6 +11956,8 @@ function _admRenderPlatformSection(platform, camps, status) {
     var st      = c.status || 'draft';
     var sLabel  = S_LABELS[st] || st;
     var sCls    = S_CLS[st]    || 'adm-status-paused';
+    var cGoal    = c.goal || 'Sales';
+    var cGoalCls = (typeof _GOAL_CLS !== 'undefined' && _GOAL_CLS[cGoal]) || 'cc3-goal-sales';
     var d       = new Date(c.created || Date.now());
     var dateStr = d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
     var safeId  = c.id.replace(/[^a-z0-9]/gi, '_');
@@ -11849,7 +12038,7 @@ function _admRenderPlatformSection(platform, camps, status) {
 
     return '<tr onclick="openCampaignWorkspace(\''+c.id+'\')" style="cursor:pointer">'+
       '<td>'+_admEsc(c.name||'Untitled')+acctSub+'</td>'+
-      '<td><span class="adm-status '+sCls+'">'+sLabel+'</span></td>'+
+      '<td><span class="adm-status '+sCls+'">'+sLabel+'</span> <span class="cc3-goal-pill '+cGoalCls+'">'+_admEsc(cGoal)+'</span></td>'+
       '<td>'+dateStr+'</td>'+
       '<td onclick="event.stopPropagation()">'+acts+'</td>'+
     '</tr>';
@@ -13238,10 +13427,16 @@ window.rptExport = function(format) {
       checks.push({pass:(g.callouts||[]).length>0, label:'Callouts added', warn:true, warnLabel:'No callouts — they improve CTR by ~10%'});
     } else if(platform==='meta'){
       var m = pkg.metaAds||{};
+      var metaGoal = (pkg.strategy||{}).goal||'';
+      // Mirrors server.js's OBJECTIVE_AD_SET_CONFIG (/api/publish/meta) — a
+      // pixel is only actually required by Meta for off-site conversion
+      // objectives (Sales/Leads). Traffic and Awareness never need one, so
+      // this warning must not appear unconditionally for every objective.
+      var metaNeedsPixel = metaGoal==='Sales' || metaGoal==='Leads';
       checks.push({pass:!!(m.primaryText), label:'Primary text written', failLabel:'Primary text is empty'});
       checks.push({pass:!!(m.headline), label:'Headline written', failLabel:'Headline is missing'});
       checks.push({pass:!!(m.cta), label:'CTA set', failLabel:'No CTA — add a call-to-action'});
-      checks.push({pass:false, warn:true, warnLabel:'Add Meta Pixel ID before publishing'});
+      if(metaNeedsPixel) checks.push({pass:false, warn:true, warnLabel:'This objective tracks website conversions — add a Meta Pixel in Events Manager before publishing'});
       checks.push({pass:(m.imageConcepts||pkg.visualConcepts||[]).length>0, label:'Image concepts ready', warn:true, warnLabel:'No image concepts — visuals drive most of Meta performance'});
     } else if(platform==='tiktok'){
       var tt = pkg.tiktokAds||{};
@@ -13427,7 +13622,7 @@ window.rptExport = function(format) {
        no real campaign in scope â€” the AI would either ask or answer about
        whatever campaign was last viewed elsewhere. Setting it here closes
        that gap for every platform, not just Meta. */
-    window._orvAiCurrentCampaign = { platform: platform, campaignId: null, campaignName: pkg.campaignName || null };
+    window._orvAiCurrentCampaign = { platform: platform, campaignId: null, campaignName: pkg.campaignName || null, goal: (pkg.strategy||{}).goal || 'Sales' };
 
     var s  = pkg.strategy || {};
     var g  = pkg.googleAds || {};
@@ -13940,11 +14135,18 @@ window.rptExport = function(format) {
   /* ── end AI Creatives ────────────────────────────────────────── */
 
   /* Public: main entry point */
-  window.cgrGenerate = function(prompt, platform, creativeMode){
+  window.cgrGenerate = function(prompt, platform, creativeMode, goal){
     var _plat = platform || window._ov3Platform || 'google';
+    // Real, user-selected goal (Sales/Leads/Traffic/Awareness) — this used
+    // to be hardcoded to 'Sales' regardless of what the user actually
+    // wanted, which is why every campaign was treated as a Sales campaign
+    // end to end (AI copy tone, Meta Pixel requirement, Google bidding).
+    // 'Sales' remains the fallback only for callers that predate the
+    // Campaign Goal step (backwards compatibility, not the normal path).
+    var _goal = goal || window._ov3Goal || 'Sales';
     window._cgrCreativeMode = creativeMode || 'images';
     _showResultsPage(prompt, _plat, window._cgrCreativeMode);
-    var _payload = { product: prompt, goal: 'Sales', platform: _plat, platforms: [_plat], mode: 'full', creativeMode: window._cgrCreativeMode };
+    var _payload = { product: prompt, goal: _goal, platform: _plat, platforms: [_plat], mode: 'full', creativeMode: window._cgrCreativeMode };
     /* Attach Brand Brain context */
     if(typeof S !== 'undefined' && S.brandCore && S.brandCore.name) _payload.brandCore = S.brandCore;
     /* Attach product images (max 3 to keep payload size reasonable) */
@@ -14065,8 +14267,10 @@ window.aicUpdateReviewSummary = function(){
   if(!prompt){ box.style.display = 'none'; return; }
   var selPill = document.querySelector('.cr2-pp.cr2-pp-on');
   var platLabel = selPill ? (selPill.textContent || '').trim() : 'Google Ads';
+  var selGoal = document.querySelector('.cr2-goal-card.cr2-goal-card-on');
+  var goalLabel = selGoal ? (selGoal.getAttribute('data-goal') || '') : '';
   var preview = prompt.length > 90 ? prompt.slice(0, 90) + '…' : prompt;
-  box.textContent = 'Ready to generate on ' + platLabel + ' — "' + preview + '"';
+  box.textContent = 'Ready to generate on ' + platLabel + (goalLabel ? ' for ' + goalLabel : '') + ' — "' + preview + '"';
   box.style.display = '';
 };
 
@@ -14082,6 +14286,17 @@ window.aicSetExample = function(btn){
 window._cr2Plat = function(btn, plat) {
   document.querySelectorAll('.cr2-pp').forEach(function(b){ b.classList.remove('cr2-pp-on'); });
   if(btn) btn.classList.add('cr2-pp-on');
+  if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
+};
+
+// Campaign Goal — exactly one of Sales/Leads/Traffic/Awareness, required
+// before generating. Mirrors _cr2Plat's selection pattern.
+window._cr2Goal = function(btn, goal) {
+  document.querySelectorAll('.cr2-goal-card').forEach(function(b){ b.classList.remove('cr2-goal-card-on'); });
+  if(btn) btn.classList.add('cr2-goal-card-on');
+  window._ov3Goal = goal;
+  var section = document.querySelector('.cr2-goal-section');
+  if(section) section.classList.remove('cr2-goal-missing');
   if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
 };
 
@@ -14199,6 +14414,21 @@ window.aicGenerate = function(){
     return;
   }
 
+  /* ── Validation: Campaign Goal is required — Oriven translates it into
+     the correct platform objective at publish time and steers AI copy
+     tone at generation time, so generating without one isn't meaningful. ── */
+  var selGoalBtn = document.querySelector('.cr2-goal-card.cr2-goal-card-on');
+  if(!selGoalBtn){
+    var goalSection = document.querySelector('.cr2-goal-section');
+    if(goalSection){
+      goalSection.classList.add('cr2-goal-missing');
+      goalSection.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+    if(typeof orvToast==='function') orvToast('Choose a campaign goal — Sales, Leads, Traffic or Awareness.','warn');
+    return;
+  }
+  var goal = selGoalBtn.getAttribute('data-goal');
+
   /* ── Platform: pill selection as default, text overrides ── */
   var lower = prompt.toLowerCase();
   var selPill = document.querySelector('.cr2-pp.cr2-pp-on');
@@ -14231,12 +14461,13 @@ window.aicGenerate = function(){
   }
 
   window._ov3Platform = platform;
+  window._ov3Goal = goal;
 
   /* ── Fire ── */
   try {
     var _mode = window._ov3ContentMode || 'images';
-    console.log('[Create] Calling cgrGenerate | platform:', platform, '| mode:', _mode);
-    window.cgrGenerate(prompt, platform, _mode);
+    console.log('[Create] Calling cgrGenerate | platform:', platform, '| goal:', goal, '| mode:', _mode);
+    window.cgrGenerate(prompt, platform, _mode, goal);
     /* Button stays disabled — cgrGenerate navigates away.
        Restore after 8s in case navigation fails. */
     setTimeout(_restoreBtn, 8000);
