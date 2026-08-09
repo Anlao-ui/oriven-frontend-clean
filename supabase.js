@@ -37,6 +37,11 @@ console.log("[Supabase] Client initialized →", SUPABASE_URL);
 var _apiToken = null;
 SB.auth.onAuthStateChange(function(event, session){
   _apiToken = session && session.access_token ? session.access_token : null;
+  // Registered here (earliest point after client creation, shared by every
+  // page that loads supabase.js) so a recovery-link visit is never missed
+  // regardless of exactly when the Supabase SDK finishes parsing the URL
+  // token relative to each page's own DOMContentLoaded work.
+  if(event === "PASSWORD_RECOVERY") window._orvPasswordRecovery = true;
 });
 SB.auth.getSession().then(function(r){
   _apiToken = r.data && r.data.session ? r.data.session.access_token : null;

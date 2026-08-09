@@ -188,7 +188,7 @@ async function sendPasswordReset(){
     var res = await SB.auth.getSession();
     var session = res && res.data && res.data.session;
     if(!session || !session.user){ toast("Not signed in", "warn"); return; }
-    await SB.auth.resetPasswordForEmail(session.user.email);
+    await SB.auth.resetPasswordForEmail(session.user.email, { redirectTo: window.location.origin + '/app' });
     toast("Password reset email sent");
   } catch(err){
     toast("Could not send reset email — try again", "err");

@@ -125,6 +125,21 @@
   </button>
 </div>
 
+<!-- Password recovery — shown instead of the app when a Forgot Password
+     email link signs the user in via a one-time recovery token, so that
+     token can never be mistaken for a real login (see auth.js,
+     _orvShowPasswordRecoveryScreen). -->
+<div id="orvPwRecoveryOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(9,9,11,.94);align-items:center;justify-content:center;">
+  <div style="max-width:380px;width:92%;background:#141416;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:32px 28px;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;">Set a new password</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:22px;line-height:1.5;">Choose a new password for your Oriven account.</div>
+    <input type="password" id="orvPwRecNew" placeholder="New password (min 8 characters)" autocomplete="new-password" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:11px 13px;color:#fff;font-size:14px;margin-bottom:10px;outline:none;">
+    <input type="password" id="orvPwRecConfirm" placeholder="Confirm new password" autocomplete="new-password" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:11px 13px;color:#fff;font-size:14px;margin-bottom:6px;outline:none;">
+    <div id="orvPwRecErr" style="display:none;color:#ef4444;font-size:12.5px;line-height:1.4;margin:8px 0;"></div>
+    <button id="orvPwRecBtn" onclick="_orvCompletePasswordRecovery()" style="width:100%;margin-top:12px;background:var(--green,#B7FF2A);color:#000;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;">Update Password</button>
+  </div>
+</div>
+
 <!-- Ambient background canvas — sits behind entire app -->
 <canvas id="appAmbient" aria-hidden="true"></canvas>
 
@@ -232,7 +247,7 @@
 
       <!-- Intelligence (V6 Final Phase — Executive Mode / Timeline / Briefings) -->
       <button class="orv-ni" data-orv-page="intelligence" onclick="_orvNav('intelligence','page-intelligence',this)">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path class="orv-ni-clockhand" d="M8 5v3l2 1.5"/></svg>
         <span class="orv-ni-label">Intelligence</span>
         <span class="orv-ni-badge" id="orvIntelBadge" style="display:none"></span>
       </button>
@@ -240,7 +255,7 @@
       <!-- Autopilot (V9 — restored to primary nav; previously reachable only
            via the notification bell's approval dropdown) -->
       <button class="orv-ni" data-orv-page="autopilot" onclick="_orvNav('autopilot','page-autopilot',this)">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v4l3 1.5"/></svg>
+        <svg viewBox="0 0 16 16" fill="currentColor" stroke="none"><path class="orv-ni-bolt" d="M8.8 1L3.6 9.2h3.5L6.2 15l6.2-8.7H9.1L8.8 1z"/></svg>
         <span class="orv-ni-label">Autopilot</span>
       </button>
 
@@ -299,11 +314,11 @@
         <span class="orv-ni-label">Campaigns</span>
       </button>
       <button class="orv-ni" data-orv-page="intelligence" onclick="_orvNav('intelligence','page-intelligence',this);_orvDrawerClose()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path class="orv-ni-clockhand" d="M8 5v3l2 1.5"/></svg>
         <span class="orv-ni-label">Intelligence</span>
       </button>
       <button class="orv-ni" data-orv-page="autopilot" onclick="_orvNav('autopilot','page-autopilot',this);_orvDrawerClose()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v4l3 1.5"/></svg>
+        <svg viewBox="0 0 16 16" fill="currentColor" stroke="none"><path class="orv-ni-bolt" d="M8.8 1L3.6 9.2h3.5L6.2 15l6.2-8.7H9.1L8.8 1z"/></svg>
         <span class="orv-ni-label">Autopilot</span>
       </button>
       <button class="orv-ni" data-orv-page="businessbrain" onclick="_orvNav('businessbrain','page-business-brain',this);_orvDrawerClose()">
@@ -627,6 +642,18 @@
             <div class="cr2-goal-section" id="cr2PlatObjSection" style="display:none">
               <div class="cr2-goal-label" id="cr2PlatObjLabel">Campaign Type</div>
               <div class="cr2-goal-grid" id="cr2PlatObjGrid" role="group" aria-label="Platform-specific objective"></div>
+            </div>
+
+            <!-- Campaign Structure — real, editable Ad Sets × Ads-per-Ad-Set
+                 control for Meta only, since /api/publish/meta is the only
+                 publisher that actually creates more than one Ad Set/Ad
+                 today (pkg.metaStructure, clamped 1-5 each). Google/TikTok
+                 currently publish exactly 1 Ad Group with 1 Ad/RSA, so this
+                 section shows that honestly instead of a control that would
+                 silently do nothing — see _cr2RenderStructSection(). -->
+            <div class="cr2-goal-section" id="cr2StructSection" style="display:none">
+              <div class="cr2-goal-label" id="cr2StructLabel">Campaign Structure</div>
+              <div id="cr2StructBody"></div>
             </div>
 
             <button class="cr2-gen-btn" id="aicGenBtn" onclick="aicGenerate()">
@@ -3549,6 +3576,7 @@
                 <span class="cst-dirty" id="cstDirtyBadge" style="display:none">Unsaved changes</span>
                 <span class="cst-saved" id="cstSavedBadge" style="display:none">Saved</span>
                 <button class="cst-btn cst-btn-ghost" id="cstSaveBtn" onclick="_cstSave()">Save changes</button>
+                <button class="cst-btn cst-btn-primary" id="cstPublishBtn" onclick="_cstDoPublish()">Publish to Meta Ads</button>
               </div>
             </div>
 
@@ -3565,9 +3593,6 @@
 
               <div class="cst-stage-panel" data-stage="review">
                 <div class="cst-review-wrap" id="cstReviewBody"></div>
-                <div class="cst-review-foot-inline">
-                  <button class="cst-btn cst-btn-primary cst-btn-lg" id="cstPublishBtn" onclick="_cstDoPublish()">Publish to Meta Ads</button>
-                </div>
               </div>
 
             </div>
@@ -3585,10 +3610,12 @@
                 <span class="cst-dirty" id="cggDirtyBadge" style="display:none">Unsaved changes</span>
                 <span class="cst-saved" id="cggSavedBadge" style="display:none">Saved</span>
                 <button class="cst-btn cst-btn-ghost" id="cggSaveBtn" onclick="_cggSave()">Save changes</button>
+                <button class="cst-btn cst-btn-primary" id="cggPublishBtn" onclick="_cggDoPublish()">Publish to Google Ads</button>
               </div>
             </div>
             <div class="cst-stage-body" id="cggStageBody">
               <div class="cst-stage-panel cst-stage-panel-active" data-stage="preview">
+                <div class="cst-struct-nav" id="cggStructNav" style="display:none"></div>
                 <div class="cst-preview-stage" id="cggPreviewStage"></div>
               </div>
               <div class="cst-stage-panel" data-stage="edit">
@@ -3596,9 +3623,6 @@
               </div>
               <div class="cst-stage-panel" data-stage="review">
                 <div class="cst-review-wrap" id="cggReviewBody"></div>
-                <div class="cst-review-foot-inline">
-                  <button class="cst-btn cst-btn-primary cst-btn-lg" id="cggPublishBtn" onclick="_cggDoPublish()">Publish to Google Ads</button>
-                </div>
               </div>
             </div>
           </div>
@@ -3615,10 +3639,12 @@
                 <span class="cst-dirty" id="cgtDirtyBadge" style="display:none">Unsaved changes</span>
                 <span class="cst-saved" id="cgtSavedBadge" style="display:none">Saved</span>
                 <button class="cst-btn cst-btn-ghost" id="cgtSaveBtn" onclick="_cgtSave()">Save changes</button>
+                <button class="cst-btn cst-btn-primary" id="cgtPublishBtn" onclick="_cgtDoPublish()">Publish to TikTok Ads</button>
               </div>
             </div>
             <div class="cst-stage-body" id="cgtStageBody">
               <div class="cst-stage-panel cst-stage-panel-active" data-stage="preview">
+                <div class="cst-struct-nav" id="cgtStructNav" style="display:none"></div>
                 <div class="cst-preview-stage" id="cgtPreviewStage"></div>
               </div>
               <div class="cst-stage-panel" data-stage="edit">
@@ -3626,9 +3652,6 @@
               </div>
               <div class="cst-stage-panel" data-stage="review">
                 <div class="cst-review-wrap" id="cgtReviewBody"></div>
-                <div class="cst-review-foot-inline">
-                  <button class="cst-btn cst-btn-primary cst-btn-lg" id="cgtPublishBtn" onclick="_cgtDoPublish()">Publish to TikTok Ads</button>
-                </div>
               </div>
             </div>
           </div>
@@ -9762,6 +9785,12 @@ window._orvNav = function(page, explicitPageId) {
   if (page === 'adsmanager' && typeof initAdsManager === 'function') setTimeout(initAdsManager, 0);
   if (page === 'create' && typeof cr2Init === 'function') setTimeout(cr2Init, 0);
   if (page === 'create' && typeof orvLoadLaunchBiz === 'function') setTimeout(orvLoadLaunchBiz, 0);
+  /* Render the platform-objective + campaign-structure sections for the
+     default-selected platform immediately, not only after the user clicks
+     a pill — otherwise a user who never touches the platform row generates
+     without ever seeing either section (pre-existing gap for the objective
+     section, now also affects the new structure section below it). */
+  if (page === 'create' && typeof _cr2RenderPlatObj === 'function') setTimeout(_cr2RenderPlatObj, 0);
   if (page === 'intelligence' && typeof intelPageInit === 'function') setTimeout(intelPageInit, 0);
   if (page === 'businessbrain' && typeof bizPageInit === 'function') setTimeout(bizPageInit, 0);
   if (page === 'autopilot' && typeof apInit === 'function') setTimeout(apInit, 0);
@@ -14041,7 +14070,7 @@ window.rptExport = function(format) {
     if (d) d.style.display = _cst.dirty ? '' : 'none';
     if (s) s.style.display = 'none';
   }
-  function _cstMarkDirty(){ _cst.dirty = true; _cstUpdateDirtyUI(); }
+  function _cstMarkDirty(){ _cst.dirty = true; _cstUpdateDirtyUI(); _cstRenderReviewStage(); }
 
   window._cstSave = function(){
     if (!_cst.campId) return;
@@ -14067,6 +14096,11 @@ window.rptExport = function(format) {
     if (_cst.stage === 'preview') _cstRenderPreview();
     else if (_cst.stage === 'edit') _cstRenderEditSections();
     else if (_cst.stage === 'review') _cstRenderReviewStage();
+    /* Publish button now lives in the persistent stage-bar (visible on every
+       stage), so its enabled/disabled checklist state must stay current
+       regardless of which stage tab is active — not just when the user
+       happens to visit Oriven Review. */
+    if (_cst.stage !== 'review') _cstRenderReviewStage();
   }
 
   window._cstStructureChanged = function(){
@@ -14500,6 +14534,7 @@ window.rptExport = function(format) {
     var clonedPkg;
     try { clonedPkg = JSON.parse(JSON.stringify(pkg)); } catch(_) { clonedPkg = pkg; }
     _cgg = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null, surface:'search', ytMode:'video', businessName:null, logoUrl:null };
+    _cggRenderStructNav();
     _cggUpdateDirtyUI();
     _cggSetStage('preview');
 
@@ -14553,7 +14588,7 @@ window.rptExport = function(format) {
     if (d) d.style.display = _cgg.dirty ? '' : 'none';
     if (s) s.style.display = 'none';
   }
-  function _cggMarkDirty(){ _cgg.dirty = true; _cggUpdateDirtyUI(); }
+  function _cggMarkDirty(){ _cgg.dirty = true; _cggUpdateDirtyUI(); _cggRenderReviewStage(); }
 
   window._cggSave = function(){
     if (!_cgg.campId) return;
@@ -14578,6 +14613,9 @@ window.rptExport = function(format) {
     if (_cgg.stage === 'preview') _cggRenderPreview();
     else if (_cgg.stage === 'edit') _cggRenderEditSections();
     else if (_cgg.stage === 'review') _cggRenderReviewStage();
+    /* Publish button lives in the persistent stage-bar (visible on every
+       stage) — keep its checklist/disabled state current at all times. */
+    if (_cgg.stage !== 'review') _cggRenderReviewStage();
   }
 
   /* ── PREVIEW: Google Search results simulation ── */
@@ -15054,7 +15092,19 @@ window.rptExport = function(format) {
     }).join('') + '</div>';
 
     var typeLabel = campaignType==='PERFORMANCE_MAX' ? 'Performance Max' : campaignType==='DEMAND_GEN' ? 'Demand Gen' : 'Search';
-    var structureLabel = campaignType==='PERFORMANCE_MAX' ? '1 Campaign &middot; 1 Asset Group' : campaignType==='DEMAND_GEN' ? '1 Campaign &middot; 1 Ad Group &middot; 1 Multi-Asset Ad' : '1 Campaign &middot; 1 Ad Group &middot; 1 Responsive Search Ad';
+    // Search now genuinely supports N Ad Groups × M RSAs per group
+    // (Campaign Structure Engine) — reflects the real pkg.campaignStructure
+    // that will reach /api/publish/google, not a hardcoded 1×1×1 label.
+    var _cggRaw = pkg.campaignStructure || {};
+    var _cggStruct = {
+      groups: Math.max(1, Math.min(5, parseInt(_cggRaw.groups, 10) || 1)),
+      adsPerGroup: Math.max(1, Math.min(5, parseInt(_cggRaw.adsPerGroup, 10) || 1)),
+    };
+    var structureLabel = campaignType==='PERFORMANCE_MAX'
+      ? '1 Campaign &middot; 1 Asset Group'
+      : campaignType==='DEMAND_GEN'
+        ? '1 Campaign &middot; 1 Ad Group &middot; 1 Multi-Asset Ad'
+        : '1 Campaign &middot; ' + _cggStruct.groups + ' Ad Group' + (_cggStruct.groups!==1?'s':'') + ' &middot; ' + (_cggStruct.groups*_cggStruct.adsPerGroup) + ' Responsive Search Ad' + ((_cggStruct.groups*_cggStruct.adsPerGroup)!==1?'s':'') + ' total';
 
     var rows = '';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cggEsc(goal)+'</span></div>';
@@ -15105,6 +15155,28 @@ window.rptExport = function(format) {
     if (body) body.innerHTML = html;
     var pubBtn = document.getElementById('cggPublishBtn');
     if (pubBtn) pubBtn.disabled = !!err;
+  }
+
+  // Existing-campaign editor navigator (Part 23) — real Ad Group → Ad
+  // breakdown for Search campaigns with more than one group/ad. Read-only:
+  // the live Preview stage always shows Ad Group 1's Ad 1 (unchanged this
+  // phase); this is the honest count/structure, not a fake placeholder list
+  // and never shows more than pkg.campaignStructure actually contains.
+  function _cggRenderStructNav(){
+    var nav = document.getElementById('cggStructNav');
+    if (!nav) return;
+    var pkg = _cgg.pkg;
+    var campaignType = (pkg.googleAds || {}).campaignType || 'SEARCH';
+    var raw = pkg.campaignStructure || {};
+    var groups = Math.max(1, Math.min(5, parseInt(raw.groups, 10) || 1));
+    var adsPerGroup = Math.max(1, Math.min(5, parseInt(raw.adsPerGroup, 10) || 1));
+    if (campaignType !== 'SEARCH' || (groups <= 1 && adsPerGroup <= 1)) { nav.style.display = 'none'; nav.innerHTML = ''; return; }
+    var html = '';
+    for (var i = 0; i < groups; i++) {
+      html += '<div class="cst-struct-nav-group"><div class="cst-struct-nav-group-lbl">Ad Group '+(i+1)+'</div><div class="cst-struct-nav-ads">'+adsPerGroup+' RSA'+(adsPerGroup!==1?'s':'')+'</div></div>';
+    }
+    nav.innerHTML = html;
+    nav.style.display = '';
   }
 
   /* ── PUBLISH — delegates to the existing, unmodified cgrPublishTo, which
@@ -15159,6 +15231,7 @@ window.rptExport = function(format) {
     var clonedPkg;
     try { clonedPkg = JSON.parse(JSON.stringify(pkg)); } catch(_) { clonedPkg = pkg; }
     _cgt = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null, identities:[], identityId:null, identityType:null, identityName:null };
+    _cgtRenderStructNav();
     _cgtUpdateDirtyUI();
     _cgtSetStage('preview');
 
@@ -15198,7 +15271,7 @@ window.rptExport = function(format) {
     if (d) d.style.display = _cgt.dirty ? '' : 'none';
     if (s) s.style.display = 'none';
   }
-  function _cgtMarkDirty(){ _cgt.dirty = true; _cgtUpdateDirtyUI(); }
+  function _cgtMarkDirty(){ _cgt.dirty = true; _cgtUpdateDirtyUI(); _cgtRenderReviewStage(); }
 
   window._cgtSave = function(){
     if (!_cgt.campId) return;
@@ -15223,6 +15296,9 @@ window.rptExport = function(format) {
     if (_cgt.stage === 'preview') _cgtRenderPreview();
     else if (_cgt.stage === 'edit') _cgtRenderEditSections();
     else if (_cgt.stage === 'review') _cgtRenderReviewStage();
+    /* Publish button lives in the persistent stage-bar (visible on every
+       stage) — keep its checklist/disabled state current at all times. */
+    if (_cgt.stage !== 'review') _cgtRenderReviewStage();
   }
 
   /* ── PREVIEW: TikTok vertical feed simulation ── */
@@ -15331,16 +15407,27 @@ window.rptExport = function(format) {
       return '<div class="cst-check-item'+(c.ok?'':' cst-check-warn-item')+'">'+(c.ok?'<span class="cst-check-ok">&#10003;</span>':'<span class="cst-check-warn-icon">&#9888;</span>')+_cgtEsc(c.label)+'</div>';
     }).join('') + '</div>';
 
+    // Campaign Structure Engine — TikTok now genuinely supports N Ad
+    // Groups × M Ads per group (real /adgroup/create/ + /ad/create/ calls
+    // per group), reflected here instead of the previous hardcoded 1×1×1.
+    var _cgtRaw = pkg.campaignStructure || {};
+    var _cgtStruct = {
+      groups: Math.max(1, Math.min(5, parseInt(_cgtRaw.groups, 10) || 1)),
+      adsPerGroup: Math.max(1, Math.min(5, parseInt(_cgtRaw.adsPerGroup, 10) || 1)),
+    };
+    var _cgtTotalAds = _cgtStruct.groups * _cgtStruct.adsPerGroup;
+
     var rows = '';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cgtEsc(goal)+'</span></div>';
     if (tt.objective) rows += '<div class="cst-review-row"><span class="cst-review-lbl">TikTok Objective</span><span class="cst-review-val">'+_cgtEsc(tt.objective)+'</span></div>';
-    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">1 Campaign → 1 Ad Group → 1 Ad</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">1 Campaign &middot; '+_cgtStruct.groups+' Ad Group'+(_cgtStruct.groups!==1?'s':'')+' &middot; '+_cgtTotalAds+' Ad'+(_cgtTotalAds!==1?'s':'')+' total</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cgtEsc(tt.budget || '30 (default)')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Account</span><span class="cst-review-val'+(_cgt.accountName?'':' cst-review-val-warn')+'">'+_cgtEsc(_cgt.accountName||'Not connected')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">TikTok Identity</span><span class="cst-review-val'+(_cgt.identityName?'':' cst-review-val-warn')+'">'+_cgtEsc(_cgt.identityName||'Not selected')+'</span></div>';
 
     var limitationNotice = '<div class="cst-review-err" style="color:#fbbf24;background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.2)">'
-      + '<b>What Oriven sends to TikTok:</b> a Campaign, one Ad Group, and one Ad — your Hook/Script become the ad text, CTA maps to a TikTok call-to-action, and your Budget applies at both Campaign and Ad Group level, all created paused for your review. '
+      + '<b>What Oriven sends to TikTok:</b> a Campaign, '+_cgtStruct.groups+' Ad Group'+(_cgtStruct.groups!==1?'s':'')+', and '+_cgtTotalAds+' Ad'+(_cgtTotalAds!==1?'s':'')+' — every Ad Group and every Ad uses your selected Identity, and your Budget applies at both Campaign and each Ad Group level, all created paused for your review. '
+      + (_cgtTotalAds > 1 ? 'Real per-ad variation is drawn from your generated concepts and creative images, cycled across ads — never fabricated. ' : '')
       + '<b>Target Audience</b> is free-form AI text and is not sent — TikTok has no field for unstructured targeting text, so TikTok\'s own broad default targeting applies instead (this is disclosed, not a bug).'
       + '</div>';
 
@@ -15358,6 +15445,24 @@ window.rptExport = function(format) {
     if (body) body.innerHTML = html;
     var pubBtn = document.getElementById('cgtPublishBtn');
     if (pubBtn) pubBtn.disabled = !!err;
+  }
+
+  // Existing-campaign editor navigator (Part 23) — real Ad Group → Ad
+  // breakdown when the saved structure has more than one group/ad.
+  // Read-only, same scope note as Google's _cggRenderStructNav above.
+  function _cgtRenderStructNav(){
+    var nav = document.getElementById('cgtStructNav');
+    if (!nav) return;
+    var raw = (_cgt.pkg.campaignStructure) || {};
+    var groups = Math.max(1, Math.min(5, parseInt(raw.groups, 10) || 1));
+    var adsPerGroup = Math.max(1, Math.min(5, parseInt(raw.adsPerGroup, 10) || 1));
+    if (groups <= 1 && adsPerGroup <= 1) { nav.style.display = 'none'; nav.innerHTML = ''; return; }
+    var html = '';
+    for (var i = 0; i < groups; i++) {
+      html += '<div class="cst-struct-nav-group"><div class="cst-struct-nav-group-lbl">Ad Group '+(i+1)+'</div><div class="cst-struct-nav-ads">'+adsPerGroup+' Ad'+(adsPerGroup!==1?'s':'')+'</div></div>';
+    }
+    nav.innerHTML = html;
+    nav.style.display = '';
   }
 
   /* ── PUBLISH — delegates to the existing, unmodified cgrPublishTo, which
@@ -15673,6 +15778,17 @@ window.rptExport = function(format) {
        not just what the goal grid implies. */
     if (window._ov3PlatformObjective) _payload.platformObjective = window._ov3PlatformObjective;
     if (_plat === 'google' && window._ov3GoogleCampaignType) _payload.campaignType = window._ov3GoogleCampaignType;
+    /* Campaign Structure Engine — one normalized {groups,adsPerGroup} state
+       (_cr2RenderStructSection), mapped to whichever field each platform's
+       backend actually reads: Meta keeps its existing metaStructure shape
+       (untouched publish route); Google (Search only) and TikTok read the
+       newer normalized campaignStructure field. Never sent for Google
+       Demand Gen/PMax, which have a fixed real shape no structure field
+       could change. */
+    var _struct = window._ov3Structure;
+    if (_plat === 'meta' && _struct) _payload.metaStructure = { adSets: _struct.groups, adsPerAdSet: _struct.adsPerGroup };
+    else if (_plat === 'tiktok' && _struct) _payload.campaignStructure = { groups: _struct.groups, adsPerGroup: _struct.adsPerGroup };
+    else if (_plat === 'google' && _struct && (!window._ov3GoogleCampaignType || window._ov3GoogleCampaignType === 'SEARCH')) _payload.campaignStructure = { groups: _struct.groups, adsPerGroup: _struct.adsPerGroup };
     /* Attach Brand Brain context */
     if(typeof S !== 'undefined' && S.brandCore && S.brandCore.name) _payload.brandCore = S.brandCore;
     /* Attach product images (max 3 to keep payload size reasonable) */
@@ -15897,11 +16013,127 @@ function _cr2RenderPlatObj(){
   } else {
     section.style.display = 'none';
   }
+  _cr2RenderStructSection(plat);
 }
+
+// Campaign Structure Engine — one normalized {groups, adsPerGroup} state
+// shared across all three platforms (each maps it to its own real backend
+// field at generate time: metaStructure for Meta, campaignStructure for
+// Google Search/TikTok — see cgrGenerate). Meta, TikTok, and Google Search
+// all have real N×M backend support now (/api/publish/meta,
+// /api/publish/google, /api/publish/tiktok), so all three get the real
+// interactive control. Google Demand Gen and Performance Max have a fixed
+// real object-graph shape (1 Ad Group / 1 Asset Group respectively) no
+// control could actually change, so they get an honest static note instead
+// — never a control that would silently do nothing.
+window._ov3Structure = { groups: 1, adsPerGroup: 1 };
+var _CR2_STRUCT_LABELS = {
+  meta:   { unitSing: 'Ad Set',   unitPlural: 'Ad Sets',   per: 'Ads per Ad Set',   perSing: 'Ad per Ad Set' },
+  tiktok: { unitSing: 'Ad Group', unitPlural: 'Ad Groups', per: 'Ads per Ad Group', perSing: 'Ad per Ad Group' },
+  google: { unitSing: 'Ad Group', unitPlural: 'Ad Groups', per: 'Ads per Ad Group', perSing: 'Ad per Ad Group' },
+};
+function _cr2StructSupportsControl(plat){
+  if(plat === 'meta' || plat === 'tiktok') return true;
+  if(plat === 'google') return !window._ov3GoogleCampaignType || window._ov3GoogleCampaignType === 'SEARCH';
+  return false;
+}
+function _cr2RenderStructSection(plat){
+  var section = document.getElementById('cr2StructSection');
+  var body = document.getElementById('cr2StructBody');
+  if(!section || !body) return;
+  if(plat !== 'meta' && plat !== 'google' && plat !== 'tiktok'){ section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  if(_cr2StructSupportsControl(plat)){
+    body.innerHTML = _cr2StructCardsHtml(_CR2_STRUCT_LABELS[plat], window._ov3Structure || { groups: 1, adsPerGroup: 1 });
+  } else {
+    var ty = window._ov3GoogleCampaignType;
+    var note = ty === 'PERFORMANCE_MAX'
+      ? 'Performance Max campaigns publish as 1 Campaign → 1 Asset Group, using your generated headlines, descriptions and images as assets — a genuinely different object model from Ad Sets/Ad Groups. Asset Group customization isn\'t available yet.'
+      : 'Demand Gen campaigns currently publish as 1 Campaign → 1 Ad Group → 1 multi-asset ad. Multiple Ad Groups aren\'t supported yet.';
+    body.innerHTML = '<div class="cr2-struct-note">'+note+'</div>';
+  }
+}
+function _cr2StructCardsHtml(lbl, st){
+  var groups = Math.max(1, Math.min(5, parseInt(st.groups,10) || 1));
+  var adsPerGroup = Math.max(1, Math.min(5, parseInt(st.adsPerGroup,10) || 1));
+  return '<div class="cst2-struct-row">'
+    + _cr2StructCardHtml('groups', lbl.unitPlural, groups, lbl.unitSing, lbl.unitPlural)
+    + _cr2StructCardHtml('adsPerGroup', lbl.per, adsPerGroup, lbl.perSing, lbl.per)
+    + '</div>'
+    + '<div class="cst2-struct-total"><span class="cst2-struct-total-lbl">Total Ads</span><span class="cst2-struct-total-val" id="cst2StructTotal">'+(groups*adsPerGroup)+'</span></div>';
+}
+function _cr2Esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _cr2StructCardHtml(key, headLabel, value, unitSing, unitPlural){
+  var pips = [1,2,3,4,5].map(function(n){
+    return '<button type="button" class="cst2-pip'+(n===value?' cst2-pip-on':'')+'" onclick="event.stopPropagation();_cr2StructPick(\''+key+'\','+n+')" aria-pressed="'+(n===value)+'">'+n+'</button>';
+  }).join('');
+  return '<div class="cst2-struct-card" id="cst2Card_'+key+'">'
+    + '<button type="button" class="cst2-struct-head" onclick="_cr2StructToggle(\''+key+'\')" aria-expanded="false">'
+    +   '<span class="cst2-struct-label">'+_cr2Esc(headLabel.toUpperCase())+'</span>'
+    +   '<span class="cst2-struct-value">'+value+'</span>'
+    + '</button>'
+    + '<div class="cst2-struct-hint">Click to configure</div>'
+    + '<div class="cst2-struct-expand" id="cst2Expand_'+key+'">'
+    +   '<div class="cst2-pip-row">'+pips+'</div>'
+    +   '<div class="cst2-struct-sel-note">'+value+' '+_cr2Esc(value===1?unitSing:unitPlural)+' selected</div>'
+    + '</div>'
+    + '</div>';
+}
+window._cr2StructToggle = function(key){
+  var card = document.getElementById('cst2Card_'+key);
+  if(!card) return;
+  var wasOpen = card.classList.contains('cst2-struct-open');
+  document.querySelectorAll('.cst2-struct-card').forEach(function(c){
+    c.classList.remove('cst2-struct-open');
+    var h = c.querySelector('.cst2-struct-head'); if(h) h.setAttribute('aria-expanded','false');
+  });
+  if(!wasOpen){
+    card.classList.add('cst2-struct-open');
+    var head = card.querySelector('.cst2-struct-head'); if(head) head.setAttribute('aria-expanded','true');
+  }
+};
+window._cr2StructPick = function(key, n){
+  window._ov3Structure = window._ov3Structure || { groups: 1, adsPerGroup: 1 };
+  window._ov3Structure[key] = n;
+  var pill = document.querySelector('.cr2-pp.cr2-pp-on');
+  var plat = pill ? pill.getAttribute('data-plat') : 'google';
+  _cr2RenderStructSection(plat);
+  var card = document.getElementById('cst2Card_'+key);
+  if(card){ card.classList.add('cst2-struct-open'); var h = card.querySelector('.cst2-struct-head'); if(h) h.setAttribute('aria-expanded','true'); }
+  if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
+};
+// Click outside any structure card collapses whichever one is open.
+document.addEventListener('click', function(e){
+  if(e.target.closest && e.target.closest('.cst2-struct-card')) return;
+  document.querySelectorAll('.cst2-struct-card.cst2-struct-open').forEach(function(c){
+    c.classList.remove('cst2-struct-open');
+    var h = c.querySelector('.cst2-struct-head'); if(h) h.setAttribute('aria-expanded','false');
+  });
+});
+
+// Launch platform init — single idempotent entry point (_cr2RenderPlatObj,
+// which also renders the structure section). Previously this only ever ran
+// from inside navigate()'s page==='create' hook, which fires when the user
+// NAVIGATES to Launch but never for the common case of Launch being the
+// default already-active page on a normal login/page load -- #page-create
+// already has class="active" baked into the static HTML, so no navigate()
+// call ever happens for it. That's why Campaign Type/Structure appeared
+// missing on direct entry and only "woke up" after a platform click (the
+// first event that actually called _cr2RenderPlatObj). Re-rendering via
+// innerHTML each time is safe to call repeatedly -- no duplicate DOM, no
+// duplicate listeners (buttons use inline onclick, not addEventListener).
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof _cr2RenderPlatObj === 'function') _cr2RenderPlatObj();
+});
 window._cr2GoogleType = function(btn, ty){
   document.querySelectorAll('#cr2PlatObjGrid .cr2-goal-card').forEach(function(b){ b.classList.remove('cr2-goal-card-on'); });
   if(btn) btn.classList.add('cr2-goal-card-on');
   window._ov3GoogleCampaignType = ty;
+  /* Campaign type determines whether Google gets the real Ad Groups
+     control (Search) or an honest static note (Demand Gen/PMax) — must
+     re-render on every type change, not just on platform switch. */
+  _cr2RenderStructSection('google');
   if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
 };
 window._cr2PlatObj = function(btn, v){

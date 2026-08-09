@@ -1430,6 +1430,17 @@ document.addEventListener("DOMContentLoaded", async function(){
   var session = sessionResult.data && sessionResult.data.session;
 
   if(session && session.user){
+    // A password-reset email link lands here (redirectTo points at /app) and
+    // Supabase silently signs the user in via the one-time recovery token --
+    // without this check they'd land straight in the dashboard with their
+    // OLD password never actually changed. Block the normal sign-in flow
+    // until they've actually set a new password.
+    if(window._orvPasswordRecovery){
+      console.log("[Auth] Password recovery link detected — showing set-new-password screen");
+      _orvShowPasswordRecoveryScreen();
+      return;
+    }
+
     console.log("[Auth] Session restored for:", session.user.id);
     await onUserSignedIn(session.user);
 
@@ -1492,6 +1503,64 @@ document.addEventListener("DOMContentLoaded", async function(){
     }
   });
 });
+
+// ── Password recovery (Forgot Password email link → /app) ─────────────
+// Real Supabase Auth end to end: the email is sent via
+// SB.auth.resetPasswordForEmail (index.html, auForgotPassword), and the
+// new password is written via SB.auth.updateUser -- never a custom table,
+// never logged, never written to localStorage/sessionStorage.
+
+function _orvShowPasswordRecoveryScreen(){
+  var app = document.querySelector(".app");
+  if(app) app.style.display = "none";
+  var overlay = document.getElementById("orvPwRecoveryOverlay");
+  if(!overlay) return;
+  overlay.style.display = "flex";
+  var newInp = document.getElementById("orvPwRecNew");
+  var confInp = document.getElementById("orvPwRecConfirm");
+  var errEl = document.getElementById("orvPwRecErr");
+  if(newInp) newInp.value = "";
+  if(confInp) confInp.value = "";
+  if(errEl) errEl.style.display = "none";
+  if(newInp) newInp.focus();
+}
+
+async function _orvCompletePasswordRecovery(){
+  var newInp  = document.getElementById("orvPwRecNew");
+  var confInp = document.getElementById("orvPwRecConfirm");
+  var errEl   = document.getElementById("orvPwRecErr");
+  var btn     = document.getElementById("orvPwRecBtn");
+  if(!newInp || !confInp) return;
+
+  var showErr = function(msg){ if(errEl){ errEl.textContent = msg; errEl.style.display = ""; } };
+
+  var next    = newInp.value || "";
+  var confirm = confInp.value || "";
+  if(!next || next.length < 8){ showErr("New password must be at least 8 characters."); return; }
+  if(next !== confirm){ showErr("Passwords don't match."); return; }
+  if(errEl) errEl.style.display = "none";
+
+  if(btn){ btn.disabled = true; btn.textContent = "Updating…"; }
+  try {
+    var upd = await SB.auth.updateUser({ password: next });
+    if(upd && upd.error){
+      if(btn){ btn.disabled = false; btn.textContent = "Update Password"; }
+      showErr(upd.error.message || "Could not update password. The reset link may have expired — request a new one.");
+      return;
+    }
+    window._orvPasswordRecovery = false;
+    if(btn){ btn.textContent = "Password updated ✓"; }
+    // Full reload rather than resuming this init function in place: it
+    // cleanly strips the recovery token from the URL and re-runs the normal
+    // session-restore flow (getSession now finds a plain authenticated
+    // session, no different from any other returning-user page load).
+    setTimeout(function(){ window.location.href = "/app"; }, 900);
+  } catch(err){
+    if(btn){ btn.disabled = false; btn.textContent = "Update Password"; }
+    showErr("Could not update password — please try again.");
+  }
+}
+window._orvCompletePasswordRecovery = _orvCompletePasswordRecovery;
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // BRAND ONBOARDING â€” multi-step questionnaire for new free users

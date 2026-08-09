@@ -24143,13 +24143,27 @@ body { flex-direction: row !important; }
    the gap for every affected page at once, not just one. */
 .app > .page.active { flex: 9999 1 0%; width: auto; min-width: 0; max-width: 100%; background: var(--bg); }
 
+/* Same root cause, third symptom (Autopilot only -- scoped narrowly rather
+   than added to the shared rule above, since several other pages that match
+   .app > .page.active already have their own working internal scroll
+   solution and a blanket change here risks stacking a second scrollbar on
+   top of theirs). #page-autopilot never inherits .mc's own overflow-y:auto
+   (that lives only on .mc itself) and the base .page{} rule sets
+   min-height:100% with no overflow of its own, so its real content -- which
+   is taller than one viewport -- has nowhere to scroll: .app's
+   overflow:hidden clips it outright with no scrollbar anywhere. min-height:0
+   lets the flex item shrink to the row's cross-size instead of growing to
+   fit its content, which is what makes the following overflow-y actually
+   engage instead of never triggering. */
+.app > #page-autopilot.active { min-height: 0; height: 100vh; overflow-y: auto; overflow-x: hidden; }
+
 /* ── New sidebar ─────────────────────────────────────────────── */
 .orv-sb {
   display: flex !important;
   flex-direction: column !important;
-  width: 220px !important;
-  min-width: 220px !important;
-  max-width: 220px !important;
+  width: 260px !important;
+  min-width: 260px !important;
+  max-width: 260px !important;
   height: 100vh !important;
   background: var(--bg, #0E0E0F) !important;
   border-right: 1px solid var(--border, rgba(255,255,255,.07)) !important;
@@ -24799,8 +24813,8 @@ body > .ap-nav { display: none !important; }
 
 /* ── Sidebar ─────────────────────────────────────────────────── */
 .orv-sb {
-  width: 220px;
-  min-width: 220px;
+  width: 260px;
+  min-width: 260px;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -24818,12 +24832,12 @@ body.dark-mode .orv-sb {
 .orv-sb-logo {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 14px 12px 12px;
+  gap: 11px;
+  padding: 18px 16px 14px;
   cursor: pointer;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border, rgba(0,0,0,.06));
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .orv-sb-logo-img { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }
 .orv-sb-logo-name { font-size: 13px; font-weight: 800; letter-spacing: .08em; color: var(--charcoal, #18181A); }
@@ -24832,19 +24846,19 @@ body.dark-mode .orv-sb-logo-name { color: #fff; }
 .orv-sb-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 4px 8px;
+  padding: 6px 12px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .orv-ni {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 13px;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 13.5px;
   font-weight: 500;
   color: rgba(0,0,0,.5);
   cursor: pointer;
@@ -24882,25 +24896,31 @@ body.dark-mode .orv-ni.orv-active { background: color-mix(in srgb, var(--green) 
   transition: opacity var(--orv-t, .16s), transform var(--orv-t, .16s);
 }
 .orv-ni.orv-active::before { opacity: 1; transform: scaleY(1); }
-.orv-ni svg { width: 15px; height: 15px; flex-shrink: 0; opacity: .55; transition: opacity var(--orv-t, .16s), transform var(--orv-t, .16s); }
+
+/* Fixed-size icon "slot" -- width/height never change, so every hover
+   micro-interaction below (per icon, see the Icon Motion System further
+   down) animates purely via transform/opacity/filter inside this box and
+   can never shift the label or any other row. */
+.orv-ni svg {
+  width: 17px; height: 17px; flex-shrink: 0; opacity: .55;
+  transition: opacity var(--orv-t, .16s), transform var(--orv-nit, .18s) cubic-bezier(.22,.61,.36,1), filter var(--orv-nit, .18s) ease;
+}
 .orv-ni:hover svg, .orv-ni.orv-active svg { opacity: 1; }
-.orv-ni:hover svg { transform: translateX(1.5px); }
-.orv-ni-label { display: inline-block; transition: transform var(--orv-t, .16s); }
-.orv-ni:hover .orv-ni-label { transform: translateX(2px); }
+.orv-ni-label { display: inline-block; }
 
 .orv-sb-bottom {
   flex-shrink: 0;
   border-top: 1px solid var(--border, rgba(0,0,0,.07));
-  padding: 8px;
+  padding: 10px 12px;
 }
 body.dark-mode .orv-sb-bottom { border-top-color: rgba(255,255,255,.07); }
 
 .orv-sb-user {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 8px 10px;
-  border-radius: 8px;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 9px;
   cursor: pointer;
   transition: background .12s;
   margin-top: 4px;
@@ -24908,17 +24928,63 @@ body.dark-mode .orv-sb-bottom { border-top-color: rgba(255,255,255,.07); }
 .orv-sb-user:hover { background: rgba(0,0,0,.04); }
 body.dark-mode .orv-sb-user:hover { background: rgba(255,255,255,.04); }
 .orv-sb-avatar {
-  width: 28px; height: 28px; border-radius: 8px;
+  width: 30px; height: 30px; border-radius: 9px;
   background: color-mix(in srgb, var(--green) 18%, transparent); color: var(--green-text);
-  font-size: 12px; font-weight: 700;
+  font-size: 12.5px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 body.dark-mode .orv-sb-avatar { color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); }
 .orv-sb-user-info { min-width: 0; }
-.orv-sb-user-name { font-size: 12px; font-weight: 600; color: var(--charcoal, #18181A); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.orv-sb-user-name { font-size: 12.5px; font-weight: 600; color: var(--charcoal, #18181A); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.dark-mode .orv-sb-user-name { color: rgba(255,255,255,.9); }
 .orv-sb-user-plan { font-size: 11px; color: var(--muted, rgba(0,0,0,.45)); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Icon Motion System — one distinct micro-interaction per nav item ──
+   Each targets only the icon's own transform/filter, never layout
+   properties, so the fixed 17x17 slot above never resizes and the label
+   never moves. var(--orv-nit) = 180ms, inside the spec's 150-220ms range. */
+:root { --orv-nit: 180ms; }
+
+/* Launch — arrow nudges right (the icon already IS an arrow). */
+.orv-ni[data-orv-page="create"]:hover svg { transform: translateX(4px); }
+
+/* Campaigns — subtle lift, like picking up a card from a stack. */
+.orv-ni[data-orv-page="performance"]:hover svg { transform: translateY(-2px); }
+
+/* Intelligence — the clock hand ticks a few degrees; the dial itself
+   (the circle) stays still so it reads as "tick", not "tilt". */
+.orv-ni[data-orv-page="intelligence"] svg .orv-ni-clockhand {
+  transform-box: fill-box; transform-origin: center;
+  transition: transform var(--orv-nit, .18s) cubic-bezier(.22,.61,.36,1);
+}
+.orv-ni[data-orv-page="intelligence"]:hover svg .orv-ni-clockhand { transform: rotate(28deg); }
+
+/* Autopilot — a small "spark": brief scale + flick, reads as an instant
+   automated action firing, not a continuous animation. */
+.orv-ni[data-orv-page="autopilot"]:hover svg { transform: scale(1.16) rotate(-8deg); }
+
+/* Business / Brand Brain — the bulb turns on: brighter + a restrained glow. */
+.orv-ni[data-orv-page="businessbrain"] svg {
+  transition: opacity var(--orv-t, .16s), transform var(--orv-nit, .18s) cubic-bezier(.22,.61,.36,1), filter var(--orv-nit, .18s) ease;
+}
+.orv-ni[data-orv-page="businessbrain"]:hover svg {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--green) 70%, transparent));
+}
+
+/* Settings — a small, deliberate turn, not a continuous spin. */
+#orvNavSettingsBtn:hover svg { transform: rotate(18deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .orv-ni svg, .orv-ni svg .orv-ni-clockhand { transition: none !important; }
+  .orv-ni[data-orv-page="create"]:hover svg,
+  .orv-ni[data-orv-page="performance"]:hover svg,
+  .orv-ni[data-orv-page="intelligence"]:hover svg .orv-ni-clockhand,
+  .orv-ni[data-orv-page="autopilot"]:hover svg,
+  .orv-ni[data-orv-page="businessbrain"]:hover svg,
+  #orvNavSettingsBtn:hover svg { transform: none !important; filter: none !important; }
+}
 
 /* ── Main content ────────────────────────────────────────────── */
 .mc {
@@ -36528,6 +36594,93 @@ body.dark-mode .cr2-foot-divider { background: rgba(255,255,255,.1); }
 .cr2-goal-card.cr2-goal-card-disabled:hover { transform: none; }
 /* Missing-selection nudge (parallels .cr2-box's own focus/error treatment) */
 .cr2-goal-section.cr2-goal-missing .cr2-goal-grid { animation: cr2GoalShake .4s; }
+
+/* Campaign Structure (Launch) — honest static note, shown for platforms/
+   campaign types with no real multi-group backend support (Google Demand
+   Gen / Performance Max). Meta, TikTok, and Google Search get the real
+   interactive .cst2-struct-* cards below instead. */
+.cr2-struct-note { font-size: 12px; line-height: 1.5; color: var(--muted, #888); margin-top: 4px; max-width: 560px; }
+
+/* ── Campaign Structure Engine — premium expand cards ─────────────────────
+   Two cards side by side (stack on mobile), each a green/black "active
+   control" pill that expands into a 1-5 pip selector. Only one card open
+   at a time (avoids overlap / layout collisions between the two). */
+.cst2-struct-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.cst2-struct-card {
+  flex: 1 1 220px; min-width: 200px;
+  background: var(--surface, #fff); border: 1.5px solid var(--border, #e5e7eb);
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.cst2-struct-card.cst2-struct-open { border-color: var(--green); box-shadow: 0 4px 20px color-mix(in srgb, var(--green) 20%, transparent); }
+.cst2-struct-head {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 14px 16px; border: none; cursor: pointer; font-family: inherit;
+  background: var(--green); color: #000;
+  transition: transform .15s cubic-bezier(.22,.61,.36,1), opacity .15s ease;
+}
+.cst2-struct-head:hover { opacity: .92; }
+.cst2-struct-head:active { transform: scale(.99); }
+.cst2-struct-label { font-size: 11px; font-weight: 800; letter-spacing: .05em; }
+.cst2-struct-value { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cst2-struct-hint { padding: 7px 16px; font-size: 11px; font-weight: 600; color: var(--muted, #888); background: var(--surface, #fff); }
+.cst2-struct-open .cst2-struct-hint { display: none; }
+
+/* Expand/collapse — height+opacity+transform, 220ms, premium easing;
+   max-height is generous (not measured) since content is fixed/small. */
+.cst2-struct-expand {
+  max-height: 0; opacity: 0; transform: translateY(-4px) scale(.98);
+  overflow: hidden; padding: 0 16px;
+  transition: max-height .22s cubic-bezier(.22,.61,.36,1), opacity .18s ease, transform .22s cubic-bezier(.22,.61,.36,1), padding .22s cubic-bezier(.22,.61,.36,1);
+}
+.cst2-struct-open .cst2-struct-expand {
+  max-height: 120px; opacity: 1; transform: translateY(0) scale(1);
+  padding: 14px 16px 16px;
+}
+.cst2-pip-row { display: flex; gap: 6px; }
+.cst2-pip {
+  flex: 1; font-family: inherit; font-size: 14px; font-weight: 700;
+  padding: 9px 0; border-radius: 9px; cursor: pointer;
+  background: var(--bg2, rgba(0,0,0,.04)); color: var(--t1, #111);
+  border: 1.5px solid var(--border, #e5e7eb);
+  transition: background .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+}
+.cst2-pip:hover { border-color: var(--green); }
+.cst2-pip:active { transform: scale(.94); }
+.cst2-pip-on { background: var(--green); color: #000; border-color: var(--green); }
+.cst2-struct-sel-note { margin-top: 10px; font-size: 11.5px; font-weight: 600; color: var(--muted, #888); }
+
+.cst2-struct-total {
+  display: flex; align-items: center; gap: 8px; margin-top: 12px;
+  font-size: 12.5px; font-weight: 600; color: var(--muted, #888);
+}
+.cst2-struct-total-val {
+  font-size: 15px; font-weight: 800; color: var(--t1, #111); font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cst2-struct-card, .cst2-struct-head, .cst2-struct-expand, .cst2-pip { transition: none !important; }
+}
+@media (max-width: 600px) {
+  .cst2-struct-row { flex-direction: column; }
+  .cst2-struct-card { min-width: 0; }
+}
+
+/* Existing-campaign editor navigator (Google/TikTok Preview stage) — real
+   Ad Group → Ad breakdown, read-only (Meta's own dropdown selector,
+   .cstAdSelectorBar, remains the only live-preview-switching navigator this
+   phase — see final report). Never shows more groups/ads than
+   pkg.campaignStructure actually contains. */
+.cst-struct-nav { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 24px 14px; }
+.cst-struct-nav-group {
+  display: flex; flex-direction: column; gap: 4px; padding: 8px 12px;
+  border: 1px solid var(--border, rgba(255,255,255,.1)); border-radius: 10px;
+  background: rgba(255,255,255,.03); min-width: 120px;
+}
+.cst-struct-nav-group-lbl { font-size: 10.5px; font-weight: 800; letter-spacing: .04em; color: var(--green); text-transform: uppercase; }
+.cst-struct-nav-ads { font-size: 11.5px; color: rgba(255,255,255,.55); }
+@media (max-width: 600px) { .cst-struct-nav { padding: 0 16px 12px; } }
 .cr2-goal-section.cr2-goal-missing .cr2-goal-card { border-color: rgba(248,113,113,.5); }
 @keyframes cr2GoalShake {
   0%, 100% { transform: translateX(0); }
@@ -36993,7 +37146,8 @@ body.dark-mode .cr2-goal-desc { color: rgba(255,255,255,.4); }
 @media (max-width: 600px) {
   #cgmMetaScreen { border-radius: 12px; min-height: 0; }
   .cst-stagebar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
-  .cst-save-controls { margin-left: 0; justify-content: space-between; }
+  .cst-save-controls { margin-left: 0; flex-wrap: wrap; }
+  .cst-save-controls .cst-btn { flex: 1 1 auto; min-width: 0; }
   .cst-stage-nav { width: 100%; justify-content: space-between; }
   .cst-stage-btn { flex: 1; padding: 9px 6px; text-align: center; }
   .cst-ad-selector-bar { width: 100%; }
