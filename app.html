@@ -15963,11 +15963,20 @@ window._cr2Goal = function(btn, goal) {
 //         PERFORMANCE_MAX are all genuinely publishable; SHOPPING/VIDEO/MAPS
 //         stay excluded here since they're blocked regardless of goal).
 var _CR2_GOOGLE_TYPE_LABELS = { SEARCH: 'Search', DEMAND_GEN: 'Demand Gen', PERFORMANCE_MAX: 'Performance Max' };
+// Search listed first for every goal (not just Leads/Traffic as before) so
+// it's the recommended/pre-selected Google Campaign Type on first render --
+// Search is the only Google type with a real, configurable multi-Ad-Group
+// Campaign Structure, so this is what makes Google show the same live
+// Ad Sets/Ads-per-Ad-Set control Meta and TikTok show immediately, with no
+// click required. PMax/Demand Gen remain one click away and still show
+// their own honest, real object-model explanation the moment they're
+// picked -- this only changes which type is recommended by default, not
+// what each type honestly displays once selected.
 var _CR2_GOOGLE_GOAL_TYPES = {
-  Sales:     ['PERFORMANCE_MAX', 'SEARCH', 'DEMAND_GEN'],
+  Sales:     ['SEARCH', 'PERFORMANCE_MAX', 'DEMAND_GEN'],
   Leads:     ['SEARCH', 'PERFORMANCE_MAX', 'DEMAND_GEN'],
   Traffic:   ['SEARCH', 'DEMAND_GEN'],
-  Awareness: ['DEMAND_GEN', 'SEARCH'],
+  Awareness: ['SEARCH', 'DEMAND_GEN'],
 };
 function _cr2RenderPlatObj(){
   var section = document.getElementById('cr2PlatObjSection');
