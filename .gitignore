@@ -3,4 +3,6 @@ server/.env
 .env.local
 
 server/node_modules/
-node_modules/
+node_modules/.static-server*.log
+oriven-backand-clean/
+oriven-backand-clean-backup/
