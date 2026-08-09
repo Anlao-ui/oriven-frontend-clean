@@ -8100,9 +8100,7 @@ button.lp-cta-btn { cursor:pointer; border:none; }
 @media (max-width: 480px) { .au-nav { padding: 0 16px; } .au-nav-logo img { height: 40px; } }
 .au-page { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 88px 24px 48px; }
 .au-card { width: 100%; max-width: 420px; background: #111111; border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 36px 32px; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
-.au-brand { display: flex; align-items: center; margin-bottom: 28px; }
-.au-brand-txt { font-size: 14px; font-weight: 700; color: rgba(240,240,240,.6); letter-spacing: -.2px; }
-.au-title { font-family: 'Instrument Serif', serif; font-size: 26px; color: #F0F0F0; letter-spacing: -.7px; font-weight: 400; margin-bottom: 6px; line-height: 1.1; }
+.au-title { font-family: 'Geist', system-ui, -apple-system, sans-serif; font-size: 26px; color: #F0F0F0; letter-spacing: -.7px; font-weight: 600; margin-bottom: 6px; line-height: 1.1; }
 .au-sub { font-size: 13px; color: rgba(240,240,240,.38); margin-bottom: 28px; line-height: 1.5; }
 .au-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
 .au-label { font-size: 11px; font-weight: 700; letter-spacing: .04em; color: rgba(240,240,240,.45); text-transform: uppercase; }
@@ -24131,7 +24129,19 @@ body { flex-direction: row !important; }
    claim the real available main-content width; each page's own inner
    max-width/margin:auto wrapper (e.g. .cgr-wrap) then centers properly
    within that correctly-sized box, exactly as it always intended to. */
-.app > .page.active { flex: 9999 1 0%; width: auto; min-width: 0; max-width: 100%; }
+/* Same root cause, second symptom: .app itself paints a legacy near-black
+   background (.app{background:var(--ap-bg)}, --ap-bg:#09090B -- an old
+   token whose real visual effect is "superseded by later var(--bg) rules"
+   on every page that's correctly nested inside .mc, per that variable's
+   own definition comment). A .page that's a direct .app child (this exact
+   selector) has no opaque background of its own, so on any page whose
+   content doesn't happen to fill 100% of the box (e.g. Drafts render two
+   short rows, leaving empty space below), .app's dark legacy background
+   -- and the always-running #appAmbient canvas beneath it -- shows
+   through in the gap. Painting the real, current, theme-aware page
+   background here (same var(--bg) token body/.mc already use) removes
+   the gap for every affected page at once, not just one. */
+.app > .page.active { flex: 9999 1 0%; width: auto; min-width: 0; max-width: 100%; background: var(--bg); }
 
 /* ── New sidebar ─────────────────────────────────────────────── */
 .orv-sb {
@@ -25271,8 +25281,26 @@ body.dark-mode .orv-notif-bell { background: rgba(255,255,255,.04); border-color
   box-shadow: 0 12px 40px rgba(0,0,0,.14);
 }
 body.dark-mode .orv-notif-panel { background: #111113; border-color: rgba(255,255,255,.08); }
-.orv-notif-hd { font-size: 13px; font-weight: 700; padding: 12px 14px 8px; color: var(--charcoal); }
-body.dark-mode .orv-notif-hd { color: rgba(255,255,255,.92); }
+.orv-notif-hd {
+  position: sticky; top: 0; z-index: 1;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 13px; font-weight: 700; padding: 12px 14px; color: var(--charcoal);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+body.dark-mode .orv-notif-hd { color: rgba(255,255,255,.92); background: #111113; border-color: rgba(255,255,255,.08); }
+.orv-notif-markall { font-size: 11px; font-weight: 600; color: var(--muted, #888); background: none; border: none; cursor: pointer; padding: 2px 4px; }
+.orv-notif-markall:hover { color: var(--charcoal); }
+body.dark-mode .orv-notif-markall:hover { color: rgba(255,255,255,.9); }
+
+/* Notification items -- unread emphasis + severity dot (info/success/
+   warning/critical), Final Polish notification rewrite. */
+.orv-notif-item { cursor: pointer; position: relative; }
+.orv-notif-item.orv-notif-unread { background: color-mix(in srgb, var(--green) 6%, transparent); }
+.orv-notif-sev-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 2px; background: rgba(120,120,120,.5); }
+.orv-notif-sev-info .orv-notif-sev-dot { background: #60a5fa; }
+.orv-notif-sev-success .orv-notif-sev-dot { background: #34d399; }
+.orv-notif-sev-warning .orv-notif-sev-dot { background: #fbbf24; }
+.orv-notif-sev-critical .orv-notif-sev-dot { background: #ef4444; }
 
 .orv-ai-fab {
   position: fixed; bottom: 24px; right: 24px; z-index: 200;
@@ -27097,405 +27125,19 @@ body.dark-mode .crv-concept-line { color: rgba(255,255,255,.7); }
 .crv-concept-card:hover .crv-concept-cta { color: var(--green); }
 
 /* ══════════════════════════════════════════════════════════════
-   SCREEN 5 — Campaign Studio
+   [REMOVED — Final Polish cleanup audit] "SCREEN 5 — Campaign Studio"
+   (~400 lines: .crv-studio-*, .crv-sl-*, .crv-pub-*, .crv-gen-*,
+   .crv-ai-*, .crv-center-*, .crv-asset-*, #crvS2/S3/S4/Sassets, and
+   the "Studio outer container fix" that followed it) was the CSS for
+   the early 3-column Campaign Studio modal the user explicitly
+   rejected earlier this project -- its HTML was already deleted from
+   app.html in that pass, leaving this CSS (and app.html's _crvShow/
+   _crvLaunchStudio, which are effectively no-ops now since every DOM
+   id they target no longer exists) orphaned. Confirmed zero matches
+   for every selector here across app.html/*.js before removal. The
+   still-active Meta/Google/TikTok Preview/Edit/Review screens use an
+   unrelated, current design system (.cst-*), not this one.
    ══════════════════════════════════════════════════════════════ */
-
-.crv-studio-screen {
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-}
-
-/* Studio topbar */
-.crv-studio-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 18px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  flex-shrink: 0;
-  min-height: 46px;
-}
-body.dark-mode .crv-studio-bar {
-  background: rgba(255,255,255,.02);
-  border-bottom-color: rgba(255,255,255,.07);
-}
-.crv-back-sm { font-size: 12px; }
-.crv-studio-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--charcoal);
-  letter-spacing: -.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 300px;
-}
-body.dark-mode .crv-studio-title { color: rgba(255,255,255,.9); }
-.crv-studio-status {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 8px;
-  flex-shrink: 0;
-}
-body.dark-mode .crv-studio-status {
-  background: rgba(255,255,255,.04);
-  border-color: rgba(255,255,255,.09);
-}
-.crv-studio-status.crv-status-ready {
-  color: #3ecf8e;
-  background: rgba(62,207,142,.08);
-  border-color: rgba(62,207,142,.2);
-}
-.crv-studio-spacer { flex: 1; }
-
-/* Studio 3-column body */
-.crv-studio-body {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* Left panel */
-.crv-studio-left {
-  width: 186px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  padding: 18px 14px;
-  overflow-y: auto;
-  background: var(--surface);
-}
-body.dark-mode .crv-studio-left {
-  background: rgba(255,255,255,.015);
-  border-right-color: rgba(255,255,255,.07);
-}
-.crv-sl-label {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-.crv-sl-item {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--muted);
-  padding: 6px 10px;
-  border-radius: 7px;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: background .1s, color .1s;
-}
-.crv-sl-item.crv-sl-active {
-  background: color-mix(in srgb, var(--green) 7%, transparent);
-  color: var(--charcoal);
-  font-weight: 600;
-}
-body.dark-mode .crv-sl-item.crv-sl-active { color: rgba(255,255,255,.9); background: color-mix(in srgb, var(--green) 8%, transparent); }
-.crv-sl-ad {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.crv-sl-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  flex-shrink: 0;
-}
-
-/* Center panel */
-.crv-studio-center {
-  flex: 1;
-  overflow-y: auto;
-  min-width: 0;
-  position: relative;
-}
-.crv-studio-center::-webkit-scrollbar { width: 4px; }
-.crv-studio-center::-webkit-scrollbar-track { background: transparent; }
-.crv-studio-center::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-.crv-center-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-  gap: 16px;
-  padding: 60px 20px;
-}
-
-.crv-center-content {
-  padding: 24px 28px 32px;
-}
-
-.crv-gen-section { margin-bottom: 28px; }
-.crv-gen-section-lbl {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .09em;
-  color: var(--muted);
-  margin-bottom: 14px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
-body.dark-mode .crv-gen-section-lbl { border-bottom-color: rgba(255,255,255,.07); }
-
-.crv-gen-group {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-body.dark-mode .crv-gen-group {
-  background: rgba(255,255,255,.025);
-  border-color: rgba(255,255,255,.07);
-}
-.crv-asset-lbl {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--muted);
-  padding: 9px 12px 7px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,.01);
-}
-body.dark-mode .crv-asset-lbl { border-bottom-color: rgba(255,255,255,.06); }
-
-.crv-asset-item {
-  padding: 10px 12px;
-  font-size: 13px;
-  color: var(--charcoal);
-  line-height: 1.5;
-  border-bottom: 1px solid var(--border);
-  outline: none;
-  cursor: text;
-  transition: background .1s;
-}
-body.dark-mode .crv-asset-item { color: rgba(255,255,255,.88); border-bottom-color: rgba(255,255,255,.06); }
-.crv-asset-item:last-child { border-bottom: none; }
-.crv-asset-item:focus { background: color-mix(in srgb, var(--green) 3%, transparent); }
-body.dark-mode .crv-asset-item:focus { background: color-mix(in srgb, var(--green) 5%, transparent); }
-
-/* Publish bar */
-.crv-pub-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-top: 8px;
-}
-body.dark-mode .crv-pub-bar {
-  background: rgba(255,255,255,.03);
-  border-color: rgba(255,255,255,.08);
-}
-.crv-pub-lbl {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--charcoal);
-}
-body.dark-mode .crv-pub-lbl { color: rgba(255,255,255,.8); }
-.crv-pub-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* Right AI panel */
-.crv-studio-right {
-  width: 280px;
-  flex-shrink: 0;
-  border-left: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--surface);
-}
-body.dark-mode .crv-studio-right {
-  background: rgba(255,255,255,.015);
-  border-left-color: rgba(255,255,255,.07);
-}
-
-.crv-ai-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 13px 16px 11px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-body.dark-mode .crv-ai-head { border-bottom-color: rgba(255,255,255,.07); }
-.crv-ai-head-lbl {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .09em;
-  color: var(--muted);
-}
-.crv-ai-head-badge {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .1em;
-  background: color-mix(in srgb, var(--green) 13%, transparent);
-  color: var(--green-text);
-  padding: 2px 7px;
-  border-radius: 20px;
-}
-body.dark-mode .crv-ai-head-badge { color: var(--green); background: color-mix(in srgb, var(--green) 14%, transparent); }
-
-.crv-ai-feed {
-  flex: 1;
-  overflow-y: auto;
-  padding: 14px 14px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.crv-ai-feed::-webkit-scrollbar { width: 3px; }
-.crv-ai-feed::-webkit-scrollbar-track { background: transparent; }
-.crv-ai-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-.crv-ai-bubble {
-  font-size: 12px;
-  line-height: 1.55;
-  padding: 9px 11px;
-  border-radius: 10px;
-  max-width: 100%;
-  word-break: break-word;
-}
-.crv-ai-ai {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--charcoal);
-  border-bottom-left-radius: 3px;
-}
-body.dark-mode .crv-ai-ai {
-  background: rgba(255,255,255,.05);
-  border-color: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.85);
-}
-.crv-ai-user {
-  background: color-mix(in srgb, var(--green) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--green) 20%, transparent);
-  color: var(--charcoal);
-  border-bottom-right-radius: 3px;
-  align-self: flex-end;
-}
-body.dark-mode .crv-ai-user { color: rgba(255,255,255,.9); }
-
-.crv-ai-typing { letter-spacing: .2em; opacity: .6; }
-
-.crv-ai-footer {
-  border-top: 1px solid var(--border);
-  padding: 10px 12px;
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-  flex-shrink: 0;
-}
-body.dark-mode .crv-ai-footer { border-top-color: rgba(255,255,255,.07); }
-
-.crv-ai-input {
-  flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 12px;
-  color: var(--charcoal);
-  font-family: inherit;
-  resize: none;
-  outline: none;
-  transition: border-color .12s;
-  line-height: 1.45;
-}
-body.dark-mode .crv-ai-input {
-  background: rgba(255,255,255,.04);
-  border-color: rgba(255,255,255,.1);
-  color: rgba(255,255,255,.88);
-}
-.crv-ai-input:focus { border-color: color-mix(in srgb, var(--green) 45%, transparent); }
-.crv-ai-input::placeholder { color: var(--muted); opacity: .7; }
-
-.crv-ai-send {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--green) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--green) 25%, transparent);
-  color: var(--green-text);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background .12s, border-color .12s;
-}
-body.dark-mode .crv-ai-send { color: var(--green); }
-.crv-ai-send:hover {
-  background: color-mix(in srgb, var(--green) 22%, transparent);
-  border-color: color-mix(in srgb, var(--green) 40%, transparent);
-}
-
-/* ── Responsive ──────────────────────────────────────────────── */
-@media (max-width: 1100px) {
-  .crv-concepts-grid { grid-template-columns: repeat(3, 1fr); }
-  .crv-studio-right  { width: 240px; }
-}
-@media (max-width: 900px) {
-  .crv-plat-grid     { grid-template-columns: 1fr; max-width: 400px; }
-  .crv-goal-grid     { grid-template-columns: repeat(2, 1fr); }
-  .crv-concepts-grid { grid-template-columns: repeat(2, 1fr); }
-  .crv-studio-right  { display: none; }
-  .crv-studio-left   { width: 150px; }
-}
-@media (max-width: 640px) {
-  .crv-stage  { padding: 32px 18px 48px; }
-  .crv-h1     { font-size: 24px; }
-  .crv-goal-grid { grid-template-columns: 1fr; }
-  .crv-studio-left { display: none; }
-}
-
-
-/* ══════════════════════════════════════════════════════════════
-   CREATE v2 — Studio outer container fix
-   ══════════════════════════════════════════════════════════════ */
-
-/* Studio outer: flex column filling the crv-page height.
-   display is controlled entirely by JS (_crvShow). */
-.crv-studio-outer {
-  flex: 1;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* Remove the display:flex!important that was overriding style="display:none" */
-.crv-studio-screen {
-  display: unset;
-}
-
-/* Center-step wrappers scroll independently */
-#crvS2, #crvS3, #crvS4, #crvSassets {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
 
 /* ══════════════════════════════════════════════════════════════
    OVERVIEW v2 — ov2-*
@@ -36882,6 +36524,8 @@ body.dark-mode .cr2-foot-divider { background: rgba(255,255,255,.1); }
   background: var(--glt);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 16%, transparent), 0 4px 20px color-mix(in srgb, var(--green) 18%, transparent);
 }
+.cr2-goal-card.cr2-goal-card-disabled { opacity: .4; cursor: not-allowed; }
+.cr2-goal-card.cr2-goal-card-disabled:hover { transform: none; }
 /* Missing-selection nudge (parallels .cr2-box's own focus/error treatment) */
 .cr2-goal-section.cr2-goal-missing .cr2-goal-grid { animation: cr2GoalShake .4s; }
 .cr2-goal-section.cr2-goal-missing .cr2-goal-card { border-color: rgba(248,113,113,.5); }
@@ -37216,6 +36860,11 @@ body.dark-mode .cr2-goal-desc { color: rgba(255,255,255,.4); }
 .cst-btn-primary:hover { opacity: .88; }
 .cst-btn-primary:disabled { opacity: .4; cursor: not-allowed; }
 .cst-btn-lg { font-size: 14px; padding: 12px 28px; border-radius: 10px; }
+.cst-btn-sm { font-size: 12px; padding: 6px 12px; border-radius: 7px; margin-right: 8px; }
+.cst-pmax-asset-preview { margin-top: 8px; width: 96px; height: 96px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,.1); }
+.cst-pmax-asset-preview img { width: 100%; height: 100%; object-fit: contain; background: rgba(255,255,255,.03); }
+.cst-pmax-asset-preview-wide { width: 100%; max-width: 320px; height: 168px; }
+.cst-pmax-asset-preview-wide img { object-fit: cover; }
 
 /* Stage bar: the three Preview/Edit/Review states + compact ad selector +
    save controls. This replaces the old Copy/Audience/Creatives/Settings
@@ -37482,6 +37131,10 @@ body.dark-mode .cr2-goal-desc { color: rgba(255,255,255,.4); }
 .cst-pmax-card-label { font-size: 12.5px; font-weight: 700; color: #fff; margin-bottom: 4px; }
 .cst-pmax-card-snippet { font-size: 11.5px; color: rgba(255,255,255,.4); line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 @media (max-width: 600px) { .cst-pmax-grid { grid-template-columns: repeat(2, 1fr); } }
+.cst-pmax-assetgroup { max-width: 480px; margin: 0 auto 22px; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; background: rgba(255,255,255,.02); }
+.cst-pmax-assetgroup b { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,.45); margin-bottom: 10px; }
+.cst-pmax-ag-row { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; color: rgba(255,255,255,.75); padding: 5px 0; border-top: 1px solid rgba(255,255,255,.05); }
+.cst-pmax-ag-row:first-of-type { border-top: none; }
 
 /* Editable list rows (headlines / descriptions / keywords) */
 .cst-list { display: flex; flex-direction: column; gap: 7px; }

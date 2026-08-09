@@ -619,6 +619,16 @@
               </div>
             </div>
 
+            <!-- Platform-specific objective / campaign type (Final Polish,
+                 Part 9-16) -- each platform has its own real objective
+                 model; this section is rebuilt by _cr2RenderPlatObj()
+                 whenever the platform or goal changes, rather than reusing
+                 one generic list for all three. -->
+            <div class="cr2-goal-section" id="cr2PlatObjSection" style="display:none">
+              <div class="cr2-goal-label" id="cr2PlatObjLabel">Campaign Type</div>
+              <div class="cr2-goal-grid" id="cr2PlatObjGrid" role="group" aria-label="Platform-specific objective"></div>
+            </div>
+
             <button class="cr2-gen-btn" id="aicGenBtn" onclick="aicGenerate()">
               <span data-i18n="dashCampaignLabel">Build Campaign</span>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
@@ -1782,8 +1792,109 @@
       </div>
 
       </div>
+    <!-- NOTE: the div immediately below this comment block (before "/#page-ads-manager")
+         is #page-ads-manager's own closing tag; the ACTUAL .mc closing tag is
+         the one now placed after #page-campaigns below (was previously
+         mislabeled "/#page-ads-manager" -- .mc and #page-ads-manager's closers
+         were adjacent with no page in between, which is exactly why inserting
+         a new page "after #page-ads-manager" by text-comment-name alone had
+         silently landed it outside .mc; verified against the live DOM, not
+         by re-reading comments a second time. -->
 
-    </div><!-- /#page-ads-manager -->
+    <!-- ════════════════════════════════════════════════════════════
+         CAMPAIGN HUB — primary dashboard (Oriven 3.0)
+         Moved inside .mc (Final Polish, Drafts shell fix) -- this page
+         used to be a direct .app-level flex sibling of .mc instead of
+         nested inside it like #page-performance/#page-ads-manager (its
+         own Overview/Live Campaigns tab-strip siblings). That mismatch
+         was the actual root cause of the Drafts tab looking like a
+         different product: with #page-campaigns.active on the .app row
+         (flex:9999 as flex sibling of .mc), .mc -- which is what the
+         Overview/Live Campaigns/Drafts tab strip itself lives inside --
+         was starved down to near-zero width, and .app's own legacy near-
+         black background (plus the always-on ambient canvas beneath it)
+         showed through every part of the page #page-campaigns' own
+         (transparent) content didn't cover. Nesting it in .mc like its
+         two sibling tabs removes the cause instead of another one-off
+         background/z-index patch. ════════════════════════════════════ -->
+    <div class="page" id="page-campaigns">
+      <div class="camp-hub">
+
+        <!-- Header -->
+        <div class="camp-hub-hdr">
+          <div>
+            <h1 class="camp-hub-title">Campaigns</h1>
+            <p class="camp-hub-sub" id="campHubSub">Manage your campaigns — drafts, active, and archived.</p>
+          </div>
+          <button class="camp-new-btn" onclick="navigate('create')">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 1v10M1 6h10"/></svg>
+            <span data-i18n="newCampaignBtnPlain">New Campaign</span>
+          </button>
+        </div>
+
+        <!-- Filter bar: platform tabs + search -->
+        <div class="clib-bar">
+          <div class="clib-tabs" id="clibTabs">
+            <button class="clib-tab clib-tab-on"  data-filter="google" onclick="cmpFilter(this)">
+              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><path d="M10.9 6.1c0-.4 0-.8-.1-1.1H6v2.1h2.8a2.4 2.4 0 0 1-1 1.5v1.2h1.7c1-1 1.4-2.3 1.4-3.7z" fill="#4285F4"/><path d="M6 11c1.4 0 2.6-.5 3.5-1.3l-1.7-1.3a3.2 3.2 0 0 1-1.8.5 3.2 3.2 0 0 1-3-2.1H1.3v1.3A5.3 5.3 0 0 0 6 11z" fill="#34A853"/><path d="M3 6.8a3.1 3.1 0 0 1 0-1.6V3.9H1.3a5.3 5.3 0 0 0 0 4.2L3 6.8z" fill="#FBBC05"/><path d="M6 2.7c.8 0 1.5.3 2 .8L9.6 1.9A5.3 5.3 0 0 0 1.3 3.9L3 5.2a3.2 3.2 0 0 1 3-2.5z" fill="#EA4335"/></svg>
+              Google Ads
+            </button>
+            <button class="clib-tab"              data-filter="meta"   onclick="cmpFilter(this)">
+              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><rect width="12" height="12" rx="3" fill="#1877F2"/><path d="M8.1 6a2.1 2.1 0 1 0-4.2 0c0 1 .7 1.8 1.7 2V7H4.7V6h.9V5.3c0-.6.3-.9.9-.9h.5V5.2h-.4c-.2 0-.2.1-.2.3V6h.7L7 7H6.4v1c1-.2 1.7-1 1.7-2z" fill="white"/></svg>
+              Meta Ads
+            </button>
+            <button class="clib-tab"              data-filter="tiktok" onclick="cmpFilter(this)">
+              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><rect width="12" height="12" rx="3" fill="#010101"/><path d="M7.9 3.1h-.9v3.7a.75.75 0 1 1-1-.7V4.8a2.5 2.5 0 1 0 2.2 2.5V4.8c.3.2.7.3 1.1.3V4a1.1 1.1 0 0 1-1.4-.9z" fill="white"/></svg>
+              TikTok Ads
+            </button>
+          </div>
+          <div class="clib-search-wrap">
+            <svg class="clib-search-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/></svg>
+            <input class="clib-search" type="text" id="clibSearchInput" placeholder="Search campaigns…" data-i18n-placeholder="searchCampaignsPlaceholder" oninput="cmpSearch(this.value)">
+          </div>
+        </div>
+
+        <!-- Pinned / Recents Row (shown when campaigns exist) -->
+        <div id="campHubPinned" style="display:none">
+          <div class="camp-hub-sect-hd" data-i18n="continueWorkingHeader">Continue working</div>
+          <div class="camp-hub-recent-row" id="campHubRecentRow"></div>
+        </div>
+
+        <!-- Campaign Grid (shown when campaigns exist) -->
+        <div id="campHubGrid" style="display:none">
+          <div class="camp-card-grid" id="campCardGrid"></div>
+          <!-- Empty search result -->
+          <div class="clib-no-results" id="clibNoResults" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span data-i18n="noCampaignsMatchSearch">No campaigns match your search.</span>
+          </div>
+        </div>
+
+        <!-- TikTok Coming Soon State -->
+        <div class="camp-hub-empty" id="campTikTokComing" style="display:none">
+          <div class="camp-hub-empty-ico">
+            <svg viewBox="0 0 56 56" fill="none" width="56" height="56"><rect x="6" y="6" width="44" height="44" rx="8" stroke="currentColor" stroke-width="1.5" stroke-opacity=".3"/><path d="M31.5 14h-5v17a3.5 3.5 0 1 1-3.5-3.5v-4.1A7.5 7.5 0 1 0 32.5 31V22c1.4 1 3.1 1.5 4.8 1.5v-4a5 5 0 0 1-5-5.5H31.5z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".4"/></svg>
+          </div>
+          <h2 class="camp-hub-empty-title">TikTok Ads</h2>
+          <p class="camp-hub-empty-sub" data-i18n="tiktokComingSoonSub">TikTok integration is coming soon. Once your TikTok app is approved and connected, your campaigns will appear here.</p>
+        </div>
+
+        <!-- Empty State (shown when no campaigns) -->
+        <div class="camp-hub-empty" id="campHubEmpty">
+          <div class="camp-hub-empty-ico">
+            <svg viewBox="0 0 56 56" fill="none"><rect x="6" y="14" width="44" height="28" rx="4" stroke="currentColor" stroke-width="1.5"/><path d="M6 23h44M18 14v9M38 14v9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="28" cy="37" r="3" stroke="currentColor" stroke-width="1.4"/></svg>
+          </div>
+          <h2 class="camp-hub-empty-title" data-i18n="noCampaignsYetDot">No campaigns yet.</h2>
+          <p class="camp-hub-empty-sub" data-i18n="noCampaignsYetSub">Generate your first campaign from Create. Describe your product and Oriven will build a complete campaign instantly.</p>
+          <button class="camp-new-btn camp-new-btn-lg" onclick="_orvNav('create','page-create')">
+            <span data-i18n="createCampaignArrowBtn">Create Campaign →</span>
+          </button>
+        </div>
+
+      </div>
+    </div><!-- /#page-campaigns -->
+
+    </div><!-- /.mc -->
 
     <!-- ══ REPORTS ═══════════════════════════════════════════════ -->
     <div class="page" id="page-reports">
@@ -2027,86 +2138,6 @@
 
       </div>
     </div><!-- /#page-brain -->
-
-    <!-- ════════════════════════════════════════════════════════════
-         CAMPAIGN HUB — primary dashboard (Oriven 3.0)
-         ════════════════════════════════════════════════════════════ -->
-    <div class="page" id="page-campaigns">
-      <div class="camp-hub">
-
-        <!-- Header -->
-        <div class="camp-hub-hdr">
-          <div>
-            <h1 class="camp-hub-title">Campaigns</h1>
-            <p class="camp-hub-sub" id="campHubSub">Manage your campaigns — drafts, active, and archived.</p>
-          </div>
-          <button class="camp-new-btn" onclick="navigate('create')">
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 1v10M1 6h10"/></svg>
-            <span data-i18n="newCampaignBtnPlain">New Campaign</span>
-          </button>
-        </div>
-
-        <!-- Filter bar: platform tabs + search -->
-        <div class="clib-bar">
-          <div class="clib-tabs" id="clibTabs">
-            <button class="clib-tab clib-tab-on"  data-filter="google" onclick="cmpFilter(this)">
-              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><path d="M10.9 6.1c0-.4 0-.8-.1-1.1H6v2.1h2.8a2.4 2.4 0 0 1-1 1.5v1.2h1.7c1-1 1.4-2.3 1.4-3.7z" fill="#4285F4"/><path d="M6 11c1.4 0 2.6-.5 3.5-1.3l-1.7-1.3a3.2 3.2 0 0 1-1.8.5 3.2 3.2 0 0 1-3-2.1H1.3v1.3A5.3 5.3 0 0 0 6 11z" fill="#34A853"/><path d="M3 6.8a3.1 3.1 0 0 1 0-1.6V3.9H1.3a5.3 5.3 0 0 0 0 4.2L3 6.8z" fill="#FBBC05"/><path d="M6 2.7c.8 0 1.5.3 2 .8L9.6 1.9A5.3 5.3 0 0 0 1.3 3.9L3 5.2a3.2 3.2 0 0 1 3-2.5z" fill="#EA4335"/></svg>
-              Google Ads
-            </button>
-            <button class="clib-tab"              data-filter="meta"   onclick="cmpFilter(this)">
-              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><rect width="12" height="12" rx="3" fill="#1877F2"/><path d="M8.1 6a2.1 2.1 0 1 0-4.2 0c0 1 .7 1.8 1.7 2V7H4.7V6h.9V5.3c0-.6.3-.9.9-.9h.5V5.2h-.4c-.2 0-.2.1-.2.3V6h.7L7 7H6.4v1c1-.2 1.7-1 1.7-2z" fill="white"/></svg>
-              Meta Ads
-            </button>
-            <button class="clib-tab"              data-filter="tiktok" onclick="cmpFilter(this)">
-              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><rect width="12" height="12" rx="3" fill="#010101"/><path d="M7.9 3.1h-.9v3.7a.75.75 0 1 1-1-.7V4.8a2.5 2.5 0 1 0 2.2 2.5V4.8c.3.2.7.3 1.1.3V4a1.1 1.1 0 0 1-1.4-.9z" fill="white"/></svg>
-              TikTok Ads
-            </button>
-          </div>
-          <div class="clib-search-wrap">
-            <svg class="clib-search-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/></svg>
-            <input class="clib-search" type="text" id="clibSearchInput" placeholder="Search campaigns…" data-i18n-placeholder="searchCampaignsPlaceholder" oninput="cmpSearch(this.value)">
-          </div>
-        </div>
-
-        <!-- Pinned / Recents Row (shown when campaigns exist) -->
-        <div id="campHubPinned" style="display:none">
-          <div class="camp-hub-sect-hd" data-i18n="continueWorkingHeader">Continue working</div>
-          <div class="camp-hub-recent-row" id="campHubRecentRow"></div>
-        </div>
-
-        <!-- Campaign Grid (shown when campaigns exist) -->
-        <div id="campHubGrid" style="display:none">
-          <div class="camp-card-grid" id="campCardGrid"></div>
-          <!-- Empty search result -->
-          <div class="clib-no-results" id="clibNoResults" style="display:none">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <span data-i18n="noCampaignsMatchSearch">No campaigns match your search.</span>
-          </div>
-        </div>
-
-        <!-- TikTok Coming Soon State -->
-        <div class="camp-hub-empty" id="campTikTokComing" style="display:none">
-          <div class="camp-hub-empty-ico">
-            <svg viewBox="0 0 56 56" fill="none" width="56" height="56"><rect x="6" y="6" width="44" height="44" rx="8" stroke="currentColor" stroke-width="1.5" stroke-opacity=".3"/><path d="M31.5 14h-5v17a3.5 3.5 0 1 1-3.5-3.5v-4.1A7.5 7.5 0 1 0 32.5 31V22c1.4 1 3.1 1.5 4.8 1.5v-4a5 5 0 0 1-5-5.5H31.5z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".4"/></svg>
-          </div>
-          <h2 class="camp-hub-empty-title">TikTok Ads</h2>
-          <p class="camp-hub-empty-sub" data-i18n="tiktokComingSoonSub">TikTok integration is coming soon. Once your TikTok app is approved and connected, your campaigns will appear here.</p>
-        </div>
-
-        <!-- Empty State (shown when no campaigns) -->
-        <div class="camp-hub-empty" id="campHubEmpty">
-          <div class="camp-hub-empty-ico">
-            <svg viewBox="0 0 56 56" fill="none"><rect x="6" y="14" width="44" height="28" rx="4" stroke="currentColor" stroke-width="1.5"/><path d="M6 23h44M18 14v9M38 14v9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="28" cy="37" r="3" stroke="currentColor" stroke-width="1.4"/></svg>
-          </div>
-          <h2 class="camp-hub-empty-title" data-i18n="noCampaignsYetDot">No campaigns yet.</h2>
-          <p class="camp-hub-empty-sub" data-i18n="noCampaignsYetSub">Generate your first campaign from Create. Describe your product and Oriven will build a complete campaign instantly.</p>
-          <button class="camp-new-btn camp-new-btn-lg" onclick="_orvNav('create','page-create')">
-            <span data-i18n="createCampaignArrowBtn">Create Campaign →</span>
-          </button>
-        </div>
-
-      </div>
-    </div><!-- /#page-campaigns -->
 
     <!-- ════════════════════════════════════════════════════════════
          CAMPAIGN WORKSPACE — individual campaign editor
@@ -2601,234 +2632,14 @@
       </div>
     </div>
 
-    <!-- CREATE (legacy block removed — see new #page-create above) -->
-    <div class="page" id="page-create-legacy" style="display:none!important">
-      <div class="cr2-wrap">
-
-        <!-- NO BRAND CORE STATE -->
-        <div class="cr2-empty" id="crEmpty">
-          <div class="cr2-empty-icon">
-            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
-              <rect x="3" y="3" width="26" height="26" rx="6"/>
-              <path d="M10.5 16l5 5 7-9"/>
-            </svg>
-          </div>
-          <h2 class="cr2-empty-h">Everything starts with a Brand Core.</h2>
-          <p class="cr2-empty-sub">Before creating assets, generate your Brand Core.</p>
-          <div class="cr2-empty-pillars">
-            <span>Positioning</span>
-            <span>Audience</span>
-            <span>Messaging</span>
-            <span>Tone of Voice</span>
-            <span>Visual Direction</span>
-          </div>
-          <button class="cr2-empty-btn" onclick="navigate('studio')">Generate Brand Core</button>
-        </div>
-
-        <!-- HAS BRAND CORE STATE -->
-        <div class="cr2-active" id="crActive" style="display:none">
-
-          <!-- Section 1: Brand Core header -->
-          <div class="cr2-brand-bar">
-            <div class="cr2-brand-main">
-              <div class="cr2-brand-eyebrow">
-                <span class="cr2-brand-dot" id="crBrandDot"></span>
-                <span class="cr2-brand-status-txt">Brand Core Active</span>
-                <span class="cr2-bc-badge">Brand Core</span>
-              </div>
-              <div class="cr2-brand-name" id="crBrandName">—</div>
-              <p class="cr2-brand-desc">Everything you create is generated using your Brand Core. Your positioning, audience, messaging and identity are automatically applied to every output.</p>
-            </div>
-            <div class="cr2-brand-meta">
-              <span class="cr2-upd-label">Last updated</span>
-              <span class="cr2-upd-val" id="crBrandUpdated">—</span>
-            </div>
-          </div>
-
-          <!-- Creation tools -->
-          <div class="cr2-tools">
-            <div class="cr2-section-row">
-              <h2 class="cr2-section-h">What would you like to create?</h2>
-              <span class="cr2-page-exp-badge">Experimental</span>
-            </div>
-            <div class="cr2-grid">
-
-              <button class="cr2-card" onclick="openAIFlow('ugc')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="1.5" y="4" width="14" height="14" rx="2.5"/><path d="M15.5 8.5l5-2.5v10l-5-2.5"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">UGC Creator</div>
-                <div class="cr2-card-desc">AI video creators, brand-aware scripts, ready to launch.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">10 credits</span>
-                </div>
-              </button>
-
-              <button class="cr2-card" onclick="openAIFlow('campaign')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 17l4-9 4 6 3-4 5 7"/><path d="M3 20h16"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Campaign</div>
-                <div class="cr2-card-desc">End-to-end brand campaigns across every platform.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">1 credit</span>
-                </div>
-              </button>
-
-              <button class="cr2-card" onclick="openAIFlow('image')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="2" width="18" height="18" rx="3.5"/><circle cx="7.5" cy="7.5" r="2"/><path d="M2 14l5.5-5 4 4 3-3.5 5.5 6"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Visuals</div>
-                <div class="cr2-card-desc">On-brand images and social designs, generated instantly.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">1 credit</span>
-                </div>
-              </button>
-
-              <button class="cr2-card" onclick="openAIFlow('text')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-                    <path d="M4 5.5h14M4 10.5h9M4 15.5h11"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Text & Copy</div>
-                <div class="cr2-card-desc">Headlines and copy written in your brand voice, every time.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">1 credit</span>
-                </div>
-              </button>
-
-              <button class="cr2-card" onclick="openAIFlow('web')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="1" y="2" width="20" height="14" rx="3"/><path d="M1 7h20M7 20h8M11 16v4"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Web</div>
-                <div class="cr2-card-desc">Brand-aligned landing pages and web assets built to convert.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">3 credits</span>
-                </div>
-              </button>
-
-              <button class="cr2-card" onclick="openAIFlow('email')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="1" y="4" width="20" height="15" rx="2.5"/><path d="M1 8.5l10 6.5 10-6.5"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Email</div>
-                <div class="cr2-card-desc">Branded email campaigns, newsletters, and promotions.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">2 credits</span>
-                </div>
-              </button>
-
-              <button class="cr2-card" onclick="openAIFlow('deck')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="1" y="2" width="20" height="13" rx="2.5"/><path d="M5.5 7h11M5.5 10.5h7M9 19h4M11 15v4"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Presentation</div>
-                <div class="cr2-card-desc">Pitch decks and brand presentations that close deals.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">4 credits</span>
-                </div>
-              </button>
-
-              <button class="cr2-card" onclick="openAIFlow('poster')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3.5" y="1" width="15" height="20" rx="2.5"/><rect x="6" y="3.5" width="10" height="8" rx="1.5"/><path d="M6 15.5h10M6 18.5h7"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Poster</div>
-                <div class="cr2-card-desc">Branded posters for product launches, events, and announcements.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">2 credits</span>
-                </div>
-              </button>
-
-              <button class="cr2-card" onclick="openAIFlow('infographic')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="1" y="6" width="5" height="14" rx="1.5"/><rect x="8.5" y="9" width="5" height="11" rx="1.5"/><rect x="16" y="3" width="5" height="17" rx="1.5"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Infographic</div>
-                <div class="cr2-card-desc">Data-driven visuals for insights and brand storytelling.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">2 credits</span>
-                </div>
-              </button>
-
-
-              <button class="cr2-card" onclick="vaOpen()">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="1.5" y="4" width="14" height="14" rx="2.5"/><path d="M15.5 8.5l5-2.5v10l-5-2.5"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Video Ads</div>
-                <div class="cr2-card-desc">Cinematic brand advertising videos, generated by AI.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">5 credits</span>
-                </div>
-              </button>
-
-              <button class="cr2-card" onclick="openAIFlow('productshoots')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 18a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3.5l2-3h7l2 3H19a2 2 0 0 1 2 2z"/><circle cx="11" cy="13" r="4"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Product Shoots</div>
-                <div class="cr2-card-desc">AI product photography for ecommerce, ads, and campaigns.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">2 credits</span>
-                </div>
-              </button>
-
-              <button class="cr2-card" onclick="openAIFlow('motiongraphics')">
-                <div class="cr2-card-ico">
-                  <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="4 2.5 18 11 4 19.5 4 2.5"/><path d="M18 11h4M18 7V3.5M18 18.5V15"/>
-                  </svg>
-                </div>
-                <div class="cr2-card-title">Motion Graphics <span class="cr2-beta-badge">Beta</span></div>
-                <div class="cr2-card-desc">Animated brand assets, logo motion, and video intros.</div>
-                <div class="cr2-card-foot">
-                  <span class="cr2-powered">Powered by <span class="cr2-brand-ref">your Brand Core</span></span>
-                  <span class="cr2-credits">3 credits</span>
-                </div>
-              </button>
-
-            </div><!-- /.cr2-grid -->
-          </div><!-- /.cr2-tools -->
-
-        </div><!-- /#crActive -->
-
-      </div><!-- /.cr2-wrap -->
-    </div><!-- /#page-create -->
+    <!-- [REMOVED — Final Polish cleanup audit] #page-create-legacy: a
+         permanently display:none!important page (the file's own comment
+         already said "legacy block removed — see new #page-create above")
+         whose id/content had zero references anywhere in app.html/*.js
+         beyond its own declaration -- confirmed dead, not just hidden.
+         Its cr2-* classes are shared with and still used by the real,
+         active #page-create above, so only this specific wrapper and its
+         unique inner markup were removed; no CSS was touched. -->
 
 
     <!-- CREATE WORKSPACE -->
@@ -4222,7 +4033,7 @@
      above — panel stays here since it's position:fixed and unaffected by
      DOM location. -->
 <div class="orv-notif-panel" id="orvNotifPanel" style="display:none">
-  <div class="orv-notif-hd">Notifications</div>
+  <div class="orv-notif-hd"><span>Notifications</span><button type="button" class="orv-notif-markall" onclick="orvMarkAllNotificationsRead()">Mark all read</button></div>
   <div id="orvNotifList" style="display:flex;flex-direction:column;gap:6px;padding:8px"></div>
 </div>
 
@@ -8826,6 +8637,29 @@ window._orvUpdateCampPkg = function(id, pkg) {
     return { label: _t('notifCatWarning'), page: 'autopilot' };
   }
 
+  /* Notification severity (Final Polish): maps intelligence_events'
+     existing low/medium/high severity vocabulary (unchanged -- shared with
+     the Live Feed / Intelligence Timeline, not worth splitting into two
+     vocabularies) onto the 4 notification-facing levels this feature
+     needs: info/success/warning/critical. Publish-failure titles are
+     detected explicitly since a failed campaign_action has no `severity`
+     value distinguishing it from a success one otherwise. */
+  function _orvNotifSeverity(ev){
+    if (ev.type === 'campaign_action' && /failed/i.test(ev.title || '')) return 'critical';
+    if (ev.type === 'campaign_action' && /published|executed|created/i.test(ev.title || '')) return 'success';
+    if (ev.severity === 'high' || ev.severity === 'critical') return 'critical';
+    if (ev.severity === 'medium') return 'warning';
+    return 'info';
+  }
+
+  /* Single source of truth: the badge count is derived from exactly the
+     same array the panel renders below it -- no separate counter, no
+     grouping/collapsing that could make the two disagree (previously the
+     badge counted every raw event+approval while the panel collapsed
+     same-type+platform events into one line and capped approvals at 3,
+     which is why a badge of "9" could show as few as 2 visible cards). */
+  var _orvNotifItems = [];
+
   function _loadNotifications(){
     var bell = document.getElementById('orvNotifBell');
     var count = document.getElementById('orvNotifCount');
@@ -8835,57 +8669,109 @@ window._orvUpdateCampPkg = function(id, pkg) {
     var _notifAutopilotOn = (typeof loadSettings !== 'function') || loadSettings().notifAutopilot !== false;
     Promise.all([
       apiFetch('/api/intelligence/events?severity=high&dismissed=false&days=7'),
+      apiFetch('/api/intelligence/events?dismissed=false&days=7'),
       (_notifAutopilotOn && typeof apiFetch === 'function' ? apiFetch('/api/autopilot/recommendations?status=suggested') : Promise.resolve({ok:false}))
     ]).then(function(results){
-      var res = results[0], recRes = results[1];
-      if(!res.ok || !res.data){ if(bell) bell.style.display = 'none'; return; }
-      var events = res.data.events || [];
+      var highRes = results[0], allRes = results[1], recRes = results[2];
+      // "high" severity events are the primary feed (as before); low/medium
+      // campaign_action events (publish success/failure) are unconditionally
+      // included too since those matter regardless of severity tier -- the
+      // rest of the low/medium pool stays out of the bell (still visible in
+      // the Intelligence Timeline) to avoid drowning genuinely urgent items.
+      var highEvents = (highRes.ok && highRes.data && highRes.data.events) || [];
+      var allEvents = (allRes.ok && allRes.data && allRes.data.events) || [];
+      var highIds = new Set(highEvents.map(function(e){ return e.id; }));
+      var campaignEvents = allEvents.filter(function(e){ return e.type === 'campaign_action' && !highIds.has(e.id); });
+      var events = highEvents.concat(campaignEvents).sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
       var pendingApprovals = (recRes.ok && recRes.data && recRes.data.recommendations) || [];
-      var totalCount = events.length + pendingApprovals.length;
-      if (window.orvContext) window.orvContext.notifications = totalCount;
-      if(bell) bell.style.display = totalCount ? '' : 'none';
-      if(count){ count.style.display = totalCount ? '' : 'none'; count.textContent = totalCount > 9 ? '9+' : String(totalCount); }
+
+      if (!highRes.ok) { if(bell) bell.style.display = 'none'; return; }
+
+      var items = pendingApprovals.map(function(r){
+        return { kind:'approval', id:'approval-'+r.id, raw:r, read:false, unreadForBadge:true };
+      }).concat(events.map(function(ev){
+        return { kind:'event', id:ev.id, raw:ev, read: !!ev.read, unreadForBadge: !ev.read };
+      }));
+      _orvNotifItems = items;
+
+      var unreadCount = items.filter(function(i){ return i.unreadForBadge; }).length;
+      if (window.orvContext) window.orvContext.notifications = unreadCount;
+      if(bell) bell.style.display = items.length ? '' : 'none';
+      if(count){ count.style.display = unreadCount ? '' : 'none'; count.textContent = unreadCount > 99 ? '99+' : String(unreadCount); }
       if(!list) return;
-      if(!totalCount){ list.innerHTML = '<span class="ov3-insight">' + (typeof t==='function'?t('notifEmptyText'):'No urgent notifications.') + '</span>'; return; }
+      if(!items.length){ list.innerHTML = '<span class="ov3-insight">' + (typeof t==='function'?t('notifEmptyText'):'No notifications.') + '</span>'; return; }
 
-      var html = '';
-      /* Approval category â€” surfaced directly, not grouped, since each one
-         needs its own decision. */
-      pendingApprovals.slice(0, 3).forEach(function(r){
-        html += '<div class="oi-card" style="padding:9px 12px;cursor:pointer" onclick="_orvNav(\'autopilot\',\'page-autopilot\')">' +
-          '<div class="oi-card-top"><span class="crws-search-type">' + (typeof t==='function'?t('notifCatApproval'):'Approval') + '</span><div class="oi-card-title" style="font-size:12px;flex:1">' + _prfEsc(r.problem) + '</div></div>' +
-        '</div>';
-      });
-
-      /* Group remaining events by type+platform so 5 similar findings
-         become one line, not 5. */
-      var groups = {};
-      events.forEach(function(ev){
-        var key = ev.type + '|' + (ev.platform || '');
-        (groups[key] = groups[key] || []).push(ev);
-      });
-      html += Object.keys(groups).map(function(key){
-        var g = groups[key];
-        var first = g[0];
-        var cat = _orvNotifCategory(first);
-        var plat = first.platform ? (first.platform === 'google' ? 'Google Ads' : 'Meta Ads') : '';
-        var title = g.length > 1 ? g.length + ' ' + first.type.replace('_',' ') + ' issues found' + (plat ? ' (' + plat + ')' : '') : first.title;
-        return '<div class="oi-card" style="padding:9px 12px">' +
-          '<div class="oi-card-top"><span class="crws-search-type" onclick="navigate(\'' + cat.page + '\')" style="cursor:pointer">' + cat.label + '</span>' +
-          '<div class="oi-card-title" style="font-size:12px;flex:1">' + _prfEsc(title) + '</div>' +
-          '<button class="oi-why-toggle" onclick="orvDismissNotification(\'' + first.id + '\', this)">' + (typeof t==='function'?t('notifDismissBtn'):'Dismiss') + '</button></div>' +
-          (g.length === 1 && first.detail ? '<div class="oi-card-desc">' + _prfEsc(first.detail) + '</div>' : '') +
+      list.innerHTML = items.map(function(item){
+        if (item.kind === 'approval') {
+          var r = item.raw;
+          return '<div class="oi-card orv-notif-item orv-notif-unread" data-notif-id="' + _prfEsc(item.id) + '" onclick="_orvNav(\'autopilot\',\'page-autopilot\')">' +
+            '<div class="oi-card-top"><span class="crws-search-type">' + (typeof t==='function'?t('notifCatApproval'):'Approval') + '</span><div class="oi-card-title" style="font-size:12px;flex:1">' + _prfEsc(r.problem) + '</div></div>' +
+          '</div>';
+        }
+        var ev = item.raw;
+        var cat = _orvNotifCategory(ev);
+        var sev = _orvNotifSeverity(ev);
+        return '<div class="oi-card orv-notif-item orv-notif-sev-'+sev+(item.read?'':' orv-notif-unread')+'" data-notif-id="'+_prfEsc(ev.id)+'" onclick="orvNotificationClick(\''+_prfEsc(ev.id)+'\',\''+cat.page+'\')">' +
+          '<div class="oi-card-top"><span class="orv-notif-sev-dot"></span><span class="crws-search-type">' + cat.label + '</span>' +
+          '<div class="oi-card-title" style="font-size:12px;flex:1">' + _prfEsc(ev.title) + '</div>' +
+          '<button class="oi-why-toggle" onclick="event.stopPropagation();orvDismissNotification(\''+_prfEsc(ev.id)+'\', this)">' + (typeof t==='function'?t('notifDismissBtn'):'Dismiss') + '</button></div>' +
+          (ev.detail ? '<div class="oi-card-desc">' + _prfEsc(ev.detail) + '</div>' : '') +
         '</div>';
       }).join('');
-      list.innerHTML = html;
     }).catch(function(){});
   }
 
+  /* Clicking a notification (not the Dismiss button) marks it read and
+     navigates to the relevant page -- "read" and "dismissed" are
+     deliberately separate states (Part 2/5): read just clears the unread
+     emphasis and lowers the badge count; the item stays in the list until
+     the user explicitly dismisses it. */
+  window.orvNotificationClick = function(id, page){
+    var card = document.querySelector('.orv-notif-item[data-notif-id="'+id+'"]');
+    if (card && card.classList.contains('orv-notif-unread')) {
+      card.classList.remove('orv-notif-unread');
+      apiFetch('/api/intelligence/events/' + id + '/read', { method: 'PATCH' }).catch(function(){});
+      var item = _orvNotifItems.filter(function(i){ return i.id === id; })[0];
+      if (item) item.unreadForBadge = false;
+      var unreadCount = _orvNotifItems.filter(function(i){ return i.unreadForBadge; }).length;
+      var count = document.getElementById('orvNotifCount');
+      if (count) { count.style.display = unreadCount ? '' : 'none'; count.textContent = unreadCount > 99 ? '99+' : String(unreadCount); }
+      if (window.orvContext) window.orvContext.notifications = unreadCount;
+    }
+    if (page) navigate(page);
+  };
+
+  window.orvMarkAllNotificationsRead = function(){
+    apiFetch('/api/intelligence/events/read-all', { method: 'PATCH' }).then(function(){
+      document.querySelectorAll('.orv-notif-item.orv-notif-unread').forEach(function(c){ c.classList.remove('orv-notif-unread'); });
+      _orvNotifItems.forEach(function(i){ if (i.kind === 'event') i.unreadForBadge = false; });
+      var unreadCount = _orvNotifItems.filter(function(i){ return i.unreadForBadge; }).length;
+      var count = document.getElementById('orvNotifCount');
+      if (count) { count.style.display = unreadCount ? '' : 'none'; count.textContent = unreadCount > 99 ? '99+' : String(unreadCount); }
+      if (window.orvContext) window.orvContext.notifications = unreadCount;
+    }).catch(function(){});
+  };
+
   window.orvDismissNotification = function(id, btn){
     apiFetch('/api/intelligence/events/' + id + '/dismiss', { method: 'PATCH' }).then(function(){
+      // Removes exactly the dismissed notification's own card -- each card
+      // now maps 1:1 to one real event id (no grouping), so this can no
+      // longer leave undismissed siblings behind that reappear on reload,
+      // which was the root cause of "dismiss -> identical notification
+      // immediately comes back": the old grouped card only ever dismissed
+      // the group's first id, so any other un-dismissed events sharing
+      // that type+platform kept re-forming the same-looking card.
       var card = btn && btn.closest ? btn.closest('.oi-card') : null;
       if(card) card.remove();
-      _loadNotifications();
+      _orvNotifItems = _orvNotifItems.filter(function(i){ return i.id !== id; });
+      var unreadCount = _orvNotifItems.filter(function(i){ return i.unreadForBadge; }).length;
+      var count = document.getElementById('orvNotifCount');
+      var bell = document.getElementById('orvNotifBell');
+      if (count) { count.style.display = unreadCount ? '' : 'none'; count.textContent = unreadCount > 99 ? '99+' : String(unreadCount); }
+      if (bell) bell.style.display = _orvNotifItems.length ? '' : 'none';
+      if (window.orvContext) window.orvContext.notifications = unreadCount;
+      var list = document.getElementById('orvNotifList');
+      if (list && !_orvNotifItems.length) list.innerHTML = '<span class="ov3-insight">' + (typeof t==='function'?t('notifEmptyText'):'No notifications.') + '</span>';
     }).catch(function(){});
   };
 
@@ -14479,6 +14365,7 @@ window.rptExport = function(format) {
 
     var rows = '';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cstEsc(goal)+'</span></div>';
+    if (m.objective) rows += '<div class="cst-review-row"><span class="cst-review-lbl">Meta Objective</span><span class="cst-review-val">'+_cstEsc(m.objective)+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Sets</span><span class="cst-review-val">'+struct.adSets+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ads</span><span class="cst-review-val">'+totalAds+' ('+variants.length+' unique concept'+(variants.length!==1?'s':'')+')</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cstEsc((pkg.strategy&&pkg.strategy.budgetRecommendation)||'Not set')+'</span></div>';
@@ -14612,7 +14499,7 @@ window.rptExport = function(format) {
   window._cggInitGoogleScreen = function(pkg, campId){
     var clonedPkg;
     try { clonedPkg = JSON.parse(JSON.stringify(pkg)); } catch(_) { clonedPkg = pkg; }
-    _cgg = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null, surface:'search', ytMode:'video', businessName:null };
+    _cgg = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null, surface:'search', ytMode:'video', businessName:null, logoUrl:null };
     _cggUpdateDirtyUI();
     _cggSetStage('preview');
 
@@ -14624,14 +14511,41 @@ window.rptExport = function(format) {
       _cggRenderActiveStage();
     }).catch(function(){});
 
-    // Only needed to validate Demand Gen's business-name requirement in
-    // Oriven Review below -- Search doesn't use it.
+    // Needed to validate Demand Gen's business-name requirement and
+    // Performance Max's business-name + logo requirements in Oriven
+    // Review below -- Search doesn't use either.
     apiFetch('/api/business/profile').then(function(r){
-      if (!r.ok || !r.data) return;
-      _cgg.businessName = (r.data.company_name || '').trim() || null;
+      if (!r.ok || !r.data || !r.data.profile) return;
+      _cgg.businessName = (r.data.profile.company_name || '').trim() || null;
+      _cgg.logoUrl = (r.data.profile.logo_url || '').trim() || null;
       _cggRenderActiveStage();
     }).catch(function(){});
   };
+
+  // Shared PMax readiness check -- used by the surface-nav status pill,
+  // the PMax preview body, and Oriven Review's checklist, so the three
+  // never drift out of sync about what "ready" means.
+  function _cggPmaxReadiness(pkg){
+    var g = pkg.googleAds || {};
+    var headlines = (g.headlines||[]).filter(Boolean);
+    var descriptions = (g.descriptions||[]).filter(Boolean);
+    var hasImage = !!((pkg.visualConcepts||[]).filter(function(vc){ return vc && vc.generatedImageUrl; }).length || g.imageUrl);
+    var checks = [
+      { key:'account',   ok: !!_cgg.accountId,             label:'Google Ads account connected' },
+      { key:'budget',    ok: !!(_cgg.pkg.strategy||{}).budgetRecommendation, label:'Budget set' },
+      { key:'business',  ok: !!_cgg.businessName,           label:'Business name (Business Profile)' },
+      { key:'finalUrl',  ok: !!_cggDestinationUrl(pkg),      label:'Final URL set' },
+      { key:'headlines', ok: headlines.length >= 3,          label: headlines.length+' headline'+(headlines.length!==1?'s':'')+' (3 minimum)' },
+      { key:'longHeadline', ok: descriptions.length>0 || headlines.length>0, label:'Long headline (derived from your copy)' },
+      { key:'descriptions', ok: descriptions.length >= 2,   label: descriptions.length+' description'+(descriptions.length!==1?'s':'')+' (2 minimum)' },
+      { key:'squareImage', ok: hasImage,                    label:'Square marketing image' },
+      { key:'landscapeImage', ok: !!g.pmaxLandscapeImageUrl, label:'Landscape marketing image' },
+      { key:'logo',      ok: !!_cgg.logoUrl,                label:'Logo (Business Profile)' },
+      { key:'assetGroup', ok: true,                          label:'Asset Group (created at publish time)' },
+    ];
+    var missing = checks.filter(function(c){ return !c.ok; });
+    return { checks: checks, ready: missing.length === 0, missing: missing };
+  }
 
   function _cggUpdateDirtyUI(){
     var d = document.getElementById('cggDirtyBadge');
@@ -14726,7 +14640,11 @@ window.rptExport = function(format) {
       if (mode === 'image') return { level:'preview', label:'PREVIEW ONLY — campaign type not currently supported' };
       return { level:'missing', label:'MISSING VIDEO' }; // video + shorts both need a video asset that never exists
     }
-    if (key === 'pmax') return { level:'preview', label:'PREVIEW ONLY — campaign type not currently supported' };
+    if (key === 'pmax') {
+      var pmr = _cggPmaxReadiness(_cgg.pkg);
+      if (pmr.ready) return { level:'ready', label:'READY TO PUBLISH' };
+      return { level:'missing', label:'NOT READY — missing ' + pmr.missing[0].label };
+    }
     return { level:'preview', label:'PREVIEW ONLY — campaign type not currently supported' }; // display, discover, gmail
   }
 
@@ -14871,6 +14789,8 @@ window.rptExport = function(format) {
   }
 
   function _cggRenderPmaxBody(assets, domain){
+    var pmr = _cggPmaxReadiness(_cgg.pkg);
+    var g = _cgg.pkg.googleAds || {};
     var cards = [
       { key:'search', icon:'&#128269;', label:'Search', snippet: assets.headlines[0] || 'No headline yet' },
       { key:'shopping', icon:'&#128722;', label:'Shopping', snippet: 'Requires product data' },
@@ -14879,7 +14799,19 @@ window.rptExport = function(format) {
       { key:'gmail', icon:'&#9993;', label:'Gmail', snippet: assets.headlines[0] || 'No headline yet' },
       { key:'maps', icon:'&#128205;', label:'Maps', snippet: 'Requires location data' },
     ];
-    return '<div class="cst-pmax-intro">Performance Max distributes one campaign\'s assets across many Google surfaces automatically. Oriven doesn\'t publish Performance Max campaigns yet — this is a preview of how your generated assets could look if it did.</div>'
+    var introText = pmr.ready
+      ? 'Performance Max is <b>one real campaign</b> — not separate campaigns per surface — that Google distributes automatically across eligible Search, YouTube, Discover, Gmail and Display inventory using the asset group below. All requirements are met; this campaign will publish as a real Performance Max Asset Group.'
+      : 'Performance Max is one real campaign that Google distributes automatically across eligible Search, YouTube, Discover, Gmail and Display inventory. Not ready yet — missing: ' + pmr.missing.map(function(m){ return m.label; }).join(', ') + '.';
+    var assetGroupHtml = '<div class="cst-pmax-assetgroup"><b>Asset Group contents</b>'
+      + '<div class="cst-pmax-ag-row"><span>Headlines</span><span>'+assets.headlines.length+'</span></div>'
+      + '<div class="cst-pmax-ag-row"><span>Descriptions</span><span>'+assets.descriptions.length+'</span></div>'
+      + '<div class="cst-pmax-ag-row"><span>Square image</span><span>'+(assets.hasImage?'&#10003;':'&#9888; missing')+'</span></div>'
+      + '<div class="cst-pmax-ag-row"><span>Landscape image</span><span>'+(g.pmaxLandscapeImageUrl?'&#10003;':'&#9888; missing — generate in Edit')+'</span></div>'
+      + '<div class="cst-pmax-ag-row"><span>Logo</span><span>'+(_cgg.logoUrl?'&#10003;':'&#9888; missing — add in Edit')+'</span></div>'
+      + '<div class="cst-pmax-ag-row"><span>Business name</span><span>'+(_cgg.businessName?_cggEsc(_cgg.businessName):'&#9888; missing')+'</span></div>'
+      + '</div>';
+    return '<div class="cst-pmax-intro">' + introText + '</div>'
+      + assetGroupHtml
       + '<div class="cst-pmax-grid">' + cards.map(function(c){
         return '<button type="button" class="cst-pmax-card" onclick="_cggSetSurface(\''+c.key+'\')"><div class="cst-pmax-card-icon">'+c.icon+'</div><div class="cst-pmax-card-label">'+_cggEsc(c.label)+'</div><div class="cst-pmax-card-snippet">'+_cggEsc(c.snippet)+'</div></button>';
       }).join('') + '</div>';
@@ -14930,7 +14862,7 @@ window.rptExport = function(format) {
       { v:'SEARCH',     label:'Search',              enabled:true,  note:'Keyword-targeted text ads — the original, fully working pipeline.' },
       { v:'DEMAND_GEN', label:'Demand Gen',           enabled:true,  note:'Image + headline/description ad shown across Discover, Gmail and YouTube feeds.' },
       { v:'SHOPPING',   label:'Shopping (blocked)',   enabled:false, note:'Requires a linked Google Merchant Center account — not connected in Oriven yet.' },
-      { v:'PERFORMANCE_MAX', label:'Performance Max (blocked)', enabled:false, note:'Requires a Logo asset plus separate square/landscape images — Oriven has no logo field and only generates one image type.' },
+      { v:'PERFORMANCE_MAX', label:'Performance Max', enabled:true, note:'One campaign across Search, YouTube, Discover, Gmail and Display. Needs a Business Profile logo, a landscape marketing image, and a business name — see the Performance Max Assets section below.' },
       { v:'VIDEO',      label:'YouTube Video (blocked)', enabled:false, note:'Requires the video to already be uploaded to a YouTube channel — no YouTube upload integration exists.' },
       { v:'MAPS',       label:'Local/Maps (blocked)', enabled:false, note:'Requires a verified Google Business Profile location — Oriven collects no location data.' },
     ];
@@ -14948,9 +14880,26 @@ window.rptExport = function(format) {
       + '<div class="cst-fld"><label>Ad Account</label><div class="cst-fld-static'+(_cgg.accountName?'':' cst-review-val-warn')+'">'+_cggEsc(_cgg.accountName||'Not connected')+'</div></div>'
       + '</div>';
 
+    var pmaxHtml = '';
+    if (campaignType === 'PERFORMANCE_MAX') {
+      pmaxHtml = '<div class="cst-fld"><label>Business Logo <span class="cst-char-count">saved to your Business Profile, not this campaign</span></label>'
+        + '<div class="cst-fld-row">'
+        +   '<input class="crv-inp" id="cggLogoUrlInput" type="text" value="'+_cggEsc(_cgg.logoUrl||'')+'" placeholder="https://yoursite.com/logo.png" oninput="_cggLogoUrlDirty(this)">'
+        +   '<button type="button" class="cst-btn cst-btn-ghost cst-btn-sm" onclick="_cggSaveLogoUrl()">Save</button>'
+        +   '<button type="button" class="cst-btn cst-btn-ghost cst-btn-sm" onclick="_cggGenerateLogo()" id="cggGenLogoBtn">Generate with AI</button>'
+        + '</div>'
+        + (_cgg.logoUrl ? '<div class="cst-pmax-asset-preview"><img src="'+_cggEsc(_cgg.logoUrl)+'" alt="Logo"></div>' : '')
+        + '<div class="cst-fld-hint" id="cggLogoStatus"></div></div>'
+        + '<div class="cst-fld"><label>Landscape Marketing Image <span class="cst-char-count">16:9 — required in addition to your square image</span></label>'
+        +   '<button type="button" class="cst-btn cst-btn-ghost cst-btn-sm" onclick="_cggGenerateLandscapeImage()" id="cggGenLandscapeBtn">'+(g.pmaxLandscapeImageUrl?'Regenerate':'Generate')+' Landscape Image</button>'
+        +   (g.pmaxLandscapeImageUrl ? '<div class="cst-pmax-asset-preview cst-pmax-asset-preview-wide"><img src="'+_cggEsc(g.pmaxLandscapeImageUrl)+'" alt="Landscape marketing image"></div>' : '')
+        +   '<div class="cst-fld-hint" id="cggLandscapeStatus"></div></div>';
+    }
+
     var html = _cggSec('Ad Content', null, adContent, true)
       + _cggSec('Keywords', keywords.length+' keyword'+(keywords.length!==1?'s':''), keywordsHtml, true)
       + _cggSec('Campaign', null, campaignHtml, false)
+      + (campaignType === 'PERFORMANCE_MAX' ? _cggSec('Performance Max Assets', null, pmaxHtml, true) : '')
       + _cggSec('Platform', null, platformHtml, false);
 
     var body = document.getElementById('cggEditBody');
@@ -15000,6 +14949,71 @@ window.rptExport = function(format) {
     _cggRenderEditSections();
   };
 
+  // Logo lives on the Business Profile, not the campaign package (Part 11/
+  // 12: reuse the existing business-level source of truth, same table
+  // already used for company_name) -- so it saves via its own targeted
+  // PUT immediately on click, not via _cggSave's campaign-package write.
+  var _cggLogoUrlPending = null;
+  window._cggLogoUrlDirty = function(el){ _cggLogoUrlPending = el.value; };
+  window._cggSaveLogoUrl = function(){
+    var val = (_cggLogoUrlPending != null ? _cggLogoUrlPending : (document.getElementById('cggLogoUrlInput')||{}).value || '').trim();
+    var status = document.getElementById('cggLogoStatus');
+    if (!val) { if (status) status.textContent = 'Enter a logo URL first.'; return; }
+    if (status) status.textContent = 'Saving…';
+    apiFetch('/api/business/profile/logo', { method:'PUT', body: JSON.stringify({ logo_url: val }) }).then(function(r){
+      if (r.ok && r.data && r.data.ok) {
+        _cgg.logoUrl = r.data.logo_url;
+        if (status) status.textContent = 'Saved.';
+        _cggRenderActiveStage();
+      } else {
+        if (status) status.textContent = (r.data && r.data.error) || 'Could not save logo.';
+      }
+    }).catch(function(){ if (status) status.textContent = 'Could not save logo.'; });
+  };
+  window._cggGenerateLogo = function(){
+    var btn = document.getElementById('cggGenLogoBtn');
+    var status = document.getElementById('cggLogoStatus');
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+    if (status) status.textContent = '';
+    apiFetch('/api/generate-logo', { method:'POST', body: JSON.stringify({}) }).then(function(r){
+      if (btn) { btn.disabled = false; btn.textContent = 'Generate with AI'; }
+      if (r.ok && r.data && r.data.imageUrl) {
+        return apiFetch('/api/business/profile/logo', { method:'PUT', body: JSON.stringify({ logo_url: r.data.imageUrl }) }).then(function(r2){
+          if (r2.ok && r2.data && r2.data.ok) { _cgg.logoUrl = r2.data.logo_url; _cggRenderActiveStage(); }
+          else if (status) status.textContent = 'Generated but could not save — try Save manually.';
+        });
+      } else if (status) {
+        status.textContent = (r.data && r.data.error) || 'Logo generation failed.';
+      }
+    }).catch(function(){ if (btn) { btn.disabled = false; btn.textContent = 'Generate with AI'; } if (status) status.textContent = 'Logo generation failed.'; });
+  };
+
+  // Landscape marketing image lives on the campaign package (it's
+  // campaign-specific creative, unlike the business-level logo) --
+  // pkg.googleAds.pmaxLandscapeImageUrl, saved through the normal
+  // _cggSave path like every other campaign field.
+  window._cggGenerateLandscapeImage = function(){
+    var btn = document.getElementById('cggGenLandscapeBtn');
+    var status = document.getElementById('cggLandscapeStatus');
+    var pkg = _cgg.pkg;
+    var g = pkg.googleAds || {};
+    var prompt = (g.headlines && g.headlines[0]) || pkg.campaignName || 'product marketing image';
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+    if (status) status.textContent = '';
+    apiFetch('/api/generate-image', { method:'POST', body: JSON.stringify({ prompt: prompt, size:'1792x1024', imageType:'display' }) }).then(function(r){
+      if (btn) { btn.disabled = false; btn.textContent = (g.pmaxLandscapeImageUrl?'Regenerate':'Generate')+' Landscape Image'; }
+      if (r.ok && r.data && r.data.imageUrl) {
+        _cgg.pkg.googleAds = _cgg.pkg.googleAds || {};
+        _cgg.pkg.googleAds.pmaxLandscapeImageUrl = r.data.imageUrl;
+        _cggMarkDirty();
+        _cggSave();
+        _cggRenderEditSections();
+      } else if (status) {
+        status.textContent = (r.data && r.data.error) || 'Image generation failed.';
+      }
+    }).catch(function(){ if (btn) { btn.disabled = false; btn.textContent = 'Generate Landscape Image'; } if (status) status.textContent = 'Image generation failed.'; });
+  };
+
   /* ── ORIVEN REVIEW ── */
   function _cggRenderReviewStage(){
     var pkg = _cgg.pkg;
@@ -15019,7 +15033,9 @@ window.rptExport = function(format) {
     var hasDestUrl = !!destUrl;
     var hasBusinessName = !!_cgg.businessName;
 
-    var checks = campaignType === 'DEMAND_GEN' ? [
+    var pmr = campaignType === 'PERFORMANCE_MAX' ? _cggPmaxReadiness(pkg) : null;
+
+    var checks = campaignType === 'PERFORMANCE_MAX' ? pmr.checks : campaignType === 'DEMAND_GEN' ? [
       { ok: hasMinHeadlines, label: headlines.length+' headline'+(headlines.length!==1?'s':'')+' (1 minimum required)' },
       { ok: hasMinDescriptions, label: descriptions.length+' description'+(descriptions.length!==1?'s':'')+' (1 minimum required)' },
       { ok: hasImage, label: 'Creative image added' },
@@ -15037,16 +15053,24 @@ window.rptExport = function(format) {
       return '<div class="cst-check-item'+(c.ok?'':' cst-check-warn-item')+'">'+(c.ok?'<span class="cst-check-ok">&#10003;</span>':'<span class="cst-check-warn-icon">&#9888;</span>')+_cggEsc(c.label)+'</div>';
     }).join('') + '</div>';
 
+    var typeLabel = campaignType==='PERFORMANCE_MAX' ? 'Performance Max' : campaignType==='DEMAND_GEN' ? 'Demand Gen' : 'Search';
+    var structureLabel = campaignType==='PERFORMANCE_MAX' ? '1 Campaign &middot; 1 Asset Group' : campaignType==='DEMAND_GEN' ? '1 Campaign &middot; 1 Ad Group &middot; 1 Multi-Asset Ad' : '1 Campaign &middot; 1 Ad Group &middot; 1 Responsive Search Ad';
+
     var rows = '';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cggEsc(goal)+'</span></div>';
-    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Type</span><span class="cst-review-val">'+_cggEsc(campaignType==='DEMAND_GEN'?'Demand Gen':'Search')+'</span></div>';
-    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">'+(campaignType==='DEMAND_GEN' ? '1 Campaign &middot; 1 Ad Group &middot; 1 Multi-Asset Ad' : '1 Campaign &middot; 1 Ad Group &middot; 1 Responsive Search Ad')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Type</span><span class="cst-review-val">'+_cggEsc(typeLabel)+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">'+structureLabel+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cggEsc(s.budgetRecommendation||'Not set')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Landing Page</span><span class="cst-review-val'+(hasDestUrl?'':' cst-review-val-warn')+'">'+_cggEsc(destUrl||'Not set')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Account</span><span class="cst-review-val'+(_cgg.accountName?'':' cst-review-val-warn')+'">'+_cggEsc(_cgg.accountName||'Not connected')+'</span></div>';
+    if (campaignType === 'PERFORMANCE_MAX') {
+      rows += '<div class="cst-review-row"><span class="cst-review-lbl">Business Logo</span><span class="cst-review-val'+(_cgg.logoUrl?'':' cst-review-val-warn')+'">'+(_cgg.logoUrl?'Set':'Not set')+'</span></div>';
+    }
 
     var err = '';
-    if (campaignType === 'DEMAND_GEN') {
+    if (campaignType === 'PERFORMANCE_MAX') {
+      err = pmr.ready ? '' : ('PERFORMANCE MAX NOT READY — missing: ' + pmr.missing.map(function(m){ return m.label; }).join(', '));
+    } else if (campaignType === 'DEMAND_GEN') {
       if (!hasMinHeadlines) err = 'At least 1 headline is required for Demand Gen.';
       else if (!hasMinDescriptions) err = 'At least 1 description is required for Demand Gen.';
       else if (!hasImage) err = 'Add an image before publishing a Demand Gen campaign.';
@@ -15067,7 +15091,12 @@ window.rptExport = function(format) {
       return '<div class="cst-review-row"><span class="cst-review-lbl"><span class="'+cls+'" style="margin-right:7px">'+icon+'</span>'+_cggEsc(sfc.label)+'</span><span class="cst-review-val'+(st.level==='ready'?'':' cst-review-val-warn')+'" style="font-size:11.5px">'+_cggEsc(st.label)+'</span></div>';
     }).join('');
 
-    var html = '<div class="cst-review-sec-hd">Checklist</div>' + checkHtml
+    var pmaxBanner = campaignType === 'PERFORMANCE_MAX'
+      ? '<div class="cst-goal-pill" style="margin-bottom:14px;background:'+(pmr.ready?'rgba(52,211,153,.12)':'rgba(251,191,36,.1)')+'">'+(pmr.ready?'&#10003; READY TO PUBLISH':'&#9888; PERFORMANCE MAX NOT READY')+'</div>'
+      : '';
+
+    var html = pmaxBanner
+      + '<div class="cst-review-sec-hd">Checklist</div>' + checkHtml
       + '<div class="cst-review-sec-hd">Summary</div>' + rows
       + '<div class="cst-review-sec-hd">Where your ad can appear</div>' + surfaceRows
       + (err ? '<div class="cst-review-err">'+_cggEsc(err)+'</div>' : '');
@@ -15304,6 +15333,7 @@ window.rptExport = function(format) {
 
     var rows = '';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cgtEsc(goal)+'</span></div>';
+    if (tt.objective) rows += '<div class="cst-review-row"><span class="cst-review-lbl">TikTok Objective</span><span class="cst-review-val">'+_cgtEsc(tt.objective)+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">1 Campaign → 1 Ad Group → 1 Ad</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cgtEsc(tt.budget || '30 (default)')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Account</span><span class="cst-review-val'+(_cgt.accountName?'':' cst-review-val-warn')+'">'+_cgtEsc(_cgt.accountName||'Not connected')+'</span></div>';
@@ -15637,6 +15667,12 @@ window.rptExport = function(format) {
     window._cgrCreativeMode = creativeMode || 'images';
     _showResultsPage(prompt, _plat, window._cgrCreativeMode);
     var _payload = { product: prompt, goal: _goal, platform: _plat, platforms: [_plat], mode: 'full', creativeMode: window._cgrCreativeMode };
+    /* Platform-specific objective/campaign type (Final Polish, Part 19) --
+       reaches the AI prompt AND gets force-written onto the returned pkg
+       server-side, so "what the user selected" is what generation used,
+       not just what the goal grid implies. */
+    if (window._ov3PlatformObjective) _payload.platformObjective = window._ov3PlatformObjective;
+    if (_plat === 'google' && window._ov3GoogleCampaignType) _payload.campaignType = window._ov3GoogleCampaignType;
     /* Attach Brand Brain context */
     if(typeof S !== 'undefined' && S.brandCore && S.brandCore.name) _payload.brandCore = S.brandCore;
     /* Attach product images (max 3 to keep payload size reasonable) */
@@ -15776,6 +15812,9 @@ window.aicSetExample = function(btn){
 window._cr2Plat = function(btn, plat) {
   document.querySelectorAll('.cr2-pp').forEach(function(b){ b.classList.remove('cr2-pp-on'); });
   if(btn) btn.classList.add('cr2-pp-on');
+  window._ov3PlatformObjective = null;
+  window._ov3GoogleCampaignType = null;
+  _cr2RenderPlatObj();
   if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
 };
 
@@ -15787,6 +15826,88 @@ window._cr2Goal = function(btn, goal) {
   window._ov3Goal = goal;
   var section = document.querySelector('.cr2-goal-section');
   if(section) section.classList.remove('cr2-goal-missing');
+  _cr2RenderPlatObj();
+  if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
+};
+
+// Platform-specific objective / campaign type (Final Polish, Part 9-16).
+// Each platform's real objective model, not one shared list:
+//   Meta: Engagement + App Promotion, real current ODAX objectives beyond
+//         the universal 4 (server/services/campaignGoals.js META_GOAL_CONFIG
+//         -- keep in sync, same duplication pattern already used for the
+//         goal cards' icons/labels above, since this static HTML has no
+//         build step to share a real module with the server).
+//   TikTok: Video Views + App Promotion (real, publishable); Community
+//         Interaction shown but disabled -- TikTok's API enum for it
+//         couldn't be confirmed against a live source, so it's marked as
+//         requiring further integration rather than offered as if working
+//         (Part 16's explicit allowance for this exact situation).
+//   Google: real Campaign Type choices, recommended per goal (mirrors
+//         campaignGoals.js's getGoogleCampaignOptions -- SEARCH/DEMAND_GEN/
+//         PERFORMANCE_MAX are all genuinely publishable; SHOPPING/VIDEO/MAPS
+//         stay excluded here since they're blocked regardless of goal).
+var _CR2_GOOGLE_TYPE_LABELS = { SEARCH: 'Search', DEMAND_GEN: 'Demand Gen', PERFORMANCE_MAX: 'Performance Max' };
+var _CR2_GOOGLE_GOAL_TYPES = {
+  Sales:     ['PERFORMANCE_MAX', 'SEARCH', 'DEMAND_GEN'],
+  Leads:     ['SEARCH', 'PERFORMANCE_MAX', 'DEMAND_GEN'],
+  Traffic:   ['SEARCH', 'DEMAND_GEN'],
+  Awareness: ['DEMAND_GEN', 'SEARCH'],
+};
+function _cr2RenderPlatObj(){
+  var section = document.getElementById('cr2PlatObjSection');
+  var label = document.getElementById('cr2PlatObjLabel');
+  var grid = document.getElementById('cr2PlatObjGrid');
+  if(!section || !grid) return;
+  var plat = (document.querySelector('.cr2-pp.cr2-pp-on')||{}).getAttribute ? document.querySelector('.cr2-pp.cr2-pp-on').getAttribute('data-plat') : 'google';
+  var goal = window._ov3Goal || 'Sales';
+
+  if(plat === 'google'){
+    label.textContent = 'Campaign Type';
+    var types = _CR2_GOOGLE_GOAL_TYPES[goal] || _CR2_GOOGLE_GOAL_TYPES.Sales;
+    if(!window._ov3GoogleCampaignType || types.indexOf(window._ov3GoogleCampaignType) === -1) window._ov3GoogleCampaignType = types[0];
+    grid.innerHTML = types.map(function(ty){
+      return '<button type="button" class="cr2-goal-card'+(ty===window._ov3GoogleCampaignType?' cr2-goal-card-on':'')+'" onclick="_cr2GoogleType(this,\''+ty+'\')">'
+        + '<div class="cr2-goal-title">'+_CR2_GOOGLE_TYPE_LABELS[ty]+'</div>'
+        + '<div class="cr2-goal-desc">'+(ty===types[0]?'Recommended for '+goal:'')+'</div></button>';
+    }).join('');
+    section.style.display = '';
+  } else if(plat === 'meta'){
+    label.textContent = 'Meta Objective (optional — beyond the goal above)';
+    var metaExtras = [
+      { v:'Engagement',   d:'Post engagement, likes, comments, shares.' },
+      { v:'App Promotion', d:'Drive app installs or in-app actions.' },
+    ];
+    grid.innerHTML = '<button type="button" class="cr2-goal-card'+(!window._ov3PlatformObjective?' cr2-goal-card-on':'')+'" onclick="_cr2PlatObj(this,null)"><div class="cr2-goal-title">Use '+goal+'</div><div class="cr2-goal-desc">Standard mapping.</div></button>'
+      + metaExtras.map(function(o){
+        return '<button type="button" class="cr2-goal-card'+(window._ov3PlatformObjective===o.v?' cr2-goal-card-on':'')+'" onclick="_cr2PlatObj(this,\''+o.v+'\')"><div class="cr2-goal-title">'+o.v+'</div><div class="cr2-goal-desc">'+o.d+'</div></button>';
+      }).join('');
+    section.style.display = '';
+  } else if(plat === 'tiktok'){
+    label.textContent = 'TikTok Objective (optional — beyond the goal above)';
+    var ttExtras = [
+      { v:'Video Views',   d:'Optimize for focused video views.' },
+      { v:'App Promotion', d:'Drive app installs or in-app actions.' },
+    ];
+    grid.innerHTML = '<button type="button" class="cr2-goal-card'+(!window._ov3PlatformObjective?' cr2-goal-card-on':'')+'" onclick="_cr2PlatObj(this,null)"><div class="cr2-goal-title">Use '+goal+'</div><div class="cr2-goal-desc">Standard mapping.</div></button>'
+      + ttExtras.map(function(o){
+        return '<button type="button" class="cr2-goal-card'+(window._ov3PlatformObjective===o.v?' cr2-goal-card-on':'')+'" onclick="_cr2PlatObj(this,\''+o.v+'\')"><div class="cr2-goal-title">'+o.v+'</div><div class="cr2-goal-desc">'+o.d+'</div></button>';
+      }).join('')
+      + '<button type="button" class="cr2-goal-card cr2-goal-card-disabled" disabled title="Requires additional integration — not yet publishable"><div class="cr2-goal-title">Community Interaction</div><div class="cr2-goal-desc">Requires additional integration.</div></button>';
+    section.style.display = '';
+  } else {
+    section.style.display = 'none';
+  }
+}
+window._cr2GoogleType = function(btn, ty){
+  document.querySelectorAll('#cr2PlatObjGrid .cr2-goal-card').forEach(function(b){ b.classList.remove('cr2-goal-card-on'); });
+  if(btn) btn.classList.add('cr2-goal-card-on');
+  window._ov3GoogleCampaignType = ty;
+  if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
+};
+window._cr2PlatObj = function(btn, v){
+  document.querySelectorAll('#cr2PlatObjGrid .cr2-goal-card').forEach(function(b){ b.classList.remove('cr2-goal-card-on'); });
+  if(btn) btn.classList.add('cr2-goal-card-on');
+  window._ov3PlatformObjective = v;
   if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
 };
 
