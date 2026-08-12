@@ -123,26 +123,27 @@ var ORIVEN_PAID_PLANS = ORIVEN_PLAN_LIST;
 var _PLAN_CHK_SVG = '<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>';
 
 // ── Render: Landing page pricing ────────────────────────────────
+// Outputs the .ov-pc* card markup used by the live landing page's Pricing
+// section (index.html #pricing) — the .ov-pc* classes are what's actually
+// styled/animated there today; ORIVEN_PLAN_LIST stays the single data source.
 function renderLPPricingCards(containerEl){
   if(!containerEl) return;
-  containerEl.innerHTML = ORIVEN_PAID_PLANS.map(function(plan){
-    var cardCls  = 'lp-plan' + (plan.popular ? ' lp-plan-popular' : '');
-    var tagHtml  = plan.popular ? '<div class="lp-plan-tag">Most Popular</div>' : '';
-    var priceHtml = '<div class="lp-plan-price"><span class="lp-plan-price-num">€' + plan.price + '</span><span class="lp-plan-price-period">/month</span></div>';
-    var featsHtml = (plan.allFeatures || []).map(function(f){
-      return '<li class="lp-plan-feat"><div class="lp-plan-feat-check">' + _PLAN_CHK_SVG + '</div><span>' + f + '</span></li>';
+  containerEl.innerHTML = ORIVEN_PAID_PLANS.map(function(plan, i){
+    var isPro   = !!plan.popular;
+    var delay   = i === 0 ? '' : (i * 0.08).toFixed(2).replace(/^0/, '');
+    var delayAttr = delay ? ' style="transition-delay:' + delay + 's"' : '';
+    var badge   = isPro ? '<div class="ov-pc-badge">Most Popular</div>' : '';
+    var feats   = (plan.allFeatures || plan.features || []).map(function(f){
+      return '<li>' + f + '</li>';
     }).join('');
-    var btnHtml = '<button type="button" class="' + (plan.popular ? 'lp-cta-btn lp-plan-cta' : 'lp-plan-cta-outline') + '" onclick="lpStartPlan(\'' + plan.id + '\',this)">Get Started</button>';
 
     return [
-      '<div class="' + cardCls + '">',
-        tagHtml,
-        '<div class="lp-plan-name">' + plan.name + '</div>',
-        priceHtml,
-        '<div class="lp-plan-desc">' + plan.desc + '</div>',
-        '<div class="lp-plan-divider"></div>',
-        '<ul class="lp-plan-features">' + featsHtml + '</ul>',
-        btnHtml,
+      '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '" data-observe' + delayAttr + '>',
+        '<div class="ov-pc-head">' + badge + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
+        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/mo</span></div><div class="ov-pc-credits">' + plan.credits.toLocaleString('en-US') + ' AI credits / month</div></div>',
+        '<div class="ov-pc-desc">' + plan.desc + '</div>',
+        '<ul class="ov-pc-list">' + feats + '</ul>',
+        '<a href="#" class="ov-pc-btn' + (isPro ? ' ov-pc-btn-pro' : '') + '" onclick="lpGetStarted(event)">Get Started</a>',
       '</div>'
     ].join('');
   }).join('');

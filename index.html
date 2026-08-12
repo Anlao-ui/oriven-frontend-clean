@@ -57,6 +57,8 @@
     #view-product-google-ads, #view-product-meta-ads, #view-product-tiktok-ads,
     #view-product-analytics, #view-product-ai-recommendations,
     #view-product-reporting, #view-product-unified-dashboard,
+    #view-product-launch, #view-product-campaigns, #view-product-intelligence,
+    #view-product-autopilot, #view-product-business,
     #view-404 {
       height: 100vh !important;
       overflow-y: auto !important;
@@ -120,36 +122,58 @@
             </a>
           </div>
 
-          <!-- Col 2: Core Features -->
+          <!-- Col 2: Products -->
           <div class="lp-dd-col">
-            <div class="lp-dd-colhead">Core Features</div>
+            <div class="lp-dd-colhead">Products</div>
 
-            <a href="/product/analytics" class="lp-dd-item" role="menuitem">
+            <a href="/launch" class="lp-dd-item" role="menuitem">
               <span class="lp-dd-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1" y="8" width="4" height="7" rx="1" fill="rgba(183,255,42,.8)"/><rect x="6" y="4" width="4" height="11" rx="1" fill="rgba(183,255,42,.8)"/><rect x="11" y="1" width="4" height="14" rx="1" fill="rgba(183,255,42,.8)"/></svg>
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H6M13 3V10" stroke="rgba(183,255,42,.8)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </span>
-              <span>Analytics</span>
+              <span>
+                <span class="lp-dd-item-name">Launch</span>
+                <span class="lp-dd-item-desc">AI-generated campaigns, ready to publish</span>
+              </span>
             </a>
 
-            <a href="/product/ai-recommendations" class="lp-dd-item" role="menuitem">
+            <a href="/campaigns" class="lp-dd-item" role="menuitem">
               <span class="lp-dd-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.3 4H14l-3.7 2.7 1.4 4.3L8 9.5l-3.7 2.5 1.4-4.3L2 5h4.7z" fill="rgba(183,255,42,.8)"/></svg>
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="3" y="2.5" width="10" height="12" rx="1.5" stroke="rgba(183,255,42,.8)" stroke-width="1.3"/><rect x="6" y="1" width="4" height="2.5" rx="1" fill="rgba(183,255,42,.8)"/><line x1="5.5" y1="7" x2="10.5" y2="7" stroke="rgba(183,255,42,.8)" stroke-width="1.1"/><line x1="5.5" y1="10" x2="10.5" y2="10" stroke="rgba(183,255,42,.8)" stroke-width="1.1"/></svg>
               </span>
-              <span>AI Recommendations</span>
+              <span>
+                <span class="lp-dd-item-name">Campaigns</span>
+                <span class="lp-dd-item-desc">Manage live campaigns, drafts and reviews</span>
+              </span>
             </a>
 
-            <a href="/product/reporting" class="lp-dd-item" role="menuitem">
+            <a href="/intelligence" class="lp-dd-item" role="menuitem">
               <span class="lp-dd-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="2.5" y="1" width="11" height="14" rx="1.5" stroke="rgba(183,255,42,.8)" stroke-width="1.3"/><line x1="5" y1="5" x2="11" y2="5" stroke="rgba(183,255,42,.8)" stroke-width="1.2"/><line x1="5" y1="8" x2="11" y2="8" stroke="rgba(183,255,42,.8)" stroke-width="1.2"/><line x1="5" y1="11" x2="8.5" y2="11" stroke="rgba(183,255,42,.8)" stroke-width="1.2"/></svg>
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="rgba(183,255,42,.8)" stroke-width="1.2"/><path d="M4.5 8h2l1-2.5 1.5 5 1-2.5h1.5" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </span>
-              <span>Reporting</span>
+              <span>
+                <span class="lp-dd-item-name">Intelligence</span>
+                <span class="lp-dd-item-desc">AI insights and account monitoring</span>
+              </span>
             </a>
 
-            <a href="/product/unified-dashboard" class="lp-dd-item" role="menuitem">
+            <a href="/autopilot" class="lp-dd-item" role="menuitem">
               <span class="lp-dd-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="rgba(183,255,42,.8)"><rect x="1" y="1" width="6" height="6" rx="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.2"/></svg>
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="rgba(183,255,42,.8)"><path d="M8.5 1L3 9h4l-1 6 6.5-9H8l1-5z"/></svg>
               </span>
-              <span>Unified Dashboard</span>
+              <span>
+                <span class="lp-dd-item-name">Autopilot</span>
+                <span class="lp-dd-item-desc">Automated optimization rules</span>
+              </span>
+            </a>
+
+            <a href="/business" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a4.5 4.5 0 00-2.5 8.25c.4.28.5.6.5 1.05v.7h4v-.7c0-.45.1-.77.5-1.05A4.5 4.5 0 008 1.5z" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linejoin="round"/><line x1="6.5" y1="14" x2="9.5" y2="14" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linecap="round"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Business</span>
+                <span class="lp-dd-item-desc">Brand Brain and business profile</span>
+              </span>
             </a>
           </div>
 
@@ -186,11 +210,12 @@
         <a href="#ov-integrations" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-integrations')">Google Ads</a>
         <a href="#ov-integrations" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-integrations')">Meta Ads</a>
         <a href="#ov-integrations" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-integrations')">TikTok Ads</a>
-        <div class="lp-mm-cat">Core Features</div>
-        <a href="#ov-dashboard" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-dashboard')">Analytics</a>
-        <a href="#ov-ai-recs" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-ai-recs')">AI Recommendations</a>
-        <a href="#ov-compare" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-compare')">Reporting</a>
-        <a href="#ov-dashboard" class="lp-mm-dd-link" onclick="lpCloseMm();ovNavTo(event,'#ov-dashboard')">Unified Dashboard</a>
+        <div class="lp-mm-cat">Products</div>
+        <a href="/launch" class="lp-mm-dd-link" onclick="lpCloseMm()">Launch</a>
+        <a href="/campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Campaigns</a>
+        <a href="/intelligence" class="lp-mm-dd-link" onclick="lpCloseMm()">Intelligence</a>
+        <a href="/autopilot" class="lp-mm-dd-link" onclick="lpCloseMm()">Autopilot</a>
+        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Business</a>
       </div>
     </div>
 
@@ -298,7 +323,16 @@
       <a href="#" class="ov-btn-primary ov-btn-sm" onclick="lpGetStarted(event)">Connect now</a>
     </div>
     <div class="ov-wf-visual">
+      <div class="ov-conn-workspace">
+      <div class="ov-conn-ws-head" data-observe>
+        <span class="ov-conn-ws-mark">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="rgba(183,255,42,.9)" stroke-width="1.4"/><circle cx="8" cy="8" r="1.6" fill="rgba(183,255,42,.9)"/></svg>
+        </span>
+        <span class="ov-conn-ws-title">Oriven Workspace</span>
+        <span class="ov-conn-ws-sync"><span class="ov-conn-ws-dot"></span>Live sync</span>
+      </div>
       <div class="ov-conn-cards">
+        <div class="ov-conn-rail" aria-hidden="true"><span class="ov-conn-rail-dot"></span></div>
         <div class="ov-conn-card ov-conn-live" data-observe>
           <div class="ov-conn-card-left">
             <div class="ov-conn-logo ov-conn-logo-google">
@@ -340,6 +374,7 @@
           <div class="ov-conn-stat"><div class="ov-conn-stat-val">3.6&times;</div><div class="ov-conn-stat-lbl">Blended ROAS</div></div>
           <div class="ov-conn-stat"><div class="ov-conn-stat-val ov-green">284</div><div class="ov-conn-stat-lbl">Conversions</div></div>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -495,11 +530,11 @@
           </div>
           <div class="ov-an-range">Last 30 days</div>
         </div>
-        <div class="ov-an-kpis">
-          <div class="ov-an-kpi"><div class="ov-an-kv">&euro;2,840</div><div class="ov-an-kl">Spend</div></div>
-          <div class="ov-an-kpi"><div class="ov-an-kv ov-green">4.2&times;</div><div class="ov-an-kl">ROAS</div></div>
-          <div class="ov-an-kpi"><div class="ov-an-kv">312</div><div class="ov-an-kl">Conv.</div></div>
-          <div class="ov-an-kpi"><div class="ov-an-kv">3.9%</div><div class="ov-an-kl">CTR</div></div>
+        <div class="ov-an-kpis" id="ovAnKpis">
+          <div class="ov-an-kpi"><div class="ov-an-kv" data-count-target="2840" data-count-prefix="&euro;" data-count-group="1">&euro;0</div><div class="ov-an-kl">Spend</div></div>
+          <div class="ov-an-kpi"><div class="ov-an-kv ov-green" data-count-target="4.2" data-count-decimals="1" data-count-suffix="&times;">0.0&times;</div><div class="ov-an-kl">ROAS</div></div>
+          <div class="ov-an-kpi"><div class="ov-an-kv" data-count-target="312">0</div><div class="ov-an-kl">Conv.</div></div>
+          <div class="ov-an-kpi"><div class="ov-an-kv" data-count-target="3.9" data-count-decimals="1" data-count-suffix="%">0.0%</div><div class="ov-an-kl">CTR</div></div>
         </div>
         <div class="ov-an-table">
           <div class="ov-an-table-hdr"><span>Campaign</span><span>Spend</span><span>ROAS</span><span>CTR</span></div>
@@ -624,21 +659,21 @@
 <section class="ov-wf-section ov-social-proof">
   <div class="ov-sp-wrap">
     <div class="ov-sp-label">Trusted by marketing teams in 14 countries</div>
-    <div class="ov-sp-stats">
-      <div class="ov-sp-stat" data-observe>
-        <div class="ov-sp-stat-val">&euro;28M+</div>
+    <div class="ov-sp-stats" id="ovSpStats">
+      <div class="ov-sp-stat ov-sp-glow" data-observe>
+        <div class="ov-sp-stat-val" data-count-target="28" data-count-prefix="&euro;" data-count-suffix="M+">&euro;0M+</div>
         <div class="ov-sp-stat-lbl">Ad spend managed</div>
       </div>
-      <div class="ov-sp-stat" data-observe style="transition-delay:.08s">
-        <div class="ov-sp-stat-val">4.1&times;</div>
+      <div class="ov-sp-stat ov-sp-glow" data-observe style="transition-delay:.08s;--glow-delay:.6s">
+        <div class="ov-sp-stat-val" data-count-target="4.1" data-count-decimals="1" data-count-suffix="&times;">0.0&times;</div>
         <div class="ov-sp-stat-lbl">Average ROAS lift</div>
       </div>
-      <div class="ov-sp-stat" data-observe style="transition-delay:.16s">
-        <div class="ov-sp-stat-val">3</div>
+      <div class="ov-sp-stat ov-sp-glow" data-observe style="transition-delay:.16s;--glow-delay:1.2s">
+        <div class="ov-sp-stat-val" data-count-target="3">0</div>
         <div class="ov-sp-stat-lbl">Platforms unified</div>
       </div>
-      <div class="ov-sp-stat" data-observe style="transition-delay:.24s">
-        <div class="ov-sp-stat-val">5 min</div>
+      <div class="ov-sp-stat ov-sp-glow" data-observe style="transition-delay:.24s;--glow-delay:1.8s">
+        <div class="ov-sp-stat-val" data-count-target="5" data-count-suffix=" min">0 min</div>
         <div class="ov-sp-stat-lbl">Avg. setup time</div>
       </div>
     </div>
@@ -665,29 +700,7 @@
     <div class="ov-section-label">09</div>
     <h2 class="ov-section-h">Simple Pricing</h2>
     <p class="ov-section-sub">Choose the plan that fits your growth stage.</p>
-    <div class="ov-pricing-grid-4">
-      <div class="ov-pc" data-observe>
-        <div class="ov-pc-head"><div class="ov-pc-tier">Starter</div></div>
-        <div class="ov-pc-price-block"><div class="ov-pc-price">&euro;9.95<span>/mo</span></div><div class="ov-pc-credits">500 AI credits / month</div></div>
-        <div class="ov-pc-desc">For individuals getting started with AI-powered ad analytics.</div>
-        <ul class="ov-pc-list"><li>500 AI Credits / Month</li><li>Campaign Generation</li><li>Google Ads</li><li>Meta Ads</li><li>TikTok Ads</li><li>AI Analysis</li><li>Business Brain</li><li>Brand Memory</li><li>Intelligence</li></ul>
-        <a href="#" class="ov-pc-btn" onclick="lpGetStarted(event)">Get Started</a>
-      </div>
-      <div class="ov-pc ov-pc-pro" data-observe style="transition-delay:.08s">
-        <div class="ov-pc-head"><div class="ov-pc-badge">Most Popular</div><div class="ov-pc-tier">Creator</div></div>
-        <div class="ov-pc-price-block"><div class="ov-pc-price">&euro;29.95<span>/mo</span></div><div class="ov-pc-credits">3,000 AI credits / month</div></div>
-        <div class="ov-pc-desc">For creators, founders, and growing brands running multi-channel ads.</div>
-        <ul class="ov-pc-list"><li>Everything in Starter</li><li>Autopilot</li><li>3,000 AI Credits / Month</li></ul>
-        <a href="#" class="ov-pc-btn ov-pc-btn-pro" onclick="lpGetStarted(event)">Get Started</a>
-      </div>
-      <div class="ov-pc" data-observe style="transition-delay:.16s">
-        <div class="ov-pc-head"><div class="ov-pc-tier">Professional</div></div>
-        <div class="ov-pc-price-block"><div class="ov-pc-price">&euro;59.95<span>/mo</span></div><div class="ov-pc-credits">12,000 AI credits / month</div></div>
-        <div class="ov-pc-desc">For professional teams scaling ad performance across all channels.</div>
-        <ul class="ov-pc-list"><li>Everything in Creator</li><li>Priority Support</li><li>12,000 AI Credits / Month</li><li>Up to 10 Team Members</li></ul>
-        <a href="#" class="ov-pc-btn" onclick="lpGetStarted(event)">Get Started</a>
-      </div>
-    </div>
+    <div class="ov-pricing-grid-4" id="lpPricingGrid"></div>
     <p class="ov-pricing-note">All plans include a monthly AI credit allocation. Credits reset on your billing date.</p>
   </div>
 </section>
@@ -2288,6 +2301,481 @@
 </div>
 </div><!-- /view-product-unified-dashboard -->
 
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / LAUNCH
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-launch" class="pub-view">
+<div class="ov-sub-page">
+
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner">
+      <div class="ov-eyebrow">Launch</div>
+      <h1 class="ov-sp-h1">From idea to live campaign.<br>In minutes.</h1>
+      <p class="ov-sp-hero-sub">Describe your product, choose your platforms, and Oriven generates a complete, ready-to-publish campaign — strategy, structure and creative included.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Generate a Campaign</a>
+        <a href="/" class="ov-btn-ghost">&#8592; Back to Oriven</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="ov-pv-wrap" data-observe>
+    <div class="ov-pv-mock">
+      <div class="ov-pv-mock-head"><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-mock-title">LAUNCH — NEW CAMPAIGN</span></div>
+      <div class="ov-pv-mock-body">
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Objective</span></span><span class="ov-pv-row-val">Conversions</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Platforms</span></span><span class="ov-pv-row-val">Google · Meta · TikTok</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Campaign Structure</span></span><span class="ov-pv-row-val">3 Campaigns · 9 Ad Sets</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Creative Assets</span></span><span class="ov-pv-badge">Generated</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Status</span></span><span class="ov-pv-badge">Ready to publish</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">How Launch Works</div>
+      <h2 class="ov-sp-h2">One prompt.<br>A complete campaign.</h2>
+      <p class="ov-sp-sub">Tell Oriven about your product and what you're trying to achieve. It builds the strategy, the structure and the creative — you review before anything goes live.</p>
+      <div class="ov-plat-connect-grid">
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Describe your product</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Choose goals &amp; objectives</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Select Google, Meta or TikTok</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Generate campaign structure</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Generate ad copy</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Generate visual creative</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Review before publishing</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Publish to connected accounts</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What You Get</div>
+      <h2 class="ov-sp-h2">Everything a campaign needs.<br>Generated together.</h2>
+      <p class="ov-sp-sub">Launch doesn't just write copy — it plans the whole campaign, structured the way each platform actually expects it.</p>
+      <div class="ov-plat-feat-grid">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">AI Campaign Creation</div>
+          <div class="ov-plat-feat-desc">Describe your product and Oriven generates a complete campaign strategy, ready to review.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Goals &amp; Objectives</div>
+          <div class="ov-plat-feat-desc">Choose what you're optimizing for — conversions, traffic, awareness — and Oriven builds around it.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Platform Selection</div>
+          <div class="ov-plat-feat-desc">Launch to Google Ads, Meta Ads or TikTok Ads — or all three from a single workflow.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Campaign Structure</div>
+          <div class="ov-plat-feat-desc">Real ad sets and ad groups generated per platform, not a single flat campaign.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Creative Generation</div>
+          <div class="ov-plat-feat-desc">Ad copy, visuals and platform-specific assets generated alongside the campaign itself.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Native Publishing</div>
+          <div class="ov-plat-feat-desc">Review and publish directly to your connected ad accounts — no manual re-entry.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Your next campaign<br>starts with one prompt.</h2>
+      <p class="ov-sp-cta-sub">Generate a complete, ready-to-publish campaign in minutes.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-launch -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / CAMPAIGNS
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-campaigns" class="pub-view">
+<div class="ov-sub-page">
+
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner">
+      <div class="ov-eyebrow">Campaigns</div>
+      <h1 class="ov-sp-h1">Every campaign.<br>One workspace.</h1>
+      <p class="ov-sp-hero-sub">Track live campaigns, pick up drafts, and review every detail before anything publishes — across Google, Meta and TikTok, all in one place.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+        <a href="/" class="ov-btn-ghost">&#8592; Back to Oriven</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="ov-pv-wrap" data-observe>
+    <div class="ov-pv-mock">
+      <div class="ov-pv-mock-head"><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-mock-title">CAMPAIGNS</span></div>
+      <div class="ov-pv-mock-body">
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Summer Sale — Meta</span></span><span class="ov-pv-badge">Live</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Search Brand — Google</span></span><span class="ov-pv-badge">Live</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>UGC Launch — TikTok</span></span><span class="ov-pv-badge ov-pv-badge-muted">Draft</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Q3 Retarget — Meta</span></span><span class="ov-pv-badge ov-pv-badge-muted">In Review</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Preview · Edit · Publish</span></span><span class="ov-pv-row-val">Workspace</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">The Campaign Workspace</div>
+      <h2 class="ov-sp-h2">Nothing gets lost.<br>Nothing gets rushed.</h2>
+      <p class="ov-sp-sub">Every campaign — live, in review, or still a draft — lives in one workspace you can return to at any time.</p>
+      <div class="ov-plat-connect-grid">
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>See all live campaigns</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Resume drafts anytime</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Open the campaign workspace</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Preview ads before publishing</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Edit copy, creative and structure</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Review before it goes live</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Publish to connected accounts</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Track status across platforms</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What You Get</div>
+      <h2 class="ov-sp-h2">From draft to live.<br>Without losing track.</h2>
+      <p class="ov-sp-sub">A single, structured view of everything you've built — and everything still in progress.</p>
+      <div class="ov-plat-feat-grid">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Campaign Overview</div>
+          <div class="ov-plat-feat-desc">See every campaign across Google, Meta and TikTok in one workspace.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Live Campaigns</div>
+          <div class="ov-plat-feat-desc">Track status, spend and performance for everything currently running.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Drafts</div>
+          <div class="ov-plat-feat-desc">Pick up unfinished campaigns exactly where you left off.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Campaign Workspace</div>
+          <div class="ov-plat-feat-desc">Open any campaign to review structure, creative and settings in detail.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Preview, Edit &amp; Review</div>
+          <div class="ov-plat-feat-desc">Check exactly how an ad will look before it goes live, and make changes inline.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Publishing</div>
+          <div class="ov-plat-feat-desc">Push campaigns live to your connected accounts directly from Oriven.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Keep every campaign<br>in one place.</h2>
+      <p class="ov-sp-cta-sub">Live, in review, or still a draft — always where you left it.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-campaigns -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / INTELLIGENCE
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-intelligence" class="pub-view">
+<div class="ov-sub-page">
+
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner">
+      <div class="ov-eyebrow">Intelligence</div>
+      <h1 class="ov-sp-h1">Your accounts,<br>watched continuously.</h1>
+      <p class="ov-sp-hero-sub">Oriven analyzes your connected accounts on an ongoing basis — surfacing insights, flagging issues and recommending what to do next, before you have to ask.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+        <a href="/" class="ov-btn-ghost">&#8592; Back to Oriven</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="ov-pv-wrap" data-observe>
+    <div class="ov-pv-mock">
+      <div class="ov-pv-mock-head"><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-mock-title">INTELLIGENCE — EVENTS</span></div>
+      <div class="ov-pv-mock-body">
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Budget Waste Detected</span></span><span class="ov-pv-row-val">Google · Campaign #4</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Audience Saturation</span></span><span class="ov-pv-row-val">Meta · Ad Set B</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>New Insights</span></span><span class="ov-pv-badge">3 unread</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Recommendation</span></span><span class="ov-pv-row-val">Reallocate &euro;420 budget</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Monitoring</span></span><span class="ov-pv-badge">Active</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">How Intelligence Works</div>
+      <h2 class="ov-sp-h2">Insight, without<br>the manual digging.</h2>
+      <p class="ov-sp-sub">Intelligence runs in the background, turning raw account data into findings you can actually act on.</p>
+      <div class="ov-plat-connect-grid">
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Continuous account analysis</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Intelligence events feed</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Real-time notifications</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Cross-platform insights</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>AI-generated recommendations</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Per-campaign intelligence</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Works across Google, Meta &amp; TikTok</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Feeds Autopilot automatically</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What You Get</div>
+      <h2 class="ov-sp-h2">Know what changed.<br>And what to do about it.</h2>
+      <p class="ov-sp-sub">Intelligence doesn't just report numbers — it tells you what they mean.</p>
+      <div class="ov-plat-feat-grid">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">AI Analysis</div>
+          <div class="ov-plat-feat-desc">Continuous analysis of your connected accounts, not just a report you have to ask for.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Intelligence Events</div>
+          <div class="ov-plat-feat-desc">A running feed of what changed in your account and why it matters.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Notifications</div>
+          <div class="ov-plat-feat-desc">Get flagged the moment something needs attention.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Insights</div>
+          <div class="ov-plat-feat-desc">Understand performance trends across platforms, not just isolated numbers.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Recommendations</div>
+          <div class="ov-plat-feat-desc">Actionable suggestions grounded in your real campaign data.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Campaign Intelligence</div>
+          <div class="ov-plat-feat-desc">Drill into any single campaign's intelligence history.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Stop checking.<br>Start knowing.</h2>
+      <p class="ov-sp-cta-sub">Let Oriven watch your accounts so you don't have to.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-intelligence -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / AUTOPILOT
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-autopilot" class="pub-view">
+<div class="ov-sub-page">
+
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner">
+      <div class="ov-eyebrow">Autopilot</div>
+      <h1 class="ov-sp-h1">Rules that act,<br>while you don't have to.</h1>
+      <p class="ov-sp-hero-sub">Autopilot turns Intelligence's findings into automated action — reallocating wasted budget and flagging audience fatigue, based on rules you control.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+        <a href="/" class="ov-btn-ghost">&#8592; Back to Oriven</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="ov-pv-wrap" data-observe>
+    <div class="ov-pv-mock">
+      <div class="ov-pv-mock-head"><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-mock-title">AUTOPILOT — RULES</span></div>
+      <div class="ov-pv-mock-body">
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Automation Rules</span></span><span class="ov-pv-row-val">2 active</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Pause underperforming ads</span></span><span class="ov-pv-badge">Enabled</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Reallocate on saturation</span></span><span class="ov-pv-badge">Enabled</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Last Run</span></span><span class="ov-pv-row-val">14 min ago</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Actions Taken (7d)</span></span><span class="ov-pv-row-val">6</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">How Autopilot Works</div>
+      <h2 class="ov-sp-h2">You set the rules.<br>Autopilot follows them.</h2>
+      <p class="ov-sp-sub">Autopilot acts on the same findings Intelligence surfaces — but only within rules you've explicitly turned on.</p>
+      <div class="ov-plat-connect-grid">
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Define automation rules per campaign</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Detect budget waste automatically</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Flag audience saturation</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Enable or disable any rule, anytime</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Full activity log of actions taken</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Built on Intelligence's findings</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Runs across connected platforms</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Nothing acts without a rule in place</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What You Get</div>
+      <h2 class="ov-sp-h2">Optimization that doesn't<br>wait for you to log in.</h2>
+      <p class="ov-sp-sub">Autopilot only does what you've told it to — with a full record of everything it's done.</p>
+      <div class="ov-plat-feat-grid">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Automation Rules</div>
+          <div class="ov-plat-feat-desc">Define rules that act on your campaigns automatically, without manual intervention.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Budget Waste Detection</div>
+          <div class="ov-plat-feat-desc">Automatically flags — and can reallocate — spend from underperforming placements.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Audience Saturation Alerts</div>
+          <div class="ov-plat-feat-desc">Know when an audience is fatigued before performance actually drops.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Rule Activity Log</div>
+          <div class="ov-plat-feat-desc">See exactly what Autopilot did, and when, with full history.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Enable or Disable Anytime</div>
+          <div class="ov-plat-feat-desc">Full control — turn any rule on or off per campaign, whenever you want.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Works Alongside Intelligence</div>
+          <div class="ov-plat-feat-desc">Autopilot acts on the same findings surfaced in Intelligence — nothing hidden.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Set the rules once.<br>Let Autopilot handle it.</h2>
+      <p class="ov-sp-cta-sub">Available on Creator and Professional plans.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-autopilot -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     VIEW: PRODUCT / BUSINESS
+     ═══════════════════════════════════════════════════════ -->
+<div id="view-product-business" class="pub-view">
+<div class="ov-sub-page">
+
+  <section class="ov-sp-hero">
+    <div class="ov-sp-hero-inner">
+      <div class="ov-eyebrow">Business</div>
+      <h1 class="ov-sp-h1">One brain, behind<br>every generation.</h1>
+      <p class="ov-sp-hero-sub">Your business profile and Brand Brain give every AI generation the same context — so campaigns, copy and creative actually sound like you.</p>
+      <div class="ov-hero-btns">
+        <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+        <a href="/" class="ov-btn-ghost">&#8592; Back to Oriven</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="ov-pv-wrap" data-observe>
+    <div class="ov-pv-mock">
+      <div class="ov-pv-mock-head"><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-mock-title">BUSINESS — BRAND BRAIN</span></div>
+      <div class="ov-pv-mock-body">
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Brand Brain</span></span><span class="ov-pv-badge">Trained</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Brand Voice</span></span><span class="ov-pv-row-val">Confident · Direct</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Business Profile</span></span><span class="ov-pv-badge">Complete</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Workspace</span></span><span class="ov-pv-row-val">3 team members</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Connected Platforms</span></span><span class="ov-pv-row-val">3 / 3</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="ov-sp-section">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">How Business Works</div>
+      <h2 class="ov-sp-h2">Set the context once.<br>Every AI feature uses it.</h2>
+      <p class="ov-sp-sub">Your business profile isn't a settings page nobody reads — it's what makes every generated campaign sound like it actually came from your brand.</p>
+      <div class="ov-plat-connect-grid">
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Build your business profile</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Train your Brand Brain</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Define your brand voice</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Store brand information &amp; assets</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Configure your workspace</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Manage your team</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Feeds Launch, Intelligence &amp; Autopilot</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>One profile, every AI feature</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov-sp-section ov-sp-alt">
+    <div class="ov-sp-section-inner ov-plat-centered">
+      <div class="ov-sp-tag">What You Get</div>
+      <h2 class="ov-sp-h2">Context that carries<br>across the whole platform.</h2>
+      <p class="ov-sp-sub">Set up your business once — it's what every other Oriven product builds on.</p>
+      <div class="ov-plat-feat-grid">
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Business Profile</div>
+          <div class="ov-plat-feat-desc">Core information about your business that powers every AI generation.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Brand Brain</div>
+          <div class="ov-plat-feat-desc">Oriven's memory of your brand — voice, positioning and product context.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Brand Voice</div>
+          <div class="ov-plat-feat-desc">Define tone and style so generated copy sounds like you, not generic AI.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Brand Information</div>
+          <div class="ov-plat-feat-desc">Keep logos, colors and brand assets organized in one place.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Workspace Configuration</div>
+          <div class="ov-plat-feat-desc">Manage your workspace, team members and connected accounts.</div>
+        </div>
+        <div class="ov-plat-feat-card">
+          <div class="ov-plat-feat-title">Business Intelligence</div>
+          <div class="ov-plat-feat-desc">Business-level context that feeds Intelligence and Launch alike.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ov-sp-cta">
+    <div class="ov-sp-cta-inner">
+      <h2 class="ov-sp-cta-h">Give your AI<br>the full picture.</h2>
+      <p class="ov-sp-cta-sub">One business profile. Every product builds on it.</p>
+      <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
+    </div>
+  </section>
+  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
+</div>
+</div><!-- /view-product-business -->
+
 <div id="view-404" class="pub-view" style="height:100vh;overflow-y:auto;overflow-x:hidden;">
   <div class="ov-sub-page">
     <div class="ov-sp-hero" style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:140px 24px 80px;">
@@ -2328,7 +2816,12 @@
     '/product/analytics':           'product-analytics',
     '/product/ai-recommendations':  'product-ai-recommendations',
     '/product/reporting':           'product-reporting',
-    '/product/unified-dashboard':   'product-unified-dashboard'
+    '/product/unified-dashboard':   'product-unified-dashboard',
+    '/launch':                      'product-launch',
+    '/campaigns':                   'product-campaigns',
+    '/intelligence':                'product-intelligence',
+    '/autopilot':                   'product-autopilot',
+    '/business':                    'product-business'
   };
   var active = (path === '/' || path === '') ? 'landing' : (viewMap[path] || '404');
   var el = document.getElementById('view-' + active);
@@ -2340,6 +2833,8 @@
     'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1,
     'product-analytics':1, 'product-ai-recommendations':1,
     'product-reporting':1, 'product-unified-dashboard':1,
+    'product-launch':1, 'product-campaigns':1, 'product-intelligence':1,
+    'product-autopilot':1, 'product-business':1,
     '404':1
   };
   document.body.dataset.lpnav = NAV_VIEWS[active] ? '1' : '0';
@@ -2358,6 +2853,11 @@
     'product-ai-recommendations': 'AI Recommendations – Oriven',
     'product-reporting':          'Reporting – Oriven',
     'product-unified-dashboard':  'Unified Dashboard – Oriven',
+    'product-launch':             'Launch – Oriven',
+    'product-campaigns':          'Campaigns – Oriven',
+    'product-intelligence':       'Intelligence – Oriven',
+    'product-autopilot':          'Autopilot – Oriven',
+    'product-business':           'Business – Oriven',
     '404':                        'Page Not Found – Oriven'
   };
   if(titles[active]) document.title = titles[active];
@@ -2376,6 +2876,8 @@
     'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1,
     'product-analytics':1, 'product-ai-recommendations':1,
     'product-reporting':1, 'product-unified-dashboard':1,
+    'product-launch':1, 'product-campaigns':1, 'product-intelligence':1,
+    'product-autopilot':1, 'product-business':1,
     '404':1
   };
   var VIEW_MAP = {
@@ -2398,7 +2900,12 @@
     '/product/analytics':           'product-analytics',
     '/product/ai-recommendations':  'product-ai-recommendations',
     '/product/reporting':           'product-reporting',
-    '/product/unified-dashboard':   'product-unified-dashboard'
+    '/product/unified-dashboard':   'product-unified-dashboard',
+    '/launch':                      'product-launch',
+    '/campaigns':                   'product-campaigns',
+    '/intelligence':                'product-intelligence',
+    '/autopilot':                   'product-autopilot',
+    '/business':                    'product-business'
   };
   var PAGE_TITLES = {
     'landing':                  'Oriven — AI Marketing Intelligence Platform',
@@ -2421,6 +2928,11 @@
     'product-ai-recommendations': 'AI Recommendations – Oriven',
     'product-reporting':          'Reporting – Oriven',
     'product-unified-dashboard':  'Unified Dashboard – Oriven',
+    'product-launch':             'Launch – Oriven',
+    'product-campaigns':          'Campaigns – Oriven',
+    'product-intelligence':       'Intelligence – Oriven',
+    'product-autopilot':          'Autopilot – Oriven',
+    'product-business':           'Business – Oriven',
     '404':                        'Page Not Found – Oriven'
   };
 
@@ -2576,8 +3088,67 @@ function lpHandleLogin(e){
 }
 
 if(window._pubView === 'landing'){
+// â”€â”€ Generic count-up â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// One shared mechanism reused by Pricing, Section 04 stats and Section 05
+// KPIs â€” reads data-count-target/decimals/prefix/suffix off whatever
+// elements live inside the given container, animates once per viewport
+// entry (never restarts), and snaps straight to final values when
+// prefers-reduced-motion is set instead of animating at all.
+var ovReduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+function ovCountFmt(v, dec, grouped){
+  return grouped
+    ? v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })
+    : v.toFixed(dec);
+}
+function ovCountFinal(el){
+  var target  = parseFloat(el.dataset.countTarget);
+  var dec     = parseInt(el.dataset.countDecimals || '0', 10);
+  var prefix  = el.dataset.countPrefix || '';
+  var suffix  = el.dataset.countSuffix || '';
+  var grouped = el.dataset.countGroup === '1';
+  el.textContent = prefix + ovCountFmt(target, dec, grouped) + suffix;
+}
+function ovInitCountUp(container, opts){
+  if(!container) return;
+  opts = opts || {};
+  var duration  = opts.duration  || 1400;
+  var stagger   = opts.stagger   != null ? opts.stagger : 150;
+  var threshold = opts.threshold != null ? opts.threshold : 0.25;
+  var vals = Array.prototype.slice.call(container.querySelectorAll('[data-count-target]'));
+  if(!vals.length) return;
+
+  if(ovReduceMotion){ vals.forEach(ovCountFinal); return; }
+
+  var counted = false;
+  var root = document.getElementById('view-landing');
+  new IntersectionObserver(function(entries){
+    if(entries[0].isIntersecting && !counted){
+      counted = true;
+      vals.forEach(function(el, idx){
+        var target  = parseFloat(el.dataset.countTarget);
+        var dec     = parseInt(el.dataset.countDecimals || '0', 10);
+        var prefix  = el.dataset.countPrefix || '';
+        var suffix  = el.dataset.countSuffix || '';
+        var grouped = el.dataset.countGroup === '1';
+        setTimeout(function(){
+          var s = Date.now(), d = duration;
+          (function tick(){
+            var t = Math.min(1,(Date.now()-s)/d);
+            var ease = 1-Math.pow(1-t,3);
+            var v = target*ease;
+            el.textContent = prefix + ovCountFmt(dec ? v : Math.floor(v), dec, grouped) + suffix;
+            if(t<1) requestAnimationFrame(tick);
+            else ovCountFinal(el); // land exactly on target, no float rounding artifacts
+          })();
+        }, idx*stagger);
+      });
+    }
+  }, { root: root, threshold: threshold }).observe(container);
+}
+
 // â”€â”€ Pricing cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 renderLPPricingCards(document.getElementById('lpPricingGrid'));
+ovInitCountUp(document.getElementById('lpPricingGrid'), { duration: 1100, stagger: 120, threshold: 0.2 });
 (function(){ var g=document.getElementById('lpPricingGrid'); if(g) g.classList.add('lp-pricing-pending'); })();
 
 // -- Mobile hamburger -------------------------------------------------------------------------
@@ -2936,34 +3507,10 @@ function lpAnimProcess(){
 
   document.querySelectorAll('[data-observe]').forEach(function(el){ io.observe(el); });
 
-  // Counter animation — replays each time results re-enters view
-  var _counting = false;
-  var resultEl = document.getElementById('ov-results');
-  if(resultEl) {
-    new IntersectionObserver(function(entries){
-      if(entries[0].isIntersecting && !_counting) {
-        _counting = true;
-        [{id:'rn-0',target:2,suffix:'M+',prefix:'€',dec:0},
-         {id:'rn-1',target:12,suffix:'K+',prefix:'',dec:0},
-         {id:'rn-2',target:1000,suffix:'+',prefix:'',dec:0}
-        ].forEach(function(cfg, idx){
-          setTimeout(function(){
-            var el = document.getElementById(cfg.id);
-            if(!el) return;
-            var s = Date.now(), d = 1400;
-            (function tick(){
-              var t = Math.min(1,(Date.now()-s)/d);
-              var ease = 1-Math.pow(1-t,3);
-              var v = cfg.target*ease;
-              el.textContent = cfg.prefix+(cfg.dec ? v.toFixed(cfg.dec) : Math.floor(v))+cfg.suffix;
-              if(t<1) requestAnimationFrame(tick);
-              else if(idx === 2) { setTimeout(function(){ _counting = false; }, 300); }
-            })();
-          }, idx*150);
-        });
-      }
-    }, { root: lv, threshold: 0.25 }).observe(resultEl);
-  }
+  // Counter animations — Social Proof stats and Section 05 (Analyze) KPIs.
+  // Both reuse the single ovInitCountUp() mechanism defined above.
+  ovInitCountUp(document.getElementById('ovSpStats'), { duration: 1400, stagger: 150, threshold: 0.25 });
+  ovInitCountUp(document.getElementById('ovAnKpis'),  { duration: 1400, stagger: 120, threshold: 0.3 });
 })();
 // Hero canvas particles
 (function(){

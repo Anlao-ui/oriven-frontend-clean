@@ -102,11 +102,144 @@ function _apActionDesc(v){ return AP_ACTION_DESC[v] || ''; }
 var AP = { step: 1, platform: null, campaigns: [], campaignId: null, campaignName: null, metric: null, operator: null, value: null, action: null, percent: 15, mode: 'require_approval', editingRuleId: null, historyItems: [] };
 
 window.apInit = function() {
+  _apPlayShellAnim(); // header + engine become visible immediately, independent of how long the data below takes to load
   apWizStart();
   apActiveLoad();
   apHistLoad();
   apSettingsLoad();
+  apLoadMonitoringSources();
 };
+
+// ══ Create Automation / Settings modals — the existing #apBuilderSection
+// and #apSettingsSection are moved into their modal bodies via a real DOM
+// appendChild (not copied/rebuilt) the first time each is opened, so every
+// existing id/handler in the wizard and settings rows keeps working
+// completely unchanged. ══════════════════════════════════════════════
+window.apOpenBuilder = function() {
+  var section = document.getElementById('apBuilderSection');
+  var body = document.getElementById('apBuilderModalBody');
+  if (section && body && section.parentElement !== body) {
+    section.classList.remove('ov3-section');
+    body.appendChild(section);
+  }
+  if (section) section.style.display = '';
+  var overlay = document.getElementById('apBuilderOverlay');
+  if (overlay) overlay.style.display = 'flex';
+};
+window.apCloseBuilder = function() {
+  var overlay = document.getElementById('apBuilderOverlay');
+  if (overlay) overlay.style.display = 'none';
+};
+window.apOpenSettings = function() {
+  var section = document.getElementById('apSettingsSection');
+  var body = document.getElementById('apSettingsModalBody');
+  if (section && body && section.parentElement !== body) {
+    section.classList.remove('ov3-section', 'ov3-section-last');
+    body.appendChild(section);
+  }
+  if (section) section.style.display = '';
+  apSettingsLoad(); // re-sync from storage every time it opens — cheap, always correct
+  var overlay = document.getElementById('apSettingsOverlay');
+  if (overlay) overlay.style.display = 'flex';
+};
+window.apCloseSettings = function() {
+  var overlay = document.getElementById('apSettingsOverlay');
+  if (overlay) overlay.style.display = 'none';
+};
+
+// ══ Monitoring Sources — real connection status + real campaign counts,
+// the exact same /api/{platform}/status + /api/{platform}/campaigns
+// endpoints and platform icons (_PRF_PLAT_ICONS) Campaigns/Intelligence
+// already use elsewhere in this app — no second connection model, no new
+// endpoints. ══════════════════════════════════════════════════════════
+var AP_MON_PLATFORMS = [
+  { key: 'google', label: 'Google Ads' },
+  { key: 'meta',   label: 'Meta Ads' },
+  { key: 'tiktok', label: 'TikTok Ads' }
+];
+function _apFetchPlatformStatus(p) {
+  return apiFetch('/api/' + p.key + '/status').then(function(r) {
+    if (!r.ok) return { platform: p.key, label: p.label, connected: false, campaignCount: 0, statusError: true };
+    var connected = !!(r.data && r.data.connected);
+    if (!connected) return { platform: p.key, label: p.label, connected: false, campaignCount: 0 };
+    return apiFetch('/api/' + p.key + '/campaigns').then(function(cr) {
+      if (!cr.ok) return { platform: p.key, label: p.label, connected: true, campaignCount: 0, loadError: true };
+      var count = (cr.data && cr.data.campaigns) ? cr.data.campaigns.length : 0;
+      return { platform: p.key, label: p.label, connected: true, campaignCount: count };
+    }).catch(function() { return { platform: p.key, label: p.label, connected: true, campaignCount: 0, loadError: true }; });
+  }).catch(function() { return { platform: p.key, label: p.label, connected: false, campaignCount: 0, statusError: true }; });
+}
+function apLoadMonitoringSources() {
+  var el = document.getElementById('apSourcesList');
+  if (!el || typeof apiFetch !== 'function') return;
+  Promise.all(AP_MON_PLATFORMS.map(_apFetchPlatformStatus)).then(function(results) {
+    window._apSourcesSnapshot = results;
+    var anyConnected = results.some(function(r) { return r.connected; });
+    el.innerHTML = anyConnected ? results.map(_apSourceCard).join('') : _apSourcesEmptyState();
+    _apUpdateHeroFacts(results);
+  }).catch(function() {
+    el.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">Could not load connection status.</span>';
+  });
+}
+function _apSourceCard(p) {
+  var statusHtml = p.statusError
+    ? '<span class="intel-mon-status intel-mon-status-off"><span class="intel-mon-dot"></span>Status unavailable</span>'
+    : p.connected
+      ? '<span class="intel-mon-status intel-mon-status-on"><span class="intel-mon-dot"></span>Connected</span>'
+      : '<span class="intel-mon-status intel-mon-status-off"><span class="intel-mon-dot"></span>Not connected</span>';
+  var body;
+  if (p.statusError) body = '<div class="ap-source-body ap-source-body-muted">Unable to check connection</div>';
+  else if (!p.connected) body = '<div class="ap-source-body ap-source-body-muted">Not connected</div>';
+  else if (p.loadError) body = '<div class="ap-source-body ap-source-body-muted">Unable to load campaigns</div>';
+  else if (!p.campaignCount) body = '<div class="ap-source-body ap-source-body-muted">No campaigns available</div>';
+  else body = '<div class="ap-source-body">' + p.campaignCount + ' campaign' + (p.campaignCount === 1 ? '' : 's') + ' available</div>';
+  var action = p.connected ? "_orvNav('adsmanager','page-ads-manager')" : "if(typeof bizGoTo==='function')bizGoTo('connections')";
+  return '<button type="button" class="ap-source-card" onclick="' + action + '">' +
+    '<div class="ap-source-top"><span class="intel-mon-plat-icon">' + (typeof _PRF_PLAT_ICONS !== 'undefined' ? (_PRF_PLAT_ICONS[p.platform] || '') : '') + '</span><span class="ap-source-name">' + _apOpEsc(p.label) + '</span></div>' +
+    statusHtml + body +
+  '</button>';
+}
+function _apSourcesEmptyState() {
+  return '<div class="ap-sources-empty">' +
+    '<div class="ap-sources-empty-title">AUTOPILOT READY</div>' +
+    '<div class="ap-sources-empty-sub">No campaigns are running yet.</div>' +
+    '<div class="ap-sources-empty-sub2">Connect an advertising account and Oriven will automatically monitor eligible campaigns.</div>' +
+    '<button type="button" class="camp-new-btn camp-new-btn-lg" onclick="if(typeof bizGoTo===\'function\')bizGoTo(\'connections\')">Connect account →</button>' +
+  '</div>';
+}
+function _apUpdateHeroFacts(results) {
+  var byPlat = {}; results.forEach(function(r) { byPlat[r.platform] = r; });
+  var gEl = document.getElementById('apHeroGoogleFact');
+  var mEl = document.getElementById('apHeroMetaFact');
+  if (gEl) { var g = byPlat.google; if (g && g.connected) { gEl.textContent = 'Google Ads connected'; gEl.style.display = ''; } else gEl.style.display = 'none'; }
+  if (mEl) { var m = byPlat.meta; if (m && m.connected) { mEl.textContent = 'Meta Ads connected'; mEl.style.display = ''; } else mEl.style.display = 'none'; }
+}
+
+// ══ Entrance animation — header/engine become visible immediately
+// (independent of data loading, same lesson learned building Intelligence:
+// gating a hero behind a data-driven render left it invisible for the
+// entire fetch), card lists stagger in separately once each has real
+// content. Reuses the @keyframes intelFadeUp already defined for
+// Intelligence (styles.css) rather than a second, near-identical one. ════
+function _apPlayShellAnim() {
+  var wrap = document.getElementById('apPageWrap');
+  if (!wrap) return;
+  wrap.classList.remove('ap-anim-play');
+  void wrap.offsetWidth;
+  wrap.classList.add('ap-anim-play');
+}
+function _apPlayCardStagger(containerId) {
+  var wrap = document.getElementById('apPageWrap');
+  var container = document.getElementById(containerId);
+  if (!wrap || !container) return;
+  var cls = 'ap-anim-cards-' + containerId;
+  wrap.classList.remove(cls);
+  void wrap.offsetWidth;
+  Array.prototype.forEach.call(container.children, function(card, i) {
+    card.style.animationDelay = (i * 60) + 'ms';
+  });
+  wrap.classList.add(cls);
+}
 
 // ══ Automation Builder — guided wizard ═══════════════════════════════
 
@@ -442,6 +575,7 @@ window.apBSave = function() {
     if (!res.ok) { if (errEl) { errEl.textContent = (res.data && res.data.error) || _apT('apErrSaveFailed', 'Could not save that automation.'); errEl.style.display = ''; } return; }
     apWizStart();
     apActiveLoad();
+    apCloseBuilder();
   }).catch(function() {
     if (errEl) { errEl.textContent = _apT('apErrSaveFailed', 'Could not save that automation.'); errEl.style.display = ''; }
   }).finally(function() { if (saveBtn) saveBtn.disabled = false; });
@@ -462,7 +596,17 @@ function apActiveLoad() {
   el.innerHTML = '<div class="ov3-brief-loading"><div class="orv-ai-thinking-dots"><span></span><span></span><span></span></div></div>';
   apiFetch('/api/autopilot/rules').then(function(res) {
     var items = (res.ok && res.data && res.data.rules) || [];
+    window._apRules = items;
     el.innerHTML = items.length ? items.map(_apActiveCard).join('') : _apEmptyActiveState();
+    var activeCount = items.filter(function(r) { return r.enabled; }).length;
+    var countEl = document.getElementById('apActiveCount');
+    if (countEl) countEl.textContent = items.length ? (activeCount + ' ACTIVE') : '';
+    var heroFact = document.getElementById('apHeroActiveFact');
+    if (heroFact) {
+      if (activeCount) { heroFact.textContent = activeCount + ' automation' + (activeCount === 1 ? '' : 's') + ' active'; heroFact.style.display = ''; }
+      else heroFact.style.display = 'none';
+    }
+    _apPlayCardStagger('apActiveList');
   }).catch(function() { el.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">' + _apT('apErrLoadActiveFailed', 'Could not load your automations.') + '</span>'; });
 }
 
@@ -479,6 +623,7 @@ function _apEmptyActiveState() {
 window.apPrefillExample = function(i) {
   var ex = AP_EXAMPLE_AUTOMATIONS[i];
   if (!ex) return;
+  apOpenBuilder(); // the wizard now lives in a modal — open it first, then prefill exactly as before
   apWizStart();
   setTimeout(function() { apWizSelectPlatform(ex.platform); }, 60);
   setTimeout(function() { apWizSelectCampaign('all'); }, 320);
@@ -500,8 +645,6 @@ window.apPrefillExample = function(i) {
       }, 60);
     }
   }, 1050);
-  var builderSection = document.getElementById('apBuilderSection');
-  if (builderSection && builderSection.scrollIntoView) builderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 function _apRelativeDate(iso) {
@@ -524,25 +667,49 @@ function _apRuleSentence(rule) {
   return _apT('apRuleSentenceWhen','When') + ' ' + metricLabel + ' (' + campaignPhrase + ') ' + opPhrase + ' ' + rule.trigger_value + _apT('apRuleSentenceOrivenWill',', Oriven will') + ' ' + actionPhrase + '.';
 }
 
+/* Status is derived entirely from real fields — r.enabled (real column) and
+   a cross-reference against real, already-fetched Autopilot Activity items
+   for a "...failed to execute" title matching this rule's name (the exact
+   string _execRuleAction (server.js) writes on a genuine execution
+   failure). Never invented: a rule with no matching failure event in real
+   history is simply "active", never guessed at "needs approval" unless its
+   own action_params.mode says so. */
+function _apRuleStatusInfo(r) {
+  if (!r.enabled) return { key: 'paused', label: 'PAUSED', cls: 'ap-status-paused' };
+  var failed = (AP.historyItems || []).some(function(i) { return i.title && r.name && i.title.indexOf(r.name) !== -1 && /failed/i.test(i.title); });
+  if (failed) return { key: 'failed', label: 'ACTION FAILED', cls: 'ap-status-failed' };
+  var mode = (r.action_params || {}).mode;
+  if (mode === 'require_approval') return { key: 'approval', label: 'NEEDS APPROVAL', cls: 'ap-status-approval' };
+  return { key: 'active', label: 'ACTIVE', cls: 'ap-status-active' };
+}
 function _apActiveCard(r) {
   var lastRun = r.last_triggered_at ? _apRelativeDate(r.last_triggered_at) : _apT('apNeverRun', 'Never');
-  var statusLabel = r.enabled ? _apT('apStatusRunning', 'Running') : _apT('statusPaused', 'Paused');
-  var statusCls = r.enabled ? 'clib-status-active' : 'clib-status-archived';
   var ap = r.action_params || {};
-  return '<div class="ap-story-card">' +
-    '<div class="ap-story-top">' +
-      '<div><div class="ap-story-title">' + _apOpEsc(r.name) + '</div>' +
-      '<div class="ap-story-meta">' + _apOpEsc(AP_PLAT_LABELS[r.platform] || '') + ' · ' + _apOpEsc(ap.campaign_name || _apT('apAllCampaigns','All Campaigns')) + '</div></div>' +
-      '<span class="clib-status-pill ' + statusCls + '">' + statusLabel + '</span>' +
+  var status = _apRuleStatusInfo(r);
+  var metricLabel = _apMetricLabel(r.trigger_metric);
+  var triggerText = r.trigger_metric === 'status' ? (metricLabel + ' is ' + r.trigger_value) : (metricLabel + ' ' + _apOperatorLabel(r.trigger_operator) + ' ' + r.trigger_value);
+  var actionLabel = _apActionLabel(r.action_type);
+  var actionText = (r.action_type === 'increase_budget' || r.action_type === 'decrease_budget') ? actionLabel + ' ' + (ap.percent || 15) + '%' : actionLabel;
+  return '<div class="ap-auto-card">' +
+    '<div class="ap-auto-top">' +
+      '<span class="ap-auto-icon">⚡</span>' +
+      '<span class="ap-auto-title">' + _apOpEsc(r.name) + '</span>' +
     '</div>' +
-    '<div class="ap-story-sentence">' + _apOpEsc(_apRuleSentence(r)) + '</div>' +
-    '<div class="ap-story-foot">' +
-      '<span class="ap-story-lastrun">' + _apT('apLastExecutedPrefix','Last executed:') + ' ' + _apOpEsc(lastRun) + '</span>' +
-      '<div class="ap-story-actions">' +
-        '<button class="oi-why-toggle" onclick="apActiveToggle(\'' + r.id + '\',' + (!r.enabled) + ')">' + (r.enabled ? _apT('apDisableBtn','Disable') : _apT('apEnableBtn','Enable')) + '</button>' +
-        '<button class="oi-why-toggle" onclick="apActiveEdit(\'' + r.id + '\')">' + _apT('edit','Edit') + '</button>' +
-        '<button class="oi-why-toggle" onclick="apActiveDelete(\'' + r.id + '\')">' + _apT('apDeleteBtn','Delete') + '</button>' +
-      '</div>' +
+    '<div class="ap-auto-meta">' + _apOpEsc(AP_PLAT_LABELS[r.platform] || '') + ' · ' + _apOpEsc(ap.campaign_name || _apT('apAllCampaigns', 'All Campaigns')) + '</div>' +
+    '<div class="ap-auto-flow">' +
+      '<span class="ap-auto-flow-trigger">' + _apOpEsc(triggerText) + '</span>' +
+      '<span class="ap-auto-flow-arrow">→</span>' +
+      '<span class="ap-auto-flow-action">' + _apOpEsc(actionText) + '</span>' +
+    '</div>' +
+    '<div class="ap-auto-foot">' +
+      '<span class="ap-auto-status ' + status.cls + '"><span class="ap-auto-status-dot"></span>' + status.label + '</span>' +
+      '<span class="ap-auto-lastrun">' + _apT('apLastExecutedPrefix', 'Last executed:') + ' ' + _apOpEsc(lastRun) + '</span>' +
+      '<label class="ap-auto-toggle" title="' + (r.enabled ? _apT('apDisableBtn', 'Disable') : _apT('apEnableBtn', 'Enable')) + '">' +
+        '<input type="checkbox"' + (r.enabled ? ' checked' : '') + ' onchange="apActiveToggle(\'' + r.id + '\', this.checked)">' +
+        '<span class="ap-auto-toggle-track"><span class="ap-auto-toggle-thumb"></span></span>' +
+      '</label>' +
+      '<button class="oi-why-toggle" onclick="apActiveEdit(\'' + r.id + '\')">' + _apT('edit', 'Edit') + '</button>' +
+      '<button class="oi-why-toggle" onclick="apActiveDelete(\'' + r.id + '\')">' + _apT('apDeleteBtn', 'Delete') + '</button>' +
     '</div>' +
   '</div>';
 }
@@ -557,6 +724,7 @@ window.apActiveDelete = function(id) {
 };
 window.apActiveEdit = function(id) {
   if (typeof apiFetch !== 'function') return;
+  apOpenBuilder(); // the wizard now lives in a modal — open it immediately, content fills in once the fetch below resolves
   apiFetch('/api/autopilot/rules').then(function(res) {
     var rule = ((res.ok && res.data && res.data.rules) || []).filter(function(r) { return r.id === id; })[0];
     if (!rule) return;
@@ -593,8 +761,6 @@ window.apActiveEdit = function(id) {
       var saveBtn = document.getElementById('apBSaveBtn'); if (saveBtn) saveBtn.textContent = 'Save Changes';
       var nameEl = document.getElementById('apBName'); if (nameEl) nameEl.value = rule.name || '';
       var testResult = document.getElementById('apBTestResult'); if (testResult) testResult.style.display = 'none';
-      var builderSection = document.getElementById('apBuilderSection');
-      if (builderSection && builderSection.scrollIntoView) builderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }).catch(function() {});
 };
@@ -615,6 +781,38 @@ window.apHistSearch = function(q) {
   _apHistTimer = setTimeout(function() { apHistLoad(q); }, 250);
 };
 
+window._apActivityCat = window._apActivityCat || 'all';
+
+// Client-side keyword pass over the already-fetched real items — same
+// pattern _apDetectSuggestions already uses elsewhere in this file. Not a
+// new endpoint; just narrows what's already on screen.
+function _apActivityMatchesCat(title, cat) {
+  if (cat === 'all') return true;
+  var t = (title || '').toLowerCase();
+  if (cat === 'budget') return /budget/.test(t);
+  if (cat === 'campaigns') return /campaign|pause|resum/.test(t);
+  if (cat === 'alerts') return /notify|alert|failed|ctr|threshold/.test(t);
+  return true;
+}
+function _apRenderHistoryList() {
+  var el = document.getElementById('apHistoryList');
+  if (!el) return;
+  var pending = window._apPendingApprovals || [];
+  var items = (AP.historyItems || []).filter(function(i) { return _apActivityMatchesCat(i.title, window._apActivityCat); });
+  var html = '';
+  if (pending.length) html += '<div class="ap-hist-daygroup"><div class="ap-hist-daylbl">' + _apT('apAwaitingYourApproval', 'Awaiting your approval') + '</div>' + pending.map(_apHistPendingCard).join('') + '</div>';
+  if (items.length) html += _apHistGrouped(items);
+  el.innerHTML = html || '<span class="ov3-insight" style="color:var(--muted)">' + (window._apActivityCat !== 'all' ? 'No activity in this category.' : _apT('apEmptyHistoryText', 'No automation activity yet.')) + '</span>';
+  _apPlayCardStagger('apHistoryList');
+}
+window.apFilterActivity = function(cat, btn) {
+  window._apActivityCat = cat;
+  document.querySelectorAll('#apActivityFilters .ap-af-pill').forEach(function(p) { p.classList.remove('ap-af-pill-active'); });
+  var target = btn || document.querySelector('#apActivityFilters .ap-af-pill[data-cat="' + cat + '"]');
+  if (target) target.classList.add('ap-af-pill-active');
+  _apRenderHistoryList();
+};
+
 function apHistLoad(q) {
   var el = document.getElementById('apHistoryList');
   if (!el || typeof apiFetch !== 'function') return;
@@ -624,14 +822,20 @@ function apHistLoad(q) {
     apiFetch('/api/autopilot/recommendations?status=suggested'),
     apiFetch('/api/autopilot/history' + query)
   ]).then(function(results) {
-    var pending = (results[0].ok && results[0].data && results[0].data.recommendations) || [];
+    window._apPendingApprovals = (results[0].ok && results[0].data && results[0].data.recommendations) || [];
     var items = (results[1].ok && results[1].data && results[1].data.items) || [];
     AP.historyItems = items;
-    var html = '';
-    if (pending.length) html += '<div class="ap-hist-daygroup"><div class="ap-hist-daylbl">' + _apT('apAwaitingYourApproval','Awaiting your approval') + '</div>' + pending.map(_apHistPendingCard).join('') + '</div>';
-    if (items.length) html += _apHistGrouped(items);
-    el.innerHTML = html || '<span class="ov3-insight" style="color:var(--muted)">' + _apT('apEmptyHistoryText','No automation activity yet.') + '</span>';
+    _apRenderHistoryList();
     apSuggestionsRender(items);
+    // Active Automations' "ACTION FAILED" status cross-references real
+    // history for this rule's name — apActiveLoad() and apHistLoad() run
+    // concurrently from apInit, so history can resolve after the active
+    // cards already rendered with stale (pre-history) status. Re-render
+    // from the already-cached rule list (no new fetch) once history is in.
+    if (window._apRules && window._apRules.length) {
+      var activeEl = document.getElementById('apActiveList');
+      if (activeEl) { activeEl.innerHTML = window._apRules.map(_apActiveCard).join(''); _apPlayCardStagger('apActiveList'); }
+    }
   }).catch(function() { el.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">' + _apT('apErrLoadHistoryFailed','Could not load history.') + '</span>'; });
 }
 
@@ -643,16 +847,21 @@ function _apHistGrouped(items) {
     groups[label].push(i);
   });
   return order.map(function(label) {
-    return '<div class="ap-hist-daygroup"><div class="ap-hist-daylbl">' + _apOpEsc(label) + '</div>' + groups[label].map(_apHistCard).join('') + '</div>';
+    return '<div class="ap-hist-daygroup"><div class="ap-hist-daylbl"><span class="ap-hist-daydot"></span>' + _apOpEsc(label.toUpperCase()) + '</div>' + groups[label].map(_apHistCard).join('') + '</div>';
   }).join('');
 }
-function _apHistIcon(status) {
-  if (status === 'executed' || status === 'done' || status === 'completed' || status === 'approved') return '✓';
-  if (status === 'failed' || status === 'rejected') return '✗';
-  return '•';
+function _apHistStatusCls(status, title) {
+  if (status === 'failed' || status === 'rejected' || /failed/i.test(title || '')) return 'ap-hist-dot-failed';
+  if (status === 'executed' || status === 'done' || status === 'completed' || status === 'approved') return 'ap-hist-dot-done';
+  return 'ap-hist-dot-neutral';
 }
 function _apHistCard(i) {
-  return '<div class="ap-hist-row"><span class="ap-hist-icon">' + _apHistIcon(i.status) + '</span><span class="ap-hist-title">' + _apOpEsc(i.title) + '</span></div>';
+  var time = i.created_at ? new Date(i.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+  return '<div class="ap-hist-row">' +
+    '<span class="ap-hist-dot ' + _apHistStatusCls(i.status, i.title) + '"></span>' +
+    '<span class="ap-hist-title">' + _apOpEsc(i.title) + '</span>' +
+    '<span class="ap-hist-time">' + _apOpEsc(time) + '</span>' +
+  '</div>';
 }
 function _apHistPendingCard(r) {
   return '<div class="oi-card">' +

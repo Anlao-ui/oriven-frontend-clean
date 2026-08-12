@@ -2554,9 +2554,17 @@ function applyLanguage(){
   if(settingsLabel && t("navSettings") !== "navSettings") settingsLabel.textContent = t("navSettings");
 
   // ── Workspace titles (Oriven 1.0 — current live pages) ───────────────────────
+  // Business's own subtitle is intentionally NOT in this table anymore — it
+  // now carries data-i18n="bizPageSub" like the rest of the Business page's
+  // copy, and this selector-based table was silently overwriting that new
+  // text back to the old wsSubBusiness string on every applyLanguage() call
+  // (found via a live repro: text was correct straight out of the HTML
+  // response, then flipped to the old sentence the instant DOMContentLoaded
+  // fired _applySettingsToUI -> applyLanguage()). wsTitleBusiness is left in
+  // place since the "Business" title text itself is unchanged.
   [
     ["#page-intelligence .orv-ph-title", "wsTitleIntelligence"], ["#page-intelligence .orv-ph-sub", "wsSubIntelligence"],
-    ["#page-business-brain .orv-ph-title", "wsTitleBusiness"], ["#page-business-brain .orv-ph-sub", "wsSubBusiness"],
+    ["#page-business-brain .orv-ph-title", "wsTitleBusiness"],
     ["#page-autopilot .asl-title", "wsTitleAutopilot"], ["#page-autopilot .asl-sub", "wsSubAutopilot"],
     ["#page-performance .prf-title", "wsTitlePerformance"], ["#page-performance .prf-sub", "wsSubPerformance"],
     ["#page-campaigns .camp-hub-title", "wsTitleCampaigns"], ["#page-campaigns .camp-hub-sub", "wsSubCampaigns"]
@@ -2870,72 +2878,103 @@ async function renderPlanPanel(){
 
   var html = '';
 
-  // ── Section 1: Current Plan + Usage ───────────────────────────
-  html += '<div class="sub-two-col">';
-
-  // Current plan card
-  html += '<div class="sub-plan-card">';
-  html += '<div class="sub-card-eyebrow">Current Plan</div>';
-  if(!currentData){
-    html += '<div class="sub-plan-name">Free</div>';
-    html += '<div class="sub-plan-price"><span class="sub-price-num">€0</span><span class="sub-price-per">/month</span></div>';
-    html += '<ul class="sub-features"><li>1 Campaign per month</li><li>Basic AI generation</li><li>Brand Brain (limited)</li></ul>';
-    html += '<div class="sub-plan-actions"><button class="btn btn-p btn-sm" onclick="switchPlan(\'starter\')">Upgrade to Starter</button></div>';
-  } else {
-    if(pendingId){
-      var pData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === pendingId; });
-      var pName = pData ? pData.name : pendingId;
-      var pDate = _formatPlanDate(cfg.pendingPlanDate || cfg.planRenewalDate);
-      var isCancel = pendingId === "free";
-      html += '<div class="sub-pending-notice">';
-      if(isCancel){
-        html += 'Cancellation scheduled — access active until <strong>' + pDate + '</strong>';
-        html += ' <button class="sub-undo-btn" onclick="cancelPlanChange()">Undo</button>';
-      } else {
-        html += 'Changing to <strong>' + pName + '</strong> on ' + pDate;
-        html += ' <button class="sub-undo-btn" onclick="cancelPlanChange()">Cancel</button>';
-      }
-      html += '</div>';
-    }
-    html += '<div class="sub-plan-name">' + currentData.name + '</div>';
-    html += '<div class="sub-plan-price"><span class="sub-price-num">€' + currentData.price + '</span><span class="sub-price-per">/month</span></div>';
-    if(renewalStr) html += '<div class="sub-renewal">Renews ' + renewalStr + '</div>';
-    if(currentData.features && currentData.features.length){
-      html += '<ul class="sub-features">';
-      currentData.features.slice(0,5).forEach(function(f){ html += '<li>' + f + '</li>'; });
-      html += '</ul>';
-    }
-    html += '<div class="sub-plan-actions">';
-    if(pendingId !== "free"){
-      html += '<button class="sub-cancel-link" onclick="_showCancelConfirm()">Cancel plan</button>';
+  // ── Pending plan change / cancellation banner (only when relevant) ──
+  if(pendingId && currentData){
+    var pData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === pendingId; });
+    var pName = pData ? pData.name : pendingId;
+    var pDate = _formatPlanDate(cfg.pendingPlanDate || cfg.planRenewalDate);
+    var isCancel = pendingId === "free";
+    html += '<div class="sub-pending-notice" style="margin-bottom:14px">';
+    if(isCancel){
+      html += 'Cancellation scheduled — access active until <strong>' + pDate + '</strong>';
+      html += ' <button class="sub-undo-btn" onclick="cancelPlanChange()">Undo</button>';
+    } else {
+      html += 'Changing to <strong>' + pName + '</strong> on ' + pDate;
+      html += ' <button class="sub-undo-btn" onclick="cancelPlanChange()">Cancel</button>';
     }
     html += '</div>';
   }
-  html += '</div>';
 
-  // Usage card
+  // ── Section 1: the three real plans, side by side, current plan state
+  //    baked into each card (isCurrent/isUp below) — this IS the plan
+  //    display now, not a secondary "browse other plans" list underneath
+  //    a separate current-plan card. ─────────────────────────────────
+  html += '<div class="sub-plans-grid">';
+
+  ORIVEN_PLAN_LIST.forEach(function(plan, rank){
+    var isCurrent = plan.id === currentId;
+    var isPending = plan.id === pendingId;
+    var isUp      = rank > currentRank;
+
+    html += '<div class="sub-pcard' + (isCurrent ? ' sub-pcard-active' : '') + '">';
+
+    if(isCurrent){
+      html += '<div class="sub-pcard-badge sub-pcard-badge-cur">Current Plan</div>';
+    } else if(plan.popular){
+      html += '<div class="sub-pcard-badge sub-pcard-badge-pop">Most Popular</div>';
+    } else {
+      html += '<div class="sub-pcard-badge-gap"></div>';
+    }
+
+    html += '<div class="sub-pcard-name">' + plan.name + '</div>';
+    html += '<div class="sub-pcard-price">€' + plan.price + '<span class="sub-pcard-per">/mo</span></div>';
+    if(isCurrent && renewalStr) html += '<div class="sub-renewal" style="margin:-4px 0 0">Renews ' + renewalStr + '</div>';
+
+    if(plan.features && plan.features.length){
+      html += '<ul class="sub-pcard-feats">';
+      plan.features.slice(0,5).forEach(function(f){ html += '<li>' + f + '</li>'; });
+      html += '</ul>';
+    }
+
+    if(isCurrent){
+      html += '<button class="sub-pcard-btn sub-pcard-btn-cur" disabled>Current Plan</button>';
+    } else if(isPending){
+      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" disabled>Scheduled</button>';
+    } else if(isUp || !currentData){
+      html += '<button class="sub-pcard-btn sub-pcard-btn-up" onclick="switchPlan(\'' + plan.id + '\')">Upgrade</button>';
+    } else {
+      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" onclick="switchPlan(\'' + plan.id + '\')">Downgrade</button>';
+    }
+
+    html += '</div>';
+  });
+
+  html += '</div>'; // end sub-plans-grid
+
+  if(currentData && pendingId !== "free"){
+    html += '<div style="margin-top:10px"><button class="sub-cancel-link" onclick="_showCancelConfirm()">Cancel plan</button></div>';
+  }
+
+  // ── Section 2: USAGE — real backend-authoritative data only. No
+  //    fabricated numbers: if the status call failed, say so instead of
+  //    rendering zeros (Part 11). ──────────────────────────────────────
+  html += '<div class="sub-plans-sep"></div>';
   html += '<div class="sub-usage-card">';
   html += '<div class="sub-card-eyebrow">Usage</div>';
-  html += '<div class="sub-usage-list">';
-  if(creditStatus){
-    html += _uRow('Credits Remaining', creditStatus.balance, 'this billing period');
-    html += _uRow('Monthly Credits', creditStatus.monthlyAllowance, currentData ? currentData.name + ' plan' : '');
-    html += _uRow('Credits Used This Month', creditStatus.usedThisMonth, '');
-    html += _uRow('Credits Reset Date', renewalStr || '—', '');
+
+  if(creditStatus && typeof creditStatus.balance === 'number'){
+    var used = Math.max(0, creditStatus.usedThisMonth || 0);
+    var allowance = Math.max(1, creditStatus.monthlyAllowance || 1);
+    var pct = Math.min(100, Math.round((used / allowance) * 100));
+    html += '<div class="sub-credit-hd-row"><div class="sub-credit-hd-lbl">AI Credits</div><div class="sub-credit-hd-val">' + used.toLocaleString() + ' / ' + (creditStatus.monthlyAllowance || 0).toLocaleString() + ' used</div></div>';
+    html += '<div class="sub-credit-bar-track"><div class="sub-credit-bar-fill" style="width:' + pct + '%"></div></div>';
+    html += '<div class="sub-credit-hd-sub">' + Math.max(0, creditStatus.balance).toLocaleString() + ' remaining · resets ' + (renewalStr || '—') + '</div>';
+
+    html += '<div class="sub-usage-list" style="margin-top:16px">';
+    html += _uRow('Lifetime', (creditStatus.lifetimeUsed == null ? '—' : creditStatus.lifetimeUsed.toLocaleString()), 'AI credits consumed, all time');
+    html += _uRow('Campaigns Generated', campaigns, 'total in workspace');
+    html += _uRow('Saved Assets', assets, 'in your library');
+    html += _uRow('Connected Platforms', connCount + ' / 3', connCount === 0 ? 'none connected' : connCount + ' platform' + (connCount === 1 ? '' : 's') + ' active');
+    html += '</div>';
   } else {
-    html += _uRow('AI Credits', '—', 'sign in to see your balance');
+    html += '<div class="sub-usage-unavailable">Couldn\'t load your usage right now. <button class="sub-cancel-link" style="text-decoration:underline" onclick="renderPlanPanel()">Try again</button></div>';
   }
-  html += _uRow('Campaigns Generated', campaigns, 'total in workspace');
-  html += _uRow('Saved Assets', assets, 'in your library');
-  html += _uRow('Connected Platforms', connCount + ' / 3', connCount === 0 ? 'none connected' : connCount + ' platform' + (connCount === 1 ? '' : 's') + ' active');
-  html += '</div>';
+
   html += '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">';
   html += '<button class="btn btn-g btn-sm" onclick="navigate(\'integrations\')">Manage Integrations</button>';
   html += '<button class="btn btn-g btn-sm" disabled style="opacity:.5;cursor:not-allowed" title="Coming soon">Purchase Extra Credits — Coming Soon</button>';
   html += '</div>';
   html += '</div>';
-
-  html += '</div>'; // end sub-two-col
 
   // Priority Support — Professional plan only
   html += '<div id="prioritySupportPanel" class="sub-usage-card" style="margin-top:16px;display:' + (currentId === 'professional' ? '' : 'none') + '">';
@@ -2947,52 +2986,6 @@ async function renderPlanPanel(){
   html += '</div>';
   html += '</div>';
   if(currentId === 'professional' && typeof loadSupportThread === 'function') setTimeout(loadSupportThread, 0);
-
-  // ── Section 2: Plan comparison grid ───────────────────────────
-  html += '<div class="sub-plans-sep"></div>';
-  html += '<div class="sub-plans-hd">Available Plans</div>';
-  html += '<div class="sub-plans-grid">';
-
-  ORIVEN_PLAN_LIST.forEach(function(plan, rank){
-    var isCurrent = plan.id === currentId;
-    var isPending = plan.id === pendingId;
-    var isUp      = rank > currentRank;
-
-    html += '<div class="sub-pcard' + (isCurrent ? ' sub-pcard-active' : '') + '">';
-
-    // Top badge row
-    if(isCurrent){
-      html += '<div class="sub-pcard-badge sub-pcard-badge-cur">Current Plan</div>';
-    } else if(plan.popular){
-      html += '<div class="sub-pcard-badge sub-pcard-badge-pop">Most Popular</div>';
-    } else {
-      html += '<div class="sub-pcard-badge-gap"></div>';
-    }
-
-    html += '<div class="sub-pcard-name">' + plan.name + '</div>';
-    html += '<div class="sub-pcard-price">€' + plan.price + '<span class="sub-pcard-per">/mo</span></div>';
-
-    if(plan.features && plan.features.length){
-      html += '<ul class="sub-pcard-feats">';
-      plan.features.slice(0,4).forEach(function(f){ html += '<li>' + f + '</li>'; });
-      html += '</ul>';
-    }
-
-    // CTA
-    if(isCurrent){
-      html += '<button class="sub-pcard-btn sub-pcard-btn-cur" disabled>Current Plan</button>';
-    } else if(isPending){
-      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" disabled>Scheduled</button>';
-    } else if(isUp){
-      html += '<button class="sub-pcard-btn sub-pcard-btn-up" onclick="switchPlan(\'' + plan.id + '\')">Upgrade</button>';
-    } else {
-      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" onclick="switchPlan(\'' + plan.id + '\')">Downgrade</button>';
-    }
-
-    html += '</div>';
-  });
-
-  html += '</div>'; // end sub-plans-grid
 
   // Cancel confirm dialog
   if(currentData && pendingId !== "free"){
