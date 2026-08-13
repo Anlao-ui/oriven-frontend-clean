@@ -3157,6 +3157,7 @@ function _updateSidebarPlan(planId){
     : (planId && planId !== "free" ? planId.charAt(0).toUpperCase() + planId.slice(1) : "Free");
   el.textContent = name;
   el.className = "sb-plan-label sb-plan-" + (planId || "free");
+  if(typeof window._orvUpdateTeamNavVisibility === "function") window._orvUpdateTeamNavVisibility();
 }
 
 function _formatPlanDate(iso){

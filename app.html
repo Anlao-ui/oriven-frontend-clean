@@ -272,6 +272,16 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle class="orv-ni-bulb-glow" cx="8" cy="6.4" r="5.2" fill="var(--green)" stroke="none" opacity="0"/><g class="orv-ni-bulb-body"><path d="M8 2C5.5 2 3.5 4 3.5 6.3c0 1.4.7 2.6 1.7 3.4v1.8h5.6v-1.8c1-.8 1.7-2 1.7-3.4C12.5 4 10.5 2 8 2z"/><path d="M6.5 14h3"/></g></svg>
         <span class="orv-ni-label">Business</span>
       </button>
+
+      <!-- Team — Professional only (visibility toggled by
+           _orvUpdateTeamNavVisibility, called alongside the other plan-
+           dependent sidebar refreshes). Reuses the existing page-team /
+           openInviteModal() / /api/send-invite system — no new Team
+           implementation. -->
+      <button class="orv-ni" data-orv-page="team" id="orvNavTeamBtn" style="display:none" onclick="_orvNav('team','page-team',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 14v-1.3a2.7 2.7 0 0 0-2.7-2.7H4.7A2.7 2.7 0 0 0 2 12.7V14"/><circle cx="6.35" cy="5.3" r="2.3"/><path d="M14 14v-1.3a2.7 2.7 0 0 0-1.8-2.55"/><path d="M9.7 2.9a2.3 2.3 0 0 1 0 4.3"/></svg>
+        <span class="orv-ni-label">Team</span>
+      </button>
     </nav>
 
     <!-- Settings + Account — moved back from the retired header (Oriven
@@ -331,6 +341,10 @@
       <button class="orv-ni" data-orv-page="businessbrain" onclick="_orvNav('businessbrain','page-business-brain',this);_orvDrawerClose()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle class="orv-ni-bulb-glow" cx="8" cy="6.4" r="5.2" fill="var(--green)" stroke="none" opacity="0"/><g class="orv-ni-bulb-body"><path d="M8 2C5.5 2 3.5 4 3.5 6.3c0 1.4.7 2.6 1.7 3.4v1.8h5.6v-1.8c1-.8 1.7-2 1.7-3.4C12.5 4 10.5 2 8 2z"/><path d="M6.5 14h3"/></g></svg>
         <span class="orv-ni-label">Business</span>
+      </button>
+      <button class="orv-ni" data-orv-page="team" id="orvNavTeamBtnMob" style="display:none" onclick="_orvNav('team','page-team',this);_orvDrawerClose()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 14v-1.3a2.7 2.7 0 0 0-2.7-2.7H4.7A2.7 2.7 0 0 0 2 12.7V14"/><circle cx="6.35" cy="5.3" r="2.3"/><path d="M14 14v-1.3a2.7 2.7 0 0 0-1.8-2.55"/><path d="M9.7 2.9a2.3 2.3 0 0 1 0 4.3"/></svg>
+        <span class="orv-ni-label">Team</span>
       </button>
     </nav>
     <div class="orv-mob-drawer-bottom">
@@ -10038,6 +10052,14 @@ window._orvNav = function(page, explicitPageId) {
   if (page === 'autopilot' && typeof _dbSubscriptionStatus !== 'undefined' && _dbSubscriptionStatus === 'starter') {
     if (typeof openLimitReached === 'function') { openLimitReached('autopilot'); return; }
   }
+  /* Team (invite/manage) is Professional only -- Starter and Creator keep
+     their own 1-seat workspace but never reach the real Team page, even
+     via a direct _orvNav('team',...) call bypassing the hidden nav
+     button. Frontend gate only for UX; /api/send-invite's own plan check
+     remains the real authorization boundary. */
+  if (page === 'team' && typeof _dbSubscriptionStatus !== 'undefined' && _dbSubscriptionStatus !== 'professional') {
+    if (typeof openLimitReached === 'function') { openLimitReached('team'); return; }
+  }
   /* Clear campaign memory when leaving Ads Manager — otherwise a campaign
      left open in the detail panel could silently apply to a later chat
      message about something unrelated on another page. */
@@ -13185,6 +13207,21 @@ function _orvRenderPlatShortcuts(){
   });
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(_orvRenderPlatShortcuts, 900); });
+
+/* Team nav visibility — Professional only. _dbSubscriptionStatus (auth.js)
+   is the same authoritative plan source _updateSidebarPlan already reads;
+   this just also toggles the two new main-nav Team buttons whenever that
+   runs (Settings open, post-upgrade refresh) plus once on boot as a
+   fallback for the common case where Settings is never opened. One real
+   Team page (page-team) behind it -- no new Team system. */
+window._orvUpdateTeamNavVisibility = function(){
+  var isPro = (typeof _dbSubscriptionStatus !== 'undefined' && _dbSubscriptionStatus === 'professional');
+  var btn = document.getElementById('orvNavTeamBtn');
+  var btnMob = document.getElementById('orvNavTeamBtnMob');
+  if(btn) btn.style.display = isPro ? '' : 'none';
+  if(btnMob) btnMob.style.display = isPro ? '' : 'none';
+};
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(_orvUpdateTeamNavVisibility, 900); });
 
 window.admRange = function(btn, range) {
   document.querySelectorAll('.adm-pill').forEach(function(b){ b.classList.remove('active'); });
