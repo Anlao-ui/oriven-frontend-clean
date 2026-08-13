@@ -2,7 +2,14 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#F6F3EE;--bg2:#EEE9E1;--bg3:#E5DED4;
-  --surface:#FFF;--sf2:#FAF8F5;
+  /* --surface: card/panel background, the single most-used light-mode
+     surface token (189 call sites) -- was pure #FFF, which read as flat
+     and harsh next to the warm off-white page background (--bg). Shifted
+     to a barely-off-white that still sits lighter than --bg/--bg2/--bg3/
+     --sf2 (preserving the existing elevation hierarchy: cards read
+     lighter/"raised" above the page), just without the stark pure-white
+     flatness. Dark mode (body.dark-mode below) is untouched. */
+  --surface:#FDFCFA;--sf2:#FAF8F5;
   --green:#B7FF2A;--gm:#9FE81F;--glt:rgba(183,255,42,0.07);--gpale:rgba(183,255,42,0.04);--green-deep:#0A0A0A;
   /* Darkened, readable-as-text derivative of the current accent — used for labels
      sitting on accent-tinted chip/badge backgrounds. Derived, not a palette entry,
@@ -113,6 +120,16 @@ body.dark-mode{
      an unconditionally-dark #1A1A1D background — invisible campaign names. */
   --ap-bg3:rgba(26,26,29,1);
   --ap-border:rgba(255,255,255,.08);
+  /* --ap-bg/--ap-bg2: same defect as --ap-bg3/--ap-border above -- .app's
+     own background (styles.css ~19532, plus .mc/.cws-main) painted these
+     unconditionally dark in EVERY theme, never made light-mode-reactive.
+     Root cause of the black "cutout" around .orv-sb's rounded top-right/
+     bottom-right corners in light mode: .app sits directly behind the
+     sidebar, so its always-dark background showed through the gap the
+     border-radius carves out. Restoring the original dark values here;
+     the :root defaults below now hold real light-mode values. */
+  --ap-bg:rgba(9,9,11,1);
+  --ap-bg2:rgba(17,17,19,1);
   --sh:0 1px 3px rgba(0,0,0,.3);
   --shm:0 2px 8px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
   --shl:0 8px 32px rgba(0,0,0,.5);
@@ -19495,8 +19512,8 @@ body.public-page {
    body.dark-mode overrides them back to the original values, so dark mode
    is unchanged. ── */
 :root {
-  --ap-bg:       #09090B;
-  --ap-bg2:      #111113;
+  --ap-bg:       var(--bg);
+  --ap-bg2:      var(--bg2);
   /* --ap-bg3/--ap-border light-mode defaults (see body.dark-mode above for
      the matching dark-mode restore + why this was actually still needed:
      .camp-card et al. read these with !important and are genuinely
@@ -25167,9 +25184,15 @@ body.dark-mode .orv-sb-logo-name { color: #fff; }
 .orv-ni:hover { background: color-mix(in srgb, var(--green) 8%, transparent); color: var(--charcoal, #18181A); }
 body.dark-mode .orv-ni { color: rgba(255,255,255,.45); }
 body.dark-mode .orv-ni:hover { background: color-mix(in srgb, var(--green) 10%, transparent); color: rgba(255,255,255,.9); }
+/* Light mode: solid lime background + near-black text/icon (--green-deep,
+   the same "black-on-green" token .sub-pcard-btn-up already uses) -- the
+   previous pale 10%-tint background + var(--gm) lime TEXT read as
+   green-on-green with poor contrast. Dark mode below is unchanged (a
+   subtle tinted background with bright lime text already reads correctly
+   against a near-black surface). */
 .orv-ni.orv-active {
-  background: color-mix(in srgb, var(--green) 10%, transparent);
-  color: var(--gm);
+  background: var(--green);
+  color: var(--green-deep);
   font-weight: 600;
 }
 body.dark-mode .orv-ni.orv-active { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }

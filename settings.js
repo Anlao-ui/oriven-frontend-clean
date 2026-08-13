@@ -2878,10 +2878,16 @@ async function renderPlanPanel(){
   var creditStatus = (typeof _getCreditStatus === "function") ? await _getCreditStatus(true) : null;
   var renewalStr   = creditStatus && creditStatus.resetDate ? _formatPlanDate(creditStatus.resetDate) : _formatPlanDate(cfg.planRenewalDate);
 
-  // Usage stats
-  var campaigns = (typeof S !== "undefined" && S && Array.isArray(S.campaigns)) ? S.campaigns.length : 0;
+  // Usage stats — Connected Platforms reads the same window._gadsConnected/
+  // _metaConnected/_tiktokConnected flags the navbar, Business Connections
+  // tab, Campaigns page, and Autopilot monitoring all read (single source
+  // of truth, populated by _conFetchStatus() from the real /api/{platform}/
+  // status endpoints). Campaigns Generated / Saved Assets come from the
+  // server-authoritative creditStatus payload below (profiles.campaigns_
+  // generated / creative_assets count) -- NOT from S.campaigns/S.assets,
+  // which are ephemeral in-memory arrays that reset on every login and
+  // don't reflect real persisted data.
   var connCount = (window._gadsConnected ? 1 : 0) + (window._metaConnected ? 1 : 0) + (window._tiktokConnected ? 1 : 0);
-  var assets    = (typeof S !== "undefined" && S && Array.isArray(S.assets)) ? S.assets.length : 0;
 
   function _uRow(label, val, sub){
     return '<div class="sub-usage-row">'
@@ -3011,8 +3017,8 @@ async function renderPlanPanel(){
       var apLimit = creditStatus.autopilotUsage.limit;
       html += _uRow('Autopilot', orvFormatCredits(apUsed) + ' / ' + orvFormatCredits(apLimit), 'executions this month');
     }
-    html += _uRow('Campaigns Generated', campaigns, 'total in workspace');
-    html += _uRow('Saved Assets', assets, 'in your library');
+    html += _uRow('Campaigns Generated', (typeof creditStatus.campaignsGenerated === 'number' ? orvFormatCredits(creditStatus.campaignsGenerated) : '—'), 'total in workspace');
+    html += _uRow('Saved Assets', (typeof creditStatus.savedAssets === 'number' ? orvFormatCredits(creditStatus.savedAssets) : '—'), 'in your library');
     html += _uRow('Connected Platforms', connCount + ' / 3', connCount === 0 ? 'none connected' : connCount + ' platform' + (connCount === 1 ? '' : 's') + ' active');
     html += '</div>';
   } else {
@@ -4037,7 +4043,25 @@ function smdNav(btn){
   if(panel) panel.classList.add("active");
 }
 
-function confirmDeleteAccount(){
+async function confirmDeleteAccount(btn){
   if(!confirm("Permanently delete your ORIVEN account and all data? This cannot be undone.")) return;
-  toast("Contact support@oriven.ai to complete account deletion.", "warn");
+  if(!confirm("Final confirmation: your campaigns, saved assets, and account will be permanently deleted. Continue?")) return;
+
+  var originalText = btn ? btn.textContent : "Delete Account";
+  if(btn){ btn.disabled = true; btn.textContent = "Deleting…"; }
+
+  try {
+    var res = await apiFetch("/api/account/delete", { method: "POST" });
+    if(!res || !res.ok){
+      toast((res && res.data && res.data.error) || "Could not delete your account right now.", "err");
+      if(btn){ btn.disabled = false; btn.textContent = originalText; }
+      return;
+    }
+    toast("Account deleted.");
+    try { await SB.auth.signOut(); } catch(_){}
+    window.location.href = "/";
+  } catch(err){
+    toast("Could not delete your account — try again.", "err");
+    if(btn){ btn.disabled = false; btn.textContent = originalText; }
+  }
 }

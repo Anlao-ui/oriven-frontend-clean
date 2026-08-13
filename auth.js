@@ -408,6 +408,17 @@ async function _loadUserProfile(user){
     if(data){ console.log("[Profile] subscription_status:", data.subscription_status); }
     else     { console.warn("[Profile] data is null â€” no profile row found for user.id:", user.id); }
 
+    // Auth is the source of truth for the authenticated email â€” if a user
+    // changed their email via Settings (SB.auth.updateUser), profiles.email
+    // goes stale until this reconciles it. Fire-and-forget, self-limiting
+    // (server no-ops once already in sync): server derives the email from
+    // the verified JWT itself, never from anything this client sends, so
+    // this can only ever correct profiles.email to the caller's own real
+    // authenticated address.
+    if(data && data.email !== user.email && typeof apiFetch === "function"){
+      apiFetch("/api/profile/sync-email", { method: "POST" }).catch(function(){});
+    }
+
     // Subscription gate â€” determines whether to reveal the app or enforce paywall
     if(typeof ORIVEN_DEV !== "undefined" && ORIVEN_DEV){
       // Dev mode: always read from DB â€” never hardcode a plan.
