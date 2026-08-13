@@ -39731,3 +39731,84 @@ body.dark-mode .adm-panel-adsets-wrap { border-top-color: rgba(255,255,255,.08);
    original regions -- see prior fixes in this file for the same note. */
 .cr2-gen-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .cr2-gen-cost { font-size: 11.5px; opacity: .55; font-variant-numeric: tabular-nums; }
+
+/* Team page redesign — canonical page-header rhythm + KPI row + project/
+   member cards. Appended at end of file per this codebase's established
+   workaround for rules silently dropping from parsed CSSOM when inserted
+   into dense original regions (see prior fixes in this file). Overrides
+   the original .tm-* block starting ~line 1376 without touching it, since
+   team.js's render functions still emit the same class names — this only
+   restyles the same DOM into a real dashboard layout. */
+
+#page-team .tm-outer { padding-top: 68px; }
+
+/* Header — matches .orv-ph-title's canonical size/weight/tracking exactly
+   (22px/800/-.03em/1.2, inherits Geist) instead of the old oversized
+   Instrument-Serif treatment; "One intelligence." keeps a green accent
+   (same pattern used elsewhere, e.g. the paywall title) without the
+   mismatched italic-serif combination. */
+#page-team .tm-hdr { display: block; }
+#page-team .tm-hdr-title {
+  font-family: inherit !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.03em !important;
+  line-height: 1.2 !important;
+  margin: 0 0 5px !important;
+}
+#page-team .tm-hdr-title em { font-style: normal !important; color: var(--green) !important; }
+#page-team .tm-hdr-sub { font-size: 13px; color: var(--muted); margin: 0 0 18px; line-height: 1.5; }
+
+/* KPI row — three equal, aligned blocks (replaces the cramped right-aligned
+   header stats). Real data only: Members/Intelligence/Workspace, same IDs
+   team.js already writes into. */
+#page-team .tm-kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+#page-team .tm-kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+#page-team .tm-kpi-lbl { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+#page-team .tm-kpi-val { font-family: inherit; font-size: 22px; font-weight: 800; letter-spacing: -.02em; color: var(--charcoal); line-height: 1; }
+#page-team .tm-kpi-val.tm-stat-status { font-size: 15px; font-weight: 700; color: var(--green); }
+
+/* Active Projects — real 3-column grid on desktop, cards instead of rows.
+   Same .tm-proj-row markup from _renderTeamProjects(), restacked vertically. */
+#page-team .tm-proj-list { display: grid !important; grid-template-columns: repeat(3, minmax(0,1fr)) !important; gap: 12px !important; }
+#page-team .tm-proj-row {
+  flex-direction: column !important; align-items: flex-start !important; gap: 10px !important;
+  padding: 16px !important; min-height: 108px;
+}
+#page-team .tm-proj-row:hover { transform: translateY(-2px) !important; }
+#page-team .tm-proj-name { white-space: normal; }
+#page-team .tm-proj-bar-wrap { width: 100% !important; }
+#page-team .tm-proj-empty { grid-column: 1 / -1; padding: 30px 20px; border: 1px dashed var(--border); border-radius: 14px; }
+
+/* Team Members — cards instead of plain bottom-border rows, denser and
+   more legible at a glance; same .tm-member-row markup from renderTeamPage(). */
+#page-team .tm-member-row {
+  border: 1px solid var(--border) !important; border-bottom: 1px solid var(--border) !important;
+  border-radius: 12px !important; padding: 11px 12px !important; margin-bottom: 8px;
+  background: var(--bg);
+}
+#page-team .tm-member-row:last-child { margin-bottom: 0; }
+
+@media (max-width: 900px) {
+  #page-team .tm-proj-list { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+}
+@media (max-width: 620px) {
+  #page-team .tm-kpi-row { grid-template-columns: 1fr; }
+  #page-team .tm-proj-list { grid-template-columns: 1fr !important; }
+}
+
+body.dark-mode #page-team .tm-kpi { background: var(--surface); border-color: var(--border); }
+body.dark-mode #page-team .tm-member-row { background: var(--bg); border-color: var(--border); }
+
+/* Team nav icon — subtle premium hover animation, two figures moving
+   slightly toward each other. CSS-only, no icon replacement (same SVG
+   paths, just transformed). Disabled entirely under prefers-reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .orv-ni[data-orv-page="team"] svg path:first-child { transition: transform .32s cubic-bezier(.22,1,.36,1); transform-origin: 60% 100%; }
+  .orv-ni[data-orv-page="team"] svg circle { transition: transform .32s cubic-bezier(.22,1,.36,1); transform-origin: center; }
+  .orv-ni[data-orv-page="team"] svg path:nth-child(3) { transition: transform .32s cubic-bezier(.22,1,.36,1) .04s; transform-origin: 40% 100%; }
+  .orv-ni[data-orv-page="team"]:hover svg circle,
+  .orv-ni[data-orv-page="team"].orv-active svg circle { transform: translateX(1.2px); }
+  .orv-ni[data-orv-page="team"]:hover svg path:nth-child(3),
+  .orv-ni[data-orv-page="team"].orv-active svg path:nth-child(3) { transform: translateX(-1.2px); }
+}

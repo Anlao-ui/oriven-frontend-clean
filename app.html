@@ -3031,36 +3031,41 @@
 
     </div>
 
-    <!-- TEAM — all paid plans, seat count capped per plan (see team.js _teamMax()) -->
+    <!-- TEAM — Professional only (see team.js _teamMax(); page itself is
+         reachable by any paid plan's 1-seat workspace, gated to Professional
+         at the nav/route level in _orvNav). -->
     <div class="page" id="page-team">
       <div class="tm-outer">
 
-        <!-- COMPACT HEADER -->
+        <!-- HEADER — same canonical page-header rhythm as Business/
+             Intelligence (68px top padding via #page-team .tm-outer below),
+             eyebrow + title + accent + subtitle. -->
         <div class="tm-hdr">
-          <div class="tm-hdr-left">
-            <div class="tm-eyebrow">
-              <div class="tm-eyebrow-dot"></div>
-              <span>Brand Workspace</span>
-            </div>
-            <h1 class="tm-hdr-title">Your team. <em>One intelligence.</em></h1>
+          <div class="tm-eyebrow">
+            <div class="tm-eyebrow-dot"></div>
+            <span>Team</span>
           </div>
-          <div class="tm-hdr-stats">
-            <div class="tm-hdr-stat">
-              <div class="tm-stat-val" id="tmStatMembers">1</div>
-              <div class="tm-stat-lbl">Members</div>
-            </div>
-            <div class="tm-hdr-stat">
-              <div class="tm-stat-val" id="tmStatIntel">—</div>
-              <div class="tm-stat-lbl">Intelligence</div>
-            </div>
-            <div class="tm-hdr-stat">
-              <div class="tm-stat-val tm-stat-status" id="tmStatStatus">Active</div>
-              <div class="tm-stat-lbl">Workspace</div>
-            </div>
+          <h1 class="tm-hdr-title">Your team. <em>One intelligence.</em></h1>
+          <p class="tm-hdr-sub">Collaborate on campaigns, insights, and brand intelligence from one workspace.</p>
+        </div>
+
+        <!-- KPI ROW -->
+        <div class="tm-kpi-row">
+          <div class="tm-kpi">
+            <div class="tm-kpi-lbl">Members</div>
+            <div class="tm-kpi-val" id="tmStatMembers">1</div>
+          </div>
+          <div class="tm-kpi">
+            <div class="tm-kpi-lbl">Intelligence</div>
+            <div class="tm-kpi-val" id="tmStatIntel">—</div>
+          </div>
+          <div class="tm-kpi">
+            <div class="tm-kpi-lbl">Workspace</div>
+            <div class="tm-kpi-val tm-stat-status" id="tmStatStatus">Active</div>
           </div>
         </div>
 
-        <!-- PROJECTS — primary centerpiece -->
+        <!-- PROJECTS -->
         <div class="tm-projects-section">
           <div class="tm-section">
             <div class="tm-section-hd">
@@ -10138,6 +10143,12 @@ window._orvNav = function(page, explicitPageId) {
   if ((page === 'analytics' || page === 'performance') && typeof prfInit === 'function') setTimeout(prfInit, 0);
   if (page === 'campaigns' && typeof renderCampaignHub === 'function') setTimeout(renderCampaignHub, 0);
   if (page === 'adsmanager' && typeof initAdsManager === 'function') setTimeout(initAdsManager, 0);
+  /* Team page was never wired to its own init on navigate — the page
+     element became visible but teamMemberList/tmProjGrid/tmActivity/
+     tmStat* stayed at their static placeholder markup forever, since
+     initTeamPage() (team.js) was only ever called from addTeamMember()/
+     removeTeamMember()'s own post-mutation refresh, never on first visit. */
+  if (page === 'team' && typeof initTeamPage === 'function') setTimeout(initTeamPage, 0);
   if (page === 'create' && typeof cr2Init === 'function') setTimeout(cr2Init, 0);
   if (page === 'create' && typeof orvLoadLaunchBiz === 'function') setTimeout(orvLoadLaunchBiz, 0);
   /* Render the platform-objective + campaign-structure sections for the
