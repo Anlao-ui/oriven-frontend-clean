@@ -10028,6 +10028,16 @@ window._orvNav = function(page, explicitPageId) {
     else if (typeof openFreePaywall === 'function') openFreePaywall();
     return;
   }
+  /* Autopilot is Creator/Professional only (Starter has no Autopilot at
+     all, matching creditManager.PLAN_AUTOPILOT_LIMITS.starter === 0 and
+     the existing autopilotEligible server-side gate) -- a Starter user
+     must never land on a real-looking, empty Autopilot dashboard. This is
+     a soft, dismissible upgrade prompt (openLimitReached), not the hard
+     post-generation paywall lock -- the user can close it and keep using
+     the rest of the app. */
+  if (page === 'autopilot' && typeof _dbSubscriptionStatus !== 'undefined' && _dbSubscriptionStatus === 'starter') {
+    if (typeof openLimitReached === 'function') { openLimitReached('autopilot'); return; }
+  }
   /* Clear campaign memory when leaving Ads Manager — otherwise a campaign
      left open in the detail panel could silently apply to a later chat
      message about something unrelated on another page. */
@@ -17871,7 +17881,23 @@ window.aicGenerate = function(){
      does the real, authoritative check server-side via creditManager;
      this just avoids sending a request that's already known to fail and
      gives an honest "not enough credits" message before the network
-     round-trip instead of a generic failure after it). ── */
+     round-trip instead of a generic failure after it).
+
+     Free/onboarding users are NOT part of the normal credit pool — their
+     one free generation is tracked server-side via profiles.free_campaign_used
+     (checked client-side via _isFreeUser()/_freeCampaignUsed(), the exact
+     same gate window.startCampaignGeneration already uses), not
+     credits_balance. /api/credits/status requires an active subscription,
+     so checkUsageLimit() unconditionally returns {allowed:false} for a
+     free user with no subscription yet — running it here for every
+     onboarding user paywalled the very first, legitimately-free
+     generation before they ever saw a result. Only paid-plan users go
+     through the real credit check. ── */
+  var _aicIsFree = typeof _isFreeUser === 'function' && _isFreeUser();
+  if(_aicIsFree){
+    _aicGenerateProceed(prompt, goal); // server enforces free_campaign_used regardless
+    return;
+  }
   if(typeof checkUsageLimit === 'function'){
     aicGenerate._checking = true;
     checkUsageLimit(25).then(function(result){

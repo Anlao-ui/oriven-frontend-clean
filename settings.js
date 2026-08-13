@@ -2941,19 +2941,25 @@ async function renderPlanPanel(){
     // else (campaign/image/video generation, platform connections,
     // Business Brain, Brand Memory) is part of the product on every plan
     // and governed by the credit economy, not plan-gated, so it's
-    // intentionally not listed here.
-    var autopilotLabel = plan.autopilotLimit === null
-      ? 'Not included'
-      : plan.autopilotLimit === Infinity
-        ? 'Unlimited'
-        : plan.autopilotLimit.toLocaleString() + ' uses / month';
+    // intentionally not listed here. No .toLocaleString() on plan.credits/
+    // autopilotLimit -- these are the plan's own fixed numbers (3000,
+    // 12000, 10), not a large dynamic total, and must render without a
+    // thousands separator. Autopilot is measured in "executions", not
+    // "users" -- and Starter (autopilotLimit: null) shows no Autopilot
+    // line at all rather than advertising a feature it doesn't include.
     html += '<ul class="sub-pcard-feats">';
-    html += '<li><strong>' + plan.credits.toLocaleString() + '</strong> AI Credits / month</li>';
-    html += '<li>Intelligence — ' + plan.intelligence + '</li>';
-    html += '<li>Autopilot — ' + autopilotLabel + '</li>';
+    html += '<li><strong>' + plan.credits + '</strong> AI Credits / month</li>';
+    html += '<li>Intelligence: ' + plan.intelligence + '<span class="sub-feat-note"> · uses AI credits</span></li>';
+    if(plan.autopilotLimit === Infinity){
+      html += '<li>Autopilot: Unlimited</li>';
+    } else if(typeof plan.autopilotLimit === 'number'){
+      html += '<li>Autopilot: ' + plan.autopilotLimit + ' executions / month</li>';
+    }
+    // Starter (autopilotLimit === null): intentionally no Autopilot line.
     html += '</ul>';
     if(plan.id === 'professional'){
       html += '<ul class="sub-pcard-feats" style="margin-top:4px;opacity:.7">';
+      html += '<li>Team — invite members &amp; collaborate</li>';
       html += '<li>Priority Support</li>';
       html += '<li>Up to ' + plan.teamMembers + ' Team Members</li>';
       html += '</ul>';
@@ -2989,7 +2995,7 @@ async function renderPlanPanel(){
     var used = Math.max(0, creditStatus.usedThisMonth || 0);
     var allowance = Math.max(1, creditStatus.monthlyAllowance || 1);
     var pct = Math.min(100, Math.round((used / allowance) * 100));
-    html += '<div class="sub-credit-hd-row"><div class="sub-credit-hd-lbl">AI Credits</div><div class="sub-credit-hd-val">' + used.toLocaleString() + ' / ' + (creditStatus.monthlyAllowance || 0).toLocaleString() + ' used</div></div>';
+    html += '<div class="sub-credit-hd-row"><div class="sub-credit-hd-lbl">AI Credits</div><div class="sub-credit-hd-val">' + used.toLocaleString() + ' / ' + (creditStatus.monthlyAllowance || 0) + ' used</div></div>';
     html += '<div class="sub-credit-bar-track"><div class="sub-credit-bar-fill" style="width:' + pct + '%"></div></div>';
     html += '<div class="sub-credit-hd-sub">' + Math.max(0, creditStatus.balance).toLocaleString() + ' remaining · resets ' + (renewalStr || '—') + '</div>';
 
@@ -3002,7 +3008,7 @@ async function renderPlanPanel(){
     if(creditStatus.autopilotUsage && typeof creditStatus.autopilotUsage.limit === 'number'){
       var apUsed = creditStatus.autopilotUsage.used || 0;
       var apLimit = creditStatus.autopilotUsage.limit;
-      html += _uRow('Autopilot', apUsed.toLocaleString() + ' / ' + apLimit.toLocaleString(), 'executions this month');
+      html += _uRow('Autopilot', apUsed.toLocaleString() + ' / ' + apLimit, 'executions this month');
     }
     html += _uRow('Campaigns Generated', campaigns, 'total in workspace');
     html += _uRow('Saved Assets', assets, 'in your library');
@@ -3038,6 +3044,19 @@ async function renderPlanPanel(){
     html += '<div class="sub-usage-list">';
     costRows.forEach(function(r){ html += _uRow(r[0], r[1] + (r[1] === 1 ? ' credit' : ' credits'), ''); });
     html += '</div>';
+    html += '</div>';
+  }
+
+  // ── Team — Professional only, real existing Team page/invite system
+  //    (page-team, openInviteModal(), /api/send-invite -- not fabricated).
+  //    Starter/Creator keep their own 1-seat workspace (unchanged, already
+  //    server-enforced via _teamMax()); only Professional gets the
+  //    dedicated invite-and-collaborate section surfaced here. ──
+  if(currentId === 'professional'){
+    html += '<div class="sub-usage-card" style="margin-top:16px">';
+    html += '<div class="sub-card-eyebrow">Team</div>';
+    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">Invite team members and collaborate inside Oriven.</div>';
+    html += '<button class="btn btn-p btn-sm" onclick="_orvNav(\'team\')">Manage Team</button>';
     html += '</div>';
   }
 

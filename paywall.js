@@ -84,6 +84,16 @@ var _LIMIT_MSGS = {
     title:   "Extended history requires Professional.",
     sub:     "Upgrade to access up to 365 days of brand intelligence history.",
     upgrade: "professional"
+  },
+  autopilot: {
+    title:   "Autopilot requires Creator or higher.",
+    sub:     "Upgrade to automate campaign decisions with AI-driven rules.",
+    upgrade: "creator"
+  },
+  team: {
+    title:   "Team requires Professional.",
+    sub:     "Upgrade to invite teammates and collaborate inside Oriven.",
+    upgrade: "professional"
   }
 };
 

@@ -50,6 +50,12 @@ var CREDIT_COSTS = {
 // checked in server.js _evaluateAutomationRules). Infinity = Professional's
 // no-separate-cap tier (still subject to the underlying credit economy
 // wherever a route already charges credits).
+// Intelligence usage numbers below are derived directly from each plan's
+// credit allowance / FEATURE_COSTS.ai_analysis (5cr/analysis) -- not a
+// second, invented limit. They describe "if you spent your whole balance
+// on Intelligence alone", which is why the card copy says "up to", and
+// why Professional (where Intelligence has no separate cap) says
+// "Unlimited" instead of literally 12000/5=2400.
 var ORIVEN_PLANS = {
   starter: {
     id:          "starter",
@@ -62,17 +68,15 @@ var ORIVEN_PLANS = {
     teamMembers: 1,
     explore:     false,
     desc:        "For individuals getting started with AI-powered ad analytics.",
-    intelligence:   "Limited",
+    intelligence:   "up to 100 analyses / month",
     autopilotLimit: null,
     allFeatures: [
       "500 AI Credits / Month",
-      "Intelligence — limited usage",
-      "Autopilot — not included"
+      "Intelligence: up to 100 analyses / month"
     ],
     features: [
       "500 AI Credits / Month",
-      "Intelligence — limited usage",
-      "Autopilot — not included"
+      "Intelligence: up to 100 analyses / month"
     ]
   },
 
@@ -87,17 +91,17 @@ var ORIVEN_PLANS = {
     teamMembers: 1,
     explore:     false,
     desc:        "For creators, founders, and growing brands running multi-channel ads.",
-    intelligence:   "More usage",
-    autopilotLimit: 200,
+    intelligence:   "up to 600 analyses / month",
+    autopilotLimit: 10,
     allFeatures: [
-      "3,000 AI Credits / Month",
-      "Intelligence — more usage",
-      "Autopilot — 200 uses / month"
+      "3000 AI Credits / Month",
+      "Intelligence: up to 600 analyses / month",
+      "Autopilot: 10 executions / month"
     ],
     features: [
-      "3,000 AI Credits / Month",
-      "Intelligence — more usage",
-      "Autopilot — 200 uses / month"
+      "3000 AI Credits / Month",
+      "Intelligence: up to 600 analyses / month",
+      "Autopilot: 10 executions / month"
     ]
   },
 
@@ -114,16 +118,18 @@ var ORIVEN_PLANS = {
     intelligence:   "Unlimited",
     autopilotLimit: Infinity,
     allFeatures: [
-      "12,000 AI Credits / Month",
-      "Intelligence — unlimited",
-      "Autopilot — unlimited",
+      "12000 AI Credits / Month",
+      "Intelligence: Unlimited",
+      "Autopilot: Unlimited",
+      "Team — invite members & collaborate",
       "Priority Support",
       "Up to 10 Team Members"
     ],
     features: [
-      "12,000 AI Credits / Month",
-      "Intelligence — unlimited",
-      "Autopilot — unlimited",
+      "12000 AI Credits / Month",
+      "Intelligence: Unlimited",
+      "Autopilot: Unlimited",
+      "Team — invite members & collaborate",
       "Priority Support",
       "Up to 10 Team Members"
     ]
@@ -154,7 +160,7 @@ function renderLPPricingCards(containerEl){
     return [
       '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '" data-observe' + delayAttr + '>',
         '<div class="ov-pc-head">' + badge + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
-        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/mo</span></div><div class="ov-pc-credits">' + plan.credits.toLocaleString('en-US') + ' AI credits / month</div></div>',
+        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/mo</span></div><div class="ov-pc-credits">' + plan.credits + ' AI credits / month</div></div>',
         '<div class="ov-pc-desc">' + plan.desc + '</div>',
         '<ul class="ov-pc-list">' + feats + '</ul>',
         '<a href="#" class="ov-pc-btn' + (isPro ? ' ov-pc-btn-pro' : '') + '" onclick="lpGetStarted(event)">Get Started</a>',
