@@ -5,6 +5,18 @@
 // Load this before settings.js, paywall.js, and studio.js.
 // ════════════════════════════════════════════════════════════════
 
+// ── Canonical number formatter — the ONE place credit/plan quantities
+// get their thousands separator. Dutch-style dot separator (12000 ->
+// "12.000"), never a comma and never raw digits, applied consistently
+// everywhere a credit/plan number reaches the UI (Subscription, paywall,
+// Settings usage rows) instead of some call sites using .toLocaleString()
+// and others concatenating raw numbers. This is presentation only -- it
+// never touches the underlying numeric value used for math/comparisons.
+function orvFormatCredits(n){
+  if(typeof n !== "number" || isNaN(n)) return String(n);
+  return n.toLocaleString("nl-NL");
+}
+
 // ── Credit cost per generation type ───────────────────────────
 // Values mirror the backend's authoritative FEATURE_COSTS
 // (server/services/creditManager.js) — the server is the real source of
@@ -94,12 +106,12 @@ var ORIVEN_PLANS = {
     intelligence:   "up to 600 analyses / month",
     autopilotLimit: 10,
     allFeatures: [
-      "3000 AI Credits / Month",
+      "3.000 AI Credits / Month",
       "Intelligence: up to 600 analyses / month",
       "Autopilot: 10 executions / month"
     ],
     features: [
-      "3000 AI Credits / Month",
+      "3.000 AI Credits / Month",
       "Intelligence: up to 600 analyses / month",
       "Autopilot: 10 executions / month"
     ]
@@ -118,7 +130,7 @@ var ORIVEN_PLANS = {
     intelligence:   "Unlimited",
     autopilotLimit: Infinity,
     allFeatures: [
-      "12000 AI Credits / Month",
+      "12.000 AI Credits / Month",
       "Intelligence: Unlimited",
       "Autopilot: Unlimited",
       "Team — invite members & collaborate",
@@ -126,7 +138,7 @@ var ORIVEN_PLANS = {
       "Up to 10 Team Members"
     ],
     features: [
-      "12000 AI Credits / Month",
+      "12.000 AI Credits / Month",
       "Intelligence: Unlimited",
       "Autopilot: Unlimited",
       "Team — invite members & collaborate",
@@ -160,7 +172,7 @@ function renderLPPricingCards(containerEl){
     return [
       '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '" data-observe' + delayAttr + '>',
         '<div class="ov-pc-head">' + badge + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
-        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/mo</span></div><div class="ov-pc-credits">' + plan.credits + ' AI credits / month</div></div>',
+        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/mo</span></div><div class="ov-pc-credits">' + orvFormatCredits(plan.credits) + ' AI credits / month</div></div>',
         '<div class="ov-pc-desc">' + plan.desc + '</div>',
         '<ul class="ov-pc-list">' + feats + '</ul>',
         '<a href="#" class="ov-pc-btn' + (isPro ? ' ov-pc-btn-pro' : '') + '" onclick="lpGetStarted(event)">Get Started</a>',

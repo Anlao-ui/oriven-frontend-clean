@@ -865,9 +865,15 @@
     <div class="au-title">Create your account</div>
     <div class="au-sub">Join ORIVEN and build your brand intelligence system.</div>
     <div id="auErrorSignup" class="au-error"></div>
-    <div class="au-field">
-      <label class="au-label">Full Name</label>
-      <input type="text" id="auFullNameSignup" class="au-input" placeholder="Your full name" autocomplete="name">
+    <div class="au-field au-field-row">
+      <div class="au-field">
+        <label class="au-label">First name</label>
+        <input type="text" id="auFirstNameSignup" class="au-input" placeholder="First name" autocomplete="given-name">
+      </div>
+      <div class="au-field">
+        <label class="au-label">Last name</label>
+        <input type="text" id="auLastNameSignup" class="au-input" placeholder="Last name" autocomplete="family-name">
+      </div>
     </div>
     <div class="au-field">
       <label class="au-label">Email</label>
@@ -3882,6 +3888,61 @@ if(window._pubView === 'login'){
   if(ORIVEN_DEV && devLink) devLink.style.display = 'block';
 }
 
+// â”€â”€ Team invite acceptance â”€â”€ if the visitor arrived via a real invite
+// link (?invite_token=...), accept it right after they authenticate
+// (either path: fresh signup or signing into an existing account). The
+// backend is the real authority -- it re-verifies the authenticated
+// user's own email matches the invitation before accepting, so this call
+// failing silently here is not a security concern, just a UX one (the
+// invite stays "pending" and the same link can be retried).
+function _pendingInviteToken(){
+  try { return new URLSearchParams(window.location.search).get('invite_token'); } catch(_){ return null; }
+}
+async function _acceptPendingInviteIfAny(){
+  var token = _pendingInviteToken();
+  if(!token) return;
+  try {
+    var sess = await SB.auth.getSession();
+    var accessToken = sess.data && sess.data.session && sess.data.session.access_token;
+    if(accessToken) _apiToken = accessToken;
+    var res = await apiFetch('/api/invite/' + encodeURIComponent(token) + '/accept', { method: 'POST' });
+    if(res.ok) { try { sessionStorage.setItem('oriven_invite_accepted', '1'); } catch(_){} }
+    else console.warn('[Invite] accept failed:', res.data && res.data.error);
+  } catch(e){ console.warn('[Invite] accept error:', e.message); }
+}
+
+// If a signup/login page loaded with a pending invite, show who invited
+// them and lock the email field to the invited address -- prevents
+// accidentally creating/signing into the wrong account for this invite.
+async function _prefillPendingInvite(){
+  var token = _pendingInviteToken();
+  if(!token) return;
+  try {
+    var res = await apiFetch('/api/invite/' + encodeURIComponent(token));
+    if(!res.ok || !res.data || !res.data.valid) return;
+    var info = res.data;
+    ['auEmailSignup','auEmailLogin'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el){ el.value = info.email; el.readOnly = true; el.title = 'This invitation was sent to ' + info.email; }
+    });
+    var noticeHtml = '<div class="au-invite-notice">You\'ve been invited to join <strong>' + (info.workspaceName || 'a workspace') + '</strong> as ' + (info.role || 'a member') + '. Create your account or sign in with <strong>' + info.email + '</strong> to accept.</div>';
+    document.querySelectorAll('.au-card .au-sub').forEach(function(el){ el.insertAdjacentHTML('afterend', noticeHtml); });
+  } catch(e){ console.warn('[Invite] prefill error:', e.message); }
+}
+// The invite email's Accept link points at the site root (FRONTEND_URL,
+// server.js), which resolves to the landing view, not signup/login --
+// route straight to signup so the recipient isn't left staring at the
+// homepage with no obvious next step. Signup is the safe default even
+// for an existing-account recipient: Supabase's own "already exists"
+// error surfaces from auSignup() and they can switch to Sign In from
+// there, still carrying the same ?invite_token= through the URL.
+if(_pendingInviteToken() && window._pubView !== 'signup' && window._pubView !== 'login' && typeof window.lpNavigate === 'function'){
+  window.lpNavigate('/signup');
+  setTimeout(_prefillPendingInvite, 350);
+} else if(window._pubView === 'signup' || window._pubView === 'login'){
+  _prefillPendingInvite();
+}
+
 async function auLogin(){
   var email = (document.getElementById('auEmailLogin').value || '').trim();
   var pass  = document.getElementById('auPassLogin').value || '';
@@ -3902,6 +3963,7 @@ async function auLogin(){
   try {
     var res = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(res.error) throw res.error;
+    await _acceptPendingInviteIfAny();
     window.location.href = '/app';
   } catch(err){
     _auSetError('auErrorLogin', auMapError(err));
@@ -3921,22 +3983,21 @@ if(window._pubView === 'signup'){
 }
 
 async function auSignup(){
-  var fullName    = (document.getElementById('auFullNameSignup').value    || '').trim();
+  var firstName   = (document.getElementById('auFirstNameSignup').value  || '').trim();
+  var lastName    = (document.getElementById('auLastNameSignup').value   || '').trim();
   var email       = (document.getElementById('auEmailSignup').value       || '').trim();
   var pass        = document.getElementById('auPassSignup').value         || '';
   var passConfirm = document.getElementById('auPassConfirmSignup').value  || '';
   var btn         = document.getElementById('auSubmitSignup');
   _auSetError('auErrorSignup', '');
-  ['auFullNameSignup','auEmailSignup','auPassSignup','auPassConfirmSignup'].forEach(function(id){
+  ['auFirstNameSignup','auLastNameSignup','auEmailSignup','auPassSignup','auPassConfirmSignup'].forEach(function(id){
     var el = document.getElementById(id); if(el) el.classList.remove('au-err');
   });
-  if(!fullName){ _auSetError('auErrorSignup', 'Please enter your full name.'); document.getElementById('auFullNameSignup').classList.add('au-err'); document.getElementById('auFullNameSignup').focus(); return; }
+  if(!firstName){ _auSetError('auErrorSignup', 'Please enter your first name.'); document.getElementById('auFirstNameSignup').classList.add('au-err'); document.getElementById('auFirstNameSignup').focus(); return; }
+  if(!lastName){ _auSetError('auErrorSignup', 'Please enter your last name.'); document.getElementById('auLastNameSignup').classList.add('au-err'); document.getElementById('auLastNameSignup').focus(); return; }
   if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ _auSetError('auErrorSignup', 'Please enter a valid email address.'); document.getElementById('auEmailSignup').classList.add('au-err'); document.getElementById('auEmailSignup').focus(); return; }
   if(!pass || pass.length < 6){ _auSetError('auErrorSignup', 'Password must be at least 6 characters.'); document.getElementById('auPassSignup').classList.add('au-err'); document.getElementById('auPassSignup').focus(); return; }
   if(passConfirm !== pass){ _auSetError('auErrorSignup', 'Passwords do not match.'); document.getElementById('auPassConfirmSignup').classList.add('au-err'); document.getElementById('auPassConfirmSignup').focus(); return; }
-  var parts     = fullName.split(/\s+/);
-  var firstName = parts[0];
-  var lastName  = parts.slice(1).join(' ') || '';
   btn.disabled = true; btn.textContent = 'Creating account…';
   try {
     var signupRes = await apiFetch('/api/signup', {
@@ -3947,6 +4008,7 @@ async function auSignup(){
     var signinRes = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(signinRes.error) throw signinRes.error;
     try { localStorage.setItem('oriven_needs_onboarding', '1'); } catch(_){}
+    await _acceptPendingInviteIfAny();
     window.location.href = '/app';
   } catch(err){
     _auSetError('auErrorSignup', auMapError(err));

@@ -39812,3 +39812,19 @@ body.dark-mode #page-team .tm-member-row { background: var(--bg); border-color: 
   .orv-ni[data-orv-page="team"]:hover svg path:nth-child(3),
   .orv-ni[data-orv-page="team"].orv-active svg path:nth-child(3) { transform: translateX(-1.2px); }
 }
+
+/* Signup — First name / Last name split (was one "Full Name" field).
+   Appended at end of file per this codebase's established workaround for
+   rules silently dropping from parsed CSSOM when inserted into dense
+   original regions. Desktop: side-by-side. Mobile: stacked (each .au-field
+   inside already has its own margin-bottom, so stacking is automatic --
+   only the desktop row layout needs an explicit rule). */
+.au-field-row { display: flex; gap: 12px; margin-bottom: 0; }
+.au-field-row .au-field { flex: 1; min-width: 0; margin-bottom: 12px; }
+@media (max-width: 480px) {
+  .au-field-row { flex-direction: column; gap: 0; }
+}
+
+/* Team invite acceptance notice on the signup/login pages. Appended at
+   end of file per this codebase's established safe-append convention. */
+.au-invite-notice { background: rgba(183,255,42,.08); border: 1px solid rgba(183,255,42,.25); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,.85); margin: 0 0 16px; }

@@ -2942,18 +2942,19 @@ async function renderPlanPanel(){
     // Business Brain, Brand Memory) is part of the product on every plan
     // and governed by the credit economy, not plan-gated, so it's
     // intentionally not listed here. No .toLocaleString() on plan.credits/
-    // autopilotLimit -- these are the plan's own fixed numbers (3000,
-    // 12000, 10), not a large dynamic total, and must render without a
-    // thousands separator. Autopilot is measured in "executions", not
+    // autopilotLimit -- these are the plan's own fixed numbers (500, 3000,
+    // 12000, 10). Formatted via the one shared orvFormatCredits() (Dutch-
+    // style dot separator, e.g. "12.000") rather than each call site
+    // choosing its own format. Autopilot is measured in "executions", not
     // "users" -- and Starter (autopilotLimit: null) shows no Autopilot
     // line at all rather than advertising a feature it doesn't include.
     html += '<ul class="sub-pcard-feats">';
-    html += '<li><strong>' + plan.credits + '</strong> AI Credits / month</li>';
+    html += '<li><strong>' + orvFormatCredits(plan.credits) + '</strong> AI Credits / month</li>';
     html += '<li>Intelligence: ' + plan.intelligence + '<span class="sub-feat-note"> · uses AI credits</span></li>';
     if(plan.autopilotLimit === Infinity){
       html += '<li>Autopilot: Unlimited</li>';
     } else if(typeof plan.autopilotLimit === 'number'){
-      html += '<li>Autopilot: ' + plan.autopilotLimit + ' executions / month</li>';
+      html += '<li>Autopilot: ' + orvFormatCredits(plan.autopilotLimit) + ' executions / month</li>';
     }
     // Starter (autopilotLimit === null): intentionally no Autopilot line.
     html += '</ul>';
@@ -2995,12 +2996,12 @@ async function renderPlanPanel(){
     var used = Math.max(0, creditStatus.usedThisMonth || 0);
     var allowance = Math.max(1, creditStatus.monthlyAllowance || 1);
     var pct = Math.min(100, Math.round((used / allowance) * 100));
-    html += '<div class="sub-credit-hd-row"><div class="sub-credit-hd-lbl">AI Credits</div><div class="sub-credit-hd-val">' + used.toLocaleString() + ' / ' + (creditStatus.monthlyAllowance || 0) + ' used</div></div>';
+    html += '<div class="sub-credit-hd-row"><div class="sub-credit-hd-lbl">AI Credits</div><div class="sub-credit-hd-val">' + orvFormatCredits(used) + ' / ' + orvFormatCredits(creditStatus.monthlyAllowance || 0) + ' used</div></div>';
     html += '<div class="sub-credit-bar-track"><div class="sub-credit-bar-fill" style="width:' + pct + '%"></div></div>';
-    html += '<div class="sub-credit-hd-sub">' + Math.max(0, creditStatus.balance).toLocaleString() + ' remaining · resets ' + (renewalStr || '—') + '</div>';
+    html += '<div class="sub-credit-hd-sub">' + orvFormatCredits(Math.max(0, creditStatus.balance)) + ' remaining · resets ' + (renewalStr || '—') + '</div>';
 
     html += '<div class="sub-usage-list" style="margin-top:16px">';
-    html += _uRow('Lifetime', (creditStatus.lifetimeUsed == null ? '—' : creditStatus.lifetimeUsed.toLocaleString()), 'AI credits consumed, all time');
+    html += _uRow('Lifetime', (creditStatus.lifetimeUsed == null ? '—' : orvFormatCredits(creditStatus.lifetimeUsed)), 'AI credits consumed, all time');
     // Autopilot usage — only shown when the current plan has a real,
     // server-enforced cap (Creator). Starter never reaches this (no
     // Autopilot at all); Professional has no separate cap to show a
@@ -3008,7 +3009,7 @@ async function renderPlanPanel(){
     if(creditStatus.autopilotUsage && typeof creditStatus.autopilotUsage.limit === 'number'){
       var apUsed = creditStatus.autopilotUsage.used || 0;
       var apLimit = creditStatus.autopilotUsage.limit;
-      html += _uRow('Autopilot', apUsed.toLocaleString() + ' / ' + apLimit, 'executions this month');
+      html += _uRow('Autopilot', orvFormatCredits(apUsed) + ' / ' + orvFormatCredits(apLimit), 'executions this month');
     }
     html += _uRow('Campaigns Generated', campaigns, 'total in workspace');
     html += _uRow('Saved Assets', assets, 'in your library');
