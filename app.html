@@ -245,6 +245,12 @@
         <span class="orv-ni-label">Campaigns</span>
       </button>
 
+      <!-- Platform shortcuts (Navbar Redesign) — belong visually to Campaigns,
+           real connection state via the same /api/{platform}/status calls
+           and _PRF_PLAT_ICONS already used by Connections/Autopilot/Business;
+           populated by _orvRenderPlatShortcuts() below. -->
+      <div class="orv-ni-plat-group" id="orvPlatShortcuts"></div>
+
       <!-- Intelligence (V6 Final Phase — Executive Mode / Timeline / Briefings) -->
       <button class="orv-ni" data-orv-page="intelligence" onclick="_orvNav('intelligence','page-intelligence',this)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path class="orv-ni-clockhand" d="M8 5v3l2 1.5"/></svg>
@@ -313,6 +319,7 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="10" height="11" rx="1.5"/><path d="M6 7h4M6 9.5h4M6 12h2.5"/><rect class="orv-ni-clip" x="6" y="1.6" width="4" height="2.6" rx="1"/></svg>
         <span class="orv-ni-label">Campaigns</span>
       </button>
+      <div class="orv-ni-plat-group" id="orvPlatShortcutsMob"></div>
       <button class="orv-ni" data-orv-page="intelligence" onclick="_orvNav('intelligence','page-intelligence',this);_orvDrawerClose()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path class="orv-ni-clockhand" d="M8 5v3l2 1.5"/></svg>
         <span class="orv-ni-label">Intelligence</span>
@@ -660,10 +667,13 @@
               <div id="cr2StructBody"></div>
             </div>
 
-            <button class="cr2-gen-btn" id="aicGenBtn" onclick="aicGenerate()">
-              <span data-i18n="dashCampaignLabel">Build Campaign</span>
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-            </button>
+            <div class="cr2-gen-row">
+              <button class="cr2-gen-btn" id="aicGenBtn" onclick="aicGenerate()">
+                <span data-i18n="dashCampaignLabel">Build Campaign</span>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+              </button>
+              <div class="cr2-gen-cost" id="aicGenCost"></div>
+            </div>
           </div>
         </div>
 
@@ -678,12 +688,6 @@
     <!-- ══ PERFORMANCE ════════════════════════════════════════════ -->
     <div class="page" id="page-performance">
       <div class="prf-wrap">
-
-        <div class="camp-mode-hdr">
-          <span class="camp-mode-label">Analyze</span>
-          <span class="camp-mode-sep">·</span>
-          <span class="camp-mode-copy">Real-time performance across every connected platform</span>
-        </div>
 
         <!-- Controls: Platform → Campaign → Time Range — the only three
              inputs Overview needs; every KPI, chart, and the AI Analysis
@@ -955,10 +959,19 @@
         <!-- Watchlist — severity-coded real observations (Critical/Attention
              from findings, Opportunity from recommendations, Positive from
              account strengths). Never fabricated: if there's nothing to
-             watch, it says so once, never stacked with anything else. -->
-        <div class="ov3-section" id="intelWatchSection">
-          <div class="ov3-sh"><span class="ov3-sh-label" data-i18n="intelWatchlistHeading">Watchlist</span></div>
-          <div class="intel-wl-grid" id="intelWatchList"></div>
+             watch, it says so once, never stacked with anything else.
+             Master Dashboard layout spec: 2/3 watchlist + 1/3 monitored-
+             campaigns sidebar, using the same window._intelMonitored state
+             the header pill/modal already maintain — no new fetch. -->
+        <div class="intel-row-2-1">
+          <div class="ov3-section intel-col2" id="intelWatchSection">
+            <div class="ov3-sh"><span class="ov3-sh-label" data-i18n="intelWatchlistHeading">Watchlist</span></div>
+            <div class="intel-wl-grid" id="intelWatchList"></div>
+          </div>
+          <div class="ov3-section intel-col1">
+            <div class="ov3-sh"><span class="ov3-sh-label" data-i18n="intelMonitoredHeading">Monitored Campaigns</span></div>
+            <div class="intel-mon-sidebar" id="intelMonSidebar"></div>
+          </div>
         </div>
 
         <!-- Recent Signals — real intelligence_events only (same table the
@@ -1029,10 +1042,18 @@
           <div id="bizHealthBody" style="display:flex;flex-direction:column;gap:16px"></div>
 
           <div class="biz-ov-section">
-            <div class="biz-ov-sh">
-              <div class="ov3-sh-label" data-i18n="bizEcosystemLabel">Connected Ecosystem</div>
+            <div class="biz-ov-row-7-5">
+              <div class="biz-ov-col7">
+                <div class="biz-ov-sh"><div class="ov3-sh-label" data-i18n="bizProfileSummaryLabel">Business Profile</div>
+                  <button class="ov3-sh-btn" onclick="bizGoTo('business')" data-i18n="bizEditBtn">Edit →</button>
+                </div>
+                <div class="biz-profile-card" id="bizProfileSummary"></div>
+              </div>
+              <div class="biz-ov-col5">
+                <div class="biz-ov-sh"><div class="ov3-sh-label" data-i18n="bizEcosystemLabel">Connected Ecosystem</div></div>
+                <div id="bizEcosystemBody" class="biz-eco-col"></div>
+              </div>
             </div>
-            <div id="bizEcosystemBody" class="biz-eco-row"></div>
           </div>
 
           <div id="bizLearningSection" class="biz-ov-section" style="display:none">
@@ -1084,19 +1105,19 @@
              of two separate destinations. -->
         <div class="intel-tab-panel" id="bizPanelMarket" style="display:none">
           <p class="ov3-ph-sub" style="margin-bottom:20px" data-i18n="bizMarketIntro">Who you're trying to reach, and who you're up against.</p>
-          <div class="biz-market-section">
-            <div class="biz-market-hd">
-              <span class="ov3-sh-label" data-i18n="bizAudienceHeading">Audience</span>
-              <button class="biz-add-btn biz-add-btn-inline" onclick="bizAddItem('audiences')" data-i18n="bizAddAudienceBtn">+ Add an audience</button>
+          <div class="biz-market-grid2">
+            <div class="biz-market-section">
+              <div class="biz-market-hd">
+                <span class="ov3-sh-label" data-i18n="bizAudienceHeading">Audience</span>
+              </div>
+              <div id="bizAudiencesBody"></div>
             </div>
-            <div id="bizAudiencesBody"></div>
-          </div>
-          <div class="biz-market-section" style="margin-top:28px">
-            <div class="biz-market-hd">
-              <span class="ov3-sh-label" data-i18n="bizCompetitorsHeading">Competitors</span>
-              <button class="biz-add-btn biz-add-btn-inline" onclick="bizAddItem('competitors')" data-i18n="bizAddCompetitorBtn">+ Add a competitor</button>
+            <div class="biz-market-section">
+              <div class="biz-market-hd">
+                <span class="ov3-sh-label" data-i18n="bizCompetitorsHeading">Competitors</span>
+              </div>
+              <div id="bizCompetitorsBody"></div>
             </div>
-            <div id="bizCompetitorsBody"></div>
           </div>
         </div>
 
@@ -1527,7 +1548,7 @@
             <button class="biz-add-btn biz-add-btn-inline" onclick="bizAddMemory()" data-i18n="bizAddMemoryBtn">+ Add memory</button>
           </div>
           <p class="ov3-ph-sub" style="margin-bottom:18px" data-i18n="bizMemoryIntro">Context Oriven has learned about your business — from conversations, and from what's worked.</p>
-          <div id="bizMemoryBody" style="display:flex;flex-direction:column;gap:8px"></div>
+          <div id="bizMemoryBody" class="biz-mem-grid2"></div>
         </div>
       </div>
     </div><!-- /#page-business-brain -->
@@ -1535,12 +1556,11 @@
     <!-- ══ ADS MANAGER ═══════════════════════════════════════════ -->
     <div class="page" id="page-ads-manager">
         <!-- Header — shared "Campaigns" title lives once in
-             #orvHubTabsCampaigns above; this page only needs its own mode
-             line + the Refresh action, matching Overview's .camp-mode-hdr. -->
-        <div class="camp-mode-hdr">
-          <span class="camp-mode-label">Operate</span>
-          <span class="camp-mode-sep">·</span>
-          <span class="camp-mode-copy">Live campaigns and AI-generated drafts across every platform</span>
+             #orvHubTabsCampaigns above; the old mode-line text ("Operate ·
+             Live campaigns and AI-generated drafts...") was removed as
+             redundant with that shared subtitle (Page Header Alignment
+             Fix) — only the real Refresh action remains, right-aligned. -->
+        <div class="camp-mode-hdr camp-mode-hdr-action-only">
           <button class="adm-refresh-btn" onclick="initAdsManager()">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="13" height="13"><path d="M13 3v4H9"/><path d="M3 13v-4h4"/><path d="M13 7A6 6 0 0 0 3.07 9M3 9a6 6 0 0 0 9.93 4"/></svg>
             Refresh
@@ -1882,6 +1902,10 @@
               <div class="adm-panel-lbl">Created</div>
               <div class="adm-panel-val" id="admPanelCreated">—</div>
             </div>
+            <div class="adm-panel-adsets-wrap" id="admPanelAdsetsWrap" style="display:none">
+              <div class="adm-panel-adsets-hdr">Ad Sets</div>
+              <div class="adm-panel-adsets-body" id="admPanelAdsetsBody"></div>
+            </div>
           </div>
           <div class="adm-camp-panel-foot">
             <div id="admPanelActions" class="adm-panel-actions"></div>
@@ -1929,12 +1953,11 @@
       <div class="camp-hub">
 
         <!-- Header — shared "Campaigns" title lives once in
-             #orvHubTabsCampaigns above; this page only needs its own mode
-             line + New Campaign action, matching Overview/Live Campaigns. -->
-        <div class="camp-mode-hdr">
-          <span class="camp-mode-label">Create</span>
-          <span class="camp-mode-sep">·</span>
-          <span class="camp-mode-copy" id="campHubSub">Continue drafts and manage AI-generated campaigns</span>
+             #orvHubTabsCampaigns above; the old mode-line text ("Create ·
+             Continue drafts and manage AI-generated campaigns") was removed
+             as redundant with that shared subtitle (Page Header Alignment
+             Fix) — only the real New Campaign action remains, right-aligned. -->
+        <div class="camp-mode-hdr camp-mode-hdr-action-only">
           <button class="camp-new-btn" onclick="navigate('create')">
             <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 1v10M1 6h10"/></svg>
             <span data-i18n="newCampaignBtnPlain">New Campaign</span>
@@ -3352,8 +3375,7 @@
              into a modal, not rebuilt. -->
         <div class="ap-hero-hdr ap-anim-hdr">
           <div class="ap-hero-copy">
-            <span class="ap-eyebrow">AUTOPILOT</span>
-            <h1 class="ap-hero-headline">Let Oriven handle the repetitive work.</h1>
+            <h1 class="ap-hero-headline">Autopilot</h1>
             <p class="ap-hero-sub">Automate the decisions that keep your advertising moving.</p>
             <div class="ap-hero-status-row">
               <span class="ap-hero-status-pill"><span class="ap-hero-status-dot"></span>SYSTEM READY</span>
@@ -8629,7 +8651,30 @@ window._orvUpdateCampPkg = function(id, pkg) {
     if(btn) btn.classList.add('active');
     var refBtn = document.getElementById('ov3RefImgBtn');
     if(refBtn) refBtn.style.display = (mode === 'images') ? '' : 'none';
+    _aicRenderCost();
   };
+
+  /* Compact inline cost indicator (Launch credit transparency) — reads the
+     canonical per-action costs from /api/credits/status (creditManager's
+     FEATURE_COSTS, exposed there rather than duplicated as a hardcoded
+     number here). campaign_generation is always charged for the copy step;
+     the creative step charges image_generation or video_generation
+     depending on the selected mode -- shown as separate per-item costs
+     (not summed into one number) since a campaign can generate more than
+     one creative and a single total would misstate that. */
+  function _aicRenderCost(){
+    var el = document.getElementById('aicGenCost');
+    if(!el || typeof _getCreditStatus !== 'function') return;
+    _getCreditStatus().then(function(status){
+      var costs = status && status.featureCosts;
+      if(!costs){ el.textContent = ''; return; }
+      var mode = window._ov3ContentMode || 'images';
+      var creativeCost = mode === 'videos' ? costs.video_generation : costs.image_generation;
+      var creativeLabel = mode === 'videos' ? 'video' : 'image';
+      el.textContent = costs.campaign_generation + ' credits for copy · ' + creativeCost + ' credits per ' + creativeLabel;
+    }).catch(function(){ el.textContent = ''; });
+  }
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(_aicRenderCost, 1200); });
 
   window.ov3StartFromPrompt = function(){
     console.log('[Generate] Button clicked');
@@ -8976,7 +9021,13 @@ window._orvUpdateCampPkg = function(id, pkg) {
       var highEvents = (highRes.ok && highRes.data && highRes.data.events) || [];
       var allEvents = (allRes.ok && allRes.data && allRes.data.events) || [];
       var highIds = new Set(highEvents.map(function(e){ return e.id; }));
-      var campaignEvents = allEvents.filter(function(e){ return e.type === 'campaign_action' && !highIds.has(e.id); });
+      // campaign_action events are what the Live Campaigns publish toast
+      // (settings.js, notifAllowed('notifPublish')) already gates -- the
+      // persistent bell/badge must respect the same preference, or turning
+      // "Campaign published" notifications off still leaves them piling up
+      // here.
+      var notifPublishOn = (typeof window.notifAllowed !== 'function') || window.notifAllowed('notifPublish');
+      var campaignEvents = notifPublishOn ? allEvents.filter(function(e){ return e.type === 'campaign_action' && !highIds.has(e.id); }) : [];
       var events = highEvents.concat(campaignEvents).sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
       var pendingApprovals = (recRes.ok && recRes.data && recRes.data.recommendations) || [];
 
@@ -11364,6 +11415,29 @@ function _intelSaveMonitored(){
   catch(_){ return false; }
 }
 function _intelMonitoredCount(){ return (window._intelMonitored.google||[]).length + (window._intelMonitored.meta||[]).length + (window._intelMonitored.tiktok||[]).length; }
+
+/* Monitored Campaigns sidebar (Watchlist row, 1/3 column) — real list from
+   the same window._intelMonitored state the header pill/modal already
+   maintain, no new fetch. Kept in sync wherever that state changes. */
+function _intelRenderMonSidebar(){
+  var el = document.getElementById('intelMonSidebar');
+  if(!el) return;
+  var plats = ['google','meta','tiktok'];
+  var rows = [];
+  plats.forEach(function(p){
+    (window._intelMonitored[p] || []).forEach(function(c){
+      rows.push({ plat: p, name: _intelCampName(c) || 'Untitled campaign' });
+    });
+  });
+  if(!rows.length){
+    el.innerHTML = '<p class="biz-map-desc">No campaigns selected yet.</p>' +
+      '<button type="button" class="biz-map-action" onclick="intelOpenMonitor()">Select campaigns →</button>';
+    return;
+  }
+  el.innerHTML = rows.map(function(r){
+    return '<div class="intel-mon-sb-row"><span class="intel-mon-sb-ico">' + (_PRF_PLAT_ICONS[r.plat] || '') + '</span><span class="intel-mon-sb-name">' + _prfEsc(r.name) + '</span></div>';
+  }).join('');
+}
 function _intelIsMonitored(item){
   if(item.campaign === 'Account-wide') return true;
   var set = (window._intelMonitored[item.platform] || []);
@@ -11577,6 +11651,7 @@ window.intelSaveMonitor = function(){
   }
   var monCount = document.getElementById('intelMonCount');
   if(monCount) monCount.textContent = _intelMonitoredCount(); // header pill updates instantly, not after the briefing re-fetch
+  _intelRenderMonSidebar();
   intelCloseMonitor();
   intelLoadBrief(true); // selection changed — bypass today's cache, re-fetch a briefing scoped to the new selection
 };
@@ -11584,6 +11659,7 @@ window.intelSaveMonitor = function(){
 window.intelPageInit = function(){
   _intelPlayShellAnim(); // header + hero become visible immediately, independent of how long the data fetch below takes
   _intelLoadMonitored();
+  _intelRenderMonSidebar();
   _intelLoadPlatSnapshot(); // last-known connected/campaign-count cache, available synchronously for this render
   intelLoadBrief(false);
   _intelRefreshPlatSnapshotBg(); // keeps it fresh for next time; re-renders in place if this visit's classification would change
@@ -12282,18 +12358,28 @@ function _bizCountFilled(obj, keys){
 /* ── Overview / Business Health (Epic 13) — motivational, not a raw
    percentage: leads with a plain-language read of what's missing,
    computed from the real category scores, never invented. ── */
-/* Business Intelligence Map — real category keys computed server-side in
-   _computeBusinessHealth() (server.js), never invented client-side. Market
-   stays two honest cards (Audience/Competitors) rather than one fabricated
-   "Market" score, since the backend computes them separately. */
+/* Business Intelligence Map — 6 cards, 2 rows of 3 (Master Dashboard layout
+   spec). Market is ONE card showing the average of the two real backend
+   scores (audienceKnowledge + competitorKnowledge, both computed server-side
+   in _computeBusinessHealth()) — an honest derived average of two real
+   numbers, not a fabricated third metric. websiteUnderstanding still feeds
+   the overall score and still has its own card on the Business tab; it just
+   isn't a 7th map tile now that the layout is a fixed 3-column grid. */
 var BIZ_MAP_CATS = [
-  { key:'businessProfile',     label:'Business',    desc:"Company profile, goals & direction",  tab:'business' },
-  { key:'brandCompleteness',   label:'Brand',        desc:'Identity, voice & positioning',        tab:'brand' },
-  { key:'products',            label:'Products',     desc:'What you sell',                        tab:'products' },
-  { key:'audienceKnowledge',   label:'Audience',     desc:"Who you're trying to reach",           tab:'market' },
-  { key:'competitorKnowledge', label:'Competitors',  desc:'Your competitive landscape',           tab:'market' },
-  { key:'websiteUnderstanding',label:'Website',      desc:"What Oriven read from your site",      tab:'business' }
+  { key:'businessProfile',   label:'Business', desc:"Company profile, goals & direction", tab:'business' },
+  { key:'products',          label:'Products', desc:'What you sell',                      tab:'products' },
+  { key:'market',            label:'Market',   desc:'Audience & competitive landscape',   tab:'market' },
+  { key:'brandCompleteness', label:'Brand',    desc:'Identity, voice & positioning',       tab:'brand' }
 ];
+
+var _bizAreasBase = 0;
+var _bizAreasExtra = { connections: false, memory: false };
+function _bizRecomputeAreas(){
+  var areasEl = document.getElementById('bizHeroAreas');
+  if(!areasEl) return;
+  var total = _bizAreasBase + (_bizAreasExtra.connections ? 1 : 0) + (_bizAreasExtra.memory ? 1 : 0);
+  areasEl.textContent = total + ' / 6';
+}
 
 function _bizCountUp(el, target){
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -12318,14 +12404,28 @@ function bizLoadOverview(){
        context so the AI chat already knows the business's overall health
        without a second fetch, once this page has loaded it. */
     if (window.orvContext) window.orvContext.business = { overall: d.overall, categories: d.categories || null };
-    var cats = BIZ_MAP_CATS.map(function(c){ return { label:c.label, desc:c.desc, tab:c.tab, score:(d.categories && d.categories[c.key]) || 0 }; });
+    var realCats = d.categories || {};
+    var marketScore = Math.round(((realCats.audienceKnowledge || 0) + (realCats.competitorKnowledge || 0)) / 2);
+    var cats = BIZ_MAP_CATS.map(function(c){
+      var score = c.key === 'market' ? marketScore : (realCats[c.key] || 0);
+      return { label:c.label, desc:c.desc, tab:c.tab, score: score };
+    });
     var weakest = cats.slice().sort(function(a,b){ return a.score - b.score; })[0];
     var msg;
     if(d.overall >= 80){ msg = 'Oriven understands your business well.' + (weakest && weakest.score < 90 ? ' A few more details about ' + weakest.label.toLowerCase() + ' will sharpen recommendations further.' : ''); }
     else if(d.overall >= 50){ msg = 'Oriven is building a solid picture of your business.' + (weakest ? ' Adding more about ' + weakest.label.toLowerCase() + ' will improve future recommendations.' : ''); }
     else if(d.overall > 0){ msg = "Oriven doesn't know much about your business yet." + (weakest ? ' Start with ' + weakest.label.toLowerCase() + ' — every detail sharpens your recommendations.' : ''); }
     else { msg = "Oriven doesn't know your business yet. Complete your business profile to make Oriven's recommendations more precise."; }
+    // "Areas connected" = 4 score categories with any real content + Connections
+    // (any platform linked) + Memory (any items) — the latter two resolve
+    // independently via bizLoadEcosystem()/_bizLoadMemorySignal() below, so
+    // the count is recomputed from _bizAreasExtra rather than incremented in
+    // place (two concurrent read-then-write updates to the same DOM text
+    // would race and silently drop one one contribution).
     var connectedCats = cats.filter(function(c){ return c.score > 0; }).length;
+    _bizAreasBase = connectedCats;
+    _bizAreasExtra.connections = false;
+    _bizAreasExtra.memory = false;
     var html = '<div class="biz-hero">' +
         '<div class="biz-hero-eyebrow">Business Intelligence</div>' +
         '<div class="biz-hero-main">' +
@@ -12336,7 +12436,7 @@ function bizLoadOverview(){
             '<div class="biz-hero-msg">' + _prfEsc(msg) + '</div>' +
           '</div>' +
           '<div class="biz-hero-side">' +
-            '<div class="biz-hero-side-num" id="bizHeroAreas">' + connectedCats + ' / 7</div>' +
+            '<div class="biz-hero-side-num" id="bizHeroAreas">' + connectedCats + ' / 6</div>' +
             '<div class="biz-hero-side-lbl">areas connected</div>' +
           '</div>' +
         '</div>' +
@@ -12351,6 +12451,9 @@ function bizLoadOverview(){
         '<button type="button" class="biz-map-action" onclick="bizGoTo(\'' + c.tab + '\')">' + actionLabel + '</button>' +
       '</div>';
     });
+    html += '<div class="biz-map-card" id="bizMapConnections"><div class="biz-cat-top"><span class="biz-cat-name">Connections</span></div>' +
+      '<p class="biz-map-desc" id="bizMapConnectionsDesc">Checking your connected platforms…</p>' +
+      '<button type="button" class="biz-map-action" onclick="bizGoTo(\'connections\')">View Connections →</button></div>';
     html += '<div class="biz-map-card" id="bizMapMemory"><div class="biz-cat-top"><span class="biz-cat-name">Memory</span></div>' +
       '<p class="biz-map-desc" id="bizMapMemoryDesc">Checking what Oriven has learned…</p>' +
       '<button type="button" class="biz-map-action" onclick="bizGoTo(\'memory\')">View Memory →</button></div>';
@@ -12365,10 +12468,39 @@ function bizLoadOverview(){
     }, 50);
     bizLoadEcosystem();
     _bizLoadMemorySignal();
+    _bizRenderProfileSummary();
   }).catch(function(){ body.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">Could not load business health.</span>'; });
 
   bizLoadInsights();
   bizLoadDashboard();
+}
+
+/* Business Profile summary (Overview row 3) — reuses the same cached
+   profile fetch as the Business tab / Brand tab (_bizEnsureProfile), no
+   duplicate request. Real fields only (company_name/industry/country/
+   business_stage/description) — a genuinely empty profile gets an honest
+   empty state, not invented copy. */
+function _bizRenderProfileSummary(){
+  var el = document.getElementById('bizProfileSummary');
+  if(!el) return;
+  _bizEnsureProfile(function(){
+    var p = _bizProfileCache || {};
+    var facts = [['industry','Industry'],['country','Location'],['business_stage','Stage'],['website','Website']]
+      .filter(function(f){ return p[f[0]]; });
+    if(!p.company_name && !p.description && !facts.length){
+      el.innerHTML = '<p class="biz-map-desc">Add your company details so this summary reflects real information.</p>' +
+        '<button type="button" class="biz-map-action" onclick="bizGoTo(\'business\')">Add business profile →</button>';
+      return;
+    }
+    var html = '<div class="biz-profile-card-name">' + _prfEsc(p.company_name || 'Your business') + '</div>';
+    if(facts.length){
+      html += '<div class="biz-fact-grid" style="margin-top:0">' + facts.map(function(f){
+        return '<div class="biz-fact-chip"><div class="biz-fact-lbl">' + _prfEsc(f[1]) + '</div><div class="biz-fact-val">' + _prfEsc(p[f[0]]) + '</div></div>';
+      }).join('') + '</div>';
+    }
+    if(p.description){ html += '<p class="biz-profile-card-desc">' + _prfEsc(p.description) + '</p>'; }
+    el.innerHTML = html;
+  });
 }
 
 /* Connected Ecosystem (Overview) — same /api/{platform}/status endpoints
@@ -12400,11 +12532,10 @@ function bizLoadEcosystem(){
         : '<button type="button" class="biz-eco-action biz-eco-action-primary" onclick="bizGoTo(\'connections\')">Connect →</button>';
       if(!el.querySelector('.biz-eco-action')) el.insertAdjacentHTML('beforeend', actionHtml);
     });
-    var areasEl = document.getElementById('bizHeroAreas');
-    if(areasEl){
-      var current = parseInt(areasEl.textContent, 10) || 0;
-      areasEl.textContent = (current + (connectedCount > 0 ? 1 : 0)) + ' / 7';
-    }
+    var connDesc = document.getElementById('bizMapConnectionsDesc');
+    if(connDesc) connDesc.textContent = connectedCount + ' of 3 connected';
+    _bizAreasExtra.connections = connectedCount > 0;
+    _bizRecomputeAreas();
   });
 }
 
@@ -12413,6 +12544,8 @@ function _bizLoadMemorySignal(){
     var items = (res.ok && res.data && res.data.memory) || [];
     var el = document.getElementById('bizMapMemoryDesc');
     if(el) el.textContent = items.length ? (items.length + (items.length === 1 ? ' thing remembered' : ' things remembered')) : 'Nothing remembered yet';
+    _bizAreasExtra.memory = items.length > 0;
+    _bizRecomputeAreas();
   }).catch(function(){});
 }
 
@@ -12740,7 +12873,18 @@ function _bizVisualCard(kind, item){
   }).join('');
   var hasAny = factsHtml || tagsHtml;
   var editId = 'bizEdit_' + kind + '_' + item.id;
-  return '<div class="biz-vcard">' +
+  /* Products get a visual header band (Master Dashboard layout spec —
+     "enough height and visual presence"). No product photo exists in the
+     data model, so this is a real color-derived gradient using the same
+     _bizAvatarColor already used for the initials avatar, not an invented
+     image. Audiences/Competitors (Market's 2-column layout) keep the
+     plain card top since that spec only asked for Products to be visual. */
+  var visualBand = kind === 'products'
+    ? '<div class="biz-vcard-visual" style="background:linear-gradient(135deg,' + color + ' 0%, color-mix(in srgb,' + color + ' 55%, #0b0b0c) 100%)"><span>' + _prfEsc(_bizInitials(name)) + '</span></div>'
+    : '';
+  var cardCls = kind === 'products' ? 'biz-vcard biz-vcard-visual-card' : 'biz-vcard';
+  return '<div class="' + cardCls + '">' +
+    visualBand +
     '<div class="biz-vcard-top">' +
       '<div class="biz-avatar" style="background:' + color + '">' + _prfEsc(_bizInitials(name)) + '</div>' +
       '<div style="flex:1;min-width:0">' +
@@ -12776,13 +12920,32 @@ function bizLoadList(kind){
   }).catch(function(){});
 }
 
+/* Market's Audience/Competitors sections used to show TWO "add" actions
+   at once whenever the section was empty — the static section-header
+   button (.biz-market-hd) plus the empty state's own CTA. Fix: the
+   section header button was removed from the Market markup entirely
+   (see bizPanelMarket), and this function now renders the ONE real add
+   action itself — the empty-state CTA when there's nothing yet, or a
+   trailing "+ Add" row after the list once items exist. Products keeps
+   its existing header-button behavior unchanged (out of this task's
+   scope, not reported as a problem). */
+var BIZ_ADD_LABELS = { audiences: 'Add an audience', competitors: 'Add a competitor' };
 function bizRenderList(kind, items){
   var body = document.getElementById('biz' + kind.charAt(0).toUpperCase() + kind.slice(1) + 'Body');
   if(!body) return;
-  if(!items.length){ body.innerHTML = _bizEmptyState(kind); return; }
+  var addLabel = BIZ_ADD_LABELS[kind];
+  if(!items.length){
+    body.innerHTML = _bizEmptyState(kind);
+    return;
+  }
   var msg = _bizListFeedback(kind, items);
   var feedbackHtml = msg ? _bizFeedbackCard(msg) : '';
-  body.innerHTML = feedbackHtml + '<div class="biz-vcard-list">' + items.map(function(item){ return _bizVisualCard(kind, item); }).join('') + '</div>';
+  // Products get the 3-column grid (Master Dashboard layout spec); Audiences/
+  // Competitors keep the vertical list — their cards carry many more tag
+  // rows and sit inside Market's 2-column side-by-side layout instead.
+  var listCls = kind === 'products' ? 'biz-vcard-list biz-vcard-grid3' : 'biz-vcard-list';
+  var trailingAdd = addLabel ? '<button type="button" class="biz-add-btn biz-add-btn-trailing" onclick="bizAddItem(\'' + kind + '\')">+ ' + _prfEsc(addLabel) + '</button>' : '';
+  body.innerHTML = feedbackHtml + '<div class="' + listCls + '">' + items.map(function(item){ return _bizVisualCard(kind, item); }).join('') + '</div>' + trailingAdd;
 }
 
 window.bizSaveItem = function(kind, id){
@@ -12967,7 +13130,51 @@ window.admPublishFromSelector = function(campId, platform) {
 };
 
 var _ADM_PLAT_LABELS = { all:'All Platforms', google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads' };
-var _ADM_PLAT_LINKS  = { google:'https://ads.google.com/', meta:'https://adsmanager.facebook.com/' };
+/* tiktok added here (Navbar Redesign) for the sidebar platform shortcuts —
+   same top-level-official-URL convention already used for google/meta
+   (no account-specific deep link exists for any of the three), so this
+   isn't a new destination pattern, just completing the existing map. */
+var _ADM_PLAT_LINKS  = { google:'https://ads.google.com/', meta:'https://adsmanager.facebook.com/', tiktok:'https://ads.tiktok.com/' };
+
+/* ── Sidebar platform shortcuts (Navbar Redesign, Final Polish) ────────
+   Compact links under Campaigns. Real connection state (same
+   /api/{platform}/status calls and _PRF_PLAT_ICONS already used by
+   Connections/Autopilot/Business, no second connection system) still
+   drives the status dot/label, but no longer gates the click — all
+   three always open the platform's real top-level dashboard in a new
+   tab, connected or not (per explicit instruction: the dot is a status
+   indicator only, never a disabled state). Rendered into both the
+   desktop rail and the mobile drawer. */
+window._orvPlatOpen = function(platform){
+  var url = _ADM_PLAT_LINKS[platform];
+  if(url) window.open(url, '_blank', 'noopener,noreferrer');
+  if(typeof _orvDrawerClose === 'function') _orvDrawerClose();
+};
+
+function _orvPlatShortcutRow(p, label, connected){
+  var dotCls = connected ? 'orv-ni-plat-dot orv-ni-plat-dot-on' : 'orv-ni-plat-dot orv-ni-plat-dot-off';
+  var statusTxt = connected ? 'Connected' : 'Not connected';
+  return '<button type="button" class="orv-ni-plat" data-plat="' + p + '" onclick="_orvPlatOpen(\'' + p + '\')" title="' + _prfEsc(label) + ' — ' + statusTxt + '">' +
+    '<span class="orv-ni-plat-ico">' + (window._PRF_PLAT_ICONS ? _PRF_PLAT_ICONS[p] : '') + '</span>' +
+    '<span class="orv-ni-plat-name">' + _prfEsc(label) + '</span>' +
+    '<span class="' + dotCls + '"></span>' +
+    '<span class="orv-ni-plat-ext">↗</span>' +
+  '</button>';
+}
+
+function _orvRenderPlatShortcuts(){
+  var targets = [document.getElementById('orvPlatShortcuts'), document.getElementById('orvPlatShortcutsMob')].filter(Boolean);
+  if(!targets.length) return;
+  var PLATS = [['google','Google Ads'],['meta','Meta Ads'],['tiktok','TikTok Ads']];
+  Promise.all(PLATS.map(function(p){
+    return apiFetch('/api/' + p[0] + '/status').then(function(r){ return { p: p[0], label: p[1], connected: !!(r.ok && r.data && r.data.connected) }; })
+      .catch(function(){ return { p: p[0], label: p[1], connected: false }; });
+  })).then(function(results){
+    var html = results.map(function(r){ return _orvPlatShortcutRow(r.p, r.label, r.connected); }).join('');
+    targets.forEach(function(el){ el.innerHTML = html; });
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(_orvRenderPlatShortcuts, 900); });
 
 window.admRange = function(btn, range) {
   document.querySelectorAll('.adm-pill').forEach(function(b){ b.classList.remove('active'); });
@@ -13402,7 +13609,7 @@ function _admRenderMetaLive(camps) {
     if (canAct.del)    acts += '<button class="adm-act-btn adm-act-del" title="Delete" onclick="event.stopPropagation();admConfirmDelete(\''+_admEsc(cid)+'\',\''+_admEsc(name)+'\')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="12" height="12"><path d="M2 3.5h10M5 3.5V2.5h4v1M5.5 6.5v4M8.5 6.5v4M3 3.5l.8 8h6.4l.8-8"/></svg></button>';
     acts += '</div>';
 
-    return '<tr id="admLiveRow_'+safeId+'" class="'+(isSel?'adm-row-sel':'')+'" onclick="admOpenCampPanel('+safeId+')" style="cursor:pointer">'+
+    return '<tr id="admLiveRow_'+safeId+'" class="'+(isSel?'adm-row-sel':'')+'" onclick="admOpenCampPanel(\''+safeId+'\')" style="cursor:pointer">'+
       '<td class="adm-th-check" data-label="Select" onclick="event.stopPropagation()"><input type="checkbox" class="adm-row-check" '+(isSel?'checked':'')+' onchange="admToggleRowSelect(this,\''+_admEsc(cid)+'\')"></td>'+
       '<td data-label="Campaign"><div class="adm-camp-name">'+_admEsc(name)+'</div><div class="adm-camp-id">'+_admEsc(cid)+'</div></td>'+
       '<td data-label="Status"><span class="adm-live-status '+sCls+'">'+sLbl+'</span></td>'+
@@ -13691,8 +13898,78 @@ window.admOpenCampPanel = function(campOrSafeId) {
     actsEl.innerHTML = acts;
   }
 
+  _admLoadPanelAdsets(cid);
+
   if (panel) panel.style.display = '';
   document.body.classList.add('adm-panel-open');
+};
+
+/* Ad Set / Ad drill-down (Meta only -- /api/meta/adsets and /api/meta/ads
+   already existed server-side with real per-adset/per-ad insights but were
+   never called from the frontend; Google/TikTok have no equivalent
+   ad-group/ad-level endpoint yet, so no drill-down is offered for them
+   rather than fabricating one). Ad sets load when the panel opens; each ad
+   set's ads are fetched lazily on first expand and cached per adset_id so
+   re-expanding doesn't re-fetch. */
+window._admPanelAdsCache = {};
+function _admLoadPanelAdsets(campaignId) {
+  var wrap = document.getElementById('admPanelAdsetsWrap');
+  var body = document.getElementById('admPanelAdsetsBody');
+  if (!wrap || !body) return;
+  window._admPanelAdsCache = {};
+  wrap.style.display = '';
+  body.innerHTML = '<div class="adm-panel-adsets-loading">Loading ad sets…</div>';
+  apiFetch('/api/meta/adsets').then(function(r) {
+    if (!r.ok || !r.data) { body.innerHTML = '<div class="adm-panel-adsets-empty">Could not load ad sets.</div>'; return; }
+    var all = r.data.adsets || [];
+    var mine = all.filter(function(s) { return String(s.campaign_id) === String(campaignId); });
+    if (!mine.length) { body.innerHTML = '<div class="adm-panel-adsets-empty">No ad sets found for this campaign.</div>'; return; }
+    body.innerHTML = mine.map(function(s) {
+      var safeId = String(s.adset_id).replace(/[^a-z0-9]/gi, '_');
+      return '<div class="adm-adset-row" id="admAdsetRow_' + safeId + '">' +
+        '<div class="adm-adset-hd" onclick="_admToggleAdsetAds(\'' + _admEsc(s.adset_id) + '\',\'' + safeId + '\')">' +
+          '<span class="adm-adset-chevron" id="admAdsetChev_' + safeId + '">&#9656;</span>' +
+          '<span class="adm-adset-name">' + _admEsc(s.adset_name) + '</span>' +
+          '<span class="adm-adset-status ' + (s.status === 'ACTIVE' ? 'adm-live-active' : 'adm-live-arch') + '">' + _admEsc(s.status) + '</span>' +
+          '<span class="adm-adset-metric">$' + s.spend.toLocaleString() + '</span>' +
+        '</div>' +
+        '<div class="adm-adset-ads" id="admAdsetAds_' + safeId + '" style="display:none"></div>' +
+      '</div>';
+    }).join('');
+  }).catch(function() {
+    body.innerHTML = '<div class="adm-panel-adsets-empty">Could not load ad sets.</div>';
+  });
+}
+
+window._admToggleAdsetAds = function(adsetId, safeId) {
+  var adsEl = document.getElementById('admAdsetAds_' + safeId);
+  var chev  = document.getElementById('admAdsetChev_' + safeId);
+  if (!adsEl) return;
+  var opening = adsEl.style.display === 'none';
+  adsEl.style.display = opening ? '' : 'none';
+  if (chev) chev.innerHTML = opening ? '&#9662;' : '&#9656;';
+  if (!opening || window._admPanelAdsCache[adsetId]) {
+    if (opening && window._admPanelAdsCache[adsetId]) adsEl.innerHTML = window._admPanelAdsCache[adsetId];
+    return;
+  }
+  adsEl.innerHTML = '<div class="adm-panel-adsets-loading">Loading ads…</div>';
+  apiFetch('/api/meta/ads').then(function(r) {
+    if (!r.ok || !r.data) { adsEl.innerHTML = '<div class="adm-panel-adsets-empty">Could not load ads.</div>'; return; }
+    var mine = (r.data.ads || []).filter(function(a) { return String(a.adset_id) === String(adsetId); });
+    var html = !mine.length
+      ? '<div class="adm-panel-adsets-empty">No ads in this ad set.</div>'
+      : mine.map(function(a) {
+          return '<div class="adm-ad-row">' +
+            '<span class="adm-ad-name">' + _admEsc(a.ad_name || 'Untitled') + '</span>' +
+            '<span class="adm-adset-status ' + (a.status === 'ACTIVE' ? 'adm-live-active' : 'adm-live-arch') + '">' + _admEsc(a.status) + '</span>' +
+            '<span class="adm-adset-metric">$' + (a.spend || 0).toLocaleString() + '</span>' +
+          '</div>';
+        }).join('');
+    window._admPanelAdsCache[adsetId] = html;
+    adsEl.innerHTML = html;
+  }).catch(function() {
+    adsEl.innerHTML = '<div class="adm-panel-adsets-empty">Could not load ads.</div>';
+  });
 };
 
 window.admCloseCampPanel = function() {
@@ -14868,8 +15145,8 @@ window.rptExport = function(format) {
       orvToast('Campaign generated', 'ok');
 
     /* Kick off creative generation */
-    if(creativeMode==='videos') _startVideoCreatives(pkg, campId);
-    else                        _startCreativesGeneration(pkg);
+    if(creativeMode==='videos') _startVideoCreatives(pkg, campId, platform);
+    else                        _startCreativesGeneration(pkg, platform);
   }
 
   window._cgrRenderPackage = _renderPackage;
@@ -16686,30 +16963,40 @@ window.rptExport = function(format) {
     window.cgrPublishTo('tiktok', _cgt.campId);
   };
 
-  function _startVideoCreatives(pkg, campId){
+  function _startVideoCreatives(pkg, campId, platform){
     var section = document.getElementById('cgrCreativesSection');
     var grid    = document.getElementById('cgrCreativesGrid');
     var pill    = document.getElementById('cgrCreativesPill');
     if(!section || !grid) return;
 
+    /* Available scripts to draw from, same "pool, cycled to the real ad
+       count" pattern as the image path above — see _cgrCreativeCount. */
     var concepts = pkg.tiktokAds || pkg.metaAds || {};
-    var scripts  = [];
-    if(concepts.videoScript) scripts.push({ script: concepts.videoScript, ref: 'Video Ad' });
+    var pool  = [];
+    if(concepts.videoScript) pool.push({ script: concepts.videoScript, ref: 'Video Ad' });
     if((pkg.concepts||[]).length){
       pkg.concepts.forEach(function(c,i){
         var ac = c.adCopy || {};
         var script = ac.primaryText || c.hook || c.angle || '';
-        if(script) scripts.push({ script: script, ref: c.name||('Concept '+(i+1)) });
+        if(script) pool.push({ script: script, ref: c.name||('Concept '+(i+1)) });
       });
     }
-    if(!scripts.length){
-      scripts.push({ script: (pkg.campaignName||'') + '. ' + ((pkg.strategy||{}).targetAudience||''), ref: 'Video Ad' });
+    if(!pool.length){
+      pool.push({ script: (pkg.campaignName||'') + '. ' + ((pkg.strategy||{}).targetAudience||''), ref: 'Video Ad' });
     }
-    scripts = scripts.slice(0,2);
-    console.log('[cgr] Video generation started —', scripts.length, 'script(s)');
+
+    var creativeCount = _cgrCreativeCount(pkg, platform || pkg.platform || window._ov3Platform || 'google');
+    var scripts = [];
+    for(var i=0;i<creativeCount;i++){
+      var src = pool[i % pool.length];
+      var ref = creativeCount > pool.length ? (src.ref + ' — Ad ' + (i+1)) : src.ref;
+      scripts.push({ script: src.script, ref: ref });
+    }
+    console.log('[cgr] Video generation started — ad structure requires', scripts.length, 'video(s)');
 
     section.style.display = '';
     if(pill){ pill.textContent = 'Generating video…'; pill.className = 'cgr2-gen-pill'; }
+    _cgrShowCreativeCostPill(pill, scripts.length, 'video_generation', 'video');
 
     grid.innerHTML = scripts.map(function(t,i){
       return '<div class="cgr-creative-card cgr-creative-skel-card" id="cgcv'+i+'">'
@@ -16732,10 +17019,17 @@ window.rptExport = function(format) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
           body: JSON.stringify({ script: task.script })
-        }).then(function(r){ return r.json(); });
-      }).then(function(data){
+        }).then(function(r){ return r.json().then(function(data){ return { status: r.status, data: data }; }); });
+      }).then(function(res){
+        var data = res.data;
+        if(res.status === 402 && data.code === 'CREDITS_EXHAUSTED'){
+          console.warn('[cgr] Video generation blocked', i, '— out of credits');
+          _cgrVideoErr(i, task.ref, 'Not enough credits (' + (data.balance != null ? data.balance : 0) + ' left, needs 120)');
+          done++; _checkVideoDone(done,scripts.length,pill); return;
+        }
         if(data.error){ console.error('[cgr] Video generation error', i, ':', data.error); _cgrVideoErr(i, task.ref, data.error); done++; _checkVideoDone(done,scripts.length,pill); return; }
         console.log('[cgr] Video job submitted', i, '— videoId:', data.videoId, '— polling…');
+        if(typeof consumeUsage === 'function') consumeUsage(120); // reflects the real server-side video_generation deduction, charged at successful submission
         _pollCgrVideo(data.videoId, i, task.ref, campId, pkg, function(){
           console.log('[cgr] Video generation complete', i);
           done++; _checkVideoDone(done, scripts.length, pill);
@@ -16798,13 +17092,62 @@ window.rptExport = function(format) {
     .catch(function(){ setTimeout(function(){ _pollCgrVideo(videoId, idx, ref, campId, pkg, onDone); }, 8000); });
   }
 
+  /* ── Creative count — tied to the actual ad structure, not a fixed
+     number of AI-proposed marketing angles ──────────────────────────
+     Root cause of the "1 ad set × 1 ad → 3 images" bug: the AI backend
+     always proposes exactly 3 strategic concepts (pkg.concepts/
+     visualConcepts, Performance/Problem-Solution/Transformation) as text
+     variety for the user to review -- that's fine and unrelated to ad
+     count. The bug was the frontend treating "3 concepts" as "3 images to
+     auto-generate" regardless of how many ads were actually being
+     created. The real number of creatives must equal the number of real
+     ads: adSets × adsPerAdSet (Meta), groups × adsPerGroup (TikTok /
+     Google Search -- both already clamped 1-5 per side server-side in
+     _generateAdPackage, so this is naturally capped at 25).
+     Google Performance Max / Demand Gen have no per-ad structure this
+     codebase models yet (pkg.campaignStructure is intentionally absent
+     for those types -- see _generateAdPackage) -- rather than inventing
+     an asset-group asset count, this falls back to the safest minimum
+     (1), per explicit instruction not to guess Google asset requirements. */
+  function _cgrCreativeCount(pkg, platform){
+    if(platform === 'meta' && pkg.metaStructure){
+      return Math.max(1, (pkg.metaStructure.adSets||1) * (pkg.metaStructure.adsPerAdSet||1));
+    }
+    if(platform === 'tiktok' && pkg.campaignStructure){
+      return Math.max(1, (pkg.campaignStructure.groups||1) * (pkg.campaignStructure.adsPerGroup||1));
+    }
+    if(platform === 'google' && pkg.campaignStructure && (!window._ov3GoogleCampaignType || window._ov3GoogleCampaignType === 'SEARCH')){
+      return Math.max(1, (pkg.campaignStructure.groups||1) * (pkg.campaignStructure.adsPerGroup||1));
+    }
+    return 1; // safest default — 1 ad set × 1 ad, or a Google type with no known per-ad model
+  }
+
   /* ── AI Creatives Generation ─────────────────────────────────────
-     Generates one image per visual concept using /api/generate-image.
-     Runs after _renderPackage so the campaign text is visible immediately.
+     Generates exactly one image per actual ad (see _cgrCreativeCount
+     above), cycling through the AI's proposed visual concepts for prompt
+     variety when there are more ads than concepts. Runs after
+     _renderPackage so the campaign text is visible immediately.
   */
   var _cgrImagePrompts = [];
 
-  function _startCreativesGeneration(pkg){
+  /* Shows the real total cost for the creatives about to be generated —
+     "N creatives · X credits" — sourced from the same canonical
+     /api/credits/status featureCosts as Launch's own cost indicator, never
+     a hardcoded number. Set on the pill before any generation request
+     fires, so the cost is visible as generation starts, not after. */
+  function _cgrShowCreativeCostPill(pill, count, featureKey, unitLabel){
+    if(!pill || typeof _getCreditStatus !== 'function') return;
+    _getCreditStatus().then(function(status){
+      var costs = status && status.featureCosts;
+      var unitCost = costs && costs[featureKey];
+      if(typeof unitCost !== 'number') return;
+      var total = count * unitCost;
+      pill.textContent = count + ' ' + unitLabel + (count===1?'':'s') + ' · ' + total.toLocaleString() + ' credits';
+      pill.className = 'cgr2-gen-pill';
+    }).catch(function(){});
+  }
+
+  function _startCreativesGeneration(pkg, platform){
     var section = document.getElementById('cgrCreativesSection');
     var grid    = document.getElementById('cgrCreativesGrid');
     var pill    = document.getElementById('cgrCreativesPill');
@@ -16813,22 +17156,35 @@ window.rptExport = function(format) {
       return;
     }
 
-    /* Collect one image prompt per visual concept */
-    _cgrImagePrompts = [];
-    console.log('[cgr] Image generation started — visualConcepts:', (pkg.visualConcepts || []).length);
+    /* Available prompts to draw from — one per AI-proposed visual concept
+       (up to 3, for variety). Actual creative count below is tied to the
+       real ad structure, cycling through this pool when there are more
+       ads than concepts, never the other way around. */
+    var pool = [];
     (pkg.visualConcepts || []).forEach(function(vc){
       if(vc.imagePrompts && vc.imagePrompts[0]){
-        _cgrImagePrompts.push({ prompt: vc.imagePrompts[0], ref: vc.conceptRef || ('Concept '+ (_cgrImagePrompts.length+1)) });
+        pool.push({ prompt: vc.imagePrompts[0], ref: vc.conceptRef || ('Concept '+ (pool.length+1)) });
       }
     });
-    if(!_cgrImagePrompts.length){
+    if(!pool.length){
       console.warn('[cgr] Image generation skipped — no imagePrompts in visualConcepts');
       return;
+    }
+
+    var creativeCount = _cgrCreativeCount(pkg, platform || pkg.platform || window._ov3Platform || 'google');
+    console.log('[cgr] Image generation — ad structure requires', creativeCount, 'creative(s) (visualConcepts available:', pool.length, ')');
+
+    _cgrImagePrompts = [];
+    for(var i=0;i<creativeCount;i++){
+      var src = pool[i % pool.length];
+      var ref = creativeCount > pool.length ? (src.ref + ' — Ad ' + (i+1)) : src.ref;
+      _cgrImagePrompts.push({ prompt: src.prompt, ref: ref, adIndex: i });
     }
     console.log('[cgr] Queuing', _cgrImagePrompts.length, 'image(s)');
 
     section.style.display = '';
     if(pill){ pill.textContent = 'Generating…'; pill.className = 'cgr2-gen-pill'; }
+    _cgrShowCreativeCostPill(pill, _cgrImagePrompts.length, 'image_generation', 'image');
 
     /* Render skeleton cards */
     grid.innerHTML = _cgrImagePrompts.map(function(t, i){
@@ -16910,6 +17266,10 @@ window.rptExport = function(format) {
           + '<button class="cgr-crv-btn cgr-crv-btn-copy" onclick="cgrCopyCreativePrompt(this,'+idx+')">⊘ Copy Prompt</button>'
           + '</div>'
           + '</div>';
+        if(typeof consumeUsage === 'function') consumeUsage(40); // reflects the real server-side image_generation deduction
+      } else if(res.status === 402 && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
+        console.warn('[cgr] Image generation blocked', idx, '— out of credits');
+        _cgrCreativeErr(idx, ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs 40)');
       } else {
         console.error('[cgr] Image generation failed', idx, '— status:', res.status, res.data);
         _cgrCreativeErr(idx, ref, 'Image generation failed');
@@ -17017,7 +17377,23 @@ window.rptExport = function(format) {
       if(res.ok && body.ok !== false){
         console.log('[cgr] Text generation complete — pkg keys:', Object.keys(pkg));
         console.log('[cgr] visualConcepts count:', (pkg.visualConcepts || []).length);
+        if(typeof consumeUsage === 'function') consumeUsage(25); // reflects the real server-side campaign_generation deduction
         _renderPackage(pkg, prompt);
+      } else if(res.status === 402 && body && body.code === 'CREDITS_EXHAUSTED'){
+        // The real, authoritative rejection — server checked the balance
+        // and refused before spending anything. Must never be shown as the
+        // same generic "try again later" message a real provider failure
+        // gets, or the user has no idea why nothing happened.
+        console.log('[cgr] generation blocked — out of credits');
+        _cancelLoadingTimers();
+        var loadingEl2 = document.getElementById('cgrLoading');
+        if(loadingEl2) loadingEl2.classList.add('cgr-loading--done');
+        var content2 = document.getElementById('cgrContent');
+        if(content2){
+          var bal = body.balance != null ? body.balance : 0;
+          content2.innerHTML = '<div class="cgr-error"><div class="cgr-error-ico">⚠</div><div class="cgr-error-title">Not enough credits</div><div class="cgr-error-sub">You have ' + bal + ' credits — generating a campaign costs 25. Upgrade your plan or wait for your next billing cycle.</div><button class="cgr-action-btn cgr-action-btn-primary" onclick="openSettingsModal()">View Plans</button></div>';
+          content2.style.display = '';
+        }
       } else if(res.status === 403 && body && body.code === 'SUBSCRIPTION_REQUIRED'){
         // Never surface a raw 403 — if this fires during onboarding it means
         // the one free generation was already used; end the tour and hand
@@ -17490,6 +17866,31 @@ window.aicGenerate = function(){
     return;
   }
   var goal = selGoalBtn.getAttribute('data-goal');
+
+  /* ── Credit pre-flight (UX only — the route handler cgrGenerate calls
+     does the real, authoritative check server-side via creditManager;
+     this just avoids sending a request that's already known to fail and
+     gives an honest "not enough credits" message before the network
+     round-trip instead of a generic failure after it). ── */
+  if(typeof checkUsageLimit === 'function'){
+    aicGenerate._checking = true;
+    checkUsageLimit(25).then(function(result){
+      aicGenerate._checking = false;
+      if(!result.allowed){
+        if(typeof orvToast==='function') orvToast(result.message || 'Not enough credits.', 'warn');
+        if(typeof openPaywall === 'function') setTimeout(openPaywall, 400);
+        return;
+      }
+      _aicGenerateProceed(prompt, goal);
+    }).catch(function(){ _aicGenerateProceed(prompt, goal); }); // fail open on a check-side error — server still enforces
+    return;
+  }
+  _aicGenerateProceed(prompt, goal);
+};
+
+function _aicGenerateProceed(prompt, goal){
+  var ta  = document.getElementById('aicInput');
+  var btn = document.getElementById('aicGenBtn');
 
   /* ── Platform: pill selection as default, text overrides ── */
   var lower = prompt.toLowerCase();

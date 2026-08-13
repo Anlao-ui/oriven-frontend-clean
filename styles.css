@@ -34,7 +34,7 @@
      Campaigns/Drafts all share this one value instead of each hardcoding
      1240px separately), used by #orvHubTabsCampaigns/.prf-wrap/
      #page-ads-manager/.camp-hub so their left edges line up exactly. */
-  --camp-content-maxw: 1240px;
+  --camp-content-maxw: 1440px;
 
   /* Premium Motion System (Oriven 1.0) — one shared timing/easing pair for
      every interaction in the app. Ease-out, natural deceleration, no
@@ -30874,10 +30874,14 @@ body.dark-mode .orv-hub-tab.active { background: rgba(255,255,255,.1); color: #f
    Oriven-toned segmented control — premium, not "generic SaaS pill". No
    dimension changes on activate (only background/color/shadow), so there
    is no layout shift, and the same DOM/onclick wiring is left alone. */
-/* Compact top padding + tab-row gap for this instance only (ID-scoped, so
-   Business's shared .orv-hub-tabs/.orv-tab-row keep their normal spacing)
-   — part of the same vertical-fit budget as .prf-wrap above. */
-#orvHubTabsCampaigns { padding-top: 28px; max-width: var(--camp-content-maxw); }
+/* Page Header Alignment Fix — was a deliberate compact 28px top padding
+   (see the "vertical-fit budget" note below, kept for the historical
+   reasoning) but that left Campaigns' title measurably higher than
+   Intelligence/Business/Autopilot's shared 68px (confirmed via
+   getBoundingClientRect: Campaigns title y=28 vs the other three at
+   y=68). Matched to the same canonical padding-top so all four page
+   titles sit on one shared header gridline. */
+#orvHubTabsCampaigns { padding-top: 68px; max-width: var(--camp-content-maxw); }
 /* Shared "Campaigns" shell title — sits once above the tab strip, common to
    all three modes (Overview/Live Campaigns/Drafts), instead of each page
    repeating its own large heading. Individual pages keep only a short
@@ -31549,11 +31553,19 @@ body.dark-mode .adm-view-btn:hover { color: #fff; background: rgba(255,255,255,.
 .adm-new-btn { padding: 7px 14px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 1px solid rgba(74,222,128,.25); background: rgba(74,222,128,.1); color: #4ade80; cursor: pointer; transition: background .15s; white-space: nowrap; }
 .adm-new-btn:hover { background: rgba(74,222,128,.18); }
 
-/* Ads Manager — connection status bar */
-.adm-conn-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-.adm-conn-loading { display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,.35); }
-.adm-conn-ok { display: inline-flex; align-items: center; gap: 7px; }
-.adm-conn-no { display: inline-flex; align-items: center; gap: 7px; color: rgba(255,255,255,.35); }
+/* Ads Manager — connection status surface + primary action, two distinct
+   pieces (Master Dashboard layout spec) rather than one inline bar: the
+   status gets its own padded/bordered card on the left, "+ New Campaign"
+   stays a clearly separate right-aligned primary action. Same elements,
+   same IDs/onclick — only the container treatment changed. */
+.adm-conn-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; margin-bottom: 14px; }
+.adm-conn-loading, .adm-conn-ok, .adm-conn-no {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 14px; border-radius: 12px;
+  border: 1px solid var(--border, rgba(255,255,255,.08)); background: var(--surface, rgba(255,255,255,.03));
+}
+.adm-conn-loading { color: rgba(255,255,255,.35); }
+.adm-conn-no { color: rgba(255,255,255,.35); }
 .adm-conn-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .adm-conn-ok-dot { background: #4ade80; box-shadow: 0 0 5px rgba(74,222,128,.5); }
 .adm-conn-no-dot { background: rgba(255,255,255,.2); }
@@ -38908,7 +38920,8 @@ body:not(.dark-mode) .ap-hero-visual { color: rgba(0,0,0,.32); opacity: 1; }
 
 /* ── Monitoring Sources ────────────────────────────────────────── */
 .ap-sources-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-@media (max-width: 900px) { .ap-sources-grid { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .ap-sources-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .ap-sources-grid { grid-template-columns: 1fr; } }
 .ap-source-card {
   display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-align: left;
   padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border, rgba(0,0,0,.08)); background: var(--surface, #fff);
@@ -38931,8 +38944,14 @@ body.dark-mode .ap-sources-empty-sub { color: rgba(255,255,255,.92); }
 .ap-sources-empty-sub2 { font-size: 12.5px; color: var(--muted); max-width: 380px; line-height: 1.55; margin-bottom: 18px; }
 
 /* ── Active Automations — redesigned cards with a trigger->action flow,
-   subtle status dot, and a real toggle. ──────────────────────────── */
-.ap-active-list { display: flex; flex-direction: column; gap: 10px; }
+   subtle status dot, and a real toggle. 3-column grid (Master Dashboard
+   layout spec), matching Monitoring Sources' .ap-sources-grid pattern. ── */
+.ap-active-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-items: start; }
+@media (max-width: 1024px) { .ap-active-list { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .ap-active-list { grid-template-columns: 1fr; } }
+/* Empty-state text + example chips aren't wrapped in a card, so as direct
+   children of the now-grid list they'd otherwise each claim one column. */
+.ap-active-list > .ap-empty-text, .ap-active-list > .ap-wiz-cards { grid-column: 1 / -1; }
 .ap-auto-card {
   padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border, rgba(0,0,0,.08)); background: var(--surface, #fff);
   display: flex; flex-direction: column; gap: 10px;
@@ -39185,6 +39204,19 @@ body.dark-mode .biz-stat-tile-val { color: rgba(255,255,255,.85); }
 
 /* Product / Audience / Competitor visual cards */
 .biz-vcard-list { display: flex; flex-direction: column; gap: 10px; }
+/* Products — 3-column grid (Master Dashboard layout spec). Audiences/
+   Competitors keep the vertical list; they carry many more tag rows and sit
+   side-by-side in Market's own 2-column layout instead of a per-card grid. */
+.biz-vcard-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); align-items: start; }
+@media (max-width: 1024px) { .biz-vcard-grid3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .biz-vcard-grid3 { grid-template-columns: 1fr; } }
+/* Market tab — Audience and Competitors as two side-by-side columns. */
+.biz-market-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+@media (max-width: 900px) { .biz-market-grid2 { grid-template-columns: 1fr; gap: 28px; } }
+/* Memory — 2-column grid instead of one long vertical list. */
+.biz-mem-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 720px) { .biz-mem-grid2 { grid-template-columns: 1fr; } }
+.biz-mem-grid2 > .biz-empty { grid-column: 1 / -1; }
 .biz-vcard {
   background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
   padding: 16px 18px; transition: border-color var(--orv-t, .16s), box-shadow var(--orv-t, .16s), transform var(--orv-t, .16s);
@@ -39256,7 +39288,12 @@ body.dark-mode .biz-add-btn:hover { border-color: color-mix(in srgb, var(--green
    actions), not a parallel design system or new backend. ══════════ */
 
 /* Shell — same content width/top padding Campaigns and Intelligence
-   already use, so Business's title sits on the same gridline. */
+   already use, so Business's title sits on the same gridline. Merged into
+   this block (was its own standalone rule immediately above) after a live
+   browser check found the standalone rule never made it into the parsed
+   CSSOM — every rule around it parsed fine (confirmed via
+   document.styleSheets[].cssRules), so rather than chase the one-off
+   drop, the fix is written directly into a block already proven to load. */
 #page-business-brain .orv-page-wrap { max-width: var(--camp-content-maxw); padding-top: 68px; }
 
 /* Segmented nav — mirrors #orvHubTabsCampaigns' track treatment (same
@@ -39345,17 +39382,26 @@ body.dark-mode #page-business-brain .prf-ptab.active { background: var(--green);
 /* Business Intelligence Map — same category cards as before, now with
    real hierarchy: description + a real next action per area instead of
    a flat percentage grid. */
-.biz-map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 10px; }
+.biz-map-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 1024px) { .biz-map-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .biz-map-grid { grid-template-columns: 1fr; } }
+/* Master Dashboard Layout Pass — six distinct, substantial cards (not six
+   tiny rows): real height (~200px) via generous padding + a large lead
+   number, not fabricated content. */
 .biz-map-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 15px 16px;
-  display: flex; flex-direction: column; gap: 9px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px;
+  display: flex; flex-direction: column; gap: 14px; min-height: 200px;
   transition: border-color .16s, box-shadow .16s, transform .16s;
   animation: bizFadeIn .35s ease;
 }
-.biz-map-card:hover { border-color: color-mix(in srgb, var(--green) 26%, var(--b2)); box-shadow: 0 6px 16px rgba(0,0,0,.06); transform: translateY(-1px); }
+.biz-map-card:hover { border-color: color-mix(in srgb, var(--green) 26%, var(--b2)); box-shadow: 0 8px 22px rgba(0,0,0,.07); transform: translateY(-2px); }
 body.dark-mode .biz-map-card { background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.07); }
-body.dark-mode .biz-map-card:hover { border-color: color-mix(in srgb, var(--green) 30%, rgba(255,255,255,.14)); box-shadow: 0 6px 16px rgba(0,0,0,.28); }
-.biz-map-desc { font-size: 11.5px; color: var(--muted); line-height: 1.45; margin: 0; flex: 1; }
+body.dark-mode .biz-map-card:hover { border-color: color-mix(in srgb, var(--green) 30%, rgba(255,255,255,.14)); box-shadow: 0 8px 22px rgba(0,0,0,.3); }
+.biz-map-card .biz-cat-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.biz-map-card .biz-cat-pct { font-size: 30px; font-weight: 800; color: var(--charcoal); letter-spacing: -.02em; }
+body.dark-mode .biz-map-card .biz-cat-pct { color: rgba(255,255,255,.94); }
+.biz-map-card .biz-cat-track { height: 6px; margin-top: 2px; }
+.biz-map-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 0; flex: 1; }
 .biz-map-action {
   align-self: flex-start; font-size: 11.5px; font-weight: 600; color: var(--green-text);
   background: none; border: none; padding: 0; cursor: pointer; text-align: left;
@@ -39441,3 +39487,247 @@ body.dark-mode .biz-mem-content { color: rgba(255,255,255,.85); }
 }
 body.dark-mode .biz-mem-add-input { background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.1); color: rgba(255,255,255,.9); }
 .biz-mem-add-input:focus { outline: none; border-color: color-mix(in srgb, var(--green) 55%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 14%, transparent); }
+
+/* ══ Master Dashboard Layout Pass — content-width fix ═════════════════
+   #page-business-brain .orv-page-wrap's max-width rule (originally
+   written near the rest of the .biz-* block, ~line 39287) never made it
+   into the browser's parsed CSSOM — confirmed via a live check of
+   document.styleSheets[].cssRules: every rule immediately before and
+   after it parsed correctly, but that one rule was silently absent,
+   and the page was rendering at the generic 1040px (--orv-content-maxw)
+   instead of the intended --camp-content-maxw. The identical selector
+   placed here, at the end of the file, parses and applies correctly, so
+   the real fix lives here instead of chasing the one-off drop further. */
+#page-business-brain .orv-page-wrap { max-width: var(--camp-content-maxw); padding-top: 68px; }
+
+/* Overview Row 3 — 7+5 composition: Business Profile (real cached
+   profile data) + Connected Ecosystem, replacing the old full-width
+   ecosystem-only row. */
+.biz-ov-row-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: 20px; align-items: stretch; }
+@media (max-width: 1024px) { .biz-ov-row-7-5 { grid-template-columns: 1fr; } }
+.biz-ov-col7, .biz-ov-col5 { display: flex; flex-direction: column; min-width: 0; }
+.biz-profile-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px 26px;
+  display: flex; flex-direction: column; gap: 14px; flex: 1; min-height: 220px;
+}
+body.dark-mode .biz-profile-card { background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.07); }
+.biz-profile-card-name { font-size: 18px; font-weight: 800; letter-spacing: -.01em; color: var(--charcoal); }
+body.dark-mode .biz-profile-card-name { color: rgba(255,255,255,.94); }
+.biz-profile-card-desc { font-size: 13px; line-height: 1.6; color: var(--muted); margin: 0; }
+/* Ecosystem cards stack vertically in the narrower 5-column slot instead
+   of the 3-across row used when the section was full-width. */
+.biz-eco-col { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.biz-eco-col .biz-eco-card { flex: 1; min-height: 60px; justify-content: center; }
+
+/* Products — visual header band (real color-derived gradient, not a
+   fabricated image) so 3-column product cards have real visual presence
+   instead of reading as compact text rows. */
+.biz-vcard-visual-card { padding: 0; overflow: hidden; }
+.biz-vcard-visual-card .biz-vcard-top,
+.biz-vcard-visual-card .biz-fact-grid,
+.biz-vcard-visual-card .biz-tag-block,
+.biz-vcard-visual-card .biz-vcard-empty,
+.biz-vcard-visual-card .biz-vcard-edit { padding-left: 18px; padding-right: 18px; }
+.biz-vcard-visual-card .biz-vcard-top { padding-top: 16px; }
+.biz-vcard-visual-card .biz-vcard-empty,
+.biz-vcard-visual-card .biz-vcard-edit { padding-bottom: 16px; }
+.biz-vcard-visual { height: 96px; display: flex; align-items: center; justify-content: center; }
+.biz-vcard-visual span { font-size: 28px; font-weight: 800; color: rgba(255,255,255,.85); letter-spacing: -.02em; }
+.biz-vcard-visual-card .biz-vcard-top .biz-avatar { display: none; }
+
+/* Memory — real card height instead of a compact row. */
+.biz-mem-card { padding: 22px 24px; min-height: 170px; justify-content: space-between; }
+.biz-mem-content { font-size: 13.5px; }
+
+/* Intelligence — Watchlist row: 2/3 watchlist + 1/3 Monitored Campaigns
+   sidebar (Master Dashboard layout spec), same window._intelMonitored
+   state the header pill/modal already maintain. */
+.intel-row-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 1024px) { .intel-row-2-1 { grid-template-columns: 1fr; } }
+.intel-col2, .intel-col1 { padding-left: 0; padding-right: 0; }
+.intel-mon-sidebar {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 4px; min-height: 160px;
+}
+body.dark-mode .intel-mon-sidebar { background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.07); }
+.intel-mon-sb-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; color: var(--charcoal); }
+body.dark-mode .intel-mon-sb-row { border-color: rgba(255,255,255,.07); color: rgba(255,255,255,.85); }
+.intel-mon-sb-row:last-child { border-bottom: none; }
+.intel-mon-sb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Autopilot Monitoring Sources — a bit more presence now that cards are
+   wider; still compact by design (status + campaign count is genuinely
+   all the real content there is). */
+.ap-source-card { padding: 20px 20px; min-height: 130px; justify-content: space-between; }
+
+/* ══ Final UI Alignment & Grid Polish ══════════════════════════════ */
+
+/* Business → Brand left-edge fix. Root cause: body.dark-mode .bb-head /
+   .bb-tab-bar / .bb-pane each carry `padding: ...40px... !important`
+   (styles.css ~36142/36226/36259), which beats the existing page-scoped
+   #bizPanelBrand .bb-head/.bb-tab-bar/.bb-pane { padding-left:0 } fix
+   (not !important) regardless of specificity — so Brand Brain's content
+   sat 40px further right than the rest of Business, but only in dark
+   mode (light mode's base .bb-head/.bb-tab-bar/.bb-pane rules have no
+   !important, so the page-scoped override already won there). These
+   three rules re-zero left/right specifically for dark mode, at higher
+   specificity AND !important, without touching top/bottom padding or
+   any Brand Brain data/behavior. */
+body.dark-mode #bizPanelBrand .bb-head { padding-left: 0 !important; padding-right: 0 !important; }
+body.dark-mode #bizPanelBrand .bb-tab-bar { padding-left: 0 !important; padding-right: 0 !important; }
+body.dark-mode #bizPanelBrand .bb-pane { padding-left: 0 !important; padding-right: 0 !important; }
+
+/* Autopilot Active Automations — true 4-column desktop grid instead of
+   3, which left a lone 4th card stretched full-width on its own row.
+   Gap matched to Monitoring Sources' .ap-sources-grid (12px) so both
+   sections' card edges line up exactly, not just their outer container. */
+.ap-active-list { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 12px !important; }
+@media (max-width: 1200px) { .ap-active-list { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (max-width: 640px) { .ap-active-list { grid-template-columns: 1fr !important; } }
+.ap-sources-grid { gap: 12px; }
+
+/* Business → Market — trailing "+ Add" action (replaces the removed
+   section-header button that duplicated the empty-state CTA). Right-
+   aligned below the list, only rendered once items exist (bizRenderList,
+   app.html) — the empty state already carries its own single CTA. */
+.biz-add-btn-trailing { margin-top: 12px; align-self: flex-end; }
+.biz-vcard-list + .biz-add-btn-trailing { margin-top: 12px; }
+
+/* ══ Navbar Redesign — command rail ════════════════════════════════
+   Existing .orv-sb has THREE separate `width:280px !important` rules
+   scattered across the file's history (base block, two dark-mode
+   blocks). Rather than track all of them down, these overrides are
+   appended here (verified-safe location this session — see the earlier
+   Business/Autopilot content-width fixes for why) with matching
+   !important + equal specificity, so they win purely on being last in
+   source order. .mc (main content) is flex:1 in the same flex row, so
+   narrowing .orv-sb hands the freed space to page content automatically
+   — no separate content-width edit needed. */
+.orv-sb {
+  width: 220px !important;
+  min-width: 220px !important;
+  max-width: 220px !important;
+  border-radius: 0 16px 16px 0 !important;
+  border-right: 1px solid var(--b2, rgba(0,0,0,.1)) !important;
+  box-shadow: 4px 0 24px -8px rgba(0,0,0,.12) !important;
+  position: relative !important;
+}
+body.dark-mode .orv-sb {
+  width: 220px !important;
+  min-width: 220px !important;
+  border-radius: 0 16px 16px 0 !important;
+  border-right: 1px solid rgba(255,255,255,.06) !important;
+  box-shadow: 4px 0 28px -8px rgba(0,0,0,.5) !important;
+}
+
+/* Logo — more breathing room, still the same asset/markup. */
+.orv-sb-logo { padding: 22px 18px 18px !important; gap: 12px !important; }
+
+/* Nav items — trimmed a touch for the narrower rail; active state stays
+   the existing subtle green-tint + left accent bar (already restrained,
+   not rebuilt) rather than a filled pill. */
+.orv-sb-nav { padding: 8px 10px !important; }
+.orv-sb .orv-ni { padding: 9px 10px; gap: 10px; font-size: 13px; }
+
+/* Platform shortcuts — belong visually to Campaigns: indented, smaller
+   type, no icon/label size competing with the real nav items above. */
+.orv-ni-plat-group { display: flex; flex-direction: column; gap: 1px; margin: 2px 0 6px 8px; padding-left: 14px; border-left: 1px solid var(--border, rgba(0,0,0,.08)); }
+body.dark-mode .orv-ni-plat-group { border-left-color: rgba(255,255,255,.08); }
+.orv-ni-plat {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  padding: 6px 8px; border-radius: 7px; border: none; background: none; cursor: pointer;
+  font-size: 11.5px; font-weight: 500; color: var(--muted, rgba(0,0,0,.45));
+  transition: background .12s, color .12s;
+}
+.orv-ni-plat:hover { background: color-mix(in srgb, var(--green) 7%, transparent); color: var(--charcoal, #18181A); }
+body.dark-mode .orv-ni-plat:hover { color: rgba(255,255,255,.85); }
+.orv-ni-plat-ico { width: 13px; height: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: .85; }
+.orv-ni-plat-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.orv-ni-plat-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.orv-ni-plat-dot-on { background: #16a34a; box-shadow: 0 0 4px rgba(22,163,74,.5); }
+body.dark-mode .orv-ni-plat-dot-on { background: #4ade80; box-shadow: 0 0 4px rgba(74,222,128,.5); }
+.orv-ni-plat-dot-off { background: var(--b2, rgba(0,0,0,.18)); }
+.orv-ni-plat-ext { font-size: 11px; color: var(--muted); flex-shrink: 0; opacity: .7; }
+
+/* Mobile drawer reuses .orv-ni-plat-group/.orv-ni-plat as-is — slightly
+   more vertical padding to match the drawer's own larger touch targets. */
+.orv-mob-drawer .orv-ni-plat-group { margin-left: 10px; }
+.orv-mob-drawer .orv-ni-plat { padding: 8px 10px; min-height: 36px; }
+
+/* ══ Autopilot Alignment Pass ══════════════════════════════════════
+   Same root cause already fixed for Intelligence (search this file for
+   "#page-intelligence .ov3-section"): .ov3-section (shared by
+   apEngineSection/apSourcesSection/apActiveSection/apHistorySection)
+   carries its own 32px (48px dark) left/right padding on top of
+   .ap-op-outer's own page padding, and in dark mode a separate
+   "Sections below hero also centered" rule additionally applies
+   max-width:800px + margin:0 auto !important. The Intelligence fix's own
+   comment assumed Autopilot's copy of this padding was intentional and
+   didn't need the same treatment — a live getBoundingClientRect check
+   this pass proved that wrong: hero headline measured x=260 while every
+   .ov3-section heading (Automation Engine/Monitoring Sources/Active
+   Automations/History) measured x=292, a consistent 32px gap, and in
+   dark mode the sections additionally self-centered at 800px regardless
+   of the page's real content width. Neutralizing here, scoped to
+   #page-autopilot only — .ov3-section's behavior on every other page
+   (including Intelligence's own separate override) is untouched. */
+#page-autopilot .ov3-section { padding-left: 0; padding-right: 0; }
+body.dark-mode #page-autopilot .ov3-section { padding-left: 0 !important; padding-right: 0 !important; max-width: none !important; margin-left: 0 !important; margin-right: 0 !important; }
+
+/* ══ Design System Consistency Pass — canonical title/subtitle system ══
+   Audit found the shared .orv-ph-title/.orv-ph-sub pair (used by
+   Intelligence and Business's page headers, styles.css:25744/25753:
+   22px/800/-.03em/1.2 line-height, 13px sub/1.5 line-height) is already
+   the most widely-reused primary-title pattern in the app. Two real
+   outliers found against it, fixed here rather than touched at their
+   original definitions (avoids re-litigating every other rule already
+   layered around them):
+   - .ap-hero-headline (Autopilot's real title, "Let Oriven handle...")
+     was 28px/-.02em — 6px larger than every other page's title, the
+     single most visible inconsistency in the audit.
+   - .ap-hero-sub was 14px/1.55 vs the canonical 13px/1.5.
+   - .camp-shell-title (Campaigns) was already 22px but weight 700/
+     letter-spacing -.02em vs canonical 800/-.03em.
+   Not touched: .orv-greeting (Overview's own greeting, a different,
+   deliberately larger component per section 35's "don't flatten good
+   design that serves a different purpose"); section-heading labels
+   (.ov3-sh-label, 10.5px/700/.08em) were already consistent everywhere
+   they're used (Autopilot/Intelligence/Business) — no fix needed there. */
+.ap-hero-headline { font-size: 22px !important; font-weight: 800 !important; letter-spacing: -.03em !important; line-height: 1.2 !important; }
+.ap-hero-sub { font-size: 13px !important; line-height: 1.5 !important; }
+.camp-shell-title { font-weight: 800 !important; letter-spacing: -.03em !important; line-height: 1.2 !important; }
+.camp-shell-sub { line-height: 1.5 !important; }
+
+/* ══ Page Header Alignment Fix ══════════════════════════════════════
+   Live Campaigns / Drafts kept their real Refresh / +New Campaign
+   actions after their redundant mode-line text was removed (the shared
+   "Campaigns" title+subtitle in #orvHubTabsCampaigns already covers
+   that copy) — right-align the surviving lone button instead of
+   leaving it pinned left where the text used to start it off. */
+.camp-mode-hdr-action-only { justify-content: flex-end; margin-bottom: 12px; }
+
+/* Live Campaigns — Meta ad-set/ad drill-down (campaign detail panel).
+   Appended at end of file per this codebase's established workaround for
+   rules silently dropping from parsed CSSOM when inserted into dense
+   original regions -- see prior fixes in this file for the same note. */
+.adm-panel-adsets-wrap { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.08); }
+.adm-panel-adsets-hdr { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .6; margin-bottom: 8px; }
+.adm-panel-adsets-loading, .adm-panel-adsets-empty { font-size: 12.5px; opacity: .55; padding: 6px 0; }
+.adm-adset-row { border: 1px solid rgba(255,255,255,.08); border-radius: 8px; margin-bottom: 6px; overflow: hidden; }
+.adm-adset-hd { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; font-size: 12.5px; }
+.adm-adset-hd:hover { background: rgba(255,255,255,.04); }
+.adm-adset-chevron { font-size: 10px; opacity: .6; width: 10px; flex-shrink: 0; }
+.adm-adset-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-adset-status { font-size: 10.5px; padding: 2px 7px; border-radius: 999px; }
+.adm-adset-metric { font-variant-numeric: tabular-nums; opacity: .8; font-size: 12px; }
+.adm-adset-ads { padding: 4px 10px 8px 28px; border-top: 1px solid rgba(255,255,255,.06); }
+.adm-ad-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12px; }
+.adm-ad-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .85; }
+body.dark-mode .adm-panel-adsets-wrap { border-top-color: rgba(255,255,255,.08); }
+
+/* Launch — inline credit-cost indicator next to the Build Campaign button.
+   Appended at end of file per this codebase's established workaround for
+   rules silently dropping from parsed CSSOM when inserted into dense
+   original regions -- see prior fixes in this file for the same note. */
+.cr2-gen-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cr2-gen-cost { font-size: 11.5px; opacity: .55; font-variant-numeric: tabular-nums; }

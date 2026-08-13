@@ -4562,6 +4562,29 @@ async function auSignup(){
 
   var ease = 'power3.out';
 
+  // ── Persist scroll position across Back/Forward ──────────────────
+  // #view-landing is a custom-scrolling div (ScrollTrigger's `scroller`
+  // below), not the document itself -- the browser's native history
+  // scroll-restoration only ever tracks window/document scroll, so it has
+  // no idea this element even scrolls. Without this, returning via Back
+  // always lands at scrollTop 0 regardless of where the user actually
+  // was, which is also why entrance animations gated on scroll position
+  // (every "fromTo required: starts at opacity:0 in CSS" section below)
+  // never get a chance to fire on that restored position. Tracking is
+  // registered now; the actual restore happens at the bottom of this
+  // IIFE, after every ScrollTrigger below has been created against a
+  // clean scrollTop:0 start (setting a large scrollTop before they exist
+  // hits a GSAP ScrollTrigger internal error -- confirmed by reproducing
+  // it directly, not assumed) -- once:true makes firing them late safe.
+  var SCROLL_KEY = 'ovLandingScrollTop';
+  var _saveScrollTimer;
+  scroller.addEventListener('scroll', function () {
+    clearTimeout(_saveScrollTimer);
+    _saveScrollTimer = setTimeout(function () {
+      try { sessionStorage.setItem(SCROLL_KEY, String(scroller.scrollTop)); } catch (_) {}
+    }, 150);
+  }, { passive: true });
+
   ScrollTrigger.defaults({
     scroller: scroller,
     once: true
@@ -4783,7 +4806,53 @@ async function auSignup(){
     }
   }
 
+  // Every trigger above was just created against a clean scrollTop:0, the
+  // state ScrollTrigger expects at setup time. Now that they all exist,
+  // restore the real position for a back/forward navigation (never on a
+  // fresh first visit) and refresh once on the next frame -- after
+  // layout has had a chance to settle too (webfonts/images still loading
+  // affect scrollHeight) -- so every trigger re-evaluates against final
+  // positions and immediately fires (once:true-safe) any already past
+  // their start. This is exactly what a normal top-to-bottom scroll would
+  // have done, just resolved instantly for the restored position.
+  try {
+    var navEntries = performance.getEntriesByType('navigation');
+    var navType = navEntries && navEntries[0] && navEntries[0].type;
+    if (navType === 'back_forward') {
+      var saved = sessionStorage.getItem(SCROLL_KEY);
+      if (saved != null) scroller.scrollTop = parseInt(saved, 10) || 0;
+    }
+  } catch (_) {}
+  requestAnimationFrame(function () { ScrollTrigger.refresh(); });
+
 })();
+
+// ── Back/Forward (bfcache) restore ────────────────────────────────
+// Root cause of the "Pricing/FAQ/images disappear after Back" bug: every
+// section above (.ov-pc, .ov-faq, .ov-rev-stage, etc.) starts at
+// opacity:0 in CSS and is only ever revealed by its ScrollTrigger firing
+// once the user scrolls to it (see "fromTo required" comments above,
+// ScrollTrigger.defaults({ once:true }) at the top of this block). When
+// Chrome restores this page from bfcache after Back, it jumps straight to
+// the previously-scrolled position instead of a natural scroll stream, and
+// GSAP's ScrollTrigger instances (bound to the custom #view-landing
+// scroller, not the window) don't automatically recompute against that —
+// so any section whose trigger hadn't already fired before the user left
+// stays permanently stuck at opacity:0, which reads as "content missing".
+// ScrollTrigger.refresh() is GSAP's own documented fix for exactly this:
+// it recalculates every trigger's position against the current scroller
+// state and immediately fires (once:true-safe) any whose start point the
+// restored scroll position has already passed -- a real reinitialization
+// of the affected mechanism, not a page reload or a new animation.
+window.addEventListener('pageshow', function(e){
+  if (!e.persisted) return; // fresh navigation/reload already ran the setup above correctly
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var hc = document.getElementById('ov-hero-content');
+    if (hc) { var kids = hc.children; for (var i=0;i<kids.length;i++) kids[i].style.opacity=''; }
+    return;
+  }
+  if (window.ScrollTrigger) ScrollTrigger.refresh();
+});
 </script>
 </body>
 </html>

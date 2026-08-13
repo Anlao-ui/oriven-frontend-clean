@@ -228,7 +228,7 @@ async function saveAccountEmail(){
     }
 
     if(btn){ btn.disabled = true; btn.textContent = "Saving…"; }
-    var upd = await SB.auth.updateUser({ email: newEmail });
+    var upd = await SB.auth.updateUser({ email: newEmail }, { emailRedirectTo: window.location.origin + '/app' });
     if(btn){ btn.disabled = false; btn.textContent = "Save"; }
 
     if(upd && upd.error){
@@ -2736,7 +2736,19 @@ function initPlan(){
 
 async function switchPlan(planId){
   var cfg = loadSettings();
-  if(planId === cfg.currentPlan){
+  // Bug fix: this used to compare against cfg.currentPlan (the localStorage
+  // cache) only. renderPlanPanel()/initPlan() already established the real
+  // rule elsewhere in this file — _dbSubscriptionStatus (Supabase-authoritative,
+  // set in auth.js) must win when available, because the cache can be stale
+  // relative to the DB (e.g. a plan changed directly in Supabase, as with a
+  // manually-upgraded test account) even though auth.js normally re-syncs it
+  // on profile load. Using the stale cache here made the free/paid branch
+  // below (and the schedule-plan-change call) decide against the wrong
+  // "current" plan.
+  var actualPlan = (typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus !== null)
+    ? _dbSubscriptionStatus
+    : (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : cfg.currentPlan;
+  if(planId === actualPlan){
     toast("You're already on this plan", "warn");
     return;
   }
@@ -2764,8 +2776,10 @@ async function switchPlan(planId){
       return;
     }
 
-    // Unsubscribed → paid: use Stripe checkout instead of schedule-plan-change
-    if(!ORIVEN_PLANS[cfg.currentPlan] && ORIVEN_PLANS[planId]){
+    // Unsubscribed → paid: use Stripe checkout instead of schedule-plan-change.
+    // Same actualPlan fix as above — this decides which flow to use at all,
+    // so it's the more critical of the two call sites.
+    if(!ORIVEN_PLANS[actualPlan] && ORIVEN_PLANS[planId]){
       if(typeof selectPlan === "function") selectPlan(planId);
       return;
     }
@@ -2811,7 +2825,10 @@ async function switchPlan(planId){
 
   } catch(err){
     console.error("[Plan] switchPlan error:", err.message);
-    toast("Could not schedule plan change — please try again", "err");
+    // Surface the real backend reason (e.g. "Active subscription required",
+    // "Price not configured for plan: X") instead of a generic message that
+    // hides which of several real failure modes actually happened.
+    toast(err.message ? "Could not schedule plan change: " + err.message : "Could not schedule plan change — please try again", "err");
   } finally {
     btns.forEach(function(b){ b.disabled = false; });
   }
@@ -2920,9 +2937,25 @@ async function renderPlanPanel(){
     html += '<div class="sub-pcard-price">€' + plan.price + '<span class="sub-pcard-per">/mo</span></div>';
     if(isCurrent && renewalStr) html += '<div class="sub-renewal" style="margin:-4px 0 0">Renews ' + renewalStr + '</div>';
 
-    if(plan.features && plan.features.length){
-      html += '<ul class="sub-pcard-feats">';
-      plan.features.slice(0,5).forEach(function(f){ html += '<li>' + f + '</li>'; });
+    // The three real economic differentiators between plans — everything
+    // else (campaign/image/video generation, platform connections,
+    // Business Brain, Brand Memory) is part of the product on every plan
+    // and governed by the credit economy, not plan-gated, so it's
+    // intentionally not listed here.
+    var autopilotLabel = plan.autopilotLimit === null
+      ? 'Not included'
+      : plan.autopilotLimit === Infinity
+        ? 'Unlimited'
+        : plan.autopilotLimit.toLocaleString() + ' uses / month';
+    html += '<ul class="sub-pcard-feats">';
+    html += '<li><strong>' + plan.credits.toLocaleString() + '</strong> AI Credits / month</li>';
+    html += '<li>Intelligence — ' + plan.intelligence + '</li>';
+    html += '<li>Autopilot — ' + autopilotLabel + '</li>';
+    html += '</ul>';
+    if(plan.id === 'professional'){
+      html += '<ul class="sub-pcard-feats" style="margin-top:4px;opacity:.7">';
+      html += '<li>Priority Support</li>';
+      html += '<li>Up to ' + plan.teamMembers + ' Team Members</li>';
       html += '</ul>';
     }
 
@@ -2962,6 +2995,15 @@ async function renderPlanPanel(){
 
     html += '<div class="sub-usage-list" style="margin-top:16px">';
     html += _uRow('Lifetime', (creditStatus.lifetimeUsed == null ? '—' : creditStatus.lifetimeUsed.toLocaleString()), 'AI credits consumed, all time');
+    // Autopilot usage — only shown when the current plan has a real,
+    // server-enforced cap (Creator). Starter never reaches this (no
+    // Autopilot at all); Professional has no separate cap to show a
+    // fraction against.
+    if(creditStatus.autopilotUsage && typeof creditStatus.autopilotUsage.limit === 'number'){
+      var apUsed = creditStatus.autopilotUsage.used || 0;
+      var apLimit = creditStatus.autopilotUsage.limit;
+      html += _uRow('Autopilot', apUsed.toLocaleString() + ' / ' + apLimit.toLocaleString(), 'executions this month');
+    }
     html += _uRow('Campaigns Generated', campaigns, 'total in workspace');
     html += _uRow('Saved Assets', assets, 'in your library');
     html += _uRow('Connected Platforms', connCount + ' / 3', connCount === 0 ? 'none connected' : connCount + ' platform' + (connCount === 1 ? '' : 's') + ' active');
@@ -2975,6 +3017,29 @@ async function renderPlanPanel(){
   html += '<button class="btn btn-g btn-sm" disabled style="opacity:.5;cursor:not-allowed" title="Coming soon">Purchase Extra Credits — Coming Soon</button>';
   html += '</div>';
   html += '</div>';
+
+  // ── AI usage is powered by credits — a compact, canonical reference so
+  //    the cost of an action is understandable without listing generation
+  //    types as plan features. Values come straight from
+  //    creditStatus.featureCosts (creditManager.FEATURE_COSTS via
+  //    /api/credits/status) — never duplicated as hardcoded numbers here. ──
+  if(creditStatus && creditStatus.featureCosts){
+    var fc = creditStatus.featureCosts;
+    var costRows = [
+      ['Campaign generation', fc.campaign_generation],
+      ['Image generation', fc.image_generation],
+      ['Video generation', fc.video_generation],
+      ['Intelligence analysis', fc.ai_analysis],
+      ['AI chat', fc.ai_chat],
+    ].filter(function(r){ return typeof r[1] === 'number'; });
+    html += '<div class="sub-usage-card" style="margin-top:16px">';
+    html += '<div class="sub-card-eyebrow">AI Credit Usage</div>';
+    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">AI usage is powered by credits. Different AI actions consume different amounts of credits.</div>';
+    html += '<div class="sub-usage-list">';
+    costRows.forEach(function(r){ html += _uRow(r[0], r[1] + (r[1] === 1 ? ' credit' : ' credits'), ''); });
+    html += '</div>';
+    html += '</div>';
+  }
 
   // Priority Support — Professional plan only
   html += '<div id="prioritySupportPanel" class="sub-usage-card" style="margin-top:16px;display:' + (currentId === 'professional' ? '' : 'none') + '">';

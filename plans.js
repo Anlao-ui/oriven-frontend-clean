@@ -32,6 +32,24 @@ var CREDIT_COSTS = {
   motiongraphics: 120
 };
 
+// Plan comparison focuses on the three things that actually differ between
+// plans economically: AI Credits, Intelligence, Autopilot. Campaign/image/
+// video generation, platform connections (Google/Meta/TikTok), Business
+// Brain, and Brand Memory are part of the product itself (available on
+// every plan) and governed by the credit economy, not plan-gated — so they
+// are intentionally not listed as comparison rows anymore.
+//
+// intelligence: display label only -- Intelligence has never had a separate
+// cap of its own; it's metered per-operation via the shared credit pool
+// (creditManager.FEATURE_COSTS.ai_analysis, 5cr/analysis, server-enforced).
+// "Unlimited" on Professional means no *separate* cap on top of that, not
+// that analyses stop consuming credits.
+//
+// autopilotLimit: null = not included at all (Starter). A number = real,
+// server-enforced monthly execution cap (creditManager.PLAN_AUTOPILOT_LIMITS,
+// checked in server.js _evaluateAutomationRules). Infinity = Professional's
+// no-separate-cap tier (still subject to the underlying credit economy
+// wherever a route already charges credits).
 var ORIVEN_PLANS = {
   starter: {
     id:          "starter",
@@ -44,27 +62,17 @@ var ORIVEN_PLANS = {
     teamMembers: 1,
     explore:     false,
     desc:        "For individuals getting started with AI-powered ad analytics.",
+    intelligence:   "Limited",
+    autopilotLimit: null,
     allFeatures: [
       "500 AI Credits / Month",
-      "Campaign Generation",
-      "Google Ads",
-      "Meta Ads",
-      "TikTok Ads",
-      "AI Analysis",
-      "Business Brain",
-      "Brand Memory",
-      "Intelligence"
+      "Intelligence — limited usage",
+      "Autopilot — not included"
     ],
     features: [
       "500 AI Credits / Month",
-      "Campaign Generation",
-      "Google Ads",
-      "Meta Ads",
-      "TikTok Ads",
-      "AI Analysis",
-      "Business Brain",
-      "Brand Memory",
-      "Intelligence"
+      "Intelligence — limited usage",
+      "Autopilot — not included"
     ]
   },
 
@@ -79,15 +87,17 @@ var ORIVEN_PLANS = {
     teamMembers: 1,
     explore:     false,
     desc:        "For creators, founders, and growing brands running multi-channel ads.",
+    intelligence:   "More usage",
+    autopilotLimit: 200,
     allFeatures: [
-      "Everything in Starter",
-      "Autopilot",
-      "3,000 AI Credits / Month"
+      "3,000 AI Credits / Month",
+      "Intelligence — more usage",
+      "Autopilot — 200 uses / month"
     ],
     features: [
-      "Everything in Starter",
-      "Autopilot",
-      "3,000 AI Credits / Month"
+      "3,000 AI Credits / Month",
+      "Intelligence — more usage",
+      "Autopilot — 200 uses / month"
     ]
   },
 
@@ -101,16 +111,20 @@ var ORIVEN_PLANS = {
     teamMembers: 10,
     explore:     false,
     desc:        "For professional teams scaling ad performance across all channels.",
+    intelligence:   "Unlimited",
+    autopilotLimit: Infinity,
     allFeatures: [
-      "Everything in Creator",
-      "Priority Support",
       "12,000 AI Credits / Month",
+      "Intelligence — unlimited",
+      "Autopilot — unlimited",
+      "Priority Support",
       "Up to 10 Team Members"
     ],
     features: [
-      "Everything in Creator",
-      "Priority Support",
       "12,000 AI Credits / Month",
+      "Intelligence — unlimited",
+      "Autopilot — unlimited",
+      "Priority Support",
       "Up to 10 Team Members"
     ]
   }
