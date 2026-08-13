@@ -39841,8 +39841,23 @@ body.dark-mode #page-team .tm-member-row { background: var(--bg); border-color: 
    rules silently dropping from parsed CSSOM when inserted into dense
    original regions. Desktop: side-by-side. Mobile: stacked (each .au-field
    inside already has its own margin-bottom, so stacking is automatic --
-   only the desktop row layout needs an explicit rule). */
-.au-field-row { display: flex; gap: 12px; margin-bottom: 0; }
+   only the desktop row layout needs an explicit rule).
+
+   ROOT CAUSE of the inconsistent-spacing bug: the outer wrapper carries
+   BOTH .au-field and .au-field-row (`<div class="au-field au-field-row">`).
+   .au-field's base rule (line ~8140) sets flex-direction:column -- this
+   rule never explicitly overrode it back to row, so the two name fields
+   were silently stacking on desktop too instead of sitting side by side,
+   producing First-name-gap + Last-name-gap + Email-gap (three stacked
+   12px margins) where every other field pair only has one. Explicit
+   `flex-direction: row` below is what actually makes this a row; without
+   it, only `gap`/`margin-bottom` on a column layout would render, hence
+   the doubled/uneven vertical spacing before Email. The outer row's own
+   margin-bottom:0 (cancelling the inherited .au-field 12px on ITSELF)
+   plus the inner children's own margin-bottom:12px (below) is what keeps
+   the row-to-Email gap identical to every other field-to-field gap
+   (12px), once the row is an actual row. */
+.au-field-row { display: flex; flex-direction: row; gap: 12px; margin-bottom: 0; }
 .au-field-row .au-field { flex: 1; min-width: 0; margin-bottom: 12px; }
 @media (max-width: 480px) {
   .au-field-row { flex-direction: column; gap: 0; }

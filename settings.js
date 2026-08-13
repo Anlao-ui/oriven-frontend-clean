@@ -3006,20 +3006,29 @@ async function renderPlanPanel(){
     html += '<div class="sub-credit-bar-track"><div class="sub-credit-bar-fill" style="width:' + pct + '%"></div></div>';
     html += '<div class="sub-credit-hd-sub">' + orvFormatCredits(Math.max(0, creditStatus.balance)) + ' remaining · resets ' + (renewalStr || '—') + '</div>';
 
+    // Usage list — intentionally exactly 5 rows (Intelligence/Autopilot/
+    // Connected Platforms/Lifetime here, AI Credits as the header block
+    // above): Campaigns Generated / Saved Assets were removed from this
+    // panel entirely (not just hidden) as they provided no useful value to
+    // the user here. Their backend tracking (profiles.campaigns_generated,
+    // creative_assets count) is untouched and still returned by
+    // getCreditStatus() -- this is a display-only removal.
     html += '<div class="sub-usage-list" style="margin-top:16px">';
-    html += _uRow('Lifetime', (creditStatus.lifetimeUsed == null ? '—' : orvFormatCredits(creditStatus.lifetimeUsed)), 'AI credits consumed, all time');
-    // Autopilot usage — only shown when the current plan has a real,
-    // server-enforced cap (Creator). Starter never reaches this (no
-    // Autopilot at all); Professional has no separate cap to show a
-    // fraction against.
+    html += _uRow('Intelligence', (currentData ? currentData.intelligence : '—'), 'AI-powered analysis allowance');
+    // Autopilot — only shown when the current plan actually includes it
+    // (Creator: real server-enforced cap; Professional: unlimited).
+    // Starter has no Autopilot at all, so no row is shown for it, matching
+    // the plan cards above intentionally not advertising a feature it
+    // doesn't include.
     if(creditStatus.autopilotUsage && typeof creditStatus.autopilotUsage.limit === 'number'){
       var apUsed = creditStatus.autopilotUsage.used || 0;
       var apLimit = creditStatus.autopilotUsage.limit;
       html += _uRow('Autopilot', orvFormatCredits(apUsed) + ' / ' + orvFormatCredits(apLimit), 'executions this month');
+    } else if(currentData && currentData.autopilotLimit === Infinity){
+      html += _uRow('Autopilot', 'Unlimited', 'executions this month');
     }
-    html += _uRow('Campaigns Generated', (typeof creditStatus.campaignsGenerated === 'number' ? orvFormatCredits(creditStatus.campaignsGenerated) : '—'), 'total in workspace');
-    html += _uRow('Saved Assets', (typeof creditStatus.savedAssets === 'number' ? orvFormatCredits(creditStatus.savedAssets) : '—'), 'in your library');
     html += _uRow('Connected Platforms', connCount + ' / 3', connCount === 0 ? 'none connected' : connCount + ' platform' + (connCount === 1 ? '' : 's') + ' active');
+    html += _uRow('Lifetime', (creditStatus.lifetimeUsed == null ? '—' : orvFormatCredits(creditStatus.lifetimeUsed)), 'AI credits consumed, all time');
     html += '</div>';
   } else {
     html += '<div class="sub-usage-unavailable">Couldn\'t load your usage right now. <button class="sub-cancel-link" style="text-decoration:underline" onclick="renderPlanPanel()">Try again</button></div>';
