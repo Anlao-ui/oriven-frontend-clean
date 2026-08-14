@@ -15533,6 +15533,48 @@ window.rptExport = function(format) {
     section.style.display = '';
   }
 
+  // Google Ads POLICY_FINDING -- a clean, readable error card instead of a
+  // 3-second toast or raw JSON, per /api/publish/google's new `policy`
+  // response field (server.js's _buildGadsPolicyErrorPayload). Every field
+  // here comes directly from that payload -- nothing is invented; a field
+  // Google didn't provide renders its own explicit "not provided" line
+  // rather than being guessed or silently omitted. Self-contained (own
+  // overlay, own inline styles) so it works from every cgrPublishTo call
+  // site regardless of the surrounding page's light/dark theme, and
+  // touches no other Meta/TikTok/non-policy-Google error path.
+  function _gadsShowPolicyErrorCard(policy){
+    function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    var topicsHtml = (policy.topics && policy.topics.length)
+      ? policy.topics.map(function(t){
+          return '<div style="font-size:13px;color:#fff;margin-bottom:2px">' + esc(t.topic || t.type || 'Unknown topic') +
+            (t.type && t.topic ? ' <span style="color:rgba(255,255,255,.4)">(' + esc(t.type) + ')</span>' : '') + '</div>';
+        }).join('')
+      : '<div style="font-size:13px;color:rgba(255,255,255,.75)">Google did not provide additional policy details.</div>';
+    var resourceLine = policy.resourceType
+      ? esc(policy.resourceType) + (policy.operationIndex != null ? ' <span style="color:rgba(255,255,255,.4)">(operation ' + esc(policy.operationIndex) + ')</span>' : '')
+      : 'Google did not provide the rejected resource type.';
+
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;';
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#18181A;color:#fff;max-width:480px;width:100%;border-radius:14px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5);font-family:Geist,system-ui,sans-serif;';
+    card.innerHTML =
+      '<div style="font-size:15px;font-weight:700;color:#f87171;margin-bottom:4px">Google Ads rejected the campaign</div>' +
+      '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:18px">The campaign was not published. No partial campaign was left in your account.</div>' +
+      '<div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">Policy issue</div>' +
+      '<div style="margin-bottom:16px">' + topicsHtml + '</div>' +
+      '<div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">Resource</div>' +
+      '<div style="margin-bottom:16px;font-size:13px">' + resourceLine + '</div>' +
+      '<div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">Details</div>' +
+      '<div style="margin-bottom:22px;font-size:13px;color:rgba(255,255,255,.75);line-height:1.5">' + esc(policy.googleMessage || policy.summary || 'No further details were provided by Google.') + '</div>' +
+      '<button type="button" id="gadsPolicyErrClose" style="width:100%;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:600;cursor:pointer">Close</button>';
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    function closeIt(){ overlay.remove(); }
+    card.querySelector('#gadsPolicyErrClose').onclick = closeIt;
+    overlay.onclick = function(e){ if(e.target === overlay) closeIt(); };
+  }
+
   window.cgrPublishTo = function(platform, campId){
     /* Fast client-side check — avoids a wasted round trip for the common
        case. The server (requireSubscription middleware on every
@@ -15562,6 +15604,13 @@ window.rptExport = function(format) {
       } else if(res.status === 403 && res.data && res.data.code === 'SUBSCRIPTION_REQUIRED'){
         if(typeof _orvEndOnboardingIntoPaywall === 'function') _orvEndOnboardingIntoPaywall();
         else if(typeof openFreePaywall === 'function') openFreePaywall();
+      } else if(platform === 'google' && res.data && res.data.policy){
+        // Google Ads policy rejection (POLICY_FINDING) -- clean structured
+        // card instead of the raw error string. Meta/TikTok and every other
+        // Google publish error (budget, keyword validation, auth, etc.)
+        // fall through to the unchanged toast below, since res.data.policy
+        // is only ever set for an actual policy finding.
+        _gadsShowPolicyErrorCard(res.data.policy);
       } else {
         var msg = (res.data&&res.data.error) || 'Publish failed';
         if(typeof orvToast==='function') orvToast(msg, 'error');
