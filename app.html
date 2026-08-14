@@ -16161,10 +16161,43 @@ window.rptExport = function(format) {
     return s.landingPageUrl || g.finalUrl || pkg.websiteUrl || s.websiteUrl || '';
   }
 
+  // Parses whatever is currently stored in strategy.budgetRecommendation --
+  // either the new { amount, currency } shape this screen now writes, or a
+  // legacy free-text string ("$20/day") from before this change -- into one
+  // consistent { amount: number|null, currency: string|null } shape. Used
+  // both to normalize old packages on load and to render the field/summary.
+  function _cggParseBudget(raw){
+    if (raw && typeof raw === 'object') {
+      var amt = typeof raw.amount === 'number' ? raw.amount : parseFloat(raw.amount);
+      return { amount: Number.isFinite(amt) && amt > 0 ? amt : null, currency: raw.currency || null };
+    }
+    if (typeof raw === 'string' && raw.trim()) {
+      var m = raw.match(/(\d+(?:\.\d+)?)/);
+      var parsedAmt = m ? parseFloat(m[1]) : null;
+      return { amount: (parsedAmt && parsedAmt > 0) ? parsedAmt : null, currency: /\$/.test(raw) ? 'USD' : (/€/.test(raw) ? 'EUR' : null) };
+    }
+    return { amount: null, currency: null };
+  }
+  function _cggFormatBudget(raw){
+    var b = _cggParseBudget(raw);
+    if (!b.amount) return 'Not set';
+    var sym = b.currency === 'USD' ? '$' : '€';
+    return sym + ' ' + b.amount + ' / day';
+  }
+
   window._cggInitGoogleScreen = function(pkg, campId){
     var clonedPkg;
     try { clonedPkg = JSON.parse(JSON.stringify(pkg)); } catch(_) { clonedPkg = pkg; }
-    _cgg = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null, surface:'search', ytMode:'video', businessName:null, logoUrl:null };
+    _cgg = { campId: campId, pkg: clonedPkg, stage:'preview', dirty:false, accountName:null, accountId:null, accountCurrency:null, surface:'search', ytMode:'video', businessName:null, logoUrl:null };
+    // Normalize any legacy free-text budget into the new { amount, currency }
+    // shape immediately, so every downstream read (checklist, review
+    // summary, publish validation) sees one consistent representation
+    // regardless of when the campaign package was originally created.
+    (function(){
+      var strat = _cgg.pkg.strategy = _cgg.pkg.strategy || {};
+      var parsed = _cggParseBudget(strat.budgetRecommendation);
+      strat.budgetRecommendation = parsed.amount ? { amount: parsed.amount, currency: parsed.currency || 'EUR' } : null;
+    })();
     _cggRenderStructNav();
     _cggUpdateDirtyUI();
     _cggSetStage('preview');
@@ -16174,6 +16207,20 @@ window.rptExport = function(format) {
       var d = r.data;
       _cgg.accountName = d.active_ad_account ? (d.active_ad_account.account_name || d.active_ad_account.account_id) : null;
       _cgg.accountId = d.active_ad_account ? d.active_ad_account.account_id : null;
+      // Google Ads campaign budgets are always denominated in the account's
+      // own configured currency (reused from the account-discovery data
+      // that already exists -- no new currency-conversion system) -- once
+      // known, it overrides whatever currency the budget field showed
+      // before an account was connected, so the UI can never end up
+      // proposing a budget in a currency Google Ads won't accept for this
+      // account. Never converts the amount itself, only the label.
+      _cgg.accountCurrency = (d.active_ad_account && d.active_ad_account.currency) || null;
+      if (_cgg.accountCurrency) {
+        var strat = _cgg.pkg.strategy = _cgg.pkg.strategy || {};
+        if (strat.budgetRecommendation && strat.budgetRecommendation.currency !== _cgg.accountCurrency) {
+          strat.budgetRecommendation = { amount: strat.budgetRecommendation.amount, currency: _cgg.accountCurrency };
+        }
+      }
       _cggRenderActiveStage();
     }).catch(function(){});
 
@@ -16198,7 +16245,7 @@ window.rptExport = function(format) {
     var hasImage = !!((pkg.visualConcepts||[]).filter(function(vc){ return vc && vc.generatedImageUrl; }).length || g.imageUrl);
     var checks = [
       { key:'account',   ok: !!_cgg.accountId,             label:'Google Ads account connected' },
-      { key:'budget',    ok: !!(_cgg.pkg.strategy||{}).budgetRecommendation, label:'Budget set' },
+      { key:'budget',    ok: !!(_cgg.pkg.strategy||{}).budgetRecommendation, label:'Valid daily budget entered' },
       { key:'business',  ok: !!_cgg.businessName,           label:'Business name (Business Profile)' },
       { key:'finalUrl',  ok: !!_cggDestinationUrl(pkg),      label:'Final URL set' },
       { key:'headlines', ok: headlines.length >= 3,          label: headlines.length+' headline'+(headlines.length!==1?'s':'')+' (3 minimum)' },
@@ -16540,9 +16587,27 @@ window.rptExport = function(format) {
       + '</select>';
     var activeTypeNote = (typeOptions.filter(function(t){ return t.v===campaignType; })[0] || {}).note || '';
 
+    var _cggBudgetVal = _cggParseBudget(s.budgetRecommendation);
+    var _cggBudgetCur = _cgg.accountCurrency || _cggBudgetVal.currency || 'EUR';
+    var _cggBudgetLocked = !!_cgg.accountCurrency;
+    var _cggBudgetSym = _cggBudgetCur === 'USD' ? '$' : '&euro;';
+    var budgetFieldHtml = '<div class="cst-fld"><label>Daily Budget</label>'
+      + '<div class="cst-budget-row">'
+      +   '<select class="cst-sel cst-budget-currency" id="cggBudgetCurrencySel" onchange="_cggCurrencyInput(this)"'+(_cggBudgetLocked?' disabled':'')+'>'
+      +     '<option value="EUR"'+(_cggBudgetCur==='EUR'?' selected':'')+'>&euro; EUR</option>'
+      +     '<option value="USD"'+(_cggBudgetCur==='USD'?' selected':'')+'>$ USD</option>'
+      +   '</select>'
+      +   '<div class="cst-budget-amount-wrap"><span class="cst-budget-symbol" id="cggBudgetSymbol">'+_cggBudgetSym+'</span>'
+      +     '<input class="crv-inp cst-budget-amount" id="cggBudgetAmount" type="number" min="0.01" step="0.01" inputmode="decimal" value="'+(_cggBudgetVal.amount!=null?_cggBudgetVal.amount:'')+'" placeholder="e.g. 25" oninput="_cggBudgetInput(this)">'
+      +   '</div>'
+      + '</div>'
+      + '<div class="cst-fld-hint">'+(_cggBudgetLocked ? 'Matches your connected Google Ads account’s currency &mdash; Google Ads bills in the account’s own currency.' : 'Choose a currency, then enter a numeric daily amount.')+'</div>'
+      + '<div class="cst-fld-err" id="cggBudgetErr" style="display:'+(_cggBudgetVal.amount?'none':'')+'">'+(_cggBudgetVal.amount?'':'Enter a valid budget amount greater than 0.')+'</div>'
+      + '</div>';
+
     var campaignHtml = '<div class="cst-fld"><label>Campaign Type</label>'+typeSelectHtml+'<div class="cst-fld-hint">'+_cggEsc(activeTypeNote)+'</div></div>'
       + '<div class="cst-fld"><label>Campaign Goal</label><div class="cst-goal-pill"><span class="cst-goal-dot"></span>'+_cggEsc(goal)+'</div></div>'
-      + '<div class="cst-fld"><label>Daily Budget</label><input class="crv-inp" type="text" value="'+_cggEsc(s.budgetRecommendation||'')+'" placeholder="e.g. $20/day" oninput="_cggBudgetInput(this)"></div>';
+      + budgetFieldHtml;
 
     var platformHtml = '<div class="cst-fld-row">'
       + '<div class="cst-fld"><label>Platform</label><div class="cst-fld-static">Google Ads ('+_cggEsc((typeOptions.filter(function(t){return t.v===campaignType;})[0]||{}).label||campaignType)+')</div></div>'
@@ -16606,10 +16671,37 @@ window.rptExport = function(format) {
     }
     _cggMarkDirty();
   };
+  // Numeric-only budget amount -- type="number" already blocks most
+  // non-numeric keystrokes in-browser, but this still re-validates in JS
+  // (a pasted non-numeric value, or an out-of-range one, can still reach
+  // `el.value`) rather than trusting the input type alone. Stores {amount,
+  // currency} (never a raw string) so the server always receives a clean
+  // numeric value -- or null, so an invalid/empty amount can never be
+  // silently sent, only ever explicitly rejected with the visible inline
+  // error below plus the Publish-button gating in _cggRenderReviewStage.
   window._cggBudgetInput = function(el){
     _cgg.pkg.strategy = _cgg.pkg.strategy || {};
-    _cgg.pkg.strategy.budgetRecommendation = el.value;
+    var amt = parseFloat(el.value);
+    var valid = el.value !== '' && Number.isFinite(amt) && amt > 0;
+    var errEl = document.getElementById('cggBudgetErr');
+    if (errEl) {
+      errEl.style.display = valid ? 'none' : '';
+      errEl.textContent = valid ? '' : 'Enter a valid budget amount greater than 0.';
+    }
+    var curSel = document.getElementById('cggBudgetCurrencySel');
+    var currency = _cgg.accountCurrency || (curSel && curSel.value) || 'EUR';
+    _cgg.pkg.strategy.budgetRecommendation = valid ? { amount: amt, currency: currency } : null;
     _cggMarkDirty();
+  };
+  // Only reachable when no Google Ads account currency is known yet -- the
+  // select is disabled once _cgg.accountCurrency is set (see the Daily
+  // Budget field render above), so this never lets the UI drift from the
+  // connected account's real currency.
+  window._cggCurrencyInput = function(el){
+    var symEl = document.getElementById('cggBudgetSymbol');
+    if (symEl) symEl.textContent = el.value === 'USD' ? '$' : '€';
+    var amtEl = document.getElementById('cggBudgetAmount');
+    if (amtEl) _cggBudgetInput(amtEl);
   };
   window._cggCampaignTypeInput = function(el){
     _cgg.pkg.googleAds = _cgg.pkg.googleAds || {};
@@ -16701,6 +16793,7 @@ window.rptExport = function(format) {
     var hasKeywords = keywords.length > 0;
     var hasDestUrl = !!destUrl;
     var hasBusinessName = !!_cgg.businessName;
+    var hasBudget = !!_cggParseBudget(s.budgetRecommendation).amount;
 
     var pmr = campaignType === 'PERFORMANCE_MAX' ? _cggPmaxReadiness(pkg) : null;
 
@@ -16710,12 +16803,14 @@ window.rptExport = function(format) {
       { ok: hasImage, label: 'Creative image added' },
       { ok: hasBusinessName, label: 'Business Profile company name set ('+_cggEsc(_cgg.businessName||'not set')+')' },
       { ok: hasDestUrl, label: 'Landing page set' },
+      { ok: hasBudget, label: 'Valid daily budget entered' },
       { ok: !!_cgg.accountId, label: 'Google Ads account connected' },
     ] : [
       { ok: hasMinHeadlines, label: headlines.length+' headline'+(headlines.length!==1?'s':'')+' (3 minimum required)' },
       { ok: hasMinDescriptions, label: descriptions.length+' description'+(descriptions.length!==1?'s':'')+' (2 minimum required)' },
       { ok: hasKeywords, label: 'Keywords configured' },
       { ok: hasDestUrl, label: 'Landing page set' },
+      { ok: hasBudget, label: 'Valid daily budget entered' },
       { ok: !!_cgg.accountId, label: 'Google Ads account connected' },
     ];
     var checkHtml = '<div class="cst-check-list">' + checks.map(function(c){
@@ -16741,7 +16836,7 @@ window.rptExport = function(format) {
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cggEsc(goal)+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Type</span><span class="cst-review-val">'+_cggEsc(typeLabel)+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">'+structureLabel+'</span></div>';
-    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cggEsc(s.budgetRecommendation||'Not set')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val'+(hasBudget?'':' cst-review-val-warn')+'">'+_cggEsc(_cggFormatBudget(s.budgetRecommendation))+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Landing Page</span><span class="cst-review-val'+(hasDestUrl?'':' cst-review-val-warn')+'">'+_cggEsc(destUrl||'Not set')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Account</span><span class="cst-review-val'+(_cgg.accountName?'':' cst-review-val-warn')+'">'+_cggEsc(_cgg.accountName||'Not connected')+'</span></div>';
     if (campaignType === 'PERFORMANCE_MAX') {
@@ -16756,11 +16851,13 @@ window.rptExport = function(format) {
       else if (!hasMinDescriptions) err = 'At least 1 description is required for Demand Gen.';
       else if (!hasImage) err = 'Add an image before publishing a Demand Gen campaign.';
       else if (!hasBusinessName) err = 'Add a Company Name in your Business Profile before publishing a Demand Gen campaign.';
+      else if (!hasBudget) err = 'Enter a valid daily budget before publishing.';
       else if (!_cgg.accountId) err = 'Connect a Google Ads account before publishing.';
       else if (!hasDestUrl) err = 'Add a landing page URL before publishing.';
     } else {
       if (!hasMinHeadlines) err = 'At least 3 headlines are required.';
       else if (!hasMinDescriptions) err = 'At least 2 descriptions are required.';
+      else if (!hasBudget) err = 'Enter a valid daily budget before publishing.';
       else if (!_cgg.accountId) err = 'Connect a Google Ads account before publishing.';
       else if (!hasDestUrl) err = 'Add a landing page URL before publishing.';
     }
