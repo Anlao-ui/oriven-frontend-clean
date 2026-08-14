@@ -2835,21 +2835,32 @@ async function switchPlan(planId){
 }
 
 async function cancelPlanChange(){
-  saveSettings({ pendingPlan: null, pendingPlanDate: null });
-  renderPlanPanel();
-  toast("Scheduled change cancelled");
-
-  // Best-effort backend sync
+  // Was previously optimistic: updated local state and showed a success
+  // toast BEFORE the backend call ran, then silently swallowed any backend
+  // failure. That could tell a user "Scheduled change cancelled" while
+  // Stripe still had the schedule/cancellation active -- exactly the
+  // Stripe/DB/UI disagreement this must never allow. Now waits for the
+  // real response and only updates local state / shows success on an
+  // actual server-confirmed ok.
   try {
     var sessionResult = await SB.auth.getSession();
     var session = sessionResult.data && sessionResult.data.session;
-    if(!session) return;
-    await fetch(API_BASE_URL+"/api/cancel-plan-change", {
+    if(!session){ toast("Not signed in", "warn"); return; }
+    var res = await fetch(API_BASE_URL+"/api/cancel-plan-change", {
       method: "POST",
       headers: { "Authorization": "Bearer " + session.access_token }
     });
+    var data = await res.json().catch(function(){ return {}; });
+    if(!res.ok || !data.ok){
+      toast((data && data.error) || "Could not cancel the scheduled change — try again", "err");
+      return;
+    }
+    saveSettings({ pendingPlan: null, pendingPlanDate: null });
+    renderPlanPanel();
+    toast("Scheduled change cancelled");
   } catch(err){
     console.warn("[Plan] cancelPlanChange backend sync failed:", err.message);
+    toast("Could not cancel the scheduled change — try again", "err");
   }
 }
 
@@ -2952,8 +2963,7 @@ async function renderPlanPanel(){
     // 12000, 10). Formatted via the one shared orvFormatCredits() (Dutch-
     // style dot separator, e.g. "12.000") rather than each call site
     // choosing its own format. Autopilot is measured in "executions", not
-    // "users" -- and Starter (autopilotLimit: null) shows no Autopilot
-    // line at all rather than advertising a feature it doesn't include.
+    // "users".
     html += '<ul class="sub-pcard-feats">';
     html += '<li><strong>' + orvFormatCredits(plan.credits) + '</strong> AI Credits / month</li>';
     html += '<li>Intelligence: ' + plan.intelligence + '<span class="sub-feat-note"> · uses AI credits</span></li>';
@@ -2961,8 +2971,9 @@ async function renderPlanPanel(){
       html += '<li>Autopilot: Unlimited</li>';
     } else if(typeof plan.autopilotLimit === 'number'){
       html += '<li>Autopilot: ' + orvFormatCredits(plan.autopilotLimit) + ' executions / month</li>';
+    } else {
+      html += '<li>Autopilot: not included</li>';
     }
-    // Starter (autopilotLimit === null): intentionally no Autopilot line.
     html += '</ul>';
     if(plan.id === 'professional'){
       html += '<ul class="sub-pcard-feats" style="margin-top:4px;opacity:.7">';
@@ -2987,8 +2998,21 @@ async function renderPlanPanel(){
 
   html += '</div>'; // end sub-plans-grid
 
+  // Cancel confirm — lives immediately below the "Cancel plan" trigger
+  // (was previously rendered at the very bottom of the panel, after Usage/
+  // AI Credit Usage/Team/Priority Support, requiring a scroll to find once
+  // opened) so the confirmation is visible right where the user clicked,
+  // no hunting required.
   if(currentData && pendingId !== "free"){
     html += '<div style="margin-top:10px"><button class="sub-cancel-link" onclick="_showCancelConfirm()">Cancel plan</button></div>';
+    html += '<div class="plan-cancel-confirm" id="planCancelConfirm" style="display:none">';
+    html += '<div class="plan-cancel-confirm-title">Cancel ' + currentData.name + ' Plan</div>';
+    html += '<div class="plan-cancel-confirm-text">You will keep full access until <strong>' + renewalStr + '</strong>.</div>';
+    html += '<div class="plan-cancel-confirm-btns">';
+    html += '<button class="btn btn-g btn-sm" onclick="_hideCancelConfirm()">Keep Plan</button>';
+    html += '<button class="btn btn-danger btn-sm" onclick="switchPlan(\'free\')">Yes, Cancel Plan</button>';
+    html += '</div>';
+    html += '</div>';
   }
 
   // ── Section 2: USAGE — real backend-authoritative data only. No
@@ -3015,17 +3039,17 @@ async function renderPlanPanel(){
     // getCreditStatus() -- this is a display-only removal.
     html += '<div class="sub-usage-list" style="margin-top:16px">';
     html += _uRow('Intelligence', (currentData ? currentData.intelligence : '—'), 'AI-powered analysis allowance');
-    // Autopilot — only shown when the current plan actually includes it
-    // (Creator: real server-enforced cap; Professional: unlimited).
-    // Starter has no Autopilot at all, so no row is shown for it, matching
-    // the plan cards above intentionally not advertising a feature it
-    // doesn't include.
+    // Autopilot — real server-enforced usage for Creator, "Unlimited" for
+    // Professional, explicit "not included" for Starter -- consistent with
+    // the plan cards above rather than silently omitting the row.
     if(creditStatus.autopilotUsage && typeof creditStatus.autopilotUsage.limit === 'number'){
       var apUsed = creditStatus.autopilotUsage.used || 0;
       var apLimit = creditStatus.autopilotUsage.limit;
       html += _uRow('Autopilot', orvFormatCredits(apUsed) + ' / ' + orvFormatCredits(apLimit), 'executions this month');
     } else if(currentData && currentData.autopilotLimit === Infinity){
       html += _uRow('Autopilot', 'Unlimited', 'executions this month');
+    } else if(currentData && currentData.autopilotLimit === null){
+      html += _uRow('Autopilot', 'Not included', 'upgrade to unlock');
     }
     html += _uRow('Connected Platforms', connCount + ' / 3', connCount === 0 ? 'none connected' : connCount + ' platform' + (connCount === 1 ? '' : 's') + ' active');
     html += _uRow('Lifetime', (creditStatus.lifetimeUsed == null ? '—' : orvFormatCredits(creditStatus.lifetimeUsed)), 'AI credits consumed, all time');
@@ -3087,23 +3111,17 @@ async function renderPlanPanel(){
   html += '</div>';
   if(currentId === 'professional' && typeof loadSupportThread === 'function') setTimeout(loadSupportThread, 0);
 
-  // Cancel confirm dialog
-  if(currentData && pendingId !== "free"){
-    html += '<div class="plan-cancel-confirm" id="planCancelConfirm" style="display:none">';
-    html += '<div class="plan-cancel-confirm-text">Cancel your <strong>' + currentData.name + '</strong> plan? You\'ll keep full access until <strong>' + renewalStr + '</strong>.</div>';
-    html += '<div class="plan-cancel-confirm-btns">';
-    html += '<button class="btn btn-danger btn-sm" onclick="switchPlan(\'free\')">Yes, Cancel Plan</button>';
-    html += '<button class="btn btn-g btn-sm" onclick="_hideCancelConfirm()">Keep Plan</button>';
-    html += '</div>';
-    html += '</div>';
-  }
-
   container.innerHTML = html;
 }
 
 function _showCancelConfirm(){
   var el = document.getElementById("planCancelConfirm");
-  if(el) el.style.display = "";
+  if(!el) return;
+  el.style.display = "";
+  // Belt-and-suspenders: the block now renders immediately below the
+  // trigger, but scroll it into view anyway in case the panel is already
+  // mid-scroll when clicked.
+  if(typeof el.scrollIntoView === "function") el.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 
 // ── Priority Support chat (Professional plan only) ─────────────

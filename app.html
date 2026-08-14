@@ -1043,7 +1043,6 @@
         <div class="orv-tab-row" role="tablist" aria-label="Business sections">
           <button class="prf-ptab active" role="tab" aria-selected="true" data-tab="overview" onclick="bizSwitchTab('overview')" data-i18n="bizTabOverview">Overview</button>
           <button class="prf-ptab" role="tab" aria-selected="false" data-tab="business" onclick="bizSwitchTab('business')" data-i18n="bizTabBusiness">Business</button>
-          <button class="prf-ptab" role="tab" aria-selected="false" data-tab="products" onclick="bizSwitchTab('products')" data-i18n="bizTabProducts">Products</button>
           <button class="prf-ptab" role="tab" aria-selected="false" data-tab="market" onclick="bizSwitchTab('market')" data-i18n="bizTabMarket">Market</button>
           <button class="prf-ptab" role="tab" aria-selected="false" data-tab="brand" onclick="bizSwitchTab('brand')" data-i18n="bizTabBrand">Brand</button>
           <button class="prf-ptab" role="tab" aria-selected="false" data-tab="connections" onclick="bizSwitchTab('connections')" data-i18n="bizTabConnections">Connections</button>
@@ -1080,7 +1079,7 @@
             <div id="bizRecentLearningsBody" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
 
-          <div class="biz-ov-section">
+          <div class="biz-ov-section biz-ov-section-last">
             <div class="biz-ov-sh biz-ov-sh-col">
               <div class="ov3-sh-label" data-i18n="bizInsightsLabel">Business Insights</div>
               <p class="biz-ov-sh-sub" data-i18n="bizInsightsSub">How your business knowledge is influencing Oriven's recommendations.</p>
@@ -1088,31 +1087,12 @@
             <div id="bizInsightsBody" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
 
-          <div class="biz-ov-section biz-ov-section-last">
-            <div class="biz-ov-sh">
-              <div class="biz-ov-sh-col">
-                <div class="ov3-sh-label" data-i18n="bizKnowledgeCheckLabel">Knowledge check</div>
-                <p class="biz-ov-sh-sub" data-i18n="bizKnowledgeCheckSub">See what Oriven knows — and what is still missing.</p>
-              </div>
-              <button class="ov3-sh-btn" onclick="bizRunValidation()" data-i18n="bizRunCheckBtn">Run a knowledge check</button>
-            </div>
-            <div id="bizValidateBody" style="display:flex;flex-direction:column;gap:8px"></div>
-          </div>
         </div>
 
         <!-- Business — company profile + website understanding. Brand
              Voice and full brand identity now live on the Brand tab. -->
         <div class="intel-tab-panel" id="bizPanelBusiness" style="display:none">
           <div id="bizProfileBody"></div>
-        </div>
-
-        <!-- Products -->
-        <div class="intel-tab-panel" id="bizPanelProducts" style="display:none">
-          <div class="biz-market-hd">
-            <span class="ov3-sh-label" data-i18n="bizProductsHeading">Products</span>
-            <button class="biz-add-btn biz-add-btn-inline" onclick="bizAddItem('products')" data-i18n="bizAddProductBtn">+ Add a product</button>
-          </div>
-          <div id="bizProductsBody"></div>
         </div>
 
         <!-- Market — audience + competitors, one flowing section instead
@@ -1183,7 +1163,6 @@
             <button class="bb-tab active" onclick="bbTab('overview',this)">Overview</button>
             <button class="bb-tab" onclick="bbTab('identity',this)">Identity</button>
             <button class="bb-tab" onclick="bbTab('voice',this)">Voice</button>
-            <button class="bb-tab" onclick="bbTab('audience',this)">Audience</button>
             <button class="bb-tab" onclick="bbTab('visuals',this)">Visuals</button>
             <button class="bb-tab" onclick="bbTab('assets',this)">Assets</button>
           </div>
@@ -1267,20 +1246,6 @@
                 </div>
               </div>
               <div class="bcp-tone-card" id="bcProfileTone"></div>
-            </div>
-          </div>
-
-          <!-- ── AUDIENCE ── -->
-          <div class="bb-pane" id="bb-pane-audience">
-            <div class="bb-section">
-              <div class="bb-section-hd-row">
-                <span class="bb-section-hd">Target Audience</span>
-                <div class="bb-sec-actions">
-                  <button class="bb-sec-edit-btn" onclick="bcpEdit('audience','bcProfileAudience')">Edit</button>
-                  <button class="bb-sec-regen-btn" onclick="bcpRegenSection('audience','bcProfileAudience')">↻ AI</button>
-                </div>
-              </div>
-              <div class="bcp-audience-card" id="bcProfileAudience"></div>
             </div>
           </div>
 
@@ -12350,13 +12315,12 @@ window.bizPageInit = function(){ bizSwitchTab(_bizActiveTab); };
 window.bizSwitchTab = function(tab){
   _bizActiveTab = tab;
   document.querySelectorAll('#page-business-brain .prf-ptab').forEach(function(b){ var on = b.dataset.tab === tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
-  ['overview','business','products','market','brand','connections','memory'].forEach(function(t){
+  ['overview','business','market','brand','connections','memory'].forEach(function(t){
     var el = document.getElementById('bizPanel' + t.charAt(0).toUpperCase() + t.slice(1));
     if(el) el.style.display = (t === tab) ? '' : 'none';
   });
   if(tab === 'overview'    && !_bizLoaded.overview){    _bizLoaded.overview = true;    bizLoadOverview(); }
   if(tab === 'business'    && !_bizLoaded.business){    _bizLoaded.business = true;    bizLoadProfile(); }
-  if(tab === 'products'    && !_bizLoaded.products){     _bizLoaded.products = true;    bizLoadList('products'); }
   if(tab === 'market'      && !_bizLoaded.market){        _bizLoaded.market = true;      bizLoadList('audiences'); bizLoadList('competitors'); }
   if(tab === 'brand'       && !_bizLoaded.brand){         _bizLoaded.brand = true;       bizLoadBrand(); }
   if(tab === 'connections' && !_bizLoaded.connections){   _bizLoaded.connections = true; if(typeof initIntegrations === 'function') initIntegrations(); }
@@ -12878,10 +12842,15 @@ var BIZ_EMPTY_STATES = {
 function _bizEmptyState(kind){
   var cfg = BIZ_EMPTY_STATES[kind];
   if(!cfg) return '';
+  // Same button class the populated-state "trailing add" button uses
+  // (bizRenderList below) -- was .biz-empty-cta, a visually different
+  // (smaller/bolder/filled) button, which made Audience and Competitor
+  // look mismatched whenever one list was empty and the other wasn't.
+  // One shared class now, for every kind and every state.
   return '<div class="biz-empty">' +
     '<div class="biz-empty-title">' + _prfEsc(cfg.title) + '</div>' +
     '<p class="biz-empty-sub">' + _prfEsc(cfg.sub) + '</p>' +
-    '<button type="button" class="biz-empty-cta" onclick="bizAddItem(\'' + kind + '\')">+ ' + _prfEsc(cfg.cta) + '</button>' +
+    '<button type="button" class="biz-add-btn biz-add-btn-trailing" onclick="bizAddItem(\'' + kind + '\')">+ ' + _prfEsc(cfg.cta) + '</button>' +
   '</div>';
 }
 

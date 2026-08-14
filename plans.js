@@ -51,23 +51,20 @@ var CREDIT_COSTS = {
 // every plan) and governed by the credit economy, not plan-gated — so they
 // are intentionally not listed as comparison rows anymore.
 //
-// intelligence: display label only -- Intelligence has never had a separate
-// cap of its own; it's metered per-operation via the shared credit pool
-// (creditManager.FEATURE_COSTS.ai_analysis, 5cr/analysis, server-enforced).
-// "Unlimited" on Professional means no *separate* cap on top of that, not
-// that analyses stop consuming credits.
+// intelligence: display label -- Intelligence is metered per-operation via
+// the shared credit pool (creditManager.FEATURE_COSTS.ai_analysis, 5cr/
+// analysis, server-enforced) AND capped by a real, separate, server-
+// enforced monthly analysis limit (creditManager.PLAN_INTELLIGENCE_LIMITS,
+// checked in server.js POST /api/meta/analyze and /api/ads/analyze before
+// the AI call runs -- a client cannot bypass it by editing frontend JS).
+// "Unlimited" on Professional means no *separate* cap on top of the credit
+// pool, not that analyses stop consuming credits.
 //
 // autopilotLimit: null = not included at all (Starter). A number = real,
 // server-enforced monthly execution cap (creditManager.PLAN_AUTOPILOT_LIMITS,
 // checked in server.js _evaluateAutomationRules). Infinity = Professional's
 // no-separate-cap tier (still subject to the underlying credit economy
 // wherever a route already charges credits).
-// Intelligence usage numbers below are derived directly from each plan's
-// credit allowance / FEATURE_COSTS.ai_analysis (5cr/analysis) -- not a
-// second, invented limit. They describe "if you spent your whole balance
-// on Intelligence alone", which is why the card copy says "up to", and
-// why Professional (where Intelligence has no separate cap) says
-// "Unlimited" instead of literally 12000/5=2400.
 var ORIVEN_PLANS = {
   starter: {
     id:          "starter",
@@ -80,15 +77,17 @@ var ORIVEN_PLANS = {
     teamMembers: 1,
     explore:     false,
     desc:        "For individuals getting started with AI-powered ad analytics.",
-    intelligence:   "up to 100 analyses / month",
+    intelligence:   "up to 50 analyses / month",
     autopilotLimit: null,
     allFeatures: [
       "500 AI Credits / Month",
-      "Intelligence: up to 100 analyses / month"
+      "Intelligence: up to 50 analyses / month",
+      "Autopilot: not included"
     ],
     features: [
       "500 AI Credits / Month",
-      "Intelligence: up to 100 analyses / month"
+      "Intelligence: up to 50 analyses / month",
+      "Autopilot: not included"
     ]
   },
 
@@ -103,16 +102,16 @@ var ORIVEN_PLANS = {
     teamMembers: 1,
     explore:     false,
     desc:        "For creators, founders, and growing brands running multi-channel ads.",
-    intelligence:   "up to 600 analyses / month",
+    intelligence:   "up to 100 analyses / month",
     autopilotLimit: 10,
     allFeatures: [
       "3.000 AI Credits / Month",
-      "Intelligence: up to 600 analyses / month",
+      "Intelligence: up to 100 analyses / month",
       "Autopilot: 10 executions / month"
     ],
     features: [
       "3.000 AI Credits / Month",
-      "Intelligence: up to 600 analyses / month",
+      "Intelligence: up to 100 analyses / month",
       "Autopilot: 10 executions / month"
     ]
   },
