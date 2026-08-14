@@ -39310,6 +39310,27 @@ body.dark-mode .biz-add-btn:hover { border-color: color-mix(in srgb, var(--green
 .biz-market-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .biz-add-btn-inline { margin-bottom: 0; padding: 6px 12px; font-size: 12px; }
 
+/* Audience vs Competitor "add" button parity. Root cause of the visible
+   size mismatch was NOT just differing CSS classes (those were already
+   unified) -- it was (a) two different text sources depending on empty vs.
+   populated state ("Add Audience" vs "Add an audience", different lengths)
+   and (b) the empty state's own container (.biz-empty) capping itself at
+   max-width:460px while the populated state's plain div had no such cap --
+   so even with identical classes, an inline-flex content-hugging button
+   still rendered at two different widths. Forcing both to width:100% of
+   their (already-equal, 1fr 1fr) grid column, and removing the empty
+   state's max-width within this context, makes them pixel-identical
+   regardless of which state either column is in. Scoped to
+   .biz-market-section so Memory's own empty-state button (a different
+   class, .biz-empty-cta) is unaffected. */
+.biz-market-section .biz-empty { max-width: none; align-items: stretch; }
+.biz-market-section .biz-add-btn {
+  width: 100%;
+  justify-content: center;
+  align-self: stretch;
+  margin-top: 12px;
+}
+
 /* ══════════════════════════════════════════════════════════════════
    BUSINESS — Command Center redesign. Reuses every existing .biz-*/
    .oi-card/.ov3-* primitive and real data source (business/health,
@@ -39759,8 +39780,18 @@ body.dark-mode .adm-panel-adsets-wrap { border-top-color: rgba(255,255,255,.08);
 /* Launch — inline credit-cost indicator next to the Build Campaign button.
    Appended at end of file per this codebase's established workaround for
    rules silently dropping from parsed CSSOM when inserted into dense
-   original regions -- see prior fixes in this file for the same note. */
-.cr2-gen-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+   original regions -- see prior fixes in this file for the same note.
+
+   Anchored bottom-right of the composer footer: .cr2-gen-row previously
+   had no explicit `order`, so — sharing .cr2-box-foot's flex row with
+   .cr2-foot-controls (also order:0) — it landed on the FIRST line next to
+   the platform/attach-image controls, above the Campaign Goal/Objective/
+   Structure sections (each order:2, forced onto their own full-width
+   rows below it). order:3 + flex-basis:100% puts it on its own row after
+   all of those instead; justify-content:flex-end keeps the cost text and
+   button grouped together at the right edge rather than spread across
+   the row. */
+.cr2-gen-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; order: 3; flex-basis: 100%; width: 100%; }
 .cr2-gen-cost { font-size: 11.5px; opacity: .55; font-variant-numeric: tabular-nums; }
 
 /* Team page redesign — canonical page-header rhythm + KPI row + project/

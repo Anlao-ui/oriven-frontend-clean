@@ -682,11 +682,11 @@
             </div>
 
             <div class="cr2-gen-row">
+              <div class="cr2-gen-cost" id="aicGenCost"></div>
               <button class="cr2-gen-btn" id="aicGenBtn" onclick="aicGenerate()">
                 <span data-i18n="dashCampaignLabel">Build Campaign</span>
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
               </button>
-              <div class="cr2-gen-cost" id="aicGenCost"></div>
             </div>
           </div>
         </div>
@@ -1054,7 +1054,7 @@
         <div class="intel-tab-panel" id="bizPanelOverview">
           <div id="bizHealthBody" style="display:flex;flex-direction:column;gap:16px"></div>
 
-          <div class="biz-ov-section">
+          <div class="biz-ov-section biz-ov-section-last">
             <div class="biz-ov-row-7-5">
               <div class="biz-ov-col7">
                 <div class="biz-ov-sh"><div class="ov3-sh-label" data-i18n="bizProfileSummaryLabel">Business Profile</div>
@@ -1069,7 +1069,7 @@
             </div>
           </div>
 
-          <div id="bizLearningSection" class="biz-ov-section" style="display:none">
+          <div id="bizLearningSection" class="biz-ov-section biz-ov-section-last" style="display:none">
             <div class="biz-ov-sh">
               <div class="ov3-sh-label" data-i18n="bizLearningLabel">Learning</div>
               <button class="ov3-sh-btn" onclick="bizLoadReflection()" data-i18n="bizGetReflectionBtn">Get a reflection</button>
@@ -1077,14 +1077,6 @@
             <div id="bizLearningStats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:12px"></div>
             <div id="bizReflectionBody" style="margin-bottom:12px"></div>
             <div id="bizRecentLearningsBody" style="display:flex;flex-direction:column;gap:8px"></div>
-          </div>
-
-          <div class="biz-ov-section biz-ov-section-last">
-            <div class="biz-ov-sh biz-ov-sh-col">
-              <div class="ov3-sh-label" data-i18n="bizInsightsLabel">Business Insights</div>
-              <p class="biz-ov-sh-sub" data-i18n="bizInsightsSub">How your business knowledge is influencing Oriven's recommendations.</p>
-            </div>
-            <div id="bizInsightsBody" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
 
         </div>
@@ -1119,11 +1111,6 @@
              "Brand" page / Brand Brain). -->
         <div class="intel-tab-panel" id="bizPanelBrand" style="display:none">
           <div class="biz-ai-feedback" id="bizFeedbackBrand" style="display:none;margin-bottom:16px"></div>
-          <div class="biz-kcard biz-kcard-wide" style="margin-bottom:24px">
-            <div class="biz-kcard-hd"><div class="biz-kcard-ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M2 10.5V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H6l-3 2.5v-1z"/></svg></div><div class="biz-kcard-title" data-i18n="bizVoiceCardTitle">Brand Voice</div></div>
-            <div class="biz-kcard-sub" data-i18n="bizVoiceCardSub">Pick the traits that describe how your brand sounds. Oriven uses these in every headline and script it writes.</div>
-            <div class="biz-chip-row" id="bizVoiceChips"></div>
-          </div>
 
       <!-- ════════════════════════════════════════════════════════
            BRAND BRAIN — living brand intelligence system
@@ -1164,7 +1151,6 @@
             <button class="bb-tab" onclick="bbTab('identity',this)">Identity</button>
             <button class="bb-tab" onclick="bbTab('voice',this)">Voice</button>
             <button class="bb-tab" onclick="bbTab('visuals',this)">Visuals</button>
-            <button class="bb-tab" onclick="bbTab('assets',this)">Assets</button>
           </div>
 
           <!-- ── OVERVIEW ── -->
@@ -1235,8 +1221,19 @@
             </div>
           </div>
 
-          <!-- ── VOICE ── -->
+          <!-- ── VOICE — brand voice (traits + tone) plus visual direction/
+               guidance, since both are creative-direction concepts that
+               belong with how the brand communicates. The trait-chip picker
+               (#bizVoiceChips) previously lived as its own standalone card
+               above the tab bar (a duplicate "Brand Voice" entry point,
+               separate from this Tone of Voice card below) -- moved in here
+               as the single home for brand voice. ── -->
           <div class="bb-pane" id="bb-pane-voice">
+            <div class="biz-kcard" style="margin-bottom:20px">
+              <div class="biz-kcard-hd"><div class="biz-kcard-ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M2 10.5V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H6l-3 2.5v-1z"/></svg></div><div class="biz-kcard-title" data-i18n="bizVoiceCardTitle">Brand Voice</div></div>
+              <div class="biz-kcard-sub" data-i18n="bizVoiceCardSub">Pick the traits that describe how your brand sounds. Oriven uses these in every headline and script it writes.</div>
+              <div class="biz-chip-row" id="bizVoiceChips"></div>
+            </div>
             <div class="bb-section">
               <div class="bb-section-hd-row">
                 <span class="bb-section-hd">Tone of Voice</span>
@@ -1247,9 +1244,23 @@
               </div>
               <div class="bcp-tone-card" id="bcProfileTone"></div>
             </div>
+            <div class="bb-section">
+              <div class="bb-section-hd-row">
+                <span class="bb-section-hd">Visual Direction</span>
+                <div class="bb-sec-actions">
+                  <button class="bb-sec-edit-btn" onclick="bcpEdit('visualDirection','bcProfileVisual')">Edit</button>
+                  <button class="bb-sec-regen-btn" onclick="bcpRegenSection('visualDirection','bcProfileVisual')">↻ AI</button>
+                </div>
+              </div>
+              <div class="bcp-visual-block" id="bcProfileVisual"></div>
+            </div>
           </div>
 
-          <!-- ── VISUALS ── -->
+          <!-- ── VISUALS — the single home for the visual brand system:
+               colors, typography, logo. Visual References (moodboard) was
+               removed (not part of the requested Color System/Typography/
+               Logo scope); the separate Assets tab was removed and its
+               Logo System section moved in here. ── -->
           <div class="bb-pane" id="bb-pane-visuals">
             <div class="bb-section">
               <div class="bb-section-hd">Color System</div>
@@ -1260,35 +1271,11 @@
               <div class="bcp-typo-grid" id="bcProfileTypo"></div>
             </div>
             <div class="bb-section">
-              <div class="bb-section-hd">Visual Direction</div>
-              <div class="bcp-visual-block" id="bcProfileVisual"></div>
-            </div>
-            <div id="bcProfileMoodboard">
-              <div class="bb-section-hd" style="margin-bottom:14px">Visual References</div>
-              <div class="bb-mood-grid" id="bcMoodGrid"></div>
-              <button class="bb-mood-add" onclick="bcAddVisualRef()">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="13" height="13"><path d="M8 2v12M2 8h12"/></svg>
-                Add Reference Image
-              </button>
-              <input type="file" id="bcMoodInput" accept="image/*" multiple style="display:none" onchange="bcHandleMoodUpload(this)">
-            </div>
-          </div>
-
-          <!-- ── ASSETS ── -->
-          <div class="bb-pane" id="bb-pane-assets">
-            <div class="bb-section">
               <div class="bb-section-hd" style="display:flex;align-items:center;justify-content:space-between">
                 <span>Logo System</span>
                 <button class="bb-act-btn" onclick="openLogoAIModal()">Generate with AI</button>
               </div>
               <div id="bcProfileLogos"></div>
-            </div>
-            <div class="bb-section">
-              <div class="bb-section-hd" style="display:flex;align-items:center;justify-content:space-between">
-                <span>Saved Assets</span>
-                <button class="bb-act-btn" onclick="switchStudioTab('saved')">View All</button>
-              </div>
-              <div class="bb-assets-preview" id="bb-assets-preview"></div>
             </div>
           </div>
 
@@ -12478,7 +12465,6 @@ function bizLoadOverview(){
     _bizRenderProfileSummary();
   }).catch(function(){ body.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">Could not load business health.</span>'; });
 
-  bizLoadInsights();
   bizLoadDashboard();
 }
 
@@ -12621,20 +12607,6 @@ window.bizLoadReflection = function(){
     body.innerHTML = html;
   }).catch(function(){ body.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">Could not generate a reflection.</span>'; });
 };
-
-/* ── Business Insights (Epic 9/10) ── */
-function bizLoadInsights(){
-  var body = document.getElementById('bizInsightsBody');
-  if(!body) return;
-  _bizLoading(body, 'Connecting your business knowledge to real performance…');
-  apiFetch('/api/business/insights').then(function(res){
-    if(!res.ok || !res.data){ body.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">Could not load business insights.</span>'; return; }
-    var d = res.data;
-    if(d.note){ body.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">' + _prfEsc(d.note) + '</span>'; return; }
-    if(!d.insights || !d.insights.length){ body.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">Nothing notable yet — check back once there\'s more performance data.</span>'; return; }
-    body.innerHTML = d.insights.map(function(i){ return window._renderInsightCard({ title: i.title, detail: i.detail }); }).join('');
-  }).catch(function(){ body.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">Could not load business insights.</span>'; });
-}
 
 /* ── Knowledge Validation (Epic 8) ── */
 window.bizRunValidation = function(){
@@ -12844,13 +12816,16 @@ function _bizEmptyState(kind){
   if(!cfg) return '';
   // Same button class the populated-state "trailing add" button uses
   // (bizRenderList below) -- was .biz-empty-cta, a visually different
-  // (smaller/bolder/filled) button, which made Audience and Competitor
-  // look mismatched whenever one list was empty and the other wasn't.
-  // One shared class now, for every kind and every state.
+  // (smaller/bolder/filled) button. Text also now comes from the SAME
+  // BIZ_ADD_LABELS constant the populated state uses (was previously a
+  // separate BIZ_EMPTY_STATES[kind].cta string -- "Add Audience" vs.
+  // populated state's "Add an audience", different lengths), so both
+  // states render identical text, not just identical classes.
+  var label = (typeof BIZ_ADD_LABELS !== 'undefined' && BIZ_ADD_LABELS[kind]) || cfg.cta;
   return '<div class="biz-empty">' +
     '<div class="biz-empty-title">' + _prfEsc(cfg.title) + '</div>' +
     '<p class="biz-empty-sub">' + _prfEsc(cfg.sub) + '</p>' +
-    '<button type="button" class="biz-add-btn biz-add-btn-trailing" onclick="bizAddItem(\'' + kind + '\')">+ ' + _prfEsc(cfg.cta) + '</button>' +
+    '<button type="button" class="biz-add-btn biz-add-btn-trailing" onclick="bizAddItem(\'' + kind + '\')">+ ' + _prfEsc(label) + '</button>' +
   '</div>';
 }
 
@@ -17201,17 +17176,30 @@ window.rptExport = function(format) {
     var creativeCount = _cgrCreativeCount(pkg, platform || pkg.platform || window._ov3Platform || 'google');
     console.log('[cgr] Image generation — ad structure requires', creativeCount, 'creative(s) (visualConcepts available:', pool.length, ')');
 
+    // Attached images (Launch's existing "Attach Image" feature,
+    // window._ov3Assets) map one-to-one onto the first N ad slots, in
+    // order -- the user's own supplied creative becomes that slot's actual
+    // ad image instead of an AI-generated one. Slots beyond the number of
+    // attached images fall back to normal generation, unchanged.
+    var attachedImages = (window._ov3Assets || []).map(function(a){ return a.data; });
+
     _cgrImagePrompts = [];
     for(var i=0;i<creativeCount;i++){
       var src = pool[i % pool.length];
       var ref = creativeCount > pool.length ? (src.ref + ' — Ad ' + (i+1)) : src.ref;
-      _cgrImagePrompts.push({ prompt: src.prompt, ref: ref, adIndex: i });
+      var task = { prompt: src.prompt, ref: ref, adIndex: i };
+      if(attachedImages[i]) task.attachedImage = attachedImages[i];
+      _cgrImagePrompts.push(task);
     }
-    console.log('[cgr] Queuing', _cgrImagePrompts.length, 'image(s)');
+    console.log('[cgr] Queuing', _cgrImagePrompts.length, 'image(s) —', _cgrImagePrompts.filter(function(t){return t.attachedImage;}).length, 'from attached images');
 
     section.style.display = '';
     if(pill){ pill.textContent = 'Generating…'; pill.className = 'cgr2-gen-pill'; }
-    _cgrShowCreativeCostPill(pill, _cgrImagePrompts.length, 'image_generation', 'image');
+    // Cost preview only counts slots that will actually call
+    // /api/generate-image -- attached-image slots never reserve
+    // image_generation credits, so they must not appear in the estimate.
+    var generatingCount = _cgrImagePrompts.filter(function(t){ return !t.attachedImage; }).length;
+    _cgrShowCreativeCostPill(pill, generatingCount, 'image_generation', 'image');
 
     /* Render skeleton cards */
     grid.innerHTML = _cgrImagePrompts.map(function(t, i){
@@ -17242,17 +17230,56 @@ window.rptExport = function(format) {
             +'</div></div>';
         }
         done++;
-        if(done===total && pill){ pill.textContent=total+' image'+(total===1?'':'s')+' generated'; pill.className='cgr2-gen-pill done'; }
+        if(done===total && pill){ pill.textContent=total+' image'+(total===1?'':'s')+' ready'; pill.className='cgr2-gen-pill done'; }
+      } else if(task.attachedImage){
+        _applyAttachedCreative(task, i);
+        done++;
+        if(done===total && pill){ pill.textContent=total+' image'+(total===1?'':'s')+' ready'; pill.className='cgr2-gen-pill done'; }
       } else {
         _generateOneCreative(task.prompt, task.ref, i, function(){
           done++;
           if(done === total && pill){
-            pill.textContent = total + ' images generated';
+            pill.textContent = total + ' image' + (total===1?'':'s') + ' ready';
             pill.className = 'cgr2-gen-pill done';
           }
         });
       }
     });
+  }
+
+  /* Uses the user's own attached image directly as an ad slot's creative --
+     no /api/generate-image call, no image_generation credit charge (that
+     charge only ever fires from the API call _generateOneCreative makes,
+     which this path deliberately never reaches). Mirrors _generateOneCreative's
+     persistence (pkg.visualConcepts[idx].generatedImageUrl, Meta Studio
+     buffer sync) exactly, so downstream readers (publish, previews,
+     thumbnails) can't tell the difference between a generated and an
+     attached image -- both just end up as a real generatedImageUrl. */
+  function _applyAttachedCreative(task, idx){
+    var url = task.attachedImage;
+    if(_cgrPkg && _cgrPkg.visualConcepts && _cgrPkg.visualConcepts[idx]){
+      _cgrPkg.visualConcepts[idx].generatedImageUrl = url;
+      if(typeof window._orvUpdateCampPkg==='function' && window._cgrCurrentCampId){
+        window._orvUpdateCampPkg(window._cgrCurrentCampId, _cgrPkg);
+      }
+      if(typeof _cst !== 'undefined' && _cst.pkg && _cst.pkg.visualConcepts && _cst.pkg.visualConcepts[idx]){
+        _cst.pkg.visualConcepts[idx].generatedImageUrl = url;
+        if(typeof _cstRenderActiveStage === 'function') _cstRenderActiveStage();
+      }
+    }
+    var card = document.getElementById('cgc'+idx);
+    if(!card) return;
+    card.className = 'cgr-creative-card';
+    card.innerHTML = '<div class="cgr-creative-img-wrap">'
+      + '<img class="cgr-creative-img" src="'+_esc(url)+'" alt="'+_esc(task.ref)+' ad creative" loading="lazy">'
+      + '</div>'
+      + '<div class="cgr-creative-card-body">'
+      + '<div class="cgr-creative-ref">'+_esc(task.ref)+' · your image</div>'
+      + '<div class="cgr-creative-actions">'
+      + '<button class="cgr-crv-btn" onclick="cgrDownloadImage(\''+_esc(url)+'\',\''+_esc(task.ref)+'\')">↓ Download</button>'
+      + '<button class="cgr-crv-btn" onclick="cgrRegenCreative('+idx+')">↺ Generate Instead</button>'
+      + '</div>'
+      + '</div>';
   }
 
   function _generateOneCreative(prompt, ref, idx, onDone){
@@ -17679,11 +17706,13 @@ function _cr2RenderStructSection(plat){
 function _cr2StructCardsHtml(lbl, st){
   var groups = Math.max(1, Math.min(5, parseInt(st.groups,10) || 1));
   var adsPerGroup = Math.max(1, Math.min(5, parseInt(st.adsPerGroup,10) || 1));
+  // "Total Ads" summary removed — redundant with the two pip controls
+  // directly above it (groups × per-group), which already show the ad
+  // structure the user just configured.
   return '<div class="cst2-struct-row">'
     + _cr2StructCardHtml('groups', lbl.unitPlural, groups, lbl.unitSing, lbl.unitPlural)
     + _cr2StructCardHtml('adsPerGroup', lbl.per, adsPerGroup, lbl.perSing, lbl.per)
-    + '</div>'
-    + '<div class="cst2-struct-total"><span class="cst2-struct-total-lbl">Total Ads</span><span class="cst2-struct-total-val" id="cst2StructTotal">'+(groups*adsPerGroup)+'</span></div>';
+    + '</div>';
 }
 function _cr2Esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function _cr2StructCardHtml(key, headLabel, value, unitSing, unitPlural){
