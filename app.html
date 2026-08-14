@@ -15542,17 +15542,30 @@ window.rptExport = function(format) {
   // overlay, own inline styles) so it works from every cgrPublishTo call
   // site regardless of the surrounding page's light/dark theme, and
   // touches no other Meta/TikTok/non-policy-Google error path.
+  // Every field below the title/status line is Google's own data, verbatim
+  // (topic/type/resource/message) -- Oriven's own wrapper text
+  // (policy.summary, the sentence built server-side for the plain-text
+  // toast fallback elsewhere) is deliberately NEVER shown in this card, so
+  // nothing here could be mistaken for something Google itself said. A
+  // field Google didn't provide gets its own honest "not provided" line
+  // instead of falling back to Oriven's summary or being silently omitted.
   function _gadsShowPolicyErrorCard(policy){
     function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    var sectionLabelStyle = 'font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px';
     var topicsHtml = (policy.topics && policy.topics.length)
       ? policy.topics.map(function(t){
-          return '<div style="font-size:13px;color:#fff;margin-bottom:2px">' + esc(t.topic || t.type || 'Unknown topic') +
-            (t.type && t.topic ? ' <span style="color:rgba(255,255,255,.4)">(' + esc(t.type) + ')</span>' : '') + '</div>';
+          return '<div style="font-size:13px;color:#fff;margin-bottom:8px">' +
+            '<div>' + esc(t.topic || 'Unknown topic') + '</div>' +
+            (t.type ? '<div style="' + sectionLabelStyle + ';margin-top:4px;margin-bottom:2px">Type</div><div style="color:rgba(255,255,255,.75)">' + esc(t.type) + '</div>' : '') +
+            '</div>';
         }).join('')
       : '<div style="font-size:13px;color:rgba(255,255,255,.75)">Google did not provide additional policy details.</div>';
     var resourceLine = policy.resourceType
       ? esc(policy.resourceType) + (policy.operationIndex != null ? ' <span style="color:rgba(255,255,255,.4)">(operation ' + esc(policy.operationIndex) + ')</span>' : '')
       : 'Google did not provide the rejected resource type.';
+    var detailsLine = policy.googleMessage
+      ? esc(policy.googleMessage)
+      : 'Google did not provide an additional message for this rejection.';
 
     var overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;';
@@ -15561,12 +15574,12 @@ window.rptExport = function(format) {
     card.innerHTML =
       '<div style="font-size:15px;font-weight:700;color:#f87171;margin-bottom:4px">Google Ads rejected the campaign</div>' +
       '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:18px">The campaign was not published. No partial campaign was left in your account.</div>' +
-      '<div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">Policy issue</div>' +
+      '<div style="' + sectionLabelStyle + '">Google policy finding</div>' +
       '<div style="margin-bottom:16px">' + topicsHtml + '</div>' +
-      '<div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">Resource</div>' +
+      '<div style="' + sectionLabelStyle + '">Resource</div>' +
       '<div style="margin-bottom:16px;font-size:13px">' + resourceLine + '</div>' +
-      '<div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">Details</div>' +
-      '<div style="margin-bottom:22px;font-size:13px;color:rgba(255,255,255,.75);line-height:1.5">' + esc(policy.googleMessage || policy.summary || 'No further details were provided by Google.') + '</div>' +
+      '<div style="' + sectionLabelStyle + '">Details</div>' +
+      '<div style="margin-bottom:22px;font-size:13px;color:rgba(255,255,255,.75);line-height:1.5">' + detailsLine + '</div>' +
       '<button type="button" id="gadsPolicyErrClose" style="width:100%;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:600;cursor:pointer">Close</button>';
     overlay.appendChild(card);
     document.body.appendChild(overlay);
