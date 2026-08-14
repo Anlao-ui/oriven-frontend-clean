@@ -1446,7 +1446,6 @@
             <div class="con-card-foot">
               <button class="con-btn-connect" id="conBtnGoogle" onclick="conConnect('google')" data-i18n="conConnectGoogleBtn">Connect Google Ads →</button>
               <button class="con-btn-disconnect" id="conBtnGoogleDisc" style="display:none" onclick="conDisconnect('google')" data-i18n="conDisconnectBtn">Disconnect</button>
-              <button class="con-btn-refresh" id="conBtnGoogleRefresh" style="display:none" onclick="conRefreshGoogleAccounts(this)">Refresh accounts</button>
             </div>
           </div>
 
@@ -10225,7 +10224,6 @@ function _conApplyCard(platform, connected, detail) {
   var bizEl    = platform === 'meta' ? document.getElementById('conBizMeta') : null;
   var pageEl   = platform === 'meta' ? document.getElementById('conPageMeta') : null;
   var emailEl  = platform === 'google' ? document.getElementById('conEmailGoogle') : null;
-  var refreshBtn = platform === 'google' ? document.getElementById('conBtnGoogleRefresh') : null;
 
   var dotHtml = connected
     ? '<div class="con-dot con-dot-on"></div>' + (typeof t==='function'?t('conStatusConnected'):'Connected')
@@ -10244,7 +10242,6 @@ function _conApplyCard(platform, connected, detail) {
     // once real Ads accounts start showing there too.
     if (emailEl) emailEl.textContent = detail.email || '—';
   }
-  if (refreshBtn) refreshBtn.style.display = connected ? '' : 'none';
 
   /* Sync into the platform data store so overview + performance pages stay consistent */
   if (!window._orvPlatformData) window._orvPlatformData = { google:{connected:false}, meta:{connected:false}, tiktok:{connected:false} };
@@ -10283,8 +10280,15 @@ function _conFetchStatus(platform) {
         if (platform === 'google') {
           var accs = d.google_ads_accounts || [];
           var selectedAcc = d.active_ad_account && d.active_ad_account.account_name;
+          // True only for the very first render of this page session, when
+          // nothing is cached yet and the auto-fetch below is about to run
+          // for the first time -- shows a real loading state instead of a
+          // misleading "no accounts" flash.
+          var isFirstAutoFetch = !window._gadsAccountsAutoLoaded && !accs.length && !d.google_ads_accounts_error;
           var accSummary;
-          if (d.google_ads_accounts_error && !accs.length) {
+          if (isFirstAutoFetch) {
+            accSummary = 'Loading Google Ads accounts…';
+          } else if (d.google_ads_accounts_error && !accs.length) {
             // Discovery genuinely failed (bad dev token, expired
             // credentials, API error) -- an honest error, never a silent
             // "0 accounts" that looks identical to "this account really
@@ -10308,6 +10312,26 @@ function _conFetchStatus(platform) {
             }
           }
           setTimeout(function() { _conRenderAccountList('google', accs, d.active_ad_account); }, 0);
+
+          // Automatic account loading -- the user should never have to
+          // click anything for real accounts to appear. Calls the same
+          // real discovery endpoint the old manual "Refresh accounts"
+          // button used to call, exactly ONCE per Connections-page
+          // session (guarded by window._gadsAccountsAutoLoaded), so
+          // repeated initIntegrations()/tab-switch/re-render calls never
+          // trigger a second Google Ads API request. A fresh connection
+          // always gets a fresh attempt naturally, since conConnect()
+          // navigates away to Google's OAuth consent screen and back --
+          // a full page reload resets this flag along with everything
+          // else in `window`.
+          if (!window._gadsAccountsAutoLoaded) {
+            window._gadsAccountsAutoLoaded = true;
+            apiFetch('/api/google/accounts').then(function() {
+              _conFetchStatus('google');
+            }).catch(function() {
+              _conFetchStatus('google');
+            });
+          }
         } else if (platform === 'meta') {
           var mAccs = d.meta_ads_accounts || [];
           var mPages = d.meta_pages || [];
@@ -10422,32 +10446,6 @@ window.conSetActive = function(platform, accountId, accountName, extra) {
     })
     .catch(function() {
       if (typeof toast === 'function') toast('Network error — please try again', 'err');
-    });
-};
-
-/* "Refresh accounts" — re-queries Google's API using the user's existing
-   OAuth credentials (GET /api/google/accounts, already does real discovery
-   + persistence) so newly added Google Ads accounts can appear without
-   reconnecting. Does not call Google on every render -- only on this
-   explicit user action, matching the existing "no small-render fetch loop"
-   pattern the rest of the Connections page already follows. */
-window.conRefreshGoogleAccounts = function(btn) {
-  var original = btn ? btn.textContent : null;
-  if (btn) { btn.disabled = true; btn.textContent = 'Refreshing…'; }
-  apiFetch('/api/google/accounts')
-    .then(function(r) {
-      if (r.ok) {
-        if (typeof toast === 'function') toast((r.data.accounts || []).length + ' account(s) found');
-        _conFetchStatus('google');
-      } else {
-        if (typeof toast === 'function') toast((r.data && r.data.error) || 'Could not refresh accounts', 'err');
-      }
-    })
-    .catch(function() {
-      if (typeof toast === 'function') toast('Network error — please try again', 'err');
-    })
-    .finally(function() {
-      if (btn) { btn.disabled = false; btn.textContent = original; }
     });
 };
 
