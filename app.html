@@ -592,8 +592,10 @@
             onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter')aicGenerate()"
           ></textarea>
 
-          <!-- Attached reference image thumbnails (hidden until non-empty) -->
+          <!-- Attached creative images -- these BECOME the ad's actual visual (hidden until non-empty) -->
           <div class="ov3-assets-strip" id="ov3AssetsStrip" style="display:none"></div>
+          <!-- Attached product reference material -- AI context/input only, never the final creative (hidden until non-empty) -->
+          <div class="ov3-assets-strip ov3-assets-strip-product" id="ov3ProductAssetsStrip" style="display:none"></div>
 
           <div class="cr2-box-foot">
             <div class="cr2-foot-controls">
@@ -619,12 +621,36 @@
                 <button class="ov3-mode-btn" onclick="ov3SetMode('videos',this)" data-i18n="genModeVideo">Video</button>
               </div>
 
-              <label class="ov3-tool-btn" id="ov3RefImgBtn" for="ov3AssetInput">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="4" width="12" height="9" rx="1.5"/><path d="M2 9l3.5-3 3 3 2-2 3.5 3"/><circle cx="11.5" cy="7" r="1"/></svg>
-                <span data-i18n="attachImageBtn">Attach Image</span>
-                <span class="ov3-asset-count" id="ov3AssetCount" style="display:none">0</span>
-              </label>
-              <input type="file" id="ov3AssetInput" multiple accept="image/*" style="display:none" onchange="ov3HandleAssets(this)">
+              <!-- Attach Image: a finished visual the user supplies AS the
+                   ad creative itself (drives _applyAttachedCreative --
+                   becomes the actual generatedImageUrl for its ad slot, no
+                   image_generation charge). Attach Product: product/
+                   business reference material the AI should use as INPUT
+                   when creating the creative -- never becomes the final
+                   image itself, only informs generation (sent as the
+                   existing productImages context field). Two fundamentally
+                   different inputs, so two distinct buttons/labels rather
+                   than one ambiguous "attach" control. Wrapped in a shared
+                   .cr2-foot-group (same pattern as the platform pills above)
+                   so .cr2-foot-controls' flex-wrap treats them as ONE unit --
+                   they wrap to a new line together and stay side-by-side,
+                   instead of flex-wrap splitting them onto separate lines
+                   independently once earlier controls eat up row width. -->
+              <div class="cr2-foot-group" role="group" aria-label="Attach">
+                <label class="ov3-tool-btn" id="ov3RefImgBtn" for="ov3AssetInput" title="Use an existing image as the ad creative">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="4" width="12" height="9" rx="1.5"/><path d="M2 9l3.5-3 3 3 2-2 3.5 3"/><circle cx="11.5" cy="7" r="1"/></svg>
+                  <span data-i18n="attachImageBtn">Attach Image</span>
+                  <span class="ov3-asset-count" id="ov3AssetCount" style="display:none">0</span>
+                </label>
+                <input type="file" id="ov3AssetInput" multiple accept="image/*" style="display:none" onchange="ov3HandleAssets(this)">
+
+                <label class="ov3-tool-btn" id="ov3ProductBtn" for="ov3ProductAssetInput" title="Give AI a product to feature in the ad">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M8 2l5.5 3.2v5.6L8 14l-5.5-3.2V5.2z"/><path d="M2.5 5.2L8 8.4l5.5-3.2M8 8.4V14"/></svg>
+                  <span data-i18n="attachProductBtn">Attach Product</span>
+                  <span class="ov3-asset-count" id="ov3ProductAssetCount" style="display:none">0</span>
+                </label>
+                <input type="file" id="ov3ProductAssetInput" multiple accept="image/*" style="display:none" onchange="ov3HandleProductAssets(this)">
+              </div>
             </div>
 
             <!-- Campaign Goal — required, right after platform selection.
@@ -1505,6 +1531,7 @@
             </div>
             <!-- Account list injected here when connected -->
             <div id="conAcctListTiktok" class="con-acct-list" style="display:none"></div>
+            <div id="conAcctErrTiktok" class="con-acct-err" style="display:none"></div>
             <div class="con-card-foot">
               <button class="con-btn-connect" id="conBtnTiktok" onclick="conConnect('tiktok')" data-i18n="conConnectTiktokBtn">Connect TikTok Ads →</button>
               <button class="con-btn-disconnect" id="conBtnTiktokDisc" style="display:none" onclick="conDisconnect('tiktok')" data-i18n="conDisconnectBtn">Disconnect</button>
@@ -10346,9 +10373,48 @@ function _conFetchStatus(platform) {
           setTimeout(function() { _conRenderPageList(mPages, d.active_page); }, 0);
         } else if (platform === 'tiktok') {
           var tAccs = d.tiktok_ads_accounts || [];
-          detail = { displayName: d.tiktok_display_name || '—', accounts: tAccs.length ? tAccs.length + ' account' + (tAccs.length !== 1 ? 's' : '') : '—' };
+          var tIsFirstAutoFetch = !window._tadsAccountsAutoLoaded && !tAccs.length;
+          var tAccSummary;
+          if (tIsFirstAutoFetch) {
+            tAccSummary = 'Loading TikTok Ads accounts…';
+          } else if (!tAccs.length) {
+            tAccSummary = 'No TikTok Ads accounts are accessible with this TikTok account.';
+          } else {
+            tAccSummary = tAccs.length + ' account' + (tAccs.length !== 1 ? 's' : '');
+          }
+          detail = { displayName: d.tiktok_display_name || '—', accounts: tAccSummary };
           if (d.active_ad_account && d.active_ad_account.account_id) window._activeTadsAccount = d.active_ad_account;
           setTimeout(function() { _conRenderAccountList('tiktok', tAccs, d.active_ad_account); }, 0);
+
+          // Automatic account loading -- same pattern as Google (see the
+          // comment on window._gadsAccountsAutoLoaded above): calls the
+          // real discovery endpoint exactly ONCE per Connections-page
+          // session, guarded by window._tadsAccountsAutoLoaded, so
+          // repeated status checks/tab-switches never trigger a second
+          // TikTok Marketing API request. A fresh connection naturally
+          // gets its own fresh attempt, since conConnect() navigates away
+          // to TikTok's OAuth screen and back (full page reload).
+          if (!window._tadsAccountsAutoLoaded) {
+            window._tadsAccountsAutoLoaded = true;
+            var tErrEl = document.getElementById('conAcctErrTiktok');
+            apiFetch('/api/tiktok/accounts').then(function(r) {
+              if (!r.ok) {
+                // GET /api/tiktok/accounts throws (and this route surfaces)
+                // a real error on discovery failure -- never silently
+                // treated as "0 accounts".
+                if (tErrEl) {
+                  tErrEl.textContent = 'Could not load your TikTok Ads accounts: ' + ((r.data && r.data.error) || 'Unknown error');
+                  tErrEl.style.display = '';
+                }
+              } else if (tErrEl) {
+                tErrEl.style.display = 'none';
+                tErrEl.textContent = '';
+              }
+              _conFetchStatus('tiktok');
+            }).catch(function() {
+              _conFetchStatus('tiktok');
+            });
+          }
         }
       } else {
         /* Hide account list when disconnected */
@@ -17226,6 +17292,15 @@ window.rptExport = function(format) {
   }
 
   function _startCreativesGeneration(pkg, platform){
+    var _resolvedPlatform = platform || pkg.platform || window._ov3Platform || 'google';
+    // Performance Max needs 3 aspect-ratio VARIANTS of the SAME creative
+    // concept (a horizontal/square/vertical asset group), not N separate
+    // ad slots -- a fundamentally different shape from every other
+    // platform's "one image per ad" loop below, so it gets its own path.
+    if(_resolvedPlatform === 'google' && window._ov3GoogleCampaignType === 'PERFORMANCE_MAX'){
+      _startGoogleAssetGeneration(pkg);
+      return;
+    }
     var section = document.getElementById('cgrCreativesSection');
     var grid    = document.getElementById('cgrCreativesGrid');
     var pill    = document.getElementById('cgrCreativesPill');
@@ -17354,6 +17429,198 @@ window.rptExport = function(format) {
       + '<div class="cgr-creative-actions">'
       + '<button class="cgr-crv-btn" onclick="cgrDownloadImage(\''+_esc(url)+'\',\''+_esc(task.ref)+'\')">↓ Download</button>'
       + '<button class="cgr-crv-btn" onclick="cgrRegenCreative('+idx+')">↺ Generate Instead</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  /* ── Google Ads campaign-type-aware creative asset planning ─────────
+     Single source of truth for "how many image assets does this Google
+     campaign type need, and at what aspect ratio/size" -- per Google's own
+     Performance Max asset-group recommendations, deliberately capped at
+     ONE core asset per required ratio (not Google's full recommended set
+     of up to ~20) to keep AI generation cost controlled and predictable.
+     Search and any other/unset Google campaign type get the existing
+     single-square-image behavior -- never invent unsupported asset
+     requirements for a type this codebase doesn't model asset groups for. */
+  function _getGoogleCreativeAssetPlan(campaignType){
+    if(campaignType === 'PERFORMANCE_MAX'){
+      return [
+        { key:'horizontal', sub:'1.91:1', size:'1200x628',  label:'Google Asset — Horizontal' },
+        { key:'square',     sub:'1:1',    size:'1200x1200', label:'Google Asset — Square' },
+        { key:'vertical',   sub:'4:5',    size:'960x1200',  label:'Google Asset — Vertical' }
+      ];
+    }
+    // Search (and any other Google campaign type): preserve the existing
+    // single-image behavior. No landscape variant added here -- the
+    // existing publish pipeline has never consumed more than one Search
+    // image, so a second would be pure unused generation cost.
+    return [ { key:'square', sub:'1:1', size:'1200x1200', label:'Ad Creative' } ];
+  }
+  window._getGoogleCreativeAssetPlan = _getGoogleCreativeAssetPlan;
+
+  /* Classifies a supplied image's REAL pixel aspect ratio against the 3
+     PMax target ratios (log-scale distance so a wide image and a tall
+     image are compared symmetrically around 1:1) -- this is how "the user
+     attached a square image" gets recognized automatically, without
+     requiring the user to manually label which slot each attachment is for. */
+  function _ov3ClassifyAssetRatio(width, height){
+    var ratio = width / height;
+    var targets = [
+      { key:'horizontal', ratio: 1200/628 },
+      { key:'square',     ratio: 1 },
+      { key:'vertical',   ratio: 960/1200 }
+    ];
+    var best = targets[1].key, bestDiff = Infinity;
+    targets.forEach(function(t){
+      var diff = Math.abs(Math.log(ratio) - Math.log(t.ratio));
+      if(diff < bestDiff){ bestDiff = diff; best = t.key; }
+    });
+    return best;
+  }
+  window._ov3ClassifyAssetRatio = _ov3ClassifyAssetRatio;
+
+  /* Loads each Attach Image asset to read its real dimensions and classify
+     it into a PMax slot. First attached image matching a given ratio wins
+     that slot ("one supplied image can be associated with the intended
+     ad/creative" -- not every attachment forced into every slot). */
+  function _ov3ClassifyAttachedImages(){
+    return new Promise(function(resolve){
+      var assets = window._ov3Assets || [];
+      if(!assets.length) return resolve({});
+      var map = {};
+      var remaining = assets.length;
+      function done(){ remaining--; if(remaining <= 0) resolve(map); }
+      assets.forEach(function(a){
+        var img = new Image();
+        img.onload = function(){
+          var key = _ov3ClassifyAssetRatio(img.naturalWidth, img.naturalHeight);
+          if(!map[key]) map[key] = a.data;
+          done();
+        };
+        img.onerror = done;
+        img.src = a.data;
+      });
+    });
+  }
+
+  /* Performance Max asset-group generation -- 3 aspect-ratio VARIANTS of
+     ONE creative concept, not 3 separate ads (same base prompt, adapted
+     per ratio). Attached images are classified by real pixel aspect ratio
+     and slotted in automatically, skipping AI generation -- and its
+     image_generation credit charge -- for that slot entirely, the exact
+     same rule _applyAttachedCreative already enforces for regular ad slots. */
+  async function _startGoogleAssetGeneration(pkg){
+    var section = document.getElementById('cgrCreativesSection');
+    var grid    = document.getElementById('cgrCreativesGrid');
+    var pill    = document.getElementById('cgrCreativesPill');
+    if(!section || !grid){
+      console.warn('[cgr] PMax asset generation skipped — cgrCreativesSection/Grid not in DOM');
+      return;
+    }
+
+    var basePrompt = null;
+    (pkg.visualConcepts || []).some(function(vc){
+      if(vc.imagePrompts && vc.imagePrompts[0]){ basePrompt = vc.imagePrompts[0]; return true; }
+      return false;
+    });
+    if(!basePrompt){
+      console.warn('[cgr] PMax asset generation skipped — no imagePrompts in visualConcepts');
+      return;
+    }
+
+    var plan = _getGoogleCreativeAssetPlan('PERFORMANCE_MAX');
+    var attachedMap = await _ov3ClassifyAttachedImages();
+
+    _cgrImagePrompts = plan.map(function(variant){
+      var task = {
+        key: variant.key, ref: variant.label, sub: variant.sub, size: variant.size,
+        prompt: basePrompt + ' (' + variant.sub + ' ' + variant.key + ' composition -- same creative concept and message as the other asset variants, adapted to this aspect ratio)'
+      };
+      if(attachedMap[variant.key]) task.attachedImage = attachedMap[variant.key];
+      return task;
+    });
+    console.log('[cgr] PMax asset plan —', _cgrImagePrompts.length, 'variant(s),',
+      _cgrImagePrompts.filter(function(t){ return t.attachedImage; }).length, 'from attached images');
+
+    section.style.display = '';
+    if(pill){ pill.textContent = 'Generating…'; pill.className = 'cgr2-gen-pill'; }
+    var generatingCount = _cgrImagePrompts.filter(function(t){ return !t.attachedImage; }).length;
+    _cgrShowCreativeCostPill(pill, generatingCount, 'image_generation', 'asset');
+
+    grid.innerHTML = _cgrImagePrompts.map(function(t, i){
+      return '<div class="cgr-creative-card cgr-creative-skel-card" id="cgc'+i+'">'
+        + '<div class="cgr-creative-skel-img"></div>'
+        + '<div class="cgr-creative-card-body">'
+        + '<div class="cgr-creative-ref">'+_esc(t.ref)+'<span class="cgr-creative-ratio"> · '+_esc(t.sub)+'</span></div>'
+        + '<div class="cgr-creative-gen-label">Generating…</div>'
+        + '</div></div>';
+    }).join('');
+
+    var done = 0, total = _cgrImagePrompts.length;
+    function _onOneDone(){
+      done++;
+      if(done === total && pill){
+        pill.textContent = total + ' asset' + (total===1?'':'s') + ' ready';
+        pill.className = 'cgr2-gen-pill done';
+      }
+    }
+    _cgrImagePrompts.forEach(function(task, i){
+      if(task.attachedImage){
+        _applyGoogleAssetCreative(task, i, task.attachedImage, true);
+        _onOneDone();
+      } else {
+        apiFetch('/api/generate-image', {
+          method: 'POST',
+          body: JSON.stringify({ prompt: task.prompt, size: task.size, imageType: 'display' })
+        }).then(function(res){
+          if(res.ok && res.data && res.data.imageUrl){
+            _applyGoogleAssetCreative(task, i, res.data.imageUrl, false);
+            if(typeof consumeUsage === 'function') consumeUsage(40); // reflects the real server-side image_generation deduction
+          } else if(res.status === 402 && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
+            _cgrCreativeErr(i, task.ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs 40)');
+          } else {
+            _cgrCreativeErr(i, task.ref, 'Image generation failed');
+          }
+          _onOneDone();
+        }).catch(function(err){
+          _cgrCreativeErr(i, task.ref, err.message || 'Error');
+          _onOneDone();
+        });
+      }
+    });
+  }
+
+  /* Persists a PMax variant's image into the exact fields the existing
+     PMax publish route (server.js POST /api/publish/google) already reads:
+     square -> visualConcepts[0].generatedImageUrl, horizontal ->
+     pkg.pmaxLandscapeImageUrl (both pre-existing field names/shapes, not
+     new ones). The vertical variant has no publish-side consumer yet --
+     it's still generated/shown/downloadable here, just not yet wired into
+     publish (Google's own PMax vertical-asset support postdates this
+     codebase's publish implementation) -- see final report. */
+  function _applyGoogleAssetCreative(task, idx, url, isAttached){
+    if(_cgrPkg){
+      if(task.key === 'square' && _cgrPkg.visualConcepts && _cgrPkg.visualConcepts[0]){
+        _cgrPkg.visualConcepts[0].generatedImageUrl = url;
+      } else if(task.key === 'horizontal'){
+        _cgrPkg.pmaxLandscapeImageUrl = url;
+      } else if(task.key === 'vertical'){
+        _cgrPkg.pmaxVerticalImageUrl = url;
+      }
+      if(typeof window._orvUpdateCampPkg === 'function' && window._cgrCurrentCampId){
+        window._orvUpdateCampPkg(window._cgrCurrentCampId, _cgrPkg);
+      }
+    }
+    var card = document.getElementById('cgc'+idx);
+    if(!card) return;
+    card.className = 'cgr-creative-card';
+    card.innerHTML = '<div class="cgr-creative-img-wrap">'
+      + '<img class="cgr-creative-img" src="'+_esc(url)+'" alt="'+_esc(task.ref)+' asset" loading="lazy">'
+      + '</div>'
+      + '<div class="cgr-creative-card-body">'
+      + '<div class="cgr-creative-ref">'+_esc(task.ref)+'<span class="cgr-creative-ratio"> · '+_esc(task.sub)+'</span>'+(isAttached ? ' · your image' : '')+'</div>'
+      + '<div class="cgr-creative-actions">'
+      + '<button class="cgr-crv-btn" onclick="cgrDownloadImage(\''+_esc(url)+'\',\''+_esc(task.ref)+'\')">↓ Download</button>'
       + '</div>'
       + '</div>';
   }
@@ -17491,9 +17758,14 @@ window.rptExport = function(format) {
     else if (_plat === 'google' && _struct && (!window._ov3GoogleCampaignType || window._ov3GoogleCampaignType === 'SEARCH')) _payload.campaignStructure = { groups: _struct.groups, adsPerGroup: _struct.adsPerGroup };
     /* Attach Brand Brain context */
     if(typeof S !== 'undefined' && S.brandCore && S.brandCore.name) _payload.brandCore = S.brandCore;
-    /* Attach product images (max 3 to keep payload size reasonable) */
-    if(typeof window._ov3Assets !== 'undefined' && window._ov3Assets.length)
-      _payload.productImages = window._ov3Assets.slice(0,3).map(function(a){ return a.data; });
+    /* productImages is CONTEXT for the AI (vision-analyzed product/business
+       reference material, per _generateAdPackage server-side) -- populated
+       from "Attach Product" (_ov3ProductAssets), never from "Attach Image"
+       (_ov3Assets, which instead drives _applyAttachedCreative below and
+       becomes the literal final ad creative for its slot, not AI input).
+       Max 3 to keep payload size reasonable. */
+    if(typeof window._ov3ProductAssets !== 'undefined' && window._ov3ProductAssets.length)
+      _payload.productImages = window._ov3ProductAssets.slice(0,3).map(function(a){ return a.data; });
     console.log('[Generate] Sending request — platform:', _plat, '| mode:', window._cgrCreativeMode, '| payload keys:', Object.keys(_payload).join(', '));
     console.log('[Generate] Auth token present:', !!window._apiToken, '| API_BASE_URL:', typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : '(undefined)');
     console.log('[cgr] Text generation started — platform:', _plat, 'creativeMode:', window._cgrCreativeMode);
@@ -18435,6 +18707,61 @@ window.cgrChipAdd = function(wrapId, val){
       : '');
     if(count){
       count.textContent = _ov3Assets.length;
+      count.style.display = '';
+    }
+  }
+
+  // ── Product Reference Upload ("Attach Product") ───────────────────
+  // Deliberately a SEPARATE array/pipeline from _ov3Assets ("Attach
+  // Image") above. _ov3Assets drives _applyAttachedCreative (becomes the
+  // actual generatedImageUrl for an ad slot). _ov3ProductAssets instead
+  // feeds the request payload's existing `productImages` field (see
+  // cgrGenerate below) -- which _generateAdPackage already only uses as
+  // vision-analyzed CONTEXT for the copy/creative prompt, never as an
+  // output image. Reusing that existing field/semantic rather than
+  // inventing a second backend concept for the same idea.
+  var _ov3ProductAssets = [];
+  window._ov3ProductAssets = _ov3ProductAssets;
+
+  window.ov3HandleProductAssets = function(input){
+    var files = Array.from(input.files || []);
+    var remaining = 6 - _ov3ProductAssets.length;
+    files.slice(0, remaining).forEach(function(f){
+      var reader = new FileReader();
+      reader.onload = function(e){
+        _ov3ProductAssets.push({ name: f.name, data: e.target.result });
+        _ov3RenderProductAssets();
+      };
+      reader.readAsDataURL(f);
+    });
+    input.value = '';
+  };
+
+  window.ov3RemoveProductAsset = function(i){
+    _ov3ProductAssets.splice(i, 1);
+    _ov3RenderProductAssets();
+  };
+
+  function _ov3RenderProductAssets(){
+    var strip = document.getElementById('ov3ProductAssetsStrip');
+    var count = document.getElementById('ov3ProductAssetCount');
+    if(!strip) return;
+    if(!_ov3ProductAssets.length){
+      strip.style.display = 'none';
+      if(count){ count.style.display = 'none'; }
+      return;
+    }
+    strip.style.display = '';
+    strip.innerHTML = _ov3ProductAssets.map(function(a, i){
+      return '<div class="ov3-asset-thumb">'
+        + '<img src="'+a.data+'" alt="'+a.name+'">'
+        + '<button class="ov3-asset-rm" onclick="ov3RemoveProductAsset('+i+')" title="Remove">×</button>'
+        + '</div>';
+    }).join('') + (_ov3ProductAssets.length < 6
+      ? '<label class="ov3-asset-add" for="ov3ProductAssetInput" title="Add more">+</label>'
+      : '');
+    if(count){
+      count.textContent = _ov3ProductAssets.length;
       count.style.display = '';
     }
   }

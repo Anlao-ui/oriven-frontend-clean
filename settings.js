@@ -607,7 +607,7 @@ var LANG_STRINGS = {
     toastPlatformConnectedSuccess:"connected successfully!",
     // Launch page
     launchH1:"Launch your next campaign.", genModeImage:"Image", genModeVideo:"Video",
-    attachImageBtn:"Attach Image", launchPromptPlaceholder:"What would you like to advertise today? e.g. A gym clothing brand targeting young men in Amsterdam. Budget €30/day.",
+    attachImageBtn:"Attach Image", attachProductBtn:"Attach Product", launchPromptPlaceholder:"What would you like to advertise today? e.g. A gym clothing brand targeting young men in Amsterdam. Budget €30/day.",
     currentlyWorkingWith:"Currently working with", setUpBusinessCta:"Set up your business to personalise every campaign →",
     addMoreImages:"Add more", generatingEllipsis:"Generating…",
     // Intelligence page
@@ -2769,10 +2769,13 @@ async function switchPlan(planId){
     var session = sessionResult.data && sessionResult.data.session;
 
     if(!session){
-      // Not authenticated — fall back to localStorage-only scheduling
-      saveSettings({ pendingPlan: planId, pendingPlanDate: cfg.planRenewalDate });
+      // Not authenticated — no backend call possible, so no real billing
+      // date is known either. Never fabricate one (e.g. "now + 30 days");
+      // the real date only exists once /api/schedule-plan-change actually
+      // runs against Stripe.
+      saveSettings({ pendingPlan: planId, pendingPlanDate: null });
       renderPlanPanel();
-      toast("Scheduled: " + name + " starts " + _formatPlanDate(cfg.planRenewalDate));
+      toast("Scheduled: " + name + " — sign in to confirm the exact date");
       return;
     }
 
@@ -2815,12 +2818,18 @@ async function switchPlan(planId){
       if(typeof _renderPaywallCards === "function") _renderPaywallCards();
       toast(name + " plan is now active");
     } else {
+      // data.pending_plan_date is Stripe's real current_period_end
+      // (server.js /api/schedule-plan-change) -- never fall back to a
+      // frontend-guessed date. If it's ever genuinely absent, say so
+      // honestly rather than inventing one.
       saveSettings({
         pendingPlan:     data.pending_plan     || planId,
-        pendingPlanDate: data.pending_plan_date || cfg.planRenewalDate
+        pendingPlanDate: data.pending_plan_date || null
       });
       renderPlanPanel();
-      toast("Scheduled: " + name + " starts " + _formatPlanDate(data.pending_plan_date || cfg.planRenewalDate));
+      toast(data.pending_plan_date
+        ? name + " goes active from " + _formatPlanDate(data.pending_plan_date)
+        : "Scheduled: " + name + " at your next billing cycle");
     }
 
   } catch(err){
@@ -2877,7 +2886,22 @@ async function renderPlanPanel(){
   } else {
     currentId = null;
   }
-  var pendingId   = (typeof S !== "undefined" && S && S.pendingPlan !== undefined) ? S.pendingPlan : (cfg.pendingPlan || null);
+
+  // Real, backend-authoritative pending-plan-change state — was previously
+  // read only from local cfg.pendingPlan/pendingPlanDate, which goes stale
+  // across devices/reloads and whose date fallback bottomed out at a
+  // frontend-invented "now + 30 days" guess (initPlan()'s planRenewalDate).
+  // Stripe's Subscription Schedule is the real source of truth for WHEN a
+  // scheduled change takes effect; this fetch is what actually reflects it.
+  var subInfo = null;
+  try {
+    var subRes = (typeof apiFetch === "function") ? await apiFetch("/api/get-subscription") : null;
+    if(subRes && subRes.ok && subRes.data) subInfo = subRes.data;
+  } catch(_){}
+  var pendingId = subInfo ? (subInfo.pending_plan || null)
+    : ((typeof S !== "undefined" && S && S.pendingPlan !== undefined) ? S.pendingPlan : (cfg.pendingPlan || null));
+  var pendingPlanDateReal = subInfo ? (subInfo.pending_plan_date || null) : (cfg.pendingPlanDate || null);
+
   var currentData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === currentId; });
   var currentRank = currentData ? ORIVEN_PLAN_LIST.indexOf(currentData) : -1;
 
@@ -2886,8 +2910,11 @@ async function renderPlanPanel(){
   // Real, backend-authoritative credit status — the single source of
   // truth for everything below (credits_balance / credits_cycle_end on
   // profiles), not the old client-simulated renewal date / usage counters.
+  // No date-guessing fallback: if the real value isn't available, callers
+  // below show an honest "—"/descriptive fallback rather than a fabricated
+  // date (initPlan()'s planRenewalDate is never used for display here).
   var creditStatus = (typeof _getCreditStatus === "function") ? await _getCreditStatus(true) : null;
-  var renewalStr   = creditStatus && creditStatus.resetDate ? _formatPlanDate(creditStatus.resetDate) : _formatPlanDate(cfg.planRenewalDate);
+  var renewalStr   = creditStatus && creditStatus.resetDate ? _formatPlanDate(creditStatus.resetDate) : null;
 
   // Usage stats — Connected Platforms reads the same window._gadsConnected/
   // _metaConnected/_tiktokConnected flags the navbar, Business Connections
@@ -2913,17 +2940,27 @@ async function renderPlanPanel(){
   var html = '';
 
   // ── Pending plan change / cancellation banner (only when relevant) ──
+  // Current plan stays CURRENT (currentId/currentData, unchanged above)
+  // until the real Stripe billing-period boundary actually arrives and the
+  // webhook flips subscription_status -- this banner only ever ANNOUNCES a
+  // scheduled future change, never implies it already happened. pDate is
+  // either the real backend-sourced date (pendingPlanDateReal, above) or
+  // an honest non-date fallback -- never a guessed date.
   if(pendingId && currentData){
     var pData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === pendingId; });
     var pName = pData ? pData.name : pendingId;
-    var pDate = _formatPlanDate(cfg.pendingPlanDate || cfg.planRenewalDate);
+    var pDate = pendingPlanDateReal ? _formatPlanDate(pendingPlanDateReal) : null;
     var isCancel = pendingId === "free";
     html += '<div class="sub-pending-notice" style="margin-bottom:14px">';
     if(isCancel){
-      html += 'Cancellation scheduled — access active until <strong>' + pDate + '</strong>';
+      html += pDate
+        ? 'Your plan will be cancelled — you keep full access until <strong>' + pDate + '</strong>'
+        : 'Your plan is scheduled to cancel at the end of your current billing period';
       html += ' <button class="sub-undo-btn" onclick="cancelPlanChange()">Undo</button>';
     } else {
-      html += 'Changing to <strong>' + pName + '</strong> on ' + pDate;
+      html += pDate
+        ? '<strong>' + pName + '</strong> goes active from <strong>' + pDate + '</strong>'
+        : '<strong>' + pName + '</strong> is scheduled to go active at the end of your current billing period';
       html += ' <button class="sub-undo-btn" onclick="cancelPlanChange()">Cancel</button>';
     }
     html += '</div>';
@@ -3007,7 +3044,7 @@ async function renderPlanPanel(){
     html += '<div style="margin-top:10px"><button class="sub-cancel-link" onclick="_showCancelConfirm()">Cancel plan</button></div>';
     html += '<div class="plan-cancel-confirm" id="planCancelConfirm" style="display:none">';
     html += '<div class="plan-cancel-confirm-title">Cancel ' + currentData.name + ' Plan</div>';
-    html += '<div class="plan-cancel-confirm-text">You will keep full access until <strong>' + renewalStr + '</strong>.</div>';
+    html += '<div class="plan-cancel-confirm-text">You will keep full access until <strong>' + (renewalStr || 'the end of your current billing period') + '</strong>.</div>';
     html += '<div class="plan-cancel-confirm-btns">';
     html += '<button class="btn btn-g btn-sm" onclick="_hideCancelConfirm()">Keep Plan</button>';
     html += '<button class="btn btn-danger btn-sm" onclick="switchPlan(\'free\')">Yes, Cancel Plan</button>';

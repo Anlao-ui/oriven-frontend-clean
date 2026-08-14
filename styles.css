@@ -32064,11 +32064,27 @@ body.dark-mode .con-feat { color: rgba(255,255,255,.55); }
 }
 body.dark-mode .con-feat::before { background: color-mix(in srgb, var(--green) 55%, transparent); }
 .con-card-foot { margin-top: auto; }
+/* Root cause of Google Ads' account list sitting lower than Meta's: two
+   compounding issues. (1) .con-cards is a grid with align-items:stretch,
+   so every card is forced to the height of the tallest sibling (Meta, 3
+   detail rows). With flex:1 here, THIS block was the one absorbing that
+   leftover height, pushing the account list further down still. Removing
+   flex:1 fixed that part. (2) Even without flex:1, .con-card-details still
+   only grows to its OWN content's height -- Google's 2 rows vs Meta's 3
+   means Google's block is naturally shorter (measured: 86px vs 133px,
+   exactly one row + gap = 39px + 8px = 47px, matching the reported gap),
+   so its next sibling (the account list) still started ~47px higher than
+   Meta's regardless of flex:1. min-height below pins every card's details
+   block to Meta's real height (3 rows x 39px + 2 gaps x 8px = 133px) --
+   Meta (already 133px) is unaffected; Google/TikTok's shorter blocks (2
+   and 1 real rows respectively) now match it exactly, so the account list
+   starts at the identical Y position in every card regardless of how many
+   real detail rows each platform actually has. */
 .con-card-details {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex: 1;
+  min-height: 133px;
 }
 .con-detail-row {
   display: flex;
@@ -33608,6 +33624,11 @@ body.dark-mode .ov3-tool-btn-active { color: var(--green) !important; }
   border-bottom: 1px solid var(--border, rgba(0,0,0,.08));
 }
 body.dark-mode .ov3-assets-strip { border-bottom-color: rgba(255,255,255,.07); }
+/* Attach Product's strip gets a distinct accent (vs Attach Image's plain
+   thumbnails) so it's visually obvious these are reference material, not
+   the finished ad creative -- reuses the existing accent color, not a new
+   arbitrary one. */
+.ov3-assets-strip-product .ov3-asset-thumb { border-color: color-mix(in srgb, var(--green) 45%, transparent); }
 .ov3-asset-thumb {
   position: relative;
   width: 52px;
@@ -33973,6 +33994,9 @@ body.dark-mode .ov3-assets-strip { border-bottom-color: rgba(255,255,255,.07); }
   letter-spacing: .06em;
   margin-bottom: 10px;
 }
+/* PMax asset-variant ratio label (e.g. "· 1.91:1") -- lighter weight than
+   the main ref label so the aspect ratio reads as metadata, not a title. */
+.cgr-creative-ratio { font-weight: 400; text-transform: none; letter-spacing: 0; opacity: .8; }
 .cgr-creative-gen-label {
   font-size: 12px;
   color: rgba(255,255,255,.28);
