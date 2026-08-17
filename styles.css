@@ -39947,3 +39947,524 @@ body.dark-mode #page-team .tm-member-row { background: var(--bg); border-color: 
 /* Team invite acceptance notice on the signup/login pages. Appended at
    end of file per this codebase's established safe-append convention. */
 .au-invite-notice { background: rgba(183,255,42,.08); border: 1px solid rgba(183,255,42,.25); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,.85); margin: 0 0 16px; }
+
+/* ══════════════════════════════════════════════════════════════════
+   Sidebar Redesign — icon-only navigation rail
+   Narrows the existing .orv-sb (last set to 220px by the "Navbar
+   Redesign — command rail" block above) down to a compact ~76px icon
+   rail: labels hidden, icons enlarged, hover tooltips added. Same
+   append-at-end-of-file convention as that block and .au-invite-notice
+   above — wins purely on being later in source order, matching
+   specificity/!important, rather than hunting down every earlier .orv-sb
+   rule. Every element/id/handler this reuses (.orv-ni, .orv-ni-plat,
+   .orv-sb-user, #orvNavSettingsBtn, openSettingsModal(), _orvNav(),
+   _orvPlatShortcutRow()) is untouched functionally — only presentation
+   changes. The <=1024px hamburger+drawer breakpoint (.orv-sb{display:
+   none!important}) is also untouched, so nothing below is scoped by a
+   max-width query -- it only ever applies to the real desktop rail,
+   exactly the "reuse the existing responsive behavior" the redesign
+   asked for rather than inventing a third nav mode.
+   ══════════════════════════════════════════════════════════════════ */
+
+.orv-sb {
+  width: 76px !important;
+  min-width: 76px !important;
+  max-width: 76px !important;
+  align-items: center;
+  /* .orv-sb's own overflow:hidden (base rule) exists so its rounded
+     corners clip child backgrounds -- but that also clips the hover
+     tooltips below, which must render OUTSIDE the rail's own box (to its
+     right). Each interactive child already carries its own border-radius
+     on hover/active (.orv-ni, .orv-ni-plat, .orv-sb-user), so none of them
+     actually depend on the parent clipping for their own correctness --
+     safe to open up. */
+  overflow: visible !important;
+}
+body.dark-mode .orv-sb {
+  width: 76px !important;
+  min-width: 76px !important;
+  overflow: visible !important;
+}
+
+/* Logo: icon-only already (the "Overview v2" block above hid
+   .orv-sb-logo-name and set the image to 40px) -- bumped slightly larger
+   per the redesign spec and centered now that there's no wordmark beside
+   it to left-align against. */
+.orv-sb-logo {
+  justify-content: center !important;
+  padding: 22px 0 16px !important;
+}
+.orv-sb-logo-img {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 10px !important;
+}
+
+/* Nav rail: icons only, centered in fixed square slots. Scoped to
+   `.orv-sb .orv-ni` (not bare `.orv-ni`) so the mobile drawer's own copy
+   of these buttons -- a completely different element subtree under
+   .orv-mob-drawer, already forcing its own labels visible via
+   `.orv-mob-drawer .orv-ni .orv-ni-label{display:inline!important}` --
+   is entirely unaffected; the drawer keeps its existing full-label list
+   exactly as before. */
+.orv-sb-nav {
+  padding: 6px 10px !important;
+  align-items: center;
+  gap: 4px !important;
+}
+.orv-sb .orv-ni {
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0 !important;
+  gap: 0 !important;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.orv-sb .orv-ni-label { display: none !important; }
+.orv-sb .orv-ni svg { width: 20px !important; height: 20px !important; }
+/* Active-state left accent bar (existing .orv-ni.orv-active::before) is
+   kept as-is -- it still reads correctly flush against the rail's own
+   left edge even with the icon now centered in a square slot rather than
+   a full-width row. */
+
+/* Intelligence's unread dot (already just a plain 7px dot, no text --
+   see #orvIntelBadge above) repositioned from "end of the label row" (a
+   row that no longer exists here) to a small corner badge on the icon
+   itself, matching the platform connected-dot pattern below. */
+.orv-sb .orv-ni #orvIntelBadge,
+.orv-sb #orvIntelBadge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  margin-left: 0;
+}
+
+/* Platform shortcuts (Google/Meta/TikTok): were an indented, bordered
+   sub-list under Campaigns with visible names -- no room for that in a
+   76px rail, so this becomes its own short icon-only column, same visual
+   language/size family as the main nav icons just a touch smaller
+   (matches the existing size hierarchy where these were already smaller
+   than the primary nav). Connected indicator (.orv-ni-plat-dot) moves
+   from an inline dot next to the name to a small corner badge on the
+   icon, exactly like the Intelligence badge above -- so "if Google Ads is
+   connected, the indicator stays visible" without any extra width. */
+.orv-sb .orv-ni-plat-group {
+  flex-direction: column;
+  margin: 0 !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+  gap: 4px !important;
+  align-items: center;
+  width: 100%;
+}
+.orv-sb .orv-ni-plat {
+  width: 44px;
+  height: 44px;
+  justify-content: center;
+  padding: 0 !important;
+  border-radius: 12px;
+  position: relative;
+  flex-shrink: 0;
+}
+.orv-sb .orv-ni-plat-name,
+.orv-sb .orv-ni-plat-ext { display: none !important; }
+.orv-sb .orv-ni-plat-ico { width: 18px !important; height: 18px !important; opacity: 1; }
+.orv-sb .orv-ni-plat-dot {
+  position: absolute;
+  bottom: 5px;
+  right: 7px;
+  width: 6px !important;
+  height: 6px !important;
+  border: 1.5px solid var(--bg3, #E5DED4);
+}
+body.dark-mode .orv-sb .orv-ni-plat-dot { border-color: #17171A; }
+
+/* Settings + workspace footer: same icon-only square as the main nav,
+   workspace shrinks to avatar + a short truncated name (plan text is now
+   tooltip-only, never shown permanently -- see the [data-tip] system
+   below and the small JS addition that keeps its data-tip in sync with
+   the existing name/plan sync). */
+.orv-sb-bottom {
+  padding: 8px 8px 10px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.orv-sb #orvNavSettingsBtn {
+  width: 48px;
+  height: 48px;
+  justify-content: center;
+  padding: 0 !important;
+  border-radius: 12px;
+}
+.orv-sb #orvNavSettingsBtn svg { width: 20px !important; height: 20px !important; }
+
+.orv-sb-user {
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 2px !important;
+  width: 100%;
+  margin-top: 2px !important;
+  border-radius: 12px;
+  cursor: default;
+}
+.orv-sb-avatar { width: 32px; height: 32px; border-radius: 10px; font-size: 13px; }
+.orv-sb-user-info { width: 100%; min-width: 0; text-align: center; }
+.orv-sb-user-name {
+  font-size: 10px !important;
+  font-weight: 600;
+  text-align: center;
+  max-width: 68px;
+  margin: 0 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.orv-sb-user-plan { display: none !important; }
+
+/* ── Hover tooltip navigation ──────────────────────────────────────
+   Applies to every [data-tip] element inside the rail (main nav icons,
+   platform shortcuts, Settings, the workspace footer) -- one consistent
+   system, not a per-item reimplementation.
+
+   NOT a pure-CSS ::after/::before on the icon itself: .orv-sb-nav needs
+   overflow-y:auto (so the list can still scroll if content ever exceeds
+   the viewport height), and CSS overflow has a real, spec-defined
+   limitation here -- when one axis is non-visible, the OTHER axis is
+   forced to a non-visible value too, even if never explicitly set
+   (confirmed live: .orv-sb-nav's overflow-x computes to `hidden` purely
+   as a side effect of its own overflow-y:auto). A pseudo-element tooltip
+   anchored inside that subtree gets silently clipped no matter what
+   overflow value is put on .orv-sb itself. Instead, app.html's small
+   [data-tip] hover listener renders ONE reusable .orv-rail-tip/
+   .orv-rail-tip-arrow pair appended directly to <body> (outside every
+   scrollable ancestor) and positions it via the hovered element's own
+   getBoundingClientRect() -- same attribute-driven system, a rendering
+   approach that actually works regardless of any ancestor's overflow.
+   Dark, rounded card to the RIGHT of the icon, vertically centered on
+   it, small arrow pointing back at the icon, fades in/out, and (being
+   position:fixed, not part of any layout flow) can never shift or cover
+   sibling sidebar items. */
+.orv-rail-tip {
+  position: fixed;
+  display: none;
+  background: #18181A;
+  color: #fff;
+  font-family: Geist, system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 7px 12px;
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.2), 0 2px 8px rgba(0,0,0,.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-4px);
+  transition: opacity .14s ease, transform .14s ease;
+  z-index: 9310;
+}
+.orv-rail-tip-arrow {
+  position: fixed;
+  display: none;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 6px solid #18181A;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(-4px);
+  transition: opacity .14s ease, transform .14s ease;
+  z-index: 9310;
+}
+.orv-rail-tip.orv-rail-tip-show { opacity: 1; transform: translateX(0); }
+.orv-rail-tip-arrow.orv-rail-tip-show { opacity: 1; transform: translateY(-50%) translateX(0); }
+/* Light mode already reads correctly with the dark card above regardless
+   of theme (a dark tooltip on a light page is the conventional, highest-
+   contrast choice most SaaS rails use) -- dark mode below swaps to a
+   light card instead, so it still stands out against the near-black
+   dark-mode canvas rather than blending in. */
+body.dark-mode .orv-rail-tip {
+  background: #F2F2F0;
+  color: #18181A;
+  box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
+}
+body.dark-mode .orv-rail-tip-arrow { border-right-color: #F2F2F0; }
+
+/* ── AI assistant header: notification bell docks left of the panel ──
+   .orv-notif-bell is intentionally its own independent position:fixed
+   element (see its original comment) and isn't a DOM sibling of
+   .orv-ai-panel, so it can't react to the panel's own state via a CSS
+   sibling selector -- orvOpenAi()/orvCloseAi() (app.html) now toggle a
+   single `orv-ai-open` class on <body> for exactly this purpose. Without
+   this, the bell stayed glued to the viewport's top-right corner overtop
+   of the panel's own header controls whenever the panel opened. Values
+   below position it just left of the panel's close button (16px header
+   padding + 26px close-button width + 10px gap, matching the header's
+   own internal gap between its controls) -- purely a position change, no
+   DOM move, so orvToggleNotifications()/all notification logic and the
+   panel's own close button are completely untouched. */
+body.orv-ai-open .orv-notif-bell {
+  right: 52px;
+  top: 12px; /* empirically verified against .orv-ai-panel-close's real rendered vertical center via Playwright, not hand-computed */
+  transition: right .18s cubic-bezier(.22,.61,.36,1), top .18s cubic-bezier(.22,.61,.36,1);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Sidebar Refinement — icon containers, App Launcher (9-dot)
+   Follow-up to the redesign block above, same append-at-end convention.
+   Three changes: (1) every .orv-ni gets a real resting-state container
+   (background box, not just a hover tint) so it reads as an obviously
+   clickable button; (2) Google/Meta/TikTok move out of the always-on
+   rail into a compact "9 dots" App Launcher + popover, reusing
+   .orv-ni-plat/_orvPlatShortcutRow's existing markup/handlers unchanged;
+   (3) the active-state left accent bar is dropped in the compact rail in
+   favor of the existing solid-fill .orv-active treatment, which already
+   reads as "clearly stronger" once every icon has its own container to
+   contrast against. .orv-sb .orv-ni-plat-group/.orv-ni-plat (the old
+   inline-in-rail platform styling above) are now unused dead CSS -- left
+   in place rather than hunted down, per this file's convention -- since
+   app.html no longer renders #orvPlatShortcuts in the desktop rail.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Icon containers ───────────────────────────────────────────────
+   Resting-state background (not just hover) so every icon "looks
+   immediately obvious as clickable" per spec. Equal specificity to the
+   earlier .orv-ni/.orv-ni:hover/.orv-ni.orv-active rules elsewhere in
+   this file (two classes / two classes+pseudo) -- wins purely by being
+   later in source order, exactly this file's established pattern. */
+.orv-sb .orv-ni {
+  background: rgba(0,0,0,.035);
+  transition: background .12s ease, color .12s ease, box-shadow .12s ease;
+}
+body.dark-mode .orv-sb .orv-ni {
+  background: rgba(255,255,255,.045);
+}
+.orv-sb .orv-ni:hover {
+  background: color-mix(in srgb, var(--green) 14%, transparent) !important;
+}
+body.dark-mode .orv-sb .orv-ni:hover {
+  /* !important: matches the earlier body.dark-mode .orv-ni:hover
+     (line ~34130, itself !important), for the same reason as the active
+     state above -- otherwise this loses despite later source order. */
+  background: color-mix(in srgb, var(--green) 16%, transparent) !important;
+}
+/* Active state: the existing solid-fill .orv-ni.orv-active (light: solid
+   lime + near-black icon; dark: tinted lime) already reads as "clearly
+   stronger than a normal item" once it's sitting next to sibling icons
+   that now have their own subtle resting containers -- boosted slightly
+   further here for contrast against those containers, and a faint lift
+   shadow added in light mode (kept intentionally small, not a "large
+   shadow"). The left accent bar doesn't suit a centered icon square, so
+   it's hidden in the compact rail; the fill itself is the indicator. */
+/* Explicit !important here: an earlier block (body.dark-mode .orv-ni.orv-active,
+   line ~34133) already uses !important, and without matching it here this
+   override would silently lose to that earlier rule despite being later
+   in source order and more specific -- !important always outranks
+   specificity/order, so it has to be matched, not just out-specified. */
+.orv-sb .orv-ni.orv-active {
+  background: var(--green) !important;
+  color: var(--green-deep) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+body.dark-mode .orv-sb .orv-ni.orv-active {
+  background: color-mix(in srgb, var(--green) 22%, transparent) !important;
+  color: var(--green) !important;
+  box-shadow: none;
+}
+.orv-sb .orv-ni.orv-active::before { display: none; }
+/* Icons bumped slightly larger, per spec, from the redesign block's 20px. */
+.orv-sb .orv-ni svg { width: 21px !important; height: 21px !important; }
+
+/* ── App Launcher trigger (9 dots) ─────────────────────────────────
+   Same .orv-ni container/size/hover/active language as every other rail
+   button -- the dot grid is just its glyph, so it never needs its own
+   sizing rules beyond the glyph itself. */
+/* Pixel-exact 3x3 grid -- deliberately NOT CSS grid with fractional (1fr)
+   tracks: 16px / 3 columns with a gap doesn't divide evenly (10px content
+   / 3 = 3.333px/track), which left row/column gaps a fraction of a pixel
+   apart from each other after browser rounding -- close enough to be
+   "even" numerically but inconsistent enough to visibly read as uneven at
+   real screen density (the reported "top row sits closer than the bottom
+   row" bug). Each dot is absolutely positioned at an exact integer pixel
+   (0 / 6 / 12) instead, so the 3px gap between every adjacent dot -- both
+   axes -- is provably identical, not just close. */
+.orv-launcher-dots {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+.orv-launcher-dots i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .5;
+  transition: opacity .16s ease;
+}
+.orv-launcher-dots i:nth-child(1) { top: 0;   left: 0; }
+.orv-launcher-dots i:nth-child(2) { top: 0;   left: 6px; }
+.orv-launcher-dots i:nth-child(3) { top: 0;   left: 12px; }
+.orv-launcher-dots i:nth-child(4) { top: 6px; left: 0; }
+.orv-launcher-dots i:nth-child(5) { top: 6px; left: 6px; }
+.orv-launcher-dots i:nth-child(6) { top: 6px; left: 12px; }
+.orv-launcher-dots i:nth-child(7) { top: 12px; left: 0; }
+.orv-launcher-dots i:nth-child(8) { top: 12px; left: 6px; }
+.orv-launcher-dots i:nth-child(9) { top: 12px; left: 12px; }
+.orv-sb .orv-launcher-btn:hover .orv-launcher-dots i,
+.orv-sb .orv-launcher-btn.orv-launcher-open .orv-launcher-dots i { opacity: 1; }
+
+/* Hover animation: all 9 dots converge to the exact button center, hold
+   briefly, then return to their normal 3x3 positions -- once per hover,
+   ~1.6s, not looped (default animation-iteration-count is 1, and 0%/100%
+   are identical to the resting position, so the button is indistinguishable
+   from "not animating" once it finishes, even while still hovered). Each
+   dot's own translate distance (--ldx/--ldy) is set per nth-child below;
+   the shared keyframes just reference those custom properties, so there's
+   one @keyframes block instead of nine near-duplicates. Only runs under
+   prefers-reduced-motion: no-preference -- reduced-motion users keep the
+   plain static 3x3 icon (still gets the opacity emphasis above, which
+   isn't movement). */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes orv-launcher-converge {
+    0%, 100% { transform: translate(0, 0); }
+    45%, 55% { transform: translate(var(--ldx, 0), var(--ldy, 0)); }
+  }
+  .orv-sb .orv-launcher-btn:hover .orv-launcher-dots i {
+    animation: orv-launcher-converge 1.6s cubic-bezier(.45, .05, .15, 1) 1;
+  }
+  /* Distance from each dot's own position to the grid's center (7.5,7.5) --
+     corners move diagonally, edge-centers move along one axis, the middle
+     dot is already at center so it doesn't move at all. */
+  .orv-launcher-dots i:nth-child(1) { --ldx: 6px;  --ldy: 6px; }
+  .orv-launcher-dots i:nth-child(2) { --ldx: 0px;  --ldy: 6px; }
+  .orv-launcher-dots i:nth-child(3) { --ldx: -6px; --ldy: 6px; }
+  .orv-launcher-dots i:nth-child(4) { --ldx: 6px;  --ldy: 0px; }
+  .orv-launcher-dots i:nth-child(5) { --ldx: 0px;  --ldy: 0px; }
+  .orv-launcher-dots i:nth-child(6) { --ldx: -6px; --ldy: 0px; }
+  .orv-launcher-dots i:nth-child(7) { --ldx: 6px;  --ldy: -6px; }
+  .orv-launcher-dots i:nth-child(8) { --ldx: 0px;  --ldy: -6px; }
+  .orv-launcher-dots i:nth-child(9) { --ldx: -6px; --ldy: -6px; }
+}
+.orv-sb .orv-launcher-btn.orv-launcher-open {
+  background: color-mix(in srgb, var(--green) 16%, transparent) !important;
+  color: var(--green) !important;
+}
+body.dark-mode .orv-sb .orv-launcher-btn.orv-launcher-open {
+  background: color-mix(in srgb, var(--green) 20%, transparent) !important;
+  color: var(--green) !important;
+}
+
+/* Thin, subtle separator between the launcher and Settings/Workspace --
+   deliberately short (not full-width) so it doesn't read as a heavy
+   divider line. */
+.orv-sb-sep {
+  width: 30px;
+  height: 1px;
+  background: var(--border, rgba(0,0,0,.1));
+  margin: 3px 0;
+  flex-shrink: 0;
+}
+body.dark-mode .orv-sb-sep { background: rgba(255,255,255,.09); }
+
+/* ── App Launcher popover ──────────────────────────────────────────
+   position:fixed, appended to <body> and positioned via JS
+   getBoundingClientRect() -- same reasoning as .orv-rail-tip above (an
+   in-flow popover here would inherit .orv-sb-nav's overflow-clipping
+   side effect). Small "app switcher" card, not a full menu: compact
+   width, rounded, theme-aware, soft shadow, quick fade+slide-in. Rows
+   reuse .orv-ni-plat/_orvPlatShortcutRow's existing markup untouched --
+   only sized up slightly for a comfortable popover (vs. the tiny indented
+   sub-list it originally was), scoped narrowly enough (.orv-launcher-pop
+   .orv-ni-plat, three classes deep) to safely out-specificity the older
+   .orv-ni-plat rules regardless of source order. */
+.orv-launcher-pop {
+  position: fixed;
+  display: none;
+  min-width: 212px;
+  max-width: 260px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, rgba(0,0,0,.08));
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.16), 0 4px 14px rgba(0,0,0,.08);
+  padding: 6px;
+  opacity: 0;
+  transform: translateX(-6px) scale(.98);
+  transform-origin: left bottom;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 9295;
+}
+body.dark-mode .orv-launcher-pop {
+  background: #18181B;
+  border-color: rgba(255,255,255,.08);
+  box-shadow: 0 16px 40px rgba(0,0,0,.55), 0 4px 14px rgba(0,0,0,.3);
+}
+.orv-launcher-pop.orv-launcher-pop-show { opacity: 1; transform: translateX(0) scale(1); }
+.orv-launcher-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted, rgba(0,0,0,.4));
+  padding: 6px 10px 5px;
+}
+body.dark-mode .orv-launcher-title { color: rgba(255,255,255,.35); }
+.orv-launcher-empty { font-size: 12px; color: var(--muted, rgba(0,0,0,.45)); padding: 4px 10px 8px; }
+
+.orv-launcher-pop .orv-ni-plat {
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  gap: 10px;
+  color: var(--charcoal, #18181A);
+}
+body.dark-mode .orv-launcher-pop .orv-ni-plat { color: rgba(255,255,255,.85); }
+.orv-launcher-pop .orv-ni-plat:hover { background: color-mix(in srgb, var(--green) 9%, transparent); }
+.orv-launcher-pop .orv-ni-plat-ico { width: 16px; height: 16px; opacity: 1; }
+.orv-launcher-pop .orv-ni-plat-dot { width: 6px; height: 6px; }
+.orv-launcher-pop .orv-ni-plat-ext { font-size: 12px; }
+
+/* ── Logo: slightly larger, the rail's visual anchor ────────────────
+   Bumped from the redesign block's 44px -- still an icon-scale image
+   (not "oversized"), just enough bigger than the 48px nav icon slots
+   (which hold ~21px glyphs) to read as the anchor above them, per spec.
+   Same asset, same centering, same click behavior -- size only. */
+.orv-sb-logo-img {
+  width: 52px !important;
+  height: 52px !important;
+}
+
+/* ── Workspace button: same button language as Settings ─────────────
+   Now plain .orv-ni markup (see app.html) so it inherits identical
+   dimensions/radius/hover/active treatment automatically -- no bespoke
+   sizing rules needed here. Only the avatar glyph itself needs
+   containing/centering; a long workspace name can never affect this
+   because the name is no longer rendered in the DOM at all (it's tooltip
+   text now), not merely hidden -- so there's nothing for a long string to
+   push against. */
+.orv-sb #orvSbWorkspace .orv-sb-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* ── Multi-line tooltip (workspace hover: name + plan) ───────────────
+   The shared .orv-rail-tip is single-line/nowrap by design (regular nav
+   tooltips like "Launch" should never wrap) -- this modifier, applied
+   only when the tooltip text contains a newline (app.html's showTip()),
+   switches it to a left-aligned, line-preserving block instead. Reuses
+   the exact same element/positioning/theme system, not a second tooltip
+   implementation. */
+.orv-rail-tip.orv-rail-tip-multi {
+  white-space: pre-line;
+  text-align: left;
+  line-height: 1.55;
+  padding: 8px 13px;
+}

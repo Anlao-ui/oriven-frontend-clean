@@ -232,7 +232,7 @@
 
     <nav class="orv-sb-nav">
       <!-- Create -->
-      <button class="orv-ni" data-orv-page="create" onclick="_orvNav('create','page-create',this)">
+      <button class="orv-ni" data-orv-page="create" data-tip="Launch" onclick="_orvNav('create','page-create',this)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M13 8l-3-3M13 8l-3 3"/></svg>
         <span class="orv-ni-label">Launch</span>
       </button>
@@ -240,19 +240,13 @@
       <!-- Campaigns hub (Oriven 1.0 nav redesign — absorbs the former separate
            Campaigns / Ads Manager / Analytics sidebar items as tabs; see
            orvHubTabsCampaigns above) -->
-      <button class="orv-ni" data-orv-page="performance" data-orv-hub="campaigns" onclick="_orvNav('performance','page-performance',this)">
+      <button class="orv-ni" data-orv-page="performance" data-orv-hub="campaigns" data-tip="Campaigns" onclick="_orvNav('performance','page-performance',this)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="10" height="11" rx="1.5"/><path d="M6 7h4M6 9.5h4M6 12h2.5"/><rect class="orv-ni-clip" x="6" y="1.6" width="4" height="2.6" rx="1"/></svg>
         <span class="orv-ni-label">Campaigns</span>
       </button>
 
-      <!-- Platform shortcuts (Navbar Redesign) — belong visually to Campaigns,
-           real connection state via the same /api/{platform}/status calls
-           and _PRF_PLAT_ICONS already used by Connections/Autopilot/Business;
-           populated by _orvRenderPlatShortcuts() below. -->
-      <div class="orv-ni-plat-group" id="orvPlatShortcuts"></div>
-
       <!-- Intelligence (V6 Final Phase — Executive Mode / Timeline / Briefings) -->
-      <button class="orv-ni" data-orv-page="intelligence" onclick="_orvNav('intelligence','page-intelligence',this)">
+      <button class="orv-ni" data-orv-page="intelligence" data-tip="Intelligence" onclick="_orvNav('intelligence','page-intelligence',this)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path class="orv-ni-clockhand" d="M8 5v3l2 1.5"/></svg>
         <span class="orv-ni-label">Intelligence</span>
         <span class="orv-ni-badge" id="orvIntelBadge" style="display:none"></span>
@@ -260,7 +254,7 @@
 
       <!-- Autopilot (V9 — restored to primary nav; previously reachable only
            via the notification bell's approval dropdown) -->
-      <button class="orv-ni" data-orv-page="autopilot" onclick="_orvNav('autopilot','page-autopilot',this)">
+      <button class="orv-ni" data-orv-page="autopilot" data-tip="Autopilot" onclick="_orvNav('autopilot','page-autopilot',this)">
         <svg viewBox="0 0 16 16" fill="currentColor" stroke="none"><path class="orv-ni-bolt" d="M8.8 1L3.6 9.2h3.5L6.2 15l6.2-8.7H9.1L8.8 1z"/></svg>
         <span class="orv-ni-label">Autopilot</span>
       </button>
@@ -268,7 +262,7 @@
       <!-- Business (Business Consolidation, Oriven 1.0) — Business Brain,
            Brand and Connect are sections of this one page now, switched by
            its own internal tab bar; there's no hub-tabs strip anymore. -->
-      <button class="orv-ni" data-orv-page="businessbrain" onclick="_orvNav('businessbrain','page-business-brain',this)">
+      <button class="orv-ni" data-orv-page="businessbrain" data-tip="Business" onclick="_orvNav('businessbrain','page-business-brain',this)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle class="orv-ni-bulb-glow" cx="8" cy="6.4" r="5.2" fill="var(--green)" stroke="none" opacity="0"/><g class="orv-ni-bulb-body"><path d="M8 2C5.5 2 3.5 4 3.5 6.3c0 1.4.7 2.6 1.7 3.4v1.8h5.6v-1.8c1-.8 1.7-2 1.7-3.4C12.5 4 10.5 2 8 2z"/><path d="M6.5 14h3"/></g></svg>
         <span class="orv-ni-label">Business</span>
       </button>
@@ -278,7 +272,7 @@
            dependent sidebar refreshes). Reuses the existing page-team /
            openInviteModal() / /api/send-invite system — no new Team
            implementation. -->
-      <button class="orv-ni" data-orv-page="team" id="orvNavTeamBtn" style="display:none" onclick="_orvNav('team','page-team',this)">
+      <button class="orv-ni" data-orv-page="team" id="orvNavTeamBtn" data-tip="Team" style="display:none" onclick="_orvNav('team','page-team',this)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 14v-1.3a2.7 2.7 0 0 0-2.7-2.7H4.7A2.7 2.7 0 0 0 2 12.7V14"/><circle cx="6.35" cy="5.3" r="2.3"/><path d="M14 14v-1.3a2.7 2.7 0 0 0-1.8-2.55"/><path d="M9.7 2.9a2.3 2.3 0 0 1 0 4.3"/></svg>
         <span class="orv-ni-label">Team</span>
       </button>
@@ -287,17 +281,31 @@
     <!-- Settings + Account — moved back from the retired header (Oriven
          1.0 V11); same ids/handlers as when they briefly lived there. -->
     <div class="orv-sb-bottom">
-      <button class="orv-ni" id="orvNavSettingsBtn" onclick="openSettingsModal()">
+      <!-- App Launcher (Sidebar Refinement) — replaces the old always-
+           visible inline platform shortcuts above. Same underlying data/
+           handlers (_orvPlatShortcutRow, _orvPlatOpen, the existing
+           /api/{platform}/status calls) -- only the container changes,
+           from "always rendered in the rail" to "rendered on demand in a
+           small popover", per _orvToggleLauncher() below. -->
+      <button type="button" class="orv-ni orv-launcher-btn" id="orvLauncherBtn" data-tip="Ad Platforms" aria-haspopup="true" aria-expanded="false" onclick="_orvToggleLauncher(event)">
+        <span class="orv-launcher-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      </button>
+      <div class="orv-sb-sep" aria-hidden="true"></div>
+      <button class="orv-ni" id="orvNavSettingsBtn" data-tip="Settings" onclick="openSettingsModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span class="orv-ni-label">Settings</span>
       </button>
-      <div class="orv-sb-user" id="orvSbWorkspace">
-        <div class="orv-sb-avatar" id="orvSbAvatar">A</div>
-        <div class="orv-sb-user-info">
-          <div class="orv-sb-user-name" id="orvSbName">Account</div>
-          <div class="orv-sb-user-plan" id="orvSbPlan">—</div>
-        </div>
-      </div>
+      <!-- Workspace/account button (Sidebar Refinement) — visually just
+           another .orv-ni icon button now (same size/radius/hover as
+           Settings); the name/plan text that used to sit permanently
+           below the avatar moved into the hover tooltip (data-tip, set by
+           _syncOrvUser() below) instead of being dropped. Reuses
+           openSettingsModal() -- the same modal the Settings button opens
+           already has the Workspace Name/Account/Plan panels, i.e. this
+           *is* the existing workspace/account surface, not a new one. -->
+      <button type="button" class="orv-ni" id="orvSbWorkspace" data-tip="Account" onclick="if(typeof openSettingsModal === 'function') openSettingsModal();">
+        <span class="orv-sb-avatar" id="orvSbAvatar">A</span>
+      </button>
     </div>
 
   </aside>
@@ -9162,16 +9170,33 @@ window._orvUpdateCampPkg = function(id, pkg) {
   (function(){
     function _syncOrvUser(){
       var nameEl = document.getElementById('sidebarUserName');
-      var sbName = document.getElementById('orvSbName');
-      var sbPlan = document.getElementById('orvSbPlan');
       var sbAvatar = document.getElementById('orvSbAvatar');
+      var sbWorkspace = document.getElementById('orvSbWorkspace');
       var planEl = document.getElementById('sidebarPlan') || document.getElementById('sbPlanLabel');
-      if(nameEl && sbName){
-        var n = nameEl.textContent || '';
-        sbName.textContent = n;
+      var n = '', p = '';
+      if(nameEl){
+        n = nameEl.textContent || '';
         if(sbAvatar) sbAvatar.textContent = (n.trim().charAt(0) || 'A').toUpperCase();
       }
-      if(planEl && sbPlan) sbPlan.textContent = planEl.textContent || '';
+      if(planEl){ p = planEl.textContent || ''; }
+      /* Compact rail redesign — workspace name/plan are no longer shown
+         permanently in the sidebar; this builds the multi-line hover
+         tooltip (.orv-rail-tip-multi, styles.css) from the exact same
+         values instead, one line per piece of info, any piece that's
+         empty is simply left out rather than rendered as a blank/
+         "undefined" line. There is no data source anywhere in this app
+         for a "person's name" distinct from the workspace name --
+         #sidebarUserName IS the workspace name once Settings has loaded
+         (see settings.js's _updateSidebarName()/wsNameHelp copy: "This is
+         the name of your workspace... appears in your sidebar") -- so
+         this intentionally renders workspace name + plan, not a 3rd
+         separate "user" line that no real data backs. */
+      if(sbWorkspace){
+        var lines = [];
+        if(n.trim()) lines.push(n.trim());
+        if(p.trim()) lines.push(p.trim());
+        if(lines.length) sbWorkspace.setAttribute('data-tip', lines.join('\n'));
+      }
     }
     var _sa = 0;
     function _trySync(){ _sa++; _syncOrvUser(); if(_sa < 10) setTimeout(_trySync, 600); }
@@ -9370,6 +9395,13 @@ window._orvUpdateCampPkg = function(id, pkg) {
     var fab   = document.getElementById('orvAiFab');
     if(panel){ panel.classList.add('orv-ai-open'); panel.setAttribute('aria-hidden','false'); }
     if(fab) fab.classList.add('orv-ai-fab-hidden');
+    /* Sidebar redesign — .orv-notif-bell is its own independent
+       position:fixed element (not a DOM sibling of the panel), so it
+       can't react to the panel opening via CSS alone; this body class is
+       what styles.css's `body.orv-ai-open .orv-notif-bell` rule keys off
+       to dock the bell just left of the panel's close button instead of
+       leaving it glued to the viewport corner, on top of the panel. */
+    document.body.classList.add('orv-ai-open');
     _orvAiUpdateContext(_orvAiCurrentPage);
     _orvAiRefreshGreeting();
     _orvAiLoadRecs();
@@ -9387,6 +9419,7 @@ window._orvUpdateCampPkg = function(id, pkg) {
     var fab   = document.getElementById('orvAiFab');
     if(panel){ panel.classList.remove('orv-ai-open'); panel.setAttribute('aria-hidden','true'); }
     if(fab) fab.classList.remove('orv-ai-fab-hidden');
+    document.body.classList.remove('orv-ai-open');
     /* Reset greeting for next open */
     var greeting = document.getElementById('orvAiGreeting');
     if(greeting){ greeting.style.display = ''; greeting.style.opacity = '1'; }
@@ -13278,12 +13311,19 @@ window._orvPlatOpen = function(platform){
   var url = _ADM_PLAT_LINKS[platform];
   if(url) window.open(url, '_blank', 'noopener,noreferrer');
   if(typeof _orvDrawerClose === 'function') _orvDrawerClose();
+  if(typeof _orvCloseLauncher === 'function') _orvCloseLauncher();
 };
 
 function _orvPlatShortcutRow(p, label, connected){
   var dotCls = connected ? 'orv-ni-plat-dot orv-ni-plat-dot-on' : 'orv-ni-plat-dot orv-ni-plat-dot-off';
   var statusTxt = connected ? 'Connected' : 'Not connected';
-  return '<button type="button" class="orv-ni-plat" data-plat="' + p + '" onclick="_orvPlatOpen(\'' + p + '\')" title="' + _prfEsc(label) + ' — ' + statusTxt + '">' +
+  /* data-tip drives the compact rail's hover tooltip (styles.css
+     [data-tip] system) with the exact "Visit X" wording the redesign
+     asked for; aria-label keeps the fuller connected/not-connected status
+     available to screen readers without a second, redundant native
+     browser tooltip (the old `title` attribute is dropped for that
+     reason — the connected dot already conveys status visually). */
+  return '<button type="button" class="orv-ni-plat" data-plat="' + p + '" onclick="_orvPlatOpen(\'' + p + '\')" data-tip="Visit ' + _prfEsc(label) + '" aria-label="' + _prfEsc(label) + ' — ' + statusTxt + '">' +
     '<span class="orv-ni-plat-ico">' + (window._PRF_PLAT_ICONS ? _PRF_PLAT_ICONS[p] : '') + '</span>' +
     '<span class="orv-ni-plat-name">' + _prfEsc(label) + '</span>' +
     '<span class="' + dotCls + '"></span>' +
@@ -13291,19 +13331,203 @@ function _orvPlatShortcutRow(p, label, connected){
   '</button>';
 }
 
-function _orvRenderPlatShortcuts(){
-  var targets = [document.getElementById('orvPlatShortcuts'), document.getElementById('orvPlatShortcutsMob')].filter(Boolean);
-  if(!targets.length) return;
+/* Fetch is split from render (Sidebar Refinement) so the same live status
+   data can feed both the mobile drawer's always-visible inline list AND
+   the desktop App Launcher popover, which renders on demand from
+   _orvLauncherPlatData rather than re-fetching every time it opens. */
+function _orvFetchPlatStatus(){
   var PLATS = [['google','Google Ads'],['meta','Meta Ads'],['tiktok','TikTok Ads']];
-  Promise.all(PLATS.map(function(p){
+  return Promise.all(PLATS.map(function(p){
     return apiFetch('/api/' + p[0] + '/status').then(function(r){ return { p: p[0], label: p[1], connected: !!(r.ok && r.data && r.data.connected) }; })
       .catch(function(){ return { p: p[0], label: p[1], connected: false }; });
   })).then(function(results){
-    var html = results.map(function(r){ return _orvPlatShortcutRow(r.p, r.label, r.connected); }).join('');
-    targets.forEach(function(el){ el.innerHTML = html; });
+    _orvLauncherPlatData = results;
+    return results;
+  });
+}
+
+function _orvRenderPlatShortcuts(){
+  var mobTarget = document.getElementById('orvPlatShortcutsMob');
+  _orvFetchPlatStatus().then(function(results){
+    if(!mobTarget) return;
+    mobTarget.innerHTML = results.map(function(r){ return _orvPlatShortcutRow(r.p, r.label, r.connected); }).join('');
   });
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(_orvRenderPlatShortcuts, 900); });
+
+/* ── App Launcher popover (Sidebar Refinement) ─────────────────────────
+   A small, position:fixed popover appended to <body> and positioned via
+   getBoundingClientRect() of the 9-dot button -- same rendering approach
+   as .orv-rail-tip above and for the same reason: .orv-sb-nav's
+   overflow-y:auto forces a clipping context that a purely in-flow/
+   absolutely-positioned popover would fall victim to. Reuses
+   _orvPlatShortcutRow's exact markup/handlers -- no new platform
+   navigation logic, just a different container shown on demand. */
+var _orvLauncherPlatData = null;
+var _orvLauncherPopEl = null;
+var _orvLauncherOpen = false;
+
+function _orvEnsureLauncherPop(){
+  if(_orvLauncherPopEl) return _orvLauncherPopEl;
+  var el = document.createElement('div');
+  el.className = 'orv-launcher-pop';
+  el.setAttribute('role', 'menu');
+  document.body.appendChild(el);
+  _orvLauncherPopEl = el;
+  return el;
+}
+
+function _orvRenderLauncherPop(){
+  var el = _orvEnsureLauncherPop();
+  if(!_orvLauncherPlatData || !_orvLauncherPlatData.length){
+    el.innerHTML = '<div class="orv-launcher-title">Ad Platforms</div><div class="orv-launcher-empty">Loading…</div>';
+    return;
+  }
+  el.innerHTML = '<div class="orv-launcher-title">Ad Platforms</div>' +
+    _orvLauncherPlatData.map(function(r){ return _orvPlatShortcutRow(r.p, r.label, r.connected); }).join('');
+}
+
+function _orvPositionLauncherPop(){
+  var btn = document.getElementById('orvLauncherBtn');
+  var sb = document.querySelector('.orv-sb');
+  var el = _orvLauncherPopEl;
+  if(!btn || !el) return;
+  var r = btn.getBoundingClientRect();
+  var popH = el.offsetHeight || 160;
+  // Anchored to the button's bottom edge (it sits near the very bottom of
+  // the rail) but clamped so it can never render off-screen top or bottom.
+  var top = r.bottom - popH;
+  top = Math.max(8, Math.min(top, window.innerHeight - popH - 8));
+  el.style.top = top + 'px';
+  // Left offset is measured from the RAIL's own right edge, not the
+  // button's -- the button's own box sits inset from the rail (centered,
+  // with side padding), so anchoring to its rect alone could place the
+  // popover a few px inside the rail's edge instead of clearly past it.
+  var railRight = sb ? sb.getBoundingClientRect().right : r.right;
+  el.style.left = (Math.max(railRight, r.right) + 12) + 'px';
+}
+
+window._orvToggleLauncher = function(e){
+  if(e) e.stopPropagation();
+  if(_orvLauncherOpen){ _orvCloseLauncher(); } else { _orvOpenLauncher(); }
+};
+
+function _orvOpenLauncher(){
+  // Dismiss the "Ad Platforms" rail tooltip immediately -- the popover
+  // that's about to open shows its own "Ad Platforms" title, so leaving
+  // the hover tooltip up (the mouse is still over the button after the
+  // click that opened it) would visually duplicate/overlap it.
+  var lingerTip = document.querySelector('.orv-rail-tip');
+  var lingerArrow = document.querySelector('.orv-rail-tip-arrow');
+  if(lingerTip){ lingerTip.classList.remove('orv-rail-tip-show'); lingerTip.style.display = 'none'; }
+  if(lingerArrow){ lingerArrow.classList.remove('orv-rail-tip-show'); lingerArrow.style.display = 'none'; }
+  var btn = document.getElementById('orvLauncherBtn');
+  var el = _orvEnsureLauncherPop();
+  _orvRenderLauncherPop();
+  el.style.display = 'block';
+  _orvPositionLauncherPop();
+  requestAnimationFrame(function(){
+    if(el) el.classList.add('orv-launcher-pop-show');
+    _orvPositionLauncherPop();
+  });
+  if(btn){ btn.classList.add('orv-launcher-open'); btn.setAttribute('aria-expanded', 'true'); }
+  _orvLauncherOpen = true;
+  // Refresh live connection status in the background so a stale cache
+  // (e.g. user just connected Google Ads elsewhere) never lingers.
+  _orvFetchPlatStatus().then(function(){ if(_orvLauncherOpen) _orvRenderLauncherPop(); });
+}
+
+window._orvCloseLauncher = function(){
+  var btn = document.getElementById('orvLauncherBtn');
+  if(_orvLauncherPopEl){
+    _orvLauncherPopEl.classList.remove('orv-launcher-pop-show');
+    setTimeout(function(){ if(_orvLauncherPopEl && !_orvLauncherOpen) _orvLauncherPopEl.style.display = 'none'; }, 160);
+  }
+  if(btn){ btn.classList.remove('orv-launcher-open'); btn.setAttribute('aria-expanded', 'false'); }
+  _orvLauncherOpen = false;
+};
+
+document.addEventListener('click', function(e){
+  if(!_orvLauncherOpen) return;
+  var btn = document.getElementById('orvLauncherBtn');
+  if(_orvLauncherPopEl && _orvLauncherPopEl.contains(e.target)) return;
+  if(btn && btn.contains(e.target)) return;
+  _orvCloseLauncher();
+});
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && _orvLauncherOpen) _orvCloseLauncher(); });
+document.addEventListener('scroll', function(){ if(_orvLauncherOpen) _orvCloseLauncher(); }, true);
+window.addEventListener('resize', function(){ if(_orvLauncherOpen) _orvCloseLauncher(); });
+
+/* ── Sidebar rail hover tooltips ──────────────────────────────────────
+   Renders the .orv-rail-tip/.orv-rail-tip-arrow pair (styles.css) for any
+   [data-tip] element inside the compact rail (main nav icons, platform
+   shortcuts, Settings, the workspace footer) -- one shared, reusable pair
+   of elements rather than one per icon, positioned via the hovered
+   element's own getBoundingClientRect() on every hover-in. See the CSS
+   comment on .orv-rail-tip for why this can't be a pure-CSS ::after: the
+   sidebar's own scrollable nav list clips it otherwise. Delegated on
+   document (mouseover/mouseout, which bubble, unlike mouseenter/
+   mouseleave) so it automatically covers every current and future
+   [data-tip] icon without a separate listener per button. */
+(function(){
+  var tipEl = null, arrowEl = null, hideTimer = null;
+  function ensureTip(){
+    if(tipEl) return;
+    tipEl = document.createElement('div');
+    tipEl.className = 'orv-rail-tip';
+    arrowEl = document.createElement('div');
+    arrowEl.className = 'orv-rail-tip-arrow';
+    document.body.appendChild(tipEl);
+    document.body.appendChild(arrowEl);
+  }
+  function showTip(el){
+    var text = el.getAttribute('data-tip');
+    if(!text) return;
+    clearTimeout(hideTimer);
+    ensureTip();
+    tipEl.textContent = text;
+    tipEl.classList.toggle('orv-rail-tip-multi', text.indexOf('\n') !== -1);
+    tipEl.style.display = 'block';
+    arrowEl.style.display = 'block';
+    var r = el.getBoundingClientRect();
+    var tipH = tipEl.offsetHeight || 30;
+    var top = r.top + r.height / 2 - tipH / 2;
+    top = Math.max(6, Math.min(top, window.innerHeight - tipH - 6)); // never off-screen top/bottom
+    tipEl.style.top = top + 'px';
+    tipEl.style.left = (r.right + 12) + 'px';
+    arrowEl.style.top = (r.top + r.height / 2) + 'px';
+    arrowEl.style.left = (r.right + 6) + 'px';
+    requestAnimationFrame(function(){
+      if(tipEl){ tipEl.classList.add('orv-rail-tip-show'); }
+      if(arrowEl){ arrowEl.classList.add('orv-rail-tip-show'); }
+    });
+  }
+  function hideTip(){
+    if(!tipEl) return;
+    tipEl.classList.remove('orv-rail-tip-show');
+    if(arrowEl) arrowEl.classList.remove('orv-rail-tip-show');
+    // Removes display:block only after the fade-out transition finishes,
+    // so it actually fades rather than vanishing instantly.
+    hideTimer = setTimeout(function(){
+      if(tipEl) tipEl.style.display = 'none';
+      if(arrowEl) arrowEl.style.display = 'none';
+    }, 160);
+  }
+  document.addEventListener('mouseover', function(e){
+    var t = e.target.closest && e.target.closest('.orv-sb [data-tip]');
+    if(t) showTip(t);
+  });
+  document.addEventListener('mouseout', function(e){
+    var t = e.target.closest && e.target.closest('.orv-sb [data-tip]');
+    if(t) hideTip();
+  });
+  // A tooltip left mid-fade while its icon's own state changes (e.g. nav
+  // click) shouldn't linger — every _orvNav call already runs on click,
+  // and clicking naturally fires mouseout first in real browsers, but
+  // this is a defensive belt-and-suspenders hide in case a programmatic
+  // nav change happens without a real mouse event.
+  document.addEventListener('scroll', hideTip, true);
+})();
 
 /* Team nav visibility — Professional only. _dbSubscriptionStatus (auth.js)
    is the same authoritative plan source _updateSidebarPlan already reads;
