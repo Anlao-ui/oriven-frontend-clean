@@ -703,6 +703,20 @@
               <div class="cr2-goal-grid" id="cr2PlatObjGrid" role="group" aria-label="Platform-specific objective"></div>
             </div>
 
+            <!-- Meta-only placement selector (Final Polish) — where the
+                 campaign is allowed to run: Facebook + Instagram (default,
+                 preserves prior automatic-placement behavior) or Instagram
+                 only. Reuses the existing .ov3-mode-seg segmented-control
+                 styling (same component as the Image/Video toggle above),
+                 not a new control pattern. Hidden for Google/TikTok. -->
+            <div class="cr2-goal-section" id="cr2MetaPlacementSection" style="display:none">
+              <div class="cr2-goal-label">Placements</div>
+              <div class="ov3-mode-seg" id="ov3PlacementSeg" role="group" aria-label="Meta placements">
+                <button type="button" class="ov3-mode-btn active" data-placement="both" onclick="_cr2MetaPlacement(this,'both')">Facebook + Instagram</button>
+                <button type="button" class="ov3-mode-btn" data-placement="instagram_only" onclick="_cr2MetaPlacement(this,'instagram_only')">Instagram only</button>
+              </div>
+            </div>
+
             <!-- Campaign Structure — real, editable Ad Sets × Ads-per-Ad-Set
                  control for Meta only, since /api/publish/meta is the only
                  publisher that actually creates more than one Ad Set/Ad
@@ -4295,7 +4309,12 @@
      above — panel stays here since it's position:fixed and unaffected by
      DOM location. -->
 <div class="orv-notif-panel" id="orvNotifPanel" style="display:none">
-  <div class="orv-notif-hd"><span>Notifications</span><button type="button" class="orv-notif-markall" onclick="orvMarkAllNotificationsRead()">Mark all read</button></div>
+  <div class="orv-notif-hd"><span>Notifications</span>
+    <div class="orv-notif-hd-actions">
+      <button type="button" class="orv-notif-markall" onclick="orvMarkAllNotificationsRead()">Mark all read</button>
+      <button type="button" class="orv-notif-clearall" onclick="orvClearNotificationInbox()">Clear inbox</button>
+    </div>
+  </div>
   <div id="orvNotifList" style="display:flex;flex-direction:column;gap:6px;padding:8px"></div>
 </div>
 
@@ -8647,6 +8666,9 @@ window._orvUpdateCampPkg = function(id, pkg) {
   };
   /* Selected platform — default google */
   window._ov3Platform = 'google';
+  /* Meta-only placement choice — default 'both' (Facebook + Instagram),
+     matching Meta's pre-existing automatic-placement behavior. */
+  window._ov3MetaPlacement = 'both';
   window.ov3SelectPlat = function(btn){
     window._ov3Platform = btn.getAttribute('data-plat') || 'google';
     document.querySelectorAll('.ov3-plat-pill').forEach(function(p){
@@ -9075,7 +9097,7 @@ window._orvUpdateCampPkg = function(id, pkg) {
         return '<div class="oi-card orv-notif-item orv-notif-sev-'+sev+(item.read?'':' orv-notif-unread')+'" data-notif-id="'+_prfEsc(ev.id)+'" onclick="orvNotificationClick(\''+_prfEsc(ev.id)+'\',\''+cat.page+'\')">' +
           '<div class="oi-card-top"><span class="orv-notif-sev-dot"></span><span class="crws-search-type">' + cat.label + '</span>' +
           '<div class="oi-card-title" style="font-size:12px;flex:1">' + _prfEsc(ev.title) + '</div>' +
-          '<button class="oi-why-toggle" onclick="event.stopPropagation();orvDismissNotification(\''+_prfEsc(ev.id)+'\', this)">' + (typeof t==='function'?t('notifDismissBtn'):'Dismiss') + '</button></div>' +
+          '<button type="button" class="orv-notif-del" title="Delete notification" aria-label="Delete notification" onclick="event.stopPropagation();orvDeleteNotification(\''+_prfEsc(ev.id)+'\', this)"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6 4.5V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M4.5 4.5l.6 8.2a1 1 0 0 0 1 .8h3.8a1 1 0 0 0 1-.8l.6-8.2"/><path d="M6.5 7v4M9.5 7v4"/></svg></button></div>' +
           (ev.detail ? '<div class="oi-card-desc">' + _prfEsc(ev.detail) + '</div>' : '') +
         '</div>';
       }).join('');
@@ -9113,15 +9135,20 @@ window._orvUpdateCampPkg = function(id, pkg) {
     }).catch(function(){});
   };
 
-  window.orvDismissNotification = function(id, btn){
+  // Delete a single notification (Final Polish — renamed from
+  // orvDismissNotification for clearer, non-confusable wording alongside
+  // "Mark all read"; same real, persisted /dismiss endpoint underneath —
+  // dismissed=true, filtered out of both GET queries that feed this panel,
+  // so it's gone for good on refresh, not a frontend-only hide).
+  window.orvDeleteNotification = function(id, btn){
     apiFetch('/api/intelligence/events/' + id + '/dismiss', { method: 'PATCH' }).then(function(){
-      // Removes exactly the dismissed notification's own card -- each card
+      // Removes exactly the deleted notification's own card -- each card
       // now maps 1:1 to one real event id (no grouping), so this can no
-      // longer leave undismissed siblings behind that reappear on reload,
-      // which was the root cause of "dismiss -> identical notification
-      // immediately comes back": the old grouped card only ever dismissed
-      // the group's first id, so any other un-dismissed events sharing
-      // that type+platform kept re-forming the same-looking card.
+      // longer leave un-deleted siblings behind that reappear on reload,
+      // which was the root cause of "delete -> identical notification
+      // immediately comes back": an old grouped card only ever dismissed
+      // the group's first id, so any other events sharing that type+
+      // platform kept re-forming the same-looking card.
       var card = btn && btn.closest ? btn.closest('.oi-card') : null;
       if(card) card.remove();
       _orvNotifItems = _orvNotifItems.filter(function(i){ return i.id !== id; });
@@ -9134,6 +9161,51 @@ window._orvUpdateCampPkg = function(id, pkg) {
       var list = document.getElementById('orvNotifList');
       if (list && !_orvNotifItems.length) list.innerHTML = '<span class="ov3-insight">' + (typeof t==='function'?t('notifEmptyText'):'No notifications.') + '</span>';
     }).catch(function(){});
+  };
+
+  // Clear inbox — bulk-delete every event-backed notification currently in
+  // the panel (PATCH .../dismiss-all, same real dismissed=true persistence
+  // as the single-item delete above, just applied to all of them in one
+  // request instead of N). Pending Autopilot approvals are a different
+  // data source (/api/autopilot/recommendations) and were never individually
+  // deletable from this panel either, so they're intentionally left in
+  // place — this clears the notification inbox, not the approvals queue.
+  // Distinct from "Mark all read": that only changes read state and never
+  // removes anything; this permanently removes notifications, hence the
+  // confirmation step, matching this app's existing confirm() convention
+  // for destructive actions (campaign/asset delete, etc.).
+  window.orvClearNotificationInbox = function(){
+    var hasEvents = _orvNotifItems.some(function(i){ return i.kind === 'event'; });
+    if (!hasEvents) return;
+    if (!confirm('Clear all notifications? This cannot be undone.')) return;
+    apiFetch('/api/intelligence/events/dismiss-all', { method: 'PATCH' }).then(function(res){
+      if (!res.ok) { if (typeof orvToast === 'function') orvToast('Could not clear your inbox.', 'error'); return; }
+      _orvNotifItems = _orvNotifItems.filter(function(i){ return i.kind !== 'event'; });
+      var unreadCount = _orvNotifItems.filter(function(i){ return i.unreadForBadge; }).length;
+      var count = document.getElementById('orvNotifCount');
+      var bell = document.getElementById('orvNotifBell');
+      if (count) { count.style.display = unreadCount ? '' : 'none'; count.textContent = unreadCount > 99 ? '99+' : String(unreadCount); }
+      if (bell) bell.style.display = _orvNotifItems.length ? '' : 'none';
+      if (window.orvContext) window.orvContext.notifications = unreadCount;
+      var list = document.getElementById('orvNotifList');
+      if (list) {
+        if (!_orvNotifItems.length) {
+          list.innerHTML = '<span class="ov3-insight">' + (typeof t==='function'?t('notifEmptyText'):'No notifications.') + '</span>';
+        } else {
+          // Only approval cards remain — remove just the event cards, not
+          // approval cards (both share the .orv-notif-item class; approval
+          // cards are distinguished by their 'approval-' id prefix, see
+          // _loadNotifications above).
+          document.querySelectorAll('#orvNotifList .orv-notif-item').forEach(function(c){
+            var nid = c.getAttribute('data-notif-id') || '';
+            if (nid.indexOf('approval-') !== 0) c.remove();
+          });
+        }
+      }
+      if (typeof orvToast === 'function') orvToast('Inbox cleared', 'ok');
+    }).catch(function(){
+      if (typeof orvToast === 'function') orvToast('Network error — please try again', 'error');
+    });
   };
 
   window._loadAdOpportunities = function(){
@@ -16239,11 +16311,21 @@ window.rptExport = function(format) {
       + '</div>'
       + '<div class="cst-fld-hint">'+ (struct.adSets*struct.adsPerAdSet) +' total ads will be created on Meta.</div>';
 
+    // Placement (Final Polish) — editable here too, not just at creation
+    // time, so a saved/draft campaign opened later can still change it
+    // before publish. Falls back to 'both' when the package predates this
+    // field (older campaigns), matching /api/publish/meta's own default —
+    // never fabricated, just the same honest default used everywhere else.
+    var placementVal = m.placement === 'instagram_only' ? 'instagram_only' : 'both';
     var platform = '<div class="cst-fld-row">'
       +   '<div class="cst-fld"><label>Platform</label><div class="cst-fld-static">Meta (Facebook &amp; Instagram)</div></div>'
       +   '<div class="cst-fld"><label>Facebook Page</label><div class="cst-fld-static'+(_cst.pageName?'':' cst-review-val-warn')+'">'+_cstEsc(_cst.pageName||'Not connected')+'</div></div>'
       + '</div>'
-      + '<div class="cst-fld"><label>Ad Account</label><div class="cst-fld-static'+(_cst.accountName?'':' cst-review-val-warn')+'">'+_cstEsc(_cst.accountName||'Not connected')+'</div></div>';
+      + '<div class="cst-fld"><label>Ad Account</label><div class="cst-fld-static'+(_cst.accountName?'':' cst-review-val-warn')+'">'+_cstEsc(_cst.accountName||'Not connected')+'</div></div>'
+      + '<div class="cst-fld"><label>Placements</label><div class="cst-seg" role="group" aria-label="Meta placements">'
+      +   '<button type="button" class="cst-seg-btn'+(placementVal==='both'?' cst-seg-btn-on':'')+'" onclick="_cstPlacementInput(\'both\')">Facebook + Instagram</button>'
+      +   '<button type="button" class="cst-seg-btn'+(placementVal==='instagram_only'?' cst-seg-btn-on':'')+'" onclick="_cstPlacementInput(\'instagram_only\')">Instagram only</button>'
+      + '</div></div>';
 
     var html = _cstSec('adcontent','Ad Content', null, adContent, true)
       + _cstSec('creative','Creative', null, creative, true)
@@ -16278,6 +16360,12 @@ window.rptExport = function(format) {
     _cst.pkg.strategy = _cst.pkg.strategy || {};
     _cst.pkg.strategy.budgetRecommendation = el.value;
     _cstMarkDirty();
+  };
+  window._cstPlacementInput = function(val){
+    _cst.pkg.metaAds = _cst.pkg.metaAds || {};
+    _cst.pkg.metaAds.placement = val;
+    _cstMarkDirty();
+    _cstRenderEditSections();
   };
 
   /* ── ORIVEN REVIEW stage ── */
@@ -16315,6 +16403,8 @@ window.rptExport = function(format) {
     if (needsPixel) warnHtml += '<div class="cst-check-item cst-check-warn-item"><span class="cst-check-warn-icon">&#9888;</span>Pixel required for '+_cstEsc(goal)+' objective — verified by Meta at publish time.</div>';
 
     var rows = '';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Platform</span><span class="cst-review-val">Meta Ads</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Placements</span><span class="cst-review-val">'+(m.placement==='instagram_only'?'Instagram only':'Facebook + Instagram')+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cstEsc(goal)+'</span></div>';
     if (m.objective) rows += '<div class="cst-review-row"><span class="cst-review-lbl">Meta Objective</span><span class="cst-review-val">'+_cstEsc(m.objective)+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Sets</span><span class="cst-review-val">'+struct.adSets+'</span></div>';
@@ -18128,6 +18218,10 @@ window.rptExport = function(format) {
        not just what the goal grid implies. */
     if (window._ov3PlatformObjective) _payload.platformObjective = window._ov3PlatformObjective;
     if (_plat === 'google' && window._ov3GoogleCampaignType) _payload.campaignType = window._ov3GoogleCampaignType;
+    // Meta-only placement choice (Facebook + Instagram vs. Instagram only) --
+    // only sent for Meta, and only when non-default, so Google/TikTok
+    // payloads are byte-for-byte unchanged.
+    if (_plat === 'meta' && window._ov3MetaPlacement === 'instagram_only') _payload.metaPlacement = 'instagram_only';
     /* Campaign Structure Engine — one normalized {groups,adsPerGroup} state
        (_cr2RenderStructSection), mapped to whichever field each platform's
        backend actually reads: Meta keeps its existing metaStructure shape
@@ -18301,7 +18395,21 @@ window._cr2Plat = function(btn, plat) {
   if(btn) btn.classList.add('cr2-pp-on');
   window._ov3PlatformObjective = null;
   window._ov3GoogleCampaignType = null;
+  // Reset to the default every time the platform changes (or is re-picked)
+  // so switching away from Meta and back never silently carries over a
+  // stale Instagram-only choice from an earlier selection.
+  window._ov3MetaPlacement = 'both';
+  document.querySelectorAll('#ov3PlacementSeg .ov3-mode-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-placement')==='both'); });
   _cr2RenderPlatObj();
+  if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
+};
+
+// Meta-only placement toggle (Facebook + Instagram vs. Instagram only).
+// Mirrors _cr2GoogleType/_cr2PlatObj's selection pattern exactly.
+window._cr2MetaPlacement = function(btn, val) {
+  document.querySelectorAll('#ov3PlacementSeg .ov3-mode-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  window._ov3MetaPlacement = val;
   if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
 };
 
@@ -18393,6 +18501,11 @@ function _cr2RenderPlatObj(){
   } else {
     section.style.display = 'none';
   }
+  // Meta-only placement selector — shown/hidden alongside the objective
+  // section above, independent markup so it isn't rebuilt (and its
+  // selection lost) every time the Meta Objective grid re-renders.
+  var placementSection = document.getElementById('cr2MetaPlacementSection');
+  if (placementSection) placementSection.style.display = (plat === 'meta') ? '' : 'none';
   _cr2RenderStructSection(plat);
 }
 

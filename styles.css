@@ -25721,9 +25721,29 @@ body.dark-mode .orv-notif-panel { background: #111113; border-color: rgba(255,25
   background: var(--surface); border-bottom: 1px solid var(--border);
 }
 body.dark-mode .orv-notif-hd { color: rgba(255,255,255,.92); background: #111113; border-color: rgba(255,255,255,.08); }
+.orv-notif-hd-actions { display: flex; align-items: center; gap: 10px; }
 .orv-notif-markall { font-size: 11px; font-weight: 600; color: var(--muted, #888); background: none; border: none; cursor: pointer; padding: 2px 4px; }
 .orv-notif-markall:hover { color: var(--charcoal); }
 body.dark-mode .orv-notif-markall:hover { color: rgba(255,255,255,.9); }
+/* "Clear inbox" — deliberately separate from "Mark all read" both in
+   wording and hover color (destructive red vs. neutral) so the two
+   actions can't be confused: one changes read state, the other removes
+   notifications permanently. */
+.orv-notif-clearall { font-size: 11px; font-weight: 600; color: var(--muted, #888); background: none; border: none; cursor: pointer; padding: 2px 4px; }
+.orv-notif-clearall:hover { color: #ef4444; }
+body.dark-mode .orv-notif-clearall:hover { color: #f87171; }
+
+/* Per-notification delete — small, subtle, icon-only so it never competes
+   visually with the notification content itself; only firms up into an
+   obvious "destructive" affordance (red tint) on hover, not at rest. */
+.orv-notif-del {
+  align-self: flex-start; display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer; padding: 4px; border-radius: 5px;
+  color: var(--muted); opacity: .5; flex-shrink: 0;
+  transition: opacity .15s, background .15s, color .15s;
+}
+.orv-notif-del:hover { opacity: 1; background: rgba(239,68,68,.1); color: #ef4444; }
+body.dark-mode .orv-notif-del:hover { background: rgba(239,68,68,.16); color: #f87171; }
 
 /* Notification items -- unread emphasis + severity dot (info/success/
    warning/critical), Final Polish notification rewrite. */
@@ -38270,6 +38290,19 @@ body.dark-mode .cr2-goal-desc { color: rgba(255,255,255,.4); }
 .cst-fld-static { font-size: 13px; color: rgba(255,255,255,.75); padding: 9px 11px; border-radius: 7px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); }
 .cst-goal-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,.65); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 6px 12px; align-self: flex-start; }
 .cst-goal-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+/* Placements segmented toggle (Final Polish) — same dark-studio palette
+   as .cst-fld-static/.cst-goal-pill above (this panel is intentionally
+   theme-independent, not light/dark aware), active state uses the brand
+   accent so it reads clearly against the two-option row. */
+.cst-seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.cst-seg-btn {
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 7px; padding: 8px 12px; cursor: pointer;
+  font-family: inherit; transition: background .15s, color .15s, border-color .15s;
+}
+.cst-seg-btn:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.85); }
+.cst-seg-btn.cst-seg-btn-on { background: var(--green); color: var(--green-deep, #06210f); border-color: var(--green); }
 .cst-creative-thumb { width: 100%; max-width: 220px; aspect-ratio: 1/1; border-radius: 10px; overflow: hidden; background: rgba(255,255,255,.04); display: flex; align-items: center; justify-content: center; }
 .cst-creative-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
