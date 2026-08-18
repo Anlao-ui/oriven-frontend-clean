@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════
 // INSPIRATION V1
 // Every card is a direct shortcut into a pre-filled generator.
-// BrandCore is always injected automatically at generation time.
+// Brand Identity is always injected automatically at generation time.
 // ═══════════════════════════════════════════════════════════════
 
 var INSP_CATS = ["campaign","visual","ugc","web","text"];
@@ -1077,7 +1077,7 @@ function idUseConcept(cat, idx){
   if(optsEl){ optsEl.innerHTML  = ""; optsEl.style.opacity = "1"; }
   if(freeEl)  freeEl.style.display = "none";
   if(qEl)    qEl.textContent    = "Building your " + meta.label + "…";
-  if(dEl)    dEl.textContent    = "Inspiration applied. BrandCore injected. Sending to AI…";
+  if(dEl)    dEl.textContent    = "Inspiration applied. Brand Identity injected. Sending to AI…";
 
   if(block){
     block.style.transition = "none";

@@ -215,19 +215,19 @@ function _vaShowAIPreview(data) {
   var panelHtml;
   if (!bc) {
     panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-none">'
-      + '<div class="cf-pv-bc-hdr"><svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1L.5 13h13z"/><path d="M7 6v4M7 11v.5"/></svg> No Brand Core set</div>'
-      + '<p class="cf-pv-bc-sub">Add your Brand Core in Settings to personalise every generation.</p>'
+      + '<div class="cf-pv-bc-hdr"><svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1L.5 13h13z"/><path d="M7 6v4M7 11v.5"/></svg> No Brand Identity set</div>'
+      + '<p class="cf-pv-bc-sub">Add your Brand Identity in Settings to personalise every generation.</p>'
       + '</div>';
   } else if (missing === 0) {
     panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-ok">'
-      + '<div class="cf-pv-bc-hdr">Brand Core Applied</div>'
+      + '<div class="cf-pv-bc-hdr">Brand Identity Applied</div>'
       + '<div class="cf-pv-bc-checks">' + checks.map(function(c){
           return '<span class="cf-pv-bc-ck cf-pv-bc-ck-ok"><svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg> ' + _esc(c.label) + '</span>';
         }).join('') + '</div>'
       + '</div>';
   } else {
     panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-partial">'
-      + '<div class="cf-pv-bc-hdr"><svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1L.5 13h13z"/><path d="M7 6v4M7 11v.5"/></svg> Missing Brand Core information</div>'
+      + '<div class="cf-pv-bc-hdr"><svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1L.5 13h13z"/><path d="M7 6v4M7 11v.5"/></svg> Missing Brand Identity information</div>'
       + '<div class="cf-pv-bc-checks">' + checks.map(function(c){
           if (c.ok) return '<span class="cf-pv-bc-ck cf-pv-bc-ck-ok"><svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg> ' + _esc(c.label) + '</span>';
           return '<span class="cf-pv-bc-ck cf-pv-bc-ck-miss"><svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/></svg> ' + _esc(c.label) + '</span>';
@@ -415,7 +415,13 @@ function _vaShowError(msg) {
   var statusWrap = document.getElementById('vaStatusWrap');
   var retryRow   = document.getElementById('vaRetryRow');
   var backBtn    = document.getElementById('vaBackBtn');
-  var safe = String(msg || 'Something went wrong.').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // msg can arrive as an object (a provider error shape that wasn't fully
+  // unwrapped) rather than a string -- String({...}) silently produces the
+  // literal text "[object Object]", which is exactly the placeholder-
+  // looking garbage this was showing instead of a real error. Same
+  // defensive unwrap ugc.js already uses for this same failure mode.
+  var msgText = (msg && typeof msg === 'object') ? (msg.message || msg.error || 'Something went wrong.') : msg;
+  var safe = String(msgText || 'Something went wrong.').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   if (statusWrap) statusWrap.innerHTML =
     '<div class="va-status-title va-status-error">Generation Failed</div>'

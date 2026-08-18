@@ -75,7 +75,7 @@ var GT_STEPS = [
     centered:  false,
     orbMsg:    "This is where the magic happens",
     title:     "Create everything",
-    body:      "Your AI creation hub. Every tool uses your BrandCore to stay perfectly on-brand.",
+    body:      "Your AI creation hub. Every tool uses your Brand Identity to stay perfectly on-brand.",
     bullets: [
       "Image — Brand visuals and social media designs",
       "Text — Copy, headlines, and captions",
@@ -100,7 +100,7 @@ var GT_STEPS = [
     body:      "Your central workspace. Manage everything that defines and drives your brand.",
     bullets: [
       "Saved — All your generated content and assets",
-      "Brand Core — Colors, fonts, and tone of voice",
+      "Brand Identity — Colors, fonts, and tone of voice",
       "Brand Check — Analyze brand consistency",
       "Campaigns — Manage your active campaigns"
     ],
@@ -154,9 +154,9 @@ var GT_STEPS = [
     centered:  true,
     orbMsg:    "You're ready to build something great",
     title:     "Everything starts with your brand",
-    body:      "Create your BrandCore — strategy, colors, tone of voice, and identity. Every piece of content ORIVEN generates flows directly from it.",
+    body:      "Create your Brand Identity — strategy, colors, tone of voice, and identity. Every piece of content ORIVEN generates flows directly from it.",
     bullets:   null,
-    cta:       "Create your BrandCore",
+    cta:       "Create your Brand Identity",
     onAction:  function(){
       gtComplete();
       navigate("studio");

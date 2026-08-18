@@ -98,7 +98,7 @@ function _ciAnimateSteps(stepsEl, subEl){
     "Analyzing visual identity…",
     "Mapping positioning territory…",
     "Evaluating tone of voice…",
-    "Comparing against your Brand Core…",
+    "Comparing against your Brand Identity…",
     "Identifying differentiation opportunities…",
     "Generating strategic recommendation…"
   ];
@@ -218,7 +218,7 @@ function _ciRenderHTML(data, bc){
 
   viInner += '<div class="ci-vs-col">'
     + '<div class="ci-vs-side ci-vs-user">Your Brand</div>'
-    + (userColors.length ? _ciSwatchRow(userColors) : '<div class="ci-vis-empty">No colors in Brand Core</div>')
+    + (userColors.length ? _ciSwatchRow(userColors) : '<div class="ci-vis-empty">No colors in Brand Identity</div>')
     + (userTypo ? '<div class="ci-vis-typo">' + _ciEsc(userTypo) + '</div>' : "")
     + (userStyle.length ? '<div class="ci-vis-badges">' + _ciBadges(userStyle, "ci-badge-user") + '</div>' : "")
     + '</div>';

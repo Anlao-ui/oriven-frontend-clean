@@ -177,7 +177,7 @@ function _renderTeamActivity(){
     items.push({color:"#A78BFA", text:"<strong>" + _teamEsc(c.name||"Campaign") + "</strong> campaign was launched", time:""});
   });
   if(bc && Object.keys(bc).length > 0){
-    items.push({color:"#3B82F6", text:"<strong>Brand Core</strong> is configured — AI is learning your brand", time:""});
+    items.push({color:"#3B82F6", text:"<strong>Brand Identity</strong> is configured — AI is learning your brand", time:""});
   }
 
   if(!items.length){

@@ -352,30 +352,64 @@ function _applyTheme(mode){
 //   --glt    (light  — subtle backgrounds, selected pill fills)
 //   --gpale  (pale   — hover backgrounds, very light tints)
 
+// Final Polish — accent accessibility fix: `green`/`gm` (the slots every
+// solid-fill button/active-state/badge in the app uses as
+// `background:var(--green)` paired with hardcoded `color:#000`, e.g.
+// .btn-p, .orv-ni.orv-active, .cr2-gen-btn) previously held DARK, saturated
+// brand colors for blue/purple/red/orange/pink (e.g. blue light green was
+// navy #1e3a5f) -- black text on a dark navy/purple/maroon background is
+// exactly the poor-contrast bug reported. The default green accent never
+// had this problem because #B7FF2A is already light. Fix: every accent's
+// `green`/`gm` are now light/pastel, matching #B7FF2A's brightness class,
+// so the existing color:#000 rules across the app stay readable without
+// touching every individual component. `glt`/`gpale` (subtle background
+// tints, not solid fills) and `deep` (dark on-accent text/icon color, e.g.
+// .orv-ni.orv-active's color:var(--green-deep)) were already correctly
+// light/dark respectively and are unchanged. Light and dark theme variants
+// use the same pastel values, mirroring how the green accent itself
+// already uses identical values in both themes -- these are accent
+// identities, not theme-dependent shades.
+// `text` (added, Final Polish): a second, real contrast bug found while
+// fixing the first -- var(--green-text) is declared exactly once, at
+// :root, as `color-mix(in srgb, var(--green) 55%, black)`. Custom
+// property values are resolved once per declaring element, not lazily
+// per element that reads them, so that var(--green) inside :root's own
+// --green-text declaration is forever pinned to :root's OWN --green
+// (the default #B7FF2A) -- it never actually followed accent switching,
+// for ANY accent, even before this fix. Confirmed live: after
+// setAccent('blue'), getComputedStyle(el).getPropertyValue('--green-text')
+// still returned "color-mix(in srgb, #B7FF2A 55%, black)" verbatim.
+// Fix: pre-compute the equivalent color per accent here in JS and set it
+// as its own inline custom property in _applyAccent, exactly like `deep`
+// already is -- green's `text` value below is the literal color that
+// color-mix(#B7FF2A 55%, black) already produces (#658C17), so the
+// default accent's appearance is byte-for-byte unchanged; every other
+// accent gets the same "55% accent + 45% black" treatment computed
+// against its own new light color instead of silently reusing green's.
 var ACCENT_PALETTES = {
   green: {
-    light: { green:"#B7FF2A", gm:"#9FE81F", glt:"rgba(183,255,42,0.07)", gpale:"rgba(183,255,42,0.04)", deep:"#0A0A0A" },
-    dark:  { green:"#B7FF2A", gm:"#9FE81F", glt:"rgba(183,255,42,0.08)", gpale:"rgba(183,255,42,0.05)", deep:"#000000" }
+    light: { green:"#B7FF2A", gm:"#9FE81F", glt:"rgba(183,255,42,0.07)", gpale:"rgba(183,255,42,0.04)", deep:"#0A0A0A", text:"#658C17" },
+    dark:  { green:"#B7FF2A", gm:"#9FE81F", glt:"rgba(183,255,42,0.08)", gpale:"rgba(183,255,42,0.05)", deep:"#000000", text:"#658C17" }
   },
   blue: {
-    light: { green:"#1e3a5f", gm:"#1971C2", glt:"#DBEAFE", gpale:"#EFF6FF", deep:"#0D1F3C" },
-    dark:  { green:"#1c4ed8", gm:"#3b82f6", glt:"#172554", gpale:"#1e3058", deep:"#0A1628" }
+    light: { green:"#8ECBFF", gm:"#6BB8FF", glt:"#DBEAFE", gpale:"#EFF6FF", deep:"#0D1F3C", text:"#4E708C" },
+    dark:  { green:"#8ECBFF", gm:"#6BB8FF", glt:"#172554", gpale:"#1e3058", deep:"#0A1628", text:"#4E708C" }
   },
   purple: {
-    light: { green:"#3b0764", gm:"#7C3AED", glt:"#EDE9FE", gpale:"#F5F3FF", deep:"#1E0336" },
-    dark:  { green:"#5b21b6", gm:"#8B5CF6", glt:"#2e1065", gpale:"#1e1b4b", deep:"#120022" }
+    light: { green:"#C9A8FF", gm:"#B98FFF", glt:"#EDE9FE", gpale:"#F5F3FF", deep:"#1E0336", text:"#6F5C8C" },
+    dark:  { green:"#C9A8FF", gm:"#B98FFF", glt:"#2e1065", gpale:"#1e1b4b", deep:"#120022", text:"#6F5C8C" }
   },
   red: {
-    light: { green:"#7f1d1d", gm:"#DC2626", glt:"#FEE2E2", gpale:"#FEF2F2", deep:"#450A0A" },
-    dark:  { green:"#991b1b", gm:"#EF4444", glt:"#450a0a", gpale:"#3b0808", deep:"#2C0000" }
+    light: { green:"#FF9B9B", gm:"#FF7F7F", glt:"#FEE2E2", gpale:"#FEF2F2", deep:"#450A0A", text:"#8C5555" },
+    dark:  { green:"#FF9B9B", gm:"#FF7F7F", glt:"#450a0a", gpale:"#3b0808", deep:"#2C0000", text:"#8C5555" }
   },
   orange: {
-    light: { green:"#7c2d12", gm:"#EA580C", glt:"#FFEDD5", gpale:"#FFF7ED", deep:"#431407" },
-    dark:  { green:"#9a3412", gm:"#F97316", glt:"#431407", gpale:"#2c1000", deep:"#2C0E00" }
+    light: { green:"#FFC178", gm:"#FFAD4D", glt:"#FFEDD5", gpale:"#FFF7ED", deep:"#431407", text:"#8C6A42" },
+    dark:  { green:"#FFC178", gm:"#FFAD4D", glt:"#431407", gpale:"#2c1000", deep:"#2C0E00", text:"#8C6A42" }
   },
   pink: {
-    light: { green:"#831843", gm:"#DB2777", glt:"#FCE7F3", gpale:"#FDF2F8", deep:"#4A0E2A" },
-    dark:  { green:"#9d174d", gm:"#EC4899", glt:"#4a0e28", gpale:"#2d0019", deep:"#200010" }
+    light: { green:"#FFA8D6", gm:"#FF8CC8", glt:"#FCE7F3", gpale:"#FDF2F8", deep:"#4A0E2A", text:"#8C5C76" },
+    dark:  { green:"#FFA8D6", gm:"#FF8CC8", glt:"#4a0e28", gpale:"#2d0019", deep:"#200010", text:"#8C5C76" }
   }
 };
 
@@ -397,6 +431,11 @@ function _applyAccent(name){
   document.body.style.setProperty("--glt",        vars.glt);
   document.body.style.setProperty("--gpale",      vars.gpale);
   document.body.style.setProperty("--green-deep", vars.deep);
+  // --green-text can't just inherit :root's color-mix(var(--green) 55%,
+  // black) -- that reference is pinned to :root's OWN --green forever
+  // (see ACCENT_PALETTES comment above), so it has to be set directly
+  // here per accent, exactly like --green-deep already is.
+  document.body.style.setProperty("--green-text", vars.text);
 
   // Update picker active state
   document.querySelectorAll(".accent-swatch").forEach(function(el){
@@ -414,7 +453,7 @@ var CURRENT_LANG = "en";
 var LANG_STRINGS = {
   en:{
     // Navigation
-    dashboard:"Dashboard", create:"Create", studio:"BrandCore",
+    dashboard:"Dashboard", create:"Create", studio:"Brand Identity",
     inspiration:"Inspiration", settings:"Settings",
     // Greetings
     goodMorning:"Good morning", goodAfternoon:"Good afternoon",
@@ -422,7 +461,7 @@ var LANG_STRINGS = {
     // Dashboard / FAB
     brandAssistant:"Oriven", openAIChat:"Start Creating",
     // Studio
-    savedAssets:"Saved Assets", brandCore:"Brand Core",
+    savedAssets:"Saved Assets", brandCore:"Brand Identity",
     brandCheck:"Brand Check", campaigns:"Campaigns",
     // Settings nav
     workspace:"Workspace", plan:"Your Plan", appearance:"Appearance", language:"Language",
@@ -437,7 +476,7 @@ var LANG_STRINGS = {
     // Welcome
     welcomeMsg:"How can I support your brand today?",
     // Create page
-    createSub:"Choose a creation type to get started. Your Brand Core shapes every output.",
+    createSub:"Choose a creation type to get started. Your Brand Identity shapes every output.",
     imageTitle:"Visuals",     imageDesc:"Generate on-brand visuals, ads, and social media designs.",
     textTitle:"Text",        textDesc:"Generate captions, headlines, and brand copy.",
     campaignTitle:"Campaign",campaignDesc:"Build full campaigns with visuals and copy.",
@@ -454,11 +493,11 @@ var LANG_STRINGS = {
     dashCreateLabel:"Create Content",   dashCreateDesc:"Images, copy, video scripts, and more.",
     dashIdeasLabel:"Explore Ideas",     dashIdeasDesc:"Content ideas, ad angles, and campaign concepts.",
     dashCampaignLabel:"Build Campaign", dashCampaignDesc:"Full multi-channel campaigns end to end.",
-    dashBrandLabel:"Edit Brand Core",   dashBrandDesc:"Colors, fonts, tone of voice, and identity.",
+    dashBrandLabel:"Edit Brand Identity",   dashBrandDesc:"Colors, fonts, tone of voice, and identity.",
     // Dashboard snapshot
     edit:"Edit", setUp:"Set up", notConfigured:"Not configured",
     buildBrandIdentity:"Build your brand identity to get started.",
-    setUpBrandCore:"Set up your Brand Core →",
+    setUpBrandCore:"Set up your Brand Identity →",
     // Create page
     createH1Line1:"What would you like to", createH1Line2:"create today?",
     // Studio hub
@@ -469,7 +508,7 @@ var LANG_STRINGS = {
     studioCampDesc:"Manage and launch your active campaigns.",
     studioBackBtn:"Back",
     // Studio: empty states + actions
-    noBCConfigured:"No Brand Core configured yet",
+    noBCConfigured:"No Brand Identity configured yet",
     noBCConfiguredSub:"Set up your brand identity to unlock AI generation.",
     aiGenerateBtn:"AI Generate", manualSetupBtn:"Manual Setup",
     savedAssetsHeader:"Saved Assets",
@@ -531,12 +570,12 @@ var LANG_STRINGS = {
     wsNameLabel:"Workspace Name",
     wsNameHelp:"This is the name of your workspace inside ORIVEN. It appears in your sidebar and throughout the app.",
     saveBtn:"Save",
-    brandLockLabel:"Brand Lock", lockBCLabel:"Lock BrandCore",
-    lockBCSub:"When enabled, your BrandCore stays fixed and is applied consistently across all generated content. Disable to make changes to your brand setup.",
+    brandLockLabel:"Brand Lock", lockBCLabel:"Lock Brand Identity",
+    lockBCSub:"When enabled, your Brand Identity stays fixed and is applied consistently across all generated content. Disable to make changes to your brand setup.",
     spAppearanceSub:"Choose how ORIVEN looks and feels. Your preference is saved and persists across sessions.",
     spLanguageSub:"Set the display and content generation language for your workspace. Your selection is saved and applied on every session.",
     langDisplayLabel:"Display & Generation Language",
-    langDisplayHelp:"ORIVEN will use this language for interface labels and when generating content with your BrandCore.",
+    langDisplayHelp:"ORIVEN will use this language for interface labels and when generating content with your Brand Identity.",
     spNotificationsSub:"Control in-app notifications. Changes are saved immediately.",
     notifBrandCheckLabel:"Brand Check alerts",
     notifBrandCheckSub:"Show a notification when your Brand Check score drops below 70%.",
@@ -550,9 +589,9 @@ var LANG_STRINGS = {
     autoSaveLabel:"Auto-save generated content",
     autoSaveSub:"Automatically save your workspace changes and generated content to Studio. When enabled, every generation is stored without requiring a manual save.",
     spDangerSub:"Permanent actions — these cannot be undone.",
-    resetBCTitle:"Reset Brand Core",
-    resetBCDesc:"This resets your entire brand setup — colors, tone of voice, positioning, and identity data. Your generated assets saved in Studio will not be affected, but all future generations will lose brand context until you create a new BrandCore. This action is permanent and cannot be reversed.",
-    resetBCBtn:"Reset Brand Core",
+    resetBCTitle:"Reset Brand Identity",
+    resetBCDesc:"This resets your entire brand setup — colors, tone of voice, positioning, and identity data. Your generated assets saved in Studio will not be affected, but all future generations will lose brand context until you create a new Brand Identity. This action is permanent and cannot be reversed.",
+    resetBCBtn:"Reset Brand Identity",
     // Banner
     // Builder
     // Settings Completion — current live sidebar/workspace titles (Oriven 1.0)
@@ -599,7 +638,7 @@ var LANG_STRINGS = {
     toastPleaseSignIn:"Please sign in first", toastVerificationSent:"Verification email sent — check your inbox",
     toastCouldNotSendPrefix:"Could not send —", toastEmailVerified:"Email verified — your account is confirmed!",
     toastVerificationInvalid:"Verification link is invalid or already used. Request a new one.",
-    toastBrandCoreSavedCloud:"Brand Core saved to cloud", toastCheckoutFailed:"Could not start checkout — please try again",
+    toastBrandCoreSavedCloud:"Brand Identity saved to cloud", toastCheckoutFailed:"Could not start checkout — please try again",
     toastCheckoutCanceled:"Checkout canceled — you can upgrade anytime.",
     toastSubscriptionActive:"Your subscription is now active — welcome to ORIVEN!",
     toastPaymentReceived:"Payment received — activating your account...",
@@ -792,12 +831,18 @@ var LANG_STRINGS = {
     obPaywallEyebrow:"Your First Campaign Is Ready",
     smdRestartObTitle:"Restart Onboarding",
     smdRestartObHelp:"Replay the guided product tour from the beginning. Useful for demos or a refresher.",
-    smdRestartObBtn:"Restart Onboarding"
+    smdRestartObBtn:"Restart Onboarding",
+    notifMarkAllRead:"Mark all read", notifClearInbox:"Clear inbox",
+    notifClearConfirm:"Clear all notifications? This cannot be undone.",
+    notifDeleteBtn:"Delete notification", notifInboxCleared:"Inbox cleared",
+    metaPlacementsLabel:"Placements", metaPlacementBoth:"Facebook + Instagram", metaPlacementIgOnly:"Instagram only",
+    brandIdentityLabel:"Brand Identity", brandIdentityOn:"On", brandIdentityOff:"Off",
+    brandIdentityEnabledVal:"Enabled", brandIdentityDisabledVal:"Disabled"
   },
 
   fr:{
     // Navigation
-    dashboard:"Tableau de bord", create:"Créer", studio:"BrandCore",
+    dashboard:"Tableau de bord", create:"Créer", studio:"Identité de marque",
     inspiration:"Inspiration", settings:"Paramètres",
     // Greetings
     goodMorning:"Bonjour", goodAfternoon:"Bon après-midi",
@@ -805,7 +850,7 @@ var LANG_STRINGS = {
     // Dashboard / FAB
     brandAssistant:"Oriven", openAIChat:"Commencer à créer",
     // Studio
-    savedAssets:"Éléments enregistrés", brandCore:"Brand Core",
+    savedAssets:"Éléments enregistrés", brandCore:"Identité de marque",
     brandCheck:"Vérification de marque", campaigns:"Campagnes",
     // Settings nav
     workspace:"Espace de travail", plan:"Votre offre", appearance:"Apparence", language:"Langue",
@@ -820,7 +865,7 @@ var LANG_STRINGS = {
     // Welcome
     welcomeMsg:"Comment puis-je accompagner votre marque aujourd'hui ?",
     // Create page
-    createSub:"Choisissez un type de création pour commencer. Votre Brand Core façonne chaque résultat.",
+    createSub:"Choisissez un type de création pour commencer. Votre identité de marque façonne chaque résultat.",
     imageTitle:"Visuels",     imageDesc:"Générez des visuels, publicités et designs pour réseaux sociaux à l'image de votre marque.",
     textTitle:"Texte",        textDesc:"Générez des légendes, titres et textes de marque.",
     campaignTitle:"Campagne",campaignDesc:"Créez des campagnes complètes avec visuels et textes.",
@@ -837,11 +882,11 @@ var LANG_STRINGS = {
     dashCreateLabel:"Créer du contenu",   dashCreateDesc:"Images, textes, scripts vidéo, et plus encore.",
     dashIdeasLabel:"Explorer des idées",     dashIdeasDesc:"Idées de contenu, angles publicitaires et concepts de campagne.",
     dashCampaignLabel:"Créer une campagne", dashCampaignDesc:"Campagnes multicanales complètes de bout en bout.",
-    dashBrandLabel:"Modifier le Brand Core",   dashBrandDesc:"Couleurs, polices, ton de voix et identité.",
+    dashBrandLabel:"Modifier l'identité de marque",   dashBrandDesc:"Couleurs, polices, ton de voix et identité.",
     // Dashboard snapshot
     edit:"Modifier", setUp:"Configurer", notConfigured:"Non configuré",
     buildBrandIdentity:"Construisez l'identité de votre marque pour commencer.",
-    setUpBrandCore:"Configurer votre Brand Core →",
+    setUpBrandCore:"Configurer votre identité de marque →",
     // Create page
     createH1Line1:"Que souhaitez-vous", createH1Line2:"créer aujourd'hui ?",
     // Studio hub
@@ -852,7 +897,7 @@ var LANG_STRINGS = {
     studioCampDesc:"Gérez et lancez vos campagnes actives.",
     studioBackBtn:"Retour",
     // Studio: empty states + actions
-    noBCConfigured:"Aucun Brand Core configuré pour l'instant",
+    noBCConfigured:"Aucune identité de marque configurée pour l'instant",
     noBCConfiguredSub:"Configurez l'identité de votre marque pour débloquer la génération IA.",
     aiGenerateBtn:"Générer avec l'IA", manualSetupBtn:"Configuration manuelle",
     savedAssetsHeader:"Éléments enregistrés",
@@ -914,12 +959,12 @@ var LANG_STRINGS = {
     wsNameLabel:"Nom de l'espace de travail",
     wsNameHelp:"C'est le nom de votre espace de travail dans ORIVEN. Il apparaît dans votre barre latérale et dans toute l'application.",
     saveBtn:"Enregistrer",
-    brandLockLabel:"Verrouillage de marque", lockBCLabel:"Verrouiller le BrandCore",
-    lockBCSub:"Lorsqu'il est activé, votre BrandCore reste fixe et est appliqué de façon cohérente à tout le contenu généré. Désactivez-le pour modifier la configuration de votre marque.",
+    brandLockLabel:"Verrouillage de marque", lockBCLabel:"Verrouiller l'identité de marque",
+    lockBCSub:"Lorsqu'il est activé, votre identité de marque reste fixe et est appliquée de façon cohérente à tout le contenu généré. Désactivez-le pour modifier la configuration de votre marque.",
     spAppearanceSub:"Choisissez l'apparence d'ORIVEN. Votre préférence est enregistrée et conservée d'une session à l'autre.",
     spLanguageSub:"Définissez la langue d'affichage et de génération de contenu pour votre espace de travail. Votre choix est enregistré et appliqué à chaque session.",
     langDisplayLabel:"Langue d'affichage et de génération",
-    langDisplayHelp:"ORIVEN utilisera cette langue pour les libellés d'interface et lors de la génération de contenu avec votre BrandCore.",
+    langDisplayHelp:"ORIVEN utilisera cette langue pour les libellés d'interface et lors de la génération de contenu avec votre identité de marque.",
     spNotificationsSub:"Gérez les notifications in-app. Les modifications sont enregistrées immédiatement.",
     notifBrandCheckLabel:"Alertes de vérification de marque",
     notifBrandCheckSub:"Afficher une notification lorsque votre score de vérification de marque passe sous 70 %.",
@@ -933,9 +978,9 @@ var LANG_STRINGS = {
     autoSaveLabel:"Enregistrement automatique du contenu généré",
     autoSaveSub:"Enregistrez automatiquement les modifications de votre espace de travail et le contenu généré dans Studio. Une fois activé, chaque génération est stockée sans enregistrement manuel.",
     spDangerSub:"Actions permanentes — elles ne peuvent pas être annulées.",
-    resetBCTitle:"Réinitialiser le Brand Core",
-    resetBCDesc:"Cette action réinitialise toute la configuration de votre marque — couleurs, ton de voix, positionnement et données d'identité. Vos éléments générés enregistrés dans Studio ne seront pas affectés, mais toutes les générations futures perdront le contexte de marque jusqu'à ce que vous créiez un nouveau BrandCore. Cette action est permanente et irréversible.",
-    resetBCBtn:"Réinitialiser le Brand Core",
+    resetBCTitle:"Réinitialiser l'identité de marque",
+    resetBCDesc:"Cette action réinitialise toute la configuration de votre marque — couleurs, ton de voix, positionnement et données d'identité. Vos éléments générés enregistrés dans Studio ne seront pas affectés, mais toutes les générations futures perdront le contexte de marque jusqu'à ce que vous créiez une nouvelle identité de marque. Cette action est permanente et irréversible.",
+    resetBCBtn:"Réinitialiser l'identité de marque",
     // Banner
     // Builder
     // Settings Completion — current live sidebar/workspace titles (Oriven 1.0)
@@ -981,7 +1026,7 @@ var LANG_STRINGS = {
     toastPleaseSignIn:"Veuillez d'abord vous connecter", toastVerificationSent:"E-mail de vérification envoyé — vérifiez votre boîte de réception",
     toastCouldNotSendPrefix:"Envoi impossible —", toastEmailVerified:"E-mail vérifié — votre compte est confirmé !",
     toastVerificationInvalid:"Le lien de vérification est invalide ou déjà utilisé. Demandez-en un nouveau.",
-    toastBrandCoreSavedCloud:"Brand Core enregistré dans le cloud", toastCheckoutFailed:"Impossible de démarrer le paiement — veuillez réessayer",
+    toastBrandCoreSavedCloud:"Identité de marque enregistrée dans le cloud", toastCheckoutFailed:"Impossible de démarrer le paiement — veuillez réessayer",
     toastCheckoutCanceled:"Paiement annulé — vous pouvez passer à niveau supérieur à tout moment.",
     toastSubscriptionActive:"Votre abonnement est maintenant actif — bienvenue chez ORIVEN !",
     toastPaymentReceived:"Paiement reçu — activation de votre compte...",
@@ -1125,11 +1170,17 @@ var LANG_STRINGS = {
     smdRestartObHelp:"Revoir la visite guidée depuis le début. Utile pour une démonstration ou une piqûre de rappel.",
     smdRestartObBtn:"Relancer la visite guidée",
     helpTitle:"Aide", helpSub:"Ce que fait chaque section des Paramètres.",
-    builderResultLabel:"Résultat", regenerateBtn:"Régénérer", saveToStudioBtn:"Enregistrer dans Studio"
+    builderResultLabel:"Résultat", regenerateBtn:"Régénérer", saveToStudioBtn:"Enregistrer dans Studio",
+    notifMarkAllRead:"Tout marquer comme lu", notifClearInbox:"Vider la boîte de réception",
+    notifClearConfirm:"Effacer toutes les notifications ? Cette action est irréversible.",
+    notifDeleteBtn:"Supprimer la notification", notifInboxCleared:"Boîte de réception vidée",
+    metaPlacementsLabel:"Emplacements", metaPlacementBoth:"Facebook + Instagram", metaPlacementIgOnly:"Instagram uniquement",
+    brandIdentityLabel:"Identité de marque", brandIdentityOn:"Activé", brandIdentityOff:"Désactivé",
+    brandIdentityEnabledVal:"Activée", brandIdentityDisabledVal:"Désactivée"
   },
 
   nl:{
-    dashboard:"Dashboard", create:"Maken", studio:"BrandCore",
+    dashboard:"Dashboard", create:"Maken", studio:"Merkidentiteit",
     inspiration:"Inspiratie", settings:"Instellingen",
     goodMorning:"Goedemorgen", goodAfternoon:"Goedemiddag",
     goodEvening:"Goedenavond", goodNight:"Goedenacht",
@@ -1144,7 +1195,7 @@ var LANG_STRINGS = {
     noItems:"Nog geen opgeslagen bestanden",
     createContent:"Maak inhoud in AI Chat en sla het hier op.",
     welcomeMsg:"Hoe kan ik uw merk vandaag ondersteunen?",
-    createSub:"Kies een type en begin. Uw BrandCore vormt elke uitvoer.",
+    createSub:"Kies een type en begin. Uw merkidentiteit vormt elke uitvoer.",
     imageTitle:"Afbeelding",  imageDesc:"Maak visuals, posters en social media ontwerpen.",
     textTitle:"Tekst",        textDesc:"Genereer onderschriften, koppen en merkteksten.",
     campaignTitle:"Campagne", campaignDesc:"Bouw complete campagnes met visuals en teksten.",
@@ -1158,10 +1209,10 @@ var LANG_STRINGS = {
     dashCreateLabel:"Inhoud maken",     dashCreateDesc:"Afbeeldingen, tekst, videoscripts en meer.",
     dashIdeasLabel:"Ideeën verkennen",  dashIdeasDesc:"Contentideeën, advertentiehoeken en campagneconcepten.",
     dashCampaignLabel:"Campagne maken", dashCampaignDesc:"Volledige multi-channel campagnes van begin tot eind.",
-    dashBrandLabel:"Brand Core bewerken", dashBrandDesc:"Kleuren, lettertypen, toon en identiteit.",
+    dashBrandLabel:"Merkidentiteit bewerken", dashBrandDesc:"Kleuren, lettertypen, toon en identiteit.",
     edit:"Bewerken", setUp:"Instellen", notConfigured:"Niet geconfigureerd",
     buildBrandIdentity:"Bouw je merkidentiteit om te beginnen.",
-    setUpBrandCore:"Stel je Brand Core in →",
+    setUpBrandCore:"Stel je merkidentiteit in →",
     createH1Line1:"Wat wil je vandaag", createH1Line2:"creëren?",
     brandStudioTitle:"Brand Studio", brandStudioSub:"Alles wat jouw merk definieert en aandrijft.",
     studioSavedLabel:"Opgeslagen", studioSavedDesc:"Al jouw gegenereerde content en bestanden.",
@@ -1169,7 +1220,7 @@ var LANG_STRINGS = {
     studioCheckLabel:"Merkcontrole",  studioCheckDesc:"Analyseer content op merkconsistentie.",
     studioCampDesc:"Beheer en lanceer jouw actieve campagnes.",
     studioBackBtn:"Terug",
-    noBCConfigured:"Nog geen Brand Core geconfigureerd",
+    noBCConfigured:"Nog geen merkidentiteit geconfigureerd",
     noBCConfiguredSub:"Stel jouw merkidentiteit in om AI-generatie te ontgrendelen.",
     aiGenerateBtn:"AI Genereren", manualSetupBtn:"Handmatig instellen",
     savedAssetsHeader:"Opgeslagen bestanden",
@@ -1261,12 +1312,12 @@ var LANG_STRINGS = {
     wsNameLabel:"Naam werkruimte",
     wsNameHelp:"Dit is de naam van jouw werkruimte in ORIVEN. Het verschijnt in de zijbalk en door de hele app.",
     saveBtn:"Opslaan",
-    brandLockLabel:"Merkvergrendeling", lockBCLabel:"Vergrendel BrandCore",
-    lockBCSub:"Wanneer ingeschakeld, blijft jouw BrandCore vast en wordt het consistent toegepast op alle gegenereerde content.",
+    brandLockLabel:"Merkvergrendeling", lockBCLabel:"Vergrendel merkidentiteit",
+    lockBCSub:"Wanneer ingeschakeld, blijft jouw merkidentiteit vast en wordt deze consistent toegepast op alle gegenereerde content.",
     spAppearanceSub:"Kies hoe ORIVEN eruitziet en aanvoelt. Jouw voorkeur wordt opgeslagen.",
     spLanguageSub:"Stel de weergave- en contentgeneratietaal in voor jouw werkruimte.",
     langDisplayLabel:"Weergave- en Generatietaal",
-    langDisplayHelp:"ORIVEN gebruikt deze taal voor interface-labels en bij het genereren van content met jouw BrandCore.",
+    langDisplayHelp:"ORIVEN gebruikt deze taal voor interface-labels en bij het genereren van content met jouw merkidentiteit.",
     spNotificationsSub:"Beheer meldingen in de app. Wijzigingen worden direct opgeslagen.",
     notifBrandCheckLabel:"Merkcontrolemeldingen",
     notifBrandCheckSub:"Toon een melding wanneer jouw merkscore onder de 70% daalt.",
@@ -1280,9 +1331,9 @@ var LANG_STRINGS = {
     autoSaveLabel:"Gegenereerde content automatisch opslaan",
     autoSaveSub:"Sla jouw wijzigingen en gegenereerde content automatisch op in Studio.",
     spDangerSub:"Permanente acties — deze kunnen niet ongedaan worden gemaakt.",
-    resetBCTitle:"Brand Core resetten",
+    resetBCTitle:"Merkidentiteit resetten",
     resetBCDesc:"Dit reset jouw volledige merkinstelling — kleuren, toon, positionering en identiteitsdata. Jouw opgeslagen bestanden in Studio worden niet beïnvloed, maar toekomstige generaties verliezen merkcontext. Deze actie is permanent en kan niet worden teruggedraaid.",
-    resetBCBtn:"Brand Core resetten",
+    resetBCBtn:"Merkidentiteit resetten",
     navLaunch:"Launch", navCampaigns:"Campagnes", navIntelligence:"Intelligentie", navAutopilot:"Autopilot", navBusiness:"Bedrijf", navSettings:"Instellingen",
     wsTitleIntelligence:"Intelligentie", wsSubIntelligence:"Wat vandaag jouw aandacht verdient.",
     wsTitleBusiness:"Bedrijf", wsSubBusiness:"Leer Oriven eenmalig over je bedrijf — elke campagne, elk gesprek en elke aanbeveling gebruikt dit vanaf dan automatisch.",
@@ -1325,7 +1376,7 @@ var LANG_STRINGS = {
     toastPleaseSignIn:"Log eerst in", toastVerificationSent:"Verificatie-e-mail verzonden — controleer je inbox",
     toastCouldNotSendPrefix:"Verzenden mislukt —", toastEmailVerified:"E-mail geverifieerd — je account is bevestigd!",
     toastVerificationInvalid:"Verificatielink is ongeldig of al gebruikt. Vraag een nieuwe aan.",
-    toastBrandCoreSavedCloud:"Brand Core opgeslagen in de cloud", toastCheckoutFailed:"Kon afrekenen niet starten — probeer het opnieuw",
+    toastBrandCoreSavedCloud:"Merkidentiteit opgeslagen in de cloud", toastCheckoutFailed:"Kon afrekenen niet starten — probeer het opnieuw",
     toastCheckoutCanceled:"Afrekenen geannuleerd — je kunt op elk moment upgraden.",
     toastSubscriptionActive:"Je abonnement is nu actief — welkom bij ORIVEN!",
     toastPaymentReceived:"Betaling ontvangen — je account wordt geactiveerd...",
@@ -1469,7 +1520,13 @@ var LANG_STRINGS = {
     smdRestartObHelp:"Speel de rondleiding opnieuw af vanaf het begin. Handig voor demo's of een opfrisser.",
     smdRestartObBtn:"Rondleiding opnieuw starten",
     helpTitle:"Help", helpSub:"Wat elk instellingenonderdeel doet.",
-    builderResultLabel:"Resultaat", regenerateBtn:"Opnieuw genereren", saveToStudioBtn:"Opslaan in Studio"
+    builderResultLabel:"Resultaat", regenerateBtn:"Opnieuw genereren", saveToStudioBtn:"Opslaan in Studio",
+    notifMarkAllRead:"Alles als gelezen markeren", notifClearInbox:"Postvak legen",
+    notifClearConfirm:"Alle meldingen wissen? Dit kan niet ongedaan worden gemaakt.",
+    notifDeleteBtn:"Melding verwijderen", notifInboxCleared:"Postvak geleegd",
+    metaPlacementsLabel:"Plaatsingen", metaPlacementBoth:"Facebook + Instagram", metaPlacementIgOnly:"Alleen Instagram",
+    brandIdentityLabel:"Merkidentiteit", brandIdentityOn:"Aan", brandIdentityOff:"Uit",
+    brandIdentityEnabledVal:"Ingeschakeld", brandIdentityDisabledVal:"Uitgeschakeld"
   },
 
   es:{
@@ -1488,7 +1545,7 @@ var LANG_STRINGS = {
     noItems:"Sin archivos guardados aún",
     createContent:"Genera contenido en AI Chat y guárdalo aquí.",
     welcomeMsg:"¿Cómo puedo apoyar tu marca hoy?",
-    createSub:"Elige un tipo de creación para empezar. Tu Brand Core da forma a cada resultado.",
+    createSub:"Elige un tipo de creación para empezar. Tu identidad de marca da forma a cada resultado.",
     imageTitle:"Imagen",      imageDesc:"Crea visuales, carteles y diseños para redes sociales.",
     textTitle:"Texto",        textDesc:"Genera leyendas, titulares y textos de marca.",
     campaignTitle:"Campaña",  campaignDesc:"Crea campañas completas con visuales y textos.",
@@ -1502,10 +1559,10 @@ var LANG_STRINGS = {
     dashCreateLabel:"Crear contenido",   dashCreateDesc:"Imágenes, textos, guiones de video y más.",
     dashIdeasLabel:"Explorar ideas",     dashIdeasDesc:"Ideas de contenido, ángulos de anuncios y conceptos.",
     dashCampaignLabel:"Crear campaña",   dashCampaignDesc:"Campañas multicanal completas de principio a fin.",
-    dashBrandLabel:"Editar Brand Core",  dashBrandDesc:"Colores, fuentes, tono de voz e identidad.",
+    dashBrandLabel:"Editar identidad de marca",  dashBrandDesc:"Colores, fuentes, tono de voz e identidad.",
     edit:"Editar", setUp:"Configurar", notConfigured:"No configurado",
     buildBrandIdentity:"Construye tu identidad de marca para empezar.",
-    setUpBrandCore:"Configura tu Brand Core →",
+    setUpBrandCore:"Configura tu identidad de marca →",
     createH1Line1:"¿Qué te gustaría", createH1Line2:"crear hoy?",
     brandStudioTitle:"Brand Studio", brandStudioSub:"Todo lo que define y mueve tu marca.",
     studioSavedLabel:"Guardado",    studioSavedDesc:"Todo tu contenido y archivos generados.",
@@ -1513,7 +1570,7 @@ var LANG_STRINGS = {
     studioCheckLabel:"Verificación", studioCheckDesc:"Analiza contenido para consistencia de marca.",
     studioCampDesc:"Gestiona y lanza tus campañas activas.",
     studioBackBtn:"Atrás",
-    noBCConfigured:"Sin Brand Core configurado aún",
+    noBCConfigured:"Sin identidad de marca configurada aún",
     noBCConfiguredSub:"Configura tu identidad de marca para desbloquear la generación de IA.",
     aiGenerateBtn:"Generar con IA", manualSetupBtn:"Configuración manual",
     savedAssetsHeader:"Archivos guardados", openAIChatBtn:"Abrir AI Chat",
@@ -1561,12 +1618,12 @@ var LANG_STRINGS = {
     wsNameLabel:"Nombre del espacio de trabajo",
     wsNameHelp:"Este es el nombre de tu espacio de trabajo en ORIVEN. Aparece en tu barra lateral y en toda la app.",
     saveBtn:"Guardar",
-    brandLockLabel:"Bloqueo de Marca", lockBCLabel:"Bloquear BrandCore",
-    lockBCSub:"Cuando está activado, tu BrandCore permanece fijo y se aplica de forma consistente.",
+    brandLockLabel:"Bloqueo de Marca", lockBCLabel:"Bloquear identidad de marca",
+    lockBCSub:"Cuando está activado, tu identidad de marca permanece fija y se aplica de forma consistente.",
     spAppearanceSub:"Elige cómo se ve y siente ORIVEN. Tu preferencia se guarda entre sesiones.",
     spLanguageSub:"Establece el idioma de visualización y generación de contenido para tu espacio de trabajo.",
     langDisplayLabel:"Idioma de visualización y generación",
-    langDisplayHelp:"ORIVEN usará este idioma para etiquetas de interfaz y al generar contenido con tu BrandCore.",
+    langDisplayHelp:"ORIVEN usará este idioma para etiquetas de interfaz y al generar contenido con tu identidad de marca.",
     spNotificationsSub:"Controla las notificaciones en la app. Los cambios se guardan inmediatamente.",
     notifBrandCheckLabel:"Alertas de verificación de marca",
     notifBrandCheckSub:"Muestra una notificación cuando tu puntuación de marca baje del 70%.",
@@ -1580,9 +1637,9 @@ var LANG_STRINGS = {
     autoSaveLabel:"Guardar automáticamente el contenido generado",
     autoSaveSub:"Guarda automáticamente los cambios y el contenido generado en Studio.",
     spDangerSub:"Acciones permanentes — no se pueden deshacer.",
-    resetBCTitle:"Resetear Brand Core",
-    resetBCDesc:"Esto reinicia toda tu configuración de marca — colores, tono de voz, posicionamiento y datos de identidad. Tus recursos generados guardados en Studio no se verán afectados, pero todas las generaciones futuras perderán el contexto de marca hasta que crees un nuevo BrandCore. Esta acción es permanente y no se puede revertir.",
-    resetBCBtn:"Resetear Brand Core",
+    resetBCTitle:"Restablecer identidad de marca",
+    resetBCDesc:"Esto reinicia toda tu configuración de marca — colores, tono de voz, posicionamiento y datos de identidad. Tus recursos generados guardados en Studio no se verán afectados, pero todas las generaciones futuras perderán el contexto de marca hasta que crees una nueva identidad de marca. Esta acción es permanente y no se puede revertir.",
+    resetBCBtn:"Restablecer identidad de marca",
     navLaunch:"Lanzar", navCampaigns:"Campañas", navIntelligence:"Inteligencia", navAutopilot:"Autopiloto", navBusiness:"Negocio", navSettings:"Ajustes",
     wsTitleIntelligence:"Inteligencia", wsSubIntelligence:"Qué merece tu atención hoy.",
     wsTitleBusiness:"Negocio", wsSubBusiness:"Enseña a Oriven tu negocio una vez — cada campaña, conversación y recomendación lo usará automáticamente a partir de entonces.",
@@ -1625,7 +1682,7 @@ var LANG_STRINGS = {
     toastPleaseSignIn:"Inicia sesión primero", toastVerificationSent:"Correo de verificación enviado — revisa tu bandeja de entrada",
     toastCouldNotSendPrefix:"No se pudo enviar —", toastEmailVerified:"Correo verificado — tu cuenta está confirmada!",
     toastVerificationInvalid:"El enlace de verificación no es válido o ya se usó. Solicita uno nuevo.",
-    toastBrandCoreSavedCloud:"Brand Core guardado en la nube", toastCheckoutFailed:"No se pudo iniciar el pago — inténtalo de nuevo",
+    toastBrandCoreSavedCloud:"Identidad de marca guardada en la nube", toastCheckoutFailed:"No se pudo iniciar el pago — inténtalo de nuevo",
     toastCheckoutCanceled:"Pago cancelado — puedes mejorar tu plan cuando quieras.",
     toastSubscriptionActive:"Tu suscripción ya está activa — ¡bienvenido a ORIVEN!",
     toastPaymentReceived:"Pago recibido — activando tu cuenta...",
@@ -1769,7 +1826,13 @@ var LANG_STRINGS = {
     smdRestartObHelp:"Vuelve a ver la visita guiada desde el principio. Útil para demostraciones o como recordatorio.",
     smdRestartObBtn:"Reiniciar la incorporación",
     helpTitle:"Ayuda", helpSub:"Qué hace cada sección de Ajustes.",
-    builderResultLabel:"Resultado", regenerateBtn:"Regenerar", saveToStudioBtn:"Guardar en Studio"
+    builderResultLabel:"Resultado", regenerateBtn:"Regenerar", saveToStudioBtn:"Guardar en Studio",
+    notifMarkAllRead:"Marcar todo como leído", notifClearInbox:"Vaciar bandeja de entrada",
+    notifClearConfirm:"¿Borrar todas las notificaciones? Esta acción no se puede deshacer.",
+    notifDeleteBtn:"Eliminar notificación", notifInboxCleared:"Bandeja de entrada vaciada",
+    metaPlacementsLabel:"Ubicaciones", metaPlacementBoth:"Facebook + Instagram", metaPlacementIgOnly:"Solo Instagram",
+    brandIdentityLabel:"Identidad de marca", brandIdentityOn:"Activada", brandIdentityOff:"Desactivada",
+    brandIdentityEnabledVal:"Activada", brandIdentityDisabledVal:"Desactivada"
   },
 
   pt:{
@@ -1788,7 +1851,7 @@ var LANG_STRINGS = {
     noItems:"Nenhum arquivo salvo ainda",
     createContent:"Gere conteúdo no AI Chat e salve aqui.",
     welcomeMsg:"Como posso apoiar sua marca hoje?",
-    createSub:"Escolha um tipo de criação para começar. Seu Brand Core molda cada resultado.",
+    createSub:"Escolha um tipo de criação para começar. Sua identidade de marca molda cada resultado.",
     imageTitle:"Imagem",      imageDesc:"Crie visuais, pôsteres e designs para redes sociais.",
     textTitle:"Texto",        textDesc:"Gere legendas, manchetes e textos de marca.",
     campaignTitle:"Campanha", campaignDesc:"Crie campanhas completas com visuais e textos.",
@@ -1802,10 +1865,10 @@ var LANG_STRINGS = {
     dashCreateLabel:"Criar conteúdo",   dashCreateDesc:"Imagens, textos, roteiros de vídeo e mais.",
     dashIdeasLabel:"Explorar ideias",   dashIdeasDesc:"Ideias de conteúdo, ângulos de anúncios e conceitos.",
     dashCampaignLabel:"Criar campanha", dashCampaignDesc:"Campanhas multicanal completas do início ao fim.",
-    dashBrandLabel:"Editar Brand Core", dashBrandDesc:"Cores, fontes, tom de voz e identidade.",
+    dashBrandLabel:"Editar identidade de marca", dashBrandDesc:"Cores, fontes, tom de voz e identidade.",
     edit:"Editar", setUp:"Configurar", notConfigured:"Não configurado",
     buildBrandIdentity:"Construa sua identidade de marca para começar.",
-    setUpBrandCore:"Configure seu Brand Core →",
+    setUpBrandCore:"Configure sua identidade de marca →",
     createH1Line1:"O que você gostaria de", createH1Line2:"criar hoje?",
     brandStudioTitle:"Brand Studio", brandStudioSub:"Tudo que define e impulsiona sua marca.",
     studioSavedLabel:"Salvo",       studioSavedDesc:"Todo seu conteúdo e arquivos gerados.",
@@ -1813,7 +1876,7 @@ var LANG_STRINGS = {
     studioCheckLabel:"Verificação", studioCheckDesc:"Analise conteúdo para consistência de marca.",
     studioCampDesc:"Gerencie e lance suas campanhas ativas.",
     studioBackBtn:"Voltar",
-    noBCConfigured:"Sem Brand Core configurado ainda",
+    noBCConfigured:"Sem identidade de marca configurada ainda",
     noBCConfiguredSub:"Configure sua identidade de marca para desbloquear a geração de IA.",
     aiGenerateBtn:"Gerar com IA", manualSetupBtn:"Configuração manual",
     savedAssetsHeader:"Arquivos salvos", openAIChatBtn:"Abrir AI Chat",
@@ -1861,12 +1924,12 @@ var LANG_STRINGS = {
     wsNameLabel:"Nome do espaço de trabalho",
     wsNameHelp:"Este é o nome do seu espaço de trabalho no ORIVEN. Aparece na barra lateral e em toda a app.",
     saveBtn:"Salvar",
-    brandLockLabel:"Bloqueio de Marca", lockBCLabel:"Bloquear BrandCore",
-    lockBCSub:"Quando ativado, seu BrandCore permanece fixo e é aplicado de forma consistente.",
+    brandLockLabel:"Bloqueio de Marca", lockBCLabel:"Bloquear identidade de marca",
+    lockBCSub:"Quando ativado, sua identidade de marca permanece fixa e é aplicada de forma consistente.",
     spAppearanceSub:"Escolha como o ORIVEN parece e se sente. Sua preferência é salva entre sessões.",
     spLanguageSub:"Defina o idioma de exibição e geração de conteúdo para seu espaço de trabalho.",
     langDisplayLabel:"Idioma de exibição e geração",
-    langDisplayHelp:"O ORIVEN usará este idioma para rótulos de interface e ao gerar conteúdo com seu BrandCore.",
+    langDisplayHelp:"O ORIVEN usará este idioma para rótulos de interface e ao gerar conteúdo com sua identidade de marca.",
     spNotificationsSub:"Controle notificações no app. As alterações são salvas imediatamente.",
     notifBrandCheckLabel:"Alertas de verificação de marca",
     notifBrandCheckSub:"Mostra uma notificação quando sua pontuação de marca cair abaixo de 70%.",
@@ -1880,9 +1943,9 @@ var LANG_STRINGS = {
     autoSaveLabel:"Salvar automaticamente o conteúdo gerado",
     autoSaveSub:"Salve automaticamente as alterações e o conteúdo gerado no Studio.",
     spDangerSub:"Ações permanentes — não podem ser desfeitas.",
-    resetBCTitle:"Redefinir Brand Core",
-    resetBCDesc:"Isso redefine toda a configuração da sua marca — cores, tom de voz, posicionamento e dados de identidade. Os recursos gerados salvos no Studio não serão afetados, mas todas as gerações futuras perderão o contexto de marca até você criar um novo BrandCore. Essa ação é permanente e não pode ser desfeita.",
-    resetBCBtn:"Redefinir Brand Core",
+    resetBCTitle:"Redefinir identidade de marca",
+    resetBCDesc:"Isso redefine toda a configuração da sua marca — cores, tom de voz, posicionamento e dados de identidade. Os recursos gerados salvos no Studio não serão afetados, mas todas as gerações futuras perderão o contexto de marca até você criar uma nova identidade de marca. Essa ação é permanente e não pode ser desfeita.",
+    resetBCBtn:"Redefinir identidade de marca",
     navLaunch:"Lançar", navCampaigns:"Campanhas", navIntelligence:"Inteligência", navAutopilot:"Piloto Automático", navBusiness:"Negócio", navSettings:"Configurações",
     wsTitleIntelligence:"Inteligência", wsSubIntelligence:"O que merece sua atenção hoje.",
     wsTitleBusiness:"Negócio", wsSubBusiness:"Ensine ao Oriven sobre o seu negócio uma vez — cada campanha, conversa e recomendação o usará automaticamente a partir de então.",
@@ -1925,7 +1988,7 @@ var LANG_STRINGS = {
     toastPleaseSignIn:"Faça login primeiro", toastVerificationSent:"E-mail de verificação enviado — verifique sua caixa de entrada",
     toastCouldNotSendPrefix:"Não foi possível enviar —", toastEmailVerified:"E-mail verificado — sua conta está confirmada!",
     toastVerificationInvalid:"O link de verificação é inválido ou já foi usado. Solicite um novo.",
-    toastBrandCoreSavedCloud:"Brand Core salvo na nuvem", toastCheckoutFailed:"Não foi possível iniciar o checkout — tente novamente",
+    toastBrandCoreSavedCloud:"Identidade de marca salva na nuvem", toastCheckoutFailed:"Não foi possível iniciar o checkout — tente novamente",
     toastCheckoutCanceled:"Checkout cancelado — você pode fazer upgrade quando quiser.",
     toastSubscriptionActive:"Sua assinatura está ativa agora — bem-vindo à ORIVEN!",
     toastPaymentReceived:"Pagamento recebido — ativando sua conta...",
@@ -2069,11 +2132,17 @@ var LANG_STRINGS = {
     smdRestartObHelp:"Reveja o tour guiado desde o início. Útil para demonstrações ou uma revisão rápida.",
     smdRestartObBtn:"Reiniciar integração",
     helpTitle:"Ajuda", helpSub:"O que cada seção de Configurações faz.",
-    builderResultLabel:"Resultado", regenerateBtn:"Regenerar", saveToStudioBtn:"Salvar no Studio"
+    builderResultLabel:"Resultado", regenerateBtn:"Regenerar", saveToStudioBtn:"Salvar no Studio",
+    notifMarkAllRead:"Marcar tudo como lido", notifClearInbox:"Limpar caixa de entrada",
+    notifClearConfirm:"Limpar todas as notificações? Esta ação não pode ser desfeita.",
+    notifDeleteBtn:"Excluir notificação", notifInboxCleared:"Caixa de entrada limpa",
+    metaPlacementsLabel:"Posicionamentos", metaPlacementBoth:"Facebook + Instagram", metaPlacementIgOnly:"Somente Instagram",
+    brandIdentityLabel:"Identidade da marca", brandIdentityOn:"Ativada", brandIdentityOff:"Desativada",
+    brandIdentityEnabledVal:"Ativada", brandIdentityDisabledVal:"Desativada"
   },
 
   de:{
-    dashboard:"Dashboard", create:"Erstellen", studio:"BrandCore",
+    dashboard:"Dashboard", create:"Erstellen", studio:"Markenidentität",
     inspiration:"Inspiration", settings:"Einstellungen",
     goodMorning:"Guten Morgen", goodAfternoon:"Guten Nachmittag",
     goodEvening:"Guten Abend", goodNight:"Gute Nacht",
@@ -2088,7 +2157,7 @@ var LANG_STRINGS = {
     noItems:"Noch keine gespeicherten Dateien",
     createContent:"Erstelle Inhalte im AI Chat und speichere sie hier.",
     welcomeMsg:"Wie kann ich Ihre Marke heute unterstützen?",
-    createSub:"Wähle einen Erstellungstyp. Dein Brand Core beeinflusst jeden Output.",
+    createSub:"Wähle einen Erstellungstyp. Deine Markenidentität beeinflusst jeden Output.",
     imageTitle:"Bild",          imageDesc:"Erstelle Visuals, Poster und Social-Media-Designs.",
     textTitle:"Text",           textDesc:"Erstelle Bildunterschriften, Überschriften und Markentexte.",
     campaignTitle:"Kampagne",   campaignDesc:"Erstelle vollständige Kampagnen mit Visuals und Texten.",
@@ -2102,10 +2171,10 @@ var LANG_STRINGS = {
     dashCreateLabel:"Inhalt erstellen",  dashCreateDesc:"Bilder, Texte, Videoskripte und mehr.",
     dashIdeasLabel:"Ideen erkunden",     dashIdeasDesc:"Content-Ideen, Anzeigenwinkel und Kampagnenkonzepte.",
     dashCampaignLabel:"Kampagne erstellen", dashCampaignDesc:"Vollständige Multi-Channel-Kampagnen von Anfang bis Ende.",
-    dashBrandLabel:"Brand Core bearbeiten", dashBrandDesc:"Farben, Schriften, Tonalität und Identität.",
+    dashBrandLabel:"Markenidentität bearbeiten", dashBrandDesc:"Farben, Schriften, Tonalität und Identität.",
     edit:"Bearbeiten", setUp:"Einrichten", notConfigured:"Nicht konfiguriert",
     buildBrandIdentity:"Baue deine Markenidentität auf, um zu beginnen.",
-    setUpBrandCore:"Brand Core einrichten →",
+    setUpBrandCore:"Markenidentität einrichten →",
     createH1Line1:"Was möchtest du heute", createH1Line2:"erstellen?",
     brandStudioTitle:"Brand Studio", brandStudioSub:"Alles, was deine Marke definiert und antreibt.",
     studioSavedLabel:"Gespeichert", studioSavedDesc:"All deine generierten Inhalte und Dateien.",
@@ -2113,7 +2182,7 @@ var LANG_STRINGS = {
     studioCheckLabel:"Markenprüfung", studioCheckDesc:"Analysiere Inhalte auf Markenkonsistenz.",
     studioCampDesc:"Verwalte und starte deine aktiven Kampagnen.",
     studioBackBtn:"Zurück",
-    noBCConfigured:"Noch kein Brand Core konfiguriert",
+    noBCConfigured:"Noch keine Markenidentität konfiguriert",
     noBCConfiguredSub:"Richte deine Markenidentität ein, um KI-Generierung freizuschalten.",
     aiGenerateBtn:"KI generieren", manualSetupBtn:"Manuelle Einrichtung",
     savedAssetsHeader:"Gespeicherte Dateien", openAIChatBtn:"AI Chat öffnen",
@@ -2161,12 +2230,12 @@ var LANG_STRINGS = {
     wsNameLabel:"Name des Arbeitsbereichs",
     wsNameHelp:"Dies ist der Name deines Arbeitsbereichs in ORIVEN. Er erscheint in deiner Seitenleiste und in der gesamten App.",
     saveBtn:"Speichern",
-    brandLockLabel:"Marken-Sperre", lockBCLabel:"BrandCore sperren",
-    lockBCSub:"Wenn aktiviert, bleibt dein BrandCore fest und wird konsistent auf alle generierten Inhalte angewendet.",
+    brandLockLabel:"Marken-Sperre", lockBCLabel:"Markenidentität sperren",
+    lockBCSub:"Wenn aktiviert, bleibt deine Markenidentität fest und wird konsistent auf alle generierten Inhalte angewendet.",
     spAppearanceSub:"Wähle, wie ORIVEN aussieht und sich anfühlt. Deine Einstellung wird gespeichert.",
     spLanguageSub:"Lege die Anzeige- und Inhaltssprache für deinen Arbeitsbereich fest.",
     langDisplayLabel:"Anzeige- und Generierungssprache",
-    langDisplayHelp:"ORIVEN verwendet diese Sprache für Interface-Labels und bei der Inhaltsgenerierung mit deinem BrandCore.",
+    langDisplayHelp:"ORIVEN verwendet diese Sprache für Interface-Labels und bei der Inhaltsgenerierung mit deiner Markenidentität.",
     spNotificationsSub:"Steuere In-App-Benachrichtigungen. Änderungen werden sofort gespeichert.",
     notifBrandCheckLabel:"Markenprüfungs-Benachrichtigungen",
     notifBrandCheckSub:"Zeige eine Benachrichtigung, wenn dein Markenscore unter 70% fällt.",
@@ -2180,9 +2249,9 @@ var LANG_STRINGS = {
     autoSaveLabel:"Generierten Inhalt automatisch speichern",
     autoSaveSub:"Speichere Workspace-Änderungen und generierten Inhalt automatisch im Studio.",
     spDangerSub:"Dauerhafte Aktionen — diese können nicht rückgängig gemacht werden.",
-    resetBCTitle:"Brand Core zurücksetzen",
-    resetBCDesc:"Dadurch wird Ihr gesamtes Markensetup zurückgesetzt — Farben, Tonfall, Positionierung und Identitätsdaten. Ihre in Studio gespeicherten generierten Inhalte sind davon nicht betroffen, aber alle zukünftigen Generierungen verlieren den Markenkontext, bis Sie ein neues BrandCore erstellen. Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden.",
-    resetBCBtn:"Brand Core zurücksetzen",
+    resetBCTitle:"Markenidentität zurücksetzen",
+    resetBCDesc:"Dadurch wird Ihr gesamtes Markensetup zurückgesetzt — Farben, Tonfall, Positionierung und Identitätsdaten. Ihre in Studio gespeicherten generierten Inhalte sind davon nicht betroffen, aber alle zukünftigen Generierungen verlieren den Markenkontext, bis Sie eine neue Markenidentität erstellen. Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden.",
+    resetBCBtn:"Markenidentität zurücksetzen",
     navLaunch:"Starten", navCampaigns:"Kampagnen", navIntelligence:"Intelligenz", navAutopilot:"Autopilot", navBusiness:"Unternehmen", navSettings:"Einstellungen",
     wsTitleIntelligence:"Intelligenz", wsSubIntelligence:"Was heute Ihre Aufmerksamkeit verdient.",
     wsTitleBusiness:"Unternehmen", wsSubBusiness:"Bringen Sie Oriven einmal Ihr Unternehmen bei — jede Kampagne, jedes Gespräch und jede Empfehlung nutzt dies ab sofort automatisch.",
@@ -2225,7 +2294,7 @@ var LANG_STRINGS = {
     toastPleaseSignIn:"Bitte zuerst anmelden", toastVerificationSent:"Bestätigungs-E-Mail gesendet — bitte Posteingang prüfen",
     toastCouldNotSendPrefix:"Senden nicht möglich —", toastEmailVerified:"E-Mail bestätigt — dein Konto ist verifiziert!",
     toastVerificationInvalid:"Der Bestätigungslink ist ungültig oder bereits verwendet. Fordere einen neuen an.",
-    toastBrandCoreSavedCloud:"Brand Core in der Cloud gespeichert", toastCheckoutFailed:"Checkout konnte nicht gestartet werden — bitte erneut versuchen",
+    toastBrandCoreSavedCloud:"Markenidentität in der Cloud gespeichert", toastCheckoutFailed:"Checkout konnte nicht gestartet werden — bitte erneut versuchen",
     toastCheckoutCanceled:"Checkout abgebrochen — du kannst jederzeit upgraden.",
     toastSubscriptionActive:"Dein Abo ist jetzt aktiv — willkommen bei ORIVEN!",
     toastPaymentReceived:"Zahlung erhalten — dein Konto wird aktiviert...",
@@ -2369,7 +2438,13 @@ var LANG_STRINGS = {
     smdRestartObHelp:"Die geführte Produkttour von vorne abspielen. Nützlich für Demos oder eine Auffrischung.",
     smdRestartObBtn:"Einführung neu starten",
     helpTitle:"Hilfe", helpSub:"Was jeder Einstellungsbereich bewirkt.",
-    builderResultLabel:"Ergebnis", regenerateBtn:"Neu generieren", saveToStudioBtn:"In Studio speichern"
+    builderResultLabel:"Ergebnis", regenerateBtn:"Neu generieren", saveToStudioBtn:"In Studio speichern",
+    notifMarkAllRead:"Alle als gelesen markieren", notifClearInbox:"Posteingang leeren",
+    notifClearConfirm:"Alle Benachrichtigungen löschen? Dies kann nicht rückgängig gemacht werden.",
+    notifDeleteBtn:"Benachrichtigung löschen", notifInboxCleared:"Posteingang geleert",
+    metaPlacementsLabel:"Platzierungen", metaPlacementBoth:"Facebook + Instagram", metaPlacementIgOnly:"Nur Instagram",
+    brandIdentityLabel:"Markenidentität", brandIdentityOn:"Ein", brandIdentityOff:"Aus",
+    brandIdentityEnabledVal:"Aktiviert", brandIdentityDisabledVal:"Deaktiviert"
   },
 
   zh:{
@@ -2378,7 +2453,7 @@ var LANG_STRINGS = {
     goodMorning:"早上好", goodAfternoon:"下午好",
     goodEvening:"晚上好", goodNight:"晚安",
     brandAssistant:"品牌助手", openAIChat:"开始创建",
-    savedAssets:"已保存文件", brandCore:"品牌核心",
+    savedAssets:"已保存文件", brandCore:"品牌标识",
     brandCheck:"品牌检查", campaigns:"活动",
     workspace:"工作区", plan:"您的方案", appearance:"外观", language:"语言",
     notifications:"通知", exportPref:"导出", brandReset:"重置品牌",
@@ -2388,7 +2463,7 @@ var LANG_STRINGS = {
     noItems:"暂无已保存文件",
     createContent:"在AI Chat中生成内容并保存到此处。",
     welcomeMsg:"今天我能如何支持您的品牌？",
-    createSub:"选择创建类型开始。您的品牌核心塑造每个输出。",
+    createSub:"选择创建类型开始。您的品牌标识塑造每个输出。",
     imageTitle:"图片",    imageDesc:"创建视觉内容、海报和社交媒体设计。",
     textTitle:"文本",     textDesc:"生成标题、说明文字和品牌文案。",
     campaignTitle:"活动", campaignDesc:"构建包含视觉和文案的完整活动。",
@@ -2402,10 +2477,10 @@ var LANG_STRINGS = {
     dashCreateLabel:"创建内容",   dashCreateDesc:"图片、文案、视频脚本等。",
     dashIdeasLabel:"探索创意",    dashIdeasDesc:"内容创意、广告角度和活动概念。",
     dashCampaignLabel:"构建活动", dashCampaignDesc:"从头到尾的完整多渠道活动。",
-    dashBrandLabel:"编辑品牌核心", dashBrandDesc:"颜色、字体、语调和品牌标识。",
+    dashBrandLabel:"编辑品牌标识", dashBrandDesc:"颜色、字体、语调和品牌标识。",
     edit:"编辑", setUp:"设置", notConfigured:"未配置",
     buildBrandIdentity:"构建您的品牌标识以开始使用。",
-    setUpBrandCore:"设置您的品牌核心 →",
+    setUpBrandCore:"设置您的品牌标识 →",
     createH1Line1:"您今天想", createH1Line2:"创建什么？",
     brandStudioTitle:"品牌工作室", brandStudioSub:"定义和驱动您品牌的一切。",
     studioSavedLabel:"已保存", studioSavedDesc:"您所有生成的内容和文件。",
@@ -2413,7 +2488,7 @@ var LANG_STRINGS = {
     studioCheckLabel:"品牌检查", studioCheckDesc:"分析内容的品牌一致性。",
     studioCampDesc:"管理和启动您的活跃活动。",
     studioBackBtn:"返回",
-    noBCConfigured:"尚未配置品牌核心",
+    noBCConfigured:"尚未配置品牌标识",
     noBCConfiguredSub:"设置您的品牌标识以解锁AI生成功能。",
     aiGenerateBtn:"AI生成", manualSetupBtn:"手动设置",
     savedAssetsHeader:"已保存文件", openAIChatBtn:"打开AI聊天",
@@ -2461,12 +2536,12 @@ var LANG_STRINGS = {
     wsNameLabel:"工作区名称",
     wsNameHelp:"这是您在ORIVEN中的工作区名称。它出现在您的侧边栏和整个应用程序中。",
     saveBtn:"保存",
-    brandLockLabel:"品牌锁定", lockBCLabel:"锁定BrandCore",
-    lockBCSub:"启用后，您的BrandCore保持固定并一致应用于所有生成的内容。",
+    brandLockLabel:"品牌锁定", lockBCLabel:"锁定品牌标识",
+    lockBCSub:"启用后，您的品牌标识保持固定并一致应用于所有生成的内容。",
     spAppearanceSub:"选择ORIVEN的外观和感觉。您的偏好会在会话间保存。",
     spLanguageSub:"为您的工作区设置显示和内容生成语言。",
     langDisplayLabel:"显示和生成语言",
-    langDisplayHelp:"ORIVEN将使用此语言显示界面标签并使用您的BrandCore生成内容。",
+    langDisplayHelp:"ORIVEN将使用此语言显示界面标签并使用您的品牌标识生成内容。",
     spNotificationsSub:"控制应用内通知。更改立即保存。",
     notifBrandCheckLabel:"品牌检查提醒",
     notifBrandCheckSub:"当您的品牌得分低于70%时显示通知。",
@@ -2480,9 +2555,9 @@ var LANG_STRINGS = {
     autoSaveLabel:"自动保存生成的内容",
     autoSaveSub:"自动将您的工作区更改和生成内容保存到Studio。",
     spDangerSub:"永久操作 — 无法撤销。",
-    resetBCTitle:"重置品牌核心",
-    resetBCDesc:"这将重置你的整个品牌设置——颜色、语调、定位和身份数据。已保存在 Studio 中的生成资源不会受到影响，但在你创建新的 BrandCore 之前，未来的所有生成内容都将失去品牌背景信息。此操作是永久性的，无法撤销。",
-    resetBCBtn:"重置品牌核心",
+    resetBCTitle:"重置品牌标识",
+    resetBCDesc:"这将重置你的整个品牌设置——颜色、语调、定位和身份数据。已保存在 Studio 中的生成资源不会受到影响，但在你创建新的品牌标识之前，未来的所有生成内容都将失去品牌背景信息。此操作是永久性的，无法撤销。",
+    resetBCBtn:"重置品牌标识",
     navLaunch:"启动", navCampaigns:"广告系列", navIntelligence:"智能", navAutopilot:"自动驾驶", navBusiness:"业务", navSettings:"设置",
     wsTitleIntelligence:"智能", wsSubIntelligence:"今天值得关注的内容。",
     wsTitleBusiness:"业务", wsSubBusiness:"教会Oriven了解您的业务一次——之后每次营销活动、对话和建议都会自动使用它。",
@@ -2490,7 +2565,13 @@ var LANG_STRINGS = {
     wsTitlePerformance:"表现", wsSubPerformance:"您的广告系列表现如何？",
     wsTitleCampaigns:"广告系列", wsSubCampaigns:"管理您的广告系列——草稿、进行中和已归档。",
     helpTitle:"帮助", helpSub:"每个设置部分的作用。",
-    builderResultLabel:"结果", regenerateBtn:"重新生成", saveToStudioBtn:"保存到Studio"
+    builderResultLabel:"结果", regenerateBtn:"重新生成", saveToStudioBtn:"保存到Studio",
+    notifMarkAllRead:"全部标为已读", notifClearInbox:"清空收件箱",
+    notifClearConfirm:"清除所有通知？此操作无法撤销。",
+    notifDeleteBtn:"删除通知", notifInboxCleared:"收件箱已清空",
+    metaPlacementsLabel:"广告位置", metaPlacementBoth:"Facebook + Instagram", metaPlacementIgOnly:"仅 Instagram",
+    brandIdentityLabel:"品牌标识", brandIdentityOn:"开启", brandIdentityOff:"关闭",
+    brandIdentityEnabledVal:"已启用", brandIdentityDisabledVal:"已禁用"
   }
 };
 
@@ -2674,7 +2755,7 @@ function toggleAutoSave(el){
   el.classList.toggle("on");
   var on = el.classList.contains("on");
   saveSettings({ autoSave: on });
-  _updateHint("hintAutoSave", on, "BrandCore changes are saved automatically", "Save manually required");
+  _updateHint("hintAutoSave", on, "Brand Identity changes are saved automatically", "Save manually required");
   toast(on ? "Auto-save enabled" : "Auto-save disabled — save manually");
 }
 

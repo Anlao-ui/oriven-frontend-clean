@@ -1102,7 +1102,7 @@ async function saveBCToDB(){
     );
     if(result.error) throw result.error;
     console.log("[DB] BrandCore saved successfully");
-    toast("Brand Core saved to cloud");
+    toast("Brand Identity saved to cloud");
   } catch(err){
     console.error("[DB] Save BrandCore error:", err.message);
   }

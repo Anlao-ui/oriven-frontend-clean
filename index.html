@@ -15,13 +15,43 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
-    /* Hero elements start invisible — GSAP animates them in on load */
-    #ov-hero .ov-eyebrow,
-    #ov-hero .ov-h1,
-    #ov-hero .ov-hero-desc,
-    #ov-hero .lp-hero-delivers,
-    #ov-hero .lp-hero-input-wrap,
-    #ov-hero .ov-hero-int-pill { opacity: 0 }
+    /* Final Polish — hero entrance is pure CSS now, not GSAP-gated.
+       Previously these started at opacity:0 in critical CSS and were
+       only ever revealed by a GSAP timeline defined at the very bottom
+       of a ~4900-line file, behind two render-blocking (non-async/defer)
+       CDN <script> tags (gsap.js, ScrollTrigger.js). If those were slow,
+       blocked (ad-blocker), or failed for any reason, the hero — headline
+       included — had no fallback and stayed invisible indefinitely; even
+       on a fast connection this made supporting text/prompt appear to lag
+       behind the headline. The hero is always the first thing in the
+       viewport (never scrolled-to), so it never needed a scroll-driven
+       mechanism at all — a self-contained CSS @keyframes animation with
+       per-element animation-delay reproduces the exact same staggered
+       fade+rise sequence with zero script dependency, so it plays
+       immediately and reliably regardless of when/whether GSAP finishes
+       loading. GSAP/ScrollTrigger remain exactly as before for every
+       below-the-fold section (see "HOMEPAGE SCROLL ANIMATIONS" script). */
+    @media (prefers-reduced-motion: no-preference) {
+      #ov-hero .ov-h1,
+      #ov-hero .ov-hero-desc,
+      #ov-hero .lp-hero-delivers,
+      #ov-hero .lp-hero-input-wrap,
+      #ov-hero .ov-hero-int-pill {
+        opacity: 0;
+        animation: lpHeroReveal .7s cubic-bezier(.16,1,.3,1) forwards;
+      }
+      #ov-hero .ov-h1              { animation-delay: .1s; }
+      #ov-hero .ov-hero-desc       { animation-delay: .3s; }
+      #ov-hero .lp-hero-delivers   { animation-delay: .45s; }
+      #ov-hero .lp-hero-input-wrap { animation-delay: .55s; }
+      #ov-hero .ov-hero-int-pill   { animation-delay: .72s; }
+      #ov-hero .ov-hero-int-pill:nth-of-type(2) { animation-delay: .78s; }
+      #ov-hero .ov-hero-int-pill:nth-of-type(3) { animation-delay: .84s; }
+      @keyframes lpHeroReveal {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    }
   </style>
   <style>
     /* Public-page router: all views hidden until the router activates one */
@@ -172,7 +202,7 @@
               </span>
               <span>
                 <span class="lp-dd-item-name">Business</span>
-                <span class="lp-dd-item-desc">Brand Brain and business profile</span>
+                <span class="lp-dd-item-desc">Brand Identity and business profile</span>
               </span>
             </a>
           </div>
@@ -711,16 +741,16 @@
     <div class="ov-section-label">10</div>
     <h2 class="ov-section-h">Frequently Asked Questions</h2>
     <div class="ov-faq-list">
-      <div class="ov-faq" data-observe><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Oriven?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven is an AI-powered marketing intelligence platform. It connects your Google Ads, TikTok Ads, and Meta Ads accounts, unifies your performance data, and delivers daily AI-generated briefings with recommended actions.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.06s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which ad platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Currently Google Ads, TikTok Ads, and Meta Ads. LinkedIn Ads and Pinterest Ads are on the roadmap. Each integration uses OAuth &mdash; you never share your passwords with Oriven.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.12s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is the Daily Brief?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Every morning, Oriven generates an AI-written summary of your overnight ad performance. It covers top campaigns, budget status, ROAS changes, and specific recommended actions &mdash; delivered to your dashboard before you start your day.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.18s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does Oriven access my ad data?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven connects via OAuth &mdash; the same standard used by Slack, Notion, and other trusted apps. You authorize read-only access through your ad platform&rsquo;s official login flow. We never store your credentials.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.24s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Is there a free trial?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Connect your ad accounts and explore the dashboard for free. Paid plans unlock AI recommendations, Daily Briefs, and advanced analytics. No credit card required to start.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.30s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I cancel anytime?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Subscriptions can be cancelled at any time from your account settings. You keep full access until the end of your billing period. No lock-in, no cancellation fees.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.36s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which advertising platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven currently supports Google Ads, Meta Ads (Facebook &amp; Instagram), and TikTok Ads. All three platforms connect via OAuth with read-only access &mdash; no passwords shared, no credentials stored.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.42s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Do I need technical knowledge to use Oriven?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. Oriven is designed for marketers, agencies, and business owners &mdash; not developers. Connecting your ad accounts takes minutes and requires no code, no API setup, and no technical configuration.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.48s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I connect multiple advertising accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Oriven is built to support multiple connected accounts across platforms &mdash; ideal for agencies managing several clients or brands running ads across different business accounts.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.54s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How often is my campaign data updated?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Campaign data is refreshed regularly so your dashboard and Daily Brief always reflect current performance. Exact refresh intervals depend on each platform&rsquo;s API limits &mdash; typically within a few hours of your latest activity.</div></div>
+      <div class="ov-faq"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Oriven?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven is an AI-powered marketing intelligence platform. It connects your Google Ads, TikTok Ads, and Meta Ads accounts, unifies your performance data, and delivers daily AI-generated briefings with recommended actions.</div></div>
+      <div class="ov-faq" style="transition-delay:.06s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which ad platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Currently Google Ads, TikTok Ads, and Meta Ads. LinkedIn Ads and Pinterest Ads are on the roadmap. Each integration uses OAuth &mdash; you never share your passwords with Oriven.</div></div>
+      <div class="ov-faq" style="transition-delay:.12s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is the Daily Brief?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Every morning, Oriven generates an AI-written summary of your overnight ad performance. It covers top campaigns, budget status, ROAS changes, and specific recommended actions &mdash; delivered to your dashboard before you start your day.</div></div>
+      <div class="ov-faq" style="transition-delay:.18s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does Oriven access my ad data?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven connects via OAuth &mdash; the same standard used by Slack, Notion, and other trusted apps. You authorize read-only access through your ad platform&rsquo;s official login flow. We never store your credentials.</div></div>
+      <div class="ov-faq" style="transition-delay:.24s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can Oriven create and publish ad campaigns for me?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Oriven's AI Creator generates campaign copy, creative concepts, and platform-specific structure for Google Ads, Meta Ads, and TikTok Ads, then publishes directly to your connected ad account. Campaigns are created in a paused state, so you always review budget, audience, and creative before anything goes live.</div></div>
+      <div class="ov-faq" style="transition-delay:.30s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I cancel anytime?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Subscriptions can be cancelled at any time from your account settings. You keep full access until the end of your billing period. No lock-in, no cancellation fees.</div></div>
+      <div class="ov-faq" style="transition-delay:.36s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which advertising platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven currently supports Google Ads, Meta Ads (Facebook &amp; Instagram), and TikTok Ads. All three platforms connect via OAuth with read-only access &mdash; no passwords shared, no credentials stored.</div></div>
+      <div class="ov-faq" style="transition-delay:.42s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Do I need technical knowledge to use Oriven?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. Oriven is designed for marketers, agencies, and business owners &mdash; not developers. Connecting your ad accounts takes minutes and requires no code, no API setup, and no technical configuration.</div></div>
+      <div class="ov-faq" style="transition-delay:.48s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I connect multiple advertising accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Oriven is built to support multiple connected accounts across platforms &mdash; ideal for agencies managing several clients or brands running ads across different business accounts.</div></div>
+      <div class="ov-faq" style="transition-delay:.54s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How often is my campaign data updated?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Campaign data is refreshed regularly so your dashboard and Daily Brief always reflect current performance. Exact refresh intervals depend on each platform&rsquo;s API limits &mdash; typically within a few hours of your latest activity.</div></div>
     </div>
   </div>
 </section>
@@ -922,7 +952,7 @@
 
       <div class="lp-legal-section">
         <h2>2. Description of Services</h2>
-        <p>ORIVEN is a brand intelligence platform that enables users to build a BrandCore and generate creative assets including campaigns, visuals, videos, copy, and web content. Access to the Service is provided on a subscription basis.</p>
+        <p>ORIVEN is a brand intelligence platform that enables users to build a Brand Identity and generate creative assets including campaigns, visuals, videos, copy, and web content. Access to the Service is provided on a subscription basis.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1034,7 +1064,7 @@
           <li><strong style="color:rgba(240,240,240,.75)">Supabase</strong> â€” Platform infrastructure, user authentication, and database storage</li>
           <li><strong style="color:rgba(240,240,240,.75)">Stripe</strong> â€” Secure payment processing and subscription management</li>
           <li><strong style="color:rgba(240,240,240,.75)">OpenAI</strong> â€” AI content generation (campaigns, copy, visuals, websites, and other generators)</li>
-          <li><strong style="color:rgba(240,240,240,.75)">Anthropic</strong> â€” AI content generation (brand analysis, BrandCore intelligence, and strategic outputs)</li>
+          <li><strong style="color:rgba(240,240,240,.75)">Anthropic</strong> â€” AI content generation (brand analysis, Brand Identity intelligence, and strategic outputs)</li>
           <li><strong style="color:rgba(240,240,240,.75)">HeyGen</strong> â€” AI video generation (UGC Creator video production)</li>
         </ul>
         <p>No personally identifiable information is included in AI generation prompts sent to OpenAI, Anthropic, or HeyGen. Prompts contain only brand-related content you choose to provide within the platform.</p>
@@ -2698,7 +2728,7 @@
     <div class="ov-sp-hero-inner">
       <div class="ov-eyebrow">Business</div>
       <h1 class="ov-sp-h1">One brain, behind<br>every generation.</h1>
-      <p class="ov-sp-hero-sub">Your business profile and Brand Brain give every AI generation the same context — so campaigns, copy and creative actually sound like you.</p>
+      <p class="ov-sp-hero-sub">Your business profile and Brand Identity give every AI generation the same context — so campaigns, copy and creative actually sound like you.</p>
       <div class="ov-hero-btns">
         <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
         <a href="/" class="ov-btn-ghost">&#8592; Back to Oriven</a>
@@ -2708,9 +2738,9 @@
 
   <div class="ov-pv-wrap" data-observe>
     <div class="ov-pv-mock">
-      <div class="ov-pv-mock-head"><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-mock-title">BUSINESS — BRAND BRAIN</span></div>
+      <div class="ov-pv-mock-head"><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-dot"></span><span class="ov-pv-mock-title">BUSINESS — BRAND IDENTITY</span></div>
       <div class="ov-pv-mock-body">
-        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Brand Brain</span></span><span class="ov-pv-badge">Trained</span></div>
+        <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Brand Identity</span></span><span class="ov-pv-badge">Trained</span></div>
         <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Brand Voice</span></span><span class="ov-pv-row-val">Confident · Direct</span></div>
         <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Business Profile</span></span><span class="ov-pv-badge">Complete</span></div>
         <div class="ov-pv-row"><span class="ov-pv-row-label"><span class="ov-pv-row-dot"></span><span>Workspace</span></span><span class="ov-pv-row-val">3 team members</span></div>
@@ -2726,7 +2756,7 @@
       <p class="ov-sp-sub">Your business profile isn't a settings page nobody reads — it's what makes every generated campaign sound like it actually came from your brand.</p>
       <div class="ov-plat-connect-grid">
         <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Build your business profile</div>
-        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Train your Brand Brain</div>
+        <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Train your Brand Identity</div>
         <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Define your brand voice</div>
         <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Store brand information &amp; assets</div>
         <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Configure your workspace</div>
@@ -2748,7 +2778,7 @@
           <div class="ov-plat-feat-desc">Core information about your business that powers every AI generation.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Brand Brain</div>
+          <div class="ov-plat-feat-title">Brand Identity</div>
           <div class="ov-plat-feat-desc">Oriven's memory of your brand — voice, positioning and product context.</div>
         </div>
         <div class="ov-plat-feat-card">
@@ -3549,9 +3579,20 @@ function lpAnimProcess(){
       ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
       ctx.fillStyle='rgba(183,255,42,'+(p.a*fade).toFixed(3)+')'; ctx.fill();
     });
-    requestAnimationFrame(draw);
+    raf = requestAnimationFrame(draw);
   }
-  draw();
+  // Final Polish — this ran forever regardless of scroll position (a real
+  // scroll-jank contributor: continuous per-frame JS + canvas repaint
+  // competing with the main thread even while the hero is scrolled far
+  // out of view). Same pause-when-off-screen pattern the 3D globe canvas
+  // below already uses correctly.
+  var raf = null;
+  if(window.IntersectionObserver){
+    new IntersectionObserver(function(entries){
+      if(entries[0].isIntersecting){ if(!raf) draw(); }
+      else { if(raf){ cancelAnimationFrame(raf); raf=null; } }
+    }).observe(canvas);
+  } else { draw(); }
 })();
 
 // Campaign generator — smooth cross-dissolve
@@ -4610,9 +4651,13 @@ async function auSignup(){
 <script>
 (function() {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    // Un-hide hero if motion is reduced (CSS hid it, nothing will animate it)
-    var hc = document.getElementById('ov-hero-content');
-    if (hc) { var kids = hc.children; for (var i=0;i<kids.length;i++) kids[i].style.opacity=''; }
+    // Hero no longer needs un-hiding here -- its CSS animation (see the
+    // <style> block in <head>) is itself wrapped in
+    // @media (prefers-reduced-motion: no-preference), so under reduced
+    // motion the hero is already just plain opacity:1, no inline style
+    // to clear. This still returns before any ScrollTrigger setup runs,
+    // same as before this change (below-the-fold sections skip GSAP
+    // entirely for reduced-motion users).
     return;
   }
   if (!window.gsap || !window.ScrollTrigger) return;
@@ -4637,7 +4682,10 @@ async function auSignup(){
   // IIFE, after every ScrollTrigger below has been created against a
   // clean scrollTop:0 start (setting a large scrollTop before they exist
   // hits a GSAP ScrollTrigger internal error -- confirmed by reproducing
-  // it directly, not assumed) -- once:true makes firing them late safe.
+  // it directly, not assumed) -- ScrollTrigger.refresh() right after
+  // (below) re-evaluates every trigger against the restored position and
+  // fires whichever toggleAction applies regardless of once/restart
+  // policy, so this is safe under the current toggleActions setup too.
   var SCROLL_KEY = 'ovLandingScrollTop';
   var _saveScrollTimer;
   scroller.addEventListener('scroll', function () {
@@ -4647,32 +4695,31 @@ async function auSignup(){
     }, 150);
   }, { passive: true });
 
+  // Final Polish — sections must re-animate every time they re-enter the
+  // viewport, in EITHER scroll direction, not just once ever. `once:true`
+  // (previous default) made every section below permanently "used up"
+  // after its first entrance, including scrolling back up past it and
+  // down into it again. toggleActions runs onEnter/onLeave/onEnterBack/
+  // onLeaveBack: 'restart' on both enter directions replays the tween
+  // from its `fromTo` start state every time; 'none' on both leave
+  // directions just leaves the section at whatever it currently is
+  // (visible) while scrolled past, instead of resetting/hiding it
+  // mid-transit. This still uses ScrollTrigger's own internal, optimized
+  // scroll listener (not a new global one) -- same "efficient mechanism"
+  // as before, just a different toggle policy.
   ScrollTrigger.defaults({
     scroller: scroller,
-    once: true
+    toggleActions: 'restart none restart none'
   });
 
-  // ── HERO — fires on page load, no scroll needed ──────────
-  var heroTl = gsap.timeline({ delay: 0.15 });
-  heroTl
-    .fromTo('#ov-hero .ov-eyebrow',
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.7, ease: ease })
-    .fromTo('#ov-hero .ov-h1',
-      { opacity: 0, y: 38 },
-      { opacity: 1, y: 0, duration: 0.9, ease: ease }, '-=0.35')
-    .fromTo('#ov-hero .ov-hero-desc',
-      { opacity: 0, y: 22 },
-      { opacity: 1, y: 0, duration: 0.7, ease: ease }, '-=0.5')
-    .fromTo('#ov-hero .lp-hero-delivers',
-      { opacity: 0, y: 16 },
-      { opacity: 1, y: 0, duration: 0.6, ease: ease }, '-=0.4')
-    .fromTo('#ov-hero .lp-hero-input-wrap',
-      { opacity: 0, y: 24 },
-      { opacity: 1, y: 0, duration: 0.75, ease: ease }, '-=0.4')
-    .fromTo('.ov-hero-int-pill',
-      { opacity: 0, y: 12, scale: 0.93 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: ease, stagger: 0.09 }, '-=0.3');
+  // HERO reveal used to live here as a GSAP timeline (Final Polish:
+  // removed) — it's now a pure-CSS @keyframes animation declared in
+  // <head> (see the comment there for why: the hero is always the first
+  // thing in the viewport, so gating its very first paint behind two
+  // render-blocking third-party <script> tags plus this ~4900-line
+  // inline script finishing execution was fragile and, on any slow/
+  // blocked load, left it invisible with no fallback). GSAP/ScrollTrigger
+  // below still own every below-the-fold section exactly as before.
 
   // ── SECTION HEADER HELPER ────────────────────────────────
   function sectionHeader(section, labelSel, h2Sel, subSel) {
@@ -4874,9 +4921,10 @@ async function auSignup(){
   // fresh first visit) and refresh once on the next frame -- after
   // layout has had a chance to settle too (webfonts/images still loading
   // affect scrollHeight) -- so every trigger re-evaluates against final
-  // positions and immediately fires (once:true-safe) any already past
-  // their start. This is exactly what a normal top-to-bottom scroll would
-  // have done, just resolved instantly for the restored position.
+  // positions and immediately fires whichever toggleAction applies to
+  // any already past their start. This is exactly what a normal
+  // top-to-bottom scroll would have done, just resolved instantly for
+  // the restored position.
   try {
     var navEntries = performance.getEntriesByType('navigation');
     var navType = navEntries && navEntries[0] && navEntries[0].type;
@@ -4894,16 +4942,18 @@ async function auSignup(){
 // section above (.ov-pc, .ov-faq, .ov-rev-stage, etc.) starts at
 // opacity:0 in CSS and is only ever revealed by its ScrollTrigger firing
 // once the user scrolls to it (see "fromTo required" comments above,
-// ScrollTrigger.defaults({ once:true }) at the top of this block). When
-// Chrome restores this page from bfcache after Back, it jumps straight to
-// the previously-scrolled position instead of a natural scroll stream, and
-// GSAP's ScrollTrigger instances (bound to the custom #view-landing
-// scroller, not the window) don't automatically recompute against that —
-// so any section whose trigger hadn't already fired before the user left
-// stays permanently stuck at opacity:0, which reads as "content missing".
+// ScrollTrigger.defaults({ toggleActions: ... }) at the top of this
+// block). When Chrome restores this page from bfcache after Back, it
+// jumps straight to the previously-scrolled position instead of a
+// natural scroll stream, and GSAP's ScrollTrigger instances (bound to
+// the custom #view-landing scroller, not the window) don't automatically
+// recompute against that — so any section whose trigger hadn't already
+// fired before the user left stays permanently stuck at opacity:0, which
+// reads as "content missing".
 // ScrollTrigger.refresh() is GSAP's own documented fix for exactly this:
 // it recalculates every trigger's position against the current scroller
-// state and immediately fires (once:true-safe) any whose start point the
+// state and immediately fires whichever toggleAction applies to any
+// section whose start point the
 // restored scroll position has already passed -- a real reinitialization
 // of the affected mechanism, not a page reload or a new animation.
 window.addEventListener('pageshow', function(e){

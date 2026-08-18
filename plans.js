@@ -169,7 +169,13 @@ function renderLPPricingCards(containerEl){
     }).join('');
 
     return [
-      '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '" data-observe' + delayAttr + '>',
+      // No data-observe here (Final Polish) -- .ov-pc is also driven by a
+      // dedicated GSAP ScrollTrigger (index.html, "09 PRICING") which sets
+      // inline opacity/transform that always wins over the generic
+      // data-observe/.ov-vis CSS-class system, so the two were fighting
+      // over the same element for no benefit. GSAP alone now re-triggers
+      // correctly in both scroll directions (toggleActions, not once:true).
+      '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '"' + delayAttr + '>',
         '<div class="ov-pc-head">' + badge + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
         '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/mo</span></div><div class="ov-pc-credits">' + orvFormatCredits(plan.credits) + ' AI credits / month</div></div>',
         '<div class="ov-pc-desc">' + plan.desc + '</div>',

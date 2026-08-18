@@ -301,7 +301,7 @@ function switchStudioTab(name){
   var hub=document.getElementById("studioHubView");
   var pv=document.getElementById("studioPanelView");
   var titleEl=document.getElementById("studioPanelTitle");
-  var titles={saved:"Saved",brandcore:"Brand Core",check:"Brand Check"};
+  var titles={saved:"Saved",brandcore:"Brand Identity",check:"Brand Check"};
   if(titleEl) titleEl.textContent=titles[name]||name;
 
   if(hub){
@@ -1086,7 +1086,7 @@ window.bcpCancelEdit = function(key, elId){
 window.bcpRegenSection = function(key, elId){
   var bc = S.brandCore;
   if(!bc || !bc.name){
-    if(typeof toast === 'function') toast('Set up Brand Brain first', 'warn');
+    if(typeof toast === 'function') toast('Set up Brand Identity first', 'warn');
     return;
   }
   var el = document.getElementById(elId);

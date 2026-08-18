@@ -178,7 +178,11 @@ function _mgShowVideo(videoUrl) {
 function _mgShowError(msg) {
   var statusWrap = document.getElementById('mgStatusWrap');
   var retryRow   = document.getElementById('mgRetryRow');
-  var safe = String(msg || 'Something went wrong.').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // See videoads.js's _vaShowError for why this unwrap exists -- msg can
+  // arrive as a provider error object rather than a string, and
+  // String({...}) silently produces the literal text "[object Object]".
+  var msgText = (msg && typeof msg === 'object') ? (msg.message || msg.error || 'Something went wrong.') : msg;
+  var safe = String(msgText || 'Something went wrong.').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   if (statusWrap) statusWrap.innerHTML =
     '<div class="ps-status-title ps-status-error">Generation Failed</div>'
     + '<div class="ps-status-sub">' + safe + '</div>';

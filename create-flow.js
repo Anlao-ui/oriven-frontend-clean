@@ -14,7 +14,7 @@ var CF_FLOWS = {
     {
       key:  "imgVisualType",
       q:    "What type of visual do you need?",
-      desc: "Your Brand Core colors, tone, and visual direction are applied automatically.",
+      desc: "Your Brand Identity colors, tone, and visual direction are applied automatically.",
       options: [
         { val: "social",        label: "Social Post" },
         { val: "advertisement", label: "Ad" },
@@ -44,7 +44,7 @@ var CF_FLOWS = {
       placeholder: "e.g. Product on a dark premium background. Minimal composition. Focus on the logo.",
       optional:    true
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ],
 
   // ── Text & Copy ───────────────────────────────────────────────
@@ -54,7 +54,7 @@ var CF_FLOWS = {
     {
       key:  "txtType",
       q:    "What type of content are you creating?",
-      desc: "Your Brand Core tone of voice and messaging are applied automatically.",
+      desc: "Your Brand Identity tone of voice and messaging are applied automatically.",
       options: [
         { val: "headline",     label: "Headline" },
         { val: "body_copy",    label: "Body Copy" },
@@ -85,7 +85,7 @@ var CF_FLOWS = {
       placeholder: "e.g. Include a sense of urgency. Mention the free trial. Keep it punchy.",
       optional:    true
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ],
 
   // ── Campaign ──────────────────────────────────────────────────
@@ -125,7 +125,7 @@ var CF_FLOWS = {
       placeholder: "e.g. Focus on the limited-time offer. Emphasise premium quality. Include social proof.",
       optional:    true
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ],
 
   // ── UGC Creator ───────────────────────────────────────────────
@@ -143,14 +143,14 @@ var CF_FLOWS = {
       q:    "How do you want the script?",
       desc: "ORIVEN AI can write a high-converting script, or bring your own.",
       options: [
-        { val: "ai",     label: "Write with AI",     desc: "ORIVEN generates a script tailored to your Brand Core" },
+        { val: "ai",     label: "Write with AI",     desc: "ORIVEN generates a script tailored to your Brand Identity" },
         { val: "custom", label: "Use my own script", desc: "Paste a script you've already written" }
       ]
     },
     {
       key:            "ucContext",
       q:              "What product or service is this ad for? Any desired angle?",
-      desc:           "Optional — your Brand Core is already applied. Add anything specific the script should mention.",
+      desc:           "Optional — your Brand Identity is already applied. Add anything specific the script should mention.",
       type:           "textarea",
       placeholder:    "e.g. New protein powder launch. Angle: speed and recovery for serious athletes.",
       optional:       true,
@@ -169,7 +169,7 @@ var CF_FLOWS = {
       conditional:    "ucScriptMode",
       conditionalVal: "custom"
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ],
 
   // ── Web ───────────────────────────────────────────────────────
@@ -179,7 +179,7 @@ var CF_FLOWS = {
     {
       key:  "webType",
       q:    "What type of website do you need?",
-      desc: "Your Brand Core identity and visual direction are applied automatically.",
+      desc: "Your Brand Identity and visual direction are applied automatically.",
       options: [
         { val: "landing",   label: "Landing Page",     desc: "Single goal — one offer, one CTA" },
         { val: "business",  label: "Business Website", desc: "Services, team, contact, and about" },
@@ -210,7 +210,7 @@ var CF_FLOWS = {
       placeholder: "e.g. Include testimonials and pricing. Mobile-first. Strong hero CTA.",
       optional:    true
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ],
 
   // ── Email ─────────────────────────────────────────────────────
@@ -220,7 +220,7 @@ var CF_FLOWS = {
     {
       key:  "emailType",
       q:    "What is the email objective?",
-      desc: "Your Brand Core tone and audience are applied automatically.",
+      desc: "Your Brand Identity tone and audience are applied automatically.",
       options: [
         { val: "newsletter",     label: "Newsletter" },
         { val: "product_launch", label: "Product Launch" },
@@ -246,7 +246,7 @@ var CF_FLOWS = {
       placeholder: "e.g. Mention the 48-hour deadline. Keep it short and punchy. Include a P.S. line.",
       optional:    true
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ],
 
   // ── Presentation ──────────────────────────────────────────────
@@ -256,7 +256,7 @@ var CF_FLOWS = {
     {
       key:         "deckTopic",
       q:           "What is this presentation about?",
-      desc:        "Your Brand Core identity and positioning are applied automatically.",
+      desc:        "Your Brand Identity and positioning are applied automatically.",
       type:        "textarea",
       placeholder: "e.g. AI branding platform for DTC brands. Q3 performance review. New product launch.",
       optional:    false
@@ -288,7 +288,7 @@ var CF_FLOWS = {
       placeholder: "e.g. Include a market size slide. Keep language non-technical. Emphasise the founder story.",
       optional:    true
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ],
 
   // ── Poster ───────────────────────────────────────────────────
@@ -298,7 +298,7 @@ var CF_FLOWS = {
     {
       key:  "posterType",
       q:    "What is the poster for?",
-      desc: "Your Brand Core colors and visual direction are applied automatically.",
+      desc: "Your Brand Identity colors and visual direction are applied automatically.",
       options: [
         { val: "product",     label: "Product" },
         { val: "launch",      label: "Launch" },
@@ -328,7 +328,7 @@ var CF_FLOWS = {
       placeholder: "e.g. Headline: Launch Day Is Here. Include the URL oriven.ai. Dark premium aesthetic.",
       optional:    true
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ],
 
   // ── Infographic ───────────────────────────────────────────────
@@ -338,7 +338,7 @@ var CF_FLOWS = {
     {
       key:         "infographicTopic",
       q:           "What is this infographic about?",
-      desc:        "Your Brand Core visual style and audience are applied automatically.",
+      desc:        "Your Brand Identity visual style and audience are applied automatically.",
       type:        "textarea",
       placeholder: "e.g. How our onboarding works. The 5 stages of brand building. Q3 performance highlights.",
       optional:    false
@@ -348,7 +348,7 @@ var CF_FLOWS = {
       q:           "What data or content should be included?",
       desc:        "Enter the facts, steps, stats, or key points to visualise.",
       type:        "textarea",
-      placeholder: "e.g. Step 1: Sign up. Step 2: Build Brand Core. Step 3: Generate assets. Or: 83% of buyers trust visual content.",
+      placeholder: "e.g. Step 1: Sign up. Step 2: Build Brand Identity. Step 3: Generate assets. Or: 83% of buyers trust visual content.",
       optional:    false
     },
     {
@@ -359,7 +359,7 @@ var CF_FLOWS = {
       placeholder: "e.g. Lead with the biggest stat. Include icons for each step. CTA: Visit oriven.ai.",
       optional:    true
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ],
 
   // ── Product Shoots ────────────────────────────────────────────
@@ -404,14 +404,14 @@ var CF_FLOWS = {
       placeholder: "e.g. Shot from above. Coffee beans scattered around the mug. Dark walnut surface.",
       optional:    true
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ],
 
   motiongraphics: [
     {
       key:  "mgStyle",
       q:    "What type of motion do you need?",
-      desc: "Your Brand Core colors and visual identity are applied automatically.",
+      desc: "Your Brand Identity colors and visual identity are applied automatically.",
       options: [
         { val: "logo",       label: "Logo Animation",     desc: "Animated logo reveal or loop" },
         { val: "kinetic",    label: "Kinetic Typography", desc: "Text-driven motion graphic" },
@@ -438,7 +438,7 @@ var CF_FLOWS = {
       placeholder: "e.g. Smooth reveal with green accent. Text: 'Built for Brands'. Minimalist style.",
       optional:    true
     },
-    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Core. Review and edit before generating." }
+    { type: "prompt-preview", key: "_promptPreview", q: "Your AI brief is ready.", desc: "Generated with AI using your Brand Identity. Review and edit before generating." }
   ]
 
 };
@@ -842,18 +842,18 @@ function _cfRenderOptions(step){
     var hasBC    = !!bc;
     var missing  = hasBC ? checks.filter(function(c){ return !c.ok; }).length : 0;
 
-    // Brand Core Applied panel
+    // Brand Identity Applied panel
     var panelHtml;
     if(!hasBC){
       panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-none">'
         + '<div class="cf-pv-bc-hdr">'
         + '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1L.5 13h13z"/><path d="M7 6v4M7 11v.5"/></svg>'
-        + ' No Brand Core set</div>'
-        + '<p class="cf-pv-bc-sub">Add your Brand Core in Settings to personalise every generation.</p>'
+        + ' No Brand Identity set</div>'
+        + '<p class="cf-pv-bc-sub">Add your Brand Identity in Settings to personalise every generation.</p>'
         + '</div>';
     } else if(missing === 0){
       panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-ok">'
-        + '<div class="cf-pv-bc-hdr">Brand Core Applied</div>'
+        + '<div class="cf-pv-bc-hdr">Brand Identity Applied</div>'
         + '<div class="cf-pv-bc-checks">' + checks.map(function(c){
             return '<span class="cf-pv-bc-ck cf-pv-bc-ck-ok">'
               + '<svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>'
@@ -864,7 +864,7 @@ function _cfRenderOptions(step){
       panelHtml = '<div class="cf-pv-bc-panel cf-pv-bc-partial">'
         + '<div class="cf-pv-bc-hdr">'
         + '<svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1L.5 13h13z"/><path d="M7 6v4M7 11v.5"/></svg>'
-        + ' Missing Brand Core information</div>'
+        + ' Missing Brand Identity information</div>'
         + '<div class="cf-pv-bc-checks">' + checks.map(function(c){
             if(c.ok){
               return '<span class="cf-pv-bc-ck cf-pv-bc-ck-ok">'
@@ -893,13 +893,13 @@ function _cfRenderOptions(step){
           + '<input type="radio" name="cfLogoSrc" value="brand-logo" data-url="' + _cfEsc(logoUrl) + '">'
           + '<span class="cf-pv-logo-dot"></span>'
           + '<img src="' + _cfEsc(logoUrl) + '" class="cf-pv-logo-thumb" alt="">'
-          + 'Use Brand Core Logo'
+          + 'Use Brand Identity Logo'
           + '</label>';
       } else {
         logoHtml += '<label class="cf-pv-logo-opt cf-pv-logo-opt-dis">'
           + '<input type="radio" name="cfLogoSrc" value="brand-logo" disabled>'
           + '<span class="cf-pv-logo-dot"></span>'
-          + 'Use Brand Core Logo <span class="cf-pv-logo-hint">(add logo in Brand Core)</span>'
+          + 'Use Brand Identity Logo <span class="cf-pv-logo-hint">(add logo in Brand Identity)</span>'
           + '</label>';
       }
       logoHtml += '<label class="cf-pv-logo-opt">'

@@ -536,7 +536,7 @@ function _renderBuilderControls(type){
       {val:"ad_copy",      label:"Ad Copy"}
     ], "headlines")
     + _bSection("Tone", "txtTone", [
-      {val:"brandcore",      label:"BrandCore Default"},
+      {val:"brandcore",      label:"Brand Identity Default"},
       {val:"professional",   label:"Professional"},
       {val:"conversational", label:"Conversational"},
       {val:"bold",           label:"Bold"},
@@ -1924,8 +1924,8 @@ function _flowStepHtml(step){
         + '<div class="fbp-empty-icon">'
         + '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v4M8 11v.5" stroke-linecap="round"/></svg>'
         + '</div>'
-        + '<div class="fbp-empty-title">No BrandCore found</div>'
-        + '<div class="fbp-empty-sub">Your image will be generated with a clean, professional default style. Set up your BrandCore to unlock brand-specific generation.</div>'
+        + '<div class="fbp-empty-title">No Brand Identity found</div>'
+        + '<div class="fbp-empty-sub">Your image will be generated with a clean, professional default style. Set up your Brand Identity to unlock brand-specific generation.</div>'
         + '</div>';
     }
 
@@ -3664,7 +3664,7 @@ function openCreateWorkspace(type, outType){
           + '</div>';
       }
     } else {
-      var bcHint = bc ? ' using your <strong>' + bc.name + '</strong> Brand Core' : "";
+      var bcHint = bc ? ' using your <strong>' + bc.name + '</strong> Brand Identity' : "";
       feed.innerHTML =
         '<div class="chat-welcome">'
         + '<div class="chat-welcome-icon"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.4" width="28" height="28"><path d="M14 3L17 10H24L19 14L21 21L14 17L7 21L9 14L4 10H11Z"/></svg></div>'

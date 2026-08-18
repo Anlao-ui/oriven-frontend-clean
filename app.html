@@ -693,40 +693,89 @@
               </div>
             </div>
 
-            <!-- Platform-specific objective / campaign type (Final Polish,
-                 Part 9-16) -- each platform has its own real objective
-                 model; this section is rebuilt by _cr2RenderPlatObj()
-                 whenever the platform or goal changes, rather than reusing
-                 one generic list for all three. -->
-            <div class="cr2-goal-section" id="cr2PlatObjSection" style="display:none">
-              <div class="cr2-goal-label" id="cr2PlatObjLabel">Campaign Type</div>
-              <div class="cr2-goal-grid" id="cr2PlatObjGrid" role="group" aria-label="Platform-specific objective"></div>
-            </div>
-
-            <!-- Meta-only placement selector (Final Polish) — where the
-                 campaign is allowed to run: Facebook + Instagram (default,
-                 preserves prior automatic-placement behavior) or Instagram
-                 only. Reuses the existing .ov3-mode-seg segmented-control
-                 styling (same component as the Image/Video toggle above),
-                 not a new control pattern. Hidden for Google/TikTok. -->
-            <div class="cr2-goal-section" id="cr2MetaPlacementSection" style="display:none">
-              <div class="cr2-goal-label">Placements</div>
-              <div class="ov3-mode-seg" id="ov3PlacementSeg" role="group" aria-label="Meta placements">
-                <button type="button" class="ov3-mode-btn active" data-placement="both" onclick="_cr2MetaPlacement(this,'both')">Facebook + Instagram</button>
-                <button type="button" class="ov3-mode-btn" data-placement="instagram_only" onclick="_cr2MetaPlacement(this,'instagram_only')">Instagram only</button>
+            <!-- Brand Identity toggle (Final Polish) -- explicit opt-in/out
+                 instead of silently auto-injecting Brand Identity into every
+                 campaign whenever one exists. Applies to all three platforms
+                 (not platform-specific like the Meta placement control
+                 below), so it sits right after the universal Campaign Goal
+                 section. Only shown once a Brand Identity actually exists
+                 (visibility toggled by _bbUpdatePromptIndicator, which
+                 runs on load once S.brandCore has loaded -- see the
+                 Business > Brand tab for where that data is actually
+                 created/edited today).
+                 Default ON, preserving exactly the prior always-on
+                 behavior for anyone who never touches this control. -->
+            <div class="cr2-goal-section" id="cr2BrandIdentitySection" style="display:none">
+              <div class="cr2-goal-label" data-i18n="brandIdentityLabel">Brand Identity</div>
+              <!-- Compact sliding-pill toggle (Brand Identity toggle restyle) --
+                   deliberately NOT the shared .ov3-mode-seg/.ov3-mode-btn
+                   classes (used by the Image/Video and Meta Placement
+                   selectors): that container is display:flex with no set
+                   width, so as a direct child of the full-width
+                   .cr2-goal-section it stretched to fill the entire row,
+                   leaving On/Off crammed on the left with empty space to
+                   the right. This is its own compact, fixed-width component
+                   so it can never do that regardless of the row it sits in.
+                   data-state mirrors the enabled boolean and drives the
+                   thumb position via CSS; the two buttons stay real,
+                   independently focusable <button>s so Tab/Enter/Space and
+                   screen readers work exactly as before. -->
+              <div class="bi-toggle" id="ov3BrandIdentitySeg" data-state="on" role="group" aria-label="Use Brand Identity">
+                <span class="bi-toggle-thumb" aria-hidden="true"></span>
+                <button type="button" class="bi-toggle-lbl bi-toggle-lbl-on active" data-brand="on" onclick="_cr2BrandIdentity(this,true)" data-i18n="brandIdentityOn" aria-pressed="true">On</button>
+                <button type="button" class="bi-toggle-lbl bi-toggle-lbl-off" data-brand="off" onclick="_cr2BrandIdentity(this,false)" data-i18n="brandIdentityOff" aria-pressed="false">Off</button>
               </div>
             </div>
 
-            <!-- Campaign Structure — real, editable Ad Sets × Ads-per-Ad-Set
-                 control for Meta only, since /api/publish/meta is the only
-                 publisher that actually creates more than one Ad Set/Ad
-                 today (pkg.metaStructure, clamped 1-5 each). Google/TikTok
-                 currently publish exactly 1 Ad Group with 1 Ad/RSA, so this
-                 section shows that honestly instead of a control that would
-                 silently do nothing — see _cr2RenderStructSection(). -->
-            <div class="cr2-goal-section" id="cr2StructSection" style="display:none">
-              <div class="cr2-goal-label" id="cr2StructLabel">Campaign Structure</div>
-              <div id="cr2StructBody"></div>
+            <!-- Advanced settings group (Final Polish — Create Campaign
+                 hierarchy pass): Campaign Type, Meta Placements, and
+                 Campaign Structure are all platform-specific/secondary
+                 configuration, one step removed from the primary Goal/
+                 Brand decisions above -- grouped under one subtle top
+                 separator and de-emphasized card styling (see
+                 .cr2-advanced-group in styles.css) so the page reads as a
+                 clear "primary decisions, then advanced settings" flow
+                 instead of five visually-identical sections in a row.
+                 None of the three sections below changed internally --
+                 same ids, same render functions (_cr2RenderPlatObj(),
+                 _cr2RenderStructSection()), same onclick handlers -- only
+                 moved one level deeper into this wrapper. -->
+            <div class="cr2-advanced-group">
+              <!-- Platform-specific objective / campaign type (Final Polish,
+                   Part 9-16) -- each platform has its own real objective
+                   model; this section is rebuilt by _cr2RenderPlatObj()
+                   whenever the platform or goal changes, rather than reusing
+                   one generic list for all three. -->
+              <div class="cr2-goal-section" id="cr2PlatObjSection" style="display:none">
+                <div class="cr2-goal-label" id="cr2PlatObjLabel">Campaign Type</div>
+                <div class="cr2-goal-grid" id="cr2PlatObjGrid" role="group" aria-label="Platform-specific objective"></div>
+              </div>
+
+              <!-- Meta-only placement selector (Final Polish) — where the
+                   campaign is allowed to run: Facebook + Instagram (default,
+                   preserves prior automatic-placement behavior) or Instagram
+                   only. Reuses the existing .ov3-mode-seg segmented-control
+                   styling (same component as the Image/Video toggle above),
+                   not a new control pattern. Hidden for Google/TikTok. -->
+              <div class="cr2-goal-section" id="cr2MetaPlacementSection" style="display:none">
+                <div class="cr2-goal-label" data-i18n="metaPlacementsLabel">Placements</div>
+                <div class="ov3-mode-seg" id="ov3PlacementSeg" role="group" aria-label="Meta placements">
+                  <button type="button" class="ov3-mode-btn active" data-placement="both" onclick="_cr2MetaPlacement(this,'both')" data-i18n="metaPlacementBoth">Facebook + Instagram</button>
+                  <button type="button" class="ov3-mode-btn" data-placement="instagram_only" onclick="_cr2MetaPlacement(this,'instagram_only')" data-i18n="metaPlacementIgOnly">Instagram only</button>
+                </div>
+              </div>
+
+              <!-- Campaign Structure — real, editable Ad Sets × Ads-per-Ad-Set
+                   control for Meta only, since /api/publish/meta is the only
+                   publisher that actually creates more than one Ad Set/Ad
+                   today (pkg.metaStructure, clamped 1-5 each). Google/TikTok
+                   currently publish exactly 1 Ad Group with 1 Ad/RSA, so this
+                   section shows that honestly instead of a control that would
+                   silently do nothing — see _cr2RenderStructSection(). -->
+              <div class="cr2-goal-section" id="cr2StructSection" style="display:none">
+                <div class="cr2-goal-label" id="cr2StructLabel">Campaign Structure</div>
+                <div id="cr2StructBody"></div>
+              </div>
             </div>
 
             <div class="cr2-gen-row">
@@ -1156,26 +1205,27 @@
         </div>
 
         <!-- Brand — voice + full brand identity (formerly the separate
-             "Brand" page / Brand Brain). -->
+             "Brand" page / Brand Core; renamed throughout, Legacy Brand
+             Core Removal -- ids/handlers below are untouched). -->
         <div class="intel-tab-panel" id="bizPanelBrand" style="display:none">
           <div class="biz-ai-feedback" id="bizFeedbackBrand" style="display:none;margin-bottom:16px"></div>
 
       <!-- ════════════════════════════════════════════════════════
-           BRAND BRAIN — living brand intelligence system
+           BRAND IDENTITY — living brand intelligence system
            ════════════════════════════════════════════════════════ -->
       <div class="bb-scroll" id="studioHubView">
 
         <!-- ── EMPTY STATE ── -->
         <div class="bb-empty-state bb-show" id="stBCEmpty2">
-          <div class="bb-empty-title">Create Your Brand Brain</div>
+          <div class="bb-empty-title">Create Your Brand Identity</div>
           <div class="bb-empty-sub">Add your brand identity, audience, assets and visual direction to unlock AI-powered campaign generation.</div>
           <div class="bb-empty-actions">
-            <button class="bb-btn-primary" onclick="openBCWizard()">Create Brand Brain</button>
+            <button class="bb-btn-primary" onclick="openBCWizard()">Create Brand Identity</button>
             <button class="bb-btn-ghost" onclick="openModal('modal-bcsetup')">Build Manually</button>
           </div>
         </div>
 
-        <!-- ── BRAND BRAIN (shown when bc is configured) ── -->
+        <!-- ── BRAND IDENTITY (shown when bc is configured) ── -->
         <div class="bb-hub" id="bcProfileContent">
 
           <!-- Header -->
@@ -1183,7 +1233,7 @@
             <div class="bb-head-meta">
               <div class="bb-eyebrow">
                 <span class="bb-eyebrow-dot" id="stEyebrowDot"></span>
-                Brand Brain
+                Brand Identity
               </div>
               <div class="bb-brand-name" id="bcProfileName">—</div>
               <div class="bb-brand-tagline" id="bcProfileTagline"></div>
@@ -1356,7 +1406,7 @@
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 4L6 8l4 4"/></svg>
             <span data-i18n="studioBackBtn">Back</span>
           </button>
-          <span class="sh-panel-title" id="studioPanelTitle">BrandCore</span>
+          <span class="sh-panel-title" id="studioPanelTitle">Brand Identity</span>
         </div>
 
           <!-- ── SAVED ── -->
@@ -1376,12 +1426,12 @@
             </div>
           </div>
 
-          <!-- ── BRAND CORE ── -->
+          <!-- ── BRAND IDENTITY ── -->
           <div class="studio-panel" id="tab-brandcore">
             <div id="stBCEmpty" style="padding:24px">
               <div class="empty">
                 <div class="empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.5 5.5L20 9l-4 3.9 1 5.6L12 16l-5 2.5 1-5.6L4 9l5.5-1.5L12 2z"/></svg></div>
-                <div class="empty-ttl" data-i18n="noBCConfigured">No Brand Core configured yet</div>
+                <div class="empty-ttl" data-i18n="noBCConfigured">No Brand Identity configured yet</div>
                 <div class="empty-sub" data-i18n="noBCConfiguredSub">Set up your brand identity to unlock AI generation.</div>
                 <div style="display:flex;gap:8px">
                   <button class="btn btn-g" onclick="openBCWizard()" data-i18n="aiGenerateBtn">AI Generate</button>
@@ -1391,7 +1441,7 @@
             </div>
             <div id="stBCContent" class="hidden" style="padding:20px;overflow-y:auto">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                <div style="font-size:14px;font-weight:600;color:var(--charcoal)">Brand Core</div>
+                <div style="font-size:14px;font-weight:600;color:var(--charcoal)">Brand Identity</div>
                 <div style="display:flex;gap:8px">
                   <button class="btn btn-g btn-sm" onclick="openBCRegen()">Regenerate</button>
                   <button class="btn btn-p btn-sm" onclick="openAddColorModal()">+ Color</button>
@@ -1423,13 +1473,13 @@
           <div class="studio-panel" id="tab-check">
             <div class="check-outer">
 
-              <!-- Idle state — shown when no BrandCore or after reset -->
+              <!-- Idle state — shown when no Brand Identity or after reset -->
               <div class="bc-idle" id="ckIdle">
                 <div class="bc-idle-ico">
                   <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M16 3l10 5v9c0 6.5-4.5 11-10 13C10.5 28 6 23.5 6 17V8l10-5z"/><path d="M11 16.5l3.5 3.5 7-7"/></svg>
                 </div>
                 <div class="bc-idle-ttl">Brand Health Check</div>
-                <div class="bc-idle-sub">A complete strategic analysis of your BrandCore — strengths, opportunities, and your Brand Score.</div>
+                <div class="bc-idle-sub">A complete strategic analysis of your Brand Identity — strengths, opportunities, and your Brand Score.</div>
                 <button class="btn btn-p" onclick="startBrandCheck(true)" style="gap:8px">
                   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="13" height="13"><path d="M8 1.5l5 2.5v5L8 11.5 3 9V4z"/><path d="M8 11.5v3M3 4l5 2.5 5-2.5M8 6.5v5"/></svg>
                   Analyze Brand
@@ -2104,7 +2154,7 @@
     <div class="page" id="page-launch" style="display:none!important"></div>
     <div class="page" id="page-scale" style="display:none!important"></div>
 
-    <!-- ══ BRAND BRAIN — Legacy ══════════════════════════════════ -->
+    <!-- ══ BRAND IDENTITY — Legacy ══════════════════════════════════ -->
     <div class="page" id="page-brain">
       <div class="bb-outer ap-home-outer">
 
@@ -2113,10 +2163,10 @@
           <div class="bb-greeting-left">
             <div class="bb-eyebrow">
               <span class="bb-eyebrow-dot" id="bbEyebrowDot"></span>
-              <span>Brand Brain</span>
+              <span>Brand Identity</span>
             </div>
             <h1 class="bb-headline" id="bbHeadline">Good morning.</h1>
-            <p class="bb-sub" id="bbSub">Set up your Brand Core to activate your Brand Brain.</p>
+            <p class="bb-sub" id="bbSub">Set up your Brand Identity to activate your insights.</p>
           </div>
           <div class="bb-brand-tag" id="bbBrandTag" style="display:none">
             <span class="bb-brand-tag-dot"></span>
@@ -2140,7 +2190,7 @@
               </div>
             </div>
             <div class="bb-health-label">Brand Health Score</div>
-            <div class="bb-health-sub" id="bbHealthSub">Configure your Brand Core to begin</div>
+            <div class="bb-health-sub" id="bbHealthSub">Configure your Brand Identity to begin</div>
           </div>
           <div class="bb-metrics">
             <div class="bb-metric" id="bbMetricBC">
@@ -2149,7 +2199,7 @@
               </div>
               <div class="bb-metric-body">
                 <div class="bb-metric-val" id="bbMetricBCVal">—</div>
-                <div class="bb-metric-lbl">Brand Core</div>
+                <div class="bb-metric-lbl">Brand Identity</div>
               </div>
             </div>
             <div class="bb-metric" id="bbMetricIntel">
@@ -2182,14 +2232,14 @@
           </div>
         </div>
 
-        <!-- What the Brain Knows -->
+        <!-- What Brand Identity Knows -->
         <div class="bb-section">
           <div class="bb-section-hd">
-            <span class="bb-section-label">What Your Brand Brain Knows</span>
+            <span class="bb-section-label">What Your Brand Identity Knows</span>
           </div>
           <div class="bb-snapshot" id="bbSnapshot">
             <div class="bb-snapshot-empty">
-              <span>Brand Core not configured — </span>
+              <span>Brand Identity not configured — </span>
               <span class="bb-snapshot-cta" onclick="navigate('studio')">Set it up →</span>
             </div>
           </div>
@@ -2234,10 +2284,10 @@
           </div>
         </div>
 
-        <!-- Explore Brand Brain -->
+        <!-- Explore Brand Identity -->
         <div class="bb-section">
           <div class="bb-section-hd">
-            <span class="bb-section-label">Explore Brand Brain</span>
+            <span class="bb-section-label">Explore Brand Identity</span>
           </div>
           <div class="bb-explore-grid">
             <div class="bb-explore-card" onclick="navigate('website')">
@@ -2337,7 +2387,7 @@
     <!-- COMPETITOR INTELLIGENCE (standalone page) -->
     <div class="page" id="page-competitor">
       <div class="ci-page-outer">
-        <div class="bsp-breadcrumb" style="margin-bottom:24px"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Competitor Intelligence</span></div>
+        <div class="bsp-breadcrumb" style="margin-bottom:24px"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Identity</span><span class="bsp-bc-sep">›</span><span>Competitor Intelligence</span></div>
 
         <div class="ci-outer">
 
@@ -2396,8 +2446,8 @@
     <div class="page" id="page-positioning">
       <div class="bsp-outer">
         <div class="bsp-header">
-          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Positioning</span></div>
-          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Core</button>
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Identity</span><span class="bsp-bc-sep">›</span><span>Positioning</span></div>
+          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Identity</button>
         </div>
         <h1 class="bsp-title">Positioning</h1>
         <p class="bsp-desc">How your brand is placed in the market — your promise, differentiation, and unique space.</p>
@@ -2411,8 +2461,8 @@
             <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 16h6m12 0h6M16 4v6m0 12v6M8.9 8.9l4 4m6 6l4 4M23.1 8.9l-4 4m-6 6l-4 4"/></svg>
           </div>
           <div class="bsp-empty-title">No positioning defined yet</div>
-          <div class="bsp-empty-sub">Complete your Brand Core to define how your brand stands apart.</div>
-          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Core →</button>
+          <div class="bsp-empty-sub">Complete your Brand Identity to define how your brand stands apart.</div>
+          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Identity →</button>
         </div>
       </div>
     </div>
@@ -2421,8 +2471,8 @@
     <div class="page" id="page-audience">
       <div class="bsp-outer">
         <div class="bsp-header">
-          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Audience</span></div>
-          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Core</button>
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Identity</span><span class="bsp-bc-sep">›</span><span>Audience</span></div>
+          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Identity</button>
         </div>
         <h1 class="bsp-title">Audience</h1>
         <p class="bsp-desc">Who your brand speaks to — their needs, motivations, and what they care about most.</p>
@@ -2436,8 +2486,8 @@
             <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M22 28v-3a6 6 0 0 0-6-6H8a6 6 0 0 0-6 6v3"/><circle cx="12" cy="11" r="5"/><path d="M27 28v-2.5a5 5 0 0 0-4-4.9"/><path d="M22 8.1a5 5 0 0 1 0 7.5"/></svg>
           </div>
           <div class="bsp-empty-title">No audience defined yet</div>
-          <div class="bsp-empty-sub">Describe your target audience in Brand Core to unlock audience insights.</div>
-          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Core →</button>
+          <div class="bsp-empty-sub">Describe your target audience in Brand Identity to unlock audience insights.</div>
+          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Identity →</button>
         </div>
       </div>
     </div>
@@ -2446,8 +2496,8 @@
     <div class="page" id="page-tov">
       <div class="bsp-outer">
         <div class="bsp-header">
-          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Tone of Voice</span></div>
-          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Core</button>
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Identity</span><span class="bsp-bc-sep">›</span><span>Tone of Voice</span></div>
+          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Identity</button>
         </div>
         <h1 class="bsp-title">Tone of Voice</h1>
         <p class="bsp-desc">The personality and communication style that makes your brand instantly recognisable.</p>
@@ -2461,8 +2511,8 @@
             <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V8a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H11L4 28V22z"/><path d="M10 13h12M10 18h8"/></svg>
           </div>
           <div class="bsp-empty-title">No tone defined yet</div>
-          <div class="bsp-empty-sub">Add personality traits and tone descriptors in Brand Core.</div>
-          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Core →</button>
+          <div class="bsp-empty-sub">Add personality traits and tone descriptors in Brand Identity.</div>
+          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Identity →</button>
         </div>
       </div>
     </div>
@@ -2471,8 +2521,8 @@
     <div class="page" id="page-identity">
       <div class="bsp-outer">
         <div class="bsp-header">
-          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Identity</span></div>
-          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Core</button>
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Identity</span><span class="bsp-bc-sep">›</span><span>Identity</span></div>
+          <button class="bsp-edit-btn" onclick="navigate('studio')">Edit in Brand Identity</button>
         </div>
         <h1 class="bsp-title">Identity</h1>
         <p class="bsp-desc">Your visual language — colors, typography, and logos that make your brand instantly visible.</p>
@@ -2486,8 +2536,8 @@
             <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="16" cy="16" r="6"/><circle cx="16" cy="16" r="13"/></svg>
           </div>
           <div class="bsp-empty-title">No identity defined yet</div>
-          <div class="bsp-empty-sub">Add your colors, fonts, and logos in Brand Core to build your visual identity.</div>
-          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Core →</button>
+          <div class="bsp-empty-sub">Add your colors, fonts, and logos in Brand Identity to build your visual identity.</div>
+          <button class="bsp-empty-btn" onclick="navigate('studio')">Open Brand Identity →</button>
         </div>
       </div>
     </div>
@@ -2500,7 +2550,7 @@
     <div class="page" id="page-market">
       <div class="intel-outer">
         <div class="bsp-header">
-          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Market Research</span></div>
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Identity</span><span class="bsp-bc-sep">›</span><span>Market Research</span></div>
           <button class="intel-gen-btn" id="mktGenBtn" onclick="generateMarketResearch()">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v14M1 8h14"/></svg>
             Generate Research
@@ -2516,7 +2566,7 @@
               <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="M4 30l6-8 6 4 6-10 6 6"/><path d="M2 36h36"/><circle cx="32" cy="10" r="5"/><path d="M32 7v3l2 1"/></svg>
             </div>
             <div class="intel-prompt-title">Ready to analyze your market</div>
-            <div class="intel-prompt-sub" id="mktPromptSub">Your Brand Core is loaded — click Generate to run your market research report.</div>
+            <div class="intel-prompt-sub" id="mktPromptSub">Your Brand Identity is loaded — click Generate to run your market research report.</div>
             <button class="intel-prompt-btn" onclick="generateMarketResearch()">Generate Market Research →</button>
           </div>
         </div>
@@ -2571,7 +2621,7 @@
     <div class="page" id="page-opportunities">
       <div class="intel-outer">
         <div class="bsp-header">
-          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Opportunities</span></div>
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Identity</span><span class="bsp-bc-sep">›</span><span>Opportunities</span></div>
           <button class="intel-gen-btn" id="oppGenBtn" onclick="generateOpportunities()">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v14M1 8h14"/></svg>
             Find Opportunities
@@ -2590,7 +2640,7 @@
         </div>
 
         <h1 class="bsp-title">Opportunities</h1>
-        <p class="bsp-desc">Strategic growth opportunities identified by your Brand Brain — ranked by impact, grounded in your positioning.</p>
+        <p class="bsp-desc">Strategic growth opportunities identified by your Brand Identity — ranked by impact, grounded in your positioning.</p>
 
         <!-- Empty / prompt state -->
         <div class="intel-prompt" id="oppPrompt">
@@ -2599,7 +2649,7 @@
               <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="M20 4l3 9.5H33l-8 5.8 3 9.2-8-5.8-8 5.8 3-9.2-8-5.8h10z"/><path d="M20 32v4"/></svg>
             </div>
             <div class="intel-prompt-title">Ready to find your opportunities</div>
-            <div class="intel-prompt-sub" id="oppPromptSub">Your Brand Brain will analyze your positioning and identify the highest-leverage growth opportunities.</div>
+            <div class="intel-prompt-sub" id="oppPromptSub">Your Brand Identity will analyze your positioning and identify the highest-leverage growth opportunities.</div>
             <button class="intel-prompt-btn" onclick="generateOpportunities()">Find Opportunities →</button>
           </div>
         </div>
@@ -2640,7 +2690,7 @@
     <div class="page" id="page-website">
       <div class="intel-outer">
         <div class="bsp-header">
-          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Website Monitor</span></div>
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Identity</span><span class="bsp-bc-sep">›</span><span>Website Monitor</span></div>
         </div>
         <h1 class="bsp-title">Website Monitor</h1>
         <p class="bsp-desc">Analyse how consistently your website reflects your brand — messaging, tone, and positioning.</p>
@@ -2701,7 +2751,7 @@
     <div class="page" id="page-health">
       <div class="intel-outer">
         <div class="bsp-header">
-          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Brand Health</span></div>
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Identity</span><span class="bsp-bc-sep">›</span><span>Brand Health</span></div>
         </div>
         <h1 class="bsp-title">Brand Health</h1>
         <p class="bsp-desc">A composite view of your brand's strength across every pillar — from identity to intelligence.</p>
@@ -2716,11 +2766,11 @@
     <div class="page" id="page-alerts">
       <div class="intel-outer">
         <div class="bsp-header">
-          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Brain</span><span class="bsp-bc-sep">›</span><span>Alerts</span></div>
+          <div class="bsp-breadcrumb"><span onclick="navigate('brain')" class="bsp-bc-link">Brand Identity</span><span class="bsp-bc-sep">›</span><span>Alerts</span></div>
           <button class="intel-regen-btn" onclick="refreshAlerts()">Refresh</button>
         </div>
         <h1 class="bsp-title">Alerts</h1>
-        <p class="bsp-desc">Smart notifications from your Brand Brain — gaps to fill, actions to take, things to know.</p>
+        <p class="bsp-desc">Smart notifications from your Brand Identity — gaps to fill, actions to take, things to know.</p>
 
         <div id="alertsBody">
           <!-- Populated by refreshAlerts() -->
@@ -2740,7 +2790,7 @@
               <span class="dash-eyebrow-txt">ORIVEN Intelligence</span>
             </div>
             <h1 class="dash-headline" id="dashHeadline">Your brand is <span class="dash-hl-grad" id="dashHeadlineWord">ready.</span></h1>
-            <p class="dash-status-msg" id="dashStatusMsg">Configure your Brand Core to begin your AI journey.</p>
+            <p class="dash-status-msg" id="dashStatusMsg">Configure your Brand Identity to begin your AI journey.</p>
             <div class="dash-brand-pill" id="dashBrandPill" style="display:none">
               <span class="dash-brand-pill-dot"></span>
               <span class="dash-brand-pill-name" id="dashBrandPillName"></span>
@@ -2749,7 +2799,7 @@
           <div class="dash-hero-right">
             <div class="dash-level-display">
               <div class="dash-level-num" id="dashLevelNum">0%</div>
-              <div class="dash-level-lbl">BrandCore Score</div>
+              <div class="dash-level-lbl">Brand Score</div>
               <div class="dash-level-bar-track">
                 <div class="dash-level-bar-fill" id="dashLevelFill" style="width:0%"></div>
               </div>
@@ -2764,7 +2814,7 @@
             <div id="dashActivity"></div>
           </div>
           <div class="dash-col-item">
-            <div class="dash-section-hd"><span class="dash-s-eyebrow">BrandCore Score</span></div>
+            <div class="dash-section-hd"><span class="dash-s-eyebrow">Brand Score</span></div>
             <div id="dashIntelLevel"></div>
           </div>
         </div>
@@ -2950,16 +3000,16 @@
     </div>
 
 
-    <!-- BRAND CORE -->
+    <!-- BRAND IDENTITY -->
     <div class="page" id="page-brandcore">
       <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between">
-        <div><div class="ph-ttl">Brand Core</div><div class="ph-sub">Your living brand identity — the source of truth for all generated content.</div></div>
+        <div><div class="ph-ttl">Brand Identity</div><div class="ph-sub">Your living brand identity — the source of truth for all generated content.</div></div>
         <div style="display:flex;gap:8px"><button class="btn btn-g btn-sm" onclick="openBCWizard()">AI Generate</button><button class="btn btn-p btn-sm" onclick="openModal('modal-bcsetup')">Manual Setup</button></div>
       </div>
       <div id="bcEmpty">
         <div class="empty">
           <div class="empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2.5 5.5L20 9l-4 3.9 1 5.6L12 16l-5 2.5 1-5.6L4 9l5.5-1.5L12 2z"/></svg></div>
-          <div class="empty-ttl">No Brand Core configured yet</div>
+          <div class="empty-ttl">No Brand Identity configured yet</div>
           <div class="empty-sub">Set up your brand identity to unlock AI-powered campaign generation and more.</div>
           <div style="display:flex;gap:8px"><button class="btn btn-g" onclick="openBCWizard()">AI Generate</button><button class="btn btn-p" onclick="openModal('modal-bcsetup')">Manual Setup</button></div>
         </div>
@@ -3165,7 +3215,7 @@
             <span class="builder-result-label" data-i18n="builderResultLabel">Result</span>
             <div class="builder-result-actions">
               <button class="btn btn-g btn-sm" onclick="runBuilder()" data-i18n="regenerateBtn">Regenerate</button>
-              <button class="btn btn-p btn-sm" id="builderSaveBtn" onclick="builderSave()" data-i18n="saveToStudioBtn">Save to BrandCore</button>
+              <button class="btn btn-p btn-sm" id="builderSaveBtn" onclick="builderSave()" data-i18n="saveToStudioBtn">Save to Brand Identity</button>
             </div>
           </div>
           <div class="builder-result-body" id="builderResultBody"></div>
@@ -4311,8 +4361,8 @@
 <div class="orv-notif-panel" id="orvNotifPanel" style="display:none">
   <div class="orv-notif-hd"><span>Notifications</span>
     <div class="orv-notif-hd-actions">
-      <button type="button" class="orv-notif-markall" onclick="orvMarkAllNotificationsRead()">Mark all read</button>
-      <button type="button" class="orv-notif-clearall" onclick="orvClearNotificationInbox()">Clear inbox</button>
+      <button type="button" class="orv-notif-markall" onclick="orvMarkAllNotificationsRead()" data-i18n="notifMarkAllRead">Mark all read</button>
+      <button type="button" class="orv-notif-clearall" onclick="orvClearNotificationInbox()" data-i18n="notifClearInbox">Clear inbox</button>
     </div>
   </div>
   <div id="orvNotifList" style="display:flex;flex-direction:column;gap:6px;padding:8px"></div>
@@ -4384,7 +4434,7 @@
 </div>
 
 <!-- MODALS -->
-<!-- BrandCore AI Wizard — full-screen stepped experience -->
+<!-- Brand Identity AI Wizard — full-screen stepped experience -->
 <div id="bcWizard" class="bcw-overlay" style="display:none">
   <div class="bcw-panel">
 
@@ -4392,7 +4442,7 @@
     <div class="bcw-header">
       <div class="bcw-logo">
         <img src="assets/orivenlogo.png" alt="ORIVEN" style="width:22px;height:22px;object-fit:contain">
-        <span>BrandCore AI</span>
+        <span>Brand Identity AI</span>
       </div>
       <button class="bcw-close" onclick="closeBCWizard()" title="Cancel">
         <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
@@ -4412,7 +4462,7 @@
       <div class="bcw-step bcw-step-active" id="bcwS1">
         <div class="bcw-step-eyebrow">Brand Identity</div>
         <div class="bcw-step-q">What is your <em>company called?</em></div>
-        <div class="bcw-step-sub">This becomes the foundation of your entire BrandCore.</div>
+        <div class="bcw-step-sub">This becomes the foundation of your entire Brand Identity.</div>
         <input type="text" id="bcwName" class="bcw-inp" placeholder="e.g. NOVA, Bloom, Forge Labs" maxlength="60" onkeydown="if(event.key==='Enter')bcwNext()">
       </div>
 
@@ -4453,7 +4503,7 @@
       <div class="bcw-step" id="bcwS5">
         <div class="bcw-step-eyebrow">Brand Character</div>
         <div class="bcw-step-q">What <em>type</em> of brand do you want?</div>
-        <div class="bcw-step-sub">This shapes the overall personality of your BrandCore.</div>
+        <div class="bcw-step-sub">This shapes the overall personality of your Brand Identity.</div>
         <div class="bcw-pills" id="bcwTypePills">
           <div class="bcw-pill" onclick="bcwPillSelect(this,'bcwTypePills')">Luxury</div>
           <div class="bcw-pill" onclick="bcwPillSelect(this,'bcwTypePills')">Startup</div>
@@ -4900,13 +4950,13 @@
 
 <div class="glov" id="glov"><div class="glov-inner">
   <div class="spin" style="margin:0 auto;width:36px;height:36px;border-width:3px"></div>
-  <h3>Building your Brand Brain</h3>
+  <h3>Building your Brand Identity</h3>
   <p id="glovStatus">Analyzing personality inputs...</p>
   <div class="lbar" style="width:240px;margin:0 auto"><div class="lbar-fill"></div></div>
 </div></div>
 
 <div class="mbk" id="modal-bcsetup"><div class="modal" style="width:620px;max-height:88vh;overflow-y:auto">
-  <div class="modal-ttl">Manual BrandCore Setup</div>
+  <div class="modal-ttl">Manual Brand Identity Setup</div>
   <div class="modal-sub">Configure every pillar of your brand identity directly.</div>
 
   <!-- Identity -->
@@ -4964,12 +5014,12 @@
     <div class="fg"><label class="lbl">Logo Description</label><input class="inp" id="bcsLogoDesc" placeholder="e.g. Wordmark with clean geometric letterforms in primary brand color."></div>
   </div>
 
-  <div class="modal-ft"><button class="btn btn-g" onclick="closeModal('modal-bcsetup')">Cancel</button><button class="btn btn-p" onclick="saveBCManual()">Save BrandCore</button></div>
+  <div class="modal-ft"><button class="btn btn-g" onclick="closeModal('modal-bcsetup')">Cancel</button><button class="btn btn-p" onclick="saveBCManual()">Save Brand Identity</button></div>
 </div></div>
 
 <!-- REGENERATE CHOICE MODAL -->
 <div class="mbk" id="modal-bc-regen"><div class="modal" style="width:420px;padding:32px">
-  <div class="modal-ttl" style="margin-bottom:6px">Regenerate BrandCore</div>
+  <div class="modal-ttl" style="margin-bottom:6px">Regenerate Brand Identity</div>
   <div class="modal-sub" style="margin-bottom:28px">Choose how you'd like to rebuild your brand identity.</div>
   <div style="display:flex;flex-direction:column;gap:12px">
     <button class="bcp-regen-choice bcp-regen-ai" onclick="closeModal('modal-bc-regen');openBCWizard()">
@@ -4978,7 +5028,7 @@
       </div>
       <div class="bcp-regen-choice-body">
         <div class="bcp-regen-choice-title">Generate with AI</div>
-        <div class="bcp-regen-choice-sub">Answer guided questions and let ORIVEN build a complete BrandCore from scratch.</div>
+        <div class="bcp-regen-choice-sub">Answer guided questions and let ORIVEN build a complete Brand Identity from scratch.</div>
       </div>
     </button>
     <button class="bcp-regen-choice bcp-regen-manual" onclick="closeModal('modal-bc-regen');openModal('modal-bcsetup')">
@@ -5007,7 +5057,7 @@
 
 <div class="mbk" id="modal-logo-ai"><div class="modal" style="width:520px">
   <div class="modal-ttl">Generate Logo with AI</div>
-  <div class="modal-sub">Describe your brand and choose a style. ORIVEN AI will generate a logo concept you can save directly to your Brand Core.</div>
+  <div class="modal-sub">Describe your brand and choose a style. ORIVEN AI will generate a logo concept you can save directly to your Brand Identity.</div>
   <div class="fg"><label class="lbl">Brand name</label><input class="inp" id="logoAIBrand" placeholder="Your brand name"></div>
   <div class="fg">
     <label class="lbl">Logo type</label>
@@ -5029,7 +5079,7 @@
       <button class="b-pill" data-val="technical precise systematic" onclick="bPickModal(this,'logoAIDirPills')">Technical</button>
     </div>
   </div>
-  <div class="fg"><label class="lbl">Colour palette <span style="font-weight:400;color:var(--muted);font-size:11px">(auto-filled from BrandCore)</span></label><input class="inp" id="logoAIColors" placeholder="e.g. deep forest green, warm beige, charcoal"></div>
+  <div class="fg"><label class="lbl">Colour palette <span style="font-weight:400;color:var(--muted);font-size:11px">(auto-filled from Brand Identity)</span></label><input class="inp" id="logoAIColors" placeholder="e.g. deep forest green, warm beige, charcoal"></div>
   <div class="fg"><label class="lbl">Description <span style="font-weight:400;color:var(--muted);font-size:11px">optional</span></label><textarea class="inp" id="logoAIDesc" rows="2" placeholder="e.g. A premium wellness brand for modern professionals. Clean, grounded, aspirational."></textarea></div>
   <div id="logoAIResult" style="display:none"></div>
   <div class="modal-ft">
@@ -5272,10 +5322,10 @@
       </button>
     </div>
 
-    <!-- Brand Core indicator -->
+    <!-- Brand Identity indicator -->
     <div class="cf-brand-bar" id="cfBrandBar" style="display:none">
       <span class="cf-brand-bar-dot"></span>
-      <span class="cf-brand-bar-label">Using Brand Core</span>
+      <span class="cf-brand-bar-label">Using Brand Identity</span>
       <span class="cf-brand-bar-name" id="cfBrandBarName"></span>
       <span class="cf-brand-bar-sep">·</span>
       <span class="cf-brand-bar-detail" id="cfBrandBarDetail"></span>
@@ -5680,7 +5730,7 @@
   </div>
 </div>
 
-<!-- GUEST BRANDCORE ENTRY SCREEN — full overlay, shown after Try for Free -->
+<!-- GUEST BRAND IDENTITY ENTRY SCREEN — full overlay, shown after Try for Free -->
 <div id="guestBCEntry" style="display:none">
   <div class="gbc-bg">
     <div class="gbc-blob"></div>
@@ -5689,7 +5739,7 @@
   <!-- State: Choose -->
   <div id="gbeChoose" class="gbc-wrap">
     <div class="gbc-header">
-      <h2 class="gbc-title">Create your BrandCore</h2>
+      <h2 class="gbc-title">Create your Brand Identity</h2>
       <p class="gbc-sub">Your identity that powers everything ORIVEN generates for you.</p>
     </div>
     <div class="gbc-options">
@@ -5733,7 +5783,7 @@
     </div>
     <input type="text" id="gbeInput" class="gbc-input" placeholder="e.g. A minimal skincare brand for women 25–40…" maxlength="300" onkeydown="if(event.key==='Enter')_gbeGenerate()">
     <button class="gbc-gen-btn" onclick="_gbeGenerate()">
-      Generate BrandCore
+      Generate Brand Identity
       <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
     </button>
     <p class="gbc-input-hint">Takes 15–30 seconds &middot; Results appear instantly</p>
@@ -5851,7 +5901,7 @@
     <div class="gls-lock-icon">
       <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="5" y="11" width="14" height="11" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
     </div>
-    <div class="gls-title" id="glsTitle">BrandCore</div>
+    <div class="gls-title" id="glsTitle">Brand Identity</div>
     <div class="gls-desc" id="glsDesc">Your complete brand identity system.</div>
     <p class="gls-unlock">Everything unlocks after signup.</p>
 
@@ -5912,7 +5962,7 @@
   </div>
 </div>
 
-<!-- GUEST CTA BAR — bottom strip shown after BrandCore is generated -->
+<!-- GUEST CTA BAR — bottom strip shown after Brand Identity is generated -->
 <div id="guestCTA" class="gcta-bar" style="display:none">
   <span class="gcta-text">Sign up or log in to continue</span>
   <div class="gcta-actions">
@@ -8669,6 +8719,10 @@ window._orvUpdateCampPkg = function(id, pkg) {
   /* Meta-only placement choice — default 'both' (Facebook + Instagram),
      matching Meta's pre-existing automatic-placement behavior. */
   window._ov3MetaPlacement = 'both';
+  /* Brand Identity toggle — default ON, matching the exact prior always-
+     inject-when-present behavior for anyone who never touches this
+     control (see cgrGenerate's brandCore attachment for the actual gate). */
+  window._ov3BrandIdentityEnabled = true;
   window.ov3SelectPlat = function(btn){
     window._ov3Platform = btn.getAttribute('data-plat') || 'google';
     document.querySelectorAll('.ov3-plat-pill').forEach(function(p){
@@ -9094,10 +9148,11 @@ window._orvUpdateCampPkg = function(id, pkg) {
         var ev = item.raw;
         var cat = _orvNotifCategory(ev);
         var sev = _orvNotifSeverity(ev);
+        var delTip = _prfEsc(typeof t==='function'?t('notifDeleteBtn'):'Delete notification');
         return '<div class="oi-card orv-notif-item orv-notif-sev-'+sev+(item.read?'':' orv-notif-unread')+'" data-notif-id="'+_prfEsc(ev.id)+'" onclick="orvNotificationClick(\''+_prfEsc(ev.id)+'\',\''+cat.page+'\')">' +
           '<div class="oi-card-top"><span class="orv-notif-sev-dot"></span><span class="crws-search-type">' + cat.label + '</span>' +
           '<div class="oi-card-title" style="font-size:12px;flex:1">' + _prfEsc(ev.title) + '</div>' +
-          '<button type="button" class="orv-notif-del" title="Delete notification" aria-label="Delete notification" onclick="event.stopPropagation();orvDeleteNotification(\''+_prfEsc(ev.id)+'\', this)"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6 4.5V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M4.5 4.5l.6 8.2a1 1 0 0 0 1 .8h3.8a1 1 0 0 0 1-.8l.6-8.2"/><path d="M6.5 7v4M9.5 7v4"/></svg></button></div>' +
+          '<button type="button" class="orv-notif-del" title="'+delTip+'" aria-label="'+delTip+'" onclick="event.stopPropagation();orvDeleteNotification(\''+_prfEsc(ev.id)+'\', this)"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6 4.5V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M4.5 4.5l.6 8.2a1 1 0 0 0 1 .8h3.8a1 1 0 0 0 1-.8l.6-8.2"/><path d="M6.5 7v4M9.5 7v4"/></svg></button></div>' +
           (ev.detail ? '<div class="oi-card-desc">' + _prfEsc(ev.detail) + '</div>' : '') +
         '</div>';
       }).join('');
@@ -9177,7 +9232,7 @@ window._orvUpdateCampPkg = function(id, pkg) {
   window.orvClearNotificationInbox = function(){
     var hasEvents = _orvNotifItems.some(function(i){ return i.kind === 'event'; });
     if (!hasEvents) return;
-    if (!confirm('Clear all notifications? This cannot be undone.')) return;
+    if (!confirm(typeof t==='function'?t('notifClearConfirm'):'Clear all notifications? This cannot be undone.')) return;
     apiFetch('/api/intelligence/events/dismiss-all', { method: 'PATCH' }).then(function(res){
       if (!res.ok) { if (typeof orvToast === 'function') orvToast('Could not clear your inbox.', 'error'); return; }
       _orvNotifItems = _orvNotifItems.filter(function(i){ return i.kind !== 'event'; });
@@ -9202,7 +9257,7 @@ window._orvUpdateCampPkg = function(id, pkg) {
           });
         }
       }
-      if (typeof orvToast === 'function') orvToast('Inbox cleared', 'ok');
+      if (typeof orvToast === 'function') orvToast(typeof t==='function'?t('notifInboxCleared'):'Inbox cleared', 'ok');
     }).catch(function(){
       if (typeof orvToast === 'function') orvToast('Network error — please try again', 'error');
     });
@@ -16322,9 +16377,9 @@ window.rptExport = function(format) {
       +   '<div class="cst-fld"><label>Facebook Page</label><div class="cst-fld-static'+(_cst.pageName?'':' cst-review-val-warn')+'">'+_cstEsc(_cst.pageName||'Not connected')+'</div></div>'
       + '</div>'
       + '<div class="cst-fld"><label>Ad Account</label><div class="cst-fld-static'+(_cst.accountName?'':' cst-review-val-warn')+'">'+_cstEsc(_cst.accountName||'Not connected')+'</div></div>'
-      + '<div class="cst-fld"><label>Placements</label><div class="cst-seg" role="group" aria-label="Meta placements">'
-      +   '<button type="button" class="cst-seg-btn'+(placementVal==='both'?' cst-seg-btn-on':'')+'" onclick="_cstPlacementInput(\'both\')">Facebook + Instagram</button>'
-      +   '<button type="button" class="cst-seg-btn'+(placementVal==='instagram_only'?' cst-seg-btn-on':'')+'" onclick="_cstPlacementInput(\'instagram_only\')">Instagram only</button>'
+      + '<div class="cst-fld"><label>'+(typeof t==='function'?t('metaPlacementsLabel'):'Placements')+'</label><div class="cst-seg" role="group" aria-label="Meta placements">'
+      +   '<button type="button" class="cst-seg-btn'+(placementVal==='both'?' cst-seg-btn-on':'')+'" onclick="_cstPlacementInput(\'both\')">'+(typeof t==='function'?t('metaPlacementBoth'):'Facebook + Instagram')+'</button>'
+      +   '<button type="button" class="cst-seg-btn'+(placementVal==='instagram_only'?' cst-seg-btn-on':'')+'" onclick="_cstPlacementInput(\'instagram_only\')">'+(typeof t==='function'?t('metaPlacementIgOnly'):'Instagram only')+'</button>'
       + '</div></div>';
 
     var html = _cstSec('adcontent','Ad Content', null, adContent, true)
@@ -16404,8 +16459,9 @@ window.rptExport = function(format) {
 
     var rows = '';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Platform</span><span class="cst-review-val">Meta Ads</span></div>';
-    rows += '<div class="cst-review-row"><span class="cst-review-lbl">Placements</span><span class="cst-review-val">'+(m.placement==='instagram_only'?'Instagram only':'Facebook + Instagram')+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">'+(typeof t==='function'?t('metaPlacementsLabel'):'Placements')+'</span><span class="cst-review-val">'+(m.placement==='instagram_only'?(typeof t==='function'?t('metaPlacementIgOnly'):'Instagram only'):(typeof t==='function'?t('metaPlacementBoth'):'Facebook + Instagram'))+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cstEsc(goal)+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">'+(typeof t==='function'?t('brandIdentityLabel'):'Brand Identity')+'</span><span class="cst-review-val">'+(pkg.brandIdentityEnabled===false?(typeof t==='function'?t('brandIdentityDisabledVal'):'Disabled'):(typeof t==='function'?t('brandIdentityEnabledVal'):'Enabled'))+'</span></div>';
     if (m.objective) rows += '<div class="cst-review-row"><span class="cst-review-lbl">Meta Objective</span><span class="cst-review-val">'+_cstEsc(m.objective)+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ad Sets</span><span class="cst-review-val">'+struct.adSets+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Ads</span><span class="cst-review-val">'+totalAds+' ('+variants.length+' unique concept'+(variants.length!==1?'s':'')+')</span></div>';
@@ -16709,16 +16765,29 @@ window.rptExport = function(format) {
     return null;
   }
 
+  // Final Polish — video generation is real (AI Creator's video flow
+  // persists pkg.videoAssets[].videoUrl via _pollCgrVideo once a Kling
+  // generation completes), this just picks the most recent completed one.
+  // Most recent first so a regenerated video replaces an older one in the
+  // preview even though _pollCgrVideo never removes stale entries.
+  function _cggBestVideo(pkg){
+    var vids = (pkg.videoAssets || []).filter(function(v){ return v && v.videoUrl; });
+    if (!vids.length) return null;
+    vids.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+    return vids[0].videoUrl;
+  }
+
   function _cggAssets(pkg){
     var g = pkg.googleAds || {};
     var headlines = (g.headlines || []).filter(Boolean);
     var descriptions = (g.descriptions || []).filter(Boolean);
     var keywords = (g.keywords || []).filter(Boolean);
     var image = _cggBestImage(pkg);
+    var video = _cggBestVideo(pkg);
     return {
-      headlines: headlines, descriptions: descriptions, keywords: keywords, image: image,
+      headlines: headlines, descriptions: descriptions, keywords: keywords, image: image, video: video,
       hasHeadline: headlines.length > 0, hasDescription: descriptions.length > 0, hasImage: !!image,
-      hasVideo: false, hasProductData: false, hasLocationData: false,
+      hasVideo: !!video, hasProductData: false, hasLocationData: false,
     };
   }
 
@@ -16730,7 +16799,16 @@ window.rptExport = function(format) {
     if (key === 'youtube') {
       var mode = _cgg.ytMode || 'video';
       if (mode === 'image') return { level:'preview', label:'PREVIEW ONLY — campaign type not currently supported' };
-      return { level:'missing', label:'MISSING VIDEO' }; // video + shorts both need a video asset that never exists
+      // A video CAN exist now (AI Creator's video flow persists it to
+      // pkg.videoAssets) -- only actually claim MISSING when there really
+      // isn't one. Still 'preview' not 'ready': this pipeline only ever
+      // publishes Campaign(SEARCH), so YouTube stays preview-only either
+      // way. Shorts specifically is left unchanged (still "MISSING VIDEO"
+      // when a video exists) -- the generated video's aspect ratio isn't
+      // known/confirmed vertical, and claiming Shorts-readiness for an
+      // unconfirmed format would itself be a fabrication.
+      if (mode === 'video' && _cggAssets(_cgg.pkg).hasVideo) return { level:'preview', label:'PREVIEW ONLY — campaign type not currently supported' };
+      return { level:'missing', label:'MISSING VIDEO' };
     }
     if (key === 'pmax') {
       var pmr = _cggPmaxReadiness(_cgg.pkg);
@@ -16795,7 +16873,7 @@ window.rptExport = function(format) {
     else if (surface === 'discover') body = _cggRenderDiscoverBody(assets, domain);
     else if (surface === 'maps')     body = _cggEmptyState('Maps preview unavailable', 'Maps ads require real business/location information (address, hours, etc). This campaign package has no location data, so Oriven won\'t invent an address.');
     else if (surface === 'gmail')    body = _cggRenderGmailBody(assets, domain);
-    else if (surface === 'youtube' && ytMode === 'video')  body = _cggEmptyState('No video asset available', 'No video was generated for this campaign — YouTube video ads need one. Nothing is fabricated here.');
+    else if (surface === 'youtube' && ytMode === 'video')  body = _cggRenderYtVideoBody(assets, domain);
     else if (surface === 'youtube' && ytMode === 'image')  body = _cggRenderYtImageBody(assets, domain);
     else if (surface === 'youtube' && ytMode === 'shorts') body = _cggEmptyState('No vertical video available', 'Shorts requires a vertical video asset, which doesn\'t exist for this campaign — Oriven won\'t substitute a static image for a video format.');
     else if (surface === 'pmax')     body = _cggRenderPmaxBody(assets, domain);
@@ -16868,6 +16946,21 @@ window.rptExport = function(format) {
       + '</div></div>';
   }
 
+  // Final Polish — replaces the old unconditional "No video asset
+  // available" empty state, which fired even when a real video had been
+  // generated (pkg.videoAssets was written by AI Creator's video flow but
+  // never read by this preview). Still honest about what actually
+  // publishes: Google's real publish pipeline is Search-only, so this
+  // stays a preview even when a real video exists.
+  function _cggRenderYtVideoBody(assets, domain){
+    if (!assets.hasVideo) return _cggEmptyState('No video asset available', 'No video was generated for this campaign — YouTube video ads need one. Nothing is fabricated here.');
+    return '<div class="cst-mock-ytvideo">'
+      + '<video class="cst-ytvideo-player" src="'+_cggEsc(assets.video)+'" controls playsinline preload="metadata"></video>'
+      + '<div class="cst-yti-tag" style="margin-top:8px">Sponsored</div>'
+      + '<div class="cst-fld-hint" style="margin-top:6px">Preview only — Google publishing in Oriven is Search-only today, so this video isn\'t sent to Google. Download it from AI Creator to upload manually if you want to run it as a YouTube ad.</div>'
+      + '</div>';
+  }
+
   function _cggRenderYtImageBody(assets, domain){
     var hl = assets.headlines[0] || '';
     var desc = assets.descriptions[0] || '';
@@ -16886,7 +16979,7 @@ window.rptExport = function(format) {
     var cards = [
       { key:'search', icon:'&#128269;', label:'Search', snippet: assets.headlines[0] || 'No headline yet' },
       { key:'shopping', icon:'&#128722;', label:'Shopping', snippet: 'Requires product data' },
-      { key:'youtube', icon:'&#9654;', label:'YouTube', snippet: 'No video asset available' },
+      { key:'youtube', icon:'&#9654;', label:'YouTube', snippet: assets.hasVideo ? 'Video generated (preview only)' : 'No video asset available' },
       { key:'discover', icon:'&#128240;', label:'Discover', snippet: assets.headlines[0] || 'No headline yet' },
       { key:'gmail', icon:'&#9993;', label:'Gmail', snippet: assets.headlines[0] || 'No headline yet' },
       { key:'maps', icon:'&#128205;', label:'Maps', snippet: 'Requires location data' },
@@ -17210,6 +17303,7 @@ window.rptExport = function(format) {
 
     var rows = '';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cggEsc(goal)+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">'+(typeof t==='function'?t('brandIdentityLabel'):'Brand Identity')+'</span><span class="cst-review-val">'+(pkg.brandIdentityEnabled===false?(typeof t==='function'?t('brandIdentityDisabledVal'):'Disabled'):(typeof t==='function'?t('brandIdentityEnabledVal'):'Enabled'))+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Type</span><span class="cst-review-val">'+_cggEsc(typeLabel)+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">'+structureLabel+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val'+(hasBudget?'':' cst-review-val-warn')+'">'+_cggEsc(_cggFormatBudget(s.budgetRecommendation))+'</span></div>';
@@ -17523,6 +17617,7 @@ window.rptExport = function(format) {
 
     var rows = '';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Campaign Goal</span><span class="cst-review-val">'+_cgtEsc(goal)+'</span></div>';
+    rows += '<div class="cst-review-row"><span class="cst-review-lbl">'+(typeof t==='function'?t('brandIdentityLabel'):'Brand Identity')+'</span><span class="cst-review-val">'+(pkg.brandIdentityEnabled===false?(typeof t==='function'?t('brandIdentityDisabledVal'):'Disabled'):(typeof t==='function'?t('brandIdentityEnabledVal'):'Enabled'))+'</span></div>';
     if (tt.objective) rows += '<div class="cst-review-row"><span class="cst-review-lbl">TikTok Objective</span><span class="cst-review-val">'+_cgtEsc(tt.objective)+'</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Structure</span><span class="cst-review-val">1 Campaign &middot; '+_cgtStruct.groups+' Ad Group'+(_cgtStruct.groups!==1?'s':'')+' &middot; '+_cgtTotalAds+' Ad'+(_cgtTotalAds!==1?'s':'')+' total</span></div>';
     rows += '<div class="cst-review-row"><span class="cst-review-lbl">Budget</span><span class="cst-review-val">'+_cgtEsc(tt.budget || '30 (default)')+'</span></div>';
@@ -17662,9 +17757,14 @@ window.rptExport = function(format) {
   function _cgrVideoErr(idx, ref, msg){
     var card = document.getElementById('cgcv'+idx);
     if(!card) return;
+    // msg can arrive as a provider error object rather than a string --
+    // _esc() does String(msg||'') internally, which silently produces the
+    // literal text "[object Object]" for a real error object. Same class
+    // of bug as videoads.js/motiongraphics.js's error handlers.
+    var msgText = (msg && typeof msg === 'object') ? (msg.message || msg.error || 'Generation failed') : msg;
     card.className = 'cgr-creative-card cgr-creative-err-card';
     card.innerHTML = '<div class="cgr-creative-card-body"><div class="cgr-creative-ref">'+_esc(ref)+'</div>'
-      +'<div class="cgr-creative-err-msg">'+_esc(msg)+'</div></div>';
+      +'<div class="cgr-creative-err-msg">'+_esc(msgText)+'</div></div>';
   }
 
   function _pollCgrVideo(videoId, idx, ref, campId, pkg, onDone){
@@ -17697,6 +17797,19 @@ window.rptExport = function(format) {
           if(existing.length) existing[0].videoUrl = data.videoUrl;
           else pkg.videoAssets.push({ ref: ref, videoUrl: data.videoUrl, createdAt: Date.now() });
           try { window._orvUpdateCampPkg(campId, pkg); } catch(e){ console.error('[cgr] Failed to persist video URL:', e.message); }
+          // Final Polish — _cggInitGoogleScreen took a deep CLONE of pkg
+          // into _cgg.pkg before this video finished generating (video
+          // generation is async/polled, easily many seconds), so writing
+          // to `pkg` above never reached that clone -- the YouTube preview
+          // kept showing "no video" even after one existed. Refresh the
+          // clone and re-render whichever view is currently open so the
+          // preview/review reflect the video the moment it's ready,
+          // without waiting for the user to navigate away and back.
+          if(typeof _cgg !== 'undefined' && _cgg.campId === campId && _cgg.pkg){
+            _cgg.pkg.videoAssets = pkg.videoAssets;
+            if(typeof _cggRenderPreview === 'function') _cggRenderPreview();
+            if(_cgg.stage === 'review' && typeof _cggRenderReviewStage === 'function') _cggRenderReviewStage();
+          }
         }
         onDone&&onDone();
       } else if(data.status === 'failed' || data.error){
@@ -18233,8 +18346,19 @@ window.rptExport = function(format) {
     if (_plat === 'meta' && _struct) _payload.metaStructure = { adSets: _struct.groups, adsPerAdSet: _struct.adsPerGroup };
     else if (_plat === 'tiktok' && _struct) _payload.campaignStructure = { groups: _struct.groups, adsPerGroup: _struct.adsPerGroup };
     else if (_plat === 'google' && _struct && (!window._ov3GoogleCampaignType || window._ov3GoogleCampaignType === 'SEARCH')) _payload.campaignStructure = { groups: _struct.groups, adsPerGroup: _struct.adsPerGroup };
-    /* Attach Brand Brain context */
-    if(typeof S !== 'undefined' && S.brandCore && S.brandCore.name) _payload.brandCore = S.brandCore;
+    /* Attach Brand Brain context -- gated by the explicit Brand Identity
+       toggle (Final Polish) instead of always injecting it whenever one
+       exists. window._ov3BrandIdentityEnabled defaults true (see its
+       declaration near window._ov3Platform), preserving the exact prior
+       always-on behavior unless the user explicitly turns it off. When
+       off, brandCoreDisabled is sent so the backend can also suppress the
+       independent brand-voice re-injection inside _gatherBusinessContext
+       (omitting brandCore from this payload alone is not sufficient --
+       see that function's skipBrandVoice comment server-side). */
+    if(typeof S !== 'undefined' && S.brandCore && S.brandCore.name){
+      if(window._ov3BrandIdentityEnabled !== false) _payload.brandCore = S.brandCore;
+      else _payload.brandIdentityDisabled = true;
+    }
     /* productImages is CONTEXT for the AI (vision-analyzed product/business
        reference material, per _generateAdPackage server-side) -- populated
        from "Attach Product" (_ov3ProductAssets), never from "Attach Image"
@@ -18410,6 +18534,35 @@ window._cr2MetaPlacement = function(btn, val) {
   document.querySelectorAll('#ov3PlacementSeg .ov3-mode-btn').forEach(function(b){ b.classList.remove('active'); });
   if(btn) btn.classList.add('active');
   window._ov3MetaPlacement = val;
+  if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
+};
+
+// Brand Identity toggle (Final Polish; restyled to a compact sliding-pill
+// switch) — applies to every platform, not Meta-only, so it's a separate
+// control from the placement toggle above despite the visual similarity.
+window._cr2BrandIdentity = function(btn, enabled) {
+  var seg = document.getElementById('ov3BrandIdentitySeg');
+  if(seg){
+    seg.querySelectorAll('.bi-toggle-lbl').forEach(function(b){
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed','false');
+    });
+  }
+  if(btn){ btn.classList.add('active'); btn.setAttribute('aria-pressed','true'); }
+  window._ov3BrandIdentityEnabled = enabled;
+  if(seg){
+    seg.setAttribute('data-state', enabled ? 'on' : 'off');
+    // Restart the thumb's slide animation on every click (removing +
+    // forcing reflow before re-adding is what makes a repeated click on
+    // the same side, or rapid back-and-forth, always replay the motion
+    // instead of only firing once).
+    var thumb = seg.querySelector('.bi-toggle-thumb');
+    if(thumb){
+      thumb.classList.remove('bi-anim-on','bi-anim-off');
+      void thumb.offsetWidth;
+      thumb.classList.add(enabled ? 'bi-anim-on' : 'bi-anim-off');
+    }
+  }
   if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
 };
 
@@ -18918,246 +19071,39 @@ window.cgrChipAdd = function(wrapId, val){
 };
 </script>
 
-<!-- ══ BRAND BRAIN MODAL ════════════════════════════════════════ -->
-<div class="bbm-overlay" id="bbModal" style="display:none" onclick="bbmBackdrop(event)">
-  <div class="bbm-panel" role="dialog" aria-modal="true" aria-label="Brand Brain">
-    <div class="bbm-hd">
-      <div class="bbm-hd-left">
-        <div class="bbm-icon">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M10 3C7 3 4.5 5.2 4.5 8c0 1.6.8 3 2 3.9V14h1v1.5h5V14h1v-2.1c1.2-.9 2-2.3 2-3.9C15.5 5.2 13 3 10 3z"/><path d="M8 14v2.5M12 14v2.5M7.5 8.5h5M10 8.5v3.5"/></svg>
-        </div>
-        <div>
-          <div class="bbm-hd-title">Brand Brain</div>
-          <div class="bbm-hd-sub">Train Oriven on your brand — campaigns become specific, not generic</div>
-        </div>
-      </div>
-      <button class="bbm-close" onclick="bbmClose()" aria-label="Close">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M3 3l10 10M13 3L3 13"/></svg>
-      </button>
-    </div>
-
-    <div class="bbm-body">
-      <div class="bbm-grid">
-
-        <!-- Row 1: Name + Website -->
-        <div class="bbm-row bbm-row-2">
-          <div class="bbm-field">
-            <label class="bbm-lbl">Brand Name</label>
-            <input class="bbm-input" id="bbmName" type="text" placeholder="e.g. Gymly">
-          </div>
-          <div class="bbm-field">
-            <label class="bbm-lbl">Website URL</label>
-            <input class="bbm-input" id="bbmWebsite" type="url" placeholder="e.g. https://gymly.com">
-          </div>
-        </div>
-
-        <!-- Row 2: Description -->
-        <div class="bbm-row">
-          <div class="bbm-field">
-            <label class="bbm-lbl">Company Description <span class="bbm-lbl-hint">What does the company do?</span></label>
-            <textarea class="bbm-textarea" id="bbmDescription" rows="3" placeholder="e.g. Gymly sells premium compression sportswear for serious gym-goers who demand performance and style."></textarea>
-          </div>
-        </div>
-
-        <!-- Row 3: Brand Story -->
-        <div class="bbm-row">
-          <div class="bbm-field">
-            <label class="bbm-lbl">Brand Story <span class="bbm-lbl-hint">Origin, mission, why you exist</span></label>
-            <textarea class="bbm-textarea" id="bbmStory" rows="3" placeholder="e.g. Founded by a competitive powerlifter who couldn't find gear that survived both the squat rack and a night out..."></textarea>
-          </div>
-        </div>
-
-        <!-- Row 4: Audience + USP -->
-        <div class="bbm-row bbm-row-2">
-          <div class="bbm-field">
-            <label class="bbm-lbl">Target Audience</label>
-            <textarea class="bbm-textarea bbm-textarea-sm" id="bbmAudience" rows="2" placeholder="e.g. Men 22–35, gym-focused, value performance and aesthetics, disposable income, follow fitness creators"></textarea>
-          </div>
-          <div class="bbm-field">
-            <label class="bbm-lbl">Unique Selling Proposition</label>
-            <textarea class="bbm-textarea bbm-textarea-sm" id="bbmUsp" rows="2" placeholder="e.g. Military-grade fabric with 4-way stretch that never pills, fades or loses shape after 200 washes"></textarea>
-          </div>
-        </div>
-
-        <!-- Row 5: Tone + Competitors -->
-        <div class="bbm-row bbm-row-2">
-          <div class="bbm-field">
-            <label class="bbm-lbl">Tone of Voice</label>
-            <input class="bbm-input" id="bbmTone" type="text" placeholder="e.g. Bold, direct, athletic, no fluff">
-          </div>
-          <div class="bbm-field">
-            <label class="bbm-lbl">Competitors</label>
-            <input class="bbm-input" id="bbmCompetitors" type="text" placeholder="e.g. Gymshark, Lululemon, Alphalete">
-          </div>
-        </div>
-
-        <!-- Row 6: Brand Colors -->
-        <div class="bbm-row">
-          <div class="bbm-field">
-            <label class="bbm-lbl">Brand Colors <span class="bbm-lbl-hint">Hex codes or descriptions</span></label>
-            <input class="bbm-input" id="bbmColors" type="text" placeholder="e.g. #1A1A2E (deep navy), #B7FF2A (electric lime), #FFFFFF">
-          </div>
-        </div>
-
-        <!-- Row 7: Brand Memory (V7 Phase 1, Epic 5) -->
-        <div class="bbm-row">
-          <div class="bbm-field">
-            <label class="bbm-lbl">Logo <span class="bbm-lbl-hint">URL to your logo image</span></label>
-            <input class="bbm-input" id="bbmLogo" type="text" placeholder="https://...">
-          </div>
-          <div class="bbm-field">
-            <label class="bbm-lbl">Typography <span class="bbm-lbl-hint">Fonts you use</span></label>
-            <input class="bbm-input" id="bbmTypography" type="text" placeholder="e.g. Geist for headings, Inter for body">
-          </div>
-        </div>
-        <div class="bbm-row">
-          <div class="bbm-field">
-            <label class="bbm-lbl">Brand Personality <span class="bbm-lbl-hint">A few traits</span></label>
-            <input class="bbm-input" id="bbmPersonality" type="text" placeholder="e.g. bold, playful, direct">
-          </div>
-          <div class="bbm-field">
-            <label class="bbm-lbl">Brand Rules <span class="bbm-lbl-hint">Anything Oriven should always follow</span></label>
-            <input class="bbm-input" id="bbmRules" type="text" placeholder="e.g. always use full company name on first mention">
-          </div>
-        </div>
-        <div class="bbm-row">
-          <div class="bbm-field">
-            <label class="bbm-lbl">Words To Avoid</label>
-            <input class="bbm-input" id="bbmWordsAvoid" type="text" placeholder="e.g. cheap, guys, disrupt">
-          </div>
-          <div class="bbm-field">
-            <label class="bbm-lbl">Preferred Phrases</label>
-            <input class="bbm-input" id="bbmPhrases" type="text" placeholder="e.g. built for creators, made to last">
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="bbm-footer">
-      <div class="bbm-footer-left">
-        <div class="bbm-status" id="bbmStatus"></div>
-      </div>
-      <div class="bbm-footer-right">
-        <button class="bbm-btn-ghost" onclick="bbmClear()">Clear</button>
-        <button class="bbm-btn-save" id="bbmSaveBtn" onclick="bbmSave()">
-          Save Brand Brain
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ BRAND BRAIN + PRODUCT UPLOAD JS ═══════════════════════════ -->
+<!-- ══ PRODUCT UPLOAD JS ══════════════════════════════════════════
+     The old "Brand Brain Modal" (#bbModal, bbmOpen/bbmSave/bbmClear) that
+     used to live here was removed (Legacy Brand Core Removal) -- it had
+     no reachable trigger anywhere in the app (grepped: bbmOpen() was
+     never called from any button/menu), and its own save path called a
+     function, saveBrandCoreDB(), that was never defined anywhere either,
+     so even a determined user opening it via devtools couldn't have
+     persisted anything through it. The real, current, working way to
+     create/edit this data is the Business > Brand tab's AI wizard/manual
+     setup (openBCWizard()/modal-bcsetup, now labeled "Brand Identity"
+     throughout) -- unrelated to this dead modal, untouched by this
+     removal. -->
 <script>
 (function(){
 
-  // ── Brand Brain Modal ────────────────────────────────────────────
-
-  var _bbOpen = false;
-
-  window.bbmOpen = function(){
-    var bc = (typeof S !== 'undefined' && S.brandCore) || {};
-    document.getElementById('bbmName').value         = bc.name        || '';
-    document.getElementById('bbmWebsite').value      = bc.website     || '';
-    document.getElementById('bbmDescription').value  = bc.description || '';
-    document.getElementById('bbmStory').value        = bc.story       || '';
-    document.getElementById('bbmAudience').value     = bc.audience    || '';
-    document.getElementById('bbmUsp').value          = bc.usp         || '';
-    document.getElementById('bbmTone').value         = bc.toneOfVoice || '';
-    document.getElementById('bbmCompetitors').value  = bc.competitors || '';
-    document.getElementById('bbmColors').value       = (Array.isArray(bc.colors) ? bc.colors.map(function(c){ return typeof c === 'string' ? c : (c.hex||c.name||''); }).filter(Boolean).join(', ') : bc.colors) || '';
-    document.getElementById('bbmLogo').value          = bc.logo          || '';
-    document.getElementById('bbmTypography').value    = bc.typography    || '';
-    document.getElementById('bbmPersonality').value   = bc.personality   || '';
-    document.getElementById('bbmRules').value         = bc.brandRules    || '';
-    document.getElementById('bbmWordsAvoid').value    = bc.wordsAvoid    || '';
-    document.getElementById('bbmPhrases').value       = bc.preferredPhrases || '';
-    document.getElementById('bbmStatus').textContent = '';
-    document.getElementById('bbModal').style.display = '';
-    document.body.style.overflow = 'hidden';
-    _bbOpen = true;
-    setTimeout(function(){ document.getElementById('bbmName').focus(); }, 80);
-  };
-
-  window.bbmClose = function(){
-    document.getElementById('bbModal').style.display = 'none';
-    document.body.style.overflow = '';
-    _bbOpen = false;
-  };
-
-  window.bbmBackdrop = function(e){
-    if(e.target === document.getElementById('bbModal')) bbmClose();
-  };
-
-  window.bbmSave = async function(){
-    var btn = document.getElementById('bbmSaveBtn');
-    var status = document.getElementById('bbmStatus');
-    btn.disabled = true;
-    btn.textContent = 'Saving…';
-    status.textContent = '';
-
-    var colorsRaw = (document.getElementById('bbmColors').value || '').trim();
-
-    if(typeof S !== 'undefined'){
-      S.brandCore = {
-        name:        (document.getElementById('bbmName').value        || '').trim(),
-        website:     (document.getElementById('bbmWebsite').value     || '').trim(),
-        description: (document.getElementById('bbmDescription').value || '').trim(),
-        story:       (document.getElementById('bbmStory').value       || '').trim(),
-        audience:    (document.getElementById('bbmAudience').value    || '').trim(),
-        usp:         (document.getElementById('bbmUsp').value         || '').trim(),
-        toneOfVoice: (document.getElementById('bbmTone').value        || '').trim(),
-        competitors: (document.getElementById('bbmCompetitors').value || '').trim(),
-        colors:      colorsRaw,
-        logo:             (document.getElementById('bbmLogo').value          || '').trim(),
-        typography:       (document.getElementById('bbmTypography').value    || '').trim(),
-        personality:      (document.getElementById('bbmPersonality').value   || '').trim(),
-        brandRules:       (document.getElementById('bbmRules').value         || '').trim(),
-        wordsAvoid:       (document.getElementById('bbmWordsAvoid').value    || '').trim(),
-        preferredPhrases: (document.getElementById('bbmPhrases').value       || '').trim(),
-      };
-    }
-
-    try {
-      if(typeof saveBrandCoreDB === 'function') await saveBrandCoreDB();
-      status.textContent = '✓ Saved';
-      status.style.color = 'var(--green)';
-    } catch(_){
-      status.textContent = 'Saved locally';
-      status.style.color = 'rgba(255,255,255,.4)';
-    }
-
-    btn.disabled = false;
-    btn.textContent = 'Save Brand Brain';
-    _bbUpdatePromptIndicator();
-    setTimeout(bbmClose, 700);
-  };
-
-  window.bbmClear = function(){
-    ['bbmName','bbmWebsite','bbmDescription','bbmStory','bbmAudience','bbmUsp','bbmTone','bbmCompetitors','bbmColors',
-     'bbmLogo','bbmTypography','bbmPersonality','bbmRules','bbmWordsAvoid','bbmPhrases']
-      .forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-    document.getElementById('bbmStatus').textContent = '';
-  };
-
-  function _bbUpdatePromptIndicator(){
+  // _bbUpdatePromptIndicator kept (renamed from the Brand-Brain-specific
+  // name) -- it's what shows/hides the Launch page's Brand Identity
+  // toggle (#cr2BrandIdentitySection) based on whether Brand Identity
+  // data exists yet. The #ov3BrainActive/#ov3BrainBtn elements it used to
+  // also update belonged to the same dead modal above and don't exist in
+  // the DOM (confirmed) -- dropped rather than left as permanent no-ops.
+  function _updateBrandIdentityToggleVisibility(){
     var bc = (typeof S !== 'undefined' && S.brandCore) || {};
     var active = !!(bc && bc.name);
-    var dot = document.getElementById('ov3BrainActive');
-    var btn = document.getElementById('ov3BrainBtn');
-    if(dot) dot.style.display = active ? '' : 'none';
-    if(btn) btn.classList.toggle('ov3-tool-btn-active', active);
+    var biSection = document.getElementById('cr2BrandIdentitySection');
+    if(biSection) biSection.style.display = active ? '' : 'none';
   }
-  window._bbUpdatePromptIndicator = _bbUpdatePromptIndicator;
+  window._bbUpdatePromptIndicator = _updateBrandIdentityToggleVisibility; // back-compat alias, same function
 
-  // Run once on page load to reflect existing brandCore
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(_bbUpdatePromptIndicator, 800); });
-
-  // Keyboard shortcut: Escape closes modal
-  document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape' && _bbOpen) bbmClose();
-  });
+  // Run once on page load to reflect existing Brand Identity data, and
+  // again whenever the Business > Brand tab saves an update (see
+  // bcpSave/saveBCManual/runGenBrand in app.js/studio.js).
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(_updateBrandIdentityToggleVisibility, 800); });
 
   // ── Product Image Upload ─────────────────────────────────────────
 

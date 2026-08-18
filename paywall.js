@@ -57,7 +57,7 @@ function _renderPaywallCards(){
 var _LIMIT_MSGS = {
   brand: {
     title:   "Brand limit reached.",
-    sub:     "Upgrade to manage more brands from one Brand Brain system.",
+    sub:     "Upgrade to manage more brands from one Brand Identity system.",
     upgrade: "creator"
   },
   competitor: {
@@ -178,7 +178,7 @@ function hideUpgradeBar(){
 function _spBuildProgress(){
   var items = [
     { label: "Brand identity configured", done: true  },
-    { label: "BrandCore established",     done: true  },
+    { label: "Brand Identity established", done: true  },
     { label: "Content generation",        done: false },
     { label: "Full brand operating system", done: false }
   ];

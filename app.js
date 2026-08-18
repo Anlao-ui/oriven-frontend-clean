@@ -554,7 +554,7 @@ function openBCRegen(){
   var _subSt = (typeof _dbSubscriptionStatus !== "undefined") ? _dbSubscriptionStatus : null;
   console.log("[ACCESS] openBCRegen | _dbSubscriptionStatus:", _subSt);
   if(_subSt === "free"){
-    if(typeof toast==="function") toast("BrandCore regeneration requires a paid plan","warn");
+    if(typeof toast==="function") toast("Brand Identity regeneration requires a paid plan","warn");
     if(typeof openPaywall==="function") openPaywall();
     return;
   }
@@ -639,7 +639,7 @@ function crRefresh(){
     var nameEl = document.getElementById("crBrandName");
     if(nameEl) nameEl.textContent = S.brandCore.name || "Your Brand";
 
-    var brandName = S.brandCore.name || "your Brand Core";
+    var brandName = S.brandCore.name || "your Brand Identity";
     document.querySelectorAll(".cr2-brand-ref").forEach(function(el){
       el.textContent = brandName;
     });
@@ -679,7 +679,7 @@ var _webReport    = null;
 })();
 
 // ══════════════════════════════════════════════════════════════
-// DAILY BRIEF (on Brand Brain home)
+// DAILY BRIEF (on Brand Identity home)
 // ══════════════════════════════════════════════════════════════
 
 function _initBriefUI(){
@@ -881,12 +881,12 @@ function refreshHealth(){
   // Compute pillar scores
   var pillars = [
     {
-      name:   "Brand Core",
+      name:   "Brand Identity",
       weight: 35,
       score:  intel.pct,
       status: intel.pct >= 80 ? "Strong" : intel.pct >= 50 ? "In progress" : "Incomplete",
       nav: "studio",
-      actionLbl: "Open Brand Core"
+      actionLbl: "Open Brand Identity"
     },
     {
       name:   "Competitor Intelligence",
@@ -930,7 +930,7 @@ function refreshHealth(){
   var statusMsg = overall>=80?"Your brand is in great shape."
     : overall>=60?"Good foundation — a few gaps to close."
     : overall>=40?"Growing — focus on the lower-scoring pillars."
-    : "Early stage — build your Brand Core first.";
+    : "Early stage — build your Brand Identity first.";
 
   var html = '<div class="health-overview">'
     + '<div class="health-ring-wrap">'
@@ -980,13 +980,13 @@ function refreshAlerts(){
   var intel  = bc ? _dashComputeIntel() : { pct:0 };
   var alerts = [];
 
-  // Brand Core incomplete
+  // Brand Identity incomplete
   if(!bc || !bc.name){
-    alerts.push({ sev:"high", icon:"core", title:"Brand Core not configured", desc:"Your Brand Brain has no data to work with. Set up your Brand Core first.", fn:"navigate('studio')", lbl:"Set up Brand Core" });
+    alerts.push({ sev:"high", icon:"core", title:"Brand Identity not configured", desc:"Your Brand Identity has no data to work with. Set up your Brand Identity first.", fn:"navigate('studio')", lbl:"Set up Brand Identity" });
   } else if(intel.pct < 50){
-    alerts.push({ sev:"high", icon:"core", title:"Brand Core is "+intel.pct+"% complete", desc:"Fill in the missing pillars to get the most from every Brand Brain feature.", fn:"navigate('studio')", lbl:"Complete Brand Core" });
+    alerts.push({ sev:"high", icon:"core", title:"Brand Identity is "+intel.pct+"% complete", desc:"Fill in the missing pillars to get the most from every Brand Identity feature.", fn:"navigate('studio')", lbl:"Complete Brand Identity" });
   } else if(intel.pct < 80){
-    alerts.push({ sev:"medium", icon:"core", title:"Brand Core at "+intel.pct+"% — room to grow", desc:"You have a solid foundation. A few more pillars will unlock the full Brand Brain experience.", fn:"navigate('studio')", lbl:"Review Brand Core" });
+    alerts.push({ sev:"medium", icon:"core", title:"Brand Identity at "+intel.pct+"% — room to grow", desc:"You have a solid foundation. A few more pillars will unlock the full Brand Identity experience.", fn:"navigate('studio')", lbl:"Review Brand Identity" });
   }
 
   // No competitor intelligence
@@ -1006,13 +1006,13 @@ function refreshAlerts(){
 
   // No opportunities
   if(!_oppReport){
-    alerts.push({ sev:"low", icon:"star", title:"Opportunities not scanned", desc:"Your Brand Brain can identify strategic growth moves specific to your position.", fn:"navigate('opportunities')", lbl:"Find opportunities" });
+    alerts.push({ sev:"low", icon:"star", title:"Opportunities not scanned", desc:"Your Brand Identity can identify strategic growth moves specific to your position.", fn:"navigate('opportunities')", lbl:"Find opportunities" });
   }
 
   // No daily brief today
   var today = new Date().toDateString();
   if(!_briefReport || _briefReport._day !== today){
-    alerts.push({ sev:"low", icon:"brief", title:"Today's brief not generated", desc:"Start the day with a strategic intelligence brief from your Brand Brain.", fn:"generateDailyBrief();navigate('brain')", lbl:"Generate brief" });
+    alerts.push({ sev:"low", icon:"brief", title:"Today's brief not generated", desc:"Start the day with a strategic intelligence brief from your Brand Identity.", fn:"generateDailyBrief();navigate('brain')", lbl:"Generate brief" });
   }
 
   // Website issues (if monitored and has high-severity issues)
@@ -1032,7 +1032,7 @@ function refreshAlerts(){
     el.innerHTML = '<div class="alerts-empty">'
       + '<div class="alerts-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="22" height="22"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>'
       + '<div class="alerts-empty-title">No alerts</div>'
-      + '<div class="alerts-empty-sub">Your Brand Brain is fully configured. Keep it active to stay ahead.</div>'
+      + '<div class="alerts-empty-sub">Your Brand Identity is fully configured. Keep it active to stay ahead.</div>'
       + '</div>';
     return;
   }
@@ -1092,8 +1092,8 @@ function _showMarketPrompt(){
   document.getElementById("mktResults").style.display  = "none";
   var sub = document.getElementById("mktPromptSub");
   if(sub) sub.textContent = S.brandCore && S.brandCore.name
-    ? "Your Brand Core is loaded — click Generate to run your market research report."
-    : "Add your Brand Core first to get the most relevant market insights.";
+    ? "Your Brand Identity is loaded — click Generate to run your market research report."
+    : "Add your Brand Identity first to get the most relevant market insights.";
 }
 
 function _showOppPrompt(){
@@ -1498,8 +1498,8 @@ function _escH(s){
 }
 
 // ══════════════════════════════════════════════════════════════
-// BRAND BRAIN — refreshBrain()
-// Populates the Brand Brain home page with live Brand Core data.
+// BRAND IDENTITY — refreshBrain()
+// Populates the Brand Identity home page with live Brand Identity data.
 // ══════════════════════════════════════════════════════════════
 function refreshBrain(){
   var bc   = S.brandCore;
@@ -1516,8 +1516,8 @@ function refreshBrain(){
 
   var subEl = document.getElementById("bbSub");
   if(subEl) subEl.textContent = bc
-    ? "Your Brand Brain is active and learning."
-    : "Set up your Brand Core to activate your Brand Brain.";
+    ? "Your Brand Identity is active and learning."
+    : "Set up your Brand Identity to activate your insights.";
 
   // Brand tag (name + score)
   var tag      = document.getElementById("bbBrandTag");
@@ -1539,7 +1539,7 @@ function refreshBrain(){
   var subH   = document.getElementById("bbHealthSub");
   if(numEl)  numEl.textContent  = intel.pct + "%";
   if(ringEl) ringEl.style.strokeDashoffset = (150.8 * (1 - intel.pct / 100)).toFixed(1);
-  if(subH)   subH.textContent   = bc ? intel.msg : "Configure your Brand Core to begin";
+  if(subH)   subH.textContent   = bc ? intel.msg : "Configure your Brand Identity to begin";
 
   // Metrics
   var bcVal      = document.getElementById("bbMetricBCVal");
@@ -1553,7 +1553,7 @@ function refreshBrain(){
   var snap = document.getElementById("bbSnapshot");
   if(snap){
     if(!bc || !bc.name){
-      snap.innerHTML = '<div class="bb-snapshot-empty"><span>Brand Core not configured — </span><span class="bb-snapshot-cta" onclick="navigate(\'studio\')">Set it up →</span></div>';
+      snap.innerHTML = '<div class="bb-snapshot-empty"><span>Brand Identity not configured — </span><span class="bb-snapshot-cta" onclick="navigate(\'studio\')">Set it up →</span></div>';
     } else {
       var chips = [];
       // Brand name
@@ -1615,7 +1615,7 @@ function _refreshBrainActions(bc, intel){
 
   if(!bc || !bc.name){
     actions.push({
-      title: "Generate your Brand Core",
+      title: "Generate your Brand Identity",
       desc:  "Answer a few questions and ORIVEN builds your complete brand identity in minutes.",
       icon:  '<path d="M8 1l1.5 4H14l-3.8 2.8 1.4 4.3L8 9.8l-3.6 2.3 1.4-4.3L2 5h4.5z"/>',
       fn:    "openBCWizard()"
@@ -1623,7 +1623,7 @@ function _refreshBrainActions(bc, intel){
   } else {
     if(intel.pct < 60){
       actions.push({
-        title: "Complete your Brand Core",
+        title: "Complete your Brand Identity",
         desc:  "You have " + (100 - intel.pct) + "% remaining. Stronger brand data = better AI outputs.",
         icon:  '<path d="M8 1.5l5 2.5v5L8 11.5 3 9V4z"/>',
         fn:    "navigate('studio')"
@@ -1639,7 +1639,7 @@ function _refreshBrainActions(bc, intel){
     }
     actions.push({
       title: "Create branded content",
-      desc:  "Your Brand Brain is ready. Generate a campaign, social post or visual now.",
+      desc:  "Your Brand Identity is ready. Generate a campaign, social post or visual now.",
       icon:  '<circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/>',
       fn:    "navigate('create')"
     });
@@ -1690,7 +1690,7 @@ function refreshDash(){
   if(rankLine&&rankDot&&rankName){
     if(intel.pct>0){
       rankDot.style.background="#B7FF2A";
-      rankName.textContent="BrandCore "+intel.pct+"%";
+      rankName.textContent="Brand Score "+intel.pct+"%";
       rankLine.style.display="";
     } else {
       rankLine.style.display="none";
@@ -1703,7 +1703,7 @@ function refreshDash(){
   _dashRenderStats(intel);
 }
 
-// ── BrandCore Context Builder ──────────────────────────────────
+// ── Brand Identity Context Builder ──────────────────────────────────
 // Extracts all generation-relevant fields from S.brandCore.
 // Returned object is passed as `brandContext` in every AI API call.
 // Server uses it to inject brand intelligence into generation prompts.
@@ -1731,10 +1731,10 @@ function _buildBrandContext(bc) {
   };
 }
 
-// ── BrandCore Score ────────────────────────────────────────────
+// ── Brand Score ────────────────────────────────────────────
 // 8 core pillars = 95% · Logo System = 5% → total 100%
 //
-// A fully AI-generated BrandCore fills all 8 pillars instantly (95%).
+// A fully AI-generated Brand Identity fills all 8 pillars instantly (95%).
 // The Logo System is the final step that completes the score (100%).
 // Weights: Identity 15 · Colors 15 · Typography 12 · Personality 12
 //          Tone 12 · Audience 10 · Positioning 10 · Visual 9 = 95
@@ -1743,7 +1743,7 @@ function _dashComputeIntel(){
   var bc = S.brandCore;
   if(!bc) return {
     pct:0, level:1, score:0,
-    msg:"Set up your BrandCore to activate ORIVEN Intelligence.",
+    msg:"Set up your Brand Identity to activate ORIVEN Intelligence.",
     attrs:[]
   };
 
@@ -1793,13 +1793,13 @@ function _dashComputeIntel(){
   var level = Math.max(1, Math.min(10, Math.ceil(score / 10)));
 
   var msg;
-  if(score === 0)     msg = "Set up your BrandCore to activate ORIVEN Intelligence.";
-  else if(score < 30) msg = "Your BrandCore is getting started.";
+  if(score === 0)     msg = "Set up your Brand Identity to activate ORIVEN Intelligence.";
+  else if(score < 30) msg = "Your Brand Identity is getting started.";
   else if(score < 60) msg = "Your brand identity is taking shape.";
-  else if(score < 85) msg = "Strong BrandCore. AI outputs are increasingly on-brand.";
-  else if(score < 95) msg = "Your BrandCore is nearly complete.";
-  else if(score < 100) msg = "Almost perfect — generate a logo to complete your BrandCore.";
-  else                 msg = "Complete. Your BrandCore is fully activated.";
+  else if(score < 85) msg = "Strong Brand Identity. AI outputs are increasingly on-brand.";
+  else if(score < 95) msg = "Your Brand Identity is nearly complete.";
+  else if(score < 100) msg = "Almost perfect — generate a logo to complete your Brand Identity.";
+  else                 msg = "Complete. Your Brand Identity is fully activated.";
 
   return { pct:score, level:level, score:score, msg:msg, attrs:attrs };
 }
@@ -1878,7 +1878,7 @@ function _dashRenderActivity(){
 
   if(S.brandCore && !items.length){
     items.push({
-      label: "Brand Core configured",
+      label: "Brand Identity configured",
       time:  "Active",
       type:  "brand"
     });
@@ -1928,7 +1928,7 @@ function _dashRenderIntelLevel(intel){
   el.innerHTML =
     '<p class="dash-il-msg">' + intel.msg + '</p>'
     + '<div class="dash-il-bar-head">'
-    + '<span class="dash-il-bar-lbl">BrandCore Score</span>'
+    + '<span class="dash-il-bar-lbl">Brand Score</span>'
     + '<span class="dash-il-bar-val">' + intel.pct + '%</span>'
     + '</div>'
     + '<div class="dash-il-bar-track">'
@@ -1947,7 +1947,7 @@ function _dashRenderStats(intel){
   var stats = [
     { val: assetCount,            label: "Assets Generated" },
     { val: campCount,             label: "Campaigns Built"  },
-    { val: intel.pct + "%",        label: "BrandCore Score" },
+    { val: intel.pct + "%",        label: "Brand Score" },
     { val: (intel.attrs||[]).length, label: "Pillars Filled" }
   ];
 
@@ -2077,7 +2077,7 @@ var COPY_STRUCTURES=[
       {l:"Headline",t:pick(["Your "+subj+", always consistent — everywhere.","One "+subj+". Infinite assets.","The "+subj+" system built for scale."])},
       {l:"Sub-headline",t:bctx.name+" manages your full "+subj+" identity in one workspace. From colors and fonts to "+pick(["tone of voice","messaging","positioning"])+", every asset stays perfectly on-brand."},
       {l:"Body",t:pick(["Stop manually checking if every post matches your brand. ","Say goodbye to brand inconsistency. ","No more scattered assets or off-brand content. "])+bctx.name+" "+pick(["remembers your full identity and applies it automatically.","keeps your brand sharp across every channel.","ensures every asset reflects your true brand voice."])},
-      {l:"CTA",t:pick(["Start building your Brand Core","Get started free","Try "+bctx.name+" today","Build your brand system"])}
+      {l:"CTA",t:pick(["Start building your Brand Identity","Get started free","Try "+bctx.name+" today","Build your brand system"])}
     ]};
   },
   function(bctx,parsed){
@@ -2086,7 +2086,7 @@ var COPY_STRUCTURES=[
       {l:"Opening",t:"There's a difference between a brand that looks "+adj+" and one that "+pick(["consistently delivers it.","actually lives it.","means it across every touchpoint."])},
       {l:"Value Proposition",t:bctx.name+" is "+pick(["the","your","a"])+" brand intelligence system that "+pick(["stores, understands, and applies your identity everywhere.","ensures every asset reflects who you really are.","makes brand consistency effortless and automatic."])},
       {l:"Proof Point",t:pick(["From social media to ad campaigns,","Across every platform and channel,","Whether it's a poster or a headline,"])+" "+bctx.name+" ensures your "+pick(["voice","identity","brand"])+" stays "+pick(["sharp.","consistent.","unmistakably yours."])},
-      {l:"CTA",t:pick(["Experience the difference. Start free.","Build your Brand Core today.","See what brand consistency feels like."])}
+      {l:"CTA",t:pick(["Experience the difference. Start free.","Build your Brand Identity today.","See what brand consistency feels like."])}
     ]};
   }
 ];
@@ -2113,7 +2113,7 @@ var AD_IDEA_TEMPLATES=[
     '"'+pick(["Stop guessing.","End the chaos.","No more off-brand assets."])+'" — Problem/solution ad targeting '+pick(["brand managers","founders","marketing teams"]),
     "Before/After: "+pick(["Scattered assets","Manual brand checks","Inconsistent visuals"])+" vs. "+bctx.name+" — visual comparison ad",
     '"'+pick(["Our team saved 4 hours a week","We stopped worrying about brand consistency","Every asset is now on-brand"])+' with '+bctx.name+'." — testimonial ad',
-    "Feature spotlight: "+pick(["Brand Check","Brand Core","AI Chat"])+" — "+pick(["30-second demo video","animated carousel","interactive story ad"]),
+    "Feature spotlight: "+pick(["Brand Check","Brand Identity","AI Chat"])+" — "+pick(["30-second demo video","animated carousel","interactive story ad"]),
     pick(["Launch special","Limited offer","Free trial"])+": Try "+bctx.name+" for free — "+pick(["acquisition","retargeting","awareness"])+" campaign"
   ]; },
   function(bctx,_subj){ return [
@@ -2157,7 +2157,7 @@ function generateTaglines(bctx,_parsed){
 // ── CTA generator ─────────────────────────────────────────────
 function generateCTAs(bctx,_parsed){
   return [
-    pick(["Start building","Build"])+" your Brand Core "+pick(["free","today","now"]),
+    pick(["Start building","Build"])+" your Brand Identity "+pick(["free","today","now"]),
     pick(["Try","See"])+" "+bctx.name+" in action",
     pick(["Get started","Start"])+" — no credit card",
     "Generate your first "+pick(["asset","post","headline"])+" free",
@@ -2168,10 +2168,10 @@ function generateCTAs(bctx,_parsed){
 // ── Email generator ────────────────────────────────────────────
 function generateEmail(bctx,_parsed){
   return {blocks:[
-    {l:"Subject Line",t:pick(["Introducing: ","Just launched: ","Big news: "])+bctx.name+" "+pick(["Brand Core","AI Chat","Brand Check"])+" — "+pick(["it changes everything","you're going to want this","your team needs to see this"])},
+    {l:"Subject Line",t:pick(["Introducing: ","Just launched: ","Big news: "])+bctx.name+" "+pick(["Brand Identity","AI Chat","Brand Check"])+" — "+pick(["it changes everything","you're going to want this","your team needs to see this"])},
     {l:"Preview Text",t:pick(["Your brand will never look inconsistent again.","We just shipped something big.","The brand system your team has been asking for."])},
     {l:"Opening",t:"Hey [First Name],\n\n"+pick(["We've been building something for teams like yours.","A quick note about something that just launched.","This one's for anyone who's ever had an off-brand moment."])},
-    {l:"Body",t:bctx.name+" now includes "+pick(["Brand Core","AI Chat","Brand Check"])+" — which means your team can "+pick(["generate brand-consistent content in seconds.","check any asset against your brand identity.","build a complete brand system with AI."])},
+    {l:"Body",t:bctx.name+" now includes "+pick(["Brand Identity","AI Chat","Brand Check"])+" — which means your team can "+pick(["generate brand-consistent content in seconds.","check any asset against your brand identity.","build a complete brand system with AI."])},
     {l:"CTA",t:"→ "+pick(["Try it free","Get started","See it in action"])}
   ]};
 }
@@ -2181,7 +2181,7 @@ var POSTER_HEADLINES=[
   ["Clarity starts here.","Built for teams that care.","One brand. Every channel."],
   ["Your vision, amplified.","Consistent. Always.","Brand identity, perfected."],
   ["Think in systems.","Built to scale.","Always on-brand."],
-  ["Own your identity.","The brand brain you needed.","Nothing off-brand. Ever."]
+  ["Own your identity.","The brand identity you needed.","Nothing off-brand. Ever."]
 ];
 var POSTER_SUBS=[
   "The brand identity system for ambitious teams.",
@@ -2461,7 +2461,7 @@ function saveFromChat(btn){
 }
 // Auto-resize textarea
 document.addEventListener("DOMContentLoaded",function(){
-  // Brand Brain is the new home — mc scrolls freely (no mc-locked)
+  // Brand Identity is the new home — mc scrolls freely (no mc-locked)
   refreshBrain();
   refreshAlerts(); // also sets sidebar alert dot on load
 
@@ -2478,7 +2478,7 @@ document.addEventListener("DOMContentLoaded",function(){
 });
 
 // ═══════════════════════════════════════════════════════════════
-// BRAND CORE (shared — used by sidebar page AND studio tab)
+// BRAND IDENTITY (shared — used by sidebar page AND studio tab)
 // ═══════════════════════════════════════════════════════════════
 function refreshBC(){
   var bc=S.brandCore;
@@ -2492,7 +2492,7 @@ function refreshBC(){
   var stBCContent=document.getElementById("stBCContent");
   if(stBCEmpty) stBCEmpty.classList.toggle("hidden",!!bc);
   if(stBCContent) stBCContent.classList.toggle("hidden",!bc);
-  // Studio info panel + new BrandCore profile
+  // Studio info panel + new Brand Identity profile
   updateStudioBCPanel();
   if(typeof _studioRefreshMain==="function") _studioRefreshMain();
   if(!bc) return;
@@ -2522,7 +2522,7 @@ function updateStudioBCPanel(){
   var el=document.getElementById("studioBC");
   if(!el) return;
   if(!bc){
-    el.innerHTML='<div style="font-size:12px;color:var(--muted)">No Brand Core configured. <span onclick="navigate(\'brandcore\')" style="cursor:pointer;color:var(--gm);font-weight:500">Set it up</span></div>';
+    el.innerHTML='<div style="font-size:12px;color:var(--muted)">No Brand Identity configured. <span onclick="navigate(\'brandcore\')" style="cursor:pointer;color:var(--gm);font-weight:500">Set it up</span></div>';
     return;
   }
   var swatches=bc.colors.slice(0,4).map(function(col){
@@ -2629,7 +2629,7 @@ function removeLogo(category){
 
 // ── Open AI Logo modal ─────────────────────────────────────────
 function openLogoAIModal(){
-  if(!S.brandCore){toast("Set up your Brand Core first","warn");return;}
+  if(!S.brandCore){toast("Set up your Brand Identity first","warn");return;}
   S._aiLogoResult=null;
   var resultArea=document.getElementById("logoAIResult");
   if(resultArea){resultArea.style.display="none";resultArea.innerHTML="";}
@@ -2845,7 +2845,7 @@ function _bcwRenderStep(n){
   var next = document.getElementById("bcwNextBtn");
   if(next){
     if(n === _BCW_TOTAL){
-      next.textContent = "Generate BrandCore →";
+      next.textContent = "Generate Brand Identity →";
       next.className   = "bcw-next-btn bcw-generate";
     } else {
       next.textContent = "Next →";
@@ -2949,7 +2949,7 @@ function runGenBrand(){
     "Selecting typography…",
     "Crafting brand voice…",
     "Defining positioning…",
-    "Finalizing BrandCore…"
+    "Finalizing Brand Identity…"
   ];
   var mi = 0;
   var iv = setInterval(function(){
@@ -3051,7 +3051,7 @@ function runGenBrand(){
       // ── Logos ─────────────────────────────────────────────────
       logos: prevLogos,
 
-      // ── Brand Core values ─────────────────────────────────────
+      // ── Brand Identity values ─────────────────────────────────────
       wordsUse:   Array.isArray(bc_.values) && bc_.values.length ? bc_.values : persArray,
       wordsAvoid: ["generic","average","mediocre"],
 
@@ -3065,7 +3065,7 @@ function runGenBrand(){
 
     _gbAnswers = {};
     refreshBC();
-    toast("BrandCore generated!");
+    toast("Brand Identity generated!");
     saveBCToDB();
     if(typeof maybeShowPaywall === "function") maybeShowPaywall();
     if(typeof gtAdvance === "function") gtAdvance(1);
@@ -3073,7 +3073,7 @@ function runGenBrand(){
   .catch(function(err){
     clearInterval(iv);
     if(glov) glov.classList.remove("open");
-    console.error("[BrandCore] Error:", err);
+    console.error("[BrandIdentity] Error:", err);
     toast("Could not connect to ORIVEN services. Please try again.","warn");
   });
 }
@@ -3143,7 +3143,7 @@ function saveBCManual(){
 
   closeModal("modal-bcsetup");
   refreshBC();
-  toast("BrandCore saved!");
+  toast("Brand Identity saved!");
   saveBCToDB();
   if(typeof maybeShowPaywall === "function") maybeShowPaywall();
 }
