@@ -66,11 +66,37 @@
     /* Public-page router: all views hidden until the router activates one */
     .pub-view { display: none !important; }
 
-    /* Landing view is the scroll container */
+    /* Navbar/scroll fix — single source of truth for #lpNav's real height
+       (measured: a constant 64px at every breakpoint, mobile through
+       desktop — .lp-nav's own CSS never changes it per-breakpoint, so one
+       value covers all of them) so the scroll containers below and the
+       nav agree exactly, instead of guessing per-section padding. */
+    :root { --lp-nav-h: 64px; }
+
+    /* Landing view is the scroll container. This used to start at y:0
+       with height:100vh — the exact same vertical span as the fixed
+       #lpNav (also y:0, 64px tall) layered on top of it. That caused two
+       separate bugs: (1) this element's own overflow-y:auto scrollbar
+       track ran the full 100vh, so its top ~64px visually coincided
+       with/cut into the navbar; (2) on viewports where a section's laid-
+       out content is taller than the space available above it in a
+       centered flex box (worst on mobile — the hero's stacked headline +
+       input + hint pills routinely exceeds one small screen), that
+       content could render starting above y:64, underneath the fixed
+       nav. Giving the container itself a hard top edge at the nav's
+       height and a matching reduced height means its box — and every
+       pixel of its content and its own scrollbar — can never occupy the
+       nav's vertical space at all. That's a structural guarantee, not a
+       per-section padding guess, so it also fixes every other section
+       (not just the hero) and anchor-link scrolling for free: ovNavTo()
+       already scrolls a target's offset from this container's own top
+       edge to 0, which now IS "flush under the nav" rather than "behind
+       it" — no separate per-anchor offset was needed. */
     #view-landing {
       position: relative !important;
       width: 100% !important;
-      height: 100vh !important;
+      height: calc(100vh - var(--lp-nav-h)) !important;
+      margin-top: var(--lp-nav-h) !important;
       overflow-y: auto !important;
       overflow-x: hidden !important;
       scrollbar-width: thin;
@@ -79,7 +105,10 @@
     #view-landing::-webkit-scrollbar { width: 5px; }
     #view-landing::-webkit-scrollbar-thumb { background: rgba(183,255,42,.22); border-radius: 3px; }
 
-    /* Auth views: own scroll containers matching landing page pattern */
+    /* Auth views: own scroll containers matching landing page pattern.
+       Deliberately NOT given the nav-height offset above — #lpNav is
+       hidden on login/signup (see NAV_VIEWS below), so shifting these
+       down would just leave an empty gap with nothing covering it. */
     #view-login, #view-signup {
       height: 100vh !important;
       overflow-y: auto !important;
@@ -91,7 +120,9 @@
 
     #lp-stage { position: relative !important; width: 100% !important; }
 
-    /* Sub-page views: scroll containers (same pattern as #view-landing) */
+    /* Sub-page views: scroll containers (same pattern as #view-landing,
+       same nav-height offset — the nav is visible on all of these too,
+       see NAV_VIEWS below). */
     #view-about, #view-blog, #view-product, #view-solutions,
     #view-product-google-ads, #view-product-meta-ads, #view-product-tiktok-ads,
     #view-product-analytics, #view-product-ai-recommendations,
@@ -99,7 +130,8 @@
     #view-product-launch, #view-product-campaigns, #view-product-intelligence,
     #view-product-autopilot, #view-product-business,
     #view-404 {
-      height: 100vh !important;
+      height: calc(100vh - var(--lp-nav-h)) !important;
+      margin-top: var(--lp-nav-h) !important;
       overflow-y: auto !important;
       overflow-x: hidden !important;
     }

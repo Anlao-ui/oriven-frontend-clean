@@ -33279,7 +33279,14 @@ body:not(.dark-mode) .con-acct-err { color: #dc2626; background: rgba(220,38,38,
   position: relative;
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  /* safe center: on short/mobile viewports the hero's stacked content
+     (headline + subhead + input + hint pills) can be taller than the
+     available height. Plain `center` would then center-overflow and clip
+     the top of the content out of view/reach; `safe center` falls back to
+     start-alignment only in that overflow case, so the top of the hero is
+     always fully visible instead of being cut off. No visible change when
+     content fits (the common/desktop case) — same centering as before. */
+  align-items: safe center;
   justify-content: center;
   overflow: hidden;
   background: #090c10;
@@ -33325,7 +33332,7 @@ body:not(.dark-mode) .con-acct-err { color: #dc2626; background: rgba(220,38,38,
   width: 100%;
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: safe center; /* see #ov-hero above — same overflow-clip guard */
   justify-content: center;
   position: relative;
   z-index: 1;
