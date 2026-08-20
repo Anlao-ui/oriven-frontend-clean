@@ -6025,7 +6025,7 @@ button.lp-cta-btn { cursor:pointer; border:none; }
   border-bottom: 1px solid var(--lp-border);
 }
 .lp-nav-inner {
-  max-width: 1100px;
+  max-width: 1320px; /* Redesign: was 1100px — wider desktop layout */
   margin: 0 auto;
   padding: 0 28px;
   width: 100%;
@@ -17598,7 +17598,7 @@ body.public-page {
   background: radial-gradient(ellipse, color-mix(in srgb, var(--green) 7%, transparent) 0%, transparent 70%);
   pointer-events: none;
 }
-.ov-final-inner { position:relative; z-index:1; max-width:960px; margin: 0 auto; text-align: center; }
+.ov-final-inner { position:relative; z-index:1; max-width:1100px; margin: 0 auto; text-align: center; } /* Redesign: was 960px */
 .ov-final-kicker { font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-bottom:20px; }
 .ov-final-h2 { font-size:clamp(32px,5vw,68px); font-weight:800; letter-spacing:-.04em; color:#fff; line-height:1.05; margin:0 0 16px; }
 .ov-final-sub { font-size:15px; color:rgba(255,255,255,.38); margin:0 0 40px; }
@@ -18225,7 +18225,7 @@ body.public-page {
   background: linear-gradient(180deg, #07070A 0%, #030d02 30%, #040e02 70%, #07070A 100%);
   padding: 100px 48px;
 }
-.ov-pricing-inner { max-width: 1260px; margin: 0 auto; text-align: center; }
+.ov-pricing-inner { max-width: 1400px; margin: 0 auto; text-align: center; } /* Redesign: was 1260px */
 .ov-pricing-grid {
   display: grid;
   grid-template-columns: repeat(3,1fr);
@@ -18246,8 +18246,16 @@ body.public-page {
   background: #07070A;
   padding: 100px 48px;
 }
-.ov-faq-inner { max-width: 780px; margin: 0 auto; }
-.ov-faq-list { display: flex; flex-direction: column; }
+.ov-faq-inner { max-width: 1300px; margin: 0 auto; } /* Redesign: was 780px */
+.ov-faq-section > .ov-faq-inner > .ov-section-h,
+.ov-faq-section > .ov-faq-inner > .ov-section-sub { text-align: center; }
+.ov-faq-list { display: grid; grid-template-columns: 1fr; column-gap: 56px; }
+@media (min-width: 900px) {
+  /* Redesign: 2-column FAQ grid to use the full widened width instead of a
+     single narrow centered list. Items fill row-by-row alternating
+     columns (Q1/Q2 same row, Q3/Q4 next row, ...). */
+  .ov-faq-list { grid-template-columns: 1fr 1fr; }
+}
 
 /* ── Section 01 Brand Identity ─────────────────────────────────────── */
 #ov-brand-identity {
@@ -18396,7 +18404,7 @@ body.public-page {
   padding: 100px 48px 80px;
 }
 .ov-reviews-inner {
-  max-width: 1200px;
+  max-width: 1400px; /* Redesign: was 1200px */
   margin: 0 auto;
   text-align: center;
 }
@@ -19296,7 +19304,7 @@ body.public-page {
   padding: 56px 48px 32px;
 }
 .ov-footer-inner {
-  max-width: 1200px;
+  max-width: 1400px; /* Redesign: was 1200px */
   margin: 0 auto;
 }
 .ov-footer-top {
@@ -19317,7 +19325,8 @@ body.public-page {
 }
 .ov-footer-nav {
   display: flex;
-  gap: 56px;
+  gap: 40px; /* Redesign: was 56px — now 5 columns instead of 3 */
+  flex-wrap: wrap;
 }
 .ov-footer-col {
   display: flex;
@@ -21620,7 +21629,16 @@ body {
   background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
   font-size: 12px; font-weight: 500; color: rgba(255,255,255,.65);
   letter-spacing: .01em;
+  /* Redesign: now a <button>, visually selectable (ovHeroPlatformPick) —
+     purely cosmetic, no functional targeting. */
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity .2s ease, border-color .2s ease;
 }
+.ov-hero-int-pill:not(.ov-hero-int-pill-active) { opacity: .4; }
+.ov-hero-int-pill:hover { opacity: .85; }
+.ov-hero-int-pill-active:hover { opacity: 1; }
+.ov-hero-int-pill:focus-visible { outline: 2px solid var(--green, #B7FF2A); outline-offset: 2px; }
 .ov-int-dot {
   width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
 }
@@ -24675,10 +24693,102 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
   border-bottom: 1px solid rgba(255,255,255,.05);
 }
 .ov-wf-section.ov-wf-alt { background: rgba(255,255,255,.02); }
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN — Ad Examples Showcase (platform-switching interactive proof)
+   ══════════════════════════════════════════════════════════════════ */
+.ov-showcase-section { padding: 100px 48px; background: #07070A; border-bottom: 1px solid rgba(255,255,255,.05); }
+.ov-showcase-inner { max-width: 1400px; margin: 0 auto; }
+.ov-showcase-head { text-align: center; margin-bottom: 40px; }
+.ov-showcase-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 48px; flex-wrap: wrap; }
+.ov-showcase-tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 22px; border-radius: 100px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.6); font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: background .25s ease, border-color .25s ease, color .25s ease;
+}
+.ov-showcase-tab:hover { color: #fff; border-color: rgba(255,255,255,.2); }
+.ov-showcase-tab-active { background: rgba(183,255,42,.08); border-color: rgba(183,255,42,.4); color: #fff; }
+.ov-showcase-tab:focus-visible { outline: 2px solid var(--green, #B7FF2A); outline-offset: 2px; }
+.ov-showcase-stage { position: relative; min-height: 460px; display: flex; align-items: center; justify-content: center; }
+.ov-showcase-example {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: translateY(14px) scale(.98);
+  pointer-events: none;
+  transition: opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1);
+}
+.ov-showcase-example-active { position: relative; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+/* Google search-ad mock */
+.ov-ad-google { width: 100%; max-width: 640px; background: #fff; color: #202124; border-radius: 14px; padding: 26px 30px; box-shadow: 0 24px 70px rgba(0,0,0,.4); }
+.ov-ad-google-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+.ov-ad-sponsored { background: #f1f3f4; color: #5f6368; font-weight: 700; font-size: 11px; padding: 2px 6px; border-radius: 4px; letter-spacing: .02em; }
+.ov-ad-url { color: #202124; }
+.ov-ad-google-headline { font-size: 20px; color: #1a0dab; font-weight: 500; margin-bottom: 8px; line-height: 1.3; }
+.ov-ad-google-desc { font-size: 14px; color: #4d5156; line-height: 1.55; margin-bottom: 16px; }
+.ov-ad-google-links { display: flex; gap: 18px; font-size: 13px; color: #1a0dab; font-weight: 600; flex-wrap: wrap; }
+
+/* Meta feed-post mock */
+.ov-ad-meta { width: 100%; max-width: 420px; background: #18191a; color: #e4e6eb; border-radius: 14px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.08); }
+.ov-ad-meta-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; }
+.ov-ad-meta-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#B7FF2A,#5CC900); color: #0A0A0A; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; flex-shrink: 0; }
+.ov-ad-meta-name { font-size: 14px; font-weight: 600; }
+.ov-ad-meta-sponsored { font-size: 11px; color: #9a9c9f; }
+.ov-ad-meta-copy { padding: 0 16px 12px; font-size: 14px; line-height: 1.5; }
+.ov-ad-meta-media { height: 220px; background: linear-gradient(135deg, rgba(183,255,42,.18), rgba(183,255,42,.03)); }
+.ov-ad-meta-cta { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #242526; }
+.ov-ad-meta-cta span { font-size: 11px; color: #9a9c9f; text-transform: uppercase; letter-spacing: .03em; }
+.ov-ad-meta-cta button { background: #3a3b3c; color: #e4e6eb; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: default; }
+
+/* TikTok vertical-video mock */
+.ov-ad-tiktok { display: flex; justify-content: center; }
+.ov-ad-tiktok-frame { position: relative; width: 240px; height: 420px; border-radius: 22px; background: linear-gradient(160deg, #1a1a1e, #000); box-shadow: 0 24px 70px rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.08); overflow: hidden; }
+.ov-ad-tiktok-overlay { position: absolute; left: 0; right: 0; bottom: 64px; padding: 0 18px; color: #fff; }
+.ov-ad-tiktok-caption { font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+.ov-ad-tiktok-handle { font-size: 12px; color: rgba(255,255,255,.65); }
+.ov-ad-tiktok-cta { position: absolute; left: 18px; right: 18px; bottom: 18px; background: #fff; color: #000; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: default; }
+
+@media (max-width: 640px) {
+  .ov-showcase-section { padding: 64px 20px; }
+  .ov-showcase-stage { min-height: 420px; }
+  .ov-ad-google { padding: 18px 20px; }
+  .ov-ad-google-headline { font-size: 17px; }
+  .ov-ad-tiktok-frame { width: 200px; height: 360px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN — "Every Brand Needs It"
+   ══════════════════════════════════════════════════════════════════ */
+.ov-brands-section { padding: 100px 48px; background: rgba(255,255,255,.02); border-bottom: 1px solid rgba(255,255,255,.05); }
+.ov-brands-inner { max-width: 1400px; margin: 0 auto; }
+.ov-brands-head { text-align: center; margin-bottom: 56px; }
+.ov-brands-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.ov-brand-card {
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px; padding: 28px 24px;
+  opacity: 0; transition: opacity .35s ease, border-color .3s ease, background .3s ease, transform .3s ease;
+}
+.ov-brand-card.ov-vis { opacity: 1; }
+.ov-brand-card:hover { border-color: rgba(183,255,42,.3); background: rgba(255,255,255,.045); transform: translateY(-3px); }
+.ov-brand-ico { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: rgba(183,255,42,.08); border-radius: 10px; margin-bottom: 18px; }
+.ov-brand-ico svg { width: 20px; height: 20px; }
+.ov-brand-name { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.ov-brand-desc { font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,.55); }
+
+@media (max-width: 900px) {
+  .ov-brands-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .ov-brands-grid { grid-template-columns: 1fr; }
+  .ov-brands-section, .ov-showcase-section { padding: 64px 20px; }
+}
 .ov-wf-inner {
-  max-width: 1100px;
+  max-width: 1400px; /* Redesign: was 1100px */
   margin: 0 auto;
-  padding: 0 40px;
+  padding: 0 48px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 80px;
@@ -25054,7 +25164,7 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
 
 /* ── Social proof strip ──────────────────────────────────────── */
 .ov-social-proof { padding: 72px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
-.ov-sp-wrap { max-width: 900px; margin: 0 auto; padding: 0 40px; text-align: center; }
+.ov-sp-wrap { max-width: 1300px; margin: 0 auto; padding: 0 48px; text-align: center; } /* Redesign: was 900px */
 .ov-sp-label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.3); margin-bottom: 36px; }
 .ov-sp-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; }
 .ov-sp-stat {
@@ -33343,7 +33453,7 @@ body:not(.dark-mode) .con-acct-err { color: #dc2626; background: rgba(220,38,38,
 /* Content column */
 .lp-hero-inner {
   width: 100%;
-  max-width: 760px;
+  max-width: 900px; /* Redesign: was 760px */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -33455,7 +33565,7 @@ body:not(.dark-mode) .con-acct-err { color: #dc2626; background: rgba(220,38,38,
 .lp-hero-input-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end; /* Redesign: was space-between — the example-category hints that used to sit on the left are gone */
   gap: 10px;
   margin-top: 12px;
   padding-top: 12px;
