@@ -24694,6 +24694,16 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
 }
 .ov-wf-section.ov-wf-alt { background: rgba(255,255,255,.02); }
 
+/* Redesign v2 — text-column entrance (Intelligence/Autopilot/Business):
+   previously only the visual mockup side animated in via data-observe;
+   the copy/bullets side just appeared instantly. */
+.ov-wf-text {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .55s cubic-bezier(.16,1,.3,1), transform .55s cubic-bezier(.16,1,.3,1);
+}
+.ov-wf-text.ov-vis { opacity: 1; transform: translateY(0); }
+
 /* ══════════════════════════════════════════════════════════════════
    REDESIGN — Ad Examples Showcase (platform-switching interactive proof)
    ══════════════════════════════════════════════════════════════════ */
@@ -24712,51 +24722,8 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
 .ov-showcase-tab:hover { color: #fff; border-color: rgba(255,255,255,.2); }
 .ov-showcase-tab-active { background: rgba(183,255,42,.08); border-color: rgba(183,255,42,.4); color: #fff; }
 .ov-showcase-tab:focus-visible { outline: 2px solid var(--green, #B7FF2A); outline-offset: 2px; }
-.ov-showcase-stage { position: relative; min-height: 460px; display: flex; align-items: center; justify-content: center; }
-.ov-showcase-example {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; transform: translateY(14px) scale(.98);
-  pointer-events: none;
-  transition: opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1);
-}
-.ov-showcase-example-active { position: relative; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-
-/* Google search-ad mock */
-.ov-ad-google { width: 100%; max-width: 640px; background: #fff; color: #202124; border-radius: 14px; padding: 26px 30px; box-shadow: 0 24px 70px rgba(0,0,0,.4); }
-.ov-ad-google-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
-.ov-ad-sponsored { background: #f1f3f4; color: #5f6368; font-weight: 700; font-size: 11px; padding: 2px 6px; border-radius: 4px; letter-spacing: .02em; }
-.ov-ad-url { color: #202124; }
-.ov-ad-google-headline { font-size: 20px; color: #1a0dab; font-weight: 500; margin-bottom: 8px; line-height: 1.3; }
-.ov-ad-google-desc { font-size: 14px; color: #4d5156; line-height: 1.55; margin-bottom: 16px; }
-.ov-ad-google-links { display: flex; gap: 18px; font-size: 13px; color: #1a0dab; font-weight: 600; flex-wrap: wrap; }
-
-/* Meta feed-post mock */
-.ov-ad-meta { width: 100%; max-width: 420px; background: #18191a; color: #e4e6eb; border-radius: 14px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.08); }
-.ov-ad-meta-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; }
-.ov-ad-meta-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#B7FF2A,#5CC900); color: #0A0A0A; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; flex-shrink: 0; }
-.ov-ad-meta-name { font-size: 14px; font-weight: 600; }
-.ov-ad-meta-sponsored { font-size: 11px; color: #9a9c9f; }
-.ov-ad-meta-copy { padding: 0 16px 12px; font-size: 14px; line-height: 1.5; }
-.ov-ad-meta-media { height: 220px; background: linear-gradient(135deg, rgba(183,255,42,.18), rgba(183,255,42,.03)); }
-.ov-ad-meta-cta { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #242526; }
-.ov-ad-meta-cta span { font-size: 11px; color: #9a9c9f; text-transform: uppercase; letter-spacing: .03em; }
-.ov-ad-meta-cta button { background: #3a3b3c; color: #e4e6eb; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: default; }
-
-/* TikTok vertical-video mock */
-.ov-ad-tiktok { display: flex; justify-content: center; }
-.ov-ad-tiktok-frame { position: relative; width: 240px; height: 420px; border-radius: 22px; background: linear-gradient(160deg, #1a1a1e, #000); box-shadow: 0 24px 70px rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.08); overflow: hidden; }
-.ov-ad-tiktok-overlay { position: absolute; left: 0; right: 0; bottom: 64px; padding: 0 18px; color: #fff; }
-.ov-ad-tiktok-caption { font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
-.ov-ad-tiktok-handle { font-size: 12px; color: rgba(255,255,255,.65); }
-.ov-ad-tiktok-cta { position: absolute; left: 18px; right: 18px; bottom: 18px; background: #fff; color: #000; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: default; }
-
 @media (max-width: 640px) {
   .ov-showcase-section { padding: 64px 20px; }
-  .ov-showcase-stage { min-height: 420px; }
-  .ov-ad-google { padding: 18px 20px; }
-  .ov-ad-google-headline { font-size: 17px; }
-  .ov-ad-tiktok-frame { width: 200px; height: 360px; }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -25058,7 +25025,11 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
   align-items: flex-start;
   gap: 14px;
   padding: 10px 0;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity .5s ease, transform .5s ease;
 }
+.ov-lm-step.ov-vis { opacity: 1; transform: translateX(0); }
 .ov-lm-num {
   width: 28px; height: 28px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -33424,6 +33395,15 @@ body:not(.dark-mode) .con-acct-err { color: #dc2626; background: rgba(220,38,38,
     transparent 70%);
   pointer-events: none;
 }
+@media (prefers-reduced-motion: no-preference) {
+  /* Redesign v2 — subtle background movement per the request: a slow,
+     barely-perceptible drift + breathe, not an obvious moving blob. */
+  .lp-hero-glow { animation: ovHeroGlowDrift 14s ease-in-out infinite; }
+}
+@keyframes ovHeroGlowDrift {
+  0%, 100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+  50%      { transform: translateX(-52%) translateY(-14px) scale(1.05); opacity: .85; }
+}
 
 .lp-hero-grid {
   position: absolute;
@@ -40858,3 +40838,148 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 #orvSidebar .orv-sb-nav { padding: 10px 8px !important; }
 #orvSidebar .orv-ni svg { width: 14px !important; height: 14px !important; }
 #orvSidebar .orv-sb-avatar { width: 28px !important; height: 28px !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN v2 — Global landing-page wide-container system
+   Placed at the very end of the file so it wins the cascade over every
+   older per-section max-width rule it supersedes (900-1400px values
+   scattered across the file), including a legacy !important nav rule
+   left over from the old "scene stage" architecture (~line 14142,
+   .lp-nav-inner { max-width:1100px !important }) that was silently
+   capping the nav below the 1320px this file's earlier redesign pass
+   intended — confirmed via computed-style inspection, not assumed.
+   width: min(100% - gutters, 1800px), one formula, one source of
+   truth, replacing the previous per-section 900-1400px patchwork so
+   every landing section grows/shrinks together. */
+:root { --lp-gutter: 64px; }
+@media (max-width: 1280px) { :root { --lp-gutter: 48px; } }
+@media (max-width: 900px)  { :root { --lp-gutter: 32px; } }
+@media (max-width: 640px)  { :root { --lp-gutter: 20px; } }
+
+/* Gutter now lives ONLY on the -inner containers below via width:min(),
+   not split unpredictably between section padding and inner max-width
+   (previously: some sections gutter'd via their own section-level
+   padding, others via the inner container's padding — inconsistent and
+   hard to extend, which is exactly what this system replaces). */
+.ov-showcase-section, .ov-brands-section, .ov-pricing-section,
+.ov-faq-section, .ov-reviews-section, .ov-footer, #ov-final,
+.ov-wf-inner, .ov-sp-wrap, .lp-nav-inner {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.lp-nav-inner,
+.ov-wf-inner,
+.ov-showcase-inner,
+.ov-brands-inner,
+.ov-reviews-inner,
+.ov-pricing-inner,
+.ov-faq-inner,
+.ov-sp-wrap,
+.ov-final-inner,
+.ov-footer-inner {
+  width: min(100% - (var(--lp-gutter) * 2), 1800px) !important;
+  max-width: 1800px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Hero: wider than before (was 900px) but intentionally narrower than
+   the full 1800px system — a headline that wide would hurt readability.
+   ~1200px keeps the prompt box "substantially wider" while the
+   headline itself stays legible, per the request.
+   .lp-hero itself also needed an override here, not just .lp-hero-inner
+   — a legacy rule from the same dead "scene stage" architecture as the
+   nav bug above (line ~13688: .lp-hero { max-width:860px !important })
+   was silently capping the OUTER flex container, so widening the inner
+   container's own max-width had no visible effect (its percentage math
+   was resolving against that capped 860px parent, not the viewport).
+   Confirmed via computed-style inspection (parent width was 860px
+   regardless of the inner rule), same as the nav issue. */
+.lp-hero {
+  width: 100% !important;
+  max-width: none !important;
+}
+.lp-hero-inner {
+  width: min(100% - (var(--lp-gutter) * 2), 1200px) !important;
+  max-width: 1200px !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN v2 — Ad Examples: infinite two-row marquee wall
+   Full-bleed (sits outside .ov-showcase-inner's gutter, spans the full
+   zero-padding section width) for an immersive "wall of ads" feel,
+   masked with edge fades rather than a hard clip. Each row's own
+   overflow:hidden guarantees the page never gains horizontal scroll
+   regardless of how many cards are rendered.
+   ══════════════════════════════════════════════════════════════════ */
+.ov-wall { position: relative; width: 100%; overflow: hidden; padding: 8px 0; }
+.ov-wall-row { display: flex; overflow: hidden; width: 100%; }
+.ov-wall-row + .ov-wall-row { margin-top: 20px; }
+.ov-wall-track {
+  display: flex;
+  gap: 20px;
+  flex-shrink: 0;
+  padding: 0 10px;
+  will-change: transform;
+  transition: opacity .25s ease;
+}
+.ov-wall-fade .ov-wall-track { opacity: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ov-wall-row-1 .ov-wall-track { animation: ovWallSlide 46s linear infinite; }
+  .ov-wall-row-2 .ov-wall-track { animation: ovWallSlide 52s linear infinite reverse; }
+  /* Pause on hover/focus so a curious visitor can actually read a card
+     instead of chasing a moving target. */
+  .ov-wall:hover .ov-wall-track,
+  .ov-wall:focus-within .ov-wall-track { animation-play-state: paused; }
+}
+@keyframes ovWallSlide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.ov-wall-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 260px;
+  height: 168px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: border-color .25s ease, transform .25s ease;
+}
+.ov-wall-card:hover { transform: translateY(-3px); }
+.ov-wall-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ov-wall-card-placeholder {
+  font-size: 13px; font-weight: 600; letter-spacing: .02em;
+  color: rgba(255,255,255,.4); text-align: center; padding: 0 14px;
+}
+.ov-wall-card-google { border-color: rgba(251,188,5,.16); }
+.ov-wall-card-google:hover { border-color: rgba(251,188,5,.45); }
+.ov-wall-card-meta { border-color: rgba(8,102,255,.18); }
+.ov-wall-card-meta:hover { border-color: rgba(8,102,255,.5); }
+.ov-wall-card-tiktok { border-color: rgba(238,29,82,.18); }
+.ov-wall-card-tiktok:hover { border-color: rgba(238,29,82,.5); }
+
+.ov-wall::before, .ov-wall::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 140px; z-index: 2; pointer-events: none;
+}
+.ov-wall::before { left: 0; background: linear-gradient(90deg, #07070A, transparent); }
+.ov-wall::after  { right: 0; background: linear-gradient(270deg, #07070A, transparent); }
+
+/* Tab active-state platform tinting — used carefully (border/background
+   tint only, not a full recolor) per the request. */
+.ov-showcase-tab[data-platform="google"].ov-showcase-tab-active { border-color: rgba(251,188,5,.45); background: rgba(251,188,5,.07); }
+.ov-showcase-tab[data-platform="meta"].ov-showcase-tab-active   { border-color: rgba(8,102,255,.45); background: rgba(8,102,255,.07); }
+.ov-showcase-tab[data-platform="tiktok"].ov-showcase-tab-active { border-color: rgba(238,29,82,.45); background: rgba(238,29,82,.07); }
+
+@media (max-width: 640px) {
+  .ov-wall-card { width: 190px; height: 124px; }
+  .ov-wall-row + .ov-wall-row { margin-top: 14px; }
+  .ov-wall::before, .ov-wall::after { width: 60px; }
+}

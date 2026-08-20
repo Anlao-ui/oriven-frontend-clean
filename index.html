@@ -385,48 +385,23 @@
       </button>
     </div>
 
-    <div class="ov-showcase-stage" data-observe>
-      <!-- Google: search-ad style -->
-      <div class="ov-showcase-example ov-showcase-example-active" data-platform-example="google">
-        <div class="ov-ad-google">
-          <div class="ov-ad-google-top"><span class="ov-ad-sponsored">Sponsored</span><span class="ov-ad-url">www.brightskinco.com</span></div>
-          <div class="ov-ad-google-headline">Anti-Aging Skincare That Works Overnight | Clinically Tested</div>
-          <div class="ov-ad-google-desc">94% saw visible results in 28 days. No parabens, no harsh chemicals — just science-backed formulas. Shop the collection today.</div>
-          <div class="ov-ad-google-links"><span>Shop Now</span><span>Best Sellers</span><span>Free Shipping</span></div>
-        </div>
-      </div>
-      <!-- Meta: feed-post style -->
-      <div class="ov-showcase-example" data-platform-example="meta">
-        <div class="ov-ad-meta">
-          <div class="ov-ad-meta-head">
-            <div class="ov-ad-meta-avatar">B</div>
-            <div><div class="ov-ad-meta-name">Bright Skin Co.</div><div class="ov-ad-meta-sponsored">Sponsored</div></div>
-          </div>
-          <div class="ov-ad-meta-copy">Wake up to visibly firmer skin. Clinically tested — 94% saw results in 28 days.</div>
-          <div class="ov-ad-meta-media" aria-hidden="true"></div>
-          <div class="ov-ad-meta-cta"><span>brightskinco.com</span><button type="button">Shop Now</button></div>
-        </div>
-      </div>
-      <!-- TikTok: vertical video style -->
-      <div class="ov-showcase-example" data-platform-example="tiktok">
-        <div class="ov-ad-tiktok">
-          <div class="ov-ad-tiktok-frame">
-            <div class="ov-ad-tiktok-overlay">
-              <div class="ov-ad-tiktok-caption">&ldquo;The serum that works while you sleep&rdquo;</div>
-              <div class="ov-ad-tiktok-handle">@brightskinco</div>
-            </div>
-            <button type="button" class="ov-ad-tiktok-cta">Shop Now</button>
-          </div>
-        </div>
-      </div>
-    </div>
+  </div>
+
+  <!-- Infinite two-row ad wall — full-bleed, outside .ov-showcase-inner's
+       gutter on purpose (see styles.css .ov-wall). Rendered/populated by
+       ovRenderAdWall() from the AD_IMAGES data arrays below; empty src
+       strings render clean labeled placeholders ("Google Ads 1", etc.)
+       until real image paths are dropped in. -->
+  <div class="ov-wall" id="ovAdWall" aria-label="Advertising examples" role="group">
+    <div class="ov-wall-row ov-wall-row-1"><div class="ov-wall-track" id="ovWallTrack1"></div></div>
+    <div class="ov-wall-row ov-wall-row-2"><div class="ov-wall-track" id="ovWallTrack2"></div></div>
   </div>
 </section>
 
 <!-- ═══ INTELLIGENCE ═══ -->
 <section id="ov-intelligence" class="ov-wf-section">
   <div class="ov-wf-inner">
-    <div class="ov-wf-text">
+    <div class="ov-wf-text" data-observe>
       <div class="ov-wf-step-num">Intelligence</div>
       <h2 class="ov-wf-h2">Know what's working.<br>And what to fix.</h2>
       <p class="ov-wf-desc">Oriven analyzes every campaign across every connected platform and turns raw performance data into clear, prioritized recommendations — so nothing gets missed.</p>
@@ -469,7 +444,7 @@
 <!-- ═══ AUTOPILOT ═══ -->
 <section id="ov-autopilot" class="ov-wf-section ov-wf-alt">
   <div class="ov-wf-inner ov-wf-inner-rev">
-    <div class="ov-wf-text">
+    <div class="ov-wf-text" data-observe>
       <div class="ov-wf-step-num">Autopilot</div>
       <h2 class="ov-wf-h2">Set it. Let it optimize.</h2>
       <p class="ov-wf-desc">Autopilot continuously monitors your campaigns and automatically adjusts budgets, pauses underperformers, and scales what's working — around the clock, without manual check-ins.</p>
@@ -481,27 +456,27 @@
     </div>
     <div class="ov-wf-visual">
       <div class="ov-launch-mock" data-observe>
-        <div class="ov-lm-step ov-lm-done">
+        <div class="ov-lm-step ov-lm-done" data-observe>
           <div class="ov-lm-num ov-lm-num-done">&#10003;</div>
           <div><div class="ov-lm-step-t">Rule triggered</div><div class="ov-lm-step-s">CPA rose above target</div></div>
         </div>
         <div class="ov-lm-connector ov-lm-done-line"></div>
-        <div class="ov-lm-step ov-lm-done">
+        <div class="ov-lm-step ov-lm-done" data-observe style="transition-delay:.1s">
           <div class="ov-lm-num ov-lm-num-done">&#10003;</div>
           <div><div class="ov-lm-step-t">Budget adjusted</div><div class="ov-lm-step-s">Spend decreased 20% automatically</div></div>
         </div>
         <div class="ov-lm-connector ov-lm-done-line"></div>
-        <div class="ov-lm-step ov-lm-active">
+        <div class="ov-lm-step ov-lm-active" data-observe style="transition-delay:.2s">
           <div class="ov-lm-num ov-lm-num-active">3</div>
           <div><div class="ov-lm-step-t">Monitoring performance</div><div class="ov-lm-step-s">Checking metrics every hour</div></div>
         </div>
         <div class="ov-lm-connector"></div>
-        <div class="ov-lm-step ov-lm-inactive">
+        <div class="ov-lm-step ov-lm-inactive" data-observe style="transition-delay:.3s">
           <div class="ov-lm-num ov-lm-num-inactive">4</div>
           <div><div class="ov-lm-step-t">Scale winners</div><div class="ov-lm-step-s">Increase budget on top performers</div></div>
         </div>
         <div class="ov-lm-connector"></div>
-        <div class="ov-lm-step ov-lm-inactive">
+        <div class="ov-lm-step ov-lm-inactive" data-observe style="transition-delay:.4s">
           <div class="ov-lm-num ov-lm-num-inactive">5</div>
           <div><div class="ov-lm-step-t">Weekly report</div><div class="ov-lm-step-s">Summary sent to your inbox</div></div>
         </div>
@@ -513,7 +488,7 @@
 <!-- ═══ BUSINESS ═══ -->
 <section id="ov-business" class="ov-wf-section">
   <div class="ov-wf-inner">
-    <div class="ov-wf-text">
+    <div class="ov-wf-text" data-observe>
       <div class="ov-wf-step-num">Business</div>
       <h2 class="ov-wf-h2">Built for teams,<br>not just individuals.</h2>
       <p class="ov-wf-desc">Manage every connected ad account and every teammate from one workspace, with a consistent brand voice across everything Oriven generates.</p>
@@ -3884,6 +3859,39 @@ function ovHeroPlatformPick(btn) {
 // Ad Examples showcase — switches which platform's example is shown.
 // Purely presentational (Redesign): swaps a class on the matching
 // data-platform-example panel, no backend call involved.
+// ── Ad Examples Showcase: infinite two-row wall, data-driven ──────────
+// Replace the empty strings below with real image paths (e.g.
+// '/assets/ads/google-1.jpg') to swap a placeholder for a real ad — the
+// render/animation/layout code below never needs to change. Any slot left
+// empty keeps rendering a clean "Google Ads N"-style label placeholder.
+var AD_IMAGES = {
+  google: ['', '', '', '', '', '', '', '', '', ''],
+  meta:   ['', '', '', '', '', '', '', '', '', ''],
+  tiktok: ['', '', '', '', '', '', '', '', '', ''],
+};
+var AD_LABELS = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads' };
+
+function ovAdCardHtml(platform, idx, src) {
+  var label = AD_LABELS[platform] + ' ' + (idx + 1);
+  var body = src
+    ? '<img src="' + src + '" alt="' + label + '" loading="lazy">'
+    : '<span class="ov-wall-card-placeholder">' + label + '</span>';
+  return '<div class="ov-wall-card ov-wall-card-' + platform + '">' + body + '</div>';
+}
+
+function ovRenderAdWall(platform) {
+  var images = AD_IMAGES[platform] || [];
+  var cardsHtml = images.map(function(src, i){ return ovAdCardHtml(platform, i, src); }).join('');
+  // Duplicate the 10-card set once per row so animating translateX to
+  // exactly -50% always lands back on an identical frame -- a seamless
+  // loop with no visible jump or reset.
+  var trackHtml = cardsHtml + cardsHtml;
+  var t1 = document.getElementById('ovWallTrack1');
+  var t2 = document.getElementById('ovWallTrack2');
+  if (t1) t1.innerHTML = trackHtml;
+  if (t2) t2.innerHTML = trackHtml;
+}
+
 function ovShowcaseSwitch(platform, btn) {
   document.querySelectorAll('.ov-showcase-tab').forEach(function(t){
     t.classList.remove('ov-showcase-tab-active');
@@ -3891,10 +3899,16 @@ function ovShowcaseSwitch(platform, btn) {
   });
   btn.classList.add('ov-showcase-tab-active');
   btn.setAttribute('aria-selected', 'true');
-  document.querySelectorAll('.ov-showcase-example').forEach(function(ex){
-    ex.classList.toggle('ov-showcase-example-active', ex.dataset.platformExample === platform);
-  });
+  var wall = document.getElementById('ovAdWall');
+  if (!wall) return;
+  wall.classList.add('ov-wall-fade');
+  setTimeout(function(){
+    ovRenderAdWall(platform);
+    wall.classList.remove('ov-wall-fade');
+  }, 260);
 }
+
+ovRenderAdWall('google');
 </script>
 
 <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
