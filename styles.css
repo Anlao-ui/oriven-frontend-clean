@@ -22198,7 +22198,6 @@ body {
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  filter: drop-shadow(0 0 48px color-mix(in srgb, var(--green) 8%, transparent));
 }
 
 /* ── Language cards: staggered entrance via parent ov-vis ─────── */
@@ -33380,6 +33379,21 @@ body:not(.dark-mode) .con-acct-err { color: #dc2626; background: rgba(220,38,38,
   inset: 0;
   pointer-events: none;
   z-index: 0;
+  /* Paints the same grid pattern as #lp-stage directly and opaquely,
+     rather than relying on transparency to let #lp-stage's own grid
+     show through several empty layers (.lp-hero-bg > .lp-hero-glow /
+     .lp-hero-grid, both long since display:none). That multi-layer
+     transparent stack was the actual source of the soft green-tinted
+     "glow" that kept appearing behind the headline — confirmed by
+     bisection (opacity:0 on .lp-hero eliminated it; individually
+     hiding its children did not), consistent with gradient dithering
+     being visibly amplified by the extra transparent compositing
+     layers. Same pattern, same color, just painted once, opaquely. */
+  background-color: #07070A;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 56px 56px;
 }
 
 .lp-hero-glow {
@@ -33413,9 +33427,14 @@ body:not(.dark-mode) .con-acct-err { color: #dc2626; background: rgba(220,38,38,
     linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
   background-size: 56px 56px;
   pointer-events: none;
-  -webkit-mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, black 0%, transparent 80%);
-  mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, black 0%, transparent 80%);
 }
+/* This layer duplicates #lp-stage's own global grid (which already paints
+   uniformly behind every section, hero included) but with a radial mask
+   on top — the mask brightened the grid toward the center, which is
+   exactly the soft "glow" that was visible behind the headline. Hidden
+   entirely so the hero shows only the one shared, uniform grid — no
+   second layer, no vignette, nothing that could read as a glow. */
+.lp-hero-grid { display: none !important; }
 
 /* Flex container */
 .lp-hero {
@@ -41288,9 +41307,11 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
    globe as the section's main visual, in that order. */
 .ov-sp-stats { margin-top: 44px; }
 
-/* ── Wireframe globe — built from thin latitude/longitude lines, small
-   location dots and subtle connections, so it reads as an extension of
-   the page's own background grid rather than a stock world map. */
+/* ── Rotating world globe — real continent silhouettes rendered on canvas
+   (see the "Rotating world globe" IIFE in the script block: orthographic
+   projection + slow auto-rotation, real Natural-Earth-derived coastline
+   data). This wrapper only handles the reveal transition and responsive
+   sizing; all drawing happens in JS. */
 .ov-globe {
   width: 100%;
   max-width: 620px;
@@ -41300,42 +41321,7 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
   transition: opacity .7s ease, transform .7s ease;
 }
 .ov-globe.ov-vis { opacity: 1; transform: translateY(0); }
-.ov-globe-svg { width: 100%; height: auto; display: block; overflow: visible; }
-.ov-globe-outline { fill: none; stroke: rgba(255,255,255,.16); stroke-width: 1.2; }
-.ov-globe-lat { fill: none; stroke: rgba(255,255,255,.09); stroke-width: 1; }
-.ov-globe-merid { fill: none; stroke: rgba(255,255,255,.13); stroke-width: 1; }
-.ov-globe-conn { stroke: rgba(183,255,42,.14); stroke-width: 1; }
-.ov-globe-dot { fill: rgba(255,255,255,.5); }
-.ov-globe-dot-pulse {
-  fill: var(--green);
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: ovGlobeDotPulse 5s ease-in-out infinite;
-}
-@keyframes ovGlobeDotPulse {
-  0%, 100% { opacity: .55; transform: scale(1); }
-  50%      { opacity: 1;   transform: scale(1.7); }
-}
-
-/* Meridian ellipses sweep rx slowly (0 -> full radius -> 0), staggered
-   with negative delays across a shared ~47s cycle. Four lines drifting
-   in and out of phase reads as a very slow sphere rotation without any
-   3D transform — smooth, GPU-light, and "almost stationary at first
-   glance" per spec (one full sweep is far longer than a glance). */
-@keyframes ovGlobeMeridianSweep {
-  0%   { rx: 3px; }
-  50%  { rx: 168px; }
-  100% { rx: 3px; }
-}
-.ov-globe-merid-1 { animation: ovGlobeMeridianSweep 47s ease-in-out infinite; animation-delay: -2s; }
-.ov-globe-merid-2 { animation: ovGlobeMeridianSweep 47s ease-in-out infinite; animation-delay: -13.75s; }
-.ov-globe-merid-3 { animation: ovGlobeMeridianSweep 47s ease-in-out infinite; animation-delay: -25.5s; }
-.ov-globe-merid-4 { animation: ovGlobeMeridianSweep 47s ease-in-out infinite; animation-delay: -37.25s; }
-
-@media (prefers-reduced-motion: reduce) {
-  .ov-globe-merid { animation: none !important; rx: 90px !important; }
-  .ov-globe-dot-pulse { animation: none !important; opacity: .75; }
-}
+#ov-globe-canvas { display: block; max-width: 100%; cursor: grab; }
 @media (max-width: 640px) {
   .ov-globe { max-width: 320px; margin-top: 40px; }
 }
