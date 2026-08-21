@@ -258,7 +258,7 @@
     </div>
     <div class="lp-nav-right">
       <a href="#" class="lp-nav-login" onclick="lpHandleLogin(event)">Login</a>
-      <a href="#" class="lp-cta-btn" onclick="lpGetStarted(event)">Get Started</a>
+      <a href="#" class="lp-cta-btn" onclick="lpGetStarted(event)">Start Creating</a>
     </div>
     <button class="lp-hamburger" id="lpHamburger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -298,7 +298,7 @@
   <div class="lp-mm-divider"></div>
   <div class="lp-mm-actions">
     <a href="#" class="lp-mm-login" onclick="lpHandleLogin(event)">Login</a>
-    <a class="lp-mm-cta" onclick="lpGetStarted(event)">Get Started</a>
+    <a class="lp-mm-cta" onclick="lpGetStarted(event)">Start Creating</a>
   </div>
 </div>
 
@@ -565,25 +565,65 @@
       <p class="ov-section-sub">Different products. Different platforms. The same need — one place to run advertising that actually works together.</p>
     </div>
     <div class="ov-brands-grid">
-      <div class="ov-brand-card" data-observe>
-        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(183,255,42,.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg></div>
+      <div class="ov-brand-card ov-brand-meta" data-observe style="transition-delay:0s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg></div>
         <div class="ov-brand-name">E-commerce</div>
-        <div class="ov-brand-desc">Launch product ads across platforms without juggling three separate dashboards.</div>
+        <div class="ov-brand-desc">Product ads that convert, everywhere.</div>
       </div>
-      <div class="ov-brand-card" data-observe style="transition-delay:.08s">
-        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(183,255,42,.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
-        <div class="ov-brand-name">SaaS &amp; Startups</div>
-        <div class="ov-brand-desc">Test messaging fast and scale what converts, without a full marketing team.</div>
+      <div class="ov-brand-card ov-brand-google" data-observe style="transition-delay:.04s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+        <div class="ov-brand-name">SaaS</div>
+        <div class="ov-brand-desc">Test messaging fast. Scale what works.</div>
       </div>
-      <div class="ov-brand-card" data-observe style="transition-delay:.16s">
-        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(183,255,42,.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="3"/><circle cx="17" cy="9" r="3"/><path d="M2 20c0-3 2.5-5 6-5s6 2 6 5M13 20c0-2.5 2-4.5 5-4.5s5 2 5 4.5"/></svg></div>
+      <div class="ov-brand-card ov-brand-tiktok" data-observe style="transition-delay:.08s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l4 8-4 3-4-3 4-8z"/><circle cx="12" cy="9" r="1.4"/><path d="M9 15l-1.5 4M15 15l1.5 4"/></svg></div>
+        <div class="ov-brand-name">Startups</div>
+        <div class="ov-brand-desc">Get in front of your first users.</div>
+      </div>
+      <div class="ov-brand-card ov-brand-meta" data-observe style="transition-delay:.12s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4M7 8v8M17 8v8M20 10v4M7 12h10"/></svg></div>
+        <div class="ov-brand-name">Fitness</div>
+        <div class="ov-brand-desc">Fill classes and drive memberships.</div>
+      </div>
+      <div class="ov-brand-card ov-brand-google" data-observe style="transition-delay:.16s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 4.5 6 8 6 11.5A6 6 0 016 14.5C6 11 9 7.5 12 3z"/></svg></div>
+        <div class="ov-brand-name">Skincare</div>
+        <div class="ov-brand-desc">Turn scroll-stoppers into customers.</div>
+      </div>
+      <div class="ov-brand-card ov-brand-tiktok" data-observe style="transition-delay:.2s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2v6a2 2 0 004 0V2M9 8v14M15 2c-1.5.5-2 2-2 4s.5 3.5 2 4v10"/></svg></div>
+        <div class="ov-brand-name">Restaurants</div>
+        <div class="ov-brand-desc">Fill tables with local, targeted ads.</div>
+      </div>
+      <div class="ov-brand-card ov-brand-meta" data-observe style="transition-delay:.24s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a2 2 0 10-2 2c0 .8.5 1.3 1 1.7L4 12.5c-.7.4-1 .9-1 1.6 0 .9.7 1.6 1.6 1.6h14.8c.9 0 1.6-.7 1.6-1.6 0-.7-.3-1.2-1-1.6L13 6.7c.5-.4 1-.9 1-1.7"/></svg></div>
+        <div class="ov-brand-name">Fashion</div>
+        <div class="ov-brand-desc">The right look to the right buyer.</div>
+      </div>
+      <div class="ov-brand-card ov-brand-google" data-observe style="transition-delay:.28s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
+        <div class="ov-brand-name">Mobile Apps</div>
+        <div class="ov-brand-desc">Drive installs that actually retain.</div>
+      </div>
+      <div class="ov-brand-card ov-brand-tiktok" data-observe style="transition-delay:.32s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="3"/><circle cx="17" cy="9" r="3"/><path d="M2 20c0-3 2.5-5 6-5s6 2 6 5M13 20c0-2.5 2-4.5 5-4.5s5 2 5 4.5"/></svg></div>
         <div class="ov-brand-name">Agencies</div>
-        <div class="ov-brand-desc">Manage every client's ad accounts and brand voice from one workspace.</div>
+        <div class="ov-brand-desc">Every client's ad accounts, one workspace.</div>
       </div>
-      <div class="ov-brand-card" data-observe style="transition-delay:.24s">
-        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(183,255,42,.85)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V10l8-6 8 6v11"/><path d="M9 21v-6h6v6"/></svg></div>
-        <div class="ov-brand-name">Local &amp; Service Businesses</div>
-        <div class="ov-brand-desc">Run consistent campaigns without hiring an in-house marketer.</div>
+      <div class="ov-brand-card ov-brand-meta" data-observe style="transition-delay:.36s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20V12M12 20V4M18 20v-9"/></svg></div>
+        <div class="ov-brand-name">Finance</div>
+        <div class="ov-brand-desc">Compliant campaigns that convert.</div>
+      </div>
+      <div class="ov-brand-card ov-brand-google" data-observe style="transition-delay:.4s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5-10-5z"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5"/></svg></div>
+        <div class="ov-brand-name">Education</div>
+        <div class="ov-brand-desc">Fill cohorts and enrollments faster.</div>
+      </div>
+      <div class="ov-brand-card ov-brand-tiktok" data-observe style="transition-delay:.44s">
+        <div class="ov-brand-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg></div>
+        <div class="ov-brand-name">Travel</div>
+        <div class="ov-brand-desc">Turn browsers into bookings.</div>
       </div>
     </div>
   </div>
@@ -662,6 +702,42 @@
 <section class="ov-wf-section ov-social-proof">
   <div class="ov-sp-wrap">
     <div class="ov-sp-label">Trusted by marketing teams in 14 countries</div>
+    <div class="ov-sp-network" data-observe aria-hidden="true">
+      <svg viewBox="0 0 960 300" preserveAspectRatio="xMidYMid meet" fill="none">
+        <line x1="90"  y1="120" x2="200" y2="80"  class="ov-sp-net-line"/>
+        <line x1="200" y1="80"  x2="330" y2="130" class="ov-sp-net-line"/>
+        <line x1="330" y1="130" x2="450" y2="70"  class="ov-sp-net-line"/>
+        <line x1="450" y1="70"  x2="570" y2="110" class="ov-sp-net-line"/>
+        <line x1="570" y1="110" x2="690" y2="75"  class="ov-sp-net-line"/>
+        <line x1="690" y1="75"  x2="810" y2="135" class="ov-sp-net-line"/>
+        <line x1="810" y1="135" x2="900" y2="95"  class="ov-sp-net-line"/>
+        <line x1="90"  y1="120" x2="150" y2="225" class="ov-sp-net-line ov-sp-net-line-dash"/>
+        <line x1="200" y1="80"  x2="270" y2="255" class="ov-sp-net-line ov-sp-net-line-dash"/>
+        <line x1="330" y1="130" x2="410" y2="205" class="ov-sp-net-line ov-sp-net-line-dash"/>
+        <line x1="450" y1="70"  x2="550" y2="245" class="ov-sp-net-line ov-sp-net-line-dash"/>
+        <line x1="570" y1="110" x2="690" y2="215" class="ov-sp-net-line ov-sp-net-line-dash"/>
+        <line x1="690" y1="75"  x2="830" y2="235" class="ov-sp-net-line ov-sp-net-line-dash"/>
+        <line x1="150" y1="225" x2="270" y2="255" class="ov-sp-net-line"/>
+        <line x1="270" y1="255" x2="410" y2="205" class="ov-sp-net-line"/>
+        <line x1="410" y1="205" x2="550" y2="245" class="ov-sp-net-line"/>
+        <line x1="550" y1="245" x2="690" y2="215" class="ov-sp-net-line"/>
+        <line x1="690" y1="215" x2="830" y2="235" class="ov-sp-net-line"/>
+        <circle cx="90"  cy="120" r="2.5" class="ov-sp-net-node"/>
+        <circle cx="200" cy="80"  r="2.5" class="ov-sp-net-node ov-sp-net-node-pulse" style="animation-delay:.2s"/>
+        <circle cx="330" cy="130" r="2.5" class="ov-sp-net-node"/>
+        <circle cx="450" cy="70"  r="2.5" class="ov-sp-net-node"/>
+        <circle cx="570" cy="110" r="2.5" class="ov-sp-net-node ov-sp-net-node-pulse" style="animation-delay:1.6s"/>
+        <circle cx="690" cy="75"  r="2.5" class="ov-sp-net-node"/>
+        <circle cx="810" cy="135" r="2.5" class="ov-sp-net-node"/>
+        <circle cx="900" cy="95"  r="2.5" class="ov-sp-net-node"/>
+        <circle cx="150" cy="225" r="2.5" class="ov-sp-net-node"/>
+        <circle cx="270" cy="255" r="2.5" class="ov-sp-net-node"/>
+        <circle cx="410" cy="205" r="2.5" class="ov-sp-net-node ov-sp-net-node-pulse" style="animation-delay:3s"/>
+        <circle cx="550" cy="245" r="2.5" class="ov-sp-net-node"/>
+        <circle cx="690" cy="215" r="2.5" class="ov-sp-net-node"/>
+        <circle cx="830" cy="235" r="2.5" class="ov-sp-net-node"/>
+      </svg>
+    </div>
     <div class="ov-sp-stats" id="ovSpStats">
       <div class="ov-sp-stat ov-sp-glow" data-observe>
         <div class="ov-sp-stat-val" data-count-target="28" data-count-prefix="&euro;" data-count-suffix="M+">&euro;0M+</div>
@@ -712,6 +788,12 @@
     <div class="ov-faq-head" data-observe>
       <h2 class="ov-section-h">Questions,<br>answered.</h2>
       <p class="ov-section-sub">Everything you need to know before connecting your ad accounts.</p>
+      <div class="ov-faq-badges">
+        <span class="ov-faq-badge"><span class="ov-faq-badge-dot"></span>AI-powered</span>
+        <span class="ov-faq-badge"><span class="ov-faq-badge-dot"></span>Multi-platform</span>
+        <span class="ov-faq-badge"><span class="ov-faq-badge-dot"></span>Campaign intelligence</span>
+        <span class="ov-faq-badge"><span class="ov-faq-badge-dot"></span>Automated optimization</span>
+      </div>
     </div>
     <div class="ov-faq-list">
       <div class="ov-faq"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Oriven AI?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven is an AI-powered marketing intelligence platform. It connects your Google Ads, TikTok Ads, and Meta Ads accounts, unifies your performance data, and delivers daily AI-generated briefings with recommended actions.</div></div>
@@ -720,6 +802,10 @@
       <div class="ov-faq" style="transition-delay:.18s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Does Oriven manage my existing campaigns?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Every morning, Oriven generates an AI-written Daily Brief summarizing overnight performance, budget status, and ROAS changes across your connected accounts. Autopilot can then act on that intelligence automatically — adjusting budgets and pausing underperformers — or leave every action for you to approve.</div></div>
       <div class="ov-faq" style="transition-delay:.24s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Who is Oriven built for?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Marketers, agencies, and business owners &mdash; not developers. Oriven is built to support multiple connected accounts across platforms, so it works equally well for a single brand or an agency managing several clients. No code, no API setup, no technical configuration required.</div></div>
       <div class="ov-faq" style="transition-delay:.30s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I try Oriven before paying?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. You can create your account and start using Oriven without a credit card. Subscriptions can also be cancelled anytime from your account settings, with no lock-in and no cancellation fees.</div></div>
+      <div class="ov-faq" style="transition-delay:.36s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Autopilot is Oriven's automated optimization layer. Once enabled, it can adjust budgets, pause underperforming ads, and reallocate spend across your connected platforms based on daily performance data &mdash; all within rules and limits you control.</div></div>
+      <div class="ov-faq" style="transition-delay:.42s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I control what Oriven changes automatically?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. You decide what Autopilot is allowed to touch &mdash; from budget caps to which campaigns it can act on &mdash; and every automated change is logged. You can review, adjust, or turn Autopilot off at any time.</div></div>
+      <div class="ov-faq" style="transition-delay:.48s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Is Oriven suitable for e-commerce and SaaS companies?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Oriven is built for any business running paid ads &mdash; from e-commerce and SaaS to agencies, fitness, and local services. Campaign structure and creative recommendations adapt to your product and platform.</div></div>
+      <div class="ov-faq" style="transition-delay:.54s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does Oriven's pricing work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Every plan includes a monthly AI credit allocation that covers campaign generation, creative, and AI analysis. Credits reset on your billing date, and you can upgrade, downgrade, or cancel anytime with no lock-in.</div></div>
     </div>
   </div>
 </section>
@@ -3572,12 +3658,22 @@ function lpAnimProcess(){
   var scroller = document.getElementById('view-landing');
   if (!stage || !scroller) return;
 
-  var CELL = 56; // matches .lp-hero-grid / #lp-stage's background-size
-  var MAX_SPARKS = 3;
+  // Cell size is read from the grid's own computed background-size rather
+  // than hardcoded, so a spark always lands exactly on a real grid
+  // intersection and stays aligned even if the tile size ever changes —
+  // no coordinates baked in that could drift out of sync responsively.
+  function gridCell(){
+    var bg = getComputedStyle(stage).backgroundSize || '56px 56px';
+    var n = parseFloat(bg);
+    return isNaN(n) || n <= 0 ? 56 : n;
+  }
+
+  var MAX_SPARKS = 2; // occasional, never more than a couple visible at once
   var active = 0;
 
   function spawnSpark(){
     if (active >= MAX_SPARKS) return;
+    var CELL = gridCell();
     var vw = scroller.clientWidth, vh = scroller.clientHeight;
     var cols = Math.max(6, Math.floor(vw / CELL));
     var rows = Math.max(6, Math.floor(vh / CELL));
@@ -3586,16 +3682,21 @@ function lpAnimProcess(){
     var x = col * CELL;
     var y = scroller.scrollTop + row * CELL;
 
+    // Pure horizontal XOR pure vertical travel only, starting exactly on a
+    // grid intersection (col*CELL, row*CELL) — the trace always rides an
+    // actual grid line, never drifts between lines or moves diagonally.
     var horizontal = Math.random() < 0.5;
     var positive   = Math.random() < 0.5;
-    var cells      = 3 + Math.round(Math.random()); // 3 or 4 cells
+    var cells      = 3 + Math.round(Math.random()); // 3 or 4 cells, exactly on-grid
     var dist       = (positive ? 1 : -1) * cells * CELL;
+    var duration   = 2.5 + Math.random() * 1.5; // 2.5s–4s: slow, calm, technical
 
     var el = document.createElement('div');
     el.className = 'ov-grid-spark ' + (horizontal ? 'ov-grid-spark-h' : 'ov-grid-spark-v');
     el.style.left = x + 'px';
     el.style.top = y + 'px';
     el.style.setProperty('--spark-dist', dist + 'px');
+    el.style.animationDuration = duration + 's';
     stage.appendChild(el);
     active++;
 
@@ -3607,7 +3708,7 @@ function lpAnimProcess(){
 
   (function loop(){
     spawnSpark();
-    setTimeout(loop, 900 + Math.random() * 1800);
+    setTimeout(loop, 2500 + Math.random() * 4000);
   })();
 })();
 

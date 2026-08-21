@@ -24729,10 +24729,10 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
 /* ══════════════════════════════════════════════════════════════════
    REDESIGN — "Every Brand Needs It"
    ══════════════════════════════════════════════════════════════════ */
-.ov-brands-section { padding: 100px 48px; background: rgba(255,255,255,.02); border-bottom: 1px solid rgba(255,255,255,.05); }
+.ov-brands-section { padding: 64px 48px; background: rgba(255,255,255,.02); border-bottom: 1px solid rgba(255,255,255,.05); }
 .ov-brands-inner { max-width: 1400px; margin: 0 auto; }
-.ov-brands-head { text-align: center; margin-bottom: 56px; }
-.ov-brands-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.ov-brands-head { text-align: center; margin-bottom: 40px; }
+.ov-brands-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .ov-brand-card {
   background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08);
   border-radius: 16px; padding: 28px 24px;
@@ -33549,7 +33549,7 @@ body:not(.dark-mode) .con-acct-err { color: #dc2626; background: rgba(220,38,38,
   gap: 10px;
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255,255,255,.07);
+  border-top: none; /* Polish: input box is one continuous surface, no center divider */
   flex-wrap: wrap;
 }
 
@@ -41186,8 +41186,10 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 
 /* ── Grid sparks — ambient energy traces along the background grid ──
    Spawned/removed by the JS in the script block near ovInitCountUp.
-   transform + opacity only (no layout properties), small (4px) dot,
-   short-lived (~1.5s), at most 3 concurrent. */
+   transform + opacity only (no layout properties), small (4px) dot with
+   a soft core-only glow, slow (2.5s–4s, set per-spark via inline
+   animation-duration in JS), at most 2 concurrent — occasional, calm,
+   technical, never neon. */
 .ov-grid-spark {
   position: absolute;
   width: 4px;
@@ -41195,14 +41197,14 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
   margin: -2px 0 0 -2px; /* center on its left/top coordinate */
   border-radius: 50%;
   background: var(--green, #B7FF2A);
-  box-shadow: 0 0 5px 1px rgba(183,255,42,.75), 0 0 12px 3px rgba(183,255,42,.25);
+  box-shadow: 0 0 4px 1px rgba(183,255,42,.6), 0 0 9px 2px rgba(183,255,42,.16);
   pointer-events: none;
   z-index: 1;
   opacity: 0;
   will-change: transform, opacity;
 }
-.ov-grid-spark-h { animation: ovSparkTravelH 1.5s cubic-bezier(.4,0,.2,1) forwards; }
-.ov-grid-spark-v { animation: ovSparkTravelV 1.5s cubic-bezier(.4,0,.2,1) forwards; }
+.ov-grid-spark-h { animation: ovSparkTravelH 3s cubic-bezier(.4,0,.2,1) forwards; }
+.ov-grid-spark-v { animation: ovSparkTravelV 3s cubic-bezier(.4,0,.2,1) forwards; }
 @keyframes ovSparkTravelH {
   0%   { opacity: 0;  transform: translateX(0) scale(.6); }
   14%  { opacity: 1;  transform: translateX(calc(var(--spark-dist) * .1)) scale(1); }
@@ -41217,4 +41219,60 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 }
 @media (prefers-reduced-motion: reduce) {
   .ov-grid-spark { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN v5 — Final polish pass 2
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Every Brand: platform-color accents ─────────────────────────
+   Cards stay dark; the Google/Meta/TikTok palette shows up only as a
+   small icon tint, a hairline border, and a hover glow — never a full
+   recolor of the card itself. */
+.ov-brand-card.ov-brand-google .ov-brand-ico { background: rgba(251,188,5,.09); color: rgba(251,188,5,.9); }
+.ov-brand-card.ov-brand-google { border-color: rgba(251,188,5,.13); }
+.ov-brand-card.ov-brand-google:hover { border-color: rgba(251,188,5,.4); background: rgba(255,255,255,.045); }
+
+.ov-brand-card.ov-brand-meta .ov-brand-ico { background: rgba(8,102,255,.1); color: rgba(64,140,255,.95); }
+.ov-brand-card.ov-brand-meta { border-color: rgba(8,102,255,.14); }
+.ov-brand-card.ov-brand-meta:hover { border-color: rgba(8,102,255,.42); background: rgba(255,255,255,.045); }
+
+.ov-brand-card.ov-brand-tiktok .ov-brand-ico { background: rgba(238,29,82,.1); color: rgba(238,60,100,.95); }
+.ov-brand-card.ov-brand-tiktok { border-color: rgba(238,29,82,.13); }
+.ov-brand-card.ov-brand-tiktok:hover { border-color: rgba(238,29,82,.4); background: rgba(255,255,255,.045); }
+
+/* ── Trusted section: abstract network visual, replaces the decorative
+   per-stat glow. Thin lines + small dots, integrated with the global
+   grid rather than a literal stock world map. */
+.ov-sp-glow::before { content: none !important; animation: none !important; }
+
+.ov-sp-network { width: 100%; max-width: 900px; margin: 0 auto 28px; opacity: 0; transform: translateY(10px); transition: opacity .6s ease, transform .6s ease; }
+.ov-sp-network.ov-vis { opacity: .85; transform: translateY(0); }
+.ov-sp-network svg { width: 100%; height: auto; display: block; }
+.ov-sp-net-line { stroke: rgba(255,255,255,.09); stroke-width: 1; }
+.ov-sp-net-line-dash { stroke: rgba(255,255,255,.055); stroke-dasharray: 3 6; }
+.ov-sp-net-node { fill: rgba(255,255,255,.4); }
+.ov-sp-net-node-pulse {
+  fill: var(--green);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ovSpNodePulse 4.5s ease-in-out infinite;
+}
+@keyframes ovSpNodePulse {
+  0%, 100% { opacity: .5; transform: scale(1); }
+  50%      { opacity: 1;  transform: scale(1.8); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ov-sp-net-node-pulse { animation: none !important; opacity: .7; }
+}
+@media (max-width: 640px) {
+  .ov-sp-network { margin-bottom: 20px; }
+}
+
+/* ── FAQ: four small supporting indicators under the heading column ── */
+.ov-faq-badges { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
+.ov-faq-badge { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,.5); }
+.ov-faq-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px rgba(183,255,42,.5); flex-shrink: 0; }
+@media (max-width: 900px) {
+  .ov-faq-badges { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 10px 18px; margin-top: 20px; }
 }
