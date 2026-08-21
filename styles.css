@@ -41187,8 +41187,9 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 /* ── Grid sparks — ambient energy traces along the background grid ──
    Spawned/removed by the JS in the script block near ovInitCountUp.
    transform + opacity only (no layout properties), small (4px) dot with
-   a soft core-only glow, slow (2.5s–4s, set per-spark via inline
-   animation-duration in JS), at most 2 concurrent — occasional, calm,
+   a soft core-only glow, extremely slow (5s–8s, set per-spark via inline
+   animation-duration in JS — a slow pulse travelling through the grid,
+   not a moving particle), at most 2 concurrent — occasional, calm,
    technical, never neon. */
 .ov-grid-spark {
   position: absolute;
@@ -41203,8 +41204,8 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
   opacity: 0;
   will-change: transform, opacity;
 }
-.ov-grid-spark-h { animation: ovSparkTravelH 3s cubic-bezier(.4,0,.2,1) forwards; }
-.ov-grid-spark-v { animation: ovSparkTravelV 3s cubic-bezier(.4,0,.2,1) forwards; }
+.ov-grid-spark-h { animation: ovSparkTravelH 6.5s cubic-bezier(.4,0,.2,1) forwards; }
+.ov-grid-spark-v { animation: ovSparkTravelV 6.5s cubic-bezier(.4,0,.2,1) forwards; }
 @keyframes ovSparkTravelH {
   0%   { opacity: 0;  transform: translateX(0) scale(.6); }
   14%  { opacity: 1;  transform: translateX(calc(var(--spark-dist) * .1)) scale(1); }
@@ -41275,4 +41276,66 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 .ov-faq-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px rgba(183,255,42,.5); flex-shrink: 0; }
 @media (max-width: 900px) {
   .ov-faq-badges { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 10px 18px; margin-top: 20px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN v6 — Final polish pass 3
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Trusted section: heading promoted to the same scale as every other
+   major section headline (reuses .ov-section-h directly, no separate
+   font-size rule needed), stats as supporting content, large wireframe
+   globe as the section's main visual, in that order. */
+.ov-sp-stats { margin-top: 44px; }
+
+/* ── Wireframe globe — built from thin latitude/longitude lines, small
+   location dots and subtle connections, so it reads as an extension of
+   the page's own background grid rather than a stock world map. */
+.ov-globe {
+  width: 100%;
+  max-width: 620px;
+  margin: 56px auto 0;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.ov-globe.ov-vis { opacity: 1; transform: translateY(0); }
+.ov-globe-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.ov-globe-outline { fill: none; stroke: rgba(255,255,255,.16); stroke-width: 1.2; }
+.ov-globe-lat { fill: none; stroke: rgba(255,255,255,.09); stroke-width: 1; }
+.ov-globe-merid { fill: none; stroke: rgba(255,255,255,.13); stroke-width: 1; }
+.ov-globe-conn { stroke: rgba(183,255,42,.14); stroke-width: 1; }
+.ov-globe-dot { fill: rgba(255,255,255,.5); }
+.ov-globe-dot-pulse {
+  fill: var(--green);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ovGlobeDotPulse 5s ease-in-out infinite;
+}
+@keyframes ovGlobeDotPulse {
+  0%, 100% { opacity: .55; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.7); }
+}
+
+/* Meridian ellipses sweep rx slowly (0 -> full radius -> 0), staggered
+   with negative delays across a shared ~47s cycle. Four lines drifting
+   in and out of phase reads as a very slow sphere rotation without any
+   3D transform — smooth, GPU-light, and "almost stationary at first
+   glance" per spec (one full sweep is far longer than a glance). */
+@keyframes ovGlobeMeridianSweep {
+  0%   { rx: 3px; }
+  50%  { rx: 168px; }
+  100% { rx: 3px; }
+}
+.ov-globe-merid-1 { animation: ovGlobeMeridianSweep 47s ease-in-out infinite; animation-delay: -2s; }
+.ov-globe-merid-2 { animation: ovGlobeMeridianSweep 47s ease-in-out infinite; animation-delay: -13.75s; }
+.ov-globe-merid-3 { animation: ovGlobeMeridianSweep 47s ease-in-out infinite; animation-delay: -25.5s; }
+.ov-globe-merid-4 { animation: ovGlobeMeridianSweep 47s ease-in-out infinite; animation-delay: -37.25s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-globe-merid { animation: none !important; rx: 90px !important; }
+  .ov-globe-dot-pulse { animation: none !important; opacity: .75; }
+}
+@media (max-width: 640px) {
+  .ov-globe { max-width: 320px; margin-top: 40px; }
 }
