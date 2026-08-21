@@ -40983,3 +40983,185 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
   .ov-wall-row + .ov-wall-row { margin-top: 14px; }
   .ov-wall::before, .ov-wall::after { width: 60px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN v3 — One continuous black environment + full-screen sections
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── One consistent background for the whole page ─────────────────
+   #lp-stage wraps every landing section in normal flow, so painting
+   the grid here (default background-attachment:scroll — the pattern
+   is "printed" onto #lp-stage's own tall box once, top to bottom, and
+   scrolls past naturally with it) gives one seamless texture behind
+   every section instead of each section declaring its own color/
+   gradient. Deliberately subtle: 2.2% white lines, no glow wash. */
+#lp-stage {
+  background-color: #07070A !important;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px) !important;
+  background-size: 56px 56px !important;
+}
+
+/* Every section becomes transparent so the one global background above
+   shows through consistently — replaces the previous per-section
+   background-color/gradient patchwork (including the pricing section's
+   green-tinted gradient and the alternating .ov-wf-alt tint), which is
+   exactly the "black -> grey -> green -> black" banding this removes. */
+#ov-hero, .ov-wf-section, .ov-wf-section.ov-wf-alt,
+.ov-showcase-section, .ov-brands-section, .ov-social-proof,
+.ov-reviews-section, .ov-pricing-section, .ov-faq-section, #ov-final {
+  background: transparent !important;
+}
+
+/* The large green glow that used to wash the whole hero background —
+   removed per spec; lime stays an accent (buttons, active states,
+   small tasteful glows like #ov-final's), never a background wash. */
+.lp-hero-glow { display: none !important; }
+
+/* ── Full-screen section rhythm ─────────────────────────────────────
+   min-height: calc(100vh - navbar) rather than plain 100vh — sections
+   live inside #view-landing, which is already offset below the fixed
+   navbar (see the navbar/scroll-container fix), so this sizes each
+   section to exactly the visible scrollable area per "screen", not a
+   viewport-height box that would run 64px past it every time. */
+#ov-hero, .ov-wf-section, .ov-showcase-section, .ov-brands-section,
+.ov-social-proof, .ov-reviews-section, .ov-pricing-section,
+.ov-faq-section, #ov-final {
+  min-height: calc(100vh - var(--lp-nav-h)) !important;
+}
+.ov-wf-section, .ov-showcase-section, .ov-brands-section,
+.ov-social-proof, .ov-reviews-section, .ov-pricing-section,
+.ov-faq-section {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+/* Give the visual/product-UI column more room than a plain 50/50 split
+   — it should read as a real product screenshot, not a card sharing
+   space equally with the copy. Works for both normal and .ov-wf-inner-
+   rev layouts since the visual is always DOM-second (grid column 2);
+   -rev only flips which SIDE it displays on via direction:rtl. */
+.ov-wf-inner { grid-template-columns: 1fr 1.15fr !important; }
+
+/* Mobile: the one-screen-per-section rule is a desktop principle. Below
+   this width, let sections size to their actual content instead of
+   forcing a min-height that would otherwise pad short sections with
+   dead space on a small screen. */
+@media (max-width: 900px) {
+  #ov-hero, .ov-wf-section, .ov-showcase-section, .ov-brands-section,
+  .ov-social-proof, .ov-reviews-section, .ov-pricing-section,
+  .ov-faq-section, #ov-final {
+    min-height: auto !important;
+  }
+  .ov-wf-inner { grid-template-columns: 1fr !important; }
+}
+
+/* ── Hero: wide editorial headline, moderate description, compact
+   product-interaction prompt field — three different widths on
+   purpose, not one shared container width for everything. ── */
+.lp-hero-inner {
+  width: min(100% - (var(--lp-gutter) * 2), 1800px) !important;
+  max-width: 1800px !important;
+  gap: 28px;
+}
+.lp-hero-h1 {
+  width: min(88vw, 1500px) !important;
+  max-width: 1500px !important;
+}
+.lp-hero-sub {
+  width: 100% !important;
+  max-width: 820px !important;
+}
+.lp-hero-input-wrap {
+  width: 100% !important;
+  max-width: 640px !important;
+}
+@media (max-width: 900px) {
+  .lp-hero-h1 { width: 100% !important; }
+  .lp-hero-input-wrap { max-width: 100% !important; }
+}
+
+/* ── FAQ: left heading / right accordion, not a centered block ──────
+   .ov-faq-inner now has exactly two direct children — .ov-faq-head
+   (heading+sub, wrapped for this) and .ov-faq-list — so this is a
+   clean 2-column grid, no markup gymnastics needed. The old centered-
+   text rule (.ov-faq-section > .ov-faq-inner > .ov-section-h) no
+   longer matches anything since .ov-section-h is now nested one level
+   deeper, inside .ov-faq-head — it's just inert, not overridden. */
+.ov-faq-inner {
+  display: grid !important;
+  grid-template-columns: 1fr 1.4fr !important;
+  gap: 64px !important;
+  align-items: center !important;
+  text-align: left !important;
+}
+.ov-faq-head .ov-section-h,
+.ov-faq-head .ov-section-sub { text-align: left !important; }
+.ov-faq-head .ov-section-sub {
+  max-width: 380px;
+  /* .ov-section-sub's base rule centers itself via margin-left/right:
+     auto (built for the old single-column centered sections) — text-
+     align:left alone doesn't touch that, so it needs an explicit
+     override here too, or the block still self-centers regardless of
+     its text alignment. */
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+.ov-faq-list { grid-template-columns: 1fr !important; column-gap: 0 !important; }
+@media (max-width: 900px) {
+  .ov-faq-inner { grid-template-columns: 1fr !important; gap: 32px !important; text-align: center !important; }
+  .ov-faq-head .ov-section-h, .ov-faq-head .ov-section-sub { text-align: center !important; margin-left: auto; margin-right: auto; }
+}
+
+/* ── Intelligence/Autopilot/Business: substantially larger typography
+   and product UI, not just a small block centered in a tall empty
+   screen — making the SECTION full-height was only half the fix; the
+   CONTENT itself needed to grow to actually fill it. ── */
+.ov-wf-h2 {
+  font-size: clamp(38px, 3.2vw, 54px) !important;
+  margin-bottom: 22px !important;
+}
+.ov-wf-desc {
+  font-size: 17px !important;
+  max-width: 480px;
+  margin-bottom: 32px !important;
+}
+.ov-wf-bullets { gap: 16px !important; margin-bottom: 40px !important; }
+.ov-wf-bullets li { font-size: 15px !important; }
+
+.ov-launch-mock, .ov-conn-workspace, .ov-an-mock { font-size: 1.15em; }
+.ov-launch-mock {
+  padding: 40px 40px !important;
+  gap: 4px;
+  min-height: 66vh !important;
+  justify-content: center !important;
+}
+.ov-lm-step { padding: 20px 0 !important; }
+.ov-lm-connector { height: 28px !important; }
+.ov-an-kv { font-size: 28px !important; }
+.ov-an-kpi { padding: 18px 0 !important; }
+.ov-an-table-hdr, .ov-an-row { padding-top: 18px !important; padding-bottom: 18px !important; }
+.ov-an-mock { min-height: 66vh !important; display: flex !important; flex-direction: column !important; justify-content: center !important; }
+.ov-conn-cards, .ov-conn-ws-head { padding: 18px 22px !important; }
+.ov-conn-name { font-size: 16px !important; }
+.ov-conn-sub { font-size: 13px !important; }
+.ov-conn-workspace { min-height: 66vh !important; justify-content: center !important; gap: 22px !important; }
+.ov-conn-stat-val { font-size: 22px !important; }
+
+@media (max-width: 900px) {
+  .ov-wf-h2 { font-size: 30px !important; }
+  .ov-launch-mock, .ov-conn-workspace, .ov-an-mock { font-size: 1em; min-height: auto !important; }
+  .ov-launch-mock { padding: 22px 24px !important; }
+}
+
+/* ── Larger ad-wall cards — the wall should visually dominate the
+   showcase screen, not sit as a strip of small tiles. ── */
+.ov-wall-card { width: 340px !important; height: 220px !important; }
+@media (max-width: 900px) {
+  .ov-wall-card { width: 260px !important; height: 168px !important; }
+}
+@media (max-width: 640px) {
+  .ov-wall-card { width: 190px !important; height: 124px !important; }
+}
