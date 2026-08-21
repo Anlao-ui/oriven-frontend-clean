@@ -3839,7 +3839,14 @@ var OV_LAND=[[[107,77],[114.1,75.8],[109.4,74.2],[127,73.6],[131.3,70.8],[139.9,
 
   function ll3d(lat, lon){
     var ph = (90 - lat) * Math.PI / 180;
-    var th = lon * Math.PI / 180;
+    // Longitude negated: the unrotated mapping otherwise puts increasing
+    // longitude at decreasing screen-X once rotated (verified against
+    // Africa's own west/east extent — West Africa rendered right of East
+    // Africa), i.e. the whole globe read horizontally mirrored. Negating
+    // here restores normal west-is-left orientation and makes dragging
+    // right move the visible face eastward (Americas -> Atlantic ->
+    // Europe -> Asia) instead of the long way round through the Pacific.
+    var th = -lon * Math.PI / 180;
     return [Math.sin(ph)*Math.cos(th), Math.cos(ph), Math.sin(ph)*Math.sin(th)];
   }
 
