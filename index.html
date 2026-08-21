@@ -546,10 +546,10 @@
           </div>
           <div class="ov-conn-badge-grey">Connect</div>
         </div>
-        <div class="ov-conn-stat-row" data-observe style="transition-delay:.3s">
-          <div class="ov-conn-stat"><div class="ov-conn-stat-val">&euro;7,200</div><div class="ov-conn-stat-lbl">Total Spend</div></div>
-          <div class="ov-conn-stat"><div class="ov-conn-stat-val">3.6&times;</div><div class="ov-conn-stat-lbl">Blended ROAS</div></div>
-          <div class="ov-conn-stat"><div class="ov-conn-stat-val ov-green">284</div><div class="ov-conn-stat-lbl">Conversions</div></div>
+        <div class="ov-conn-stat-row" id="ovConnStats" data-observe style="transition-delay:.3s">
+          <div class="ov-conn-stat"><div class="ov-conn-stat-val" data-count-target="7200" data-count-prefix="&euro;" data-count-group="1">&euro;0</div><div class="ov-conn-stat-lbl">Total Spend</div></div>
+          <div class="ov-conn-stat"><div class="ov-conn-stat-val" data-count-target="3.6" data-count-decimals="1" data-count-suffix="&times;">0.0&times;</div><div class="ov-conn-stat-lbl">Blended ROAS</div></div>
+          <div class="ov-conn-stat"><div class="ov-conn-stat-val ov-green" data-count-target="284">0</div><div class="ov-conn-stat-lbl">Conversions</div></div>
         </div>
       </div>
       </div>
@@ -3134,29 +3134,54 @@ function ovInitCountUp(container, opts){
 
   if(ovReduceMotion){ vals.forEach(ovCountFinal); return; }
 
-  var counted = false;
   var root = document.getElementById('view-landing');
+  // Replays every time the container re-enters the viewport (not a
+  // once-only counter): entering resets every value to zero then counts
+  // up; leaving resets back to zero so it's ready to count up again on
+  // the next entry. animId invalidates any in-flight tick loops from a
+  // previous run so a quick leave-then-re-enter never has two runs
+  // fighting over the same element's textContent.
+  var animId = 0;
+  function resetToZero(){
+    vals.forEach(function(el){
+      var dec     = parseInt(el.dataset.countDecimals || '0', 10);
+      var prefix  = el.dataset.countPrefix || '';
+      var suffix  = el.dataset.countSuffix || '';
+      var grouped = el.dataset.countGroup === '1';
+      el.textContent = prefix + ovCountFmt(0, dec, grouped) + suffix;
+    });
+  }
+  function runCountUp(){
+    var myId = ++animId;
+    vals.forEach(function(el, idx){
+      var target  = parseFloat(el.dataset.countTarget);
+      var dec     = parseInt(el.dataset.countDecimals || '0', 10);
+      var prefix  = el.dataset.countPrefix || '';
+      var suffix  = el.dataset.countSuffix || '';
+      var grouped = el.dataset.countGroup === '1';
+      setTimeout(function(){
+        if(myId !== animId) return;
+        var s = Date.now(), d = duration;
+        (function tick(){
+          if(myId !== animId) return;
+          var t = Math.min(1,(Date.now()-s)/d);
+          var ease = 1-Math.pow(1-t,3);
+          var v = target*ease;
+          el.textContent = prefix + ovCountFmt(dec ? v : Math.floor(v), dec, grouped) + suffix;
+          if(t<1) requestAnimationFrame(tick);
+          else if(myId === animId) ovCountFinal(el); // land exactly on target, no float rounding artifacts
+        })();
+      }, idx*stagger);
+    });
+  }
+
   new IntersectionObserver(function(entries){
-    if(entries[0].isIntersecting && !counted){
-      counted = true;
-      vals.forEach(function(el, idx){
-        var target  = parseFloat(el.dataset.countTarget);
-        var dec     = parseInt(el.dataset.countDecimals || '0', 10);
-        var prefix  = el.dataset.countPrefix || '';
-        var suffix  = el.dataset.countSuffix || '';
-        var grouped = el.dataset.countGroup === '1';
-        setTimeout(function(){
-          var s = Date.now(), d = duration;
-          (function tick(){
-            var t = Math.min(1,(Date.now()-s)/d);
-            var ease = 1-Math.pow(1-t,3);
-            var v = target*ease;
-            el.textContent = prefix + ovCountFmt(dec ? v : Math.floor(v), dec, grouped) + suffix;
-            if(t<1) requestAnimationFrame(tick);
-            else ovCountFinal(el); // land exactly on target, no float rounding artifacts
-          })();
-        }, idx*stagger);
-      });
+    if(entries[0].isIntersecting){
+      resetToZero();
+      runCountUp();
+    } else {
+      animId++; // invalidate any ticks still in flight from this run
+      resetToZero();
     }
   }, { root: root, threshold: threshold }).observe(container);
 }
@@ -3518,15 +3543,74 @@ function lpAnimProcess(){
       if(e.isIntersecting) { e.target.classList.add('ov-vis'); }
       else { e.target.classList.remove('ov-vis'); }
     });
-  }, { root: lv, threshold: 0.1 });
+  }, { root: lv, threshold: 0.18 });
 
   document.querySelectorAll('[data-observe]').forEach(function(el){ io.observe(el); });
 
-  // Counter animations — Social Proof stats and Section 05 (Analyze) KPIs.
-  // Both reuse the single ovInitCountUp() mechanism defined above.
+  // Counter animations — Social Proof stats, Intelligence KPIs, and the
+  // Business workspace stat row. All reuse the single ovInitCountUp()
+  // mechanism defined above (now replays every viewport entry, see its
+  // definition — reset to zero on enter, animate up, reset again on
+  // leave so it's ready to replay).
   ovInitCountUp(document.getElementById('ovSpStats'), { duration: 1400, stagger: 150, threshold: 0.25 });
   ovInitCountUp(document.getElementById('ovAnKpis'),  { duration: 1400, stagger: 120, threshold: 0.3 });
+  ovInitCountUp(document.getElementById('ovConnStats'), { duration: 1300, stagger: 130, threshold: 0.3 });
 })();
+
+// ── Grid sparks: ambient "energy trace" motion along the background
+// grid (Final Polish). A tiny lime dot appears at a random grid
+// intersection within the current viewport, travels 3-4 grid cells
+// (56px each, matching the grid's own background-size) in one random
+// direction, fades out, and removes itself — never more than a few at
+// once, never across the whole page. Positioned as a normal absolute
+// child of #lp-stage (the same element the grid background is painted
+// on), not position:fixed, so a spark spawned mid-scroll stays visually
+// locked to its grid intersection instead of sliding out of alignment.
+(function(){
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var stage = document.getElementById('lp-stage');
+  var scroller = document.getElementById('view-landing');
+  if (!stage || !scroller) return;
+
+  var CELL = 56; // matches .lp-hero-grid / #lp-stage's background-size
+  var MAX_SPARKS = 3;
+  var active = 0;
+
+  function spawnSpark(){
+    if (active >= MAX_SPARKS) return;
+    var vw = scroller.clientWidth, vh = scroller.clientHeight;
+    var cols = Math.max(6, Math.floor(vw / CELL));
+    var rows = Math.max(6, Math.floor(vh / CELL));
+    var col = 2 + Math.floor(Math.random() * (cols - 4));
+    var row = 2 + Math.floor(Math.random() * (rows - 4));
+    var x = col * CELL;
+    var y = scroller.scrollTop + row * CELL;
+
+    var horizontal = Math.random() < 0.5;
+    var positive   = Math.random() < 0.5;
+    var cells      = 3 + Math.round(Math.random()); // 3 or 4 cells
+    var dist       = (positive ? 1 : -1) * cells * CELL;
+
+    var el = document.createElement('div');
+    el.className = 'ov-grid-spark ' + (horizontal ? 'ov-grid-spark-h' : 'ov-grid-spark-v');
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.setProperty('--spark-dist', dist + 'px');
+    stage.appendChild(el);
+    active++;
+
+    el.addEventListener('animationend', function(){
+      el.remove();
+      active--;
+    });
+  }
+
+  (function loop(){
+    spawnSpark();
+    setTimeout(loop, 900 + Math.random() * 1800);
+  })();
+})();
+
 // Hero canvas particles
 (function(){
   var canvas = document.getElementById('ov-canvas');

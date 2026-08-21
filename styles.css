@@ -41165,3 +41165,56 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 @media (max-width: 640px) {
   .ov-wall-card { width: 190px !important; height: 124px !important; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN v4 — Final polish: remove section dividers, grid sparks,
+   replay-on-reenter for existing motion, no hero glow.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* One continuous canvas — no visible seam between sections. These were
+   the only four landing sections still drawing their own border as a
+   separator (the footer's own top border is left alone: that's a real
+   boundary between page content and the footer, not a divider between
+   two "screens" of the same story). */
+.ov-wf-section, .ov-showcase-section, .ov-brands-section, .ov-social-proof {
+  border-bottom: none !important;
+}
+
+/* Hero glow — fully neutralized, not just hidden, so there's no residual
+   paint/compositing cost from a display:none radial-gradient layer. */
+.lp-hero-glow { display: none !important; background: none !important; }
+
+/* ── Grid sparks — ambient energy traces along the background grid ──
+   Spawned/removed by the JS in the script block near ovInitCountUp.
+   transform + opacity only (no layout properties), small (4px) dot,
+   short-lived (~1.5s), at most 3 concurrent. */
+.ov-grid-spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px; /* center on its left/top coordinate */
+  border-radius: 50%;
+  background: var(--green, #B7FF2A);
+  box-shadow: 0 0 5px 1px rgba(183,255,42,.75), 0 0 12px 3px rgba(183,255,42,.25);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.ov-grid-spark-h { animation: ovSparkTravelH 1.5s cubic-bezier(.4,0,.2,1) forwards; }
+.ov-grid-spark-v { animation: ovSparkTravelV 1.5s cubic-bezier(.4,0,.2,1) forwards; }
+@keyframes ovSparkTravelH {
+  0%   { opacity: 0;  transform: translateX(0) scale(.6); }
+  14%  { opacity: 1;  transform: translateX(calc(var(--spark-dist) * .1)) scale(1); }
+  80%  { opacity: .55; }
+  100% { opacity: 0;  transform: translateX(var(--spark-dist)) scale(.7); }
+}
+@keyframes ovSparkTravelV {
+  0%   { opacity: 0;  transform: translateY(0) scale(.6); }
+  14%  { opacity: 1;  transform: translateY(calc(var(--spark-dist) * .1)) scale(1); }
+  80%  { opacity: .55; }
+  100% { opacity: 0;  transform: translateY(var(--spark-dist)) scale(.7); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ov-grid-spark { display: none !important; }
+}
