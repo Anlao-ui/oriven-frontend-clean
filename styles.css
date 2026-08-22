@@ -41325,3 +41325,139 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 @media (max-width: 640px) {
   .ov-globe { max-width: 320px; margin-top: 40px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN v9 — Ad showcase rebuilt as generated creatives (no image
+   assets). Every visual is inline SVG + CSS; see index.html's _advKind
+   library and AD_DATA for the 30 cards. Only .ov-wall-card's own
+   internal layout changes here — the marquee/track/animation mechanics
+   above (ovWallSlide, fade transition, hover-pause) are untouched.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Base override: the old rule centered a single <img>/placeholder span;
+   generated cards need normal top-to-bottom flow instead. */
+.adv-card {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+  background: #0c0c10;
+  /* Skips paint/layout work for the many off-screen duplicate cards the
+     infinite-loop marquee keeps in the DOM (each row doubles its 10-card
+     set) — a real perf win for 30 cards x SVG + animated children x 2
+     duplicates x 2 rows, with zero visual difference. */
+  content-visibility: auto;
+  contain-intrinsic-size: 340px 220px;
+}
+.adv-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ── Shared decorative-animation vocabulary used across every _advKind
+   composition — small, slow, staggered by inline animation-delay where
+   it matters (chart bars) so a card never reads as "everything moving
+   at once". ── */
+@keyframes advFloat      { 0%, 100% { transform: translateY(0); }     50% { transform: translateY(-6px); } }
+@keyframes advFloatSlow  { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-4px) rotate(1.5deg); } }
+@keyframes advPulse      { 0%, 100% { opacity: .6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.35); } }
+@keyframes advSpin       { to { transform: rotate(360deg); } }
+@keyframes advSteam      { 0% { opacity: 0; transform: translateY(2px); } 35% { opacity: .6; } 100% { opacity: 0; transform: translateY(-16px); } }
+@keyframes advGrow       { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes advProgress   { 0% { width: 4%; } 100% { width: 96%; } }
+
+.adv-float      { animation: advFloat 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.adv-float-slow { animation: advFloatSlow 7s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.adv-pulse      { animation: advPulse 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.adv-spin-slow  { animation: advSpin 20s linear infinite; transform-box: fill-box; transform-origin: center; }
+.adv-steam path { animation: advSteam 3s ease-in-out infinite; transform-box: fill-box; }
+.adv-steam path:nth-child(2) { animation-delay: .5s; }
+.adv-steam path:nth-child(3) { animation-delay: 1s; }
+.adv-grow       { transform-box: fill-box; transform-origin: bottom; animation: advGrow 1.4s cubic-bezier(.16,1,.3,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .adv-float, .adv-float-slow, .adv-pulse, .adv-spin-slow, .adv-steam path, .adv-t-progress span { animation: none !important; }
+  .adv-grow { animation: none !important; transform: scaleY(1) !important; }
+}
+
+/* ── Google Ads card — text-forward, search-ad language, with a
+   compact generated visual as a secondary accent (not full-bleed). ── */
+.adv-card-google { padding: 16px 18px 14px; gap: 8px; }
+.adv-g-top { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.adv-g-sponsored { border: 1px solid rgba(255,255,255,.28); border-radius: 3px; padding: 1px 5px 0; font-size: 9.5px; font-weight: 700; letter-spacing: .03em; color: rgba(255,255,255,.6); line-height: 1.5; }
+.adv-g-dot { color: rgba(255,255,255,.3); }
+.adv-g-adv { font-weight: 500; color: rgba(255,255,255,.55); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adv-g-body { flex: 1; display: flex; gap: 14px; align-items: flex-start; min-height: 0; }
+.adv-g-text { flex: 1; min-width: 0; }
+.adv-g-cat { font-size: 10px; color: rgba(255,255,255,.35); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .03em; }
+.adv-g-headline { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.26; margin-bottom: 5px; letter-spacing: -.01em; }
+.adv-g-desc { font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.adv-g-visual { width: 62px; height: 62px; flex-shrink: 0; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); position: relative; overflow: hidden; }
+.adv-g-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.07); }
+.adv-g-cta { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--green, #B7FF2A); }
+.adv-g-cta svg { transition: transform .2s ease; }
+.ov-wall-card:hover .adv-g-cta svg { transform: translateX(2px); }
+.adv-g-stat { font-size: 11px; color: #FBBC05; font-weight: 600; }
+
+/* ── Meta Ads card — social-feed language, the generated visual is the
+   dominant element (fills the middle of the card). ── */
+.adv-m-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px 8px; }
+.adv-m-avatar { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--green, #B7FF2A), #3B82F6); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #07070A; flex-shrink: 0; }
+.adv-m-who { display: flex; flex-direction: column; line-height: 1.25; flex: 1; min-width: 0; }
+.adv-m-name { font-size: 12px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adv-m-sponsored { font-size: 10px; color: rgba(255,255,255,.4); }
+.adv-m-globe { color: rgba(255,255,255,.35); flex-shrink: 0; }
+.adv-m-visual { position: relative; flex: 1; min-height: 0; background: rgba(255,255,255,.025); overflow: hidden; margin: 0 2px; }
+.adv-m-cat { position: absolute; left: 10px; bottom: 8px; font-size: 10px; font-weight: 600; letter-spacing: .02em; color: rgba(255,255,255,.75); background: rgba(7,7,10,.55); padding: 3px 8px; border-radius: 20px; }
+.adv-m-body { padding: 9px 12px 5px; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.adv-m-copy { font-size: 11.5px; line-height: 1.4; color: rgba(255,255,255,.65); flex: 1; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.adv-m-copy strong { color: #fff; font-weight: 700; }
+.adv-m-cta { flex-shrink: 0; font-size: 11px; font-weight: 700; color: #07070A; background: var(--green, #B7FF2A); padding: 6px 11px; border-radius: 7px; white-space: nowrap; }
+.adv-m-meta { padding: 0 12px 10px; display: flex; align-items: center; gap: 4px; font-size: 10.5px; color: rgba(255,255,255,.4); }
+.adv-m-likes { display: flex; align-items: center; gap: 4px; color: rgba(238,29,82,.75); }
+
+/* ── TikTok Ads card — vertical (9:16), full-bleed animated visual,
+   large bottom-aligned typography, simulated video-player chrome. ── */
+.ov-wall-card.ov-wall-card-tiktok {
+  width: 200px !important;
+  height: 356px !important;
+  background: #000;
+}
+.adv-card-tiktok { position: relative; }
+.adv-t-visual { position: absolute; inset: 0; }
+.adv-t-visual .adv-svg { transform: scale(1.25); }
+.adv-t-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,7,10,.12) 0%, rgba(7,7,10,.08) 38%, rgba(7,7,10,.94) 100%); }
+.adv-t-progress { position: absolute; top: 8px; left: 10px; right: 10px; height: 2px; background: rgba(255,255,255,.22); border-radius: 2px; overflow: hidden; }
+.adv-t-progress span { display: block; height: 100%; width: 38%; background: #fff; border-radius: 2px; animation: advProgress 5s linear infinite; }
+.adv-t-sidebar { position: absolute; right: 8px; bottom: 78px; display: flex; flex-direction: column; gap: 12px; align-items: center; z-index: 1; }
+.adv-t-icon { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center; color: #fff; }
+.adv-t-heart { color: #EE1D52; background: rgba(238,29,82,.18); }
+.adv-t-spin { animation: advSpin 3s linear infinite; color: rgba(255,255,255,.85); }
+.adv-t-foot { position: absolute; left: 10px; right: 36px; bottom: 10px; z-index: 1; }
+.adv-t-handle { font-size: 10.5px; font-weight: 600; color: rgba(255,255,255,.85); margin-bottom: 5px; }
+.adv-t-sponsored { color: rgba(255,255,255,.45); font-weight: 400; }
+.adv-t-hook { font-size: 14px; font-weight: 800; color: #fff; line-height: 1.22; margin-bottom: 3px; letter-spacing: -.01em; }
+.adv-t-desc { font-size: 10.5px; color: rgba(255,255,255,.62); margin-bottom: 8px; }
+.adv-t-cta { display: inline-block; font-size: 11px; font-weight: 700; color: #fff; border: 1.5px solid #fff; padding: 6px 14px; border-radius: 22px; }
+
+@media (max-width: 900px) {
+  .ov-wall-card.ov-wall-card-tiktok { width: 158px !important; height: 281px !important; }
+  .adv-g-headline { font-size: 13.5px; }
+  .adv-g-desc { font-size: 11px; }
+  .adv-m-copy { font-size: 11px; }
+  .adv-t-hook { font-size: 12.5px; }
+}
+@media (max-width: 640px) {
+  .ov-wall-card.ov-wall-card-tiktok { width: 128px !important; height: 227px !important; }
+  .adv-card-google { padding: 11px 12px 10px; }
+  .adv-g-visual { width: 46px; height: 46px; }
+  .adv-g-headline { font-size: 12px; margin-bottom: 3px; }
+  .adv-g-desc { font-size: 10.5px; -webkit-line-clamp: 1; }
+  .adv-g-foot { padding-top: 6px; }
+  .adv-m-head { padding: 7px 9px 5px; }
+  .adv-m-body { padding: 7px 9px 4px; }
+  .adv-m-copy { font-size: 10px; -webkit-line-clamp: 1; }
+  .adv-t-hook { font-size: 11px; }
+  .adv-t-desc { display: none; }
+  .adv-t-sidebar { bottom: 60px; gap: 8px; }
+  .adv-t-icon { width: 21px; height: 21px; }
+}

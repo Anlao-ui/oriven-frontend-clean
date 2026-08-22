@@ -4058,29 +4058,261 @@ function ovHeroPlatformPick(btn) {
 // Ad Examples showcase — switches which platform's example is shown.
 // Purely presentational (Redesign): swaps a class on the matching
 // data-platform-example panel, no backend call involved.
-// ── Ad Examples Showcase: infinite two-row wall, data-driven ──────────
-// Replace the empty strings below with real image paths (e.g.
-// '/assets/ads/google-1.jpg') to swap a placeholder for a real ad — the
-// render/animation/layout code below never needs to change. Any slot left
-// empty keeps rendering a clean "Google Ads N"-style label placeholder.
-var AD_IMAGES = {
-  google: ['', '', '', '', '', '', '', '', '', ''],
-  meta:   ['', '', '', '', '', '', '', '', '', ''],
-  tiktok: ['', '', '', '', '', '', '', '', '', ''],
-};
-var AD_LABELS = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads' };
+// ── Ad Examples Showcase: generated advertising creatives, no image
+// assets — every "creative" is drawn live with inline SVG + CSS
+// (gradients, shapes, animation). _advKind is a small reusable
+// composition library (bottle, dashboard, athlete, orb, food, neural,
+// garment, chart, phone, geo); each of the 30 cards below picks one kind
+// + an accent color + real copy, so no two adjacent cards look alike
+// without hand-authoring 30 bespoke illustrations. ──────────────────────
 
-function ovAdCardHtml(platform, idx, src) {
-  var label = AD_LABELS[platform] + ' ' + (idx + 1);
-  var body = src
-    ? '<img src="' + src + '" alt="' + label + '" loading="lazy">'
-    : '<span class="ov-wall-card-placeholder">' + label + '</span>';
-  return '<div class="ov-wall-card ov-wall-card-' + platform + '">' + body + '</div>';
+var _advGidN = 0;
+function _advGid(){ return 'advg' + (_advGidN++); }
+
+var _advKind = {
+  bottle: function(c){
+    var g = _advGid();
+    return '<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" class="adv-svg">' +
+      '<defs><linearGradient id="'+g+'" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="'+c+'" stop-opacity=".9"/>' +
+        '<stop offset="100%" stop-color="'+c+'" stop-opacity=".15"/>' +
+      '</linearGradient></defs>' +
+      '<ellipse cx="100" cy="168" rx="42" ry="7" fill="#000" opacity=".35"/>' +
+      '<g class="adv-float">' +
+        '<rect x="72" y="52" width="56" height="112" rx="16" fill="url(#'+g+')"/>' +
+        '<rect x="84" y="30" width="32" height="26" rx="6" fill="'+c+'" opacity=".55"/>' +
+        '<rect x="78" y="98" width="44" height="20" rx="3" fill="#07070A" opacity=".55"/>' +
+        '<rect x="78" y="98" width="44" height="4" fill="'+c+'" opacity=".8"/>' +
+      '</g>' +
+    '</svg>';
+  },
+  dashboard: function(c){
+    var g = _advGid();
+    return '<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" class="adv-svg">' +
+      '<defs><linearGradient id="'+g+'" x1="0" y1="0" x2="1" y2="1">' +
+        '<stop offset="0%" stop-color="'+c+'" stop-opacity=".5"/>' +
+        '<stop offset="100%" stop-color="'+c+'" stop-opacity=".08"/>' +
+      '</linearGradient></defs>' +
+      '<rect x="34" y="98" width="80" height="56" rx="10" fill="url(#'+g+')" stroke="'+c+'" stroke-opacity=".3" class="adv-float-slow"/>' +
+      '<rect x="96" y="58" width="72" height="52" rx="10" fill="rgba(255,255,255,.05)" stroke="'+c+'" stroke-opacity=".35" class="adv-float"/>' +
+      '<polyline points="46,140 62,124 78,132 96,108 112,116" fill="none" stroke="'+c+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="112" cy="116" r="3.5" fill="'+c+'"/>' +
+      '<circle cx="112" cy="82" r="3" fill="'+c+'" opacity=".8" class="adv-pulse"/>' +
+      '<rect x="110" y="72" width="34" height="6" rx="3" fill="'+c+'" opacity=".5"/>' +
+      '<rect x="110" y="84" width="22" height="6" rx="3" fill="rgba(255,255,255,.25)"/>' +
+    '</svg>';
+  },
+  athlete: function(c){
+    return '<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" class="adv-svg">' +
+      '<g stroke="'+c+'" stroke-opacity=".22" stroke-width="1.5" class="adv-spin-slow" style="transform-box:fill-box;transform-origin:center">' +
+        '<line x1="100" y1="30" x2="100" y2="8"/><line x1="100" y1="30" x2="100" y2="8" transform="rotate(45 100 100)"/>' +
+        '<line x1="100" y1="30" x2="100" y2="8" transform="rotate(90 100 100)"/><line x1="100" y1="30" x2="100" y2="8" transform="rotate(135 100 100)"/>' +
+      '</g>' +
+      '<circle cx="108" cy="40" r="10" fill="'+c+'"/>' +
+      '<path d="M100 55 L92 90 L70 108 M100 55 L112 88 L134 76 M100 90 L104 130 L88 168 M104 130 L124 160" ' +
+        'stroke="'+c+'" stroke-width="9" stroke-linecap="round" fill="none" class="adv-float-slow"/>' +
+    '</svg>';
+  },
+  orb: function(c){
+    var g1=_advGid(), g2=_advGid();
+    return '<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" class="adv-svg">' +
+      '<defs>' +
+        '<radialGradient id="'+g1+'"><stop offset="0%" stop-color="'+c+'" stop-opacity=".55"/><stop offset="100%" stop-color="'+c+'" stop-opacity="0"/></radialGradient>' +
+        '<radialGradient id="'+g2+'"><stop offset="0%" stop-color="#fff" stop-opacity=".5"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>' +
+      '</defs>' +
+      '<circle cx="100" cy="100" r="70" fill="url(#'+g1+')" class="adv-float-slow"/>' +
+      '<circle cx="128" cy="76" r="30" fill="url(#'+g2+')" class="adv-float"/>' +
+      '<circle cx="100" cy="100" r="34" fill="none" stroke="'+c+'" stroke-opacity=".35" stroke-width="1"/>' +
+      '<circle cx="72" cy="130" r="4" fill="'+c+'" class="adv-pulse"/>' +
+    '</svg>';
+  },
+  food: function(c){
+    return '<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" class="adv-svg">' +
+      '<circle cx="100" cy="112" r="58" fill="rgba(255,255,255,.04)" stroke="'+c+'" stroke-opacity=".3"/>' +
+      '<circle cx="100" cy="112" r="40" fill="none" stroke="'+c+'" stroke-opacity=".2"/>' +
+      '<ellipse cx="88" cy="104" rx="20" ry="14" fill="'+c+'" opacity=".55"/>' +
+      '<circle cx="118" cy="118" r="12" fill="'+c+'" opacity=".35"/>' +
+      '<circle cx="108" cy="130" r="8" fill="#fff" opacity=".2"/>' +
+      '<g stroke="'+c+'" stroke-opacity=".4" stroke-width="2" stroke-linecap="round" fill="none" class="adv-steam">' +
+        '<path d="M84 56 q6 -10 0 -20"/><path d="M100 56 q6 -10 0 -20"/><path d="M116 56 q6 -10 0 -20"/>' +
+      '</g>' +
+    '</svg>';
+  },
+  neural: function(c){
+    var pts=[[60,70],[100,50],[140,72],[70,120],[130,124],[100,150]];
+    var edges=[[0,1],[1,2],[0,3],[1,4],[2,4],[3,5],[4,5],[1,3]];
+    var s='<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" class="adv-svg">';
+    s+='<g stroke="'+c+'" stroke-opacity=".3" stroke-width="1">';
+    edges.forEach(function(e){ s+='<line x1="'+pts[e[0]][0]+'" y1="'+pts[e[0]][1]+'" x2="'+pts[e[1]][0]+'" y2="'+pts[e[1]][1]+'"/>'; });
+    s+='</g>';
+    pts.forEach(function(p,i){ s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(i===1?5:3.5)+'" fill="'+c+'" opacity="'+(i%2?1:.6)+'"'+(i===1?' class="adv-pulse"':'')+'/>'; });
+    s+='</svg>';
+    return s;
+  },
+  garment: function(c){
+    return '<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" class="adv-svg">' +
+      '<g class="adv-float-slow">' +
+        '<path d="M100 44 a8 8 0 1 1 -0.1 0" fill="none" stroke="'+c+'" stroke-width="2.5"/>' +
+        '<path d="M100 52 L100 62" stroke="'+c+'" stroke-width="2.5"/>' +
+        '<path d="M100 62 L54 100 L64 112 L100 88 L136 112 L146 100 Z" fill="'+c+'" opacity=".18" stroke="'+c+'" stroke-opacity=".5" stroke-width="1.5"/>' +
+        '<path d="M64 100 L64 156 L136 156 L136 100" fill="none" stroke="'+c+'" stroke-opacity=".45" stroke-width="1.5"/>' +
+      '</g>' +
+    '</svg>';
+  },
+  chart: function(c){
+    var bars=[38,64,46,80,56];
+    var s='<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" class="adv-svg">';
+    s+='<line x1="40" y1="150" x2="164" y2="150" stroke="'+c+'" stroke-opacity=".25"/>';
+    bars.forEach(function(h,i){
+      var x=50+i*24;
+      s+='<rect x="'+x+'" y="'+(150-h)+'" width="14" height="'+h+'" rx="3" fill="'+c+'" opacity="'+(i===3?1:.45)+'" class="adv-grow" style="animation-delay:'+(i*0.15)+'s"/>';
+    });
+    s+='</svg>';
+    return s;
+  },
+  phone: function(c){
+    return '<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" class="adv-svg">' +
+      '<rect x="66" y="24" width="68" height="152" rx="16" fill="rgba(255,255,255,.04)" stroke="'+c+'" stroke-opacity=".4" stroke-width="2" class="adv-float-slow"/>' +
+      '<rect x="86" y="20" width="28" height="5" rx="2.5" fill="'+c+'" opacity=".5"/>' +
+      '<rect x="78" y="48" width="44" height="10" rx="3" fill="'+c+'" opacity=".5"/>' +
+      '<rect x="78" y="66" width="44" height="24" rx="6" fill="'+c+'" opacity=".18"/>' +
+      '<rect x="78" y="98" width="44" height="24" rx="6" fill="'+c+'" opacity=".12"/>' +
+      '<circle cx="118" cy="150" r="10" fill="'+c+'" class="adv-pulse"/>' +
+    '</svg>';
+  },
+  geo: function(c){
+    return '<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" class="adv-svg">' +
+      '<circle cx="80" cy="90" r="46" fill="'+c+'" opacity=".16" class="adv-float-slow"/>' +
+      '<rect x="96" y="76" width="60" height="60" rx="12" fill="'+c+'" opacity=".22" transform="rotate(18 126 106)" class="adv-float"/>' +
+      '<polygon points="70,150 110,150 90,114" fill="'+c+'" opacity=".3"/>' +
+    '</svg>';
+  }
+};
+
+var _advGoogleColor = '#FBBC05', _advMetaColor = '#3B82F6', _advTikTokColor = '#EE1D52';
+
+// ── 30 generated ad creatives — 10 per platform, real (fictional) copy,
+// no two adjacent cards sharing the same visual composition. ──────────
+var AD_DATA = {
+  google: [
+    { advertiser:'Oriven AI', category:'AI Advertising Platform', headline:'Your advertising is fragmented.', description:'Bring it together with AI.', cta:'Learn More', kind:'dashboard', stat:'4.9★' },
+    { advertiser:'CloudStack Analytics', category:'Business Intelligence', headline:'Real-time insight, zero setup.', description:'Connect your data in minutes, not weeks.', cta:'Start Free Trial', kind:'chart', stat:'12k+ teams' },
+    { advertiser:'Solstice Skincare', category:'Dermatologist-Formulated', headline:'Visible results in 14 days.', description:'Clinically tested, cruelty-free.', cta:'Shop Now', kind:'bottle' },
+    { advertiser:'Ironclad Fitness', category:'AI Training Plans', headline:'Personalized coaching, built for you.', description:'Adapts to your progress every week.', cta:'Get Started', kind:'athlete', stat:'4.8★' },
+    { advertiser:'Nomad Supply Co.', category:'Premium Travel Gear', headline:'Built to outlast the trip.', description:'Lifetime warranty on every bag.', cta:'Shop Collection', kind:'geo' },
+    { advertiser:'Verve AI', category:'Marketing Copilot', headline:'The AI copilot for marketing teams.', description:'Plan, write, and launch in one place.', cta:'Try Free', kind:'neural', stat:'50k+ users' },
+    { advertiser:'Bellwether Finance', category:'Automated Bookkeeping', headline:'Books that close themselves.', description:'Built for growing businesses.', cta:'See Pricing', kind:'chart' },
+    { advertiser:'Loom & Thread', category:'Sustainable Fashion', headline:'Made to last, not to trend.', description:'Responsibly sourced materials.', cta:'Explore', kind:'garment' },
+    { advertiser:'Bloom Botanicals', category:'Daily Wellness', headline:'Clinically-backed, simplified.', description:'One capsule, real research behind it.', cta:'Shop Now', kind:'bottle', stat:'4.7★' },
+    { advertiser:'Runway Analytics', category:'Campaign Intelligence', headline:'Data into decisions, in seconds.', description:'One dashboard, every platform.', cta:'Book a Demo', kind:'dashboard' }
+  ],
+  meta: [
+    { advertiser:'Pulse Fitness', category:'Fitness App', headline:'Your next PR starts today.', description:'Personalized plans that adapt as you grow.', cta:'Download', kind:'athlete', social:'12.4K' },
+    { advertiser:'Halo Skincare', category:'Skincare', headline:'Skin that glows without the guesswork.', description:'3-step routine, dermatologist approved.', cta:'Shop Now', kind:'orb', social:'8.1K' },
+    { advertiser:'Fernweg Travel Co.', category:'Travel Gear', headline:'Pack less. Discover more.', description:'Modular luggage for every trip.', cta:'Shop Collection', kind:'geo', social:'5.6K' },
+    { advertiser:'Nexus Analytics', category:'SaaS', headline:'Stop guessing. Start knowing.', description:'Real-time analytics for modern teams.', cta:'Learn More', kind:'dashboard', social:'9.3K' },
+    { advertiser:'Atlas Supplements', category:'Sports Nutrition', headline:'Fuel recovery, naturally.', description:'Third-party tested. Zero fillers.', cta:'Shop Now', kind:'bottle', social:'6.8K' },
+    { advertiser:'Kindred Kitchen', category:'Restaurant', headline:'Handmade, delivered fresh nightly.', description:'Local ingredients, chef-crafted.', cta:'Order Now', kind:'food', social:'15.2K' },
+    { advertiser:'Cortex AI', category:'AI Platform', headline:'An AI that understands your business.', description:'Not another generic chatbot.', cta:'Try Free', kind:'neural', social:'22.7K' },
+    { advertiser:'Drift Studio', category:'Fashion', headline:'Effortless style, delivered weekly.', description:'Curated to your taste, not trends.', cta:'Join Now', kind:'garment', social:'11.9K' },
+    { advertiser:'Pocket CRM', category:'Mobile App', headline:'Your whole pipeline. One tap away.', description:'Close deals from anywhere.', cta:'Install Free', kind:'phone', social:'7.4K' },
+    { advertiser:'Ledger Works', category:'B2B Finance', headline:'Invoicing that runs itself.', description:'Get paid 2x faster, automatically.', cta:'Get Started', kind:'chart', social:'4.2K' }
+  ],
+  tiktok: [
+    { handle:'@surgeenergy', headline:'POV: you found your new obsession', description:'This changed my morning routine', cta:'Shop Now', kind:'bottle' },
+    { handle:'@flexfit', headline:'30 days. Real results.', description:'No equipment needed', cta:'Start Free', kind:'athlete' },
+    { handle:'@glowlab', headline:'This is why my skin is different now', description:'3 products, 2 weeks', cta:'Shop Now', kind:'orb' },
+    { handle:'@byteai', headline:'AI that builds your ads for you', description:'From idea to launch in minutes', cta:'Try Free', kind:'neural' },
+    { handle:'@threadco', headline:'Outfit of the day, sorted.', description:'New drop every Friday', cta:'Shop Drop', kind:'garment' },
+    { handle:'@quickbite', headline:'Your order. 12 minutes.', description:'Fresh, fast, local', cta:'Order Now', kind:'food' },
+    { handle:'@flowspace', headline:"Your team's new favorite tool", description:'Setup takes 5 minutes', cta:'Get Started', kind:'dashboard' },
+    { handle:'@voyagegoods', headline:"The bag everyone's asking about", description:'Restocked — selling fast', cta:'Shop Now', kind:'geo' },
+    { handle:'@snapcrm', headline:'Close deals from your pocket', description:'Built for teams on the move', cta:'Install Free', kind:'phone' },
+    { handle:'@novafinance', headline:'Bookkeeping, automated', description:'Built for founders, not accountants', cta:'Learn More', kind:'chart' }
+  ]
+};
+
+function _advCountUpEl(el){
+  var target = parseInt(el.getAttribute('data-adv-count'), 10);
+  if (!target || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
+  var suffix = el.getAttribute('data-adv-suffix') || '';
+  var start = Date.now(), dur = 1400;
+  (function tick(){
+    var t = Math.min(1, (Date.now() - start) / dur);
+    var v = Math.floor(target * (1 - Math.pow(1 - t, 3)));
+    el.textContent = v + suffix;
+    if (t < 1) requestAnimationFrame(tick);
+  })();
+}
+
+function _gCardHtml(ad, i){
+  var visual = _advKind[ad.kind](_advGoogleColor);
+  return '<div class="ov-wall-card ov-wall-card-google adv-card adv-card-google">' +
+    '<div class="adv-g-top">' +
+      '<span class="adv-g-sponsored">Ad</span>' +
+      '<span class="adv-g-dot">&middot;</span>' +
+      '<span class="adv-g-adv">' + ad.advertiser + '</span>' +
+    '</div>' +
+    '<div class="adv-g-body">' +
+      '<div class="adv-g-text">' +
+        '<div class="adv-g-cat">' + ad.category + '</div>' +
+        '<div class="adv-g-headline">' + ad.headline + '</div>' +
+        '<div class="adv-g-desc">' + ad.description + '</div>' +
+      '</div>' +
+      '<div class="adv-g-visual">' + visual + '</div>' +
+    '</div>' +
+    '<div class="adv-g-foot">' +
+      '<span class="adv-g-cta">' + ad.cta + ' <svg viewBox="0 0 10 10" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 5h6M5 2l3 3-3 3"/></svg></span>' +
+      (ad.stat ? '<span class="adv-g-stat">' + ad.stat + '</span>' : '') +
+    '</div>' +
+  '</div>';
+}
+
+function _mCardHtml(ad, i){
+  var visual = _advKind[ad.kind](_advMetaColor);
+  var initial = ad.advertiser.charAt(0);
+  var likes = 400 + (i * 137) % 900;
+  return '<div class="ov-wall-card ov-wall-card-meta adv-card adv-card-meta">' +
+    '<div class="adv-m-head">' +
+      '<span class="adv-m-avatar">' + initial + '</span>' +
+      '<span class="adv-m-who"><span class="adv-m-name">' + ad.advertiser + '</span><span class="adv-m-sponsored">Sponsored</span></span>' +
+      '<svg class="adv-m-globe" viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.1"><circle cx="7" cy="7" r="6"/><ellipse cx="7" cy="7" rx="2.4" ry="6"/><line x1="1" y1="7" x2="13" y2="7"/></svg>' +
+    '</div>' +
+    '<div class="adv-m-visual">' + visual + '<span class="adv-m-cat">' + ad.category + '</span></div>' +
+    '<div class="adv-m-body">' +
+      '<div class="adv-m-copy"><strong>' + ad.headline + '</strong> ' + ad.description + '</div>' +
+      '<span class="adv-m-cta">' + ad.cta + '</span>' +
+    '</div>' +
+    '<div class="adv-m-meta">' +
+      '<span class="adv-m-likes"><svg viewBox="0 0 14 14" width="10" height="10" fill="currentColor"><path d="M7 12.5C3 9.8 1 7.6 1 5.1 1 3.2 2.5 2 4.2 2c1 0 2 .5 2.8 1.5C7.8 2.5 8.8 2 9.8 2 11.5 2 13 3.2 13 5.1c0 2.5-2 4.7-6 7.4z"/></svg> <span class="adv-countup" data-adv-count="' + likes + '">0</span></span>' +
+    '</div>' +
+  '</div>';
+}
+
+function _tCardHtml(ad, i){
+  var visual = _advKind[ad.kind](_advTikTokColor);
+  return '<div class="ov-wall-card ov-wall-card-tiktok adv-card adv-card-tiktok">' +
+    '<div class="adv-t-visual">' + visual + '</div>' +
+    '<div class="adv-t-scrim"></div>' +
+    '<div class="adv-t-progress"><span></span></div>' +
+    '<div class="adv-t-sidebar">' +
+      '<span class="adv-t-icon adv-t-heart"><svg viewBox="0 0 14 14" width="15" height="15" fill="currentColor"><path d="M7 12.5C3 9.8 1 7.6 1 5.1 1 3.2 2.5 2 4.2 2c1 0 2 .5 2.8 1.5C7.8 2.5 8.8 2 9.8 2 11.5 2 13 3.2 13 5.1c0 2.5-2 4.7-6 7.4z"/></svg></span>' +
+      '<span class="adv-t-icon"><svg viewBox="0 0 14 14" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1 3h12v6H5l-3 3V9H1z"/></svg></span>' +
+      '<span class="adv-t-icon adv-t-spin"><svg viewBox="0 0 14 14" width="13" height="13" fill="currentColor"><circle cx="7" cy="7" r="6"/></svg></span>' +
+    '</div>' +
+    '<div class="adv-t-foot">' +
+      '<div class="adv-t-handle">' + ad.handle + ' <span class="adv-t-sponsored">&middot; Sponsored</span></div>' +
+      '<div class="adv-t-hook">' + ad.headline + '</div>' +
+      '<div class="adv-t-desc">' + ad.description + '</div>' +
+      '<span class="adv-t-cta">' + ad.cta + '</span>' +
+    '</div>' +
+  '</div>';
 }
 
 function ovRenderAdWall(platform) {
-  var images = AD_IMAGES[platform] || [];
-  var cardsHtml = images.map(function(src, i){ return ovAdCardHtml(platform, i, src); }).join('');
+  var data = AD_DATA[platform] || [];
+  var renderer = platform === 'google' ? _gCardHtml : platform === 'meta' ? _mCardHtml : _tCardHtml;
+  var cardsHtml = data.map(function(ad, i){ return renderer(ad, i); }).join('');
   // Duplicate the 10-card set once per row so animating translateX to
   // exactly -50% always lands back on an identical frame -- a seamless
   // loop with no visible jump or reset.
@@ -4089,6 +4321,12 @@ function ovRenderAdWall(platform) {
   var t2 = document.getElementById('ovWallTrack2');
   if (t1) t1.innerHTML = trackHtml;
   if (t2) t2.innerHTML = trackHtml;
+  var wall = document.getElementById('ovAdWall');
+  if (wall) {
+    wall.classList.remove('ov-wall-google', 'ov-wall-meta', 'ov-wall-tiktok');
+    wall.classList.add('ov-wall-' + platform);
+  }
+  document.querySelectorAll('.adv-countup').forEach(_advCountUpEl);
 }
 
 function ovShowcaseSwitch(platform, btn) {
