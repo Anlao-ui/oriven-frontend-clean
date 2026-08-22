@@ -4002,6 +4002,565 @@
 
 
     <!-- ════════════════════════════════════════════════════════════
+         AD EDITING WORKSPACE — opens automatically once a campaign
+         package has finished generating (fresh generation or reopening
+         a saved campaign both funnel through _renderPackage, which calls
+         window._awOpenWorkspace() as its very last step). Never entered
+         via window._orvNav — see awOpenWorkspace.js's header comment.
+         ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-ad-workspace">
+      <div class="aw-shell">
+
+        <div class="aw-col aw-col-chat" data-awpane="chat">
+          <div class="aw-chat-head">
+            <div class="aw-chat-title">ORIVEN AI</div>
+            <div class="aw-chat-status" id="awChatStatus">Campaign ready</div>
+          </div>
+          <div class="aw-chat-feed" id="awChatFeed"></div>
+          <div class="aw-chat-inputrow">
+            <input type="text" id="awChatInput" class="aw-chat-input" placeholder="Tell Oriven what to change…" autocomplete="off">
+            <button class="aw-chat-send" id="awChatSendBtn" onclick="awSendMessage()" aria-label="Send">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3 L3 9.5 L9 11.5 L11 17 Z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="aw-col aw-col-preview" data-awpane="preview">
+          <div class="aw-preview-toolbar">
+            <div class="aw-preview-platform" id="awPreviewPlatformBadge"></div>
+            <div class="aw-preview-variants" id="awPreviewVariants"></div>
+          </div>
+          <div class="aw-preview-stage" id="awPreviewStage"></div>
+        </div>
+
+        <div class="aw-col aw-col-details" data-awpane="details">
+          <div class="aw-details-head">Campaign Details</div>
+          <div class="aw-details-body" id="awDetailsBody"></div>
+        </div>
+
+      </div>
+
+      <div class="aw-mobile-tabs" id="awMobileTabs">
+        <button class="aw-mtab" data-awtab="chat" onclick="awMobileTab('chat')">Chat</button>
+        <button class="aw-mtab aw-mtab-active" data-awtab="preview" onclick="awMobileTab('preview')">Preview</button>
+        <button class="aw-mtab" data-awtab="details" onclick="awMobileTab('details')">Details</button>
+      </div>
+    </div><!-- /#page-ad-workspace -->
+
+    <script>
+    // ════════════════════════════════════════════════════════════════
+    // AD EDITING WORKSPACE — conversational editing layer that opens
+    // after a campaign package has been generated. Entirely additive:
+    // window._awOpenWorkspace() is called as the very last line of the
+    // existing _renderPackage() (see that function's own tail) and does
+    // its own .page/.active swap directly — NEVER via window._orvNav(),
+    // which unconditionally clears window._orvAiCurrentCampaign for any
+    // page other than 'adsmanager' and would wipe the exact campaign
+    // context this workspace's chat depends on.
+    // ════════════════════════════════════════════════════════════════
+    (function(){
+
+    function _awEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function _awReducedMotion(){ try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(_){ return false; } }
+
+    var _awState = { pkg: null, campId: null, platform: null, prompt: null, history: [], loading: false, imagePoll: null };
+    window._awState = _awState; // debugging aid only, not read by anything else
+
+    // ── Budget helpers ────────────────────────────────────────────────
+    function _awParseBudget(text){
+      var m = String(text||'').match(/[\€\$]?\s*(\d{1,3}(?:[.,]\d{3})*|\d+)(?:[.,](\d{1,2}))?/);
+      if(!m) return null;
+      var n = parseFloat(m[1].replace(/[.,](?=\d{3})/g,'') + (m[2] ? '.'+m[2] : ''));
+      return (n && n > 0) ? Math.round(n) : null;
+    }
+    function _awFmtBudget(n){ return '€' + (typeof n === 'number' ? n : 0) + '/day'; }
+
+    // ── Field path get/set (arrays like ["metaAds","headline"] or
+    //    ["googleAds","headlines",0], matching adEditTools.js's FIELD_MAP
+    //    shape exactly, since that's where these paths come from). ──────
+    function _awGetPath(obj, path){
+      return (path||[]).reduce(function(o,k){ return (o==null) ? undefined : o[k]; }, obj);
+    }
+    function _awSetPath(obj, path, value){
+      var cur = obj;
+      for(var i=0;i<path.length-1;i++){ if(cur[path[i]]==null) cur[path[i]]={}; cur = cur[path[i]]; }
+      cur[path[path.length-1]] = value;
+    }
+
+    // ── Open the workspace ──────────────────────────────────────────
+    window._awOpenWorkspace = function(pkg, prompt, campId, platform){
+      if(!pkg) return;
+      platform = platform || pkg.platform || 'google';
+
+      // Backfill fields the generation endpoint itself doesn't return
+      // (see plan: no budget/variant-index field exists on a freshly
+      // generated pkg) — additive, never touches the generation payload.
+      var touched = false;
+      if(pkg.budgetDaily == null){
+        pkg.budgetDaily = _awParseBudget(pkg.strategy && pkg.strategy.budgetRecommendation) || 50;
+        touched = true;
+      }
+      if(pkg.activeConceptIndex == null){ pkg.activeConceptIndex = 0; touched = true; }
+      if(touched && typeof window._orvUpdateCampPkg === 'function' && campId){
+        window._orvUpdateCampPkg(campId, pkg);
+      }
+
+      _awState.pkg = pkg;
+      _awState.campId = campId;
+      _awState.platform = platform;
+      _awState.prompt = prompt;
+      _awState.history = [];
+
+      // Same channel window.orvAiSend already reads (oc.campaign) — the
+      // Meta live-campaign panel's own use of this global only reads
+      // platform/campaignId/campaignName, so an additive `pkg`/`prompt`
+      // field is harmless to that other consumer.
+      window._orvAiCurrentCampaign = {
+        platform: platform, campaignId: null,
+        campaignName: pkg.campaignName || null,
+        goal: (pkg.strategy && pkg.strategy.goal) || null,
+        prompt: prompt || null,
+        pkg: pkg
+      };
+
+      // Page swap — mirrors _showResultsPage's own direct .page/.active
+      // toggle, not window._orvNav.
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+      var pg = document.getElementById('page-ad-workspace');
+      if(pg) pg.classList.add('active');
+      document.querySelectorAll('.orv-ni[data-orv-page]').forEach(function(b){ b.classList.remove('orv-active'); });
+      var mc = document.querySelector('.mc'); if(mc) mc.scrollTop = 0;
+
+      _awSeedChat();
+      _awRenderAll();
+      _awStartImagePoll();
+      awMobileTab('preview');
+    };
+
+    function _awSeedChat(){
+      var feed = document.getElementById('awChatFeed');
+      if(!feed) return;
+      feed.innerHTML = '';
+      _awAddBubble('ai', 'Your campaign is ready. What would you like to change?', false);
+    }
+
+    // ── Chat ──────────────────────────────────────────────────────────
+    function _awAddBubble(role, text, animate){
+      var feed = document.getElementById('awChatFeed');
+      if(!feed) return null;
+      var div = document.createElement('div');
+      div.className = 'aw-msg aw-msg-' + role;
+      div.innerHTML = '<div class="aw-msg-bubble">' + _awEsc(text) + '</div>';
+      feed.appendChild(div);
+      feed.scrollTop = feed.scrollHeight;
+      return div;
+    }
+
+    window.awSendMessage = async function(){
+      if(_awState.loading || !_awState.pkg) return;
+      var inp = document.getElementById('awChatInput');
+      var msg = inp ? inp.value.trim() : '';
+      if(!msg) return;
+
+      if(typeof gateUsage === 'function'){
+        var allowed = await gateUsage(typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.chat : 5);
+        if(!allowed) return;
+      }
+
+      if(inp) inp.value = '';
+      _awAddBubble('user', msg);
+
+      var feed = document.getElementById('awChatFeed');
+      var thinking = document.createElement('div');
+      thinking.className = 'aw-msg aw-msg-ai';
+      thinking.innerHTML = '<div class="aw-msg-bubble"><div class="orv-ai-thinking-dots"><span></span><span></span><span></span></div></div>';
+      if(feed){ feed.appendChild(thinking); feed.scrollTop = feed.scrollHeight; }
+
+      _awState.loading = true;
+      var sendBtn = document.getElementById('awChatSendBtn');
+      if(sendBtn) sendBtn.disabled = true;
+
+      var historyToSend = _awState.history.slice(-20);
+      _awState.history.push({ role: 'user', content: msg });
+
+      try {
+        var res = await apiFetch('/api/ai/chat', {
+          method: 'POST',
+          body: JSON.stringify({
+            message: msg,
+            context: { page: 'ad-workspace', currentCampaign: (window.orvContext && window.orvContext.campaign) || null },
+            brandCore: (typeof S !== 'undefined' ? S.brandCore : null),
+            history: historyToSend
+          })
+        });
+        thinking.remove();
+
+        if(!res.ok && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
+          _awAddBubble('ai', "You're out of AI credits for this billing period.");
+          if(typeof openLimitReached === 'function') openLimitReached('credits');
+          return;
+        }
+        if(!res.ok){
+          _awAddBubble('ai', "I couldn't process that. Please try again.");
+          return;
+        }
+
+        if(res.data.appliedEdit) _awApplyEdit(res.data.appliedEdit);
+
+        var text = res.data.reply || res.data.message || "Done.";
+        _awAddBubble('ai', text);
+        _awState.history.push({ role: 'assistant', content: text });
+        if(_awState.history.length > 40) _awState.history.splice(0, _awState.history.length - 40);
+      } catch(err){
+        thinking.remove();
+        _awAddBubble('ai', 'Something went wrong. Please try again.');
+      } finally {
+        _awState.loading = false;
+        if(sendBtn) sendBtn.disabled = false;
+      }
+    };
+
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' && document.activeElement && document.activeElement.id === 'awChatInput'){
+        window.awSendMessage();
+      }
+    });
+
+    // ── Apply a tool's result to the local pkg + animate ─────────────
+    function _awApplyEdit(edit){
+      if(!edit || !_awState.pkg) return;
+      var pkg = _awState.pkg;
+      var r = edit.execResult || {};
+
+      switch(edit.tool){
+        case 'edit_ad_copy':
+          _awSetPath(pkg, r.path, r.value);
+          _awPersist();
+          _awAnimateField(r.field, r.value);
+          break;
+        case 'update_campaign_budget':
+          pkg.budgetDaily = r.value;
+          _awPersist();
+          _awNumberSwap(_awFieldValEl('budget'), _awFmtBudget(r.value));
+          _awFieldPulse(_awFieldRowEl('budget'));
+          break;
+        case 'update_audience':
+          pkg.strategy = pkg.strategy || {};
+          pkg.strategy.targetAudience = r.value;
+          if(pkg.metaAds) pkg.metaAds.targetAudience = r.value;
+          if(pkg.tiktokAds) pkg.tiktokAds.targetAudience = r.value;
+          _awPersist();
+          _awTypeSwap(_awFieldValEl('audience'), r.value);
+          _awFieldPulse(_awFieldRowEl('audience'));
+          break;
+        case 'generate_new_creative':
+          if(pkg.visualConcepts && pkg.visualConcepts[r.idx]) pkg.visualConcepts[r.idx].generatedImageUrl = r.imageUrl;
+          _awPersist();
+          _awCreativeSwap(r.imageUrl);
+          break;
+        case 'convert_platform':
+          _awState.pkg = r.pkg;
+          _awState.platform = r.platform;
+          if(window._orvAiCurrentCampaign) window._orvAiCurrentCampaign.pkg = r.pkg;
+          _awPersist();
+          _awPlatformTransition(r.platform);
+          break;
+        case 'select_concept_variant':
+          pkg.activeConceptIndex = r.idx;
+          _awPersist();
+          _awPreviewCrossfade();
+          break;
+      }
+    }
+
+    function _awPersist(){
+      if(typeof window._orvUpdateCampPkg === 'function' && _awState.campId){
+        window._orvUpdateCampPkg(_awState.campId, _awState.pkg);
+      }
+    }
+
+    // ── Rendering ──────────────────────────────────────────────────
+    function _awRenderAll(){
+      _awRenderPreview();
+      _awRenderDetails();
+    }
+
+    function _awActiveConcept(){
+      var pkg = _awState.pkg;
+      var i = pkg.activeConceptIndex || 0;
+      return {
+        concept: (pkg.concepts && pkg.concepts[i]) || {},
+        visual:  (pkg.visualConcepts && pkg.visualConcepts[i]) || {}
+      };
+    }
+
+    function _awRenderPreview(){
+      var stage = document.getElementById('awPreviewStage');
+      var badge = document.getElementById('awPreviewPlatformBadge');
+      var variants = document.getElementById('awPreviewVariants');
+      if(!stage) return;
+      var pkg = _awState.pkg;
+      var plat = _awState.platform;
+      var labels = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads' };
+      if(badge){ badge.textContent = labels[plat] || 'Campaign'; badge.setAttribute('data-plat', plat); }
+      if(variants){
+        var n = (pkg.concepts || []).length;
+        variants.innerHTML = '';
+        for(var i=0;i<n;i++){
+          var b = document.createElement('button');
+          b.className = 'aw-variant-dot' + (i === (pkg.activeConceptIndex||0) ? ' aw-variant-dot-active' : '');
+          b.setAttribute('aria-label', 'Version ' + (i+1));
+          b.onclick = (function(idx){ return function(){ pkg.activeConceptIndex = idx; _awPersist(); _awPreviewCrossfade(); }; })(i);
+          variants.appendChild(b);
+        }
+      }
+      stage.innerHTML = plat === 'google' ? _awGoogleCard(pkg) : plat === 'tiktok' ? _awTiktokCard(pkg) : _awMetaCard(pkg);
+      stage.classList.remove('aw-stage-in'); void stage.offsetWidth; stage.classList.add('aw-stage-in');
+    }
+
+    function _awGoogleCard(pkg){
+      var g = pkg.googleAds || {};
+      var headline = (g.headlines && g.headlines[0]) || pkg.campaignName || '';
+      var desc = (g.descriptions && g.descriptions[0]) || '';
+      var url = (pkg.campaignName || 'yourbrand').toLowerCase().replace(/[^a-z0-9]+/g,'') + '.com';
+      return '<div class="aw-pv aw-pv-google">'
+        + '<div class="aw-pv-g-top"><span class="aw-pv-g-ad">Ad</span><span class="aw-pv-g-dot">&middot;</span><span class="aw-pv-g-url">' + _awEsc(url) + '</span></div>'
+        + '<div class="aw-pv-g-headline" id="awPvHeadline">' + _awEsc(headline) + '</div>'
+        + '<div class="aw-pv-g-desc" id="awPvDesc">' + _awEsc(desc) + '</div>'
+        + '</div>';
+    }
+
+    function _awMetaCard(pkg){
+      var m = pkg.metaAds || {};
+      var ac = _awActiveConcept();
+      var img = ac.visual.generatedImageUrl || '';
+      var initial = (pkg.campaignName || 'O').charAt(0).toUpperCase();
+      return '<div class="aw-pv aw-pv-meta">'
+        + '<div class="aw-pv-m-head"><span class="aw-pv-m-avatar">' + _awEsc(initial) + '</span><div><div class="aw-pv-m-name">' + _awEsc(pkg.campaignName||'Your Brand') + '</div><div class="aw-pv-m-sponsored">Sponsored</div></div></div>'
+        + '<div class="aw-pv-m-visual">' + (img ? '<img id="awPvImg" class="aw-pv-img" src="'+_awEsc(img)+'" alt="">' : '<div id="awPvImg" class="aw-pv-img aw-pv-img-empty"></div>') + '<div class="aw-wipe" id="awPvWipe"></div></div>'
+        + '<div class="aw-pv-m-body">'
+        + '<div class="aw-pv-m-primary" id="awPvDesc">' + _awEsc(m.primaryText || '') + '</div>'
+        + '<div class="aw-pv-m-headline" id="awPvHeadline">' + _awEsc(m.headline || '') + '</div>'
+        + '<button class="aw-pv-m-cta" id="awPvCta">' + _awEsc(m.cta || 'Learn More') + '</button>'
+        + '</div></div>';
+    }
+
+    function _awTiktokCard(pkg){
+      var t = pkg.tiktokAds || {};
+      var ac = _awActiveConcept();
+      var img = ac.visual.generatedImageUrl || '';
+      return '<div class="aw-pv aw-pv-tiktok">'
+        + '<div class="aw-pv-t-visual">' + (img ? '<img id="awPvImg" class="aw-pv-img" src="'+_awEsc(img)+'" alt="">' : '<div id="awPvImg" class="aw-pv-img aw-pv-img-empty"></div>') + '<div class="aw-wipe" id="awPvWipe"></div></div>'
+        + '<div class="aw-pv-t-scrim"></div>'
+        + '<div class="aw-pv-t-foot">'
+        + '<div class="aw-pv-t-hook" id="awPvHeadline">' + _awEsc(t.hook || '') + '</div>'
+        + '<div class="aw-pv-t-desc" id="awPvDesc">' + _awEsc(t.script || '') + '</div>'
+        + '<button class="aw-pv-t-cta" id="awPvCta">' + _awEsc(t.cta || 'Shop Now') + '</button>'
+        + '</div></div>';
+    }
+
+    // ── Right panel ───────────────────────────────────────────────────
+    function _awField(label, value, key){
+      return '<div class="aw-field" data-awfield="' + key + '">'
+        + '<div class="aw-field-label">' + _awEsc(label) + '</div>'
+        + '<div class="aw-field-val">' + _awEsc(value == null || value === '' ? '—' : value) + '</div>'
+        + '</div>';
+    }
+    function _awFieldList(label, arr, key, max){
+      var items = (arr || []).slice(0, max || 3);
+      var more = (arr || []).length > items.length ? ' <span class="aw-field-more">+' + ((arr||[]).length - items.length) + ' more</span>' : '';
+      return '<div class="aw-field" data-awfield="' + key + '">'
+        + '<div class="aw-field-label">' + _awEsc(label) + '</div>'
+        + '<div class="aw-field-val aw-field-list">' + items.map(_awEsc).join(', ') + more + '</div>'
+        + '</div>';
+    }
+    function _awFieldRowEl(key){ return document.querySelector('#awDetailsBody [data-awfield="' + key + '"]'); }
+    function _awFieldValEl(key){ var row = _awFieldRowEl(key); return row ? row.querySelector('.aw-field-val') : null; }
+
+    function _awRenderDetails(){
+      var body = document.getElementById('awDetailsBody');
+      if(!body) return;
+      var pkg = _awState.pkg;
+      var plat = _awState.platform;
+      var html = plat === 'google' ? _awRenderGooglePanel(pkg) : plat === 'tiktok' ? _awRenderTiktokPanel(pkg) : _awRenderMetaPanel(pkg);
+      body.innerHTML = html;
+      var rows = body.querySelectorAll('.aw-field');
+      rows.forEach(function(row, i){
+        row.style.transitionDelay = _awReducedMotion() ? '0ms' : (i * 50) + 'ms';
+        row.classList.remove('aw-field-in'); void row.offsetWidth; row.classList.add('aw-field-in');
+      });
+    }
+
+    function _awRenderGooglePanel(pkg){
+      var g = pkg.strategy || {}; var ga = pkg.googleAds || {};
+      return _awField('Campaign name', pkg.campaignName, 'campaignName')
+        + _awField('Budget', _awFmtBudget(pkg.budgetDaily), 'budget')
+        + _awField('Bidding strategy', ga.biddingStrategy, 'bidding')
+        + _awField('Objective', g.goal, 'objective')
+        + _awField('Audience', g.targetAudience, 'audience')
+        + _awFieldList('Keywords', ga.keywords, 'keywords', 8)
+        + _awFieldList('Headlines', ga.headlines, 'headline', 3)
+        + _awFieldList('Descriptions', ga.descriptions, 'description', 2);
+    }
+    function _awRenderMetaPanel(pkg){
+      var m = pkg.metaAds || {};
+      return _awField('Campaign name', pkg.campaignName, 'campaignName')
+        + _awField('Objective', m.campaignObjective, 'objective')
+        + _awField('Budget', _awFmtBudget(pkg.budgetDaily), 'budget')
+        + _awField('Audience', m.targetAudience, 'audience')
+        + _awFieldList('Placements', m.placements, 'placements', 6)
+        + _awField('Primary text', m.primaryText, 'primaryText')
+        + _awField('Headline', m.headline, 'headline')
+        + _awField('Description', m.description, 'description')
+        + _awField('CTA', m.cta, 'cta');
+    }
+    function _awRenderTiktokPanel(pkg){
+      var t = pkg.tiktokAds || {};
+      return _awField('Campaign name', pkg.campaignName, 'campaignName')
+        + _awField('Objective', t.campaignObjective, 'objective')
+        + _awField('Budget', _awFmtBudget(pkg.budgetDaily), 'budget')
+        + _awField('Audience', t.targetAudience, 'audience')
+        + _awField('Hook', t.hook, 'headline')
+        + _awField('Script', t.script, 'description')
+        + _awField('CTA', t.cta, 'cta')
+        + _awField('Creator style', t.creatorStyleConcept, 'creatorStyle');
+    }
+
+    // ── Animations ─────────────────────────────────────────────────
+    // Applies the same swap to both the center preview element (by its
+    // stable id, one per role, present regardless of platform) and the
+    // matching right-panel row (by data-awfield), so a single edit
+    // visibly updates both at once, per the spec's "chat, preview and
+    // right panel must remain synchronized" requirement.
+    var FIELD_TO_PREVIEW_ID = { headline: 'awPvHeadline', description: 'awPvDesc', primaryText: 'awPvDesc', cta: 'awPvCta' };
+    function _awAnimateField(field, value){
+      var pvId = FIELD_TO_PREVIEW_ID[field];
+      if(pvId){ var pvEl = document.getElementById(pvId); if(pvEl) _awTypeSwap(pvEl, value); }
+      var panelKey = field === 'primaryText' ? 'primaryText' : field;
+      _awTypeSwap(_awFieldValEl(panelKey), value);
+      _awFieldPulse(_awFieldRowEl(panelKey));
+      // Google's headline/description panel rows are lists (first N shown)
+      // rather than a single value — re-render those wholesale instead of
+      // trying to text-swap a comma list.
+      if(_awState.platform === 'google' && (field === 'headline' || field === 'description')){
+        _awRenderDetails();
+      }
+    }
+
+    function _awTypeSwap(el, newText){
+      if(!el) return;
+      newText = String(newText == null ? '' : newText);
+      if(_awReducedMotion()){ el.textContent = newText; return; }
+      var oldText = el.textContent || '';
+      var total = Math.max(700, Math.min(1200, (oldText.length + newText.length) * 18));
+      var delDur = total * (oldText.length / Math.max(1, oldText.length + newText.length));
+      var typeDur = total - delDur;
+      var delStep = oldText.length ? Math.max(6, delDur / oldText.length) : 0;
+      var typeStep = newText.length ? Math.max(6, typeDur / newText.length) : 0;
+      el.classList.add('aw-typing');
+      var i = oldText.length;
+      (function del(){
+        if(i > 0){ i--; el.textContent = oldText.slice(0, i); setTimeout(del, delStep); }
+        else setTimeout(type, 150);
+      })();
+      var j = 0;
+      function type(){
+        if(j <= newText.length){ el.textContent = newText.slice(0, j); j++; setTimeout(type, typeStep); }
+        else el.classList.remove('aw-typing');
+      }
+    }
+
+    function _awNumberSwap(el, newText){
+      if(!el) return;
+      if(_awReducedMotion()){ el.textContent = newText; return; }
+      el.classList.add('aw-num-out');
+      setTimeout(function(){
+        el.textContent = newText;
+        el.classList.remove('aw-num-out');
+        el.classList.add('aw-num-in');
+        setTimeout(function(){ el.classList.remove('aw-num-in'); }, 260);
+      }, 170);
+    }
+
+    function _awFieldPulse(rowEl){
+      if(!rowEl || _awReducedMotion()) return;
+      rowEl.classList.remove('aw-field-pulse'); void rowEl.offsetWidth; rowEl.classList.add('aw-field-pulse');
+    }
+
+    function _awCreativeSwap(newUrl){
+      var imgEl = document.getElementById('awPvImg');
+      var wipeEl = document.getElementById('awPvWipe');
+      if(!imgEl) return;
+      if(_awReducedMotion()){
+        if(imgEl.tagName === 'IMG') imgEl.src = newUrl; else _awRenderPreview();
+        return;
+      }
+      if(wipeEl) wipeEl.classList.add('aw-wipe-play');
+      var pre = new Image();
+      pre.onload = function(){
+        setTimeout(function(){
+          _awRenderPreview();
+          var freshImg = document.getElementById('awPvImg');
+          if(freshImg){ freshImg.classList.add('aw-img-settle'); setTimeout(function(){ freshImg.classList.remove('aw-img-settle'); }, 500); }
+        }, 650);
+      };
+      pre.src = newUrl;
+    }
+
+    function _awPreviewCrossfade(){
+      var stage = document.getElementById('awPreviewStage');
+      if(!stage) return;
+      if(_awReducedMotion()){ _awRenderPreview(); return; }
+      stage.classList.add('aw-stage-out');
+      setTimeout(function(){ _awRenderPreview(); }, 220);
+    }
+
+    function _awPlatformTransition(newPlatform){
+      var stage = document.getElementById('awPreviewStage');
+      var details = document.getElementById('awDetailsBody');
+      if(stage) stage.classList.add('aw-stage-out');
+      if(details) details.classList.add('aw-details-out');
+      setTimeout(function(){
+        _awRenderAll();
+        if(details) details.classList.remove('aw-details-out');
+      }, _awReducedMotion() ? 0 : 260);
+    }
+
+    // ── Poll for the initial async creative image (fired-and-forgotten
+    //    by the existing _startCreativesGeneration/_generateOneCreative
+    //    pipeline, unchanged) — passive, read-only, re-renders the
+    //    preview once an image lands on the SAME pkg object reference
+    //    this workspace was opened with. Never mutates existing code. ──
+    function _awStartImagePoll(){
+      if(_awState.imagePoll) clearInterval(_awState.imagePoll);
+      var elapsed = 0;
+      _awState.imagePoll = setInterval(function(){
+        elapsed += 1000;
+        var ac = _awActiveConcept();
+        if(ac.visual && ac.visual.generatedImageUrl){
+          var imgEl = document.getElementById('awPvImg');
+          if(imgEl && imgEl.tagName !== 'IMG'){ _awRenderPreview(); }
+          clearInterval(_awState.imagePoll); _awState.imagePoll = null; return;
+        }
+        if(elapsed > 20000){ clearInterval(_awState.imagePoll); _awState.imagePoll = null; }
+      }, 1000);
+    }
+
+    // ── Mobile tab strip ────────────────────────────────────────────
+    window.awMobileTab = function(tab){
+      document.querySelectorAll('#page-ad-workspace .aw-col').forEach(function(c){
+        c.classList.toggle('aw-col-mactive', c.getAttribute('data-awpane') === tab);
+      });
+      document.querySelectorAll('#awMobileTabs .aw-mtab').forEach(function(b){
+        b.classList.toggle('aw-mtab-active', b.getAttribute('data-awtab') === tab);
+      });
+    };
+
+    })();
+    </script>
+
+
+    <!-- ════════════════════════════════════════════════════════════
          ADS DASHBOARD — campaign performance, AI analysis, recommendations
          ════════════════════════════════════════════════════════════ -->
     <div class="page" id="page-ads">
@@ -15642,6 +16201,13 @@ window.rptExport = function(format) {
     /* Kick off creative generation */
     if(creativeMode==='videos') _startVideoCreatives(pkg, campId, platform);
     else                        _startCreativesGeneration(pkg, platform);
+
+    /* Ad Editing Workspace — opens the new conversational three-column
+       workspace on top of everything above (which still runs exactly as
+       before: old per-platform screens rendered, campaign saved, image
+       generation started). Additive only — see that function's own
+       header comment for why it must never go through window._orvNav. */
+    if(typeof window._awOpenWorkspace === 'function') window._awOpenWorkspace(pkg, prompt, campId, platform);
   }
 
   window._cgrRenderPackage = _renderPackage;
