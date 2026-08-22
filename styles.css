@@ -41461,3 +41461,43 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
   .adv-t-sidebar { bottom: 60px; gap: 8px; }
   .adv-t-icon { width: 21px; height: 21px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN v10 — Autopilot workflow card: the timeline previously sat
+   flush against the card's left edge, stretched to the full width of
+   the (very wide, 1.15fr) visual column with nothing to its right —
+   a large dead zone on wide screens. Merely centering a shrink-wrapped
+   text column left the same problem in miniature (a narrow strip of
+   text floating in empty space either side). Instead each step becomes
+   a bordered row panel — reusing the exact neutral background/border
+   values already used by .ov-launch-mock itself and by .ov-conn-card
+   in the Business section below, so the panel genuinely fills a
+   deliberate width instead of just adding invisible margin. Only
+   layout changes here: no step text, no text/icon colors, no
+   typography, no animation timing touched — the new background/border
+   is copied verbatim from components already on this exact page.
+   ══════════════════════════════════════════════════════════════════ */
+.ov-lm-timeline {
+  /* Sized relative to its own parent (never a fixed px that could exceed
+     the card's actual available space) and capped so it doesn't stretch
+     edge-to-edge on very wide cards. */
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.ov-lm-step {
+  width: 100%;
+  gap: 32px !important;
+  padding: 18px 22px !important;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+.ov-lm-num { width: 38px !important; height: 38px !important; font-size: 13px !important; }
+.ov-lm-connector { margin-left: 41px !important; }
+@media (max-width: 900px) {
+  .ov-lm-step { gap: 18px !important; padding: 14px 16px !important; }
+  .ov-lm-num { width: 30px !important; height: 30px !important; }
+  .ov-lm-connector { margin-left: 31px !important; }
+}
