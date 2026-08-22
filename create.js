@@ -2241,6 +2241,18 @@ async function runBuilder(){
       body:    JSON.stringify(requestBody)
     });
     var data = await res.json();
+
+    // A real 402 from the server (balance/limit can differ from gateUsage's
+    // cached pre-flight check) — open the upgrade paywall instead of just
+    // showing the bare error text _showBuilderResult would otherwise render.
+    if(!res.ok && data && data.code === 'CREDITS_EXHAUSTED'){
+      if(resultBody) resultBody.innerHTML = '<div class="builder-error">You’re out of AI credits for this billing period.</div>';
+      if(typeof openLimitReached === 'function') setTimeout(function(){ openLimitReached('credits'); }, 500);
+      var stepElCE = document.getElementById("flowStep");
+      if(stepElCE && stepElCE.querySelector(".flow-generating")) stepElCE.innerHTML = "";
+      return;
+    }
+
     // For image type, attach the client-side text overlay data to the result
     // (server only returns imageUrl — text overlay is purely client-side)
     if(type === "image"){

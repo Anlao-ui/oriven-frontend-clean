@@ -119,13 +119,9 @@ function _mgPollStatus(token) {
       if (d.status === 'completed' && d.videoUrl) {
         clearInterval(_mgPollTimer); _mgPollTimer = null;
         _mgShowVideo(d.videoUrl);
-
-        // Deduct 3 credits per generation
-        apiFetch('/api/increment-usage', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body:    JSON.stringify({ count: 3 }),
-        }).catch(function(){});
+        // Real credit deduction already happened server-side (creditManager.
+        // reserveCredits, video_generation) inside the generation route
+        // itself -- no separate client-side increment call needed here.
       } else if (d.status === 'failed') {
         clearInterval(_mgPollTimer); _mgPollTimer = null;
         _mgShowError(d.failureReason || 'Video generation failed. Please try again.');

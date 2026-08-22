@@ -90,6 +90,21 @@ var _LIMIT_MSGS = {
     sub:     "Upgrade to automate campaign decisions with AI-driven rules.",
     upgrade: "creator"
   },
+  autopilot_creator: {
+    title:   "Autopilot execution limit reached.",
+    sub:     "Upgrade to Professional for unlimited Autopilot executions.",
+    upgrade: "professional"
+  },
+  intelligence: {
+    title:   "Intelligence limit reached.",
+    sub:     "Upgrade to run more AI analyses on your ad accounts.",
+    upgrade: "creator"
+  },
+  intelligence_creator: {
+    title:   "Intelligence limit reached.",
+    sub:     "Upgrade to Professional for unlimited Intelligence analyses.",
+    upgrade: "professional"
+  },
   team: {
     title:   "Team requires Professional.",
     sub:     "Upgrade to invite teammates and collaborate inside Oriven.",

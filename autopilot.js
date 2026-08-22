@@ -108,7 +108,33 @@ window.apInit = function() {
   apHistLoad();
   apSettingsLoad();
   apLoadMonitoringSources();
+  _apRenderCreditFact();
 };
+
+// Credit/execution-cost fact in the hero status row — Creator shows its
+// real "N / 10 executions used" plus the per-execution credit cost,
+// Professional shows "Unlimited executions" (still noting the credit cost,
+// since executions consume the shared credit pool even though the
+// separate execution-count cap doesn't apply). Reads live values from
+// /api/credits/status (creditManager's FEATURE_COSTS/autopilotUsage) —
+// never hardcoded, same pattern as _prfRenderAiCost/_vaRenderCost.
+function _apRenderCreditFact(){
+  var el = document.getElementById('apHeroCreditFact');
+  if(!el || typeof _getCreditStatus !== 'function') return;
+  _getCreditStatus().then(function(status){
+    if(!status || !status.featureCosts) return;
+    var cost = status.featureCosts.autopilot;
+    var au = status.autopilotUsage || {};
+    var text;
+    if(au.limit == null){
+      text = 'Unlimited executions · ' + cost + ' credits / execution';
+    } else {
+      text = (au.used || 0) + ' / ' + au.limit + ' executions used · ' + cost + ' credits / execution';
+    }
+    el.textContent = text;
+    el.style.display = '';
+  }).catch(function(){});
+}
 
 // ══ Create Automation / Settings modals — the existing #apBuilderSection
 // and #apSettingsSection are moved into their modal bodies via a real DOM

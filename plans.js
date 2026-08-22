@@ -35,13 +35,25 @@ var CREDIT_COSTS = {
   campaign:       25,  // campaign_generation
   website:        25,  // closest bucket to campaign_generation for full-page generation
   web:            25,
-  visual:         40,  // image_generation
-  image:          40,
-  productshoots:  40,
-  video:          120, // video_generation
-  ugc:            120,
-  videoads:       120,
-  motiongraphics: 120
+  visual:         75,  // image_generation ("Image Ad")
+  image:          75,
+  productshoots:  75,
+  ads:            75,  // /api/generate-ad ("Ad Creative") — the literal Image Ad generator
+  video:          200, // video_generation ("Video Ad")
+  ugc:            200,
+  videoads:       200,
+  motiongraphics: 200,
+
+  // ── Canonical spec-named keys — the five standard costs surfaced
+  // directly in the product (Image Ad / Video Ad / Intelligence /
+  // Autopilot / AI Chat cost labels, paywalls, Settings). Additive: the
+  // legacy keys above stay in place for existing call sites (runBuilder's
+  // per-format gateUsage), these are what new UI should read from.
+  imageAd:      75,  // == image_generation
+  videoAd:      200, // == video_generation
+  intelligence: 25,  // == ai_analysis
+  autopilot:    25,
+  chat:         5    // == ai_chat
 };
 
 // Plan comparison focuses on the three things that actually differ between
@@ -52,7 +64,7 @@ var CREDIT_COSTS = {
 // are intentionally not listed as comparison rows anymore.
 //
 // intelligence: display label -- Intelligence is metered per-operation via
-// the shared credit pool (creditManager.FEATURE_COSTS.ai_analysis, 5cr/
+// the shared credit pool (creditManager.FEATURE_COSTS.ai_analysis, 25cr/
 // analysis, server-enforced) AND capped by a real, separate, server-
 // enforced monthly analysis limit (creditManager.PLAN_INTELLIGENCE_LIMITS,
 // checked in server.js POST /api/meta/analyze and /api/ads/analyze before
@@ -72,21 +84,21 @@ var ORIVEN_PLANS = {
     price:       9.95,
     // stripeId is intentionally absent — Stripe price IDs live in server env vars only.
     // Backend reads: process.env.STRIPE_PRICE_STARTER
-    credits:     500,
-    limit:       500,
+    credits:     1000,
+    limit:       1000,
     teamMembers: 1,
     explore:     false,
     desc:        "For individuals getting started with AI-powered ad analytics.",
-    intelligence:   "up to 50 analyses / month",
+    intelligence:   "40 analyses / month",
     autopilotLimit: null,
     allFeatures: [
-      "500 AI Credits / Month",
-      "Intelligence: up to 50 analyses / month",
+      "1.000 AI Credits / Month",
+      "Intelligence: 40 analyses / month",
       "Autopilot: not included"
     ],
     features: [
-      "500 AI Credits / Month",
-      "Intelligence: up to 50 analyses / month",
+      "1.000 AI Credits / Month",
+      "Intelligence: 40 analyses / month",
       "Autopilot: not included"
     ]
   },
@@ -94,24 +106,24 @@ var ORIVEN_PLANS = {
   creator: {
     id:          "creator",
     name:        "Creator",
-    price:       29.95,
+    price:       19.95,
     popular:     true,
     // Backend reads: process.env.STRIPE_PRICE_CREATOR
-    credits:     3000,
-    limit:       3000,
+    credits:     2500,
+    limit:       2500,
     teamMembers: 1,
     explore:     false,
     desc:        "For creators, founders, and growing brands running multi-channel ads.",
-    intelligence:   "up to 100 analyses / month",
+    intelligence:   "100 analyses / month",
     autopilotLimit: 10,
     allFeatures: [
-      "3.000 AI Credits / Month",
-      "Intelligence: up to 100 analyses / month",
+      "2.500 AI Credits / Month",
+      "Intelligence: 100 analyses / month",
       "Autopilot: 10 executions / month"
     ],
     features: [
-      "3.000 AI Credits / Month",
-      "Intelligence: up to 100 analyses / month",
+      "2.500 AI Credits / Month",
+      "Intelligence: 100 analyses / month",
       "Autopilot: 10 executions / month"
     ]
   },
@@ -119,17 +131,17 @@ var ORIVEN_PLANS = {
   professional: {
     id:          "professional",
     name:        "Professional",
-    price:       59.95,
+    price:       34.95,
     // Backend reads: process.env.STRIPE_PRICE_PROFESSIONAL
-    credits:     12000,
-    limit:       12000,
+    credits:     4000,
+    limit:       4000,
     teamMembers: 10,
     explore:     false,
     desc:        "For professional teams scaling ad performance across all channels.",
     intelligence:   "Unlimited",
     autopilotLimit: Infinity,
     allFeatures: [
-      "12.000 AI Credits / Month",
+      "4.000 AI Credits / Month",
       "Intelligence: Unlimited",
       "Autopilot: Unlimited",
       "Team — invite members & collaborate",
@@ -137,7 +149,7 @@ var ORIVEN_PLANS = {
       "Up to 10 Team Members"
     ],
     features: [
-      "12.000 AI Credits / Month",
+      "4.000 AI Credits / Month",
       "Intelligence: Unlimited",
       "Autopilot: Unlimited",
       "Team — invite members & collaborate",

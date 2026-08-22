@@ -3077,8 +3077,8 @@ async function renderPlanPanel(){
     // Business Brain, Brand Memory) is part of the product on every plan
     // and governed by the credit economy, not plan-gated, so it's
     // intentionally not listed here. No .toLocaleString() on plan.credits/
-    // autopilotLimit -- these are the plan's own fixed numbers (500, 3000,
-    // 12000, 10). Formatted via the one shared orvFormatCredits() (Dutch-
+    // autopilotLimit -- these are the plan's own fixed numbers (1000, 2500,
+    // 4000, 10). Formatted via the one shared orvFormatCredits() (Dutch-
     // style dot separator, e.g. "12.000") rather than each call site
     // choosing its own format. Autopilot is measured in "executions", not
     // "users".

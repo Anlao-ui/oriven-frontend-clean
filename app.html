@@ -985,6 +985,7 @@
                   <button class="btn btn-p btn-sm" id="prfAiAnalyzeBtn" onclick="prfRunAiAnalysis()" data-i18n="analyzeWithAiBtn">Analyze with AI</button>
                 </div>
                 <div class="ads-card-sub" id="prfAiSummary" data-i18n="aiAnalysisDefaultSummary">Analyse this account for wasted spend, low CTR, conversion issues, and scaling opportunities.</div>
+                <div class="cr2-gen-cost" id="prfAiCost"></div>
               </div>
             </div>
             <div id="prfAiError" style="display:none;font-size:13px;color:#ef4444;margin-top:10px"></div>
@@ -3461,6 +3462,7 @@
               <span class="ap-hero-fact" id="apHeroActiveFact" style="display:none"></span>
               <span class="ap-hero-fact" id="apHeroGoogleFact" style="display:none"></span>
               <span class="ap-hero-fact" id="apHeroMetaFact" style="display:none"></span>
+              <span class="ap-hero-fact" id="apHeroCreditFact" style="display:none"></span>
             </div>
           </div>
           <div class="ap-hero-right">
@@ -6057,6 +6059,7 @@
           </div>
         </div>
         <div class="va-form-actions">
+          <div class="cr2-gen-cost va-cost-label"></div>
           <button class="va-generate-btn" onclick="vaGenerateAI()">Generate Video Ad →</button>
         </div>
       </div>
@@ -6087,6 +6090,7 @@
           </div>
         </div>
         <div class="va-form-actions">
+          <div class="cr2-gen-cost va-cost-label"></div>
           <button class="va-generate-btn" onclick="vaGenerateScript()">Generate Video →</button>
         </div>
       </div>
@@ -6118,6 +6122,7 @@
           </div>
         </div>
         <div class="va-form-actions">
+          <div class="cr2-gen-cost va-cost-label"></div>
           <button class="va-generate-btn" onclick="vaGenerateImage()">Animate Image →</button>
         </div>
       </div>
@@ -10123,10 +10128,22 @@ window._orvUpdateCampPkg = function(id, pkg) {
     if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); orvAiSend(); }
   };
 
-  window.orvAiSend = function(prefill){
+  window.orvAiSend = async function(prefill){
     var inp = document.getElementById('orvAiInput');
     var msg = (prefill || (inp && inp.value) || '').trim();
     if(!msg || _orvAiLoading) return;
+
+    /* Pre-flight credit check — AI Chat costs CREDIT_COSTS.chat (5) per
+       message. gateUsage() both checks the cached balance and (if allowed)
+       optimistically reflects the spend in the sidebar badge; it already
+       opens the paywall itself when blocked, so a false return here just
+       means "stop, don't send" — the input text is left in place rather
+       than cleared, so the user doesn't lose what they typed. */
+    if(typeof gateUsage === 'function'){
+      var _allowed = await gateUsage(typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.chat : 5);
+      if(!_allowed) return;
+    }
+
     if(inp) inp.value = '';
 
     var feed = document.getElementById('orvAiFeed');
@@ -10192,6 +10209,18 @@ window._orvUpdateCampPkg = function(id, pkg) {
       })
     }).then(function(res){
       typingDiv.remove();
+
+      /* A real 402 from the server (balance can differ from gateUsage's
+         cached pre-flight check, e.g. two tabs open) — show an upgrade CTA
+         instead of falling through to the generic "couldn't process" text. */
+      if(!res.ok && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
+        var ceDiv = document.createElement('div');
+        ceDiv.className = 'orv-ai-msg orv-ai-msg-ai';
+        ceDiv.innerHTML = '<div class="orv-ai-msg-bubble">You&rsquo;re out of AI credits for this billing period. <a href="#" onclick="event.preventDefault();if(typeof openLimitReached===\'function\')openLimitReached(\'credits\');">Upgrade to keep chatting &rarr;</a></div>';
+        feed.appendChild(ceDiv);
+        feed.scrollTop = feed.scrollHeight;
+        return;
+      }
 
       if(res.ok && res.data && res.data.pendingAction){
         feed.appendChild(_orvAiRenderActionCard(res.data.pendingAction));
@@ -10557,10 +10586,19 @@ window._orvUpdateCampPkg = function(id, pkg) {
     _crvShow(1);
   };
 
-  window.crvAiSend = function(){
+  window.crvAiSend = async function(){
     var input=document.getElementById('crvAiInput'), feed=document.getElementById('crvAiFeed');
     if(!input||!feed) return;
     var msg=(input.value||'').trim(); if(!msg) return;
+
+    /* Same AI Chat cost/pre-flight as the main sidebar assistant (orvAiSend)
+       — this is a second, minimal chat surface hitting the same backend
+       route, so it costs the same and needs the same gate. */
+    if(typeof gateUsage === 'function'){
+      var _allowed = await gateUsage(typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.chat : 5);
+      if(!_allowed) return;
+    }
+
     input.value='';
     feed.innerHTML+='<div class="crv-ai-bubble crv-ai-user">'+_escHtml(msg)+'</div>';
     var tid='crvT'+Date.now();
@@ -10570,7 +10608,12 @@ window._orvUpdateCampPkg = function(id, pkg) {
     apiFetch('/api/ai/chat',{ method:'POST', body:JSON.stringify({ message:msg, context:ctx }) })
       .then(function(res){
         var el=document.getElementById(tid);
-        if(el) el.innerHTML=(res.ok&&res.data&&res.data.reply)?res.data.reply:'I\'m having trouble connecting. Try again.';
+        if(!el) return;
+        if(!res.ok && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
+          el.innerHTML='You&rsquo;re out of AI credits for this billing period. <a href="#" onclick="event.preventDefault();if(typeof openLimitReached===\'function\')openLimitReached(\'credits\');">Upgrade &rarr;</a>';
+        } else {
+          el.innerHTML=(res.ok&&res.data&&res.data.reply)?res.data.reply:'I\'m having trouble connecting. Try again.';
+        }
         feed.scrollTop=feed.scrollHeight;
       }).catch(function(){
         var el=document.getElementById(tid); if(el) el.innerHTML='Connection issue — please try again.';
@@ -12017,12 +12060,23 @@ function _prfResetAiCard() {
   window._prfAiRenderedKey = null;
 }
 
-window.prfRunAiAnalysis = function() {
+window.prfRunAiAnalysis = async function() {
   var plat = window._prfActivePlatform;
   if (plat !== 'google' && plat !== 'meta') return;
   var btn   = document.getElementById('prfAiAnalyzeBtn');
   var errEl = document.getElementById('prfAiError');
   var resEl = document.getElementById('prfAiResult');
+
+  /* Pre-flight credit check — Intelligence costs CREDIT_COSTS.intelligence
+     (25) per analysis. The real, authoritative limits (monthly analysis
+     cap AND credit balance) are enforced server-side regardless of this
+     check — this is UX only, so a blocked analysis never even shows the
+     "Analyzing…" state. */
+  if (typeof gateUsage === 'function') {
+    var _allowed = await gateUsage(typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.intelligence : 25);
+    if (!_allowed) return;
+  }
+
   if (btn) { btn.disabled = true; btn.textContent = typeof t==='function'?t('analyzingEllipsis'):'Analyzing…'; }
   if (errEl) errEl.style.display = 'none';
   if (resEl) resEl.style.display = 'none';
@@ -12030,7 +12084,16 @@ window.prfRunAiAnalysis = function() {
   var path = plat === 'google' ? '/api/ads/analyze' : '/api/meta/analyze';
   var body = _prfRangeBody();
   apiFetch(path, { method: 'POST', body: JSON.stringify(body) }).then(function(res) {
-    if (!res.ok || !res.data) throw new Error((res.data && res.data.error) || (typeof t==='function'?t('analysisFailed'):'Analysis failed'));
+    if (!res.ok || !res.data) {
+      var code = res.data && res.data.code;
+      if (code === 'INTELLIGENCE_LIMIT_REACHED' || code === 'CREDITS_EXHAUSTED') {
+        var isCreator = window._dbSubscriptionStatus === 'creator';
+        var limitType = code === 'CREDITS_EXHAUSTED' ? 'credits' : (isCreator ? 'intelligence_creator' : 'intelligence');
+        if (typeof openLimitReached === 'function') openLimitReached(limitType);
+        return; // paywall shown — skip the inline error text below
+      }
+      throw new Error((res.data && res.data.error) || (typeof t==='function'?t('analysisFailed'):'Analysis failed'));
+    }
     window._prfAiData = res.data;
     window._prfAiRenderedKey = plat + '|' + body.date_range + (body.date_range === 'CUSTOM' ? '|' + body.date_since + '|' + body.date_until : '');
     _prfRenderAiCard(res.data);
@@ -12040,6 +12103,20 @@ window.prfRunAiAnalysis = function() {
     if (btn) { btn.disabled = false; btn.textContent = typeof t==='function'?t('reanalyzeBtn'):'Re-analyze'; }
   });
 };
+
+/* Cost label next to the Analyze with AI button — same "read the live
+   backend value, don't hardcode it" pattern as _aicRenderCost (Launch
+   credit transparency, line ~8756) so a price change never needs a
+   matching frontend edit. */
+function _prfRenderAiCost(){
+  var el = document.getElementById('prfAiCost');
+  if(!el || typeof _getCreditStatus !== 'function') return;
+  _getCreditStatus().then(function(status){
+    var costs = status && status.featureCosts;
+    el.textContent = costs ? (costs.ai_analysis + ' AI credits per analysis') : '';
+  }).catch(function(){ el.textContent = ''; });
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(_prfRenderAiCost, 1200); });
 
 function _prfRenderAiCard(data) {
   var resEl = document.getElementById('prfAiResult');

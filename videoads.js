@@ -21,6 +21,22 @@ function vaOpen() {
   overlay.style.opacity  = '0';
   overlay.style.transition = 'opacity 0.22s ease';
   requestAnimationFrame(function() { overlay.style.opacity = '1'; });
+  _vaRenderCost();
+}
+
+// Cost label shown near each mode's Generate button, before the user
+// clicks — reads the live backend value (creditManager.FEATURE_COSTS via
+// /api/credits/status), same "don't hardcode it" pattern as app.html's
+// _aicRenderCost/_prfRenderAiCost, so a price change never needs a
+// matching frontend edit.
+function _vaRenderCost(){
+  var labels = document.querySelectorAll('.va-cost-label');
+  if (!labels.length || typeof _getCreditStatus !== 'function') return;
+  _getCreditStatus().then(function(status){
+    var cost = status && status.featureCosts && status.featureCosts.video_generation;
+    var text = cost ? (cost + ' AI credits') : '';
+    labels.forEach(function(el){ el.textContent = text; });
+  }).catch(function(){});
 }
 
 function vaClose() {
@@ -310,6 +326,15 @@ async function vaGenerateImage() {
 // ── Shared submission ─────────────────────────────────────────────
 
 async function _vaSubmit(payload) {
+  // Pre-flight credit check — Video Ad generation costs CREDIT_COSTS.videoAd
+  // (200). Checked before anything transitions to the "generating" phase so
+  // a blocked generation never shows a fake-progress state; gateUsage()
+  // already opens the paywall itself when blocked.
+  if (typeof gateUsage === 'function') {
+    var allowed = await gateUsage(typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.videoAd : 200);
+    if (!allowed) return;
+  }
+
   // Transition to result phase
   _vaShowPhase('vaPhaseResult');
   var backBtn = document.getElementById('vaBackBtn');
@@ -336,6 +361,14 @@ async function _vaSubmit(payload) {
     });
 
     if (!result.ok) {
+      // A real 402 from the server (balance can differ from gateUsage's
+      // cached pre-flight check) — show the error inline AND open the
+      // upgrade paywall, same pattern used for AI Chat/Intelligence.
+      if (result.data && result.data.code === 'CREDITS_EXHAUSTED') {
+        _vaShowError('You\'re out of AI credits for this billing period.');
+        setTimeout(function(){ if (typeof openLimitReached === 'function') openLimitReached('credits'); }, 600);
+        return;
+      }
       throw new Error((result.data && result.data.error) || 'Generation failed. Please try again.');
     }
 

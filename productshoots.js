@@ -79,14 +79,9 @@ async function psGenerateFromFlow(answers) {
     }
 
     _psShowResult(data.images, data.ratio || '1:1');
-
-    // Deduct 2 credits per image
-    var creditCost = data.images.length * 2;
-    apiFetch('/api/increment-usage', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body:    JSON.stringify({ count: creditCost }),
-    }).catch(function(){});
+    // Real credit deduction already happened server-side (creditManager.
+    // reserveCredits, image_generation) inside the generation route itself
+    // -- no separate client-side increment call needed here.
 
   } catch (err) {
     _psShowError(err.message || 'Generation failed. Please try again.');
