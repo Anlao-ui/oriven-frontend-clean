@@ -4137,6 +4137,7 @@
       _awRenderAll();
       _awStartImagePoll();
       awMobileTab('preview');
+      _awHideFab();
     };
 
     function _awSeedChat(){
@@ -4147,14 +4148,28 @@
     }
 
     // ── Chat ──────────────────────────────────────────────────────────
+    // "Near bottom" tolerance for the smart-scroll behavior below — a
+    // few px of slack so a user resting exactly at the bottom (rounding,
+    // trackpad momentum) still counts as "at the bottom".
+    var AW_SCROLL_BOTTOM_SLACK = 40;
+    function _awIsNearBottom(feed){
+      return (feed.scrollHeight - feed.scrollTop - feed.clientHeight) <= AW_SCROLL_BOTTOM_SLACK;
+    }
     function _awAddBubble(role, text, animate){
       var feed = document.getElementById('awChatFeed');
       if(!feed) return null;
+      // Checked BEFORE appending -- appending changes scrollHeight, so the
+      // check has to capture the user's scroll position as it was a
+      // moment ago. The user's own message always snaps to the bottom
+      // (they just acted); an incoming AI message only does if the user
+      // was already reading near the bottom, so scrolling up to reread
+      // earlier messages is never interrupted by a new reply arriving.
+      var shouldScroll = role === 'user' || _awIsNearBottom(feed);
       var div = document.createElement('div');
       div.className = 'aw-msg aw-msg-' + role;
       div.innerHTML = '<div class="aw-msg-bubble">' + _awEsc(text) + '</div>';
       feed.appendChild(div);
-      feed.scrollTop = feed.scrollHeight;
+      if(shouldScroll) feed.scrollTop = feed.scrollHeight;
       return div;
     }
 
@@ -4287,13 +4302,30 @@
       _awRenderDetails();
     }
 
+    // Generation only ever produces images for as many ad slots as the
+    // real ad structure needs (see _startCreativesGeneration/
+    // _cgrCreativeCount) -- often fewer than the 3 concept variants, so
+    // switching to a variant beyond that has no image of its own. The
+    // generated ad must never appear to disappear because of that, so
+    // `image` here always resolves to the active variant's own image
+    // when it has one, otherwise the first real generated image found
+    // anywhere on the pkg -- never an empty/placeholder state as long as
+    // at least one image exists.
     function _awActiveConcept(){
       var pkg = _awState.pkg;
       var i = pkg.activeConceptIndex || 0;
+      var visual = (pkg.visualConcepts && pkg.visualConcepts[i]) || {};
+      var image = visual.generatedImageUrl || _awAnyGeneratedImage(pkg);
       return {
         concept: (pkg.concepts && pkg.concepts[i]) || {},
-        visual:  (pkg.visualConcepts && pkg.visualConcepts[i]) || {}
+        visual: visual,
+        image: image || ''
       };
+    }
+    function _awAnyGeneratedImage(pkg){
+      var list = pkg.visualConcepts || [];
+      for(var k=0;k<list.length;k++){ if(list[k] && list[k].generatedImageUrl) return list[k].generatedImageUrl; }
+      return '';
     }
 
     function _awRenderPreview(){
@@ -4335,7 +4367,7 @@
     function _awMetaCard(pkg){
       var m = pkg.metaAds || {};
       var ac = _awActiveConcept();
-      var img = ac.visual.generatedImageUrl || '';
+      var img = ac.image;
       var initial = (pkg.campaignName || 'O').charAt(0).toUpperCase();
       return '<div class="aw-pv aw-pv-meta">'
         + '<div class="aw-pv-m-head"><span class="aw-pv-m-avatar">' + _awEsc(initial) + '</span><div><div class="aw-pv-m-name">' + _awEsc(pkg.campaignName||'Your Brand') + '</div><div class="aw-pv-m-sponsored">Sponsored</div></div></div>'
@@ -4350,7 +4382,7 @@
     function _awTiktokCard(pkg){
       var t = pkg.tiktokAds || {};
       var ac = _awActiveConcept();
-      var img = ac.visual.generatedImageUrl || '';
+      var img = ac.image;
       return '<div class="aw-pv aw-pv-tiktok">'
         + '<div class="aw-pv-t-visual">' + (img ? '<img id="awPvImg" class="aw-pv-img" src="'+_awEsc(img)+'" alt="">' : '<div id="awPvImg" class="aw-pv-img aw-pv-img-empty"></div>') + '<div class="aw-wipe" id="awPvWipe"></div></div>'
         + '<div class="aw-pv-t-scrim"></div>'
@@ -4539,7 +4571,7 @@
       _awState.imagePoll = setInterval(function(){
         elapsed += 1000;
         var ac = _awActiveConcept();
-        if(ac.visual && ac.visual.generatedImageUrl){
+        if(ac.image){
           var imgEl = document.getElementById('awPvImg');
           if(imgEl && imgEl.tagName !== 'IMG'){ _awRenderPreview(); }
           clearInterval(_awState.imagePoll); _awState.imagePoll = null; return;
@@ -4557,6 +4589,38 @@
         b.classList.toggle('aw-mtab-active', b.getAttribute('data-awtab') === tab);
       });
     };
+
+    // ── Floating chat button: the left AI chat is always open inside the
+    // workspace, so the global bottom-right "Open Chat" FAB (#orvAiFab,
+    // shared with the sidebar assistant elsewhere in the app) is
+    // redundant here and hidden for as long as the workspace stays the
+    // active page. Restored via a MutationObserver on the page's own
+    // `active` class rather than hooking window._orvNav (the single
+    // choke point for every OTHER way to navigate away — sidebar clicks,
+    // hub tabs, etc.) so this never has to track each of those call
+    // sites individually and can't drift out of sync with any of them. ──
+    var _awFabHiddenByWorkspace = false;
+    function _awHideFab(){
+      var fab = document.getElementById('orvAiFab');
+      if(fab && !fab.classList.contains('orv-ai-fab-hidden')){
+        fab.classList.add('orv-ai-fab-hidden');
+        _awFabHiddenByWorkspace = true;
+      }
+    }
+    function _awRestoreFab(){
+      if(!_awFabHiddenByWorkspace) return;
+      var fab = document.getElementById('orvAiFab');
+      if(fab) fab.classList.remove('orv-ai-fab-hidden');
+      _awFabHiddenByWorkspace = false;
+    }
+    (function _awWatchWorkspacePage(){
+      var pg = document.getElementById('page-ad-workspace');
+      if(!pg || typeof MutationObserver === 'undefined') return;
+      var observer = new MutationObserver(function(){
+        if(!pg.classList.contains('active')) _awRestoreFab();
+      });
+      observer.observe(pg, { attributes: true, attributeFilter: ['class'] });
+    })();
 
     })();
     </script>
