@@ -4030,9 +4030,9 @@
         <div class="aw-col aw-col-preview" data-awpane="preview">
           <div class="aw-preview-toolbar">
             <div class="aw-preview-platform" id="awPreviewPlatformBadge"></div>
-            <div class="aw-preview-variants" id="awPreviewVariants"></div>
+            <div class="aw-placement-tabs" id="awPlacementTabs" role="tablist" aria-label="Preview placement"></div>
           </div>
-          <div class="aw-preview-stage" id="awPreviewStage"></div>
+          <div class="aw-preview-stage" id="awPreviewStage"><div class="aw-pv-sizer" id="awPvSizer"></div></div>
         </div>
 
         <div class="aw-col aw-col-details" data-awpane="details">
@@ -4065,8 +4065,42 @@
     function _awEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function _awReducedMotion(){ try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(_){ return false; } }
 
-    var _awState = { pkg: null, campId: null, platform: null, prompt: null, history: [], loading: false, imagePoll: null };
+    var _awState = { pkg: null, campId: null, platform: null, prompt: null, history: [], loading: false, imagePoll: null, placement: 'search' };
     window._awState = _awState; // debugging aid only, not read by anything else
+
+    // ── Placement/preview-format switcher ───────────────────────────
+    // Replaces the old concept-variant dots (which switched WHICH concept
+    // was the creative -- confusing, and could land on a concept with no
+    // generated image of its own, making the ad appear to vanish). This
+    // switches HOW the same creative is presented -- a pure client-side
+    // re-layout, never a network call, never touches pkg/credits. Google
+    // shows visual-led placements (youtube/display/shopping) only once a
+    // real generated image exists, since those layouts are meaningless
+    // as empty shells; Search never needs one (real Google Search ads
+    // are text-only) so it's always available. `orient` drives the
+    // resize/morph transition in _awPreviewCrossfade.
+    var AW_PLACEMENTS = {
+      google: [
+        { key:'search',   label:'Search',   orient:'wide' },
+        { key:'youtube',  label:'YouTube',  orient:'wide',  needsImage:true },
+        { key:'display',  label:'Display',  orient:'wide',  needsImage:true },
+        { key:'shopping', label:'Shopping', orient:'tall',  needsImage:true }
+      ],
+      meta: [
+        { key:'feed',  label:'Feed',  orient:'square' },
+        { key:'story', label:'Story', orient:'tall' },
+        { key:'reels', label:'Reels', orient:'tall' }
+      ],
+      tiktok: [
+        { key:'feed',  label:'Feed',  orient:'tall' },
+        { key:'video', label:'Video', orient:'tall' }
+      ]
+    };
+    function _awPlacementsFor(pkg, plat){
+      var all = AW_PLACEMENTS[plat] || AW_PLACEMENTS.meta;
+      var hasImage = !!_awAnyGeneratedImage(pkg);
+      return all.filter(function(p){ return !p.needsImage || hasImage; });
+    }
 
     // ── Budget helpers ────────────────────────────────────────────────
     function _awParseBudget(text){
@@ -4112,6 +4146,7 @@
       _awState.platform = platform;
       _awState.prompt = prompt;
       _awState.history = [];
+      _awState.placement = _awPlacementsFor(pkg, platform)[0].key;
 
       // Same channel window.orvAiSend already reads (oc.campaign) — the
       // Meta live-campaign panel's own use of this global only reads
@@ -4278,6 +4313,7 @@
         case 'convert_platform':
           _awState.pkg = r.pkg;
           _awState.platform = r.platform;
+          _awState.placement = _awPlacementsFor(r.pkg, r.platform)[0].key;
           if(window._orvAiCurrentCampaign) window._orvAiCurrentCampaign.pkg = r.pkg;
           _awPersist();
           _awPlatformTransition(r.platform);
@@ -4328,31 +4364,81 @@
       return '';
     }
 
+    // Target sizer dimensions per placement -- drives the resize/morph
+    // transition (#awPvSizer's own width/height CSS transition) when
+    // switching between orientations, e.g. Search (wide) -> Story (tall).
+    // Generous, not pixel-exact -- each card's own text areas are
+    // defensively line-clamped in CSS so real ad copy never overflows
+    // these bounds regardless of length.
+    var AW_PLACEMENT_SIZE = {
+      google:  { search: [480,190], youtube: [480,320], display: [480,300], shopping: [260,360] },
+      meta:    { feed: [360,560], story: [248,440], reels: [248,440] },
+      tiktok:  { feed: [240,426], video: [240,426] }
+    };
+
     function _awRenderPreview(){
       var stage = document.getElementById('awPreviewStage');
+      var sizer = document.getElementById('awPvSizer');
       var badge = document.getElementById('awPreviewPlatformBadge');
-      var variants = document.getElementById('awPreviewVariants');
-      if(!stage) return;
+      var tabs = document.getElementById('awPlacementTabs');
+      if(!stage || !sizer) return;
       var pkg = _awState.pkg;
       var plat = _awState.platform;
       var labels = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads' };
       if(badge){ badge.textContent = labels[plat] || 'Campaign'; badge.setAttribute('data-plat', plat); }
-      if(variants){
-        var n = (pkg.concepts || []).length;
-        variants.innerHTML = '';
-        for(var i=0;i<n;i++){
+
+      var placements = _awPlacementsFor(pkg, plat);
+      if(!placements.some(function(p){ return p.key === _awState.placement; })) _awState.placement = placements[0].key;
+      var active = _awState.placement;
+
+      if(tabs){
+        tabs.innerHTML = '';
+        placements.forEach(function(p){
           var b = document.createElement('button');
-          b.className = 'aw-variant-dot' + (i === (pkg.activeConceptIndex||0) ? ' aw-variant-dot-active' : '');
-          b.setAttribute('aria-label', 'Version ' + (i+1));
-          b.onclick = (function(idx){ return function(){ pkg.activeConceptIndex = idx; _awPersist(); _awPreviewCrossfade(); }; })(i);
-          variants.appendChild(b);
-        }
+          b.type = 'button';
+          b.className = 'aw-placement-tab' + (p.key === active ? ' aw-placement-tab-active' : '');
+          b.textContent = p.label;
+          b.setAttribute('role', 'tab');
+          b.setAttribute('aria-selected', p.key === active ? 'true' : 'false');
+          b.onclick = function(){ _awSwitchPlacement(p.key); };
+          tabs.appendChild(b);
+        });
       }
-      stage.innerHTML = plat === 'google' ? _awGoogleCard(pkg) : plat === 'tiktok' ? _awTiktokCard(pkg) : _awMetaCard(pkg);
-      stage.classList.remove('aw-stage-in'); void stage.offsetWidth; stage.classList.add('aw-stage-in');
+
+      var size = (AW_PLACEMENT_SIZE[plat] && AW_PLACEMENT_SIZE[plat][active]) || [360,560];
+      var targetW = size[0], targetH = size[1];
+      // Scale proportionally to fit narrow (mobile) viewports rather than
+      // overflowing -- the size table is authored for desktop, so clamp
+      // against the stage's real available width and keep aspect ratio.
+      var maxW = stage.clientWidth - 16;
+      if(maxW > 0 && targetW > maxW){
+        var scale = maxW / targetW;
+        targetW = Math.round(targetW * scale);
+        targetH = Math.round(targetH * scale);
+      }
+      sizer.style.width = targetW + 'px';
+      sizer.style.height = targetH + 'px';
+
+      var renderers = {
+        google:  { search: _awGoogleSearchCard, youtube: _awGoogleYoutubeCard, display: _awGoogleDisplayCard, shopping: _awGoogleShoppingCard },
+        meta:    { feed: _awMetaFeedCard, story: _awMetaStoryCard, reels: _awMetaReelsCard },
+        tiktok:  { feed: _awTiktokFeedCard, video: _awTiktokVideoCard }
+      };
+      var fn = (renderers[plat] && renderers[plat][active]) || _awMetaFeedCard;
+      sizer.innerHTML = fn(pkg);
+      stage.classList.remove('aw-stage-in', 'aw-stage-out'); void stage.offsetWidth; stage.classList.add('aw-stage-in');
     }
 
-    function _awGoogleCard(pkg){
+    // Pure visualization switch — no network call, no credit charge, no
+    // pkg mutation, never touches chat/campaign state. Just a re-layout
+    // of the exact same creative/copy already on the campaign.
+    function _awSwitchPlacement(key){
+      if(key === _awState.placement) return;
+      _awState.placement = key;
+      _awPreviewCrossfade();
+    }
+
+    function _awGoogleSearchCard(pkg){
       var g = pkg.googleAds || {};
       var headline = (g.headlines && g.headlines[0]) || pkg.campaignName || '';
       var desc = (g.descriptions && g.descriptions[0]) || '';
@@ -4364,7 +4450,62 @@
         + '</div>';
     }
 
-    function _awMetaCard(pkg){
+    // Illustrative previews only -- Search is the only placement a text
+    // campaign is actually guaranteed to run on; YouTube/Display/Shopping
+    // show how the SAME headline/creative would look in that format
+    // (issue 6/9: reuse, never a second generation pipeline), not a claim
+    // the campaign is literally live there.
+    function _awGoogleYoutubeCard(pkg){
+      var g = pkg.googleAds || {};
+      var headline = (g.headlines && g.headlines[0]) || pkg.campaignName || '';
+      var ac = _awActiveConcept();
+      var img = ac.image;
+      return '<div class="aw-pv aw-pv-g-yt">'
+        + '<div class="aw-pv-g-yt-visual">' + (img ? '<img id="awPvImg" class="aw-pv-img" src="'+_awEsc(img)+'" alt="">' : '<div id="awPvImg" class="aw-pv-img aw-pv-img-empty"></div>') + '<div class="aw-wipe" id="awPvWipe"></div>'
+        + '<span class="aw-pv-g-yt-play"><svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>'
+        + '<span class="aw-pv-g-yt-badge">Ad &middot; 0:15</span></div>'
+        + '<div class="aw-pv-g-yt-foot"><span class="aw-pv-g-yt-title" id="awPvHeadline">' + _awEsc(headline) + '</span><span class="aw-pv-g-yt-cta" id="awPvCta">Visit site</span></div>'
+        + '<div class="aw-pv-g-desc" id="awPvDesc" style="display:none">' + _awEsc((g.descriptions&&g.descriptions[0])||'') + '</div>'
+        + '</div>';
+    }
+
+    function _awGoogleDisplayCard(pkg){
+      var g = pkg.googleAds || {};
+      var headline = (g.headlines && g.headlines[0]) || pkg.campaignName || '';
+      var desc = (g.descriptions && g.descriptions[0]) || '';
+      var ac = _awActiveConcept();
+      var img = ac.image;
+      return '<div class="aw-pv aw-pv-g-disp">'
+        + (img ? '<img id="awPvImg" class="aw-pv-img" src="'+_awEsc(img)+'" alt="">' : '<div id="awPvImg" class="aw-pv-img aw-pv-img-empty"></div>') + '<div class="aw-wipe" id="awPvWipe"></div>'
+        + '<div class="aw-pv-g-disp-scrim"></div>'
+        + '<div class="aw-pv-g-disp-foot">'
+        + '<span class="aw-pv-g-disp-ad">Ad</span>'
+        + '<div class="aw-pv-g-disp-headline" id="awPvHeadline">' + _awEsc(headline) + '</div>'
+        + '<button class="aw-pv-g-disp-cta" id="awPvCta">Learn More</button>'
+        + '</div>'
+        + '<div class="aw-pv-g-desc" id="awPvDesc" style="display:none">' + _awEsc(desc) + '</div>'
+        + '</div>';
+    }
+
+    function _awGoogleShoppingCard(pkg){
+      var g = pkg.googleAds || {};
+      var headline = (g.headlines && g.headlines[0]) || pkg.campaignName || '';
+      var ac = _awActiveConcept();
+      var img = ac.image;
+      return '<div class="aw-pv aw-pv-g-shop">'
+        + '<div class="aw-pv-g-shop-visual">' + (img ? '<img id="awPvImg" class="aw-pv-img" src="'+_awEsc(img)+'" alt="">' : '<div id="awPvImg" class="aw-pv-img aw-pv-img-empty"></div>') + '<div class="aw-wipe" id="awPvWipe"></div></div>'
+        + '<div class="aw-pv-g-shop-body">'
+        + '<div class="aw-pv-g-shop-title" id="awPvHeadline">' + _awEsc(headline) + '</div>'
+        + '<div class="aw-pv-g-shop-store">' + _awEsc(pkg.campaignName || 'Your Store') + '</div>'
+        + '<div class="aw-pv-g-shop-cta" id="awPvCta">Shop now</div>'
+        + '</div>'
+        + '<div class="aw-pv-g-desc" id="awPvDesc" style="display:none">' + _awEsc((g.descriptions&&g.descriptions[0])||'') + '</div>'
+        + '</div>';
+    }
+
+    // Feed — unchanged from the original, already-working Meta preview
+    // (issue 7: "keep the existing working Meta preview" verbatim).
+    function _awMetaFeedCard(pkg){
       var m = pkg.metaAds || {};
       var ac = _awActiveConcept();
       var img = ac.image;
@@ -4379,12 +4520,73 @@
         + '</div></div>';
     }
 
-    function _awTiktokCard(pkg){
+    function _awMetaStoryCard(pkg){
+      var m = pkg.metaAds || {};
+      var ac = _awActiveConcept();
+      var img = ac.image;
+      var initial = (pkg.campaignName || 'O').charAt(0).toUpperCase();
+      return '<div class="aw-pv aw-pv-m-vert">'
+        + '<div class="aw-pv-m-vert-bar"><span></span><span></span></div>'
+        + '<div class="aw-pv-m-vert-head"><span class="aw-pv-m-avatar aw-pv-m-avatar-sm">' + _awEsc(initial) + '</span><span class="aw-pv-m-vert-name">' + _awEsc(pkg.campaignName||'Your Brand') + '</span><span class="aw-pv-m-vert-spon">Sponsored</span></div>'
+        + (img ? '<img id="awPvImg" class="aw-pv-img" src="'+_awEsc(img)+'" alt="">' : '<div id="awPvImg" class="aw-pv-img aw-pv-img-empty"></div>') + '<div class="aw-wipe" id="awPvWipe"></div>'
+        + '<div class="aw-pv-m-vert-scrim"></div>'
+        + '<div class="aw-pv-m-vert-foot">'
+        + '<div class="aw-pv-m-vert-headline" id="awPvHeadline">' + _awEsc(m.headline || '') + '</div>'
+        + '<button class="aw-pv-m-vert-cta" id="awPvCta">' + _awEsc(m.cta || 'Learn More') + '</button>'
+        + '</div>'
+        + '<div class="aw-pv-m-primary" id="awPvDesc" style="display:none">' + _awEsc(m.primaryText||'') + '</div>'
+        + '</div>';
+    }
+
+    function _awMetaReelsCard(pkg){
+      var m = pkg.metaAds || {};
+      var ac = _awActiveConcept();
+      var img = ac.image;
+      var initial = (pkg.campaignName || 'O').charAt(0).toUpperCase();
+      return '<div class="aw-pv aw-pv-m-vert aw-pv-m-reels">'
+        + (img ? '<img id="awPvImg" class="aw-pv-img" src="'+_awEsc(img)+'" alt="">' : '<div id="awPvImg" class="aw-pv-img aw-pv-img-empty"></div>') + '<div class="aw-wipe" id="awPvWipe"></div>'
+        + '<div class="aw-pv-m-vert-scrim"></div>'
+        + '<div class="aw-pv-m-vert-sidebar">'
+        + '<span class="aw-pv-m-vert-ico"><svg viewBox="0 0 14 14" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 12.5C3 9.8 1 7.6 1 5.1 1 3.2 2.5 2 4.2 2c1 0 2 .5 2.8 1.5C7.8 2.5 8.8 2 9.8 2 11.5 2 13 3.2 13 5.1c0 2.5-2 4.7-6 7.4z"/></svg></span>'
+        + '<span class="aw-pv-m-vert-ico"><svg viewBox="0 0 14 14" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1 3h12v6H5l-3 3V9H1z"/></svg></span>'
+        + '<span class="aw-pv-m-vert-ico"><svg viewBox="0 0 14 14" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 7h9M7 3l4 4-4 4"/></svg></span>'
+        + '</div>'
+        + '<div class="aw-pv-m-vert-foot">'
+        + '<div class="aw-pv-m-vert-name" style="font-weight:700;margin-bottom:4px">' + _awEsc(pkg.campaignName||'Your Brand') + ' <span class="aw-pv-m-vert-spon">&middot; Sponsored</span></div>'
+        + '<div class="aw-pv-m-vert-headline" id="awPvHeadline">' + _awEsc(m.headline || '') + '</div>'
+        + '<button class="aw-pv-m-vert-cta" id="awPvCta">' + _awEsc(m.cta || 'Learn More') + '</button>'
+        + '</div>'
+        + '<div class="aw-pv-m-primary" id="awPvDesc" style="display:none">' + _awEsc(m.primaryText||'') + '</div>'
+        + '</div>';
+    }
+
+    // Feed — unchanged from the original, already-working TikTok preview.
+    function _awTiktokFeedCard(pkg){
       var t = pkg.tiktokAds || {};
       var ac = _awActiveConcept();
       var img = ac.image;
       return '<div class="aw-pv aw-pv-tiktok">'
         + '<div class="aw-pv-t-visual">' + (img ? '<img id="awPvImg" class="aw-pv-img" src="'+_awEsc(img)+'" alt="">' : '<div id="awPvImg" class="aw-pv-img aw-pv-img-empty"></div>') + '<div class="aw-wipe" id="awPvWipe"></div></div>'
+        + '<div class="aw-pv-t-scrim"></div>'
+        + '<div class="aw-pv-t-foot">'
+        + '<div class="aw-pv-t-hook" id="awPvHeadline">' + _awEsc(t.hook || '') + '</div>'
+        + '<div class="aw-pv-t-desc" id="awPvDesc">' + _awEsc(t.script || '') + '</div>'
+        + '<button class="aw-pv-t-cta" id="awPvCta">' + _awEsc(t.cta || 'Shop Now') + '</button>'
+        + '</div></div>';
+    }
+
+    // Video — same composition, framed as a video placement (play button +
+    // progress bar) since this pipeline generates images, not a second,
+    // separate video-generation system (issue 9).
+    function _awTiktokVideoCard(pkg){
+      var t = pkg.tiktokAds || {};
+      var ac = _awActiveConcept();
+      var img = ac.image;
+      return '<div class="aw-pv aw-pv-tiktok">'
+        + '<div class="aw-pv-t-visual">' + (img ? '<img id="awPvImg" class="aw-pv-img" src="'+_awEsc(img)+'" alt="">' : '<div id="awPvImg" class="aw-pv-img aw-pv-img-empty"></div>') + '<div class="aw-wipe" id="awPvWipe"></div>'
+        + '<div class="aw-pv-t-progress"><span></span></div>'
+        + '<span class="aw-pv-t-play"><svg viewBox="0 0 24 24" width="26" height="26" fill="rgba(255,255,255,.85)"><path d="M8 5v14l11-7z"/></svg></span>'
+        + '</div>'
         + '<div class="aw-pv-t-scrim"></div>'
         + '<div class="aw-pv-t-foot">'
         + '<div class="aw-pv-t-hook" id="awPvHeadline">' + _awEsc(t.hook || '') + '</div>'
@@ -4524,6 +4726,11 @@
     function _awCreativeSwap(newUrl){
       var imgEl = document.getElementById('awPvImg');
       var wipeEl = document.getElementById('awPvWipe');
+      // Google Search has no image element at all (real Search ads are
+      // text-only) -- the pkg data is already updated by the caller
+      // before this runs, so there's nothing left to do here; switching
+      // to any visual placement afterward picks up the new image
+      // automatically via _awActiveConcept()'s normal read path.
       if(!imgEl) return;
       if(_awReducedMotion()){
         if(imgEl.tagName === 'IMG') imgEl.src = newUrl; else _awRenderPreview();
@@ -4546,7 +4753,7 @@
       if(!stage) return;
       if(_awReducedMotion()){ _awRenderPreview(); return; }
       stage.classList.add('aw-stage-out');
-      setTimeout(function(){ _awRenderPreview(); }, 220);
+      setTimeout(function(){ _awRenderPreview(); }, 180);
     }
 
     function _awPlatformTransition(newPlatform){
