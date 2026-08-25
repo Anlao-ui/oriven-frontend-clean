@@ -3751,8 +3751,11 @@
     <div class="page" id="page-campaign-results">
       <div class="cgr-wrap">
 
-        <!-- Back bar -->
-        <div class="cgr-back">
+        <!-- Back bar — hidden for the duration of generation (see
+             _showResultsPage/_cgrShowChrome) so the building view has no
+             navigation/action chrome competing with it; reappears once
+             real content (success or error) is shown. -->
+        <div class="cgr-back" id="cgrBackBar">
           <button class="cgr-back-btn" onclick="_orvNav('campaigns','page-campaigns')">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M10 3L5 8l5 5"/></svg>
             Back
@@ -3767,29 +3770,14 @@
           </div>
         </div>
 
-        <!-- Loading state -->
-        <div id="cgrLoading" class="cgr-loading">
-          <div class="cgr-loading-spinner">
-            <svg viewBox="0 0 40 40" fill="none" width="40" height="40"><circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,.08)" stroke-width="3"/><path d="M20 4a16 16 0 0 1 16 16" stroke="var(--green)" stroke-width="3" stroke-linecap="round"/></svg>
-          </div>
-          <div class="cgr-loading-title">Oriven AI is building your campaign</div>
-          <div class="cgr-loading-model" id="cgrLoadingModel">Running Text Model...</div>
-          <div class="cgr-loading-steps" id="cgrLoadingSteps">
-            <div class="cgr-ls cgr-ls-active" id="cgrLs0">Understanding your product</div>
-            <div class="cgr-ls" id="cgrLs1">Analysing brand &amp; market</div>
-            <div class="cgr-ls" id="cgrLs2">Creating campaign strategy</div>
-            <div class="cgr-ls" id="cgrLs3">Generating ad copy</div>
-            <div class="cgr-ls" id="cgrLs4">Generating images</div>
-            <div class="cgr-ls" id="cgrLs5">Generating visual concepts</div>
-            <div class="cgr-ls" id="cgrLs6">Building publishing package</div>
-          </div>
-          <div class="cgr-loading-eta" id="cgrLoadingEta">
-            <span class="cgr-eta-lbl">Estimated time remaining</span>
-            <span class="cgr-eta-val" id="cgrEtaVal">~30 seconds</span>
-          </div>
-          <div class="cgr-loading-timeout" id="cgrLoadingTimeout" style="display:none">
-            <div class="cgr-timeout-msg">This is taking longer than expected.</div>
-            <button class="cgr-timeout-retry" onclick="cgrRetryGeneration()">Retry Generation</button>
+        <!-- Loading state — a live "campaign blueprint" that constructs
+             itself line by line (see _cgrBuildStart in the script block
+             below), not a progress/ETA readout. -->
+        <div id="cgrLoading" class="cgr-build">
+          <div class="cgr-build-status">BUILDING</div>
+          <div class="cgr-build-card">
+            <div class="cgr-build-glow" id="cgrBuildGlow"></div>
+            <div class="cgr-build-lines" id="cgrBuildLines"></div>
           </div>
         </div>
 
@@ -15854,10 +15842,18 @@ window.rptExport = function(format) {
   ];
 
   function _cancelLoadingTimers(){
-    if(window._cgrEtaInterval){ clearInterval(window._cgrEtaInterval); window._cgrEtaInterval = null; }
-    if(window._cgrTimeoutTimer){ clearTimeout(window._cgrTimeoutTimer); window._cgrTimeoutTimer = null; }
-    (window._cgrStepTimers||[]).forEach(function(t){ clearTimeout(t); });
-    window._cgrStepTimers = [];
+    (window._cgrBuildQueue||[]).forEach(function(t){ clearTimeout(t); });
+    window._cgrBuildQueue = [];
+  }
+
+  /* Back bar (Back / Saved / Copy Package / View Campaigns) is hidden for
+     the duration of generation (see _showResultsPage) so nothing competes
+     with the building view; every path that reveals real content —
+     success, error, credits-exhausted, subscription-required — calls this
+     to bring it back. */
+  function _cgrShowChrome(){
+    var bar = document.getElementById('cgrBackBar');
+    if(bar) bar.classList.remove('cgr-back-hidden');
   }
 
   function _showResultsPage(prompt, platform, creativeMode){
@@ -15874,6 +15870,13 @@ window.rptExport = function(format) {
     var content = document.getElementById('cgrContent');
     if(loading) { loading.style.display = ''; loading.classList.remove('cgr-loading--done'); }
     if(content) content.style.display = 'none';
+    /* No nav/action chrome while building. A CLASS, not an inline style —
+       body.dark-mode .cgr-back already carries its own !important display
+       rule (sticky/blur chrome), which an inline style without !important
+       can never beat; .cgr-back-hidden below is written with !important
+       specifically so it wins regardless of theme. */
+    var bar = document.getElementById('cgrBackBar');
+    if(bar) bar.classList.add('cgr-back-hidden');
     /* Hide saved badge */
     var sb = document.getElementById('cgrSavedBadge');
     if(sb) sb.style.display = 'none';
@@ -15883,68 +15886,139 @@ window.rptExport = function(format) {
     /* Reset hero signals */
     var _sigs = ['cgrHeroConvTag','cgrHeroAssets','cgrObjective'];
     _sigs.forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
-    /* Store params for retry */
+    /* Store params for retry (still used by _renderError's own "Try Again") */
     window._cgrLastPrompt = prompt;
     window._cgrLastPlatform = platform;
     window._cgrLastCreativeMode = creativeMode;
-    /* Per-creative-mode labels */
-    var imgModelLbl = creativeMode === 'videos' ? 'Running Video Model...' : 'Running Image Model...';
-    var stepModels = [
-      'Running Text Model...', 'Running Text Model...', 'Running Text Model...', 'Running Text Model...',
-      imgModelLbl, imgModelLbl, 'Building Publishing Package...'
-    ];
-    /* Update step 4 label to match mode */
-    var ls4 = document.getElementById('cgrLs4');
-    if(ls4) ls4.textContent = creativeMode === 'videos' ? 'Generating video concepts' : 'Generating images';
-    /* Reset all steps */
-    for(var i=0;i<7;i++){
-      var ls = document.getElementById('cgrLs'+i);
-      if(ls){ ls.className = i===0 ? 'cgr-ls cgr-ls-active' : 'cgr-ls'; }
-    }
-    /* Reset model label */
-    var modelEl = document.getElementById('cgrLoadingModel');
-    if(modelEl) modelEl.textContent = stepModels[0];
-    /* Hide ETA (no countdown), hide timeout */
-    var etaEl = document.getElementById('cgrLoadingEta');
-    var timeoutEl = document.getElementById('cgrLoadingTimeout');
-    if(etaEl) etaEl.style.display = 'none';
-    if(timeoutEl) timeoutEl.style.display = 'none';
-    /* Show prompt echo */
-    var pe = document.getElementById('cgrPromptEcho');
-    if(pe) pe.textContent = '"'+prompt+'"';
-    /* Set platform badge */
+    /* Set platform badge (read by the completed view, not the build view) */
     var pb = document.getElementById('cgrPlatBadge');
     if(pb) pb.textContent = _platLabels[platform] || 'Campaign';
-    /* Cancel any previous timers */
+    /* Cancel any previous build sequence, start a fresh one */
     _cancelLoadingTimers();
-    /* Timeout — show retry after 60 seconds */
-    window._cgrTimeoutTimer = setTimeout(function(){
-      var toEl = document.getElementById('cgrLoadingTimeout');
-      if(toEl) toEl.style.display = '';
-    }, 60000);
-    /* Animate steps — delays tuned to actual API timing */
-    var delays = creativeMode === 'videos'
-      ? [0, 5000, 10000, 16000, 22000, 32000, 42000]
-      : [0, 3500, 7500, 12000, 17000, 22000, 26000];
-    window._cgrStepTimers = [];
-    delays.forEach(function(d,i){
-      var tid = setTimeout(function(){
-        var ls = document.getElementById('cgrLs'+i);
-        if(ls){ ls.className = 'cgr-ls cgr-ls-done'; }
-        var next = document.getElementById('cgrLs'+(i+1));
-        if(next && next.className !== 'cgr-ls cgr-ls-done') next.className = 'cgr-ls cgr-ls-active';
-        var mEl = document.getElementById('cgrLoadingModel');
-        if(mEl && stepModels[i+1]) mEl.textContent = stepModels[i+1];
-      }, d);
-      window._cgrStepTimers.push(tid);
-    });
+    _cgrBuildStart(creativeMode, _platLabels[platform] || platform || 'CAMPAIGN');
   }
 
-  window.cgrRetryGeneration = function(){
-    if(window._cgrLastPrompt){
-      cgrGenerate(window._cgrLastPrompt, window._cgrLastPlatform, window._cgrLastCreativeMode);
+  /* ── Campaign blueprint — the live "building" view ──────────────────
+     Replaces the old percent/ETA/step-checklist loading UI with a
+     terminal-like sequence of section/field lines that reveal
+     progressively, reusing the exact same delay checkpoints the old step
+     system used (already tuned to real API timing) so the pacing still
+     matches how long generation actually takes — it just LOOKS like Oriven
+     constructing the ad instead of a spinner with a percentage. Purely
+     cosmetic: the real apiFetch('/api/ai/create-ad') call in cgrGenerate
+     and all of its success/error handling are completely untouched: this
+     sequence simply gets interrupted (via _cancelLoadingTimers, already
+     called by _renderPackage/_renderError/etc.) whenever the real response
+     actually arrives, whichever comes first. ── */
+  var _cgrBlUid = 0;
+  function _cgrBlSection(container, title){
+    var sec = document.createElement('div');
+    sec.className = 'cgr-bl-section';
+    sec.innerHTML = '<span class="cgr-bl-dot"></span>' + _esc(title);
+    container.appendChild(sec);
+    _cgrBlMoveCursor(container);
+    return sec;
+  }
+  function _cgrBlField(container, label, value, state){
+    var uid = 'cgrbl' + (++_cgrBlUid);
+    var row = document.createElement('div');
+    row.className = 'cgr-bl-field cgr-bl-field-in';
+    row.id = uid;
+    row.innerHTML = '<span class="cgr-bl-label">' + _esc(label) + '</span><span class="cgr-bl-colon">:</span> <span class="cgr-bl-value cgr-bl-value-' + state + '">' + _esc(value) + '</span>';
+    container.appendChild(row);
+    _cgrBlMoveCursor(container);
+    return uid;
+  }
+  function _cgrBlUpdate(uid, value, state, flash){
+    var row = document.getElementById(uid);
+    if(!row) return;
+    var val = row.querySelector('.cgr-bl-value');
+    if(val){
+      val.className = 'cgr-bl-value cgr-bl-value-' + state;
+      val.textContent = value;
     }
-  };
+    if(flash){
+      var glow = document.getElementById('cgrBuildGlow');
+      if(glow){ glow.classList.remove('cgr-build-glow-flash'); void glow.offsetWidth; glow.classList.add('cgr-build-glow-flash'); }
+    }
+  }
+  function _cgrBlMoveCursor(container){
+    var cur = container.querySelector('.cgr-bl-cursor');
+    if(!cur){ cur = document.createElement('span'); cur.className = 'cgr-bl-cursor'; }
+    container.appendChild(cur);
+  }
+
+  function _cgrBuildStart(creativeMode, platformLabel){
+    var lines = document.getElementById('cgrBuildLines');
+    if(!lines) return;
+    lines.innerHTML = '';
+    window._cgrBuildQueue = [];
+    var isVideo = creativeMode === 'videos';
+    var q = function(fn, delay){ window._cgrBuildQueue.push(setTimeout(fn, delay)); };
+
+    /* Same 7 checkpoints the old step-checklist used — tuned to actual
+       API timing, reused as-is so pacing still matches real generation
+       time even though what's displayed at each checkpoint is new. */
+    var d = isVideo
+      ? [0, 5000, 10000, 16000, 22000, 32000, 42000]
+      : [0, 3500, 7500, 12000, 17000, 22000, 26000];
+
+    var adFld, statusFld, audFld, stratFld, hlFld, descFld, ctaFld, crFld, concFld, budFld, trkFld;
+
+    q(function(){
+      var sec = _cgrBlSection(lines, 'ADVERTISEMENT');
+      adFld = _cgrBlField(lines, 'platform', platformLabel.toUpperCase(), 'done');
+      statusFld = _cgrBlField(lines, 'status', 'constructing', 'active');
+    }, 80);
+
+    q(function(){
+      _cgrBlUpdate(statusFld, 'TRUE', 'done', true);
+      _cgrBlSection(lines, 'CAMPAIGN');
+      audFld = _cgrBlField(lines, 'audience', 'analyzing', 'active');
+    }, d[1]);
+
+    q(function(){
+      _cgrBlUpdate(audFld, 'TRUE', 'done');
+      stratFld = _cgrBlField(lines, 'strategy', 'building', 'active');
+    }, d[2]);
+
+    q(function(){
+      _cgrBlUpdate(stratFld, 'TRUE', 'done', true);
+      _cgrBlSection(lines, 'COPY');
+      hlFld = _cgrBlField(lines, 'headline', 'generating', 'active');
+    }, d[3]);
+    q(function(){ descFld = _cgrBlField(lines, 'description', 'generating', 'active'); }, d[3] + 450);
+    q(function(){ ctaFld = _cgrBlField(lines, 'cta', 'generating', 'active'); }, d[3] + 900);
+
+    q(function(){
+      _cgrBlUpdate(hlFld, 'TRUE', 'done');
+      _cgrBlUpdate(descFld, 'TRUE', 'done');
+      _cgrBlUpdate(ctaFld, 'TRUE', 'done', true);
+      _cgrBlSection(lines, 'CREATIVE');
+      crFld = _cgrBlField(lines, isVideo ? 'video' : 'image', 'generating', 'active');
+    }, d[4]);
+
+    q(function(){
+      concFld = _cgrBlField(lines, 'concepts', 'generating', 'active');
+    }, d[5]);
+
+    q(function(){
+      _cgrBlUpdate(crFld, 'TRUE', 'done', true);
+      _cgrBlUpdate(concFld, 'TRUE', 'done');
+      budFld = _cgrBlField(lines, 'budget', 'configuring', 'active');
+      trkFld = _cgrBlField(lines, 'tracking', 'configuring', 'active');
+    }, d[6]);
+
+    /* Long-tail — if the real response hasn't arrived by the last
+       checkpoint (slower network, video mode, etc.), settle into a
+       calm, persistently-alive "finalizing" state rather than looking
+       finished-and-frozen while still actually waiting. */
+    q(function(){
+      _cgrBlUpdate(budFld, 'TRUE', 'done');
+      _cgrBlUpdate(trkFld, 'TRUE', 'done', true);
+      _cgrBlField(lines, 'package', 'finalizing', 'active');
+    }, d[6] + 3200);
+  }
 
   /* ── Per-platform result renderers ──────────────────────────────
      Each returns an HTML string written into #cgrPlatformContent.
@@ -16542,6 +16616,7 @@ window.rptExport = function(format) {
     var content = document.getElementById('cgrContent');
     if(loading) loading.classList.add('cgr-loading--done');
     if(content) content.style.display='';
+    _cgrShowChrome();
     var mc = document.querySelector('.mc'); if(mc) mc.scrollTop=0;
     if((typeof window.notifAllowed !== 'function' || window.notifAllowed('notifGenComplete')) && typeof orvToast==='function')
       orvToast('Campaign generated', 'ok');
@@ -19311,6 +19386,7 @@ window.rptExport = function(format) {
           content2.innerHTML = '<div class="cgr-error"><div class="cgr-error-ico">⚠</div><div class="cgr-error-title">Not enough credits</div><div class="cgr-error-sub">You have ' + bal + ' credits — generating a campaign costs 25. Upgrade your plan or wait for your next billing cycle.</div><button class="cgr-action-btn cgr-action-btn-primary" onclick="openSettingsModal()">View Plans</button></div>';
           content2.style.display = '';
         }
+        _cgrShowChrome();
       } else if(res.status === 403 && body && body.code === 'SUBSCRIPTION_REQUIRED'){
         // Never surface a raw 403 — if this fires during onboarding it means
         // the one free generation was already used; end the tour and hand
@@ -19325,6 +19401,7 @@ window.rptExport = function(format) {
         _cancelLoadingTimers();
         var loadingEl = document.getElementById('cgrLoading');
         if(loadingEl) loadingEl.classList.add('cgr-loading--done');
+        _cgrShowChrome();
       } else {
         // Full detail stays in the console for debugging — the user only ever
         // sees a friendly message, never a raw provider/HTTP-status string.
@@ -19348,6 +19425,7 @@ window.rptExport = function(format) {
       content.innerHTML = '<div class="cgr-error"><div class="cgr-error-ico">⚠</div><div class="cgr-error-title">Generation failed</div><div class="cgr-error-sub">' + _esc(friendlyMsg) + '</div><button class="cgr-action-btn cgr-action-btn-primary" onclick="cgrGenerate(\''+_esc(prompt)+'\')">Try Again</button></div>';
       content.style.display = '';
     }
+    _cgrShowChrome();
   }
 
   /* Concept tab switching */
