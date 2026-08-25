@@ -41435,8 +41435,17 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 .adv-g-adv { font-weight: 500; color: rgba(255,255,255,.55); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adv-g-body { flex: 1; display: flex; gap: 14px; align-items: flex-start; min-height: 0; }
 .adv-g-text { flex: 1; min-width: 0; }
-.adv-g-cat { font-size: 10px; color: rgba(255,255,255,.35); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .03em; }
-.adv-g-headline { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.26; margin-bottom: 5px; letter-spacing: -.01em; }
+/* Both bounded to a fixed number of lines regardless of how long the
+   generated category/headline text is -- the mobile overlap bug (CTA
+   footer rendering on top of the headline's 2nd line) traced back to
+   these two having no such cap: a long uppercase, letter-spaced category
+   string would wrap to 2 lines with nothing to stop it, silently eating
+   the vertical budget a fixed-height card never accounted for, and
+   .adv-g-body's flex-shrunk box let its own children overflow past it
+   uncontained (only the outer .ov-wall-card clips, and only below its
+   own edge -- not what was overlapping mid-card). */
+.adv-g-cat { font-size: 10px; color: rgba(255,255,255,.35); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adv-g-headline { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.26; margin-bottom: 5px; letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .adv-g-desc { font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .adv-g-visual { width: 62px; height: 62px; flex-shrink: 0; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); position: relative; overflow: hidden; }
 .adv-g-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.07); }
@@ -41488,6 +41497,11 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 
 @media (max-width: 900px) {
   .ov-wall-card.ov-wall-card-tiktok { width: 158px !important; height: 281px !important; }
+  /* Google-only height bump (Meta/TikTok untouched) -- 168px never had
+     room for a 2-line headline + category + description + footer once
+     those got properly bounded above; this is the fit fix, not a
+     redesign -- width/typography/spacing all stay as they were. */
+  .ov-wall-card.ov-wall-card-google { height: 192px !important; }
   .adv-g-headline { font-size: 13.5px; }
   .adv-g-desc { font-size: 11px; }
   .adv-m-copy { font-size: 11px; }
@@ -41495,6 +41509,7 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 }
 @media (max-width: 640px) {
   .ov-wall-card.ov-wall-card-tiktok { width: 128px !important; height: 227px !important; }
+  .ov-wall-card.ov-wall-card-google { height: 150px !important; }
   .adv-card-google { padding: 11px 12px 10px; }
   .adv-g-visual { width: 46px; height: 46px; }
   .adv-g-headline { font-size: 12px; margin-bottom: 3px; }
