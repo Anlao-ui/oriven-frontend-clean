@@ -4202,13 +4202,13 @@
       var msg = inp ? inp.value.trim() : '';
       if(!msg) return;
 
-      if(typeof gateUsage === 'function'){
-        var allowed = await gateUsage(typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.chat : 5);
-        if(!allowed) return;
-      }
-
+      /* ── Immediate UI acknowledgement — synchronous, before the async
+         credit pre-flight below, so the user's own message appears and
+         the input clears the instant they act, regardless of the credit
+         check's network latency (a cache-miss round trip to
+         /api/credits/status). Rolled back if the gate ends up blocking. ── */
       if(inp) inp.value = '';
-      _awAddBubble('user', msg);
+      var userBubble = _awAddBubble('user', msg);
 
       var feed = document.getElementById('awChatFeed');
       var thinking = document.createElement('div');
@@ -4219,6 +4219,18 @@
       _awState.loading = true;
       var sendBtn = document.getElementById('awChatSendBtn');
       if(sendBtn) sendBtn.disabled = true;
+
+      if(typeof gateUsage === 'function'){
+        var allowed = await gateUsage(typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.chat : 5);
+        if(!allowed){
+          if(userBubble) userBubble.remove();
+          thinking.remove();
+          if(inp) inp.value = msg;
+          _awState.loading = false;
+          if(sendBtn) sendBtn.disabled = false;
+          return;
+        }
+      }
 
       var historyToSend = _awState.history.slice(-20);
       _awState.history.push({ role: 'user', content: msg });
@@ -10392,21 +10404,17 @@ window._orvUpdateCampPkg = function(id, pkg) {
     var msg = (prefill || (inp && inp.value) || '').trim();
     if(!msg || _orvAiLoading) return;
 
-    /* Pre-flight credit check — AI Chat costs CREDIT_COSTS.chat (5) per
-       message. gateUsage() both checks the cached balance and (if allowed)
-       optimistically reflects the spend in the sidebar badge; it already
-       opens the paywall itself when blocked, so a false return here just
-       means "stop, don't send" — the input text is left in place rather
-       than cleared, so the user doesn't lose what they typed. */
-    if(typeof gateUsage === 'function'){
-      var _allowed = await gateUsage(typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.chat : 5);
-      if(!_allowed) return;
-    }
-
-    if(inp) inp.value = '';
-
     var feed = document.getElementById('orvAiFeed');
     if(!feed) return;
+
+    /* ── Immediate UI acknowledgement — synchronous, before the async
+       credit pre-flight below, so the user's own message appears and the
+       input clears the instant they act, regardless of the credit check's
+       network latency (a cache-miss round trip to /api/credits/status).
+       Rolled back below if the gate ends up blocking — the input text is
+       restored rather than lost, matching this function's existing
+       "don't lose what they typed" behavior on a block. ── */
+    if(inp) inp.value = '';
 
     /* Collapse greeting on first message */
     var greeting = feed.querySelector('.orv-ai-greeting');
@@ -10436,6 +10444,26 @@ window._orvUpdateCampPkg = function(id, pkg) {
     _orvAiLoading = true;
     var sendBtn = document.getElementById('orvAiSendBtn');
     if(sendBtn) sendBtn.disabled = true;
+
+    /* Pre-flight credit check — AI Chat costs CREDIT_COSTS.chat (5) per
+       message. gateUsage() both checks the cached balance and (if allowed)
+       optimistically reflects the spend in the sidebar badge; it already
+       opens the paywall itself when blocked. Runs AFTER the optimistic UI
+       update above (not before) so a cache-miss round trip here never
+       delays the user seeing their own message — if it turns out blocked,
+       the optimistic message/typing-indicator are rolled back and the
+       input text restored. */
+    if(typeof gateUsage === 'function'){
+      var _allowed = await gateUsage(typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.chat : 5);
+      if(!_allowed){
+        userDiv.remove();
+        typingDiv.remove();
+        if(inp) inp.value = msg;
+        _orvAiLoading = false;
+        if(sendBtn) sendBtn.disabled = false;
+        return;
+      }
+    }
 
     var ctx = {
       page: oc.page || _orvAiCurrentPage,
@@ -15856,7 +15884,7 @@ window.rptExport = function(format) {
     if(bar) bar.classList.remove('cgr-back-hidden');
   }
 
-  function _showResultsPage(prompt, platform, creativeMode){
+  function _showResultsPage(prompt, platform, creativeMode, goal){
     /* Switch page */
     document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
     var pg = document.getElementById('page-campaign-results');
@@ -15895,60 +15923,150 @@ window.rptExport = function(format) {
     if(pb) pb.textContent = _platLabels[platform] || 'Campaign';
     /* Cancel any previous build sequence, start a fresh one */
     _cancelLoadingTimers();
-    _cgrBuildStart(creativeMode, _platLabels[platform] || platform || 'CAMPAIGN');
+    _cgrBuildStart(creativeMode, platform, _platLabels[platform] || platform || 'CAMPAIGN', goal);
   }
 
   /* ── Campaign blueprint — the live "building" view ──────────────────
-     Replaces the old percent/ETA/step-checklist loading UI with a
-     terminal-like sequence of section/field lines that reveal
-     progressively, reusing the exact same delay checkpoints the old step
-     system used (already tuned to real API timing) so the pacing still
-     matches how long generation actually takes — it just LOOKS like Oriven
-     constructing the ad instead of a spinner with a percentage. Purely
-     cosmetic: the real apiFetch('/api/ai/create-ad') call in cgrGenerate
-     and all of its success/error handling are completely untouched: this
-     sequence simply gets interrupted (via _cancelLoadingTimers, already
-     called by _renderPackage/_renderError/etc.) whenever the real response
-     actually arrives, whichever comes first. ── */
+     A nested `campaign { ... }` object that types itself out like an AI
+     writing structured config in a code editor — visual UI only, not a
+     literal claim that campaigns are built from source code. Three phases:
+
+     PHASE A (cosmetic, _cgrBuildStart) — runs the instant generation
+     starts, alongside the real apiFetch('/api/ai/create-ad') call in
+     cgrGenerate, reusing the same 7 delay checkpoints the old
+     step-checklist used (already tuned to real API timing). Fields whose
+     real value isn't known yet cycle through in-progress words.
+
+     PHASE B (real copy, _cgrBuildFinishCopyPhase) — the instant the real
+     response arrives (_renderPackage), the cosmetic sequence is cancelled
+     and the ENTIRE object is rebuilt fresh with the campaign's actual
+     generated copy (a fast ~900ms typed cascade, not the slow Phase A
+     pacing — the data is already known, this is just a satisfying reveal
+     rhythm). Only `creative` is left active/unresolved and the outer `}`
+     is deliberately withheld, because the real creative image is still
+     generating.
+
+     PHASE C (_cgrBuildCreativeSettled) — called once the real creative
+     asset has actually finished generating AND loading (or failed — see
+     _startCreativesGeneration's onAllSettled callback). Resolves
+     `creative` and adds the closing `}`. This is also the gate on
+     revealing the completed campaign view — see _renderPackage's tail —
+     so the user can never see "generation complete" while the creative
+     is still in flight. ── */
   var _cgrBlUid = 0;
-  function _cgrBlSection(container, title){
-    var sec = document.createElement('div');
-    sec.className = 'cgr-bl-section';
-    sec.innerHTML = '<span class="cgr-bl-dot"></span>' + _esc(title);
-    container.appendChild(sec);
-    _cgrBlMoveCursor(container);
-    return sec;
+  var _cgrBl = null;
+  var _cgrCursorEl = null;
+
+  function _cgrReducedMotion(){
+    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(_){ return false; }
   }
-  function _cgrBlField(container, label, value, state){
-    var uid = 'cgrbl' + (++_cgrBlUid);
-    var row = document.createElement('div');
-    row.className = 'cgr-bl-field cgr-bl-field-in';
-    row.id = uid;
-    row.innerHTML = '<span class="cgr-bl-label">' + _esc(label) + '</span><span class="cgr-bl-colon">:</span> <span class="cgr-bl-value cgr-bl-value-' + state + '">' + _esc(value) + '</span>';
-    container.appendChild(row);
-    _cgrBlMoveCursor(container);
-    return uid;
+  function _cgrCursor(){
+    if(!_cgrCursorEl){ _cgrCursorEl = document.createElement('span'); _cgrCursorEl.className = 'cgr-bl-cursor'; }
+    return _cgrCursorEl;
   }
-  function _cgrBlUpdate(uid, value, state, flash){
-    var row = document.getElementById(uid);
-    if(!row) return;
-    var val = row.querySelector('.cgr-bl-value');
-    if(val){
-      val.className = 'cgr-bl-value cgr-bl-value-' + state;
-      val.textContent = value;
+  function _cgrCursorAfter(el){ if(el && el.parentNode) el.parentNode.insertBefore(_cgrCursor(), el.nextSibling); }
+
+  /* Types `text` into el one character at a time, cursor trailing every
+     keystroke. Total duration is clamped regardless of length so a long
+     description doesn't feel slower than a short CTA. Every timer is
+     pushed onto window._cgrBuildQueue so _cancelLoadingTimers() (already
+     called the moment cosmetic content needs to be replaced by real
+     content) always cuts it short cleanly. */
+  function _cgrTypeInto(el, text, cb){
+    text = text || '';
+    if(_cgrReducedMotion()){ el.textContent = text; _cgrCursorAfter(el); if(cb) cb(); return; }
+    var len = text.length;
+    el.textContent = '';
+    if(!len){ _cgrCursorAfter(el); if(cb) cb(); return; }
+    var perChar = Math.max(9, Math.min(38, 480 / len));
+    var i = 0;
+    function step(){
+      i++;
+      el.textContent = text.slice(0, i);
+      _cgrCursorAfter(el);
+      if(i < len) window._cgrBuildQueue.push(setTimeout(step, perChar));
+      else if(cb) cb();
     }
-    if(flash){
+    step();
+  }
+  /* Erases whatever's in el, then types newText — the "AI correcting a
+     placeholder into the real value" flourish (Phase A word-cycling and
+     Phase C's creative resolution both use this). */
+  function _cgrEraseType(el, newText, cb){
+    if(_cgrReducedMotion()){ el.textContent = newText || ''; _cgrCursorAfter(el); if(cb) cb(); return; }
+    var old = el.textContent || '';
+    if(!old){ _cgrTypeInto(el, newText, cb); return; }
+    var perChar = Math.max(5, Math.min(16, 200 / old.length));
+    var i = old.length;
+    function step(){
+      i--;
+      el.textContent = old.slice(0, i);
+      _cgrCursorAfter(el);
+      if(i > 0) window._cgrBuildQueue.push(setTimeout(step, perChar));
+      else window._cgrBuildQueue.push(setTimeout(function(){ _cgrTypeInto(el, newText, cb); }, 60));
+    }
+    step();
+  }
+
+  function _cgrBlLine(container, depth, html, extraClass){
+    var row = document.createElement('div');
+    row.className = 'cgr-bl-line cgr-bl-d' + depth + (extraClass ? ' ' + extraClass : '');
+    row.innerHTML = html;
+    container.appendChild(row);
+    return row;
+  }
+  function _cgrBlBrace(container, depth, text){
+    return _cgrBlLine(container, depth, '<span class="cgr-bl-brace">' + _esc(text) + '</span>');
+  }
+  function _cgrBlBlank(container){
+    var row = document.createElement('div');
+    row.className = 'cgr-bl-line cgr-bl-blank';
+    container.appendChild(row);
+    return row;
+  }
+  /* An unresolved field: `key: "value",` where value is still cycling
+     through in-progress words (Phase A) or waiting on a real signal
+     (creative, until Phase C). */
+  function _cgrBlField(container, depth, key, initialText){
+    var uid = 'cgrbl' + (++_cgrBlUid);
+    var row = _cgrBlLine(container, depth,
+      '<span class="cgr-bl-key">' + _esc(key) + '</span><span class="cgr-bl-punct">: </span>'
+      + '<span class="cgr-bl-str">&quot;</span><span class="cgr-bl-value cgr-bl-value-active" id="' + uid + '"></span><span class="cgr-bl-str">&quot;</span><span class="cgr-bl-punct">,</span>',
+      'cgr-bl-line-active');
+    var valueEl = row.querySelector('#' + uid);
+    _cgrTypeInto(valueEl, initialText);
+    return { row: row, valueEl: valueEl };
+  }
+  /* A field whose value is already known and final — typed once, straight
+     into the resolved/green state (used for platform/objective, which are
+     real from the moment the user clicks Generate, and for every field in
+     Phase B once the real response has arrived). */
+  function _cgrBlFieldReal(container, depth, key, value){
+    var uid = 'cgrbl' + (++_cgrBlUid);
+    var row = _cgrBlLine(container, depth,
+      '<span class="cgr-bl-key">' + _esc(key) + '</span><span class="cgr-bl-punct">: </span>'
+      + '<span class="cgr-bl-str">&quot;</span><span class="cgr-bl-value cgr-bl-value-done" id="' + uid + '"></span><span class="cgr-bl-str">&quot;</span><span class="cgr-bl-punct">,</span>');
+    var valueEl = row.querySelector('#' + uid);
+    _cgrTypeInto(valueEl, value);
+    return { row: row, valueEl: valueEl };
+  }
+  /* Swaps an unresolved field's placeholder word for another placeholder
+     word (Phase A liveliness) — stays active/pulsing, not done. */
+  function _cgrBlFieldCycle(field, nextText){ _cgrEraseType(field.valueEl, nextText); }
+  /* Resolves a field to its final value — removes the active glow, marks
+     done (or error), retypes the real value. */
+  function _cgrBlFieldDone(field, finalText, flash, isError){
+    field.row.classList.remove('cgr-bl-line-active');
+    field.valueEl.classList.remove('cgr-bl-value-active');
+    field.valueEl.classList.add(isError ? 'cgr-bl-value-error' : 'cgr-bl-value-done');
+    _cgrEraseType(field.valueEl, finalText);
+    if(flash && !isError){
       var glow = document.getElementById('cgrBuildGlow');
       if(glow){ glow.classList.remove('cgr-build-glow-flash'); void glow.offsetWidth; glow.classList.add('cgr-build-glow-flash'); }
     }
   }
-  function _cgrBlMoveCursor(container){
-    var cur = container.querySelector('.cgr-bl-cursor');
-    if(!cur){ cur = document.createElement('span'); cur.className = 'cgr-bl-cursor'; }
-    container.appendChild(cur);
-  }
 
-  function _cgrBuildStart(creativeMode, platformLabel){
+  function _cgrBuildStart(creativeMode, platform, platformLabel, goal){
     var lines = document.getElementById('cgrBuildLines');
     if(!lines) return;
     lines.innerHTML = '';
@@ -15963,61 +16081,174 @@ window.rptExport = function(format) {
       ? [0, 5000, 10000, 16000, 22000, 32000, 42000]
       : [0, 3500, 7500, 12000, 17000, 22000, 26000];
 
-    var adFld, statusFld, audFld, stratFld, hlFld, descFld, ctaFld, crFld, concFld, budFld, trkFld;
+    var f = {};
+    _cgrBl = { lines: lines, fields: f };
 
     q(function(){
-      var sec = _cgrBlSection(lines, 'ADVERTISEMENT');
-      adFld = _cgrBlField(lines, 'platform', platformLabel.toUpperCase(), 'done');
-      statusFld = _cgrBlField(lines, 'status', 'constructing', 'active');
+      _cgrBlBrace(lines, 0, 'campaign {');
+      f.platform  = _cgrBlFieldReal(lines, 1, 'platform', (platformLabel || '').toUpperCase());
+      f.objective = _cgrBlFieldReal(lines, 1, 'objective', (goal || 'Sales').toUpperCase());
+      _cgrBlBlank(lines);
+      _cgrBlBrace(lines, 1, 'advertisement {');
+      f.headline = _cgrBlField(lines, 2, 'headline', 'generating');
     }, 80);
 
     q(function(){
-      _cgrBlUpdate(statusFld, 'TRUE', 'done', true);
-      _cgrBlSection(lines, 'CAMPAIGN');
-      audFld = _cgrBlField(lines, 'audience', 'analyzing', 'active');
+      _cgrBlFieldCycle(f.headline, 'writing');
+      f.description = _cgrBlField(lines, 2, 'description', 'generating');
     }, d[1]);
 
     q(function(){
-      _cgrBlUpdate(audFld, 'TRUE', 'done');
-      stratFld = _cgrBlField(lines, 'strategy', 'building', 'active');
+      _cgrBlFieldCycle(f.description, 'writing');
+      f.creative = _cgrBlField(lines, 2, 'creative', 'generating');
     }, d[2]);
 
     q(function(){
-      _cgrBlUpdate(stratFld, 'TRUE', 'done', true);
-      _cgrBlSection(lines, 'COPY');
-      hlFld = _cgrBlField(lines, 'headline', 'generating', 'active');
+      _cgrBlFieldCycle(f.creative, 'queued');
+      f.cta = _cgrBlField(lines, 2, 'cta', 'generating');
+      _cgrBlFieldCycle(f.headline, 'refining');
     }, d[3]);
-    q(function(){ descFld = _cgrBlField(lines, 'description', 'generating', 'active'); }, d[3] + 450);
-    q(function(){ ctaFld = _cgrBlField(lines, 'cta', 'generating', 'active'); }, d[3] + 900);
 
     q(function(){
-      _cgrBlUpdate(hlFld, 'TRUE', 'done');
-      _cgrBlUpdate(descFld, 'TRUE', 'done');
-      _cgrBlUpdate(ctaFld, 'TRUE', 'done', true);
-      _cgrBlSection(lines, 'CREATIVE');
-      crFld = _cgrBlField(lines, isVideo ? 'video' : 'image', 'generating', 'active');
+      _cgrBlFieldCycle(f.cta, 'drafting');
+      _cgrBlBrace(lines, 1, '},');
+      _cgrBlBlank(lines);
+      _cgrBlBrace(lines, 1, 'targeting {');
+      f.audience = _cgrBlField(lines, 2, 'audience', 'generating');
     }, d[4]);
 
     q(function(){
-      concFld = _cgrBlField(lines, 'concepts', 'generating', 'active');
+      _cgrBlFieldCycle(f.audience, 'analyzing');
+      f.location = _cgrBlField(lines, 2, 'location', 'generating');
     }, d[5]);
 
     q(function(){
-      _cgrBlUpdate(crFld, 'TRUE', 'done', true);
-      _cgrBlUpdate(concFld, 'TRUE', 'done');
-      budFld = _cgrBlField(lines, 'budget', 'configuring', 'active');
-      trkFld = _cgrBlField(lines, 'tracking', 'configuring', 'active');
+      _cgrBlFieldCycle(f.location, 'resolving');
+      _cgrBlBrace(lines, 1, '},');
+      _cgrBlBlank(lines);
+      _cgrBlBrace(lines, 1, 'budget {');
+      f.daily        = _cgrBlField(lines, 2, 'daily', 'generating');
+      f.optimization = _cgrBlField(lines, 2, 'optimization', 'generating');
     }, d[6]);
 
     /* Long-tail — if the real response hasn't arrived by the last
-       checkpoint (slower network, video mode, etc.), settle into a
-       calm, persistently-alive "finalizing" state rather than looking
-       finished-and-frozen while still actually waiting. */
+       checkpoint (slower network, video mode, etc.), keep cycling rather
+       than looking finished-and-frozen while still actually waiting. */
     q(function(){
-      _cgrBlUpdate(budFld, 'TRUE', 'done');
-      _cgrBlUpdate(trkFld, 'TRUE', 'done', true);
-      _cgrBlField(lines, 'package', 'finalizing', 'active');
+      _cgrBlFieldCycle(f.daily, 'calculating');
+      _cgrBlFieldCycle(f.optimization, 'tuning');
     }, d[6] + 3200);
+  }
+
+  /* Pulls a normalized, display-ready field set out of whichever
+     platform-specific shape the real pkg actually has — same
+     "gd = googleAds||metaAds||tiktokAds" fallback spirit _renderPackage
+     itself already uses elsewhere in this file. */
+  function _cgrBlTrunc(str, max){
+    str = String(str == null ? '' : str).trim();
+    if(!str) return '';
+    return str.length > max ? (str.slice(0, max - 1).trim() + '…') : str;
+  }
+  function _cgrBlPkgFields(pkg, platform){
+    var g = pkg.googleAds || {}, m = pkg.metaAds || {}, tk = pkg.tiktokAds || {};
+    var s = pkg.strategy || {};
+    var headline, description, cta, objective, optimization;
+    if(platform === 'google'){
+      headline     = (g.headlines && g.headlines[0]) || '';
+      description  = (g.descriptions && g.descriptions[0]) || '';
+      cta          = 'Learn More';
+      objective    = g.campaignType || s.goal || pkg.goal || 'Conversions';
+      optimization = g.biddingStrategy || 'Maximize conversions';
+    } else if(platform === 'tiktok'){
+      headline     = tk.hook || '';
+      description  = tk.videoScript || tk.script || '';
+      cta          = tk.cta || 'Shop Now';
+      objective    = tk.campaignObjective || s.goal || pkg.goal || 'Conversions';
+      optimization = 'Auto-optimized';
+    } else {
+      headline     = m.headline || '';
+      description  = m.description || m.primaryText || '';
+      cta          = m.cta || 'Shop Now';
+      objective    = m.campaignObjective || s.goal || pkg.goal || 'Conversions';
+      optimization = 'Auto-optimized';
+    }
+    var audience = s.targetAudience || (platform === 'meta' && m.targetAudience) || (platform === 'google' && g.targetAudience) || 'AI-defined audience';
+    var location = s.location || pkg.location || 'Auto (AI-optimized)';
+    var daily    = s.budgetRecommendation || 'AI-recommended';
+    return {
+      headline:     _cgrBlTrunc(headline, 42) || 'Ready',
+      description:  _cgrBlTrunc(description, 46) || 'Ready',
+      cta:          _cgrBlTrunc(cta, 24) || 'Ready',
+      audience:     _cgrBlTrunc(audience, 42),
+      location:     _cgrBlTrunc(location, 30),
+      daily:        _cgrBlTrunc(String(daily), 22),
+      optimization: _cgrBlTrunc(optimization, 30),
+      objective:    _cgrBlTrunc(String(objective).toUpperCase(), 24)
+    };
+  }
+
+  /* PHASE B — called the instant the real /api/ai/create-ad response
+     arrives (see _renderPackage). Rebuilds the object fresh with real
+     copy rather than trying to patch whichever cosmetic lines Phase A
+     happened to have reached — simpler and correct regardless of how far
+     Phase A got before the real response beat it. `creative` is left
+     active/unresolved and the outer `}` withheld; only
+     _cgrBuildCreativeSettled (Phase C) completes those. */
+  function _cgrBuildFinishCopyPhase(pkg, platform, platformLabel, goal){
+    if(!_cgrBl) return;
+    _cancelLoadingTimers();
+    var lines = _cgrBl.lines;
+    lines.innerHTML = '';
+    window._cgrBuildQueue = [];
+    var f = {};
+    _cgrBl.fields = f;
+    var real = _cgrBlPkgFields(pkg, platform);
+    var q = function(fn, delay){ window._cgrBuildQueue.push(setTimeout(fn, delay)); };
+    var STEP = _cgrReducedMotion() ? 0 : 90;
+
+    q(function(){
+      _cgrBlBrace(lines, 0, 'campaign {');
+      f.platform = _cgrBlFieldReal(lines, 1, 'platform', (platformLabel || '').toUpperCase());
+    }, 0);
+    q(function(){ f.objective = _cgrBlFieldReal(lines, 1, 'objective', real.objective || (goal || 'Sales').toUpperCase()); }, STEP * 1);
+    q(function(){
+      _cgrBlBlank(lines);
+      _cgrBlBrace(lines, 1, 'advertisement {');
+      f.headline = _cgrBlFieldReal(lines, 2, 'headline', real.headline);
+    }, STEP * 2);
+    q(function(){ f.description = _cgrBlFieldReal(lines, 2, 'description', real.description); }, STEP * 3);
+    q(function(){ f.creative = _cgrBlField(lines, 2, 'creative', 'generating'); }, STEP * 4);
+    q(function(){ f.cta = _cgrBlFieldReal(lines, 2, 'cta', real.cta); }, STEP * 5);
+    q(function(){
+      _cgrBlBrace(lines, 1, '},');
+      _cgrBlBlank(lines);
+      _cgrBlBrace(lines, 1, 'targeting {');
+      f.audience = _cgrBlFieldReal(lines, 2, 'audience', real.audience);
+    }, STEP * 6);
+    q(function(){ f.location = _cgrBlFieldReal(lines, 2, 'location', real.location); }, STEP * 7);
+    q(function(){
+      _cgrBlBrace(lines, 1, '},');
+      _cgrBlBlank(lines);
+      _cgrBlBrace(lines, 1, 'budget {');
+      f.daily = _cgrBlFieldReal(lines, 2, 'daily', real.daily);
+    }, STEP * 8);
+    q(function(){ f.optimization = _cgrBlFieldReal(lines, 2, 'optimization', real.optimization); }, STEP * 9);
+  }
+
+  /* PHASE C — called once the real creative asset (image, for the
+     synchronized path — see _startCreativesGeneration's onAllSettled)
+     has actually finished generating AND loading, or every attempt
+     failed. Resolves `creative` and adds the final closing brace; the
+     caller (_renderPackage's tail) only reveals the completed campaign
+     view after this has run. */
+  function _cgrBuildCreativeSettled(success, cb){
+    if(!_cgrBl || !_cgrBl.fields.creative){ if(cb) cb(); return; }
+    var lines = _cgrBl.lines;
+    _cgrBlFieldDone(_cgrBl.fields.creative, success ? 'ready' : 'unavailable', success, !success);
+    window._cgrBuildQueue.push(setTimeout(function(){
+      _cgrBlBrace(lines, 0, '}');
+      if(cb) cb();
+    }, _cgrReducedMotion() ? 0 : 240));
   }
 
   /* ── Per-platform result renderers ──────────────────────────────
@@ -16497,6 +16728,16 @@ window.rptExport = function(format) {
     var platform = pkg.platform || window._ov3Platform || 'google';
     var creativeMode = window._cgrCreativeMode || 'images';
     var s = pkg.strategy || {};
+
+    /* PHASE B of the campaign blueprint (see _cgrBuildFinishCopyPhase's
+       own header) — the instant real copy is known, fast-forward the
+       blueprint from cosmetic placeholders to the actual generated copy.
+       `creative` is deliberately left unresolved here; Phase C
+       (_cgrBuildCreativeSettled, below) only fires once the real creative
+       asset has settled. */
+    var _cgrPlatLabels = {google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads'};
+    _cgrBuildFinishCopyPhase(pkg, platform, _cgrPlatLabels[platform] || platform, s.goal || pkg.goal || window._ov3Goal || 'Sales');
+
     /* Every platform now gets the redesigned Preview/Edit/Oriven Review
        experience in place of the old Copy/Audience/Creatives/Settings tab
        system -- each platform's screen is independently implemented
@@ -16610,27 +16851,46 @@ window.rptExport = function(format) {
     if (isGoogle) _cggInitGoogleScreen(pkg, campId);
     if (isTiktok) _cgtInitTiktokScreen(pkg, campId);
 
-    /* Show content */
-    _cancelLoadingTimers();
-    var loading = document.getElementById('cgrLoading');
-    var content = document.getElementById('cgrContent');
-    if(loading) loading.classList.add('cgr-loading--done');
-    if(content) content.style.display='';
-    _cgrShowChrome();
-    var mc = document.querySelector('.mc'); if(mc) mc.scrollTop=0;
-    if((typeof window.notifAllowed !== 'function' || window.notifAllowed('notifGenComplete')) && typeof orvToast==='function')
-      orvToast('Campaign generated', 'ok');
+    /* Reveal the completed campaign view. Gated on the real creative
+       asset having actually settled (generated AND loaded, or failed —
+       see _startCreativesGeneration's onAllSettled callback and Phase C
+       above), not just on text generation finishing — the old behavior
+       revealed this the instant copy was ready, so the still-generating
+       creative image visibly popped in seconds later. The completed view
+       must never appear while the creative is still in flight. */
+    var _cgrReveal = function(){
+      _cancelLoadingTimers();
+      var loading = document.getElementById('cgrLoading');
+      var content = document.getElementById('cgrContent');
+      if(loading) loading.classList.add('cgr-loading--done');
+      if(content) content.style.display='';
+      _cgrShowChrome();
+      var mc = document.querySelector('.mc'); if(mc) mc.scrollTop=0;
+      if((typeof window.notifAllowed !== 'function' || window.notifAllowed('notifGenComplete')) && typeof orvToast==='function')
+        orvToast('Campaign generated', 'ok');
+      /* Ad Editing Workspace — opens the new conversational three-column
+         workspace on top of everything above (which still runs exactly as
+         before: old per-platform screens rendered, campaign saved, image
+         generation started). Additive only — see that function's own
+         header comment for why it must never go through window._orvNav. */
+      if(typeof window._awOpenWorkspace === 'function') window._awOpenWorkspace(pkg, prompt, campId, platform);
+    };
 
-    /* Kick off creative generation */
-    if(creativeMode==='videos') _startVideoCreatives(pkg, campId, platform);
-    else                        _startCreativesGeneration(pkg, platform);
-
-    /* Ad Editing Workspace — opens the new conversational three-column
-       workspace on top of everything above (which still runs exactly as
-       before: old per-platform screens rendered, campaign saved, image
-       generation started). Additive only — see that function's own
-       header comment for why it must never go through window._orvNav. */
-    if(typeof window._awOpenWorkspace === 'function') window._awOpenWorkspace(pkg, prompt, campId, platform);
+    /* Kick off creative generation. Video generation is long-running and
+       polled (can take far longer than image generation) and has always
+       revealed the completed view immediately while the video populates
+       in the background — that existing behavior is preserved as-is here,
+       unchanged by this synchronization fix, which is scoped to the image
+       path per its own spec (image mode is the concrete case described,
+       and the only one exercised by the regression tests). */
+    if(creativeMode==='videos'){
+      _cgrReveal();
+      _startVideoCreatives(pkg, campId, platform);
+    } else {
+      _startCreativesGeneration(pkg, platform, function(creativeReady){
+        _cgrBuildCreativeSettled(creativeReady, _cgrReveal);
+      });
+    }
   }
 
   window._cgrRenderPackage = _renderPackage;
@@ -18866,14 +19126,22 @@ window.rptExport = function(format) {
     }).catch(function(){});
   }
 
-  function _startCreativesGeneration(pkg, platform){
+  /* onAllSettled(anySucceeded): called exactly once, the moment every
+     creative task in this batch has actually settled — generated AND
+     confirmed loaded, or failed (see _generateOneCreative's own preload
+     gate). This is the real signal _renderPackage's tail waits on before
+     revealing the completed campaign view (see Phase C /
+     _cgrBuildCreativeSettled), so it must fire on every path, including
+     the early-return "nothing to generate" cases below (passed `true` —
+     vacuously settled, nothing failed). */
+  function _startCreativesGeneration(pkg, platform, onAllSettled){
     var _resolvedPlatform = platform || pkg.platform || window._ov3Platform || 'google';
     // Performance Max needs 3 aspect-ratio VARIANTS of the SAME creative
     // concept (a horizontal/square/vertical asset group), not N separate
     // ad slots -- a fundamentally different shape from every other
     // platform's "one image per ad" loop below, so it gets its own path.
     if(_resolvedPlatform === 'google' && window._ov3GoogleCampaignType === 'PERFORMANCE_MAX'){
-      _startGoogleAssetGeneration(pkg);
+      _startGoogleAssetGeneration(pkg, onAllSettled);
       return;
     }
     var section = document.getElementById('cgrCreativesSection');
@@ -18881,6 +19149,7 @@ window.rptExport = function(format) {
     var pill    = document.getElementById('cgrCreativesPill');
     if(!section || !grid){
       console.warn('[cgr] Image generation skipped — cgrCreativesSection/Grid not in DOM');
+      if(onAllSettled) onAllSettled(true);
       return;
     }
 
@@ -18896,6 +19165,7 @@ window.rptExport = function(format) {
     });
     if(!pool.length){
       console.warn('[cgr] Image generation skipped — no imagePrompts in visualConcepts');
+      if(onAllSettled) onAllSettled(true);
       return;
     }
 
@@ -18937,9 +19207,19 @@ window.rptExport = function(format) {
         + '</div></div>';
     }).join('');
 
-    /* Generate each in parallel — restore from pkg cache if image already exists */
-    var done = 0;
+    /* Generate each in parallel — restore from pkg cache if image already
+       exists. failCount tracks how many of the ATTEMPTED (i.e. actually
+       generated, not cached/attached) tasks failed, so onAllSettled can
+       report whether the creative is genuinely ready (at least one
+       succeeded, or nothing needed generating) vs. unavailable (every
+       attempted generation failed) — see _cgrBuildCreativeSettled. */
+    var done = 0, failCount = 0, attempted = 0;
     var total = _cgrImagePrompts.length;
+    function _checkAllSettled(){
+      if(done !== total) return;
+      if(pill){ pill.textContent = total + ' image' + (total===1?'':'s') + ' ready'; pill.className = 'cgr2-gen-pill done'; }
+      if(onAllSettled) onAllSettled(attempted === 0 || failCount < attempted);
+    }
     _cgrImagePrompts.forEach(function(task, i){
       var cached = pkg.visualConcepts && pkg.visualConcepts[i] && pkg.visualConcepts[i].generatedImageUrl;
       if(cached){
@@ -18956,18 +19236,17 @@ window.rptExport = function(format) {
             +'</div></div>';
         }
         done++;
-        if(done===total && pill){ pill.textContent=total+' image'+(total===1?'':'s')+' ready'; pill.className='cgr2-gen-pill done'; }
+        _checkAllSettled();
       } else if(task.attachedImage){
         _applyAttachedCreative(task, i);
         done++;
-        if(done===total && pill){ pill.textContent=total+' image'+(total===1?'':'s')+' ready'; pill.className='cgr2-gen-pill done'; }
+        _checkAllSettled();
       } else {
-        _generateOneCreative(task.prompt, task.ref, i, function(){
+        attempted++;
+        _generateOneCreative(task.prompt, task.ref, i, function(success){
           done++;
-          if(done === total && pill){
-            pill.textContent = total + ' image' + (total===1?'':'s') + ' ready';
-            pill.className = 'cgr2-gen-pill done';
-          }
+          if(!success) failCount++;
+          _checkAllSettled();
         });
       }
     });
@@ -19084,12 +19363,13 @@ window.rptExport = function(format) {
      and slotted in automatically, skipping AI generation -- and its
      image_generation credit charge -- for that slot entirely, the exact
      same rule _applyAttachedCreative already enforces for regular ad slots. */
-  async function _startGoogleAssetGeneration(pkg){
+  async function _startGoogleAssetGeneration(pkg, onAllSettled){
     var section = document.getElementById('cgrCreativesSection');
     var grid    = document.getElementById('cgrCreativesGrid');
     var pill    = document.getElementById('cgrCreativesPill');
     if(!section || !grid){
       console.warn('[cgr] PMax asset generation skipped — cgrCreativesSection/Grid not in DOM');
+      if(onAllSettled) onAllSettled(true);
       return;
     }
 
@@ -19100,6 +19380,7 @@ window.rptExport = function(format) {
     });
     if(!basePrompt){
       console.warn('[cgr] PMax asset generation skipped — no imagePrompts in visualConcepts');
+      if(onAllSettled) onAllSettled(true);
       return;
     }
 
@@ -19131,35 +19412,50 @@ window.rptExport = function(format) {
         + '</div></div>';
     }).join('');
 
-    var done = 0, total = _cgrImagePrompts.length;
-    function _onOneDone(){
+    var done = 0, failCount = 0, attempted = 0, total = _cgrImagePrompts.length;
+    function _onOneDone(success){
       done++;
-      if(done === total && pill){
-        pill.textContent = total + ' asset' + (total===1?'':'s') + ' ready';
-        pill.className = 'cgr2-gen-pill done';
+      if(success === false) failCount++;
+      if(done === total){
+        if(pill){ pill.textContent = total + ' asset' + (total===1?'':'s') + ' ready'; pill.className = 'cgr2-gen-pill done'; }
+        if(onAllSettled) onAllSettled(attempted === 0 || failCount < attempted);
       }
     }
     _cgrImagePrompts.forEach(function(task, i){
       if(task.attachedImage){
         _applyGoogleAssetCreative(task, i, task.attachedImage, true);
-        _onOneDone();
+        _onOneDone(true);
       } else {
+        attempted++;
         apiFetch('/api/generate-image', {
           method: 'POST',
           body: JSON.stringify({ prompt: task.prompt, size: task.size, imageType: 'display' })
         }).then(function(res){
           if(res.ok && res.data && res.data.imageUrl){
-            _applyGoogleAssetCreative(task, i, res.data.imageUrl, false);
-            if(typeof consumeUsage === 'function') consumeUsage(40); // reflects the real server-side image_generation deduction
+            var url = res.data.imageUrl;
+            /* Same real-load gate as _generateOneCreative — a URL back
+               from the API isn't the same as the asset being ready. */
+            var img = new Image();
+            img.onload = function(){
+              _applyGoogleAssetCreative(task, i, url, false);
+              if(typeof consumeUsage === 'function') consumeUsage(40); // reflects the real server-side image_generation deduction
+              _onOneDone(true);
+            };
+            img.onerror = function(){
+              _cgrCreativeErr(i, task.ref, 'Image failed to load');
+              _onOneDone(false);
+            };
+            img.src = url;
           } else if(res.status === 402 && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
             _cgrCreativeErr(i, task.ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs 40)');
+            _onOneDone(false);
           } else {
             _cgrCreativeErr(i, task.ref, 'Image generation failed');
+            _onOneDone(false);
           }
-          _onOneDone();
         }).catch(function(err){
           _cgrCreativeErr(i, task.ref, err.message || 'Error');
-          _onOneDone();
+          _onOneDone(false);
         });
       }
     });
@@ -19200,6 +19496,11 @@ window.rptExport = function(format) {
       + '</div>';
   }
 
+  /* onDone(success) — success is true only once the image has both been
+     generated AND actually finished loading (see the preload below); the
+     caller (_startCreativesGeneration) uses this to know whether the
+     creative is genuinely ready before revealing the completed campaign
+     view, not just whether a URL came back from the API. */
   function _generateOneCreative(prompt, ref, idx, onDone){
     console.log('[cgr] Image generation request', idx, '— prompt length:', prompt.length);
     apiFetch('/api/generate-image', {
@@ -19207,50 +19508,66 @@ window.rptExport = function(format) {
       body: JSON.stringify({ prompt: prompt, size: '1:1', imageType: 'display' })
     }).then(function(res){
       var card = document.getElementById('cgc'+idx);
-      if(!card) return;
       if(res.ok && res.data && res.data.imageUrl){
-        console.log('[cgr] Image generation complete', idx);
         var url = res.data.imageUrl;
-        /* Persist imageUrl so reopening the campaign restores it */
-        if(_cgrPkg && _cgrPkg.visualConcepts && _cgrPkg.visualConcepts[idx]){
-          _cgrPkg.visualConcepts[idx].generatedImageUrl = url;
-          if(typeof window._orvUpdateCampPkg==='function' && window._cgrCurrentCampId){
-            window._orvUpdateCampPkg(window._cgrCurrentCampId, _cgrPkg);
+        console.log('[cgr] Image generated', idx, '— waiting for it to finish loading');
+        /* Receiving a URL from the API isn't the same as the creative
+           being visually ready — preload it and only treat this task as
+           settled (success) once the browser has actually finished
+           loading it, or (failure) if it errors out while loading. */
+        var img = new Image();
+        img.onload = function(){
+          console.log('[cgr] Image loaded', idx);
+          /* Persist imageUrl so reopening the campaign restores it */
+          if(_cgrPkg && _cgrPkg.visualConcepts && _cgrPkg.visualConcepts[idx]){
+            _cgrPkg.visualConcepts[idx].generatedImageUrl = url;
+            if(typeof window._orvUpdateCampPkg==='function' && window._cgrCurrentCampId){
+              window._orvUpdateCampPkg(window._cgrCurrentCampId, _cgrPkg);
+            }
+            /* Keep the Meta screen's in-progress edit buffer in sync too, so
+               a later Save doesn't overwrite a freshly-generated image with
+               a stale clone, and refresh whichever stage is currently shown. */
+            if (typeof _cst !== 'undefined' && _cst.pkg && _cst.pkg.visualConcepts && _cst.pkg.visualConcepts[idx]) {
+              _cst.pkg.visualConcepts[idx].generatedImageUrl = url;
+              if (typeof _cstRenderActiveStage === 'function') _cstRenderActiveStage();
+            }
           }
-          /* Keep the Meta screen's in-progress edit buffer in sync too, so
-             a later Save doesn't overwrite a freshly-generated image with
-             a stale clone, and refresh whichever stage is currently shown. */
-          if (typeof _cst !== 'undefined' && _cst.pkg && _cst.pkg.visualConcepts && _cst.pkg.visualConcepts[idx]) {
-            _cst.pkg.visualConcepts[idx].generatedImageUrl = url;
-            if (typeof _cstRenderActiveStage === 'function') _cstRenderActiveStage();
+          if(card){
+            card.className = 'cgr-creative-card';
+            card.innerHTML = '<div class="cgr-creative-img-wrap">'
+              + '<img class="cgr-creative-img" src="'+_esc(url)+'" alt="'+_esc(ref)+' ad creative" loading="lazy">'
+              + '</div>'
+              + '<div class="cgr-creative-card-body">'
+              + '<div class="cgr-creative-ref">'+_esc(ref)+'</div>'
+              + '<div class="cgr-creative-actions">'
+              + '<button class="cgr-crv-btn" onclick="cgrDownloadImage(\''+_esc(url)+'\',\''+_esc(ref)+'\')">↓ Download</button>'
+              + '<button class="cgr-crv-btn" onclick="cgrRegenCreative('+idx+',\''+idx+'\')">↺ Regenerate</button>'
+              + '<button class="cgr-crv-btn cgr-crv-btn-copy" onclick="cgrCopyCreativePrompt(this,'+idx+')">⊘ Copy Prompt</button>'
+              + '</div>'
+              + '</div>';
           }
-        }
-        var escapedPrompt = _esc(prompt);
-        card.className = 'cgr-creative-card';
-        card.innerHTML = '<div class="cgr-creative-img-wrap">'
-          + '<img class="cgr-creative-img" src="'+_esc(url)+'" alt="'+_esc(ref)+' ad creative" loading="lazy">'
-          + '</div>'
-          + '<div class="cgr-creative-card-body">'
-          + '<div class="cgr-creative-ref">'+_esc(ref)+'</div>'
-          + '<div class="cgr-creative-actions">'
-          + '<button class="cgr-crv-btn" onclick="cgrDownloadImage(\''+_esc(url)+'\',\''+_esc(ref)+'\')">↓ Download</button>'
-          + '<button class="cgr-crv-btn" onclick="cgrRegenCreative('+idx+',\''+idx+'\')">↺ Regenerate</button>'
-          + '<button class="cgr-crv-btn cgr-crv-btn-copy" onclick="cgrCopyCreativePrompt(this,'+idx+')">⊘ Copy Prompt</button>'
-          + '</div>'
-          + '</div>';
-        if(typeof consumeUsage === 'function') consumeUsage(40); // reflects the real server-side image_generation deduction
+          if(typeof consumeUsage === 'function') consumeUsage(40); // reflects the real server-side image_generation deduction
+          if(onDone) onDone(true);
+        };
+        img.onerror = function(){
+          console.error('[cgr] Image failed to load after generation', idx);
+          _cgrCreativeErr(idx, ref, 'Image failed to load');
+          if(onDone) onDone(false);
+        };
+        img.src = url;
       } else if(res.status === 402 && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
         console.warn('[cgr] Image generation blocked', idx, '— out of credits');
         _cgrCreativeErr(idx, ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs 40)');
+        if(onDone) onDone(false);
       } else {
         console.error('[cgr] Image generation failed', idx, '— status:', res.status, res.data);
         _cgrCreativeErr(idx, ref, 'Image generation failed');
+        if(onDone) onDone(false);
       }
-      if(onDone) onDone();
     }).catch(function(err){
       console.error('[cgr] Image generation error', idx, ':', err.message);
       _cgrCreativeErr(idx, ref, err.message || 'Error');
-      if(onDone) onDone();
+      if(onDone) onDone(false);
     });
   }
 
@@ -19312,7 +19629,7 @@ window.rptExport = function(format) {
     // Campaign Goal step (backwards compatibility, not the normal path).
     var _goal = goal || window._ov3Goal || 'Sales';
     window._cgrCreativeMode = creativeMode || 'images';
-    _showResultsPage(prompt, _plat, window._cgrCreativeMode);
+    _showResultsPage(prompt, _plat, window._cgrCreativeMode, _goal);
     var _payload = { product: prompt, goal: _goal, platform: _plat, platforms: [_plat], mode: 'full', creativeMode: window._cgrCreativeMode };
     /* Platform-specific objective/campaign type (Final Polish, Part 19) --
        reaches the AI prompt AND gets force-written onto the returned pkg
@@ -19882,9 +20199,25 @@ window.orvLoadLaunchBiz = function(){
   }).catch(function(){ /* silent — the prompt box still works without this */ });
 };
 
+/* Shared by aicGenerate/_aicGenerateProceed so the "Generating…" state is
+   set in exactly one place, synchronously, the instant the click is
+   accepted — see aicGenerate's own comment for why this can no longer
+   wait on the async credit pre-flight. */
+function _aicRestoreGenerateBtn(btn){
+  if(!btn) return;
+  btn.disabled = false;
+  btn.innerHTML = (typeof t==='function'?t('dashCampaignLabel'):'Build Campaign') + ' <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+}
+function _aicSetGeneratingBtn(btn){
+  if(!btn) return;
+  btn.disabled = true;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="animation:aicSpin .8s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> ' + (typeof t==='function'?t('generatingEllipsis'):'Generating…');
+}
+
 window.aicGenerate = function(){
   var ta  = document.getElementById('aicInput');
   var btn = document.getElementById('aicGenBtn');
+  if(btn && btn.disabled) return; // duplicate-submission guard
 
   /* ── Validation ── */
   if(!ta) return;
@@ -19912,6 +20245,11 @@ window.aicGenerate = function(){
   }
   var goal = selGoalBtn.getAttribute('data-goal');
 
+  /* ── Immediate visual acknowledgement — synchronous, before any async
+     work below, so the button responds the instant the click is accepted
+     regardless of the credit pre-flight's network latency. ── */
+  _aicSetGeneratingBtn(btn);
+
   /* ── Credit pre-flight (UX only — the route handler cgrGenerate calls
      does the real, authoritative check server-side via creditManager;
      this just avoids sending a request that's already known to fail and
@@ -19938,6 +20276,7 @@ window.aicGenerate = function(){
     checkUsageLimit(25).then(function(result){
       aicGenerate._checking = false;
       if(!result.allowed){
+        _aicRestoreGenerateBtn(btn);
         if(typeof orvToast==='function') orvToast(result.message || 'Not enough credits.', 'warn');
         if(typeof openPaywall === 'function') setTimeout(openPaywall, 400);
         return;
@@ -19961,16 +20300,8 @@ function _aicGenerateProceed(prompt, goal){
   else if(lower.indexOf('tiktok')!==-1) platform='tiktok';
   else if(lower.indexOf('google')!==-1) platform='google';
 
-  /* ── Loading state ── */
-  var _restoreBtn = function(){
-    if(!btn) return;
-    btn.disabled = false;
-    btn.innerHTML = (typeof t==='function'?t('dashCampaignLabel'):'Build Campaign') + ' <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
-  };
-  if(btn){
-    btn.disabled = true;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="animation:aicSpin .8s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> ' + (typeof t==='function'?t('generatingEllipsis'):'Generating…');
-  }
+  /* Button already shows the "Generating…" state — set synchronously by
+     aicGenerate before any async work began (see there for why). */
 
   /* ── Console logging ── */
   var _t0 = Date.now();
@@ -19979,7 +20310,7 @@ function _aicGenerateProceed(prompt, goal){
   /* ── Guard: cgrGenerate must be defined ── */
   if(typeof window.cgrGenerate !== 'function'){
     console.error('[Create] cgrGenerate is not defined — cgr IIFE may not have loaded');
-    _restoreBtn();
+    _aicRestoreGenerateBtn(btn);
     if(typeof orvToast==='function') orvToast(typeof t==='function'?t('toastEngineNotLoaded'):'Generation engine not loaded. Please refresh.','error');
     return;
   }
@@ -19994,11 +20325,11 @@ function _aicGenerateProceed(prompt, goal){
     window.cgrGenerate(prompt, platform, _mode, goal);
     /* Button stays disabled — cgrGenerate navigates away.
        Restore after 8s in case navigation fails. */
-    setTimeout(_restoreBtn, 8000);
+    setTimeout(function(){ _aicRestoreGenerateBtn(btn); }, 8000);
     console.log('[Create] cgrGenerate dispatched | elapsed:', Date.now()-_t0, 'ms');
   } catch(err) {
     console.error('[Create] cgrGenerate threw:', err);
-    _restoreBtn();
+    _aicRestoreGenerateBtn(btn);
     if(typeof orvToast==='function') orvToast((typeof t==='function'?t('toastGenerationFailedPrefix'):'Campaign generation failed:')+' '+err.message,'error');
   }
 };
