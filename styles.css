@@ -24762,6 +24762,14 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
 }
 .ov-wf-inner-rev { direction: rtl; }
 .ov-wf-inner-rev > * { direction: ltr; }
+
+/* Business/Teams — the one section deliberately mirrored end-to-end
+   (visual left, text right, text itself right-aligned) to close out the
+   Build -> Publish -> Scale alternating rhythm with a clean bookend. */
+.ov-wf-text-r { text-align: right; }
+.ov-wf-text-r .ov-wf-bullets { align-items: flex-end; }
+.ov-wf-text-r .ov-wf-bullets li { padding-left: 0; padding-right: 20px; }
+.ov-wf-text-r .ov-wf-bullets li::before { left: auto; right: 0; }
 .ov-wf-step-num {
   font-size: 11px;
   font-weight: 700;
@@ -25126,50 +25134,62 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
 @keyframes ovSmPulseDot { 0%, 100% { opacity: .4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
 @media (prefers-reduced-motion: reduce) { .ov-sm-topbar-dot { animation: none; } }
 
-.ov-sm-card {
+/* All three platforms shown as continuously, independently monitored —
+   replaces the old single "hero variant" card treatment, which made two
+   of the three platforms read as inert. */
+.ov-sm-platforms {
+  display: flex; flex-direction: column; gap: 8px;
+  opacity: 0; transform: translateY(14px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.ov-sm-platforms.ov-vis { opacity: 1; transform: translateY(0); }
+.ov-sm-plat {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  padding: 11px 14px;
+}
+.ov-sm-plat-logo { display: flex; align-items: center; justify-content: center; width: 18px; flex-shrink: 0; }
+.ov-sm-plat-name { font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.75); flex: 1; }
+.ov-sm-plat-live { display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; color: var(--green); letter-spacing: .02em; }
+.ov-sm-plat-live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: ovSmPulseDot 1.8s ease-in-out infinite; }
+.ov-sm-plat:nth-child(2) .ov-sm-plat-live-dot { animation-delay: .3s; }
+.ov-sm-plat:nth-child(3) .ov-sm-plat-live-dot { animation-delay: .6s; }
+@media (prefers-reduced-motion: reduce) { .ov-sm-plat-live-dot { animation: none; opacity: .85; } }
+
+/* Live activity feed — a genuine "system log" of optimization events,
+   one row entering at a time (see the JS tick() in index.html), the
+   older two rows dimming in place like a real notification feed rather
+   than everything appearing at once. */
+.ov-sm-feed {
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 14px;
   padding: 16px 18px;
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity .5s ease, transform .5s ease;
+  opacity: 0; transform: translateY(14px);
+  transition: opacity .5s ease .08s, transform .5s ease .08s;
 }
-.ov-sm-card.ov-vis { opacity: 1; transform: translateY(0); }
-.ov-sm-card-high { border-color: color-mix(in srgb, var(--green) 20%, transparent); }
-.ov-sm-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.ov-sm-conf { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: rgba(255,255,255,.35); }
-.ov-sm-conf-high { color: var(--green); }
-.ov-sm-impact { font-size: 12px; font-weight: 700; color: color-mix(in srgb, var(--green) 80%, transparent); }
-.ov-sm-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.88); margin-bottom: 7px; line-height: 1.4; }
-.ov-sm-body { font-size: 11px; color: rgba(255,255,255,.4); line-height: 1.55; margin-bottom: 12px; }
-.ov-sm-platform { margin-top: 2px; }
-.ov-sm-platform-row { display: flex; align-items: center; gap: 7px; }
-.ov-sm-platform-row svg { flex-shrink: 0; }
-.ov-sm-platform-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.45); }
-
-/* Performance/optimization bar — the graphical "signal" each card is
-   otherwise only describing in words. Grows into place (width: 0 -> its
-   real target, set per-card via the --bar-w custom property so the
-   transition can animate purely in CSS, no JS) once the card itself
-   becomes visible. */
-.ov-sm-bar-track { height: 4px; border-radius: 3px; background: rgba(255,255,255,.07); overflow: hidden; margin-bottom: 12px; }
-.ov-sm-bar-fill {
-  height: 100%; border-radius: 3px;
-  background: rgba(255,255,255,.28);
-  width: 0;
-  transition: width 1.1s cubic-bezier(.16,1,.3,1) .35s;
-}
-.ov-sm-card.ov-vis .ov-sm-bar-fill { width: var(--bar-w, 40%); }
-.ov-sm-bar-high { background: linear-gradient(90deg, color-mix(in srgb, var(--green) 55%, transparent), var(--green)); }
-.ov-sm-bar-low { background: rgba(255,255,255,.14); }
-@media (prefers-reduced-motion: reduce) { .ov-sm-bar-fill { transition: none; } }
+.ov-sm-feed.ov-vis { opacity: 1; transform: translateY(0); }
+.ov-sm-feed-head { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: rgba(255,255,255,.3); margin-bottom: 12px; }
+.ov-sm-feed-rows { display: flex; flex-direction: column; gap: 11px; }
+.ov-sm-feed-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; transition: opacity .3s ease; }
+.ov-sm-feed-row:nth-child(1) { opacity: .95; }
+.ov-sm-feed-row:nth-child(2) { opacity: .5; }
+.ov-sm-feed-row:nth-child(3) { opacity: .26; }
+.ov-sm-feed-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.ov-sm-feed-plat { color: rgba(255,255,255,.55); font-weight: 600; flex-shrink: 0; }
+.ov-sm-feed-sep { color: rgba(255,255,255,.25); }
+.ov-sm-feed-txt { color: rgba(255,255,255,.9); font-weight: 600; }
+.ov-sm-feed-row-flash { animation: ovSmFeedFlash .5s ease; }
+@keyframes ovSmFeedFlash { 0% { opacity: 0; transform: translateX(-6px); } 100% { opacity: .95; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .ov-sm-feed-row-flash { animation: none; } }
 
 /* ══════════════════════════════════════════════════════════════════
    REDESIGN — Build → Publish → Scale workflow. Replaces the old
    Intelligence/Autopilot sections with three connected steps. Reuses
    .ov-wf-section/.ov-wf-inner/.ov-wf-text and (for Scale) the
-   previously-unused .ov-scale-mock/.ov-sm-card above as-is — the only
+   .ov-scale-mock/.ov-sm-platforms/.ov-sm-feed above as-is — the only
    new component CSS is below: .ov-build-mock/.ov-bm-*,
    .ov-pub-mock/.ov-pub-*, and .ov-workflow-connector/.ov-wfc-*.
    ══════════════════════════════════════════════════════════════════ */
@@ -25263,86 +25283,66 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
 /* ── Publish visual — one ad, branching to three platforms. Deliberately
    simple: a source card, a stem, a branch line, three targets — not a
    dashboard. ── */
-.ov-pub-mock { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 380px; }
+.ov-pub-mock { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 620px; }
 
 /* Entrance sequence, all keyed off .ov-pub-mock.ov-vis (the mock's own
-   data-observe) so the beats land in one intentional order: a soft glow,
-   then the connecting line drawing in, then the platform targets
-   becoming active — deliberately slower than a typical UI transition so
-   the sequence itself reads as part of the message ("this is what
-   happens when Oriven publishes"), not just decoration. */
-.ov-pub-glow {
-  position: absolute;
-  top: -12%; left: -20%; right: -20%;
-  height: 240px;
-  background: radial-gradient(ellipse 60% 100% at 50% 0%, color-mix(in srgb, var(--green) 16%, transparent), transparent 72%);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 0;
-  transition: opacity 1.3s ease .15s;
-}
-.ov-pub-mock.ov-vis .ov-pub-glow { opacity: 1; }
-
+   data-observe): the source card appears, then each platform's own
+   connector draws in, sends a traveling pulse, and activates its node —
+   one platform fully at a time, not a shared branch that reveals all
+   three together. Deliberately slower than a typical UI transition so
+   the sequence itself reads as "Oriven distributing this ad", not just
+   decoration. No background glow — removed per design direction. */
 .ov-pub-source {
   position: relative;
   z-index: 1;
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 12px;
   background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
-  border-radius: 12px; padding: 12px 18px;
-  font-size: 13px; font-weight: 600; color: #fff;
+  border-radius: 14px; padding: 16px 24px;
+  font-size: 16px; font-weight: 600; color: #fff;
   opacity: 0; transform: translateY(8px);
   transition: opacity .6s ease .1s, transform .6s cubic-bezier(.16,1,.3,1) .1s;
 }
 .ov-pub-mock.ov-vis .ov-pub-source { opacity: 1; transform: translateY(0); }
-.ov-pub-source-ico { width: 22px; height: 22px; border-radius: 6px; background: color-mix(in srgb, var(--green) 14%, transparent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ov-pub-source-ico { width: 28px; height: 28px; border-radius: 8px; background: color-mix(in srgb, var(--green) 14%, transparent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-.ov-pub-stem {
-  position: relative; z-index: 1;
-  width: 1.5px; height: 26px; background: rgba(255,255,255,.15);
+.ov-pub-flow { position: relative; z-index: 1; display: flex; justify-content: space-between; width: 100%; padding-top: 12px; gap: 20px; }
+.ov-pub-conn { display: flex; flex-direction: column; align-items: center; flex: 1; }
+
+.ov-pub-conn-line {
+  position: relative;
+  width: 1.5px; height: 42px; background: rgba(255,255,255,.15);
   transform-origin: top; transform: scaleY(0);
   opacity: 0;
-  transition: transform .65s cubic-bezier(.16,1,.3,1) .75s, opacity .3s ease .75s;
+  transition: transform .5s cubic-bezier(.16,1,.3,1) var(--d), opacity .25s ease var(--d);
 }
-.ov-pub-mock.ov-vis .ov-pub-stem { transform: scaleY(1); opacity: 1; }
-
-.ov-pub-branch-wrap { position: relative; z-index: 1; width: 100%; }
-.ov-pub-branch-wrap::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 16.5%; right: 16.5%;
-  height: 1.5px;
-  background: rgba(255,255,255,.15);
-  transform-origin: center;
-  transform: scaleX(0);
-  transition: transform .6s cubic-bezier(.16,1,.3,1) 1.1s;
+.ov-pub-mock.ov-vis .ov-pub-conn-line { transform: scaleY(1); opacity: 1; }
+.ov-pub-conn-pulse {
+  position: absolute; left: 50%; top: 0;
+  width: 6px; height: 6px; margin-left: -3px;
+  border-radius: 50%; background: var(--green);
+  opacity: 0;
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--green) 65%, transparent);
 }
-.ov-pub-mock.ov-vis .ov-pub-branch-wrap::before { transform: scaleX(1); }
+.ov-pub-mock.ov-vis .ov-pub-conn-pulse { animation: ovPubPulseTravel .55s ease-out calc(var(--d) + .15s) 1; }
+@keyframes ovPubPulseTravel { 0% { opacity: 1; top: 0; } 85% { opacity: 1; } 100% { opacity: 0; top: 100%; } }
 
-.ov-pub-targets { position: relative; z-index: 1; display: flex; justify-content: space-between; width: 100%; padding-top: 22px; gap: 10px; }
-.ov-pub-target {
-  position: relative;
-  display: flex; flex-direction: column; align-items: center; gap: 9px;
-  flex: 1;
+.ov-pub-node {
+  display: flex; flex-direction: column; align-items: center; gap: 11px;
+  margin-top: 14px;
   opacity: 0; transform: translateY(10px);
-  transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1);
+  transition: opacity .55s cubic-bezier(.16,1,.3,1) calc(var(--d) + .45s), transform .55s cubic-bezier(.16,1,.3,1) calc(var(--d) + .45s);
 }
-.ov-pub-target.ov-vis { opacity: 1; transform: translateY(0); }
-.ov-pub-target::before {
-  content: '';
-  position: absolute;
-  top: -22px; left: 50%;
-  width: 1.5px; height: 22px;
-  background: rgba(255,255,255,.15);
-}
-.ov-pub-target-logo { width: 46px; height: 46px; border-radius: 13px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; }
-.ov-pub-target-name { font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,.65); }
-.ov-pub-target-status { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; letter-spacing: .02em; color: var(--green); }
+.ov-pub-mock.ov-vis .ov-pub-node { opacity: 1; transform: translateY(0); }
+.ov-pub-target-logo { width: 68px; height: 68px; border-radius: 17px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; }
+.ov-pub-target-name { font-size: 13.5px; font-weight: 600; color: rgba(255,255,255,.65); }
+.ov-pub-target-status { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; letter-spacing: .02em; color: var(--green); }
 
 @media (prefers-reduced-motion: reduce) {
-  .ov-pub-glow, .ov-pub-source, .ov-pub-stem, .ov-pub-branch-wrap::before, .ov-pub-target {
+  .ov-pub-source, .ov-pub-conn-line, .ov-pub-node {
     transition: opacity .3s ease !important;
     transform: none !important;
   }
+  .ov-pub-conn-pulse { animation: none !important; opacity: 0 !important; }
 }
 
 /* ── Workflow connector — the ↓ thread between Build/Publish/Scale ── */
@@ -25398,6 +25398,10 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
 @media (max-width: 860px) {
   .ov-wf-inner { grid-template-columns: 1fr; gap: 40px; }
   .ov-wf-inner-rev { direction: ltr; }
+  .ov-wf-text-r { text-align: left; }
+  .ov-wf-text-r .ov-wf-bullets { align-items: flex-start; }
+  .ov-wf-text-r .ov-wf-bullets li { padding-left: 20px; padding-right: 0; }
+  .ov-wf-text-r .ov-wf-bullets li::before { left: 0; right: auto; }
   .ov-wf-h2 { font-size: 26px; }
   .ov-wf-section { padding: 64px 0; }
   .ov-sp-stats { grid-template-columns: repeat(2,1fr); }
@@ -41698,7 +41702,7 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 .adv-g-cat { font-size: 10px; color: rgba(255,255,255,.35); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adv-g-headline { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.26; margin-bottom: 5px; letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .adv-g-desc { font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.adv-g-visual { width: 62px; height: 62px; flex-shrink: 0; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); position: relative; overflow: hidden; }
+.adv-g-visual { width: 62px; height: 62px; flex-shrink: 0; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .adv-g-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.07); }
 .adv-g-cta { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--green, #B7FF2A); }
 .adv-g-cta svg { transition: transform .2s ease; }
