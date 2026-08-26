@@ -19461,6 +19461,9 @@ window.rptExport = function(format) {
           } else if(res.status === 402 && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
             _cgrCreativeErr(i, task.ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs 40)');
             _onOneDone(false);
+          } else if(res.status === 503 && res.data && res.data.code === 'PROVIDER_UNAVAILABLE'){
+            _cgrCreativeErr(i, task.ref, res.data.error || 'AI provider temporarily at capacity — try regenerating in a moment');
+            _onOneDone(false);
           } else {
             _cgrCreativeErr(i, task.ref, 'Image generation failed');
             _onOneDone(false);
@@ -19570,6 +19573,14 @@ window.rptExport = function(format) {
       } else if(res.status === 402 && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
         console.warn('[cgr] Image generation blocked', idx, '— out of credits');
         _cgrCreativeErr(idx, ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs 40)');
+        if(onDone) onDone(false);
+      } else if(res.status === 503 && res.data && res.data.code === 'PROVIDER_UNAVAILABLE'){
+        // Same distinction as cgrGenerate's PROVIDER_UNAVAILABLE handling —
+        // the AI provider stayed unavailable through the backend's own
+        // retries; credits already refunded server-side before this
+        // response was sent (res.data.refunded).
+        console.warn('[cgr] Image generation blocked', idx, '— AI provider temporarily unavailable | credits refunded:', !!res.data.refunded);
+        _cgrCreativeErr(idx, ref, res.data.error || 'AI provider temporarily at capacity — try regenerating in a moment');
         if(onDone) onDone(false);
       } else {
         console.error('[cgr] Image generation failed', idx, '— status:', res.status, res.data);
@@ -19731,6 +19742,20 @@ window.rptExport = function(format) {
         var loadingEl = document.getElementById('cgrLoading');
         if(loadingEl) loadingEl.classList.add('cgr-loading--done');
         _cgrShowChrome();
+      } else if(res.status === 503 && body && body.code === 'PROVIDER_UNAVAILABLE'){
+        // The AI provider (AIML) stayed rate-limited/unavailable through the
+        // backend's own retries (aimlProvider.js) — a materially different,
+        // more honest situation than a real generation failure: it's not
+        // broken, it's temporarily at capacity, and the backend has already
+        // refunded any reserved credits (body.refunded) before this response
+        // was sent. Shown as its own state rather than the generic
+        // "Generation failed" so the user isn't left thinking something on
+        // our end is broken when it's provider capacity.
+        console.log('[cgr] generation blocked — AI provider temporarily unavailable | credits refunded:', !!body.refunded);
+        _renderError(prompt, {
+          title: 'AI provider temporarily at capacity',
+          message: body.error || 'Our AI provider is temporarily at capacity. Please try again in a moment.'
+        });
       } else {
         // Full detail stays in the console for debugging — the user only ever
         // sees a friendly message, never a raw provider/HTTP-status string.
@@ -19744,14 +19769,22 @@ window.rptExport = function(format) {
     });
   };
 
-  function _renderError(prompt){
+  /* opts.title/opts.message let a caller show a distinct, more honest
+     state than the generic "Generation failed" — used specifically for
+     PROVIDER_UNAVAILABLE (see cgrGenerate), where the real situation
+     (AI provider temporarily at capacity, credits handled safely) is
+     meaningfully different from an actual generation failure and the
+     backend already supplies a safe, user-appropriate message. */
+  function _renderError(prompt, opts){
+    opts = opts || {};
     _cancelLoadingTimers();
     var loading = document.getElementById('cgrLoading');
     var content = document.getElementById('cgrContent');
     if(loading) loading.classList.add('cgr-loading--done');
     if(content){
-      var friendlyMsg = "We're unable to generate your campaign right now. Please try again later.";
-      content.innerHTML = '<div class="cgr-error"><div class="cgr-error-ico">⚠</div><div class="cgr-error-title">Generation failed</div><div class="cgr-error-sub">' + _esc(friendlyMsg) + '</div><button class="cgr-action-btn cgr-action-btn-primary" onclick="cgrGenerate(\''+_esc(prompt)+'\')">Try Again</button></div>';
+      var title = opts.title || 'Generation failed';
+      var friendlyMsg = opts.message || "We're unable to generate your campaign right now. Please try again later.";
+      content.innerHTML = '<div class="cgr-error"><div class="cgr-error-ico">⚠</div><div class="cgr-error-title">' + _esc(title) + '</div><div class="cgr-error-sub">' + _esc(friendlyMsg) + '</div><button class="cgr-action-btn cgr-action-btn-primary" onclick="cgrGenerate(\''+_esc(prompt)+'\')">Try Again</button></div>';
       content.style.display = '';
     }
     _cgrShowChrome();
