@@ -25131,6 +25131,154 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
 .ov-sm-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.88); margin-bottom: 7px; line-height: 1.4; }
 .ov-sm-body { font-size: 11px; color: rgba(255,255,255,.4); line-height: 1.55; margin-bottom: 12px; }
 .ov-sm-platform { margin-top: 2px; }
+.ov-sm-platform-row { display: flex; align-items: center; gap: 7px; }
+.ov-sm-platform-row svg { flex-shrink: 0; }
+.ov-sm-platform-name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.45); }
+
+/* ══════════════════════════════════════════════════════════════════
+   REDESIGN — Build → Publish → Scale workflow. Replaces the old
+   Intelligence/Autopilot sections with three connected steps. Reuses
+   .ov-wf-section/.ov-wf-inner/.ov-wf-text and (for Scale) the
+   previously-unused .ov-scale-mock/.ov-sm-card above as-is — the only
+   new component CSS is below: .ov-build-mock/.ov-bm-*,
+   .ov-pub-mock/.ov-pub-*, and .ov-workflow-connector/.ov-wfc-*.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Build visual — prompt → generating → finished ad, auto-cycling
+   through three stacked panels. A miniature version of the real Oriven
+   generation UI's own language (structured field: "value" lines, a
+   green active-glow on the field still resolving) rather than a
+   generic illustration — see app.html's campaign blueprint, which uses
+   the same visual vocabulary at full scale. ── */
+.ov-build-mock { display: flex; flex-direction: column; align-items: center; gap: 22px; width: 100%; }
+.ov-bm-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  min-height: 280px;
+  background: #08080a;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px -30px rgba(0,0,0,.6);
+}
+.ov-bm-panel {
+  position: absolute;
+  inset: 0;
+  padding: 30px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .45s ease;
+}
+.ov-bm-panel.ov-bm-panel-active { opacity: 1; visibility: visible; }
+
+.ov-bm-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.ov-bm-eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: ovBmPulseDot 1.4s ease-in-out infinite; }
+
+/* Stage 1 — prompt, typed in via a pure-CSS steps() typewriter that
+   restarts each time this panel becomes active (see the JS toggle). */
+.ov-bm-prompt-box { background: rgba(255,255,255,.044); border: 1.5px solid rgba(255,255,255,.1); border-radius: 14px; padding: 18px 20px; min-height: 52px; display: flex; align-items: center; }
+.ov-bm-prompt-text {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 14.5px;
+  color: rgba(255,255,255,.88);
+  width: 0;
+}
+.ov-bm-panel-active .ov-bm-prompt-text { animation: ovBmType 1.7s steps(32, end) forwards; }
+.ov-bm-cursor { display: inline-block; width: 2px; height: 16px; background: var(--green); margin-left: 2px; vertical-align: -3px; animation: ovBmBlink .9s steps(1) infinite; }
+
+/* Stage 2 — generating (miniature campaign-blueprint style) */
+.ov-bm-gen-lines { font-family: "SF Mono","Cascadia Code","Consolas",monospace; font-size: 12.5px; line-height: 2.1; }
+.ov-bm-gen-line { color: rgba(255,255,255,.42); }
+.ov-bm-gen-key { color: rgba(255,255,255,.4); }
+.ov-bm-gen-colon { color: rgba(255,255,255,.22); }
+.ov-bm-gen-val { color: var(--green); font-weight: 600; }
+.ov-bm-gen-line-active .ov-bm-gen-val { animation: ovBmActivePulse 1.3s ease-in-out infinite; }
+
+/* Stage 3 — the finished ad (reuses .adv-card/.adv-g-* from the ad
+   showcase wall — the same real card style, not a new one). */
+.ov-bm-result { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.ov-bm-result-card {
+  width: 100%;
+  max-width: 320px;
+  height: 168px;
+  border-radius: 14px;
+  background: #0c0c10;
+  border: 1px solid rgba(251,188,5,.2);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ov-bm-dots { display: flex; gap: 8px; }
+.ov-bm-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.15); transition: background .3s ease, transform .3s ease; }
+.ov-bm-dot.ov-bm-dot-active { background: var(--green); transform: scale(1.35); }
+
+@keyframes ovBmType { to { width: 27ch; } }
+@keyframes ovBmBlink { 50% { opacity: 0; } }
+@keyframes ovBmPulseDot { 0%, 100% { opacity: .4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
+@keyframes ovBmActivePulse { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-bm-prompt-text { animation: none !important; width: 27ch !important; }
+  .ov-bm-cursor, .ov-bm-eyebrow-dot, .ov-bm-gen-line-active .ov-bm-gen-val { animation: none !important; }
+}
+
+/* ── Publish visual — one ad, branching to three platforms. Deliberately
+   simple: a source card, a stem, a branch line, three targets — not a
+   dashboard. ── */
+.ov-pub-mock { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 380px; }
+.ov-pub-source {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px; padding: 12px 18px;
+  font-size: 13px; font-weight: 600; color: #fff;
+}
+.ov-pub-source-ico { width: 22px; height: 22px; border-radius: 6px; background: color-mix(in srgb, var(--green) 14%, transparent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ov-pub-stem { width: 1.5px; height: 26px; background: rgba(255,255,255,.15); }
+.ov-pub-branch-wrap { position: relative; width: 100%; }
+.ov-pub-branch-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 16.5%; right: 16.5%;
+  height: 1.5px;
+  background: rgba(255,255,255,.15);
+}
+.ov-pub-targets { display: flex; justify-content: space-between; width: 100%; padding-top: 22px; gap: 10px; }
+.ov-pub-target {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  flex: 1;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.ov-pub-target.ov-vis { opacity: 1; transform: translateY(0); }
+.ov-pub-target::before {
+  content: '';
+  position: absolute;
+  top: -22px; left: 50%;
+  width: 1.5px; height: 22px;
+  background: rgba(255,255,255,.15);
+}
+.ov-pub-target-logo { width: 46px; height: 46px; border-radius: 13px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; }
+.ov-pub-target-name { font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,.65); }
+.ov-pub-target-status { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; letter-spacing: .02em; color: var(--green); }
+
+/* ── Workflow connector — the ↓ thread between Build/Publish/Scale ── */
+.ov-workflow-connector {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 20px 0;
+  background: #07070A;
+}
+.ov-wfc-line { width: 1.5px; height: 22px; background: linear-gradient(to bottom, rgba(255,255,255,.03), rgba(255,255,255,.18)); }
+.ov-wfc-arrow { color: var(--green); display: flex; opacity: .85; }
+.ov-wfc-label { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.3); }
 
 /* ── Social proof strip ──────────────────────────────────────── */
 .ov-social-proof { padding: 72px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
@@ -41216,10 +41364,18 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 .ov-conn-workspace { min-height: 66vh !important; justify-content: center !important; gap: 22px !important; }
 .ov-conn-stat-val { font-size: 22px !important; }
 
+/* Build / Publish / Scale mocks get the same "fill the full-height
+   section" treatment as their siblings above, so the new workflow
+   sections carry the same visual weight as every other section on the
+   page rather than looking small next to them. */
+.ov-build-mock, .ov-pub-mock, .ov-scale-mock { font-size: 1.15em; min-height: 66vh; display: flex; flex-direction: column; justify-content: center; }
+.ov-scale-mock { gap: 16px; }
+
 @media (max-width: 900px) {
   .ov-wf-h2 { font-size: 30px !important; }
   .ov-launch-mock, .ov-conn-workspace, .ov-an-mock { font-size: 1em; min-height: auto !important; }
   .ov-launch-mock { padding: 22px 24px !important; }
+  .ov-build-mock, .ov-pub-mock, .ov-scale-mock { font-size: 1em; min-height: auto !important; }
 }
 
 /* ── Larger ad-wall cards — the wall should visually dominate the

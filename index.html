@@ -398,89 +398,184 @@
   </div>
 </section>
 
-<!-- ═══ INTELLIGENCE ═══ -->
-<section id="ov-intelligence" class="ov-wf-section">
+<!-- ═══ BUILD ═══ -->
+<section id="ov-build" class="ov-wf-section">
   <div class="ov-wf-inner">
     <div class="ov-wf-text" data-observe>
-      <div class="ov-wf-step-num">Intelligence</div>
-      <h2 class="ov-wf-h2">Know what's working.<br>And what to fix.</h2>
-      <p class="ov-wf-desc">Oriven analyzes every campaign across every connected platform and turns raw performance data into clear, prioritized recommendations — so nothing gets missed.</p>
+      <div class="ov-wf-step-num">01 — Build</div>
+      <h2 class="ov-wf-h2">Describe your ad.<br>Oriven builds it.</h2>
+      <p class="ov-wf-desc">Type a short prompt. Oriven writes the copy, designs the creative, and assembles a complete, ready-to-publish ad in under a minute.</p>
       <ul class="ov-wf-bullets">
-        <li>Unified performance view across Google, Meta and TikTok</li>
-        <li>AI-generated recommendations with expected impact</li>
-        <li>Opportunity and risk detection before you overspend</li>
+        <li>AI-written headlines, copy and CTAs</li>
+        <li>On-brand creative generated automatically</li>
+        <li>A complete ad, not just a caption</li>
       </ul>
     </div>
     <div class="ov-wf-visual">
-      <div class="ov-an-mock" data-observe>
-        <div class="ov-an-topbar">
-          <div class="ov-an-tabs">
-            <div class="ov-an-tab ov-an-tab-active">
-              <span class="ov-an-dot" style="background:#4285F4"></span>Google Ads
-            </div>
-            <div class="ov-an-tab">
-              <span class="ov-an-dot" style="background:#0866FF"></span>Meta Ads
+      <div class="ov-build-mock" data-observe>
+        <div class="ov-bm-card" id="ovBmCard">
+
+          <div class="ov-bm-panel ov-bm-panel-active" data-bm-panel="0">
+            <div class="ov-bm-eyebrow"><span class="ov-bm-eyebrow-dot"></span>Describe your ad</div>
+            <div class="ov-bm-prompt-box">
+              <span class="ov-bm-prompt-text">A skincare brand for sensitive skin</span><span class="ov-bm-cursor"></span>
             </div>
           </div>
-          <div class="ov-an-range">Last 30 days</div>
+
+          <div class="ov-bm-panel" data-bm-panel="1">
+            <div class="ov-bm-eyebrow"><span class="ov-bm-eyebrow-dot"></span>Oriven is building your ad</div>
+            <div class="ov-bm-gen-lines">
+              <div class="ov-bm-gen-line"><span class="ov-bm-gen-key">headline</span><span class="ov-bm-gen-colon">: </span><span class="ov-bm-gen-val">"Skin that finally agrees with you"</span></div>
+              <div class="ov-bm-gen-line"><span class="ov-bm-gen-key">description</span><span class="ov-bm-gen-colon">: </span><span class="ov-bm-gen-val">"Dermatologist-formulated. Fragrance-free."</span></div>
+              <div class="ov-bm-gen-line ov-bm-gen-line-active"><span class="ov-bm-gen-key">creative</span><span class="ov-bm-gen-colon">: </span><span class="ov-bm-gen-val">generating…</span></div>
+            </div>
+          </div>
+
+          <div class="ov-bm-panel" data-bm-panel="2">
+            <div class="ov-bm-result">
+              <div class="ov-bm-result-tag">Ready to publish</div>
+              <div class="ov-bm-result-card adv-card adv-card-google">
+                <div class="adv-g-top">
+                  <span class="adv-g-sponsored">Ad</span>
+                  <span class="adv-g-dot">&middot;</span>
+                  <span class="adv-g-adv">Sensitive Skin Co.</span>
+                </div>
+                <div class="adv-g-body">
+                  <div class="adv-g-text">
+                    <div class="adv-g-cat">Skincare</div>
+                    <div class="adv-g-headline">Skin that finally agrees with you</div>
+                    <div class="adv-g-desc">Dermatologist-formulated. Fragrance-free.</div>
+                  </div>
+                  <div class="adv-g-visual"></div>
+                </div>
+                <div class="adv-g-foot">
+                  <span class="adv-g-cta">Shop Now <svg viewBox="0 0 10 10" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 5h6M5 2l3 3-3 3"/></svg></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
-        <div class="ov-an-kpis" id="ovAnKpis">
-          <div class="ov-an-kpi"><div class="ov-an-kv" data-count-target="2840" data-count-prefix="&euro;" data-count-group="1">&euro;0</div><div class="ov-an-kl">Spend</div></div>
-          <div class="ov-an-kpi"><div class="ov-an-kv ov-green" data-count-target="4.2" data-count-decimals="1" data-count-suffix="&times;">0.0&times;</div><div class="ov-an-kl">ROAS</div></div>
-          <div class="ov-an-kpi"><div class="ov-an-kv" data-count-target="312">0</div><div class="ov-an-kl">Conv.</div></div>
-          <div class="ov-an-kpi"><div class="ov-an-kv" data-count-target="3.9" data-count-decimals="1" data-count-suffix="%">0.0%</div><div class="ov-an-kl">CTR</div></div>
-        </div>
-        <div class="ov-an-table">
-          <div class="ov-an-table-hdr"><span>Campaign</span><span>Spend</span><span>ROAS</span><span>CTR</span></div>
-          <div class="ov-an-row"><span>Performance Max Q2</span><span>&euro;1,240</span><span class="ov-green">5.2&times;</span><span>4.1%</span></div>
-          <div class="ov-an-row"><span>Brand Search EU</span><span>&euro;880</span><span>2.1&times;</span><span>6.3%</span></div>
-          <div class="ov-an-row"><span>Display Retargeting</span><span>&euro;720</span><span class="ov-green">3.8&times;</span><span>1.4%</span></div>
+        <div class="ov-bm-dots" aria-hidden="true">
+          <span class="ov-bm-dot ov-bm-dot-active"></span>
+          <span class="ov-bm-dot"></span>
+          <span class="ov-bm-dot"></span>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ AUTOPILOT ═══ -->
-<section id="ov-autopilot" class="ov-wf-section ov-wf-alt">
+<div class="ov-workflow-connector" aria-hidden="true">
+  <span class="ov-wfc-line"></span>
+  <span class="ov-wfc-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M4 6l4 4 4-4"/></svg></span>
+  <span class="ov-wfc-label">Publish</span>
+</div>
+
+<!-- ═══ PUBLISH ═══ -->
+<section id="ov-publish" class="ov-wf-section ov-wf-alt">
   <div class="ov-wf-inner ov-wf-inner-rev">
     <div class="ov-wf-text" data-observe>
-      <div class="ov-wf-step-num">Autopilot</div>
-      <h2 class="ov-wf-h2">Set it. Let it optimize.</h2>
-      <p class="ov-wf-desc">Autopilot continuously monitors your campaigns and automatically adjusts budgets, pauses underperformers, and scales what's working — around the clock, without manual check-ins.</p>
+      <div class="ov-wf-step-num">02 — Publish</div>
+      <h2 class="ov-wf-h2">One ad.<br>Every platform.</h2>
+      <p class="ov-wf-desc">Build it once — Oriven formats and publishes it natively to Google, Meta and TikTok, matched to each platform's real ad specs.</p>
       <ul class="ov-wf-bullets">
-        <li>Automatic budget and bid adjustments</li>
-        <li>Pauses underperforming ads before they waste spend</li>
-        <li>Stay in control — approve actions or fully automate</li>
+        <li>Native formatting for Search, Feed and For You</li>
+        <li>Publish to one platform or all three at once</li>
+        <li>No manual resizing or re-uploading</li>
       </ul>
     </div>
     <div class="ov-wf-visual">
-      <div class="ov-launch-mock" data-observe>
-        <div class="ov-lm-timeline">
-        <div class="ov-lm-step ov-lm-done" data-observe>
-          <div class="ov-lm-num ov-lm-num-done">&#10003;</div>
-          <div><div class="ov-lm-step-t">Rule triggered</div><div class="ov-lm-step-s">CPA rose above target</div></div>
+      <div class="ov-pub-mock" data-observe>
+        <div class="ov-pub-source">
+          <span class="ov-pub-source-ico"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M2 10.5l3.2-3.2a1 1 0 0 1 1.4 0L10 10.7"/><circle cx="10.5" cy="5.5" r="1.2"/></svg></span>
+          Your ad
         </div>
-        <div class="ov-lm-connector ov-lm-done-line"></div>
-        <div class="ov-lm-step ov-lm-done" data-observe style="transition-delay:.1s">
-          <div class="ov-lm-num ov-lm-num-done">&#10003;</div>
-          <div><div class="ov-lm-step-t">Budget adjusted</div><div class="ov-lm-step-s">Spend decreased 20% automatically</div></div>
+        <div class="ov-pub-stem"></div>
+        <div class="ov-pub-branch-wrap">
+          <div class="ov-pub-targets">
+            <div class="ov-pub-target" data-observe>
+              <div class="ov-pub-target-logo">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              </div>
+              <div class="ov-pub-target-name">Google Ads</div>
+              <div class="ov-pub-target-status"><svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg>Published</div>
+            </div>
+            <div class="ov-pub-target" data-observe style="transition-delay:.1s">
+              <div class="ov-pub-target-logo">
+                <svg width="16" height="12" viewBox="5 0 30 22"><path fill="#0866FF" d="M20,11 C20,5.72 17.09,1.5 13.5,1.5 C9.91,1.5 7,5.72 7,11 C7,16.28 9.91,20.5 13.5,20.5 C17.09,20.5 20,16.28 20,11 M20,11 C20,5.72 22.91,1.5 26.5,1.5 C30.09,1.5 33,5.72 33,11 C33,16.28 30.09,20.5 26.5,20.5 C22.91,20.5 20,16.28 20,11 Z"/></svg>
+              </div>
+              <div class="ov-pub-target-name">Meta Ads</div>
+              <div class="ov-pub-target-status"><svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg>Published</div>
+            </div>
+            <div class="ov-pub-target" data-observe style="transition-delay:.2s">
+              <div class="ov-pub-target-logo">
+                <svg width="14" height="16" viewBox="0 0 28 32"><g fill="#69C9D0" transform="translate(1.5,1.2)"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g><g fill="#EE1D52" transform="translate(-1.5,-1.2)"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g><g fill="white"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g></svg>
+              </div>
+              <div class="ov-pub-target-name">TikTok Ads</div>
+              <div class="ov-pub-target-status"><svg viewBox="0 0 12 12" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg>Published</div>
+            </div>
+          </div>
         </div>
-        <div class="ov-lm-connector ov-lm-done-line"></div>
-        <div class="ov-lm-step ov-lm-active" data-observe style="transition-delay:.2s">
-          <div class="ov-lm-num ov-lm-num-active">3</div>
-          <div><div class="ov-lm-step-t">Monitoring performance</div><div class="ov-lm-step-s">Checking metrics every hour</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="ov-workflow-connector" aria-hidden="true">
+  <span class="ov-wfc-line"></span>
+  <span class="ov-wfc-arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M4 6l4 4 4-4"/></svg></span>
+  <span class="ov-wfc-label">Scale</span>
+</div>
+
+<!-- ═══ SCALE ═══ -->
+<section id="ov-scale" class="ov-wf-section">
+  <div class="ov-wf-inner">
+    <div class="ov-wf-text" data-observe>
+      <div class="ov-wf-step-num">03 — Scale</div>
+      <h2 class="ov-wf-h2">Autopilot takes it<br>from here.</h2>
+      <p class="ov-wf-desc">Oriven doesn't stop at publish. Autopilot tracks every ad variation's performance and automatically scales the winners — and pauses the rest.</p>
+      <ul class="ov-wf-bullets">
+        <li>Every ad variation tracked in real time</li>
+        <li>Budget shifted automatically toward what's converting</li>
+        <li>Underperformers paused before they waste spend</li>
+      </ul>
+    </div>
+    <div class="ov-wf-visual">
+      <div class="ov-scale-mock" data-observe>
+        <div class="ov-sm-card ov-sm-card-high" data-observe>
+          <div class="ov-sm-card-top">
+            <span class="ov-sm-conf ov-sm-conf-high">High Confidence</span>
+            <span class="ov-sm-impact">Scaling ↑</span>
+          </div>
+          <div class="ov-sm-title">Variant A — Performance angle</div>
+          <div class="ov-sm-body">CTR 4.8% · ROAS 5.2x — budget increased automatically</div>
+          <div class="ov-sm-platform ov-sm-platform-row">
+            <svg width="14" height="10" viewBox="5 0 30 22"><path fill="#0866FF" d="M20,11 C20,5.72 17.09,1.5 13.5,1.5 C9.91,1.5 7,5.72 7,11 C7,16.28 9.91,20.5 13.5,20.5 C17.09,20.5 20,16.28 20,11 M20,11 C20,5.72 22.91,1.5 26.5,1.5 C30.09,1.5 33,5.72 33,11 C33,16.28 30.09,20.5 26.5,20.5 C22.91,20.5 20,16.28 20,11 Z"/></svg>
+            <span class="ov-sm-platform-name">Meta Ads</span>
+          </div>
         </div>
-        <div class="ov-lm-connector"></div>
-        <div class="ov-lm-step ov-lm-inactive" data-observe style="transition-delay:.3s">
-          <div class="ov-lm-num ov-lm-num-inactive">4</div>
-          <div><div class="ov-lm-step-t">Scale winners</div><div class="ov-lm-step-s">Increase budget on top performers</div></div>
+        <div class="ov-sm-card" data-observe style="transition-delay:.1s">
+          <div class="ov-sm-card-top">
+            <span class="ov-sm-conf">Monitoring</span>
+          </div>
+          <div class="ov-sm-title">Variant B — Problem / Solution angle</div>
+          <div class="ov-sm-body">CTR 2.1% · ROAS 2.4x — holding steady, checked hourly</div>
+          <div class="ov-sm-platform ov-sm-platform-row">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            <span class="ov-sm-platform-name">Google Ads</span>
+          </div>
         </div>
-        <div class="ov-lm-connector"></div>
-        <div class="ov-lm-step ov-lm-inactive" data-observe style="transition-delay:.4s">
-          <div class="ov-lm-num ov-lm-num-inactive">5</div>
-          <div><div class="ov-lm-step-t">Weekly report</div><div class="ov-lm-step-s">Summary sent to your inbox</div></div>
-        </div>
+        <div class="ov-sm-card" data-observe style="transition-delay:.2s">
+          <div class="ov-sm-card-top">
+            <span class="ov-sm-conf">Paused</span>
+          </div>
+          <div class="ov-sm-title">Variant C — Urgency angle</div>
+          <div class="ov-sm-body">CTR 0.6% · ROAS 0.7x — paused automatically to protect spend</div>
+          <div class="ov-sm-platform ov-sm-platform-row">
+            <svg width="12" height="14" viewBox="0 0 28 32"><g fill="white"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g></svg>
+            <span class="ov-sm-platform-name">TikTok Ads</span>
+          </div>
         </div>
       </div>
     </div>
@@ -848,8 +943,8 @@
       <nav class="ov-footer-nav" aria-label="Footer navigation">
         <div class="ov-footer-col">
           <div class="ov-footer-col-h">Product</div>
-          <a href="#ov-intelligence" class="ov-footer-link" onclick="ovNavTo(event,'#ov-intelligence')">Intelligence</a>
-          <a href="#ov-autopilot" class="ov-footer-link" onclick="ovNavTo(event,'#ov-autopilot')">Autopilot</a>
+          <a href="#ov-build" class="ov-footer-link" onclick="ovNavTo(event,'#ov-build')">Build</a>
+          <a href="#ov-scale" class="ov-footer-link" onclick="ovNavTo(event,'#ov-scale')">Scale</a>
           <a href="#ov-business" class="ov-footer-link" onclick="ovNavTo(event,'#ov-business')">Business</a>
           <a href="#pricing" class="ov-footer-link" onclick="ovNavTo(event,'#pricing')">Pricing</a>
         </div>
@@ -4348,6 +4443,44 @@ function ovShowcaseSwitch(platform, btn) {
 }
 
 ovRenderAdWall('google');
+
+// ── Build demo (Build/Publish/Scale workflow) — auto-cycles the three
+// panels (prompt -> generating -> finished ad) so the section shows the
+// product working rather than just describing it. Pure CSS handles the
+// typewriter/pulse animations within each panel; this just switches
+// which panel is active on a timer. ──────────────────────────────────
+(function(){
+  var panels = document.querySelectorAll('#ovBmCard .ov-bm-panel');
+  var dots = document.querySelectorAll('.ov-build-mock .ov-bm-dot');
+  if(!panels.length) return;
+
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    // Freeze on the finished-ad payoff frame — no motion, but still the
+    // single clearest frame of "what Oriven does" for anyone who can't
+    // watch the cycle animate.
+    panels.forEach(function(p, i){ p.classList.toggle('ov-bm-panel-active', i === 2); });
+    dots.forEach(function(d, i){ d.classList.toggle('ov-bm-dot-active', i === 2); });
+    return;
+  }
+
+  var idx = 0;
+  var DURATIONS = [2400, 2600, 2800]; // how long each stage (prompt/generating/result) stays visible
+  function advance(){
+    panels[idx].classList.remove('ov-bm-panel-active');
+    idx = (idx + 1) % panels.length;
+    panels[idx].classList.add('ov-bm-panel-active');
+    dots.forEach(function(d, i){ d.classList.toggle('ov-bm-dot-active', i === idx); });
+    if(idx === 0){
+      // Force the CSS typewriter (@keyframes ovBmType) to replay from the
+      // start each time the prompt panel comes back around, rather than
+      // staying at its filled end state.
+      var txt = panels[0].querySelector('.ov-bm-prompt-text');
+      if(txt){ txt.style.animation = 'none'; void txt.offsetWidth; txt.style.animation = ''; }
+    }
+    setTimeout(advance, DURATIONS[idx]);
+  }
+  setTimeout(advance, DURATIONS[0]);
+})();
 </script>
 
 <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
