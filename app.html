@@ -16131,13 +16131,25 @@ window.rptExport = function(format) {
       f.optimization = _cgrBlField(lines, 2, 'optimization', 'generating');
     }, d[6]);
 
-    /* Long-tail — if the real response hasn't arrived by the last
-       checkpoint (slower network, video mode, etc.), keep cycling rather
-       than looking finished-and-frozen while still actually waiting. */
-    q(function(){
-      _cgrBlFieldCycle(f.daily, 'calculating');
-      _cgrBlFieldCycle(f.optimization, 'tuning');
-    }, d[6] + 3200);
+    /* Long-tail — real generation regularly runs well past this script's
+       last scripted checkpoint (measured: text generation alone commonly
+       takes 30-60s+ depending on provider load, on top of image
+       generation after it), so unlike every other step above, this one
+       doesn't fire once and stop — it keeps cycling indefinitely for as
+       long as the real response takes, so the blueprint never goes
+       static/looks frozen while genuinely still working. Self-limiting:
+       _cancelLoadingTimers() (called the instant the real response
+       arrives) clears every timer this schedules, including future ones,
+       since each tick only queues the next one after actually running. */
+    var _tailWords = ['calculating', 'refining', 'finalizing', 'syncing'];
+    var _tailIdx = 0;
+    function _tailTick(){
+      _cgrBlFieldCycle(f.daily, _tailWords[_tailIdx % _tailWords.length]);
+      _cgrBlFieldCycle(f.optimization, _tailWords[(_tailIdx + 2) % _tailWords.length]);
+      _tailIdx++;
+      q(_tailTick, 4200);
+    }
+    q(_tailTick, d[6] + 3200);
   }
 
   /* Pulls a normalized, display-ready field set out of whichever
