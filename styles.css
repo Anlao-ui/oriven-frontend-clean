@@ -4801,6 +4801,16 @@ body:not(.dark-mode) .gg-input:focus{ border-color:rgba(26,66,41,0.4); backgroun
   width:5px;height:5px;border-radius:50%;
   background:var(--green);margin-top:4px;opacity:.7;
 }
+/* Free plan card — excluded items (Autopilot, higher limits, premium
+   features) render muted with an X instead of the green dot, so what the
+   Free plan doesn't include reads as informative, not as an error. */
+.pw-feats-list .pw-feat-excluded{ color:rgba(240,240,240,.3); }
+.pw-feats-list .pw-feat-excluded::before{
+  content:"\2715"; width:auto; height:auto; border-radius:0; background:none;
+  font-size:10px; line-height:1; margin-top:2px; opacity:.5; color:rgba(240,240,240,.4);
+}
+.pw-card-free{ border-color:rgba(255,255,255,.14); }
+.pw-card-free:hover{ border-color:rgba(255,255,255,.24); }
 .pw-btn{
   width:100%;padding:11px 0;font-size:13px;font-weight:700;
   border-radius:30px;border:none;cursor:pointer;font-family:inherit;

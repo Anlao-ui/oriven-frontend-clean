@@ -516,6 +516,17 @@ async function _loadUserProfile(user){
             try { localStorage.setItem(_scopedKey, "1"); } catch(_){}
             console.log("[PW-CHAIN] Synced free_campaign_used from DB â†’ localStorage key:", _scopedKey);
           }
+          // Sync the rolling-24h timestamp too -- this, not the lifetime
+          // boolean above, is what _freeCampaignUsed() now actually checks
+          // (mirrors requireSubOrOnboardingGen's server-side daily window,
+          // server.js). The server remains authoritative regardless of what
+          // this local copy says -- this is purely so the client's own UI
+          // (Start Generation button, sidebar nav gate) doesn't show a stale
+          // "blocked" state a day after the server would already allow a
+          // fresh generation.
+          if(data && data.free_campaign_used_at){
+            try { localStorage.setItem("oriven_fcused_at_" + user.id, data.free_campaign_used_at); } catch(_){}
+          }
           var _lsScopedFlag = false;
           var _lsLegacyFlag = false;
           try { _lsScopedFlag = localStorage.getItem(_scopedKey) === "1"; } catch(_){}
@@ -528,20 +539,17 @@ async function _loadUserProfile(user){
           var _isUsed = _dbUsedFlag || _lsScopedFlag || _lsLegacyFlag;
           console.log("[PW-CHAIN] Page load check | _dbSubscriptionStatus:", _dbSubscriptionStatus, "| free_campaign_used:", _isUsed, "| db:", _dbUsedFlag, "| ls-scoped:", _lsScopedFlag, "| ls-legacy:", _lsLegacyFlag);
 
-          if(_isUsed){
-            console.log("[PW-CHAIN] LOCKING free user on page load â€” will show campaigns + hard paywall");
-            window._paywallInitNav = true;
-            navigate("create");
-            window._paywallInitNav = false;
-            setTimeout(function(){
-              console.log("[PW-CHAIN] Page-load paywall timeout fired | calling openFreePaywall");
-              if(typeof openFreePaywall === "function") openFreePaywall();
-              else console.error("[PW-CHAIN] openFreePaywall NOT FOUND at timeout");
-            }, 200);
-          } else {
-            console.log("[PW-CHAIN] Free user, campaign NOT yet used â€” allowing normal access");
-            navigate("create");
-          }
+          // Free is now a real, persistent plan (20 credits/day, 1
+          // Intelligence use/day) -- a returning Free user just lands on
+          // the app normally, same as any other plan, instead of the
+          // paywall re-opening on every single page load. The one-time,
+          // in-session openFreePaywall() call right after their first
+          // generation completes (_orvEndOnboardingIntoPaywall, wired
+          // elsewhere) already covers the "here's what's next" moment;
+          // this used-to-fire-every-load re-announcement was what made
+          // Free feel like an error state rather than a legitimate plan.
+          console.log("[PW-CHAIN] Free user â€” allowing normal access | campaign previously used:", _isUsed);
+          navigate("create");
           return;
         }
       }
@@ -1276,24 +1284,24 @@ function _showHardPaywall(){
   console.log("[Paywall] Hard paywall shown â€” awaiting plan selection");
 }
 
-// Free-campaign conversion paywall â€” shown after first campaign is generated
+// Free-campaign conversion paywall â€” shown after first campaign is generated.
+// Soft/dismissable: Free is now a real, persistent plan (20 credits/day,
+// 1 Intelligence use/day, no Autopilot), so this is an informative "here
+// are your options" moment, not a payment gate -- closing it is equivalent
+// to implicitly continuing on Free, which is already the account's actual
+// subscription_status by default.
 function openFreePaywall(){
-  console.log("[PW-CHAIN] openFreePaywall() called | _paywallHard was:", _paywallHard);
-  _paywallHard = true;
+  console.log("[PW-CHAIN] openFreePaywall() called");
   var modal = document.getElementById("modal-paywall");
   console.log("[PW-CHAIN] modal-paywall element:", modal ? "FOUND" : "NOT FOUND IN DOM");
-  if(modal){
-    modal.classList.add("pw-hard");
-    console.log("[PW-CHAIN] Added pw-hard class | classList:", modal.className);
-  }
 
   var titleEl = document.querySelector("#modal-paywall .pw-title");
   var subEl   = document.querySelector("#modal-paywall .pw-sub");
   var eyeEl   = document.querySelector("#modal-paywall .pw-eyebrow span");
   console.log("[PW-CHAIN] Title element:", titleEl ? "found" : "NOT FOUND");
   console.log("[PW-CHAIN] Sub element:", subEl ? "found" : "NOT FOUND");
-  if(titleEl)  titleEl.innerHTML = _obT("obPaywallTitle", "Ready to Publish");
-  if(subEl)    subEl.textContent = _obT("obPaywallSub", "You've built your first campaign with Oriven. Choose a plan to publish it to your connected ad account.");
+  if(titleEl)  titleEl.innerHTML = _obT("obPaywallTitle", "Start free. Upgrade when you need more.");
+  if(subEl)    subEl.textContent = _obT("obPaywallSub", "You've built your first campaign with Oriven. Stay on the Free plan and come back daily, or upgrade now for more credits, Autopilot, and higher limits.");
   if(eyeEl)    eyeEl.textContent = _obT("obPaywallEyebrow", "Your First Campaign Is Ready");
 
   console.log("[PW-CHAIN] Calling openPaywall() | typeof openPaywall:", typeof openPaywall);
@@ -1326,12 +1334,11 @@ window._orvEndOnboardingIntoPaywall = _orvEndOnboardingIntoPaywall;
 // a user navigating back to a real prior URL in this tab; still, if it
 // fires while the free generation is locked, show the paywall rather
 // than letting the app end up in an unguarded state.
-window.addEventListener("popstate", function(){
-  if(typeof _isFreeUser === "function" && _isFreeUser() && typeof _freeCampaignUsed === "function" && _freeCampaignUsed()){
-    try { history.pushState(null, "", location.href); } catch(_){}
-    _orvEndOnboardingIntoPaywall();
-  }
-});
+// Free is a real, persistent plan now, not a lifetime-once trial -- browser
+// back/forward navigation is no longer blocked just because today's free
+// generation has already been used (that's gated at the specific
+// generation actions themselves, not general navigation). No listener
+// needed here anymore.
 
 function closePaywall(){
   console.log("[PW-CHAIN] closePaywall() called | _paywallHard:", _paywallHard);
@@ -1357,6 +1364,10 @@ function _postPaymentNavigate(){
 
 async function selectPlan(plan){
   console.log("[Paywall] Plan selected:", plan);
+
+  // Free never goes through Stripe -- separate, non-payment path.
+  if(plan === "free") return continueOnFreePlan();
+
   var btn = document.querySelector('[onclick="selectPlan(\'' + plan + '\')"]');
   if(btn){ btn.disabled = true; btn.textContent = "Redirectingâ€¦"; }
 
@@ -1381,6 +1392,38 @@ async function selectPlan(plan){
     console.error("[Paywall] Checkout error:", err);
     toast("Could not start checkout â€” please try again");
     if(btn){ btn.disabled = false; btn.textContent = btn.getAttribute("data-label") || "Get Started"; }
+  }
+}
+
+// Free plan's equivalent of the Stripe-checkout branch above -- confirms
+// (or sets) subscription_status:'free' server-side, ensures a fresh daily
+// credit cycle, then just closes the paywall. No redirect, no payment
+// details required.
+async function continueOnFreePlan(){
+  var btn = document.getElementById("paywall-btn-free");
+  if(btn){ btn.disabled = true; btn.textContent = "Continuingâ€¦"; }
+  try {
+    var result = await apiFetch("/api/select-free-plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
+    if(!result.ok) throw new Error((result.data && result.data.error) || "Could not continue on the Free plan");
+
+    _dbSubscriptionStatus = "free";
+    if(typeof S !== "undefined" && S) S.currentPlan = "free";
+
+    // Close regardless of any hard-paywall flag -- choosing Free is always
+    // a legitimate way to leave the paywall, not something that should be
+    // blocked by whatever triggered the modal in the first place.
+    if(typeof closeModal === "function") closeModal("modal-paywall");
+    if(typeof _refreshUsageUI === "function") _refreshUsageUI();
+    toast("You're on the Free plan â€” 20 credits refresh every day.");
+  } catch(err){
+    console.error("[Paywall] continueOnFreePlan error:", err);
+    var code = err && err.message;
+    toast((code && code.indexOf("already have an active") !== -1) ? code : "Could not continue â€” please try again");
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = btn.getAttribute("data-label") || "Continue Free"; }
   }
 }
 
@@ -1863,6 +1906,17 @@ function _isFreeUser(){
   return result;
 }
 
+// Rolling-24h check, mirroring requireSubOrOnboardingGen's server-side
+// window exactly (server.js) -- Free is now a persistent plan with one
+// free generation per day, not a lifetime-once trial, so "used" means
+// "used within the last 24h", not "ever used". The server remains the
+// real gate regardless (this only decides local UI state: whether the
+// Start Generation button and sidebar nav show the paywall prompt) --
+// even if this local copy is stale, a genuinely-eligible user who gets
+// shown the prompt anyway can still reach generation via the paywall's
+// "Continue Free" path, and a genuinely-ineligible user is still rejected
+// server-side if this local check is ever wrong in the permissive
+// direction.
 function _freeCampaignUsed(){
   try {
     var _uid = (_currentUser && _currentUser.id) ? _currentUser.id : null;
@@ -1870,19 +1924,16 @@ function _freeCampaignUsed(){
       console.log("[PW-CHAIN] _freeCampaignUsed() â†’ false (no uid, _currentUser:", _currentUser, ")");
       return false;
     }
-    var scopedKey  = "oriven_fcused_" + _uid;
-    var legacyKey  = "oriven_free_campaign_used";
-    var scoped     = localStorage.getItem(scopedKey);
-    var legacy     = localStorage.getItem(legacyKey);
-    console.log("[PW-CHAIN] _freeCampaignUsed() | uid:", _uid, "| scoped (", scopedKey, "):", scoped, "| legacy:", legacy);
-    // If only the legacy key exists, migrate it to the scoped key
-    if(scoped !== "1" && legacy === "1"){
-      console.log("[PW-CHAIN] Migrating legacy key â†’ scoped key for uid:", _uid);
-      try { localStorage.setItem(scopedKey, "1"); } catch(_){}
-      return true;
+    var tsKey = "oriven_fcused_at_" + _uid;
+    var ts    = null;
+    try { ts = localStorage.getItem(tsKey); } catch(_){}
+    if(!ts){
+      console.log("[PW-CHAIN] _freeCampaignUsed() â†’ false (no timestamp for uid:", _uid, ")");
+      return false;
     }
-    var result = scoped === "1";
-    console.log("[PW-CHAIN] _freeCampaignUsed() â†’", result);
+    var elapsedMs = Date.now() - new Date(ts).getTime();
+    var result = elapsedMs >= 0 && elapsedMs < (24 * 60 * 60 * 1000);
+    console.log("[PW-CHAIN] _freeCampaignUsed() | uid:", _uid, "| last used:", ts, "| elapsed ms:", elapsedMs, "â†’", result);
     return result;
   } catch(e){
     console.error("[PW-CHAIN] _freeCampaignUsed() ERROR:", e);

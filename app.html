@@ -7526,6 +7526,11 @@ window.startCampaignGeneration = function(){
       if(_persUid){
         var _scopedKey = 'oriven_fcused_' + _persUid;
         try { localStorage.setItem(_scopedKey, '1'); } catch(_){}
+        // Rolling-24h timestamp -- _freeCampaignUsed() (auth.js) reads this,
+        // not the lifetime flag above, to decide whether another free
+        // generation is available yet (mirrors the server's
+        // requireSubOrOnboardingGen daily window).
+        try { localStorage.setItem('oriven_fcused_at_' + _persUid, new Date().toISOString()); } catch(_){}
         console.log('[PW-CHAIN] localStorage SET:', _scopedKey, '=', localStorage.getItem(_scopedKey));
       } else {
         console.error('[PW-CHAIN] Cannot set localStorage flag — uid is null');
@@ -11072,26 +11077,22 @@ window._orvUpdateCampPkg = function(id, pkg) {
 /* Direct page-switcher — bypasses entire navigate() chain.
    New V2 signature: _orvNav(navKey, pageId?, btn?) */
 window._orvNav = function(page, explicitPageId) {
-  /* Post-free-generation paywall lock (critical launch blocker fix) —
-     a free user has exactly one onboarding generation; once it's used,
-     EVERY navigation away from the campaign-results sub-tabs (which
-     don't route through _orvNav at all — cgrSwitchTab/cgrPlatTab handle
-     those directly) must show the existing paywall instead of silently
-     going through. This is the single choke point for sidebar nav, the
-     campaign-results Back button, and hub tab strips — all call _orvNav. */
-  if (typeof _isFreeUser === 'function' && _isFreeUser() && typeof _freeCampaignUsed === 'function' && _freeCampaignUsed()) {
-    if (typeof _orvEndOnboardingIntoPaywall === 'function') _orvEndOnboardingIntoPaywall();
-    else if (typeof openFreePaywall === 'function') openFreePaywall();
-    return;
-  }
-  /* Autopilot is Creator/Professional only (Starter has no Autopilot at
-     all, matching creditManager.PLAN_AUTOPILOT_LIMITS.starter === 0 and
-     the existing autopilotEligible server-side gate) -- a Starter user
-     must never land on a real-looking, empty Autopilot dashboard. This is
-     a soft, dismissible upgrade prompt (openLimitReached), not the hard
-     post-generation paywall lock -- the user can close it and keep using
-     the rest of the app. */
-  if (page === 'autopilot' && typeof _dbSubscriptionStatus !== 'undefined' && _dbSubscriptionStatus === 'starter') {
+  /* Free is now a real, persistent plan (20 credits/day, 1 daily
+     generation) rather than a lifetime-once trial -- ordinary navigation
+     is no longer intercepted just because today's free generation has
+     already been used. Starting ANOTHER generation is still correctly
+     gated at its own specific action (window.startCampaignGeneration,
+     window.openNewCampaign) via the same _isFreeUser()/_freeCampaignUsed()
+     helpers, which now check a rolling 24h window instead of "ever used" --
+     but browsing the rest of the app (Settings, existing campaigns, Studio,
+     etc.) should never be blocked by that on its own. */
+  /* Autopilot is Creator/Professional only (matching
+     creditManager.PLAN_AUTOPILOT_LIMITS -- Free and Starter both have no
+     Autopilot at all) -- a Free or Starter user must never land on a
+     real-looking, empty Autopilot dashboard. This is a soft, dismissible
+     upgrade prompt (openLimitReached), not a hard lock -- the user can
+     close it and keep using the rest of the app. */
+  if (page === 'autopilot' && typeof _dbSubscriptionStatus !== 'undefined' && !['creator','professional'].includes(_dbSubscriptionStatus)) {
     if (typeof openLimitReached === 'function') { openLimitReached('autopilot'); return; }
   }
   /* Team (invite/manage) is Professional only -- Starter and Creator keep
@@ -16735,6 +16736,8 @@ window.rptExport = function(format) {
       var _pkgUser = (typeof _getCurrentUser === 'function') ? _getCurrentUser() : null;
       if(_pkgUser && _pkgUser.id){
         try { localStorage.setItem('oriven_fcused_' + _pkgUser.id, '1'); } catch(_){}
+        // Rolling-24h timestamp -- see the matching comment in _cgoFinishUI.
+        try { localStorage.setItem('oriven_fcused_at_' + _pkgUser.id, new Date().toISOString()); } catch(_){}
       }
     }
     var platform = pkg.platform || window._ov3Platform || 'google';
@@ -19819,13 +19822,11 @@ window.rptExport = function(format) {
     if(typeof orvToast==='function') orvToast('Copied!','ok');
   };
 
-  /* Copy entire package as JSON */
+  /* Copy entire package as JSON — copying content the user already
+     generated is not "starting another generation", so it's not gated by
+     today's free-generation usage (that gate lives on
+     startCampaignGeneration/openNewCampaign instead). */
   window.cgrCopyPackage = function(){
-    if(typeof _isFreeUser === 'function' && _isFreeUser() && typeof _freeCampaignUsed === 'function' && _freeCampaignUsed()){
-      if(typeof _orvEndOnboardingIntoPaywall === 'function') _orvEndOnboardingIntoPaywall();
-      else if(typeof openFreePaywall === 'function') openFreePaywall();
-      return;
-    }
     if(!_cgrPkg){ if(typeof orvToast==='function') orvToast('No package generated yet','warn'); return; }
     if(navigator.clipboard) navigator.clipboard.writeText(JSON.stringify(_cgrPkg, null, 2));
     if(typeof orvToast==='function') orvToast('Campaign package copied to clipboard','ok');

@@ -39,8 +39,9 @@ function _renderPaywallCards(){
   var grid = document.getElementById("pwPlanGrid");
   if(grid && typeof renderPWPricingCards === "function") renderPWPricingCards(grid);
 
-  // Mark the user's current plan button as inactive
-  ORIVEN_PAID_PLANS.forEach(function(p){
+  // Mark the user's current plan button as inactive (Free included, so its
+  // card also correctly shows "Current Plan" when that's genuinely true).
+  ORIVEN_PAYWALL_PLANS.forEach(function(p){
     if(plan !== p.id) return;
     var btn = document.getElementById("paywall-btn-" + p.id);
     if(!btn) return;
@@ -75,6 +76,11 @@ var _LIMIT_MSGS = {
     sub:     "Upgrade for more credits and keep generating on-brand content.",
     upgrade: "creator"
   },
+  credits_free: {
+    title:   "Today's free credits used.",
+    sub:     "Your 20 free credits refresh in 24 hours — or upgrade now for more credits and higher limits today.",
+    upgrade: "creator"
+  },
   brief: {
     title:   "Daily Brief requires Creator.",
     sub:     "Upgrade to receive your Brand Brief every morning instead of weekly.",
@@ -100,6 +106,11 @@ var _LIMIT_MSGS = {
     sub:     "Upgrade to run more AI analyses on your ad accounts.",
     upgrade: "creator"
   },
+  intelligence_free: {
+    title:   "Today's Intelligence use is used.",
+    sub:     "Your free Intelligence analysis refreshes in 24 hours — or upgrade now for more analyses per month.",
+    upgrade: "creator"
+  },
   intelligence_creator: {
     title:   "Intelligence limit reached.",
     sub:     "Upgrade to Professional for unlimited Intelligence analyses.",
@@ -113,6 +124,17 @@ var _LIMIT_MSGS = {
 };
 
 function openLimitReached(type){
+  // Free's daily reset means "you've used it up" reads very differently
+  // than a paid plan's monthly cap ("come back tomorrow" vs "upgrade") --
+  // swap in the free-specific copy for the two limit types Free actually
+  // has (credits, intelligence) without requiring every call site to know
+  // the current plan itself.
+  try {
+    if((type === "credits" || type === "intelligence") && typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus === "free" && _LIMIT_MSGS[type + "_free"]){
+      type = type + "_free";
+    }
+  } catch(_){}
+
   var m = _LIMIT_MSGS[type] || {
     title:   "Plan limit reached.",
     sub:     "Upgrade to get more intelligence, monitoring and scale.",

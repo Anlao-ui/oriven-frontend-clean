@@ -78,6 +78,41 @@ var CREDIT_COSTS = {
 // no-separate-cap tier (still subject to the underlying credit economy
 // wherever a route already charges credits).
 var ORIVEN_PLANS = {
+  free: {
+    id:          "free",
+    name:        "Free",
+    price:       0,
+    credits:     20,
+    limit:       20,
+    teamMembers: 1,
+    explore:     false,
+    desc:        "Start free. Upgrade when you need more.",
+    intelligence:   "1 analysis / day",
+    autopilotLimit: null,
+    // Real, existing capabilities only -- ad generation (via the daily
+    // onboarding-generation allowance), Intelligence at 1/day, and the 20
+    // AI Credits/day balance for smaller actions (chat, copy rewrites,
+    // audience/competitor analysis) between generations.
+    allFeatures: [
+      "Create ads",
+      "1 Intelligence use / day",
+      "Experience the core Oriven workflow"
+    ],
+    features: [
+      "Create ads",
+      "1 Intelligence use / day",
+      "Experience the core Oriven workflow"
+    ],
+    // Shown as muted/crossed-out items alongside the positive feature list
+    // in the paywall (renderPWPricingCards only) -- naming real, existing
+    // paid-plan capabilities Free doesn't include, not inventing new ones.
+    excludedFeatures: [
+      "Autopilot",
+      "Higher usage limits",
+      "Premium features"
+    ]
+  },
+
   starter: {
     id:          "starter",
     name:        "Starter",
@@ -162,6 +197,12 @@ var ORIVEN_PLANS = {
 var ORIVEN_PLAN_LIST  = ["starter","creator","professional"].map(function(k){ return ORIVEN_PLANS[k]; });
 var ORIVEN_PAID_PLANS = ORIVEN_PLAN_LIST;
 
+// Free plus the three paid plans, Free first -- used ONLY by the in-app
+// paywall (renderPWPricingCards). The public landing page's pricing section
+// (renderLPPricingCards, index.html) keeps reading ORIVEN_PAID_PLANS
+// unchanged, so it stays exactly as it was before the Free plan existed.
+var ORIVEN_PAYWALL_PLANS = ["free","starter","creator","professional"].map(function(k){ return ORIVEN_PLANS[k]; });
+
 // ── SVG check mark (shared across all card styles) ─────────────
 var _PLAN_CHK_SVG = '<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>';
 
@@ -201,12 +242,17 @@ function renderLPPricingCards(containerEl){
 // ── Render: Paywall modal (pw-card) ────────────────────────────
 function renderPWPricingCards(containerEl){
   if(!containerEl) return;
-  containerEl.innerHTML = ORIVEN_PAID_PLANS.map(function(plan){
+  containerEl.innerHTML = ORIVEN_PAYWALL_PLANS.map(function(plan){
+    var isFree = plan.id === "free";
     var feats = (plan.features || plan.allFeatures || []).map(function(f){
       return '<li class="pw-feat">' + f + '</li>';
     }).join("");
+    var excludedFeats = (plan.excludedFeatures || []).map(function(f){
+      return '<li class="pw-feat pw-feat-excluded">' + f + '</li>';
+    }).join("");
+    var btnLabel = isFree ? "Continue Free" : "Get Started";
     return [
-      '<div class="pw-card' + (plan.popular ? ' pw-card-featured' : '') + '">',
+      '<div class="pw-card' + (plan.popular ? ' pw-card-featured' : '') + (isFree ? ' pw-card-free' : '') + '">',
         plan.popular ? '<div class="pw-featured-badge">Most Popular</div>' : '',
         '<div class="pw-card-name"' + (plan.popular ? ' style="color:#B7FF2A"' : '') + '>' + plan.name + '</div>',
         '<div class="pw-price-row">',
@@ -215,8 +261,8 @@ function renderPWPricingCards(containerEl){
         '</div>',
         plan.desc ? '<div class="pw-card-desc">' + plan.desc + '</div>' : '',
         '<div class="pw-card-divider"></div>',
-        '<ul class="pw-feats-list">' + feats + '</ul>',
-        '<button id="paywall-btn-' + plan.id + '" class="pw-btn ' + (plan.popular ? 'pw-btn-primary' : 'pw-btn-outline') + '" onclick="selectPlan(\'' + plan.id + '\')" data-label="Get Started">Get Started</button>',
+        '<ul class="pw-feats-list">' + feats + excludedFeats + '</ul>',
+        '<button id="paywall-btn-' + plan.id + '" class="pw-btn ' + (plan.popular ? 'pw-btn-primary' : 'pw-btn-outline') + '" onclick="selectPlan(\'' + plan.id + '\')" data-label="' + btnLabel + '">' + btnLabel + '</button>',
       '</div>'
     ].join('');
   }).join('');
