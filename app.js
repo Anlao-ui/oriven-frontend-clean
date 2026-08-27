@@ -445,32 +445,16 @@ function idShowHub(){
 // ═══════════════════════════════════════════════════════════════
 function navigate(page){
 
-  // Global free-user lock: any navigation away from campaign-workspace triggers paywall.
-  // _paywallInitNav bypasses this ONLY during initial page-load navigation (see _loadUserProfile).
-  if(!window._paywallInitNav && page !== "campaign-workspace"){
-    var _isFreeUserType = typeof _isFreeUser;
-    var _freeCampUsedType = typeof _freeCampaignUsed;
-    console.log("[PW-CHAIN] navigate('" + page + "') guard | _isFreeUser type:", _isFreeUserType, "| _freeCampaignUsed type:", _freeCampUsedType);
-    if(_isFreeUserType === "function" && _freeCampUsedType === "function"){
-      var _fug_free = _isFreeUser();
-      var _fug_used = _freeCampaignUsed();
-      console.log("[PW-CHAIN] navigate guard result | free:", _fug_free, "| used:", _fug_used, "| will block:", (_fug_free && _fug_used));
-      if(_fug_free && _fug_used){
-        console.log("[PW-CHAIN] BLOCKING navigate('" + page + "') — calling openFreePaywall");
-        if(typeof _orvEndOnboardingIntoPaywall === "function") _orvEndOnboardingIntoPaywall();
-        else if(typeof openFreePaywall === "function") openFreePaywall();
-        else console.error("[PW-CHAIN] openFreePaywall NOT FOUND in navigate guard");
-        return;
-      }
-    } else {
-      console.warn("[PW-CHAIN] navigate guard SKIPPED — functions not available yet");
-    }
-  }
+  // Free is a real, persistent plan now (20 credits/day, 1 daily
+  // generation), not a lifetime-once trial -- ordinary navigation is no
+  // longer intercepted just because the free daily generation has already
+  // been used today. The paywall now shows exactly once, right after a
+  // Free user's first campaign fully completes (see _renderPackage /
+  // _cgrReveal in app.html), and reactively when a real limit is actually
+  // hit (credits exhausted, Intelligence limit, Autopilot) -- never as a
+  // blanket block on browsing the rest of the app.
 
-  // Block all navigation while the spotlight onboarding tour is active
-  // (legitimate mid-tour case only -- the free-user-lock check above
-  // already handles "tour technically still active but generation is
-  // already done," which must show the paywall, not silently no-op).
+  // Block all navigation while the spotlight onboarding tour is active.
   if(window._obActive) return;
 
   // Block all navigation while the hard paywall is showing
@@ -3067,7 +3051,10 @@ function runGenBrand(){
     refreshBC();
     toast("Brand Identity generated!");
     saveBCToDB();
-    if(typeof maybeShowPaywall === "function") maybeShowPaywall();
+    // The paywall now only appears once, right after a Free user's first
+    // campaign is fully generated (see _renderPackage/_cgrReveal in
+    // app.html) -- it must never show for unrelated actions like Brand
+    // Identity setup, especially not mid-onboarding.
     if(typeof gtAdvance === "function") gtAdvance(1);
   })
   .catch(function(err){
@@ -3145,7 +3132,8 @@ function saveBCManual(){
   refreshBC();
   toast("Brand Identity saved!");
   saveBCToDB();
-  if(typeof maybeShowPaywall === "function") maybeShowPaywall();
+  // See the matching comment in genBC() -- the paywall no longer fires
+  // from Brand Identity setup.
 }
 
 function _bcsVal(id){

@@ -11091,16 +11091,26 @@ window._orvNav = function(page, explicitPageId) {
      Autopilot at all) -- a Free or Starter user must never land on a
      real-looking, empty Autopilot dashboard. This is a soft, dismissible
      upgrade prompt (openLimitReached), not a hard lock -- the user can
-     close it and keep using the rest of the app. */
-  if (page === 'autopilot' && typeof _dbSubscriptionStatus !== 'undefined' && !['creator','professional'].includes(_dbSubscriptionStatus)) {
+     close it and keep using the rest of the app.
+
+     Skipped while the onboarding spotlight tour itself is driving
+     navigation (window._obActive) -- the tour's own onEnter handlers walk
+     through every nav item, including Autopilot, purely to show what it
+     is; the sidebar is locked during the tour (_obLockSidebar) so a real
+     user click can't reach here while _obActive is true anyway. Without
+     this guard, the tour's own guided walkthrough of Autopilot opened
+     this same upsell modal ON TOP of onboarding for every Free/Starter
+     user -- the exact "paywall visible behind onboarding" bug. */
+  if (page === 'autopilot' && !window._obActive && typeof _dbSubscriptionStatus !== 'undefined' && !['creator','professional'].includes(_dbSubscriptionStatus)) {
     if (typeof openLimitReached === 'function') { openLimitReached('autopilot'); return; }
   }
   /* Team (invite/manage) is Professional only -- Starter and Creator keep
      their own 1-seat workspace but never reach the real Team page, even
      via a direct _orvNav('team',...) call bypassing the hidden nav
      button. Frontend gate only for UX; /api/send-invite's own plan check
-     remains the real authorization boundary. */
-  if (page === 'team' && typeof _dbSubscriptionStatus !== 'undefined' && _dbSubscriptionStatus !== 'professional') {
+     remains the real authorization boundary. Same onboarding-tour guard
+     as Autopilot above, for the same reason. */
+  if (page === 'team' && !window._obActive && typeof _dbSubscriptionStatus !== 'undefined' && _dbSubscriptionStatus !== 'professional') {
     if (typeof openLimitReached === 'function') { openLimitReached('team'); return; }
   }
   /* Clear campaign memory when leaving Ads Manager — otherwise a campaign
@@ -16732,9 +16742,18 @@ window.rptExport = function(format) {
        so _freeCampaignUsed() is correct for THIS session without waiting on
        a reload; server-side profiles.free_campaign_used is already set by
        _consumeOnboardingFreeGen in the /api/ai/create-ad response. */
+    // Captured BEFORE the flags below are written, so it reflects whether
+    // this account had EVER completed a generation prior to this exact
+    // call -- the lifetime oriven_fcused_<uid> flag (never reset) is what
+    // answers that, not the rolling-24h oriven_fcused_at_<uid> timestamp
+    // (which is "used today", true again every day). Used further down,
+    // once the creative has actually settled, to show the post-first-
+    // campaign paywall exactly once ever, not on every daily generation.
+    var _isFirstEverCampaign = false;
     if(typeof _isFreeUser === 'function' && _isFreeUser()){
       var _pkgUser = (typeof _getCurrentUser === 'function') ? _getCurrentUser() : null;
       if(_pkgUser && _pkgUser.id){
+        _isFirstEverCampaign = localStorage.getItem('oriven_fcused_' + _pkgUser.id) !== '1';
         try { localStorage.setItem('oriven_fcused_' + _pkgUser.id, '1'); } catch(_){}
         // Rolling-24h timestamp -- see the matching comment in _cgoFinishUI.
         try { localStorage.setItem('oriven_fcused_at_' + _pkgUser.id, new Date().toISOString()); } catch(_){}
@@ -16889,6 +16908,22 @@ window.rptExport = function(format) {
          generation started). Additive only — see that function's own
          header comment for why it must never go through window._orvNav. */
       if(typeof window._awOpenWorkspace === 'function') window._awOpenWorkspace(pkg, prompt, campId, platform);
+
+      /* Show the paywall exactly once: the FIRST time a Free-plan account
+         ever reaches a genuinely completed campaign (copy generated AND
+         the creative image settled -- this whole _cgrReveal only runs
+         once _cgrBuildCreativeSettled has fired, never earlier). Deferred
+         a beat so the completed campaign itself is what the user sees
+         first, with the paywall arriving right after -- not fighting it
+         for the same paint. Does not fire again on subsequent daily
+         generations (_isFirstEverCampaign, captured above before the
+         completion flags were written) -- this is a one-time orientation
+         moment, not a recurring interruption; the same modal is still
+         reachable any time via the "Continue Free"/upgrade cards or
+         hitting a real credit/Intelligence/Autopilot limit. */
+      if(_isFirstEverCampaign && typeof openFreePaywall === 'function'){
+        setTimeout(function(){ openFreePaywall(); }, 600);
+      }
     };
 
     /* Kick off creative generation. Video generation is long-running and

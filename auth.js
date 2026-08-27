@@ -1945,7 +1945,13 @@ window._cwsFreeGuard = function(action){
   var free = _isFreeUser();
   var used = _freeCampaignUsed();
   console.log("[PW-CHAIN] _cwsFreeGuard('" + action + "') | free:", free, "| used:", used);
-  if(!free) return true; // paid users: always allowed
+  // Bug fix: `used` was computed but never actually checked below, so this
+  // blocked EVERY Free user on delete/save/download/copy/regenerate
+  // regardless of whether they'd used today's free generation yet -- the
+  // gate must only fire once today's generation is actually spent, same as
+  // every other free-generation gate (startCampaignGeneration,
+  // openNewCampaign).
+  if(!free || !used) return true;
   openFreePaywall();
   return false;
 };

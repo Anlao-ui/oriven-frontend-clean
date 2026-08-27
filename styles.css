@@ -4725,9 +4725,12 @@ body:not(.dark-mode) .gg-input:focus{ border-color:rgba(26,66,41,0.4); backgroun
    PAYWALL MODAL — premium dark
    ═══════════════════════════════════════════════════════════════ */
 .pw-modal{
-  /* Sized for exactly three cards (Agency removed) -- was 1160px for four.
-     max-width keeps it fluid on anything narrower than the modal itself. */
-  width:900px;max-width:calc(100vw - 32px);padding:0;overflow:visible;
+  /* Back to four cards (Free added) -- restored to the 1160px width this
+     modal used the last time it held four plans (Starter/Creator/
+     Professional/Agency), before Agency was removed and it shrank to
+     900px for three. max-width keeps it fluid on anything narrower than
+     the modal itself. */
+  width:1160px;max-width:calc(100vw - 32px);padding:0;overflow:visible;
   background:#0D0D0D;border:1px solid rgba(255,255,255,.1);
   border-radius:24px;box-shadow:0 40px 100px rgba(0,0,0,.85);
 }
@@ -4756,12 +4759,13 @@ body:not(.dark-mode) .gg-input:focus{ border-color:rgba(26,66,41,0.4); backgroun
 .pw-title em{font-style:italic;color:var(--green);}
 .pw-sub{font-size:13px;color:rgba(240,240,240,.38);margin:0;line-height:1.55;}
 .pw-grid{
-  /* Three equal columns, centered as one group -- grid's default
-     align-items:stretch already gives every card equal height and keeps
-     buttons aligned regardless of feature-list length, no extra rules needed. */
+  /* Four equal columns (Free, Starter, Creator, Professional), centered as
+     one group -- grid's default align-items:stretch already gives every
+     card equal height and keeps buttons aligned regardless of
+     feature-list length, no extra rules needed. */
   padding:24px 24px 18px;display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
-  max-width:820px;margin:0 auto;
+  grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;
+  max-width:1080px;margin:0 auto;
 }
 .pw-card{
   background:#111111;border:1px solid rgba(255,255,255,.09);
@@ -4832,9 +4836,16 @@ body:not(.dark-mode) .gg-input:focus{ border-color:rgba(26,66,41,0.4); backgroun
 }
 .pw-skip-btn:hover{color:rgba(240,240,240,.6);}
 .pw-footer-note{font-size:11px;color:rgba(240,240,240,.18);}
-/* Tablet: three balanced columns all the way down to the mobile bottom-
-   sheet breakpoint (768px, handled separately below) -- three cards never
-   split unevenly across two columns. Mobile behaviour below is unchanged. */
+/* Four columns down to 768px, then a balanced 2x2 between 768px and the
+   580px mobile breakpoint -- never an uneven 3-and-1 split with the last
+   card stranded alone on its own row. Explicitly range-scoped (not just
+   max-width:768px) so it structurally cannot win over the single-column
+   mobile rule below at narrower widths regardless of source order -- the
+   same class of media-query specificity conflict fixed elsewhere this
+   session, avoided here by construction instead of !important. */
+@media(max-width:768px) and (min-width:581px){
+  .pw-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-width:480px;}
+}
 @media(max-width:580px){.pw-grid{grid-template-columns:1fr;}}
 
 /* ═══════════════════════════════════════════════════════════════

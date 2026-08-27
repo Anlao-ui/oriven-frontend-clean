@@ -1,0 +1,13 @@
+{
+  "name": "oriven-frontend",
+  "private": true,
+  "description": "Static frontend (no build step) — this package.json exists only to manage the regression test suite's dependencies.",
+  "scripts": {
+    "test": "node tests/onboarding-paywall.test.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1",
+    "@supabase/supabase-js": "^2.103.0",
+    "dotenv": "^17.4.1"
+  }
+}

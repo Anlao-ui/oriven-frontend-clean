@@ -2,6 +2,7 @@ server/.env
 .env
 .env.local
 
+node_modules/
 server/node_modules/
 node_modules/.static-server*.log
 oriven-backand-clean/
