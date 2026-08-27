@@ -18507,10 +18507,10 @@ body.public-page {
   transform: scale(1.4);
 }
 
-/* ── Section 06 Pricing (4 plans) ─────────────────────────────────── */
+/* ── Section 06 Pricing (4 plans: Free, Starter, Creator, Professional) ── */
 .ov-pricing-grid-4 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   align-items: stretch;
   margin-bottom: 24px;
@@ -18655,7 +18655,15 @@ body.public-page {
 }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
-@media (max-width: 1100px) {
+/* Keep all 4 plans in one row down to a genuinely tight tablet width --
+   the section's own gutter system (.ov-pricing-inner, up to 1800px) gives
+   this grid plenty of room well past typical laptop/tablet widths, so a
+   tighter gap (not an immediate drop to 2 columns) is the right first
+   move per the "reduce width/gap intelligently before stacking" brief. */
+@media (max-width: 1180px) and (min-width: 861px) {
+  .ov-pricing-grid-4 { gap: 12px; }
+}
+@media (max-width: 860px) {
   .ov-pricing-grid-4 { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 900px) {
@@ -37790,10 +37798,10 @@ body.dark-mode .smd-danger-btn-del:hover{background:rgba(239,68,68,.1) !importan
 }
 
 
-/* ── Subscription: Plan Comparison Grid ─────────────────────── */
+/* ── Subscription: Plan Comparison Grid (Free, Starter, Creator, Professional) ── */
 .sub-plans-sep{height:1px;background:var(--border);margin:14px 0 10px}
 .sub-plans-hd{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:8px;opacity:.65}
-.sub-plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sub-plans-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .sub-pcard{border:1px solid var(--border);border-radius:10px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
 .sub-pcard-active{border-color:var(--green);background:var(--glt)}
 .sub-pcard-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;height:16px;display:flex;align-items:center}

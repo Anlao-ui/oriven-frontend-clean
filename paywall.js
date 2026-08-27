@@ -41,7 +41,7 @@ function _renderPaywallCards(){
 
   // Mark the user's current plan button as inactive (Free included, so its
   // card also correctly shows "Current Plan" when that's genuinely true).
-  ORIVEN_PAYWALL_PLANS.forEach(function(p){
+  ORIVEN_PLAN_LIST.forEach(function(p){
     if(plan !== p.id) return;
     var btn = document.getElementById("paywall-btn-" + p.id);
     if(!btn) return;

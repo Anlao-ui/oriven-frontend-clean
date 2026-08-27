@@ -2860,10 +2860,16 @@ async function switchPlan(planId){
       return;
     }
 
-    // Unsubscribed → paid: use Stripe checkout instead of schedule-plan-change.
-    // Same actualPlan fix as above — this decides which flow to use at all,
-    // so it's the more critical of the two call sites.
-    if(!ORIVEN_PLANS[actualPlan] && ORIVEN_PLANS[planId]){
+    // No real (Stripe-billed) subscription yet -- Free or an unrecognized
+    // status -- use selectPlan() (Stripe checkout for a paid target,
+    // continueOnFreePlan() for 'free') instead of schedule-plan-change,
+    // which only makes sense against an EXISTING Stripe subscription.
+    // Deliberately checks ORIVEN_PAID_PLANS, not ORIVEN_PLANS -- Free is a
+    // real, first-class entry in ORIVEN_PLANS now, so `!ORIVEN_PLANS[actualPlan]`
+    // would incorrectly stop matching a genuine Free account (which has no
+    // Stripe subscription to schedule a change on) once it was added there.
+    var actualIsPaid = ORIVEN_PAID_PLANS.some(function(p){ return p.id === actualPlan; });
+    if(!actualIsPaid && ORIVEN_PLANS[planId]){
       if(typeof selectPlan === "function") selectPlan(planId);
       return;
     }
@@ -3068,9 +3074,13 @@ async function renderPlanPanel(){
       html += '<div class="sub-pcard-badge-gap"></div>';
     }
 
+    var isDaily = plan.cycleLabel === 'day';
     html += '<div class="sub-pcard-name">' + plan.name + '</div>';
-    html += '<div class="sub-pcard-price">€' + plan.price + '<span class="sub-pcard-per">/mo</span></div>';
-    if(isCurrent && renewalStr) html += '<div class="sub-renewal" style="margin:-4px 0 0">Renews ' + renewalStr + '</div>';
+    html += '<div class="sub-pcard-price">€' + plan.price + '<span class="sub-pcard-per">/' + (isDaily ? 'day' : 'mo') + '</span></div>';
+    if(isCurrent){
+      if(isDaily) html += '<div class="sub-renewal" style="margin:-4px 0 0">Resets every 24 hours</div>';
+      else if(renewalStr) html += '<div class="sub-renewal" style="margin:-4px 0 0">Renews ' + renewalStr + '</div>';
+    }
 
     // The three real economic differentiators between plans — everything
     // else (campaign/image/video generation, platform connections,
@@ -3083,8 +3093,13 @@ async function renderPlanPanel(){
     // choosing its own format. Autopilot is measured in "executions", not
     // "users".
     html += '<ul class="sub-pcard-feats">';
-    html += '<li><strong>' + orvFormatCredits(plan.credits) + '</strong> AI Credits / month</li>';
-    html += '<li>Intelligence: ' + plan.intelligence + '<span class="sub-feat-note"> · uses AI credits</span></li>';
+    html += '<li><strong>' + orvFormatCredits(plan.credits) + '</strong> AI Credits / ' + (isDaily ? 'day' : 'month') + '</li>';
+    // Free's Intelligence use doesn't draw from the 20-credit/day pool (it
+    // couldn't -- a single analysis costs more than the whole daily
+    // allowance, same reasoning as campaign generation) -- it's a separate,
+    // server-enforced 1/day allowance instead, so the "uses AI credits"
+    // note would be actively wrong here.
+    html += '<li>Intelligence: ' + plan.intelligence + (isDaily ? '' : '<span class="sub-feat-note"> · uses AI credits</span>') + '</li>';
     if(plan.autopilotLimit === Infinity){
       html += '<li>Autopilot: Unlimited</li>';
     } else if(typeof plan.autopilotLimit === 'number'){
@@ -3121,7 +3136,9 @@ async function renderPlanPanel(){
   // AI Credit Usage/Team/Priority Support, requiring a scroll to find once
   // opened) so the confirmation is visible right where the user clicked,
   // no hunting required.
-  if(currentData && pendingId !== "free"){
+  // Free has nothing to cancel (no Stripe subscription, no billing period) --
+  // "Cancel plan" only makes sense for a genuinely paid current plan.
+  if(currentData && currentId !== "free" && pendingId !== "free"){
     html += '<div style="margin-top:10px"><button class="sub-cancel-link" onclick="_showCancelConfirm()">Cancel plan</button></div>';
     html += '<div class="plan-cancel-confirm" id="planCancelConfirm" style="display:none">';
     html += '<div class="plan-cancel-confirm-title">Cancel ' + currentData.name + ' Plan</div>';
@@ -3146,7 +3163,8 @@ async function renderPlanPanel(){
     var pct = Math.min(100, Math.round((used / allowance) * 100));
     html += '<div class="sub-credit-hd-row"><div class="sub-credit-hd-lbl">AI Credits</div><div class="sub-credit-hd-val">' + orvFormatCredits(used) + ' / ' + orvFormatCredits(creditStatus.monthlyAllowance || 0) + ' used</div></div>';
     html += '<div class="sub-credit-bar-track"><div class="sub-credit-bar-fill" style="width:' + pct + '%"></div></div>';
-    html += '<div class="sub-credit-hd-sub">' + orvFormatCredits(Math.max(0, creditStatus.balance)) + ' remaining · resets ' + (renewalStr || '—') + '</div>';
+    var _isDailyPlan = currentData && currentData.cycleLabel === 'day';
+    html += '<div class="sub-credit-hd-sub">' + orvFormatCredits(Math.max(0, creditStatus.balance)) + ' remaining · ' + (_isDailyPlan ? 'resets every 24 hours' : ('resets ' + (renewalStr || '—'))) + '</div>';
 
     // Usage list — intentionally exactly 5 rows (Intelligence/Autopilot/
     // Connected Platforms/Lifetime here, AI Credits as the header block

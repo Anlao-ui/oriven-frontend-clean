@@ -3,7 +3,9 @@
   "private": true,
   "description": "Static frontend (no build step) — this package.json exists only to manage the regression test suite's dependencies.",
   "scripts": {
-    "test": "node tests/onboarding-paywall.test.js"
+    "test": "node tests/onboarding-paywall.test.js && node tests/plan-consistency.test.js",
+    "test:onboarding": "node tests/onboarding-paywall.test.js",
+    "test:plans": "node tests/plan-consistency.test.js"
   },
   "devDependencies": {
     "playwright": "^1.62.1",

@@ -84,24 +84,35 @@ var ORIVEN_PLANS = {
     price:       0,
     credits:     20,
     limit:       20,
+    // Every other plan's `credits` is a MONTHLY allowance; Free's resets
+    // every 24h (creditManager.PLAN_ALLOWANCES.free / ensure_free_daily_cycle,
+    // server-side) -- this flag is what lets every render function/Settings
+    // panel show "/day" instead of "/month" for Free without a second,
+    // duplicated plan table. cycleLabel is the exact unit word used in
+    // credit-quantity strings ("20 credits / day").
+    creditsCycle: "day",
+    cycleLabel:   "day",
     teamMembers: 1,
     explore:     false,
-    desc:        "Start free. Upgrade when you need more.",
-    intelligence:   "1 analysis / day",
+    desc:        "Start free. Build up credits for your next campaign.",
+    intelligence:   "1 use / day",
     autopilotLimit: null,
-    // Real, existing capabilities only -- ad generation (via the daily
-    // onboarding-generation allowance), Intelligence at 1/day, and the 20
-    // AI Credits/day balance for smaller actions (chat, copy rewrites,
-    // audience/competitor analysis) between generations.
+    // Real, existing capabilities only, worded honestly against the actual
+    // credit economy: a full campaign generation costs 25 credits
+    // (creditManager.FEATURE_COSTS.campaign_generation) -- more than Free's
+    // entire 20/day allowance -- so "Create ads" would misleadingly imply
+    // unrestricted daily generation. The 20 credits/day instead cover
+    // smaller metered actions (chat, copy rewrites, audience/competitor
+    // analysis) between full generations, which build up toward one.
     allFeatures: [
-      "Create ads",
-      "1 Intelligence use / day",
-      "Experience the core Oriven workflow"
+      "20 credits / day",
+      "Build a campaign with accumulated credits",
+      "1 Intelligence use / day"
     ],
     features: [
-      "Create ads",
-      "1 Intelligence use / day",
-      "Experience the core Oriven workflow"
+      "20 credits / day",
+      "Build a campaign with accumulated credits",
+      "1 Intelligence use / day"
     ],
     // Shown as muted/crossed-out items alongside the positive feature list
     // in the paywall (renderPWPricingCards only) -- naming real, existing
@@ -194,14 +205,20 @@ var ORIVEN_PLANS = {
   }
 };
 
-var ORIVEN_PLAN_LIST  = ["starter","creator","professional"].map(function(k){ return ORIVEN_PLANS[k]; });
-var ORIVEN_PAID_PLANS = ORIVEN_PLAN_LIST;
+// Official display order everywhere plans are shown: Free, Starter,
+// Creator, Professional. Single source of truth for landing-page pricing
+// (renderLPPricingCards), the in-app paywall (renderPWPricingCards), and
+// Settings/Subscription (renderPlanPanel, settings.js) -- all three read
+// this same array so Free is represented consistently instead of being
+// hard-coded independently in each place.
+var ORIVEN_PLAN_LIST  = ["free","starter","creator","professional"].map(function(k){ return ORIVEN_PLANS[k]; });
 
-// Free plus the three paid plans, Free first -- used ONLY by the in-app
-// paywall (renderPWPricingCards). The public landing page's pricing section
-// (renderLPPricingCards, index.html) keeps reading ORIVEN_PAID_PLANS
-// unchanged, so it stays exactly as it was before the Free plan existed.
-var ORIVEN_PAYWALL_PLANS = ["free","starter","creator","professional"].map(function(k){ return ORIVEN_PLANS[k]; });
+// Paid-only subset -- still needed anywhere logic specifically means "does
+// this account have an actual (Stripe-billed) subscription", e.g.
+// settings.js switchPlan() deciding between the Stripe-checkout path and
+// the schedule-plan-change path. NOT used for display/rendering (which
+// always wants Free included via ORIVEN_PLAN_LIST above).
+var ORIVEN_PAID_PLANS = ["starter","creator","professional"].map(function(k){ return ORIVEN_PLANS[k]; });
 
 // ── SVG check mark (shared across all card styles) ─────────────
 var _PLAN_CHK_SVG = '<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>';
@@ -209,17 +226,23 @@ var _PLAN_CHK_SVG = '<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" 
 // ── Render: Landing page pricing ────────────────────────────────
 // Outputs the .ov-pc* card markup used by the live landing page's Pricing
 // section (index.html #pricing) — the .ov-pc* classes are what's actually
-// styled/animated there today; ORIVEN_PLAN_LIST stays the single data source.
+// styled/animated there today; ORIVEN_PLAN_LIST (Free, Starter, Creator,
+// Professional, in that order) stays the single data source, so the
+// landing page and the in-app paywall never carry separate plan lists.
 function renderLPPricingCards(containerEl){
   if(!containerEl) return;
-  containerEl.innerHTML = ORIVEN_PAID_PLANS.map(function(plan, i){
+  containerEl.innerHTML = ORIVEN_PLAN_LIST.map(function(plan, i){
     var isPro   = !!plan.popular;
+    var isFree  = plan.id === "free";
     var delay   = i === 0 ? '' : (i * 0.08).toFixed(2).replace(/^0/, '');
     var delayAttr = delay ? ' style="transition-delay:' + delay + 's"' : '';
     var badge   = isPro ? '<div class="ov-pc-badge">Most Popular</div>' : '';
     var feats   = (plan.allFeatures || plan.features || []).map(function(f){
       return '<li>' + f + '</li>';
     }).join('');
+    var cycle   = plan.cycleLabel === 'day' ? 'day' : 'mo';
+    var creditsCycle = plan.cycleLabel === 'day' ? 'day' : 'month';
+    var btnLabel = isFree ? 'Start Free' : 'Get Started';
 
     return [
       // No data-observe here (Final Polish) -- .ov-pc is also driven by a
@@ -228,12 +251,12 @@ function renderLPPricingCards(containerEl){
       // data-observe/.ov-vis CSS-class system, so the two were fighting
       // over the same element for no benefit. GSAP alone now re-triggers
       // correctly in both scroll directions (toggleActions, not once:true).
-      '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '"' + delayAttr + '>',
+      '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + (isFree ? ' ov-pc-free' : '') + '"' + delayAttr + '>',
         '<div class="ov-pc-head">' + badge + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
-        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/mo</span></div><div class="ov-pc-credits">' + orvFormatCredits(plan.credits) + ' AI credits / month</div></div>',
+        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/' + cycle + '</span></div><div class="ov-pc-credits">' + orvFormatCredits(plan.credits) + ' AI credits / ' + creditsCycle + '</div></div>',
         '<div class="ov-pc-desc">' + plan.desc + '</div>',
         '<ul class="ov-pc-list">' + feats + '</ul>',
-        '<a href="#" class="ov-pc-btn' + (isPro ? ' ov-pc-btn-pro' : '') + '" onclick="lpGetStarted(event)">Get Started</a>',
+        '<a href="#" class="ov-pc-btn' + (isPro ? ' ov-pc-btn-pro' : '') + '" onclick="lpGetStarted(event)">' + btnLabel + '</a>',
       '</div>'
     ].join('');
   }).join('');
@@ -242,7 +265,7 @@ function renderLPPricingCards(containerEl){
 // ── Render: Paywall modal (pw-card) ────────────────────────────
 function renderPWPricingCards(containerEl){
   if(!containerEl) return;
-  containerEl.innerHTML = ORIVEN_PAYWALL_PLANS.map(function(plan){
+  containerEl.innerHTML = ORIVEN_PLAN_LIST.map(function(plan){
     var isFree = plan.id === "free";
     var feats = (plan.features || plan.allFeatures || []).map(function(f){
       return '<li class="pw-feat">' + f + '</li>';
@@ -251,13 +274,14 @@ function renderPWPricingCards(containerEl){
       return '<li class="pw-feat pw-feat-excluded">' + f + '</li>';
     }).join("");
     var btnLabel = isFree ? "Continue Free" : "Get Started";
+    var cycle = plan.cycleLabel === 'day' ? 'day' : 'mo';
     return [
       '<div class="pw-card' + (plan.popular ? ' pw-card-featured' : '') + (isFree ? ' pw-card-free' : '') + '">',
         plan.popular ? '<div class="pw-featured-badge">Most Popular</div>' : '',
         '<div class="pw-card-name"' + (plan.popular ? ' style="color:#B7FF2A"' : '') + '>' + plan.name + '</div>',
         '<div class="pw-price-row">',
           '<span class="pw-price">€' + plan.price + '</span>',
-          '<span class="pw-period">/mo</span>',
+          '<span class="pw-period">/' + cycle + '</span>',
         '</div>',
         plan.desc ? '<div class="pw-card-desc">' + plan.desc + '</div>' : '',
         '<div class="pw-card-divider"></div>',
