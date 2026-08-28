@@ -830,6 +830,17 @@
             <span class="prf-custom-range-sep">→</span>
             <input type="date" class="crv-inp" id="prfCustomUntil" onchange="prfApplyCustomRange()">
           </div>
+
+          <!-- Customize Metrics (Campaign Overview analytics upgrade) — the
+               ONLY place this feature's complexity lives; the dashboard
+               itself stays a clean, small selection. Pushed to the far
+               right of the same controls row via margin-left:auto rather
+               than a second row, so Overview gains one small control, not
+               a new layout band. -->
+          <button class="prf-customize-btn" onclick="prfOpenCustomize()" title="Choose which metrics Campaign Overview shows">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="14" height="14"><path d="M2 4h12M2 8h12M2 12h12"/><circle cx="6" cy="4" r="1.6" fill="currentColor" stroke="none"/><circle cx="10" cy="8" r="1.6" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>
+            <span>Customize metrics</span>
+          </button>
         </div>
 
         <!-- TikTok Analytics — copy swaps based on real connection status,
@@ -856,100 +867,18 @@
           <button class="btn btn-p btn-sm" onclick="bizGoTo('connections')" data-i18n="connectAccountsBtn">Connect Accounts →</button>
         </div>
 
-        <div class="prf-kpis prf-kpis-ring" id="prfKpis">
-          <div class="prf-kpi-ring-mod">
-            <div class="prf-kpi-ring-wrap">
-              <svg class="prf-kpi-ring" viewBox="0 0 64 64" aria-hidden="true">
-                <circle class="prf-kpi-ring-track" cx="32" cy="32" r="27"/>
-                <circle class="prf-kpi-ring-fill" id="prfKpiSpendRing" cx="32" cy="32" r="27"/>
-              </svg>
-              <div class="prf-kpi-ring-center"><div class="prf-kpi-val" id="prfKpiSpend">—</div></div>
-            </div>
-            <div class="prf-kpi-lbl" data-i18n="kpiTotalSpend">Total Spend</div>
-            <div class="prf-kpi-chg prf-chg-neu" id="prfKpiSpendChg" data-i18n="kpiChgPlaceholder">— vs last period</div>
-          </div>
-          <div class="prf-kpi-ring-mod">
-            <div class="prf-kpi-ring-wrap">
-              <svg class="prf-kpi-ring" viewBox="0 0 64 64" aria-hidden="true">
-                <circle class="prf-kpi-ring-track" cx="32" cy="32" r="27"/>
-                <circle class="prf-kpi-ring-fill" id="prfKpiImprRing" cx="32" cy="32" r="27"/>
-              </svg>
-              <div class="prf-kpi-ring-center"><div class="prf-kpi-val" id="prfKpiImpr">—</div></div>
-            </div>
-            <div class="prf-kpi-lbl" data-i18n="kpiImpressions">Impressions</div>
-            <div class="prf-kpi-chg prf-chg-neu" id="prfKpiImprChg" data-i18n="kpiChgPlaceholder">— vs last period</div>
-          </div>
-          <div class="prf-kpi-ring-mod">
-            <div class="prf-kpi-ring-wrap">
-              <svg class="prf-kpi-ring" viewBox="0 0 64 64" aria-hidden="true">
-                <circle class="prf-kpi-ring-track" cx="32" cy="32" r="27"/>
-                <circle class="prf-kpi-ring-fill" id="prfKpiClicksRing" cx="32" cy="32" r="27"/>
-              </svg>
-              <div class="prf-kpi-ring-center"><div class="prf-kpi-val" id="prfKpiClicks">—</div></div>
-            </div>
-            <div class="prf-kpi-lbl" data-i18n="kpiClicks">Clicks</div>
-            <div class="prf-kpi-chg prf-chg-neu" id="prfKpiClicksChg" data-i18n="kpiChgPlaceholder">— vs last period</div>
-          </div>
-          <div class="prf-kpi-ring-mod">
-            <div class="prf-kpi-ring-wrap">
-              <svg class="prf-kpi-ring" viewBox="0 0 64 64" aria-hidden="true">
-                <circle class="prf-kpi-ring-track" cx="32" cy="32" r="27"/>
-                <circle class="prf-kpi-ring-fill" id="prfKpiConvRing" cx="32" cy="32" r="27"/>
-              </svg>
-              <div class="prf-kpi-ring-center"><div class="prf-kpi-val" id="prfKpiConv">—</div></div>
-            </div>
-            <div class="prf-kpi-lbl" data-i18n="kpiConversions">Conversions</div>
-            <div class="prf-kpi-chg prf-chg-neu" id="prfKpiConvChg" data-i18n="kpiChgPlaceholder">— vs last period</div>
-          </div>
-          <div class="prf-kpi-ring-mod">
-            <div class="prf-kpi-ring-wrap">
-              <svg class="prf-kpi-ring" viewBox="0 0 64 64" aria-hidden="true">
-                <circle class="prf-kpi-ring-track" cx="32" cy="32" r="27"/>
-                <circle class="prf-kpi-ring-fill" id="prfKpiRoasRing" cx="32" cy="32" r="27"/>
-              </svg>
-              <div class="prf-kpi-ring-center"><div class="prf-kpi-val" id="prfKpiRoas">—</div></div>
-            </div>
-            <div class="prf-kpi-lbl" data-i18n="kpiRoas">ROAS</div>
-            <div class="prf-kpi-chg prf-chg-neu" id="prfKpiRoasChg" data-i18n="kpiChgPlaceholder">— vs last period</div>
-          </div>
-        </div>
+        <!-- Populated by _prfRenderKpiTiles() — one ring tile per metric the
+             user has selected (Customize Metrics) that the active platform
+             actually supports. Markup/animation matches the original 5
+             static tiles exactly (_prfAnimateKpi), just built dynamically
+             now instead of 5 fixed ids. -->
+        <div class="prf-kpis prf-kpis-ring" id="prfKpis"></div>
 
-        <div class="prf-charts-grid" id="prfChartsGrid">
-          <div class="prf-chart-card">
-            <div class="prf-chart-hd">
-              <div class="prf-chart-title" data-i18n="chartSpendOverTime">Spend Over Time</div>
-            </div>
-            <div class="prf-chart-body prf-chart-matrix">
-              <div class="prf-bars" id="prfBarsSpend"></div>
-              <div class="prf-chart-tip" id="prfTipSpend"></div>
-              <div class="prf-chart-lock" id="prfLockSpend"></div>
-            </div>
-          </div>
-          <div class="prf-chart-card">
-            <div class="prf-chart-hd"><div class="prf-chart-title" data-i18n="kpiConversions">Conversions</div></div>
-            <div class="prf-chart-body prf-chart-matrix">
-              <div class="prf-bars" id="prfBarsConv"></div>
-              <div class="prf-chart-tip" id="prfTipConv"></div>
-              <div class="prf-chart-lock" id="prfLockConv"></div>
-            </div>
-          </div>
-          <div class="prf-chart-card">
-            <div class="prf-chart-hd"><div class="prf-chart-title" data-i18n="chartRoasOverTime">ROAS Over Time</div></div>
-            <div class="prf-chart-body prf-chart-matrix">
-              <div class="prf-bars" id="prfBarsRoas"></div>
-              <div class="prf-chart-tip" id="prfTipRoas"></div>
-              <div class="prf-chart-lock" id="prfLockRoas"></div>
-            </div>
-          </div>
-          <div class="prf-chart-card">
-            <div class="prf-chart-hd"><div class="prf-chart-title" data-i18n="chartCtrOverTime">CTR Over Time</div></div>
-            <div class="prf-chart-body prf-chart-matrix">
-              <div class="prf-bars" id="prfBarsCtr"></div>
-              <div class="prf-chart-tip" id="prfTipCtr"></div>
-              <div class="prf-chart-lock" id="prfLockCtr"></div>
-            </div>
-          </div>
-        </div>
+        <!-- Populated by _prfRenderTrendCards() — one chart card per Trends
+             metric the user has selected, each with its own small metric
+             switcher in the header (change the plotted metric without
+             leaving Overview, without changing which cards exist). -->
+        <div class="prf-charts-grid" id="prfChartsGrid"></div>
 
         <!-- AI Analysis — one unified card (score + summary + strengths +
              weaknesses + recommendations + expected impact). Replaces what
@@ -6055,6 +5984,28 @@
   </div>
 </div>
 
+<!-- CUSTOMIZE METRICS — Campaign Overview analytics upgrade. All of this
+     feature's complexity lives here, deliberately, so the dashboard itself
+     stays a handful of tiles + charts. Content is entirely built by
+     _prfRenderCustomizeModal() (app.html script block) from
+     ORIVEN_METRICS/ORIVEN_METRIC_CATEGORIES (metrics.js) filtered to
+     whatever the active platform genuinely supports -- nothing hardcoded
+     here beyond the shell. -->
+<div class="mbk" id="modal-customize-metrics" onclick="if(event.target===this)prfCloseCustomize()">
+  <div class="modal pcm-modal">
+    <button onclick="prfCloseCustomize()" class="pcm-close-btn" title="Close">
+      <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
+    </button>
+    <div class="modal-ttl">Customize your metrics</div>
+    <div class="modal-sub" id="pcmPlatformNote">Choose what Campaign Overview shows for this platform.</div>
+    <div class="pcm-body" id="pcmBody"></div>
+    <div class="modal-ft">
+      <button class="btn btn-g" onclick="prfResetMetricsDefault()">Reset to default</button>
+      <button class="btn btn-p" onclick="prfCloseCustomize()">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- BRAND ONBOARDING OVERLAY ─────────────────────────────────── -->
 <div class="obd-overlay" id="obBrandOverlay" style="display:none">
   <div class="obd-card">
@@ -6137,6 +6088,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="supabase.js"></script>
 <script src="plans.js"></script>
+<script src="metrics.js"></script>
 <script src="tracking.js"></script>
 <script src="auth.js"></script>
 <script src="guest.js"></script>
@@ -11968,6 +11920,17 @@ var _prfKpiPrevVals = {};
 function _prfAnimateKpi(id, ringId, rawVal, fmt, staggerMs) {
   var el = document.getElementById(id);
   var ringEl = document.getElementById(ringId);
+  // Customize Metrics: rawVal===null means "this metric genuinely isn't
+  // available" (wrong platform, campaign selection ambiguous, etc.) --
+  // distinct from a real 0. Show the honest "—" fmt(null) already produces
+  // and leave the ring visually empty, no count-up for a number that was
+  // never fetched.
+  if (rawVal == null) {
+    if (el) el.textContent = fmt(null);
+    if (ringEl) { ringEl.style.transitionDelay = '0ms'; ringEl.style.strokeDashoffset = _PRF_RING_CIRC.toFixed(2); }
+    delete _prfKpiPrevVals[id];
+    return;
+  }
   var from = _prfKpiPrevVals[id] != null ? _prfKpiPrevVals[id] : 0;
   var to = rawVal || 0;
   _prfKpiPrevVals[id] = to;
@@ -12004,9 +11967,23 @@ function _prfEsc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+/* Base object every platform's KPI aggregate starts from -- every field
+   defaults to null ("not available"), not 0, so a metric a platform simply
+   doesn't support (or a fetch that partially failed) reads as the honest
+   "—" empty state (see _prfAnimateKpi's null branch) rather than a
+   fabricated zero. Callers Object.assign real numbers over this baseline
+   for whatever the platform's response actually contains. */
+function _prfEmptyKpi() {
+  return {
+    spend: null, impr: null, clicks: null, conv: null, convVal: null,
+    reach: null, frequency: null, cpm: null, cpc: null, linkClicks: null,
+    budget: null, searchImpressionShare: null, addToCart: null,
+    costPerAddToCart: null, checkoutInitiated: null, costPerCheckout: null,
+    cpa: null, status: null
+  };
+}
+
 function _prfLoadData(platforms) {
-  _prfSet('prfKpiSpend', '…'); _prfSet('prfKpiImpr', '…');
-  _prfSet('prfKpiClicks', '…'); _prfSet('prfKpiConv', '…'); _prfSet('prfKpiRoas', '…');
   window._prfAllCampaigns = [];
   window._prfPlatKpis = {};
   var pending = platforms.length;
@@ -12026,14 +12003,17 @@ function _prfLoadData(platforms) {
     apiFetch('/api/ads/overview?' + qs).then(function(r) {
       if (r.ok && r.data && r.data.overview) {
         var o = r.data.overview;
-        window._prfPlatKpis['google'] = {
+        window._prfPlatKpis['google'] = Object.assign(_prfEmptyKpi(), {
           spend: o.spend || 0, impr: o.impressions || 0, clicks: o.clicks || 0,
-          conv: o.conversions || 0, convVal: o.conversions_value || 0
-        };
+          conv: o.conversions || 0, convVal: o.conversions_value || 0,
+          cpm: o.avgCpm != null ? o.avgCpm : null,
+          searchImpressionShare: o.searchImpressionShare != null ? o.searchImpressionShare : null
+        });
         (r.data.campaigns || []).forEach(function(c) {
           window._prfAllCampaigns.push({ id: c.id, name: c.name, platform: 'google', status: c.status,
             spend: c.spend, impressions: c.impressions, clicks: c.clicks,
-            ctr: c.ctr, conv: c.conversions, roas: c.roas, priority: c.priority || null });
+            ctr: c.ctr, conv: c.conversions, convVal: c.conversions_value, roas: c.roas, priority: c.priority || null,
+            cpm: c.avgCpm, searchImpressionShare: c.searchImpressionShare });
         });
       }
       _done();
@@ -12043,17 +12023,70 @@ function _prfLoadData(platforms) {
   if (platforms.indexOf('meta') !== -1) {
     apiFetch('/api/meta/campaigns?' + qs).then(function(r) {
       if (r.ok && r.data && r.data.campaigns) {
-        var metaKpi = { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0 };
+        var metaKpi = Object.assign(_prfEmptyKpi(), { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0, reach: 0, linkClicks: 0, budget: 0, addToCart: 0, checkoutInitiated: 0 });
+        var freqSum = 0, freqN = 0;
         r.data.campaigns.forEach(function(c) {
+          var budget = ((c.daily_budget || c.lifetime_budget || 0) / 100); // Meta returns budgets in cents
           metaKpi.spend  += c.spend       || 0;
           metaKpi.impr   += c.impressions || 0;
           metaKpi.clicks += c.clicks      || 0;
           metaKpi.conv   += c.conversions || 0;
+          metaKpi.convVal += c.conversionValue || 0;
+          metaKpi.reach  += c.reach || 0;
+          metaKpi.linkClicks += c.linkClicks || 0;
+          metaKpi.budget += budget;
+          metaKpi.addToCart += c.addToCart || 0;
+          metaKpi.checkoutInitiated += c.checkoutInitiated || 0;
+          if (c.frequency != null) { freqSum += c.frequency; freqN++; }
           window._prfAllCampaigns.push({ id: c.campaign_id, name: c.campaign_name, platform: 'meta', status: c.status,
             spend: c.spend, impressions: c.impressions, clicks: c.clicks,
-            ctr: c.ctr, conv: c.conversions, roas: 0, priority: c.priority || null });
+            ctr: c.ctr, conv: c.conversions, convVal: c.conversionValue, roas: c.roas, priority: c.priority || null,
+            reach: c.reach, frequency: c.frequency, cpm: c.cpm, linkClicks: c.linkClicks, budget: budget });
         });
+        metaKpi.frequency = freqN > 0 ? (freqSum / freqN) : null;
+        metaKpi.cpm = metaKpi.impr > 0 ? (metaKpi.spend / metaKpi.impr) * 1000 : null;
+        metaKpi.costPerAddToCart = metaKpi.addToCart > 0 ? metaKpi.spend / metaKpi.addToCart : null;
+        metaKpi.costPerCheckout = metaKpi.checkoutInitiated > 0 ? metaKpi.spend / metaKpi.checkoutInitiated : null;
         window._prfPlatKpis['meta'] = metaKpi;
+      }
+      _done();
+    }).catch(function() { _done(); });
+  }
+
+  if (platforms.indexOf('tiktok') !== -1) {
+    apiFetch('/api/tiktok/overview?' + qs).then(function(r) {
+      // r.data.overview is explicitly null when TikTok's reporting call
+      // failed/degraded (server.js) -- leaving window._prfPlatKpis['tiktok']
+      // unset in that case is what makes every TikTok tile honestly read
+      // "—" instead of a fabricated 0 (see _prfApplyView's `|| _prfEmptyKpi()`
+      // fallback and _prfAnimateKpi's null handling).
+      if (r.ok && r.data && r.data.overview && r.data.campaigns) {
+        var tikKpi = Object.assign(_prfEmptyKpi(), { spend: 0, impr: 0, clicks: 0, conv: 0, reach: 0, budget: 0 });
+        var freqSum = 0, freqN = 0;
+        r.data.campaigns.forEach(function(c) {
+          tikKpi.spend  += c.spend       || 0;
+          tikKpi.impr   += c.impressions || 0;
+          tikKpi.clicks += c.clicks      || 0;
+          tikKpi.conv   += c.conversions || 0;
+          tikKpi.reach  += c.reach || 0;
+          tikKpi.budget += c.budget || 0;
+          if (c.frequency != null) { freqSum += c.frequency; freqN++; }
+          window._prfAllCampaigns.push({ id: c.id, name: c.name, platform: 'tiktok', status: c.status,
+            spend: c.spend, impressions: c.impressions, clicks: c.clicks,
+            ctr: c.ctr, conv: c.conversions, roas: 0, priority: null,
+            reach: c.reach, frequency: c.frequency, cpm: c.cpm, budget: c.budget });
+        });
+        tikKpi.frequency = freqN > 0 ? (freqSum / freqN) : null;
+        tikKpi.cpm = tikKpi.impr > 0 ? (tikKpi.spend / tikKpi.impr) * 1000 : null;
+        tikKpi.cpa = tikKpi.conv > 0 ? tikKpi.spend / tikKpi.conv : null;
+        window._prfPlatKpis['tiktok'] = tikKpi;
+      } else if (r.ok && r.data && r.data.campaigns) {
+        // Metrics unavailable, but still register campaign names/status so
+        // the campaign selector + Delivery Status tile work for TikTok.
+        r.data.campaigns.forEach(function(c) {
+          window._prfAllCampaigns.push({ id: c.id, name: c.name, platform: 'tiktok', status: c.status,
+            spend: null, impressions: null, clicks: null, ctr: null, conv: null, roas: 0, priority: null });
+        });
       }
       _done();
     }).catch(function() { _done(); });
@@ -12068,8 +12101,11 @@ function _prfApplyView() {
 
   if (plat === 'all') {
     campaigns = window._prfAllCampaigns;
-    /* Sum all platforms */
-    kpis = { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0 };
+    /* Sum all platforms that actually returned data -- a platform absent
+       from _prfPlatKpis (never fetched, or its metrics call failed) simply
+       isn't in Object.keys() here, so it contributes nothing rather than a
+       fabricated 0. */
+    kpis = Object.assign(_prfEmptyKpi(), { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0, reach: 0, linkClicks: 0, budget: 0, addToCart: 0, checkoutInitiated: 0 });
     Object.keys(window._prfPlatKpis).forEach(function(p) {
       var k = window._prfPlatKpis[p];
       kpis.spend   += k.spend   || 0;
@@ -12077,10 +12113,15 @@ function _prfApplyView() {
       kpis.clicks  += k.clicks  || 0;
       kpis.conv    += k.conv    || 0;
       kpis.convVal += k.convVal || 0;
+      kpis.reach   += k.reach   || 0;
+      kpis.linkClicks += k.linkClicks || 0;
+      kpis.budget  += k.budget  || 0;
+      kpis.addToCart += k.addToCart || 0;
+      kpis.checkoutInitiated += k.checkoutInitiated || 0;
     });
   } else {
     campaigns = window._prfAllCampaigns.filter(function(c) { return c.platform === plat; });
-    kpis = window._prfPlatKpis[plat] || { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0 };
+    kpis = window._prfPlatKpis[plat] || _prfEmptyKpi();
   }
 
   /* Narrow further to one campaign — KPIs are recomputed from that
@@ -12089,14 +12130,25 @@ function _prfApplyView() {
   if (campKey !== 'all') {
     campaigns = campaigns.filter(function(c) { return c.name === campKey; });
     campaignId = campaigns.length ? campaigns[0].id : null;
-    var agg = { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0 };
+    var agg = Object.assign(_prfEmptyKpi(), { spend: 0, impr: 0, clicks: 0, conv: 0, convVal: 0, reach: 0, linkClicks: 0, budget: 0 });
     campaigns.forEach(function(c) {
       agg.spend   += c.spend || 0;
       agg.impr    += c.impressions || 0;
       agg.clicks  += c.clicks || 0;
       agg.conv    += c.conv || 0;
-      agg.convVal += (c.roas && c.spend) ? c.roas * c.spend : 0;
+      agg.convVal += (c.convVal != null ? c.convVal : ((c.roas && c.spend) ? c.roas * c.spend : 0));
+      agg.reach   += c.reach || 0;
+      agg.linkClicks += c.linkClicks || 0;
+      agg.budget  += c.budget || 0;
     });
+    agg.frequency = campaigns.length && campaigns.every(function(c){ return c.frequency != null; })
+      ? campaigns.reduce(function(s,c){ return s + c.frequency; }, 0) / campaigns.length : null;
+    agg.cpm = agg.impr > 0 ? (agg.spend / agg.impr) * 1000 : null;
+    agg.searchImpressionShare = campaigns.length === 1 ? campaigns[0].searchImpressionShare : null;
+    // A single selected campaign has one unambiguous status; "All
+    // Campaigns" doesn't (mixed statuses), so Delivery Status only ever
+    // shows a real value here, never a misleading first-campaign guess.
+    agg.status = campaigns.length === 1 ? campaigns[0].status : null;
     kpis = agg;
   }
 
@@ -12104,64 +12156,248 @@ function _prfApplyView() {
      computed, not a new fetch. */
   if (window.orvContext) window.orvContext.analytics = { platform: plat, campaign: campKey, spend: kpis.spend, impressions: kpis.impr, clicks: kpis.clicks, conversions: kpis.conv, campaignCount: campaigns.length };
 
-  _prfAnimateKpi('prfKpiSpend',  'prfKpiSpendRing',  kpis.spend,  function(v) { return '€' + _prfFmt(v); }, 0);
-  _prfAnimateKpi('prfKpiImpr',   'prfKpiImprRing',   kpis.impr,   function(v) { return _prfFmt(v); }, 70);
-  _prfAnimateKpi('prfKpiClicks', 'prfKpiClicksRing', kpis.clicks, function(v) { return _prfFmt(v); }, 140);
-  _prfAnimateKpi('prfKpiConv',   'prfKpiConvRing',   kpis.conv,   function(v) { return _prfFmt(v); }, 210);
-  var roas = kpis.spend > 0 && kpis.convVal > 0 ? (kpis.convVal / kpis.spend) : 0;
-  _prfAnimateKpi('prfKpiRoas', 'prfKpiRoasRing', roas, function(v) { return v > 0.005 ? v.toFixed(2) + 'x' : '—'; }, 280);
+  _prfRenderKpiTiles(kpis);
+  _prfRenderTrendCards();
 
   /* Charts/trend were previously always account-wide regardless of a single
-     selected campaign — confirmed by reading _prfLoadChartSeries/
-     _prfLoadKpiTrend, neither accepted a campaign filter at all. Now pass
-     the resolved campaign id through so a single-campaign selection
-     actually narrows the charts too, not just the KPI cards. */
+     selected campaign — confirmed by reading _prfLoadChartSeries, which
+     didn't accept a campaign filter at all. Now pass the resolved campaign
+     id through so a single-campaign selection actually narrows the charts
+     too, not just the KPI cards. */
   _prfLoadChartSeries(plat, campaignId);
-  _prfLoadKpiTrend(plat, campaignId);
 }
 
-/* Smart Analytics Cards — real period-over-period trend via /api/intelligence/kpi-trend.
-   Only meaningful per-platform (the trend endpoint is single-platform), so the
-   "All Platforms" view leaves the existing "— vs last period" placeholder as-is. */
-var _prfKpiChgIds  = { spend: 'prfKpiSpendChg', impressions: 'prfKpiImprChg', clicks: 'prfKpiClicksChg', conversions: 'prfKpiConvChg', roas: 'prfKpiRoasChg' };
-/* Which real-world direction counts as "good news" per metric. Spend is the
-   one inversion here — spending more is not automatically positive the way
-   more clicks/conversions/ROAS are, so its up/down color is deliberately
-   flipped relative to the raw trend direction. The arrow itself (▲/▼ below)
-   always reflects the actual numeric direction; only the color reflects
-   favorability. This coloring applies only to the "vs last period" text —
-   the KPI ring itself is a plain always-complete visual container now, see
-   _prfAnimateKpi(). */
-var _prfKpiGoodDir = { spend: 'down', impressions: 'up', clicks: 'up', conversions: 'up', roas: 'up' };
-function _prfLoadKpiTrend(plat, campaignId) {
-  if (plat !== 'google' && plat !== 'meta') return;
-  var campQs = campaignId ? ('&campaignId=' + encodeURIComponent(campaignId)) : '';
-  apiFetch('/api/intelligence/kpi-trend?platform=' + plat + campQs + '&' + _prfRangeParams()).then(function(res) {
-    if (!res.ok || !res.data || !res.data.delta) return;
-    var delta = res.data.delta;
-    Object.keys(_prfKpiChgIds).forEach(function(metric) {
-      var el = document.getElementById(_prfKpiChgIds[metric]);
-      var d = delta[metric];
-      if (!d || !el) return;
-      var polarity = d.trend === 'flat' ? 'neu' : ((d.trend === _prfKpiGoodDir[metric]) ? 'up' : 'down');
-      el.className = 'prf-kpi-chg prf-chg-' + polarity;
-      el.textContent = (d.deltaPct == null) ? '— vs last period' : (d.deltaPct >= 0 ? '▲ +' : '▼ ') + Math.abs(d.deltaPct).toFixed(1) + '% vs last period';
-    });
-  }).catch(function(){});
+// ════════════════════════════════════════════════════════════════
+// CUSTOMIZE METRICS — Section 2/3/4/6/7/8/9 of the analytics upgrade.
+// Reads/writes preferences through the EXISTING loadSettings()/
+// saveSettings() mechanism (settings.js), which already syncs to
+// profiles.preferences server-side (see /api/user/preferences,
+// server.js) -- no new persistence layer. Shape:
+//   cfg.prfMetrics = {
+//     google: { delivery:[ids], traffic:[ids], conversion:[ids], trends:[ids] },
+//     meta:   { ... }, tiktok: { ... }
+//   }
+// A platform key that's never been customized is simply absent, in which
+// case ORIVEN_DEFAULT_METRICS (metrics.js) is used instead -- "if no
+// platform-specific preference exists, fall back to the general default"
+// per spec, satisfied by the fallback below rather than a second stored
+// copy of the defaults.
+// ════════════════════════════════════════════════════════════════
+
+function _prfMetricPrefs() {
+  var cfg = (typeof loadSettings === 'function') ? loadSettings() : {};
+  return (cfg && cfg.prfMetrics) || {};
 }
+
+// Effective, platform-filtered selection for one category -- what actually
+// renders as KPI tiles / trend cards right now. Always filtered through
+// orvMetricsForCategory so a metric a platform doesn't support can never
+// appear just because it was selected while viewing a different platform.
+function _prfMetricSelection(categoryId, platform) {
+  var prefs = _prfMetricPrefs();
+  var platPrefs = prefs[platform];
+  var ids = (platPrefs && platPrefs[categoryId]) || (ORIVEN_DEFAULT_METRICS[categoryId] || []);
+  var supported = orvMetricsForCategory(categoryId, platform);
+  return ids.filter(function(id) { return supported.indexOf(id) !== -1; });
+}
+
+function _prfSaveMetricSelection(platform, categoryId, ids) {
+  var prefs = _prfMetricPrefs();
+  var next = {};
+  Object.keys(prefs).forEach(function(p) { next[p] = prefs[p]; });
+  next[platform] = Object.assign({}, next[platform], {});
+  next[platform][categoryId] = ids;
+  var patch = { prfMetrics: next };
+  if (typeof saveSettings === 'function') saveSettings(patch);
+}
+
+// ── KPI tiles (Delivery/Traffic/Conversion) — dynamic, built from the
+// user's current selection for the active platform. Rebuilds the tile DOM
+// only when the actual SET of tiles changes (metric selection or platform
+// switch), so ordinary refreshes (range change, campaign filter) keep
+// _prfAnimateKpi's smooth count-up instead of resetting every tile. ──────
+function _prfRenderKpiTiles(kpis) {
+  var plat = window._prfActivePlatform || 'google';
+  var ids = ['delivery', 'traffic', 'conversion'].reduce(function(acc, cat) {
+    return acc.concat(_prfMetricSelection(cat, plat));
+  }, []);
+  var wrap = document.getElementById('prfKpis');
+  if (!wrap) return;
+  var current = Array.prototype.map.call(wrap.querySelectorAll('.prf-kpi-ring-mod'), function(el) { return el.getAttribute('data-metric'); });
+  var setChanged = current.length !== ids.length || ids.some(function(id, i) { return current[i] !== id; });
+  if (setChanged) {
+    wrap.innerHTML = ids.map(function(id) {
+      var m = ORIVEN_METRICS[id];
+      var tip = m.tooltip ? (' <span class="prf-metric-tip" data-metric-tip="' + _prfEsc(m.tooltip) + '" tabindex="0" role="button" aria-label="What is ' + _prfEsc(m.label) + '?">ⓘ</span>') : '';
+      return '<div class="prf-kpi-ring-mod" data-metric="' + id + '">' +
+          '<div class="prf-kpi-ring-wrap"><svg class="prf-kpi-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="prf-kpi-ring-track" cx="32" cy="32" r="27"/><circle class="prf-kpi-ring-fill" id="prfKpiRing_' + id + '" cx="32" cy="32" r="27"/></svg>' +
+            '<div class="prf-kpi-ring-center"><div class="prf-kpi-val" id="prfKpiVal_' + id + '">—</div></div></div>' +
+          '<div class="prf-kpi-lbl">' + _prfEsc(m.label) + tip + '</div>' +
+        '</div>';
+    }).join('');
+  }
+  ids.forEach(function(id, i) {
+    var m = ORIVEN_METRICS[id];
+    var raw = m.get(kpis);
+    _prfAnimateKpi('prfKpiVal_' + id, 'prfKpiRing_' + id, raw, function(v) { return orvFormatMetric(id, v); }, i * 60);
+  });
+}
+
+// ── Trend cards — one per selected Trends metric, each with its own
+// metric-switcher (Section 6: change the plotted metric without leaving
+// Overview). Always rebuilt (unlike KPI tiles) since a chart card's own
+// internal SVG needs a fresh draw-in animation on every real data refresh
+// anyway. ──────────────────────────────────────────────────────────────
+function _prfRenderTrendCards() {
+  var plat = window._prfActivePlatform || 'google';
+  var ids = _prfMetricSelection('trends', plat);
+  var wrap = document.getElementById('prfChartsGrid');
+  if (!wrap) return;
+  if (!ids.length) { wrap.innerHTML = ''; return; }
+  var trendOptions = ORIVEN_TREND_METRICS.filter(function(tid) { return orvMetricSupportsPlatform(tid, plat); });
+  wrap.innerHTML = ids.map(function(id) {
+    var optsHtml = trendOptions.map(function(tid) {
+      return '<option value="' + tid + '"' + (tid === id ? ' selected' : '') + '>' + _prfEsc(ORIVEN_METRICS[tid].label) + ' Over Time</option>';
+    }).join('');
+    return '<div class="prf-chart-card">' +
+        '<div class="prf-chart-hd"><select class="prf-chart-metric-sel" data-slot="' + id + '" onchange="prfChangeTrendMetric(this)">' + optsHtml + '</select></div>' +
+        '<div class="prf-chart-body prf-chart-matrix">' +
+          '<div class="prf-bars" id="prfBars_' + id + '"></div>' +
+          '<div class="prf-chart-tip" id="prfTip_' + id + '"></div>' +
+          '<div class="prf-chart-lock" id="prfLock_' + id + '"></div>' +
+        '</div>' +
+      '</div>';
+  }).join('');
+  _prfRenderTrendCharts();
+}
+
+// Swap which metric one specific trend card plots — persists as part of
+// the same Trends selection Customize Metrics manages, so the choice
+// survives reload exactly like any other metric selection.
+window.prfChangeTrendMetric = function(selectEl) {
+  var oldId = selectEl.getAttribute('data-slot');
+  var newId = selectEl.value;
+  if (newId === oldId) return;
+  var plat = window._prfActivePlatform || 'google';
+  var ids = _prfMetricSelection('trends', plat).slice();
+  var idx = ids.indexOf(oldId);
+  if (idx !== -1) ids[idx] = newId; else ids.push(newId);
+  _prfSaveMetricSelection(plat, 'trends', ids);
+  _prfRenderTrendCards();
+};
+
+// ── Customize Metrics modal ──────────────────────────────────────────
+window.prfOpenCustomize = function() {
+  _prfRenderCustomizeModal();
+  if (typeof openModal === 'function') openModal('modal-customize-metrics');
+};
+window.prfCloseCustomize = function() {
+  if (typeof closeModal === 'function') closeModal('modal-customize-metrics');
+};
+
+// Transient (not persisted) expand/collapse state, per category id --
+// deliberately in-memory only: which sections a user has opened while
+// browsing this modal isn't a preference worth syncing to the server,
+// unlike the actual metric selection below.
+window._pcmExpanded = window._pcmExpanded || {};
+
+function _prfRenderCustomizeModal() {
+  var plat = window._prfActivePlatform || 'google';
+  var note = document.getElementById('pcmPlatformNote');
+  if (note) note.textContent = 'Choose what Campaign Overview shows for ' + (_PRF_PLAT_LABELS[plat] || plat) + '.';
+  var body = document.getElementById('pcmBody');
+  if (!body) return;
+  body.innerHTML = ORIVEN_METRIC_CATEGORIES.map(function(cat) {
+    var available = orvMetricsForCategory(cat.id, plat);
+    if (!available.length) return ''; // e.g. no Trends metrics at all for a platform with no series backend
+    var selected = _prfMetricSelection(cat.id, plat);
+    var allOn = available.length > 0 && available.every(function(id) { return selected.indexOf(id) !== -1; });
+    var expanded = !!window._pcmExpanded[cat.id];
+    var rows = available.map(function(id) {
+      var m = ORIVEN_METRICS[id];
+      var on = selected.indexOf(id) !== -1;
+      var tip = m.tooltip ? (' <span class="prf-metric-tip" data-metric-tip="' + _prfEsc(m.tooltip) + '" tabindex="0" role="button" aria-label="What is ' + _prfEsc(m.label) + '?">ⓘ</span>') : '';
+      return '<label class="pcm-metric-row">' +
+          '<input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="prfToggleMetric(\'' + cat.id + '\',\'' + id + '\',this.checked)">' +
+          '<span>' + _prfEsc(m.label) + '</span>' + tip +
+        '</label>';
+    }).join('');
+    return '<div class="pcm-category' + (expanded ? ' pcm-expanded' : '') + '" data-cat="' + cat.id + '">' +
+        '<div class="pcm-cat-hd">' +
+          '<input type="checkbox" ' + (allOn ? 'checked' : '') + ' onclick="event.stopPropagation()" onchange="prfToggleCategory(\'' + cat.id + '\',this.checked)" aria-label="Enable all ' + _prfEsc(cat.label) + ' metrics">' +
+          '<span class="pcm-cat-title" onclick="prfToggleCategoryExpand(\'' + cat.id + '\')">' + _prfEsc(cat.label) + '</span>' +
+          '<span class="pcm-cat-count">' + selected.length + '/' + available.length + '</span>' +
+          '<button type="button" class="pcm-cat-chevron" onclick="prfToggleCategoryExpand(\'' + cat.id + '\')" aria-label="' + (expanded ? 'Collapse' : 'Expand') + ' ' + _prfEsc(cat.label) + '">' +
+            '<svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5l3 3 3-3"/></svg>' +
+          '</button>' +
+        '</div>' +
+        '<div class="pcm-metric-list">' + rows + '</div>' +
+      '</div>';
+  }).join('');
+  // indeterminate is a DOM property, not an HTML attribute -- can't be set
+  // via the innerHTML string above, so a partially-selected category (e.g.
+  // 5/7) reads as a real dashed indeterminate checkbox instead of looking
+  // identically "off" as a fully-empty one.
+  body.querySelectorAll('.pcm-category').forEach(function(catEl) {
+    var catId = catEl.getAttribute('data-cat');
+    var available = orvMetricsForCategory(catId, plat);
+    var selected = _prfMetricSelection(catId, plat);
+    var cb = catEl.querySelector('.pcm-cat-hd input');
+    if (cb) cb.indeterminate = selected.length > 0 && selected.length < available.length;
+  });
+}
+
+window.prfToggleCategoryExpand = function(categoryId) {
+  window._pcmExpanded[categoryId] = !window._pcmExpanded[categoryId];
+  _prfRenderCustomizeModal();
+};
+
+window.prfToggleMetric = function(categoryId, metricId, checked) {
+  var plat = window._prfActivePlatform || 'google';
+  var ids = _prfMetricSelection(categoryId, plat).slice();
+  var i = ids.indexOf(metricId);
+  if (checked && i === -1) ids.push(metricId);
+  else if (!checked && i !== -1) ids.splice(i, 1);
+  _prfSaveMetricSelection(plat, categoryId, ids);
+  _prfRenderCustomizeModal();
+  _prfApplyView();
+};
+
+window.prfToggleCategory = function(categoryId, checked) {
+  var plat = window._prfActivePlatform || 'google';
+  var available = orvMetricsForCategory(categoryId, plat);
+  _prfSaveMetricSelection(plat, categoryId, checked ? available.slice() : []);
+  _prfRenderCustomizeModal();
+  _prfApplyView();
+};
+
+window.prfResetMetricsDefault = function() {
+  var plat = window._prfActivePlatform || 'google';
+  var prefs = _prfMetricPrefs();
+  var next = {};
+  Object.keys(prefs).forEach(function(p) { if (p !== plat) next[p] = prefs[p]; });
+  if (typeof saveSettings === 'function') saveSettings({ prfMetrics: next });
+  _prfRenderCustomizeModal();
+  _prfApplyView();
+};
 
 /* Charts — real day-by-day series via /api/intelligence/kpi-series (same
    daily-fetch helpers the Predictive Autopilot forecast already uses).
-   "All Platforms" merges Google + Meta by date. */
+   "All Platforms" merges Google + Meta by date. Cached on window so
+   swapping which metric a trend card plots (prfChangeTrendMetric) can
+   re-render instantly from the same fetch instead of re-querying. */
 var _prfChartReqId = 0;
+window._prfLastSeries = [];
+window._prfLastSeriesMeta = {};
 function _prfLoadChartSeries(plat, campaignId) {
-  /* TikTok has no performance-metrics backend at all (confirmed: no
-     reporting/insights endpoint exists anywhere server-side, only
-     campaign-list/status) — never attempt a fetch, never fabricate a
-     series. Real connection state still drives which honest empty state
-     shows (not-connected vs connected-but-no-backend-support). */
+  /* TikTok has no daily-series reporting endpoint (only the campaign-level
+     snapshot added for KPI tiles, /api/tiktok/overview) — never attempt a
+     fetch, never fabricate a series. Real connection state still drives
+     which honest empty state shows (not-connected vs connected-but-no-
+     history-endpoint-yet). */
   if (plat === 'tiktok') {
-    _prfRenderTimeCharts([], { plat: 'tiktok', connected: !!window._prfTikTokConnected, noBackend: true });
+    window._prfLastSeries = []; window._prfLastSeriesMeta = { plat: 'tiktok', connected: !!window._prfTikTokConnected, noBackend: true };
+    _prfRenderTrendCharts();
     return;
   }
   /* Real connection state, not just "is this a valid platform name" — a
@@ -12175,7 +12411,11 @@ function _prfLoadChartSeries(plat, campaignId) {
   var wantPlatforms = (plat === 'google' || plat === 'meta') ? [plat] : (window._prfConnectedPlatforms || []);
   wantPlatforms = wantPlatforms.filter(function(p) { return p === 'google' || p === 'meta'; });
   var reqId = ++_prfChartReqId;
-  if (!isConnected || !wantPlatforms.length) { _prfRenderTimeCharts([], { plat: plat, connected: isConnected }); return; }
+  if (!isConnected || !wantPlatforms.length) {
+    window._prfLastSeries = []; window._prfLastSeriesMeta = { plat: plat, connected: isConnected };
+    _prfRenderTrendCharts();
+    return;
+  }
   var qs = _prfRangeParams();
   /* campaignId only ever applies to a single specific platform (a campaign
      belongs to exactly one platform, and switching platform always resets
@@ -12202,7 +12442,8 @@ function _prfLoadChartSeries(plat, campaignId) {
       });
     });
     var merged = Object.keys(byDate).map(function(k) { return byDate[k]; }).sort(function(a, b) { return a.date < b.date ? -1 : 1; });
-    _prfRenderTimeCharts(merged, { plat: plat, connected: true });
+    window._prfLastSeries = merged; window._prfLastSeriesMeta = { plat: plat, connected: true };
+    _prfRenderTrendCharts();
   });
 }
 
@@ -12230,9 +12471,9 @@ function _prfChartWaitSvg() {
                          this will never resolve by waiting, so it must not
                          imply "check back soon" the way that state does. */
 function _prfSetChartEmptyState(key, state, plat) {
-  var barsEl = document.getElementById('prfBars' + key);
-  var lockEl = document.getElementById('prfLock' + key);
-  var tipEl  = document.getElementById('prfTip' + key);
+  var barsEl = document.getElementById('prfBars_' + key);
+  var lockEl = document.getElementById('prfLock_' + key);
+  var tipEl  = document.getElementById('prfTip_' + key);
   if (barsEl) barsEl.innerHTML = '';
   if (tipEl) tipEl.style.display = 'none';
   if (!lockEl) return;
@@ -12242,7 +12483,7 @@ function _prfSetChartEmptyState(key, state, plat) {
     return;
   }
   var platLabel = _PRF_PLAT_LABELS[plat] || 'your ad account';
-  var metricLabel = { Spend: 'spend', Conv: 'conversion', Roas: 'ROAS', Ctr: 'CTR' }[key] || key.toLowerCase();
+  var metricLabel = (ORIVEN_METRICS[key] && ORIVEN_METRICS[key].label.toLowerCase()) || key;
   if (state === 'not-connected') {
     lockEl.innerHTML =
       '<div class="prf-cl-ico">' + _prfChartConnectSvg() + '</div>' +
@@ -12269,8 +12510,8 @@ function _prfSetChartEmptyState(key, state, plat) {
    with the real date + formatted value for that point — no second data
    layer, same array the line itself is built from. */
 function _prfRenderLineChart(key, days, vals, colorCls, dotCls, fmtFn) {
-  var barsEl = document.getElementById('prfBars' + key);
-  var tipEl  = document.getElementById('prfTip' + key);
+  var barsEl = document.getElementById('prfBars_' + key);
+  var tipEl  = document.getElementById('prfTip_' + key);
   if (!barsEl) return;
   var W = 100, H = 100, PAD = 6;
   var max = 0, min = 0;
@@ -12321,43 +12562,54 @@ function _prfRenderLineChart(key, days, vals, colorCls, dotCls, fmtFn) {
   }
 }
 
-function _prfRenderTimeCharts(series, meta) {
-  meta = meta || {};
-  var KEYS = ['Spend', 'Conv', 'Roas', 'Ctr'];
+/* One color per card POSITION (not per metric identity) -- cycles through
+   the 4 existing chart accent colors, since a card's metric can now change
+   at any time (prfChangeTrendMetric) without moving to a different DOM
+   slot. Matches the 4 .prf-lc-path(-conv|-roas|-ctr) variants in styles.css;
+   a 5th+ selected trend metric repeats the cycle rather than needing new
+   colors defined. */
+var _PRF_TREND_COLOR_CLASSES = [
+  { path: 'prf-lc-path',      dot: 'prf-lc-dot' },
+  { path: 'prf-lc-path-conv', dot: 'prf-lc-dot-conv' },
+  { path: 'prf-lc-path-roas', dot: 'prf-lc-dot-roas' },
+  { path: 'prf-lc-path-ctr',  dot: 'prf-lc-dot-ctr' }
+];
+
+function _prfRenderTrendCharts() {
+  var series = window._prfLastSeries || [];
+  var meta = window._prfLastSeriesMeta || {};
+  var plat = window._prfActivePlatform || 'google';
+  var ids = _prfMetricSelection('trends', plat);
+  if (!ids.length) return; // nothing selected/supported for this platform -- no cards to fill
+
   if (!meta.connected) {
-    KEYS.forEach(function(k) { _prfSetChartEmptyState(k, 'not-connected', meta.plat); });
+    ids.forEach(function(k) { _prfSetChartEmptyState(k, 'not-connected', meta.plat); });
     return;
   }
   if (meta.noBackend) {
-    KEYS.forEach(function(k) { _prfSetChartEmptyState(k, 'no-backend', meta.plat); });
+    ids.forEach(function(k) { _prfSetChartEmptyState(k, 'no-backend', meta.plat); });
     return;
   }
   var hasEnough = series && series.length >= _PRF_CHART_MIN_POINTS;
   if (!hasEnough) {
-    KEYS.forEach(function(k) { _prfSetChartEmptyState(k, 'insufficient', meta.plat); });
+    ids.forEach(function(k) { _prfSetChartEmptyState(k, 'insufficient', meta.plat); });
     return;
   }
   var top = series.slice(-30);
 
-  _prfSetChartEmptyState('Spend', 'ready');
-  _prfRenderLineChart('Spend', top, top.map(function(d) { return d.spend; }), 'prf-lc-path', 'prf-lc-dot', function(v) { return '€' + _prfFmt(v); });
-
-  _prfSetChartEmptyState('Conv', 'ready');
-  _prfRenderLineChart('Conv', top, top.map(function(d) { return d.conversions; }), 'prf-lc-path-conv', 'prf-lc-dot-conv', function(v) { return _prfFmt(v) + ' conversions'; });
-
-  _prfSetChartEmptyState('Ctr', 'ready');
-  _prfRenderLineChart('Ctr', top, top.map(function(d) { return d.impressions > 0 ? (d.clicks / d.impressions * 100) : 0; }), 'prf-lc-path-ctr', 'prf-lc-dot-ctr', function(v) { return v.toFixed(1) + '% CTR'; });
-
-  /* ROAS needs conversion VALUE, which Meta's daily series doesn't carry —
-     stays honestly in the "insufficient" state rather than showing a
-     fabricated ratio, independent of the other three charts. */
-  var hasValue = top.some(function(d) { return d.hasValue; });
-  if (hasValue) {
-    _prfSetChartEmptyState('Roas', 'ready');
-    _prfRenderLineChart('Roas', top, top.map(function(d) { return d.spend > 0 ? (d.conversions_value / d.spend) : 0; }), 'prf-lc-path-roas', 'prf-lc-dot-roas', function(v) { return v.toFixed(2) + 'x ROAS'; });
-  } else {
-    _prfSetChartEmptyState('Roas', 'insufficient', meta.plat);
-  }
+  ids.forEach(function(id, i) {
+    var m = ORIVEN_METRICS[id];
+    var colors = _PRF_TREND_COLOR_CLASSES[i % _PRF_TREND_COLOR_CLASSES.length];
+    var vals = top.map(function(d) { var v = m.seriesGet(d); return v == null ? 0 : v; });
+    // roas (and any future value-dependent metric) needs its seriesGet to
+    // have actually produced a real number for at least one day -- Meta's
+    // daily series doesn't carry conversion value, so this stays in the
+    // honest "insufficient" state rather than plotting an all-zero line.
+    var hasAnyValue = top.some(function(d) { return m.seriesGet(d) != null; });
+    if (!hasAnyValue) { _prfSetChartEmptyState(id, 'insufficient', meta.plat); return; }
+    _prfSetChartEmptyState(id, 'ready');
+    _prfRenderLineChart(id, top, vals, colors.path, colors.dot, function(v) { return orvFormatMetric(id, v) + ' ' + m.label; });
+  });
 }
 
 /* ── AI Analysis — one unified card, real data via /api/ads/analyze or
@@ -14355,7 +14607,7 @@ window._bizSaveNewMemory = function(){
 
 /* _prfRenderTable/_prfRenderBars (per-campaign table + spend-only bars)
    removed — replaced by the campaign selector's KPI aggregation and
-   _prfRenderTimeCharts()'s real daily series, see above. */
+   _prfRenderTrendCharts()'s real daily series, see above. */
 
 /* ── Ads Manager ── */
 window._admActiveRange = 'LAST_7_DAYS';
@@ -14569,7 +14821,12 @@ window.addEventListener('resize', function(){ if(_orvLauncherOpen) _orvCloseLaun
     document.body.appendChild(arrowEl);
   }
   function showTip(el){
-    var text = el.getAttribute('data-tip');
+    // data-metric-tip (Customize Metrics info icons, anywhere on the page)
+    // reuses this exact pair/positioning logic rather than a second
+    // tooltip implementation -- only the source attribute and the
+    // left/right side differ from the original sidebar-only [data-tip].
+    var isMetric = el.hasAttribute('data-metric-tip');
+    var text = isMetric ? el.getAttribute('data-metric-tip') : el.getAttribute('data-tip');
     if(!text) return;
     clearTimeout(hideTimer);
     ensureTip();
@@ -14579,12 +14836,25 @@ window.addEventListener('resize', function(){ if(_orvLauncherOpen) _orvCloseLaun
     arrowEl.style.display = 'block';
     var r = el.getBoundingClientRect();
     var tipH = tipEl.offsetHeight || 30;
+    var tipW = tipEl.offsetWidth || 180;
     var top = r.top + r.height / 2 - tipH / 2;
     top = Math.max(6, Math.min(top, window.innerHeight - tipH - 6)); // never off-screen top/bottom
     tipEl.style.top = top + 'px';
-    tipEl.style.left = (r.right + 12) + 'px';
     arrowEl.style.top = (r.top + r.height / 2) + 'px';
-    arrowEl.style.left = (r.right + 6) + 'px';
+    // Sidebar icons always have room to the right; a metric info icon can
+    // sit anywhere on the page (KPI tile, chart card, Customize Metrics
+    // modal near the modal's own right edge) -- flip to the left side
+    // instead of running off-screen when there isn't room on the right.
+    var showLeft = isMetric && (r.right + 12 + tipW > window.innerWidth);
+    if(showLeft){
+      tipEl.style.left = (r.left - 12 - tipW) + 'px';
+      arrowEl.style.left = (r.left - 6) + 'px';
+    } else {
+      tipEl.style.left = (r.right + 12) + 'px';
+      arrowEl.style.left = (r.right + 6) + 'px';
+    }
+    tipEl.classList.toggle('orv-rail-tip-left', showLeft);
+    arrowEl.classList.toggle('orv-rail-tip-arrow-left', showLeft);
     requestAnimationFrame(function(){
       if(tipEl){ tipEl.classList.add('orv-rail-tip-show'); }
       if(arrowEl){ arrowEl.classList.add('orv-rail-tip-show'); }
@@ -14602,11 +14872,22 @@ window.addEventListener('resize', function(){ if(_orvLauncherOpen) _orvCloseLaun
     }, 160);
   }
   document.addEventListener('mouseover', function(e){
-    var t = e.target.closest && e.target.closest('.orv-sb [data-tip]');
+    var t = e.target.closest && e.target.closest('.orv-sb [data-tip], [data-metric-tip]');
     if(t) showTip(t);
   });
   document.addEventListener('mouseout', function(e){
-    var t = e.target.closest && e.target.closest('.orv-sb [data-tip]');
+    var t = e.target.closest && e.target.closest('.orv-sb [data-tip], [data-metric-tip]');
+    if(t) hideTip();
+  });
+  // Metric info icons are focusable (tabindex="0") for keyboard users --
+  // sidebar [data-tip] icons are real nav buttons already handled by their
+  // own focus states, so this only needs to cover the new metric ones.
+  document.addEventListener('focusin', function(e){
+    var t = e.target.closest && e.target.closest('[data-metric-tip]');
+    if(t) showTip(t);
+  });
+  document.addEventListener('focusout', function(e){
+    var t = e.target.closest && e.target.closest('[data-metric-tip]');
     if(t) hideTip();
   });
   // A tooltip left mid-fade while its icon's own state changes (e.g. nav

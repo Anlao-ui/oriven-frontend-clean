@@ -29,7 +29,15 @@ var SETTINGS_DEFAULTS = {
   currentPlan:      "free",
   planRenewalDate:  null,
   pendingPlan:      null,
-  pendingPlanDate:  null
+  pendingPlanDate:  null,
+  // Campaign Overview "Customize Metrics" (metrics.js). Per-platform:
+  // { google: {delivery:[ids],traffic:[ids],conversion:[ids],trends:[ids]}, meta:{...}, tiktok:{...} }.
+  // A platform key absent here means "never customized" -- app.html falls
+  // back to ORIVEN_DEFAULT_METRICS for that platform rather than storing a
+  // duplicate copy of the defaults. null (not {}) is the true "untouched"
+  // state so a save of one platform's selection doesn't need to invent
+  // empty placeholders for the other two.
+  prfMetrics:       null
 };
 
 // Plan data lives in plans.js (ORIVEN_PLANS / ORIVEN_PLAN_LIST / ORIVEN_PAID_PLANS).

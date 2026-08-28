@@ -31567,6 +31567,107 @@ body.dark-mode .prf-ct { border-color: rgba(255,255,255,.1); color: rgba(255,255
 body.dark-mode .prf-ct:hover { color: rgba(255,255,255,.7); }
 body.dark-mode .prf-ct.active { background: rgba(255,255,255,.1); color: #fff; border-color: transparent; }
 .prf-chart-body { position: relative; height: 112px; }
+
+/* ── Customize Metrics — trigger button (top-right of the controls row),
+   trend-card metric switcher, and the info-tooltip icon used both on KPI
+   tiles and inside the modal itself. ── */
+.prf-customize-btn {
+  display: flex; align-items: center; gap: 6px;
+  margin-left: auto;
+  padding: 7px 14px;
+  font-size: 12px; font-weight: 600;
+  color: var(--charcoal, #18181A);
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color .15s, background .15s;
+}
+.prf-customize-btn:hover { border-color: rgba(0,0,0,.22); background: rgba(0,0,0,.02); }
+body.dark-mode .prf-customize-btn { color: var(--text, #e8e8e8); background: #1c1c1e; border-color: rgba(255,255,255,.12); }
+body.dark-mode .prf-customize-btn:hover { border-color: rgba(255,255,255,.22); background: rgba(255,255,255,.04); }
+
+.prf-chart-metric-sel {
+  font-size: 13px; font-weight: 600;
+  color: var(--charcoal, rgba(0,0,0,.7));
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  padding-right: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='rgba(0,0,0,.4)' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 9px;
+  max-width: 100%;
+}
+body.dark-mode .prf-chart-metric-sel {
+  color: rgba(255,255,255,.6);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='rgba(255,255,255,.5)' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+}
+.prf-chart-metric-sel option { background-color: #fff; color: var(--charcoal, #18181A); }
+body.dark-mode .prf-chart-metric-sel option { background-color: #1c1c1e; color: var(--text, #e8e8e8); }
+
+.prf-metric-tip {
+  display: inline-block;
+  font-size: 10.5px;
+  color: rgba(0,0,0,.28);
+  cursor: help;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+.prf-metric-tip:hover, .prf-metric-tip:focus-visible { color: var(--gm, #1A4229); outline: none; }
+body.dark-mode .prf-metric-tip { color: rgba(255,255,255,.28); }
+body.dark-mode .prf-metric-tip:hover, body.dark-mode .prf-metric-tip:focus-visible { color: var(--green, #B7FF2A); }
+
+/* ── Customize Metrics modal ── */
+.pcm-modal { width: 460px; max-height: 82vh; }
+.pcm-close-btn {
+  position: absolute; top: 20px; right: 20px;
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.04); border: none; color: var(--muted, rgba(0,0,0,.5));
+  cursor: pointer; transition: background .15s;
+}
+.pcm-close-btn:hover { background: rgba(0,0,0,.08); }
+body.dark-mode .pcm-close-btn { background: rgba(255,255,255,.06); color: rgba(255,255,255,.6); }
+body.dark-mode .pcm-close-btn:hover { background: rgba(255,255,255,.1); }
+.pcm-body { display: flex; flex-direction: column; gap: 4px; }
+.pcm-category { border-bottom: 1px solid rgba(0,0,0,.06); padding: 12px 0; }
+.pcm-category:last-child { border-bottom: none; padding-bottom: 0; }
+.pcm-category:first-child { padding-top: 0; }
+.pcm-cat-hd { display: flex; align-items: center; gap: 10px; }
+.pcm-cat-hd input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--green, #B7FF2A); cursor: pointer; flex-shrink: 0; }
+.pcm-cat-title { font-size: 14px; font-weight: 700; color: var(--charcoal, #18181A); flex: 1; cursor: pointer; user-select: none; }
+.pcm-cat-count { font-size: 11px; font-weight: 600; color: var(--muted, rgba(0,0,0,.4)); font-variant-numeric: tabular-nums; }
+.pcm-cat-chevron {
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+  background: transparent; border: none; color: var(--muted, rgba(0,0,0,.4));
+  cursor: pointer; padding: 0;
+}
+.pcm-cat-chevron:hover { background: rgba(0,0,0,.05); color: var(--charcoal, #18181A); }
+.pcm-cat-chevron svg { transition: transform .16s ease; }
+.pcm-category.pcm-expanded .pcm-cat-chevron svg { transform: rotate(180deg); }
+/* Collapsed by default -- clicking the title or chevron reveals the
+   individual metric checklist (Section 3 of the spec: "Clicking a category
+   should expand it and show its individual metrics"). The category-level
+   checkbox itself stays always visible/usable without expanding. */
+.pcm-category .pcm-metric-list { display: none; }
+.pcm-category.pcm-expanded .pcm-metric-list { display: flex; flex-direction: column; gap: 2px; margin: 8px 0 0 26px; }
+body.dark-mode .pcm-cat-chevron:hover { background: rgba(255,255,255,.08); color: #fff; }
+.pcm-metric-row { display: flex; align-items: center; gap: 9px; padding: 5px 0; cursor: pointer; user-select: none; }
+.pcm-metric-row input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--green, #B7FF2A); cursor: pointer; flex-shrink: 0; }
+.pcm-metric-row span:not(.prf-metric-tip) { font-size: 13px; color: var(--charcoal, rgba(0,0,0,.75)); }
+body.dark-mode .pcm-category { border-bottom-color: rgba(255,255,255,.08); }
+body.dark-mode .pcm-cat-title { color: #fff; }
+body.dark-mode .pcm-cat-count { color: rgba(255,255,255,.4); }
+body.dark-mode .pcm-metric-row span:not(.prf-metric-tip) { color: rgba(255,255,255,.8); }
+@media (max-width: 560px) {
+  .pcm-modal { width: calc(100vw - 32px); padding: 22px; }
+  .pcm-metric-list { margin-left: 22px; }
+}
 /* Matrix/grid background — CSS gradients only, no generated image. Two
    repeating-linear-gradients (horizontal + vertical hairlines) layered at
    very low opacity so it never competes with the green line on top. */
@@ -40767,6 +40868,16 @@ body.dark-mode .orv-rail-tip {
   box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
 }
 body.dark-mode .orv-rail-tip-arrow { border-right-color: #F2F2F0; }
+/* data-metric-tip variant (Customize Metrics info icons) can sit anywhere
+   on the page, unlike the always-left sidebar -- when there's no room to
+   the right, the JS positions the tip to the LEFT of the icon instead and
+   toggles these two classes to flip the arrow's triangle to point right
+   (back at the icon) instead of left. */
+.orv-rail-tip-arrow-left {
+  border-right: none;
+  border-left: 6px solid #18181A;
+}
+body.dark-mode .orv-rail-tip-arrow-left { border-left-color: #F2F2F0; border-right-color: transparent; }
 
 /* ── AI assistant header: notification bell docks left of the panel ──
    .orv-notif-bell is intentionally its own independent position:fixed
