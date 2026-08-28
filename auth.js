@@ -539,8 +539,8 @@ async function _loadUserProfile(user){
           var _isUsed = _dbUsedFlag || _lsScopedFlag || _lsLegacyFlag;
           console.log("[PW-CHAIN] Page load check | _dbSubscriptionStatus:", _dbSubscriptionStatus, "| free_campaign_used:", _isUsed, "| db:", _dbUsedFlag, "| ls-scoped:", _lsScopedFlag, "| ls-legacy:", _lsLegacyFlag);
 
-          // Free is now a real, persistent plan (20 credits/day, 1
-          // Intelligence use/day) -- a returning Free user just lands on
+          // Free is now a real, persistent plan (10 credits/day, 1
+          // Intelligence use/month) -- a returning Free user just lands on
           // the app normally, same as any other plan, instead of the
           // paywall re-opening on every single page load. The one-time,
           // in-session openFreePaywall() call right after their first
@@ -601,7 +601,7 @@ async function markOnboardingComplete(){
 // Every frame spotlights a real element on the real, live app â€” never
 // a full-screen slideshow. Frames are grouped under 10 "major steps"
 // (the number shown to the user); several major steps (Campaigns hub
-// tabs, Business's 7 tabs) fan out into multiple frames so each tab
+// tabs, Business's 6 tabs) fan out into multiple frames so each tab
 // gets its own explanation, without inflating the visible step count.
 // The last two frames (Generate, Publish) are "interactive-wait": no
 // Next button, the tour waits for a real click on the real button.
@@ -640,8 +640,6 @@ var _OB_FRAMES = [
     onEnter:function(){ _obBizNav("overview"); } },
   { majorStep:7, selector:'.prf-ptab[data-tab="business"]', sectionKey:"obBusinessSection", titleKey:"bizTabBusiness", descKey:"obBizTabBusinessDesc",
     onEnter:function(){ _obBizNav("business"); } },
-  { majorStep:7, selector:'.prf-ptab[data-tab="products"]', sectionKey:"obBusinessSection", titleKey:"bizTabProducts", descKey:"obBizTabProductsDesc",
-    onEnter:function(){ _obBizNav("products"); } },
   { majorStep:7, selector:'.prf-ptab[data-tab="market"]', sectionKey:"obBusinessSection", titleKey:"bizTabMarket", descKey:"obBizTabMarketDesc",
     onEnter:function(){ _obBizNav("market"); } },
   { majorStep:7, selector:'.prf-ptab[data-tab="brand"]', sectionKey:"obBusinessSection", titleKey:"bizTabBrand", descKey:"obBizTabBrandDesc",
@@ -1309,8 +1307,8 @@ function _showHardPaywall(){
 }
 
 // Free-campaign conversion paywall â€” shown after first campaign is generated.
-// Soft/dismissable: Free is now a real, persistent plan (20 credits/day,
-// 1 Intelligence use/day, no Autopilot), so this is an informative "here
+// Soft/dismissable: Free is now a real, persistent plan (10 credits/day,
+// 1 Intelligence use/month, no Autopilot), so this is an informative "here
 // are your options" moment, not a payment gate -- closing it is equivalent
 // to implicitly continuing on Free, which is already the account's actual
 // subscription_status by default.
@@ -1441,7 +1439,7 @@ async function continueOnFreePlan(){
     // blocked by whatever triggered the modal in the first place.
     if(typeof closeModal === "function") closeModal("modal-paywall");
     if(typeof _refreshUsageUI === "function") _refreshUsageUI();
-    toast("You're on the Free plan â€” 20 credits refresh every day.");
+    toast("You're on the Free plan â€” 10 credits refresh every day.");
   } catch(err){
     console.error("[Paywall] continueOnFreePlan error:", err);
     var code = err && err.message;

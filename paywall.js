@@ -35,13 +35,22 @@ function _renderPaywallCards(){
     }
   } catch(_){}
 
+  // Free is never a selectable option here -- it only ever appears as the
+  // user's own current-state card, shown alongside Starter/Creator/
+  // Professional as the primary upgrade choices, and only when the
+  // signed-in user's actual plan genuinely IS free. A paid user (starter/
+  // creator/professional) sees only the 3 paid plans, exactly like Settings
+  // → Subscription (settings.js renderPlanPanel uses the same rule).
+  var plansForCards = (plan === "free") ? ORIVEN_PLAN_LIST : ORIVEN_PAID_PLANS;
+
   // Render all cards fresh from the central plan config
   var grid = document.getElementById("pwPlanGrid");
-  if(grid && typeof renderPWPricingCards === "function") renderPWPricingCards(grid);
+  if(grid && typeof renderPWPricingCards === "function") renderPWPricingCards(grid, plansForCards);
 
-  // Mark the user's current plan button as inactive (Free included, so its
-  // card also correctly shows "Current Plan" when that's genuinely true).
-  ORIVEN_PLAN_LIST.forEach(function(p){
+  // Mark the user's current plan button as inactive/labeled "Current Plan"
+  // (Free included when it's genuinely current) rather than presenting it
+  // as another selectable tier.
+  plansForCards.forEach(function(p){
     if(plan !== p.id) return;
     var btn = document.getElementById("paywall-btn-" + p.id);
     if(!btn) return;
@@ -78,7 +87,7 @@ var _LIMIT_MSGS = {
   },
   credits_free: {
     title:   "Today's free credits used.",
-    sub:     "Your 20 free credits refresh in 24 hours — or upgrade now for more credits and higher limits today.",
+    sub:     "Your 10 free credits refresh in 24 hours — or upgrade now for more credits and higher limits today.",
     upgrade: "creator"
   },
   brief: {
@@ -107,8 +116,8 @@ var _LIMIT_MSGS = {
     upgrade: "creator"
   },
   intelligence_free: {
-    title:   "Today's Intelligence use is used.",
-    sub:     "Your free Intelligence analysis refreshes in 24 hours — or upgrade now for more analyses per month.",
+    title:   "This month's Intelligence use is used.",
+    sub:     "Your free Intelligence analysis resets next month — or upgrade now for more analyses today.",
     upgrade: "creator"
   },
   intelligence_creator: {

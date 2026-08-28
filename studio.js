@@ -57,6 +57,7 @@ function _studioRefreshMain(){
 
   // ── Section 2: Color System ────────────────────────────────────
   _bcRenderColors();
+  _biRenderIdentityControls();
 
   // ── Section 3: Typography ──────────────────────────────────────
   _bcRenderTypo();
@@ -113,6 +114,75 @@ function _bcRenderColors(){
       +'</div>';
   }).join("");
 }
+
+// ── Brand Identity ON/OFF + 4 core colors (Business > Brand > Visuals) ──
+// Colors live at fixed indices in S.brandCore.colors, matching the exact
+// order both runGenBrand() and saveBCManual() (app.js) always build them
+// in: 0=Primary, 1=Secondary, 2=Accent, 3=Text, [4]=Support1, [5]=Support2.
+var _BI_SLOTS = [
+  { idx:0, id:"bizBIPrimary",   sw:"bizBIPrimarySw",   name:"Primary",   role:"Primary",   explanation:"Core brand color — used for recognition and brand visibility." },
+  { idx:2, id:"bizBIAccent",    sw:"bizBIAccentSw",    name:"Accent",    role:"Accent",    explanation:"Draws attention to key interactive elements and highlights." },
+  { idx:3, id:"bizBIText",      sw:"bizBITextSw",      name:"Text",      role:"Text",      explanation:"Ensures readability across all surfaces and content areas." },
+  { idx:1, id:"bizBISecondary", sw:"bizBISecondarySw", name:"Secondary", role:"Secondary", explanation:"Supports the primary in layouts and background surfaces." }
+];
+
+function _biRenderIdentityControls(){
+  var bc = S.brandCore;
+  if(!bc) return;
+  var colors = bc.colors || [];
+  _BI_SLOTS.forEach(function(slot){
+    var input = document.getElementById(slot.id);
+    var hex = colors[slot.idx] && colors[slot.idx].hex;
+    if(input && hex) input.value = hex;
+    if(typeof bcsPrev === "function") bcsPrev(slot.id, slot.sw);
+  });
+  var enabled = bc.identityEnabled !== false; // default on
+  var seg = document.getElementById("bizBIToggle");
+  if(seg){
+    seg.setAttribute("data-state", enabled ? "on" : "off");
+    seg.querySelectorAll(".bi-toggle-lbl").forEach(function(b){
+      var isOn = b.getAttribute("data-brand") === "on";
+      var active = isOn === enabled;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  }
+}
+
+window.bizBrandIdentityToggle = function(btn, enabled){
+  if(!S.brandCore){ toast("Create a Brand Identity first","warn"); return; }
+  S.brandCore.identityEnabled = enabled;
+  _biRenderIdentityControls();
+  saveBCToDB();
+  // Keep the Launch page's own toggle (and window._ov3BrandIdentityEnabled,
+  // read by cgrGenerate at generation time) in sync immediately, so the
+  // change applies to the very next campaign without a page reload.
+  if(typeof window._bbUpdatePromptIndicator === "function") window._bbUpdatePromptIndicator();
+  toast(enabled ? "Brand Identity enabled" : "Brand Identity disabled");
+};
+
+window.bizSaveBrandIdentityColors = function(){
+  if(!S.brandCore){ toast("Create a Brand Identity first","warn"); return; }
+  var hexRe = /^#[0-9A-Fa-f]{6}$/;
+  var vals = {}, bad = false;
+  _BI_SLOTS.forEach(function(slot){
+    var v = _bcsVal(slot.id);
+    if(v && !hexRe.test(v)) bad = true;
+    vals[slot.idx] = v;
+  });
+  if(bad){ toast("Enter valid hex colors, e.g. #B7FF2A","warn"); return; }
+  var colors = (S.brandCore.colors || []).slice();
+  _BI_SLOTS.forEach(function(slot){
+    var hex = vals[slot.idx];
+    if(!hex) return;
+    var existing = colors[slot.idx] || {};
+    colors[slot.idx] = { hex: hex, name: existing.name || slot.name, role: existing.role || slot.role, explanation: existing.explanation || slot.explanation };
+  });
+  S.brandCore.colors = colors;
+  if(typeof refreshBC === "function") refreshBC();
+  toast("Brand colors saved");
+  saveBCToDB();
+};
 
 function _hexLuma(hex){
   try{

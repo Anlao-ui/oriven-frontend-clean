@@ -255,7 +255,7 @@ async function main() {
       // reads "Current Plan" (disabled) -- confirms plan-state-aware
       // rendering still works, not a hardcoded label.
       check('8. Free card correctly reflects a Free user\'s current-plan state', wiring.freeCardBtnDisabled === true && /current plan/i.test(wiring.freeCardBtnText || ''), JSON.stringify(wiring));
-      check('8. Free plan config intact (0 price, 20 credits)', wiring.freePlanConfig && wiring.freePlanConfig.price === 0 && wiring.freePlanConfig.credits === 20, JSON.stringify(wiring));
+      check('8. Free plan config intact (0 price, 10 credits)', wiring.freePlanConfig && wiring.freePlanConfig.price === 0 && wiring.freePlanConfig.credits === 10, JSON.stringify(wiring));
     } finally {
       await page.close();
       await deleteTestUser(user.userId);

@@ -445,8 +445,8 @@ function idShowHub(){
 // ═══════════════════════════════════════════════════════════════
 function navigate(page){
 
-  // Free is a real, persistent plan now (20 credits/day, 1 daily
-  // generation), not a lifetime-once trial -- ordinary navigation is no
+  // Free is a real, persistent plan now (10 credits/day, 1 monthly
+  // Intelligence use), not a lifetime-once trial -- ordinary navigation is no
   // longer intercepted just because the free daily generation has already
   // been used today. The paywall now shows exactly once, right after a
   // Free user's first campaign fully completes (see _renderPackage /
@@ -3051,6 +3051,7 @@ function runGenBrand(){
     refreshBC();
     toast("Brand Identity generated!");
     saveBCToDB();
+    if(typeof window._bbUpdatePromptIndicator === "function") window._bbUpdatePromptIndicator();
     // The paywall now only appears once, right after a Free user's first
     // campaign is fully generated (see _renderPackage/_cgrReveal in
     // app.html) -- it must never show for unrelated actions like Brand
@@ -3132,6 +3133,7 @@ function saveBCManual(){
   refreshBC();
   toast("Brand Identity saved!");
   saveBCToDB();
+  if(typeof window._bbUpdatePromptIndicator === "function") window._bbUpdatePromptIndicator();
   // See the matching comment in genBC() -- the paywall no longer fires
   // from Brand Identity setup.
 }

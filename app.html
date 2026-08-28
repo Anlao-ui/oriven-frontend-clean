@@ -1361,6 +1361,33 @@
                Logo scope); the separate Assets tab was removed and its
                Logo System section moved in here. ── -->
           <div class="bb-pane" id="bb-pane-visuals">
+            <!-- Brand Identity ON/OFF + the 4 core colors, editable inline.
+                 Reuses the exact .bi-toggle component from the Launch page's
+                 Brand Identity toggle (app.html ~723) for visual consistency,
+                 and the .bcs-color-row/.bcs-color-swatch pattern from the
+                 existing "Build Manually" modal (#modal-bcsetup) rather than
+                 introducing a new color-picker style. Saves straight into
+                 the same brand_cores.brand_data blob (saveBCToDB) -- no new
+                 storage. See bizBrandIdentityToggle/bizSaveBrandIdentityColors
+                 in studio.js. -->
+            <div class="bb-section">
+              <div class="bb-section-hd-row">
+                <span class="bb-section-hd">Brand Identity</span>
+                <div class="bi-toggle" id="bizBIToggle" data-state="on" role="group" aria-label="Use Brand Identity in campaigns">
+                  <span class="bi-toggle-thumb" aria-hidden="true"></span>
+                  <button type="button" class="bi-toggle-lbl bi-toggle-lbl-on active" data-brand="on" onclick="bizBrandIdentityToggle(this,true)" data-i18n="brandIdentityOn" aria-pressed="true">On</button>
+                  <button type="button" class="bi-toggle-lbl bi-toggle-lbl-off" data-brand="off" onclick="bizBrandIdentityToggle(this,false)" data-i18n="brandIdentityOff" aria-pressed="false">Off</button>
+                </div>
+              </div>
+              <div class="bcp-empty-field" style="margin:2px 0 14px">When on, these colors are used in your generated ad creatives.</div>
+              <div class="bcs-color-grid">
+                <div class="fg"><label class="lbl">Primary</label><div class="bcs-color-row"><input class="inp bcs-color-inp" id="bizBIPrimary" placeholder="#B7FF2A" oninput="bcsPrev('bizBIPrimary','bizBIPrimarySw')"><div class="bcs-color-swatch" id="bizBIPrimarySw"></div></div></div>
+                <div class="fg"><label class="lbl">Accent</label><div class="bcs-color-row"><input class="inp bcs-color-inp" id="bizBIAccent" placeholder="#BFA07A" oninput="bcsPrev('bizBIAccent','bizBIAccentSw')"><div class="bcs-color-swatch" id="bizBIAccentSw"></div></div></div>
+                <div class="fg"><label class="lbl">Text</label><div class="bcs-color-row"><input class="inp bcs-color-inp" id="bizBIText" placeholder="#18181A" oninput="bcsPrev('bizBIText','bizBITextSw')"><div class="bcs-color-swatch" id="bizBITextSw"></div></div></div>
+                <div class="fg"><label class="lbl">Secondary</label><div class="bcs-color-row"><input class="inp bcs-color-inp" id="bizBISecondary" placeholder="#0A0A0A" oninput="bcsPrev('bizBISecondary','bizBISecondarySw')"><div class="bcs-color-swatch" id="bizBISecondarySw"></div></div></div>
+              </div>
+              <div style="margin-top:12px"><button class="bb-act-btn" onclick="bizSaveBrandIdentityColors()">Save Colors</button></div>
+            </div>
             <div class="bb-section">
               <div class="bb-section-hd">Color System</div>
               <div class="bcp-colors" id="bcProfileColors"></div>
@@ -11077,8 +11104,8 @@ window._orvUpdateCampPkg = function(id, pkg) {
 /* Direct page-switcher — bypasses entire navigate() chain.
    New V2 signature: _orvNav(navKey, pageId?, btn?) */
 window._orvNav = function(page, explicitPageId) {
-  /* Free is now a real, persistent plan (20 credits/day, 1 daily
-     generation) rather than a lifetime-once trial -- ordinary navigation
+  /* Free is now a real, persistent plan (10 credits/day, 1 monthly
+     Intelligence use) rather than a lifetime-once trial -- ordinary navigation
      is no longer intercepted just because today's free generation has
      already been used. Starting ANOTHER generation is still correctly
      gated at its own specific action (window.startCampaignGeneration,
@@ -19549,6 +19576,25 @@ window.rptExport = function(format) {
       + '</div>';
   }
 
+  /* Brand Identity colors for image generation — same enabled/disabled
+     gate as cgrGenerate's brandCore attachment above (window._ov3Brand-
+     IdentityEnabled, default true), so the toggle behaves identically for
+     copy and creative. Sends only the 4 core roles (Primary/Accent/Text/
+     Secondary), matching S.brandCore.colors' fixed build order (see
+     _BI_SLOTS in studio.js): 0=Primary, 1=Secondary, 2=Accent, 3=Text. */
+  window._cgrBrandColorFields = function(){
+    if(typeof S === 'undefined' || !S.brandCore || !S.brandCore.name) return {};
+    if(window._ov3BrandIdentityEnabled === false) return { brandIdentityDisabled: true };
+    var cols = S.brandCore.colors || [];
+    var picks = [
+      cols[0] && cols[0].hex ? { role:'Primary',   hex: cols[0].hex } : null,
+      cols[2] && cols[2].hex ? { role:'Accent',    hex: cols[2].hex } : null,
+      cols[3] && cols[3].hex ? { role:'Text',      hex: cols[3].hex } : null,
+      cols[1] && cols[1].hex ? { role:'Secondary', hex: cols[1].hex } : null
+    ].filter(Boolean);
+    return picks.length ? { brandColors: picks } : {};
+  };
+
   /* onDone(success) — success is true only once the image has both been
      generated AND actually finished loading (see the preload below); the
      caller (_startCreativesGeneration) uses this to know whether the
@@ -19558,7 +19604,7 @@ window.rptExport = function(format) {
     console.log('[cgr] Image generation request', idx, '— prompt length:', prompt.length);
     apiFetch('/api/generate-image', {
       method: 'POST',
-      body: JSON.stringify({ prompt: prompt, size: '1:1', imageType: 'display' })
+      body: JSON.stringify(Object.assign({ prompt: prompt, size: '1:1', imageType: 'display' }, _cgrBrandColorFields()))
     }).then(function(res){
       var card = document.getElementById('cgc'+idx);
       if(res.ok && res.data && res.data.imageUrl){
@@ -20501,6 +20547,24 @@ window.cgrChipAdd = function(wrapId, val){
     var active = !!(bc && bc.name);
     var biSection = document.getElementById('cr2BrandIdentitySection');
     if(biSection) biSection.style.display = active ? '' : 'none';
+    if(!active) return;
+    // Seed the Launch page's session toggle from the persisted default set
+    // in Business > Brand > Visuals (bc.identityEnabled), defaulting to on
+    // so anyone who never touches either control keeps the prior always-on
+    // behavior. This only sets the *default* for this page load -- the
+    // Launch toggle itself stays freely switchable per-session afterward.
+    var enabled = bc.identityEnabled !== false;
+    window._ov3BrandIdentityEnabled = enabled;
+    var seg = document.getElementById('ov3BrandIdentitySeg');
+    if(seg){
+      seg.setAttribute('data-state', enabled ? 'on' : 'off');
+      seg.querySelectorAll('.bi-toggle-lbl').forEach(function(b){
+        var isOn = b.getAttribute('data-brand') === 'on';
+        var isActive = isOn === enabled;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
   }
   window._bbUpdatePromptIndicator = _updateBrandIdentityToggleVisibility; // back-compat alias, same function
 

@@ -18507,10 +18507,13 @@ body.public-page {
   transform: scale(1.4);
 }
 
-/* ── Section 06 Pricing (4 plans: Free, Starter, Creator, Professional) ── */
+/* ── Section 06 Pricing (3 public plans: Starter, Creator, Professional --
+   Free is an in-app exploration state, not a public pricing tier, and is
+   deliberately never rendered on the landing page; class name kept as-is,
+   only the plans.js data source and this column count changed). ── */
 .ov-pricing-grid-4 {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   align-items: stretch;
   margin-bottom: 24px;
@@ -18655,16 +18658,19 @@ body.public-page {
 }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
-/* Keep all 4 plans in one row down to a genuinely tight tablet width --
+/* Keep all 3 plans in one row down to a genuinely tight tablet width --
    the section's own gutter system (.ov-pricing-inner, up to 1800px) gives
    this grid plenty of room well past typical laptop/tablet widths, so a
-   tighter gap (not an immediate drop to 2 columns) is the right first
-   move per the "reduce width/gap intelligently before stacking" brief. */
+   tighter gap (not an early drop to a stacked layout) is the right first
+   move per the "reduce width/gap intelligently before stacking" brief.
+   With exactly 3 cards there's no even 2-column split that avoids an
+   orphaned card, so this stays 3-across all the way down to the 700px
+   breakpoint below, where it drops straight to a single column. */
 @media (max-width: 1180px) and (min-width: 861px) {
   .ov-pricing-grid-4 { gap: 12px; }
 }
 @media (max-width: 860px) {
-  .ov-pricing-grid-4 { grid-template-columns: 1fr 1fr; }
+  .ov-pricing-grid-4 { gap: 10px; }
 }
 @media (max-width: 900px) {
   .ov-stats-row { flex-direction: column; gap: 40px; }

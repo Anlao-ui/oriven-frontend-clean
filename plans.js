@@ -78,49 +78,57 @@ var CREDIT_COSTS = {
 // no-separate-cap tier (still subject to the underlying credit economy
 // wherever a route already charges credits).
 var ORIVEN_PLANS = {
+  // Free is NOT a public pricing tier -- it's an in-app exploration/trial
+  // state for a new user before they commit to a paid subscription (product
+  // decision, "Free plan positioning" change). It stays in this single plan
+  // table (internal plan system still recognizes free/starter/creator/
+  // professional) but is deliberately excluded from ORIVEN_PAID_PLANS,
+  // which the public landing page renders from -- see renderLPPricingCards
+  // below. It still renders normally wherever the AUTHENTICATED product
+  // shows current-plan state (Settings/Subscription, the paywall) whenever
+  // the signed-in user's actual plan genuinely is 'free'.
   free: {
     id:          "free",
     name:        "Free",
     price:       0,
-    credits:     20,
-    limit:       20,
+    credits:     10,
+    limit:       10,
     // Every other plan's `credits` is a MONTHLY allowance; Free's resets
     // every 24h (creditManager.PLAN_ALLOWANCES.free / ensure_free_daily_cycle,
     // server-side) -- this flag is what lets every render function/Settings
     // panel show "/day" instead of "/month" for Free without a second,
     // duplicated plan table. cycleLabel is the exact unit word used in
-    // credit-quantity strings ("20 credits / day").
+    // credit-quantity strings ("10 credits / day").
     creditsCycle: "day",
     cycleLabel:   "day",
     teamMembers: 1,
     explore:     false,
-    desc:        "Start free. Build up credits for your next campaign.",
-    intelligence:   "1 use / day",
+    desc:        "Explore Oriven before you commit.",
+    intelligence:   "1 use / month",
     autopilotLimit: null,
     // Real, existing capabilities only, worded honestly against the actual
     // credit economy: a full campaign generation costs 25 credits
     // (creditManager.FEATURE_COSTS.campaign_generation) -- more than Free's
-    // entire 20/day allowance -- so "Create ads" would misleadingly imply
-    // unrestricted daily generation. The 20 credits/day instead cover
-    // smaller metered actions (chat, copy rewrites, audience/competitor
-    // analysis) between full generations, which build up toward one.
+    // entire 10/day allowance -- so this must never claim "Create ads" or
+    // imply unrestricted/daily full-campaign generation. The 10 credits/day
+    // instead cover smaller metered actions (chat, copy rewrites, audience/
+    // competitor analysis) between full generations, which build up toward
+    // one; publishing the resulting ad is fully allowed once generated.
     allFeatures: [
-      "20 credits / day",
-      "Build a campaign with accumulated credits",
-      "1 Intelligence use / day"
+      "10 credits / day",
+      "1 Intelligence use / month",
+      "Publish your ads"
     ],
     features: [
-      "20 credits / day",
-      "Build a campaign with accumulated credits",
-      "1 Intelligence use / day"
+      "10 credits / day",
+      "1 Intelligence use / month",
+      "Publish your ads"
     ],
     // Shown as muted/crossed-out items alongside the positive feature list
-    // in the paywall (renderPWPricingCards only) -- naming real, existing
-    // paid-plan capabilities Free doesn't include, not inventing new ones.
+    // in the paywall (renderPWPricingCards only) -- naming a real, existing
+    // paid-plan capability Free doesn't include, not inventing a new one.
     excludedFeatures: [
-      "Autopilot",
-      "Higher usage limits",
-      "Premium features"
+      "Autopilot"
     ]
   },
 
@@ -206,18 +214,27 @@ var ORIVEN_PLANS = {
 };
 
 // Official display order everywhere plans are shown: Free, Starter,
-// Creator, Professional. Single source of truth for landing-page pricing
-// (renderLPPricingCards), the in-app paywall (renderPWPricingCards), and
-// Settings/Subscription (renderPlanPanel, settings.js) -- all three read
-// this same array so Free is represented consistently instead of being
-// hard-coded independently in each place.
+// Creator, Professional. Single source of truth for the in-app paywall
+// (renderPWPricingCards) and Settings/Subscription (renderPlanPanel,
+// settings.js) -- both read this same array so Free is represented
+// consistently there instead of being hard-coded independently in each
+// place. Free is a real internal plan, not a public pricing tier: it must
+// only ever be shown as an authenticated user's CURRENT state (their actual
+// subscription_status genuinely is 'free'), never as a selectable option
+// offered to a paid user, and never on the public landing page -- callers
+// choose ORIVEN_PLAN_LIST vs ORIVEN_PAID_PLANS accordingly (see paywall.js
+// _renderPaywallCards and settings.js renderPlanPanel for the exact
+// current-plan-aware selection logic).
 var ORIVEN_PLAN_LIST  = ["free","starter","creator","professional"].map(function(k){ return ORIVEN_PLANS[k]; });
 
-// Paid-only subset -- still needed anywhere logic specifically means "does
-// this account have an actual (Stripe-billed) subscription", e.g.
-// settings.js switchPlan() deciding between the Stripe-checkout path and
-// the schedule-plan-change path. NOT used for display/rendering (which
-// always wants Free included via ORIVEN_PLAN_LIST above).
+// Paid-only subset. Two uses:
+// 1. Anywhere logic specifically means "does this account have an actual
+//    (Stripe-billed) subscription", e.g. settings.js switchPlan() deciding
+//    between the Stripe-checkout path and the schedule-plan-change path.
+// 2. Every PUBLIC-facing plan display: the landing page (renderLPPricingCards)
+//    always uses this list so Free never appears as a public pricing tier,
+//    and it's what a paid user's Settings/paywall plan grid renders from too
+//    (Free must never be offered as one of THEIR selectable options).
 var ORIVEN_PAID_PLANS = ["starter","creator","professional"].map(function(k){ return ORIVEN_PLANS[k]; });
 
 // ── SVG check mark (shared across all card styles) ─────────────
@@ -226,14 +243,13 @@ var _PLAN_CHK_SVG = '<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" 
 // ── Render: Landing page pricing ────────────────────────────────
 // Outputs the .ov-pc* card markup used by the live landing page's Pricing
 // section (index.html #pricing) — the .ov-pc* classes are what's actually
-// styled/animated there today; ORIVEN_PLAN_LIST (Free, Starter, Creator,
-// Professional, in that order) stays the single data source, so the
-// landing page and the in-app paywall never carry separate plan lists.
+// styled/animated there today. Public landing page = ORIVEN_PAID_PLANS only
+// (Starter, Creator, Professional) -- Free is an in-app exploration state,
+// not a public pricing tier, so it's deliberately never rendered here.
 function renderLPPricingCards(containerEl){
   if(!containerEl) return;
-  containerEl.innerHTML = ORIVEN_PLAN_LIST.map(function(plan, i){
+  containerEl.innerHTML = ORIVEN_PAID_PLANS.map(function(plan, i){
     var isPro   = !!plan.popular;
-    var isFree  = plan.id === "free";
     var delay   = i === 0 ? '' : (i * 0.08).toFixed(2).replace(/^0/, '');
     var delayAttr = delay ? ' style="transition-delay:' + delay + 's"' : '';
     var badge   = isPro ? '<div class="ov-pc-badge">Most Popular</div>' : '';
@@ -242,7 +258,7 @@ function renderLPPricingCards(containerEl){
     }).join('');
     var cycle   = plan.cycleLabel === 'day' ? 'day' : 'mo';
     var creditsCycle = plan.cycleLabel === 'day' ? 'day' : 'month';
-    var btnLabel = isFree ? 'Start Free' : 'Get Started';
+    var btnLabel = 'Get Started';
 
     return [
       // No data-observe here (Final Polish) -- .ov-pc is also driven by a
@@ -251,7 +267,7 @@ function renderLPPricingCards(containerEl){
       // data-observe/.ov-vis CSS-class system, so the two were fighting
       // over the same element for no benefit. GSAP alone now re-triggers
       // correctly in both scroll directions (toggleActions, not once:true).
-      '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + (isFree ? ' ov-pc-free' : '') + '"' + delayAttr + '>',
+      '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '"' + delayAttr + '>',
         '<div class="ov-pc-head">' + badge + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
         '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/' + cycle + '</span></div><div class="ov-pc-credits">' + orvFormatCredits(plan.credits) + ' AI credits / ' + creditsCycle + '</div></div>',
         '<div class="ov-pc-desc">' + plan.desc + '</div>',
@@ -263,9 +279,16 @@ function renderLPPricingCards(containerEl){
 }
 
 // ── Render: Paywall modal (pw-card) ────────────────────────────
-function renderPWPricingCards(containerEl){
+// plansArr lets the caller (paywall.js _renderPaywallCards) decide which
+// plans are actually eligible to show: ORIVEN_PLAN_LIST (includes Free)
+// only when the signed-in user's real plan IS free, so Free renders as
+// their current-state card, never as a selectable option offered to a
+// paid user -- defaults to ORIVEN_PLAN_LIST for backward compatibility
+// with any caller that doesn't pass one.
+function renderPWPricingCards(containerEl, plansArr){
   if(!containerEl) return;
-  containerEl.innerHTML = ORIVEN_PLAN_LIST.map(function(plan){
+  var list = plansArr || ORIVEN_PLAN_LIST;
+  containerEl.innerHTML = list.map(function(plan){
     var isFree = plan.id === "free";
     var feats = (plan.features || plan.allFeatures || []).map(function(f){
       return '<li class="pw-feat">' + f + '</li>';

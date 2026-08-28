@@ -808,7 +808,6 @@ var LANG_STRINGS = {
     obBusinessDesc:"Business teaches Oriven everything about your company. Better business knowledge produces better campaigns.",
     obBizTabOverviewDesc:"A complete picture of what Oriven knows about your business.",
     obBizTabBusinessDesc:"Your company profile and website understanding.",
-    obBizTabProductsDesc:"What you sell — so campaigns describe it accurately.",
     obBizTabMarketDesc:"Your audience and competitors.",
     obBizTabBrandDesc:"Your voice, identity, and visual direction.",
     obBizTabConnectionsDesc:"Your connected advertising accounts.",
@@ -2989,8 +2988,15 @@ async function renderPlanPanel(){
     : ((typeof S !== "undefined" && S && S.pendingPlan !== undefined) ? S.pendingPlan : (cfg.pendingPlan || null));
   var pendingPlanDateReal = subInfo ? (subInfo.pending_plan_date || null) : (cfg.pendingPlanDate || null);
 
-  var currentData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === currentId; });
-  var currentRank = currentData ? ORIVEN_PLAN_LIST.indexOf(currentData) : -1;
+  // Free is never offered as a selectable plan-card option here -- it's an
+  // in-app exploration state, not a public/selectable pricing tier. It only
+  // ever renders as the CURRENT plan's own card, when the account's actual
+  // plan genuinely is 'free'. A paid user (starter/creator/professional)
+  // only ever sees the 3 real paid plans, matching the paywall's identical
+  // rule (paywall.js _renderPaywallCards).
+  var plansToShow = (currentId === "free") ? ORIVEN_PLAN_LIST : ORIVEN_PAID_PLANS;
+  var currentData = plansToShow.find(function(p){ return p.id === currentId; });
+  var currentRank = currentData ? plansToShow.indexOf(currentData) : -1;
 
   _updateSidebarPlan(currentId);
 
@@ -3059,7 +3065,7 @@ async function renderPlanPanel(){
   //    a separate current-plan card. ─────────────────────────────────
   html += '<div class="sub-plans-grid">';
 
-  ORIVEN_PLAN_LIST.forEach(function(plan, rank){
+  plansToShow.forEach(function(plan, rank){
     var isCurrent = plan.id === currentId;
     var isPending = plan.id === pendingId;
     var isUp      = rank > currentRank;
@@ -3094,10 +3100,10 @@ async function renderPlanPanel(){
     // "users".
     html += '<ul class="sub-pcard-feats">';
     html += '<li><strong>' + orvFormatCredits(plan.credits) + '</strong> AI Credits / ' + (isDaily ? 'day' : 'month') + '</li>';
-    // Free's Intelligence use doesn't draw from the 20-credit/day pool (it
+    // Free's Intelligence use doesn't draw from the 10-credit/day pool (it
     // couldn't -- a single analysis costs more than the whole daily
     // allowance, same reasoning as campaign generation) -- it's a separate,
-    // server-enforced 1/day allowance instead, so the "uses AI credits"
+    // server-enforced 1/month allowance instead, so the "uses AI credits"
     // note would be actively wrong here.
     html += '<li>Intelligence: ' + plan.intelligence + (isDaily ? '' : '<span class="sub-feat-note"> · uses AI credits</span>') + '</li>';
     if(plan.autopilotLimit === Infinity){
