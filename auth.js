@@ -651,11 +651,27 @@ var _OB_FRAMES = [
   { majorStep:7, selector:'.prf-ptab[data-tab="memory"]', sectionKey:"obBusinessSection", titleKey:"bizTabMemory", descKey:"obBizTabMemoryDesc",
     onEnter:function(){ _obBizNav("memory"); } },
   { majorStep:8, selector:'#orvNavSettingsBtn', sectionKey:"obSettingsSection", titleKey:"obSettingsTitle", descKey:"obSettingsDesc" },
-  { majorStep:9, selector:'#aicInput', sectionKey:"obYourTurnSection", titleKey:"obPromptTitle", descKey:"obPromptDesc",
+  // Your Turn (majorStep 9) — the actual first-campaign creation step,
+  // critical-fix: spotlightSelector points the ring/backdrop at the WHOLE
+  // campaign builder card (#aicInputWrap, which contains the prompt
+  // textarea, platform pills, attach buttons, goal grid and the Generate
+  // button as one continuous block) instead of each frame's own tiny
+  // `selector` target. Previously each of these 4 frames spotlighted only
+  // its own small element (just the textarea, just the platform pills,
+  // etc.) with 8px of padding -- everything else in the builder, including
+  // parts the user still needed to see/use, sat outside the ring in the
+  // box-shadow's dark 9999px spread, making the real product UI look
+  // inactive/broken right when the user is told to use it. `selector`
+  // itself is untouched and still drives the tooltip's own position/arrow
+  // (so the card still points precisely at whichever control that frame
+  // is describing) -- only which element sizes the spotlight changed.
+  // Every other onboarding step (majorStep 1-8, and Publish below) has no
+  // spotlightSelector and keeps its exact prior tight-ring behavior.
+  { majorStep:9, selector:'#aicInput', spotlightSelector:'#aicInputWrap', sectionKey:"obYourTurnSection", titleKey:"obPromptTitle", descKey:"obPromptDesc",
     onEnter:function(){ _obNav("create","page-create"); }, sidebarUnlocked:true },
-  { majorStep:9, selector:'.cr2-foot-group[aria-label="Platform"]', sectionKey:"obYourTurnSection", titleKey:"obPlatformTitle", descKey:"obPlatformDesc", sidebarUnlocked:true },
-  { majorStep:9, selector:'#ov3RefImgBtn', sectionKey:"obYourTurnSection", titleKey:"obUploadTitle", descKey:"obUploadDesc", sidebarUnlocked:true },
-  { majorStep:9, selector:'#aicGenBtn', sectionKey:"obYourTurnSection", titleKey:"obGenerateTitle", descKey:"obGenerateDesc",
+  { majorStep:9, selector:'.cr2-foot-group[aria-label="Platform"]', spotlightSelector:'#aicInputWrap', sectionKey:"obYourTurnSection", titleKey:"obPlatformTitle", descKey:"obPlatformDesc", sidebarUnlocked:true },
+  { majorStep:9, selector:'#ov3RefImgBtn', spotlightSelector:'#aicInputWrap', sectionKey:"obYourTurnSection", titleKey:"obUploadTitle", descKey:"obUploadDesc", sidebarUnlocked:true },
+  { majorStep:9, selector:'#aicGenBtn', spotlightSelector:'#aicInputWrap', sectionKey:"obYourTurnSection", titleKey:"obGenerateTitle", descKey:"obGenerateDesc",
     sidebarUnlocked:true, waiting:"generate", waitingKey:"obWaitingGenerate" },
   { majorStep:10, selector:'#cgrPublishBtns', sectionKey:"obYourTurnSection", titleKey:"obPublishTitle", descKey:"obPublishDesc",
     sidebarUnlocked:true, waiting:"publish", waitingKey:"obWaitingPublish" }
@@ -761,12 +777,19 @@ function _obRender(step){
   var bd    = document.getElementById("ob-backdrop");
   var tt    = document.getElementById("ob-tooltip");
 
-  var renderAgainst = function(targetEl){
+  var renderAgainst = function(targetEl, spotlightEl){
+    // spotlightEl (f.spotlightSelector, e.g. the whole campaign-builder
+    // card during Your Turn) sizes the ring/backdrop; targetEl (f.selector,
+    // unchanged) still positions the tooltip and its arrow. Defaults to
+    // targetEl when a frame has no spotlightSelector, which is every step
+    // except Your Turn -- byte-identical ring behavior there.
+    spotlightEl = spotlightEl || targetEl;
+
     // â”€â”€ Spotlight ring (real element) vs full-screen backdrop (centered) â”€â”€
     // Decided off actual on-screen visibility, not a hardcoded viewport
     // width â€” the sidebar collapses to an icon rail on narrow screens but
     // stays on-screen, so a real ring works at every width.
-    var r = targetEl ? targetEl.getBoundingClientRect() : null;
+    var r = spotlightEl ? spotlightEl.getBoundingClientRect() : null;
     var visible = r && r.width > 0 && r.height > 0;
 
     if(visible && !f.centered){
@@ -851,7 +874,8 @@ function _obRender(step){
     _obWaitForPublishTarget(function(target){ renderAgainst(target); });
     return;
   }
-  renderAgainst(document.querySelector(f.selector));
+  var spotlightTarget = f.spotlightSelector ? document.querySelector(f.spotlightSelector) : null;
+  renderAgainst(document.querySelector(f.selector), spotlightTarget);
 }
 
 function _obPositionTooltip(tt, targetEl){
