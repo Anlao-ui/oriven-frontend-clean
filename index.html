@@ -402,14 +402,20 @@
   </div>
 </nav>
 
-<!-- Mobile menu -->
+<!-- Mobile menu — Mobile Polish pass: .lp-mm-close stays a DIRECT child
+     of the non-scrolling .lp-mobile-menu overlay (position:absolute,
+     unchanged) so it's always reachable regardless of scroll position;
+     everything else that can grow taller than the viewport (the nav
+     list, divider, actions) now lives inside .lp-mm-scroll, the actual
+     overflow-y:auto region (see styles.css .lp-mm-scroll for why). -->
 <div class="lp-mobile-menu" id="lpMobileMenu">
   <button class="lp-mm-close" id="lpMmClose" aria-label="Close menu">&#x2715;</button>
+  <div class="lp-mm-scroll" id="lpMmScroll">
   <nav class="lp-mm-nav">
 
     <!-- Product accordion -->
     <div class="lp-mm-item lp-mm-has-dd">
-      <button class="lp-mm-dd-trig" onclick="lpMmToggle(this)">
+      <button class="lp-mm-dd-trig" onclick="lpMmToggle(this)" aria-expanded="false">
         Product <span class="lp-mm-chev">&#8250;</span>
       </button>
       <div class="lp-mm-dd-items">
@@ -431,7 +437,7 @@
     <!-- Solutions accordion — same content/hrefs as the desktop Solutions
          dropdown. -->
     <div class="lp-mm-item lp-mm-has-dd">
-      <button class="lp-mm-dd-trig" onclick="lpMmToggle(this)">
+      <button class="lp-mm-dd-trig" onclick="lpMmToggle(this)" aria-expanded="false">
         Solutions <span class="lp-mm-chev">&#8250;</span>
       </button>
       <div class="lp-mm-dd-items">
@@ -446,7 +452,7 @@
     <!-- Resources accordion — same content/hrefs as the desktop Resources
          dropdown. -->
     <div class="lp-mm-item lp-mm-has-dd">
-      <button class="lp-mm-dd-trig" onclick="lpMmToggle(this)">
+      <button class="lp-mm-dd-trig" onclick="lpMmToggle(this)" aria-expanded="false">
         Resources <span class="lp-mm-chev">&#8250;</span>
       </button>
       <div class="lp-mm-dd-items">
@@ -463,6 +469,7 @@
   <div class="lp-mm-actions">
     <a href="#" class="lp-mm-login" onclick="lpHandleLogin(event)">Login</a>
     <a class="lp-mm-cta" onclick="lpGetStarted(event)">Start Creating</a>
+  </div>
   </div>
 </div>
 
@@ -3549,6 +3556,11 @@ function ovBlogFilter(btn, cat) {
 // Always go to account creation. Existing users can log in from there.
 function lpGetStarted(e){
   if(e) e.preventDefault();
+  // Mobile Polish pass — this fires for the mobile menu's own "Start
+  // Creating" link too (it never called lpCloseMm(), unlike every other
+  // mobile-menu link), so the overlay stayed open through navigation.
+  // Harmless no-op when already closed (desktop hero/nav callers).
+  if(typeof window.closeMobile === 'function') window.closeMobile();
   if(typeof window.lpNavigate === 'function') window.lpNavigate('/signup');
   else window.location.href = '/signup';
 }
@@ -3602,6 +3614,9 @@ function lpStartPlan(planId, btn){
 // still happens, just only inside the app itself (/app), per auth.js.
 function lpHandleLogin(e){
   if(e) e.preventDefault();
+  // Same fix as lpGetStarted above — the mobile menu's "Login" link
+  // never closed the overlay either.
+  if(typeof window.closeMobile === 'function') window.closeMobile();
   if(typeof window.lpNavigate === 'function') window.lpNavigate('/login');
   else window.location.href = '/login';
 }
@@ -3714,14 +3729,21 @@ ovInitCountUp(document.getElementById('lpPricingGrid'), { duration: 1100, stagge
 // unaffected by this removal.
 
 // -- Mobile hamburger -------------------------------------------------------------------------
-var ham     = document.getElementById('lpHamburger');
-var menu    = document.getElementById('lpMobileMenu');
-var lv      = document.getElementById('view-landing');
-var mmClose = document.getElementById('lpMmClose');
+var ham      = document.getElementById('lpHamburger');
+var menu     = document.getElementById('lpMobileMenu');
+var lv       = document.getElementById('view-landing');
+var mmClose  = document.getElementById('lpMmClose');
+var mmScroll = document.getElementById('lpMmScroll');
 ham.addEventListener('click', function(){
   var open = menu.classList.toggle('open');
   ham.classList.toggle('open', open);
   if(lv) lv.style.overflow = open ? 'hidden' : '';
+  // Mobile Polish pass — each fresh open starts scrolled to the top,
+  // regardless of where a previous session left the scroll position
+  // (spec: "stale accordion state does not cause visual glitches when
+  // the menu is opened again"). Accordion open/closed state itself is
+  // intentionally left alone here -- only the scroll position resets.
+  if(open && mmScroll) mmScroll.scrollTop = 0;
 });
 if(mmClose) mmClose.addEventListener('click', function(){ window.closeMobile(); });
 window.closeMobile = function(){
@@ -5820,6 +5842,13 @@ async function auSignup(){
       var on = t.dataset.cap === cap;
       t.classList.toggle('ov-ws-tab-active', on);
       t.setAttribute('aria-selected', on ? 'true' : 'false');
+      // Mobile Polish pass — .ov-ws-rail becomes a horizontally-
+      // scrolling strip at phone widths (styles.css, ≤600px); keeps
+      // whichever tab just became active in view instead of leaving it
+      // scrolled off-screen (spec: "keep the active product clearly
+      // identifiable"). No-op on desktop/tablet, where the rail never
+      // overflows in the first place.
+      if(on) t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' });
     });
     contents.forEach(function(c){
       var isActive = c.dataset.cap === cap;
@@ -5859,6 +5888,28 @@ async function auSignup(){
   }
 
   ensureChecked('create'); // the one tab visible on load — nothing else, yet (Create is now first/default)
+
+  // Mobile Polish pass — scroll-position-aware edge fades for
+  // .ov-ws-rail (styles.css handles the actual gradients; this just
+  // toggles two state classes). Mobile-only in effect: at desktop/
+  // tablet widths the rail never overflows (max <= 0 below), so both
+  // classes resolve false immediately and stay off — no separate
+  // width check needed, the scroll geometry itself already encodes it.
+  // Deliberately reflects REAL scroll position rather than being a
+  // static "always show both edges" decoration: right-only at the
+  // start (more content that way), both once scrolled into the middle,
+  // left-only at the true end (Business fully in view) so it never
+  // implies content that isn't there.
+  function updateRailFades(){
+    var max = rail.scrollWidth - rail.clientWidth;
+    var atStart = rail.scrollLeft <= 2;
+    var atEnd = rail.scrollLeft >= max - 2;
+    rail.classList.toggle('ov-ws-rail-fade-l', !atStart);
+    rail.classList.toggle('ov-ws-rail-fade-r', !atEnd);
+  }
+  rail.addEventListener('scroll', updateRailFades, { passive: true });
+  window.addEventListener('resize', updateRailFades);
+  updateRailFades(); // correct state before any scroll/resize ever fires
 })();
 
 // ── "From scattered to in ORDER" section (Final Create Enhancement +
@@ -5941,20 +5992,40 @@ async function auSignup(){
     if(!inside) closeAll();
   });
 
-  // Mobile accordion toggle
+  // Mobile accordion toggle — one group open at a time (existing,
+  // intentional behavior, unchanged here). aria-expanded now mirrors
+  // the open state on every trigger, matching the same pattern the
+  // desktop dd-trig buttons already use (aria-haspopup/aria-expanded
+  // above) — it had no expanded-state attribute at all before.
   window.lpMmToggle = function(btn){
     var item = btn.closest('.lp-mm-item');
     if(!item) return;
     var isOpen = item.classList.contains('lp-mm-open');
     document.querySelectorAll('.lp-mm-item.lp-mm-open').forEach(function(i){
       i.classList.remove('lp-mm-open');
+      var t = i.querySelector('.lp-mm-dd-trig');
+      if(t) t.setAttribute('aria-expanded', 'false');
     });
-    if(!isOpen) item.classList.add('lp-mm-open');
+    if(!isOpen){
+      item.classList.add('lp-mm-open');
+      btn.setAttribute('aria-expanded', 'true');
+    }
   };
 
+  // Bug fix (Mobile Polish pass) — this previously removed a class,
+  // 'lp-mm-open', that the menu's actual open/closed state has never
+  // used (that class name is only ever applied to an individual
+  // .lp-mm-item for its accordion state, above). The menu's real
+  // visibility toggle is menu.classList.toggle('open') / the shared
+  // window.closeMobile() defined earlier in this file (Mobile
+  // hamburger block) — this was a real, silent no-op every single
+  // time a mobile-menu link was tapped, which is the actual root
+  // cause of "the mobile menu stays open after navigating." Delegating
+  // to the one real close function instead of duplicating its logic
+  // means every future change to open/close behavior only has to
+  // happen in one place.
   window.lpCloseMm = function(){
-    var mm = document.getElementById('lpMobileMenu');
-    if(mm) mm.classList.remove('lp-mm-open');
+    if(typeof window.closeMobile === 'function') window.closeMobile();
   };
 })();
 </script>

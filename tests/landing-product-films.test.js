@@ -67,14 +67,20 @@ async function main() {
       await page.evaluate(scrollToPillars);
       await page.waitForTimeout(1200);
 
-      const caps = ['research', 'create', 'launch', 'campaigns', 'autopilot', 'business'];
+      // Canonical order + default-active tab (Build Your Advertising
+      // product-order pass): Create is tab #1/default-active, Research
+      // is #2 — was Research-first/default when this test was written.
+      // Skip-click logic below must match whichever cap is genuinely
+      // already active on load, or its check reads an unloaded video
+      // (src="", 0x0) that was never actually broken, just never opened.
+      const caps = ['create', 'research', 'launch', 'campaigns', 'autopilot', 'business'];
       for (const cap of caps) {
-        if (cap !== 'research') { await page.click('.ov-ws-tab[data-cap="' + cap + '"]'); await page.waitForTimeout(700); }
+        if (cap !== 'create') { await page.click('.ov-ws-tab[data-cap="' + cap + '"]'); await page.waitForTimeout(700); }
         const info = await page.evaluate((c) => {
           const v = document.querySelector('.ov-ws-content[data-cap="' + c + '"] .ov-ws-video');
           return { src: v.currentSrc, muted: v.muted, playsInline: v.playsInline, loop: v.loop, paused: v.paused, width: v.videoWidth, height: v.videoHeight };
         }, cap);
-        const label = { research: '3', create: '4', launch: '5', campaigns: '6', autopilot: '7', business: '8' }[cap];
+        const label = { create: '3', research: '4', launch: '5', campaigns: '6', autopilot: '7', business: '8' }[cap];
         const expectedFile = EXPECTED[cap];
         check(`${label}. ${cap} uses the real ${expectedFile}, actually loaded (video dimensions present)`, info.src.indexOf(encodeURIComponent(expectedFile).replace(/%2F/g, '/')) !== -1 || decodeURIComponent(info.src).indexOf(expectedFile) !== -1, info);
         check(`${cap} video actually has real dimensions (loaded, not broken)`, info.width > 0 && info.height > 0, { width: info.width, height: info.height });

@@ -6126,6 +6126,15 @@ button.lp-cta-btn { cursor:pointer; border:none; }
 .lp-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
 .lp-hamburger.open span:nth-child(2) { opacity: 0; }
 .lp-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+/* Mobile Polish pass — the overlay itself no longer scrolls (and no
+   longer centers its content with `justify-content: center`, which is
+   what made the expanded Product accordion unreachable/unscrollable:
+   a fixed, non-overflowing flex box centering content taller than the
+   viewport just clips the overflow with nowhere to scroll it into).
+   The overlay stays a fixed, non-scrolling shell so .lp-mm-close keeps
+   a stable position:absolute anchor and is always reachable regardless
+   of how far the content below has scrolled; .lp-mm-scroll (new, see
+   below) is the actual scrolling region. */
 .lp-mobile-menu {
   position: fixed;
   inset: 0;
@@ -6134,9 +6143,6 @@ button.lp-cta-btn { cursor:pointer; border:none; }
   -webkit-backdrop-filter: blur(24px);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
   z-index: 400;
   opacity: 0;
   visibility: hidden;
@@ -6147,6 +6153,33 @@ button.lp-cta-btn { cursor:pointer; border:none; }
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+}
+/* The real scroll container. flex:1 + min-height:0 is the actual fix
+   (the classic flex-child-won't-shrink-below-content gotcha — without
+   min-height:0 this box would just grow to fit its content instead of
+   clipping/scrolling it, and overflow-y:auto would never engage).
+   `justify-content: safe center` centers short content (nothing
+   expanded) exactly like the old `justify-content:center` did, but
+   falls back to top-aligned + fully scrollable the moment content
+   exceeds the viewport (the `safe` keyword is the whole point: it's
+   what `center` alone does NOT do — plain `center` on overflowing flex
+   content clips the start of the overflow with no way to scroll back
+   to it, which is the flexbox-specific mechanism behind this bug).
+   overscroll-behavior:contain stops an over-scroll at the top/bottom
+   edge from chaining into a page-behind-the-overlay scroll. */
+.lp-mm-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  gap: 0;
+  padding: 76px 0 max(28px, env(safe-area-inset-bottom));
 }
 
 /* ── Hero ──────────────────────────────────────────────────────── */
@@ -14779,6 +14812,24 @@ body.public-page {
   align-items: center !important;
   padding: 0 24px !important;
 }
+/* Mobile Polish pass — this rule's own min-height:100vh (border-box)
+   means adding padding-top here does NOT grow the section or push
+   anything below it down (confirmed: total hero height stays exactly
+   100vh at any device height, short or tall) -- it only shifts the
+   vertically-centered content group down by roughly half this value,
+   giving the headline real breathing room below the fixed 64px nav
+   instead of the ~29px gap centering alone produced. A deliberate,
+   modest addition, not a device-height-dependent spacer.
+   Deliberately re-scoped to @media(max-width:480px) here even though
+   the block above it is unscoped: this file has multiple layered,
+   sometimes-unscoped `.lp-hero{...!important}` rules from earlier
+   redesign passes (confirmed via computed-style inspection, not just
+   reading source), and an unscoped addition here would have also
+   silently reached desktop. Scoping explicitly removes that risk
+   regardless of how the rest of that legacy cascade resolves. */
+@media (max-width: 480px) {
+  .lp-hero { padding-top: 48px !important; }
+}
 .lp-s-hero-left {
   max-width: 780px !important;
   text-align: center !important;
@@ -19616,23 +19667,51 @@ body.public-page {
 }
 .lp-mm-close:hover { color: rgba(255,255,255,.8); }
 
-/* Nav link group */
+/* Nav link group — Mobile Polish pass: was `align-items: center`, which
+   made every child (.lp-mm-item / .lp-mm-link) shrink-wrap to its own
+   content instead of filling the row. That's the actual root cause of
+   two separate-looking bugs: (1) .lp-mm-dd-trig's own
+   `justify-content: space-between` (styles.css, "Mobile menu dropdown
+   items") had no real row width to distribute, so the chevron collapsed
+   in right next to the label instead of sitting at the row's far edge;
+   (2) .lp-mm-link ("Pricing") rendered at whatever size its own
+   now-fixed rule gave it, visually disconnected from the accordion
+   rows above it. `stretch` (now explicit; also CSS's own initial value,
+   restated for clarity) plus a real max-width/padding here is the
+   actual fix — .lp-mm-dd-trig/.lp-mm-link's existing `width: 100%` now
+   has something real to be 100% of. */
 .lp-mm-nav {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 2px;
   width: 100%;
+  max-width: 420px;
+  padding: 0 28px;
+  box-sizing: border-box;
 }
+/* "Pricing" now matches Product/Solutions/Resources' own typography
+   exactly (was a leftover 36px/700-weight treatment from an earlier,
+   simpler flat-list version of this menu, predating the accordion
+   rows — spec: "Pricing is inexplicably much larger... make its
+   typography consistent... not four unrelated typographic
+   treatments"). Mirrors .lp-mm-dd-trig's row shape (flex, left-aligned
+   label, same padding/border-bottom rhythm) so the four primary items
+   read as one consistent list, differing only in that Pricing has no
+   chevron/no expandable content. */
 .lp-mm-link {
-  display: block;
-  font-size: 36px;
-  font-weight: 700;
-  letter-spacing: -.04em;
-  color: rgba(255,255,255,.55);
-  padding: 10px 32px;
-  text-align: center;
-  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: rgba(255,255,255,.82);
+  padding: 14px 0;
+  text-align: left;
+  border-radius: 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
   transition: color .18s ease, background .18s ease;
   text-decoration: none;
 }
@@ -24041,10 +24120,10 @@ body {
 .lp-dd-sm .lp-dd-item { font-size: 13px; padding: 8px 10px; }
 
 /* -- Mobile menu dropdown items -- */
-.lp-mm-item { }
+.lp-mm-item { width: 100%; }
 .lp-mm-dd-trig {
   all: unset;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
   width: 100%; box-sizing: border-box;
   padding: 14px 0;
   font-size: 18px; font-weight: 600; color: rgba(255,255,255,.82);
@@ -25144,6 +25223,35 @@ body.dark-mode .orv-empty-title { color: rgba(255,255,255,.9); }
   opacity: 0; transform: scale(.94);
   transition: opacity .25s ease, transform .25s ease;
 }
+/* Mobile Polish pass — bug fix: this span is position:absolute, so the
+   parent .ov-frag-center's own `padding: 0 22%` (its intended "safe
+   zone" for this text) never actually constrained it — percentages on
+   an absolutely positioned element's own width resolve against the
+   containing block's PADDING box, not its content box, so that padding
+   was cosmetic as far as this element's own sizing is concerned. At
+   desktop's ring size this went unnoticed (even the longest label,
+   "Give Oriven the context behind your business.", fits on one line
+   with real margin to spare); at mobile's smaller ring
+   (.ov-frag-ring-wrap: 420px/90vw, was 640px/88vw) the same
+   unconstrained single-line text is wide enough to sit directly over
+   the fragments on both sides — confirmed via direct measurement
+   before this fix (up to 267px wide inside a ~180px hollow center).
+   A real max-width (not a percentage) is the actual fix; wrapping to a
+   second line is what text-align:center + line-height already handle
+   correctly once the box is finally constrained. */
+@media (max-width: 640px) {
+  .ov-frag-center-text {
+    /* Responsive, not a flat px cap — the ring itself scales with
+       viewport width down to 640px (.ov-frag-ring-wrap: min(420px,
+       90vw)), so a fixed max-width here was still too wide at the
+       narrow end (confirmed: overlapped again at 360px specifically,
+       even though 390px/375px were fine) -- this tracks the ring's own
+       vw-based shrinkage instead of assuming one fixed mobile size. */
+    max-width: min(160px, 40vw);
+    font-size: 12px;
+    line-height: 1.32;
+  }
+}
 /* Labels positioned radially around the ring at percentages (not fixed
    px), so they stay correctly aligned at any container size — precomputed
    sin/cos for the 6 segment midpoint angles (30/90/150/210/270/330°),
@@ -25929,6 +26037,82 @@ button.ov-frag-hit:focus-visible {
   .ov-ws-panel-title { font-size: 21px; }
   /* Same reasoning as the 900px breakpoint above — the previous 4:3
      override predates real 16:9 footage and would crop it on mobile. */
+}
+
+/* Mobile Polish pass — phone-only (≤600px; the 900px breakpoint above
+   still governs tablet, untouched). The film itself becomes the
+   section's actual focal point instead of a small preview squeezed
+   under a tall, wrapped 6-item tab grid:
+   - .ov-ws-rail becomes a single-row, horizontally-scrolling strip
+     (icons dropped — text-only pills read faster in a scroll strip and
+     the row stays genuinely one line instead of wrapping to two/three)
+     so the selector claims minimal, fixed vertical height regardless of
+     which of the 6 items is active or how the labels wrap on a wider
+     phone.
+   - .ov-ws-media (the video) bleeds to the card's own edges via a
+     negative margin equal to .ov-ws-panel's own padding — same
+     established "bleed past the card's padding" technique already used
+     elsewhere on this page (e.g. the Meta ad-card media on mobile) —
+     instead of sitting inset inside it. Combined with reduced outer
+     section/panel padding, this is what actually gives the film
+     meaningfully more real width, not just `width:100%` inside an
+     already-narrow box.
+   - Six real films, six-item order and every video src are completely
+     untouched — this is presentation-only. */
+@media (max-width: 600px) {
+  .ov-pillars-section { padding: 48px 14px; }
+  .ov-workspace { border-radius: 20px; }
+  .ov-ws-rail {
+    position: relative;
+    flex-direction: row; flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    gap: 8px;
+    padding: 10px 8px 10px 12px;
+  }
+  .ov-ws-rail::-webkit-scrollbar { display: none; }
+  /* Scroll discoverability — a restrained edge fade toward the card's
+     own Deep Moss background (not a hard cut), shown/hidden by JS
+     (index.html, updateRailFades) based on actual scroll position, not
+     a permanent decoration. pointer-events:none so it never blocks
+     touch scrolling underneath it. Paired with the rail's own right
+     padding (8px, tighter than the left's 12px) so the next pill is
+     always genuinely, deliberately partially visible at rest — the
+     fade reinforces that cut-off edge rather than being the only cue. */
+  .ov-ws-rail::before,
+  .ov-ws-rail::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 28px;
+    pointer-events: none; z-index: 1;
+    opacity: 0; transition: opacity .2s ease;
+  }
+  .ov-ws-rail::before {
+    left: 0;
+    background: linear-gradient(to right, var(--oriven-accent-dark, #26331A), transparent);
+  }
+  .ov-ws-rail::after {
+    right: 0;
+    background: linear-gradient(to left, var(--oriven-accent-dark, #26331A), transparent);
+  }
+  .ov-ws-rail.ov-ws-rail-fade-l::before { opacity: 1; }
+  .ov-ws-rail.ov-ws-rail-fade-r::after { opacity: 1; }
+  .ov-ws-tab {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 8px 14px;
+    border-radius: 999px;
+  }
+  .ov-ws-tab-ico { display: none; }
+  .ov-ws-tab span { font-size: 13px; }
+  .ov-ws-panel { padding: 12px 12px 16px; }
+  .ov-ws-media {
+    margin: -12px -12px 14px;
+    width: calc(100% + 24px);
+    border-radius: 0;
+  }
+  .ov-ws-panel-eyebrow { font-size: 11px; margin-bottom: 6px; }
+  .ov-ws-panel-title { font-size: 19px; margin-bottom: 6px; }
+  .ov-ws-panel-desc { font-size: 13.5px; }
 }
 
 
