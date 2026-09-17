@@ -53,8 +53,83 @@ var CREDIT_COSTS = {
   videoAd:      200, // == video_generation
   intelligence: 25,  // == ai_analysis
   autopilot:    25,
-  chat:         5    // == ai_chat
+  chat:         5,   // == ai_chat
+  research:     25,  // == ai_analysis (Research shares the same server-side
+                      // rate as Campaign Insights — confirmed against
+                      // server.js POST /api/research/query, 2026-08 audit)
+  business:     30,  // == website_analysis (the one AI-metered Business
+                      // action — server.js POST /api/business/website/refresh)
+
+  // ── Combined, customer-facing totals (Marketing/Pricing Redesign) —
+  // NOT new server charges. A complete image ad, start to finish, is two
+  // real steps in the product (generate concept/copy, campaign_generation
+  // 25cr, then render the actual image, image_generation 75cr) that
+  // together cost 100cr; a complete video ad is the same concept step
+  // (25cr) plus video_generation (200cr) = 225cr. Verified exactly against
+  // server.js (2026-08 audit) — these are what pricing copy shows as "1
+  // image ad"/"1 video ad" so the customer sees one clear number instead
+  // of two internal line items; the backend keeps charging the two real
+  // steps separately, unchanged.
+  imageAdComplete: 100,
+  videoAdComplete: 225
 };
+
+// ── Canonical, user-facing credit action list (Pricing/Credit Consistency
+// pass) — the ONE source every surface (Settings AI Credit Usage, paywall,
+// landing pricing "Credits" explainer, onboarding) renders its "what costs
+// credits" list from, so this can never drift into three hand-typed copies.
+// Deliberately only the six REAL, user-triggered billable actions — no
+// internal-only buckets (campaign_generation alone, competitor_analysis,
+// brand_voice, etc. exist server-side but are never a standalone thing a
+// user consciously "buys" — they're folded into Image Ad/Video Ad or not
+// user-facing at all) and no 0-cost actions (Launch/Campaigns are called
+// out as free in prose instead, not padded in here as "0 credits" rows).
+// Where a live creditStatus.featureCosts is available (Settings, which
+// reads real-time server data), prefer that over these static numbers —
+// this array exists for surfaces with no authenticated credit-status call
+// to make (paywall entitlement copy, the public landing page).
+var ORIVEN_CREDIT_ACTIONS = [
+  { key: "imageAd",     label: "Image Ad",             cost: CREDIT_COSTS.imageAdComplete },
+  { key: "videoAd",     label: "Video Ad",             cost: CREDIT_COSTS.videoAdComplete },
+  { key: "research",    label: "Research",             cost: CREDIT_COSTS.research },
+  { key: "chat",        label: "ORIVEN Chat",          cost: CREDIT_COSTS.chat },
+  { key: "business",    label: "Website Intelligence", cost: CREDIT_COSTS.business },
+  { key: "autopilot",   label: "Autopilot Execution",  cost: CREDIT_COSTS.autopilot }
+];
+
+// ── Homepage + Pricing Polish Pass — shared feature-comparison categories.
+// ALL THREE landing-page pricing cards render this exact same ordered list
+// (spec: "Iedere kaart toont dezelfde categorieën... Geen 'Everything in
+// Starter' / 'Everything in Creator'") so a viewer can compare plans
+// row-by-row without re-reading each card's own prose. Each plan below
+// carries a `featureFlags` map keyed by these categories' `key`.
+// Final Marketing Website Polish pass — order reverted to Business
+// directly above Research (spec: "IMPORTANT: Business must be ABOVE
+// Research" — the previous pass had flipped these two, this pass flips
+// them back). Order is the single thing that makes the three pricing
+// cards row-by-row comparable, so it's centralized here rather than
+// hand-typed per card.
+// Final Pricing Cleanup pass — "Campaign management"/"Campaign performance
+// insights" renamed to Launch/Campaigns (ORIVEN's own real product names,
+// same featureFlags keys underneath, no entitlement change); ORIVEN Chat
+// added as its own row (was previously not represented in this comparison
+// at all). costKey/costUnit are optional: when present, the render
+// functions below look up CREDIT_COSTS[costKey] live and append "N
+// credits / costUnit" as a small secondary line under the label — never a
+// second hardcoded number, so this can never drift from the canonical
+// registry (plans.js CREDIT_COSTS, itself mirroring creditManager.js).
+var ORIVEN_FEATURE_CATEGORIES = [
+  { key: "imageAds",         label: "Create Image Ads",  costKey: "imageAdComplete", costUnit: "ad" },
+  { key: "videoAds",         label: "Create Video Ads",  costKey: "videoAdComplete", costUnit: "ad" },
+  { key: "chat",             label: "ORIVEN Chat",       costKey: "chat",            costUnit: "message" },
+  { key: "research",         label: "Research",          costKey: "research",        costUnit: "investigation" },
+  { key: "campaignMgmt",     label: "Launch" },
+  { key: "performance",      label: "Campaigns" },
+  { key: "creativeMgmt",     label: "Creative management" },
+  { key: "business",         label: "Business" },
+  { key: "autopilot",        label: "Autopilot",         costKey: "autopilot",       costUnit: "execution" },
+  { key: "prioritySupport",  label: "Priority Support" }
+];
 
 // Plan comparison focuses on the three things that actually differ between
 // plans economically: AI Credits, Intelligence, Autopilot. Campaign/image/
@@ -106,32 +181,103 @@ var ORIVEN_PLANS = {
     desc:        "Explore Oriven before you commit.",
     intelligence:   "1 use / month",
     autopilotLimit: null,
-    // Real, existing capabilities only, worded honestly against the actual
-    // credit economy: a full campaign generation costs 25 credits
-    // (creditManager.FEATURE_COSTS.campaign_generation) -- more than Free's
-    // entire 10/day allowance -- so this must never claim "Create ads" or
-    // imply unrestricted/daily full-campaign generation. The 10 credits/day
-    // instead cover smaller metered actions (chat, copy rewrites, audience/
-    // competitor analysis) between full generations, which build up toward
-    // one; publishing the resulting ad is fully allowed once generated.
+    // Pricing/Credit Consistency pass — added so Free can render through
+    // the same ORIVEN_FEATURE_CATEGORIES matrix other plans use where that
+    // makes sense (Settings' explicit Research row already reads this).
+    // imageAds/videoAds/creativeMgmt are honestly false: re-tracing the
+    // real credit math (see the allFeatures comment below) confirmed Free
+    // cannot actually afford to render an image (75cr) or video (200cr) ad
+    // from its 10-credit/day, non-accumulating balance, and most other
+    // creative-management routes (/api/creative/*) are paid-only
+    // (requireSubIfAuthed). campaignMgmt/performance/business are
+    // genuinely true — Campaigns listing/metrics and Business profile/
+    // products/audiences/competitors CRUD are auth-only, no plan gate
+    // (confirmed directly in server.js).
+    // chat:false -- Final Pricing Cleanup pass, verified (not assumed)
+    // against the real POST /api/ai/chat route: it uses requireSubIfAuthed,
+    // which has no 'free' exception, so an authenticated Free user gets a
+    // real 403 SUBSCRIPTION_REQUIRED. This card's ✕ therefore matches
+    // actual backend behavior, not just the desired presentation.
+    featureFlags: {
+      imageAds: false, videoAds: false, chat: false, campaignMgmt: true, performance: true,
+      creativeMgmt: false, business: true, research: false, autopilot: false,
+      prioritySupport: false
+    },
+    // Final Pricing Cleanup pass — Free's card content rewritten to concise
+    // product-name bullets, matching the rest of this redesign. Two prior
+    // lines removed here (not just re-worded):
+    //   "10 credits / day" -- moved OUT of this list; it's now rendered
+    //   once, near the price/header, the same treatment every other plan
+    //   gets (see renderLPPricingCards/renderPWPricingCards below) instead
+    //   of being buried as a feature bullet.
+    //   "1 Intelligence use / month" -- removed per explicit product
+    //   decision: this is a real, server-enforced allowance
+    //   (PLAN_INTELLIGENCE_LIMITS.free=1, creditManager.js) but it's a
+    //   generic internal-sounding term, not one of ORIVEN's six products,
+    //   and easy to misread as implying some Research access (it doesn't
+    //   -- Research is a completely separate, fully-blocked gate). The
+    //   counter/backend behavior is untouched; only the marketing line is
+    //   gone.
+    // Launch/Campaigns/Business are real, genuinely reachable for Free
+    // (confirmed in the prior pricing-consistency pass: their listing/CRUD
+    // routes carry no plan gate at all in server.js) -- named explicitly
+    // here instead of the old vaguer "Publish your ads" line.
     allFeatures: [
-      "10 credits / day",
-      "1 Intelligence use / month",
-      "Publish your ads"
+      "Launch",
+      "Campaigns",
+      "Business"
     ],
     features: [
-      "10 credits / day",
-      "1 Intelligence use / month",
-      "Publish your ads"
+      "Launch",
+      "Campaigns",
+      "Business"
     ],
     // Shown as muted/crossed-out items alongside the positive feature list
-    // in the paywall (renderPWPricingCards only) -- naming a real, existing
-    // paid-plan capability Free doesn't include, not inventing a new one.
+    // (paywall/onboarding via renderPWPricingCards, and Free's own landing
+    // card via renderLPPricingCards) -- naming real, existing paid-plan
+    // capabilities Free doesn't include, not inventing new ones. Every one
+    // of these four was individually re-verified against the real backend
+    // gate this pass (not assumed): Create Image/Video Ads -- genuinely
+    // unaffordable from a 10cr/day, non-resetting-to-more balance (see the
+    // featureFlags comment above); Research -- requireCreatorPlus, real
+    // 403 for Free; Autopilot -- requireAutopilotAccess, real 403 for
+    // Free; ORIVEN Chat -- requireSubIfAuthed on POST /api/ai/chat has no
+    // 'free' exception, real 403 for Free (this specific one corrects a
+    // stale claim in an earlier version of this comment, which incorrectly
+    // asserted Free's daily credits could fund AI Chat -- checked directly
+    // against the live route this pass and found Chat is not reachable by
+    // Free at all, regardless of balance).
+    // Ordered to loosely mirror ORIVEN_FEATURE_CATEGORIES' own row order
+    // (Image/Video Ads, Chat, Research, ..., Autopilot) so a reader
+    // scanning left-to-right across Free and a paid card sees roughly the
+    // same sequence, even though Free renders this as its own short list
+    // rather than the full row-by-row matrix.
     excludedFeatures: [
+      "Create Ads",
+      "ORIVEN Chat",
+      "Research",
       "Autopilot"
     ]
   },
 
+  // Marketing/Pricing Redesign — feature lists rewritten around the final
+  // 5-pillar product model (Launch/Campaigns/Research/Autopilot/Business),
+  // using real feature names and real, server-verified numbers throughout
+  // (2026-08 audit — see server.js requireCreatorPlus for the matching
+  // real backend gate on Research/Business, added the same pass so the
+  // marketing claim below and actual enforcement never diverge). usageEx
+  // is computed directly from CREDIT_COSTS.imageAdComplete/videoAdComplete
+  // and this plan's own `credits`, never a hand-typed number, so it can
+  // never drift out of sync with the real economics above.
+  // Homepage + Pricing Polish Pass — Business repositioned as INCLUDED
+  // starting at Starter (a deliberate, explicit change from the previous
+  // pass, where Business required Creator+). Research remains Creator+;
+  // Autopilot/Priority Support remain Professional-only (Team was removed
+  // as a product surface entirely — Autopilot Redesign + Team Removal
+  // sprint). See
+  // server.js POST /api/business/website/refresh — its requireCreatorPlus
+  // gate was removed the same pass so the real backend matches this claim
+  // (auth-only again, available to any signed-in paid plan).
   starter: {
     id:          "starter",
     name:        "Starter",
@@ -142,18 +288,26 @@ var ORIVEN_PLANS = {
     limit:       1000,
     teamMembers: 1,
     explore:     false,
-    desc:        "For individuals getting started with AI-powered ad analytics.",
-    intelligence:   "40 analyses / month",
+    desc:        "Create advertising without adding another workflow.",
+    intelligence:   "40 insights / month",
     autopilotLimit: null,
-    allFeatures: [
-      "1.000 AI Credits / Month",
-      "Intelligence: 40 analyses / month",
-      "Autopilot: not included"
-    ],
+    // chat:true -- verified against the real POST /api/ai/chat gate
+    // (requireSubIfAuthed, PAID_PLANS includes 'starter').
+    featureFlags: {
+      imageAds: true, videoAds: true, chat: true, campaignMgmt: true, performance: true,
+      creativeMgmt: true, business: true, research: false, autopilot: false,
+      prioritySupport: false
+    },
+    // Final Pricing Cleanup pass -- trailing "1.000 credits / month" bullet
+    // removed; credits are now shown once, near the price (see
+    // renderPWPricingCards/renderLPPricingCards), not repeated here too.
     features: [
-      "1.000 AI Credits / Month",
-      "Intelligence: 40 analyses / month",
-      "Autopilot: not included"
+      "Create image & video ads",
+      "ORIVEN Chat",
+      "Full campaign management",
+      "Campaign performance & insights",
+      "Creative management",
+      "Business — brand & context"
     ]
   },
 
@@ -167,18 +321,17 @@ var ORIVEN_PLANS = {
     limit:       2500,
     teamMembers: 1,
     explore:     false,
-    desc:        "For creators, founders, and growing brands running multi-channel ads.",
-    intelligence:   "100 analyses / month",
-    autopilotLimit: 10,
-    allFeatures: [
-      "2.500 AI Credits / Month",
-      "Intelligence: 100 analyses / month",
-      "Autopilot: 10 executions / month"
-    ],
+    desc:        "Manage campaigns from one workspace, backed by research.",
+    intelligence:   "100 insights / month",
+    autopilotLimit: null,
+    featureFlags: {
+      imageAds: true, videoAds: true, chat: true, campaignMgmt: true, performance: true,
+      creativeMgmt: true, business: true, research: true, autopilot: false,
+      prioritySupport: false
+    },
     features: [
-      "2.500 AI Credits / Month",
-      "Intelligence: 100 analyses / month",
-      "Autopilot: 10 executions / month"
+      "Everything in Starter",
+      "Research — what's working in advertising"
     ]
   },
 
@@ -191,27 +344,33 @@ var ORIVEN_PLANS = {
     limit:       4000,
     teamMembers: 10,
     explore:     false,
-    desc:        "For professional teams scaling ad performance across all channels.",
-    intelligence:   "Unlimited",
+    desc:        "Automate optimization with rules you control.",
+    intelligence:   "Unlimited insights",
     autopilotLimit: Infinity,
-    allFeatures: [
-      "4.000 AI Credits / Month",
-      "Intelligence: Unlimited",
-      "Autopilot: Unlimited",
-      "Team — invite members & collaborate",
-      "Priority Support",
-      "Up to 10 Team Members"
-    ],
+    featureFlags: {
+      imageAds: true, videoAds: true, chat: true, campaignMgmt: true, performance: true,
+      creativeMgmt: true, business: true, research: true, autopilot: true,
+      prioritySupport: true
+    },
     features: [
-      "4.000 AI Credits / Month",
-      "Intelligence: Unlimited",
-      "Autopilot: Unlimited",
-      "Team — invite members & collaborate",
-      "Priority Support",
-      "Up to 10 Team Members"
+      "Everything in Creator",
+      "Autopilot — automation rules you control",
+      "Priority support"
     ]
   }
 };
+
+
+// ── Usage examples — computed, never hand-typed, so they can never drift
+// from the real credit economics above (Marketing/Pricing Redesign: "Do
+// not invent... use sensible thresholds and existing available data").
+["starter", "creator", "professional"].forEach(function(key){
+  var p = ORIVEN_PLANS[key];
+  p.usageExample = {
+    imageAds: Math.floor(p.credits / CREDIT_COSTS.imageAdComplete),
+    videoAds: Math.floor(p.credits / CREDIT_COSTS.videoAdComplete)
+  };
+});
 
 // Official display order everywhere plans are shown: Free, Starter,
 // Creator, Professional. Single source of truth for the in-app paywall
@@ -243,33 +402,109 @@ var _PLAN_CHK_SVG = '<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" 
 // ── Render: Landing page pricing ────────────────────────────────
 // Outputs the .ov-pc* card markup used by the live landing page's Pricing
 // section (index.html #pricing) — the .ov-pc* classes are what's actually
-// styled/animated there today. Public landing page = ORIVEN_PAID_PLANS only
-// (Starter, Creator, Professional) -- Free is an in-app exploration state,
-// not a public pricing tier, so it's deliberately never rendered here.
+// styled/animated there today.
+//
+// Pricing/Credit Consistency pass — Free now renders here too (this task's
+// explicit brief: "Free should visually belong to the pricing system... but
+// do not make it appear as feature-rich as paid plans"). Free deliberately
+// does NOT render through the same row-by-row ORIVEN_FEATURE_CATEGORIES
+// matrix the three paid plans use to stay directly comparable to each
+// other — applying that same 9-row technical checklist to Free (which
+// genuinely lacks 5 of those 9 things, see its featureFlags above) would
+// read as a mostly-crossed-out, broken-looking card. Free instead renders
+// its own short, honest features/excludedFeatures prose list — the exact
+// same one the paywall (renderPWPricingCards below) already uses for it.
+// Final Pricing Cleanup pass — a category row's cost sub-label, shared by
+// every render function below so it's built the exact same way everywhere
+// (never a hand-typed "100 credits / ad" string). Always reads CREDIT_COSTS
+// live -- if a category has no costKey (Launch, Campaigns, Business,
+// Creative management, Priority Support), returns ''.
+function _ovFeatCostLabel(cat){
+  if(!cat.costKey || typeof CREDIT_COSTS === 'undefined') return '';
+  var n = CREDIT_COSTS[cat.costKey];
+  if(typeof n !== 'number') return '';
+  return orvFormatCredits(n) + ' credits / ' + cat.costUnit;
+}
+
 function renderLPPricingCards(containerEl){
   if(!containerEl) return;
-  containerEl.innerHTML = ORIVEN_PAID_PLANS.map(function(plan, i){
+  containerEl.innerHTML = ORIVEN_PLAN_LIST.map(function(plan, i){
+    var isFree  = plan.id === 'free';
     var isPro   = !!plan.popular;
     var delay   = i === 0 ? '' : (i * 0.08).toFixed(2).replace(/^0/, '');
     var delayAttr = delay ? ' style="transition-delay:' + delay + 's"' : '';
     var badge   = isPro ? '<div class="ov-pc-badge">Most Popular</div>' : '';
-    var feats   = (plan.allFeatures || plan.features || []).map(function(f){
-      return '<li>' + f + '</li>';
-    }).join('');
-    var cycle   = plan.cycleLabel === 'day' ? 'day' : 'mo';
+    var feats;
+    if(isFree){
+      // Same honest, short prose list as the paywall's Free card — real
+      // capabilities only (features), real exclusions named explicitly
+      // (excludedFeatures), never the full comparison matrix.
+      feats = (plan.features || []).map(function(f){ return '<li>' + f + '</li>'; }).join('')
+        + (plan.excludedFeatures || []).map(function(f){ return '<li class="ov-pc-feat-excluded">' + f + '</li>'; }).join('');
+    } else {
+      // Homepage + Pricing Polish Pass — every PAID card renders the same
+      // ORIVEN_FEATURE_CATEGORIES list, each row marked included/excluded
+      // from plan.featureFlags. The ✓/✕ marks themselves are pure CSS
+      // (.ov-pc-list li::before / .ov-pc-feat-excluded::before).
+      //
+      // Final Landing Pricing Cleanup pass — included rows now render as
+      // one unbroken group, then excluded rows as a second group below
+      // them (was: a single pass over ORIVEN_FEATURE_CATEGORIES in its
+      // raw order, which let an excluded row like Research sit between
+      // two included ones and visually interrupt the scan). The canonical
+      // taxonomy order (ORIVEN_FEATURE_CATEGORIES itself, unchanged) is
+      // preserved WITHIN each group — this is a stable partition, not a
+      // re-sort: exactly `included = cats.filter(...); excluded =
+      // cats.filter(...); render included then excluded`, per spec.
+      // Costed rows (Image/Video Ads, ORIVEN Chat, Research, Autopilot)
+      // keep their secondary cost line (.ov-pc-feat-cost) exactly as
+      // before, in either group.
+      var includedCats = ORIVEN_FEATURE_CATEGORIES.filter(function(cat){ return !!(plan.featureFlags && plan.featureFlags[cat.key]); });
+      var excludedCats = ORIVEN_FEATURE_CATEGORIES.filter(function(cat){ return !(plan.featureFlags && plan.featureFlags[cat.key]); });
+      var _renderCat = function(cat, included){
+        var costLabel = _ovFeatCostLabel(cat);
+        return '<li' + (included ? '' : ' class="ov-pc-feat-excluded"') + '>' + cat.label
+          + (costLabel ? '<span class="ov-pc-feat-cost">' + costLabel + '</span>' : '')
+          + '</li>';
+      };
+      feats = includedCats.map(function(cat){ return _renderCat(cat, true); }).join('')
+        + excludedCats.map(function(cat){ return _renderCat(cat, false); }).join('');
+    }
+    // Final Pricing Cleanup pass — the price suffix is always "/mo": these
+    // are monthly plan cards (even Free, priced at €0/mo) and mixing in
+    // Free's own daily CREDIT cadence here read as if the PRICE itself
+    // were daily. The credit allowance keeps its own real cadence
+    // (creditsCycle, "day" for Free / "month" for the rest) in the
+    // dedicated credits line below — these are two separate concepts,
+    // shown separately, not conflated.
     var creditsCycle = plan.cycleLabel === 'day' ? 'day' : 'month';
-    var btnLabel = 'Get Started';
+    var btnLabel = isFree ? 'Start Free' : 'Get Started';
 
     return [
-      // No data-observe here (Final Polish) -- .ov-pc is also driven by a
-      // dedicated GSAP ScrollTrigger (index.html, "09 PRICING") which sets
-      // inline opacity/transform that always wins over the generic
-      // data-observe/.ov-vis CSS-class system, so the two were fighting
-      // over the same element for no benefit. GSAP alone now re-triggers
-      // correctly in both scroll directions (toggleActions, not once:true).
-      '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '"' + delayAttr + '>',
+      // Marketing Website Product-Story Redesign pass — data-observe is
+      // back. The GSAP ScrollTrigger reveal this was deliberately left
+      // out for (index.html, "09 PRICING") was gated behind
+      // document.getElementById('pricing'), an element that no longer
+      // exists since Pricing moved to its own /pricing route — so that
+      // GSAP block has been dead code since that move, and .ov-pc has
+      // been stuck at its base opacity:0 with nothing left to reveal it
+      // (a real bug: cards were invisible on page load, only exposed now
+      // that /pricing needs its cards visible immediately above the
+      // fold). Restoring data-observe uses the same reliable
+      // IntersectionObserver/.ov-vis mechanism every other section on
+      // the site already uses — no GSAP/SPA-view-swap timing fragility.
+      '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '" data-observe' + delayAttr + '>',
         '<div class="ov-pc-head">' + badge + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
-        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/' + cycle + '</span></div><div class="ov-pc-credits">' + orvFormatCredits(plan.credits) + ' AI credits / ' + creditsCycle + '</div></div>',
+        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/mo</span></div>',
+          // Final Pricing Cleanup pass — credit allowance now shown ONCE,
+          // directly under the price (was previously only repeated at the
+          // bottom of the card as "Includes N credits / cycle", removed).
+          // .ov-pc-credits already existed in styles.css, defined for
+          // exactly this spot ("Fixed-height price block: price + credits
+          // line") but orphaned once an earlier pass moved this text to
+          // the bottom instead -- reused here, not a new class.
+          '<div class="ov-pc-credits">' + orvFormatCredits(plan.credits) + ' credits / ' + creditsCycle + '</div>',
+        '</div>',
         '<div class="ov-pc-desc">' + plan.desc + '</div>',
         '<ul class="ov-pc-list">' + feats + '</ul>',
         '<a href="#" class="ov-pc-btn' + (isPro ? ' ov-pc-btn-pro' : '') + '" onclick="lpGetStarted(event)">' + btnLabel + '</a>',
@@ -297,15 +532,19 @@ function renderPWPricingCards(containerEl, plansArr){
       return '<li class="pw-feat pw-feat-excluded">' + f + '</li>';
     }).join("");
     var btnLabel = isFree ? "Continue Free" : "Get Started";
-    var cycle = plan.cycleLabel === 'day' ? 'day' : 'mo';
+    // Final Pricing Cleanup pass — price suffix always "/mo" (same reasoning
+    // as renderLPPricingCards above); credit allowance shown once, right
+    // under the price, using its own real cadence (creditsCycle).
+    var creditsCycle = plan.cycleLabel === 'day' ? 'day' : 'month';
     return [
       '<div class="pw-card' + (plan.popular ? ' pw-card-featured' : '') + (isFree ? ' pw-card-free' : '') + '">',
         plan.popular ? '<div class="pw-featured-badge">Most Popular</div>' : '',
         '<div class="pw-card-name"' + (plan.popular ? ' style="color:#B7FF2A"' : '') + '>' + plan.name + '</div>',
         '<div class="pw-price-row">',
           '<span class="pw-price">€' + plan.price + '</span>',
-          '<span class="pw-period">/' + cycle + '</span>',
+          '<span class="pw-period">/mo</span>',
         '</div>',
+        '<div class="pw-credits-inline">' + orvFormatCredits(plan.credits) + ' credits / ' + creditsCycle + '</div>',
         plan.desc ? '<div class="pw-card-desc">' + plan.desc + '</div>' : '',
         '<div class="pw-card-divider"></div>',
         '<ul class="pw-feats-list">' + feats + excludedFeats + '</ul>',

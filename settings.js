@@ -6,28 +6,56 @@
 // Each handler saves its slice via saveSettings(patch).
 // ════════════════════════════════════════════════════════════════
 
+// Maps a raw HTTP-status/exception string to clean, human copy so ad-
+// account panels never show "HTTP 500" or a raw JS TypeError to users.
+// Real backend-crafted error strings (result.data.error) are already
+// human-readable and pass through unchanged elsewhere — this only
+// intercepts the fallback cases that would otherwise leak internals.
+function _settingsFriendlyError(raw){
+  var msg = (raw || "").toString();
+  if(!msg || /^HTTP \d+$/i.test(msg)) return "Could not load accounts right now — please try again.";
+  if(/Cannot read propert|is not a function|is not defined|undefined is not|null is not/i.test(msg)) return "Something went wrong loading your accounts — please try again.";
+  if(/network ?error|failed to fetch/i.test(msg)) return "Network error — check your connection and try again.";
+  return msg;
+}
+
 // ── Persistence ────────────────────────────────────────────────
+
+// Version (Settings audit pass, spec B35) — mirrors package.json's real
+// "version" field verbatim (that file's own comment documents this as
+// the canonical source). No build step exists in this project to read
+// package.json at runtime, so this is kept in sync by hand rather than
+// fetched — update both together. Never a fake marketing version string.
+var ORIVEN_VERSION = "1.0.0";
 
 var SETTINGS_KEY = "oriven_settings";
 
 var SETTINGS_DEFAULTS = {
   wsName:            "My Workspace",
   theme:             "light",
+  // Accent Color removed as a user-facing setting (Settings audit pass)
+  // — ORIVEN's lime accent is canonical. This key is kept only so a
+  // value saved before this pass has somewhere harmless to sit; nothing
+  // reads it to apply a non-canonical color anymore (see
+  // _applyCanonicalAccent, below).
   accent:            "green",
   language:          "en",
-  notifBrandCheck:   true,
-  notifGenComplete:  true,
-  notifUpdates:      true,
-  notifAutopilot:    true,
-  autoSave:          true,
-  aiLearning:        true,
-  brandConsistency:  true,
-  generationHistory: true,
-  generatorView:     "grid",
+  // Notification preferences (Settings audit pass) — reorganized around
+  // the 5 real, deliverable categories. notifBrandCheck/notifGenComplete/
+  // notifUpdates (no real consumer, or dropped from the visible UI —
+  // see the Notifications panel markup, app.html) and autoSave/
+  // aiLearning/brandConsistency/generationHistory/generatorView (no UI,
+  // no readers anywhere in the codebase, confirmed by direct audit) were
+  // removed as genuinely dead keys rather than left as decorative
+  // settings with nothing real behind them.
+  notifAutopilot:         true,
+  notifAutopilotActions:  true,
+  notifAutopilotFailures: true,
+  notifDeployFailures:    true,
+  notifBilling:           true,
   // "free" is the only safe default — paid plans must be explicitly granted.
   // In production this value is overwritten on sign-in from the backend/Stripe.
   currentPlan:      "free",
-  planRenewalDate:  null,
   pendingPlan:      null,
   pendingPlanDate:  null,
   // Campaign Overview "Customize Metrics" (metrics.js). Per-platform:
@@ -90,6 +118,9 @@ function initSettings(){
   var cfg = loadSettings();
   _applySettingsToUI(cfg);
 
+  var versionEl = document.getElementById("smdVersionVal");
+  if(versionEl) versionEl.textContent = ORIVEN_VERSION;
+
   // Profile email
   _loadProfileEmail();
 
@@ -104,14 +135,21 @@ function initSettings(){
 // Shared by initSettings() (local, instant, no flash) and
 // _syncPreferencesFromDB() (once the account's real preferences are known).
 function _applySettingsToUI(cfg){
-  // Theme first (sets dark-mode class), then accent on top of it
+  // Theme first (sets dark-mode class). Accent Color is gone as a user
+  // setting (Settings audit pass) — ORIVEN's lime accent is canonical
+  // and non-configurable; _applyCanonicalAccent() below actively clears
+  // any inline --green/--gm/etc overrides a STALE saved accent value
+  // (from before this pass, in localStorage or profiles.preferences)
+  // might otherwise still carry, so the real stylesheet cascade always
+  // wins rather than silently reintroducing an old color choice.
   _applyTheme(cfg.theme);
-  _applyAccent(cfg.accent || "green");
+  _applyCanonicalAccent();
 
   // Workspace name
   var wsInp = document.getElementById("wsNameInp");
   if(wsInp) wsInp.value = cfg.wsName || "";
   _updateSidebarName(cfg.wsName);
+  _wsNameDirtyCheck();
 
   // Language — set dropdown + apply strings
   CURRENT_LANG = cfg.language || "en";
@@ -119,17 +157,19 @@ function _applySettingsToUI(cfg){
   if(langSel) langSel.value = CURRENT_LANG;
   applyLanguage();
 
-  // Notification toggles
-  var ng = document.getElementById("tglNotifGenComplete");
-  var nu = document.getElementById("tglNotifUpdates");
-  var np = document.getElementById("tglNotifPublish");
-  var nb = document.getElementById("tglNotifBilling");
-  var na = document.getElementById("tglNotifAutopilot");
-  if(ng) ng.classList.toggle("on", cfg.notifGenComplete !== false);
-  if(nu) nu.classList.toggle("on", cfg.notifUpdates !== false);
-  if(np) np.classList.toggle("on", cfg.notifPublish !== false);
-  if(nb) nb.classList.toggle("on", cfg.notifBilling !== false);
-  if(na) na.classList.toggle("on", cfg.notifAutopilot !== false);
+  // Notification toggles (Settings audit pass — reorganized around the 5
+  // real, deliverable categories; see the Notifications panel markup and
+  // _loadNotifications, app.html, for what each key actually gates).
+  var na  = document.getElementById("tglNotifAutopilot");
+  var naa = document.getElementById("tglNotifAutopilotActions");
+  var naf = document.getElementById("tglNotifAutopilotFailures");
+  var nd  = document.getElementById("tglNotifDeployFailures");
+  var nb  = document.getElementById("tglNotifBilling");
+  if(na)  na.classList.toggle("on", cfg.notifAutopilot !== false);
+  if(naa) naa.classList.toggle("on", cfg.notifAutopilotActions !== false);
+  if(naf) naf.classList.toggle("on", cfg.notifAutopilotFailures !== false);
+  if(nd)  nd.classList.toggle("on", cfg.notifDeployFailures !== false);
+  if(nb)  nb.classList.toggle("on", cfg.notifBilling !== false);
 }
 
 
@@ -137,27 +177,137 @@ function _applySettingsToUI(cfg){
 // WORKSPACE / PROFILE
 // ════════════════════════════════════════════════════════════════
 
+// Dirty-state gate (Settings audit pass, spec B5/B9) — Save only enables
+// once the input genuinely differs from the last-saved value; free text
+// needs an explicit save, unlike Theme/Language which apply immediately.
+function _wsNameDirtyCheck(){
+  var inp = document.getElementById("wsNameInp");
+  var btn = document.getElementById("wsNameSaveBtn");
+  if(!inp || !btn) return;
+  var saved = (loadSettings().wsName || "").trim();
+  var current = inp.value.trim();
+  btn.disabled = (current === saved) || !current;
+  var hint = document.getElementById("wsNameHint");
+  if(hint) hint.style.display = "none";
+}
+
 function saveWsName(){
   var inp = document.getElementById("wsNameInp");
+  var btn = document.getElementById("wsNameSaveBtn");
+  var hint = document.getElementById("wsNameHint");
   if(!inp) return;
   var name = inp.value.trim();
-  if(!name){ toast("Enter a workspace name", "warn"); return; }
+  if(!name){
+    if(hint){ hint.textContent = "Workspace name can't be empty."; hint.style.color = "#ef4444"; hint.style.display = ""; }
+    return;
+  }
+  if(name.length > 60){
+    if(hint){ hint.textContent = "Keep it under 60 characters."; hint.style.color = "#ef4444"; hint.style.display = ""; }
+    return;
+  }
+  if(btn){ btn.disabled = true; btn.textContent = "Saving…"; }
+  if(hint) hint.style.display = "none";
+  // saveSettings() writes localStorage instantly (device-local cache) and
+  // fires the account-side PUT in the background (_pushPreferencesToDB) —
+  // see its own header comment. That background call is fire-and-forget
+  // by existing design, so "saved" here reflects the local write, which
+  // is what every consuming UI surface (_updateSidebarName below) reads
+  // from; a failed account-side sync self-heals on the next
+  // _syncPreferencesFromDB() (page load / Settings reopen).
   saveSettings({ wsName: name });
   _updateSidebarName(name);
+  if(btn){ btn.textContent = "Saved"; }
   toast("Workspace updated");
+  setTimeout(function(){
+    if(btn){ btn.textContent = "Save"; btn.disabled = true; }
+  }, 1200);
 }
 
 function _updateSidebarName(name){
   if(!name) return;
   var el1 = document.getElementById("sidebarUserName");
-  var el2 = document.getElementById("orvSbName");
   var initial = name.trim().charAt(0).toUpperCase() || "A";
   if(el1) el1.textContent = name;
-  if(el2) el2.textContent = name;
   var sbAvatar = document.getElementById("orvSbAvatar");
   if(sbAvatar) sbAvatar.textContent = initial;
   var apAvatar = document.getElementById("apNavAvatar");
   if(apAvatar) apAvatar.textContent = initial;
+}
+
+// Name (Settings audit pass, spec B21) — profiles.first_name is a real,
+// existing column (written at signup, read for the verification-email
+// greeting server-side) that had no edit surface anywhere until now.
+// Fetched directly here (own self-contained call, same pattern this
+// function already uses for email/provider) rather than assuming some
+// other global already holds it.
+async function _loadAccountName(userId){
+  var inp = document.getElementById("acctNameInp");
+  if(!inp || !userId) return;
+  try{
+    var res = await SB.from("profiles").select("first_name").eq("id", userId).maybeSingle();
+    inp.value = (res && res.data && res.data.first_name) || "";
+    inp.dataset.saved = inp.value;
+  }catch(_){}
+}
+
+function _acctNameDirtyCheck(){
+  var inp = document.getElementById("acctNameInp");
+  var btn = document.getElementById("acctNameSaveBtn");
+  if(!inp || !btn) return;
+  btn.disabled = inp.value.trim() === (inp.dataset.saved || "");
+  var hint = document.getElementById("acctNameHint");
+  if(hint) hint.style.display = "none";
+}
+
+async function saveAccountName(){
+  var inp = document.getElementById("acctNameInp");
+  var btn = document.getElementById("acctNameSaveBtn");
+  var hint = document.getElementById("acctNameHint");
+  if(!inp) return;
+  var name = inp.value.trim();
+  if(name.length > 80){
+    if(hint){ hint.textContent = "Keep it under 80 characters."; hint.style.color = "#ef4444"; hint.style.display = ""; }
+    return;
+  }
+  if(btn){ btn.disabled = true; btn.textContent = "Saving…"; }
+  if(hint) hint.style.display = "none";
+  try{
+    var res = await apiFetch("/api/profile/name", { method: "PUT", body: JSON.stringify({ firstName: name }) });
+    if(!res || !res.ok){
+      if(hint){ hint.textContent = (res && res.data && res.data.error) || "Could not save your name right now."; hint.style.color = "#ef4444"; hint.style.display = ""; }
+      if(btn){ btn.textContent = "Save"; btn.disabled = false; }
+      return;
+    }
+    inp.dataset.saved = name;
+    if(btn){ btn.textContent = "Saved"; }
+    toast("Name updated");
+    setTimeout(function(){ if(btn){ btn.textContent = "Save"; btn.disabled = true; } }, 1200);
+  }catch(_){
+    if(hint){ hint.textContent = "Could not save your name right now."; hint.style.color = "#ef4444"; hint.style.display = ""; }
+    if(btn){ btn.textContent = "Save"; btn.disabled = false; }
+  }
+}
+
+// Sign out of all devices (Settings audit pass, spec B28/B30) — real
+// Supabase Auth global sign-out (scope:'global' revokes every refresh
+// token for this user, not just the current one), NOT a fabricated
+// device list. A confirmation is appropriate here (it ends OTHER active
+// sessions the user may be relying on right now), unlike a harmless
+// preference toggle.
+async function confirmSignOutAllSessions(btn){
+  if(!window.confirm("Sign out of ORIVEN on every other device? You'll stay signed in here.")) return;
+  if(btn){ btn.disabled = true; btn.textContent = "Signing out other sessions…"; }
+  try{
+    var res = await SB.auth.signOut({ scope: "others" });
+    if(res && res.error){
+      toast("Could not sign out other sessions — try again", "err");
+    } else {
+      toast("Signed out of all other devices");
+    }
+  }catch(_){
+    toast("Could not sign out other sessions — try again", "err");
+  }
+  if(btn){ btn.disabled = false; btn.textContent = "Sign Out of All Devices"; }
 }
 
 async function _loadProfileEmail(){
@@ -165,6 +315,7 @@ async function _loadProfileEmail(){
     var res = await SB.auth.getSession();
     var session = res && res.data && res.data.session;
     if(session && session.user){
+      _loadAccountName(session.user.id);
       var emailInp = document.getElementById("acctEmailInp");
       if(emailInp) emailInp.value = session.user.email || "";
       var provider = (session.user.app_metadata && session.user.app_metadata.provider) || "email";
@@ -240,8 +391,10 @@ async function saveAccountEmail(){
     if(btn){ btn.disabled = false; btn.textContent = "Save"; }
 
     if(upd && upd.error){
-      var msg = upd.error.message || "Could not update email.";
-      if(/already|registered|exists|taken/i.test(msg)) msg = "That email is already in use by another account.";
+      var raw = upd.error.message || "";
+      var msg = "Could not update email. Please try again.";
+      if(/already|registered|exists|taken/i.test(raw)) msg = "That email is already in use by another account.";
+      else if(/invalid/i.test(raw)) msg = "That doesn't look like a valid email address.";
       showHint(msg, true);
       toast("Email update failed", "err");
       return;
@@ -299,7 +452,10 @@ async function saveAccountPassword(){
     if(btn){ btn.disabled = false; btn.textContent = "Update Password"; }
 
     if(upd && upd.error){
-      showHint(upd.error.message || "Could not update password.", true);
+      var rawPw = upd.error.message || "";
+      var pwMsg = "Could not update password. Please try again.";
+      if(/should be at least|too short/i.test(rawPw)) pwMsg = "New password must be at least 8 characters.";
+      showHint(pwMsg, true);
       toast("Password update failed", "err");
       return;
     }
@@ -328,10 +484,31 @@ function _updateHint(id, isOn, onText, offText){
 
 function setTheme(mode){
   _applyTheme(mode);
-  // Re-apply accent because dark-mode CSS vars override :root values
-  _applyAccent(loadSettings().accent || "green");
+  // Accent Color no longer exists as a user setting (Settings audit
+  // pass) — re-assert the canonical accent rather than re-applying a
+  // possibly-stale saved accent value now that dark-mode's own CSS vars
+  // have just been (re)toggled.
+  _applyCanonicalAccent();
   saveSettings({ theme: mode });
-  toast(mode === "dark" ? "Dark mode" : mode === "system" ? "Using system theme" : "Light mode");
+  // Immediate apply, no toast spam (spec B9) — Theme is a two-click
+  // preference, not a form; a toast for every click reads as noisy
+  // rather than useful, and the visual change itself is the feedback.
+}
+
+// Live "System" response (Settings audit pass, spec B6) — this used to
+// read prefers-color-scheme exactly ONCE at the moment "System" was
+// selected, so the app never actually followed a real OS/browser theme
+// change afterward (e.g. the OS flipping to dark at sunset) until the
+// user manually reloaded or re-clicked "System". Registered once; only
+// acts when the user's saved preference is genuinely "system" — Light/
+// Dark stay explicit and are never overridden by this listener.
+var _themeMediaQuery = (typeof window !== "undefined" && window.matchMedia) ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+if(_themeMediaQuery && typeof _themeMediaQuery.addEventListener === "function"){
+  _themeMediaQuery.addEventListener("change", function(e){
+    if(loadSettings().theme !== "system") return;
+    document.body.classList.toggle("dark-mode", e.matches);
+    _applyCanonicalAccent();
+  });
 }
 
 function _applyTheme(mode){
@@ -421,10 +598,34 @@ var ACCENT_PALETTES = {
   }
 };
 
+// Settings audit pass — Accent Color removed as a user-facing setting
+// (no more .accent-swatch controls in Settings; ORIVEN's lime accent is
+// canonical and part of the product's functional visual language —
+// primary CTAs, nav active-states, and status colors all depend on a
+// single deliberate accent). setAccent/_applyAccent/ACCENT_PALETTES are
+// kept defined (unused by any live UI now) rather than deleted, since
+// business-hub.test.js's pre-existing accent-propagation regression test
+// still exercises _applyAccent directly to prove the underlying
+// mechanism is inert-safe, not gone in a way that could silently break
+// something else reading these globals. See _applyCanonicalAccent below
+// for what actually runs on every real settings load now.
 function setAccent(name){
   _applyAccent(name);
   saveSettings({ accent: name });
   toast("Accent color updated");
+}
+
+// Runs on every real Settings load in place of the old
+// _applyAccent(cfg.accent) call. Clears any inline --green/--gm/--glt/
+// --gpale/--green-deep/--green-text overrides a STALE saved accent
+// (written before this pass, still sitting in localStorage or
+// profiles.preferences) would otherwise keep applying via _applyAccent's
+// inline-on-body mechanism, so the real stylesheet's own canonical lime
+// values always win regardless of what was saved previously.
+function _applyCanonicalAccent(){
+  ["--green", "--gm", "--glt", "--gpale", "--green-deep", "--green-text"].forEach(function(prop){
+    document.body.style.removeProperty(prop);
+  });
 }
 
 // Sets accent CSS custom properties directly on body as inline styles,
@@ -603,13 +804,13 @@ var LANG_STRINGS = {
     // Banner
     // Builder
     // Settings Completion — current live sidebar/workspace titles (Oriven 1.0)
-    navLaunch:"Launch", navCampaigns:"Campaigns", navIntelligence:"Intelligence", navAutopilot:"Autopilot", navBusiness:"Business", navSettings:"Settings",
+    navLaunch:"Launch", navCreate:"Create", navResearch:"Research", navCampaigns:"Campaigns", navIntelligence:"Intelligence", navAutopilot:"Autopilot", navBusiness:"Business", navSettings:"Settings", adLibraryCta:"Browse your Ad Library →",
     wsTitleIntelligence:"Intelligence", wsSubIntelligence:"What deserves your attention today.",
     wsTitleBusiness:"Business", wsSubBusiness:"Teach Oriven your business once — every campaign, conversation, and recommendation uses it automatically from then on.",
     wsTitleAutopilot:"Autopilot", wsSubAutopilot:"Automates repetitive advertising work. Nothing more.",
     wsTitlePerformance:"Performance", wsSubPerformance:"How are your campaigns performing?",
     wsTitleCampaigns:"Campaigns", wsSubCampaigns:"Manage your campaigns — drafts, active, and archived.",
-    hubTabOverview:"Overview", hubTabLiveCampaigns:"Live Campaigns", hubTabDrafts:"Drafts",
+    hubTabOverview:"Overview", hubTabLiveCampaigns:"Live Campaigns", hubTabDrafts:"Drafts", hubTabCreatives:"Creatives", hubTabInsights:"Insights",
     // Final i18n pass — toasts, validation, confirms (app.html + auth.js)
     toastTypographyComingSoon:"Typography editor coming soon", toastToneComingSoon:"Tone editor coming soon",
     toastPositioningComingSoon:"Positioning editor coming soon", toastSavedDraft:"Saved as draft",
@@ -653,7 +854,7 @@ var LANG_STRINGS = {
     toastSubscriptionPending:"Subscription pending — please refresh in a moment.",
     toastPlatformConnectedSuccess:"connected successfully!",
     // Launch page
-    launchH1:"Launch your next campaign.", genModeImage:"Image", genModeVideo:"Video",
+    launchH1:"Create your next campaign.", genModeImage:"Image", genModeVideo:"Video",
     attachImageBtn:"Attach Image", attachProductBtn:"Attach Product", launchPromptPlaceholder:"What would you like to advertise today? e.g. A gym clothing brand targeting young men in Amsterdam. Budget €30/day.",
     currentlyWorkingWith:"Currently working with", setUpBusinessCta:"Set up your business to personalise every campaign →",
     addMoreImages:"Add more", generatingEllipsis:"Generating…",
@@ -741,7 +942,7 @@ var LANG_STRINGS = {
     bizVcardEmptyDetails:"No details yet — click Edit to fill this in.",
     conNotConnected:"Not connected", conStatusConnected:"Connected", conCheckingStatus:"Checking…",
     conDisconnectBtn:"Disconnect", conAdAccountsHeader:"Ad Accounts", conActiveBadge:"Active", conSetActiveBtn:"Set Active",
-    conConnectGoogleBtn:"Connect Google Ads →", conConnectMetaBtn:"Connect Meta Ads →", conConnectTiktokBtn:"Connect TikTok Ads →",
+    conConnectGoogleBtn:"Connect Google Ads →", conConnectMetaBtn:"Connect Meta Ads →", conConnectTiktokBtn:"Connect TikTok Ads →", conConnectPinterestBtn:"Connect Pinterest Ads →",
     conDetailConnectedAccounts:"Connected Accounts", conDetailConnectedBusinesses:"Connected Businesses",
     bizReadingWebsiteBtn:"Reading your website…",
     // Campaigns — Overview
@@ -769,28 +970,32 @@ var LANG_STRINGS = {
     // Settings modal — full audit pass
     smdHdTitle:"Settings", smdNavGeneral:"General", smdNavSubscription:"Subscription", smdNavNotifications:"Notifications",
     smdNavAccount:"Account", smdNavSecurity:"Security",
-    smdWsNameLabel:"Workspace Name", smdWsNameHelp:"Appears in the sidebar and throughout the app.",
-    smdThemeLabel:"Theme", smdThemeLight:"Light", smdThemeDark:"Dark", smdThemeSystem:"System", smdAccentLabel:"Accent Color",
-    smdLangLabel:"Display & Generation Language", smdLangHelp:"Applied to interface labels and AI-generated content.",
+    smdWsNameLabel:"Workspace Name", smdWsNameHelp:"The name used to identify your ORIVEN workspace, shown in the sidebar.",
+    smdThemeLabel:"Theme", smdThemeHelp:"Choose how ORIVEN appears on this device.", smdThemeLight:"Light", smdThemeDark:"Dark", smdThemeSystem:"System",
+    smdLangLabel:"Language", smdLangHelp:"Choose the language ORIVEN's interface uses.",
     smdLoadingEllipsis:"Loading…",
-    smdNotifGenTitle:"Generation Complete", smdNotifGenSub:"Notify when AI finishes generating content.",
-    smdNotifPubTitle:"Publishing Complete", smdNotifPubSub:"Notify when content has been published.",
-    smdNotifBillTitle:"Billing Updates", smdNotifBillSub:"Alerts for renewals and payment activity.",
-    smdNotifUpdTitle:"Product Updates", smdNotifUpdSub:"In-app announcements about new features.",
-    smdNotifApTitle:"Autopilot Approvals", smdNotifApSub:"Notify when a recommendation or automation rule needs your approval.",
-    smdSignedInWith:"Signed in with", smdEmailLabel:"Email Address", smdEmailHelp:"Used to sign in and receive account notifications.",
-    smdChangePwTitle:"Change Password", smdChangePwHelp:"Enter your current password, then choose a new one.",
+    smdNotifChannelNote:"These control your in-app notification bell. ORIVEN does not currently send notification emails.",
+    smdNotifApTitle:"Autopilot Approvals", smdNotifApSub:"Notify me when an automation requires my approval.",
+    smdNotifApActTitle:"Autopilot Actions", smdNotifApActSub:"Notify me when Autopilot executes an approved or automatic action.",
+    smdNotifApFailTitle:"Autopilot Failures", smdNotifApFailSub:"Notify me when an automation action fails.",
+    smdNotifDeployTitle:"Launch & Deployment Failures", smdNotifDeploySub:"Notify me when ORIVEN cannot complete a campaign deployment.",
+    smdNotifBillTitle:"Credits & Billing", smdNotifBillSub:"Notify me about important credit or billing issues.",
+    smdNameLabel:"Name", smdNameHelp:"The name associated with your ORIVEN account.",
+    smdSignedInWith:"Signed in with", smdEmailLabel:"Email Address", smdEmailHelp:"The email address used to sign in to ORIVEN.",
+    smdChangePwTitle:"Password", smdChangePwHelp:"Change the password used to sign in to ORIVEN.",
     smdCurrentPwPlaceholder:"Current password", smdNewPwPlaceholder:"New password (min. 8 characters)", smdConfirmPwPlaceholder:"Confirm new password",
     smdUpdatePwBtn:"Update Password", smdForgotPwTitle:"Forgot your password?",
     smdForgotPwHelp:"Send a reset link to change your password by email instead.", smdSendResetBtn:"Send Password Reset Email",
+    smdAllSessionsTitle:"Sign Out of All Devices", smdAllSessionsHelp:"Ends every other signed-in session for your account, on any device.", smdAllSessionsBtn:"Sign Out of All Devices",
     smdDangerZoneTitle:"Danger Zone", smdSignOutTitle:"Sign Out", smdSignOutSub:"Sign out of ORIVEN on this device.", smdSignOutBtn:"Sign Out",
     smdDeleteAcctTitle:"Delete Account", smdDeleteAcctSub:"Permanently remove your account and all data. This cannot be undone.", smdDeleteAcctBtn:"Delete Account",
-    smdHelpGeneralHelp:"Your workspace name, theme (light/dark/system), accent color, and interface language. Accent color applies across the whole app — hover states, active tabs, buttons, and focus rings. Changes save automatically and apply immediately.",
-    smdHelpSubHelp:"Your current plan, usage, and billing management. Upgrade, downgrade, or manage payment details from here.",
-    smdHelpNotifHelp:"Control which events generate an alert — generation completion, publishing, billing, product updates, and Autopilot approvals. Turning a category off stops those notifications from being created, not just hidden.",
-    smdHelpAcctHelp:"Your sign-in method and email address. Email changes require confirming the new address before they take effect.",
-    smdHelpSecHelp:"Change your password directly (current password required), or send yourself a password-reset link by email.",
-    smdHelpBizHelp:"Manage your business details, brand voice, audiences, and connected ad accounts from the Business workspace — separate from personal Settings, since it can be shared across teammates.",
+    smdVersionLabel:"Version", smdVersionHelp:"The ORIVEN version currently running.",
+    smdHelpGeneralHelp:"Your workspace name, theme (light/dark/system), and interface language. Theme and language apply immediately; Workspace Name needs Save.",
+    smdHelpSubHelp:"Your current plan, credit balance, and billing management. Upgrade or manage payment details from here.",
+    smdHelpNotifHelp:"Control which events appear in your ORIVEN notification bell — Autopilot activity, deployment failures, and billing. ORIVEN does not currently send notification emails.",
+    smdHelpAcctHelp:"Your name, sign-in method, and email address, plus sign out and account deletion. Email changes require confirming the new address before they take effect.",
+    smdHelpSecHelp:"Change your password directly (current password required), send yourself a password-reset link by email, or sign out of every other device.",
+    smdHelpBizHelp:"Manage your business details, brand voice, audiences, and connected ad accounts from the Business workspace — separate from personal Settings.",
     smdHelpApHelp:"Automation rules that act on your campaigns without manual intervention. Recommendations that need your sign-off appear as Autopilot Approvals notifications, controlled in the Notifications tab.",
     helpTitle:"Help", helpSub:"What each Settings section does.",
     builderResultLabel:"Result", regenerateBtn:"Regenerate", saveToStudioBtn:"Save to Studio",
@@ -798,7 +1003,7 @@ var LANG_STRINGS = {
     obWelcomeTitle:"Welcome to Oriven.",
     obWelcomeDesc:"Oriven helps you create, optimise and automate advertising campaigns with AI.",
     obStartTourBtn:"Start Tour",
-    obLaunchSection:"Launch", obLaunchTitle:"Where every campaign begins.",
+    obLaunchSection:"Create", obLaunchTitle:"Where every campaign begins.",
     obLaunchDesc:"Describe your business goal, choose a platform, and generate an AI campaign.",
     obCampaignsSection:"Campaigns", obCampaignsTitle:"Manage everything you've created.",
     obCampaignsDesc:"Monitor performance, review AI analysis, and improve your campaigns.",
@@ -991,7 +1196,7 @@ var LANG_STRINGS = {
     // Banner
     // Builder
     // Settings Completion — current live sidebar/workspace titles (Oriven 1.0)
-    navLaunch:"Lancer", navCampaigns:"Campagnes", navIntelligence:"Intelligence", navAutopilot:"Autopilot", navBusiness:"Business", navSettings:"Paramètres",
+    navLaunch:"Lancer", navCreate:"Créer", navResearch:"Recherche", navCampaigns:"Campagnes", navIntelligence:"Intelligence", navAutopilot:"Autopilot", navBusiness:"Business", navSettings:"Paramètres", adLibraryCta:"Parcourir votre bibliothèque publicitaire →",
     wsTitleIntelligence:"Intelligence", wsSubIntelligence:"Ce qui mérite votre attention aujourd'hui.",
     wsTitleBusiness:"Business", wsSubBusiness:"Enseignez votre activité à Oriven une seule fois — chaque campagne, conversation et recommandation s'en sert automatiquement par la suite.",
     wsTitleAutopilot:"Autopilot", wsSubAutopilot:"Automatise les tâches publicitaires répétitives. Rien de plus.",
@@ -1039,7 +1244,7 @@ var LANG_STRINGS = {
     toastPaymentReceived:"Paiement reçu — activation de votre compte...",
     toastSubscriptionPending:"Abonnement en attente — veuillez actualiser dans un instant.",
     toastPlatformConnectedSuccess:"connecté avec succès !",
-    launchH1:"Lancez votre prochaine campagne.", genModeImage:"Image", genModeVideo:"Vidéo",
+    launchH1:"Créez votre prochaine campagne.", genModeImage:"Image", genModeVideo:"Vidéo",
     attachImageBtn:"Joindre une image", launchPromptPlaceholder:"Que souhaitez-vous promouvoir aujourd'hui ? ex. Une marque de vêtements de sport ciblant les jeunes hommes à Amsterdam. Budget 30€/jour.",
     currentlyWorkingWith:"Travail en cours avec", setUpBusinessCta:"Configurez votre entreprise pour personnaliser chaque campagne →",
     addMoreImages:"Ajouter plus", generatingEllipsis:"Génération…",
@@ -1124,7 +1329,7 @@ var LANG_STRINGS = {
     bizVcardEmptyDetails:"Aucun détail pour l'instant — cliquez sur Modifier pour le renseigner.",
     conNotConnected:"Non connecté", conStatusConnected:"Connecté", conCheckingStatus:"Vérification…",
     conDisconnectBtn:"Déconnecter", conAdAccountsHeader:"Comptes publicitaires", conActiveBadge:"Actif", conSetActiveBtn:"Définir comme actif",
-    conConnectGoogleBtn:"Connecter Google Ads →", conConnectMetaBtn:"Connecter Meta Ads →", conConnectTiktokBtn:"Connecter TikTok Ads →",
+    conConnectGoogleBtn:"Connecter Google Ads →", conConnectMetaBtn:"Connecter Meta Ads →", conConnectTiktokBtn:"Connecter TikTok Ads →", conConnectPinterestBtn:"Connecter Pinterest Ads →",
     conDetailConnectedAccounts:"Comptes connectés", conDetailConnectedBusinesses:"Entreprises connectées",
     bizReadingWebsiteBtn:"Lecture de votre site en cours…",
     rangeToday:"Aujourd'hui", rangeYesterday:"Hier", rangeLast7Days:"7 derniers jours", rangeLast30Days:"30 derniers jours",
@@ -1341,7 +1546,7 @@ var LANG_STRINGS = {
     resetBCTitle:"Merkidentiteit resetten",
     resetBCDesc:"Dit reset jouw volledige merkinstelling — kleuren, toon, positionering en identiteitsdata. Jouw opgeslagen bestanden in Studio worden niet beïnvloed, maar toekomstige generaties verliezen merkcontext. Deze actie is permanent en kan niet worden teruggedraaid.",
     resetBCBtn:"Merkidentiteit resetten",
-    navLaunch:"Launch", navCampaigns:"Campagnes", navIntelligence:"Intelligentie", navAutopilot:"Autopilot", navBusiness:"Bedrijf", navSettings:"Instellingen",
+    navLaunch:"Launch", navCreate:"Maken", navResearch:"Onderzoek", navCampaigns:"Campagnes", navIntelligence:"Intelligentie", navAutopilot:"Autopilot", navBusiness:"Bedrijf", navSettings:"Instellingen", adLibraryCta:"Bekijk je advertentiebibliotheek →",
     wsTitleIntelligence:"Intelligentie", wsSubIntelligence:"Wat vandaag jouw aandacht verdient.",
     wsTitleBusiness:"Bedrijf", wsSubBusiness:"Leer Oriven eenmalig over je bedrijf — elke campagne, elk gesprek en elke aanbeveling gebruikt dit vanaf dan automatisch.",
     wsTitleAutopilot:"Autopilot", wsSubAutopilot:"Automatiseert repetitief advertentiewerk. Niets meer.",
@@ -1389,7 +1594,7 @@ var LANG_STRINGS = {
     toastPaymentReceived:"Betaling ontvangen — je account wordt geactiveerd...",
     toastSubscriptionPending:"Abonnement in behandeling — vernieuw over een moment.",
     toastPlatformConnectedSuccess:"succesvol verbonden!",
-    launchH1:"Lanceer je volgende campagne.", genModeImage:"Afbeelding", genModeVideo:"Video",
+    launchH1:"Maak je volgende campagne.", genModeImage:"Afbeelding", genModeVideo:"Video",
     attachImageBtn:"Afbeelding bijvoegen", launchPromptPlaceholder:"Wat wil je vandaag adverteren? bijv. Een sportkledingmerk gericht op jonge mannen in Amsterdam. Budget €30/dag.",
     currentlyWorkingWith:"Momenteel bezig met", setUpBusinessCta:"Stel je bedrijf in om elke campagne te personaliseren →",
     addMoreImages:"Meer toevoegen", generatingEllipsis:"Genereren…",
@@ -1474,7 +1679,7 @@ var LANG_STRINGS = {
     bizVcardEmptyDetails:"Nog geen details — klik op Bewerken om dit in te vullen.",
     conNotConnected:"Niet verbonden", conStatusConnected:"Verbonden", conCheckingStatus:"Controleren…",
     conDisconnectBtn:"Loskoppelen", conAdAccountsHeader:"Advertentieaccounts", conActiveBadge:"Actief", conSetActiveBtn:"Actief instellen",
-    conConnectGoogleBtn:"Google Ads verbinden →", conConnectMetaBtn:"Meta Ads verbinden →", conConnectTiktokBtn:"TikTok Ads verbinden →",
+    conConnectGoogleBtn:"Google Ads verbinden →", conConnectMetaBtn:"Meta Ads verbinden →", conConnectTiktokBtn:"TikTok Ads verbinden →", conConnectPinterestBtn:"Pinterest Ads verbinden →",
     conDetailConnectedAccounts:"Verbonden accounts", conDetailConnectedBusinesses:"Verbonden bedrijven",
     bizReadingWebsiteBtn:"Je website wordt gelezen…",
     rangeToday:"Vandaag", rangeYesterday:"Gisteren", rangeLast7Days:"Laatste 7 dagen", rangeLast30Days:"Laatste 30 dagen",
@@ -1647,7 +1852,7 @@ var LANG_STRINGS = {
     resetBCTitle:"Restablecer identidad de marca",
     resetBCDesc:"Esto reinicia toda tu configuración de marca — colores, tono de voz, posicionamiento y datos de identidad. Tus recursos generados guardados en Studio no se verán afectados, pero todas las generaciones futuras perderán el contexto de marca hasta que crees una nueva identidad de marca. Esta acción es permanente y no se puede revertir.",
     resetBCBtn:"Restablecer identidad de marca",
-    navLaunch:"Lanzar", navCampaigns:"Campañas", navIntelligence:"Inteligencia", navAutopilot:"Autopiloto", navBusiness:"Negocio", navSettings:"Ajustes",
+    navLaunch:"Lanzar", navCreate:"Crear", navResearch:"Investigación", navCampaigns:"Campañas", navIntelligence:"Inteligencia", navAutopilot:"Autopiloto", navBusiness:"Negocio", navSettings:"Ajustes", adLibraryCta:"Explora tu biblioteca de anuncios →",
     wsTitleIntelligence:"Inteligencia", wsSubIntelligence:"Qué merece tu atención hoy.",
     wsTitleBusiness:"Negocio", wsSubBusiness:"Enseña a Oriven tu negocio una vez — cada campaña, conversación y recomendación lo usará automáticamente a partir de entonces.",
     wsTitleAutopilot:"Autopiloto", wsSubAutopilot:"Automatiza el trabajo publicitario repetitivo. Nada más.",
@@ -1695,7 +1900,7 @@ var LANG_STRINGS = {
     toastPaymentReceived:"Pago recibido — activando tu cuenta...",
     toastSubscriptionPending:"Suscripción pendiente — actualiza en un momento.",
     toastPlatformConnectedSuccess:"¡conectado correctamente!",
-    launchH1:"Lanza tu próxima campaña.", genModeImage:"Imagen", genModeVideo:"Video",
+    launchH1:"Crea tu próxima campaña.", genModeImage:"Imagen", genModeVideo:"Video",
     attachImageBtn:"Adjuntar imagen", launchPromptPlaceholder:"¿Qué te gustaría anunciar hoy? p. ej. Una marca de ropa deportiva dirigida a hombres jóvenes en Ámsterdam. Presupuesto de 30€/día.",
     currentlyWorkingWith:"Trabajando actualmente con", setUpBusinessCta:"Configura tu negocio para personalizar cada campaña →",
     addMoreImages:"Añadir más", generatingEllipsis:"Generando…",
@@ -1780,7 +1985,7 @@ var LANG_STRINGS = {
     bizVcardEmptyDetails:"Aún no hay detalles — haz clic en Editar para completarlo.",
     conNotConnected:"No conectado", conStatusConnected:"Conectado", conCheckingStatus:"Comprobando…",
     conDisconnectBtn:"Desconectar", conAdAccountsHeader:"Cuentas publicitarias", conActiveBadge:"Activa", conSetActiveBtn:"Establecer como activa",
-    conConnectGoogleBtn:"Conectar Google Ads →", conConnectMetaBtn:"Conectar Meta Ads →", conConnectTiktokBtn:"Conectar TikTok Ads →",
+    conConnectGoogleBtn:"Conectar Google Ads →", conConnectMetaBtn:"Conectar Meta Ads →", conConnectTiktokBtn:"Conectar TikTok Ads →", conConnectPinterestBtn:"Conectar Pinterest Ads →",
     conDetailConnectedAccounts:"Cuentas conectadas", conDetailConnectedBusinesses:"Empresas conectadas",
     bizReadingWebsiteBtn:"Leyendo tu sitio web…",
     rangeToday:"Hoy", rangeYesterday:"Ayer", rangeLast7Days:"Últimos 7 días", rangeLast30Days:"Últimos 30 días",
@@ -1953,7 +2158,7 @@ var LANG_STRINGS = {
     resetBCTitle:"Redefinir identidade de marca",
     resetBCDesc:"Isso redefine toda a configuração da sua marca — cores, tom de voz, posicionamento e dados de identidade. Os recursos gerados salvos no Studio não serão afetados, mas todas as gerações futuras perderão o contexto de marca até você criar uma nova identidade de marca. Essa ação é permanente e não pode ser desfeita.",
     resetBCBtn:"Redefinir identidade de marca",
-    navLaunch:"Lançar", navCampaigns:"Campanhas", navIntelligence:"Inteligência", navAutopilot:"Piloto Automático", navBusiness:"Negócio", navSettings:"Configurações",
+    navLaunch:"Lançar", navCreate:"Criar", navResearch:"Pesquisa", navCampaigns:"Campanhas", navIntelligence:"Inteligência", navAutopilot:"Piloto Automático", navBusiness:"Negócio", navSettings:"Configurações", adLibraryCta:"Explore sua biblioteca de anúncios →",
     wsTitleIntelligence:"Inteligência", wsSubIntelligence:"O que merece sua atenção hoje.",
     wsTitleBusiness:"Negócio", wsSubBusiness:"Ensine ao Oriven sobre o seu negócio uma vez — cada campanha, conversa e recomendação o usará automaticamente a partir de então.",
     wsTitleAutopilot:"Piloto Automático", wsSubAutopilot:"Automatiza o trabalho publicitário repetitivo. Nada mais.",
@@ -2001,7 +2206,7 @@ var LANG_STRINGS = {
     toastPaymentReceived:"Pagamento recebido — ativando sua conta...",
     toastSubscriptionPending:"Assinatura pendente — atualize em instantes.",
     toastPlatformConnectedSuccess:"conectado com sucesso!",
-    launchH1:"Lance sua próxima campanha.", genModeImage:"Imagem", genModeVideo:"Vídeo",
+    launchH1:"Crie sua próxima campanha.", genModeImage:"Imagem", genModeVideo:"Vídeo",
     attachImageBtn:"Anexar imagem", launchPromptPlaceholder:"O que você gostaria de anunciar hoje? ex. Uma marca de roupas esportivas voltada para jovens em Amsterdã. Orçamento de €30/dia.",
     currentlyWorkingWith:"Trabalhando atualmente com", setUpBusinessCta:"Configure seu negócio para personalizar cada campanha →",
     addMoreImages:"Adicionar mais", generatingEllipsis:"Gerando…",
@@ -2086,7 +2291,7 @@ var LANG_STRINGS = {
     bizVcardEmptyDetails:"Ainda sem detalhes — clique em Editar para preencher.",
     conNotConnected:"Não conectado", conStatusConnected:"Conectado", conCheckingStatus:"Verificando…",
     conDisconnectBtn:"Desconectar", conAdAccountsHeader:"Contas de anúncios", conActiveBadge:"Ativa", conSetActiveBtn:"Definir como ativa",
-    conConnectGoogleBtn:"Conectar Google Ads →", conConnectMetaBtn:"Conectar Meta Ads →", conConnectTiktokBtn:"Conectar TikTok Ads →",
+    conConnectGoogleBtn:"Conectar Google Ads →", conConnectMetaBtn:"Conectar Meta Ads →", conConnectTiktokBtn:"Conectar TikTok Ads →", conConnectPinterestBtn:"Conectar Pinterest Ads →",
     conDetailConnectedAccounts:"Contas conectadas", conDetailConnectedBusinesses:"Empresas conectadas",
     bizReadingWebsiteBtn:"Lendo seu site…",
     rangeToday:"Hoje", rangeYesterday:"Ontem", rangeLast7Days:"Últimos 7 dias", rangeLast30Days:"Últimos 30 dias",
@@ -2259,7 +2464,7 @@ var LANG_STRINGS = {
     resetBCTitle:"Markenidentität zurücksetzen",
     resetBCDesc:"Dadurch wird Ihr gesamtes Markensetup zurückgesetzt — Farben, Tonfall, Positionierung und Identitätsdaten. Ihre in Studio gespeicherten generierten Inhalte sind davon nicht betroffen, aber alle zukünftigen Generierungen verlieren den Markenkontext, bis Sie eine neue Markenidentität erstellen. Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden.",
     resetBCBtn:"Markenidentität zurücksetzen",
-    navLaunch:"Starten", navCampaigns:"Kampagnen", navIntelligence:"Intelligenz", navAutopilot:"Autopilot", navBusiness:"Unternehmen", navSettings:"Einstellungen",
+    navLaunch:"Starten", navCreate:"Erstellen", navResearch:"Forschung", navCampaigns:"Kampagnen", navIntelligence:"Intelligenz", navAutopilot:"Autopilot", navBusiness:"Unternehmen", navSettings:"Einstellungen", adLibraryCta:"Durchsuche deine Anzeigenbibliothek →",
     wsTitleIntelligence:"Intelligenz", wsSubIntelligence:"Was heute Ihre Aufmerksamkeit verdient.",
     wsTitleBusiness:"Unternehmen", wsSubBusiness:"Bringen Sie Oriven einmal Ihr Unternehmen bei — jede Kampagne, jedes Gespräch und jede Empfehlung nutzt dies ab sofort automatisch.",
     wsTitleAutopilot:"Autopilot", wsSubAutopilot:"Automatisiert sich wiederholende Werbearbeit. Nicht mehr.",
@@ -2307,7 +2512,7 @@ var LANG_STRINGS = {
     toastPaymentReceived:"Zahlung erhalten — dein Konto wird aktiviert...",
     toastSubscriptionPending:"Abo ausstehend — bitte in einem Moment aktualisieren.",
     toastPlatformConnectedSuccess:"erfolgreich verbunden!",
-    launchH1:"Starte deine nächste Kampagne.", genModeImage:"Bild", genModeVideo:"Video",
+    launchH1:"Erstelle deine nächste Kampagne.", genModeImage:"Bild", genModeVideo:"Video",
     attachImageBtn:"Bild anhängen", launchPromptPlaceholder:"Wofür möchtest du heute werben? z. B. Eine Sportbekleidungsmarke für junge Männer in Amsterdam. Budget 30 €/Tag.",
     currentlyWorkingWith:"Momentan in Arbeit mit", setUpBusinessCta:"Richte dein Unternehmen ein, um jede Kampagne zu personalisieren →",
     addMoreImages:"Weitere hinzufügen", generatingEllipsis:"Wird generiert…",
@@ -2392,7 +2597,7 @@ var LANG_STRINGS = {
     bizVcardEmptyDetails:"Noch keine Details — klicke auf Bearbeiten, um sie auszufüllen.",
     conNotConnected:"Nicht verbunden", conStatusConnected:"Verbunden", conCheckingStatus:"Wird geprüft…",
     conDisconnectBtn:"Trennen", conAdAccountsHeader:"Werbekonten", conActiveBadge:"Aktiv", conSetActiveBtn:"Als aktiv festlegen",
-    conConnectGoogleBtn:"Google Ads verbinden →", conConnectMetaBtn:"Meta Ads verbinden →", conConnectTiktokBtn:"TikTok Ads verbinden →",
+    conConnectGoogleBtn:"Google Ads verbinden →", conConnectMetaBtn:"Meta Ads verbinden →", conConnectTiktokBtn:"TikTok Ads verbinden →", conConnectPinterestBtn:"Pinterest Ads verbinden →",
     conDetailConnectedAccounts:"Verbundene Konten", conDetailConnectedBusinesses:"Verbundene Unternehmen",
     bizReadingWebsiteBtn:"Deine Website wird gelesen…",
     rangeToday:"Heute", rangeYesterday:"Gestern", rangeLast7Days:"Letzte 7 Tage", rangeLast30Days:"Letzte 30 Tage",
@@ -2565,7 +2770,7 @@ var LANG_STRINGS = {
     resetBCTitle:"重置品牌标识",
     resetBCDesc:"这将重置你的整个品牌设置——颜色、语调、定位和身份数据。已保存在 Studio 中的生成资源不会受到影响，但在你创建新的品牌标识之前，未来的所有生成内容都将失去品牌背景信息。此操作是永久性的，无法撤销。",
     resetBCBtn:"重置品牌标识",
-    navLaunch:"启动", navCampaigns:"广告系列", navIntelligence:"智能", navAutopilot:"自动驾驶", navBusiness:"业务", navSettings:"设置",
+    navLaunch:"启动", navCreate:"创建", navResearch:"研究", navCampaigns:"广告系列", navIntelligence:"智能", navAutopilot:"自动驾驶", navBusiness:"业务", navSettings:"设置", adLibraryCta:"浏览广告素材库 →",
     wsTitleIntelligence:"智能", wsSubIntelligence:"今天值得关注的内容。",
     wsTitleBusiness:"业务", wsSubBusiness:"教会Oriven了解您的业务一次——之后每次营销活动、对话和建议都会自动使用它。",
     wsTitleAutopilot:"自动驾驶", wsSubAutopilot:"自动化重复的广告工作，仅此而已。",
@@ -2632,7 +2837,7 @@ function applyLanguage(){
   });
 
   // ── Sidebar nav labels (Oriven 1.0 — current live sidebar) ──────────────────
-  var orvNavMap = { create:"navLaunch", performance:"navCampaigns", intelligence:"navIntelligence", autopilot:"navAutopilot", businessbrain:"navBusiness" };
+  var orvNavMap = { research:"navResearch", create:"navCreate", launch:"navLaunch", performance:"navCampaigns", intelligence:"navIntelligence", autopilot:"navAutopilot", businessbrain:"navBusiness" };
   document.querySelectorAll(".orv-ni[data-orv-page]").forEach(function(btn){
     var key = orvNavMap[btn.getAttribute("data-orv-page")];
     var label = btn.querySelector(".orv-ni-label");
@@ -2703,16 +2908,19 @@ function applyLanguage(){
 
 function toggleNotif(el, key){
   el.classList.toggle("on");
+  var isOn = el.classList.contains("on");
+  el.setAttribute("aria-checked", isOn ? "true" : "false");
   var patch = {};
-  patch[key] = el.classList.contains("on");
+  patch[key] = isOn;
   saveSettings(patch);
   toast("Notifications updated");
 }
 
-// Gate for whether a given notification category (notifGenComplete, notifPublish,
-// notifBilling, notifUpdates, notifAutopilot) is enabled. Defaults to true when
-// settings aren't loaded yet or the key hasn't been set, so nothing regresses
-// for users who haven't touched the toggle.
+// Gate for whether a given notification category (notifAutopilot,
+// notifAutopilotActions, notifAutopilotFailures, notifDeployFailures,
+// notifBilling) is enabled. Defaults to true when settings aren't loaded
+// yet or the key hasn't been set, so nothing regresses for users who
+// haven't touched the toggle.
 window.notifAllowed = function(key){
   try{
     if(typeof loadSettings !== "function") return true;
@@ -2786,33 +2994,17 @@ function _applyGeneratorView(view){
 // ════════════════════════════════════════════════════════════════
 
 function initPlan(){
-  var cfg = loadSettings();
-  var today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // First run: seed the renewal date (30 days from today)
-  if(!cfg.planRenewalDate){
-    var first = new Date(today);
-    first.setMonth(first.getMonth() + 1);
-    saveSettings({ planRenewalDate: first.toISOString() });
-    cfg = loadSettings();
-  }
-
-  // Check if a scheduled plan change is due
-  var renewal = new Date(cfg.planRenewalDate);
-  renewal.setHours(0, 0, 0, 0);
-  if(cfg.pendingPlan && today >= renewal){
-    var next = new Date(renewal);
-    next.setMonth(next.getMonth() + 1);
-    saveSettings({
-      currentPlan:     cfg.pendingPlan,
-      planRenewalDate: next.toISOString(),
-      pendingPlan:     null,
-      pendingPlanDate: null
-    });
-    cfg = loadSettings();
-  }
-
+  // Settings audit pass — this used to invent a fake "renewal date" on
+  // first run (today + 1 month, with no real billing basis) and then
+  // flip the LOCAL currentPlan/pendingPlan the instant that invented
+  // date passed — a fabricated client-side billing cycle that could
+  // show a plan change before Stripe/the server's own webhook had
+  // actually processed it, and wrote the fabricated date to the
+  // account's real profiles.preferences. Removed entirely: the real
+  // pending-plan transition is driven server-side (schedule-plan-change
+  // / the Stripe webhook updating subscription_status), and the real
+  // renewal date shown to the user comes from creditStatus.resetDate
+  // (see renderPlanPanel below) — never from this invented value.
   // Sync sidebar — ONLY use Supabase-authoritative value (_dbSubscriptionStatus).
   // Do NOT fall back to localStorage: a stale cached plan hides profile load errors.
   // auth.js will call _updateSidebarPlan() with the real value once the DB responds.
@@ -2820,6 +3012,27 @@ function initPlan(){
     _updateSidebarPlan(_dbSubscriptionStatus);
   }
   renderPlanPanel();
+}
+
+// Manage Subscription (Settings audit pass, spec B14) — real Stripe
+// Billing Portal session. Stripe itself owns payment methods, invoices,
+// and cancellation inside that portal; nothing here reimplements any of
+// that. Honest failure states throughout: no Stripe customer yet, the
+// portal isn't configured, or a genuine network error — never a fake
+// "loading" that quietly does nothing.
+async function openBillingPortal(btn){
+  if(btn){ btn.disabled = true; btn.textContent = "Opening…"; }
+  try{
+    var res = await apiFetch("/api/create-portal-session", { method: "POST" });
+    if(res && res.ok && res.data && res.data.url){
+      window.location.href = res.data.url;
+      return;
+    }
+    toast((res && res.data && res.data.error) || "Could not open billing management right now.", "warn");
+  }catch(_){
+    toast("Could not open billing management right now.", "warn");
+  }
+  if(btn){ btn.disabled = false; btn.textContent = "Manage Subscription"; }
 }
 
 async function switchPlan(planId){
@@ -3090,7 +3303,13 @@ async function renderPlanPanel(){
 
     var isDaily = plan.cycleLabel === 'day';
     html += '<div class="sub-pcard-name">' + plan.name + '</div>';
-    html += '<div class="sub-pcard-price">€' + plan.price + '<span class="sub-pcard-per">/' + (isDaily ? 'day' : 'mo') + '</span></div>';
+    // Final Pricing Cleanup pass — price suffix always "/mo" (these are
+    // monthly plan cards, Free priced at €0/mo same as the others; only
+    // the CREDIT allowance below has its own real "/day" cadence for
+    // Free) — was previously "/day" for Free here too, contradicting the
+    // landing page's identical fix and confusing price cadence with
+    // credit-reset cadence.
+    html += '<div class="sub-pcard-price">€' + plan.price + '<span class="sub-pcard-per">/mo</span></div>';
     if(isCurrent){
       if(isDaily) html += '<div class="sub-renewal" style="margin:-4px 0 0">Resets every 24 hours</div>';
       else if(renewalStr) html += '<div class="sub-renewal" style="margin:-4px 0 0">Renews ' + renewalStr + '</div>';
@@ -3108,12 +3327,21 @@ async function renderPlanPanel(){
     // "users".
     html += '<ul class="sub-pcard-feats">';
     html += '<li><strong>' + orvFormatCredits(plan.credits) + '</strong> AI Credits / ' + (isDaily ? 'day' : 'month') + '</li>';
-    // Free's Intelligence use doesn't draw from the 10-credit/day pool (it
-    // couldn't -- a single analysis costs more than the whole daily
-    // allowance, same reasoning as campaign generation) -- it's a separate,
-    // server-enforced 1/month allowance instead, so the "uses AI credits"
-    // note would be actively wrong here.
-    html += '<li>Intelligence: ' + plan.intelligence + (isDaily ? '' : '<span class="sub-feat-note"> · uses AI credits</span>') + '</li>';
+    // Final Pricing Cleanup pass — the old "Intelligence: N/month" row was
+    // removed as generic, internal-sounding plan marketing (product
+    // decision: ORIVEN's comparison should name real products/capabilities
+    // -- Research, ORIVEN Chat, Website Intelligence -- not a shared
+    // implementation-level counter easily misread as implying Research
+    // access). The real allowance (PLAN_INTELLIGENCE_LIMITS, creditManager.js)
+    // is untouched server-side; only this marketing line is gone. Explicit
+    // Research and ORIVEN Chat rows below read the exact same
+    // plan.featureFlags the landing page's comparison table reads, so
+    // Settings can never contradict it.
+    html += '<li>Research: ' + (plan.featureFlags && plan.featureFlags.research ? 'Included' : 'Not included') + '</li>';
+    // ORIVEN Chat row — verified against the real POST /api/ai/chat gate
+    // (requireSubIfAuthed) before adding this, not assumed: Free gets a
+    // real 403, every paid plan passes.
+    html += '<li>ORIVEN Chat: ' + (plan.featureFlags && plan.featureFlags.chat ? 'Included' : 'Not included') + '</li>';
     if(plan.autopilotLimit === Infinity){
       html += '<li>Autopilot: Unlimited</li>';
     } else if(typeof plan.autopilotLimit === 'number'){
@@ -3124,9 +3352,7 @@ async function renderPlanPanel(){
     html += '</ul>';
     if(plan.id === 'professional'){
       html += '<ul class="sub-pcard-feats" style="margin-top:4px;opacity:.7">';
-      html += '<li>Team — invite members &amp; collaborate</li>';
       html += '<li>Priority Support</li>';
-      html += '<li>Up to ' + plan.teamMembers + ' Team Members</li>';
       html += '</ul>';
     }
 
@@ -3210,45 +3436,59 @@ async function renderPlanPanel(){
 
   html += '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">';
   html += '<button class="btn btn-g btn-sm" onclick="navigate(\'integrations\')">Manage Integrations</button>';
-  html += '<button class="btn btn-g btn-sm" disabled style="opacity:.5;cursor:not-allowed" title="Coming soon">Purchase Extra Credits — Coming Soon</button>';
+  // Manage Subscription (Settings audit pass) — real Stripe customer
+  // portal (billing/payment methods/invoices/cancellation all owned by
+  // Stripe itself, never reimplemented here). Only offered to a real
+  // paid customer, since Free has no Stripe customer to open a portal
+  // for; POST /api/create-portal-session (server.js) handles the honest
+  // "not available yet" case if stripe_customer_id is genuinely missing.
+  if(currentId && currentId !== 'free'){
+    html += '<button class="btn btn-g btn-sm" id="manageSubBtn" onclick="openBillingPortal(this)">Manage Subscription</button>';
+  }
   html += '</div>';
   html += '</div>';
 
-  // ── AI usage is powered by credits — a compact, canonical reference so
-  //    the cost of an action is understandable without listing generation
-  //    types as plan features. Values come straight from
-  //    creditStatus.featureCosts (creditManager.FEATURE_COSTS via
-  //    /api/credits/status) — never duplicated as hardcoded numbers here. ──
+  // ── Credits — a compact, canonical reference (Pricing/Credit Consistency
+  //    pass). Values come straight from creditStatus.featureCosts
+  //    (creditManager.FEATURE_COSTS via /api/credits/status) — never
+  //    duplicated as hardcoded numbers here, so a real backend price
+  //    change never needs a matching frontend edit.
+  //
+  //    Image Ad / Video Ad are shown as ONE combined, user-facing number —
+  //    not "campaign_generation (copy) + image_generation" as two separate
+  //    line items. That split is a real, correct internal implementation
+  //    detail (Create charges the copy/package step once, then each
+  //    generated image/video separately), but it isn't a separate action a
+  //    user ever triggers on its own, so surfacing it as its own priced
+  //    line item ("25 credits for copy") only confused what "an Image Ad"
+  //    actually costs. See ORIVEN_CREDIT_ACTIONS (plans.js) for the same
+  //    canonical six-row structure reused everywhere else (paywall,
+  //    landing pricing) — this reads live featureCosts instead of that
+  //    static map specifically so Settings always reflects the exact
+  //    number the server would charge right now. */
   if(creditStatus && creditStatus.featureCosts){
     var fc = creditStatus.featureCosts;
     var costRows = [
-      ['Campaign generation', fc.campaign_generation],
-      ['Image generation', fc.image_generation],
-      ['Video generation', fc.video_generation],
-      ['Intelligence analysis', fc.ai_analysis],
-      ['AI chat', fc.ai_chat],
-    ].filter(function(r){ return typeof r[1] === 'number'; });
+      ['Image Ad', (fc.campaign_generation||0) + (fc.image_generation||0)],
+      ['Video Ad', (fc.campaign_generation||0) + (fc.video_generation||0)],
+      ['Research', fc.ai_analysis],
+      ['ORIVEN Chat', fc.ai_chat],
+      ['Website Intelligence', fc.website_analysis],
+      ['Autopilot Execution', fc.autopilot],
+    ].filter(function(r){ return typeof r[1] === 'number' && r[1] > 0; });
     html += '<div class="sub-usage-card" style="margin-top:16px">';
-    html += '<div class="sub-card-eyebrow">AI Credit Usage</div>';
-    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">AI usage is powered by credits. Different AI actions consume different amounts of credits.</div>';
+    html += '<div class="sub-card-eyebrow">Credits</div>';
+    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">Used for generation and intelligence. Launch and Campaigns don’t consume credits for normal use.</div>';
     html += '<div class="sub-usage-list">';
     costRows.forEach(function(r){ html += _uRow(r[0], r[1] + (r[1] === 1 ? ' credit' : ' credits'), ''); });
     html += '</div>';
     html += '</div>';
   }
 
-  // ── Team — Professional only, real existing Team page/invite system
-  //    (page-team, openInviteModal(), /api/send-invite -- not fabricated).
-  //    Starter/Creator keep their own 1-seat workspace (unchanged, already
-  //    server-enforced via _teamMax()); only Professional gets the
-  //    dedicated invite-and-collaborate section surfaced here. ──
-  if(currentId === 'professional'){
-    html += '<div class="sub-usage-card" style="margin-top:16px">';
-    html += '<div class="sub-card-eyebrow">Team</div>';
-    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">Invite team members and collaborate inside Oriven.</div>';
-    html += '<button class="btn btn-p btn-sm" onclick="_orvNav(\'team\')">Manage Team</button>';
-    html += '</div>';
-  }
+  // Team management card removed from Settings (Autopilot Redesign + Team
+  // Removal sprint) — Team is no longer a product surface. #page-team/
+  // openInviteModal()/POST /api/send-invite are left completely intact,
+  // just no longer promoted or linked to from anywhere in the UI.
 
   // Priority Support — Professional plan only
   html += '<div id="prioritySupportPanel" class="sub-usage-card" style="margin-top:16px;display:' + (currentId === 'professional' ? '' : 'none') + '">';
@@ -3367,7 +3607,7 @@ function _initSettingsNav(){
     item.classList.add("active");
     var panel = document.getElementById("sp-" + item.getAttribute("data-sp"));
     if(panel) panel.classList.add("active");
-    if(item.getAttribute("data-sp") === "integrations") initIntegrations();
+    if(item.getAttribute("data-sp") === "integrations") _legacySettingsInitIntegrations();
   });
 }
 
@@ -3380,7 +3620,23 @@ function _initSettingsNav(){
 // Shape: { platform: 'google_ads', account_id: '...', account_name: '...' } | null
 window._activeAdAccount = window._activeAdAccount || null;
 
-function initIntegrations(){
+// UX + Reliability Overhaul — renamed from the global `initIntegrations`
+// (found during Google OAuth-return debugging: this top-level function
+// DECLARATION creates a `window.initIntegrations` binding purely by
+// existing, hoisted before ANY script runs — the SAME global name
+// app.html's Connections/Business-Hub tab assigns its own, newer,
+// complete implementation to. Depending on load-order timing between
+// this file's parse and app.html's later inline `<script>` block, this
+// older, incomplete version (real-account status only, no Setup Engine
+// integration, no per-platform tracking, and — until a provider branch
+// was added this pass — no Pinterest handling at all) could win the
+// race and silently run instead of the real one, which is exactly what
+// a live debug session caught: a Pinterest OAuth error surfaced this
+// function's *Google* cancellation message. Renamed rather than
+// deleted — this Settings-page "Integrations" tab (data-sp="integrations")
+// may still be reachable UI, and its own behavior for itself is
+// unchanged; it simply no longer collides with the real one.
+function _legacySettingsInitIntegrations(){
   // Show pending OAuth result (from Google or TikTok OAuth return redirect)
   var _oar = window._pendingOAuthResult;
   if(_oar){
@@ -3411,6 +3667,24 @@ function initIntegrations(){
       auth_error:       "Authentication error — please try again.",
       missing_params:   "OAuth error — please try again."
     };
+    // UX + Reliability Overhaul: Pinterest previously had no branch here
+    // and silently fell into the `else` (Google) case below — a real
+    // cross-platform message leak (a Pinterest OAuth result reported as
+    // Google's). This code path is shadowed today by app.html's own
+    // window.initIntegrations (loaded later, reassigns the global), but
+    // fixed here too rather than left as misleading dead code.
+    var _pinterestErrMap = {
+      access_denied:    "Pinterest sign-in was cancelled.",
+      token_exchange:   "Pinterest connection failed — please try again.",
+      invalid_state:    "Session expired — please try again.",
+      db:               "Could not save connection — please try again.",
+      network:          "Network error — please try again.",
+      not_configured:   "Pinterest Ads is not yet configured on the server.",
+      missing_token:    "Authentication error — please try again.",
+      invalid_token:    "Authentication error — please sign in and try again.",
+      auth_error:       "Authentication error — please try again.",
+      missing_params:   "OAuth error — please try again."
+    };
     setTimeout(function(){
       if(_oar.provider === 'tiktok'){
         if(_oar.connected){
@@ -3423,6 +3697,12 @@ function initIntegrations(){
           toast("Meta Ads connected successfully!");
         } else if(_oar.error){
           toast(_metaErrMap[_oar.error] || "Meta connection failed.", "err");
+        }
+      } else if(_oar.provider === 'pinterest'){
+        if(_oar.connected){
+          toast("Pinterest Ads connected successfully!");
+        } else if(_oar.error){
+          toast(_pinterestErrMap[_oar.error] || "Pinterest connection failed.", "err");
         }
       } else {
         if(_oar.connected){
@@ -3580,7 +3860,7 @@ async function refreshGadsAccounts(){
     var result = await apiFetch("/api/google/accounts");
     if(loadEl) loadEl.style.display = "none";
     if(!result.ok){
-      var msg = (result.data && result.data.error) ? result.data.error : "Could not fetch accounts (HTTP " + result.status + ")";
+      var msg = (result.data && result.data.error) ? result.data.error : _settingsFriendlyError("HTTP " + result.status);
       if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
     } else {
       try {
@@ -3590,12 +3870,12 @@ async function refreshGadsAccounts(){
         if(statusEl) statusEl.innerHTML = '<span class="int-status-dot"></span>Active';
       } catch(renderErr){
         console.error("[Google Ads] Render error:", renderErr);
-        if(errEl){ errEl.textContent = "Display error: " + renderErr.message; errEl.style.display = ""; }
+        if(errEl){ errEl.textContent = _settingsFriendlyError(renderErr.message); errEl.style.display = ""; }
       }
     }
   } catch(err){
     if(loadEl) loadEl.style.display = "none";
-    var msg = err.message || "Network error — try again";
+    var msg = _settingsFriendlyError(err.message);
     if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
     console.error("[Google Ads] Account refresh failed:", err.message);
   } finally {
@@ -3826,7 +4106,7 @@ async function refreshTadsAccounts(){
     var result = await apiFetch("/api/tiktok/accounts");
     if(loadEl) loadEl.style.display = "none";
     if(!result.ok){
-      var msg = (result.data && result.data.error) ? result.data.error : "Could not fetch accounts (HTTP " + result.status + ")";
+      var msg = (result.data && result.data.error) ? result.data.error : _settingsFriendlyError("HTTP " + result.status);
       if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
     } else {
       try {
@@ -3834,12 +4114,12 @@ async function refreshTadsAccounts(){
         _renderTadsAccounts(result.data.accounts || [], activeId);
       } catch(renderErr){
         console.error("[TikTok Ads] Render error:", renderErr);
-        if(errEl){ errEl.textContent = "Display error: " + renderErr.message; errEl.style.display = ""; }
+        if(errEl){ errEl.textContent = _settingsFriendlyError(renderErr.message); errEl.style.display = ""; }
       }
     }
   } catch(err){
     if(loadEl) loadEl.style.display = "none";
-    var msg = err.message || "Network error — try again";
+    var msg = _settingsFriendlyError(err.message);
     if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
     console.error("[TikTok Ads] Account refresh failed:", err.message);
   } finally {
@@ -4070,7 +4350,7 @@ async function refreshMetaAccounts(){
     var result = await apiFetch("/api/meta/accounts");
     if(loadEl) loadEl.style.display = "none";
     if(!result.ok){
-      var msg = (result.data && result.data.error) ? result.data.error : "Could not fetch accounts (HTTP " + result.status + ")";
+      var msg = (result.data && result.data.error) ? result.data.error : _settingsFriendlyError("HTTP " + result.status);
       if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
     } else {
       try {
@@ -4080,12 +4360,12 @@ async function refreshMetaAccounts(){
         if(statusEl) statusEl.innerHTML = '<span class="int-status-dot"></span>Active';
       } catch(renderErr){
         console.error("[Meta Ads] Render error:", renderErr);
-        if(errEl){ errEl.textContent = "Display error: " + renderErr.message; errEl.style.display = ""; }
+        if(errEl){ errEl.textContent = _settingsFriendlyError(renderErr.message); errEl.style.display = ""; }
       }
     }
   } catch(err){
     if(loadEl) loadEl.style.display = "none";
-    var msg = err.message || "Network error — try again";
+    var msg = _settingsFriendlyError(err.message);
     if(errEl){ errEl.textContent = msg; errEl.style.display = ""; }
     console.error("[Meta Ads] Account refresh failed:", err.message);
   } finally {

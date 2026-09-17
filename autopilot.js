@@ -89,7 +89,19 @@ var AP_ACTION_KEYS = { increase_budget:'apActionIncreaseBudget', decrease_budget
 var AP_OPERATOR_KEYS = { '>':'apOpGreaterThan', '<':'apOpLessThan', '==':'apOpEquals', '>=':'apOpAtLeast', '<=':'apOpAtMost' };
 var AP_MODE_KEYS = { require_approval:'apModeAskFirst', suggest_only:'apModeSuggestIt', fully_automatic:'apModeHandleAuto' };
 var AP_MODE_DESC_KEYS = { require_approval:'apModeAskFirstDesc', suggest_only:'apModeSuggestItDesc', fully_automatic:'apModeHandleAutoDesc' };
-function _apT(key, fallback){ return (key && typeof t === 'function') ? t(key) : fallback; }
+// Real bug fix: t(key) (settings.js) returns the literal key string itself
+// when a key isn't registered in LANG_STRINGS, not the caller's fallback --
+// so any _apT() call using a key not yet translated silently rendered the
+// raw key (e.g. "apStatusMonitoring") to the user instead of its English
+// fallback. This only ever mattered once a genuinely new, not-yet-
+// translated key was introduced (UX Redesign sprint) -- every key used
+// before this sprint already existed in LANG_STRINGS, so the bug was
+// latent. Falls back correctly now regardless of which keys exist.
+function _apT(key, fallback){
+  if (!key || typeof t !== 'function') return fallback;
+  var val = t(key);
+  return (val === key) ? fallback : val;
+}
 function _apMetricLabel(v){ return _apT(AP_METRIC_KEYS[v], AP_METRIC_LABELS[v] || v); }
 function _apActionLabel(v){ return _apT(AP_ACTION_KEYS[v], AP_ACTION_LABELS[v] || v); }
 function _apOperatorLabel(v){ return _apT(AP_OPERATOR_KEYS[v], v); }
@@ -102,7 +114,7 @@ function _apActionDesc(v){ return AP_ACTION_DESC[v] || ''; }
 var AP = { step: 1, platform: null, campaigns: [], campaignId: null, campaignName: null, metric: null, operator: null, value: null, action: null, percent: 15, mode: 'require_approval', editingRuleId: null, historyItems: [] };
 
 window.apInit = function() {
-  _apPlayShellAnim(); // header + engine become visible immediately, independent of how long the data below takes to load
+  _apPlayShellAnim(); // header becomes visible immediately, independent of how long the data below takes to load
   apWizStart();
   apActiveLoad();
   apHistLoad();
@@ -151,6 +163,19 @@ window.apOpenBuilder = function() {
   if (section) section.style.display = '';
   var overlay = document.getElementById('apBuilderOverlay');
   if (overlay) overlay.style.display = 'flex';
+  // Bug fix (builder polish pass): opening the builder never used to reset
+  // wizard state -- only apInit() (once, on page load) and a successful
+  // apBSave() did. Closing via X mid-flow (a real, intended way to "leave
+  // builder" without saving, per spec) left that abandoned progress
+  // sitting in AP.*/the DOM, so the NEXT "+ Create Automation" click
+  // silently resumed a stale, previously-abandoned draft instead of
+  // starting fresh. apWizStart() runs synchronously here and is safe for
+  // the edit path too: apActiveEdit() already calls apOpenBuilder() first,
+  // then authoritatively re-sets every AP.* field, every recap chip, and
+  // jumps to step 5 itself once its own fetch resolves -- so this reset
+  // is always overwritten correctly for a real edit, never left showing
+  // stale step-1 platform cards.
+  apWizStart();
 };
 window.apCloseBuilder = function() {
   var overlay = document.getElementById('apBuilderOverlay');
@@ -195,43 +220,19 @@ function _apFetchPlatformStatus(p) {
     }).catch(function() { return { platform: p.key, label: p.label, connected: true, campaignCount: 0, loadError: true }; });
   }).catch(function() { return { platform: p.key, label: p.label, connected: false, campaignCount: 0, statusError: true }; });
 }
+// UX Redesign sprint (spec 4): provider status no longer renders as a
+// large 3-card dashboard section -- that big-card/empty-state markup is
+// removed. This still fetches the real connection status, because the
+// small header facts below (_apUpdateHeroFacts) and each automation's own
+// "Platform · Scope" line are the honest, contextual replacement the spec
+// asks for, not nothing. Real provider connection/setup UI itself still
+// lives in Business → Connections, untouched.
 function apLoadMonitoringSources() {
-  var el = document.getElementById('apSourcesList');
-  if (!el || typeof apiFetch !== 'function') return;
+  if (typeof apiFetch !== 'function') return;
   Promise.all(AP_MON_PLATFORMS.map(_apFetchPlatformStatus)).then(function(results) {
     window._apSourcesSnapshot = results;
-    var anyConnected = results.some(function(r) { return r.connected; });
-    el.innerHTML = anyConnected ? results.map(_apSourceCard).join('') : _apSourcesEmptyState();
     _apUpdateHeroFacts(results);
-  }).catch(function() {
-    el.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">Could not load connection status.</span>';
-  });
-}
-function _apSourceCard(p) {
-  var statusHtml = p.statusError
-    ? '<span class="intel-mon-status intel-mon-status-off"><span class="intel-mon-dot"></span>Status unavailable</span>'
-    : p.connected
-      ? '<span class="intel-mon-status intel-mon-status-on"><span class="intel-mon-dot"></span>Connected</span>'
-      : '<span class="intel-mon-status intel-mon-status-off"><span class="intel-mon-dot"></span>Not connected</span>';
-  var body;
-  if (p.statusError) body = '<div class="ap-source-body ap-source-body-muted">Unable to check connection</div>';
-  else if (!p.connected) body = '<div class="ap-source-body ap-source-body-muted">Not connected</div>';
-  else if (p.loadError) body = '<div class="ap-source-body ap-source-body-muted">Unable to load campaigns</div>';
-  else if (!p.campaignCount) body = '<div class="ap-source-body ap-source-body-muted">No campaigns available</div>';
-  else body = '<div class="ap-source-body">' + p.campaignCount + ' campaign' + (p.campaignCount === 1 ? '' : 's') + ' available</div>';
-  var action = p.connected ? "_orvNav('adsmanager','page-ads-manager')" : "if(typeof bizGoTo==='function')bizGoTo('connections')";
-  return '<button type="button" class="ap-source-card" onclick="' + action + '">' +
-    '<div class="ap-source-top"><span class="intel-mon-plat-icon">' + (typeof _PRF_PLAT_ICONS !== 'undefined' ? (_PRF_PLAT_ICONS[p.platform] || '') : '') + '</span><span class="ap-source-name">' + _apOpEsc(p.label) + '</span></div>' +
-    statusHtml + body +
-  '</button>';
-}
-function _apSourcesEmptyState() {
-  return '<div class="ap-sources-empty">' +
-    '<div class="ap-sources-empty-title">AUTOPILOT READY</div>' +
-    '<div class="ap-sources-empty-sub">No campaigns are running yet.</div>' +
-    '<div class="ap-sources-empty-sub2">Connect an advertising account and Oriven will automatically monitor eligible campaigns.</div>' +
-    '<button type="button" class="camp-new-btn camp-new-btn-lg" onclick="if(typeof bizGoTo===\'function\')bizGoTo(\'connections\')">Connect account →</button>' +
-  '</div>';
+  }).catch(function() {});
 }
 function _apUpdateHeroFacts(results) {
   var byPlat = {}; results.forEach(function(r) { byPlat[r.platform] = r; });
@@ -239,6 +240,58 @@ function _apUpdateHeroFacts(results) {
   var mEl = document.getElementById('apHeroMetaFact');
   if (gEl) { var g = byPlat.google; if (g && g.connected) { gEl.textContent = 'Google Ads connected'; gEl.style.display = ''; } else gEl.style.display = 'none'; }
   if (mEl) { var m = byPlat.meta; if (m && m.connected) { mEl.textContent = 'Meta Ads connected'; mEl.style.display = ''; } else mEl.style.display = 'none'; }
+}
+
+// ══ Real System Status — replaces the old static "SYSTEM READY" text.
+// Computed entirely from data this page already fetches (window._apRules,
+// window._apPendingApprovals) — no separate status endpoint, nothing
+// fabricated. Called from both apActiveLoad's and apHistLoad's own .then()
+// (same documented race as the ACTION FAILED cross-reference below), so it
+// self-corrects once both real fetches have actually resolved rather than
+// showing a state computed from only half the real data.
+//
+// States shown, and why each is honest:
+//   OFF                 — no enabled rule exists. Nothing is evaluated.
+//   ARMED                — >=1 enabled rule, none set to auto-execute.
+//                          ORIVEN will detect + notify/request approval,
+//                          never act unattended.
+//   ARMED · AUTO-EXECUTE — >=1 enabled rule is fully_automatic. ORIVEN may
+//                          execute a real action without asking first.
+// The sub-line always states the real evaluation cadence (the actual
+// node-cron schedule, every 4 hours) instead of implying continuous
+// real-time monitoring, which this backend does not do.
+function _apRenderSystemStatus() {
+  var pillEl = document.getElementById('apSystemStatusPill');
+  var lblEl = document.getElementById('apSystemStatusLabel');
+  var subEl = document.getElementById('apSystemStatusSub');
+  if (!pillEl || !lblEl) return;
+  var rules = window._apRules;
+  var pending = window._apPendingApprovals || [];
+  if (!rules) return; // apActiveLoad hasn't resolved yet -- keep "Checking status…"
+
+  var enabled = rules.filter(function(r) { return r.enabled; });
+  var hasAuto = enabled.some(function(r) { return (r.action_params || {}).mode === 'fully_automatic'; });
+
+  pillEl.classList.remove('ap-sys-off', 'ap-sys-armed', 'ap-sys-auto');
+  if (!enabled.length) {
+    pillEl.classList.add('ap-sys-off');
+    lblEl.textContent = 'OFF';
+    subEl.textContent = rules.length ? 'All automations are disabled — ORIVEN is not evaluating anything.' : 'No automations exist yet — nothing is being evaluated.';
+  } else if (hasAuto) {
+    pillEl.classList.add('ap-sys-auto');
+    lblEl.textContent = 'ARMED · AUTO-EXECUTE';
+    subEl.textContent = 'ORIVEN checks your active rules every 4 hours and may execute an action automatically when one matches.';
+  } else {
+    pillEl.classList.add('ap-sys-armed');
+    lblEl.textContent = 'ARMED';
+    subEl.textContent = 'ORIVEN checks your active rules every 4 hours. It will notify you or request approval — it will not act without you.';
+  }
+
+  var pendEl = document.getElementById('apHeroPendingFact');
+  if (pendEl) {
+    if (pending.length) { pendEl.textContent = pending.length + ' pending your approval'; pendEl.style.display = ''; }
+    else pendEl.style.display = 'none';
+  }
 }
 
 // ══ Entrance animation — header/engine become visible immediately
@@ -283,6 +336,7 @@ window.apWizStart = function() {
   var testResult = document.getElementById('apBTestResult'); if (testResult) testResult.style.display = 'none';
   var errEl = document.getElementById('apBError'); if (errEl) errEl.style.display = 'none';
   var saveBtn = document.getElementById('apBSaveBtn'); if (saveBtn) saveBtn.textContent = _apT('apCreateAutomationBtn', 'Create Automation');
+  _apUpdateTestBtnState();
   apWizRenderPlatformCards();
 };
 window.apWizRestart = window.apWizStart;
@@ -531,6 +585,28 @@ function apWizRenderReview() {
                  _apT('apReviewModeApproval', " I'll ask for your approval first.");
   textEl.innerHTML = _apT('apReviewIllMonitor', "I'll monitor") + ' ' + _apOpEsc(p.campaignPhrase) + '. ' + _apT('apReviewWhenever','Whenever') + ' <strong>' + _apOpEsc(p.metricLabel) + '</strong> ' + _apOpEsc(p.opPhrase) + ' <strong>' + _apOpEsc(String(AP.value)) + '</strong>' + _apT('apReviewIllComma',", I'll") + ' ' + p.actionPhrase + '.' + _apOpEsc(modeNote);
   apWizRenderModeCards();
+  _apUpdateTestBtnState();
+}
+
+// Builder polish pass -- Test used to be clickable on the very first
+// creation pass (AP.editingRuleId not set yet), only to respond
+// afterward with "Save the automation first, then Test it." That let a
+// user click an apparently-live control and be told, only after the
+// fact, that it did nothing. Test genuinely requires a persisted rule
+// (it calls /api/autopilot/rules/:id/test), so instead of pretending
+// otherwise, the button is disabled up front on a brand-new (unsaved)
+// automation, with a small honest explanation in its place. Once a rule
+// is saved and reopened for editing, AP.editingRuleId is set and Test
+// becomes a real, usable action -- same as it already was before this
+// pass, unchanged.
+function _apUpdateTestBtnState() {
+  var btn = document.getElementById('apBTestBtn');
+  var hint = document.getElementById('apBTestHint');
+  if (!btn) return;
+  var canTest = !!AP.editingRuleId;
+  btn.disabled = !canTest;
+  btn.title = canTest ? '' : _apT('apErrSaveFirst', 'Save the automation first, then Test it.');
+  if (hint) hint.style.display = canTest ? 'none' : '';
 }
 function apWizRenderModeCards() {
   var el = document.getElementById('apWizModeCards');
@@ -598,12 +674,23 @@ window.apBSave = function() {
     ? apiFetch('/api/autopilot/rules/' + AP.editingRuleId, { method: 'PATCH', body: JSON.stringify(body) })
     : apiFetch('/api/autopilot/rules', { method: 'POST', body: JSON.stringify(body) });
   req.then(function(res) {
-    if (!res.ok) { if (errEl) { errEl.textContent = (res.data && res.data.error) || _apT('apErrSaveFailed', 'Could not save that automation.'); errEl.style.display = ''; } return; }
+    if (!res.ok) {
+      // User-facing text stays short and generic (never a raw DB/PostgREST
+      // message); the real classification (DB_UNAVAILABLE / validation /
+      // plan-gating / unknown -- server.js's _looksLikeRawDbError decides
+      // DB_UNAVAILABLE vs UNKNOWN_ERROR; 400/403 already carry their own
+      // specific message+status from validation/requireAutopilotAccess)
+      // goes to the console for real debugging, never to the UI.
+      console.error('[Autopilot] Save failed:', { status: res.status, code: res.data && res.data.code, message: res.data && res.data.error });
+      if (errEl) { errEl.textContent = (res.data && res.data.error) || _apT('apErrSaveFailed', 'Could not save this automation. Please try again.'); errEl.style.display = ''; }
+      return;
+    }
     apWizStart();
     apActiveLoad();
     apCloseBuilder();
-  }).catch(function() {
-    if (errEl) { errEl.textContent = _apT('apErrSaveFailed', 'Could not save that automation.'); errEl.style.display = ''; }
+  }).catch(function(err) {
+    console.error('[Autopilot] Save request threw:', err && err.message);
+    if (errEl) { errEl.textContent = _apT('apErrSaveFailed', 'Could not save this automation. Please try again.'); errEl.style.display = ''; }
   }).finally(function() { if (saveBtn) saveBtn.disabled = false; });
 };
 
@@ -616,34 +703,79 @@ var AP_EXAMPLE_AUTOMATIONS = [
   { labelKey: 'apExampleNotifyCtr', label: 'Notify me when CTR drops', platform: 'meta', metric: 'ctr', operator: '<', value: 1, action: 'notify' }
 ];
 
-function apActiveLoad() {
-  var el = document.getElementById('apActiveList');
-  if (!el || typeof apiFetch !== 'function') return;
-  el.innerHTML = '<div class="ov3-brief-loading"><div class="orv-ai-thinking-dots"><span></span><span></span><span></span></div></div>';
-  apiFetch('/api/autopilot/rules').then(function(res) {
-    var items = (res.ok && res.data && res.data.rules) || [];
-    window._apRules = items;
-    el.innerHTML = items.length ? items.map(_apActiveCard).join('') : _apEmptyActiveState();
-    var activeCount = items.filter(function(r) { return r.enabled; }).length;
-    var countEl = document.getElementById('apActiveCount');
-    if (countEl) countEl.textContent = items.length ? (activeCount + ' ACTIVE') : '';
-    var heroFact = document.getElementById('apHeroActiveFact');
-    if (heroFact) {
-      if (activeCount) { heroFact.textContent = activeCount + ' automation' + (activeCount === 1 ? '' : 's') + ' active'; heroFact.style.display = ''; }
-      else heroFact.style.display = 'none';
-    }
-    _apPlayCardStagger('apActiveList');
-  }).catch(function() { el.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">' + _apT('apErrLoadActiveFailed', 'Could not load your automations.') + '</span>'; });
+// Real, persisted counts only (UX Redesign sprint, spec 5) -- derived from
+// the exact same array the list renders, never a separate/fabricated number.
+function _apCountText(items) {
+  var active = items.filter(function(r) { return r.enabled; }).length;
+  var paused = items.length - active;
+  var parts = [];
+  if (active) parts.push(active + ' ' + _apT('apActive', 'active'));
+  if (paused) parts.push(paused + ' ' + _apT('apPaused', 'paused'));
+  return parts.join(' · ');
 }
 
-function _apEmptyActiveState() {
-  var cards = AP_EXAMPLE_AUTOMATIONS.map(function(ex, i) {
-    return '<button type="button" class="ap-wiz-card" onclick="apPrefillExample(' + i + ')" style="max-width:none;flex:1 1 220px">' +
-      '<span class="ap-wiz-card-title">' + _apOpEsc(_apT(ex.labelKey, ex.label)) + '</span>' +
-    '</button>';
-  }).join('');
-  return '<div class="ap-empty-text">' + _apT('apEmptyActiveText', "You haven't created any automations yet. Let's automate the repetitive work together.") + '</div>' +
-    '<div class="ap-wiz-cards" style="margin-top:14px">' + cards + '</div>';
+// Structural empty-state (Autopilot Living Product pass) -- shown ONLY
+// when the real fetch resolved with zero rules (never on a fetch error,
+// see the .catch() below). The IF/THEN teaching template that used to
+// render here was removed in the builder-polish pass: with a working
+// builder, a decorative example rule was redundant and read as
+// half-real. Kept intentionally simple -- a title, one sentence, and the
+// real Create Automation action.
+function _apEmptyAutomationsTemplate() {
+  return '<div class="ov3-empty ap-auto-empty">' +
+    '<p class="ov3-empty-title">' + _apT('apEmptyRulesTitle', 'No automation rules yet') + '</p>' +
+    '<p class="ov3-empty-sub">' + _apT('apEmptyRulesSub', 'Create your first rule to tell ORIVEN what to watch and what should happen when its condition is met.') + '</p>' +
+    '<button type="button" class="oi-card-btn" onclick="apOpenBuilder()">' + _apT('apCreateAutomationBtn', '+ Create Automation') + '</button>' +
+  '</div>';
+}
+
+// "Your Automations" now stays visible at zero rules too (Living Product
+// pass) -- the section heading remains, but its list is replaced by the
+// structural template above instead of being hidden entirely, so the page
+// still explains "what Autopilot is" rather than leaving a large empty
+// void beneath the header. This is the one, real, persisted count the
+// section header's "N active · M paused" sub-label keys off (blank at
+// zero, not "0 active").
+function apActiveLoad() {
+  var el = document.getElementById('apActiveList');
+  var section = document.getElementById('apActiveSection');
+  if (!el || typeof apiFetch !== 'function') return Promise.resolve();
+  return apiFetch('/api/autopilot/rules').then(function(res) {
+    // A real server/fetch error (res.ok false -- e.g. a 500) is NOT the
+    // same fact as "this account genuinely has zero rules" (a real 200
+    // with an empty array) -- conflating the two would silently show the
+    // "no automation rules yet" teaching template for what might actually
+    // be a broken backend, which is exactly the kind of dishonesty this
+    // page exists to avoid. Routed through the same real-failure branch
+    // the .catch() below already used for a network-level exception,
+    // rather than defaulting to an empty array either way.
+    if (!res.ok) { throw new Error((res.data && res.data.error) || 'Request failed'); }
+    var items = (res.data && res.data.rules) || [];
+    window._apRules = items;
+    if (section) section.style.display = '';
+    var countEl = document.getElementById('apActiveCount');
+    if (!items.length) {
+      el.innerHTML = _apEmptyAutomationsTemplate();
+      if (countEl) countEl.textContent = '';
+      _apRenderSystemStatus();
+      _apRenderUnmatchedApprovals();
+      return;
+    }
+    el.innerHTML = items.map(_apActiveCard).join('');
+    if (countEl) countEl.textContent = _apCountText(items);
+    _apRenderSystemStatus();
+    _apRenderUnmatchedApprovals();
+    _apPlayCardStagger('apActiveList');
+  }).catch(function() {
+    // A real fetch/server failure is different from "zero automations" --
+    // say so explicitly rather than silently showing the teaching template
+    // (or, worse, the OFF/"no rules" system status) as if the account
+    // genuinely had none. window._apRules stays unset here (not []), so
+    // _apRenderSystemStatus's own "rules hasn't loaded yet" guard keeps the
+    // header honest too, instead of asserting OFF from data it doesn't have.
+    if (section) section.style.display = '';
+    el.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">' + _apT('apErrLoadActiveFailed', 'Could not load your automations.') + '</span>';
+  });
 }
 
 window.apPrefillExample = function(i) {
@@ -693,56 +825,204 @@ function _apRuleSentence(rule) {
   return _apT('apRuleSentenceWhen','When') + ' ' + metricLabel + ' (' + campaignPhrase + ') ' + opPhrase + ' ' + rule.trigger_value + _apT('apRuleSentenceOrivenWill',', Oriven will') + ' ' + actionPhrase + '.';
 }
 
-/* Status is derived entirely from real fields — r.enabled (real column) and
-   a cross-reference against real, already-fetched Autopilot Activity items
-   for a "...failed to execute" title matching this rule's name (the exact
-   string _execRuleAction (server.js) writes on a genuine execution
-   failure). Never invented: a rule with no matching failure event in real
-   history is simply "active", never guessed at "needs approval" unless its
-   own action_params.mode says so. */
-function _apRuleStatusInfo(r) {
-  if (!r.enabled) return { key: 'paused', label: 'PAUSED', cls: 'ap-status-paused' };
-  var failed = (AP.historyItems || []).some(function(i) { return i.title && r.name && i.title.indexOf(r.name) !== -1 && /failed/i.test(i.title); });
-  if (failed) return { key: 'failed', label: 'ACTION FAILED', cls: 'ap-status-failed' };
+// Mode badge -- the spec's ALERT ONLY / APPROVAL REQUIRED / AUTO EXECUTE
+// vocabulary mapped onto the real, already-existing action_params.mode
+// values (suggest_only / require_approval / fully_automatic). A `notify`
+// action is always alert-only in practice regardless of its stored mode
+// (server.js _execRuleAction: "Notify me is always a plain event-log
+// write, in every mode") -- reflected here so the badge never claims a
+// notify rule could execute or need approval.
+function _apModeBadgeInfo(r) {
+  if (r.action_type === 'notify') return { label: 'ALERT ONLY', cls: 'ap-modebadge-alert' };
   var mode = (r.action_params || {}).mode;
-  if (mode === 'require_approval') return { key: 'approval', label: 'NEEDS APPROVAL', cls: 'ap-status-approval' };
-  return { key: 'active', label: 'ACTIVE', cls: 'ap-status-active' };
+  if (mode === 'fully_automatic') return { label: 'AUTO EXECUTE', cls: 'ap-modebadge-auto' };
+  if (mode === 'suggest_only') return { label: 'ALERT ONLY', cls: 'ap-modebadge-alert' };
+  return { label: 'APPROVAL REQUIRED', cls: 'ap-modebadge-approval' };
 }
+// ON/OFF is a real, exactly-two-state fact (UX Redesign sprint, spec 8) —
+// "MONITORING" is preferred over "ACTIVE"/"Running" because it honestly
+// names what an enabled rule does (gets evaluated on the real 4-hour
+// cadence), not that it has recently executed. Execution/approval/failure
+// state is a SEPARATE concept, shown by _apExecutionSummary below — a
+// MONITORING automation that has never fired still reads as "Never
+// triggered", never as if something already happened.
+function _apRuleStatusInfo(r) {
+  return r.enabled
+    ? { label: _apT('apStatusMonitoring', 'MONITORING'), cls: 'ap-status-active' }
+    : { label: _apT('apStatusPaused', 'PAUSED'), cls: 'ap-status-paused' };
+}
+
+// Deterministic, honest past-tense label for a rule's OWN configured
+// action — used only once a real event/timestamp confirms this rule
+// genuinely fired (see _apExecutionSummary), never shown speculatively.
+var AP_ACTION_PAST = {
+  pause_campaign: 'Campaign paused', resume_campaign: 'Campaign resumed',
+  increase_budget: 'Budget increased', decrease_budget: 'Budget decreased',
+  notify: 'You were notified', generate_creative: 'New creative generated',
+  generate_recommendations: 'Recommendation generated', request_approval: 'Approval requested',
+  create_report: 'Report created', create_briefing: 'Briefing created', run_optimisation: 'Optimisation run'
+};
+// A pending recommendation names its rule verbatim in `problem`
+// (server.js _execRuleAction: `Automation rule "${rule.name}" triggered...`)
+// — the same cross-reference technique this file already used for the old
+// "ACTION FAILED" badge and Rule Detail's "LAST ACTION" row, just reused
+// here as the single source of truth for a card's execution state.
+function _apPendingForRule(r) {
+  var pending = window._apPendingApprovals || [];
+  return pending.filter(function(p) { return p.problem && r.name && p.problem.indexOf('"' + r.name + '"') !== -1; })[0] || null;
+}
+function _apLastEventForRule(r) {
+  var items = (AP.historyItems || []).filter(function(i) {
+    return i.title && r.name && i.title.indexOf('"' + r.name + '"') !== -1 && i.status !== 'suggested';
+  });
+  return items[0] || null; // /api/autopilot/history already returns items sorted newest-first
+}
+// Execution information now lives inside each automation (UX Redesign
+// sprint, spec 1/9) instead of a separate Activity dashboard. Only ever
+// reflects real, already-fetched data (window._apPendingApprovals,
+// AP.historyItems, r.last_triggered_at) — never a fabricated timestamp.
+function _apExecutionSummary(r) {
+  var pending = _apPendingForRule(r);
+  if (pending) return { text: _apT('apExecWaiting', 'Waiting for approval'), cls: 'ap-status-approval' };
+  var item = _apLastEventForRule(r);
+  if (item) {
+    var when = item.created_at ? (_apRelativeDate(item.created_at) + ', ' + new Date(item.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })) : '';
+    var isFailed = item.kind === 'recommendation' ? item.status === 'failed' : /failed/i.test(item.title || '');
+    var isRejected = item.kind === 'recommendation' && item.status === 'rejected';
+    if (isFailed) return { text: _apT('apExecFailed', 'Execution failed') + (when ? ' · ' + when : ''), cls: 'ap-status-failed' };
+    if (isRejected) return { text: _apT('apExecRejected', 'Rejected') + (when ? ' · ' + when : ''), cls: 'ap-exec-none' };
+    return { text: _apT('apExecLastTriggered', 'Last triggered') + (when ? ' · ' + when : ''), sub: AP_ACTION_PAST[r.action_type] || _apActionLabel(r.action_type), cls: 'ap-status-active' };
+  }
+  if (r.last_triggered_at) return { text: _apT('apExecLastTriggered', 'Last triggered') + ' · ' + _apRelativeDate(r.last_triggered_at), cls: 'ap-status-active' };
+  return { text: _apT('apExecNeverTriggered', 'Never triggered'), cls: 'ap-exec-none' };
+}
+
 function _apActiveCard(r) {
-  var lastRun = r.last_triggered_at ? _apRelativeDate(r.last_triggered_at) : _apT('apNeverRun', 'Never');
   var ap = r.action_params || {};
   var status = _apRuleStatusInfo(r);
+  var modeBadge = _apModeBadgeInfo(r);
   var metricLabel = _apMetricLabel(r.trigger_metric);
   var triggerText = r.trigger_metric === 'status' ? (metricLabel + ' is ' + r.trigger_value) : (metricLabel + ' ' + _apOperatorLabel(r.trigger_operator) + ' ' + r.trigger_value);
   var actionLabel = _apActionLabel(r.action_type);
   var actionText = (r.action_type === 'increase_budget' || r.action_type === 'decrease_budget') ? actionLabel + ' ' + (ap.percent || 15) + '%' : actionLabel;
-  return '<div class="ap-auto-card">' +
+  var exec = _apExecutionSummary(r);
+  return '<div class="ap-auto-card" onclick="apShowRuleDetail(\'' + r.id + '\')">' +
     '<div class="ap-auto-top">' +
-      '<span class="ap-auto-icon">⚡</span>' +
-      '<span class="ap-auto-title">' + _apOpEsc(r.name) + '</span>' +
+      '<span class="ap-auto-status ' + status.cls + '"><span class="ap-auto-status-dot"></span>' + status.label + '</span>' +
+      '<span class="ap-modebadge ' + modeBadge.cls + '">' + modeBadge.label + '</span>' +
+      '<label class="ap-auto-toggle" title="' + (r.enabled ? _apT('apDisableBtn', 'Disable') : _apT('apEnableBtn', 'Enable')) + '" onclick="event.stopPropagation()">' +
+        '<input type="checkbox"' + (r.enabled ? ' checked' : '') + ' onchange="apActiveToggle(\'' + r.id + '\', this.checked)">' +
+        '<span class="ap-auto-toggle-track"><span class="ap-auto-toggle-thumb"></span></span>' +
+      '</label>' +
     '</div>' +
+    '<div class="ap-auto-title">' + _apOpEsc(r.name) + '</div>' +
     '<div class="ap-auto-meta">' + _apOpEsc(AP_PLAT_LABELS[r.platform] || '') + ' · ' + _apOpEsc(ap.campaign_name || _apT('apAllCampaigns', 'All Campaigns')) + '</div>' +
     '<div class="ap-auto-flow">' +
       '<span class="ap-auto-flow-trigger">' + _apOpEsc(triggerText) + '</span>' +
       '<span class="ap-auto-flow-arrow">→</span>' +
       '<span class="ap-auto-flow-action">' + _apOpEsc(actionText) + '</span>' +
     '</div>' +
-    '<div class="ap-auto-foot">' +
-      '<span class="ap-auto-status ' + status.cls + '"><span class="ap-auto-status-dot"></span>' + status.label + '</span>' +
-      '<span class="ap-auto-lastrun">' + _apT('apLastExecutedPrefix', 'Last executed:') + ' ' + _apOpEsc(lastRun) + '</span>' +
-      '<label class="ap-auto-toggle" title="' + (r.enabled ? _apT('apDisableBtn', 'Disable') : _apT('apEnableBtn', 'Enable')) + '">' +
-        '<input type="checkbox"' + (r.enabled ? ' checked' : '') + ' onchange="apActiveToggle(\'' + r.id + '\', this.checked)">' +
-        '<span class="ap-auto-toggle-track"><span class="ap-auto-toggle-thumb"></span></span>' +
-      '</label>' +
-      '<button class="oi-why-toggle" onclick="apActiveEdit(\'' + r.id + '\')">' + _apT('edit', 'Edit') + '</button>' +
-      '<button class="oi-why-toggle" onclick="apActiveDelete(\'' + r.id + '\')">' + _apT('apDeleteBtn', 'Delete') + '</button>' +
+    '<div class="ap-auto-foot" onclick="event.stopPropagation()">' +
+      '<span class="ap-auto-exec ' + (exec.cls || '') + '">' + _apOpEsc(exec.text) + (exec.sub ? ' <span class="ap-auto-exec-sub">· ' + _apOpEsc(exec.sub) + '</span>' : '') + '</span>' +
+      '<span style="margin-left:auto;display:flex;gap:12px">' +
+        '<button class="oi-why-toggle" onclick="apActiveEdit(\'' + r.id + '\')">' + _apT('edit', 'Edit') + '</button>' +
+        '<button class="oi-why-toggle" onclick="apActiveDelete(\'' + r.id + '\')">' + _apT('apDeleteBtn', 'Delete') + '</button>' +
+      '</span>' +
     '</div>' +
   '</div>';
 }
 
+// Rule Detail — spec's WHEN / OBSERVATION / THEN / MODE / SCOPE / LIMITS /
+// LAST TRIGGER / LAST ACTION, built entirely from data already on the
+// page (window._apRules, AP.historyItems, window._apPendingApprovals).
+// LIMITS are shown as real, currently-enforced, non-configurable facts
+// (server.js: once/day/rule cooldown, Professional-only, 25cr/execution)
+// -- not decorative controls, since no route exists to edit them today.
+function apShowRuleDetail(id) {
+  var r = (window._apRules || []).filter(function(x) { return x.id === id; })[0];
+  if (!r) return;
+  var titleEl = document.getElementById('apRuleDetailTitle');
+  var bodyEl = document.getElementById('apRuleDetailBody');
+  if (titleEl) titleEl.textContent = r.name || 'Automation';
+  var ap = r.action_params || {};
+  var status = _apRuleStatusInfo(r);
+  var metricLabel = _apMetricLabel(r.trigger_metric);
+  var whenText = r.trigger_metric === 'status' ? (metricLabel + ' is ' + r.trigger_value) : (metricLabel + ' ' + _apOperatorLabel(r.trigger_operator) + ' ' + r.trigger_value);
+  var actionLabel = _apActionLabel(r.action_type);
+  var thenText = (r.action_type === 'increase_budget' || r.action_type === 'decrease_budget') ? actionLabel + ' by ' + (ap.percent || 15) + '%' : actionLabel;
+  var modeBadge = _apModeBadgeInfo(r);
+  var scopeText = ap.campaign_name ? ('"' + ap.campaign_name + '" only') : ('All ' + (AP_PLAT_LABELS[r.platform] || '') + ' campaigns');
+
+  function row(label, value) { return value ? ('<div class="ap-rd-row"><div class="ap-rd-label">' + label + '</div><div class="ap-rd-value">' + value + '</div></div>') : ''; }
+
+  // Execution info lives here, not a separate Activity page (UX Redesign
+  // sprint, spec 1/11) — a pending recommendation for this rule gets its
+  // full evidence/simulation/Approve/Reject block (relocated verbatim
+  // from the old standalone Autopilot Activity section); otherwise the
+  // most recent real, resolved event/timestamp is shown as one honest row.
+  var pending = _apPendingForRule(r);
+  var lastEventBlock;
+  if (pending) {
+    lastEventBlock = row('LAST EXECUTION', '<span class="ap-modebadge ap-modebadge-approval">' + _apT('apExecWaiting', 'Waiting for approval') + '</span>') +
+      '<div class="ap-rd-pending">' + _apHistPendingCard(pending) + '</div>';
+  } else {
+    var item = _apLastEventForRule(r);
+    var lastText;
+    if (item) {
+      var when = item.created_at ? (_apRelativeDate(item.created_at) + ' · ' + new Date(item.created_at).toLocaleString()) : '';
+      var isFailed = item.kind === 'recommendation' ? item.status === 'failed' : /failed/i.test(item.title || '');
+      var isRejected = item.kind === 'recommendation' && item.status === 'rejected';
+      lastText = isFailed ? (_apT('apExecFailed', 'Execution failed') + (when ? ' · ' + when : ''))
+        : isRejected ? (_apT('apExecRejected', 'Rejected') + (when ? ' · ' + when : ''))
+        : ((when || _apT('apExecLastTriggered', 'Last triggered')) + ' · ' + (AP_ACTION_PAST[r.action_type] || _apActionLabel(r.action_type)));
+    } else if (r.last_triggered_at) {
+      lastText = _apRelativeDate(r.last_triggered_at) + ' (' + new Date(r.last_triggered_at).toLocaleString() + ')';
+    } else {
+      lastText = _apT('apExecNeverTriggered', 'Never triggered');
+    }
+    lastEventBlock = row('LAST EXECUTION', _apOpEsc(lastText));
+  }
+
+  bodyEl.innerHTML =
+    row('STATUS', '<span class="ap-auto-status ' + status.cls + '"><span class="ap-auto-status-dot"></span>' + status.label + '</span>') +
+    row('SCOPE', _apOpEsc((AP_PLAT_LABELS[r.platform] || '') + ' · ' + scopeText)) +
+    row('WHEN', _apOpEsc(whenText)) +
+    row('OBSERVATION WINDOW', 'Last 7 days of real campaign performance') +
+    row('THEN', _apOpEsc(thenText)) +
+    row('MODE', '<span class="ap-modebadge ' + modeBadge.cls + '">' + modeBadge.label + '</span>') +
+    row('LIMITS', 'At most once per day · Professional plan only · ' + (typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.autopilot : 25) + ' credits per execution') +
+    lastEventBlock +
+    '<div class="ap-rd-actions">' +
+      '<button class="oi-card-btn" onclick="apCloseRuleDetail();apActiveEdit(\'' + r.id + '\')">' + _apT('apEditAutomationBtn', 'Edit automation') + '</button>' +
+      '<button class="oi-card-btn" onclick="_apRdToggle(\'' + r.id + '\',' + (!r.enabled) + ')">' + (r.enabled ? _apT('apTurnOffBtn', 'Turn off') : _apT('apTurnOnBtn', 'Turn on')) + '</button>' +
+      '<button class="oi-why-toggle" onclick="apCloseRuleDetail();apActiveDelete(\'' + r.id + '\')">' + _apT('apDeleteBtn', 'Delete') + '</button>' +
+    '</div>';
+
+  window._apRuleDetailOpenId = id;
+  var overlay = document.getElementById('apRuleDetailOverlay');
+  if (overlay) overlay.style.display = 'flex';
+}
+window.apShowRuleDetail = apShowRuleDetail;
+window.apCloseRuleDetail = function() {
+  window._apRuleDetailOpenId = null;
+  var overlay = document.getElementById('apRuleDetailOverlay');
+  if (overlay) overlay.style.display = 'none';
+};
+
 window.apActiveToggle = function(id, enabled) {
   if (typeof apiFetch !== 'function') return;
   apiFetch('/api/autopilot/rules/' + id, { method: 'PATCH', body: JSON.stringify({ enabled: enabled }) }).then(function() { apActiveLoad(); }).catch(function() {});
+};
+// Rule Detail's "Turn off"/"Turn on" — the exact same real PATCH as the
+// card's toggle, just reachable from the detail view too; re-opens the
+// detail with the freshly-persisted state once the real request resolves.
+window._apRdToggle = function(id, enabled) {
+  if (typeof apiFetch !== 'function') return;
+  apiFetch('/api/autopilot/rules/' + id, { method: 'PATCH', body: JSON.stringify({ enabled: enabled }) }).then(function() {
+    return apActiveLoad();
+  }).then(function() {
+    apShowRuleDetail(id);
+  }).catch(function() {});
 };
 window.apActiveDelete = function(id) {
   if (typeof apiFetch !== 'function') return;
@@ -839,30 +1119,42 @@ window.apFilterActivity = function(cat, btn) {
   _apRenderHistoryList();
 };
 
+// No standalone Activity dashboard renders this data any more (UX
+// Redesign sprint, spec 1/20) -- this fetch still runs, because its real
+// data feeds three things that DO still need it: each automation card's
+// execution summary, Rule Detail's LAST EXECUTION/pending-approval block,
+// and the small "Needs your approval" fallback for pending items that
+// don't match any current rule. The guard below no longer depends on the
+// (now removed) #apHistoryList element existing.
 function apHistLoad(q) {
-  var el = document.getElementById('apHistoryList');
-  if (!el || typeof apiFetch !== 'function') return;
-  el.innerHTML = '<div class="ov3-brief-loading"><div class="orv-ai-thinking-dots"><span></span><span></span><span></span></div></div>';
+  if (typeof apiFetch !== 'function') return Promise.resolve();
   var query = q ? ('?q=' + encodeURIComponent(q)) : '';
-  Promise.all([
+  return Promise.all([
     apiFetch('/api/autopilot/recommendations?status=suggested'),
     apiFetch('/api/autopilot/history' + query)
   ]).then(function(results) {
     window._apPendingApprovals = (results[0].ok && results[0].data && results[0].data.recommendations) || [];
     var items = (results[1].ok && results[1].data && results[1].data.items) || [];
     AP.historyItems = items;
-    _apRenderHistoryList();
-    apSuggestionsRender(items);
-    // Active Automations' "ACTION FAILED" status cross-references real
-    // history for this rule's name — apActiveLoad() and apHistLoad() run
-    // concurrently from apInit, so history can resolve after the active
-    // cards already rendered with stale (pre-history) status. Re-render
-    // from the already-cached rule list (no new fetch) once history is in.
+    // Continuity/Context Layer sprint — AP itself lives inside this file's
+    // own IIFE and isn't reachable from other scripts; expose just the
+    // real history array (same convention as window._apRules/
+    // window._apPendingApprovals just above) so orivenContext.js can read
+    // real recent executions without a second fetch.
+    window._apHistoryItems = items;
+    _apRenderSystemStatus();
+    _apRenderUnmatchedApprovals();
+    // Each card's execution summary (Waiting for approval / Last
+    // triggered / Execution failed) depends on this same data --
+    // apActiveLoad() and apHistLoad() run concurrently from apInit, so
+    // history can resolve after the active cards already rendered with
+    // stale (pre-history) state. Re-render from the already-cached rule
+    // list (no new fetch) once history/pending approvals are in.
     if (window._apRules && window._apRules.length) {
       var activeEl = document.getElementById('apActiveList');
       if (activeEl) { activeEl.innerHTML = window._apRules.map(_apActiveCard).join(''); _apPlayCardStagger('apActiveList'); }
     }
-  }).catch(function() { el.innerHTML = '<span class="ov3-insight" style="color:var(--muted)">' + _apT('apErrLoadHistoryFailed','Could not load history.') + '</span>'; });
+  }).catch(function() {});
 }
 
 function _apHistGrouped(items) {
@@ -889,25 +1181,108 @@ function _apHistCard(i) {
     '<span class="ap-hist-time">' + _apOpEsc(time) + '</span>' +
   '</div>';
 }
+// Real evidence line -- r.evidence is written verbatim by the backend
+// (_execRuleAction -> _generateRecommendation) from the exact metric
+// comparison that fired: { metric, operator, value, actual }. Never
+// synthesized here; if evidence is missing (an older/edited row), the
+// line is simply omitted rather than guessed.
+function _apEvidenceLine(r) {
+  var e = r.evidence;
+  if (!e || e.metric == null || e.actual == null) return '';
+  var metricLabel = _apMetricLabel(e.metric);
+  var opPhrase = e.metric === 'status' ? _apT('apReviewIs', 'is') : _apOperatorLabel(e.operator);
+  // Not yet in LANG_STRINGS -- English only for now, same convention as
+  // _apMetricDesc/_apActionDesc above (bypasses _apT, which otherwise
+  // renders an unknown key's literal name to a real signed-in user
+  // instead of falling back).
+  return 'Triggered because: ' + _apOpEsc(metricLabel) + ' ' + _apOpEsc(opPhrase) + ' ' + _apOpEsc(String(e.value)) +
+    ' — observed ' + _apOpEsc(String(e.actual));
+}
+
+// SIMULATION -- the one genuinely deterministic, honestly-computable
+// preview this data supports today. Only pause_campaign/resume_campaign
+// recommendations carry a real tool_name the approve route will actually
+// execute (server.js _execRuleAction's toolMap) -- for every other
+// recommendation type (budget changes, "generate recommendations",
+// reports, etc.) approving today only flips the recommendation's own
+// status; no live campaign action is attached. Showing a fake state
+// preview for those would be exactly the fabricated "impact estimate"
+// this feature must never produce, so they get the honest sentence
+// instead of a simulation block.
+var AP_SIMULATABLE_TOOLS = { pause_campaign: 'PAUSED', resume_campaign: 'ACTIVE' };
+function _apSimulationBlock(r) {
+  var targetState = AP_SIMULATABLE_TOOLS[r.tool_name];
+  var campaignName = (r.tool_params && r.tool_params.campaignName) || r.campaign_name || 'this campaign';
+  // Not yet in LANG_STRINGS -- English only for now, same convention as
+  // _apMetricDesc/_apActionDesc (bypasses _apT for the same reason as
+  // _apEvidenceLine above).
+  if (targetState) {
+    return '<div class="ap-sim-block">' +
+      '<div class="ap-sim-label">SIMULATION — NOT EXECUTED</div>' +
+      '<div class="ap-sim-row"><span class="ap-sim-target">' + _apOpEsc(campaignName) + '</span><span class="ap-sim-arrow">→</span><span class="ap-sim-newstate">' + targetState + '</span></div>' +
+      '<div class="ap-sim-note">Other campaigns remain unchanged. Budget is not affected by this action.</div>' +
+    '</div>';
+  }
+  return '<div class="ap-sim-block ap-sim-block-none">' +
+    '<div class="ap-sim-label">SIMULATION — NOT EXECUTED</div>' +
+    '<div class="ap-sim-note">ORIVEN can predict the requested state change, but no automatic action is attached to this recommendation yet — approving it marks it reviewed; you\'ll need to make this change yourself.</div>' +
+  '</div>';
+}
 function _apHistPendingCard(r) {
-  return '<div class="oi-card">' +
+  var evidenceLine = _apEvidenceLine(r);
+  return '<div class="oi-card ap-pending-card">' +
     '<div class="oi-card-top"><div class="oi-card-title">' + _apOpEsc(r.problem) + '</div>' +
       '<span class="clib-status-pill clib-status-awaiting-approval">' + _apT('apAwaitingApproval','Awaiting approval') + '</span></div>' +
+    (evidenceLine ? '<div class="ap-pending-evidence">' + evidenceLine + '</div>' : '') +
     (r.suggested_action ? '<div class="oi-card-impact">' + _apOpEsc(r.suggested_action) + '</div>' : '') +
+    _apSimulationBlock(r) +
     '<div class="oi-card-actions">' +
-      '<button class="oi-card-btn oi-card-btn-primary" onclick="apHistApprove(\'' + r.id + '\')">' + _apT('apApproveBtn','Approve') + '</button>' +
+      '<button class="oi-card-btn oi-card-btn-primary" onclick="apHistApprove(\'' + r.id + '\')">' + _apT('apApproveBtn','Approve action') + '</button>' +
       '<button class="oi-why-toggle" onclick="apHistReject(\'' + r.id + '\')">' + _apT('apRejectBtn','Reject') + '</button>' +
     '</div>' +
   '</div>';
 }
+// Refreshes an open Rule Detail after Approve/Reject -- the pending block
+// now renders inside the detail view (relocated from the old standalone
+// Activity section), so a stale Approve/Reject button pointing at an
+// already-resolved recommendation must not linger on screen.
+function _apRefreshOpenRuleDetail() {
+  if (window._apRuleDetailOpenId) apShowRuleDetail(window._apRuleDetailOpenId);
+}
 window.apHistApprove = function(id) {
   if (typeof apiFetch !== 'function') return;
-  apiFetch('/api/autopilot/recommendations/' + id + '/approve', { method: 'POST', body: JSON.stringify({ remember: false }) }).then(function() { apHistLoad(); apActiveLoad(); }).catch(function() {});
+  apiFetch('/api/autopilot/recommendations/' + id + '/approve', { method: 'POST', body: JSON.stringify({ remember: false }) }).then(function() {
+    return Promise.all([apHistLoad(), apActiveLoad()]);
+  }).then(_apRefreshOpenRuleDetail).catch(function() {});
 };
 window.apHistReject = function(id) {
   if (typeof apiFetch !== 'function') return;
-  apiFetch('/api/autopilot/recommendations/' + id + '/reject', { method: 'POST' }).then(function() { apHistLoad(); }).catch(function() {});
+  apiFetch('/api/autopilot/recommendations/' + id + '/reject', { method: 'POST' }).then(function() {
+    return apHistLoad();
+  }).then(_apRefreshOpenRuleDetail).catch(function() {});
 };
+
+// "Needs your approval" — the small fallback for a real pending
+// recommendation that does NOT name any current automation rule (e.g. a
+// general Intelligence-detected insight, not something a saved rule
+// triggered). The common, rule-tied case never reaches here — it renders
+// directly on that rule's own card/detail instead (_apExecutionSummary/
+// apShowRuleDetail). Hidden entirely when there's nothing unmatched; this
+// is the only remaining approve/reject surface preserved from the old
+// standalone Autopilot Activity section, kept because it's the sole real
+// approve/reject path in the app for a non-rule-tied recommendation.
+function _apRenderUnmatchedApprovals() {
+  var section = document.getElementById('apUnmatchedApprovalsSection');
+  var listEl = document.getElementById('apUnmatchedApprovalsList');
+  if (!section || !listEl) return;
+  var rules = window._apRules || [];
+  var unmatched = (window._apPendingApprovals || []).filter(function(p) {
+    return !rules.some(function(r) { return r.name && p.problem && p.problem.indexOf('"' + r.name + '"') !== -1; });
+  });
+  if (!unmatched.length) { section.style.display = 'none'; listEl.innerHTML = ''; return; }
+  section.style.display = '';
+  listEl.innerHTML = unmatched.map(_apHistPendingCard).join('');
+}
 
 // ══ Suggested Automations — real pattern detection over the history
 // already fetched above (never a new endpoint), never auto-creates

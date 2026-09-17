@@ -49,7 +49,18 @@ function _renderPaywallCards(){
 
   // Mark the user's current plan button as inactive/labeled "Current Plan"
   // (Free included when it's genuinely current) rather than presenting it
-  // as another selectable tier.
+  // as another selectable tier -- EXCEPT during onboarding's Plan step
+  // (_obContext === "onboarding", onboarding.js). Every brand-new account
+  // already has subscription_status:'free' by default (server.js /api/signup)
+  // before onboarding has even asked anything, so without this exception the
+  // Free card would always render as a disabled "Current Plan" the very
+  // first time this modal ever opens -- leaving no way to actually click
+  // through the Free path to complete onboarding. Outside onboarding this
+  // disabling is correct (Settings/paywall already-signed-in context).
+  var isOnboarding = false;
+  try { isOnboarding = (typeof _obContext !== "undefined" && _obContext === "onboarding"); } catch(_){}
+  if(isOnboarding) return;
+
   plansForCards.forEach(function(p){
     if(plan !== p.id) return;
     var btn = document.getElementById("paywall-btn-" + p.id);
@@ -100,10 +111,18 @@ var _LIMIT_MSGS = {
     sub:     "Upgrade to access up to 365 days of brand intelligence history.",
     upgrade: "professional"
   },
+  // Autopilot's real plan gate is Professional-only (creditManager.
+  // PLAN_AUTOPILOT_LIMITS: free/starter/creator all 0, professional
+  // Infinity — Creator never had Autopilot at the time this copy was
+  // last correct; enforced both here and server-side, requireAutopilotAccess).
+  // This message previously said "Creator or higher" / upgrade:"creator",
+  // which would have sent a paying Creator user through checkout only to
+  // still be blocked by the real 403 on every /api/autopilot/* route —
+  // corrected to match the actual gate, not just reworded.
   autopilot: {
-    title:   "Autopilot requires Creator or higher.",
-    sub:     "Upgrade to automate campaign decisions with AI-driven rules.",
-    upgrade: "creator"
+    title:   "Autopilot requires the Professional plan.",
+    sub:     "Upgrade to automate the rules you define — ORIVEN watches real campaign data and acts on your conditions.",
+    upgrade: "professional"
   },
   autopilot_creator: {
     title:   "Autopilot execution limit reached.",
@@ -124,12 +143,10 @@ var _LIMIT_MSGS = {
     title:   "Intelligence limit reached.",
     sub:     "Upgrade to Professional for unlimited Intelligence analyses.",
     upgrade: "professional"
-  },
-  team: {
-    title:   "Team requires Professional.",
-    sub:     "Upgrade to invite teammates and collaborate inside Oriven.",
-    upgrade: "professional"
   }
+  // 'team' upgrade message removed (Autopilot Redesign + Team Removal
+  // sprint) — Team is no longer a product surface, so no upgrade path to
+  // it exists anymore; openLimitReached('team') has no remaining callers.
 };
 
 function openLimitReached(type){

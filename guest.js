@@ -642,6 +642,19 @@ function _guestOnSignedIn(user){
   _guestBCGenerated = false;
   document.body.classList.remove("guest-mode");
 
+  // The guest landing's silent Studio warm-up (navigate("studio"), above)
+  // can call into Business Brain (bizGoTo -> _bizEnsureProfile) before this
+  // user was actually signed in, permanently caching an empty/401 profile
+  // fetch under the one-time _bizProfileLoaded guard. Clear that state so
+  // the real signed-in user's data gets fetched fresh instead of being
+  // stuck behind the guest-phase cache for the rest of the page session.
+  if(typeof _bizProfileLoaded !== "undefined") _bizProfileLoaded = false;
+  if(typeof _bizProfileCache  !== "undefined") _bizProfileCache  = {};
+  if(typeof _bizVoiceSelected !== "undefined") _bizVoiceSelected = [];
+  if(typeof _bizLoaded !== "undefined"){
+    Object.keys(_bizLoaded).forEach(function(k){ delete _bizLoaded[k]; });
+  }
+
   if(_originalNavigate)   { navigate    = _originalNavigate;   _originalNavigate   = null; }
   if(_originalOpenAIFlow) { openAIFlow  = _originalOpenAIFlow; _originalOpenAIFlow = null; }
   if(_originalSaveBCToDB) { saveBCToDB  = _originalSaveBCToDB; _originalSaveBCToDB = null; }

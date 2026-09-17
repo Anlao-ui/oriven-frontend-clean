@@ -118,12 +118,19 @@ async function main() {
     }
   }
 
-  // ── 2 & 3: landing page shows exactly Starter/Creator/Professional, no Free ──
+  // ── 2 & 3: pricing page shows exactly Starter/Creator/Professional, no Free ──
+  // Final Marketing Website Structure pass moved the pricing cards off the
+  // homepage onto their own dedicated /pricing route — navigate there
+  // instead of '/' (the SPA keeps every view in the DOM at once, so
+  // checking #lpPricingGrid while its view is display:none, as it now is
+  // on '/', silently reads a collapsed 0-size layout instead of failing
+  // loudly, which is exactly the false pass this fix avoids).
   {
     for (const [label, width, expectCols] of [['desktop', 1440, 3], ['tablet', 900, 3], ['tablet-narrow', 800, 3], ['mobile', 390, 1]]) {
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       try {
         await page.goto(BASE_URL + '/', { waitUntil: 'domcontentloaded' });
+        await page.evaluate(() => window.lpNavigate('/pricing'));
         await page.waitForTimeout(600);
         const info = await page.evaluate(() => {
           const grid = document.getElementById('lpPricingGrid');
