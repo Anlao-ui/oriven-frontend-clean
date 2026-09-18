@@ -12,17 +12,74 @@
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <!-- Marketing/Pricing Redesign — fixed a real, pre-existing bug: this
-       meta description used curly/smart quotes (”) as attribute
-       delimiters, which HTML does not recognize as quote characters, so
-       browsers/crawlers were silently ignoring the entire tag. Also
-       rewritten to drop "AI-powered"/"AI Marketing Intelligence"
-       (spec: avoid AI overuse — the product is advertising software). -->
-  <meta name="description" content="Oriven is a workspace for creating, managing and optimizing advertising across Google Ads, Meta Ads, TikTok Ads and Pinterest Ads. Campaigns, creatives, research and automation, in one place.">
-  <title>Oriven. All Your Advertising. One Workspace.</title>
-  <link rel="icon" href="assets/orivenlogo.png" type="image/png">
-  <link rel="shortcut icon" href="assets/orivenlogo.png">
-  <link rel="apple-touch-icon" href="assets/orivenlogo.png">
+  <!-- SEO pass — title/description rewritten to genuinely reflect what
+       the homepage says about itself (hero: "Advertising gets
+       complicated. ORIVEN puts it in ORDER." / sub: "Create, launch and
+       improve ads across every platform, from one workspace.") and to
+       include real, relevant search terms ("AI advertising platform")
+       without inventing capability. This is the STATIC, always-present
+       baseline a crawler sees before any client-side JS runs, and is
+       therefore also the correct <head> state for the homepage/"/"
+       specifically -- every other public route's title/description/
+       canonical/OG is applied by JS per-route (see PAGE_SEO / applyPageSeo
+       further down this file) since this is a single static HTML
+       document serving every URL (see vercel.json / _redirects). -->
+  <meta name="description" content="Oriven is an AI advertising workspace: create, launch and manage campaigns across Google, Meta, TikTok and Pinterest, with research and automation built in.">
+  <title>AI Advertising Platform | ORIVEN</title>
+  <link rel="canonical" href="https://orivenai.com/" id="ovCanonical">
+  <meta name="robots" content="index, follow" id="ovRobotsMeta">
+
+  <!-- Open Graph / Twitter — homepage baseline, updated per-route by
+       applyPageSeo(). No fabricated preview image exists yet (a proper
+       1200x630 social card is a real asset someone still needs to
+       design); the real 1024x1024 ORIVEN mark is used until one exists,
+       which is accurate, not invented. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ORIVEN">
+  <meta property="og:title" content="AI Advertising Platform | ORIVEN" id="ovOgTitle">
+  <meta property="og:description" content="Oriven is an AI advertising workspace: create, launch and manage campaigns across Google, Meta, TikTok and Pinterest, with research and automation built in." id="ovOgDesc">
+  <meta property="og:url" content="https://orivenai.com/" id="ovOgUrl">
+  <meta property="og:image" content="https://orivenai.com/assets/orivenlogo.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="AI Advertising Platform | ORIVEN" id="ovTwTitle">
+  <meta name="twitter:description" content="Oriven is an AI advertising workspace: create, launch and manage campaigns across Google, Meta, TikTok and Pinterest, with research and automation built in." id="ovTwDesc">
+  <meta name="twitter:image" content="https://orivenai.com/assets/orivenlogo.png">
+
+  <!-- Structured data — only real, currently-true facts (no ratings,
+       reviews, prices, user counts, or social profiles invented; ORIVEN
+       has no public social profiles linked anywhere on this site today,
+       so `sameAs` is correctly omitted rather than fabricated). -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "ORIVEN",
+    "url": "https://orivenai.com/",
+    "logo": "https://orivenai.com/assets/orivenlogo.png"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "ORIVEN",
+    "url": "https://orivenai.com/"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ORIVEN",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "description": "AI advertising workspace for creating, launching and managing campaigns across Google Ads, Meta Ads, TikTok Ads and Pinterest Ads."
+  }
+  </script>
+
+  <link rel="icon" href="/assets/orivenlogo.png" type="image/png">
+  <link rel="shortcut icon" href="/assets/orivenlogo.png">
+  <link rel="apple-touch-icon" href="/assets/orivenlogo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Final Brand, Visual System & Connected Advertising Experience
@@ -41,7 +98,7 @@
        real font files — same "drop the real asset in later" convention
        used everywhere else on this page for videos/images. -->
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
@@ -186,7 +243,7 @@
 <nav class="lp-nav" id="lpNav">
   <div class="lp-nav-inner">
     <a href="/" class="lp-logo">
-      <img src="assets/orivenlogo.png" alt="ORIVEN" class="lp-logo-img">
+      <img src="/assets/orivenlogo.png" alt="ORIVEN" class="lp-logo-img">
     </a>
     <div class="lp-nav-links">
 
@@ -1206,7 +1263,7 @@
   <div class="ov-footer-inner">
     <div class="ov-footer-top">
       <div class="ov-footer-brand">
-        <a href="/" class="ov-footer-logo"><img src="assets/orivenlogo.png" alt="Oriven" class="ov-footer-logo-img"></a>
+        <a href="/" class="ov-footer-logo"><img src="/assets/orivenlogo.png" alt="Oriven" class="ov-footer-logo-img"></a>
         <p class="ov-footer-tagline">The advertising workspace. Create, manage, research and optimize.</p>
       </div>
       <nav class="ov-footer-nav" aria-label="Footer navigation">
@@ -1273,11 +1330,11 @@
 <div id="view-login" class="pub-view">
 <div class="au-view-wrap">
 <nav class="au-nav">
-  <a href="/" class="au-nav-logo"><img src="assets/orivenlogo.png" alt="ORIVEN"></a>
+  <a href="/" class="au-nav-logo"><img src="/assets/orivenlogo.png" alt="ORIVEN"></a>
 </nav>
 <div class="au-page">
   <div class="au-card">
-    <div class="au-title">Welcome back</div>
+    <h1 class="au-title">Welcome back</h1>
     <div class="au-sub">Sign in to your brand intelligence workspace.</div>
     <div id="auErrorLogin" class="au-error"></div>
     <div class="au-field">
@@ -1303,11 +1360,11 @@
 <div id="view-signup" class="pub-view">
 <div class="au-view-wrap">
 <nav class="au-nav">
-  <a href="/" class="au-nav-logo"><img src="assets/orivenlogo.png" alt="ORIVEN"></a>
+  <a href="/" class="au-nav-logo"><img src="/assets/orivenlogo.png" alt="ORIVEN"></a>
 </nav>
 <div class="au-page">
   <div class="au-card">
-    <div class="au-title">Create your account</div>
+    <h1 class="au-title">Create your account</h1>
     <div class="au-sub">Join ORIVEN and build your brand intelligence system.</div>
     <div id="auErrorSignup" class="au-error"></div>
     <div class="au-field au-field-row">
@@ -1348,7 +1405,7 @@
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
     <a href="/" class="lp-legal-nav-logo" aria-label="ORIVEN home">
-      <img src="assets/orivenlogo.png" alt="ORIVEN">
+      <img src="/assets/orivenlogo.png" alt="ORIVEN">
     </a>
     <a href="/" class="lp-legal-nav-back">← Back to Home</a>
   </nav>
@@ -1426,7 +1483,7 @@
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
     <a href="/" class="lp-legal-nav-logo" aria-label="ORIVEN home">
-      <img src="assets/orivenlogo.png" alt="ORIVEN">
+      <img src="/assets/orivenlogo.png" alt="ORIVEN">
     </a>
     <a href="/" class="lp-legal-nav-back">← Back to Home</a>
   </nav>
@@ -1522,7 +1579,7 @@
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
     <a href="/" class="lp-legal-nav-logo" aria-label="ORIVEN home">
-      <img src="assets/orivenlogo.png" alt="ORIVEN">
+      <img src="/assets/orivenlogo.png" alt="ORIVEN">
     </a>
     <a href="/" class="lp-legal-nav-back">← Back to Home</a>
   </nav>
@@ -1587,7 +1644,7 @@
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
     <a href="/" class="lp-legal-nav-logo" aria-label="ORIVEN home">
-      <img src="assets/orivenlogo.png" alt="ORIVEN">
+      <img src="/assets/orivenlogo.png" alt="ORIVEN">
     </a>
     <a href="/" class="lp-legal-nav-back">← Back to Home</a>
   </nav>
@@ -1647,7 +1704,7 @@
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
     <a href="/" class="lp-legal-nav-logo" aria-label="ORIVEN home">
-      <img src="assets/orivenlogo.png" alt="ORIVEN">
+      <img src="/assets/orivenlogo.png" alt="ORIVEN">
     </a>
     <a href="/" class="lp-legal-nav-back">← Back to Home</a>
   </nav>
@@ -1721,7 +1778,7 @@
 <div class="lp-legal-wrap">
   <nav class="lp-legal-nav">
     <a href="/" class="lp-legal-nav-logo" aria-label="ORIVEN home">
-      <img src="assets/orivenlogo.png" alt="ORIVEN">
+      <img src="/assets/orivenlogo.png" alt="ORIVEN">
     </a>
     <a href="/" class="lp-legal-nav-back">← Back to Home</a>
   </nav>
@@ -1799,7 +1856,7 @@
         <!-- Left: Oriven logo -->
         <div class="ov-about-story-img-wrap">
           <div class="ov-about-story-logo-display">
-            <img src="assets/orivenlogo.png" alt="Oriven" class="ov-about-story-logo">
+            <img src="/assets/orivenlogo.png" alt="Oriven" class="ov-about-story-logo">
           </div>
         </div>
 
@@ -1891,7 +1948,7 @@
       <div class="ov-about-team" style="grid-template-columns:1fr;max-width:340px;margin:0 auto;">
         <div class="ov-about-team-card">
           <div class="ov-about-founder-photo-wrap">
-            <img src="assets/Alec Kauffmann.jpeg" alt="Alec Kauffmann" class="ov-about-founder-photo">
+            <img src="/assets/Alec Kauffmann.jpeg" alt="Alec Kauffmann" class="ov-about-founder-photo">
           </div>
           <div class="ov-about-team-name">Alec Kauffmann</div>
           <div class="ov-about-team-role">Founder &amp; CEO</div>
@@ -1941,7 +1998,7 @@
             <div class="ov-blog-art-title">Oriven AI Is Now Live</div>
             <div class="ov-blog-art-desc">After months of planning, designing and building, Oriven is officially live. Learn more about our mission, the problem we're solving and what's coming next for the platform.</div>
           </div>
-          <a href="#" class="ov-blog-art-btn" onclick="ovBlogModalOpen(1);return false">Read Article</a>
+          <a href="/blog/oriven-ai-is-now-live" class="ov-blog-art-btn" onclick="ovBlogModalOpen(1);return false">Read Article</a>
         </div>
 
         <div class="ov-blog-art-card">
@@ -1949,7 +2006,7 @@
             <div class="ov-blog-art-title">What You Can Do With Oriven</div>
             <div class="ov-blog-art-desc">Discover how Oriven helps marketers and businesses connect advertising data, generate insights and make better decisions from one platform.</div>
           </div>
-          <a href="#" class="ov-blog-art-btn" onclick="ovBlogModalOpen(2);return false">Read Article</a>
+          <a href="/blog/what-you-can-do-with-oriven" class="ov-blog-art-btn" onclick="ovBlogModalOpen(2);return false">Read Article</a>
         </div>
 
         <div class="ov-blog-art-card">
@@ -1957,7 +2014,7 @@
             <div class="ov-blog-art-title">Why We Built Oriven</div>
             <div class="ov-blog-art-desc">Marketing data is fragmented across multiple platforms. Learn how that challenge inspired the creation of Oriven and the vision behind the platform.</div>
           </div>
-          <a href="#" class="ov-blog-art-btn" onclick="ovBlogModalOpen(3);return false">Read Article</a>
+          <a href="/blog/why-we-built-oriven" class="ov-blog-art-btn" onclick="ovBlogModalOpen(3);return false">Read Article</a>
         </div>
 
       </div>
@@ -2248,7 +2305,7 @@
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">One Connected Workflow</div>
-          <div class="ov-plat-feat-desc">Research, create and launch Google Ads campaigns, then track results, without switching tools.</div>
+          <div class="ov-plat-feat-desc"><a href="/research" style="color:inherit;text-decoration:underline">Research</a>, <a href="/create" style="color:inherit;text-decoration:underline">create</a> and <a href="/launch" style="color:inherit;text-decoration:underline">launch</a> Google Ads campaigns, then <a href="/campaigns" style="color:inherit;text-decoration:underline">track results</a>, without switching tools.</div>
         </div>
       </div>
     </div>
@@ -2334,7 +2391,7 @@
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">One Connected Workflow</div>
-          <div class="ov-plat-feat-desc">Research, create and launch Meta campaigns, then track results, without switching tools.</div>
+          <div class="ov-plat-feat-desc"><a href="/research" style="color:inherit;text-decoration:underline">Research</a>, <a href="/create" style="color:inherit;text-decoration:underline">create</a> and <a href="/launch" style="color:inherit;text-decoration:underline">launch</a> Meta campaigns, then <a href="/campaigns" style="color:inherit;text-decoration:underline">track results</a>, without switching tools.</div>
         </div>
       </div>
     </div>
@@ -2420,7 +2477,7 @@
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">One Connected Workflow</div>
-          <div class="ov-plat-feat-desc">Research, create and launch TikTok campaigns, then track results, without switching tools.</div>
+          <div class="ov-plat-feat-desc"><a href="/research" style="color:inherit;text-decoration:underline">Research</a>, <a href="/create" style="color:inherit;text-decoration:underline">create</a> and <a href="/launch" style="color:inherit;text-decoration:underline">launch</a> TikTok campaigns, then <a href="/campaigns" style="color:inherit;text-decoration:underline">track results</a>, without switching tools.</div>
         </div>
       </div>
     </div>
@@ -2517,7 +2574,7 @@
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">One Connected Workflow</div>
-          <div class="ov-plat-feat-desc">Research, create and launch Pinterest campaigns, then track results, without switching tools.</div>
+          <div class="ov-plat-feat-desc"><a href="/research" style="color:inherit;text-decoration:underline">Research</a>, <a href="/create" style="color:inherit;text-decoration:underline">create</a> and <a href="/launch" style="color:inherit;text-decoration:underline">launch</a> Pinterest campaigns, then <a href="/campaigns" style="color:inherit;text-decoration:underline">track results</a>, without switching tools.</div>
         </div>
       </div>
     </div>
@@ -3289,7 +3346,7 @@
        sitting glued to the credits grid above it. -->
   <section class="ov-pricing-fold">
     <div class="ov-sp-section-inner ov-pricing-fold-wide">
-      <div class="ov-eyebrow ov-pricing-fold-eyebrow">Simple pricing</div>
+      <h1 class="ov-eyebrow ov-pricing-fold-eyebrow">Simple pricing</h1>
       <div class="ov-pricing-grid-4" id="lpPricingGrid"></div>
       <p class="ov-pricing-compare-note">Every card lists the same features in the same order, so you can compare plans side by side above.</p>
     </div>
@@ -3325,8 +3382,8 @@
 </div><!-- /view-404 -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
-<script src="plans.js"></script>
+<script src="/supabase.js"></script>
+<script src="/plans.js"></script>
 
 <!-- ═══════════════════════════════════════════════════════════
      ROUTER — shows the correct view based on the current URL path
@@ -3352,7 +3409,33 @@
     '/autopilot':                   'product-autopilot',
     '/business':                    'product-business'
   };
-  var active = (path === '/' || path === '') ? 'landing' : (viewMap[path] || '404');
+
+  // SEO pass — each real blog article now gets its own crawlable URL
+  // (was href="#" onclick-only, meaning no article had any URL a search
+  // engine could discover or index at all). Shown via the existing
+  // /blog view + modal, auto-opened below and by the blog script
+  // further down this file (window.ovBlogModalOpen) — same UX, just
+  // reachable at a real address now. Shared with the popstate handler
+  // in the PAGE TRANSITIONS script via window._blogSlugs.
+  var blogSlugs = {
+    '/blog/oriven-ai-is-now-live': 1,
+    '/blog/what-you-can-do-with-oriven': 2,
+    '/blog/why-we-built-oriven': 3
+  };
+  window._blogSlugs = blogSlugs;
+
+  var seoKey; // which PAGE_SEO entry to apply — differs from the view key for blog posts
+  var active;
+  if(path === '/' || path === ''){
+    active = 'landing'; seoKey = 'landing';
+  } else if(blogSlugs.hasOwnProperty(path)){
+    active = 'blog'; seoKey = 'blog-' + blogSlugs[path];
+    window._pendingBlogPost = blogSlugs[path]; // consumed once ovBlogModalOpen exists (see blog script)
+  } else if(viewMap.hasOwnProperty(path)){
+    active = viewMap[path]; seoKey = active;
+  } else {
+    active = '404'; seoKey = '404';
+  }
   var el = document.getElementById('view-' + active);
   if(el) el.classList.remove('pub-view');
 
@@ -3366,27 +3449,99 @@
   };
   document.body.dataset.lpnav = NAV_VIEWS[active] ? '1' : '0';
 
-  var titles = {
-    login: 'Login | Oriven', signup: 'Create Account – ORIVEN',
-    terms: 'Terms of Service – ORIVEN', privacy: 'Privacy Policy – ORIVEN',
-    'refund-policy': 'Refund Policy – ORIVEN', 'cookie-policy': 'Cookie Policy – ORIVEN',
-    security: 'Security – ORIVEN', contact: 'Contact – ORIVEN',
-    about: 'About – Oriven', blog: 'Blog – Oriven',
-    product: 'Product – Oriven', solutions: 'Solutions – Oriven',
-    pricing: 'Pricing – Oriven', faq: 'FAQ – Oriven',
-    'product-google-ads':         'Google Ads – Oriven',
-    'product-meta-ads':           'Meta Ads – Oriven',
-    'product-tiktok-ads':         'TikTok Ads – Oriven',
-    'product-pinterest-ads':      'Pinterest Ads – Oriven',
-    'product-create':             'Create – Oriven',
-    'product-launch':             'Launch – Oriven',
-    'product-campaigns':          'Campaigns – Oriven',
-    'product-research':       'Research – Oriven',
-    'product-autopilot':          'Autopilot – Oriven',
-    'product-business':           'Business – Oriven',
-    '404':                        'Page Not Found – Oriven'
+  // SEO pass — single source of truth for title/description/canonical/
+  // OG/Twitter/robots per route, replacing two separately-maintained
+  // title-only maps (this script previously had its own `titles`, and
+  // the PAGE TRANSITIONS script below had its own near-duplicate
+  // `PAGE_TITLES` — both are now driven from here). This document is
+  // served as-is for every public URL (see vercel.json / _redirects —
+  // a single static index.html with a catch-all rewrite), so this is
+  // the mechanism that gives each route a genuinely unique <title>,
+  // meta description and canonical URL rather than every route sharing
+  // whatever was hardcoded in <head>. Descriptions are drawn from each
+  // page's own real, existing hero sub-copy — nothing invented.
+  var PAGE_SEO = {
+    landing: { title: 'AI Advertising Platform | ORIVEN', desc: 'Oriven is an AI advertising workspace: create, launch and manage campaigns across Google, Meta, TikTok and Pinterest, with research and automation built in.', path: '/' },
+    login: { title: 'Login | ORIVEN', desc: 'Log in to your ORIVEN account to manage your advertising campaigns.', path: '/login', noindex: true },
+    signup: { title: 'Create Your Account | ORIVEN', desc: 'Create a free ORIVEN account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
+    terms: { title: 'Terms of Service | ORIVEN', desc: 'Terms of Service for using the ORIVEN advertising platform.', path: '/terms' },
+    privacy: { title: 'Privacy Policy | ORIVEN', desc: 'How ORIVEN collects, uses and protects your data.', path: '/privacy' },
+    'refund-policy': { title: 'Refund Policy | ORIVEN', desc: 'ORIVEN’s refund policy for subscriptions and credits.', path: '/refund-policy' },
+    'cookie-policy': { title: 'Cookie Policy | ORIVEN', desc: 'How ORIVEN uses cookies on this website.', path: '/cookie-policy' },
+    security: { title: 'Security | ORIVEN', desc: 'How ORIVEN protects your advertising accounts and data.', path: '/security' },
+    contact: { title: 'Contact | ORIVEN', desc: 'Get in touch with the ORIVEN team.', path: '/contact' },
+    about: { title: 'About ORIVEN | AI Advertising Platform', desc: 'Marketing data is scattered across platforms. Oriven brings it together so you can spend less time in dashboards and more time making better decisions.', path: '/about' },
+    blog: { title: 'Blog | ORIVEN', desc: 'Insights, updates and ideas from the Oriven team.', path: '/blog' },
+    product: { title: 'Connect Your Advertising Platforms | ORIVEN', desc: 'Oriven connects to Google Ads, Meta Ads, TikTok Ads and Pinterest Ads — research, creative, launch, campaign management and automation in one workspace.', path: '/product' },
+    solutions: { title: 'Advertising Solutions | ORIVEN', desc: 'Every Oriven solution maps to one real product — no generic promises, just the actual thing that fixes it.', path: '/solutions' },
+    'case-studies': { title: 'Case Studies | ORIVEN', desc: 'Illustrative examples of how Oriven changes a real advertising workflow.', path: '/case-studies' },
+    pricing: { title: 'Pricing | ORIVEN', desc: 'ORIVEN pricing plans and credits for AI advertising creation, research, launch, campaign management and automation.', path: '/pricing' },
+    faq: { title: 'FAQ | ORIVEN', desc: 'Answers to common questions about ORIVEN, credits, connecting ad accounts and plans.', path: '/faq' },
+    'product-google-ads': { title: 'Google Ads AI & Campaign Workflow | ORIVEN', desc: 'Connect your Google Ads account and Oriven creates, launches and tracks campaigns for you — Search, Performance Max and Demand Gen, backed by real reporting.', path: '/product/google-ads' },
+    'product-meta-ads': { title: 'Meta Ads AI & Campaign Workflow | ORIVEN', desc: 'Connect Facebook and Instagram advertising to Oriven. Create campaigns, launch them through Meta’s own API and track results in one workspace.', path: '/product/meta-ads' },
+    'product-tiktok-ads': { title: 'TikTok Ads AI & Campaign Workflow | ORIVEN', desc: 'Connect TikTok Ads to Oriven. Create and launch campaigns through TikTok’s own API, alongside Google, Meta and Pinterest.', path: '/product/tiktok-ads' },
+    'product-pinterest-ads': { title: 'Pinterest Ads AI & Campaign Workflow | ORIVEN', desc: 'Connect Pinterest Ads to Oriven. Create your ad account, build campaigns and launch Pins through Pinterest’s own API.', path: '/product/pinterest-ads' },
+    'product-create': { title: 'AI Ad Creation & Creative Workspace | ORIVEN', desc: 'The Creative Playground turns a product description into platform-ready ad creative, image or video, informed by your real Business and Brand context.', path: '/create' },
+    'product-launch': { title: 'Campaign Launch & AI Ad Generation | ORIVEN', desc: 'Describe your product, choose your platforms, and Oriven generates a complete, ready-to-publish campaign — strategy, structure and creative included.', path: '/launch' },
+    'product-campaigns': { title: 'Campaign Management & Tracking | ORIVEN', desc: 'Track live campaigns, pick up drafts, and review every detail before anything publishes, across Google, Meta and TikTok, all in one place.', path: '/campaigns' },
+    'product-research': { title: 'AI Advertising Research | ORIVEN', desc: 'Understand creative approaches, messaging patterns and advertising trends outside your own campaigns, so you can test the right ideas, not guess.', path: '/research' },
+    'product-autopilot': { title: 'Advertising Automation | ORIVEN', desc: 'Autopilot turns campaign insights into automated action — reallocating wasted budget and flagging audience fatigue, based on rules you control.', path: '/autopilot' },
+    'product-business': { title: 'Brand Context for AI Advertising | ORIVEN', desc: 'Your business profile and Brand Identity give every AI generation the same context, so campaigns, copy and creative actually sound like you.', path: '/business' },
+    'blog-1': { title: 'Oriven AI Is Now Live | ORIVEN Blog', desc: 'After months of planning, designing and building, Oriven is officially live. Learn more about our mission and what’s coming next for the platform.', path: '/blog/oriven-ai-is-now-live' },
+    'blog-2': { title: 'What You Can Do With Oriven | ORIVEN Blog', desc: 'Discover how Oriven helps marketers and businesses connect advertising data, generate insights and make better decisions from one platform.', path: '/blog/what-you-can-do-with-oriven' },
+    'blog-3': { title: 'Why We Built Oriven | ORIVEN Blog', desc: 'Marketing data is fragmented across multiple platforms. Learn how that challenge inspired the creation of Oriven and the vision behind the platform.', path: '/blog/why-we-built-oriven' },
+    '404': { title: 'Page Not Found | ORIVEN', desc: 'The page you are looking for does not exist or has been moved.', path: null, noindex: true }
   };
-  if(titles[active]) document.title = titles[active];
+  window.PAGE_SEO = PAGE_SEO;
+
+  // Applies title/description/canonical/OG/Twitter/robots for one
+  // PAGE_SEO key. Idempotent and safe to call repeatedly (initial load,
+  // every SPA transition, every popstate, and blog-modal opens all call
+  // this instead of touching document.title directly). Only touches the
+  // specific tags it owns (id="ov*" in <head>).
+  window._applyPageSeo = function(seoKey){
+    var seo = PAGE_SEO[seoKey];
+    if(!seo) return;
+    if(seo.title) document.title = seo.title;
+    var descTag = document.querySelector('meta[name="description"]');
+    if(descTag && seo.desc) descTag.setAttribute('content', seo.desc);
+    var canonicalHref = 'https://orivenai.com' + (seo.path || '/');
+    var canonicalTag = document.getElementById('ovCanonical');
+    if(canonicalTag) canonicalTag.setAttribute('href', canonicalHref);
+    var ogTitle = document.getElementById('ovOgTitle'); if(ogTitle && seo.title) ogTitle.setAttribute('content', seo.title);
+    var ogDesc = document.getElementById('ovOgDesc'); if(ogDesc && seo.desc) ogDesc.setAttribute('content', seo.desc);
+    var ogUrl = document.getElementById('ovOgUrl'); if(ogUrl) ogUrl.setAttribute('content', canonicalHref);
+    var twTitle = document.getElementById('ovTwTitle'); if(twTitle && seo.title) twTitle.setAttribute('content', seo.title);
+    var twDesc = document.getElementById('ovTwDesc'); if(twDesc && seo.desc) twDesc.setAttribute('content', seo.desc);
+    var robotsTag = document.getElementById('ovRobotsMeta');
+    if(robotsTag) robotsTag.setAttribute('content', seo.noindex ? 'noindex, follow' : 'index, follow');
+
+    // FAQPage structured data — only actually present while /faq is the
+    // active route, built from the real, visible Q&A on that page
+    // (never hand-duplicated, so it can't drift out of sync with what a
+    // visitor actually sees).
+    var existingFaqLd = document.getElementById('ovFaqLd');
+    if(seoKey === 'faq'){
+      if(!existingFaqLd){
+        var faqItems = Array.prototype.slice.call(document.querySelectorAll('#view-faq .ov-faq')).map(function(item){
+          var q = item.querySelector('.ov-faq-q span');
+          var a = item.querySelector('.ov-faq-a');
+          return { '@type': 'Question', name: q ? q.textContent.trim() : '', acceptedAnswer: { '@type': 'Answer', text: a ? a.textContent.trim() : '' } };
+        }).filter(function(qa){ return qa.name && qa.acceptedAnswer.text; });
+        if(faqItems.length){
+          var ld = document.createElement('script');
+          ld.type = 'application/ld+json';
+          ld.id = 'ovFaqLd';
+          ld.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqItems });
+          document.head.appendChild(ld);
+        }
+      }
+    } else if(existingFaqLd){
+      existingFaqLd.remove();
+    }
+  };
+
+  window._applyPageSeo(seoKey);
   window._pubView = active;
 })();
 </script>
@@ -3432,35 +3587,14 @@
     '/autopilot':                   'product-autopilot',
     '/business':                    'product-business'
   };
-  var PAGE_TITLES = {
-    'landing':                  'Oriven. All Your Advertising. One Workspace.',
-    'login':                    'Login | Oriven',
-    'signup':                   'Create Account – ORIVEN',
-    'terms':                    'Terms of Service – ORIVEN',
-    'privacy':                  'Privacy Policy – ORIVEN',
-    'refund-policy':            'Refund Policy – ORIVEN',
-    'cookie-policy':            'Cookie Policy – ORIVEN',
-    'security':                 'Security – ORIVEN',
-    'contact':                  'Contact – ORIVEN',
-    'about':                    'About – Oriven',
-    'blog':                     'Blog – Oriven',
-    'product':                  'Product – Oriven',
-    'solutions':                'Solutions – Oriven',
-    'case-studies':             'Case Studies – Oriven',
-    'pricing':                  'Pricing – Oriven',
-    'faq':                      'FAQ – Oriven',
-    'product-google-ads':         'Google Ads – Oriven',
-    'product-meta-ads':           'Meta Ads – Oriven',
-    'product-tiktok-ads':         'TikTok Ads – Oriven',
-    'product-pinterest-ads':      'Pinterest Ads – Oriven',
-    'product-create':             'Create – Oriven',
-    'product-launch':             'Launch – Oriven',
-    'product-campaigns':          'Campaigns – Oriven',
-    'product-research':       'Research – Oriven',
-    'product-autopilot':          'Autopilot – Oriven',
-    'product-business':           'Business – Oriven',
-    '404':                        'Page Not Found – Oriven'
-  };
+  // SEO pass — the per-route title/description/canonical/OG table now
+  // lives in ONE place (window.PAGE_SEO / window._applyPageSeo, set up
+  // by the ROUTER script above, which runs first) instead of being
+  // duplicated here as a second, title-only map that could drift out of
+  // sync with the first. Every call below that used to set
+  // document.title directly now calls window._applyPageSeo(key)
+  // instead, which also keeps meta description/canonical/OG/Twitter/
+  // robots correct for whichever route is actually showing.
 
   function setNav(viewKey){
     document.body.dataset.lpnav = NAV_VIEWS[viewKey] ? '1' : '0';
@@ -3487,7 +3621,7 @@
       window._pubView = targetKey;
       setNav(targetKey);
       history.pushState(null, '', href);
-      if(PAGE_TITLES[targetKey]) document.title = PAGE_TITLES[targetKey];
+      if(window._applyPageSeo) window._applyPageSeo(targetKey);
 
       overlay.classList.remove('lp-t-in');
     }, FADE);
@@ -3505,8 +3639,14 @@
 
   window.addEventListener('popstate', function(){
     var path = window.location.pathname;
-    var targetKey = VIEW_MAP[path] || 'landing';
-    if(targetKey === window._pubView) return;
+    var blogSlugs = window._blogSlugs || {};
+    var targetKey, seoKey, pendingArticle;
+    if(blogSlugs.hasOwnProperty(path)){
+      targetKey = 'blog'; pendingArticle = blogSlugs[path]; seoKey = 'blog-' + pendingArticle;
+    } else {
+      targetKey = VIEW_MAP[path] || 'landing'; seoKey = targetKey;
+    }
+    if(targetKey === window._pubView && !pendingArticle){ return; }
     var cur = document.getElementById('view-' + window._pubView);
     if(cur) cur.classList.add('pub-view');
     var next = document.getElementById('view-' + targetKey);
@@ -3516,7 +3656,14 @@
     }
     window._pubView = targetKey;
     setNav(targetKey);
-    if(PAGE_TITLES[targetKey]) document.title = PAGE_TITLES[targetKey];
+    if(window._applyPageSeo) window._applyPageSeo(seoKey);
+    // Back/forward landing on (or leaving) a specific article URL —
+    // reopen or close the modal to match, same as the initial-load path.
+    if(pendingArticle && window.ovBlogModalOpen){
+      window.ovBlogModalOpen(pendingArticle);
+    } else if(targetKey === 'blog' && !pendingArticle && window.ovBlogModalClose){
+      window.ovBlogModalClose();
+    }
   });
 
   window.lpNavigate = lpNavigate;
@@ -4775,7 +4922,7 @@ function _googleTileHtml(n){
       '<div class="ov-adx-gc-headline">' + ad.headline + '</div>' +
       '<div class="ov-adx-gc-desc">' + ad.desc + '</div>' +
     '</div>' +
-    '<div class="ov-adx-gc-media"><img src="assets/GA' + n + '.png" alt="' + OV_GOOGLE_ALT[n] + '" loading="lazy"></div>' +
+    '<div class="ov-adx-gc-media"><img src="/assets/GA' + n + '.png" alt="' + OV_GOOGLE_ALT[n] + '" loading="lazy"></div>' +
   '</div>';
 }
 function _googleSequenceHtml(nums){
@@ -4828,7 +4975,7 @@ function _metaTileHtml(n){
     '</div>' +
     '<div class="ov-adx-mc-text">' + ad.text + '</div>' +
     '<div class="ov-adx-mc-sub">' + ad.sub + '</div>' +
-    '<div class="ov-adx-mc-media"><img src="assets/MA' + n + '.png" alt="' + OV_META_ALT[n] + '" loading="lazy"></div>' +
+    '<div class="ov-adx-mc-media"><img src="/assets/MA' + n + '.png" alt="' + OV_META_ALT[n] + '" loading="lazy"></div>' +
     '<div class="ov-adx-mc-cta">' + ad.cta + '</div>' +
   '</div>';
 }
@@ -4889,7 +5036,7 @@ function _tiktokTileHtml(n){
   var ad = OV_TIKTOK_ADS[n];
   return '<div class="ov-wall-card ov-wall-card-tiktok ov-adx-tiktok">' +
     '<div class="ov-adx-media ov-adx-media-filled">' +
-      '<video src="assets/TA' + n + '.mp4" autoplay loop muted playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>' +
+      '<video src="/assets/TA' + n + '.mp4" autoplay loop muted playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>' +
     '</div>' +
     '<div class="ov-adx-t-scrim">' +
       '<div class="ov-adx-t-badge">Sponsored</div>' +
@@ -4939,7 +5086,7 @@ function _pinterestTileHtml(n){
   return '<div class="ov-wall-card ov-wall-card-pinterest ov-adx-pcard">' +
     '<div class="ov-adx-pc-media">' +
       '<span class="ov-adx-pc-badge"><span class="ov-adx-pc-badge-dot" aria-hidden="true"></span>Promoted</span>' +
-      '<img src="assets/PA' + n + '.png" alt="' + OV_PINTEREST_ALT[n] + '" loading="lazy">' +
+      '<img src="/assets/PA' + n + '.png" alt="' + OV_PINTEREST_ALT[n] + '" loading="lazy">' +
     '</div>' +
     '<div class="ov-adx-pc-body">' +
       '<div class="ov-adx-pc-head"><span class="ov-adx-pc-avatar" aria-hidden="true">' + ad.name.charAt(0) + '</span><span class="ov-adx-pc-name">' + ad.name + '</span></div>' +
@@ -6078,6 +6225,16 @@ async function auSignup(){
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') window.ovBlogModalClose();
   });
+
+  // SEO pass — a direct load/reload of /blog/<slug> (the ROUTER script,
+  // much earlier in this file, runs first and detects the slug before
+  // this function exists yet) auto-opens the matching article here, so
+  // a crawler or a bookmarked/shared link actually sees that article's
+  // real text rendered, not just the bare blog list.
+  if(window._pendingBlogPost){
+    window.ovBlogModalOpen(window._pendingBlogPost);
+    window._pendingBlogPost = null;
+  }
 })();
 </script>
 

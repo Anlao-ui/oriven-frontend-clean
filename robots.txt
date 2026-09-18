@@ -1,0 +1,15 @@
+# /login and /signup are intentionally NOT disallowed here: they carry a
+# <meta name="robots" content="noindex, follow"> tag instead, which
+# requires Google to be able to CRAWL the page to see it. A robots.txt
+# Disallow would block that crawl and could leave the URL indexed with no
+# snippet ("No information is available for this page") if anything ever
+# links to it — noindex is the correct mechanism for excluding a real,
+# reachable page from search results; Disallow is for pages that should
+# never be fetched at all.
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /app.html
+Disallow: /onboarding
+
+Sitemap: https://orivenai.com/sitemap.xml
