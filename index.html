@@ -237,6 +237,40 @@
     /* Global nav: always hidden unless body carries data-lpnav="1" */
     #lpNav { display: none !important; }
     body[data-lpnav="1"] #lpNav { display: flex !important; }
+
+    /* Hero vertical clearance — Responsive Layout Audit pass.
+       Root cause: several layered, unscoped `.lp-hero { min-height:100vh
+       !important }` rules from earlier redesign passes size the hero to
+       the FULL viewport height, but the hero already renders inside
+       #view-landing, which starts 64px (--lp-nav-h) below the nav. A
+       100vh-tall flex box starting 64px down is 64px taller than the
+       space actually available, so centering its content mathematically
+       pushes that content toward — and on short viewports, flush
+       against — the nav. Measured effect: on real laptop window heights
+       (~700-820px) and mobile landscape (~390px), the gap between the
+       nav and the headline collapsed to under 1px. Placed last (and
+       still !important) specifically to win deterministically over that
+       older cascade rather than stacking another one-off patch on it.
+       min-height now matches the space actually available below the
+       nav, so centered content can never be pushed into the nav's own
+       area; `safe center` additionally guarantees that if content is
+       ever taller than that space regardless, it falls back to a
+       readable top alignment (real padding below) instead of being
+       centered into negative space. clamp() keeps a real minimum gap on
+       every screen while giving generous breathing room back once
+       there's height to spare, instead of one flat offset. */
+    .lp-hero {
+      min-height: calc(100vh - var(--lp-nav-h)) !important;
+      padding: clamp(28px, 7vh, 72px) 24px clamp(24px, 6vh, 56px) !important;
+      align-items: safe center !important;
+    }
+    @media (max-width: 480px) {
+      /* Small phones: the fixed 48px patch this replaces is now covered
+         by the clamp() above (28px floor scales up quickly past a ~400px
+         viewport), but phones also need the side gutter to shrink so the
+         headline doesn't fight the hero's own 24px side padding twice. */
+      .lp-hero { padding-left: 20px !important; padding-right: 20px !important; }
+    }
   </style>
 </head>
 <body class="public-page">

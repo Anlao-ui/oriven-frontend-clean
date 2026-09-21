@@ -2254,7 +2254,18 @@ textarea.flow-inp{min-height:90px;resize:vertical}
 
 /* ═══ SETTINGS ══════════════════════════════════════════════════ */
 #page-settings{display:none;padding:0}
-#page-settings.active{display:block}
+/* Responsive Layout Audit pass — #page-settings is a direct .app child
+   (same structural family as #page-campaign-results/#page-autopilot,
+   see the app-shell overflow comment ~line 24660), but unlike those two
+   it had no overflow-y of its own at all (defaulted to the CSS initial
+   value, visible). .app's own overflow:hidden then invisibly clipped any
+   Settings content taller than one viewport, with no scrollbar anywhere
+   to reach it — confirmed by directly measuring the real rendered page:
+   content was clipped with zero scroll affordance. Settings' own tab
+   content easily exceeds one viewport (Business Profile, Brand Identity,
+   Team, Billing, etc.), so this was a genuine, reachable bug, not a
+   theoretical one. */
+#page-settings.active{display:block;overflow-y:auto;overflow-x:hidden}
 .se-outer{max-width:1040px;margin:0 auto;padding:44px 40px 80px}
 
 /* Settings hero */
@@ -30741,6 +30752,28 @@ body.dark-mode .intel-hdr2-title { color: rgba(255,255,255,.95); }
      above. */
   #page-research.active.rsc-page-centered .orv-page-wrap { width: 100%; }
 }
+
+/* Responsive Layout Audit pass — pure vertical centering (above) splits
+   ALL leftover space evenly top and bottom, so the gap above the
+   heading keeps growing as the viewport gets taller. That reads as
+   intentional breathing room on large desktop, but on real laptop
+   window heights (roughly 700-950px, where the ~590px ready-state
+   composition still leaves real but much smaller leftover space) the
+   same math still centers it, so the whole composition sits noticeably
+   lower than the nav with a large, empty gap above it — the "positioned
+   too low, compressed toward the lower portion" effect. Height-scoped
+   (not a single hardcoded offset) rather than centered: switches to a
+   capped, viewport-height-proportional top gap instead of true
+   centering once the viewport is short enough that centering no longer
+   reads as deliberate. clamp() keeps a real minimum and a real ceiling,
+   so it scales with the viewport rather than landing on one fixed
+   number. */
+@media (min-width: 1281px) and (min-height: 700px) and (max-height: 950px) {
+  #page-research.active.rsc-page-centered {
+    justify-content: flex-start;
+    padding-top: clamp(32px, 8vh, 110px);
+  }
+}
 /* Gives .rsc-hero{flex:1} real room to center within — matches the
    viewport-height composition Create's #page-create.active already uses
    for its own single-composer initial state. box-sizing is border-box
@@ -41551,6 +41584,35 @@ body.dark-mode #page-create.active.cr2-ambient-build::before {
   #page-create.active { height: auto; overflow-y: visible; }
 }
 
+/* Height-aware compaction — Responsive Layout Audit pass. Real laptop
+   browser windows are frequently 700-820px tall (external-monitor/large-
+   desktop testing never surfaces this). At those heights the existing
+   responsive behavior above is WIDTH-only (.cr2-workspace-row only
+   stacks below 1280px width, ~line 41098), so a wide-but-short laptop
+   window stays in the two-column composer+Stage layout, where
+   .cr2-stage-frame's aspect-ratio(3/2) sizing (driven by its ~600px
+   column width, not the viewport) alone can produce a frame taller than
+   the whole available height once .cr2-wrap's padding, .cr2-hero and the
+   workspace-row gap are added on top of it. #page-create already has a
+   safe internal-scroll fallback for whatever doesn't fit (confirmed
+   above), so nothing becomes truly inaccessible either way — this
+   reduces how OFTEN that fallback is needed, per the same density-
+   reduction direction the earlier "Create Density Correction pass"
+   already established, just extended to be viewport-height-aware
+   instead of one fixed set of values for every height. clamp() keeps a
+   real minimum and preserves the original values once there's height to
+   spare, rather than one flat override. */
+@media (min-width: 769px) and (max-height: 820px) {
+  .cr2-wrap { padding: clamp(16px, 3vh, 32px) 28px clamp(20px, 4vh, 60px); gap: 12px; }
+  .cr2-hero { padding: 4px 0 2px; }
+  .cr2-workspace-row { gap: 20px; padding-top: 10px; }
+  .cr2-stage-frame { max-height: 34vh; }
+}
+@media (min-width: 769px) and (max-height: 700px) {
+  .cr2-wrap { padding: clamp(12px, 2vh, 20px) 28px clamp(16px, 3vh, 32px); }
+  .cr2-stage-frame { max-height: 28vh; }
+}
+
 /* Hero */
 .cr2-hero { text-align: center; padding: 8px 0 4px; }
 
@@ -41907,15 +41969,23 @@ body.dark-mode .cr2-foot-divider { background: rgba(255,255,255,.1); }
 .cst2-struct-hint { padding: 7px 16px; font-size: 11px; font-weight: 600; color: var(--muted, #888); background: var(--surface, #fff); }
 .cst2-struct-open .cst2-struct-hint { display: none; }
 
-/* Expand/collapse — height+opacity+transform, 220ms, premium easing;
-   max-height is generous (not measured) since content is fixed/small. */
+/* Expand/collapse — height+opacity+transform, 220ms, premium easing.
+   Responsive Layout Audit pass — measured the real rendered height
+   (pip row + selection note + padding) at 93px; the previous 120px was
+   flagged in this same comment as "generous, not measured." On tight
+   laptop-height viewports where #page-create's content already reaches
+   the bottom of the available space (see the height-aware .cr2-wrap
+   compaction above), that unmeasured 27px of slack was enough on its
+   own to push Build Campaign below the fold when a structure card was
+   opened. 100px keeps a small safety margin above the real 93px instead
+   of an arbitrary generous guess. */
 .cst2-struct-expand {
   max-height: 0; opacity: 0; transform: translateY(-4px) scale(.98);
   overflow: hidden; padding: 0 16px;
   transition: max-height .22s cubic-bezier(.22,.61,.36,1), opacity .18s ease, transform .22s cubic-bezier(.22,.61,.36,1), padding .22s cubic-bezier(.22,.61,.36,1);
 }
 .cst2-struct-open .cst2-struct-expand {
-  max-height: 120px; opacity: 1; transform: translateY(0) scale(1);
+  max-height: 100px; opacity: 1; transform: translateY(0) scale(1);
   padding: 14px 16px 16px;
 }
 .cst2-pip-row { display: flex; gap: 6px; }
