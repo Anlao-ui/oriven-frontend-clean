@@ -46175,6 +46175,25 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
    small tasteful glows like #ov-final's), never a background wash. */
 .lp-hero-glow { display: none !important; }
 
+/* .lp-hero::before (~line 6208) is leftover decorative CSS from the
+   original two-column grid hero (display:grid; grid-template-columns:
+   1fr 1fr), superseded by the current flex-column hero built later in
+   this file — never cleaned up when that redesign landed. An 800x600px
+   radial gradient in the brand green, positioned with top:-20% (which
+   resolves against the CURRENT hero's much taller height, ~-168px),
+   pushing most of it up out of the hero entirely. .lp-hero-bg's own
+   opaque layer normally hides the portion that overlaps the hero itself,
+   but this pseudo-element's negative offset intentionally extends past
+   the hero's own top edge into the transparent gap directly under the
+   fixed nav (between the nav's bottom edge and where the hero's opaque
+   background starts), where nothing was covering it — the visible
+   result was a faint green/blue horizontal glow directly beneath the
+   navbar. Confirmed via direct pixel sampling: fully gone once this is
+   disabled, with the rest of the hero (grid pattern, headline, prompt
+   box, everything .lp-hero-bg already covers) unchanged, at every
+   viewport size tested. */
+.lp-hero::before { display: none !important; }
+
 /* ── Full-screen section rhythm ─────────────────────────────────────
    min-height: calc(100vh - navbar) rather than plain 100vh — sections
    live inside #view-landing, which is already offset below the fixed
