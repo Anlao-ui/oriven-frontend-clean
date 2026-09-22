@@ -2612,6 +2612,15 @@
              as redundant with that shared subtitle (Page Header Alignment
              Fix) — only the real New Campaign action remains, right-aligned. -->
         <div class="camp-mode-hdr camp-mode-hdr-action-only">
+          <!-- Secondary path (Add Existing Campaign): manually bring in an ad
+               already running outside Oriven so it lives in the same
+               Campaigns overview. Deliberately styled as the ghost/secondary
+               button (camp-new-btn-ghost) so OrivenAI's own Create → Launch
+               workflow stays the visually primary action, per spec. -->
+          <button class="camp-new-btn camp-new-btn-ghost" onclick="_mcOpenAdd()" data-tip="Bring in an ad you already run outside Oriven">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 6h8M6 2v8"/></svg>
+            <span>Add existing campaign</span>
+          </button>
           <button class="camp-new-btn" onclick="navigate('create')">
             <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 1v10M1 6h10"/></svg>
             <span data-i18n="newCampaignBtnPlain">New Campaign</span>
@@ -2636,6 +2645,15 @@
               <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="13" height="13" style="flex-shrink:0"><rect width="12" height="12" rx="3" fill="#010101"/><path d="M7.9 3.1h-.9v3.7a.75.75 0 1 1-1-.7V4.8a2.5 2.5 0 1 0 2.2 2.5V4.8c.3.2.7.3 1.1.3V4a1.1 1.1 0 0 1-1.4-.9z" fill="white"/></svg>
               <span>TikTok Ads</span>
               <span class="prf-ptab-dot prf-ptab-dot-off" id="clibTabDotTikTok"></span>
+            </button>
+            <!-- Catches manually added campaigns on a platform without its
+                 own real OrivenAI integration (LinkedIn, Pinterest, "Other")
+                 — only shown when at least one such campaign exists
+                 (renderCampaignHub/_clibSyncConnectionDots), so the three
+                 real, connected platforms above stay the primary tabs. -->
+            <button class="clib-tab prf-ptab"              data-filter="other"  onclick="cmpFilter(this)" id="clibTabOther" style="display:none">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="13" height="13" style="flex-shrink:0"><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5l1.5 1"/></svg>
+              <span>Other</span>
             </button>
           </div>
           <div class="clib-search-wrap">
@@ -2664,6 +2682,709 @@
 
       </div>
     </div><!-- /#page-campaigns -->
+
+    <!-- ══════════════════════════════════════════════════════════════
+         ADD / EDIT EXISTING CAMPAIGN — manual campaign import
+         ══════════════════════════════════════════════════════════════
+         Secondary path alongside Create → Launch: a user brings in an ad
+         they already run outside Oriven so it lives in the same Campaigns
+         overview. Reuses the exact same local campaign storage every
+         OrivenAI-generated campaign already uses (_campaigns[]/_loadCamps/
+         _saveCamps/_orvStoreCampaign, app.html) — this is NOT a second
+         campaign system, just a different way to populate the same one.
+         No AI call anywhere in this flow, no credit charge: this is a
+         deterministic form, not a generation route. Reuses the existing
+         .adm-modal design system (see styles.css) at a wider size
+         (.adm-modal-lg) rather than inventing new modal chrome. -->
+    <div id="mcFormModal" class="adm-modal-overlay" style="display:none" onclick="if(event.target===this)_mcCloseForm()">
+      <div class="adm-modal adm-modal-lg" role="dialog" aria-modal="true" aria-labelledby="mcFormTitle">
+        <div class="adm-modal-hdr">
+          <div>
+            <div class="adm-modal-title" id="mcFormTitle">Add existing campaign</div>
+            <div class="mc-step-indicator" id="mcStepIndicator"></div>
+          </div>
+          <button class="adm-modal-close" onclick="_mcCloseForm()" aria-label="Close">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="13" height="13"><path d="M2 2l10 10M12 2L2 12"/></svg>
+          </button>
+        </div>
+        <div class="adm-modal-body mc-modal-body" id="mcErrorBanner" style="display:none;padding:10px 14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;color:#f87171;font-size:12.5px;margin:14px 20px 0"></div>
+
+        <!-- Step 1 — Campaign basics -->
+        <div class="adm-modal-body mc-step" data-mc-step="1">
+          <div class="adm-modal-field">
+            <label class="adm-modal-lbl">Campaign name *</label>
+            <input class="adm-modal-inp" type="text" id="mcName" maxlength="120" placeholder="e.g. Spring Sale — Meta">
+          </div>
+          <div class="mc-field-row">
+            <div class="adm-modal-field">
+              <label class="adm-modal-lbl">Platform *</label>
+              <select class="adm-modal-inp" id="mcPlatform" onchange="_mcPlatformChanged()">
+                <option value="meta">Meta Ads</option>
+                <option value="google">Google Ads</option>
+                <option value="tiktok">TikTok Ads</option>
+                <option value="linkedin">LinkedIn Ads</option>
+                <option value="pinterest">Pinterest Ads</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="adm-modal-field" id="mcPlatformOtherWrap" style="display:none">
+              <label class="adm-modal-lbl">Platform name</label>
+              <input class="adm-modal-inp" type="text" id="mcPlatformOther" maxlength="60" placeholder="e.g. Snapchat Ads">
+            </div>
+          </div>
+          <div class="mc-field-row">
+            <div class="adm-modal-field">
+              <label class="adm-modal-lbl">Objective</label>
+              <select class="adm-modal-inp" id="mcGoal">
+                <option value="Sales">Sales</option>
+                <option value="Leads">Leads</option>
+                <option value="Traffic">Traffic</option>
+                <option value="Awareness">Awareness</option>
+              </select>
+            </div>
+            <div class="adm-modal-field">
+              <label class="adm-modal-lbl">Status</label>
+              <select class="adm-modal-inp" id="mcStatus">
+                <option value="active">Active</option>
+                <option value="paused">Paused</option>
+                <option value="draft">Draft</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+          <div class="mc-field-row">
+            <div class="adm-modal-field">
+              <label class="adm-modal-lbl">Start date</label>
+              <input class="adm-modal-inp" type="date" id="mcStartDate">
+            </div>
+            <div class="adm-modal-field">
+              <label class="adm-modal-lbl">End date <span class="mc-optional">(optional)</span></label>
+              <input class="adm-modal-inp" type="date" id="mcEndDate">
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 — Budget -->
+        <div class="adm-modal-body mc-step" data-mc-step="2" style="display:none">
+          <p class="mc-step-hint">The real budget for this campaign — used to show what you're spending, not to control anything live.</p>
+          <div class="mc-field-row">
+            <div class="adm-modal-field">
+              <label class="adm-modal-lbl">Budget amount</label>
+              <input class="adm-modal-inp" type="number" id="mcBudgetAmount" min="0" step="0.01" placeholder="e.g. 50">
+            </div>
+            <div class="adm-modal-field" style="max-width:110px">
+              <label class="adm-modal-lbl">Currency</label>
+              <input class="adm-modal-inp" type="text" id="mcBudgetCurrency" maxlength="6" placeholder="USD" style="text-transform:uppercase">
+            </div>
+          </div>
+          <div class="adm-modal-field">
+            <label class="adm-modal-lbl">Budget type</label>
+            <div class="mc-seg" id="mcBudgetTypeSeg">
+              <button type="button" class="mc-seg-btn mc-seg-btn-on" data-val="daily" onclick="_mcSegPick(this,'mcBudgetType')">Daily</button>
+              <button type="button" class="mc-seg-btn" data-val="lifetime" onclick="_mcSegPick(this,'mcBudgetType')">Lifetime / total</button>
+            </div>
+            <input type="hidden" id="mcBudgetType" value="daily">
+          </div>
+        </div>
+
+        <!-- Step 3 — Ad groups + ads + creative -->
+        <div class="adm-modal-body mc-step" data-mc-step="3" style="display:none">
+          <p class="mc-step-hint">Adding one ad is enough for most campaigns — add more ad groups only if you need to.</p>
+          <div id="mcAdGroupsWrap"></div>
+          <button type="button" class="mc-add-group-btn" onclick="_mcAddAdGroup()">+ Add another ad group</button>
+
+          <button type="button" class="mc-advanced-toggle" onclick="_mcToggleAdvanced()" id="mcAdvancedToggle">
+            <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="9" height="9" id="mcAdvancedChevron"><path d="M2.5 3.5L5 6l2.5-2.5"/></svg>
+            Advanced (optional)
+          </button>
+          <div class="mc-advanced-body" id="mcAdvancedBody" style="display:none">
+            <p class="mc-step-hint">Only fill these in if you already know them — they're not required, and Oriven never treats a manually entered ID as proof of a live connection.</p>
+            <div class="mc-field-row">
+              <div class="adm-modal-field">
+                <label class="adm-modal-lbl">External campaign ID</label>
+                <input class="adm-modal-inp" type="text" id="mcExtCampaignId" maxlength="120">
+              </div>
+              <div class="adm-modal-field">
+                <label class="adm-modal-lbl">External ad set / ad group ID</label>
+                <input class="adm-modal-inp" type="text" id="mcExtAdSetId" maxlength="120">
+              </div>
+            </div>
+            <div class="adm-modal-field">
+              <label class="adm-modal-lbl">Notes</label>
+              <textarea class="adm-modal-inp" id="mcNotes" rows="2" maxlength="500" placeholder="Anything else worth remembering about this campaign"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="adm-modal-foot mc-modal-foot">
+          <button class="adm-modal-cancel" id="mcBackBtn" onclick="_mcStepBack()" style="display:none">Back</button>
+          <div style="flex:1"></div>
+          <button class="adm-modal-cancel" onclick="_mcCloseForm()">Cancel</button>
+          <button class="adm-modal-save" id="mcNextBtn" onclick="_mcStepNext()">Continue</button>
+          <button class="adm-modal-save" id="mcSaveBtn" onclick="_mcSave()" style="display:none">Save campaign</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Campaign — Detail view. Read-focused: name/status/platform,
+         budget, dates, ad groups/ads with creative + copy, and an explicit
+         "Performance data unavailable" state (never fabricated metrics).
+         Edit re-opens the same form pre-filled; Remove uses deleteCampaign
+         (its own manual-specific confirmation copy, see above). -->
+    <div id="mcDetailModal" class="adm-modal-overlay" style="display:none" onclick="if(event.target===this)_mcCloseDetail()">
+      <div class="adm-modal adm-modal-lg" role="dialog" aria-modal="true" aria-labelledby="mcDetailTitle">
+        <div class="adm-modal-hdr">
+          <div>
+            <div class="adm-modal-title" id="mcDetailTitle">Campaign</div>
+            <div class="mc-detail-sub" id="mcDetailSub"></div>
+          </div>
+          <button class="adm-modal-close" onclick="_mcCloseDetail()" aria-label="Close">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="13" height="13"><path d="M2 2l10 10M12 2L2 12"/></svg>
+          </button>
+        </div>
+        <div class="adm-modal-body mc-modal-body" id="mcDetailBody"></div>
+        <div class="adm-modal-foot">
+          <button class="adm-modal-cancel" id="mcDetailDeleteBtn">Remove from Oriven</button>
+          <div style="flex:1"></div>
+          <button class="adm-modal-save" id="mcDetailEditBtn">Edit</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    // ════════════════════════════════════════════════════════════════
+    // MANUAL CAMPAIGNS — "Add existing campaign"
+    // ════════════════════════════════════════════════════════════════
+    // Runs in its OWN top-level scope (not the CAMPAIGN WORKSPACE IIFE
+    // above) so its plain function declarations attach to window and stay
+    // callable both from inline onclick="" attributes and from inside that
+    // other closure's _renderCampCard (which calls _mcOpenDetail/
+    // _mcFirstCreativeUrl/_mcCreativeSummary). Reaches the shared campaign
+    // list only through that closure's own exposed bridges
+    // (window._orvGetCampaigns/_loadCamps/_saveCamps/_orvStoreCampaign,
+    // window.renderCampaignHub) — never a second copy of the data.
+    //
+    // Data shape (kept entirely inside c.manual so it can never collide
+    // with any field an OrivenAI-generated campaign object uses):
+    //   c = {
+    //     id, source:'manual', name, platform, platformLabel, goal, status,
+    //     created, updated,
+    //     manual: {
+    //       startDate, endDate, notes,
+    //       budget: { amount, currency, type },
+    //       externalIds: { campaignId, adSetId },
+    //       adGroups: [{ id, name, audience, placement,
+    //         ads: [{ id, name, primaryText, headline, description,
+    //                 destinationUrl, cta,
+    //                 creative: { type:'image'|'video', url } }] }]
+    //     }
+    //   }
+    // c.manual's mere presence is what routes a card to this module
+    // instead of the CGR AI-review workspace/live publish machinery —
+    // checked BEFORE any c.pkg check everywhere that matters
+    // (_renderCampCard's onclick routing above; nothing else in the app
+    // reads c.manual, so an existing OrivenAI-generated campaign — which
+    // never has this field — is completely unaffected by any of this).
+
+    var _MC_PLAT_LABELS = { google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads', linkedin:'LinkedIn Ads', pinterest:'Pinterest Ads' };
+    var _MC_STATUS_LABELS = { active:'Active', paused:'Paused', draft:'Draft', completed:'Completed', archived:'Archived' };
+
+    function _mcEsc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function _mcUid(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+    function _mcPlatLabel(c){ return _MC_PLAT_LABELS[c.platform] || c.platformLabel || 'Other'; }
+
+    // ── Card helpers (called from _renderCampCard in the other closure) ──
+    function _mcFirstCreativeUrl(c){
+      var m = c.manual; if(!m || !m.adGroups) return null;
+      for (var g = 0; g < m.adGroups.length; g++){
+        var ads = m.adGroups[g].ads || [];
+        for (var a = 0; a < ads.length; a++){
+          if (ads[a].creative && ads[a].creative.url && ads[a].creative.type !== 'video') return ads[a].creative.url;
+        }
+      }
+      return null;
+    }
+    function _mcCreativeSummary(c){
+      var m = c.manual; if(!m || !m.adGroups) return 'No ads yet';
+      var total = 0, groups = m.adGroups.length;
+      m.adGroups.forEach(function(g){ total += (g.ads || []).length; });
+      if (!total) return 'No ads yet';
+      return total + (total === 1 ? ' ad' : ' ads') + (groups > 1 ? ' · ' + groups + ' groups' : '');
+    }
+
+    // ── Form state (structure only — field VALUES live in the DOM and are
+    //    read at save time; add/remove mutate the DOM directly rather than
+    //    re-rendering from a parallel JS copy, so nothing already typed can
+    //    ever be lost by an unrelated add/remove elsewhere in the form) ──
+    var _mcEditId = null;      // null while adding; existing campaign id while editing
+    var _mcExistingCreatedAt = null; // preserves the original "added" timestamp across an edit
+    var _mcStep = 1;
+    var _mcUploadsInFlight = 0;
+
+    function _mcBlankAd(){ return { id: _mcUid('ad'), name:'', primaryText:'', headline:'', description:'', destinationUrl:'', cta:'', creativeType:'image', creativeUrl:'' }; }
+    function _mcBlankGroup(){ return { id: _mcUid('grp'), name:'Ad Group 1', audience:'', placement:'', ads:[_mcBlankAd()] }; }
+
+    // ── Open / close ──────────────────────────────────────────────────
+    window._mcOpenAdd = function(){
+      _mcEditId = null;
+      _mcStep = 1;
+      document.getElementById('mcFormTitle').textContent = 'Add existing campaign';
+      _mcClearFormFields();
+      document.getElementById('mcAdGroupsWrap').innerHTML = _mcAdGroupHtml(_mcBlankGroup());
+      _mcRenderSteps();
+      document.getElementById('mcFormModal').style.display = 'flex';
+      setTimeout(function(){ var n = document.getElementById('mcName'); if(n) n.focus(); }, 50);
+    };
+
+    window._mcOpenEdit = function(id){
+      var list = (typeof window._orvGetCampaigns === 'function') ? window._orvGetCampaigns() : [];
+      var c = null;
+      for (var i = 0; i < list.length; i++){ if (list[i].id === id){ c = list[i]; break; } }
+      if (!c || !c.manual) return;
+      _mcEditId = id;
+      _mcStep = 1;
+      document.getElementById('mcFormTitle').textContent = 'Edit campaign';
+      _mcClearFormFields();
+
+      document.getElementById('mcName').value = c.name || '';
+      var knownPlat = !!_MC_PLAT_LABELS[c.platform];
+      document.getElementById('mcPlatform').value = knownPlat ? c.platform : 'other';
+      _mcPlatformChanged();
+      if (!knownPlat) document.getElementById('mcPlatformOther').value = c.platformLabel || '';
+      document.getElementById('mcGoal').value = c.goal || 'Sales';
+      document.getElementById('mcStatus').value = c.status || 'active';
+      var m = c.manual || {};
+      document.getElementById('mcStartDate').value = m.startDate || '';
+      document.getElementById('mcEndDate').value = m.endDate || '';
+      var b = m.budget || {};
+      document.getElementById('mcBudgetAmount').value = (b.amount != null) ? b.amount : '';
+      document.getElementById('mcBudgetCurrency').value = b.currency || '';
+      _mcSetSeg('mcBudgetTypeSeg', 'mcBudgetType', b.type || 'daily');
+      var ext = m.externalIds || {};
+      document.getElementById('mcExtCampaignId').value = ext.campaignId || '';
+      document.getElementById('mcExtAdSetId').value = ext.adSetId || '';
+      document.getElementById('mcNotes').value = m.notes || '';
+
+      var groups = (m.adGroups && m.adGroups.length) ? m.adGroups : [_mcBlankGroup()];
+      document.getElementById('mcAdGroupsWrap').innerHTML = groups.map(function(g){
+        return _mcAdGroupHtml({
+          id: g.id || _mcUid('grp'), name: g.name || 'Ad Group', audience: g.audience || '', placement: g.placement || '',
+          ads: (g.ads && g.ads.length) ? g.ads.map(function(a){
+            return { id: a.id || _mcUid('ad'), name: a.name || '', primaryText: a.primaryText || '', headline: a.headline || '',
+                     description: a.description || '', destinationUrl: a.destinationUrl || '', cta: a.cta || '',
+                     creativeType: (a.creative && a.creative.type) || 'image', creativeUrl: (a.creative && a.creative.url) || '' };
+          }) : [_mcBlankAd()]
+        });
+      }).join('');
+
+      _mcRenderSteps();
+      document.getElementById('mcFormModal').style.display = 'flex';
+    };
+
+    window._mcCloseForm = function(){
+      document.getElementById('mcFormModal').style.display = 'none';
+    };
+
+    function _mcClearFormFields(){
+      ['mcName','mcPlatformOther','mcStartDate','mcEndDate','mcBudgetAmount','mcBudgetCurrency','mcExtCampaignId','mcExtAdSetId','mcNotes'].forEach(function(id){
+        var el = document.getElementById(id); if (el) el.value = '';
+      });
+      document.getElementById('mcPlatform').value = 'meta';
+      document.getElementById('mcGoal').value = 'Sales';
+      document.getElementById('mcStatus').value = 'active';
+      document.getElementById('mcPlatformOtherWrap').style.display = 'none';
+      _mcSetSeg('mcBudgetTypeSeg', 'mcBudgetType', 'daily');
+      document.getElementById('mcAdvancedBody').style.display = 'none';
+      var chev = document.getElementById('mcAdvancedChevron'); if (chev) chev.style.transform = '';
+      _mcHideError();
+    }
+
+    function _mcShowError(msg){
+      var el = document.getElementById('mcErrorBanner');
+      el.textContent = msg; el.style.display = '';
+    }
+    function _mcHideError(){
+      var el = document.getElementById('mcErrorBanner');
+      el.style.display = 'none'; el.textContent = '';
+    }
+
+    // ── Small field helpers ──────────────────────────────────────────
+    window._mcPlatformChanged = function(){
+      var v = document.getElementById('mcPlatform').value;
+      document.getElementById('mcPlatformOtherWrap').style.display = (v === 'other') ? '' : 'none';
+    };
+    window._mcSegPick = function(btn, hiddenId){
+      var seg = btn.parentElement;
+      Array.prototype.forEach.call(seg.querySelectorAll('.mc-seg-btn'), function(b){ b.classList.remove('mc-seg-btn-on'); });
+      btn.classList.add('mc-seg-btn-on');
+      document.getElementById(hiddenId).value = btn.getAttribute('data-val');
+    };
+    function _mcSetSeg(segId, hiddenId, val){
+      var seg = document.getElementById(segId);
+      if (seg) Array.prototype.forEach.call(seg.querySelectorAll('.mc-seg-btn'), function(b){
+        b.classList.toggle('mc-seg-btn-on', b.getAttribute('data-val') === val);
+      });
+      document.getElementById(hiddenId).value = val;
+    }
+    window._mcToggleAdvanced = function(){
+      var body = document.getElementById('mcAdvancedBody');
+      var chev = document.getElementById('mcAdvancedChevron');
+      var open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : '';
+      chev.style.transform = open ? '' : 'rotate(90deg)';
+    };
+
+    // ── Step navigation ──────────────────────────────────────────────
+    function _mcRenderSteps(){
+      document.querySelectorAll('.mc-step').forEach(function(s){
+        s.style.display = (parseInt(s.getAttribute('data-mc-step'), 10) === _mcStep) ? '' : 'none';
+      });
+      document.getElementById('mcStepIndicator').textContent = 'Step ' + _mcStep + ' of 3';
+      document.getElementById('mcBackBtn').style.display = _mcStep > 1 ? '' : 'none';
+      document.getElementById('mcNextBtn').style.display = _mcStep < 3 ? '' : 'none';
+      document.getElementById('mcSaveBtn').style.display = _mcStep === 3 ? '' : 'none';
+      _mcHideError();
+    }
+    window._mcStepBack = function(){ if (_mcStep > 1){ _mcStep--; _mcRenderSteps(); } };
+    window._mcStepNext = function(){
+      if (_mcStep === 1){
+        var name = document.getElementById('mcName').value.trim();
+        if (!name){ _mcShowError('Give this campaign a name.'); return; }
+        var plat = document.getElementById('mcPlatform').value;
+        if (plat === 'other' && !document.getElementById('mcPlatformOther').value.trim()){
+          _mcShowError('Name the platform this ad is running on.'); return;
+        }
+      }
+      if (_mcStep === 2){
+        var amt = document.getElementById('mcBudgetAmount').value;
+        if (amt !== '' && (isNaN(Number(amt)) || Number(amt) < 0)){ _mcShowError('Budget must be a positive number.'); return; }
+      }
+      if (_mcStep < 3){ _mcStep++; _mcRenderSteps(); }
+    };
+
+    // ── Ad groups / ads — plain DOM append/remove, never a full re-render ──
+    function _mcAdGroupHtml(g){
+      var removeGroupBtn = '<button type="button" class="mc-remove-link" onclick="_mcRemoveAdGroup(\''+g.id+'\')" title="Remove ad group">Remove group</button>';
+      var adsHtml = g.ads.map(function(a, i){ return _mcAdHtml(a, i); }).join('');
+      return '<div class="mc-group-card" data-group-id="'+g.id+'">'
+        + '<div class="mc-group-hdr">'
+        +   '<input class="adm-modal-inp mc-group-name-inp" type="text" id="mcGroupName_'+g.id+'" value="'+_mcEsc(g.name)+'" placeholder="Ad group name" maxlength="120">'
+        +   removeGroupBtn
+        + '</div>'
+        + '<div class="mc-field-row">'
+        +   '<div class="adm-modal-field"><label class="adm-modal-lbl">Audience <span class="mc-optional">(optional, your own summary)</span></label><input class="adm-modal-inp" type="text" id="mcGroupAudience_'+g.id+'" value="'+_mcEsc(g.audience)+'" placeholder="e.g. Women 25-44, US, interest: fitness"></div>'
+        +   '<div class="adm-modal-field"><label class="adm-modal-lbl">Placement <span class="mc-optional">(optional)</span></label><input class="adm-modal-inp" type="text" id="mcGroupPlacement_'+g.id+'" value="'+_mcEsc(g.placement)+'" placeholder="e.g. Feed, Stories"></div>'
+        + '</div>'
+        + '<div class="mc-ads-wrap" id="mcAdsWrap_'+g.id+'">'+adsHtml+'</div>'
+        + '<button type="button" class="mc-add-ad-btn" onclick="_mcAddAd(\''+g.id+'\')">+ Add another ad</button>'
+        + '</div>';
+    }
+    function _mcAdHtml(a, idx){
+      var isVideo = a.creativeType === 'video';
+      var removeAdBtn = '<button type="button" class="mc-remove-link" onclick="_mcRemoveAd(\''+a.id+'\')">Remove</button>';
+      var imgPreview = (!isVideo && a.creativeUrl)
+        ? '<img class="mc-upload-preview" src="'+_mcEsc(a.creativeUrl)+'" alt="">'
+        : '<span class="mc-upload-placeholder">Click to upload image<br><span class="mc-optional">JPG, PNG, WEBP or GIF, up to 8MB</span></span>';
+      return '<div class="mc-ad-card" data-ad-id="'+a.id+'">'
+        + '<div class="mc-ad-hdr"><span class="mc-ad-label">Ad '+(idx+1)+'</span>'+removeAdBtn+'</div>'
+        + '<div class="adm-modal-field"><label class="adm-modal-lbl">Ad name <span class="mc-optional">(optional)</span></label><input class="adm-modal-inp" type="text" id="mcAdName_'+a.id+'" value="'+_mcEsc(a.name)+'" placeholder="Defaults to the campaign name"></div>'
+        + '<div class="adm-modal-field"><label class="adm-modal-lbl">Creative</label>'
+        +   '<div class="mc-seg mc-creative-seg" id="mcCreativeSeg_'+a.id+'">'
+        +     '<button type="button" class="mc-seg-btn'+(isVideo?'':' mc-seg-btn-on')+'" data-val="image" onclick="_mcCreativeTypePick(\''+a.id+'\',\'image\')">Image upload</button>'
+        +     '<button type="button" class="mc-seg-btn'+(isVideo?' mc-seg-btn-on':'')+'" data-val="video" onclick="_mcCreativeTypePick(\''+a.id+'\',\'video\')">Video (link)</button>'
+        +   '</div>'
+        +   '<div id="mcCreativeImageWrap_'+a.id+'" style="display:'+(isVideo?'none':'')+'">'
+        +     '<label class="mc-upload-drop" id="mcUploadDrop_'+a.id+'">'
+        +       '<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="_mcHandleImageFile(\''+a.id+'\',this)">'
+        +       imgPreview
+        +     '</label>'
+        +     '<div class="mc-upload-status" id="mcUploadStatus_'+a.id+'"></div>'
+        +   '</div>'
+        +   '<div id="mcCreativeVideoWrap_'+a.id+'" style="display:'+(isVideo?'':'none')+'">'
+        +     '<input class="adm-modal-inp" type="url" id="mcAdVideoUrl_'+a.id+'" value="'+_mcEsc(isVideo?a.creativeUrl:'')+'" placeholder="https://… link to the video (Oriven doesn\'t host manual video uploads yet)">'
+        +   '</div>'
+        +   '<input type="hidden" id="mcAdCreativeType_'+a.id+'" value="'+(a.creativeType||'image')+'">'
+        +   '<input type="hidden" id="mcAdCreativeUrl_'+a.id+'" value="'+_mcEsc(!isVideo?a.creativeUrl:'')+'">'
+        + '</div>'
+        + '<div class="mc-field-row">'
+        +   '<div class="adm-modal-field"><label class="adm-modal-lbl">Headline</label><input class="adm-modal-inp" type="text" id="mcAdHeadline_'+a.id+'" value="'+_mcEsc(a.headline)+'" maxlength="120"></div>'
+        +   '<div class="adm-modal-field"><label class="adm-modal-lbl">CTA</label><input class="adm-modal-inp" type="text" id="mcAdCta_'+a.id+'" value="'+_mcEsc(a.cta)+'" placeholder="e.g. Shop Now" maxlength="40"></div>'
+        + '</div>'
+        + '<div class="adm-modal-field"><label class="adm-modal-lbl">Primary text</label><textarea class="adm-modal-inp" id="mcAdPrimaryText_'+a.id+'" rows="2" maxlength="600">'+_mcEsc(a.primaryText)+'</textarea></div>'
+        + '<div class="adm-modal-field"><label class="adm-modal-lbl">Description <span class="mc-optional">(optional)</span></label><input class="adm-modal-inp" type="text" id="mcAdDescription_'+a.id+'" value="'+_mcEsc(a.description)+'" maxlength="200"></div>'
+        + '<div class="adm-modal-field"><label class="adm-modal-lbl">Destination URL</label><input class="adm-modal-inp" type="url" id="mcAdUrl_'+a.id+'" value="'+_mcEsc(a.destinationUrl)+'" placeholder="https://…"></div>'
+        + '</div>';
+    }
+
+    window._mcAddAdGroup = function(){
+      var wrap = document.getElementById('mcAdGroupsWrap');
+      var n = wrap.querySelectorAll('.mc-group-card').length + 1;
+      wrap.insertAdjacentHTML('beforeend', _mcAdGroupHtml({ id:_mcUid('grp'), name:'Ad Group '+n, audience:'', placement:'', ads:[_mcBlankAd()] }));
+    };
+    window._mcRemoveAdGroup = function(groupId){
+      var wrap = document.getElementById('mcAdGroupsWrap');
+      if (wrap.querySelectorAll('.mc-group-card').length <= 1) return; // always keep at least one
+      var el = wrap.querySelector('[data-group-id="'+groupId+'"]');
+      if (el) el.remove();
+    };
+    window._mcAddAd = function(groupId){
+      var wrap = document.getElementById('mcAdsWrap_'+groupId);
+      if (!wrap) return;
+      wrap.insertAdjacentHTML('beforeend', _mcAdHtml(_mcBlankAd(), wrap.querySelectorAll('.mc-ad-card').length));
+    };
+    window._mcRemoveAd = function(adId){
+      var card = document.querySelector('.mc-ad-card[data-ad-id="'+adId+'"]');
+      if (!card) return;
+      var groupWrap = card.parentElement;
+      if (groupWrap.querySelectorAll('.mc-ad-card').length <= 1) return; // always keep at least one ad per group
+      card.remove();
+    };
+
+    window._mcCreativeTypePick = function(adId, type){
+      var seg = document.getElementById('mcCreativeSeg_'+adId);
+      Array.prototype.forEach.call(seg.querySelectorAll('.mc-seg-btn'), function(b){ b.classList.toggle('mc-seg-btn-on', b.getAttribute('data-val') === type); });
+      document.getElementById('mcCreativeImageWrap_'+adId).style.display = (type === 'image') ? '' : 'none';
+      document.getElementById('mcCreativeVideoWrap_'+adId).style.display = (type === 'video') ? '' : 'none';
+      document.getElementById('mcAdCreativeType_'+adId).value = type;
+      // Switching types doesn't discard whichever URL was already captured —
+      // the hidden mcAdCreativeUrl_<id> only gets overwritten by a real
+      // upload/video-link change, so flipping back keeps what was there.
+    };
+
+    // ── Image upload (real Supabase-storage file, not a data URL kept in
+    //    localStorage — see docs/migrations/2026-09-manual-campaigns-
+    //    creative-bucket.sql for why) ──────────────────────────────────
+    var MC_MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+    var MC_IMAGE_TYPES = ['image/jpeg','image/png','image/webp','image/gif'];
+    window._mcHandleImageFile = function(adId, input){
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var statusEl = document.getElementById('mcUploadStatus_'+adId);
+      if (MC_IMAGE_TYPES.indexOf(file.type) === -1){
+        if (statusEl){ statusEl.textContent = 'Unsupported file type. Use JPG, PNG, WEBP or GIF.'; statusEl.className = 'mc-upload-status mc-upload-status-err'; }
+        input.value = ''; return;
+      }
+      if (file.size > MC_MAX_IMAGE_BYTES){
+        if (statusEl){ statusEl.textContent = 'That file is over 8MB — please use a smaller image.'; statusEl.className = 'mc-upload-status mc-upload-status-err'; }
+        input.value = ''; return;
+      }
+      if (statusEl){ statusEl.textContent = 'Uploading…'; statusEl.className = 'mc-upload-status'; }
+      _mcUploadsInFlight++;
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var dataUrl = e.target.result;
+        apiFetch('/api/manual-campaigns/upload-creative', { method:'POST', body: JSON.stringify({ dataUrl: dataUrl }) })
+          .then(function(res){
+            _mcUploadsInFlight = Math.max(0, _mcUploadsInFlight - 1);
+            if (!res.ok || !res.data || !res.data.url){
+              if (statusEl){ statusEl.textContent = (res.data && res.data.error) || 'Upload failed. Please try again.'; statusEl.className = 'mc-upload-status mc-upload-status-err'; }
+              return;
+            }
+            document.getElementById('mcAdCreativeUrl_'+adId).value = res.data.url;
+            var drop = document.getElementById('mcUploadDrop_'+adId);
+            if (drop){
+              var existingImg = drop.querySelector('img');
+              var existingPh  = drop.querySelector('.mc-upload-placeholder');
+              var img = document.createElement('img');
+              img.className = 'mc-upload-preview'; img.src = res.data.url; img.alt = '';
+              if (existingImg) drop.replaceChild(img, existingImg);
+              else if (existingPh) drop.replaceChild(img, existingPh);
+              var fileInput = drop.querySelector('input[type=file]');
+              if (fileInput) drop.insertBefore(fileInput, drop.firstChild); // keep the (hidden) file input in the DOM
+            }
+            if (statusEl){ statusEl.textContent = 'Uploaded ✓'; statusEl.className = 'mc-upload-status mc-upload-status-ok'; }
+          })
+          .catch(function(){
+            _mcUploadsInFlight = Math.max(0, _mcUploadsInFlight - 1);
+            if (statusEl){ statusEl.textContent = 'Upload failed — check your connection and try again.'; statusEl.className = 'mc-upload-status mc-upload-status-err'; }
+          });
+      };
+      reader.onerror = function(){
+        _mcUploadsInFlight = Math.max(0, _mcUploadsInFlight - 1);
+        if (statusEl){ statusEl.textContent = 'Could not read that file. Please try again.'; statusEl.className = 'mc-upload-status mc-upload-status-err'; }
+      };
+      reader.readAsDataURL(file);
+    };
+
+    // ── Save (add or edit) ────────────────────────────────────────────
+    function _mcIsValidUrl(v){
+      if (!v) return true;
+      try { var u = new URL(v); return u.protocol === 'http:' || u.protocol === 'https:'; } catch (_) { return false; }
+    }
+
+    function _mcCollectAdGroups(){
+      var groups = [];
+      var groupEls = document.querySelectorAll('#mcAdGroupsWrap .mc-group-card');
+      for (var gi = 0; gi < groupEls.length; gi++){
+        var gEl = groupEls[gi];
+        var gid = gEl.getAttribute('data-group-id');
+        var group = {
+          id: gid,
+          name: (document.getElementById('mcGroupName_'+gid).value || 'Ad Group ' + (gi+1)).trim(),
+          audience: document.getElementById('mcGroupAudience_'+gid).value.trim(),
+          placement: document.getElementById('mcGroupPlacement_'+gid).value.trim(),
+          ads: []
+        };
+        var adEls = gEl.querySelectorAll('.mc-ad-card');
+        for (var ai = 0; ai < adEls.length; ai++){
+          var aEl = adEls[ai];
+          var aid = aEl.getAttribute('data-ad-id');
+          var destUrl = document.getElementById('mcAdUrl_'+aid).value.trim();
+          if (destUrl && !_mcIsValidUrl(destUrl)) throw new Error('"'+destUrl+'" doesn\'t look like a valid URL. Include https://');
+          var ctype = document.getElementById('mcAdCreativeType_'+aid).value || 'image';
+          var curl = ctype === 'video' ? document.getElementById('mcAdVideoUrl_'+aid).value.trim() : document.getElementById('mcAdCreativeUrl_'+aid).value.trim();
+          if (curl && !_mcIsValidUrl(curl)) throw new Error('That video link doesn\'t look like a valid URL. Include https://');
+          group.ads.push({
+            id: aid,
+            name: document.getElementById('mcAdName_'+aid).value.trim(),
+            primaryText: document.getElementById('mcAdPrimaryText_'+aid).value.trim(),
+            headline: document.getElementById('mcAdHeadline_'+aid).value.trim(),
+            description: document.getElementById('mcAdDescription_'+aid).value.trim(),
+            destinationUrl: destUrl,
+            cta: document.getElementById('mcAdCta_'+aid).value.trim(),
+            creative: curl ? { type: ctype, url: curl } : null
+          });
+        }
+        groups.push(group);
+      }
+      return groups;
+    }
+
+    window._mcSave = function(){
+      _mcHideError();
+      if (_mcUploadsInFlight > 0){ _mcShowError('Still uploading a file — please wait a moment.'); return; }
+
+      var name = document.getElementById('mcName').value.trim();
+      if (!name){ _mcStep = 1; _mcRenderSteps(); _mcShowError('Give this campaign a name.'); return; }
+      var platform = document.getElementById('mcPlatform').value;
+      var platformLabel = (platform === 'other') ? document.getElementById('mcPlatformOther').value.trim() : (_MC_PLAT_LABELS[platform] || '');
+      if (platform === 'other' && !platformLabel){ _mcStep = 1; _mcRenderSteps(); _mcShowError('Name the platform this ad is running on.'); return; }
+
+      var amountRaw = document.getElementById('mcBudgetAmount').value;
+      var amount = amountRaw === '' ? null : Number(amountRaw);
+      if (amount != null && (isNaN(amount) || amount < 0)){ _mcStep = 2; _mcRenderSteps(); _mcShowError('Budget must be a positive number.'); return; }
+
+      var adGroups;
+      try { adGroups = _mcCollectAdGroups(); }
+      catch (err){ _mcStep = 3; _mcRenderSteps(); _mcShowError(err.message); return; }
+
+      var now = new Date().toISOString();
+      var campObj = {
+        id: _mcEditId || _mcUid('manual'),
+        source: 'manual',
+        name: name,
+        platform: platform,
+        platformLabel: platformLabel || undefined,
+        goal: document.getElementById('mcGoal').value || 'Sales',
+        status: document.getElementById('mcStatus').value || 'active',
+        created: _mcEditId ? (_mcExistingCreatedAt || now) : now,
+        updated: now,
+        manual: {
+          startDate: document.getElementById('mcStartDate').value || null,
+          endDate: document.getElementById('mcEndDate').value || null,
+          budget: { amount: amount, currency: (document.getElementById('mcBudgetCurrency').value || '').trim().toUpperCase() || null, type: document.getElementById('mcBudgetType').value || 'daily' },
+          externalIds: {
+            campaignId: document.getElementById('mcExtCampaignId').value.trim() || null,
+            adSetId: document.getElementById('mcExtAdSetId').value.trim() || null
+          },
+          notes: document.getElementById('mcNotes').value.trim() || null,
+          adGroups: adGroups
+        }
+      };
+
+      if (_mcEditId){
+        var list = window._orvGetCampaigns();
+        for (var i = 0; i < list.length; i++){ if (list[i].id === _mcEditId){ list[i] = campObj; break; } }
+        window._saveCamps();
+        if (typeof window.renderCampaignHub === 'function') window.renderCampaignHub();
+        if (typeof toast === 'function') toast('Campaign updated', 'ok');
+      } else {
+        window._orvStoreCampaign(campObj);
+        if (typeof toast === 'function') toast('Campaign added', 'ok');
+      }
+      window._mcCloseForm();
+    };
+
+    // ── Detail view ────────────────────────────────────────────────────
+    window._mcOpenDetail = function(id){
+      var list = (typeof window._orvGetCampaigns === 'function') ? window._orvGetCampaigns() : [];
+      var c = null;
+      for (var i = 0; i < list.length; i++){ if (list[i].id === id){ c = list[i]; break; } }
+      if (!c || !c.manual) return;
+      _mcExistingCreatedAt = c.created;
+
+      document.getElementById('mcDetailTitle').textContent = c.name;
+      var d = c.created ? new Date(c.created) : null;
+      document.getElementById('mcDetailSub').textContent = _mcPlatLabel(c) + ' · Added manually' + (d ? ' · ' + d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '');
+      document.getElementById('mcDetailBody').innerHTML = _mcDetailHtml(c);
+      document.getElementById('mcDetailEditBtn').onclick = function(){ window._mcCloseDetail(); window._mcOpenEdit(id); };
+      document.getElementById('mcDetailDeleteBtn').onclick = function(){ window.deleteCampaign(id); };
+      document.getElementById('mcDetailModal').style.display = 'flex';
+    };
+    window._mcCloseDetail = function(){
+      var el = document.getElementById('mcDetailModal');
+      if (el) el.style.display = 'none';
+    };
+
+    function _mcDetailHtml(c){
+      var m = c.manual || {};
+      var b = m.budget || {};
+      var budgetStr = (b.amount != null)
+        ? (b.currency || '') + ' ' + b.amount + (b.type === 'lifetime' ? ' total' : '/day')
+        : 'Not entered';
+      var dateStr = [m.startDate, m.endDate].filter(Boolean).join(' → ') || 'Not entered';
+      var ext = m.externalIds || {};
+      var extHtml = (ext.campaignId || ext.adSetId) ? (
+        '<div class="mc-detail-row"><span class="mc-detail-lbl">External IDs</span><span class="mc-detail-val">'
+        + (ext.campaignId ? 'Campaign: '+_mcEsc(ext.campaignId) : '')
+        + (ext.campaignId && ext.adSetId ? ' · ' : '')
+        + (ext.adSetId ? 'Ad set: '+_mcEsc(ext.adSetId) : '')
+        + '</span></div>'
+      ) : '';
+
+      var groupsHtml = (m.adGroups || []).map(function(g){
+        var adsHtml = (g.ads || []).map(function(a){
+          var creativeHtml = '';
+          if (a.creative && a.creative.url){
+            creativeHtml = a.creative.type === 'video'
+              ? '<div class="mc-detail-creative"><a href="'+_mcEsc(a.creative.url)+'" target="_blank" rel="noopener">Video link ↗</a></div>'
+              : '<div class="mc-detail-creative"><img src="'+_mcEsc(a.creative.url)+'" alt="" loading="lazy"></div>';
+          }
+          return '<div class="mc-detail-ad">'
+            + creativeHtml
+            + '<div class="mc-detail-ad-body">'
+            +   (a.headline ? '<div class="mc-detail-ad-headline">'+_mcEsc(a.headline)+'</div>' : '')
+            +   (a.primaryText ? '<div class="mc-detail-ad-text">'+_mcEsc(a.primaryText)+'</div>' : '')
+            +   (a.description ? '<div class="mc-detail-ad-desc">'+_mcEsc(a.description)+'</div>' : '')
+            +   '<div class="mc-detail-ad-meta">'
+            +     (a.cta ? '<span class="mc-detail-ad-cta">'+_mcEsc(a.cta)+'</span>' : '')
+            +     (a.destinationUrl ? '<a href="'+_mcEsc(a.destinationUrl)+'" target="_blank" rel="noopener" class="mc-detail-ad-link">'+_mcEsc(a.destinationUrl)+'</a>' : '')
+            +   '</div>'
+            + '</div>'
+            + '</div>';
+        }).join('');
+        return '<div class="mc-detail-group">'
+          + '<div class="mc-detail-group-hdr">'+_mcEsc(g.name)+'</div>'
+          + ((g.audience || g.placement) ? '<div class="mc-detail-group-meta">'+[g.audience,g.placement].filter(Boolean).map(_mcEsc).join(' · ')+'</div>' : '')
+          + adsHtml
+          + '</div>';
+      }).join('');
+
+      return '<div class="mc-detail-rows">'
+        + '<div class="mc-detail-row"><span class="mc-detail-lbl">Status</span><span class="mc-detail-val">'+(_MC_STATUS_LABELS[c.status]||c.status)+'</span></div>'
+        + '<div class="mc-detail-row"><span class="mc-detail-lbl">Objective</span><span class="mc-detail-val">'+_mcEsc(c.goal||'—')+'</span></div>'
+        + '<div class="mc-detail-row"><span class="mc-detail-lbl">Budget</span><span class="mc-detail-val">'+_mcEsc(budgetStr)+'</span></div>'
+        + '<div class="mc-detail-row"><span class="mc-detail-lbl">Dates</span><span class="mc-detail-val">'+_mcEsc(dateStr)+'</span></div>'
+        + extHtml
+        + (m.notes ? '<div class="mc-detail-row"><span class="mc-detail-lbl">Notes</span><span class="mc-detail-val">'+_mcEsc(m.notes)+'</span></div>' : '')
+        + '</div>'
+        + '<div class="mc-detail-perf">'
+        +   '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="15" height="15"><circle cx="8" cy="8" r="6.25"/><path d="M8 5v3.5M8 11h.01"/></svg>'
+        +   '<span>Performance data unavailable — this campaign isn\'t connected to a live advertising platform, so Oriven has no real metrics to show. Connect a supported ad account to sync live performance.</span>'
+        + '</div>'
+        + '<div class="mc-detail-groups">'+groupsHtml+'</div>';
+    }
+    </script>
 
     <!-- ══════════════════════════════════════════════════════════════
          CAMPAIGN REPLAY — a focused drill-down detail page, same pattern
@@ -7918,8 +8639,15 @@ var _PLAT_EMPTY_COPY = {
      entry across 6 languages, so this string stays plain/un-i18n'd for now,
      same as the rest of this card component's copy (Continue Editing,
      Delete, etc. are plain strings too). */
-  tiktok: { ico: _PLAT_EMPTY_ICO_TIKTOK,  title: 'No TikTok Ads drafts yet', sub: 'Generate a TikTok campaign from Create, and it will appear here.', cta: false }
+  tiktok: { ico: _PLAT_EMPTY_ICO_TIKTOK,  title: 'No TikTok Ads drafts yet', sub: 'Generate a TikTok campaign from Create, and it will appear here.', cta: false },
+  other:  { ico: _PLAT_EMPTY_ICO_GENERIC, title: 'No other campaigns yet',  sub: 'Already running ads on a platform Oriven doesn\'t generate for yet? Add it manually to keep everything in one place.', cta: false }
 };
+/* Two legitimate paths, kept in clear hierarchy: OrivenAI's own Create →
+   Launch workflow is the primary CTA (large, filled button, existing
+   copy/behavior unchanged); "Add existing campaign" is always offered too,
+   but as a smaller secondary text action underneath — never equal visual
+   weight, matching how the header button above is styled (camp-new-btn-
+   ghost vs the primary camp-new-btn). */
 function _renderPlatEmpty(el, plat){
   var copy = _PLAT_EMPTY_COPY[plat] || _PLAT_EMPTY_COPY.google;
   var ctaHtml = copy.cta ? '<button class="camp-new-btn camp-new-btn-lg" onclick="_orvNav(\'create\',\'page-create\')"><span data-i18n="createCampaignArrowBtn">Create Campaign →</span></button>' : '';
@@ -7927,7 +8655,8 @@ function _renderPlatEmpty(el, plat){
     '<div class="camp-hub-empty-ico">'+copy.ico+'</div>'+
     '<h2 class="camp-hub-empty-title">'+_esc(copy.title)+'</h2>'+
     '<p class="camp-hub-empty-sub"'+(copy.subI18n ? ' data-i18n="'+copy.subI18n+'"' : '')+'>'+_esc(copy.sub)+'</p>'+
-    ctaHtml;
+    ctaHtml+
+    '<button class="camp-hub-empty-secondary" onclick="_mcOpenAdd()">Or add an existing campaign →</button>';
   if (typeof applyLanguage === 'function') applyLanguage();
 }
 
@@ -7945,8 +8674,22 @@ window.renderCampaignHub = function(){
   var cardGrid = document.getElementById('campCardGrid');
   if(!empty) return;
 
+  // "Other" catches manually added campaigns on a platform with no real
+  // OrivenAI integration (LinkedIn, Pinterest, free-text "Other") — the
+  // tab itself only appears once at least one such campaign exists, so
+  // the three real connected-platform tabs stay primary the rest of the
+  // time. See _renderCampCard/_MC_KNOWN_PLATS for the same known-platform
+  // list used to decide a manual campaign's badge/eligibility copy.
+  var KNOWN_PLATS = ['google', 'meta', 'tiktok'];
+  var hasOther = _campaigns.some(function(c){ return KNOWN_PLATS.indexOf(c.platform) === -1; });
+  var otherTab = document.getElementById('clibTabOther');
+  if(otherTab) otherTab.style.display = hasOther ? '' : 'none';
+  if(!hasOther && _clibFilter === 'other'){ _clibFilter = 'google'; document.querySelectorAll('.clib-tab').forEach(function(b){ b.classList.toggle('clib-tab-on', b.getAttribute('data-filter')==='google'); }); }
+
   var plat = _clibFilter;
-  var filtered = _campaigns.filter(function(c){ return c.platform === plat; });
+  var filtered = _campaigns.filter(function(c){
+    return plat === 'other' ? (KNOWN_PLATS.indexOf(c.platform) === -1) : (c.platform === plat);
+  });
 
   if(filtered.length === 0){
     if(grid) grid.style.display = 'none';
@@ -7967,8 +8710,8 @@ window.renderCampaignHub = function(){
   _clibApply();
 };
 
-var _STATUS_LABELS = { draft:'Draft', generated:'Generated', 'ready-to-publish':'Ready to Publish', publishing:'Publishing…', published:'Published', active:'Active', paused:'Paused', archived:'Archived', failed:'Failed' };
-var _STATUS_CLS    = { draft:'clib-status-draft', generated:'clib-status-generated', 'ready-to-publish':'clib-status-ready', publishing:'clib-status-publishing', published:'clib-status-published', active:'clib-status-active', paused:'clib-status-paused', archived:'clib-status-archived', failed:'clib-status-failed' };
+var _STATUS_LABELS = { draft:'Draft', generated:'Generated', 'ready-to-publish':'Ready to Publish', publishing:'Publishing…', published:'Published', active:'Active', paused:'Paused', archived:'Archived', failed:'Failed', completed:'Completed' };
+var _STATUS_CLS    = { draft:'clib-status-draft', generated:'clib-status-generated', 'ready-to-publish':'clib-status-ready', publishing:'clib-status-publishing', published:'clib-status-published', active:'clib-status-active', paused:'clib-status-paused', archived:'clib-status-archived', failed:'clib-status-failed', completed:'clib-status-archived' };
 // Campaign Goal badge — every campaign always has a goal (Sales/Leads/
 // Traffic/Awareness); campaigns saved before this sprint have none stored,
 // which defaults to Sales — that's what they actually were generated as
@@ -7983,6 +8726,7 @@ var _PLAT_ICONS = {
 };
 
 function _renderCampCard(c){
+  var isManual = !!c.manual;
   var status = c.status || 'draft';
   var statusLabel = _STATUS_LABELS[status] || 'Draft';
   var statusCls   = _STATUS_CLS[status]    || 'clib-status-draft';
@@ -7990,22 +8734,39 @@ function _renderCampCard(c){
   var goalCls = _GOAL_CLS[goal] || 'cc3-goal-sales';
   var platAttr = c.platform ? ' data-platform="'+_esc(c.platform)+'"' : '';
   var platIcon = _PLAT_ICONS[c.platform] || '';
-  var platName = {google:'Google Ads',meta:'Meta Ads',tiktok:'TikTok Ads'}[c.platform] || (c.platform||'');
-  var creativeLabel = c.creativeMode === 'videos' ? 'Video' : 'Images';
+  var platName = {google:'Google Ads',meta:'Meta Ads',tiktok:'TikTok Ads',linkedin:'LinkedIn Ads',pinterest:'Pinterest Ads'}[c.platform] || (c.platformLabel || c.platform || '');
+  var creativeLabel = isManual ? _mcCreativeSummary(c) : (c.creativeMode === 'videos' ? 'Video' : 'Images');
   var d = new Date(c.created);
   var dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
   var inAdsMgr = (status === 'ready-to-publish' || status === 'published' || status === 'paused' || status === 'archived');
-  var admAction = inAdsMgr
+  /* "Send to Ads Manager"/"Ads Manager →" only ever makes sense for a
+     campaign OrivenAI itself generated and can publish through a real
+     platform connection — a manually added campaign has no such path, so
+     this whole action is omitted rather than shown disabled (spec:
+     "functionality that requires a live advertising-platform connection
+     must be disabled or unavailable when the campaign is only manually
+     entered"). */
+  var admAction = isManual ? '' : (inAdsMgr
     ? '<button class="cc3-adm-btn cc3-adm-btn-in" onclick="event.stopPropagation();_orvNav(\'adsmanager\',\'page-ads-manager\')">Ads Manager →</button>'
     : (status === 'generated'
         ? '<button class="cc3-adm-btn" onclick="event.stopPropagation();sendToAdsManager(\''+c.id+'\')">Send to Ads Manager</button>'
-        : '');
+        : ''));
+  /* Subtle provenance badge only — never the dominant element on the card
+     (spec: "Do not make this visually dominant"). Distinguishes a
+     manually added campaign from one OrivenAI actually generated, without
+     a second dashboard or a different card layout. */
+  var manualBadge = isManual ? '<span class="cc3-manual-badge" title="Added manually — not connected to a live advertising platform">Manual</span>' : '';
+  var onclickAction = isManual ? '_mcOpenDetail(\''+c.id+'\')' : 'openCampaignWorkspace(\''+c.id+'\')';
   /* Real generated creative, when one exists — same field the campaign
      workspace/publish flows already read (pkg.visualConcepts[i].
      generatedImageUrl), never a placeholder or a freshly-regenerated
-     image. Cards without a real image keep the existing text-only layout. */
+     image. Cards without a real image keep the existing text-only layout.
+     Manual campaigns read their own real uploaded/linked creative from
+     the first ad that has one, same "first real image wins" pattern. */
   var thumbUrl = null;
-  if (c.pkg && c.pkg.visualConcepts && c.pkg.visualConcepts.length) {
+  if (isManual) {
+    thumbUrl = _mcFirstCreativeUrl(c);
+  } else if (c.pkg && c.pkg.visualConcepts && c.pkg.visualConcepts.length) {
     for (var vi = 0; vi < c.pkg.visualConcepts.length; vi++) {
       if (c.pkg.visualConcepts[vi] && c.pkg.visualConcepts[vi].generatedImageUrl) { thumbUrl = c.pkg.visualConcepts[vi].generatedImageUrl; break; }
     }
@@ -8018,12 +8779,20 @@ function _renderCampCard(c){
      wrapper, no behavior change. */
   var bodyOpen  = thumbUrl ? '<div class="cc3-body">' : '';
   var bodyClose = thumbUrl ? '</div>' : '';
-  return '<div class="camp-card'+(thumbUrl ? ' camp-card-thumb' : '')+'" data-status="'+status+'" data-name="'+_esc((c.name||'').toLowerCase())+'"'+platAttr+' onclick="openCampaignWorkspace(\''+c.id+'\')">'+
+  var editBtnHtml = isManual
+    ? '<button class="cc3-edit-btn" onclick="event.stopPropagation();_mcOpenEdit(\''+c.id+'\')">Edit</button>'
+    : '<button class="cc3-edit-btn" onclick="event.stopPropagation();openCampaignWorkspace(\''+c.id+'\')">Continue Editing</button>';
+  // "Open Replay" reads real generation/version history that only ever
+  // exists for a campaign OrivenAI itself generated — a manual campaign
+  // has none, so the action is omitted rather than opening an empty page.
+  var replayBtnHtml = isManual ? '' : '<button class="cc3-replay-btn" onclick="event.stopPropagation();_crpOpenFromLocal(\''+c.id+'\')">Open Replay →</button>';
+  return '<div class="camp-card'+(thumbUrl ? ' camp-card-thumb' : '')+'" data-status="'+status+'" data-name="'+_esc((c.name||'').toLowerCase())+'"'+platAttr+' onclick="'+onclickAction+'">'+
     thumbHtml+
     bodyOpen+
     '<div class="cc3-top">'+
       '<span class="clib-status-pill '+statusCls+'">'+statusLabel+'</span>'+
       '<span class="cc3-goal-pill '+goalCls+'">'+_esc(goal)+'</span>'+
+      manualBadge+
     '</div>'+
     '<div class="cc3-name">'+_esc(c.name)+'</div>'+
     '<div class="cc3-meta">'+
@@ -8031,11 +8800,11 @@ function _renderCampCard(c){
       '<span class="cc3-meta-dot">·</span>'+
       '<span class="cc3-date">'+dateStr+'</span>'+
       '<span class="cc3-meta-dot">·</span>'+
-      '<span class="cc3-creative">'+creativeLabel+'</span>'+
+      '<span class="cc3-creative">'+_esc(creativeLabel)+'</span>'+
     '</div>'+
     '<div class="cc3-actions" onclick="event.stopPropagation()">'+
-      '<button class="cc3-edit-btn" onclick="event.stopPropagation();openCampaignWorkspace(\''+c.id+'\')">Continue Editing</button>'+
-      '<button class="cc3-replay-btn" onclick="event.stopPropagation();_crpOpenFromLocal(\''+c.id+'\')">Open Replay →</button>'+
+      editBtnHtml+
+      replayBtnHtml+
       admAction+
       '<button class="cc3-del-btn" title="Delete" onclick="event.stopPropagation();deleteCampaign(\''+c.id+'\')">'+
         '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="12" height="12"><path d="M2 3.5h10M5 3.5V2.5h4v1M5.5 6.5v4M8.5 6.5v4M3 3.5l.8 8h6.4l.8-8"/></svg>'+
@@ -11388,9 +12157,20 @@ window.duplicateCampaign = function(id){
 };
 
 window.deleteCampaign = function(id){
-  if(!confirm('Delete this campaign? This cannot be undone.')) return;
+  // Manual campaigns get their own confirmation copy — spec requires it be
+  // unambiguous that this only removes Oriven's own record, never the real
+  // advertisement running on the external platform (Oriven never had any
+  // ability to touch that ad in the first place for a manual campaign, but
+  // the copy still says so explicitly rather than leaving it ambiguous).
+  var existing = null;
+  for (var i = 0; i < _campaigns.length; i++) { if (_campaigns[i].id === id) { existing = _campaigns[i]; break; } }
+  var msg = (existing && existing.manual)
+    ? 'Remove this campaign from Oriven? This only deletes Oriven\'s own record — it will NOT affect the real advertisement on ' + (existing.platformLabel || {google:'Google Ads',meta:'Meta Ads',tiktok:'TikTok Ads',linkedin:'LinkedIn Ads',pinterest:'Pinterest Ads'}[existing.platform] || 'the external platform') + '.'
+    : 'Delete this campaign? This cannot be undone.';
+  if(!confirm(msg)) return;
   _campaigns = _campaigns.filter(function(c){ return c.id!==id; });
   _saveCamps();
+  if (typeof _mcCloseDetail === 'function') _mcCloseDetail();
   if(typeof navigate==='function') navigate('campaigns');
 };
 

@@ -48108,3 +48108,166 @@ body.dark-mode .bmap-cov-label { color: rgba(255,255,255,.88); }
   .ob2-overlay,.ob2-btn,.ob2-goal-card,.ob2-dot{transition:none !important}
   .ob2-goal-card:hover,.ob2-btn-primary:hover{transform:none !important}
 }
+
+/* ════════════════════════════════════════════════════════════════
+   MANUAL CAMPAIGNS — "Add existing campaign" (Campaigns hub)
+   Reuses existing tokens (--ap-*, --green/--gm) and the existing
+   .adm-modal-* modal family exactly, rather than introducing a second
+   modal/design system. Only genuinely new classes are added here.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Secondary header button — same shape/size as .camp-new-btn (the
+   primary "New Campaign" action) but ghost-styled, so Create → Launch
+   stays the visually primary path and this reads as clearly secondary. */
+.camp-new-btn-ghost {
+  background: transparent !important; color: var(--ap-muted) !important;
+  border: 1px solid var(--ap-border) !important; margin-right: 8px !important;
+}
+.camp-new-btn-ghost:hover { color: var(--ap-text) !important; border-color: rgba(255,255,255,.22) !important; opacity: 1 !important; }
+
+/* Subtle provenance badge on a campaign card — never the dominant
+   element (spec: "Do not make this visually dominant"). */
+.cc3-manual-badge {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .02em;
+  color: var(--ap-muted); background: rgba(255,255,255,.06);
+  border: 1px solid var(--ap-border); border-radius: 5px;
+  padding: 2px 6px; margin-left: 4px;
+}
+
+/* Empty-state secondary path — small text action under the primary
+   "Create Campaign →" button, same hierarchy as the header buttons. */
+.camp-hub-empty-secondary {
+  display: block; margin: 10px auto 0; background: none; border: none;
+  color: var(--ap-muted); font-size: 12.5px; font-weight: 500; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.camp-hub-empty-secondary:hover { color: var(--ap-text); }
+
+/* Wider modal variant for the add/edit form and detail view — same
+   .adm-modal chrome (background/border/radius/shadow), just roomier.
+   Everything BELOW this point lives inside .adm-modal, which (like the
+   rest of the .adm-modal-* family it's built from — .adm-modal itself
+   is a hardcoded #1c1c1e, .adm-modal-inp a hardcoded rgba(255,255,255,
+   ...)) is intentionally theme-independent: it always renders dark,
+   regardless of the site's light/dark setting. Colors here deliberately
+   use fixed rgba(255,255,255,..) values matching .adm-modal-inp's own
+   convention, NOT the theme-switching --ap-* tokens .camp-card/.camp-
+   mode-hdr use elsewhere on this page — mixing the two was a real bug
+   caught during testing (a var(--ap-bg3) card turned white-on-white in
+   the guest/light-theme state, inside a modal that's always dark). */
+.adm-modal-lg { max-width: 620px; max-height: 88vh; display: flex; flex-direction: column; }
+.adm-modal-lg .mc-modal-body,
+.adm-modal-lg > .adm-modal-body:not(.mc-modal-body) { overflow-y: auto; }
+.mc-modal-body { overflow-y: auto; flex: 1; min-height: 0; }
+.mc-modal-foot { flex-wrap: wrap; }
+
+.mc-step-indicator { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.5); margin-top: 2px; }
+.mc-step-hint { font-size: 12.5px; color: rgba(255,255,255,.5); margin: 0 0 4px; }
+.mc-optional { font-weight: 400; color: rgba(255,255,255,.5); text-transform: none; letter-spacing: 0; }
+.mc-field-row { display: flex; gap: 12px; }
+.mc-field-row .adm-modal-field { flex: 1; min-width: 0; }
+
+/* Segmented control (budget type / creative type) — same visual family
+   as the rest of the modal, built from scratch since no existing
+   reusable segmented-control class was found. */
+.mc-seg { display: inline-flex; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 9px; padding: 3px; gap: 2px; }
+.mc-seg-btn { font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 7px; border: none; background: transparent; color: rgba(255,255,255,.5); cursor: pointer; transition: background .12s, color .12s; }
+.mc-seg-btn:hover { color: rgba(255,255,255,.9); }
+.mc-seg-btn-on { background: #2c2c2e; color: #fff; }
+
+.mc-remove-link { background: none; border: none; color: rgba(255,255,255,.5); font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; flex-shrink: 0; }
+.mc-remove-link:hover { color: #f87171; }
+
+.mc-group-card { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 14px; margin-bottom: 12px; background: rgba(255,255,255,.02); }
+.mc-group-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.mc-group-name-inp { font-weight: 700; flex: 1; }
+.mc-ads-wrap { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.mc-ad-card { border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 12px; background: rgba(255,255,255,.035); display: flex; flex-direction: column; gap: 10px; }
+.mc-ad-hdr { display: flex; align-items: center; justify-content: space-between; }
+.mc-ad-label { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,.5); }
+
+.mc-add-ad-btn, .mc-add-group-btn {
+  display: inline-flex; align-items: center; gap: 6px; background: transparent;
+  border: 1px dashed rgba(255,255,255,.15); border-radius: 8px; padding: 8px 14px;
+  font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.5); cursor: pointer;
+  transition: border-color .12s, color .12s; margin-top: 4px;
+}
+.mc-add-group-btn { width: 100%; justify-content: center; margin-bottom: 14px; }
+.mc-add-ad-btn:hover, .mc-add-group-btn:hover { border-color: var(--green); color: var(--green); }
+
+.mc-advanced-toggle {
+  display: flex; align-items: center; gap: 6px; background: none; border: none;
+  color: rgba(255,255,255,.5); font-size: 12.5px; font-weight: 600; cursor: pointer;
+  padding: 10px 0 4px; width: 100%; text-align: left;
+}
+.mc-advanced-toggle:hover { color: rgba(255,255,255,.9); }
+.mc-advanced-toggle svg { transition: transform .15s ease; flex-shrink: 0; }
+.mc-advanced-body { display: flex; flex-direction: column; gap: 12px; padding-top: 6px; }
+
+/* Creative upload — dropzone-style clickable label wrapping a hidden
+   file input, matching the same FileReader → preview pattern already
+   used elsewhere in this file (nccHandleImages) but with its own
+   compact visual treatment sized for a single ad's creative. */
+.mc-upload-drop {
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px dashed rgba(255,255,255,.15); border-radius: 10px;
+  background: rgba(255,255,255,.02); cursor: pointer; overflow: hidden;
+  min-height: 96px; transition: border-color .12s;
+}
+.mc-upload-drop:hover { border-color: var(--green); }
+.mc-upload-placeholder { font-size: 12px; color: rgba(255,255,255,.5); text-align: center; padding: 16px; line-height: 1.5; }
+.mc-upload-preview { width: 100%; max-height: 180px; object-fit: contain; display: block; }
+.mc-upload-status { font-size: 11.5px; margin-top: 6px; color: rgba(255,255,255,.5); min-height: 14px; }
+.mc-upload-status-ok  { color: var(--green); }
+.mc-upload-status-err { color: #f87171; }
+
+/* ── Detail view ─────────────────────────────────────────────────── */
+.mc-detail-sub { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 2px; }
+.mc-detail-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.mc-detail-row { display: flex; gap: 10px; font-size: 13px; }
+.mc-detail-lbl { flex: 0 0 110px; color: rgba(255,255,255,.5); font-weight: 600; }
+.mc-detail-val { color: rgba(255,255,255,.9); word-break: break-word; }
+
+/* Explicit, honest "no live data" state — never a fabricated zero
+   metric (spec: this is the single most important UI requirement of
+   this feature). Same visual weight as a real inline notice, not an
+   afterthought. */
+.mc-detail-perf {
+  display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px;
+  color: rgba(255,255,255,.6); background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 12px 14px;
+  margin-bottom: 18px; line-height: 1.5;
+}
+.mc-detail-perf svg { flex-shrink: 0; margin-top: 1px; color: rgba(255,255,255,.5); }
+
+.mc-detail-groups { display: flex; flex-direction: column; gap: 14px; }
+.mc-detail-group { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 14px; }
+.mc-detail-group-hdr { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9); }
+.mc-detail-group-meta { font-size: 11.5px; color: rgba(255,255,255,.5); margin-top: 2px; }
+.mc-detail-ad { display: flex; gap: 12px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 12px; margin-top: 12px; }
+.mc-detail-group > .mc-detail-ad:first-of-type { border-top: none; padding-top: 0; margin-top: 10px; }
+.mc-detail-creative { flex: 0 0 96px; }
+.mc-detail-creative img { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; display: block; }
+.mc-detail-creative a { font-size: 12px; color: var(--green); }
+.mc-detail-ad-body { flex: 1; min-width: 0; }
+.mc-detail-ad-headline { font-size: 13.5px; font-weight: 700; color: rgba(255,255,255,.9); }
+.mc-detail-ad-text { font-size: 12.5px; color: rgba(255,255,255,.9); opacity: .85; margin-top: 3px; white-space: pre-wrap; }
+.mc-detail-ad-desc { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 3px; }
+.mc-detail-ad-meta { display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.mc-detail-ad-cta { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; background: rgba(255,255,255,.08); border-radius: 6px; padding: 3px 8px; color: rgba(255,255,255,.9); }
+.mc-detail-ad-link { font-size: 12px; color: var(--green); word-break: break-all; }
+
+/* ── Responsive — 1280×800 down to 360×800 (spec's audit list) ────── */
+@media (max-width: 860px) {
+  .adm-modal-lg { max-width: 94vw; margin: 10px; max-height: 92vh; }
+  .mc-field-row { flex-direction: column; gap: 0; }
+  .mc-detail-ad { flex-direction: column; }
+  .mc-detail-creative { flex: none; }
+  .mc-detail-creative img { width: 100%; height: auto; max-height: 200px; }
+  .camp-mode-hdr-action-only { flex-wrap: wrap; gap: 8px; }
+  .camp-new-btn-ghost { margin-right: 0 !important; }
+}
+@media (max-width: 480px) {
+  .adm-modal-lg { margin: 0; max-width: 100vw; max-height: 100vh; height: 100vh; border-radius: 0; }
+  .mc-detail-lbl { flex-basis: 90px; }
+}
