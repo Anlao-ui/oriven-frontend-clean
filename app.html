@@ -231,6 +231,23 @@
     </div>
 
     <nav class="orv-sb-nav">
+      <!-- Dashboard/Home — sits above the six core products, separated by
+           the divider below. NOT a seventh core module; it's the workspace
+           overview page (see #page-dashboard). The logo can still act as a
+           home shortcut where wired, but this icon is the real, always-
+           visible discoverability mechanism. -->
+      <button class="orv-ni" data-orv-page="dashboard" data-tip="Home" onclick="_orvNav('dashboard','page-dashboard',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <g class="orv-ni-house-body">
+            <path d="M2.3 8.2L8 3L13.7 8.2"/>
+            <path d="M3.6 7V13.6H12.4V7"/>
+          </g>
+          <path class="orv-ni-house-door" d="M6.6 13.6V9.6C6.6 8.9 7.2 8.4 7.9 8.4H8.1C8.8 8.4 9.4 8.9 9.4 9.6V13.6"/>
+        </svg>
+        <span class="orv-ni-label">Home</span>
+      </button>
+      <div class="orv-sb-sep" aria-hidden="true"></div>
+
       <!-- Six-product order (Product Flow + Research Chat refinement):
            Create → Research → Launch → Campaigns → Autopilot → Business.
            Create is first/default — see auth.js _loadUserProfile(), which
@@ -350,6 +367,17 @@
       </button>
     </div>
     <nav class="orv-mob-drawer-nav">
+      <button class="orv-ni" data-orv-page="dashboard" onclick="_orvNav('dashboard','page-dashboard',this);_orvDrawerClose()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <g class="orv-ni-house-body">
+            <path d="M2.3 8.2L8 3L13.7 8.2"/>
+            <path d="M3.6 7V13.6H12.4V7"/>
+          </g>
+          <path class="orv-ni-house-door" d="M6.6 13.6V9.6C6.6 8.9 7.2 8.4 7.9 8.4H8.1C8.8 8.4 9.4 8.9 9.4 9.6V13.6"/>
+        </svg>
+        <span class="orv-ni-label">Home</span>
+      </button>
+      <div class="orv-sb-sep" aria-hidden="true"></div>
       <button class="orv-ni" data-orv-page="create" onclick="_orvNav('create','page-create',this);_orvDrawerClose()">
         <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M13 8l-3-3M13 8l-3 3"/></svg></span>
         <span class="orv-ni-label">Create</span>
@@ -684,145 +712,18 @@
                 <button class="ov3-mode-btn active" onclick="ov3SetMode('images',this)" data-i18n="genModeImage">Image</button>
                 <button class="ov3-mode-btn" onclick="ov3SetMode('videos',this)" data-i18n="genModeVideo">Video</button>
               </div>
-
-              <!-- Attach Image: a finished visual the user supplies AS the
-                   ad creative itself (drives _applyAttachedCreative --
-                   becomes the actual generatedImageUrl for its ad slot, no
-                   image_generation charge). Attach Product: product/
-                   business reference material the AI should use as INPUT
-                   when creating the creative -- never becomes the final
-                   image itself, only informs generation (sent as the
-                   existing productImages context field). Two fundamentally
-                   different inputs, so two distinct buttons/labels rather
-                   than one ambiguous "attach" control. Wrapped in a shared
-                   .cr2-foot-group (same pattern as the platform pills above)
-                   so .cr2-foot-controls' flex-wrap treats them as ONE unit --
-                   they wrap to a new line together and stay side-by-side,
-                   instead of flex-wrap splitting them onto separate lines
-                   independently once earlier controls eat up row width. -->
-              <div class="cr2-foot-group" role="group" aria-label="Attach">
-                <label class="ov3-tool-btn" id="ov3RefImgBtn" for="ov3AssetInput" title="Use an existing image as the ad creative">
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="4" width="12" height="9" rx="1.5"/><path d="M2 9l3.5-3 3 3 2-2 3.5 3"/><circle cx="11.5" cy="7" r="1"/></svg>
-                  <span data-i18n="attachImageBtn">Attach Image</span>
-                  <span class="ov3-asset-count" id="ov3AssetCount" style="display:none">0</span>
-                </label>
-                <input type="file" id="ov3AssetInput" multiple accept="image/*" style="display:none" onchange="ov3HandleAssets(this)">
-
-                <label class="ov3-tool-btn" id="ov3ProductBtn" for="ov3ProductAssetInput" title="Give AI a product to feature in the ad">
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M8 2l5.5 3.2v5.6L8 14l-5.5-3.2V5.2z"/><path d="M2.5 5.2L8 8.4l5.5-3.2M8 8.4V14"/></svg>
-                  <span data-i18n="attachProductBtn">Attach Product</span>
-                  <span class="ov3-asset-count" id="ov3ProductAssetCount" style="display:none">0</span>
-                </label>
-                <input type="file" id="ov3ProductAssetInput" multiple accept="image/*" style="display:none" onchange="ov3HandleProductAssets(this)">
-              </div>
-
-              <!-- Two clean URL-based workflows (Final Create Enhancement pass).
-                   Deliberately TWO distinct controls, never one ambiguous "URL"
-                   field with intent-guessing:
-                   - Your Page: extracts advertising-relevant context (product,
-                     offer, USPs, positioning, CTA) from the user's OWN
-                     landing/product page — enriches the prompt like Attach
-                     Product does, never becomes the creative itself.
-                   - Reference Ad: analyzes an existing ad's APPROACH (hook,
-                     structure, offer presentation, CTA strategy) as
-                     inspiration for an ORIGINAL ad — explicitly NOT a cloning
-                     tool (see _ov3UrlAnalyze / server _generateAdPackage
-                     comments). Both call POST /api/create/analyze-url, a
-                     pure deterministic fetch+extract (services/
-                     urlContextFetcher.js, the same hardened SSRF-protected
-                     infrastructure Research's "+ Add website" already uses)
-                     — no AI call, no credit charge, no new billable action. -->
-              <div class="cr2-foot-group" role="group" aria-label="Reference URLs">
-                <button type="button" class="ov3-tool-btn" id="ov3PageUrlBtn" onclick="_ov3UrlToggle('page')" aria-expanded="false" title="Give ORIVEN your product or landing page for context">
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2.5" y="2" width="11" height="12" rx="1.5"/><path d="M5 6h6M5 8.5h6M5 11h3.5"/></svg>
-                  <span>Your Page</span>
-                </button>
-                <button type="button" class="ov3-tool-btn" id="ov3AybBtn" onclick="_ov3AybToggle()" aria-expanded="false" title="Turn a reference ad into an original concept for your brand">
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="3" width="9" height="9" rx="1.3"/><path d="M5 12.5h6a1.5 1.5 0 0 0 1.5-1.5V5"/></svg>
-                  <span>Ad &#8594; Your Brand</span>
-                </button>
-              </div>
             </div>
+            <!-- Create Simplification pass — Attach Image/Attach Product/
+                 Your Page/Ad→Your Brand (all real, no technical dependency
+                 forcing primary visibility — verified: none are required
+                 for generation, cgrGenerate's hard client-side gates are
+                 only the prompt and Campaign Goal) moved into Advanced
+                 Settings, see #cr2AdvancedGroup below. Their attached-item
+                 PREVIEW strips (#ov3AssetsStrip/#ov3ProductAssetsStrip,
+                 right after the textarea above) stay primary — a user
+                 already sees what's attached without opening Advanced,
+                 only the controls to add/change them moved. -->
 
-            <!-- URL workflow input rows + result chips. Same visual language
-                 as Research's own URL-attach control (compact input row +
-                 removable chip), but its own theme-aware .cr2-url-* CSS
-                 rather than reusing .rsc-url-* verbatim -- Research's canvas
-                 is deliberately always-dark regardless of body.dark-mode
-                 (.rsc-canvas), so its white-on-transparent input/chip colors
-                 are safe only there; Create's composer follows the real
-                 site theme like every other .ov3-tool-btn control on this
-                 page, so it needs its own light+dark rule pair. One open
-                 input row at a time per control; each successful analysis
-                 becomes a compact, honest chip ("Page added — domain —
-                 Remove") — never a big analysis report. Failure is a real
-                 failure state, never fabricated. -->
-            <div class="cr2-url-input-row" id="ov3PageUrlRow" style="display:none">
-              <input type="url" id="ov3PageUrlInput" class="cr2-url-input" placeholder="https://yourproduct.com" aria-label="Your page URL" maxlength="2000" aria-describedby="ov3PageUrlError" onkeydown="if(event.key==='Enter'){event.preventDefault();_ov3UrlAnalyze('page');}">
-              <button type="button" class="cr2-url-add-btn" id="ov3PageUrlAddBtn" onclick="_ov3UrlAnalyze('page')">Add</button>
-            </div>
-            <p class="cr2-url-error" id="ov3PageUrlError" style="display:none" role="alert"></p>
-            <div class="cr2-url-chips" id="ov3PageUrlChip" style="display:none"></div>
-
-            <!-- Ad → Your Brand — evolves the original simple Reference Ad
-                 URL-chip above into an explicit workflow: reference input
-                 (URL or uploaded image) → visible strategic analysis →
-                 brand adaptation → one confirm action. Backed by a REAL
-                 analysis AI call (POST /api/create/analyze-reference,
-                 reusing _urlContextFetcher for URLs and the same
-                 _aimlVision infra /api/generate-image already uses for
-                 reference-image style extraction for uploads) — every
-                 state below reflects a real request/response, never a
-                 fabricated "analyzing…" or invented result. See
-                 _ov3Ayb* functions below. -->
-            <div class="cr2-ayb-panel" id="ov3AybPanel" style="display:none">
-              <div class="cr2-ayb-intro" id="ov3AybIntro">
-                <p class="cr2-ayb-desc">Turn a reference ad into an original concept for your brand. ORIVEN analyzes the strategy, structure, hook and creative direction behind it, then rebuilds those principles around your brand, audience and offer.</p>
-                <div class="cr2-ayb-method" role="group" aria-label="Reference input method">
-                  <button type="button" class="cr2-ayb-method-btn active" id="ov3AybMethodUrlBtn" onclick="_ov3AybSetMethod('url')" aria-pressed="true">URL</button>
-                  <button type="button" class="cr2-ayb-method-btn" id="ov3AybMethodImageBtn" onclick="_ov3AybSetMethod('image')" aria-pressed="false">Upload image</button>
-                </div>
-                <div class="cr2-url-input-row" id="ov3AybUrlRow">
-                  <input type="url" id="ov3AybUrlInput" class="cr2-url-input" placeholder="https://... (link to the ad or ad page)" aria-label="Reference ad URL" maxlength="2000" aria-describedby="ov3AybError" onkeydown="if(event.key==='Enter'){event.preventDefault();_ov3AybAnalyze();}">
-                  <button type="button" class="cr2-url-add-btn" id="ov3AybAnalyzeBtn" onclick="_ov3AybAnalyze()">Analyze</button>
-                </div>
-                <div class="cr2-ayb-upload-row" id="ov3AybImageRow" style="display:none">
-                  <label class="cr2-url-add-btn cr2-ayb-upload-label" for="ov3AybFileInput" id="ov3AybFileLabel">Choose image</label>
-                  <input type="file" id="ov3AybFileInput" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="_ov3AybFileChosen(this)" aria-label="Reference ad screenshot">
-                  <span class="cr2-ayb-filename" id="ov3AybFileName"></span>
-                  <button type="button" class="cr2-url-add-btn" id="ov3AybAnalyzeImgBtn" onclick="_ov3AybAnalyze()" disabled>Analyze</button>
-                </div>
-              </div>
-              <p class="cr2-url-error" id="ov3AybError" style="display:none" role="alert" aria-live="polite"></p>
-              <p class="cr2-ayb-loading" id="ov3AybLoading" style="display:none" role="status" aria-live="polite">Analyzing reference&#8230;</p>
-
-              <div class="cr2-ayb-result" id="ov3AybResult" style="display:none">
-                <div class="cr2-ayb-stages" aria-hidden="true">
-                  <span class="cr2-ayb-stage cr2-ayb-stage-done">Reference</span><span class="cr2-ayb-stage-arrow">&#8594;</span>
-                  <span class="cr2-ayb-stage cr2-ayb-stage-done">Analyze</span><span class="cr2-ayb-stage-arrow">&#8594;</span>
-                  <span class="cr2-ayb-stage cr2-ayb-stage-active">Your Brand</span>
-                </div>
-
-                <div class="cr2-ayb-principles" id="ov3AybPrinciples" role="group" aria-label="Reference analysis — principles to carry forward"></div>
-
-                <div class="cr2-ayb-adapt">
-                  <div class="cr2-ayb-adapt-title">Adapt for your brand</div>
-                  <div class="cr2-ayb-adapt-grid" id="ov3AybAdaptGrid"></div>
-                </div>
-
-                <div class="cr2-ayb-notes-wrap">
-                  <label class="cr2-ayb-notes-label" for="ov3AybNotes">What should ORIVEN keep or change?</label>
-                  <textarea id="ov3AybNotes" class="cr2-ayb-notes" maxlength="600" placeholder="Keep the direct hook, make it more premium, and focus on our free trial."></textarea>
-                </div>
-
-                <div class="cr2-ayb-actions">
-                  <button type="button" class="cr2-ayb-confirm-btn" id="ov3AybConfirmBtn" onclick="_ov3AybConfirm()">Create for My Brand</button>
-                  <button type="button" class="cr2-ayb-discard-btn" onclick="_ov3AybReset()">Start over</button>
-                </div>
-              </div>
-
-              <div class="cr2-ayb-confirmed" id="ov3AybConfirmed" style="display:none"></div>
-            </div>
 
             <!-- Campaign Goal — required, right after platform selection.
                  Oriven translates this one choice into the correct
@@ -890,20 +791,135 @@
               </div>
             </div>
 
-            <!-- Advanced settings group (Final Polish — Create Campaign
-                 hierarchy pass): Campaign Type, Meta Placements, and
-                 Campaign Structure are all platform-specific/secondary
-                 configuration, one step removed from the primary Goal/
-                 Brand decisions above -- grouped under one subtle top
-                 separator and de-emphasized card styling (see
-                 .cr2-advanced-group in styles.css) so the page reads as a
-                 clear "primary decisions, then advanced settings" flow
-                 instead of five visually-identical sections in a row.
-                 None of the three sections below changed internally --
+            <!-- Advanced settings — Prompt-First pass: Campaign Type, Meta
+                 Placements, and Campaign Structure are real, useful
+                 controls for anyone who wants them, but shouldn't compete
+                 with the primary prompt/platform/goal decisions for a
+                 first-time user. Collapsed by default (same toggle pattern
+                 as the manual-campaign form's "Advanced (optional)"
+                 section, _mcToggleAdvanced) rather than always-expanded.
+                 None of the three sections inside changed internally --
                  same ids, same render functions (_cr2RenderPlatObj(),
                  _cr2RenderStructSection()), same onclick handlers -- only
-                 moved one level deeper into this wrapper. -->
-            <div class="cr2-advanced-group">
+                 wrapped in a real collapse/expand instead of being
+                 permanently visible. -->
+            <div class="cr2-advanced-toggle-row">
+              <button type="button" class="cr2-advanced-toggle" onclick="_cr2ToggleAdvanced()" id="cr2AdvancedToggle" aria-expanded="false" aria-controls="cr2AdvancedGroup">
+                <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="9" height="9" id="cr2AdvancedChevron"><path d="M2.5 3.5L5 6l2.5-2.5"/></svg>
+                Advanced settings
+              </button>
+            </div>
+            <div class="cr2-advanced-group" id="cr2AdvancedGroup" style="display:none">
+
+              <!-- Assets — Create Simplification pass. Attach Image becomes
+                   the ad's actual creative (_applyAttachedCreative, no
+                   image_generation charge); Attach Product is AI input only
+                   (productImages context field), never the final creative.
+                   Moved here from the primary composer footer — neither is
+                   required for generation (cgrGenerate's only hard gates
+                   are the prompt and Campaign Goal). Their attached-item
+                   preview strips stay primary, right under the textarea. -->
+              <div class="cr2-adv-subgroup">
+                <div class="cr2-adv-subgroup-label">Assets</div>
+                <div class="cr2-foot-group" role="group" aria-label="Attach">
+                  <label class="ov3-tool-btn" id="ov3RefImgBtn" for="ov3AssetInput" title="Use an existing image as the ad creative">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="4" width="12" height="9" rx="1.5"/><path d="M2 9l3.5-3 3 3 2-2 3.5 3"/><circle cx="11.5" cy="7" r="1"/></svg>
+                    <span data-i18n="attachImageBtn">Attach Image</span>
+                    <span class="ov3-asset-count" id="ov3AssetCount" style="display:none">0</span>
+                  </label>
+                  <input type="file" id="ov3AssetInput" multiple accept="image/*" style="display:none" onchange="ov3HandleAssets(this)">
+
+                  <label class="ov3-tool-btn" id="ov3ProductBtn" for="ov3ProductAssetInput" title="Give AI a product to feature in the ad">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M8 2l5.5 3.2v5.6L8 14l-5.5-3.2V5.2z"/><path d="M2.5 5.2L8 8.4l5.5-3.2M8 8.4V14"/></svg>
+                    <span data-i18n="attachProductBtn">Attach Product</span>
+                    <span class="ov3-asset-count" id="ov3ProductAssetCount" style="display:none">0</span>
+                  </label>
+                  <input type="file" id="ov3ProductAssetInput" multiple accept="image/*" style="display:none" onchange="ov3HandleProductAssets(this)">
+                </div>
+              </div>
+
+              <!-- Source & context — Your Page extracts advertising-relevant
+                   context (product/offer/USPs/positioning/CTA) from the
+                   user's own page; Ad → Your Brand analyzes a reference ad's
+                   APPROACH as inspiration for an ORIGINAL ad, never a
+                   cloning tool. Both call POST /api/create/analyze-url /
+                   /api/create/analyze-reference — no new billable action.
+                   Moved here from the primary composer footer. -->
+              <div class="cr2-adv-subgroup">
+                <div class="cr2-adv-subgroup-label">Source &amp; context</div>
+                <div class="cr2-foot-group" role="group" aria-label="Reference URLs">
+                  <button type="button" class="ov3-tool-btn" id="ov3PageUrlBtn" onclick="_ov3UrlToggle('page')" aria-expanded="false" title="Give ORIVEN your product or landing page for context">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2.5" y="2" width="11" height="12" rx="1.5"/><path d="M5 6h6M5 8.5h6M5 11h3.5"/></svg>
+                    <span>Your Page</span>
+                  </button>
+                  <button type="button" class="ov3-tool-btn" id="ov3AybBtn" onclick="_ov3AybToggle()" aria-expanded="false" title="Turn a reference ad into an original concept for your brand">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="2" y="3" width="9" height="9" rx="1.3"/><path d="M5 12.5h6a1.5 1.5 0 0 0 1.5-1.5V5"/></svg>
+                    <span>Ad &#8594; Your Brand</span>
+                  </button>
+                </div>
+                <div class="cr2-url-input-row" id="ov3PageUrlRow" style="display:none">
+                  <input type="url" id="ov3PageUrlInput" class="cr2-url-input" placeholder="https://yourproduct.com" aria-label="Your page URL" maxlength="2000" aria-describedby="ov3PageUrlError" onkeydown="if(event.key==='Enter'){event.preventDefault();_ov3UrlAnalyze('page');}">
+                  <button type="button" class="cr2-url-add-btn" id="ov3PageUrlAddBtn" onclick="_ov3UrlAnalyze('page')">Add</button>
+                </div>
+                <p class="cr2-url-error" id="ov3PageUrlError" style="display:none" role="alert"></p>
+                <div class="cr2-url-chips" id="ov3PageUrlChip" style="display:none"></div>
+
+                <div class="cr2-ayb-panel" id="ov3AybPanel" style="display:none">
+                  <div class="cr2-ayb-intro" id="ov3AybIntro">
+                    <p class="cr2-ayb-desc">Turn a reference ad into an original concept for your brand. ORIVEN analyzes the strategy, structure, hook and creative direction behind it, then rebuilds those principles around your brand, audience and offer.</p>
+                    <div class="cr2-ayb-method" role="group" aria-label="Reference input method">
+                      <button type="button" class="cr2-ayb-method-btn active" id="ov3AybMethodUrlBtn" onclick="_ov3AybSetMethod('url')" aria-pressed="true">URL</button>
+                      <button type="button" class="cr2-ayb-method-btn" id="ov3AybMethodImageBtn" onclick="_ov3AybSetMethod('image')" aria-pressed="false">Upload image</button>
+                    </div>
+                    <div class="cr2-url-input-row" id="ov3AybUrlRow">
+                      <input type="url" id="ov3AybUrlInput" class="cr2-url-input" placeholder="https://... (link to the ad or ad page)" aria-label="Reference ad URL" maxlength="2000" aria-describedby="ov3AybError" onkeydown="if(event.key==='Enter'){event.preventDefault();_ov3AybAnalyze();}">
+                      <button type="button" class="cr2-url-add-btn" id="ov3AybAnalyzeBtn" onclick="_ov3AybAnalyze()">Analyze</button>
+                    </div>
+                    <div class="cr2-ayb-upload-row" id="ov3AybImageRow" style="display:none">
+                      <label class="cr2-url-add-btn cr2-ayb-upload-label" for="ov3AybFileInput" id="ov3AybFileLabel">Choose image</label>
+                      <input type="file" id="ov3AybFileInput" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="_ov3AybFileChosen(this)" aria-label="Reference ad screenshot">
+                      <span class="cr2-ayb-filename" id="ov3AybFileName"></span>
+                      <button type="button" class="cr2-url-add-btn" id="ov3AybAnalyzeImgBtn" onclick="_ov3AybAnalyze()" disabled>Analyze</button>
+                    </div>
+                  </div>
+                  <p class="cr2-url-error" id="ov3AybError" style="display:none" role="alert" aria-live="polite"></p>
+                  <p class="cr2-ayb-loading" id="ov3AybLoading" style="display:none" role="status" aria-live="polite">Analyzing reference&#8230;</p>
+
+                  <div class="cr2-ayb-result" id="ov3AybResult" style="display:none">
+                    <div class="cr2-ayb-stages" aria-hidden="true">
+                      <span class="cr2-ayb-stage cr2-ayb-stage-done">Reference</span><span class="cr2-ayb-stage-arrow">&#8594;</span>
+                      <span class="cr2-ayb-stage cr2-ayb-stage-done">Analyze</span><span class="cr2-ayb-stage-arrow">&#8594;</span>
+                      <span class="cr2-ayb-stage cr2-ayb-stage-active">Your Brand</span>
+                    </div>
+
+                    <div class="cr2-ayb-principles" id="ov3AybPrinciples" role="group" aria-label="Reference analysis — principles to carry forward"></div>
+
+                    <div class="cr2-ayb-adapt">
+                      <div class="cr2-ayb-adapt-title">Adapt for your brand</div>
+                      <div class="cr2-ayb-adapt-grid" id="ov3AybAdaptGrid"></div>
+                    </div>
+
+                    <div class="cr2-ayb-notes-wrap">
+                      <label class="cr2-ayb-notes-label" for="ov3AybNotes">What should ORIVEN keep or change?</label>
+                      <textarea id="ov3AybNotes" class="cr2-ayb-notes" maxlength="600" placeholder="Keep the direct hook, make it more premium, and focus on our free trial."></textarea>
+                    </div>
+
+                    <div class="cr2-ayb-actions">
+                      <button type="button" class="cr2-ayb-confirm-btn" id="ov3AybConfirmBtn" onclick="_ov3AybConfirm()">Create for My Brand</button>
+                      <button type="button" class="cr2-ayb-discard-btn" onclick="_ov3AybReset()">Start over</button>
+                    </div>
+                  </div>
+
+                  <div class="cr2-ayb-confirmed" id="ov3AybConfirmed" style="display:none"></div>
+                </div>
+              </div>
+
+              <!-- Campaign configuration — Campaign Type/Placements/Structure,
+                   unchanged internally (same ids, same _cr2RenderPlatObj()/
+                   _cr2RenderStructSection(), same onclick handlers). -->
+              <div class="cr2-adv-subgroup">
+                <div class="cr2-adv-subgroup-label">Campaign configuration</div>
+
               <!-- Platform-specific objective / campaign type (Final Polish,
                    Part 9-16) -- each platform has its own real objective
                    model; this section is rebuilt by _cr2RenderPlatObj()
@@ -939,7 +955,8 @@
                 <div class="cr2-goal-label" id="cr2StructLabel">Campaign Structure</div>
                 <div id="cr2StructBody"></div>
               </div>
-            </div>
+              </div><!-- /.cr2-adv-subgroup (Campaign configuration) -->
+            </div><!-- /#cr2AdvancedGroup -->
 
             <div class="cr2-gen-row">
               <div class="cr2-gen-cost" id="aicGenCost"></div>
@@ -1024,6 +1041,16 @@
               </div>
             </div>
 
+            <!-- Campaigns Control-Room pass — provider tabs moved from the
+                 old right column (removed, see below) into their own row
+                 right under the hierarchy/object/date row, matching "WHAT
+                 am I viewing / WHICH platform / WHICH time period" reading
+                 order top to bottom. Positioning only — same element,
+                 same id, same prfSwitchPlatform wiring. -->
+            <div id="prfPlatTabs" style="display:none">
+              <div class="prf-plat-tabs" id="prfPlatTabsInner"></div>
+            </div>
+
             <!-- Honest state for the currently selected hierarchy level
                  (spec: "unsupported hierarchy levels are handled
                  honestly") — e.g. "Ad Sets aren't available for Google Ads
@@ -1058,10 +1085,42 @@
             <!-- ONE primary graph (Campaigns Composition pass — the second
                  graph, window._prfGraphMetric.A/.B, is fully removed; see
                  window._prfActiveMetric / _prfBuildChartCardHtml below).
-                 Built by _prfRenderTrendCards() into this one container —
-                 real historical series, honest empty states, fullscreen,
-                 all unchanged from the single-graph engine. -->
-            <div class="prf-charts-grid" id="prfChartsGrid"></div>
+                 Built by _prfRenderTrendCards() INTO #prfChartsGrid (its
+                 innerHTML is replaced on every metric/platform/range
+                 change — real historical series, honest empty states,
+                 fullscreen, all unchanged from the single-graph engine).
+                 #prfChartWrap (position:relative) wraps it as a STABLE
+                 sibling-of-Replay container so Campaign Replay below,
+                 anchored to THIS wrapper rather than nested inside the
+                 chart grid itself, survives those re-renders instead of
+                 being destroyed/recreated by them. -->
+            <div class="prf-chart-wrap" id="prfChartWrap">
+              <div class="prf-charts-grid" id="prfChartsGrid"></div>
+
+              <!-- ══ CAMPAIGN REPLAY ═════════════════════════════════════
+                   Control-Room pass — was a permanent right-hand column
+                   (~35% of the chart's width, visually loud even with "No
+                   recorded activity"), then briefly a full-width section
+                   below the metrics (pushed the page's usable height down
+                   further than needed). Now a small toggle in the chart's
+                   own header (#prfReplayToggleBtn, _prfBuildChartCardHtml)
+                   opens this as a compact popover anchored to the chart's
+                   upper-right corner — visible only while open, never
+                   permanently covering the chart. Preserves the feature
+                   exactly — same ids, same real-events-only source
+                   (GET /api/intelligence/events, the same
+                   _crpFetchMatchedEvents-based platform+name correlation
+                   the full Campaign Replay page uses), same click-through
+                   to _crpOpenFromLocal — only its visual priority/
+                   placement changed. Answers "what happened to the object
+                   I'm analyzing during this period?", never a campaign
+                   list. -->
+              <div class="prf-recent-activity prf-recent-activity-compact prf-replay-popover" id="prfReplaySection">
+                <div class="prf-ra-hd" id="prfReplayHd">CAMPAIGN REPLAY</div>
+                <div class="prf-ra-list" id="prfReplayList"></div>
+                <div class="prf-ra-empty" id="prfReplayEmpty" style="display:none"></div>
+              </div>
+            </div>
 
             <!-- ══ METRIC EXPLORER ═══════════════════════════════════════
                  A compact overview of EVERY real metric this platform/
@@ -1079,38 +1138,21 @@
               <div class="prf-explorer-hd">METRICS</div>
               <div class="prf-explorer-grid" id="prfExplorerGrid" role="group" aria-label="All supported performance metrics"></div>
             </div>
-          </div>
-
-          <!-- Right column: provider tabs (context row, same visual row as
-               the left column's Campaigns/object/date controls) directly
-               above Campaign Replay. Positioning only — prfSwitchPlatform
-               and everything it drives (active tab, connection dots, data
-               reload, metric reconciliation, Replay reload) is unchanged;
-               this <div id="prfPlatTabs"> is the exact same element that
-               used to sit above the left column, just relocated. -->
-          <div class="prf-replay-col" id="prfReplayCol">
-            <div id="prfPlatTabs" style="display:none">
-              <div class="prf-plat-tabs" id="prfPlatTabsInner"></div>
-            </div>
 
             <!-- ══ CAMPAIGN REPLAY ═══════════════════════════════════════
+                 Control-Room pass — relocated from a permanent right-hand
+                 column (which cost the primary chart ~35% of its width and
+                 stayed visually loud even with "No recorded activity")
+                 to a collapsed-by-default panel below the metrics, same
+                 idea as Create's Advanced settings toggle. Preserves the
+                 feature exactly — same ids, same real-events-only source
+                 (GET /api/intelligence/events, the same
+                 _crpFetchMatchedEvents-based platform+name correlation the
+                 full Campaign Replay page uses), same click-through to
+                 _crpOpenFromLocal — only its visual priority changed.
                  Answers "what happened to the object I'm analyzing during
-                 this period?" — NOT a campaign list. Real events only, from
-                 the exact same GET /api/intelligence/events source the full
-                 Campaign Replay page reads (never a second/fabricated
-                 feed), scoped to the selected campaign by platform+name
-                 (the same real, disclosed-imperfect correlation
-                 _crpFetchMatchedEvents already uses for the full page) and
-                 to the selected date range. Ad Set/Ad level honestly says
-                 this correlation doesn't reach that deep yet. Clicking a
-                 matched event opens the full, existing Replay page for
-                 deep-dive (_crpOpenFromLocal). Unchanged rendering logic —
-                 its top edge is made to align with the primary graph's top
-                 edge via matching row-1 heights on both columns (see
-                 .prf-replay-col / .prf-perf-col CSS), not forced equal
-                 heights (Replay stays free to be shorter than the left
-                 column when its real content is short). -->
-            <div class="prf-recent-activity" id="prfReplaySection" style="display:none">
+                 this period?", never a campaign list. -->
+            <div class="prf-recent-activity prf-recent-activity-compact" id="prfReplaySection" style="display:none">
               <div class="prf-ra-hd" id="prfReplayHd">CAMPAIGN REPLAY</div>
               <div class="prf-ra-list" id="prfReplayList"></div>
               <div class="prf-ra-empty" id="prfReplayEmpty" style="display:none"></div>
@@ -1444,6 +1486,7 @@
             </div>
             <div class="rsc-map-actions">
               <button type="button" class="rsc-map-btn" id="researchSourcesBtn" onclick="_rmapToggleSources()" aria-expanded="false">Sources</button>
+              <button type="button" class="rsc-map-btn rsc-map-btn-primary" onclick="window._researchUseInCreate()">Use in Create →</button>
               <button type="button" class="rsc-map-btn" onclick="_researchNewSession()">New Research</button>
             </div>
           </div>
@@ -3541,12 +3584,34 @@
                architecture, it's a real-state preview in front of the
                existing one. -->
           <div class="lq-workspace-row" id="lqWorkspaceRow">
-            <div class="lq-campaigns-col">
+            <div class="lq-campaigns-col lq-campaigns-col-full">
               <div id="launchGrid" class="lq-groups" style="display:none"></div>
               <div class="camp-hub-empty" id="launchEmpty" style="display:none"></div>
             </div>
-            <div class="lq-control-col" id="lqControlCol" aria-live="polite"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- Launch Control modal (Gallery + Modal pass) — was a permanently-
+           visible side column claiming ~40% of the width even when nothing
+           was selected; now opens only on a real card click
+           (_lqSelectCampaign → _lqOpenModal). #lqControlCol is the exact
+           same element _lqRenderControl/_lqRenderControlSelected/
+           _lqRenderControlSelectedLive/_lqRenderControlEmpty already
+           render into — none of that readiness logic changed, only where
+           its output is displayed. Modal chrome is theme-reactive
+           (var(--surface)/var(--border)), matching .lqc-card's own
+           existing convention, deliberately NOT the hardcoded-always-dark
+           .adm-modal family — that family's content is written with fixed
+           dark values, but .lqc-card already uses real theme tokens, and
+           mixing the two conventions is exactly the light-card-in-dark-
+           modal bug already found and fixed once elsewhere this session. -->
+      <div class="lq-modal-overlay" id="lqModalOverlay" style="display:none" onclick="if(event.target===this)_lqCloseModal()">
+        <div class="lq-modal" id="lqModal" role="dialog" aria-modal="true" aria-label="Launch Control">
+          <button type="button" class="lq-modal-close" onclick="_lqCloseModal()" aria-label="Close">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="14" height="14"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+          </button>
+          <div class="lq-modal-body" id="lqControlCol" aria-live="polite"></div>
         </div>
       </div>
 
@@ -4324,53 +4389,61 @@
       </div>
     </div>
 
-    <!-- LEGACY DASHBOARD (kept for backward-compat with any internal references) -->
+    <!-- DASHBOARD / HOME — workspace overview above the six core products,
+         not a seventh module. Repurposes the pre-existing dashboard shell
+         (.dash-outer/.dash-hero-band/.dash-lower/.dash-stats-row — already
+         theme-aware, already responsive) with real advertising data instead
+         of the old client-side Brand Score concept: connection status,
+         campaign counts, recent creative assets, recent activity and
+         Autopilot status all come from the same real endpoints/functions
+         Business/Campaigns/Create/Autopilot already use — see refreshDash()
+         in app.js. Never a fabricated aggregate metric. -->
     <div class="page" id="page-dashboard">
       <div class="dash-outer">
 
-        <!-- S1: AI STATUS HERO -->
         <div class="dash-hero-band">
           <div class="dash-hero-left">
             <div class="dash-eyebrow">
-              <span class="dash-eyebrow-dot" id="dashEyebrowDot"></span>
-              <span class="dash-eyebrow-txt">ORIVEN Intelligence</span>
+              <span class="dash-eyebrow-dot active" id="dashEyebrowDot"></span>
+              <span class="dash-eyebrow-txt">Dashboard</span>
             </div>
-            <h1 class="dash-headline" id="dashHeadline">Your brand is <span class="dash-hl-grad" id="dashHeadlineWord">ready.</span></h1>
-            <p class="dash-status-msg" id="dashStatusMsg">Configure your Brand Identity to begin your AI journey.</p>
-            <div class="dash-brand-pill" id="dashBrandPill" style="display:none">
-              <span class="dash-brand-pill-dot"></span>
-              <span class="dash-brand-pill-name" id="dashBrandPillName"></span>
+            <h1 class="dash-headline" id="dashHeadline">Good <span class="dash-hl-grad" id="dashHeadlineWord">morning</span>.</h1>
+            <p class="dash-status-msg" id="dashStatusMsg">Here's what's happening with your advertising.</p>
+            <div class="dash-quick-actions" id="dashQuickActions">
+              <button class="dash-qa-btn" onclick="_orvNav('create','page-create')">Create campaign</button>
+              <button class="dash-qa-btn" onclick="_orvNav('research','page-research')">Research market</button>
+              <button class="dash-qa-btn" onclick="_orvNav('launch','page-launch')">Launch</button>
+              <button class="dash-qa-btn" onclick="_orvNav('performance','page-performance')">View campaigns</button>
             </div>
           </div>
           <div class="dash-hero-right">
-            <div class="dash-level-display">
-              <div class="dash-level-num" id="dashLevelNum">0%</div>
-              <div class="dash-level-lbl">Brand Score</div>
-              <div class="dash-level-bar-track">
-                <div class="dash-level-bar-fill" id="dashLevelFill" style="width:0%"></div>
-              </div>
+            <div class="dash-conn-status" id="dashConnStatus">
+              <div class="dash-conn-hd">Connected platforms</div>
+              <div class="dash-conn-rows" id="dashConnRows"></div>
+              <button class="dash-conn-manage" onclick="bizGoTo('connections')">Manage →</button>
             </div>
           </div>
         </div>
 
-        <!-- LOWER: activity + evolution -->
         <div class="dash-lower">
           <div class="dash-col-item">
             <div class="dash-section-hd"><span class="dash-s-eyebrow">Recent Activity</span></div>
             <div id="dashActivity"></div>
           </div>
           <div class="dash-col-item">
-            <div class="dash-section-hd"><span class="dash-s-eyebrow">Brand Score</span></div>
-            <div id="dashIntelLevel"></div>
+            <div class="dash-section-hd"><span class="dash-s-eyebrow">Autopilot</span></div>
+            <div id="dashAutopilot"></div>
           </div>
         </div>
 
-        <!-- STATS ROW -->
         <div class="dash-stats-row" id="dashStatsRow"></div>
 
-        <!-- Legacy compatibility -->
-        <div id="dashBrandBadge" style="display:none"></div>
-        <div id="dashSnapshot" style="display:none"></div>
+        <div class="dash-col-item" id="dashAssetsWrap">
+          <div class="dash-section-hd"><span class="dash-s-eyebrow">Recent Creative</span></div>
+          <div id="dashAssets"></div>
+        </div>
+
+        <div class="dash-empty" id="dashEmptyState" style="display:none"></div>
 
       </div>
     </div>
@@ -6721,8 +6794,8 @@
   <aside class="orv-ai-panel" id="orvAiPanel" aria-label="Oriven AI" aria-hidden="true">
     <div class="orv-ai-panel-head">
       <div class="orv-ai-panel-head-left">
-        <div class="orv-ai-panel-name">Oriven</div>
-        <div class="orv-ai-panel-status"><span class="orv-ai-online-dot"></span>Always Learning</div>
+        <div class="orv-ai-panel-name">Oriven Chat</div>
+        <div class="orv-ai-panel-status"><span class="orv-ai-online-dot"></span>AI help for your advertising</div>
       </div>
       <div class="orv-ai-panel-head-right">
         <!-- Context indicator (Continuity discoverability pass) — a real,
@@ -6756,6 +6829,14 @@
              recommendation content here; empty/hidden when there's
              genuinely nothing to report. -->
         <div class="orv-ai-rec-list" id="orvAiRecList" style="display:none"></div>
+        <!-- Per-page suggested prompts (Floating Assistant pass) — static,
+             honest example questions matched to whichever page is open
+             (window.orvContext.page, the same real page-tracking the chat
+             request payload already sends), never presented as a
+             personalized finding the way the real recs above are. Clicking
+             one just sends that text via orvAiSend(), the same as typing
+             it — no separate action pipeline. -->
+        <div class="orv-ai-suggest-list" id="orvAiSuggestList" style="display:none"></div>
         <div class="orv-ai-section-divider"><span>Ask Oriven</span></div>
       </div>
     </div>
@@ -6787,9 +6868,9 @@
 </div>
 
 <!-- AI Floating Action Button -->
-<button class="orv-ai-fab" id="orvAiFab" onclick="orvToggleAi()" aria-label="Open Oriven">
+<button class="orv-ai-fab" id="orvAiFab" onclick="orvToggleAi()" aria-label="Open Oriven Chat">
   <span class="orv-ai-fab-dot"></span>
-  <span class="orv-ai-fab-label">Oriven</span>
+  <span class="orv-ai-fab-label">Oriven Chat</span>
 </button>
 
 <!-- Campaign Type Selection Overlay -->
@@ -9017,8 +9098,12 @@ function _launchRenderFilteredList(){
   // fell out of the current filter/platform, fall back to the first
   // visible real campaign (read-only display convenience only — see the
   // var declaration above for why this is safe).
-  if (!_lqSelectedCampId || !filtered.some(function(c){ return c.id === _lqSelectedCampId; })) {
-    _lqSelectedCampId = filtered.length ? filtered[0].id : null;
+  // Gallery + Modal pass — no auto-selecting the first campaign anymore
+  // (that made sense when the control column was permanently visible;
+  // now it would leave a card looking "selected" with no modal open).
+  // Only clear a selection that fell out of the current filter/platform.
+  if (_lqSelectedCampId && !filtered.some(function(c){ return c.id === _lqSelectedCampId; })) {
+    _lqSelectedCampId = null;
   }
   if (!filtered.length) {
     _lqSetDisplay(wrap, 'none');
@@ -9045,7 +9130,7 @@ function _launchRenderFilteredList(){
   // provider label would just repeat what the platform nav above already
   // established (spec: "do not repeat provider information
   // unnecessarily"). Flat list, no group header.
-  wrap.innerHTML = '<div class="lq-list">'+filtered.map(function(c){ return _renderLaunchCard(c); }).join('')+'</div>';
+  wrap.innerHTML = '<div class="lq-card-grid">'+filtered.map(function(c){ return _renderLaunchCard(c); }).join('')+'</div>';
   _lqRenderControl();
 }
 window._launchSetSearch = function(val){ _lqFilters.search = val; _launchUpdateClearButton(); _launchRenderFilteredList(); };
@@ -9087,6 +9172,13 @@ function _launchCardState(c){
   if (LAUNCH_LIVE_STATUSES.indexOf(c.status) !== -1) return { state:'live', label:'LIVE' };
   return _launchListReadiness(c);
 }
+// Prompt-First/Launch Visual Grid pass — a real campaign PREVIEW card
+// (larger thumbnail, platform brand badge) instead of a compact list row,
+// per spec: "the user visually browses them." Selection behavior, the
+// readiness pill vocabulary (_launchCardState) and Launch Control (the
+// panel beside the grid) are all completely unchanged — only the card's
+// own markup/size changed, same onclick, same data attributes for the
+// existing search/filter logic.
 function _renderLaunchCard(c){
   var goal = c.goal || 'Sales';
   var platIcon = _PLAT_ICONS[c.platform] || '';
@@ -9097,26 +9189,20 @@ function _renderLaunchCard(c){
     }
   }
   var thumbHtml = thumbUrl
-    ? '<img class="lq-thumb" src="'+_esc(thumbUrl)+'" alt="" loading="lazy">'
-    : '<div class="lq-thumb lq-thumb-empty" aria-hidden="true">'+platIcon+'</div>';
+    ? '<img class="lq-card-thumb" src="'+_esc(thumbUrl)+'" alt="" loading="lazy">'
+    : '<div class="lq-card-thumb lq-card-thumb-empty" aria-hidden="true">'+platIcon+'</div>';
   var readiness = _launchCardState(c);
-  // Launch Polish pass — the row's ONLY interaction is now selection.
-  // The previous inline "Review →" shortcut straight into the old
-  // detailed workspace was removed per explicit direction: Launch
-  // Control (the panel beside this list) already shows this exact
-  // campaign's real readiness the moment it's selected, so a per-row
-  // "go look at it again over there" affordance was genuinely redundant.
-  // The real detailed workspace is still fully reachable — from Launch
-  // Control's own contextual action button, or a specific check's own
-  // real action — never removed, just no longer duplicated on every row.
   var selected = c.id === _lqSelectedCampId;
-  return '<button type="button" class="lq-row'+(selected?' lq-row-selected':'')+'" data-name="'+_esc((c.name||'').toLowerCase())+'" data-platform="'+_esc(c.platform||'')+'" aria-pressed="'+selected+'" onclick="_lqSelectCampaign(\''+c.id+'\')">'+
-    thumbHtml+
-    '<div class="lq-main">'+
+  return '<button type="button" class="lq-card'+(selected?' lq-card-selected':'')+'" data-name="'+_esc((c.name||'').toLowerCase())+'" data-platform="'+_esc(c.platform||'')+'" aria-pressed="'+selected+'" onclick="_lqSelectCampaign(\''+c.id+'\')">'+
+    '<div class="lq-card-media">'+
+      thumbHtml+
+      '<span class="lq-card-plat-badge" aria-hidden="true">'+platIcon+'</span>'+
+    '</div>'+
+    '<div class="lq-card-body">'+
       '<div class="lq-name">'+_esc(c.name)+'</div>'+
       '<div class="lq-meta"><span>'+_esc(goal)+'</span></div>'+
+      '<span class="lq-readiness lq-readiness-'+readiness.state+'">'+readiness.label+'</span>'+
     '</div>'+
-    '<span class="lq-readiness lq-readiness-'+readiness.state+'">'+readiness.label+'</span>'+
   '</button>';
 }
 
@@ -9294,7 +9380,38 @@ var _lqControlState = { campId: null, checks: [], selectedCheckKey: null };
 window._lqSelectCampaign = function(campId){
   _lqSelectedCampId = campId;
   _launchRenderFilteredList(); // re-renders rows (selected state) + calls _lqRenderControl()
+  _lqOpenModal();
 };
+
+// Gallery + Modal pass — standard modal a11y: focus moves into the modal
+// on open (its close button, a safe universal first-focus target
+// regardless of which readiness state rendered inside), Escape and a
+// backdrop click both close it (the overlay's own onclick already checks
+// event.target===this so clicks inside the card don't bubble-close it),
+// and focus returns to the campaign card that opened it. Never mutates
+// campaign state — purely a display toggle around the unchanged
+// _lqRenderControl*/readiness functions.
+var _lqModalOpenerEl = null;
+function _lqOpenModal(){
+  var overlay = document.getElementById('lqModalOverlay');
+  if (!overlay) return;
+  _lqModalOpenerEl = document.activeElement;
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  var closeBtn = overlay.querySelector('.lq-modal-close');
+  if (closeBtn) setTimeout(function(){ closeBtn.focus(); }, 10);
+  document.addEventListener('keydown', _lqModalEscape);
+};
+window._lqCloseModal = function(){
+  var overlay = document.getElementById('lqModalOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+  document.removeEventListener('keydown', _lqModalEscape);
+  if (_lqModalOpenerEl && typeof _lqModalOpenerEl.focus === 'function') _lqModalOpenerEl.focus();
+  _lqModalOpenerEl = null;
+};
+function _lqModalEscape(e){ if (e.key === 'Escape') window._lqCloseModal(); }
 
 function _lqRenderControl(){
   var el = document.getElementById('lqControlCol');
@@ -9421,6 +9538,20 @@ function _lqFmtDate(iso){
 // than a second one). The one real action routes to the existing Ads
 // Manager surface where real pause/resume/archive controls already live —
 // never a second Live-specific page, never a performance/analytics view.
+// Campaigns Trust pass — this card used to point its one action at
+// "Manage in Ads Manager", a destination that (per _admLoadMetaLive and
+// its Google/TikTok/Pinterest equivalents) has had no live-rendering
+// container anywhere in the app since an earlier redesign pass removed
+// it — a real dead end, not a working handoff. Rather than rebuild that
+// whole removed table (checkboxes/bulk actions/archived grouping — a
+// separate, much larger feature), this card now calls the exact same
+// real, already-working single-campaign pause/resume routes directly
+// (server.js: POST /api/{platform}/campaign/:id/pause|resume, confirmed
+// real for all four platforms) — small, obvious, uses an already-
+// existing API path, and is the correct fix for the fake-pause trust
+// problem: a real network call and a real response, never a local-only
+// status flip pretending to be one.
+var LQ_LIVE_PLATFORM_LABEL = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
 function _lqRenderControlSelectedLive(camp){
   var el = document.getElementById('lqControlCol');
   if (!el) return;
@@ -9434,6 +9565,24 @@ function _lqRenderControlSelectedLive(camp){
   if (deployedDate) metaRows.push('<div class="lqc-live-meta-row"><span>Deployed</span><span>' + _esc(deployedDate) + '</span></div>');
   if (camp.destinationAccountName) metaRows.push('<div class="lqc-live-meta-row"><span>Ad account</span><span>' + _esc(camp.destinationAccountName) + '</span></div>');
   if (camp.platformCampaignId) metaRows.push('<div class="lqc-live-meta-row"><span>Platform campaign ID</span><span>' + _esc(String(camp.platformCampaignId)) + '</span></div>');
+
+  var canControl = !!camp.platformCampaignId && LQ_LIVE_PLATFORM_LABEL[camp.platform];
+  var isPaused = camp.status === 'paused';
+  var actionsHtml;
+  if (canControl) {
+    actionsHtml =
+      '<button type="button" class="lqc-action-btn lqc-action-btn-live" id="lqcLiveActBtn" onclick="_lqLiveToggle(\'' + camp.id + '\')">' +
+        (isPaused ? 'Resume campaign' : 'Pause campaign') +
+      '</button>' +
+      '<button type="button" class="lqc-action-btn" onclick="_crpOpenFromLive(\'' + _esc(camp.platform) + '\',\'' + _esc(String(camp.platformCampaignId)) + '\',\'' + _esc(camp.name || '') + '\',\'' + _esc(camp.status || '') + '\',\'' + _esc(camp.publishedAt || '') + '\')">View activity</button>';
+  } else {
+    // Honest fallback — no real platform campaign id recorded (e.g. an
+    // older campaign published before this field existed), so a live
+    // pause/resume call cannot be made safely. Never offer a control
+    // that can't actually reach the real ad.
+    actionsHtml = '<p class="lqc-live-noaction">No platform campaign reference is recorded for this deployment — open ' + _esc(LQ_LIVE_PLATFORM_LABEL[camp.platform] || camp.platform) + ' directly to manage it.</p>';
+  }
+
   el.innerHTML =
     '<div class="lqc-card">' +
       '<div class="lqc-eyebrow">Launch Control</div>' +
@@ -9441,15 +9590,46 @@ function _lqRenderControlSelectedLive(camp){
         '<div class="lqc-identity-main"><div class="lqc-name">' + _esc(camp.name || 'Untitled campaign') + '</div><div class="lqc-meta">' + _esc(metaLine) + '</div></div>' +
       '</div>' +
       '<div class="lqc-state lqc-state-live">' +
-        '<span class="lqc-state-label">LIVE</span>' +
+        '<span class="lqc-state-label">LIVE' + (isPaused ? ' · PAUSED' : '') + '</span>' +
         '<span class="lqc-state-sub">' + _esc(statusLabel.text) + '</span>' +
       '</div>' +
       (metaRows.length ? '<div class="lqc-live-meta">' + metaRows.join('') + '</div>' : '') +
-      '<div class="lqc-action-row" id="lqcActionRow">' +
-        '<button type="button" class="lqc-action-btn lqc-action-btn-live" onclick="_orvNav(\'adsmanager\',\'page-ads-manager\')">Manage in Ads Manager →</button>' +
-      '</div>' +
+      '<div class="lqc-action-row" id="lqcActionRow">' + actionsHtml + '</div>' +
     '</div>';
 }
+
+// Real pause/resume — calls the actual platform API and only updates the
+// local record from a genuine, confirmed response. Never flips status
+// locally on click; the button stays disabled/"Pausing…" until the real
+// network call returns.
+window._lqLiveToggle = function(campId){
+  var camps = window._orvGetCampaigns ? window._orvGetCampaigns() : [];
+  var camp = camps.filter(function(c){ return c.id === campId; })[0];
+  if (!camp || !camp.platformCampaignId) return;
+  var toPause = camp.status !== 'paused';
+  var btn = document.getElementById('lqcLiveActBtn');
+  if (btn) { btn.disabled = true; btn.textContent = toPause ? 'Pausing…' : 'Resuming…'; }
+  var action = toPause ? 'pause' : 'resume';
+  apiFetch('/api/' + camp.platform + '/campaign/' + encodeURIComponent(camp.platformCampaignId) + '/' + action, { method: 'POST' }).then(function(r){
+    if (!r.ok) {
+      if (btn) { btn.disabled = false; btn.textContent = toPause ? 'Pause campaign' : 'Resume campaign'; }
+      if (typeof toast === 'function') toast('Could not ' + action + ' this campaign: ' + ((r.data && r.data.error) || 'unknown error'), 'warn');
+      return;
+    }
+    // Real confirmed response only — this is the one place a local
+    // record's status is allowed to change to "paused"/"published" for a
+    // live campaign, because it just followed a real API call that
+    // actually succeeded, not a local-only assumption.
+    camp.status = toPause ? 'paused' : 'published';
+    if (typeof window._saveCamps === 'function') window._saveCamps();
+    if (typeof toast === 'function') toast('Campaign ' + (toPause ? 'paused' : 'resumed') + '.', 'ok');
+    _lqRenderControlSelectedLive(camp);
+    if (typeof _launchRenderFilteredList === 'function') _launchRenderFilteredList();
+  }).catch(function(){
+    if (btn) { btn.disabled = false; btn.textContent = toPause ? 'Pause campaign' : 'Resume campaign'; }
+    if (typeof toast === 'function') toast('Network error trying to ' + action + ' this campaign.', 'warn');
+  });
+};
 
 function _lqRenderControlSelected(camp){
   var el = document.getElementById('lqControlCol');
@@ -10441,7 +10621,7 @@ window._prfLoadCampaignReplay = function(){
     // all, confirmed in _crpFetchMatchedEvents's own comment), so Ad Set/
     // Ad level gets the honest unavailable state, never campaign-level
     // events silently presented as if they belonged to the narrower object.
-    wrap.style.display = '';
+    _prfShowReplayToggle();
     list.innerHTML = '';
     if (emptyEl) {
       emptyEl.style.display = '';
@@ -10462,7 +10642,7 @@ window._prfLoadCampaignReplay = function(){
     }
     if (since) events = events.filter(function(e){ return new Date(e.created_at) >= since; });
     events = events.slice(0, 8);
-    wrap.style.display = '';
+    _prfShowReplayToggle();
     if (!events.length) {
       list.innerHTML = '';
       if (emptyEl) {
@@ -10491,10 +10671,30 @@ window._prfLoadCampaignReplay = function(){
     }).join('');
   }).catch(function(){
     if (window._prfReplayGen !== reqGen) return;
-    wrap.style.display = '';
+    _prfShowReplayToggle();
     list.innerHTML = '';
     if (emptyEl) { emptyEl.style.display = ''; emptyEl.textContent = 'Could not load activity right now.'; }
   });
+};
+
+// Campaign Replay — Control-Room pass, upper-right compact panel. Real
+// content-loading (_prfLoadCampaignReplay above) is unchanged; only what
+// happens once content is ready changed: instead of unconditionally
+// showing the (formerly permanent) panel, it reveals the small "Replay"
+// toggle button in the chart header, leaving the actual panel collapsed
+// until the user explicitly opens it — never covering the chart
+// permanently, and never open by default with no user action.
+function _prfShowReplayToggle(){
+  var btn = document.getElementById('prfReplayToggleBtn');
+  if (btn) btn.style.display = '';
+}
+window._prfToggleReplay = function(){
+  var wrap = document.getElementById('prfReplaySection');
+  var btn = document.getElementById('prfReplayToggleBtn');
+  if (!wrap) return;
+  var open = wrap.classList.contains('prf-replay-open');
+  wrap.classList.toggle('prf-replay-open', !open);
+  if (btn) btn.setAttribute('aria-expanded', open ? 'false' : 'true');
 };
 
 /* ── Campaign library filter + search ──────────────────────────── */
@@ -12274,6 +12474,12 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
           _campaigns[j].failureReason = (r.data && r.data.error) ? r.data.error : 'Unknown error';
         }
         _saveCamps();
+        // Task 3 Part 2 — provider confirmation (r.ok, the real publish
+        // result above) already happened before this line; this call only
+        // persists that already-real outcome durably. Never gates the
+        // toast/UI below on its result — see _orvPersistCampaignDurable's
+        // own header comment for the partial-success handling.
+        window._orvPersistCampaignDurable(_campaigns[j]);
         break;
       }
       if (typeof initAdsManager === 'function') initAdsManager();
@@ -12412,6 +12618,100 @@ window._orvStoreCampaign = function(campObj) {
   if (_campaigns.length > 50) _campaigns = _campaigns.slice(0, 50);
   _saveCamps();
   if (typeof renderCampaignHub === 'function') setTimeout(renderCampaignHub, 0);
+  _orvPersistCampaignDurable(campObj);
+};
+
+/* Task 3 Part 2 — durable persistence (server.js /api/campaigns). Fire-
+   and-forget by design: localStorage (above) is already the immediate,
+   synchronous source of truth the rest of the app renders from, so a slow
+   or failing durable-persist call must never block or visibly error any
+   existing flow (Create, Launch publish, "Add existing campaign"). This is
+   the explicit "partial success" handling Task 3 asked for: a real
+   provider publish already succeeded before this ever runs (see
+   _doPublish below) — if THIS call fails, the campaign is never told to
+   look like it failed; the local record instead gets a quiet
+   _durableSyncPending:true marker (never shown as an error toast) so nothing
+   is lost and a future sync pass has something concrete to retry against.
+   Until a human runs docs/migrations/2026-09-campaigns-durable-
+   persistence.sql on the real Supabase project, every call here gets a
+   clean 503 DB_UNAVAILABLE from the server — logged, never surfaced to
+   the user, local copy always untouched. */
+window._orvPersistCampaignDurable = function(campObj) {
+  try {
+    if (typeof apiFetch !== 'function' || !campObj || !campObj.id) return;
+    var body = {
+      client_ref_id: String(campObj.id),
+      source: campObj.source === 'manual' ? 'manual' : 'oriven_generated',
+      name: campObj.name || 'Unnamed campaign',
+      status: campObj.status || 'draft',
+      platform: campObj.platform || null,
+      objective: campObj.goal || null,
+      budget_amount: (campObj.pkg && campObj.pkg.strategy && (campObj.pkg.strategy.dailyBudget || campObj.pkg.strategy.budget))
+        || (campObj.manual && campObj.manual.budget) || null,
+      external_account_id: campObj.destinationAccountId ? String(campObj.destinationAccountId) : null,
+      external_campaign_id: campObj.platformCampaignId ? String(campObj.platformCampaignId) : ((campObj.manual && campObj.manual.externalIds && campObj.manual.externalIds.campaignId) || null),
+      external_ad_set_ids: Array.isArray(campObj.platformAdSetIds) ? campObj.platformAdSetIds.map(String) : (campObj.platformAdSetId ? [String(campObj.platformAdSetId)] : null),
+      external_ad_ids: Array.isArray(campObj.platformAdIds) ? campObj.platformAdIds.map(String) : null,
+      package: campObj,
+    };
+    var _markPending = function(pending) {
+      try {
+        _loadCamps();
+        for (var i = 0; i < _campaigns.length; i++) {
+          if (_campaigns[i].id === campObj.id) {
+            if (pending) _campaigns[i]._durableSyncPending = true; else delete _campaigns[i]._durableSyncPending;
+            _saveCamps();
+            break;
+          }
+        }
+      } catch (e2) { /* local mark is best-effort only, never fatal */ }
+    };
+    apiFetch('/api/campaigns', { method: 'POST', body: JSON.stringify(body) })
+      .then(function(r){ if (r.ok) _markPending(false); else { console.warn('[campaigns] durable save not yet available:', r.data && r.data.error); _markPending(true); } })
+      .catch(function(e){ console.warn('[campaigns] durable save failed (local copy unaffected):', e.message); _markPending(true); });
+  } catch (e) { console.warn('[campaigns] durable save skipped:', e.message); }
+};
+function _orvPersistCampaignDurable(campObj) { window._orvPersistCampaignDurable(campObj); }
+
+/* Task 3 Part 2 — one-time (per user, per browser) localStorage -> server
+   migration for the pre-existing oriven_campaigns_<uid> array. Called from
+   onUserSignedIn() (auth.js), the single real "user is authenticated"
+   entry point, so it always runs with a real auth token already available
+   to apiFetch. Idempotent by design on two levels:
+     1. The migration marker (a plain localStorage flag, keyed by uid)
+        skips this entirely on every later sign-in once it has succeeded.
+     2. Even without the marker, calling /api/campaigns/migrate-local twice
+        is safe — the server upserts on client_ref_id, never duplicating.
+   The marker is only set once the server confirms it actually received
+   and processed the batch (r.ok) -- a failed attempt (most likely today:
+   503 DB_UNAVAILABLE, since the migration this depends on hasn't been run
+   yet) leaves the marker unset, so the next sign-in retries automatically.
+   The original localStorage array is NEVER deleted or modified by this
+   function -- it stays the immediate, synchronous source of truth the
+   rest of the app already renders from; this only adds a durable copy
+   alongside it. */
+window._orvMigrateLocalCampaigns = function() {
+  try {
+    if (typeof apiFetch !== 'function' || typeof window._getCurrentUser !== 'function') return;
+    var user = window._getCurrentUser();
+    if (!user || !user.id) return;
+    var markerKey = 'oriven_campaigns_migrated_v1_' + user.id;
+    if (localStorage.getItem(markerKey) === 'true') return;
+
+    var camps = (typeof window._orvGetCampaigns === 'function') ? (window._orvGetCampaigns() || []) : [];
+    if (!camps.length) { localStorage.setItem(markerKey, 'true'); return; } // nothing to migrate, don't retry forever
+
+    apiFetch('/api/campaigns/migrate-local', { method: 'POST', body: JSON.stringify({ campaigns: camps }) })
+      .then(function(r) {
+        if (r.ok) {
+          localStorage.setItem(markerKey, 'true');
+          console.log('[campaigns] local -> durable migration complete:', r.data && r.data.migrated, 'migrated,', (r.data && r.data.skipped || []).length, 'skipped');
+        } else {
+          console.warn('[campaigns] local -> durable migration not available yet (will retry next sign-in):', r.data && r.data.error);
+        }
+      })
+      .catch(function(e) { console.warn('[campaigns] local -> durable migration failed (will retry next sign-in):', e.message); });
+  } catch (e) { console.warn('[campaigns] migration skipped:', e.message); }
 };
 
 window._orvUpdateCampPkg = function(id, pkg) {
@@ -13833,6 +14133,46 @@ window._orvUpdateCampPkg = function(id, pkg) {
       '</div>';
     }).join('');
   }
+  // Per-page suggested prompts (Floating Assistant pass) — short, honest
+  // example questions, matched to the current page key exactly as
+  // _orvAiUpdateContext/window.orvContext.page already track it. These
+  // are plain example text, never framed as a real finding/insight (that
+  // honesty distinction belongs to _orvAiRenderRecs above, which only
+  // ever renders from real data) — clicking one just fills+sends the
+  // same as typing it.
+  var ORV_AI_SUGGESTED_PROMPTS = {
+    create:       ['Help me improve this campaign prompt', 'Which objective fits this campaign?', 'Help me write a stronger offer'],
+    research:     ['Explain these findings', 'What opportunity matters most?', 'Turn this insight into an ad angle'],
+    launch:       ['Why is this campaign blocked?', 'Explain this warning', 'What should I check before launching?'],
+    performance:  ['Explain this CTR', 'What does this metric mean?', 'Summarize this campaign'],
+    autopilot:    ['Help me create an automation', 'Explain this rule', 'What does approval mode mean?'],
+    businessbrain:['Help me define my audience', 'Improve my brand context', 'What information is missing?'],
+    dashboard:    ['What needs my attention?', 'Explain what I am seeing']
+  };
+  function _orvAiRenderSuggestedPrompts(){
+    var wrap = document.getElementById('orvAiSuggestList');
+    if(!wrap) return;
+    // Same page-source priority orvAiSend() itself uses (window.orvContext.
+    // page first) — _orvAiCurrentPage is only updated by the older
+    // navigate() function, which real navigation (_orvNav) doesn't call;
+    // window.orvContext.page is the one _orvNav genuinely keeps current.
+    var currentPage = (window.orvContext && window.orvContext.page) || _orvAiCurrentPage;
+    var prompts = ORV_AI_SUGGESTED_PROMPTS[currentPage];
+    if(!prompts || !prompts.length){ wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+    wrap.style.display = '';
+    wrap.innerHTML = '<div class="orv-ai-suggest-hd">Try asking</div>' +
+      prompts.map(function(p){
+        // Single-quoted JS string literal inside the double-quoted onclick
+        // attribute (this file's established pattern, e.g. _cr2Plat(this,
+        // 'google')) — JSON.stringify() here would emit double quotes that
+        // collide with the attribute's own delimiters and corrupt the
+        // markup (confirmed live: produced a real "Unexpected end of
+        // input" page error). None of these fixed prompt strings contain
+        // an apostrophe, but escape defensively anyway.
+        var jsLiteral = p.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        return '<button type="button" class="orv-ai-suggest-btn" onclick="orvAiSend(\'' + jsLiteral + '\')">' + _prfEsc(p) + '</button>';
+      }).join('');
+  }
   window._orvAiRunRec = function(i){
     var c = _orvAiRecActions[i];
     if(!c) return;
@@ -13918,10 +14258,16 @@ window._orvUpdateCampPkg = function(id, pkg) {
        to dock the bell just left of the panel's close button instead of
        leaving it glued to the viewport corner, on top of the panel. */
     document.body.classList.add('orv-ai-open');
-    _orvAiUpdateContext(_orvAiCurrentPage);
+    // Bug fix (Floating Assistant pass) — this used to call
+    // _orvAiUpdateContext(_orvAiCurrentPage), which pushes the STALE local
+    // mirror back into window.orvContext.page, clobbering the correct
+    // value real navigation (_orvNav) already set there. window.orvContext.
+    // page is the one genuinely kept current; sync FROM it instead.
+    _orvAiUpdateContext((window.orvContext && window.orvContext.page) || _orvAiCurrentPage);
     _orvAiRefreshGreeting();
     _orvAiLoadRecs();
     _orvAiRenderCtxBadge();
+    _orvAiRenderSuggestedPrompts();
     var inp = document.getElementById('orvAiInput');
     if(inp) setTimeout(function(){ inp.focus(); }, 260);
     /* Oriven 1.0 (V9) — real, confirmed-via-testing bug fix: Escape never
@@ -14749,9 +15095,12 @@ window._orvNav = function(page, explicitPageId) {
   if (el) el.classList.add('active');
   if (window.orvContext) window.orvContext.page = page;
   /* Oriven 1.0 (V5) — global "Back to Workspace" affordance in the header,
-     shown on every workspace except Home itself. */
+     shown on every workspace except Home itself. 'overview' is the old,
+     retired Home page id (kept here only so any stray legacy caller still
+     behaves); 'dashboard' is the real one since the Dashboard/Home nav
+     item was added. */
   var _backBtn = document.getElementById('orvHeaderBack');
-  if (_backBtn) _backBtn.style.display = (page === 'overview') ? 'none' : '';
+  if (_backBtn) _backBtn.style.display = (page === 'overview' || page === 'dashboard') ? 'none' : '';
   /* Highlight matching sidebar item by data-orv-page key, or by hub membership */
   document.querySelectorAll('.orv-ni[data-orv-page]').forEach(function(b) {
     var hub = b.getAttribute('data-orv-hub');
@@ -14798,6 +15147,11 @@ window._orvNav = function(page, explicitPageId) {
   if (page === 'intelligence' && typeof intelPageInit === 'function') setTimeout(intelPageInit, 0);
   if (page === 'businessbrain' && typeof bizPageInit === 'function') setTimeout(bizPageInit, 0);
   if (page === 'autopilot' && typeof apInit === 'function') setTimeout(apInit, 0);
+  /* Dashboard/Home — reuses the real refreshDash() data-wiring that has
+     run every session since the legacy dashboard existed (app.js); it was
+     never destructive to call repeatedly, it just had no nav entry point
+     pointing at it. See #page-dashboard for the repurposed content. */
+  if (page === 'dashboard' && typeof refreshDash === 'function') setTimeout(refreshDash, 0);
   if (page === 'assets' && typeof aslRender === 'function') setTimeout(function(){ aslRender('all'); }, 0);
   if (page === 'launch' && typeof renderLaunchPage === 'function') setTimeout(renderLaunchPage, 0);
   if (page === 'research' && typeof _researchPlayShellAnim === 'function') setTimeout(_researchPlayShellAnim, 0);
@@ -16214,6 +16568,34 @@ window._researchNewSession = function() {
   if (typeof window._orvClearResearchSession === 'function') window._orvClearResearchSession();
   _researchSetState('researchEmptyState');
   if (input) input.focus();
+};
+
+// "Use in Create" — hands the current research result to Create as a
+// starting prompt. Pure client-side handoff: cgrGenerate()'s payload has
+// no research field and needs none (confirmed — Create just reads
+// whatever text sits in #aicInput when Build Campaign is clicked), so
+// this only prefills that textarea and navigates, then leaves the
+// existing Create flow completely untouched. Never auto-generates —
+// the user still reviews/edits the prompt and clicks Build Campaign
+// themselves, same as typing it by hand.
+window._researchUseInCreate = function() {
+  var r = window._researchLastResult;
+  if (!r) return;
+  var parts = [];
+  if (r.summary) parts.push(r.summary);
+  var opp = (r.opportunities || [])[0];
+  if (opp && opp.opportunity) parts.push('Focus on this opportunity: ' + opp.opportunity + '.');
+  var prompt = parts.join(' ').trim();
+  if (!prompt && r.question) prompt = r.question;
+  _orvNav('create', 'page-create');
+  setTimeout(function(){
+    var ta = document.getElementById('aicInput');
+    if (!ta) return;
+    ta.value = prompt;
+    if (typeof window.aicAutoResize === 'function') window.aicAutoResize(ta);
+    ta.focus();
+    if (typeof toast === 'function') toast('Research brought into Create — review and adjust before generating.', 'ok');
+  }, 60);
 };
 
 // ── Follow-up — the control layer for exploring the current session
@@ -17879,6 +18261,19 @@ function _prfEmptyKpi() {
 }
 
 function _prfLoadData(platforms) {
+  // Task 3 Part 2 — durable sync, entirely independent of the live-render
+  // pipeline below: fire-and-forget, never participates in `pending`/
+  // _done(), never blocks or delays the real chart/KPI render this
+  // function exists for. Keeps the durable `campaigns` table's imported
+  // copies fresh whenever a user organically browses Campaigns, without
+  // adding a dedicated "Sync" button/UI. The live reads immediately below
+  // remain the page's real, authoritative data source — unchanged.
+  if (typeof apiFetch === 'function') {
+    platforms.forEach(function(p) {
+      apiFetch('/api/campaigns/sync/' + p, { method: 'POST' }).catch(function(){ /* best-effort only */ });
+    });
+  }
+
   window._prfAllCampaigns = [];
   window._prfPlatKpis = {};
   var pending = platforms.length;
@@ -18362,8 +18757,12 @@ function _prfRenderMetricExplorer(platform, kpis, activeId) {
   if (setChanged) {
     grid.innerHTML = ids.map(function(id) {
       var m = ORIVEN_METRICS[id];
-      return '<button type="button" class="prf-explorer-tile" data-metric="' + id + '" onclick="prfSelectMetric(\'' + id + '\')" aria-pressed="false">' +
-        '<span class="prf-explorer-label">' + _prfEsc(m.label) + '</span>' +
+      // Restrained semantic color (Control-Room pass) — reuses this
+      // registry's own real category field (delivery/traffic/conversion),
+      // never a second invented taxonomy. A small category dot only; the
+      // number itself stays the hero, never a colored background/card.
+      return '<button type="button" class="prf-explorer-tile" data-metric="' + id + '" data-category="' + (m.category || '') + '" onclick="prfSelectMetric(\'' + id + '\')" aria-pressed="false">' +
+        '<span class="prf-explorer-label"><span class="prf-explorer-dot" aria-hidden="true"></span>' + _prfEsc(m.label) + '</span>' +
         '<span class="prf-explorer-val" id="prfExp_' + id + '">—</span>' +
       '</button>';
     }).join('');
@@ -18404,6 +18803,10 @@ function _prfBuildChartCardHtml(id) {
       '<div class="prf-chart-hd">' +
         '<span class="prf-chart-title">' + _prfEsc(m.label) + ' Over Time</span>' +
         '<div class="prf-chart-hd-controls">' +
+          '<button type="button" class="prf-chart-replay-btn" id="prfReplayToggleBtn" onclick="_prfToggleReplay()" aria-expanded="false" aria-controls="prfReplaySection" title="Campaign Replay" style="display:none">' +
+            '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M4 3v8l7-4z"/></svg>' +
+            'Replay' +
+          '</button>' +
           '<button type="button" class="prf-chart-expand-btn" onclick="prfExpandChart(\'' + id + '\')" aria-label="Expand ' + _prfEsc(m.label) + ' Over Time chart" title="Expand">' + _prfExpandSvg() + '</button>' +
         '</div>' +
       '</div>' +
@@ -28513,6 +28916,21 @@ window._cr2BrandIdentity = function(btn, enabled) {
   }
   if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
   if (typeof _cr2RenderStage === 'function') _cr2RenderStage();
+};
+
+// Advanced settings disclosure (Prompt-First pass) — same collapse/expand
+// pattern as the manual-campaign form's _mcToggleAdvanced. Collapsed by
+// default; nothing inside (_cr2RenderPlatObj/_cr2RenderStructSection)
+// changes behavior, they just aren't visible until opened.
+window._cr2ToggleAdvanced = function(){
+  var body = document.getElementById('cr2AdvancedGroup');
+  var chev = document.getElementById('cr2AdvancedChevron');
+  var toggle = document.getElementById('cr2AdvancedToggle');
+  if(!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if(chev) chev.style.transform = open ? '' : 'rotate(90deg)';
+  if(toggle) toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
 };
 
 // Campaign Goal — exactly one of Sales/Leads/Traffic/Awareness, required

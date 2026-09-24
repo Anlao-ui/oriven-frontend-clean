@@ -695,8 +695,12 @@ var LANG_STRINGS = {
     comingSoon:"Coming soon",
     // Sidebar identity
     brandWorkspace:"Brand Workspace", signOut:"Sign out",
-    // Dashboard headline & tagline
-    dashHeadlinePrefix:"Your brand is", dashHeadlineHighlight:"ready.",
+    // Dashboard headline & tagline — prefix composes with the dynamic
+    // time-of-day word refreshDash() sets on #dashHeadlineWord ("Good
+    // morning."/"Good afternoon."/"Good evening."); the highlight value
+    // here is only a same-frame fallback (refreshDash() runs immediately
+    // after this string is applied, so it's never actually visible).
+    dashHeadlinePrefix:"Good", dashHeadlineHighlight:"morning.",
     dashTagline:"Let's turn it into content, ads, and growth.",
     // Dashboard action cards
     dashCreateLabel:"Create Content",   dashCreateDesc:"Images, copy, video scripts, and more.",

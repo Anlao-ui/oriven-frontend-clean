@@ -722,9 +722,14 @@ function _apCountText(items) {
 // half-real. Kept intentionally simple -- a title, one sentence, and the
 // real Create Automation action.
 function _apEmptyAutomationsTemplate() {
+  // Control-Room pass — the sub-copy now names what Autopilot actually
+  // monitors and which platforms it actually covers (Google Ads and Meta
+  // Ads only — the real 4-hour monitoring cron never checks TikTok/
+  // Pinterest, see server.js), instead of a vague "what to watch" line
+  // that could read as covering every connected platform equally.
   return '<div class="ov3-empty ap-auto-empty">' +
     '<p class="ov3-empty-title">' + _apT('apEmptyRulesTitle', 'No automation rules yet') + '</p>' +
-    '<p class="ov3-empty-sub">' + _apT('apEmptyRulesSub', 'Create your first rule to tell ORIVEN what to watch and what should happen when its condition is met.') + '</p>' +
+    '<p class="ov3-empty-sub">' + _apT('apEmptyRulesSub', 'Autopilot watches budget, performance, and status on your connected Google Ads and Meta Ads campaigns, and can pause, resume, or adjust budget automatically once you approve a rule.') + '</p>' +
     '<button type="button" class="oi-card-btn" onclick="apOpenBuilder()">' + _apT('apCreateAutomationBtn', '+ Create Automation') + '</button>' +
   '</div>';
 }

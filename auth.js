@@ -321,6 +321,7 @@ async function onUserSignedIn(user){
   _setAppRoute("/app");
   // Fire non-blocking background work immediately
   loadBrandCoreFromDB(user);
+  if(typeof window._orvMigrateLocalCampaigns === "function") window._orvMigrateLocalCampaigns();
   // NOTE: syncSubscriptionFromDB() intentionally NOT called here.
   // _loadUserProfile() below queries Supabase directly and is the single
   // source of truth for plan state. Calling a second async backend source

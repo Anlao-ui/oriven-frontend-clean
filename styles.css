@@ -56,6 +56,26 @@
   --orv-lift-sm: -1px;
   --orv-lift: -2px;
   --orv-scale: 1.012;
+
+  /* Global semantic color system (Visual Life pass) — restrained secondary
+     accents for category/state differentiation, distinct from --green
+     (which stays the one primary brand/action color). NOT new colors:
+     these are the exact same values Business's own 6-category cards
+     already use successfully (.bic-card-brand/-audience/-competition/
+     -advertising/-knowledge, styles.css ~48068-48079) — reused here
+     verbatim so the wider app's secondary palette is provably the same
+     one already validated on Business, not a parallel invention. Fixed
+     (not theme-switched) on purpose, matching that same precedent —
+     these read correctly on both the light workspace surfaces and
+     Business's own always-dark canvas. Use sparingly: small dots,
+     borders, tinted backgrounds, icon accents — never a dominant fill. */
+  --sem-blue:   #60A5FA;
+  --sem-cyan:   #22D3EE;
+  --sem-amber:  #FACC15;
+  --sem-orange: #F97316;
+  --sem-purple: #A78BFA;
+  --sem-teal:   #34D399;
+  --sem-red:    #F87171;
 }
 
 /* ==========================================================================
@@ -376,13 +396,32 @@ textarea.inp{resize:vertical;min-height:80px}
 }
 
 /* Headline */
+/* Home Typography Fix pass — this rule predates Dashboard's revival from
+   the old marketing-style "Brand Score" page and still carried that
+   page's font-family:'Instrument Serif' + font-weight:400 + -1px
+   letter-spacing. A later global rule (search this file for "FONT
+   OVERRIDE — kill serif everywhere") already force-overrides the
+   FONT-FAMILY specifically back to Geist with !important, so the
+   headline was never actually rendering in a serif face — but weight
+   (400) and letter-spacing/line-height were untouched by that override,
+   so it was rendering as a thin, loosely-tracked Geist heading instead
+   of the bold, tightly-tracked convention every real app page title uses
+   (.cr2-h1/.rsc-page-h1/.lq-hdr-title: font-weight:800, letter-spacing:
+   -.02em, line-height:1.22) — that weight/tracking mismatch, not the
+   font family, is what actually read as "not OrivenAI's real
+   typography." Fixed at the source instead of leaving it to the
+   downstream override: font-family removed (inherits body's Geist
+   directly, no longer needs the global override to correct it), weight/
+   letter-spacing/line-height now match the app's real heading
+   convention. Size stays a larger clamp (a hero greeting, not a static
+   page title) since that's a legitimate scale choice, not a typography
+   mismatch. */
 .dash-headline{
-  font-family:'Instrument Serif',serif;
   font-size:clamp(24px,3vw,38px);
-  font-weight:400;
+  font-weight:800;
   color:var(--charcoal);
-  letter-spacing:-1px;
-  line-height:1.1;
+  letter-spacing:-.02em;
+  line-height:1.22;
   margin-bottom:10px;
 }
 .dash-hl-grad{color:var(--green)}
@@ -533,7 +572,34 @@ textarea.inp{resize:vertical;min-height:80px}
   border:1px solid var(--border);
   border-radius:12px;
   padding:16px 18px;
+  transition:border-color .15s ease, background .15s ease;
 }
+/* Visual Correction pass — a top border + colored number wasn't enough
+   separation from the dark page background (founder review). These are
+   now genuinely tinted SURFACES, not just accented text — same
+   light-mode "pale tint + deep saturated text" / dark-mode "dark tint +
+   bright saturated text" pairing this codebase already uses for --warn-
+   bg/--warn-c and --err-bg/--err-c, generated from the same --sem-*
+   tokens (and --green for Live) rather than new hand-picked hex values.
+   Label stays --muted in every card (consistent secondary text weight);
+   only the big number and the card's own surface carry the category
+   color, so it reads as "a blue card" / "a purple card" at a glance
+   without needing colored labels too. */
+.dash-stat-cat-live{ background:color-mix(in srgb, var(--green) 13%, var(--surface)); border-color:color-mix(in srgb, var(--green) 35%, var(--border)); }
+.dash-stat-cat-live .dash-stat-val{ color:color-mix(in srgb, var(--green) 70%, black); }
+body.dark-mode .dash-stat-cat-live .dash-stat-val{ color:var(--green); }
+
+.dash-stat-cat-ready{ background:color-mix(in srgb, var(--sem-blue) 16%, var(--surface)); border-color:color-mix(in srgb, var(--sem-blue) 38%, var(--border)); }
+.dash-stat-cat-ready .dash-stat-val{ color:color-mix(in srgb, var(--sem-blue) 75%, black); }
+body.dark-mode .dash-stat-cat-ready .dash-stat-val{ color:color-mix(in srgb, var(--sem-blue) 85%, white); }
+
+.dash-stat-cat-draft{ background:color-mix(in srgb, var(--sem-amber) 18%, var(--surface)); border-color:color-mix(in srgb, var(--sem-amber) 40%, var(--border)); }
+.dash-stat-cat-draft .dash-stat-val{ color:color-mix(in srgb, var(--sem-amber) 65%, black); }
+body.dark-mode .dash-stat-cat-draft .dash-stat-val{ color:var(--sem-amber); }
+
+.dash-stat-cat-manual{ background:color-mix(in srgb, var(--sem-purple) 16%, var(--surface)); border-color:color-mix(in srgb, var(--sem-purple) 38%, var(--border)); }
+.dash-stat-cat-manual .dash-stat-val{ color:color-mix(in srgb, var(--sem-purple) 65%, black); }
+body.dark-mode .dash-stat-cat-manual .dash-stat-val{ color:color-mix(in srgb, var(--sem-purple) 88%, white); }
 .dash-stat-val{
   font-size:20px;font-weight:700;
   color:var(--charcoal);
@@ -547,6 +613,74 @@ textarea.inp{resize:vertical;min-height:80px}
   text-transform:uppercase;letter-spacing:.06em;
 }
 
+/* ── Dashboard — advertising-overview content (replaces the old client-
+   side Brand Score hero-right/lower-right panels; the .dash-il-* rules
+   above are now unused but left in place, same "retire, don't delete"
+   convention as the rest of this file). ── */
+
+/* Quick actions row, hero-left */
+.dash-quick-actions{display:flex;flex-wrap:wrap;gap:8px}
+.dash-qa-btn{
+  font-size:12.5px;font-weight:600;color:var(--charcoal);
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:9px;padding:8px 14px;cursor:pointer;
+  transition:border-color .16s,color .16s,background .16s;
+}
+.dash-qa-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* Connected-platforms card, hero-right */
+.dash-conn-status{
+  display:flex;flex-direction:column;gap:10px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;padding:14px 16px;min-width:216px;
+}
+.dash-conn-hd{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dash-conn-rows{display:flex;flex-direction:column;gap:8px}
+.dash-conn-row{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.dash-conn-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dash-conn-dot-off{background:var(--border)}
+.dash-conn-dot-on{background:var(--green);box-shadow:0 0 0 3px color-mix(in srgb, var(--green) 20%, transparent)}
+.dash-conn-lbl{color:var(--charcoal);font-weight:500;flex:1}
+.dash-conn-state{color:var(--muted);font-size:11.5px}
+.dash-conn-manage{
+  align-self:flex-start;font-size:12px;font-weight:600;color:var(--green);
+  background:none;border:none;cursor:pointer;padding:0;
+}
+.dash-conn-manage:hover{text-decoration:underline}
+
+/* Autopilot status panel (right column of .dash-lower) */
+.dash-ap-status{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.dash-ap-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dash-ap-off .dash-ap-dot{background:var(--muted)}
+.dash-ap-armed .dash-ap-dot{background:var(--green)}
+.dash-ap-auto .dash-ap-dot{background:var(--green);box-shadow:0 0 0 3px color-mix(in srgb, var(--green) 22%, transparent)}
+.dash-ap-lbl{font-size:12.5px;font-weight:700;letter-spacing:.03em;color:var(--charcoal)}
+.dash-ap-sub{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.dash-ap-cta{
+  font-size:12px;font-weight:600;color:var(--green);
+  background:none;border:1px solid color-mix(in srgb, var(--green) 35%, transparent);
+  border-radius:8px;padding:7px 12px;cursor:pointer;
+}
+.dash-ap-cta:hover{background:color-mix(in srgb, var(--green) 8%, transparent)}
+
+/* Recent creative strip */
+#dashAssetsWrap{flex-shrink:0}
+.dash-assets-strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:2px}
+.dash-asset-thumb{
+  flex:0 0 auto;width:88px;height:88px;border-radius:10px;overflow:hidden;
+  border:1px solid var(--border);background:var(--bg2);
+}
+.dash-asset-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* Empty state — replaces the whole body's content when nothing exists yet */
+.dash-empty{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:14px;padding:40px 20px;
+}
+.dash-empty-ttl{font-size:16px;font-weight:600;color:var(--charcoal)}
+.dash-empty-sub{font-size:13px;color:var(--muted);max-width:380px;line-height:1.6}
+.dash-empty-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+
 /* ── Responsive ── */
 @media(max-width:1000px){
   .dash-stats-row{grid-template-columns:repeat(2,1fr)}
@@ -555,12 +689,15 @@ textarea.inp{resize:vertical;min-height:80px}
   .dash-outer{padding:14px 20px 8px;gap:10px;height:auto}
   .dash-hero-band{grid-template-columns:1fr;gap:20px;padding:18px 20px}
   .dash-hero-right{flex-direction:row;align-items:center;justify-content:flex-start;gap:20px}
+  .dash-conn-status{width:100%;min-width:0}
   .dash-lower{grid-template-columns:1fr}
   .dash-col-item{overflow:visible;height:auto}
   .dash-col-item>div:not(.dash-section-hd){overflow-y:visible;flex:none;height:auto}
 }
 @media(max-width:520px){
   .dash-lower{grid-template-columns:1fr}
+  .dash-hero-right{flex-direction:column;align-items:stretch}
+  .dash-asset-thumb{width:76px;height:76px}
 }
 
 
@@ -27144,12 +27281,36 @@ body.dark-mode .orv-sb-user-name { color: rgba(255,255,255,.9); }
   animation-fill-mode: forwards;
 }
 
+/* Dashboard/Home — a small house whose door subtly swings open on hover,
+   settling at a slightly-ajar resting angle (fill-mode: forwards), the
+   same "ends changed from rest" idea as the Business bulb's glow above.
+   The door is its own <path class="orv-ni-house-door">, separate from the
+   roof/walls <g class="orv-ni-house-body">, so only the door ever moves —
+   the house outline itself stays completely still, matching this file's
+   established rule (see the Business bulb comment above) that an icon's
+   static frame must never move/resize, only the one element that
+   represents the actual gesture. A shallow CSS 3D rotate (perspective +
+   rotateY, hinge on the right edge via transform-origin) reads as a real
+   door opening rather than a flat slide/skew. */
+.orv-ni svg .orv-ni-house-door {
+  transform-box: fill-box; transform-origin: right center;
+}
+@keyframes orv-ni-house-door-open {
+  0%   { transform: perspective(40px) rotateY(0deg); }
+  60%  { transform: perspective(40px) rotateY(-40deg); }
+  100% { transform: perspective(40px) rotateY(-22deg); }
+}
+.orv-ni[data-orv-page="dashboard"]:hover svg .orv-ni-house-door {
+  animation: orv-ni-house-door-open 340ms cubic-bezier(.22,.61,.36,1) 1 forwards;
+}
+
 /* Settings — a small, deliberate turn, not a continuous spin. Unchanged. */
 #orvNavSettingsBtn:hover svg { transform: rotate(18deg); }
 
 @media (prefers-reduced-motion: reduce) {
   .orv-ni svg, .orv-ni svg .orv-ni-clockhand, .orv-ni svg .orv-ni-clip,
   .orv-ni svg .orv-ni-bulb-body, .orv-ni svg .orv-ni-bulb-glow,
+  .orv-ni svg .orv-ni-house-door,
   .orv-ni-ic svg { transition: none !important; animation: none !important; }
   .orv-ni[data-orv-page="create"]:hover .orv-ni-ic svg,
   .orv-ni[data-orv-page="research"]:hover svg,
@@ -27158,6 +27319,7 @@ body.dark-mode .orv-sb-user-name { color: rgba(255,255,255,.9); }
   .orv-ni[data-orv-page="intelligence"]:hover svg .orv-ni-clockhand,
   .orv-ni[data-orv-page="autopilot"]:hover svg,
   .orv-ni[data-orv-page="businessbrain"]:hover svg .orv-ni-bulb-body,
+  .orv-ni[data-orv-page="dashboard"]:hover svg .orv-ni-house-door,
   #orvNavSettingsBtn:hover svg { transform: none !important; filter: none !important; animation: none !important; }
   .orv-ni[data-orv-page="businessbrain"]:hover svg .orv-ni-bulb-glow { opacity: 0 !important; animation: none !important; }
 }
@@ -27275,26 +27437,41 @@ body.dark-mode .orv-header-user:hover { background: rgba(255,255,255,.06); }
 /* ── Oriven AI — panel, feed, action cards ────────────────────── */
 
 /* Panel shell */
+/* Oriven Chat — Floating Assistant pass. Was a docked flex-row sidebar
+   member (width 0->320px) that narrowed the main workspace whenever
+   opened — "opening a second application" rather than a contextual
+   helper. Now position:fixed, anchored just above its own trigger
+   (.orv-ai-fab, bottom:24px/right:24px), so the application underneath
+   never resizes. Same fade+slide-in mechanic as .orv-launcher-pop
+   (the app's other fixed-position popover), scaled up for a real
+   conversation surface. Taken out of the document flow entirely, so no
+   sibling layout depends on its width the way it briefly did before. */
 .orv-ai-panel {
-  width: 0;
-  min-width: 0;
-  height: 100vh;
+  position: fixed;
+  right: 24px;
+  bottom: 88px;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: min(600px, calc(100vh - 140px));
+  max-height: 70vh;
   background: var(--surface, #fff);
-  border-left: 1px solid var(--border, rgba(0,0,0,.05));
+  border: 1px solid var(--border, rgba(0,0,0,.08));
+  border-radius: 18px;
+  box-shadow: 0 20px 48px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.08);
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
   overflow: hidden;
   box-sizing: border-box;
-  transition: width .24s cubic-bezier(.22,.61,.36,1), min-width .24s cubic-bezier(.22,.61,.36,1);
-  z-index: 20;
+  opacity: 0;
+  transform: translateY(14px) scale(.97);
+  transform-origin: bottom right;
+  pointer-events: none;
+  transition: opacity .18s cubic-bezier(.22,.61,.36,1), transform .18s cubic-bezier(.22,.61,.36,1);
+  z-index: 210;
 }
-/* Oriven 1.0 (V11) — the V9 padding-top:56px fix (dodging the fixed
-   header's z-index) is no longer needed now that the header is retired
-   in favour of the permanent sidebar; the panel's close button has no
-   more overlapping ancestor to hide under. */
-body.dark-mode .orv-ai-panel { background: #111113; border-left-color: rgba(255,255,255,.06); }
-.orv-ai-panel.orv-ai-open { width: 320px; min-width: 320px; }
+body.dark-mode .orv-ai-panel { background: #111113; border-color: rgba(255,255,255,.1); box-shadow: 0 20px 48px rgba(0,0,0,.5), 0 4px 16px rgba(0,0,0,.3); }
+.orv-ai-panel.orv-ai-open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .orv-ai-panel { transition: opacity .12s linear; transform: none !important; } }
 
 /* Panel header */
 .orv-ai-panel-head {
@@ -27455,6 +27632,19 @@ body.dark-mode .orv-ai-rec-action { color: var(--green); background: color-mix(i
   content: ''; flex: 1; height: 1px; background: var(--border, rgba(0,0,0,.07));
 }
 body.dark-mode .orv-ai-section-divider::before, body.dark-mode .orv-ai-section-divider::after { background: rgba(255,255,255,.07); }
+
+/* Per-page suggested prompts — compact pill buttons, deliberately quieter
+   than .orv-ai-rec-card (those are real findings; these are just example
+   text) so the two never read as the same kind of information. */
+.orv-ai-suggest-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.orv-ai-suggest-hd { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 2px; }
+.orv-ai-suggest-btn {
+  text-align: left; font-family: inherit; cursor: pointer; font-size: 12.5px; color: var(--charcoal);
+  background: var(--bg2, rgba(0,0,0,.03)); border: 1px solid transparent; border-radius: 10px;
+  padding: 8px 11px; transition: border-color .14s, background .14s;
+}
+.orv-ai-suggest-btn:hover { border-color: color-mix(in srgb, var(--green) 30%, transparent); }
+body.dark-mode .orv-ai-suggest-btn { background: rgba(255,255,255,.04); color: rgba(255,255,255,.85); }
 
 /* Chat messages */
 .orv-ai-msg { display: flex; flex-direction: column; gap: 4px; }
@@ -27917,7 +28107,7 @@ body.dark-mode .orv-report-tag { background: rgba(255,255,255,.06); }
    above the drawer breakpoint (see .orv-sb display:none below), hamburger
    + drawer at or below it. No intermediate icon-only state. */
 @media (max-width: 900px) {
-  .orv-ai-panel.orv-ai-open { width: 300px; min-width: 300px; }
+  .orv-ai-panel { width: 340px; }
   .orv-two-col { grid-template-columns: 1fr; }
   .orv-platform-grid { grid-template-columns: 1fr; }
   .orv-gen-grid { grid-template-columns: 1fr; }
@@ -27933,7 +28123,12 @@ body.dark-mode .orv-report-tag { background: rgba(255,255,255,.06); }
    at 300 the "full-screen" panel was rendering underneath it. 9250 clears
    the sidebar while staying below the onboarding tour's 9300/9301. */
 @media (max-width: 768px) {
-  .orv-ai-panel.orv-ai-open { width: 100vw; min-width: 100vw; position: fixed; right: 0; top: 0; z-index: 9250; }
+  /* Floating Assistant pass — base rule is already position:fixed, so
+     mobile only needs to go edge-to-edge and drop the floating card
+     chrome (radius/shadow/anchor gap), same "larger sheet on mobile"
+     treatment the spec explicitly allows. */
+  .orv-ai-panel { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; right: 0; bottom: 0; top: 0; border-radius: 0; border: none; z-index: 9250; }
+  .orv-ai-panel.orv-ai-open { transform: none; }
   /* Was collapsing to a bare 27px circle with only the 7px pulsing dot
      visible (label:none + uniform 10px padding) — read as an unexplained
      tiny green dot, not a recognizable Oriven control. Keeps the same
@@ -31029,7 +31224,11 @@ body.dark-mode .intel-hdr2-title { color: rgba(255,255,255,.95); }
    still matches Create's .cr2-h1 exactly (28px/800/-.02em); no eyebrow,
    no subtitle, no divider. Dedicated class, not the shared .intel-hdr2-*
    used elsewhere, so this only affects Research. */
-.rsc-page-hdr { margin-bottom: 4px; text-align: center; }
+/* Micro-Polish pass — 22px -> 32px, one small spacing-step more breathing
+   room between the "Research" title and the workspace card beneath it
+   (founder: "title and card feel slightly too close together... not a
+   huge empty gap"). Everything else on this page is unchanged. */
+.rsc-page-hdr { margin-bottom: 32px; text-align: center; }
 .rsc-page-h1 { font-size: 28px; font-weight: 800; line-height: 1.22; letter-spacing: -.02em; color: var(--charcoal); margin: 0; }
 
 /* Research Focus pills — real, optional scope controls, not example
@@ -31123,6 +31322,34 @@ body.dark-mode .intel-hdr2-title { color: rgba(255,255,255,.95); }
   background: color-mix(in srgb, var(--green) 10%, rgba(255,255,255,.03)); border-color: color-mix(in srgb, var(--green) 55%, transparent);
 }
 .rsc-starter-icon { flex-shrink: 0; width: 17px; height: 17px; margin-top: 1px; color: rgba(255,255,255,.45); transition: color .15s ease; }
+/* Visual Life pass — restrained per-starter category color (resting-state
+   icon only; the Investigation Canvas is deliberately always-dark, so
+   these use the same fixed --sem-* tokens as Business's category cards,
+   not theme-switching values). Same specificity as the hover/pressed
+   rule below, so it must come first in source order to let hover/
+   pressed still win on interaction. */
+.rsc-starter[data-starter="market"] .rsc-starter-icon { color: var(--sem-blue); }
+.rsc-starter[data-starter="competitors"] .rsc-starter-icon { color: var(--sem-purple); }
+.rsc-starter[data-starter="audience"] .rsc-starter-icon { color: var(--sem-amber); }
+.rsc-starter[data-starter="opportunities"] .rsc-starter-icon { color: var(--sem-teal); }
+/* Final Visual Correction pass — the icon color alone read as too thin a
+   signal (spec: "strengthen the four starter cards' semantic identity
+   beyond just icon color"); a faint category-tinted surface + border does
+   the same job the icon already does, just reinforced, and a slightly
+   stronger tinted glow on hover. Kept deliberately quieter than the
+   Dashboard KPI cards' tint strength (spec: "Dashboard KPIs should be
+   more visually saturated than Research") — background stays under 6%,
+   border under 16%, vs. Dashboard's 13-18%/35-40%. :not([aria-pressed])
+   keeps the existing green pressed/selected state (below) as the one
+   real state override — never fighting this resting-state tint. */
+.rsc-starter[data-starter="market"]:not([aria-pressed="true"]) { background: color-mix(in srgb, var(--sem-blue) 5%, rgba(255,255,255,.03)); border-color: color-mix(in srgb, var(--sem-blue) 15%, rgba(255,255,255,.09)); }
+.rsc-starter[data-starter="competitors"]:not([aria-pressed="true"]) { background: color-mix(in srgb, var(--sem-purple) 5%, rgba(255,255,255,.03)); border-color: color-mix(in srgb, var(--sem-purple) 15%, rgba(255,255,255,.09)); }
+.rsc-starter[data-starter="audience"]:not([aria-pressed="true"]) { background: color-mix(in srgb, var(--sem-amber) 5%, rgba(255,255,255,.03)); border-color: color-mix(in srgb, var(--sem-amber) 15%, rgba(255,255,255,.09)); }
+.rsc-starter[data-starter="opportunities"]:not([aria-pressed="true"]) { background: color-mix(in srgb, var(--sem-teal) 5%, rgba(255,255,255,.03)); border-color: color-mix(in srgb, var(--sem-teal) 15%, rgba(255,255,255,.09)); }
+.rsc-starter[data-starter="market"]:hover:not([aria-pressed="true"]) { border-color: color-mix(in srgb, var(--sem-blue) 32%, transparent); box-shadow: 0 3px 14px color-mix(in srgb, var(--sem-blue) 12%, transparent); }
+.rsc-starter[data-starter="competitors"]:hover:not([aria-pressed="true"]) { border-color: color-mix(in srgb, var(--sem-purple) 32%, transparent); box-shadow: 0 3px 14px color-mix(in srgb, var(--sem-purple) 12%, transparent); }
+.rsc-starter[data-starter="audience"]:hover:not([aria-pressed="true"]) { border-color: color-mix(in srgb, var(--sem-amber) 32%, transparent); box-shadow: 0 3px 14px color-mix(in srgb, var(--sem-amber) 12%, transparent); }
+.rsc-starter[data-starter="opportunities"]:hover:not([aria-pressed="true"]) { border-color: color-mix(in srgb, var(--sem-teal) 32%, transparent); box-shadow: 0 3px 14px color-mix(in srgb, var(--sem-teal) 12%, transparent); }
 .rsc-starter[aria-pressed="true"] .rsc-starter-icon, .rsc-starter:hover .rsc-starter-icon { color: var(--green); }
 .rsc-starter-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .rsc-starter-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9); }
@@ -31171,6 +31398,12 @@ body.dark-mode .rsc-map-question { color: rgba(255,255,255,.85); }
 }
 .rsc-map-btn:hover { border-color: color-mix(in srgb, var(--green) 30%, var(--border)); color: var(--charcoal); }
 .rsc-map-btn[aria-expanded="true"] { border-color: var(--green); color: var(--green); }
+/* "Use in Create" — the one action that carries this result forward
+   into another workspace, so it gets the same primary-accent treatment
+   Create's own composer footer uses (var(--green) fill), not just another
+   quiet outline button next to Sources/New Research. */
+.rsc-map-btn-primary { background: var(--green); border-color: var(--green); color: #0a0a0a; }
+.rsc-map-btn-primary:hover { background: var(--gm, var(--green)); border-color: var(--gm, var(--green)); color: #0a0a0a; }
 
 /* ── Findings panel (Research UX/product pass) — the primary "what did
    ORIVEN discover" surface (spec 17), built from the completed
@@ -33282,7 +33515,10 @@ body.dark-mode .rpt-plat-metric strong { color: rgba(255,255,255,.88); }
      5 KPI rings, 2x2 chart grid, AI card) is intentionally dense enough
      that it should fit inside a 900px-tall viewport without the page
      needing its own scrollbar. Horizontal padding is untouched. */
-  padding: 20px var(--orv-content-pad-x) 16px;
+  /* Final Visual Correction pass — 20/16 -> 16/12, one more small trim
+     toward eliminating the desktop vertical scroll (see .prf-perf-col's
+     gap and the redundant-margin removals above/below on this page). */
+  padding: 16px var(--orv-content-pad-x) 12px;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
@@ -33666,7 +33902,10 @@ body.dark-mode #orvHubTabsCampaigns .orv-hub-tab.active { background: var(--gree
   border: 1px solid color-mix(in srgb, var(--green) 14%, transparent);
   border-radius: 14px;
   padding: 11px 20px;
-  margin-bottom: 14px;
+  /* Final Visual Correction pass — was stacking on top of .prf-perf-col's
+     own flex gap (double-spacing this section boundary); the gap alone
+     is enough. */
+  margin-bottom: 0;
 }
 .prf-cb-ico {
   width: 40px;
@@ -33680,8 +33919,12 @@ body.dark-mode #orvHubTabsCampaigns .orv-hub-tab.active { background: var(--gree
   flex-shrink: 0;
 }
 .prf-cb-copy { flex: 1; min-width: 0; }
-.prf-cb-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 2px; }
-.prf-cb-sub   { font-size: 13px; color: rgba(255,255,255,.45); }
+/* Light-mode fix (Control-Room pass): was hardcoded white/near-white with
+   no dark-mode gate, illegible on this banner's light tinted background
+   in light mode — matches .perf-connect-title/.perf-connect-sub's already-
+   correct theme-token pattern one component over. */
+.prf-cb-title { font-size: 14px; font-weight: 600; color: var(--charcoal); margin-bottom: 2px; }
+.prf-cb-sub   { font-size: 13px; color: var(--muted); }
 /* Mobile: .prf-connect-banner has no wrap, so the icon + "Connect Accounts"
    button (neither flex-shrink:0 nor sized) squeeze .prf-cb-copy (flex:1,
    min-width:0) down to almost nothing, forcing its text to wrap a couple
@@ -33934,63 +34177,32 @@ body.dark-mode .prf-perf-eyebrow { color: rgba(255,255,255,.4); }
    #prfHierarchySelect keeps a comfortable fixed width so the controls row
    doesn't visibly resize as its longest option changes. */
 #prfHierarchySelect { width: 128px; max-width: 100%; }
-.prf-scope-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; height: 32px; margin-bottom: 18px; }
+/* Final Visual Correction pass — this row's own margin-bottom was
+   stacking ON TOP OF .prf-perf-col's flex gap (below) instead of
+   replacing it, double-spacing every section boundary on this page and
+   contributing to a small unwanted vertical scroll at 1366x768/1280x800.
+   The column gap alone already provides consistent spacing; dropped to 0
+   here (was 18px). */
+.prf-scope-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; height: 32px; margin-bottom: 0; }
 
-/* ══ PERFORMANCE WORKSPACE — real two-column composition ═══════════════
-   LEFT (.prf-perf-col, ~65%): context row, ONE primary graph, Metric
-   Explorer. RIGHT (.prf-replay-col, ~35%): provider tabs, Campaign
-   Replay — a first-class sibling column instead of a wide strip
-   underneath everything. Both are children of one flex row, so their
-   top edges align by ordinary flex behavior — no forced equal heights
-   (Replay is free to stay shorter than the left column with real
-   content). Proportions/widths chosen after live browser inspection at
-   1440x900 against the real available canvas (.prf-wrap already allows
-   up to 1440px total). */
-.prf-workspace-row { display: flex; align-items: flex-start; gap: 24px; width: 100%; margin-top: 4px; }
-.prf-perf-col { flex: 1 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
-.prf-replay-col { flex: 1 1 360px; min-width: 300px; max-width: 420px; display: flex; flex-direction: column; gap: 18px; }
-/* The provider-tabs block is this column's own context row, matching
-   .prf-scope-row's row-1 height (32px) + bottom space (18px) exactly, so
-   Campaign Replay's top edge lands on the same line as the primary
-   graph's top edge just below. .prf-plat-tabs (the pill strip itself)
-   already centers its content vertically within whatever height this
-   wrapper gives it. */
-#prfPlatTabs { height: 32px; margin-bottom: 18px; display: flex; align-items: center; }
+/* ══ PERFORMANCE WORKSPACE — Control-Room pass, single full-width column ══
+   Previously a two-column composition (chart ~65% / provider tabs +
+   Campaign Replay ~35%) that reserved a large right-hand rail for Replay
+   even when it had nothing to show ("No recorded activity..."). The
+   primary chart is now the visual anchor at full content width; provider
+   tabs moved into their own row directly under the hierarchy/object/date
+   row (#prfPlatTabs is the same element, same prfSwitchPlatform wiring,
+   just repositioned); Campaign Replay moved to a compact section below
+   the Metric Explorer instead of competing for horizontal space — see
+   #prfReplaySection / .prf-recent-activity-compact. */
+.prf-workspace-row { width: 100%; margin-top: 4px; }
+/* Final Visual Correction pass — 18px -> 14px (still a real, visible
+   section break, just trimmed vertical rhythm; part of the fix for the
+   small unwanted scroll at 1366x768/1280x800 alongside the other
+   redundant-margin removals on this page). */
+.prf-perf-col { display: flex; flex-direction: column; gap: 14px; }
+#prfPlatTabs { margin-bottom: 0; display: flex; align-items: center; }
 #prfPlatTabs .prf-plat-tabs { margin-bottom: 0; }
-/* Right column is narrower than the left performance column (up to
-   420px) — the 4 provider tabs need to fit cleanly there without
-   overflowing/clipping (spec: "do not make the right column wider just
-   to accommodate oversized provider controls"). Scoped to
-   #prfPlatTabsInner specifically, NOT the shared .prf-plat-tabs/.prf-ptab
-   classes (also reused by Live Campaigns' and Drafts' own tab strips) —
-   this compaction must never leak into those. Icons, labels, and the
-   connection dot all stay real and legible, just tighter. */
-#prfPlatTabsInner.prf-plat-tabs { padding: 2px; gap: 2px; }
-#prfPlatTabsInner .prf-ptab { padding: 5px 6px; gap: 4px; font-size: 10.5px; }
-#prfPlatTabsInner .prf-ptab svg { width: 12px; height: 12px; }
-/* Stack deliberately once the right column would otherwise get squeezed
-   below a usable width (spec: "do not squeeze Campaign Replay into an
-   unusably narrow rail") — verified by direct browser measurement, not
-   assumed: the two-column composition holds down to ~1150px viewport
-   before .prf-replay-col's real rendered width drops under a comfortable
-   reading width. Below that, .prf-perf-col/.prf-replay-col themselves
-   stop generating boxes (display:contents) so their children become
-   direct children of .prf-workspace-row and can be given an explicit
-   mobile order (provider tabs -> context row -> banners -> graph ->
-   Metric Explorer -> Replay) without duplicating any markup or touching
-   JS — the exact same real elements, just visually resequenced. */
-@media (max-width: 1150px) {
-  .prf-workspace-row { flex-direction: column; }
-  .prf-perf-col, .prf-replay-col { display: contents; }
-  #prfPlatTabs { order: 1; height: auto; margin-bottom: 12px; }
-  #prfScopeRow { order: 2; height: auto; }
-  #prfHierarchyUnavailable { order: 3; }
-  #prfTikTokComing { order: 3; }
-  #prfConnectBanner { order: 3; }
-  #prfChartsGrid { order: 4; }
-  #prfMetricExplorer { order: 5; }
-  #prfReplaySection { order: 6; }
-}
 
 .prf-chart-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 /* Campaigns Final Cleanup pass: the header's metric <select> is removed —
@@ -34020,16 +34232,31 @@ body.dark-mode .prf-perf-eyebrow { color: rgba(255,255,255,.4); }
 .prf-metric-explorer { display: flex; flex-direction: column; gap: 10px; }
 .prf-explorer-hd { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; color: var(--muted, rgba(0,0,0,.4)); }
 body.dark-mode .prf-explorer-hd { color: rgba(255,255,255,.4); }
-.prf-explorer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+/* Final Visual Correction pass — 4 -> 6 columns at wide desktop (still
+   plenty of room per tile at the --camp-content-maxw/1240px content
+   width) packs the same real metric count into fewer rows, a genuine
+   vertical-rhythm trim rather than a content change; helps close the
+   small unwanted scroll at 1366x768/1280x800. Existing 1150px/640px
+   steps below still apply as the grid narrows. */
+.prf-explorer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
 .prf-explorer-tile {
   display: flex; flex-direction: column; gap: 4px; text-align: left;
-  padding: 10px 12px; border-radius: 10px;
+  padding: 8px 10px; border-radius: 10px;
   background: rgba(0,0,0,.025); border: 1px solid rgba(0,0,0,.07);
   font-family: inherit; cursor: pointer; transition: background .12s ease, border-color .12s ease;
 }
 .prf-explorer-tile:hover { background: rgba(0,0,0,.045); }
-.prf-explorer-label { font-size: 10.5px; font-weight: 700; letter-spacing: .02em; color: var(--muted, rgba(0,0,0,.5)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prf-explorer-label { display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; letter-spacing: .02em; color: var(--muted, rgba(0,0,0,.5)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prf-explorer-val { font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: var(--charcoal, #18181A); font-variant-numeric: tabular-nums; }
+/* Restrained semantic color (Control-Room pass) — a small dot per real
+   ORIVEN_METRICS category, never a colored tile background: delivery
+   (spend/impressions/reach/cpm) reads as financial/budget-adjacent,
+   traffic (clicks/ctr/cpc) as informational, conversion (conversions/
+   cpa/roas/etc.) as positive performance. The number stays the hero. */
+.prf-explorer-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; background: var(--muted); opacity: .5; }
+.prf-explorer-tile[data-category="delivery"] .prf-explorer-dot { background: #F5A623; opacity: 1; }
+.prf-explorer-tile[data-category="traffic"] .prf-explorer-dot { background: #3B82F6; opacity: 1; }
+.prf-explorer-tile[data-category="conversion"] .prf-explorer-dot { background: var(--green); opacity: 1; }
 /* Active tile — the metric currently driving the graph. Subtle lime
    accent (border + label/value color), never a bright fill: the graph
    stays the dominant visual object, this is secondary information
@@ -34096,6 +34323,40 @@ body.dark-mode .prf-ct.active { background: rgba(255,255,255,.1); color: #fff; b
 .prf-chart-expand-btn:hover { background: rgba(0,0,0,.06); color: var(--charcoal, #18181A); }
 body.dark-mode .prf-chart-expand-btn { color: rgba(255,255,255,.32); }
 body.dark-mode .prf-chart-expand-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
+
+/* Campaign Replay toggle — small pill in the chart header, next to the
+   expand button. Only revealed once real replay content exists
+   (_prfShowReplayToggle), so an account with nothing to show never sees
+   a control that opens an empty popover. */
+.prf-chart-replay-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 9px 4px 7px; border-radius: 100px; flex-shrink: 0;
+  background: transparent; border: 1px solid rgba(0,0,0,.1); color: rgba(0,0,0,.5);
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.prf-chart-replay-btn:hover, .prf-chart-replay-btn[aria-expanded="true"] { border-color: color-mix(in srgb, var(--green) 40%, transparent); color: var(--charcoal, #18181A); }
+body.dark-mode .prf-chart-replay-btn { border-color: rgba(255,255,255,.14); color: rgba(255,255,255,.5); }
+body.dark-mode .prf-chart-replay-btn:hover, body.dark-mode .prf-chart-replay-btn[aria-expanded="true"] { color: #fff; }
+
+/* Campaign Replay popover — anchored to #prfChartWrap's upper-right
+   corner (see that wrapper's own comment: a stable sibling of the
+   re-rendered chart grid, so this survives metric/platform/range
+   switches). Hidden by default; only visible while .prf-replay-open is
+   toggled on, so it's never permanently covering the chart. */
+.prf-chart-wrap { position: relative; }
+.prf-replay-popover {
+  display: none;
+  position: absolute; top: 44px; right: 0; z-index: 5;
+  width: 300px; max-width: calc(100% - 24px); max-height: 340px; overflow-y: auto;
+  box-shadow: 0 12px 32px rgba(0,0,0,.16);
+  border: 1px solid var(--border);
+}
+body.dark-mode .prf-replay-popover { box-shadow: 0 12px 32px rgba(0,0,0,.45); }
+.prf-replay-popover.prf-replay-open { display: block; }
+@media (max-width: 640px) {
+  .prf-replay-popover { position: static; width: 100%; max-width: none; margin-top: 10px; box-shadow: none; }
+}
 
 .prf-chart-body { position: relative; height: 112px; display: flex; gap: 6px; }
 /* Y-axis gutter -- 5 real, data-derived tick labels (see _prfRenderAxis,
@@ -41123,21 +41384,22 @@ body.dark-mode .adm-act-refresh:hover { color: rgba(255,255,255,.7); background:
    seam connecting it to the workspace below (spec 6: "reduce floating-
    page-title feeling... visually bind business context to the
    workspace") without turning the header into a card of its own. */
-/* Final Create Fix pass — align-items: stretch (was flex-start) makes the
-   composer and Stage the same OUTER height at desktop widths: real
-   flexbox cross-axis stretch, not a hardcoded pixel height, so whichever
-   panel is naturally shorter this session (either can be, depending on
-   platform/campaign-type/attached-content) simply grows to match the
-   other. Only the CROSS axis is affected — at <=1280px this row switches
-   to flex-direction:column (below), where align-items governs WIDTH, not
-   height, so stacked mobile/tablet layouts are correctly unaffected and
-   never forced to equal heights. See .cr2-box/.cr2-box-foot below for how
-   the composer absorbs its own extra stretched height without clipping
-   or moving any control; .cr2-stage needs no equivalent change since it
-   is already a single-line column flex container, where unused space
-   naturally collapses after the last real child with zero extra CSS. */
+/* Layout Fix pass — reverted to align-items: flex-start (was stretch).
+   Stretch forced .cr2-box to match .cr2-stage's own naturally taller
+   height (the Stage's fixed-aspect preview frame + metadata rows are
+   simply taller content than the composer's collapsed control list), and
+   the composer had nothing real to fill that forced height with — the
+   previous pass's margin-top:auto on .cr2-gen-row (below) then consumed
+   the whole difference as one giant blank area above the CTA, which read
+   as an obvious layout bug rather than a considered composition. Each
+   panel now sizes to its own real content; visual coherence between them
+   comes from sharing the same border/radius/surface treatment (already
+   true — see .cr2-box/.cr2-stage) and top alignment, not from forcing
+   equal height artificially. At <=1280px this row already switches to
+   flex-direction:column (below), where align-items governs width, not
+   height, so stacked layouts are unaffected either way. */
 .cr2-workspace-row {
-  display: flex; align-items: stretch; gap: 28px; width: 100%;
+  display: flex; align-items: flex-start; gap: 28px; width: 100%;
   /* Create Density Correction pass — 20px -> 14px. */
   padding-top: 14px;
   border-top: 1px solid rgba(255,255,255,.07);
@@ -41763,6 +42025,17 @@ body.dark-mode .cr2-status-dot { background: var(--green); }
      unwanted ways (they keep their natural size; only box-foot grows). */
   display: flex;
   flex-direction: column;
+  /* Final Visual Correction pass — caps the whole panel to a height that
+     fits inside the viewport even at 1280x800, regardless of how much
+     Advanced Settings content is expanded below. Without this, an
+     expanded .cr2-advanced-group could grow .cr2-box-foot (flex:1 1 auto)
+     past the visible viewport, pushing .cr2-gen-row (the Build Campaign
+     CTA) below the fold or, combined with #page-create.active's flex
+     vertical-centering, off the "before" side entirely. .cr2-box-foot
+     below becomes the internal scroll region that absorbs any overflow
+     this max-height creates; the textarea/asset strips above it keep
+     their natural size since only box-foot is flex:1 1 auto. */
+  max-height: calc(100vh - 230px);
 }
 .cr2-box:focus-within {
   border-color: var(--green);
@@ -41789,25 +42062,32 @@ body.dark-mode .cr2-status-dot { background: var(--green); }
 .cr2-ta::placeholder { color: var(--muted, #aaa); }
 .cr2-box-foot {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  /* Final Create Fix pass — align-content:flex-start (the wrapping cross-
-     axis) keeps every existing full-width row (.cr2-foot-controls,
-     Campaign Goal, Brand Identity, the advanced group, .cr2-gen-row)
-     exactly where it already sits, top to bottom, when this box grows
-     taller than its own content (flex:1 1 auto below): without this,
-     flex-wrap's default multi-line stretch would spread the extra height
-     out BETWEEN rows, opening gaps in the middle of the composer instead
-     of leaving one clean gap after the last row. */
-  align-content: flex-start;
+  /* Micro-Polish pass — was flex-wrap:wrap with every section forced to
+     flex-basis:100% (a column layout faked with wrapping rows). Real
+     flex-direction:column instead. align-items:stretch (the flex-
+     direction:column default) keeps every row full-width, replacing the
+     old per-row flex-basis:100%/width:100% declarations (now redundant
+     but harmless). */
+  flex-direction: column;
   flex: 1 1 auto;
   padding: 10px 14px 12px;
-  /* Create Density Correction pass — 10px -> 8px between the composer's
-     stacked sections (platform row / Campaign Goal / advanced group /
-     Build Campaign row). */
-  gap: 8px;
+  /* Layout Fix pass — 8px -> 14px. Now that .cr2-box sizes to its own
+     real content (.cr2-workspace-row is align-items:flex-start, not
+     stretch — see above), there's no artificial leftover height to fill,
+     so this gap is free to be a genuinely comfortable rhythm between
+     control groups (spec: "allow Campaign Goal cards to breathe... give
+     Brand Identity appropriate spacing") rather than staying tight to
+     leave room for a forced spacer that no longer exists. */
+  gap: 14px;
   border-top: 1px solid var(--border, rgba(0,0,0,.06));
+  /* Final Visual Correction pass — pairs with .cr2-box's new max-height:
+     once this footer's natural content (goal/brand/advanced settings)
+     exceeds the space .cr2-box has left after the textarea, THIS region
+     scrolls internally rather than growing the whole panel past the
+     viewport. min-height:0 is required for a flex:1 1 auto child to be
+     allowed to shrink below its content size in the first place. */
+  overflow-y: auto;
+  min-height: 0;
 }
 body.dark-mode .cr2-box-foot { border-top-color: rgba(255,255,255,.06); }
 /* Oriven 1.0 (V10) — Generation Options live inside the prompt footer now,
@@ -41818,7 +42098,15 @@ body.dark-mode .cr2-box-foot { border-top-color: rgba(255,255,255,.06); }
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  flex: 1;
+  /* Micro-Polish pass — flex:1 (flex-grow:1, flex-basis:0%) meant "grow to
+     share the row horizontally with the Generate button" back when both
+     lived in the same flex-wrap ROW; in .cr2-box-foot's new
+     flex-direction:column, flex-basis:0% is on the now-vertical main
+     axis, so this was growing to eat leftover HEIGHT too — the other
+     contributor (along with the other rows' old flex-basis:100%) to the
+     margin-top:auto spacer below never getting real leftover space to
+     consume. flex-shrink:0 keeps this row at its natural height instead. */
+  flex-shrink: 0;
   min-width: 0;
 }
 .cr2-foot-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -41881,7 +42169,17 @@ body.dark-mode .cr2-foot-divider { background: rgba(255,255,255,.1); }
    flex-basis:100% inside .cr2-box-foot's flex row puts it on its own full
    line between the controls row and the Generate button, the same
    full-width-row behavior .cr2-box-foot already uses on mobile. */
-.cr2-goal-section { flex-basis: 100%; width: 100%; order: 2; }
+/* Micro-Polish pass — flex-basis:100% meant "100% WIDTH" back when
+   .cr2-box-foot was a flex-wrap ROW (each section forced onto its own
+   full-width wrapped line); now that .cr2-box-foot is a real
+   flex-direction:column (see .cr2-box-foot above), the SAME property on
+   the same MAIN axis means "100% HEIGHT" instead — every section was
+   fighting the others for the container's full height, which is exactly
+   what was swallowing the space .cr2-gen-row's margin-top:auto needed to
+   push the CTA to the bottom. width:100% is also redundant now (columns
+   stretch full-width by default). flex-shrink:0 keeps this row at its
+   natural content height rather than shrinking. */
+.cr2-goal-section { flex-shrink: 0; order: 2; }
 .cr2-goal-label {
   font-size: 11px;
   font-weight: 700;
@@ -41905,14 +42203,22 @@ body.dark-mode .cr2-foot-divider { background: rgba(255,255,255,.1); }
 .cr2-goal-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  /* Layout Fix pass — 8px -> 10px, letting the Campaign Goal cards breathe
+     a bit more now that the panel isn't fighting for tight density to
+     leave room for a forced bottom spacer. */
+  gap: 10px;
 }
 .cr2-goal-card {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 3px;
-  padding: 12px 12px 11px;
+  gap: 4px;
+  /* Layout Fix pass — 12/12/11 -> 14/13/13, letting the primary Campaign
+     Goal cards breathe a little more (spec: "allow Campaign Goal cards
+     to breathe"). The de-emphasized reuse inside Advanced Settings
+     (.cr2-advanced-group .cr2-goal-card below) keeps its own smaller,
+     intentionally-secondary padding, untouched. */
+  padding: 14px 13px 13px;
   border-radius: 12px;
   border: 1.5px solid var(--border, #e5e7eb);
   background: var(--surface, #fff);
@@ -44976,7 +45282,57 @@ body.dark-mode .adm-panel-adsets-wrap { border-top-color: rgba(255,255,255,.08);
    all of those instead; justify-content:flex-end keeps the cost text and
    button grouped together at the right edge rather than spread across
    the row. */
-.cr2-gen-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; order: 3; flex-basis: 100%; width: 100%; }
+/* Micro-Polish pass — flex-basis:100% removed (see .cr2-goal-section's
+   comment above): it would mean 100% HEIGHT in .cr2-box-foot's new
+   column layout, directly fighting the margin-top:auto spacer below.
+   flex-shrink:0 keeps this row's own natural height intact. */
+.cr2-gen-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; flex-shrink: 0; order: 3; }
+/* Layout Fix pass — margin-top:auto (previous pass) consumed whatever
+   height .cr2-workspace-row's align-items:stretch forced onto .cr2-box
+   beyond its own real content — once removed above (.cr2-workspace-row
+   is flex-start now), .cr2-box has no artificial extra height left to
+   push this row down into, so an auto top margin would just resolve to
+   this row's own natural gap anyway. Replaced with a fixed, comfortable
+   margin instead: a real, considered gap after Advanced Settings (part
+   of "balanced composition," not a forced spacer chasing the panel's
+   bottom edge). No black bar (see the .cr2-box-foot comment on
+   .cr2-gen-row's background below): removed the previous pass's sticky
+   "footer bar" treatment, which read as a visually separate black strip
+   in dark mode because var(--surface) resolves to a flat #18181A there
+   while .cr2-box's own real dark-mode background is the much more
+   transparent rgba(255,255,255,.02) — the two never matched. This rule
+   keeps position:sticky ONLY as a safety net for the rare case where
+   Advanced Settings is expanded and .cr2-box-foot is actually scrolling
+   (bottom:-12px keeps the CTA reachable then); its background exactly
+   mirrors .cr2-box's real background in each theme (not the generic
+   --surface token), and there's no border/z-index, so it has no visual
+   identity of its own and reads as the same continuous panel surface. */
+.cr2-gen-row {
+  /* -14px/-12px (sides/bottom) extend the row to .cr2-box-foot's own
+     padding edges so the sticky background below reaches flush to the
+     panel's edges with no gap at the sides. */
+  margin: 24px -14px -12px;
+  position: sticky;
+  bottom: -12px;
+  padding: 10px 14px 12px;
+  background: var(--surface, #fff);
+}
+body.dark-mode .cr2-gen-row { background: rgba(255,255,255,.02); }
+/* Layout Fix pass — real, confirmed collision (verified via a live
+   viewport probe scrolled to this row): the global fixed Oriven Chat
+   launcher (.orv-ai-fab, bottom:16px/right:16px at this width, ~106px
+   wide) sits at the exact same bottom-right corner the full-width Build
+   Campaign button's right portion renders under at mobile widths. Same
+   reserved-clearance pattern Launch's own launch bar already uses for
+   this identical collision (.lw-launch-bar, max-width:900px,
+   padding-right:84px) — 96px comfortably clears the launcher's real
+   footprint plus a small gap. Placed after the base .cr2-gen-row rule
+   above (not in that earlier @media(max-width:480px) block further up
+   the file) so it isn't reset by that later shorthand `padding` — same
+   source-order convention this file already documents repeatedly. */
+@media (max-width: 480px) {
+  .cr2-gen-row { padding-right: 112px; }
+}
 .cr2-gen-cost { font-size: 11.5px; opacity: .55; font-variant-numeric: tabular-nums; }
 
 /* Team page redesign — canonical page-header rhythm + KPI row + project/
@@ -45359,10 +45715,17 @@ body.dark-mode .orv-rail-tip-arrow-left { border-left-color: #F2F2F0; border-rig
    own internal gap between its controls) -- purely a position change, no
    DOM move, so orvToggleNotifications()/all notification logic and the
    panel's own close button are completely untouched. */
-body.orv-ai-open .orv-notif-bell {
-  right: 52px;
-  top: 12px; /* empirically verified against .orv-ai-panel-close's real rendered vertical center via Playwright, not hand-computed */
-  transition: right .18s cubic-bezier(.22,.61,.36,1), top .18s cubic-bezier(.22,.61,.36,1);
+/* Floating Assistant pass — the panel no longer pushes/covers the main
+   workspace on desktop (position:fixed, anchored bottom-right near its
+   own trigger), so this repositioning is only still needed at the
+   768px mobile cutover, where the panel genuinely goes edge-to-edge and
+   would otherwise sit under the bell. */
+@media (max-width: 768px) {
+  body.orv-ai-open .orv-notif-bell {
+    right: 52px;
+    top: 12px; /* empirically verified against .orv-ai-panel-close's real rendered vertical center via Playwright, not hand-computed */
+    transition: right .18s cubic-bezier(.22,.61,.36,1), top .18s cubic-bezier(.22,.61,.36,1);
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -45519,7 +45882,15 @@ body.dark-mode .orv-sb .orv-launcher-btn.orv-launcher-open {
   width: 30px;
   height: 1px;
   background: var(--border, rgba(0,0,0,.1));
-  margin: 3px 0;
+  /* Micro-Polish pass — 10px -> 16px (was still reading as roughly the
+     same rhythm as the six-module gap once combined with .orv-sb-nav's
+     4px item gap; founder: "Home still feels slightly too close to the
+     six product modules"). 4+16=20px on each side of the divider now,
+     vs. the six modules' own untouched 4px mutual rhythm -- a real,
+     deliberate step without turning the divider into a heavy line
+     (still the same short 30px/1px hairline). Scoped to just this one
+     element so the six modules' own tight compact rhythm is untouched. */
+  margin: 16px 0;
   flex-shrink: 0;
 }
 body.dark-mode .orv-sb-sep { background: rgba(255,255,255,.09); }
@@ -45679,18 +46050,56 @@ body.dark-mode .orv-sb-sep { background: rgba(255,255,255,.09); }
    placements -> structure -> build, matching the requested flow). Fix is
    purely visual grouping/weight, appended per this file's convention --
    no control's behavior, id, or handler changed. */
-.cr2-advanced-group {
-  flex-basis: 100%;
+/* Advanced settings toggle (Prompt-First pass) — theme-reactive sibling of
+   the always-dark .mc-advanced-toggle (manual-campaign form); same visual
+   idea (chevron + label, rotates on open) but built on var(--*) tokens
+   since Create's composer follows the real site theme. */
+.cr2-advanced-toggle-row {
+  /* Micro-Polish pass — see .cr2-goal-section's comment above: flex-basis:
+     100% now means 100% HEIGHT in .cr2-box-foot's column layout, not
+     width; removed so this row stays its own natural height instead of
+     absorbing the space meant for .cr2-gen-row's bottom-anchoring spacer. */
+  flex-shrink: 0; order: 2;
+  margin-top: 8px;
+}
+/* Layout Fix pass — was a bare text link (chevron + label, no container,
+   no hover feedback beyond a text-color change) sitting under a thin
+   top border, which read as "a forgotten link" rather than a real
+   section of the panel (founder: "make the collapsed section feel
+   intentional... read as an interactive expandable section"). Now a real
+   bordered row matching the panel's own border-radius language, full
+   width so the entire row (not just the text) is the click target and
+   carries a clear hover state. */
+.cr2-advanced-toggle {
+  display: flex; align-items: center; gap: 8px;
   width: 100%;
+  background: rgba(0,0,0,.02);
+  border: 1px solid var(--border, rgba(0,0,0,.08));
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 12.5px; font-weight: 600; color: var(--muted); cursor: pointer;
+  text-align: left;
+  transition: background .12s ease, border-color .12s ease, color .12s ease;
+}
+body.dark-mode .cr2-advanced-toggle { background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.08); }
+.cr2-advanced-toggle:hover { color: var(--charcoal); border-color: color-mix(in srgb, var(--green) 30%, var(--border)); background: color-mix(in srgb, var(--green) 5%, rgba(0,0,0,.02)); }
+body.dark-mode .cr2-advanced-toggle:hover { color: rgba(255,255,255,.9); background: color-mix(in srgb, var(--green) 7%, rgba(255,255,255,.03)); }
+.cr2-advanced-toggle svg { flex-shrink: 0; transition: transform .15s ease; }
+
+.cr2-advanced-group {
+  /* Micro-Polish pass — same flex-basis:100% fix as .cr2-goal-section/
+     .cr2-advanced-toggle-row above (100% HEIGHT in the new column
+     layout, not width); flex-shrink:0 keeps it at its real expanded
+     content height so .cr2-box-foot's own overflow-y:auto (not this
+     element stretching) is what handles any overflow. */
+  flex-shrink: 0;
   order: 2;
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-top: 2px;
-  padding-top: 12px;
-  border-top: 1px solid var(--b2, #CEC8BE);
+  padding-top: 4px;
 }
-body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
 /* Slightly tighter than the 10px gap between primary sections above --
    these three read as one related cluster, not three separate decisions. */
 .cr2-advanced-group .cr2-goal-section { margin: 0; }
@@ -45698,6 +46107,14 @@ body.dark-mode .cr2-advanced-group { border-top-color: rgba(255,255,255,.08); }
   font-size: 10px;
   opacity: .8;
 }
+/* Create Simplification pass — Assets / Source & context / Campaign
+   configuration subgroups inside Advanced Settings, each with a small
+   uppercase label so the moved-in controls still read as organized
+   rather than a flat dump. */
+.cr2-adv-subgroup { display: flex; flex-direction: column; gap: 8px; }
+.cr2-adv-subgroup + .cr2-adv-subgroup { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--b2, #CEC8BE); }
+body.dark-mode .cr2-adv-subgroup + .cr2-adv-subgroup { border-top-color: rgba(255,255,255,.08); }
+.cr2-adv-subgroup-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 /* De-emphasized card weight for Campaign Type specifically (the only
    .cr2-goal-card reuse inside this group) -- smaller padding, no hover-
    lift, quieter border -- so it reads as secondary to the Campaign Goal
@@ -46908,21 +47325,38 @@ body.dark-mode .lq-pill-active, body.dark-mode .lq-pill-active:hover { color: va
 body.dark-mode .lq-clear-filters:hover { color: var(--green); }
 
 .lq-groups { display: flex; flex-direction: column; gap: 32px; }
-.lq-list { display: flex; flex-direction: column; gap: 8px; }
-.lq-row {
-  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+
+/* Launch Visual Grid pass — real campaign preview cards, browsable at a
+   glance, replacing the previous compact list row. Final Visual
+   Correction pass — the founder's reviewed screenshot showed 5-6 cramped
+   cards per row from the old auto-fill/minmax(160px) rule; an explicit
+   4 columns at wide desktop (the gallery's content column is capped at
+   --orv-content-maxw/1040px, so cards go from ~160px to ~235px, a real
+   size increase) stepping down to 3/2/1 as the viewport narrows (see the
+   responsive block below) replaces it. */
+.lq-card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.lq-card {
+  display: flex; flex-direction: column; text-align: left; width: 100%;
   font-family: inherit; cursor: pointer; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 10px 16px; transition: border-color .15s ease;
+  border-radius: 14px; overflow: hidden; transition: border-color .15s ease, transform .15s ease;
+  position: relative;
 }
-.lq-row:hover { border-color: color-mix(in srgb, var(--green) 35%, var(--border)); }
-.lq-row:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
-.lq-thumb { width: 44px; height: 44px; border-radius: 9px; object-fit: cover; flex-shrink: 0; }
-.lq-thumb-empty { display: flex; align-items: center; justify-content: center; background: var(--sf2, var(--bg2)); color: var(--muted); }
-.lq-main { flex: 1; min-width: 0; }
-.lq-name { font-size: 14px; font-weight: 700; color: var(--charcoal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lq-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.lq-card:hover { border-color: color-mix(in srgb, var(--green) 35%, var(--border)); transform: translateY(-2px); }
+.lq-card:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.lq-card-media { position: relative; aspect-ratio: 4/3; background: var(--sf2, var(--bg2)); }
+.lq-card-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lq-card-thumb-empty { display: flex; align-items: center; justify-content: center; }
+.lq-card-thumb-empty svg { width: 22px; height: 22px; }
+.lq-card-plat-badge {
+  position: absolute; top: 8px; left: 8px; width: 22px; height: 22px; border-radius: 7px;
+  background: var(--surface); display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+}
+.lq-card-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+.lq-name { font-size: 13.5px; font-weight: 700; color: var(--charcoal); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lq-meta { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
 .lq-meta-dot { opacity: .5; }
-.lq-readiness { flex-shrink: 0; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 5px 10px; border-radius: 100px; white-space: nowrap; }
+.lq-readiness { align-self: flex-start; flex-shrink: 0; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 5px 10px; border-radius: 100px; white-space: nowrap; }
 .lq-readiness-ready { color: var(--green-text); background: color-mix(in srgb, var(--green) 16%, transparent); }
 body.dark-mode .lq-readiness-ready { color: var(--green); }
 .lq-readiness-warning { color: #92400E; background: rgba(245,166,35,.15); }
@@ -46944,15 +47378,14 @@ body.dark-mode .lq-readiness-live { color: #60a5fa; }
    the nav rail) plus a tinted background and green border, never just a
    subtle color shift alone. aria-pressed (set in _renderLaunchCard)
    carries this non-visually too. */
-.lq-row { position: relative; }
-.lq-row-selected {
+.lq-card-selected {
   border-color: var(--green);
   background: color-mix(in srgb, var(--green) 6%, var(--surface));
 }
-body.dark-mode .lq-row-selected { background: color-mix(in srgb, var(--green) 10%, transparent); }
-.lq-row-selected::before {
-  content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
-  border-radius: 0 2px 2px 0; background: var(--green);
+body.dark-mode .lq-card-selected { background: color-mix(in srgb, var(--green) 10%, transparent); }
+.lq-card-selected::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  border-radius: 2px 2px 0 0; background: var(--green); z-index: 1;
 }
 
 /* ── Launch home workspace row — CAMPAIGNS (browsable queue) +
@@ -46969,9 +47402,13 @@ body.dark-mode .lq-row-selected { background: color-mix(in srgb, var(--green) 10
    INSPECTION reads as a deliberate zone break, not just "the same
    rhythm repeated once more" — restrained, not excessive; verified this
    still leaves .mc with real headroom at 1440x900 before adding it. */
-.lq-workspace-row { display: flex; align-items: flex-start; gap: 24px; width: 100%; margin-top: 16px; }
-.lq-campaigns-col { flex: 1 1 560px; min-width: 0; max-width: 620px; }
-.lq-control-col { flex: 1 1 400px; min-width: 320px; position: sticky; top: 20px; }
+/* Gallery + Modal pass — was a permanent two-column split (chart... no,
+   campaigns-col capped at 620px + a sticky 400px control-col claiming
+   ~40% of the width even with nothing selected). Now one full-width
+   gallery; Launch Control lives in a modal (see .lq-modal-overlay below),
+   opened only by a real card click. */
+.lq-workspace-row { width: 100%; margin-top: 16px; }
+.lq-campaigns-col-full { max-width: none; width: 100%; }
 
 .lqc-card { border: 1px solid var(--border); border-radius: 16px; padding: 20px; background: var(--surface); display: flex; flex-direction: column; gap: 14px; }
 .lqc-eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--green-text); }
@@ -47020,23 +47457,62 @@ body.dark-mode .lqc-live-meta-row span:last-child { color: #fff; }
 
 .lqc-empty-sub { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin: 0; }
 
-.lqc-action-row { margin-top: 2px; }
+.lqc-action-row { margin-top: 2px; display: flex; flex-direction: column; gap: 8px; }
 .lqc-action-btn {
   width: 100%; font-family: inherit; cursor: pointer; font-size: 13.5px; font-weight: 700;
   color: #0A0A0A; background: var(--green); border: none; border-radius: 100px; padding: 12px 20px;
   transition: opacity .15s ease;
 }
 .lqc-action-btn:hover { opacity: .88; }
+.lqc-action-btn:disabled { opacity: .6; cursor: default; }
+/* Trust pass — a genuinely-live campaign's secondary action ("View
+   activity") next to the real Pause/Resume button; quiet outline, not a
+   second equally-loud green fill, so Pause/Resume stays the one obvious
+   primary action. */
+.lqc-action-btn:not(.lqc-action-btn-live) { color: var(--charcoal); background: none; border: 1px solid var(--border); }
+.lqc-action-btn:not(.lqc-action-btn-live):hover { opacity: 1; border-color: color-mix(in srgb, var(--green) 40%, var(--border)); }
+.lqc-live-noaction { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0; }
 
-@media (max-width: 1280px) {
-  .lq-workspace-row { flex-direction: column; }
-  /* flex:none — the exact same fix needed for Create's .cr2-box (see
-     that file's own comment): "flex: 1 1 <px>" is a WIDTH basis for the
-     row-direction desktop layout and gets silently reinterpreted as a
-     HEIGHT basis once flex-direction switches to column, so it must be
-     reset here rather than left to inherit. */
-  .lq-campaigns-col, .lq-control-col { flex: none; max-width: none; width: 100%; position: static; }
+/* Launch Control modal — centered, theme-reactive (var(--surface)/
+   var(--border), matching .lqc-card's own existing tokens — deliberately
+   NOT the hardcoded-always-dark .adm-modal family, since mixing a
+   theme-reactive card into an always-dark shell is exactly the light-
+   card-in-dark-modal bug already found and fixed once this session). */
+.lq-modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
 }
+.lq-modal {
+  position: relative;
+  width: 100%; max-width: 480px; max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+}
+body.dark-mode .lq-modal { box-shadow: 0 24px 60px rgba(0,0,0,.6); }
+.lq-modal-close {
+  position: absolute; top: 14px; right: 14px; z-index: 1;
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+  background: var(--bg2, rgba(0,0,0,.04)); border: none; border-radius: 50%;
+  color: var(--muted); cursor: pointer; transition: color .12s, background .12s;
+}
+.lq-modal-close:hover { color: var(--charcoal); background: var(--bg3, rgba(0,0,0,.08)); }
+.lq-modal-close:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.lq-modal-body { padding: 20px; }
+.lq-modal-body .lqc-card { border: none; padding: 0; }
+@media (max-width: 640px) {
+  .lq-modal-overlay { padding: 0; align-items: flex-end; }
+  .lq-modal { max-width: 100%; max-height: 88vh; border-radius: 18px 18px 0 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lq-modal-overlay { animation: lqModalFadeIn .15s ease; }
+  .lq-modal { animation: lqModalRiseIn .18s cubic-bezier(.22,.61,.36,1); }
+}
+@keyframes lqModalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lqModalRiseIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
 
 /* ── Launch Workspace (two-column) ──────────────────────────────── */
 .lw-wrap { max-width: var(--camp-content-maxw); margin: 0 auto; padding: 24px var(--orv-content-pad-x) 60px; display: flex; flex-direction: column; gap: 20px; }
@@ -47304,8 +47780,12 @@ body.dark-mode .lc-platform-row-blocked span:first-child { color: #f87171; }
      established for .camp-hub/.orv-page-wrap/.cr2-wrap. */
   .lw-wrap { padding-top: 64px !important; }
   .lq-hub { padding-top: 64px !important; }
+  /* Final Visual Correction pass — 4-column gallery grid steps down to 3
+     here, then 2 at 900px, then 1 at true phone width (480px below). */
+  .lq-card-grid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 900px) {
+  .lq-card-grid { grid-template-columns: repeat(2, 1fr); }
   /* Stack to one column, real advertising-workspace order (spec 62):
      AD PREVIEW -> ORIVEN -> READINESS/SETTINGS/LAUNCH. Desktop's visual
      order (ORIVEN left, preview center) comes for free from DOM/source
@@ -47353,15 +47833,14 @@ body.dark-mode .lc-platform-row-blocked span:first-child { color: #f87171; }
   .lq-filters-row-2 { flex-wrap: nowrap; }
   .lq-clear-filters { flex-shrink: 0; white-space: nowrap; }
 
-  /* Thumb + name/meta claim the full first line; the readiness pill and
-     "Review ->" wrap to a clean second line indented under the meta text
-     (thumb width 44px + row gap 14px = 58px), instead of the browser's
-     default flex-wrap packing that broke "Meta Ads" mid-word and crowded
-     the pill against it. */
-  .lq-row { flex-wrap: wrap; }
-  .lq-main { flex: 1 1 calc(100% - 58px); }
-  .lq-readiness { margin-left: 58px; margin-top: 2px; }
+  /* Launch Visual Grid pass — 2 columns at this width (see the 1024px/
+     900px steps below for 3/2); phones get their own tighter single-
+     column step at 480px right below. */
   .lc-deploy-panel { padding: 24px 20px; }
+}
+@media (max-width: 480px) {
+  /* True phone width — one column rather than a cramped 2-up. */
+  .lq-card-grid { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -47398,6 +47877,14 @@ body.dark-mode .prf-ra-title { color: rgba(255,255,255,.9); }
 /* Campaign Replay's honest empty/unavailable state — plain text, no
    invented events, no borrowed campaign-list styling. */
 .prf-ra-empty { font-size: 12.5px; color: var(--muted, rgba(0,0,0,.45)); padding: 4px; line-height: 1.5; }
+
+/* Campaigns Control-Room pass — Campaign Replay relocated below the
+   Metric Explorer instead of a permanent side column; this compact
+   variant keeps it visually secondary (tighter padding, quieter
+   background, smaller heading) rather than matching the chart/metrics'
+   own visual weight. Same real data/behavior, lower visual priority. */
+.prf-recent-activity-compact { padding: 12px 16px; background: var(--bg2, var(--surface)); box-shadow: none; margin-bottom: 0; }
+.prf-recent-activity-compact .prf-ra-hd { margin-bottom: 8px; font-size: 10px; }
 
 /* ── Campaign Replay page ────────────────────────────────────────── */
 .crp-wrap { max-width: 1180px; margin: 0 auto; padding: 28px var(--orv-content-pad-x, 32px) 60px; display: flex; flex-direction: column; gap: 22px; }
