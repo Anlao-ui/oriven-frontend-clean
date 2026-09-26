@@ -509,7 +509,13 @@ function navigate(page){
     return;
   }
 
-  if(page==="dashboard")    { navigate("campaigns"); return; }
+  // Default Dashboard Routing pass — this used to alias "dashboard" to
+  // "campaigns" from before Dashboard/Home existed as a real destination
+  // (#page-dashboard, added later). Every live nav entry point now uses
+  // window._orvNav directly and never reaches this legacy function for
+  // "dashboard", but redirect here too so any other caller of the legacy
+  // navigate() global lands on the real page instead of the stale alias.
+  if(page==="dashboard")    { if(typeof window._orvNav==="function"){ window._orvNav("dashboard","page-dashboard"); return; } }
   if(page==="campaigns")    { if(typeof renderCampaignHub==="function") renderCampaignHub(); }
   if(page==="campaign-workspace") { if(typeof refreshCampaignWorkspace==="function") refreshCampaignWorkspace(); }
   if(page==="brain")        refreshBrain();

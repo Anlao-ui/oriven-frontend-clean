@@ -272,6 +272,335 @@
       .lp-hero { padding-left: 20px !important; padding-right: 20px !important; }
     }
   </style>
+<style id="ov-landing-experience-styles">
+/* Public landing only. Intentionally separate from the authenticated app stylesheet. */
+#view-landing { --green:#B6FF3B; --ov-lime:#B6FF3B; }
+#view-landing #lp-stage { overflow:clip !important; }
+#view-landing :is(a,button,textarea):focus-visible { outline:2px solid #B6FF3B; outline-offset:5px; }
+#view-landing .ov-brand-ring { display:block; width:100%; height:100%; overflow:visible; fill:currentColor; }
+#view-landing .ov-ring-piece { transform-box:fill-box; transform-origin:center; }
+#view-landing :is(.ov-system-heading h2,.ov-system-step h3,.ov-system-resolve p,.ov-intermission-inner h2,.ov-closing h2) { font-family:var(--font-display) !important; }
+#view-landing .lp-hero { padding:40px 24px 44px !important; min-height:calc(100svh - 64px) !important; }
+#view-landing .lp-hero-inner { gap:22px; width:min(100%,1360px) !important; padding:0 !important; }
+#view-landing .ov-hero-mark { width:112px; height:124px; color:var(--ov-lime); margin:0 auto 2px; flex-shrink:0; }
+#view-landing .lp-hero-h1 { font-size:clamp(38px,5.45vw,82px) !important; line-height:1.08 !important; letter-spacing:-.055em !important; width:100% !important; margin:0 !important; }
+#view-landing .lp-hero-sub { font-size:17px; line-height:1.6; margin:0 !important; color:#aaa; }
+#view-landing .lp-hero-input-wrap { max-width:690px !important; margin:2px auto 0 !important; }
+#view-landing .lp-hero-input { min-height:66px !important; height:66px !important; }
+#view-landing .lp-hero-platforms { margin:0 !important; }
+#view-landing .lp-hero-secondary-cta { margin:0 !important; min-height:32px; }
+#view-landing .ov-section-eyebrow { color:var(--ov-lime); font-size:11px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; }
+#view-landing #ov-showcase { padding-top:100px; padding-bottom:100px; }
+#view-landing .ov-wall-track { animation-play-state:paused; }
+#view-landing .ov-wall-in-view .ov-wall-track { animation-play-state:running; }
+#view-landing .ov-wall-in-view:hover .ov-wall-track,
+#view-landing .ov-wall-in-view:focus-within .ov-wall-track { animation-play-state:paused; }
+#view-landing #ov-system { position:relative; padding:90px 32px; border-block:1px solid #ffffff12; }
+#view-landing .ov-system-stage { position:relative; max-width:1440px; margin:auto; }
+#view-landing .ov-system-heading { text-align:center; }
+#view-landing .ov-system-heading h2 { font:800 clamp(34px,4.5vw,64px)/1.12 var(--font-display); letter-spacing:-.055em; margin:18px 0; color:#f4f4f1; }
+#view-landing .ov-system-heading p { font:15px/1.6 var(--font-body); color:#a7a7a5; }
+#view-landing .ov-system-visual { width:280px; height:310px; margin:48px auto; position:relative; color:#d9dfcf; }
+#view-landing .ov-system-camera { width:100%; height:100%; }
+#view-landing .ov-system-guides { position:absolute; inset:-16%; border:1px solid #ffffff0a; border-radius:50%; }
+#view-landing .ov-system-guides:before,#view-landing .ov-system-guides:after { content:''; position:absolute; background:#ffffff0b; }
+#view-landing .ov-system-guides:before { height:1px; width:140%; top:50%; left:-20%; }
+#view-landing .ov-system-guides:after { width:1px; height:140%; left:50%; top:-20%; }
+#view-landing .ov-system-center { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font:600 10px var(--font-body); letter-spacing:.25em; white-space:nowrap; color:var(--ov-lime); }
+#view-landing .ov-system-steps { list-style:none; padding:0; margin:50px auto 0; max-width:900px; }
+#view-landing .ov-system-step { position:relative; padding:28px 0; border-top:1px solid #ffffff1b; }
+#view-landing .ov-system-number { display:flex; align-items:center; gap:12px; font:500 11px var(--font-body); text-transform:uppercase; letter-spacing:.13em; color:var(--ov-lime); }
+#view-landing .ov-system-number i { width:28px; height:1px; background:#ffffff38; }
+#view-landing .ov-system-step h3 { margin:14px 0; font:800 clamp(28px,3.4vw,48px)/1.2 var(--font-display); letter-spacing:-.055em; color:#f6f6f3; }
+#view-landing .ov-system-step p { margin:0; max-width:430px; color:#b2b2ad; font:17px/1.65 var(--font-body); }
+#view-landing .ov-system-resolve { text-align:center; margin:60px auto 0; }
+#view-landing .ov-system-resolve p { font:700 clamp(22px,3.1vw,42px)/1.3 var(--font-display); letter-spacing:-.04em; color:#f1f1ed; margin:14px 0; }
+#view-landing .ov-system-nav { display:none; }
+#view-landing .ov-system-skip { display:block; width:fit-content; margin:40px auto 0; color:#a9aaa4; font:12px var(--font-body); text-decoration:none; padding:12px; }
+#view-landing .ov-system-skip span { margin-left:16px; color:var(--ov-lime); }
+@media(min-width:901px) and (min-height:620px) {
+ #view-landing #ov-system.ov-system-enhanced { padding:0; height:520vh; }
+ #view-landing .ov-system-enhanced .ov-system-stage { height:calc(100vh - 64px); position:sticky; top:0; overflow:hidden; max-width:none; }
+ #view-landing .ov-system-enhanced .ov-system-heading { position:absolute; top:7%; left:0; width:100%; }
+ #view-landing .ov-system-enhanced .ov-system-heading h2 { font-size:clamp(34px,3.5vw,52px); margin:14px 0; }
+ #view-landing .ov-system-enhanced .ov-system-heading h2 br { display:none; }
+ #view-landing .ov-system-enhanced .ov-system-visual { position:absolute; top:50%; left:50%; width:min(28vw,340px); height:min(31vw,376px); margin:0; transform:translate(-50%,-50%); }
+ #view-landing .ov-system-enhanced .ov-system-steps { margin:0; }
+ #view-landing .ov-system-enhanced .ov-system-step { position:absolute; left:57%; right:5%; top:38%; border:0; padding:0; opacity:0; pointer-events:none; }
+ #view-landing .ov-system-enhanced .ov-system-step h3 { font-size:clamp(30px,3.6vw,54px); }
+ #view-landing .ov-system-enhanced .ov-system-step p { font-size:clamp(15px,1.35vw,19px); }
+ #view-landing .ov-system-enhanced .ov-system-resolve { position:absolute; top:75%; width:100%; margin:0; opacity:0; }
+ #view-landing .ov-system-enhanced .ov-system-resolve p { font-size:clamp(22px,2.4vw,34px); }
+ #view-landing .ov-system-enhanced .ov-system-nav { position:absolute; bottom:54px; left:50%; transform:translateX(-50%); display:flex; gap:22px; }
+ #view-landing .ov-system-nav button { background:none; border:0; border-top:1px solid #ffffff27; padding:12px 0; min-height:44px; color:#94958e; font:11px var(--font-body); cursor:pointer; transition:color .2s,border-color .2s; }
+ #view-landing .ov-system-nav button span { margin-right:7px; font-size:10px; opacity:.7; }
+ #view-landing .ov-system-nav button[aria-current="step"] { border-color:var(--ov-lime); color:var(--ov-lime); }
+ #view-landing .ov-system-enhanced .ov-system-skip { position:absolute; right:24px; bottom:8px; margin:0; }
+}
+#view-landing #ov-pillars { padding-block:110px; }
+#view-landing .ov-workspace { border-color:#ffffff1c; box-shadow:0 35px 90px #0005; }
+#view-landing #ov-intermission { padding:110px 32px; }
+#view-landing .ov-intermission-inner { max-width:1040px; margin:auto; }
+#view-landing .ov-intermission-inner h2 { font:800 clamp(38px,6.6vw,88px)/1.12 var(--font-display); letter-spacing:-.06em; margin:30px 0 40px; color:#eeeee9; }
+#view-landing .ov-intermission-inner h2 span { display:block; }
+#view-landing .ov-intermission-inner em,#view-landing .ov-closing em { color:var(--ov-lime); font-style:normal; }
+#view-landing .ov-workflow-signal { height:1px; background:#ffffff20; position:relative; overflow:hidden; }
+#view-landing .ov-workflow-signal i { display:block; height:1px; width:100%; background:var(--ov-lime); transform-origin:left; }
+#view-landing .ov-workflow-signal b { position:absolute; width:5px; height:5px; right:0; background:var(--ov-lime); }
+#view-landing .ov-intermission-inner p { display:flex; flex-wrap:wrap; gap:12px; color:#a4a49c; font:11px/2 var(--font-body); letter-spacing:.08em; text-transform:uppercase; margin-top:20px; }
+#view-landing .ov-intermission-inner p span { color:var(--ov-lime); }
+#view-landing #ov-wall2 { overflow:hidden; padding:80px 0 100px; }
+#view-landing .ov-wall2-head { width:min(100% - 64px,1160px); margin:0 auto 48px; text-align:left; }
+#view-landing .ov-wall2-head h2 { font-size:clamp(38px,5.4vw,76px) !important; margin:18px 0; letter-spacing:-.06em !important; line-height:1.12 !important; }
+#view-landing .ov-wall2-head p { color:#999b93; font:12px/1.6 var(--font-body); text-align:center; }
+#view-landing .ov-creative-viewport { display:grid; gap:22px; }
+#view-landing .ov-creative-row { display:flex; gap:22px; width:max-content; padding:0 24px; }
+#view-landing .ov-creative-row:nth-child(2) { margin-left:-130px; }
+#view-landing .ov-creative-card { width:clamp(210px,22vw,318px); height:clamp(275px,28vw,402px); margin:0; position:relative; overflow:hidden; border:1px solid #ffffff1c; background:#111310; border-radius:4px; transition:transform .3s,border-color .3s; }
+#view-landing .ov-creative-card:hover { transform:translateY(-4px); border-color:#ffffff55; }
+#view-landing .ov-creative-card img,#view-landing .ov-creative-card video { display:block; width:100%; height:calc(100% - 36px); object-fit:cover; }
+#view-landing .ov-creative-card figcaption { position:absolute; bottom:0; left:0; right:0; height:36px; display:flex; justify-content:space-between; align-items:center; padding:0 12px; font:9px var(--font-body); text-transform:uppercase; letter-spacing:.06em; color:#b5b7ac; background:#10110f; }
+#view-landing .ov-creative-card figcaption span:last-child { opacity:.6; }
+#view-landing .ov-creative-play { position:absolute; bottom:50px; left:12px; right:12px; display:flex; justify-content:space-between; padding:13px; border:1px solid #ffffff40; border-radius:3px; background:#090b08d9; color:#fff; cursor:pointer; font:11px var(--font-body); min-height:44px; }
+#view-landing .ov-creative-play[aria-pressed="true"] { border-color:var(--ov-lime); color:var(--ov-lime); }
+#view-landing #ov-proof { padding-block:76px; }
+#view-landing #ov-proof h2 { font-size:clamp(25px,3vw,40px); }
+#view-landing .ov-faq-q { min-height:58px; }
+#view-landing .ov-faq-q[aria-expanded="true"] { color:var(--ov-lime); }
+#view-landing .ov-faq-a { transition:max-height .3s ease,padding .3s ease,opacity .3s ease; }
+#view-landing .ov-faq-open .ov-faq-a { max-height:640px; }
+#view-landing #ov-final.ov-closing { padding:100px 24px 120px; min-height:0; background:none; text-align:center; }
+#view-landing .ov-closing-mark { width:170px; height:188px; color:var(--ov-lime); margin:0 auto 40px; }
+#view-landing .ov-closing h2 { font:800 clamp(32px,4.4vw,64px)/1.15 var(--font-display); letter-spacing:-.055em; margin:24px 0 36px; }
+#view-landing .ov-closing .ov-btn-primary span { margin-left:22px; display:inline-block; transition:transform .2s; }
+#view-landing .ov-closing .ov-btn-primary:hover span { transform:translate(2px,-2px); }
+@media(max-width:900px) {
+ #view-landing .lp-hero { padding:32px 24px 48px !important; }
+ #view-landing .ov-hero-mark { width:86px; height:96px; }
+ #view-landing .lp-hero-inner { gap:22px; }
+ #view-landing .lp-hero-h1 { font-size:clamp(34px,6.5vw,57px) !important; }
+ #view-landing #ov-system { padding:70px 24px; }
+ #view-landing .ov-system-visual { width:220px; height:244px; }
+ #view-landing .ov-system-step { padding:24px 0 24px 32px; border-top:0; border-left:1px solid #b6ff3b38; }
+ #view-landing .ov-system-step:before { content:''; width:5px; height:5px; border-radius:50%; background:var(--ov-lime); position:absolute; left:-3px; top:28px; }
+ #view-landing .ov-system-steps { max-width:560px; }
+ #view-landing .ov-creative-viewport { gap:16px; }
+ #view-landing .ov-creative-row,#view-landing .ov-creative-row:nth-child(2) { margin-left:0; gap:16px; padding:0 20px 10px; width:100%; overflow-x:auto; scroll-snap-type:x proximity; }
+ #view-landing .ov-creative-card { width:238px; height:320px; flex-shrink:0; scroll-snap-align:center; }
+ #view-landing .ov-wall2-head { width:calc(100% - 48px); }
+ #view-landing #ov-pillars,#view-landing #ov-intermission { padding-block:76px; }
+}
+@media(max-width:480px) {
+ #view-landing .lp-hero { padding:26px 20px 40px !important; }
+ #view-landing .lp-hero-inner { gap:20px; }
+ #view-landing .ov-hero-mark { width:65px; height:72px; margin-bottom:2px; }
+ #view-landing .lp-hero-h1 { font-size:clamp(30px,8.3vw,36px) !important; line-height:1.17 !important; letter-spacing:-.055em !important; }
+ #view-landing .lp-hero-sub { font-size:14px !important; line-height:1.6 !important; max-width:330px !important; }
+ #view-landing .lp-hero-input-wrap { border-radius:12px; }
+ #view-landing .lp-hero-platforms { gap:8px; justify-content:center; flex-wrap:wrap; }
+ #view-landing .ov-hero-int-pill { min-height:36px; }
+ #view-landing #ov-showcase { padding-block:65px; }
+ #view-landing .ov-system-step p { font-size:15px; }
+ #view-landing .ov-system-heading h2 { font-size:34px; }
+ #view-landing #ov-intermission { padding-inline:24px; }
+ #view-landing .ov-intermission-inner h2 { font-size:38px; }
+ #view-landing .ov-intermission-inner p { gap:7px; font-size:9px; }
+ #view-landing .ov-closing-mark { width:128px; height:142px; }
+ #view-landing #ov-final.ov-closing { padding-block:76px; }
+ #view-landing .ov-closing h2 { font-size:30px; }
+}
+@media(prefers-reduced-motion:reduce) {
+ #view-landing *,#view-landing *:before,#view-landing *:after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+ #view-landing [data-observe] { opacity:1 !important; transform:none !important; }
+ #view-landing .ov-wall-track { transform:none !important; }
+ #view-landing .ov-wall-row { overflow-x:auto; }
+ #view-landing .ov-creative-card:hover { transform:none; }
+}
+
+
+/* ══ Second visual polish pass ═══════════════════════════════════════
+   Shared pointer engine hooks, hero composition, cinematic film pin,
+   Context→Campaign→Control stage, arrow emphasis, control system, final O.
+   Every enhanced (pinned/animated) state is opt-in via a class added by
+   the script below, so without JS / with reduced motion the sections read
+   as their complete, static final state. */
+
+/* Pointer-reactive rings: pieces are driven by style.transform from one
+   shared rAF loop; stroke is the restrained "edge response" on hover. */
+#view-landing .ov-ring-live .ov-ring-piece { stroke:#C9FF63; stroke-width:9; stroke-linejoin:round; stroke-opacity:0; paint-order:stroke; will-change:transform; }
+#view-landing .ov-ring-live svg { will-change:transform; }
+
+/* ── HERO: copy left, large O right (desktop) ── */
+#view-landing .ov-hero-copy { display:flex; flex-direction:column; align-items:center; gap:22px; width:100%; }
+#view-landing .ov-hero-mark { order:-1; }
+@media (min-width:1024px) {
+  #view-landing .lp-hero { padding-inline:clamp(20px,2.4vw,40px) !important; }
+  #view-landing .lp-hero-inner { width:min(100%,1600px) !important; max-width:1600px; padding-inline:clamp(12px,2.2vw,48px) !important; display:grid !important; grid-template-columns:minmax(0,1.22fr) minmax(0,.78fr); align-items:center; gap:clamp(32px,4vw,80px); text-align:left; }
+  #view-landing .ov-hero-copy { align-items:flex-start; text-align:left; }
+  #view-landing .ov-hero-copy .lp-hero-h1 { text-align:left !important; font-size:clamp(42px,4.5vw,80px) !important; }
+  #view-landing .ov-hero-copy .lp-hero-sub { text-align:left !important; }
+  #view-landing .ov-hero-copy .lp-hero-input-wrap { margin:4px 0 0 !important; width:100%; max-width:660px !important; }
+  #view-landing .ov-hero-copy .lp-hero-platforms { justify-content:flex-start !important; }
+  #view-landing .ov-hero-copy .lp-hero-secondary-cta { align-self:flex-start; }
+  #view-landing .ov-hero-mark { order:0; width:min(100%,540px,calc((100svh - 150px) * .913)); height:auto; aspect-ratio:534/585; margin:0; justify-self:end; perspective:1100px; }
+  #view-landing .ov-hero-mark svg { transform-origin:50% 50%; }
+}
+
+/* ── PRODUCT FILMS: the film itself is the object — no panel behind it.
+   The existing tablist (with the real module icons) becomes a compact
+   selector directly under the video. Text inside each panel stays in the
+   DOM for screen readers, visually hidden. */
+#view-landing #ov-pillars { background:transparent; }
+#view-landing .ov-workspace { display:flex !important; flex-direction:column; align-items:center; width:min(100%,1040px); max-width:none; min-height:0; margin:0 auto; background:none !important; border-radius:0; box-shadow:none !important; border:0; overflow:visible; }
+#view-landing .ov-ws-panel { order:1; width:100%; padding:0 !important; display:block; min-height:0; }
+#view-landing .ov-ws-content { animation:none; }
+#view-landing .ov-ws-media { margin:0; border-radius:18px; border:1px solid #ffffff21; background:#080808; box-shadow:0 40px 110px #000000b3, 0 0 0 1px #00000080; }
+#view-landing .ov-ws-content-active .ov-ws-media { animation:ovFilmIn .5s cubic-bezier(.16,1,.3,1); }
+@keyframes ovFilmIn { from { opacity:0; transform:scale(.975); } to { opacity:1; transform:none; } }
+#view-landing .ov-ws-panel-eyebrow, #view-landing .ov-ws-panel-title, #view-landing .ov-ws-panel-desc { position:absolute !important; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; margin:0; padding:0; }
+#view-landing .ov-ws-rail { order:2; display:flex; flex-direction:row !important; flex-wrap:nowrap !important; justify-content:center; gap:4px; padding:18px 0 0 !important; border:0 !important; max-width:100%; }
+#view-landing .ov-ws-tab { position:relative; width:auto; flex:0 0 auto; flex-direction:column; gap:7px; padding:10px 14px 12px; border:0; border-radius:10px; background:none !important; box-shadow:none !important; color:#8a8c84; }
+#view-landing .ov-ws-tab span { font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; }
+#view-landing .ov-ws-tab-ico { width:20px; height:20px; color:#8a8c84; transition:color .25s, transform .25s; }
+#view-landing .ov-ws-tab::after { content:''; position:absolute; left:50%; bottom:2px; width:18px; height:2px; margin-left:-9px; background:var(--ov-lime); transform:scaleX(0); transition:transform .3s cubic-bezier(.16,1,.3,1); }
+#view-landing .ov-ws-tab:hover, #view-landing .ov-ws-tab:hover .ov-ws-tab-ico { color:#e9eae3; }
+#view-landing .ov-ws-tab-active, #view-landing .ov-ws-tab-active .ov-ws-tab-ico { color:#fff; }
+#view-landing .ov-ws-tab-active .ov-ws-tab-ico { color:var(--ov-lime); transform:scale(1.12); }
+#view-landing .ov-ws-tab-active::after { transform:scaleX(1); }
+#view-landing .ov-ws-tab:focus-visible { outline:2px solid var(--ov-lime); outline-offset:2px; }
+@media (max-width:900px) {
+  #view-landing .ov-ws-rail { justify-content:flex-start; overflow-x:auto; scroll-snap-type:x proximity; width:100%; padding-inline:4px !important; scrollbar-width:none; }
+  #view-landing .ov-ws-rail::-webkit-scrollbar { display:none; }
+  #view-landing .ov-ws-tab { scroll-snap-align:center; padding:9px 11px 11px; }
+  #view-landing .ov-ws-tab-ico { display:block !important; width:18px; height:18px; }
+  #view-landing .ov-ws-tab span { font-size:10px; }
+  #view-landing .ov-ws-media { border-radius:12px; width:100% !important; }
+  #view-landing .ov-ws-rail::before { background:linear-gradient(to right,#07070A,transparent) !important; }
+  #view-landing .ov-ws-rail::after { background:linear-gradient(to left,#07070A,transparent) !important; }
+}
+@media (min-width:1024px) and (min-height:640px) {
+  #view-landing #ov-pillars.ov-films-enhanced { height:250vh; padding:0 24px; }
+  #view-landing .ov-films-enhanced .ov-pillars-inner { position:sticky; top:0; height:calc(100vh - 64px); display:flex; flex-direction:column; justify-content:center; align-items:center; }
+  #view-landing .ov-films-enhanced .ov-pillars-head { position:absolute; top:5%; left:0; right:0; margin:0; z-index:1; }
+  #view-landing .ov-films-enhanced .ov-pillars-head .ov-section-h { margin-bottom:22px; }
+  #view-landing .ov-films-enhanced .ov-workspace { opacity:1 !important; transform:none !important; position:relative; z-index:2; transition:none; will-change:width; }
+}
+
+/* ── CONTEXT → CAMPAIGN → CONTROL ── */
+#view-landing #ov-intermission { padding:110px 32px; }
+#view-landing .ov-intermission-inner { max-width:1240px; display:grid; gap:48px; }
+#view-landing .ov-intermission-inner h2 { margin:24px 0 32px; }
+#view-landing .ov-ccc-copy h2 span { transition:color .35s ease; }
+#view-landing .ov-ccc-steps { list-style:none; padding:0; margin:26px 0 0; display:grid; gap:14px; max-width:520px; }
+#view-landing .ov-ccc-steps li { font:14px/1.6 var(--font-body); color:#9d9f97; padding-left:16px; border-left:1px solid #ffffff1f; transition:color .35s, border-color .35s; }
+#view-landing .ov-ccc-steps b { display:block; font:600 11px var(--font-body); letter-spacing:.14em; text-transform:uppercase; color:#e8e9e2; margin-bottom:2px; }
+#view-landing .ov-ccc-steps li.is-on { color:#d6d8cf; border-color:var(--ov-lime); }
+#view-landing .ov-ccc-steps li.is-on b { color:var(--ov-lime); }
+#view-landing .ov-ccc-stage { position:relative; width:min(560px,100%); aspect-ratio:560/440; margin:0 auto; font-family:var(--font-body); container-type:inline-size; }
+#view-landing .ov-ccc-stage > * { position:absolute; }
+#view-landing .ov-ccc-lines { inset:0; width:100%; height:100%; overflow:visible; }
+#view-landing .ov-ccc-line { fill:none; stroke:#ffffff45; stroke-width:1; vector-effect:non-scaling-stroke; }
+#view-landing .ov-ccc-pulse { fill:var(--ov-lime); opacity:0; }
+#view-landing .ov-ccc-brief { left:calc(40/560*100%); top:calc(66/440*100%); width:calc(380/560*100%); height:calc(230/440*100%); border:1px dashed #ffffff26; border-radius:10px; display:flex; justify-content:space-between; padding:10px 14px; font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:#8b8d85; opacity:0; }
+#view-landing .ov-ccc-brief span:first-child { color:var(--ov-lime); }
+#view-landing .ov-ccc-chip { left:calc(var(--x)/560*100%); top:calc(var(--y)/440*100%); width:calc(160/560*100%); height:calc(44/440*100%); display:flex; align-items:center; justify-content:space-between; gap:6px; padding:0 12px; border:1px solid #ffffff24; border-radius:7px; background:#0d0f0cf0; color:#eeefe8; font-size:clamp(10px,2.3cqi,13px); font-weight:600; opacity:0; }
+#view-landing .ov-ccc-chip i { font-style:normal; font-size:clamp(7px,1.5cqi,9px); letter-spacing:.12em; text-transform:uppercase; color:#8f9189; }
+#view-landing .ov-ccc-chip[data-src="research"] i { color:var(--ov-lime); }
+#view-landing .ov-ccc-card, #view-landing .ov-ccc-panel { left:calc(90/560*100%); top:calc(70/440*100%); width:calc(300/560*100%); border:1px solid #ffffff2b; border-radius:12px; background:#0c0e0b; padding:14px; box-shadow:0 30px 70px #0008; font-size:clamp(9px,1.9cqi,11px); color:#cfd1c8; }
+#view-landing .ov-ccc-card { opacity:0; }
+#view-landing .ov-ccc-panel { left:calc(30/560*100%); top:calc(100/440*100%); }
+#view-landing .ov-ccc-card-top { display:flex; justify-content:space-between; font-size:clamp(8px,1.6cqi,9.5px); letter-spacing:.14em; text-transform:uppercase; color:#8f9189; margin-bottom:12px; }
+#view-landing .ov-ccc-card-top span:first-child { color:var(--ov-lime); }
+#view-landing .ov-ccc-card-body { display:grid; grid-template-columns:38% 1fr; gap:12px; }
+#view-landing .ov-ccc-card-body img { width:100%; aspect-ratio:4/5; object-fit:cover; border-radius:6px; display:block; }
+#view-landing .ov-ccc-slots { display:flex; flex-direction:column; gap:6px; font-size:clamp(7px,1.4cqi,8.5px); letter-spacing:.12em; text-transform:uppercase; color:#8f9189; }
+#view-landing .ov-ccc-slots i { height:6px; border-radius:3px; background:#ffffff26; }
+#view-landing .ov-ccc-slots i.s { width:65%; }
+#view-landing .ov-ccc-card-plats { display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; margin-top:12px; padding-top:10px; border-top:1px solid #ffffff14; }
+#view-landing .ov-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--c); margin-right:5px; vertical-align:middle; }
+#view-landing .ov-ccc-grid { display:grid; grid-template-columns:1.5fr repeat(4,1fr); gap:9px 6px; }
+#view-landing .ov-ccc-grid span:nth-child(-n+5) { font-size:clamp(7px,1.4cqi,8.5px); letter-spacing:.1em; text-transform:uppercase; color:#8f9189; }
+#view-landing .ov-ccc-grid span { white-space:nowrap; color:#8f9189; }
+#view-landing .ov-ccc-grid span:nth-child(5n+1) { color:#e3e4dd; }
+#view-landing .ov-ccc-node { left:calc(440/560*100%); top:calc((var(--y) - 17)/440*100%); height:calc(34/440*100%); display:flex; align-items:center; padding:0 12px; border:1px solid #ffffff26; border-radius:999px; background:#0c0e0b; color:#e8e9e2; font-size:clamp(9px,1.9cqi,11px); font-weight:600; white-space:nowrap; }
+@media (min-width:1024px) {
+  #view-landing .ov-intermission-inner { grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:clamp(40px,5vw,90px); }
+  #view-landing .ov-intermission-inner h2 { font-size:clamp(36px,4.1vw,64px) !important; }
+}
+@media (min-width:1024px) and (min-height:640px) {
+  #view-landing #ov-intermission.ov-ccc-enhanced { height:300vh; padding:0 32px; }
+  #view-landing .ov-ccc-enhanced .ov-intermission-inner { position:sticky; top:0; height:calc(100vh - 64px); }
+  #view-landing .ov-ccc-enhanced .ov-ccc-copy h2 span { color:#ffffff38; }
+  #view-landing .ov-ccc-enhanced .ov-ccc-copy h2 span.is-on { color:#eeeee9; }
+  #view-landing .ov-ccc-enhanced .ov-ccc-copy h2 span.is-on em { color:var(--ov-lime); }
+  #view-landing .ov-ccc-enhanced .ov-ccc-copy h2 span:not(.is-on) em { color:inherit; }
+}
+
+/* ── EXPERIENCE: emphasis travels through equal arrows ── */
+#view-landing .ov-exp-motif { gap:6px; }
+#view-landing .ov-exp-arrow { width:44px !important; height:44px !important; opacity:.3; transform:none; filter:none !important; transition:none; transform-origin:50% 50%; }
+#view-landing .ov-experience-panel.ov-vis .ov-exp-arrow { opacity:.3; transform:none; }
+#view-landing .ov-experience-panel.ov-vis .ov-exp-arrow-5 { opacity:1; }
+@media (max-width:640px) { #view-landing .ov-exp-arrow { width:32px !important; height:32px !important; } }
+
+/* ── BUILT AROUND YOUR CONTROL ── */
+#view-landing #ov-proof.ov-ctrl { padding:110px 32px; }
+#view-landing .ov-ctrl-stage { max-width:1240px; margin:0 auto; display:grid; gap:48px; align-items:center; }
+#view-landing .ov-ctrl-copy .ov-section-h { font-size:clamp(34px,4.2vw,62px) !important; margin:18px 0 16px; text-align:left !important; }
+#view-landing .ov-ctrl-lead { font:17px/1.6 var(--font-body); color:#b8b9b1; margin:0 0 30px; max-width:460px; }
+#view-landing .ov-ctrl-list { list-style:none; padding:0; margin:0; display:grid; grid-template-columns:1fr 1fr; gap:0 28px; max-width:620px; }
+#view-landing .ov-ctrl-list li { padding:13px 0; border-top:1px solid #ffffff17; font:13px/1.5 var(--font-body); color:#8f9189; transition:color .3s, border-color .3s; }
+#view-landing .ov-ctrl-list b { display:block; font:600 11px var(--font-body); letter-spacing:.14em; text-transform:uppercase; color:#e3e4dd; margin-bottom:3px; transition:color .3s; }
+#view-landing .ov-ctrl-list li.is-on { color:#cfd1c8; border-color:var(--ov-lime); }
+#view-landing .ov-ctrl-list li.is-on b { color:var(--ov-lime); }
+#view-landing .ov-ctrl-end { margin:30px 0 0; font:800 clamp(20px,2.1vw,30px)/1.25 var(--font-display); letter-spacing:-.04em; color:#f1f1ed; }
+#view-landing .ov-ctrl-end em { font-style:normal; color:var(--ov-lime); }
+#view-landing .ov-ctrl-visual { position:relative; width:min(560px,100%); aspect-ratio:1; margin:0 auto; container-type:inline-size; }
+#view-landing .ov-ctrl-svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+#view-landing .ov-ctrl-link { stroke:#b6ff3b8c; stroke-width:.35; stroke-dasharray:1; stroke-dashoffset:0; }
+#view-landing .ov-ctrl-orbit { fill:none; stroke:#b6ff3b66; stroke-width:.3; stroke-dasharray:.012 .01; }
+#view-landing .ov-ctrl-orbit-label { position:absolute; left:50%; top:1%; transform:translate(-50%,-50%); padding:4px 10px; background:#07070a; font:600 clamp(8px,1.8cqi,10px) var(--font-body); letter-spacing:.16em; text-transform:uppercase; color:var(--ov-lime); white-space:nowrap; }
+#view-landing .ov-ctrl-core { position:absolute; left:50%; top:50%; width:30%; aspect-ratio:1; transform:translate(-50%,-50%); border-radius:50%; border:1px solid var(--ov-lime); background:radial-gradient(circle,#18200f,#0a0c08 70%); display:grid; place-items:center; text-align:center; box-shadow:0 0 0 10px #b6ff3b0d; }
+#view-landing .ov-ctrl-core span { grid-area:1/1; font:800 clamp(12px,3.2cqi,19px)/1.15 var(--font-display); letter-spacing:-.03em; color:#f1f1ed; padding:0 10%; }
+#view-landing .ov-ctrl-core .ov-ctrl-core-a { opacity:0; }
+#view-landing .ov-ctrl-node { position:absolute; left:calc(var(--x)*1%); top:calc(var(--y)*1%); transform:translate(-50%,-50%); padding:8px 13px; border:1px solid #ffffff2e; border-radius:999px; background:#0c0e0b; font:600 clamp(10px,2.2cqi,13px) var(--font-body); color:#eeefe8; white-space:nowrap; }
+#view-landing .ov-ctrl-node span { margin-right:7px; font-size:.8em; color:#8f9189; }
+#view-landing .ov-ctrl-node { transition:border-color .3s, color .3s; }
+#view-landing .ov-ctrl-node.is-on { border-color:#b6ff3b66; }
+#view-landing .ov-ctrl-node.is-on span { color:var(--ov-lime); }
+@media (min-width:1024px) {
+  #view-landing .ov-ctrl-stage { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(40px,5vw,90px); }
+}
+@media (min-width:1024px) and (min-height:640px) {
+  #view-landing #ov-proof.ov-ctrl-enhanced { height:300vh; padding:0 32px; }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-stage { position:sticky; top:0; height:calc(100vh - 64px); }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-list { font-size:12.5px; }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-list li { padding:10px 0; }
+}
+@media (max-width:640px) {
+  #view-landing #ov-proof.ov-ctrl, #view-landing #ov-intermission { padding:72px 20px; }
+  #view-landing .ov-ctrl-list { grid-template-columns:1fr; }
+}
+
+/* ── FINAL: the CTA lives inside a large O ── */
+#view-landing #ov-final.ov-closing { padding:64px 24px; overflow:hidden; min-height:calc(100svh - 64px); display:flex; align-items:center; justify-content:center; }
+#view-landing .ov-closing-o { position:relative; width:min(840px,88vw,calc((100svh - 64px - 128px) * .913)); aspect-ratio:534/585; margin:0 auto; perspective:1300px; }
+#view-landing .ov-closing-o .ov-closing-mark { position:absolute; inset:0; width:100%; height:100%; margin:0; pointer-events:none; }
+#view-landing .ov-closing-o .ov-closing-mark svg { transform-origin:50% 50%; }
+#view-landing .ov-closing-core { position:absolute; left:50%; top:50%; width:40%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; text-align:center; z-index:2; }
+#view-landing .ov-closing-core .ov-section-eyebrow { font-size:clamp(8px,1.1vw,11px); }
+#view-landing .ov-closing-core h2 { font:800 clamp(17px,2.2vw,31px)/1.18 var(--font-display) !important; letter-spacing:-.045em; margin:12px 0 22px !important; color:#f4f4f1; text-wrap:balance; }
+#view-landing .ov-closing-core .ov-btn-primary { white-space:nowrap; }
+@media (max-width:640px) {
+  #view-landing #ov-final.ov-closing { padding:56px 0 70px; }
+  #view-landing .ov-closing-o { width:min(94vw,520px); }
+  #view-landing .ov-closing-core { width:40%; }
+  #view-landing .ov-closing-core .ov-section-eyebrow { font-size:8px; letter-spacing:.12em; }
+  #view-landing .ov-closing-core h2 { font-size:clamp(13px,3.6vw,17px) !important; margin:7px 0 12px !important; }
+  #view-landing .ov-closing-core .ov-btn-primary { padding:10px 16px; font-size:12.5px; }
+  #view-landing .ov-closing-core .ov-btn-primary span { margin-left:10px; }
+}
+</style>
 </head>
 <body class="public-page">
 
@@ -339,23 +668,22 @@
           <div class="lp-dd-col">
             <div class="lp-dd-colhead">Products</div>
 
-            <!-- Public Website Completion pass — the six real ORIVEN
-                 products, in the canonical order (Create/Research/Launch/
-                 Campaigns/Autopilot/Business), Create first as the
-                 default/acquisition entry point. Create now has its own
-                 dedicated /create page (previously fell back to the
-                 homepage capability rail, #ov-pillars — fixed this pass);
-                 every item below links to its real dedicated /product
-                 page. Intelligence/Ad Library remain deliberately absent
-                 as standalone items (folded into Campaigns' Insights/
-                 Creatives tabs). -->
-            <a href="/create" class="lp-dd-item" role="menuitem">
+            <!-- Landing Page Refinement pass — reordered to the canonical
+                 workflow sequence (Business first, as the context every
+                 other module builds on, then Research/Create/Launch/
+                 Campaigns/Autopilot) rather than Create-first. Every
+                 item's href/icon/description is unchanged — only the
+                 order moved. Every item below links to its real dedicated
+                 /product page. Intelligence/Ad Library remain
+                 deliberately absent as standalone items (folded into
+                 Campaigns' Insights/Creatives tabs). -->
+            <a href="/business" class="lp-dd-item" role="menuitem">
               <span class="lp-dd-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2.5 13.5l1-3.8L10.5 2.7a1.3 1.3 0 011.8 0l1 1a1.3 1.3 0 010 1.8L6.3 12.5z" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linejoin="round"/><path d="M9.3 4.2l2.5 2.5" stroke="rgba(183,255,42,.8)" stroke-width="1.2"/></svg>
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a4.5 4.5 0 00-2.5 8.25c.4.28.5.6.5 1.05v.7h4v-.7c0-.45.1-.77.5-1.05A4.5 4.5 0 008 1.5z" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linejoin="round"/><line x1="6.5" y1="14" x2="9.5" y2="14" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linecap="round"/></svg>
               </span>
               <span>
-                <span class="lp-dd-item-name">Create</span>
-                <span class="lp-dd-item-desc">Turn strategy into platform-ready creative.</span>
+                <span class="lp-dd-item-name">Business</span>
+                <span class="lp-dd-item-desc">Give Oriven the context behind your brand and business.</span>
               </span>
             </a>
 
@@ -366,6 +694,16 @@
               <span>
                 <span class="lp-dd-item-name">Research</span>
                 <span class="lp-dd-item-desc">Find creative, messaging and market patterns.</span>
+              </span>
+            </a>
+
+            <a href="/create" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2.5 13.5l1-3.8L10.5 2.7a1.3 1.3 0 011.8 0l1 1a1.3 1.3 0 010 1.8L6.3 12.5z" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linejoin="round"/><path d="M9.3 4.2l2.5 2.5" stroke="rgba(183,255,42,.8)" stroke-width="1.2"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Create</span>
+                <span class="lp-dd-item-desc">Turn strategy into platform-ready creative.</span>
               </span>
             </a>
 
@@ -385,7 +723,7 @@
               </span>
               <span>
                 <span class="lp-dd-item-name">Campaigns</span>
-                <span class="lp-dd-item-desc">Manage campaigns and understand performance.</span>
+                <span class="lp-dd-item-desc">Bring every connected campaign back into one place.</span>
               </span>
             </a>
 
@@ -395,17 +733,7 @@
               </span>
               <span>
                 <span class="lp-dd-item-name">Autopilot</span>
-                <span class="lp-dd-item-desc">Automate campaign actions using your own rules.</span>
-              </span>
-            </a>
-
-            <a href="/business" class="lp-dd-item" role="menuitem">
-              <span class="lp-dd-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a4.5 4.5 0 00-2.5 8.25c.4.28.5.6.5 1.05v.7h4v-.7c0-.45.1-.77.5-1.05A4.5 4.5 0 008 1.5z" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linejoin="round"/><line x1="6.5" y1="14" x2="9.5" y2="14" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linecap="round"/></svg>
-              </span>
-              <span>
-                <span class="lp-dd-item-name">Business</span>
-                <span class="lp-dd-item-desc">Give Oriven the context behind your brand and business.</span>
+                <span class="lp-dd-item-desc">Watch performance and act on the rules you set.</span>
               </span>
             </a>
           </div>
@@ -517,12 +845,12 @@
         <a href="/product/tiktok-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">TikTok Ads</a>
         <a href="/product/pinterest-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">Pinterest Ads</a>
         <div class="lp-mm-cat">Products</div>
-        <a href="/create" class="lp-mm-dd-link" onclick="lpCloseMm()">Create</a>
+        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Business</a>
         <a href="/research" class="lp-mm-dd-link" onclick="lpCloseMm()">Research</a>
+        <a href="/create" class="lp-mm-dd-link" onclick="lpCloseMm()">Create</a>
         <a href="/launch" class="lp-mm-dd-link" onclick="lpCloseMm()">Launch</a>
         <a href="/campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Campaigns</a>
         <a href="/autopilot" class="lp-mm-dd-link" onclick="lpCloseMm()">Autopilot</a>
-        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Business</a>
       </div>
     </div>
 
@@ -577,7 +905,7 @@
 <div id="view-landing" class="pub-view">
 <div id="lp-stage">
 
-<!-- HERO -->
+<!-- Public landing experience. Real product media and existing route handlers preserved. -->
 <section id="ov-hero">
   <div class="lp-hero">
 
@@ -585,8 +913,8 @@
       <div class="lp-hero-glow"></div>
       <div class="lp-hero-grid"></div>
     </div>
-
     <div class="lp-hero-inner" id="ov-hero-content">
+      <div class="ov-hero-copy">
 
       <!-- Final Create Enhancement + Landing-Page Storytelling pass — new
            approved ORIVEN/ORDER positioning, exact wording/capitalization
@@ -603,7 +931,7 @@
       <div class="lp-hero-input-wrap">
         <textarea
           class="lp-hero-input"
-          id="lpHeroPrompt"
+          id="lpHeroPrompt" aria-label="Describe your business or campaign idea"
           rows="3"
           placeholder="I sell premium compression shirts for athletes..."
           onkeydown="if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){lpGenerateCampaign();}"
@@ -629,18 +957,19 @@
         <button type="button" class="ov-hero-int-pill ov-pill-pinterest ov-hero-int-pill-active" data-platform="pinterest" onclick="ovHeroPlatformPick(this)"><span class="ov-int-dot ov-int-dot-pinterest"></span>Pinterest Ads</button>
       </div>
 
-      <a href="#ov-workflow" class="lp-hero-secondary-cta" onclick="ovNavTo(event,'#ov-workflow')">See how it works <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M6.5 2.5L10 6l-3.5 3.5"/></svg></a>
+      <a href="#ov-system" class="lp-hero-secondary-cta" onclick="ovNavTo(event,'#ov-system')">See how it works <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M6.5 2.5L10 6l-3.5 3.5"/></svg></a>
+      </div>
+      <div class="ov-hero-mark" aria-hidden="true"><svg class="ov-brand-ring ov-hero-ring" viewBox="244 197 534 585" aria-hidden="true"><path class="ov-ring-piece" data-piece="0" d="M546.00 217.00C547.88 216.80 556.13 217.67 561.00 219.00C565.87 220.33 572.85 224.10 579.00 226.00C585.15 227.90 635.85 242.10 642.00 244.00C648.15 245.90 654.21 248.19 660.00 251.00C665.79 253.81 672.85 257.89 677.00 261.00C681.15 264.11 685.25 267.60 688.00 272.00C690.75 276.40 701.42 296.31 707.00 309.00C712.58 321.69 741.61 393.24 743.00 397.00C744.39 400.76 745.76 405.87 744.00 409.00C742.24 412.13 737.55 412.46 734.00 413.00C730.45 413.54 702.13 415.39 691.00 417.00C679.87 418.61 661.29 423.39 658.00 424.00C654.71 424.61 650.10 425.13 648.00 425.00C645.90 424.87 643.70 424.24 642.00 423.00C640.30 421.76 638.19 419.31 637.00 417.00C635.81 414.69 610.34 361.66 610.00 361.00C609.66 360.34 608.34 360.66 608.00 360.00C607.66 359.34 598.34 338.66 598.00 338.00C597.66 337.34 596.34 337.66 596.00 337.00C595.66 336.34 547.59 241.22 546.00 238.00C544.41 234.78 542.53 230.27 542.00 228.00C541.47 225.73 541.36 222.77 542.00 221.00C542.64 219.23 544.12 217.20 546.00 217.00Z"/><path class="ov-ring-piece" data-piece="1" d="M735.00 426.00C739.05 425.79 744.64 426.89 747.00 428.00C749.36 429.11 750.94 432.18 752.00 434.00C753.06 435.82 753.66 437.92 754.00 440.00C754.34 442.08 757.67 460.59 758.00 471.00C758.33 481.41 757.67 524.22 757.00 535.00C756.33 545.78 754.55 556.51 752.00 567.00C749.45 577.49 742.07 599.41 740.00 605.00C737.93 610.59 734.16 617.62 732.00 621.00C729.84 624.38 727.26 628.29 724.00 630.00C720.74 631.71 716.56 631.94 713.00 631.00C709.44 630.06 695.18 623.19 686.00 620.00C676.82 616.81 647.38 608.26 644.00 607.00C640.62 605.74 636.14 602.26 635.00 601.00C633.86 599.74 633.42 597.60 634.00 596.00C634.58 594.40 644.11 576.07 647.00 568.00C649.89 559.93 651.90 548.94 653.00 543.00C654.10 537.06 655.00 531.04 655.00 525.00C655.00 518.96 653.00 462.11 653.00 460.00C653.00 457.89 653.70 455.66 655.00 454.00C656.30 452.34 660.64 448.19 664.00 446.00C667.36 443.81 673.08 440.75 678.00 439.00C682.92 437.25 700.45 431.95 709.00 430.00C717.55 428.05 730.95 426.21 735.00 426.00Z"/><path class="ov-ring-piece" data-piece="2" d="M616.00 616.00C618.63 615.45 624.04 615.41 628.00 616.00C631.96 616.59 638.04 618.52 643.00 620.00C647.96 621.48 674.11 629.69 675.00 630.00C675.89 630.31 676.11 631.70 677.00 632.00C677.89 632.30 679.74 631.56 681.00 632.00C682.26 632.44 712.08 644.07 714.00 645.00C715.92 645.93 717.46 648.78 718.00 650.00C718.54 651.22 718.57 652.79 718.00 654.00C717.43 655.21 713.35 663.17 710.00 667.00C706.65 670.83 683.49 693.55 683.00 694.00C682.51 694.45 681.53 693.60 681.00 694.00C680.47 694.40 664.05 708.50 662.00 710.00C659.95 711.50 657.15 711.64 655.00 713.00C652.85 714.36 647.33 719.50 643.00 722.00C638.67 724.50 621.34 734.05 610.00 739.00C598.66 743.95 580.49 750.35 572.00 753.00C563.51 755.65 553.93 757.57 546.00 759.00C538.07 760.43 527.65 761.59 522.00 762.00C516.35 762.41 506.79 762.16 505.00 762.00C503.21 761.84 501.49 761.00 500.00 760.00C498.51 759.00 497.02 757.59 496.00 756.00C494.98 754.41 492.50 749.41 491.00 746.00C489.50 742.59 474.80 707.95 474.00 706.00C473.20 704.05 472.12 702.10 472.00 700.00C471.88 697.90 471.72 691.56 473.00 689.00C474.28 686.44 477.26 684.86 480.00 684.00C482.74 683.14 497.86 680.86 505.00 679.00C512.14 677.14 519.15 674.74 526.00 672.00C532.85 669.26 545.65 663.98 555.00 659.00C564.35 654.02 583.91 641.79 588.00 639.00C592.09 636.21 598.47 629.41 599.00 629.00C599.53 628.59 600.50 629.45 601.00 629.00C601.50 628.55 606.97 621.76 609.00 620.00C611.03 618.24 613.37 616.55 616.00 616.00Z"/><path class="ov-ring-piece" data-piece="3" d="M387.00 612.00C389.20 611.22 392.39 611.56 394.00 612.00C395.61 612.44 397.04 613.64 398.00 615.00C398.96 616.36 409.62 633.51 411.00 636.00C412.38 638.49 413.64 643.35 414.00 644.00C414.36 644.65 415.65 644.34 416.00 645.00C416.35 645.66 467.17 742.41 468.00 744.00C468.83 745.59 469.70 747.23 470.00 749.00C470.30 750.77 470.20 755.08 470.00 756.00C469.80 756.92 468.92 757.80 468.00 758.00C467.08 758.20 459.07 759.15 456.00 759.00C452.93 758.85 449.95 757.84 447.00 757.00C444.05 756.16 434.18 753.44 428.00 751.00C421.82 748.56 399.67 738.33 399.00 738.00C398.33 737.67 398.65 736.37 398.00 736.00C397.35 735.63 384.35 729.90 378.00 726.00C371.65 722.10 361.49 715.33 354.00 709.00C346.51 702.67 334.28 689.57 333.00 688.00C331.72 686.43 331.58 683.98 332.00 682.00C332.42 680.02 334.19 676.37 336.00 674.00C337.81 671.63 344.40 665.67 348.00 661.00C351.60 656.33 378.21 619.24 380.00 617.00C381.79 614.76 384.80 612.78 387.00 612.00Z"/><path class="ov-ring-piece" data-piece="4" d="M275.00 411.00C276.85 410.63 286.58 410.54 291.00 411.00C295.42 411.46 299.73 412.75 304.00 414.00C308.27 415.25 318.49 418.40 325.00 421.00C331.51 423.60 339.41 427.42 344.00 430.00C348.59 432.58 353.02 435.68 357.00 439.00C360.98 442.32 365.16 445.66 368.00 450.00C370.84 454.34 374.78 462.81 376.00 468.00C377.22 473.19 376.23 481.26 376.00 484.00C375.77 486.74 375.27 489.56 374.00 492.00C372.73 494.44 367.27 503.78 363.00 509.00C358.73 514.22 349.47 521.82 347.00 525.00C344.53 528.18 342.85 532.09 342.00 536.00C341.15 539.91 341.77 545.90 342.00 548.00C342.23 550.10 342.92 552.19 344.00 554.00C345.08 555.81 348.70 560.85 351.00 563.00C353.30 565.15 356.59 565.97 359.00 568.00C361.41 570.03 368.15 576.66 370.00 579.00C371.85 581.34 373.40 584.75 374.00 587.00C374.60 589.25 374.57 591.74 374.00 594.00C373.43 596.26 371.86 600.30 370.00 603.00C368.14 605.70 358.80 615.94 354.00 623.00C349.20 630.06 336.70 652.13 334.00 656.00C331.30 659.87 326.83 664.81 324.00 666.00C321.17 667.19 317.65 665.56 315.00 664.00C312.35 662.44 309.19 659.07 307.00 656.00C304.81 652.93 294.95 638.41 290.00 629.00C285.05 619.59 279.78 608.01 276.00 597.00C272.22 585.99 267.26 564.90 266.00 559.00C264.74 553.10 264.00 547.04 264.00 541.00C264.00 534.96 265.28 506.86 266.00 501.00C266.72 495.14 268.93 489.53 271.00 484.00C273.07 478.47 279.84 466.93 281.00 461.00C282.16 455.07 280.54 448.84 279.00 443.00C277.46 437.16 271.73 425.56 271.00 423.00C270.27 420.44 270.40 416.79 271.00 415.00C271.60 413.21 273.15 411.37 275.00 411.00Z"/><path class="ov-ring-piece" data-piece="5" d="M476.00 232.00C481.94 231.18 488.86 231.38 494.00 232.00C499.14 232.62 505.79 234.79 509.00 236.00C512.21 237.21 515.29 238.89 518.00 241.00C520.71 243.11 524.48 246.59 527.00 250.00C529.52 253.41 533.08 258.98 535.00 264.00C536.92 269.02 539.50 280.02 540.00 284.00C540.50 287.98 540.27 292.19 539.00 296.00C537.73 299.81 534.15 307.37 531.00 311.00C527.85 314.63 523.61 317.65 519.00 319.00C514.39 320.35 485.26 324.22 473.00 328.00C460.74 331.78 449.01 337.42 438.00 344.00C426.99 350.58 415.24 359.57 406.00 368.00C396.76 376.43 386.14 391.45 381.00 396.00C375.86 400.55 365.50 404.85 363.00 406.00C360.50 407.15 357.74 407.80 355.00 408.00C352.26 408.20 339.75 408.42 335.00 408.00C330.25 407.58 325.54 406.46 321.00 405.00C316.46 403.54 311.27 401.75 307.00 399.00C302.73 396.25 292.06 387.16 290.00 385.00C287.94 382.84 286.55 378.92 286.00 377.00C285.45 375.08 285.63 372.97 286.00 371.00C286.37 369.03 287.54 364.16 289.00 361.00C290.46 357.84 294.61 350.09 298.00 345.00C301.39 339.91 311.33 326.99 313.00 325.00C314.67 323.01 318.57 320.51 319.00 320.00C319.43 319.49 318.54 318.48 319.00 318.00C319.46 317.52 340.85 295.99 349.00 289.00C357.15 282.01 365.92 275.73 375.00 270.00C384.08 264.27 395.28 257.89 406.00 253.00C416.72 248.11 432.23 242.23 443.00 239.00C453.77 235.77 470.06 232.82 476.00 232.00Z"/></svg></div>
 
     </div>
   </div>
 </section>
 
-<!-- ═══ AD EXAMPLES SHOWCASE — platform-switching interactive proof ═══ -->
 <section id="ov-showcase" class="ov-showcase-section">
   <div class="ov-showcase-inner">
     <div class="ov-showcase-head" data-observe>
       <h2 class="ov-section-h">Real ads. Every platform.</h2>
-      <p class="ov-section-sub">Switch platforms to see what Oriven actually creates.</p>
+      <p class="ov-section-sub">Switch platforms to explore illustrative advertising creatives.</p>
     </div>
 
     <div class="ov-showcase-tabs" role="tablist" aria-label="Advertising platform examples">
@@ -675,186 +1004,17 @@
   </div>
 </section>
 
-<!-- ═══ SCROLL-BASED PRODUCT STATEMENT — Final Landing Page Storytelling
-     pass: expanded from one short line into the real 2-3 sentence product
-     statement the spec asked for (still ONE paragraph, never stacked
-     marketing lines). Reuses the SAME data-observe/.ov-vis
-     IntersectionObserver every other homepage section relies on (rooted
-     at #view-landing, threshold 0.18) — it already toggles the class both
-     ways (adds on enter, removes on leave in EITHER direction), so the
-     "muted -> white on the way in, back to muted on the way out" behavior
-     the spec asks for was already there; only the copy/sizing changed
-     here. Deliberately not a GSAP ScrollTrigger instance, since an
-     earlier pass found a real bug elsewhere on this page caused by
-     exactly that pattern silently breaking once its target moved between
-     SPA views. -->
-<section id="ov-statement" class="ov-statement-section">
-  <div class="ov-statement-inner">
-    <!-- Complete Homepage Redesign pass — a true scroll-linked word-by-word
-         reveal (spec: "Each word should have its own progressive state...
-         Do NOT simply fade in the entire paragraph at once"), not the
-         previous whole-paragraph muted->white fade. Words are wrapped in
-         spans by JS on load (see the statement IIFE further down this
-         file) so the source HTML stays plain, readable text with no
-         markup noise; the wrapping degrades gracefully to plain readable
-         text if JS is ever unavailable. Final Visual Polish pass — the
-         JS now also recognizes "Oriven" and the four workflow verbs
-         (Research/Create/Launch/Improve) and reveals them toward ORIVEN
-         green instead of white (spec: "The four words... must use the
-         ORIVEN green accent"); everything else still reveals toward
-         white exactly as before. -->
-    <p class="ov-statement-lead" id="ovStatementLead">Oriven brings your advertising workflow into one place. Research, Create, Launch and Improve your advertising without jumping between disconnected tools.</p>
-  </div>
+<section id="ov-system" aria-labelledby="ov-system-title">
+ <div class="ov-system-stage">
+  <div class="ov-system-heading"><span class="ov-section-eyebrow">The Oriven system</span><h2 id="ov-system-title">Six parts.<br> One workflow.</h2><p>Every part moves the next one forward.</p></div>
+  <div class="ov-system-visual" aria-hidden="true"><div class="ov-system-guides"></div><div class="ov-system-camera"><svg class="ov-brand-ring ov-system-ring" viewBox="244 197 534 585" aria-hidden="true"><path class="ov-ring-piece" data-piece="0" d="M546.00 217.00C547.88 216.80 556.13 217.67 561.00 219.00C565.87 220.33 572.85 224.10 579.00 226.00C585.15 227.90 635.85 242.10 642.00 244.00C648.15 245.90 654.21 248.19 660.00 251.00C665.79 253.81 672.85 257.89 677.00 261.00C681.15 264.11 685.25 267.60 688.00 272.00C690.75 276.40 701.42 296.31 707.00 309.00C712.58 321.69 741.61 393.24 743.00 397.00C744.39 400.76 745.76 405.87 744.00 409.00C742.24 412.13 737.55 412.46 734.00 413.00C730.45 413.54 702.13 415.39 691.00 417.00C679.87 418.61 661.29 423.39 658.00 424.00C654.71 424.61 650.10 425.13 648.00 425.00C645.90 424.87 643.70 424.24 642.00 423.00C640.30 421.76 638.19 419.31 637.00 417.00C635.81 414.69 610.34 361.66 610.00 361.00C609.66 360.34 608.34 360.66 608.00 360.00C607.66 359.34 598.34 338.66 598.00 338.00C597.66 337.34 596.34 337.66 596.00 337.00C595.66 336.34 547.59 241.22 546.00 238.00C544.41 234.78 542.53 230.27 542.00 228.00C541.47 225.73 541.36 222.77 542.00 221.00C542.64 219.23 544.12 217.20 546.00 217.00Z"/><path class="ov-ring-piece" data-piece="1" d="M735.00 426.00C739.05 425.79 744.64 426.89 747.00 428.00C749.36 429.11 750.94 432.18 752.00 434.00C753.06 435.82 753.66 437.92 754.00 440.00C754.34 442.08 757.67 460.59 758.00 471.00C758.33 481.41 757.67 524.22 757.00 535.00C756.33 545.78 754.55 556.51 752.00 567.00C749.45 577.49 742.07 599.41 740.00 605.00C737.93 610.59 734.16 617.62 732.00 621.00C729.84 624.38 727.26 628.29 724.00 630.00C720.74 631.71 716.56 631.94 713.00 631.00C709.44 630.06 695.18 623.19 686.00 620.00C676.82 616.81 647.38 608.26 644.00 607.00C640.62 605.74 636.14 602.26 635.00 601.00C633.86 599.74 633.42 597.60 634.00 596.00C634.58 594.40 644.11 576.07 647.00 568.00C649.89 559.93 651.90 548.94 653.00 543.00C654.10 537.06 655.00 531.04 655.00 525.00C655.00 518.96 653.00 462.11 653.00 460.00C653.00 457.89 653.70 455.66 655.00 454.00C656.30 452.34 660.64 448.19 664.00 446.00C667.36 443.81 673.08 440.75 678.00 439.00C682.92 437.25 700.45 431.95 709.00 430.00C717.55 428.05 730.95 426.21 735.00 426.00Z"/><path class="ov-ring-piece" data-piece="2" d="M616.00 616.00C618.63 615.45 624.04 615.41 628.00 616.00C631.96 616.59 638.04 618.52 643.00 620.00C647.96 621.48 674.11 629.69 675.00 630.00C675.89 630.31 676.11 631.70 677.00 632.00C677.89 632.30 679.74 631.56 681.00 632.00C682.26 632.44 712.08 644.07 714.00 645.00C715.92 645.93 717.46 648.78 718.00 650.00C718.54 651.22 718.57 652.79 718.00 654.00C717.43 655.21 713.35 663.17 710.00 667.00C706.65 670.83 683.49 693.55 683.00 694.00C682.51 694.45 681.53 693.60 681.00 694.00C680.47 694.40 664.05 708.50 662.00 710.00C659.95 711.50 657.15 711.64 655.00 713.00C652.85 714.36 647.33 719.50 643.00 722.00C638.67 724.50 621.34 734.05 610.00 739.00C598.66 743.95 580.49 750.35 572.00 753.00C563.51 755.65 553.93 757.57 546.00 759.00C538.07 760.43 527.65 761.59 522.00 762.00C516.35 762.41 506.79 762.16 505.00 762.00C503.21 761.84 501.49 761.00 500.00 760.00C498.51 759.00 497.02 757.59 496.00 756.00C494.98 754.41 492.50 749.41 491.00 746.00C489.50 742.59 474.80 707.95 474.00 706.00C473.20 704.05 472.12 702.10 472.00 700.00C471.88 697.90 471.72 691.56 473.00 689.00C474.28 686.44 477.26 684.86 480.00 684.00C482.74 683.14 497.86 680.86 505.00 679.00C512.14 677.14 519.15 674.74 526.00 672.00C532.85 669.26 545.65 663.98 555.00 659.00C564.35 654.02 583.91 641.79 588.00 639.00C592.09 636.21 598.47 629.41 599.00 629.00C599.53 628.59 600.50 629.45 601.00 629.00C601.50 628.55 606.97 621.76 609.00 620.00C611.03 618.24 613.37 616.55 616.00 616.00Z"/><path class="ov-ring-piece" data-piece="3" d="M387.00 612.00C389.20 611.22 392.39 611.56 394.00 612.00C395.61 612.44 397.04 613.64 398.00 615.00C398.96 616.36 409.62 633.51 411.00 636.00C412.38 638.49 413.64 643.35 414.00 644.00C414.36 644.65 415.65 644.34 416.00 645.00C416.35 645.66 467.17 742.41 468.00 744.00C468.83 745.59 469.70 747.23 470.00 749.00C470.30 750.77 470.20 755.08 470.00 756.00C469.80 756.92 468.92 757.80 468.00 758.00C467.08 758.20 459.07 759.15 456.00 759.00C452.93 758.85 449.95 757.84 447.00 757.00C444.05 756.16 434.18 753.44 428.00 751.00C421.82 748.56 399.67 738.33 399.00 738.00C398.33 737.67 398.65 736.37 398.00 736.00C397.35 735.63 384.35 729.90 378.00 726.00C371.65 722.10 361.49 715.33 354.00 709.00C346.51 702.67 334.28 689.57 333.00 688.00C331.72 686.43 331.58 683.98 332.00 682.00C332.42 680.02 334.19 676.37 336.00 674.00C337.81 671.63 344.40 665.67 348.00 661.00C351.60 656.33 378.21 619.24 380.00 617.00C381.79 614.76 384.80 612.78 387.00 612.00Z"/><path class="ov-ring-piece" data-piece="4" d="M275.00 411.00C276.85 410.63 286.58 410.54 291.00 411.00C295.42 411.46 299.73 412.75 304.00 414.00C308.27 415.25 318.49 418.40 325.00 421.00C331.51 423.60 339.41 427.42 344.00 430.00C348.59 432.58 353.02 435.68 357.00 439.00C360.98 442.32 365.16 445.66 368.00 450.00C370.84 454.34 374.78 462.81 376.00 468.00C377.22 473.19 376.23 481.26 376.00 484.00C375.77 486.74 375.27 489.56 374.00 492.00C372.73 494.44 367.27 503.78 363.00 509.00C358.73 514.22 349.47 521.82 347.00 525.00C344.53 528.18 342.85 532.09 342.00 536.00C341.15 539.91 341.77 545.90 342.00 548.00C342.23 550.10 342.92 552.19 344.00 554.00C345.08 555.81 348.70 560.85 351.00 563.00C353.30 565.15 356.59 565.97 359.00 568.00C361.41 570.03 368.15 576.66 370.00 579.00C371.85 581.34 373.40 584.75 374.00 587.00C374.60 589.25 374.57 591.74 374.00 594.00C373.43 596.26 371.86 600.30 370.00 603.00C368.14 605.70 358.80 615.94 354.00 623.00C349.20 630.06 336.70 652.13 334.00 656.00C331.30 659.87 326.83 664.81 324.00 666.00C321.17 667.19 317.65 665.56 315.00 664.00C312.35 662.44 309.19 659.07 307.00 656.00C304.81 652.93 294.95 638.41 290.00 629.00C285.05 619.59 279.78 608.01 276.00 597.00C272.22 585.99 267.26 564.90 266.00 559.00C264.74 553.10 264.00 547.04 264.00 541.00C264.00 534.96 265.28 506.86 266.00 501.00C266.72 495.14 268.93 489.53 271.00 484.00C273.07 478.47 279.84 466.93 281.00 461.00C282.16 455.07 280.54 448.84 279.00 443.00C277.46 437.16 271.73 425.56 271.00 423.00C270.27 420.44 270.40 416.79 271.00 415.00C271.60 413.21 273.15 411.37 275.00 411.00Z"/><path class="ov-ring-piece" data-piece="5" d="M476.00 232.00C481.94 231.18 488.86 231.38 494.00 232.00C499.14 232.62 505.79 234.79 509.00 236.00C512.21 237.21 515.29 238.89 518.00 241.00C520.71 243.11 524.48 246.59 527.00 250.00C529.52 253.41 533.08 258.98 535.00 264.00C536.92 269.02 539.50 280.02 540.00 284.00C540.50 287.98 540.27 292.19 539.00 296.00C537.73 299.81 534.15 307.37 531.00 311.00C527.85 314.63 523.61 317.65 519.00 319.00C514.39 320.35 485.26 324.22 473.00 328.00C460.74 331.78 449.01 337.42 438.00 344.00C426.99 350.58 415.24 359.57 406.00 368.00C396.76 376.43 386.14 391.45 381.00 396.00C375.86 400.55 365.50 404.85 363.00 406.00C360.50 407.15 357.74 407.80 355.00 408.00C352.26 408.20 339.75 408.42 335.00 408.00C330.25 407.58 325.54 406.46 321.00 405.00C316.46 403.54 311.27 401.75 307.00 399.00C302.73 396.25 292.06 387.16 290.00 385.00C287.94 382.84 286.55 378.92 286.00 377.00C285.45 375.08 285.63 372.97 286.00 371.00C286.37 369.03 287.54 364.16 289.00 361.00C290.46 357.84 294.61 350.09 298.00 345.00C301.39 339.91 311.33 326.99 313.00 325.00C314.67 323.01 318.57 320.51 319.00 320.00C319.43 319.49 318.54 318.48 319.00 318.00C319.46 317.52 340.85 295.99 349.00 289.00C357.15 282.01 365.92 275.73 375.00 270.00C384.08 264.27 395.28 257.89 406.00 253.00C416.72 248.11 432.23 242.23 443.00 239.00C453.77 235.77 470.06 232.82 476.00 232.00Z"/></svg></div><span class="ov-system-center">IN ORDER</span></div>
+  <ol class="ov-system-steps"><li class="ov-system-step" id="ov-system-step-0"><span class="ov-system-number">01 / 06 <i></i> Context</span><h3>Business</h3><p>Give Oriven the context behind your business and brand.</p></li><li class="ov-system-step" id="ov-system-step-1"><span class="ov-system-number">02 / 06 <i></i> Intelligence</span><h3>Research</h3><p>Turn context into advertising and market intelligence.</p></li><li class="ov-system-step" id="ov-system-step-2"><span class="ov-system-number">03 / 06 <i></i> Creative</span><h3>Create</h3><p>Turn intelligence and ideas into creatives and campaigns.</p></li><li class="ov-system-step" id="ov-system-step-3"><span class="ov-system-number">04 / 06 <i></i> Campaign</span><h3>Launch</h3><p>Prepare and publish campaigns to your connected advertising platforms.</p></li><li class="ov-system-step" id="ov-system-step-4"><span class="ov-system-number">05 / 06 <i></i> Control</span><h3>Campaigns</h3><p>Bring connected campaigns and performance into one control center.</p></li><li class="ov-system-step" id="ov-system-step-5"><span class="ov-system-number">06 / 06 <i></i> Continuity</span><h3>Autopilot</h3><p>Watch performance and act on the rules you set.</p></li></ol>
+  <div class="ov-system-resolve"><span class="ov-section-eyebrow">Connected from the start</span><p>One system.<br>Your advertising workflow.</p></div>
+  <nav class="ov-system-nav" aria-label="Explore the six-part workflow"><button type="button" data-step="0" aria-label="Explore Business"><span>01</span>Business</button><button type="button" data-step="1" aria-label="Explore Research"><span>02</span>Research</button><button type="button" data-step="2" aria-label="Explore Create"><span>03</span>Create</button><button type="button" data-step="3" aria-label="Explore Launch"><span>04</span>Launch</button><button type="button" data-step="4" aria-label="Explore Campaigns"><span>05</span>Campaigns</button><button type="button" data-step="5" aria-label="Explore Autopilot"><span>06</span>Autopilot</button></nav>
+  <a class="ov-system-skip" href="#ov-pillars" onclick="ovNavTo(event,'#ov-pillars')">Continue to the product <span aria-hidden="true">↓</span></a>
+ </div>
 </section>
 
-<!-- ═══ THE SIX ORIVEN FRAGMENTS — Final Brand, Visual System & Connected
-     Advertising Experience Refinement pass. NEW section (spec: "4.
-     Fragmented advertising → connected system. Introduce the six-part
-     ORIVEN system"). The ORIVEN logo itself is six fragmented ring
-     segments (confirmed by inspecting assets/orivenlogo.png directly
-     before building this — the SVG arc geometry below reproduces that
-     real 6-segment ring construction, not an invented shape); this
-     section reuses that exact geometry as a visual metaphor for
-     fragmented advertising becoming one connected system. Explicitly
-     NOT "six circles connected by six static lines" (spec: "That is too
-     ordinary") — instead each of the 6 arc segments starts rotated
-     slightly apart from its resting ring position (the "fragmented"
-     state) and assembles into place on reveal (the "connected/active"
-     state). The six segments carry the six real advertising fragments
-     (Research/Create/Launch/Campaigns/Autopilot/Business — Settings is
-     deliberately excluded, per spec section 6: "Settings is NOT one of
-     the six advertising fragments"), labeled around the ring in the
-     conceptual loop order the spec describes (Research → Create →
-     Launch → Campaigns → Autopilot → Business → back into Research).
-     Reveal is the page's existing generic data-observe/.ov-vis
-     mechanism — no bespoke IntersectionObserver needed; reduced-motion
-     removes the segment rotation transition, leaving the ring already in
-     its settled, connected, fully-labeled state (spec: "If motion is
-     disabled, the conceptual relationship between the six fragments must
-     still be understandable visually"). Final Polish pass: the small
-     orbiting signal dot that used to travel continuously around the ring
-     was removed entirely (not replaced) for a cleaner, more premium feel
-     — the ring communicates "connected system" through the assembled
-     segments themselves. ═══ -->
-<section id="ov-fragments" class="ov-frag-section">
-  <div class="ov-frag-inner" data-observe>
-    <h2 class="ov-frag-h">Ads are fragmented.<br>Oriven brings them together.</h2>
-    <p class="ov-frag-sub">Research, creation, launch, campaigns, automation and business context, as one connected system instead of six disconnected tools.</p>
-
-    <!-- Final Interaction + Workflow Visual Refinement pass — the geometric
-         fragment itself is now the interaction target (spec section 2:
-         "The user should NOT have to aim at the tiny text outside the
-         O... The geometric fragment itself is the interaction target").
-         Six invisible pie-slice <button> hit areas (.ov-frag-hit-N,
-         clip-path polygons reaching from center out past the ring's
-         edge — generous, per spec's explicit "an invisible larger hit
-         area is acceptable") sit over the SVG and drive everything via
-         :has() in styles.css: the segment, its number+label, and the
-         center explanation all move/highlight together as one unit,
-         keyed off the SAME hit area's hover/focus-visible/.ov-frag-active
-         state — no ring-wide hover-enlarge anymore (removed per spec
-         section 9). Clicking/tapping sets the persistent .ov-frag-active
-         class via the small JS below (hover/hover alone is transient and
-         not enough on touch devices with no hover at all). -->
-    <div class="ov-frag-ring-wrap">
-      <svg class="ov-frag-ring" viewBox="0 0 220 220" aria-hidden="true">
-        <!-- Google Interface + O Label Fix pass — the number+name moved
-             INTO the SVG, in the SAME <g> as their segment, per spec
-             section 7 ("ONE GROUP... ONE TRANSFORM"). The earlier bug
-             was NOT just a timing mismatch (already fixed once): CSS
-             transform:translate(Npx) on an SVG element under
-             transform-box:view-box resolves N as SVG user-units, not
-             real screen pixels, so the segment's Npx and the (separate,
-             plain-HTML) label's Npx rendered at genuinely DIFFERENT
-             physical distances (measured ~2.5x apart on a real hover).
-             Moving the label into the segment's own <g> and animating
-             ONLY the <g> eliminates the two-coordinate-system mismatch
-             structurally — the label can no longer NOT match the
-             segment, because it IS the segment's own transform now. -->
-        <g class="ov-frag-unit ov-frag-unit-1">
-          <path class="ov-frag-seg ov-frag-seg-1" d="M118.28 15.36 A95 95 0 0 1 187.82 55.51 L157.51 76.73 A58 58 0 0 0 115.06 52.22 Z"/>
-          <text class="ov-frag-label-svg" x="148.25" y="43.75" text-anchor="middle"><tspan class="ov-frag-label-svg-num" x="148.25" dy="-2.6">01</tspan><tspan class="ov-frag-label-svg-name" x="148.25" dy="6.6">Research</tspan></text>
-        </g>
-        <g class="ov-frag-unit ov-frag-unit-2">
-          <path class="ov-frag-seg ov-frag-seg-2" d="M196.10 69.85 A95 95 0 0 1 196.10 150.15 L162.57 134.51 A58 58 0 0 0 162.57 85.49 Z"/>
-          <text class="ov-frag-label-svg" x="186.5" y="110" text-anchor="middle"><tspan class="ov-frag-label-svg-num" x="186.5" dy="-2.6">02</tspan><tspan class="ov-frag-label-svg-name" x="186.5" dy="6.6">Create</tspan></text>
-        </g>
-        <g class="ov-frag-unit ov-frag-unit-3">
-          <path class="ov-frag-seg ov-frag-seg-3" d="M187.82 164.49 A95 95 0 0 1 118.28 204.64 L115.06 167.78 A58 58 0 0 0 157.51 143.27 Z"/>
-          <text class="ov-frag-label-svg" x="148.25" y="176.25" text-anchor="middle"><tspan class="ov-frag-label-svg-num" x="148.25" dy="-2.6">03</tspan><tspan class="ov-frag-label-svg-name" x="148.25" dy="6.6">Launch</tspan></text>
-        </g>
-        <g class="ov-frag-unit ov-frag-unit-4">
-          <path class="ov-frag-seg ov-frag-seg-4" d="M101.72 204.64 A95 95 0 0 1 32.18 164.49 L62.49 143.27 A58 58 0 0 0 104.94 167.78 Z"/>
-          <text class="ov-frag-label-svg" x="71.75" y="176.25" text-anchor="middle"><tspan class="ov-frag-label-svg-num" x="71.75" dy="-2.6">04</tspan><tspan class="ov-frag-label-svg-name" x="71.75" dy="6.6">Campaigns</tspan></text>
-        </g>
-        <g class="ov-frag-unit ov-frag-unit-5">
-          <path class="ov-frag-seg ov-frag-seg-5" d="M23.90 150.15 A95 95 0 0 1 23.90 69.85 L57.43 85.49 A58 58 0 0 0 57.43 134.51 Z"/>
-          <text class="ov-frag-label-svg" x="33.5" y="110" text-anchor="middle"><tspan class="ov-frag-label-svg-num" x="33.5" dy="-2.6">05</tspan><tspan class="ov-frag-label-svg-name" x="33.5" dy="6.6">Autopilot</tspan></text>
-        </g>
-        <g class="ov-frag-unit ov-frag-unit-6">
-          <path class="ov-frag-seg ov-frag-seg-6" d="M32.18 55.51 A95 95 0 0 1 101.72 15.36 L104.94 52.22 A58 58 0 0 0 62.49 76.73 Z"/>
-          <text class="ov-frag-label-svg" x="71.75" y="43.75" text-anchor="middle"><tspan class="ov-frag-label-svg-num" x="71.75" dy="-2.6">06</tspan><tspan class="ov-frag-label-svg-name" x="71.75" dy="6.6">Business</tspan></text>
-        </g>
-      </svg>
-      <p class="ov-frag-hint">Explore each system</p>
-
-      <div class="ov-frag-center" aria-hidden="true">
-        <span class="ov-frag-center-text ov-frag-center-1">Find what works before you spend.</span>
-        <span class="ov-frag-center-text ov-frag-center-2">Turn insights into ad creatives.</span>
-        <span class="ov-frag-center-text ov-frag-center-3">Send campaigns live across platforms.</span>
-        <span class="ov-frag-center-text ov-frag-center-4">Manage every campaign in one place.</span>
-        <span class="ov-frag-center-text ov-frag-center-5">Continuously optimize what you run.</span>
-        <span class="ov-frag-center-text ov-frag-center-6">Give Oriven the context behind your business.</span>
-      </div>
-
-      <!-- The real interactive elements — one generous invisible pie-slice
-           per fragment, each carrying the accessible name the labels
-           above no longer need to (they're aria-hidden, purely visual). -->
-      <button type="button" class="ov-frag-hit ov-frag-hit-1" aria-label="Research: find what works before you spend" style="clip-path:polygon(50% 50%, 55.23% -9.77%, 99.15% 15.59%)"></button>
-      <button type="button" class="ov-frag-hit ov-frag-hit-2" aria-label="Create: turn insights into ad creatives" style="clip-path:polygon(50% 50%, 104.38% 24.64%, 104.38% 75.36%)"></button>
-      <button type="button" class="ov-frag-hit ov-frag-hit-3" aria-label="Launch: send campaigns live across platforms" style="clip-path:polygon(50% 50%, 99.15% 84.41%, 55.23% 109.77%)"></button>
-      <button type="button" class="ov-frag-hit ov-frag-hit-4" aria-label="Campaigns: manage every campaign in one place" style="clip-path:polygon(50% 50%, 44.77% 109.77%, 0.85% 84.41%)"></button>
-      <button type="button" class="ov-frag-hit ov-frag-hit-5" aria-label="Autopilot: continuously optimize what you run" style="clip-path:polygon(50% 50%, -4.38% 75.36%, -4.38% 24.64%)"></button>
-      <button type="button" class="ov-frag-hit ov-frag-hit-6" aria-label="Business: give Oriven the context behind your business" style="clip-path:polygon(50% 50%, 0.85% 15.59%, 44.77% -9.77%)"></button>
-    </div>
-  </div>
-</section>
-
-<!-- Complete Homepage Redesign pass — the "Research. Create. Launch.
-     Improve." connected-path section that lived here has been MOVED, not
-     deleted: the new required homepage order puts "How Oriven Works —
-     Four Steps" after Experience Oriven, near the end (spec section 1),
-     not this early. See its new, upgraded location further down this
-     file (per-step media placeholders + scroll-linked active state
-     added per spec sections 12-13). ═══ -->
-
-<!-- ═══ EVERYTHING ORIVEN DOES — Homepage + Pricing Polish Pass: redesigned
-     from 5 identical cards into an asymmetric bento composition (spec:
-     "NIET vijf identieke saaie cards... geen wheel, geen radial diagram").
-     Launch and Campaigns — the two everyday-use pillars available to
-     every plan from Starter — get the two larger cards; Research/
-     Autopilot/Business sit as three smaller supporting cards below. Same
-     5 real pillar names/descriptions as the mega-menu, just a stronger
-     visual composition. ═══ -->
-<!-- Final Landing Page Storytelling pass — the rail + media area is now
-     ONE integrated frame (spec: "the left navigation should feel
-     integrated into the large media container") via shared CSS on
-     .ov-workspace itself rather than two separately-boxed elements — see
-     styles.css. Tabs are real <button> elements now, NOT <a href> (spec,
-     explicit reversal of the earlier design: "Clicking Launch must NOT
-     navigate to /launch... They are interactive tabs"); the mega-menu/
-     footer links to /launch, /campaigns etc. remain the real navigation
-     path to each product page, this rail is tab-only. The large media
-     area is now EMPTY except for the real product video once it exists
-     (spec: "DO NOT put fake UI, fake ad creatives, fake charts... inside
-     the main media area... reserved for real product demonstration
-     videos") — every .ov-wsd-* illustrative mockup block from the
-     previous pass has been removed; .ov-ws-empty is the clean, neutral
-     placeholder (a large faint capability icon, nothing else) shown
-     until OV_WS_VIDEOS[cap] resolves to a real file. Only the ACTIVE
-     capability's video is ever probed for existence (see the workspace
-     IIFE below) — switching tabs lazily checks that tab's video on
-     first visit, never all 5 up front. -->
 <section id="ov-pillars" class="ov-pillars-section">
   <div class="ov-pillars-inner">
     <div class="ov-pillars-head" data-observe>
@@ -863,15 +1023,9 @@
     </div>
 
     <div class="ov-workspace" data-observe>
-      <div class="ov-ws-rail" role="tablist" aria-label="Oriven capabilities">
-        <!-- Build Your Advertising product order pass — Create must be
-             tab #1, Research #2 (spec: "CREATE FIRST, RESEARCH SECOND"),
-             Launch/Campaigns/Autopilot/Business keep their existing
-             relative order. Swapped both this tab pair AND the matching
-             .ov-ws-content pair below (same data-cap ids, so OV_WS_VIDEOS'
-             cap->video mapping in the JS below is untouched by this
-             reorder), moved the active state onto Create, and updated the
-             JS's default activeCap/ensureChecked('create') call to match. -->
+      <div class="ov-ws-rail" role="tablist" aria-label="Oriven product films">
+        <!-- Final polish pass: film selector order is intentionally
+             Create, Research, Launch, Campaigns, Autopilot, Business. -->
         <button type="button" class="ov-ws-tab ov-ws-tab-active" data-cap="create" aria-selected="true" role="tab">
           <svg class="ov-ws-tab-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>
           <span>Create</span>
@@ -899,6 +1053,12 @@
       </div>
 
       <div class="ov-ws-panel">
+        <!-- Landing Page Refinement pass — content-panel DOM order left
+             as-is deliberately: the JS (below) toggles panels by matching
+             data-cap to the clicked tab, never by DOM position, so
+             reordering these blocks isn't required for the tab-order
+             change above to work correctly. Only the default-active
+             panel moved (from Create to Business, matching the rail). -->
         <div class="ov-ws-content ov-ws-content-active" data-cap="create">
           <div class="ov-ws-media">
             <video class="ov-ws-video" data-cap="create" muted loop playsinline preload="none"></video>
@@ -956,7 +1116,7 @@
           </div>
           <div class="ov-ws-panel-eyebrow">Managing &amp; measuring</div>
           <h3 class="ov-ws-panel-title">Campaigns</h3>
-          <p class="ov-ws-panel-desc">Manage campaigns and understand performance.</p>
+          <p class="ov-ws-panel-desc">Bring every connected campaign back into one place.</p>
         </div>
 
         <div class="ov-ws-content" data-cap="autopilot">
@@ -969,9 +1129,9 @@
               <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="4.5"/></svg>
             </div>
           </div>
-          <div class="ov-ws-panel-eyebrow">Automating &amp; optimizing</div>
+          <div class="ov-ws-panel-eyebrow">Detect, recommend, act</div>
           <h3 class="ov-ws-panel-title">Autopilot</h3>
-          <p class="ov-ws-panel-desc">Automate campaign actions using your own rules.</p>
+          <p class="ov-ws-panel-desc">Watch performance and act on the rules you set.</p>
         </div>
 
         <div class="ov-ws-content" data-cap="business">
@@ -990,178 +1150,68 @@
         </div>
       </div>
     </div>
-  </div>
+    </div>
+
 </section>
 
-<!-- Homepage + Pricing Polish Pass — the former "Every Brand Needs It"
-     industry-card grid section was removed here. Reasoning (per spec:
-     "Als 'Every Brand Needs It' geen unieke informatie toevoegt:
-     VERWIJDEREN"): it only illustrated that Oriven suits many industries,
-     a message already implicit in the 5-pillar overview and platform
-     showcase above, and its 12 near-identical small cards were exactly
-     the "section → cards → section → cards" repetition this pass exists
-     to remove. No JS/CSS elsewhere referenced #ov-every-brand or
-     .ov-brand-card (verified before deleting), so nothing else breaks. -->
-
-
-<!-- Hidden legacy sections (IDs kept for GSAP scroll-trigger compat) -->
-<div style="display:none" aria-hidden="true">
-  <div id="ov-dashboard"></div>
-  <div class="ov-dash-mockup"></div><div class="ov-dash-kpi-row"></div><div class="ov-dash-chart"></div><div class="ov-dash-plat-breakdown"></div><div class="ov-dash-table"></div>
-  <div id="ov-ai-recs"><div class="ov-ai-grid"></div></div>
-  <div id="ov-integrations"><div class="ov-int-cards-grid"></div><div class="ov-int-note"></div></div>
-  <div id="ov-creative"><div class="ov-creative-tabs"></div><div class="ov-creative-stage"></div></div>
-  <div id="ov-compare"><div class="ov-feat-table-5"><div class="ov-feat-table-row"></div></div></div>
-</div>
-
-<!-- Complete Homepage Redesign pass — "Trusted By Modern Marketers"
-     (social proof), the slim pricing CTA band, and the homepage's #faq
-     section have all been removed. The spec fixes the homepage to
-     exactly 8 sections and explicitly excludes these: "Do NOT add:
-     pricing, testimonials, case studies, social proof, FAQ... Those can
-     exist elsewhere on the website." /pricing (real pricing cards),
-     /case-studies (the case-study content) and the new /faq route (see
-     near the end of this file, right after /case-studies) already are
-     that "elsewhere" — nothing here was deleted outright, either moved
-     to a route that already existed or, for FAQ, relocated to one built
-     specifically to keep it a real, clickable Resources destination. -->
-
-<!-- ═══ FROM SCATTERED TO IN ORDER — Connected-System pass (supersedes the
-     Final Create Enhancement + Landing-Page Storytelling pass's version,
-     which established this section as a BEFORE/AFTER positioning
-     statement but stopped there — spec review found it "does not provide
-     enough new information" by the time a visitor reaches it, having
-     already seen the hero, ad showcase, platform showcases and the six
-     product films/explanations above. This pass keeps that same
-     BEFORE/AFTER premise but finally answers the one question a visitor
-     still has at this point: "how does all of this work together?" —
-     without repeating the six product demos (no cards, no replayed
-     films, no per-product paragraphs).
-
-     Ring: STILL the exact same six-fragment ring geometry/motion as
-     #ov-fragments (identical .ov-frag-ring/.ov-frag-unit/.ov-frag-seg
-     markup, untouched, not redesigned) -- the six wedge <path>s below are
-     byte-for-byte the same "d" values as #ov-fragments and as this
-     section's own previous version. New: a second SVG layer inside the
-     SAME <svg>, .ov-order-connect, six thin center-facing "spoke" lines
-     (one per wedge position) plus a center hub dot. Each spoke stroke-
-     draws in (stroke-dashoffset) one at a time, staggered, AFTER the
-     wedges themselves have settled -- the ring visibly goes from
-     "six separate assembled pieces" to "six pieces joined at one shared
-     center," which is the literal picture of "one connected advertising
-     system," not just a caption claiming it. The hub dot lights up last,
-     once every spoke has connected.
-
-     Below the ring: .ov-order-nodes, six short plain-text labels (name +
-     one three-word line each, the spec's own suggested micro-copy,
-     verbatim) in Oriven's canonical product order (Create first, per the
-     Build Your Advertising product-order pass elsewhere on this page --
-     spec section: "preserve ORIVEN's canonical product/navigation order
-     where a static product list or labels are presented"). This is
-     deliberately NOT the same order the ring's spokes connect in: the
-     spokes connect in the spec's WORKFLOW/story order instead (Business
-     -> Research -> Create -> Launch -> Campaigns -> Autopilot, since
-     Business context is what Oriven already knows before advertising
-     begins) -- spec: "This distinction should be intentional." The nodes
-     themselves carry no per-item stagger tied to the spokes (that
-     pairing would force the visible reading order to also jump around
-     non-sequentially, which reads as broken rather than deliberate); they
-     brighten together, left to right, once the ring's connection sequence
-     finishes, as the row's own single confirming beat -- a plain-text,
-     always-legible companion to the ring's motion, never six cards
-     (no borders, no backgrounds, no icons, just name + one short line).
-
-     Text size was the deciding factor against putting these labels INSIDE
-     the tiny ring wedges instead (like #ov-fragments does): this ring is
-     sized at half of #ov-fragments' own (.ov-frag-ring-wrap-sm is 320px/
-     220px vs #ov-fragments' 640px/420px), so #ov-fragments' proven 5.6px
-     SVG-unit label would render at roughly half the physical size here --
-     illegible on a 390px screen. Keeping the labels as normal HTML text
-     below the ring avoids that entirely, at any viewport.
-
-     One optional closing line (spec: "choose at most ONE if it materially
-     improves the section... do not overload the ending with slogans"):
-     .ov-order-result, "Everything connected. Nothing starts from zero." --
-     the spec's own suggested phrasing, appearing last, after the ring and
-     the node row have both finished. The existing "Scattered -> In ORDER"
-     caption is kept exactly as before (spec: "Keep the existing supporting
-     line if it still fits" -- it does, it's the section's own payoff line
-     and the ring now visually proves it happening).
-
-     All of the above -- ring spokes, hub, node row, result line -- is
-     driven by the SAME .ov-order-inner[data-observe]/.ov-vis toggle the
-     ring itself already used (see the app-wide IntersectionObserver near
-     "Results / Pricing / FAQ" earlier in this file); no new observer, no
-     scroll-scrubbing. Reduced motion: every new element's *final* state is
-     unconditional (only the transition/stagger timing is gated behind
-     `prefers-reduced-motion: no-preference`, exactly like the existing
-     ring), so with reduced motion on, the ring, spokes, hub, node row and
-     result line all render already-connected and already-legible with no
-     animation required to understand them -- see styles.css. ═══ -->
-<section id="ov-workflow" class="ov-order-section">
-  <div class="ov-order-inner ov-frag-inner" data-observe>
-    <h2 class="ov-section-h">From scattered to in ORDER.</h2>
-    <p class="ov-section-sub">Research. Create. Launch. Campaigns. Autopilot. Business. One advertising system.</p>
-
-    <div class="ov-frag-ring-wrap ov-frag-ring-wrap-sm">
-      <svg class="ov-frag-ring" viewBox="0 0 220 220" aria-hidden="true">
-        <g class="ov-frag-unit ov-frag-unit-1"><path class="ov-frag-seg ov-frag-seg-1" d="M118.28 15.36 A95 95 0 0 1 187.82 55.51 L157.51 76.73 A58 58 0 0 0 115.06 52.22 Z"/></g>
-        <g class="ov-frag-unit ov-frag-unit-2"><path class="ov-frag-seg ov-frag-seg-2" d="M196.10 69.85 A95 95 0 0 1 196.10 150.15 L162.57 134.51 A58 58 0 0 0 162.57 85.49 Z"/></g>
-        <g class="ov-frag-unit ov-frag-unit-3"><path class="ov-frag-seg ov-frag-seg-3" d="M187.82 164.49 A95 95 0 0 1 118.28 204.64 L115.06 167.78 A58 58 0 0 0 157.51 143.27 Z"/></g>
-        <g class="ov-frag-unit ov-frag-unit-4"><path class="ov-frag-seg ov-frag-seg-4" d="M101.72 204.64 A95 95 0 0 1 32.18 164.49 L62.49 143.27 A58 58 0 0 0 104.94 167.78 Z"/></g>
-        <g class="ov-frag-unit ov-frag-unit-5"><path class="ov-frag-seg ov-frag-seg-5" d="M23.90 150.15 A95 95 0 0 1 23.90 69.85 L57.43 85.49 A58 58 0 0 0 57.43 134.51 Z"/></g>
-        <g class="ov-frag-unit ov-frag-unit-6"><path class="ov-frag-seg ov-frag-seg-6" d="M32.18 55.51 A95 95 0 0 1 101.72 15.36 L104.94 52.22 A58 58 0 0 0 62.49 76.73 Z"/></g>
-
-        <!-- Connected-system overlay — six spokes (one per wedge position,
-             clockwise from just past top, same angles #ov-fragments'
-             labels already use) drawing from each wedge's inner edge to
-             one shared center hub. Purely geometric (no text), so it
-             stays legible at this ring's smaller size at every
-             breakpoint; see styles.css .ov-order-connect for the
-             staggered story-order reveal. -->
-        <g class="ov-order-connect" aria-hidden="true">
-          <line class="ov-order-spoke ov-order-spoke-1" x1="139" y1="59.8" x2="110" y2="110"/>
-          <line class="ov-order-spoke ov-order-spoke-2" x1="168" y1="110" x2="110" y2="110"/>
-          <line class="ov-order-spoke ov-order-spoke-3" x1="139" y1="160.2" x2="110" y2="110"/>
-          <line class="ov-order-spoke ov-order-spoke-4" x1="81" y1="160.2" x2="110" y2="110"/>
-          <line class="ov-order-spoke ov-order-spoke-5" x1="52" y1="110" x2="110" y2="110"/>
-          <line class="ov-order-spoke ov-order-spoke-6" x1="81" y1="59.8" x2="110" y2="110"/>
-          <circle class="ov-order-hub" cx="110" cy="110" r="5"/>
-        </g>
+<section id="ov-intermission" aria-labelledby="ov-ccc-title">
+  <div class="ov-intermission-inner">
+    <div class="ov-ccc-copy">
+      <span class="ov-section-eyebrow">A connected advertising workflow</span>
+      <h2 id="ov-ccc-title"><span data-ccc="0">From context.</span><span data-ccc="1">To campaign.</span><span data-ccc="2">To <em>control.</em></span></h2>
+      <div class="ov-workflow-signal" aria-hidden="true"><i></i><b></b></div>
+      <ol class="ov-ccc-steps">
+        <li data-ccc="0"><b>Context</b> Business and Research give Oriven the brand, audience, market and competitors behind every ad.</li>
+        <li data-ccc="1"><b>Campaign</b> That context becomes the creative, the copy and the campaign structure.</li>
+        <li data-ccc="2"><b>Control</b> Once live, every connected platform reports back into one Campaigns view.</li>
+      </ol>
+    </div>
+    <div class="ov-ccc-stage" aria-hidden="true">
+      <svg class="ov-ccc-lines" viewBox="0 0 560 440" preserveAspectRatio="none">
+        <path class="ov-ccc-line" d="M440 110 C 390 110, 380 150, 330 150"/>
+        <path class="ov-ccc-line" d="M440 180 C 390 180, 380 190, 330 190"/>
+        <path class="ov-ccc-line" d="M440 250 C 390 250, 380 230, 330 230"/>
+        <path class="ov-ccc-line" d="M440 320 C 390 320, 380 270, 330 270"/>
+        <circle class="ov-ccc-pulse" r="3.2" cx="440" cy="110"/>
+        <circle class="ov-ccc-pulse" r="3.2" cx="440" cy="180"/>
+        <circle class="ov-ccc-pulse" r="3.2" cx="440" cy="250"/>
+        <circle class="ov-ccc-pulse" r="3.2" cx="440" cy="320"/>
       </svg>
+      <div class="ov-ccc-brief"><span>Context</span><span>Business · Research</span></div>
+      <div class="ov-ccc-chip" data-src="business" style="--x:62;--y:112">Brand voice<i>Business</i></div>
+      <div class="ov-ccc-chip" data-src="research" style="--x:238;--y:112">Audience<i>Research</i></div>
+      <div class="ov-ccc-chip" data-src="business" style="--x:62;--y:172">Products<i>Business</i></div>
+      <div class="ov-ccc-chip" data-src="research" style="--x:238;--y:172">Competitors<i>Research</i></div>
+      <div class="ov-ccc-chip" data-src="business" style="--x:62;--y:232">Positioning<i>Business</i></div>
+      <div class="ov-ccc-chip" data-src="research" style="--x:238;--y:232">Market trends<i>Research</i></div>
+      <div class="ov-ccc-card">
+        <div class="ov-ccc-card-top"><span>Campaign</span><span>Goal · Sales</span></div>
+        <div class="ov-ccc-card-body">
+          <img src="/assets/MA3.png" alt="" loading="lazy" decoding="async">
+          <div class="ov-ccc-slots"><span>Headline</span><i></i><span>Headline</span><i class="s"></i><span>Description</span><i></i><i class="s"></i></div>
+        </div>
+        <div class="ov-ccc-card-plats"><i class="ov-dot" style="--c:#4285F4"></i>Google <i class="ov-dot" style="--c:#1877F2"></i>Meta <i class="ov-dot" style="--c:#EE1D52"></i>TikTok <i class="ov-dot" style="--c:#E60023"></i>Pinterest</div>
+      </div>
+      <div class="ov-ccc-panel">
+        <div class="ov-ccc-card-top"><span>Campaigns</span><span>One view</span></div>
+        <div class="ov-ccc-grid">
+          <span></span><span>Spend</span><span>CTR</span><span>CPA</span><span>ROAS</span>
+          <span><i class="ov-dot" style="--c:#4285F4"></i>Google</span><span>—</span><span>—</span><span>—</span><span>—</span>
+          <span><i class="ov-dot" style="--c:#1877F2"></i>Meta</span><span>—</span><span>—</span><span>—</span><span>—</span>
+          <span><i class="ov-dot" style="--c:#EE1D52"></i>TikTok</span><span>—</span><span>—</span><span>—</span><span>—</span>
+          <span><i class="ov-dot" style="--c:#E60023"></i>Pinterest</span><span>—</span><span>—</span><span>—</span><span>—</span>
+        </div>
+      </div>
+      <div class="ov-ccc-node" style="--y:110"><i class="ov-dot" style="--c:#4285F4"></i>Google</div>
+      <div class="ov-ccc-node" style="--y:180"><i class="ov-dot" style="--c:#1877F2"></i>Meta</div>
+      <div class="ov-ccc-node" style="--y:250"><i class="ov-dot" style="--c:#EE1D52"></i>TikTok</div>
+      <div class="ov-ccc-node" style="--y:320"><i class="ov-dot" style="--c:#E60023"></i>Pinterest</div>
     </div>
-
-    <p class="ov-order-caption" aria-hidden="true"><span class="ov-order-caption-before">Scattered</span> <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M6.5 2.5L10 6l-3.5 3.5"/></svg> <span class="ov-order-caption-after">In ORDER</span></p>
-
-    <!-- Canonical product order (Create first), short signals not cards --
-         real content (not aria-hidden), read by screen readers as the
-         section's actual explanation of how the six products relate. -->
-    <div class="ov-order-nodes">
-      <div class="ov-order-node"><span class="ov-order-node-name">Create</span><span class="ov-order-node-tag">Build the advertising</span></div>
-      <div class="ov-order-node"><span class="ov-order-node-name">Research</span><span class="ov-order-node-tag">Understand the market</span></div>
-      <div class="ov-order-node"><span class="ov-order-node-name">Launch</span><span class="ov-order-node-tag">Go live</span></div>
-      <div class="ov-order-node"><span class="ov-order-node-name">Campaigns</span><span class="ov-order-node-tag">Understand performance</span></div>
-      <div class="ov-order-node"><span class="ov-order-node-name">Autopilot</span><span class="ov-order-node-tag">Act on change</span></div>
-      <div class="ov-order-node"><span class="ov-order-node-name">Business</span><span class="ov-order-node-tag">Your context</span></div>
-    </div>
-
-    <p class="ov-order-result">Everything connected. Nothing starts from zero.</p>
   </div>
 </section>
 
-<!-- ═══ EXPERIENCE ORIVEN — Google Interface + O Label Fix + Section Order pass: moved to sit directly below "How Oriven Works" and directly above the FAQ (spec section 14: "The Experience Oriven Yourself section must be directly BELOW the four How Oriven Works steps... directly ABOVE the FAQ"). Section content/styling otherwise completely unchanged — Final Homepage Polish pass: rebuilt again as a
-     clearly-defined visual BLOCK (spec: "The current version looks too
-     much like another generic section separated by horizontal lines...
-     make this a clearly defined visual BLOCK... large soft-gray block
-     with a strong visual center and a simple CTA"). This is the one
-     deliberate exception to the page's continuous dark grid (spec: "The
-     Experience Oriven block itself may have its own light-gray contained
-     background because it is intentionally a separate visual panel") —
-     see .ov-experience-panel in styles.css, which is NOT in the
-     transparency override list on purpose. Supporting sentence removed
-     entirely per spec ("Remove the supporting sentence... Do not replace
-     it with another paragraph. Keep the content extremely simple") — now
-     just the colorful arrow motif, heading, and one CTA. ═══ -->
+<section id="ov-wall2" class="ov-wall2-section" aria-labelledby="ov-creative-title"><div class="ov-wall2-head"><span class="ov-section-eyebrow">Made to be seen</span><h2 class="ov-section-h" id="ov-creative-title">Advertising<br>made here.</h2><p>Illustrative creative examples. No customer results implied.</p></div><div class="ov-creative-viewport"><div class="ov-creative-row"><figure class="ov-creative-card"><img src="/assets/MA3.png" alt="Coffee advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Coffee</span><span>Creative example</span></figcaption></figure><figure class="ov-creative-card ov-creative-video"><video data-src="/assets/TA1.mp4" muted loop playsinline preload="none" aria-label="Tea creative example"></video><button type="button" class="ov-creative-play" aria-label="Play Tea creative preview" aria-pressed="false">Play preview <span aria-hidden="true">↗</span></button><figcaption><span>Motion / Tea</span><span>Creative example</span></figcaption></figure><figure class="ov-creative-card"><img src="/assets/GA1.png" alt="Watch advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Watches</span><span>Creative example</span></figcaption></figure><figure class="ov-creative-card"><img src="/assets/MA7.png" alt="Sparkling drink advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Beverage</span><span>Creative example</span></figcaption></figure><figure class="ov-creative-card"><img src="/assets/PA4.png" alt="Travel advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Travel</span><span>Creative example</span></figcaption></figure><figure aria-hidden="true" class="ov-creative-dup ov-creative-card"><img src="/assets/MA5.png" alt="Activewear advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Apparel</span><span>Creative example</span></figcaption></figure><figure aria-hidden="true" class="ov-creative-dup ov-creative-card"><img src="/assets/PA1.png" alt="Interior advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Interiors</span><span>Creative example</span></figcaption></figure><figure aria-hidden="true" class="ov-creative-dup ov-creative-card ov-creative-video"><video data-src="/assets/TA5.mp4" muted loop playsinline preload="none" aria-label="Candle creative example"></video><button type="button" tabindex="-1" class="ov-creative-play" aria-label="Play Candle creative preview" aria-pressed="false">Play preview <span aria-hidden="true">↗</span></button><figcaption><span>Motion / Candle</span><span>Creative example</span></figcaption></figure><figure aria-hidden="true" class="ov-creative-dup ov-creative-card"><img src="/assets/GA8.png" alt="Headphones advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Audio</span><span>Creative example</span></figcaption></figure><figure aria-hidden="true" class="ov-creative-dup ov-creative-card"><img src="/assets/MA9.png" alt="Eyewear advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Eyewear</span><span>Creative example</span></figcaption></figure></div><div class="ov-creative-row"><figure class="ov-creative-card"><img src="/assets/MA5.png" alt="Activewear advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Apparel</span><span>Creative example</span></figcaption></figure><figure class="ov-creative-card"><img src="/assets/PA1.png" alt="Interior advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Interiors</span><span>Creative example</span></figcaption></figure><figure class="ov-creative-card ov-creative-video"><video data-src="/assets/TA5.mp4" muted loop playsinline preload="none" aria-label="Candle creative example"></video><button type="button" class="ov-creative-play" aria-label="Play Candle creative preview" aria-pressed="false">Play preview <span aria-hidden="true">↗</span></button><figcaption><span>Motion / Candle</span><span>Creative example</span></figcaption></figure><figure class="ov-creative-card"><img src="/assets/GA8.png" alt="Headphones advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Audio</span><span>Creative example</span></figcaption></figure><figure class="ov-creative-card"><img src="/assets/MA9.png" alt="Eyewear advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Eyewear</span><span>Creative example</span></figcaption></figure><figure aria-hidden="true" class="ov-creative-dup ov-creative-card"><img src="/assets/MA3.png" alt="Coffee advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Coffee</span><span>Creative example</span></figcaption></figure><figure aria-hidden="true" class="ov-creative-dup ov-creative-card ov-creative-video"><video data-src="/assets/TA1.mp4" muted loop playsinline preload="none" aria-label="Tea creative example"></video><button type="button" tabindex="-1" class="ov-creative-play" aria-label="Play Tea creative preview" aria-pressed="false">Play preview <span aria-hidden="true">↗</span></button><figcaption><span>Motion / Tea</span><span>Creative example</span></figcaption></figure><figure aria-hidden="true" class="ov-creative-dup ov-creative-card"><img src="/assets/GA1.png" alt="Watch advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Watches</span><span>Creative example</span></figcaption></figure><figure aria-hidden="true" class="ov-creative-dup ov-creative-card"><img src="/assets/MA7.png" alt="Sparkling drink advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Beverage</span><span>Creative example</span></figcaption></figure><figure aria-hidden="true" class="ov-creative-dup ov-creative-card"><img src="/assets/PA4.png" alt="Travel advertising creative" loading="lazy" decoding="async" width="640" height="800"><figcaption><span>Image / Travel</span><span>Creative example</span></figcaption></figure></div></div></section>
+
 <section id="ov-experience" class="ov-experience-section ov-experience-cta-section">
   <div class="ov-experience-panel" data-observe>
     <!-- Final Brand, Visual System & Connected Advertising Experience
@@ -1185,36 +1235,41 @@
   </div>
 </section>
 
-<!-- ═══ SOCIAL PROOF — REMOVED — Final Marketing Website Refinement pass
-     (spec section 14: "Do not invent customer information. Do not
-     invent: company names, performance numbers, testimonials, campaign
-     results, logos."). Auditing this section's actual content (prompted
-     by this pass's explicit review) found the review carousel's 15
-     quotes were NOT real data despite an earlier pass's comment
-     claiming otherwise — specific named people, job titles, companies
-     and quantified outcomes ("3 weeks to 3 days", "replaced our entire
-     agency") with no real source behind any of them. The adjoining
-     "before/after" block was already honestly labeled "Illustrative
-     example", but per spec section 14/15's explicit preference
-     ("prioritize Trusted by Modern Marketers + real reviews if
-     available, over fabricated case-study content") there is no honest
-     version of this section without real review/case-study data, which
-     does not exist in this repository. Removed entirely rather than
-     dressed up further. The globe-canvas renderer and review-carousel JS
-     below are removed with it (dead code otherwise, and the fabricated
-     quotes have no reason to keep existing even unused in source). ═══ -->
+<section id="ov-proof" class="ov-proof-section ov-ctrl" aria-labelledby="ov-ctrl-title">
+  <div class="ov-ctrl-stage">
+    <div class="ov-ctrl-copy">
+      <span class="ov-section-eyebrow">Control</span>
+      <h2 class="ov-section-h" id="ov-ctrl-title">Built around your control.</h2>
+      <p class="ov-ctrl-lead">AI should not remove control. It should organize it.</p>
+      <ul class="ov-ctrl-list">
+        <li data-i="0"><b>Budget</b><span>Set the budget. Oriven works inside it.</span></li>
+        <li data-i="1"><b>Status</b><span>See what is live, ready to launch or still a draft.</span></li>
+        <li data-i="2"><b>Platforms</b><span>Connected over OAuth. Your accounts stay yours.</span></li>
+        <li data-i="3"><b>Performance</b><span>Spend, clicks, CTR, CPA and ROAS in one view.</span></li>
+        <li data-i="4"><b>Rules</b><span>You write the conditions Autopilot watches for.</span></li>
+        <li data-i="5"><b>Autopilot</b><span>Acts only on your rules, within the limits you set.</span></li>
+      </ul>
+      <p class="ov-ctrl-end">AI where it helps. <em>Control where it matters.</em></p>
+    </div>
+    <div class="ov-ctrl-visual" aria-hidden="true">
+      <svg class="ov-ctrl-svg" viewBox="0 0 100 100">
+        <line class="ov-ctrl-link" x1="50" y1="50" x2="50.00" y2="14.00" pathLength="1"/><line class="ov-ctrl-link" x1="50" y1="50" x2="81.18" y2="32.00" pathLength="1"/><line class="ov-ctrl-link" x1="50" y1="50" x2="81.18" y2="68.00" pathLength="1"/><line class="ov-ctrl-link" x1="50" y1="50" x2="50.00" y2="86.00" pathLength="1"/><line class="ov-ctrl-link" x1="50" y1="50" x2="18.82" y2="68.00" pathLength="1"/><line class="ov-ctrl-link" x1="50" y1="50" x2="18.82" y2="32.00" pathLength="1"/>
+        <circle class="ov-ctrl-orbit" cx="50" cy="50" r="46" pathLength="1"/>
+      </svg>
+      <span class="ov-ctrl-orbit-label">Autopilot · inside your rules</span>
+      <div class="ov-ctrl-core"><span class="ov-ctrl-core-a">Your campaign</span><span class="ov-ctrl-core-b">You decide</span></div>
+        <div class="ov-ctrl-node" data-i="0" style="--x:50.00;--y:14.00"><span>01</span>Budget</div>
+        <div class="ov-ctrl-node" data-i="1" style="--x:81.18;--y:32.00"><span>02</span>Status</div>
+        <div class="ov-ctrl-node" data-i="2" style="--x:81.18;--y:68.00"><span>03</span>Platforms</div>
+        <div class="ov-ctrl-node" data-i="3" style="--x:50.00;--y:86.00"><span>04</span>Performance</div>
+        <div class="ov-ctrl-node ov-ctrl-node-rule" data-i="4" style="--x:18.82;--y:68.00"><span>05</span>Rules</div>
+        <div class="ov-ctrl-node ov-ctrl-node-rule is-on" data-i="5" style="--x:18.82;--y:32.00"><span>06</span>Autopilot</div>
+    </div>
+  </div>
+</section>
 
-<!-- FAQ — Final Homepage Polish pass: back on the homepage (spec: "FAQ
-     DOES belong on the homepage... Use the existing real FAQ content
-     where possible... Keep it compact"). This is the exact same content
-     that briefly lived at a standalone /faq route last pass — moved
-     back, not duplicated; that route (and its nav links) has been
-     removed so this is the one canonical place FAQ content lives. Em
-     dashes removed from every answer per this pass's typography rule.
-     Reuses .ov-faq-section/.ov-faq-inner/.ov-faq-head/.ov-faq-list —
-     none of that CSS was ever deleted when the section was previously
-     removed, so this renders with its existing left-heading/right-
-     accordion layout with no new styling needed. -->
+<!-- No verified customer reviews supplied; no public testimonials rendered. -->
+
 <section id="faq" class="ov-faq-section">
   <div class="ov-faq-inner">
     <div class="ov-faq-head" data-observe>
@@ -1222,78 +1277,22 @@
       <p class="ov-section-sub">Everything you need to know before connecting your ad accounts.</p>
     </div>
     <div class="ov-faq-list">
-      <div class="ov-faq" data-observe><button class="ov-faq-q" onclick="ovFaq(this)"><span>What does Oriven do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven is one workspace for advertising: research what works, create platform-ready ads, launch them across your connected accounts, and keep improving them, instead of stitching that together across separate tools.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.06s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What are credits?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Credits are Oriven's shared monthly usage balance. A complete image ad costs 100 credits, a video ad 225, a chat message 5. They're spent from one pool across every usage-based feature, not a separate allowance per feature.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.12s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How many ads can I create?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">It depends on your plan and how you split your credits. Starter's 1.000 credits/month is enough for roughly 10 image ads or 4 video ads if used entirely on one type. More if you mix in chat, Research or other usage. There's no separate ad limit beyond your credit balance.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.18s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Starter covers ad creation, campaign management and Business. Creator adds Research. Professional adds Autopilot and Priority Support. <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing &rarr;</a></div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.24s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which advertising platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Google Ads, Meta Ads (Facebook &amp; Instagram), TikTok Ads, and Pinterest Ads. Every integration uses OAuth. You never share your passwords with Oriven, and we never store your credentials.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.30s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I connect my existing ad accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Connect your existing Google Ads, Meta Ads, TikTok Ads or Pinterest Ads accounts and manage the campaigns already running on them from Oriven. You don't need to start from scratch.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.36s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does Research work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Research helps you understand what's working in advertising outside your own campaigns: creative approaches, messaging patterns, competitor context and trends. Every answer shows its real sources and uses calibrated language, so you always know what's an observed pattern versus a guess, never an invented result. Included on Creator and Professional.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.42s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Autopilot lets you set rules, like "if CPA exceeds &euro;25, reduce budget by 15%", and Oriven executes them automatically within the limits you set. Included on Professional.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.48s"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does signup work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">You can start creating without a credit card, and your first full campaign generation is free before you need to choose a plan. Cancel anytime once you're subscribed.</div></div>
+      <div class="ov-faq" data-observe><button type="button" class="ov-faq-q" id="ov-faq-question-1" aria-expanded="false" aria-controls="ov-faq-answer-1" onclick="ovLandingFaq(this)"><span>What does Oriven do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-1" role="region" aria-labelledby="ov-faq-question-1" inert>Oriven is one workspace for advertising: research what works, create platform-ready ads, launch them across your connected accounts, and keep improving them, instead of stitching that together across separate tools.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.06s"><button type="button" class="ov-faq-q" id="ov-faq-question-2" aria-expanded="false" aria-controls="ov-faq-answer-2" onclick="ovLandingFaq(this)"><span>What are credits?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-2" role="region" aria-labelledby="ov-faq-question-2" inert>Credits are Oriven's shared monthly usage balance. A complete image ad costs 100 credits, a video ad 225, a chat message 5. They're spent from one pool across every usage-based feature, not a separate allowance per feature.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.12s"><button type="button" class="ov-faq-q" id="ov-faq-question-3" aria-expanded="false" aria-controls="ov-faq-answer-3" onclick="ovLandingFaq(this)"><span>How many ads can I create?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-3" role="region" aria-labelledby="ov-faq-question-3" inert>It depends on your plan and how you split your credits. Starter's 1.000 credits/month is enough for roughly 10 image ads or 4 video ads if used entirely on one type. More if you mix in chat, Research or other usage. There's no separate ad limit beyond your credit balance.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.18s"><button type="button" class="ov-faq-q" id="ov-faq-question-4" aria-expanded="false" aria-controls="ov-faq-answer-4" onclick="ovLandingFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-4" role="region" aria-labelledby="ov-faq-question-4" inert>Starter covers ad creation, campaign management and Business. Creator adds Research. Professional adds Autopilot and Priority Support. <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing &rarr;</a></div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.24s"><button type="button" class="ov-faq-q" id="ov-faq-question-5" aria-expanded="false" aria-controls="ov-faq-answer-5" onclick="ovLandingFaq(this)"><span>Which advertising platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-5" role="region" aria-labelledby="ov-faq-question-5" inert>Google Ads, Meta Ads (Facebook &amp; Instagram), TikTok Ads, and Pinterest Ads. Every integration uses OAuth. You never share your passwords with Oriven, and we never store your credentials.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.30s"><button type="button" class="ov-faq-q" id="ov-faq-question-6" aria-expanded="false" aria-controls="ov-faq-answer-6" onclick="ovLandingFaq(this)"><span>Can I connect my existing ad accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-6" role="region" aria-labelledby="ov-faq-question-6" inert>Yes. Connect your existing Google Ads, Meta Ads, TikTok Ads or Pinterest Ads accounts and manage the campaigns already running on them from Oriven. You don't need to start from scratch.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.36s"><button type="button" class="ov-faq-q" id="ov-faq-question-7" aria-expanded="false" aria-controls="ov-faq-answer-7" onclick="ovLandingFaq(this)"><span>How does Research work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-7" role="region" aria-labelledby="ov-faq-question-7" inert>Research helps you understand what's working in advertising outside your own campaigns: creative approaches, messaging patterns, competitor context and trends. Every answer shows its real sources and uses calibrated language, so you always know what's an observed pattern versus a guess, never an invented result. Included on Creator and Professional.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.42s"><button type="button" class="ov-faq-q" id="ov-faq-question-8" aria-expanded="false" aria-controls="ov-faq-answer-8" onclick="ovLandingFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-8" role="region" aria-labelledby="ov-faq-question-8" inert>Autopilot lets you set rules, like "if CPA exceeds &euro;25, reduce budget by 15%", and Oriven executes them automatically within the limits you set. Included on Professional.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.48s"><button type="button" class="ov-faq-q" id="ov-faq-question-9" aria-expanded="false" aria-controls="ov-faq-answer-9" onclick="ovLandingFaq(this)"><span>How does signup work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-9" role="region" aria-labelledby="ov-faq-question-9" inert>You can start creating without a credit card, and your first full campaign generation is free before you need to choose a plan. Cancel anytime once you're subscribed.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.54s"><button type="button" class="ov-faq-q" id="ov-faq-question-10" aria-expanded="false" aria-controls="ov-faq-answer-10" onclick="ovLandingFaq(this)"><span>Can experienced advertisers still control campaigns directly?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-10" role="region" aria-labelledby="ov-faq-question-10" inert>Yes. Autopilot only acts on rules you explicitly set, like a CPA threshold, and every module stays manually editable at any time. Nothing runs on its own without a rule behind it.</div></div>
     </div>
   </div>
 </section>
 
-<!-- 11 FINAL CTA -->
-<section id="ov-final">
-  <div class="ov-final-network" aria-hidden="true">
-    <svg width="100%" height="100%" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" fill="none">
-      <line x1="120" y1="80"  x2="340" y2="160" stroke="rgba(183,255,42,.07)" stroke-width="1"/>
-      <line x1="340" y1="160" x2="600" y2="250" stroke="rgba(183,255,42,.1)"  stroke-width="1"/>
-      <line x1="600" y1="250" x2="860" y2="160" stroke="rgba(183,255,42,.1)"  stroke-width="1"/>
-      <line x1="860" y1="160" x2="1080" y2="80"  stroke="rgba(183,255,42,.07)" stroke-width="1"/>
-      <line x1="200" y1="380" x2="600" y2="250" stroke="rgba(183,255,42,.07)" stroke-width="1"/>
-      <line x1="1000" y1="400" x2="600" y2="250" stroke="rgba(183,255,42,.07)" stroke-width="1"/>
-      <line x1="480" y1="60"  x2="600" y2="250" stroke="rgba(183,255,42,.06)" stroke-width="1" stroke-dasharray="4 6"/>
-      <line x1="720" y1="60"  x2="600" y2="250" stroke="rgba(183,255,42,.06)" stroke-width="1" stroke-dasharray="4 6"/>
-      <line x1="100" y1="280" x2="340" y2="160" stroke="rgba(183,255,42,.04)" stroke-width="1" stroke-dasharray="3 7"/>
-      <line x1="1100" y1="300" x2="860" y2="160" stroke="rgba(183,255,42,.04)" stroke-width="1" stroke-dasharray="3 7"/>
-      <circle cx="120"  cy="80"  r="3" fill="rgba(251,188,5,.3)"/>
-      <circle cx="1080" cy="80"  r="3" fill="rgba(238,29,82,.25)"/>
-      <circle cx="480"  cy="60"  r="2.5" fill="rgba(8,102,255,.35)"/>
-      <circle cx="720"  cy="60"  r="2.5" fill="rgba(183,255,42,.3)"/>
-      <circle cx="340"  cy="160" r="3.5" fill="rgba(183,255,42,.2)"/>
-      <circle cx="860"  cy="160" r="3.5" fill="rgba(183,255,42,.2)"/>
-      <circle cx="200"  cy="380" r="3"   fill="rgba(251,188,5,.2)"/>
-      <circle cx="1000" cy="400" r="3"   fill="rgba(238,29,82,.2)"/>
-      <circle cx="100"  cy="280" r="2"   fill="rgba(183,255,42,.12)"/>
-      <circle cx="1100" cy="300" r="2"   fill="rgba(183,255,42,.12)"/>
-      <circle cx="600"  cy="250" r="7"   fill="rgba(183,255,42,.18)"/>
-      <circle cx="600"  cy="250" r="14"  fill="rgba(183,255,42,.05)"/>
-    </svg>
-  </div>
-  <!-- Final Marketing Website Structure pass — simplified per spec: one
-       concise line, one CTA, no feature re-explanation. The eyebrow and
-       the unverifiable "Setup in under 5 minutes" trust-badge claim were
-       removed (spec: "No Fabrication... trust statistics" — this exact
-       kind of unquantifiable timing claim was already flagged and
-       removed elsewhere on this page in an earlier pass; this instance
-       had been missed). "Cancel anytime" / "no credit card" are real,
-       verifiable account-policy statements, not stats, so they stay.
-       Complete Homepage Redesign pass — headline updated to the spec's
-       framing: "Stop managing fragmented advertising. Start running it
-       from one place." (was "Your next campaign starts here."). -->
-  <div class="ov-final-inner">
-    <h2 class="ov-final-h2">Stop managing fragmented advertising.<br>Start running it from one place.</h2>
-    <div class="ov-final-btns">
-      <a href="#" class="ov-btn-primary ov-btn-primary-lg" onclick="lpGetStarted(event)">Start creating &rarr;</a>
-      <a href="mailto:studio.oriven@outlook.com" class="ov-btn-ghost">Contact Us</a>
-    </div>
-    <div class="ov-final-trust">
-      <span>&#10022; Cancel anytime</span>
-      <span>&#10022; Start without a credit card</span>
-    </div>
-  </div>
-</section>
+<section id="ov-final" class="ov-closing" aria-labelledby="ov-closing-title"><div class="ov-closing-inner"><div class="ov-closing-o"><div class="ov-closing-mark" aria-hidden="true"><svg class="ov-brand-ring ov-closing-ring" viewBox="244 197 534 585" aria-hidden="true"><path class="ov-ring-piece" data-piece="0" d="M546.00 217.00C547.88 216.80 556.13 217.67 561.00 219.00C565.87 220.33 572.85 224.10 579.00 226.00C585.15 227.90 635.85 242.10 642.00 244.00C648.15 245.90 654.21 248.19 660.00 251.00C665.79 253.81 672.85 257.89 677.00 261.00C681.15 264.11 685.25 267.60 688.00 272.00C690.75 276.40 701.42 296.31 707.00 309.00C712.58 321.69 741.61 393.24 743.00 397.00C744.39 400.76 745.76 405.87 744.00 409.00C742.24 412.13 737.55 412.46 734.00 413.00C730.45 413.54 702.13 415.39 691.00 417.00C679.87 418.61 661.29 423.39 658.00 424.00C654.71 424.61 650.10 425.13 648.00 425.00C645.90 424.87 643.70 424.24 642.00 423.00C640.30 421.76 638.19 419.31 637.00 417.00C635.81 414.69 610.34 361.66 610.00 361.00C609.66 360.34 608.34 360.66 608.00 360.00C607.66 359.34 598.34 338.66 598.00 338.00C597.66 337.34 596.34 337.66 596.00 337.00C595.66 336.34 547.59 241.22 546.00 238.00C544.41 234.78 542.53 230.27 542.00 228.00C541.47 225.73 541.36 222.77 542.00 221.00C542.64 219.23 544.12 217.20 546.00 217.00Z"/><path class="ov-ring-piece" data-piece="1" d="M735.00 426.00C739.05 425.79 744.64 426.89 747.00 428.00C749.36 429.11 750.94 432.18 752.00 434.00C753.06 435.82 753.66 437.92 754.00 440.00C754.34 442.08 757.67 460.59 758.00 471.00C758.33 481.41 757.67 524.22 757.00 535.00C756.33 545.78 754.55 556.51 752.00 567.00C749.45 577.49 742.07 599.41 740.00 605.00C737.93 610.59 734.16 617.62 732.00 621.00C729.84 624.38 727.26 628.29 724.00 630.00C720.74 631.71 716.56 631.94 713.00 631.00C709.44 630.06 695.18 623.19 686.00 620.00C676.82 616.81 647.38 608.26 644.00 607.00C640.62 605.74 636.14 602.26 635.00 601.00C633.86 599.74 633.42 597.60 634.00 596.00C634.58 594.40 644.11 576.07 647.00 568.00C649.89 559.93 651.90 548.94 653.00 543.00C654.10 537.06 655.00 531.04 655.00 525.00C655.00 518.96 653.00 462.11 653.00 460.00C653.00 457.89 653.70 455.66 655.00 454.00C656.30 452.34 660.64 448.19 664.00 446.00C667.36 443.81 673.08 440.75 678.00 439.00C682.92 437.25 700.45 431.95 709.00 430.00C717.55 428.05 730.95 426.21 735.00 426.00Z"/><path class="ov-ring-piece" data-piece="2" d="M616.00 616.00C618.63 615.45 624.04 615.41 628.00 616.00C631.96 616.59 638.04 618.52 643.00 620.00C647.96 621.48 674.11 629.69 675.00 630.00C675.89 630.31 676.11 631.70 677.00 632.00C677.89 632.30 679.74 631.56 681.00 632.00C682.26 632.44 712.08 644.07 714.00 645.00C715.92 645.93 717.46 648.78 718.00 650.00C718.54 651.22 718.57 652.79 718.00 654.00C717.43 655.21 713.35 663.17 710.00 667.00C706.65 670.83 683.49 693.55 683.00 694.00C682.51 694.45 681.53 693.60 681.00 694.00C680.47 694.40 664.05 708.50 662.00 710.00C659.95 711.50 657.15 711.64 655.00 713.00C652.85 714.36 647.33 719.50 643.00 722.00C638.67 724.50 621.34 734.05 610.00 739.00C598.66 743.95 580.49 750.35 572.00 753.00C563.51 755.65 553.93 757.57 546.00 759.00C538.07 760.43 527.65 761.59 522.00 762.00C516.35 762.41 506.79 762.16 505.00 762.00C503.21 761.84 501.49 761.00 500.00 760.00C498.51 759.00 497.02 757.59 496.00 756.00C494.98 754.41 492.50 749.41 491.00 746.00C489.50 742.59 474.80 707.95 474.00 706.00C473.20 704.05 472.12 702.10 472.00 700.00C471.88 697.90 471.72 691.56 473.00 689.00C474.28 686.44 477.26 684.86 480.00 684.00C482.74 683.14 497.86 680.86 505.00 679.00C512.14 677.14 519.15 674.74 526.00 672.00C532.85 669.26 545.65 663.98 555.00 659.00C564.35 654.02 583.91 641.79 588.00 639.00C592.09 636.21 598.47 629.41 599.00 629.00C599.53 628.59 600.50 629.45 601.00 629.00C601.50 628.55 606.97 621.76 609.00 620.00C611.03 618.24 613.37 616.55 616.00 616.00Z"/><path class="ov-ring-piece" data-piece="3" d="M387.00 612.00C389.20 611.22 392.39 611.56 394.00 612.00C395.61 612.44 397.04 613.64 398.00 615.00C398.96 616.36 409.62 633.51 411.00 636.00C412.38 638.49 413.64 643.35 414.00 644.00C414.36 644.65 415.65 644.34 416.00 645.00C416.35 645.66 467.17 742.41 468.00 744.00C468.83 745.59 469.70 747.23 470.00 749.00C470.30 750.77 470.20 755.08 470.00 756.00C469.80 756.92 468.92 757.80 468.00 758.00C467.08 758.20 459.07 759.15 456.00 759.00C452.93 758.85 449.95 757.84 447.00 757.00C444.05 756.16 434.18 753.44 428.00 751.00C421.82 748.56 399.67 738.33 399.00 738.00C398.33 737.67 398.65 736.37 398.00 736.00C397.35 735.63 384.35 729.90 378.00 726.00C371.65 722.10 361.49 715.33 354.00 709.00C346.51 702.67 334.28 689.57 333.00 688.00C331.72 686.43 331.58 683.98 332.00 682.00C332.42 680.02 334.19 676.37 336.00 674.00C337.81 671.63 344.40 665.67 348.00 661.00C351.60 656.33 378.21 619.24 380.00 617.00C381.79 614.76 384.80 612.78 387.00 612.00Z"/><path class="ov-ring-piece" data-piece="4" d="M275.00 411.00C276.85 410.63 286.58 410.54 291.00 411.00C295.42 411.46 299.73 412.75 304.00 414.00C308.27 415.25 318.49 418.40 325.00 421.00C331.51 423.60 339.41 427.42 344.00 430.00C348.59 432.58 353.02 435.68 357.00 439.00C360.98 442.32 365.16 445.66 368.00 450.00C370.84 454.34 374.78 462.81 376.00 468.00C377.22 473.19 376.23 481.26 376.00 484.00C375.77 486.74 375.27 489.56 374.00 492.00C372.73 494.44 367.27 503.78 363.00 509.00C358.73 514.22 349.47 521.82 347.00 525.00C344.53 528.18 342.85 532.09 342.00 536.00C341.15 539.91 341.77 545.90 342.00 548.00C342.23 550.10 342.92 552.19 344.00 554.00C345.08 555.81 348.70 560.85 351.00 563.00C353.30 565.15 356.59 565.97 359.00 568.00C361.41 570.03 368.15 576.66 370.00 579.00C371.85 581.34 373.40 584.75 374.00 587.00C374.60 589.25 374.57 591.74 374.00 594.00C373.43 596.26 371.86 600.30 370.00 603.00C368.14 605.70 358.80 615.94 354.00 623.00C349.20 630.06 336.70 652.13 334.00 656.00C331.30 659.87 326.83 664.81 324.00 666.00C321.17 667.19 317.65 665.56 315.00 664.00C312.35 662.44 309.19 659.07 307.00 656.00C304.81 652.93 294.95 638.41 290.00 629.00C285.05 619.59 279.78 608.01 276.00 597.00C272.22 585.99 267.26 564.90 266.00 559.00C264.74 553.10 264.00 547.04 264.00 541.00C264.00 534.96 265.28 506.86 266.00 501.00C266.72 495.14 268.93 489.53 271.00 484.00C273.07 478.47 279.84 466.93 281.00 461.00C282.16 455.07 280.54 448.84 279.00 443.00C277.46 437.16 271.73 425.56 271.00 423.00C270.27 420.44 270.40 416.79 271.00 415.00C271.60 413.21 273.15 411.37 275.00 411.00Z"/><path class="ov-ring-piece" data-piece="5" d="M476.00 232.00C481.94 231.18 488.86 231.38 494.00 232.00C499.14 232.62 505.79 234.79 509.00 236.00C512.21 237.21 515.29 238.89 518.00 241.00C520.71 243.11 524.48 246.59 527.00 250.00C529.52 253.41 533.08 258.98 535.00 264.00C536.92 269.02 539.50 280.02 540.00 284.00C540.50 287.98 540.27 292.19 539.00 296.00C537.73 299.81 534.15 307.37 531.00 311.00C527.85 314.63 523.61 317.65 519.00 319.00C514.39 320.35 485.26 324.22 473.00 328.00C460.74 331.78 449.01 337.42 438.00 344.00C426.99 350.58 415.24 359.57 406.00 368.00C396.76 376.43 386.14 391.45 381.00 396.00C375.86 400.55 365.50 404.85 363.00 406.00C360.50 407.15 357.74 407.80 355.00 408.00C352.26 408.20 339.75 408.42 335.00 408.00C330.25 407.58 325.54 406.46 321.00 405.00C316.46 403.54 311.27 401.75 307.00 399.00C302.73 396.25 292.06 387.16 290.00 385.00C287.94 382.84 286.55 378.92 286.00 377.00C285.45 375.08 285.63 372.97 286.00 371.00C286.37 369.03 287.54 364.16 289.00 361.00C290.46 357.84 294.61 350.09 298.00 345.00C301.39 339.91 311.33 326.99 313.00 325.00C314.67 323.01 318.57 320.51 319.00 320.00C319.43 319.49 318.54 318.48 319.00 318.00C319.46 317.52 340.85 295.99 349.00 289.00C357.15 282.01 365.92 275.73 375.00 270.00C384.08 264.27 395.28 257.89 406.00 253.00C416.72 248.11 432.23 242.23 443.00 239.00C453.77 235.77 470.06 232.82 476.00 232.00Z"/></svg></div><div class="ov-closing-core"><span class="ov-section-eyebrow">Everything, in order</span><h2 id="ov-closing-title">Put your advertising workflow in <em>ORDER.</em></h2><a href="#" class="ov-btn-primary ov-btn-primary-lg" onclick="lpGetStarted(event)">Get started <span aria-hidden="true">↗</span></a></div></div></div></section>
 
-<!-- Slim pricing link band — REMOVED. Final Visual Refinement pass, spec
-     section 13: "REMOVE THIS ENTIRE SECTION. It does not belong on the
-     homepage anymore. Pricing is already available in the navbar and
-     has its own dedicated pricing page." The homepage now goes straight
-     from the Final CTA into the footer. -->
-
-<!-- FOOTER -->
 <footer class="ov-footer">
   <div class="ov-footer-inner">
     <div class="ov-footer-top">
@@ -1311,12 +1310,12 @@
              /solutions route, and gains Case Studies. -->
         <div class="ov-footer-col">
           <div class="ov-footer-col-h">Product</div>
-          <a href="/create" class="ov-footer-link">Create</a>
+          <a href="/business" class="ov-footer-link">Business</a>
           <a href="/research" class="ov-footer-link">Research</a>
+          <a href="/create" class="ov-footer-link">Create</a>
           <a href="/launch" class="ov-footer-link">Launch</a>
           <a href="/campaigns" class="ov-footer-link">Campaigns</a>
           <a href="/autopilot" class="ov-footer-link">Autopilot</a>
-          <a href="/business" class="ov-footer-link">Business</a>
         </div>
         <div class="ov-footer-col">
           <div class="ov-footer-col-h">Platforms</div>
@@ -4383,66 +4382,7 @@ function lpAnimProcess(){
 // child of #lp-stage (the same element the grid background is painted
 // on), not position:fixed, so a spark spawned mid-scroll stays visually
 // locked to its grid intersection instead of sliding out of alignment.
-(function(){
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  var stage = document.getElementById('lp-stage');
-  var scroller = document.getElementById('view-landing');
-  if (!stage || !scroller) return;
-
-  // Cell size is read from the grid's own computed background-size rather
-  // than hardcoded, so a spark always lands exactly on a real grid
-  // intersection and stays aligned even if the tile size ever changes —
-  // no coordinates baked in that could drift out of sync responsively.
-  function gridCell(){
-    var bg = getComputedStyle(stage).backgroundSize || '56px 56px';
-    var n = parseFloat(bg);
-    return isNaN(n) || n <= 0 ? 56 : n;
-  }
-
-  var MAX_SPARKS = 2; // occasional, never more than a couple visible at once
-  var active = 0;
-
-  function spawnSpark(){
-    if (active >= MAX_SPARKS) return;
-    var CELL = gridCell();
-    var vw = scroller.clientWidth, vh = scroller.clientHeight;
-    var cols = Math.max(6, Math.floor(vw / CELL));
-    var rows = Math.max(6, Math.floor(vh / CELL));
-    var col = 2 + Math.floor(Math.random() * (cols - 4));
-    var row = 2 + Math.floor(Math.random() * (rows - 4));
-    var x = col * CELL;
-    var y = scroller.scrollTop + row * CELL;
-
-    // Pure horizontal XOR pure vertical travel only, starting exactly on a
-    // grid intersection (col*CELL, row*CELL) — the trace always rides an
-    // actual grid line, never drifts between lines or moves diagonally.
-    var horizontal = Math.random() < 0.5;
-    var positive   = Math.random() < 0.5;
-    var cells      = 3 + Math.round(Math.random()); // 3 or 4 cells, exactly on-grid
-    var dist       = (positive ? 1 : -1) * cells * CELL;
-    var duration   = 5 + Math.random() * 3; // 5s–8s: a slow pulse travelling through the grid, not a moving particle
-
-    var el = document.createElement('div');
-    el.className = 'ov-grid-spark ' + (horizontal ? 'ov-grid-spark-h' : 'ov-grid-spark-v');
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    el.style.setProperty('--spark-dist', dist + 'px');
-    el.style.animationDuration = duration + 's';
-    stage.appendChild(el);
-    active++;
-
-    el.addEventListener('animationend', function(){
-      el.remove();
-      active--;
-    });
-  }
-
-  (function loop(){
-    spawnSpark();
-    setTimeout(loop, 3500 + Math.random() * 5500);
-  })();
-})();
-
+// Grid motion is confined to the workflow intermission.
 // Hero canvas particles
 (function(){
   var canvas = document.getElementById('ov-canvas');
@@ -5073,7 +5013,7 @@ function _tiktokTileHtml(n){
   var ad = OV_TIKTOK_ADS[n];
   return '<div class="ov-wall-card ov-wall-card-tiktok ov-adx-tiktok">' +
     '<div class="ov-adx-media ov-adx-media-filled">' +
-      '<video src="/assets/TA' + n + '.mp4" autoplay loop muted playsinline preload="auto" disablepictureinpicture aria-hidden="true"></video>' +
+      '<video data-src="/assets/TA' + n + '.mp4" loop muted playsinline preload="none" disablepictureinpicture aria-hidden="true"></video>' +
     '</div>' +
     '<div class="ov-adx-t-scrim">' +
       '<div class="ov-adx-t-badge">Sponsored</div>' +
@@ -5219,10 +5159,7 @@ function ovRenderAdWall(platform) {
     // .play() call (see the product-film section). Muted autoplay is
     // always allowed, so this never needs a user gesture; .catch() only
     // guards the rare environment where autoplay is blocked outright.
-    document.querySelectorAll('#ovAdWall video').forEach(function(v){
-      var p = v.play();
-      if (p && p.catch) p.catch(function(){});
-    });
+
   }
   var wall = document.getElementById('ovAdWall');
   if (wall) {
@@ -5930,15 +5867,18 @@ async function auSignup(){
   // — verified against the real filenames on disk, not assumed from
   // naming; do not "fix" this pairing, it is correct as specified.
   var OV_WS_VIDEOS = {
-    research: 'assets/ORIVEN%20Research%20Film.mp4',
-    create: 'assets/ORIVEN%20Launch%20Film.mp4',
+    // Second visual polish pass: five new real films recorded read-only from
+    // the live product (1600x900 H.264). Launch keeps its earlier film until
+    // the account has a real campaign to show in Launch Control.
+    research: 'assets/film-research.mp4',
+    create: 'assets/film-create.mp4',
     launch: 'assets/ORIVEN%20Launch%20Control%20Film.mp4',
-    campaigns: 'assets/ORIVEN%20Campaigns%20Film.mp4',
-    autopilot: 'assets/ORIVEN%20Autopilot%20Film.mp4',
-    business: 'assets/ORIVEN%20Business%20Film.mp4'
+    campaigns: 'assets/film-campaigns.mp4',
+    autopilot: 'assets/film-autopilot.mp4',
+    business: 'assets/film-business.mp4'
   };
   var videoState = {}; // cap -> 'loading' | 'ready' | 'missing' (absent = not checked yet)
-  var activeCap = 'create'; // Build Your Advertising product order pass — Create is now tab #1/default active
+  var activeCap = 'create'; // Landing Page Refinement pass — Business is now tab #1/default active
   var reducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var sectionVisible = false; // real IntersectionObserver state, set below — never assumed true
 
@@ -6071,7 +6011,7 @@ async function auSignup(){
     sectionVisible = true; // no IntersectionObserver support — fail open to the existing click-to-play fallback, never silently broken
   }
 
-  ensureChecked('create'); // the one tab visible on load — nothing else, yet (Create is now first/default)
+  ensureChecked('create'); // the one tab visible on load — nothing else, yet (Business is now first/default)
 
   // Mobile Polish pass — scroll-position-aware edge fades for
   // .ov-ws-rail (styles.css handles the actual gradients; this just
@@ -6600,6 +6540,441 @@ window.addEventListener('pageshow', function(e){
   }
   if (window.ScrollTrigger) ScrollTrigger.refresh();
 });
+</script>
+<script id="ov-landing-experience-script">
+/* Landing-only interaction layer. No auth, account, generation or campaign calls. */
+(function () {
+ 'use strict';
+ var root = document.getElementById('view-landing');
+ if (!root) return;
+ var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+ var system = document.getElementById('ov-system');
+  var pieces = Array.from(system.querySelectorAll('.ov-ring-piece'));
+ var steps = Array.from(system.querySelectorAll('.ov-system-step'));
+ var buttons = Array.from(system.querySelectorAll('.ov-system-nav button'));
+ var vectors = [[.55,-.85],[1,.1],[.4,.9],[-.5,.85],[-1,0],[-.55,-.85]];
+ var storyTrigger = null;
+
+ window.ovLandingFaq = function (btn) {
+   var item = btn.closest('.ov-faq');
+   var open = btn.getAttribute('aria-expanded') !== 'true';
+   root.querySelectorAll('#faq .ov-faq').forEach(function (row) {
+     var active = row === item && open;
+     row.classList.toggle('ov-faq-open', active);
+     row.querySelector('button').setAttribute('aria-expanded', String(active));
+     row.querySelector('.ov-faq-a').inert = !active;
+     row.querySelector('.ov-faq-a').setAttribute('aria-hidden', String(!active));
+     row.querySelector('.ov-faq-ic').textContent = active ? '−' : '+';
+   });
+ };
+ root.querySelectorAll('#faq .ov-faq-a').forEach(function (a) { a.setAttribute('aria-hidden','true'); });
+
+ // Existing tabs retain their click handlers, with arrow-key navigation added.
+ root.querySelectorAll('[role="tablist"]').forEach(function (list) {
+   var tabs = Array.from(list.querySelectorAll('[role="tab"]'));
+   function sync() { tabs.forEach(function(t){ t.tabIndex=t.getAttribute('aria-selected')==='true'?0:-1; }); }
+   sync();
+   list.addEventListener('click',function(){ queueMicrotask(sync); });
+   list.addEventListener('keydown',function(e){
+     var i=tabs.indexOf(document.activeElement), next;
+     if(i<0)return;
+     if(e.key==='ArrowRight'||e.key==='ArrowDown')next=(i+1)%tabs.length;
+     else if(e.key==='ArrowLeft'||e.key==='ArrowUp')next=(i+tabs.length-1)%tabs.length;
+     else if(e.key==='Home')next=0;
+     else if(e.key==='End')next=tabs.length-1;
+     else return;
+     e.preventDefault();tabs[next].click();tabs[next].focus();sync();
+   });
+ });
+
+ buttons.forEach(function(btn,i){
+   btn.addEventListener('click',function(){
+     if(storyTrigger){ root.scrollTo({top:storyTrigger.start+(storyTrigger.end-storyTrigger.start)*(.285+i*.092),behavior:reduce.matches?'auto':'smooth'}); }
+     else steps[i].scrollIntoView({block:'center',behavior:'auto'});
+   });
+ });
+
+ if(window.gsap && window.ScrollTrigger){
+   gsap.registerPlugin(ScrollTrigger);
+   var mm=gsap.matchMedia();
+   mm.add({motion:'(prefers-reduced-motion: no-preference)',desktop:'(min-width:901px) and (min-height:620px)',pointer:'(hover:hover) and (pointer:fine)'},function(ctx){
+     if(!ctx.conditions.motion)return;
+     var cleanup=[];
+     if(ctx.conditions.desktop){
+       system.classList.add('ov-system-enhanced');
+       var camera=system.querySelector('.ov-system-camera');
+       var heading=system.querySelector('.ov-system-heading');
+       var center=system.querySelector('.ov-system-center');
+       var resolve=system.querySelector('.ov-system-resolve');
+       gsap.set(pieces,{fill:'#d9dfcf'});
+       pieces.forEach(function(p,i){gsap.set(p,{x:vectors[i][0]*70,y:vectors[i][1]*70,rotation:(i%2?1:-1)*8,opacity:.55,transformOrigin:'50% 50%'});});
+       function render(p){
+         var n=Math.floor((p-.25)/.092);
+         var current=p>=.25&&p<.805?Math.min(5,Math.max(0,n)):-1;
+         steps.forEach(function(step,i){
+           var start=.25+i*.092;
+           var local=(p-start)/.092;
+           var opacity=local>=0&&local<=1?Math.min(1,local/.15,(1-local)/.13):0;
+           gsap.set(step,{opacity:Math.max(0,opacity),y:(1-Math.max(0,opacity))*14});
+           buttons[i].setAttribute('aria-current',i===current?'step':'false');
+           gsap.set(pieces[i],{fill:current<0?'#d9dfcf':i===current?'#B6FF3B':'#343a2e'});
+         });
+       }
+       var timeline=gsap.timeline({scrollTrigger:{trigger:system,scroller:root,start:'top top',end:'bottom bottom',scrub:.6,invalidateOnRefresh:true,onUpdate:function(self){render(self.progress);}}});
+       timeline.to(pieces,{x:0,y:0,rotation:0,opacity:1,stagger:.01,duration:.11,ease:'power2.out'},0)
+         .to(heading,{opacity:0,y:-18,duration:.05},.16)
+         .to(center,{opacity:0,duration:.05},.16)
+         .to(camera,{xPercent:-75,scale:1.85,duration:.08,ease:'power2.inOut'},.17)
+         .to(camera,{xPercent:0,scale:.68,duration:.1,ease:'power2.inOut'},.82)
+         .to(resolve,{opacity:1,y:0,duration:.06},.91)
+         .to({}, {duration:.03},.97);
+       storyTrigger=timeline.scrollTrigger;
+       render(storyTrigger.progress);
+       cleanup.push(function(){storyTrigger=null;system.classList.remove('ov-system-enhanced');buttons.forEach(function(b){b.removeAttribute('aria-current');});});
+     }
+     // Deliberate, scroll-linked line. No perpetual background animation.
+     gsap.fromTo('.ov-workflow-signal i',{scaleX:0},{scaleX:1,ease:'none',scrollTrigger:{trigger:'#ov-intermission',scroller:root,start:'top 80%',end:'bottom 40%',scrub:.5}});
+     if(ctx.conditions.desktop){
+       document.querySelectorAll('.ov-creative-row').forEach(function(row,i){gsap.fromTo(row,{x:i? -100:0},{x:i?0:-100,ease:'none',scrollTrigger:{trigger:'#ov-wall2',scroller:root,start:'top bottom',end:'bottom top',scrub:.65}});});
+     }
+     return function(){cleanup.forEach(function(fn){fn();});};
+   });
+   // MatchMedia reverts transforms on breakpoint/motion changes, including sticky height.
+   document.fonts.ready.then(function(){ScrollTrigger.refresh();});
+ }
+
+ // Pause Real Ads motion offscreen. Observe individual clips, including rebuilt tabs.
+ var adwall=document.getElementById('ovAdWall');
+ var visibleVideos=new Set();
+ var videoObserver=new IntersectionObserver(function(entries){entries.forEach(function(e){
+   var v=e.target;
+   if(e.isIntersecting){
+     visibleVideos.add(v);
+     if(!v.src&&v.dataset.src){v.src=v.dataset.src;v.preload='metadata';}
+     if(!reduce.matches&&!document.hidden){v.play().catch(function(){});}
+   }else{visibleVideos.delete(v);v.pause();}
+ });},{root:root,threshold:.25});
+ var watched=new Set();
+ function watchWall(){
+   watched.forEach(function(v){if(!v.isConnected){videoObserver.unobserve(v);watched.delete(v);visibleVideos.delete(v);}});
+   adwall.querySelectorAll('video').forEach(function(v){if(!watched.has(v)){v.autoplay=false;v.muted=true;v.preload='none';watched.add(v);videoObserver.observe(v);}});
+   adwall.querySelectorAll('.ov-wall-seq').forEach(function(s,i){if(i%s.parentElement.children.length!==0)s.setAttribute('aria-hidden','true');});
+ }
+ new MutationObserver(watchWall).observe(adwall,{childList:true,subtree:true});
+ watchWall();
+ new IntersectionObserver(function(entries){entries.forEach(function(e){adwall.classList.toggle('ov-wall-in-view',e.isIntersecting);});},{root:root}).observe(adwall);
+
+ // Two preview clips, loaded near view and always silent. Explicit playback works with reduced motion.
+ var gallery=document.getElementById('ov-wall2');
+ var galleryVideos=Array.from(gallery.querySelectorAll('video'));
+ gallery.querySelectorAll('.ov-creative-video').forEach(function(card){
+   var v=card.querySelector('video'),btn=card.querySelector('button');
+   var update=function(){btn.setAttribute('aria-pressed',String(!v.paused));btn.firstChild.textContent=v.paused?'Play preview ':'Pause preview ';};
+   btn.addEventListener('click',function(){
+     if(v.paused){galleryVideos.forEach(function(other){if(other!==v)other.pause();});if(!v.src)v.src=v.dataset.src;v.play().catch(update);}else v.pause();
+   });
+   v.addEventListener('play',update);v.addEventListener('pause',update);
+ });
+ // Load individual clips near the viewport and pause them when they leave it.
+ var galleryObserver=new IntersectionObserver(function(entries){entries.forEach(function(e){var v=e.target;if(e.isIntersecting){if(!v.src){v.src=v.dataset.src;v.preload='metadata';v.load();}}else v.pause();});},{root:root,rootMargin:'100px',threshold:.1});
+ galleryVideos.forEach(function(v){galleryObserver.observe(v);});
+ function pauseAll(){visibleVideos.forEach(function(v){v.pause();});galleryVideos.forEach(function(v){v.pause();});}
+ reduce.addEventListener('change',function(){if(reduce.matches)pauseAll();});
+ document.addEventListener('visibilitychange',function(){if(document.hidden)pauseAll();else if(!reduce.matches)visibleVideos.forEach(function(v){v.play().catch(function(){});});});
+})();
+
+</script>
+<script id="ov-landing-motion-script">
+/* Second visual polish pass — landing-only motion layer.
+   One shared rAF loop drives both interactive rings (hero + final) and
+   only runs while something is actually moving. Scroll stories are GSAP
+   ScrollTriggers bound to the #view-landing scroller, created inside a
+   gsap.matchMedia() so they are reverted cleanly when the viewport or the
+   reduced-motion preference changes. No auth, account or API calls. */
+(function () {
+ 'use strict';
+ var root = document.getElementById('view-landing');
+ if (!root || !window.gsap || !window.ScrollTrigger) return;
+ gsap.registerPlugin(ScrollTrigger);
+ var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+ var finePointer = window.matchMedia('(hover:hover) and (pointer:fine)');
+ function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+ function ease(t) { t = clamp(t, 0, 1); return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+
+ // ── Shared ring engine ──────────────────────────────────────────────
+ var rings = [], raf = 0;
+ function wake() { if (!raf) raf = requestAnimationFrame(tick); }
+ function tick() {
+   raf = 0;
+   var busy = false;
+   for (var i = 0; i < rings.length; i++) if (rings[i].frame()) busy = true;
+   if (busy) raf = requestAnimationFrame(tick);
+ }
+ function Ring(host, opt) {
+   var self = this;
+   this.host = host; this.opt = opt;
+   this.svg = host.querySelector('svg');
+   this.pieces = Array.prototype.slice.call(this.svg.querySelectorAll('.ov-ring-piece'));
+   var vb = this.svg.viewBox.baseVal;
+   this.vb = vb;
+   var cx = vb.x + vb.width / 2, cy = vb.y + vb.height / 2;
+   this.c = this.pieces.map(function (p) { var b = p.getBBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; });
+   this.v = this.c.map(function (c) { var dx = c.x - cx, dy = c.y - cy, l = Math.hypot(dx, dy) || 1; return { x: dx / l, y: dy / l }; });
+   this.cur = this.pieces.map(function () { return { x: 0, y: 0, r: 0, o: 1, s: 0 }; });
+   this.entry = this.pieces.map(function () { return { v: 0 }; });
+   this.tilt = { x: 0, y: 0 };
+   this.p = null; this.enabled = false; this.dirty = true;
+   host.classList.add('ov-ring-live');
+   this.onMove = function (e) {
+     if (!self.enabled) return;
+     var r = host.getBoundingClientRect();
+     self.p = {
+       x: vb.x + (e.clientX - r.left) / r.width * vb.width,
+       y: vb.y + (e.clientY - r.top) / r.height * vb.height,
+       gx: clamp((e.clientX - (r.left + r.width / 2)) / (r.width * .85), -1, 1),
+       gy: clamp((e.clientY - (r.top + r.height / 2)) / (r.height * .85), -1, 1)
+     };
+     wake();
+   };
+   this.onLeave = function () { self.p = null; wake(); };
+   rings.push(this);
+ }
+ Ring.prototype.listen = function (area) {
+   this.area = area;
+   area.addEventListener('pointermove', this.onMove, { passive: true });
+   area.addEventListener('pointerleave', this.onLeave);
+ };
+ Ring.prototype.frame = function () {
+   var o = this.opt, P = this.enabled ? this.p : null, k = o.k || .16, moving = false;
+   var gx = P ? P.gx : 0, gy = P ? P.gy : 0;
+   var tx = -gy * o.tilt, ty = gx * o.tilt;
+   this.tilt.x += (tx - this.tilt.x) * k; this.tilt.y += (ty - this.tilt.y) * k;
+   if (Math.abs(tx - this.tilt.x) > .01 || Math.abs(ty - this.tilt.y) > .01) moving = true;
+   this.svg.style.transform = 'rotateX(' + this.tilt.x.toFixed(3) + 'deg) rotateY(' + this.tilt.y.toFixed(3) + 'deg)';
+   var best = 0, hov = -1, f = [];
+   for (var i = 0; i < this.pieces.length; i++) {
+     var fi = 0;
+     if (P) { var d = Math.hypot(P.x - this.c[i].x, P.y - this.c[i].y); fi = clamp(1 - d / o.radius, 0, 1); fi = fi * fi * (3 - 2 * fi); }
+     f.push(fi); if (fi > best) { best = fi; hov = i; }
+   }
+   for (var j = 0; j < this.pieces.length; j++) {
+     var c = this.cur[j], v = this.v[j], e = this.entry[j].v, dep = o.depth[j % o.depth.length];
+     var push = f[j] * o.push * (j === hov ? 1 : .45) + e * o.sep;
+     var X = gx * o.parallax * dep + v.x * push;
+     var Y = gy * o.parallax * dep + v.y * push;
+     var R = gx * o.rot * (j % 2 ? 1 : -1) + (j === hov ? f[j] * o.frot : 0) + e * (j % 2 ? 1 : -1) * 9;
+     var O = 1 - e * .72;
+     var S = j === hov ? f[j] : 0;
+     var kk = k;
+     c.x += (X - c.x) * kk; c.y += (Y - c.y) * kk; c.r += (R - c.r) * kk; c.o += (O - c.o) * kk; c.s += (S - c.s) * .14;
+     if (Math.abs(X - c.x) > .02 || Math.abs(Y - c.y) > .02 || Math.abs(R - c.r) > .01 || Math.abs(O - c.o) > .003 || Math.abs(S - c.s) > .004) moving = true;
+     var st = this.pieces[j].style;
+     st.transform = 'translate(' + c.x.toFixed(2) + 'px,' + c.y.toFixed(2) + 'px) rotate(' + c.r.toFixed(2) + 'deg)';
+     st.opacity = c.o.toFixed(3);
+     st.strokeOpacity = (c.s * o.edge).toFixed(3);
+   }
+   return moving;
+ };
+ Ring.prototype.reset = function () {
+   this.enabled = false; this.p = null;
+   this.entry.forEach(function (e) { e.v = 0; });
+   this.cur.forEach(function (c) { c.x = c.y = c.r = c.s = 0; c.o = 1; });
+   this.tilt.x = this.tilt.y = 0;
+   this.svg.style.transform = '';
+   this.pieces.forEach(function (p) { p.style.transform = ''; p.style.opacity = ''; p.style.strokeOpacity = ''; });
+ };
+
+ var heroHost = document.querySelector('.ov-hero-mark');
+ var finalHost = document.querySelector('.ov-closing-mark');
+ var heroRing = heroHost && new Ring(heroHost, { parallax: 7, push: 24, rot: 1.3, frot: 3, sep: 95, radius: 240, tilt: 7, edge: .55, depth: [1, .7, 1.25, .85, 1.15, .75] });
+ var finalRing = finalHost && new Ring(finalHost, { parallax: 6, push: 18, rot: .9, frot: 2.4, sep: 130, radius: 220, tilt: 5, edge: .5, depth: [.9, 1.2, .75, 1.1, .8, 1.25] });
+ if (heroRing) heroRing.listen(document.getElementById('ov-hero'));
+ if (finalRing) finalRing.listen(document.getElementById('ov-final'));
+
+ function assemble(ring, delay) {
+   ring.entry.forEach(function (e) { e.v = 1; });
+   wake();
+   return gsap.to(ring.entry, { v: 0, duration: 1.25, ease: 'power3.out', stagger: .08, delay: delay || 0, onUpdate: wake, onComplete: wake });
+ }
+
+ var mm = gsap.matchMedia();
+ mm.add({
+   motion: '(prefers-reduced-motion: no-preference)',
+   wide: '(min-width:1024px)',
+   pin: '(min-width:1024px) and (min-height:640px)'
+ }, function (ctx) {
+   var cond = ctx.conditions, undo = [];
+   if (!cond.motion) return;
+   var pointerOk = finePointer.matches;
+
+   // ── HERO: assemble on load, then pointer response (desktop, fine pointer)
+   if (heroRing) {
+     var ht = assemble(heroRing, .15);
+     ht.eventCallback('onComplete', function () { heroRing.enabled = pointerOk && cond.wide; wake(); });
+     undo.push(function () { ht.kill(); heroRing.reset(); });
+   }
+
+   // ── FINAL O: assembly is scrubbed to scroll position — separated while
+   // approaching, assembling as the ring rises into view, complete when it
+   // reaches the middle of the screen, and separating again on the way
+   // back up. Scroll sets each fragment's base separation (entry.v); the
+   // pointer adds its own small offset on top inside the ring engine, so
+   // neither overwrites the other.
+   if (finalRing) {
+     var core = document.querySelector('.ov-closing-core');
+     finalRing.enabled = pointerOk;
+     var renderFinal = function (p) {
+       finalRing.entry.forEach(function (e, i) { e.v = 1 - ease(clamp((p - i * .07) / .58, 0, 1)); });
+       var c = clamp((p - .7) / .3, 0, 1);
+       core.style.opacity = c.toFixed(3);
+       core.style.transform = 'translate(-50%,calc(-50% + ' + ((1 - c) * 16).toFixed(1) + 'px))';
+       core.style.pointerEvents = c > .5 ? '' : 'none';
+       wake();
+     };
+     var fst = ScrollTrigger.create({ trigger: '.ov-closing-o', scroller: root, start: 'top 80%', end: 'center 52%', scrub: true, onUpdate: function (st) { renderFinal(st.progress); }, onRefresh: function (st) { renderFinal(st.progress); } });
+     renderFinal(fst.progress);
+     undo.push(function () { fst.kill(); core.style.opacity = ''; core.style.transform = ''; core.style.pointerEvents = ''; finalRing.reset(); });
+   }
+
+   // ── EXPERIENCE: emphasis travels through the arrows toward the CTA
+   var arrows = Array.prototype.slice.call(document.querySelectorAll('.ov-exp-arrow'));
+   if (arrows.length) {
+     var renderArrows = function (p) {
+       var a = p * (arrows.length - 1);
+       arrows.forEach(function (el, i) {
+         var e = clamp(1 - Math.abs(a - i) * .95, 0, 1);
+         gsap.set(el, { scale: .8 + .42 * e, opacity: .2 + .8 * e, x: e * 6 });
+       });
+     };
+     var ast = ScrollTrigger.create({ trigger: '#ov-experience', scroller: root, start: 'top 85%', end: 'bottom 35%', scrub: true, onUpdate: function (s) { renderArrows(s.progress); }, onRefresh: function (s) { renderArrows(s.progress); } });
+     renderArrows(ast.progress);
+     undo.push(function () { ast.kill(); gsap.set(arrows, { clearProps: 'all' }); });
+   }
+
+   if (cond.pin) {
+     // ── PRODUCT FILMS: the video frame itself grows from a clean in-section
+     // size to a near full-screen showcase, with the six-film selector
+     // always directly underneath it. Width is driven straight from scroll
+     // progress (reverses on the way up); once large it holds, and the
+     // selector is the way to explore the other films.
+     var pillars = document.getElementById('ov-pillars');
+     var inner = pillars.querySelector('.ov-pillars-inner');
+     var ws = pillars.querySelector('.ov-workspace');
+     var head = pillars.querySelector('.ov-pillars-head');
+     var rail = pillars.querySelector('.ov-ws-rail');
+     pillars.classList.add('ov-films-enhanced');
+     var fd = { w0: 900, w1: 1200, off: 0 };
+     var measureFilms = function () {
+       var st = inner.getBoundingClientRect(), railH = rail.offsetHeight, headH = head.offsetHeight;
+       fd.w0 = Math.max(480, Math.min(st.width * .62, (st.height - headH - railH - 90) * 16 / 9));
+       fd.w1 = Math.max(fd.w0, Math.min(st.width - 56, (st.height - railH - 40) * 16 / 9));
+       fd.off = headH * .6;
+     };
+     var renderFilms = function (p) {
+       var e = ease(clamp(p / .42, 0, 1));
+       ws.style.width = (fd.w0 + (fd.w1 - fd.w0) * e).toFixed(1) + 'px';
+       ws.style.marginTop = ((1 - e) * fd.off).toFixed(1) + 'px';
+       head.style.opacity = (1 - e).toFixed(3);
+       head.style.transform = 'translateY(' + (-24 * e).toFixed(1) + 'px)';
+     };
+     var fstg = ScrollTrigger.create({ trigger: pillars, scroller: root, start: 'top top', end: 'bottom bottom', invalidateOnRefresh: true, onUpdate: function (st) { renderFilms(st.progress); }, onRefresh: function (st) { measureFilms(); renderFilms(st.progress); } });
+     measureFilms(); renderFilms(fstg.progress);
+     undo.push(function () {
+       fstg.kill(); pillars.classList.remove('ov-films-enhanced');
+       ws.style.width = ''; ws.style.marginTop = ''; head.style.opacity = ''; head.style.transform = '';
+     });
+
+     // ── CONTEXT → CAMPAIGN → CONTROL
+     var ccc = document.getElementById('ov-intermission');
+     var stage = ccc.querySelector('.ov-ccc-stage');
+     var u = function (v) { return v * stage.clientWidth / 560; };
+     var chips = Array.prototype.slice.call(stage.querySelectorAll('.ov-ccc-chip'));
+     var lines = Array.prototype.slice.call(stage.querySelectorAll('.ov-ccc-line'));
+     var pulses = Array.prototype.slice.call(stage.querySelectorAll('.ov-ccc-pulse'));
+     var cNodes = stage.querySelectorAll('.ov-ccc-node');
+     var heads = ccc.querySelectorAll('.ov-ccc-copy h2 span');
+     var cSteps = ccc.querySelectorAll('.ov-ccc-steps li');
+     ccc.classList.add('ov-ccc-enhanced');
+     lines.forEach(function (l) { l.setAttribute('pathLength', '1'); });
+     var scatter = [[-120, -40, -14], [110, -70, 12], [-150, 30, 9], [140, 20, -11], [-90, 90, 13], [120, 100, -9]];
+     gsap.set(chips, { x: function (i) { return u(scatter[i][0]); }, y: function (i) { return u(scatter[i][1]); }, rotation: function (i) { return scatter[i][2]; }, opacity: .3 });
+     gsap.set(stage.querySelector('.ov-ccc-brief'), { opacity: 0 });
+     gsap.set(stage.querySelector('.ov-ccc-card'), { opacity: 0, scale: .82 });
+     gsap.set(stage.querySelector('.ov-ccc-panel'), { opacity: 0, y: u(24) });
+     gsap.set(cNodes, { opacity: 0, x: u(34) });
+     gsap.set(lines, { strokeDasharray: 1, strokeDashoffset: 1 });
+     gsap.set(pulses, { opacity: 0 });
+     var setStage = function (p) {
+       var n = p < .38 ? 0 : p < .64 ? 1 : 2;
+       heads.forEach(function (h, i) { h.classList.toggle('is-on', i === n); });
+       cSteps.forEach(function (li, i) { li.classList.toggle('is-on', i === n); });
+     };
+     var ctl = gsap.timeline({ defaults: { ease: 'power2.inOut' }, scrollTrigger: { trigger: ccc, scroller: root, start: 'top top', end: 'bottom bottom', scrub: .6, invalidateOnRefresh: true, onUpdate: function (s) { setStage(s.progress); }, onRefresh: function (s) { setStage(s.progress); } } });
+     ctl.to(chips, { x: 0, y: 0, rotation: 0, opacity: 1, duration: .2, stagger: .012, ease: 'power3.out' }, .04)
+        .to(stage.querySelector('.ov-ccc-brief'), { opacity: 1, duration: .06 }, .18)
+        .to(chips, { x: function (i, el) { return u(240 - (parseFloat(el.style.getPropertyValue('--x')) + 80)); }, y: function (i, el) { return u(200 - (parseFloat(el.style.getPropertyValue('--y')) + 22)); }, scale: .35, opacity: 0, duration: .12, stagger: .008 }, .36)
+        .to(stage.querySelector('.ov-ccc-brief'), { opacity: 0, duration: .06 }, .38)
+        .to(stage.querySelector('.ov-ccc-card'), { opacity: 1, scale: 1, duration: .1, ease: 'power3.out' }, .42)
+        .to(stage.querySelector('.ov-ccc-card'), { opacity: 0, x: u(-50), scale: .88, duration: .1 }, .63)
+        .to(stage.querySelector('.ov-ccc-panel'), { opacity: 1, y: 0, duration: .1 }, .66)
+        .to(cNodes, { opacity: 1, x: 0, duration: .08, stagger: .02, ease: 'power3.out' }, .68)
+        .to(lines, { strokeDashoffset: 0, duration: .12, stagger: .02, ease: 'none' }, .76)
+        .to(pulses, { opacity: 1, duration: .02 }, .8)
+        .to(pulses, { attr: { cx: 330, cy: function (i) { return [150, 190, 230, 270][i]; } }, duration: .12, stagger: .02, ease: 'power1.in' }, .8)
+        .to(pulses, { opacity: 0, duration: .03 }, .95);
+     setStage(ctl.scrollTrigger.progress);
+     undo.push(function () {
+       ccc.classList.remove('ov-ccc-enhanced');
+       heads.forEach(function (h) { h.classList.remove('is-on'); }); cSteps.forEach(function (li) { li.classList.remove('is-on'); });
+     });
+
+     // ── BUILT AROUND YOUR CONTROL
+     var ctrl = document.getElementById('ov-proof');
+     var vis = ctrl.querySelector('.ov-ctrl-visual');
+     var nodes = Array.prototype.slice.call(vis.querySelectorAll('.ov-ctrl-node'));
+     var links = Array.prototype.slice.call(vis.querySelectorAll('.ov-ctrl-link'));
+     var items = ctrl.querySelectorAll('.ov-ctrl-list li');
+     var coreEl = vis.querySelector('.ov-ctrl-core');
+     ctrl.classList.add('ov-ctrl-enhanced');
+     var angles = [-90, -30, 30, 90, 150, 210];
+     var vw = function () { return vis.clientWidth; };
+     gsap.set(nodes, { x: function (i) { return Math.cos(angles[i] * Math.PI / 180) * vw() * .13 + (i % 2 ? 16 : -16); }, y: function (i) { return Math.sin(angles[i] * Math.PI / 180) * vw() * .13 + (i % 3 - 1) * 14; }, rotation: function (i) { return (i % 2 ? 1 : -1) * 8; }, opacity: .22, xPercent: -50, yPercent: -50 });
+     gsap.set(links, { strokeDashoffset: 1 });
+     gsap.set(vis.querySelector('.ov-ctrl-orbit'), { opacity: 0, scale: .9, transformOrigin: '50% 50%' });
+     gsap.set(vis.querySelector('.ov-ctrl-orbit-label'), { opacity: 0 });
+     gsap.set(coreEl, { scale: .82 });
+     gsap.set(vis.querySelector('.ov-ctrl-core-a'), { opacity: 1 });
+     gsap.set(vis.querySelector('.ov-ctrl-core-b'), { opacity: 0 });
+     gsap.set(ctrl.querySelector('.ov-ctrl-end'), { opacity: 0, y: 14 });
+     // One active step at a time, straight from scroll position: each node is
+     // active from its own connection until the next one connects; Autopilot
+     // (the last) stays active through the ring and the closing line.
+     var setCtrl = function (p) {
+       var on = p < .06 ? -1 : Math.min(5, Math.floor((p - .06) / .063));
+       items.forEach(function (li, i) { li.classList.toggle('is-on', i === on); });
+       nodes.forEach(function (nd, i) { nd.classList.toggle('is-on', i === on); });
+     };
+     var ktl = gsap.timeline({ scrollTrigger: { trigger: ctrl, scroller: root, start: 'top top', end: 'bottom bottom', scrub: .6, invalidateOnRefresh: true, onUpdate: function (s) { setCtrl(s.progress); }, onRefresh: function (s) { setCtrl(s.progress); } } });
+     nodes.forEach(function (nd, i) {
+       var t = .06 + i * .063;
+       ktl.to(nd, { x: 0, y: 0, rotation: 0, opacity: 1, duration: .05, ease: 'power3.out' }, t)
+          .to(links[i], { strokeDashoffset: 0, duration: .045, ease: 'none' }, t + .02);
+     });
+     ktl.to(coreEl, { scale: 1.06, duration: .1, ease: 'power2.out' }, .46)
+        .to(vis.querySelector('.ov-ctrl-core-a'), { opacity: 0, duration: .05 }, .48)
+        .to(vis.querySelector('.ov-ctrl-core-b'), { opacity: 1, duration: .06 }, .52)
+        .to(coreEl, { scale: 1, duration: .08 }, .6)
+        .to(vis.querySelector('.ov-ctrl-orbit'), { opacity: 1, scale: 1, duration: .12, ease: 'power2.out' }, .62)
+        .to(vis.querySelector('.ov-ctrl-orbit-label'), { opacity: 1, duration: .06 }, .7)
+        .to(ctrl.querySelector('.ov-ctrl-end'), { opacity: 1, y: 0, duration: .08 }, .84)
+        .to({}, { duration: .06 }, .94);
+     setCtrl(ktl.scrollTrigger.progress);
+     undo.push(function () { ctrl.classList.remove('ov-ctrl-enhanced'); items.forEach(function (li) { li.classList.remove('is-on'); }); nodes.forEach(function (nd, i) { nd.classList.toggle('is-on', i === nodes.length - 1); }); });
+   }
+   return function () { undo.forEach(function (fn) { fn(); }); };
+ });
+ document.fonts && document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
+})();
 </script>
 </body>
 </html>

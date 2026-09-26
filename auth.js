@@ -453,10 +453,22 @@ async function _loadUserProfile(user){
       var _devObNeeded = false;
       try { _devObNeeded = localStorage.getItem("oriven_needs_onboarding") === "1"; } catch(_){}
       if(!_devObCompleted || _devObNeeded){
-        navigate("create");
+        // Default Dashboard Routing pass — Dashboard/Home is the canonical
+        // default page whenever there's no explicit valid destination.
+        // startOnboarding() is a full-screen overlay (onboarding.js) fully
+        // independent of whatever page is active underneath it, and its
+        // own OB2_DEST table navigates the user to their EXPLICITLY chosen
+        // goal once they finish — so changing this underlying default from
+        // "create" to "dashboard" cannot affect the onboarding flow itself.
+        // Uses _orvNav (not the legacy navigate()) — navigate("dashboard")
+        // hits a stale app.js alias that redirects to "campaigns" from
+        // before Dashboard existed as a real nav destination; _orvNav is
+        // the single current entry point every live sidebar button uses,
+        // and is the only path that also runs refreshDash().
+        if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
         startOnboarding(_dbPrimaryGoal);
       } else {
-        navigate("create");
+        if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
       }
     } else if(_postPayment){
       // Post-payment: DB may not reflect the new plan yet (webhook lag).
@@ -472,7 +484,9 @@ async function _loadUserProfile(user){
         console.log("[ACCESS] _postPayment | DB still shows free/null — webhook pending. Waiting for syncSubscriptionFromDB().");
       }
       showApp();
-      navigate("create");
+      // Default Dashboard Routing pass — was "create". Uses _orvNav, not
+      // navigate() — see comment on the dev-mode branch above.
+      if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
     } else {
       _dbPrimaryGoal = data ? (data.primary_goal || null) : null;
       var _dbPlan = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
@@ -490,7 +504,9 @@ async function _loadUserProfile(user){
         if(typeof invalidatePlanCache === "function") invalidatePlanCache();
         if(typeof renderPlanPanel === "function") renderPlanPanel();
         showApp();
-        navigate("create");
+        // Default Dashboard Routing pass — was "create". Uses _orvNav, not
+        // navigate() — see comment on the dev-mode branch above.
+        if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
         // Even a paid subscriber gets the tour once, e.g. if they subscribed
         // before ever opening the app. Same DB-first check as the free branch.
         var _paidDbCompleted = data ? data.onboarding_completed === true : false;
@@ -514,7 +530,9 @@ async function _loadUserProfile(user){
 
         if(_needsOnboarding){
           showApp();
-          navigate("create");
+          // Default Dashboard Routing pass — was "create". Uses _orvNav,
+          // not navigate() — see comment on the dev-mode branch above.
+          if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
           startOnboarding(_dbPrimaryGoal);
         } else {
           // Onboarding done, free user — check whether their free campaign has been used
@@ -563,7 +581,9 @@ async function _loadUserProfile(user){
           // this used-to-fire-every-load re-announcement was what made
           // Free feel like an error state rather than a legitimate plan.
           console.log("[PW-CHAIN] Free user — allowing normal access | campaign previously used:", _isUsed);
-          navigate("create");
+          // Default Dashboard Routing pass — was "create". Uses _orvNav,
+          // not navigate() — see comment on the dev-mode branch above.
+          if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
           return;
         }
       }
@@ -591,7 +611,9 @@ async function _loadUserProfile(user){
     if(_sbPlanEl){ _sbPlanEl.textContent = "—"; _sbPlanEl.className = "sb-plan-label sb-plan-free"; }
 
     showApp();
-    navigate("create");
+    // Default Dashboard Routing pass — was "create". Uses _orvNav, not
+    // navigate() — see comment on the dev-mode branch above.
+    if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
     if(typeof toast === "function") toast("Profile failed to load — please refresh the page.", "error");
   }
 }

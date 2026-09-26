@@ -627,7 +627,7 @@
     </div><!-- /#page-overview -->
 
     <!-- ══ CREATE ══════════════════════════════════════════════ -->
-    <div class="page active" id="page-create">
+    <div class="page" id="page-create">
       <div class="cr2-wrap">
 
         <!-- Hero (Oriven 1.0 V11) — badge, clock icon and description
@@ -4398,7 +4398,11 @@
          Autopilot status all come from the same real endpoints/functions
          Business/Campaigns/Create/Autopilot already use — see refreshDash()
          in app.js. Never a fabricated aggregate metric. -->
-    <div class="page" id="page-dashboard">
+    <!-- Default Dashboard Routing pass — Dashboard/Home is the canonical
+         default authenticated page (was Create, hardcoded here as the
+         raw-markup default before any JS runs); every real navigate()
+         call in auth.js's _loadUserProfile() was changed to match. -->
+    <div class="page active" id="page-dashboard">
       <div class="dash-outer">
 
         <div class="dash-hero-band">
