@@ -1,0 +1,608 @@
+/* ════════════════════════════════════════════════════════════════
+   ORIVEN Workspace — product layer styles (orivenWorkspace.js).
+
+   Principle: quiet when nothing is happening, responsive when the user
+   acts. The app reads as black / off-white / lime; secondary colours
+   appear only where they carry meaning, always paired with words:
+     lime  — live / ready / selected (signature)
+     amber — needs you / warning
+     coral — real problem / failure
+     blue  — Research-originated context
+   Platform colours are identifier dots only.
+
+   Motion language (one system, used everywhere below):
+     hover   — border clarifies, 1–2px lift or ≤1.2% scale, icon nudge
+     press   — scale(.97–.985), 90ms
+     select  — accent + contrast + background shift, 180ms
+     change  — 200–320ms fade/translate of the content that changed
+   transform + opacity only; all of it is disabled under reduced motion.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Tokens live on body so var(--charcoal)/var(--muted)/... resolve against
+   body.dark-mode's overrides of those app tokens. */
+body {
+  --ow-lime: #4F7A00;          /* lime that reads as text on light */
+  --ow-lime-fill: #B6FF3B;     /* Electric Lime */
+  --ow-amber: #9A5F00;
+  --ow-coral: #C4382C;
+  --ow-blue: #2A62C0;
+  --ow-muted-tone: #8C8C8C;
+  --ow-raise: rgba(0, 0, 0, .025);
+  --ow-raise-2: rgba(0, 0, 0, .05);
+  --ow-line: var(--border, #E0DAD1);
+  --ow-ink: var(--charcoal, #18181A);
+  --ow-sub: var(--muted, #6B6B6B);
+  --ow-card: var(--surface, #FDFCFA);
+  --ow-ease: cubic-bezier(.16, 1, .3, 1);
+  --ow-press: 90ms;
+  --ow-fast: 160ms;
+  --ow-med: 280ms;
+}
+body.dark-mode {
+  --ow-lime: #B6FF3B;
+  --ow-amber: #F5B84A;
+  --ow-coral: #FF6B5E;
+  --ow-blue: #7CB7FF;
+  --ow-muted-tone: #5E5F5A;
+  --ow-raise: rgba(255, 255, 255, .025);
+  --ow-raise-2: rgba(255, 255, 255, .05);
+  --ow-line: rgba(255, 255, 255, .08);
+  --ow-card: #0d0e0c;
+}
+
+.ow-t-live, .ow-t-ready, .ow-t-active { --tone: var(--ow-lime); }
+.ow-t-attention { --tone: var(--ow-amber); }
+.ow-t-risk { --tone: var(--ow-coral); }
+.ow-t-info { --tone: var(--ow-blue); }
+.ow-t-muted, .ow-t-empty, .ow-t-locked { --tone: var(--ow-muted-tone); }
+
+/* ── Primitives ─────────────────────────────────────────────────── */
+.ow-link {
+  background: none; border: 0; padding: 0; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600;
+  color: var(--ow-sub); transition: color var(--ow-fast);
+}
+.ow-link:hover { color: var(--ow-ink); }
+.ow-chip {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  font-size: 11.5px; font-weight: 500; color: var(--ow-ink);
+  padding: 4px 9px; border-radius: 999px; border: 1px solid var(--ow-line); background: var(--ow-raise);
+}
+.ow-chip-risk-high { color: var(--ow-coral); }
+.ow-chip-risk-medium { color: var(--ow-amber); }
+.ow-src {
+  display: inline-flex; align-items: center; flex-shrink: 0;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 5px; color: var(--ow-sub); background: var(--ow-raise-2);
+}
+.ow-src-research { color: var(--ow-blue); background: color-mix(in srgb, var(--ow-blue) 12%, transparent); }
+.ow-srcs { display: inline-flex; gap: 4px; flex-wrap: wrap; margin-left: 8px; vertical-align: middle; }
+.ow-pdot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: var(--ow-muted-tone); }
+.ow-pdot-google { background: #4285F4; }
+.ow-pdot-meta { background: #1877F2; }
+.ow-pdot-tiktok { background: #EE1D52; }
+.ow-pdot-pinterest { background: #E60023; }
+.ow-pdot-research { background: var(--ow-blue); }
+.ow-sdot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--tone, var(--ow-muted-tone)); flex-shrink: 0; }
+
+.ow-link:focus-visible, .ow-pick:focus-visible, .ow-chip-x:focus-visible,
+.ow-chat-link:focus-visible, .ow-cpick-btn:focus-visible, .ow-cpick-opt:focus-visible {
+  outline: 2px solid var(--ow-lime-fill); outline-offset: 2px;
+}
+
+.ow-skel {
+  display: block; height: 12px; border-radius: 6px; background: var(--ow-raise-2);
+  position: relative; overflow: hidden;
+}
+.ow-skel::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ow-ink) 5%, transparent), transparent);
+  transform: translateX(-100%); animation: owShimmer 1.5s ease-in-out infinite;
+}
+.ow-skel-row { height: 44px; border-radius: 10px; margin-bottom: 8px; }
+@keyframes owShimmer { to { transform: translateX(100%); } }
+
+.ow-pop { animation: owPop .32s var(--ow-ease) both; }
+@keyframes owPop { from { opacity: 0; transform: translateY(3px) scale(.97); } to { opacity: 1; transform: none; } }
+.ow-enter { animation: owEnter .34s var(--ow-ease) both; }
+@keyframes owEnter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.ow-arrive { animation: owArrive 1.4s var(--ow-ease); }
+@keyframes owArrive {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ow-lime-fill) 50%, transparent); }
+  40% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--ow-lime-fill) 18%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* Page entry — the previous translateY(4px) entry briefly pushed pages
+   that exactly fill the viewport 4px past the scroll container, flashing a
+   scrollbar on every navigation (measured on Create and Campaigns). A
+   fade + scale from the top edge never extends below the page. */
+/* Fill mode is `backwards`, not `both`: with `both`, the end keyframe's
+   `transform: none` is interpolated as scale(1) and HELD, so every active
+   page kept an identity matrix transform forever. Any transform makes the
+   page the containing block for position:fixed descendants and its own
+   stacking context — the Launch modal then scrolled with the page and the
+   floating chat button painted over it. `backwards` applies the start
+   frame before the animation and nothing after it. */
+.page.active { animation: owPageIn 240ms var(--ow-ease) backwards; transform-origin: 50% 0; }
+@keyframes owPageIn { from { opacity: 0; transform: scale(.994); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .page.active { animation: none; } }
+
+/* ══ HOME — the OrivenAI dashboard ═════════════════════════════════ */
+/* Proportioned to the canvas: a wider working width and height-aware
+   vertical rhythm, so the dashboard holds the viewport with presence
+   instead of floating small in it — without forcing a scroll. */
+#page-dashboard .ow-home {
+  width: 100%; box-sizing: border-box; max-width: 1360px; margin: 0 auto;
+  padding: clamp(40px, 7vh, 88px) 40px clamp(40px, 6vh, 72px);
+  display: flex; flex-direction: column; gap: clamp(24px, 3.6vh, 36px); color: var(--ow-ink);
+}
+.ow-home-hd { display: flex; flex-direction: column; gap: 6px; padding-right: 64px; }
+.ow-home-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ow-sub); min-height: 13px; }
+.ow-home-title { font-size: clamp(30px, 3.2vw, 44px); line-height: 1.08; font-weight: 700; letter-spacing: -.035em; margin: 0; color: var(--ow-ink); }
+.ow-home-status { margin: 0; font-size: 16px; line-height: 1.5; color: var(--ow-sub); min-height: 22px; }
+.ow-home-status .ow-skel { margin-top: 5px; }
+
+/* Status blocks — equal, compact, a restrained accent line + icon. */
+.ow-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.ow-kpi {
+  position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: clamp(128px, 17vh, 156px);
+  padding: 22px 22px 20px; border-radius: 16px; text-align: left; font: inherit; color: var(--ow-ink); cursor: pointer;
+  border: 1px solid var(--ow-line); background: var(--ow-card); overflow: hidden;
+  animation: owEnter .36s var(--ow-ease) both; animation-delay: calc(var(--i, 0) * 40ms);
+  transition: transform var(--ow-med) var(--ow-ease), border-color var(--ow-fast), background-color var(--ow-fast);
+}
+.ow-kpi::before {
+  content: ''; position: absolute; left: 22px; right: 22px; top: 0; height: 2px; border-radius: 0 0 2px 2px;
+  background: var(--tone, transparent); opacity: .85; transition: background var(--ow-med), opacity var(--ow-med);
+}
+.ow-kpi.ow-t-muted::before { opacity: 0; }
+.ow-kpi:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--ow-ink) 18%, transparent); background-color: color-mix(in srgb, var(--ow-card) 92%, var(--ow-ink) 3%); }
+.ow-kpi:active { transform: translateY(0) scale(.985); transition-duration: var(--ow-press); }
+.ow-kpi:focus-visible { outline: 2px solid var(--ow-lime-fill); outline-offset: 2px; }
+.ow-kpi-top { display: flex; align-items: center; gap: 8px; }
+.ow-kpi-ic { width: 17px; height: 17px; color: var(--tone, var(--ow-sub)); display: inline-flex; transition: transform var(--ow-med) var(--ow-ease), color var(--ow-med); }
+.ow-kpi-ic svg { width: 100%; height: 100%; }
+.ow-kpi.ow-t-muted .ow-kpi-ic { color: var(--ow-sub); }
+.ow-kpi:hover .ow-kpi-ic { transform: translateY(-1px) scale(1.08); }
+.ow-kpi-lbl { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ow-sub); }
+.ow-kpi-val { font-size: clamp(32px, 2.9vw, 40px); line-height: 1.05; font-weight: 700; letter-spacing: -.035em; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.ow-kpi-sub { margin-top: auto; font-size: 13px; color: var(--ow-sub); line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-kpi-skel { cursor: default; animation: none; }
+.ow-kpi-skel .ow-skel { width: 60%; margin-top: 50px; }
+.ow-tick { animation: owTick .34s var(--ow-ease); }
+@keyframes owTick { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Panels — Needs you + Continue, side by side, equal footing. */
+.ow-dash-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.ow-dash-grid.is-single { grid-template-columns: minmax(0, 1fr); }
+.ow-panel { border: 1px solid var(--ow-line); border-radius: 16px; background: var(--ow-card); padding: 10px; min-width: 0; min-height: clamp(240px, 34vh, 380px); display: flex; flex-direction: column; }
+.ow-panel-hd { display: flex; align-items: baseline; gap: 10px; padding: 12px 14px 10px; }
+.ow-panel-hd h2 { font-size: 15px; font-weight: 700; letter-spacing: -.01em; margin: 0; color: var(--ow-ink); }
+.ow-panel-list { display: flex; flex-direction: column; }
+.ow-panel-list .ow-skel-row { margin: 4px 6px; }
+.ow-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0; text-align: left; font: inherit; color: inherit; cursor: pointer;
+  padding: 13px 14px; border: 0; border-radius: 11px; background: transparent;
+  animation: owEnter .34s var(--ow-ease) both; animation-delay: calc(var(--i, 0) * 35ms);
+  transition: background var(--ow-fast), transform var(--ow-press) ease;
+}
+.ow-row + .ow-row { box-shadow: 0 -1px 0 var(--ow-line); }
+.ow-row:hover { background: var(--ow-raise-2); box-shadow: none; }
+.ow-row:hover + .ow-row { box-shadow: none; }
+.ow-row:active { transform: scale(.994); }
+.ow-row:focus-visible { outline: 2px solid var(--ow-lime-fill); outline-offset: -2px; }
+.ow-row-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--tone, var(--ow-muted-tone)); }
+.ow-row-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.ow-row-title { font-size: 14px; font-weight: 600; line-height: 1.35; color: var(--ow-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-row-sub { font-size: 12.5px; color: var(--ow-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-row-act { font-size: 12px; font-weight: 600; color: var(--ow-sub); white-space: nowrap; flex-shrink: 0; transition: color var(--ow-fast); }
+.ow-row-act span { display: inline-block; margin-left: 4px; transition: transform var(--ow-fast) var(--ow-ease); }
+.ow-row:hover .ow-row-act { color: var(--ow-ink); }
+.ow-row:hover .ow-row-act span { transform: translateX(2px); }
+.ow-row-state { font-size: 12px; color: var(--ow-sub); white-space: nowrap; flex-shrink: 0; }
+.ow-row-state.ow-t-live, .ow-row-state.ow-t-ready { color: var(--ow-lime); }
+.ow-row-state.ow-t-attention { color: var(--ow-amber); }
+.ow-row-state.ow-t-risk { color: var(--ow-coral); }
+.ow-row-go { color: var(--ow-sub); flex-shrink: 0; transition: transform var(--ow-fast) var(--ow-ease), color var(--ow-fast); }
+.ow-row:hover .ow-row-go { transform: translateX(2px); color: var(--ow-ink); }
+.ow-panel-more {
+  align-self: flex-start; margin: 10px 14px 6px; padding: 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 12.5px; font-weight: 600; color: var(--ow-sub); transition: color var(--ow-fast);
+}
+.ow-panel-more:hover { color: var(--ow-ink); }
+.ow-calm { margin: 0; padding: 10px 12px 14px; font-size: 13.5px; color: var(--ow-sub); display: flex; align-items: center; gap: 10px; }
+.ow-calm i { width: 7px; height: 7px; border-radius: 50%; background: var(--ow-lime-fill); flex-shrink: 0; }
+
+/* Notification bell — part of the active page's top edge (see
+   orvWorkspace.placeBell), so it scrolls with the page instead of floating
+   over content. Mobile Chat keeps its fixed docking (styles.css). */
+.ow-bell-host { position: relative; }
+.orv-notif-bell.ow-in-page { position: absolute; top: 20px; right: 24px; }
+@media (max-width: 1024px) { .orv-notif-bell.ow-in-page { top: 12px; right: 12px; } }
+@media (max-width: 768px) { body.orv-ai-open .orv-notif-bell.ow-in-page { position: fixed; } }
+
+/* ══ LAUNCH — counts on existing pills, state edge on cards ═════════ */
+.lq-pill-count {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 16px; margin-left: 6px;
+  font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; opacity: .55;
+}
+.lq-pill-active .lq-pill-count { opacity: .8; }
+.lq-pill-zero { opacity: .5; }
+.lq-pill-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; background: var(--ow-muted-tone); }
+.lq-pill-st-live .lq-pill-dot, .lq-pill-st-ready .lq-pill-dot { background: var(--ow-lime-fill); }
+.lq-pill-st-warning .lq-pill-dot, .lq-pill-st-blocked .lq-pill-dot { background: var(--ow-amber); }
+.lq-card { position: relative; transition: transform var(--ow-med) var(--ow-ease), border-color var(--ow-fast), box-shadow var(--ow-med); }
+.lq-card::before {
+  content: ''; position: absolute; left: 14px; right: 14px; top: 0; height: 2px; border-radius: 0 0 2px 2px;
+  background: transparent; z-index: 2; transition: background var(--ow-med);
+}
+.lq-card-st-blocked::before { background: color-mix(in srgb, var(--ow-amber) 80%, transparent); }
+.lq-card:hover { transform: translateY(-2px); }
+.lq-card:active { transform: translateY(0) scale(.99); transition-duration: var(--ow-press); }
+#launchGrid .lq-card-grid > .lq-card { animation: owEnter .34s var(--ow-ease) both; }
+#launchGrid .lq-card-grid > .lq-card:nth-child(2) { animation-delay: 30ms; }
+#launchGrid .lq-card-grid > .lq-card:nth-child(3) { animation-delay: 60ms; }
+#launchGrid .lq-card-grid > .lq-card:nth-child(n+4) { animation-delay: 90ms; }
+.lq-meta .ow-srcs { margin-left: 8px; }
+
+/* ══ CAMPAIGNS — searchable campaign popover ═══════════════════════ */
+.ow-cpick { position: relative; display: inline-flex; }
+.ow-cpick-native { position: absolute !important; width: 1px !important; height: 1px !important; opacity: 0 !important; pointer-events: none !important; overflow: hidden; }
+.ow-cpick-btn { text-align: left; cursor: pointer; max-width: 280px; }
+.ow-cpick-btn span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-cpick-btn:disabled { cursor: default; opacity: .6; }
+.ow-cpick-pop {
+  position: absolute; top: calc(100% + 8px); left: 0; z-index: 60; width: 340px; max-width: calc(100vw - 32px);
+  border-radius: 14px; border: 1px solid var(--ow-line); background: var(--ow-card);
+  box-shadow: 0 18px 48px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.25);
+  opacity: 0; transform: translateY(-4px) scale(.985); transform-origin: top left;
+  transition: opacity var(--ow-fast) ease, transform var(--ow-fast) var(--ow-ease);
+  overflow: hidden;
+}
+body:not(.dark-mode) .ow-cpick-pop { box-shadow: 0 18px 48px rgba(0,0,0,.14), 0 2px 8px rgba(0,0,0,.06); }
+.ow-cpick-pop.is-open { opacity: 1; transform: none; }
+.ow-cpick-search { padding: 10px 10px 6px; }
+.ow-cpick-search input {
+  width: 100%; box-sizing: border-box; font: inherit; font-size: 13px; color: var(--ow-ink);
+  padding: 8px 11px; border-radius: 9px; border: 1px solid var(--ow-line); background: var(--ow-raise); outline: none;
+  transition: border-color var(--ow-fast);
+}
+.ow-cpick-search input:focus { border-color: color-mix(in srgb, var(--ow-lime-fill) 60%, transparent); }
+.ow-cpick-list { max-height: 320px; overflow-y: auto; padding: 6px; overscroll-behavior: contain; }
+.ow-cpick-opt {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font: inherit; color: var(--ow-ink); cursor: pointer;
+  padding: 9px 10px; border-radius: 9px; border: 0; background: transparent;
+  transition: background var(--ow-fast);
+}
+.ow-cpick-opt:hover, .ow-cpick-opt:focus-visible { background: var(--ow-raise-2); }
+.ow-cpick-opt:focus-visible { outline-offset: -2px; }
+.ow-cpick-opt.is-on { background: color-mix(in srgb, var(--ow-lime-fill) 8%, transparent); }
+.ow-cpick-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.ow-cpick-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-cpick-meta { font-size: 11.5px; color: var(--ow-sub); }
+.ow-cpick-check { width: 8px; height: 5px; border: solid var(--ow-lime); border-width: 0 0 2px 2px; transform: rotate(-45deg) translateY(-2px); flex-shrink: 0; }
+.ow-cpick-none { margin: 6px 10px 10px; font-size: 12.5px; color: var(--ow-sub); }
+.ow-refresh { animation: owRefresh .32s var(--ow-ease) both; }
+@keyframes owRefresh { from { opacity: .35; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ══ RESEARCH — finding picks (existing composition untouched) ══════ */
+.rsc-finding-item { display: flex; align-items: stretch; gap: 6px; border-radius: 9px; transition: background var(--ow-fast); }
+.rsc-finding-item > .rsc-finding-row { flex: 1; min-width: 0; }
+.rsc-finding-item.is-picked { background: color-mix(in srgb, var(--ow-blue) 8%, transparent); }
+.ow-pick {
+  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; align-self: center;
+  padding: 5px 9px; border-radius: 7px; cursor: pointer; font: inherit; font-size: 11px; font-weight: 600;
+  color: var(--ow-sub); background: none; border: 1px solid transparent;
+  opacity: .55; transition: opacity var(--ow-fast), color var(--ow-fast), border-color var(--ow-fast), transform var(--ow-press) ease;
+}
+.rsc-finding-item:hover .ow-pick, .ow-pick:focus-visible, .ow-pick.is-on { opacity: 1; }
+.ow-pick:hover { color: var(--ow-ink); border-color: var(--ow-line); }
+.ow-pick:active { transform: scale(.94); }
+.ow-pick-box { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid currentColor; position: relative; transition: background var(--ow-fast), border-color var(--ow-fast); }
+.ow-pick.is-on { color: var(--ow-blue); }
+.ow-pick.is-on .ow-pick-box { background: var(--ow-blue); border-color: var(--ow-blue); }
+.ow-pick.is-on .ow-pick-box::after { content: ''; position: absolute; left: 3px; top: 0; width: 3px; height: 7px; border: solid var(--ow-card); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+.ow-count-bump { animation: owBump .3s var(--ow-ease); }
+@keyframes owBump { 40% { transform: scale(1.035); } }
+
+/* ══ CREATE ════════════════════════════════════════════════════════ */
+.ow-stage-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ow-stage-ready { font-size: 11.5px; font-weight: 500; color: var(--ow-sub); display: inline-flex; align-items: center; gap: 7px; animation: owEnter .28s var(--ow-ease) both; }
+.ow-stage-ready::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ow-muted-tone); transition: background var(--ow-med); }
+.ow-stage-ready.is-ready { color: var(--ow-ink); }
+.ow-stage-ready.is-ready::before { background: var(--ow-lime-fill); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ow-lime-fill) 18%, transparent); }
+.ow-brief { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ow-ink); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; transition: opacity var(--ow-med); }
+.ow-brief.is-empty { display: none; }
+.ow-ctx { display: flex; flex-wrap: wrap; gap: 6px; }
+.ow-cchip {
+  display: inline-flex; align-items: center; gap: 7px; max-width: 100%; min-width: 0;
+  font-size: 12px; font-weight: 500; color: var(--ow-ink); line-height: 1.3;
+  padding: 5px 10px; border-radius: 999px; border: 1px solid var(--ow-line); background: var(--ow-raise);
+}
+.ow-cchip > i { width: 6px; height: 6px; border-radius: 50%; background: var(--ow-lime-fill); flex-shrink: 0; }
+.ow-cchip > img { width: 16px; height: 16px; border-radius: 4px; object-fit: contain; flex-shrink: 0; }
+.ow-cchip-research > i { background: var(--ow-blue); }
+.ow-cchip-research { border-color: color-mix(in srgb, var(--ow-blue) 28%, var(--ow-line)); padding-right: 4px; }
+.ow-cchip-sw { display: inline-flex; margin-left: 2px; }
+.ow-cchip-sw b { width: 9px; height: 9px; border-radius: 50%; margin-left: -2px; box-shadow: 0 0 0 1.5px var(--ow-card); }
+.ow-cchip-off { font-size: 11px; color: var(--ow-sub); }
+.ow-chip-x {
+  width: 18px; height: 18px; border-radius: 50%; border: 0; background: none; color: var(--ow-sub); cursor: pointer; font-size: 13px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background var(--ow-fast), color var(--ow-fast);
+}
+.ow-chip-x:hover { background: var(--ow-raise-2); color: var(--ow-ink); }
+/* Stage reacts when platform / format / goal change. */
+.cr2-stage-frame.ow-react { animation: owReact .34s var(--ow-ease); }
+@keyframes owReact { from { opacity: .4; transform: scale(.985); } to { opacity: 1; transform: none; } }
+.cr2-stage-provider.ow-react-soft { animation: owEnter .3s var(--ow-ease); }
+
+#aicGenBtn { transition: transform var(--ow-press) ease, box-shadow var(--ow-med), filter var(--ow-fast); }
+#aicGenBtn:active:not(:disabled) { transform: scale(.97); }
+#aicGenBtn.ow-armed { box-shadow: 0 0 0 4px color-mix(in srgb, var(--ow-lime-fill) 14%, transparent); }
+
+/* Sticky Build row: opaque, so nothing is ever read through it. */
+body.dark-mode .cr2-gen-row {
+  background-color: var(--bg, #070707);
+  background-image: linear-gradient(rgba(255,255,255,.02), rgba(255,255,255,.02));
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+.cr2-gen-row { z-index: 3; border-top: 1px solid var(--ow-line); }
+.cr2-advanced-group:not([style*="none"]) { animation: owEnter .3s var(--ow-ease) both; }
+
+/* Two-column workspace (desktop, both columns side by side): the COMPOSER
+   alone sets the row height; the Stage follows it. Root cause of the old
+   imbalance: align-items:stretch sizes the row to the TALLER column, and
+   the Stage's own content (head, brief, context chips, a 190px frame
+   floor, meta) could exceed a collapsed composer — so the row grew to the
+   Stage and the composer stretched with dead space. `contain: size` makes
+   the Stage contribute no intrinsic height, so it simply stretches to the
+   composer; its preview frame is the flexible part and absorbs the
+   difference, and in the rare case its content still doesn't fit, the
+   Stage scrolls inside itself instead of growing the page. Expanding
+   Advanced Settings grows the composer, and the Stage grows with it. */
+@media (min-width: 1281px) {
+  #page-create .cr2-workspace-row { align-items: stretch; }
+  #page-create .cr2-stage { position: relative; contain: size; overflow: hidden auto; scrollbar-width: thin; }
+  #page-create .cr2-stage-frame { aspect-ratio: auto; flex: 1 1 0; min-height: 132px; }
+  #page-create .cr2-stage-meta { gap: 8px; }
+}
+
+/* ══ PERFORMANCE — measured idle costs ═════════════════════════════
+   1. Create's ambient glow animated background-position (and parallax
+      wrote background-position) on a blurred (40px) pseudo-element larger
+      than the viewport, so the blur was recomputed every frame (~0.9s of
+      style/paint work per 5s idle). Same look, compositor-only: the drift
+      is a transform (≈ the old amplitude) and parallax uses the separate
+      `translate` property, so the blurred layer is rasterised once. */
+body.dark-mode #page-create.active::before {
+  background-position: 50% 42%;
+  transition: opacity .5s ease;
+  will-change: opacity, transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  body.dark-mode #page-create.active::before { animation: owGlowDrift 42s ease-in-out infinite; }
+}
+@keyframes owGlowDrift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  33% { transform: translate3d(-.6%, .6%, 0); }
+  66% { transform: translate3d(.45%, -.45%, 0); }
+}
+/* 2. Looping animations inside things the user cannot see: the global
+      loading overlay (opacity 0, but still rendered with a full-viewport
+      backdrop blur) and the closed Chat panel's online dot. */
+.glov:not(.open) { visibility: hidden; transition: opacity .25s, visibility 0s linear .25s; }
+.glov.open { visibility: visible; }
+.glov:not(.open) .spin, .glov:not(.open) .lbar-fill { animation-play-state: paused; }
+.orv-ai-panel:not(.orv-ai-open) .orv-ai-online-dot { animation-play-state: paused; }
+
+/* ══ BUSINESS — the six cards, more tactile (composition unchanged) ═ */
+.bic-card { transition: transform var(--ow-med) var(--ow-ease), box-shadow var(--ow-med) var(--ow-ease), border-color var(--ow-fast), background-color var(--ow-fast); }
+.bic-card:hover { transform: translateY(-3px) scale(1.006); box-shadow: 0 14px 32px rgba(0,0,0,.32); background-color: rgba(255,255,255,.028); }
+.bic-card:active { transform: translateY(-1px) scale(.995); transition-duration: var(--ow-press); }
+.bic-card-icon { transition: transform var(--ow-med) var(--ow-ease), filter var(--ow-med); }
+.bic-card:hover .bic-card-icon { transform: translateY(-1px) scale(1.08); filter: drop-shadow(0 0 6px currentColor); }
+.bic-card-badge-issue { animation: owEnter .4s var(--ow-ease) both; }
+
+/* ══ AUTOPILOT ════════════════════════════════════════════════════ */
+.ow-watch { display: flex; flex-direction: column; gap: 8px; }
+.ow-watch-row {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 11px;
+  border: 1px solid var(--ow-line); background: var(--ow-raise);
+  animation: owEnter .36s var(--ow-ease) both; animation-delay: calc(var(--i, 0) * 40ms);
+}
+.ow-watch-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.ow-watch-body b { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-watch-body span { font-size: 12px; color: var(--ow-sub); }
+.ow-pulse { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--ow-muted-tone); }
+.ow-pulse.is-on { background: var(--ow-lime-fill); animation: owPulse 2.8s ease-out infinite; }
+@keyframes owPulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ow-lime-fill) 50%, transparent); } 70%, 100% { box-shadow: 0 0 0 7px transparent; } }
+
+.ow-story-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.ow-story-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 12px 0; border: 1px solid var(--ow-line); border-radius: 10px; overflow: hidden; }
+.ow-story-step { padding: 10px 12px; border-right: 1px solid var(--ow-line); font-size: 12.5px; line-height: 1.45; min-width: 0; }
+.ow-story-step:last-child { border-right: 0; }
+.ow-story-k { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ow-sub); margin-bottom: 4px; }
+.ow-story-v { color: var(--ow-ink); overflow-wrap: anywhere; }
+.ow-story-step.is-cur { background: color-mix(in srgb, var(--ow-amber) 8%, transparent); }
+.ow-story-step.is-cur .ow-story-k { color: var(--ow-amber); }
+
+.ow-timeline { display: flex; flex-direction: column; }
+.ow-tl-row { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 2px; border-bottom: 1px solid var(--ow-line); font-size: 13px; }
+.ow-tl-row:last-child { border-bottom: 0; }
+.ow-tl-title { color: var(--ow-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ow-tl-meta { font-size: 11.5px; color: var(--ow-sub); white-space: nowrap; }
+
+/* ══ CHAT ═════════════════════════════════════════════════════════ */
+.ow-chat-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ow-chat-link {
+  font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 10px; border-radius: 8px;
+  color: var(--ow-ink); background: var(--ow-raise-2); border: 1px solid var(--ow-line);
+  transition: border-color var(--ow-fast), transform var(--ow-press) ease;
+}
+.ow-chat-link:hover { border-color: color-mix(in srgb, var(--ow-lime-fill) 60%, transparent); }
+.ow-chat-link:active { transform: scale(.97); }
+
+/* ══ Global microinteractions on existing controls ══════════════════ */
+.camp-new-btn, .rsc-map-btn, .lq-pill, .cr2-pp, .cr2-goal-card, .oi-card-btn, .prf-ptab, .ov3-mode-btn, .cr2-advanced-toggle,
+.prf-select, .ap-auto-card, .oi-why-toggle, .rsc-finding-row {
+  transition: transform var(--ow-fast) var(--ow-ease), background-color var(--ow-fast), border-color var(--ow-fast), color var(--ow-fast), box-shadow var(--ow-med), opacity var(--ow-fast);
+}
+.camp-new-btn:active, .rsc-map-btn:active, .lq-pill:active, .cr2-pp:active, .oi-card-btn:active, .prf-ptab:active,
+.ov3-mode-btn:active, .prf-select:active, .cr2-advanced-toggle:active { transform: scale(.97); transition-duration: var(--ow-press); }
+.cr2-goal-card:hover { transform: translateY(-2px); }
+.cr2-goal-card:active { transform: scale(.985); transition-duration: var(--ow-press); }
+.cr2-goal-card .cr2-goal-icon { transition: transform var(--ow-med) var(--ow-ease); }
+.cr2-goal-card:hover .cr2-goal-icon, .cr2-goal-card.cr2-goal-card-on .cr2-goal-icon { transform: translateY(-1px) scale(1.1); }
+.cr2-goal-card.cr2-goal-card-on { background-color: color-mix(in srgb, var(--ow-lime-fill) 6%, transparent); }
+.cr2-pp:hover:not(.cr2-pp-on), .prf-ptab:hover:not(.active) { transform: translateY(-1px); }
+.ap-auto-card:hover { transform: translateY(-2px); }
+.ap-auto-card:active { transform: scale(.992); transition-duration: var(--ow-press); }
+.cr2-advanced-toggle svg { transition: transform var(--ow-med) var(--ow-ease); }
+.camp-new-btn:focus-visible, .rsc-map-btn:focus-visible, .lq-pill:focus-visible, .cr2-pp:focus-visible, .cr2-goal-card:focus-visible,
+.oi-card-btn:focus-visible, .prf-ptab:focus-visible, .lq-card:focus-visible, .bic-card:focus-visible, .prf-select:focus-visible {
+  outline: 2px solid var(--ow-lime-fill); outline-offset: 2px;
+}
+
+/* ══ Responsive ═══════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .ow-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* The fixed menu button appears at ≤1024px (top 12px, 44px tall). */
+@media (max-width: 1024px) {
+  #page-dashboard .ow-home { padding-top: 72px; }
+}
+@media (max-width: 900px) {
+  .ow-dash-grid { grid-template-columns: minmax(0, 1fr); }
+  .ow-panel { min-height: 0; }
+}
+@media (max-width: 768px) {
+  /* 72px top clears the fixed mobile menu button. */
+  #page-dashboard .ow-home { padding: 72px 20px 96px; gap: 22px; }
+  .ow-home-hd { padding-right: 0; }
+  .ow-kpis { gap: 10px; }
+  .ow-kpi { min-height: 108px; padding: 16px 14px 14px; }
+  .ow-kpi-val { font-size: 28px; }
+  .ow-kpi-sub { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .ow-story-steps { grid-template-columns: 1fr; }
+  .ow-story-step { border-right: 0; border-bottom: 1px solid var(--ow-line); }
+  .ow-story-step:last-child { border-bottom: 0; }
+  .ow-cpick-btn { max-width: 200px; }
+}
+@media (max-width: 430px) {
+  .ow-home-title { font-size: 28px; }
+  .ow-row-act, .ow-row-state { display: none; }
+}
+
+/* ══ Reduced motion ═══════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .ow-skel::after, .ow-pulse.is-on { animation: none !important; }
+  .ow-kpi, .ow-row, .ow-tick, .ow-watch-row, .ow-pop, .ow-enter, .ow-arrive, .ow-count-bump, .ow-refresh, .ow-stage-ready,
+  .cr2-stage-frame.ow-react, .cr2-stage-provider.ow-react-soft, .cr2-advanced-group, #launchGrid .lq-card-grid > .lq-card, .bic-card-badge-issue { animation: none !important; }
+  .ow-kpi, .ow-kpi-ic, .ow-row, .lq-card, .ow-cpick-pop, .ow-pick, .bic-card, .bic-card-icon, .cr2-goal-card, .cr2-goal-icon { transition: none !important; }
+  .ow-kpi:hover, .lq-card:hover, .bic-card:hover, .cr2-goal-card:hover, .ap-auto-card:hover, .cr2-pp:hover, .prf-ptab:hover { transform: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RESPONSIVE QA PASS — fixes found by rendering every page at 1600,
+   1440, 1366, 1280, 1024, 820, 768, 430, 390 and 375px.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Create composer grows with its content. It used to be capped at
+   calc(100vh - 230px) with the footer as an internal scroll area; opening
+   Advanced settings then hid Campaign Type / Structure inside an
+   invisible inner scroll behind the Build row, and on short screens
+   (375×667) the prompt textarea itself was squeezed until its text was
+   cut off. The Build row stays reachable because it is sticky against
+   the page's real scroller: `overflow: clip` rounds the corners and
+   clips the decorative glow without creating a scroll container (which
+   `overflow: hidden` does, trapping position:sticky). `safe center`
+   keeps tall content from being clipped on the "before" side. */
+/* height:auto: a legacy unconditional #page-create{height:100%} capped the
+   page at the viewport, so anything taller was cut off rather than
+   scrolling in .mc (previously only fixed at ≤768px). min-height still
+   makes it fill the screen. */
+#page-create.active { height: auto; overflow: clip; justify-content: safe center; align-items: safe center; }
+#page-create .cr2-box { max-height: none; overflow: clip; }
+#page-create .cr2-box-foot { overflow: visible; min-height: auto; }
+#page-create .cr2-gen-row { bottom: 0; }
+#page-create .cr2-ta { flex-shrink: 0; }
+
+/* Campaigns: the Campaigns / object / date row wraps on narrow screens,
+   but had a fixed 32px height, so its second line was painted on top of
+   the platform pills ("Last 30 Days" over "Google Ads"). */
+.prf-scope-row { height: auto; min-height: 32px; }
+
+/* Autopilot "What happened": on narrow screens the one-line title was
+   squeezed to a few characters beside its timestamp. Stack instead. */
+@media (max-width: 560px) {
+  .ow-tl-row { grid-template-columns: 8px minmax(0, 1fr); row-gap: 2px; align-items: start; }
+  .ow-tl-row > :first-child { margin-top: 6px; }
+  .ow-tl-title { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+  .ow-tl-meta { grid-column: 2; white-space: normal; }
+}
+
+/* Deploy overlay sat at z-index 200, level with the chat button. */
+.lc-deploy-overlay { z-index: 1000; }
+
+/* ── Tablet / phone app bar (≤1024px, where the rail becomes a drawer) ──
+   The hamburger and bell floated over the page with nothing behind them,
+   so scrolled headings and cards ran underneath the controls. Once the
+   current page is scrolled, a solid bar fades in behind both (body class
+   .ow-scrolled, set by orivenWorkspace.js from the active page's real
+   scroller). At rest nothing changes, so headers that sit between the
+   controls by design (Launch) look exactly as before. The bell is fixed in
+   that bar instead of being positioned against the page (which put it
+   mid-header on Campaigns). Controls sit below dialogs/sheets (z 1000+). */
+@media (max-width: 1024px) {
+  body { --ow-bar-bg: rgb(246, 243, 238); }
+  body.dark-mode { --ow-bar-bg: rgb(7, 7, 7); }
+  body::before {
+    content: ''; position: fixed; left: 0; right: 0; top: 0; height: 68px; z-index: 900;
+    background: var(--ow-bar-bg); border-bottom: 1px solid var(--ow-line);
+    opacity: 0; pointer-events: none; transition: opacity .18s ease;
+  }
+  body.ow-scrolled::before { opacity: 1; }
+  .orv-mob-toggle { z-index: 950; }
+  .orv-notif-bell, .orv-notif-bell.ow-in-page { position: fixed; top: 16px; right: 14px; z-index: 950; }
+  /* Room below the last item so it can scroll clear of the chat button
+     (.mc is the scroller for most pages; Home scrolls itself). */
+  .mc { padding-bottom: 80px; }
+  #page-dashboard.active { padding-bottom: 80px; }
+  /* position:sticky offsets are measured inside the scroller's padding,
+     so the Build row cancels that 80px to sit on the real bottom edge. */
+  #page-create .cr2-gen-row { bottom: -80px; }
+}
+
+/* Research market map: on phones the fit-to-width zoom shrank node labels
+   to ~4px. The map now keeps a readable minimum zoom and can be panned
+   (see _rmapFit); labels also get a touch more size on small screens. */
+@media (max-width: 960px) {
+  .rmap-node-label { font-size: 11.5px; }
+}
+
+/* Reduced motion: these three indicator pulses kept looping for people
+   who asked the OS for less motion. They stay visible, just still. */
+@media (prefers-reduced-motion: reduce) {
+  #obCornerOrb, .orv-ai-online-dot, .orv-ai-fab-dot, .sh-panel-view:not(.hidden) { animation: none; }
+}
+
+/* Create, stacked layout (≤1280px): the composer spans to the right edge,
+   so the sticky Build row shares the bottom-right corner with the floating
+   Chat button — which covered "Build Campaign". Reserve its footprint. */
+@media (max-width: 1280px) { #page-create .cr2-gen-row { padding-right: 150px; } }
+@media (max-width: 768px)  { #page-create .cr2-gen-row { padding-right: 132px; } }
+@media (max-width: 480px)  { #page-create .cr2-gen-row { padding-right: 112px; } }
+@media (prefers-reduced-motion: reduce) { body::before { transition: none; } }
+
+/* Home is not inside .mc; it is exactly viewport-high inside .app
+   (overflow:hidden). Only phones gave it its own scroll, so at tablet and
+   laptop sizes anything below the fold was unreachable (1024×768: the
+   last ~150px of "Needs you" / "Continue"; 820: ~200px). */
+#page-dashboard.active { overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; }
+/* ^ bottom padding: the last row can always scroll clear of the floating
+   Chat button (it sat on "Blocked" / "Ready · warnings" at 1025–1280). */
+
+/* Create prompt: at phone widths the placeholder wraps to four lines, but
+   the textarea's 76px minimum showed three, cutting the last line in
+   half (375px). It still grows with typed text (aicAutoResize). */
+@media (max-width: 480px) { #page-create .cr2-ta { min-height: 122px; } }

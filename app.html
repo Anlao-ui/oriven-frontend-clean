@@ -18,6 +18,8 @@
 <link rel="apple-touch-icon" href="assets/orivenlogo.png">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="orivenWorkspace.css">
+<link rel="stylesheet" href="orivenFlow.css">
 
 
 
@@ -1019,7 +1021,15 @@
                 <option value="campaigns">Campaigns</option>
               </select>
 
-              <select class="prf-select" id="prfCampSelect" onchange="prfSwitchCampaign(this.value)" title="Select campaign" aria-label="Select a specific campaign"></select>
+              <!-- The native select stays the single source of the selected
+                   value (every existing prf* function reads/writes it); it
+                   is visually replaced by a searchable popover of the same
+                   real options (orvWorkspace.campPicker). -->
+              <div class="ow-cpick">
+                <select class="prf-select ow-cpick-native" id="prfCampSelect" onchange="prfSwitchCampaign(this.value)" title="Select campaign" aria-label="Select a specific campaign" tabindex="-1" aria-hidden="true"></select>
+                <button type="button" class="prf-select ow-cpick-btn" id="owCampPickBtn" aria-haspopup="listbox" aria-expanded="false" onclick="orvWorkspace.campPicker.toggle()"><span id="owCampPickLbl">All Campaigns</span></button>
+                <div class="ow-cpick-pop" id="owCampPickPop" hidden></div>
+              </div>
 
               <select class="prf-select" id="prfRangeSelect" onchange="prfSetRange(this.value)" title="Time range" aria-label="Choose date range">
                 <option value="TODAY" data-i18n="rangeToday">Today</option>
@@ -1050,7 +1060,6 @@
             <div id="prfPlatTabs" style="display:none">
               <div class="prf-plat-tabs" id="prfPlatTabsInner"></div>
             </div>
-
             <!-- Honest state for the currently selected hierarchy level
                  (spec: "unsupported hierarchy levels are handled
                  honestly") — e.g. "Ad Sets aren't available for Google Ads
@@ -1486,7 +1495,7 @@
             </div>
             <div class="rsc-map-actions">
               <button type="button" class="rsc-map-btn" id="researchSourcesBtn" onclick="_rmapToggleSources()" aria-expanded="false">Sources</button>
-              <button type="button" class="rsc-map-btn rsc-map-btn-primary" onclick="window._researchUseInCreate()">Use in Create →</button>
+              <button type="button" class="rsc-map-btn rsc-map-btn-primary" id="researchUseInCreateBtn" onclick="window._researchUseInCreate()">Use in Create →</button>
               <button type="button" class="rsc-map-btn" onclick="_researchNewSession()">New Research</button>
             </div>
           </div>
@@ -4402,52 +4411,35 @@
          default authenticated page (was Create, hardcoded here as the
          raw-markup default before any JS runs); every real navigate()
          call in auth.js's _loadUserProfile() was changed to match. -->
+    <!-- Home — the OrivenAI dashboard (orivenWorkspace.js renders it from
+         the shared workspace model): greeting + one sentence of real state,
+         four status blocks (Live / Drafts / Needs attention / Autopilot),
+         then "Needs you" and "Continue" as two balanced panels. Continue
+         collapses away when there is no recent work. -->
     <div class="page active" id="page-dashboard">
-      <div class="dash-outer">
+      <div class="ow-home is-loading" id="owHome">
 
-        <div class="dash-hero-band">
-          <div class="dash-hero-left">
-            <div class="dash-eyebrow">
-              <span class="dash-eyebrow-dot active" id="dashEyebrowDot"></span>
-              <span class="dash-eyebrow-txt">Dashboard</span>
-            </div>
-            <h1 class="dash-headline" id="dashHeadline">Good <span class="dash-hl-grad" id="dashHeadlineWord">morning</span>.</h1>
-            <p class="dash-status-msg" id="dashStatusMsg">Here's what's happening with your advertising.</p>
-            <div class="dash-quick-actions" id="dashQuickActions">
-              <button class="dash-qa-btn" onclick="_orvNav('create','page-create')">Create campaign</button>
-              <button class="dash-qa-btn" onclick="_orvNav('research','page-research')">Research market</button>
-              <button class="dash-qa-btn" onclick="_orvNav('launch','page-launch')">Launch</button>
-              <button class="dash-qa-btn" onclick="_orvNav('performance','page-performance')">View campaigns</button>
-            </div>
-          </div>
-          <div class="dash-hero-right">
-            <div class="dash-conn-status" id="dashConnStatus">
-              <div class="dash-conn-hd">Connected platforms</div>
-              <div class="dash-conn-rows" id="dashConnRows"></div>
-              <button class="dash-conn-manage" onclick="bizGoTo('connections')">Manage →</button>
-            </div>
-          </div>
+        <header class="ow-home-hd">
+          <div class="ow-home-eyebrow" id="owHomeEyebrow">Home</div>
+          <h1 class="ow-home-title" id="owHomeGreeting">Good morning.</h1>
+          <p class="ow-home-status" id="owHomeStatus" aria-live="polite"><span class="ow-skel" style="width:240px"></span></p>
+        </header>
+
+        <div class="ow-kpis" id="owKpis" aria-label="Workspace status">
+          <span class="ow-kpi ow-kpi-skel"><span class="ow-skel"></span></span><span class="ow-kpi ow-kpi-skel"><span class="ow-skel"></span></span>
+          <span class="ow-kpi ow-kpi-skel"><span class="ow-skel"></span></span><span class="ow-kpi ow-kpi-skel"><span class="ow-skel"></span></span>
         </div>
 
-        <div class="dash-lower">
-          <div class="dash-col-item">
-            <div class="dash-section-hd"><span class="dash-s-eyebrow">Recent Activity</span></div>
-            <div id="dashActivity"></div>
-          </div>
-          <div class="dash-col-item">
-            <div class="dash-section-hd"><span class="dash-s-eyebrow">Autopilot</span></div>
-            <div id="dashAutopilot"></div>
-          </div>
+        <div class="ow-dash-grid" id="owDashGrid">
+          <section class="ow-panel" id="owNeeds" aria-labelledby="owNeedsTitle">
+            <div class="ow-panel-hd"><h2 id="owNeedsTitle">Needs you</h2></div>
+            <div class="ow-panel-list" id="owNeedsList" aria-live="polite"><span class="ow-skel ow-skel-row"></span><span class="ow-skel ow-skel-row"></span></div>
+          </section>
+          <section class="ow-panel" id="owContinue" aria-labelledby="owContinueTitle">
+            <div class="ow-panel-hd"><h2 id="owContinueTitle">Continue where you left off</h2></div>
+            <div class="ow-panel-list" id="owContinueList"><span class="ow-skel ow-skel-row"></span><span class="ow-skel ow-skel-row"></span></div>
+          </section>
         </div>
-
-        <div class="dash-stats-row" id="dashStatsRow"></div>
-
-        <div class="dash-col-item" id="dashAssetsWrap">
-          <div class="dash-section-hd"><span class="dash-s-eyebrow">Recent Creative</span></div>
-          <div id="dashAssets"></div>
-        </div>
-
-        <div class="dash-empty" id="dashEmptyState" style="display:none"></div>
 
       </div>
     </div>
@@ -5376,16 +5368,10 @@
           </div>
         </div>
 
-        <!-- Loading state — a live "campaign blueprint" that constructs
-             itself line by line (see _cgrBuildStart in the script block
-             below), not a progress/ETA readout. -->
-        <div id="cgrLoading" class="cgr-build">
-          <div class="cgr-build-status">BUILDING</div>
-          <div class="cgr-build-card">
-            <div class="cgr-build-glow" id="cgrBuildGlow"></div>
-            <div class="cgr-build-lines" id="cgrBuildLines"></div>
-          </div>
-        </div>
+        <!-- Build Campaign canvas — rendered by orivenFlow.js
+             (orvWorkspace.flow.builder) from real generation events; see
+             _cgrBuildStart. Also hosts the build's error state. -->
+        <div id="cgrLoading" class="ofb-host"></div>
 
         <!-- Results content (hidden until loaded) -->
         <div id="cgrContent" style="display:none">
@@ -5728,13 +5714,15 @@
     }
 
     // ── Budget helpers ────────────────────────────────────────────────
-    function _awParseBudget(text){
-      var m = String(text||'').match(/[\€\$]?\s*(\d{1,3}(?:[.,]\d{3})*|\d+)(?:[.,](\d{1,2}))?/);
-      if(!m) return null;
-      var n = parseFloat(m[1].replace(/[.,](?=\d{3})/g,'') + (m[2] ? '.'+m[2] : ''));
-      return (n && n > 0) ? Math.round(n) : null;
+    // Budget reads/writes go through orvWorkspace.flow.pkg, which uses the
+    // exact field each /api/publish/{platform} route reads. The old
+    // pkg.budgetDaily field (defaulted to 50, shown in €) was read by no
+    // publish route, so chat budget edits never reached the provider.
+    function _awFmtBudget(pkg, platform){
+      var F = window.orvWorkspace && orvWorkspace.flow;
+      if(!F || !pkg) return 'Not set';
+      return F.pkg.budgetLabel(pkg, platform || _awState.platform || pkg.platform);
     }
-    function _awFmtBudget(n){ return '€' + (typeof n === 'number' ? n : 0) + '/day'; }
 
     // ── Field path get/set (arrays like ["metaAds","headline"] or
     //    ["googleAds","headlines",0], matching adEditTools.js's FIELD_MAP
@@ -5757,10 +5745,6 @@
       // (see plan: no budget/variant-index field exists on a freshly
       // generated pkg) — additive, never touches the generation payload.
       var touched = false;
-      if(pkg.budgetDaily == null){
-        pkg.budgetDaily = _awParseBudget(pkg.strategy && pkg.strategy.budgetRecommendation) || 50;
-        touched = true;
-      }
       if(pkg.activeConceptIndex == null){ pkg.activeConceptIndex = 0; touched = true; }
       if(touched && typeof window._orvUpdateCampPkg === 'function' && campId){
         window._orvUpdateCampPkg(campId, pkg);
@@ -5928,9 +5912,13 @@
           _awAnimateField(r.field, r.value);
           break;
         case 'update_campaign_budget':
-          pkg.budgetDaily = r.value;
+          var _F = window.orvWorkspace && orvWorkspace.flow;
+          if(!_F || !_F.pkg.setBudget(pkg, _awState.platform || pkg.platform, r.value)){
+            if(typeof orvToast==='function') orvToast('That budget is below this platform’s minimum, so it wasn’t saved.', 'warn');
+            break;
+          }
           _awPersist();
-          _awNumberSwap(_awFieldValEl('budget'), _awFmtBudget(r.value));
+          _awNumberSwap(_awFieldValEl('budget'), _awFmtBudget(pkg));
           _awFieldPulse(_awFieldRowEl('budget'));
           break;
         case 'update_audience':
@@ -6267,7 +6255,7 @@
     function _awRenderGooglePanel(pkg){
       var g = pkg.strategy || {}; var ga = pkg.googleAds || {};
       return _awField('Campaign name', pkg.campaignName, 'campaignName')
-        + _awField('Budget', _awFmtBudget(pkg.budgetDaily), 'budget')
+        + _awField('Budget', _awFmtBudget(pkg), 'budget')
         + _awField('Bidding strategy', ga.biddingStrategy, 'bidding')
         + _awField('Objective', g.goal, 'objective')
         + _awField('Audience', g.targetAudience, 'audience')
@@ -6279,7 +6267,7 @@
       var m = pkg.metaAds || {};
       return _awField('Campaign name', pkg.campaignName, 'campaignName')
         + _awField('Objective', m.campaignObjective, 'objective')
-        + _awField('Budget', _awFmtBudget(pkg.budgetDaily), 'budget')
+        + _awField('Budget', _awFmtBudget(pkg), 'budget')
         + _awField('Audience', m.targetAudience, 'audience')
         + _awFieldList('Placements', m.placements, 'placements', 6)
         + _awField('Primary text', m.primaryText, 'primaryText')
@@ -6291,7 +6279,7 @@
       var t = pkg.tiktokAds || {};
       return _awField('Campaign name', pkg.campaignName, 'campaignName')
         + _awField('Objective', t.campaignObjective, 'objective')
-        + _awField('Budget', _awFmtBudget(pkg.budgetDaily), 'budget')
+        + _awField('Budget', _awFmtBudget(pkg), 'budget')
         + _awField('Audience', t.targetAudience, 'audience')
         + _awField('Hook', t.hook, 'headline')
         + _awField('Script', t.script, 'description')
@@ -6302,7 +6290,7 @@
       var p = pkg.pinterestAds || {};
       return _awField('Campaign name', pkg.campaignName, 'campaignName')
         + _awField('Objective', p.campaignObjective, 'objective')
-        + _awField('Budget', _awFmtBudget(pkg.budgetDaily), 'budget')
+        + _awField('Budget', _awFmtBudget(pkg), 'budget')
         + _awField('Pin title', p.title, 'headline')
         + _awField('Pin description', p.description, 'description')
         + _awField('CTA', p.cta, 'cta')
@@ -7849,6 +7837,8 @@
 <script src="workspace.js"></script>
 <script src="autopilot.js"></script>
 <script src="orivenContext.js"></script>
+<script src="orivenWorkspace.js"></script>
+<script src="orivenFlow.js"></script>
 
 <!-- ════════════════════════════════════════════════════════════
      AI CONVERSATION FLOW OVERLAY
@@ -8635,8 +8625,14 @@ function _loadCamps(){
 }
 function _saveCamps(){
   var key = _orvCampaignsKey();
-  if(!key) return;
-  try { localStorage.setItem(key, JSON.stringify(_campaigns)); } catch(_){}
+  if(!key) return false;
+  var ok = true;
+  try { localStorage.setItem(key, JSON.stringify(_campaigns)); } catch(e){ ok = false; console.warn('[campaigns] local save failed:', e && e.message); }
+  // Product Experience Revamp — the durable /api/campaigns store is the
+  // canonical source; every local write is mirrored there (debounced,
+  // changed records only) so every device and every area agree.
+  if (window.orvWorkspace && orvWorkspace.campaigns) orvWorkspace.campaigns.changed();
+  return ok;
 }
 // Exposed on window -- other script blocks elsewhere on this page (Ads
 // Manager init, the Launch "recent" list, cgrPublishTo's status update)
@@ -8985,8 +8981,33 @@ window.renderLaunchPage = function(){
     return st === 'draft' || st === 'generated' || st === 'ready-to-publish' || LAUNCH_LIVE_STATUSES.indexOf(st) !== -1;
   });
   _lqAllPending.sort(function(a,b){ return new Date(b.created) - new Date(a.created); });
+  // Product Experience Revamp — continuity into Launch. A handoff from
+  // Home/Chat/Campaigns (orvWorkspace.go) lands on that campaign's
+  // platform with it selected; otherwise, if the current platform has
+  // nothing to show while another platform has real drafts, open that
+  // platform instead of an empty grid (Launch must never look empty while
+  // drafts exist).
+  var _owTarget = (window.orvWorkspace && orvWorkspace.consumeLaunchTarget) ? orvWorkspace.consumeLaunchTarget() : null;
+  if (_owTarget && _owTarget.campaignId) {
+    var _owCamp = _lqAllPending.filter(function(c){ return c.id === _owTarget.campaignId; })[0];
+    if (_owCamp) _owTarget.platform = _owCamp.platform || 'meta';
+  }
+  if (_owTarget && _owTarget.platform && LAUNCH_PROVIDER_ORDER.indexOf(_owTarget.platform) !== -1) {
+    _lqFilters.platform = _owTarget.platform;
+    _lqFilters.search = '';
+    _lqFilters.status = (_owTarget.status && LAUNCH_STATUS_FILTERS.some(function(s){ return s.key === _owTarget.status; }) && !_owTarget.campaignId) ? _owTarget.status : 'all';
+  } else if (window.orvWorkspace && orvWorkspace.launch) {
+    _lqFilters.platform = orvWorkspace.launch.bestPlatform(_lqAllPending, _lqFilters.platform);
+  }
   _launchRenderFilterPills();
   _launchRenderFilteredList();
+  if (_owTarget && _owTarget.campaignId && _lqAllPending.some(function(c){ return c.id === _owTarget.campaignId; })) {
+    setTimeout(function(){
+      window._lqSelectCampaign(_owTarget.campaignId);
+      var card = document.querySelector('.lq-card[aria-pressed="true"]');
+      if (card && window.orvWorkspace) orvWorkspace.arrive(card);
+    }, 60);
+  }
 };
 
 function _launchHasActiveFilters(){
@@ -9018,15 +9039,28 @@ function _launchRenderFilterPills(){
   var platWrap = document.getElementById('lqPlatformPills');
   var statusWrap = document.getElementById('lqStatusPills');
   if (!platWrap || !statusWrap) return;
+  // Real per-platform / per-state counts on the pills themselves, so the
+  // user sees where their campaigns are before clicking anything.
+  var _platCount = {};
+  _lqAllPending.forEach(function(c){ var p = c.platform || 'meta'; _platCount[p] = (_platCount[p] || 0) + 1; });
   platWrap.innerHTML = LAUNCH_PROVIDER_ORDER.map(function(p){
     var label = LC_PLATFORM_NAMES[p] || p;
     var active = _lqFilters.platform === p;
     var icon = _PLAT_ICONS[p] || '';
-    return '<button type="button" class="lq-pill lq-pill-plat lq-pill-plat-'+p+(active?' lq-pill-active':'')+'" aria-pressed="'+active+'" onclick="_launchSetPlatformFilter(\''+p+'\')">'+icon+'<span>'+_esc(label)+'</span></button>';
+    var n = _platCount[p] || 0;
+    return '<button type="button" class="lq-pill lq-pill-plat lq-pill-plat-'+p+(active?' lq-pill-active':'')+'" aria-pressed="'+active+'" onclick="_launchSetPlatformFilter(\''+p+'\')">'+icon+'<span>'+_esc(label)+'</span>'+(n ? '<span class="lq-pill-count" aria-label="'+n+' campaigns">'+n+'</span>' : '')+'</button>';
   }).join('');
+  var _stateCount = { all: 0 };
+  _lqAllPending.forEach(function(c){
+    if ((c.platform || 'meta') !== _lqFilters.platform) return;
+    _stateCount.all++;
+    var st = _launchCardState(c).state;
+    _stateCount[st] = (_stateCount[st] || 0) + 1;
+  });
   statusWrap.innerHTML = LAUNCH_STATUS_FILTERS.map(function(s){
     var active = _lqFilters.status === s.key;
-    return '<button type="button" class="lq-pill lq-pill-status'+(active?' lq-pill-active':'')+'" aria-pressed="'+active+'" onclick="_launchSetStatusFilter(\''+s.key+'\')">'+_esc(s.label)+'</button>';
+    var n = _stateCount[s.key] || 0;
+    return '<button type="button" class="lq-pill lq-pill-status lq-pill-st-'+s.key+(active?' lq-pill-active':'')+(n || s.key === 'all' ? '' : ' lq-pill-zero')+'" aria-pressed="'+active+'" onclick="_launchSetStatusFilter(\''+s.key+'\')">'+(s.key !== 'all' ? '<i class="lq-pill-dot" aria-hidden="true"></i>' : '')+_esc(s.label)+'<span class="lq-pill-count">'+n+'</span></button>';
   }).join('');
   var searchInput = document.getElementById('lqSearchInput');
   if (searchInput && searchInput.value !== _lqFilters.search) searchInput.value = _lqFilters.search;
@@ -9138,7 +9172,7 @@ function _launchRenderFilteredList(){
   _lqRenderControl();
 }
 window._launchSetSearch = function(val){ _lqFilters.search = val; _launchUpdateClearButton(); _launchRenderFilteredList(); };
-window._launchSetPlatformFilter = function(p){ _lqFilters.platform = p; _launchRenderFilterPills(); _launchRenderFilteredList(); };
+window._launchSetPlatformFilter = function(p){ _lqFilters.platform = p; if (window.orvWorkspace) orvWorkspace.launch.userPicked = true; _launchRenderFilterPills(); _launchRenderFilteredList(); };
 window._launchSetStatusFilter = function(s){ _lqFilters.status = s; _launchRenderFilterPills(); _launchRenderFilteredList(); };
 window._launchClearFilters = function(){ _lqFilters.search = ''; _lqFilters.status = 'all'; _launchRenderFilterPills(); _launchRenderFilteredList(); };
 
@@ -9197,14 +9231,15 @@ function _renderLaunchCard(c){
     : '<div class="lq-card-thumb lq-card-thumb-empty" aria-hidden="true">'+platIcon+'</div>';
   var readiness = _launchCardState(c);
   var selected = c.id === _lqSelectedCampId;
-  return '<button type="button" class="lq-card'+(selected?' lq-card-selected':'')+'" data-name="'+_esc((c.name||'').toLowerCase())+'" data-platform="'+_esc(c.platform||'')+'" aria-pressed="'+selected+'" onclick="_lqSelectCampaign(\''+c.id+'\')">'+
+  var _lin = (window.orvWorkspace && orvWorkspace.lineageChips) ? orvWorkspace.lineageChips(c, { business: false }) : '';
+  return '<button type="button" class="lq-card lq-card-st-'+readiness.state+(selected?' lq-card-selected':'')+'" data-name="'+_esc((c.name||'').toLowerCase())+'" data-platform="'+_esc(c.platform||'')+'" aria-pressed="'+selected+'" onclick="_lqSelectCampaign(\''+c.id+'\')">'+
     '<div class="lq-card-media">'+
       thumbHtml+
       '<span class="lq-card-plat-badge" aria-hidden="true">'+platIcon+'</span>'+
     '</div>'+
     '<div class="lq-card-body">'+
       '<div class="lq-name">'+_esc(c.name)+'</div>'+
-      '<div class="lq-meta"><span>'+_esc(goal)+'</span></div>'+
+      '<div class="lq-meta"><span>'+_esc(goal)+'</span>'+_lin+'</div>'+
       '<span class="lq-readiness lq-readiness-'+readiness.state+'">'+readiness.label+'</span>'+
     '</div>'+
   '</button>';
@@ -9252,6 +9287,14 @@ function _launchExtractFields(pkg, platform){
     (visualConcepts.filter(function(v){ return v && v.generatedImageUrl; })[0] || {}).generatedImageUrl || null;
   var destination = (s.landingPageUrl || m.finalUrl || pkg.websiteUrl || s.websiteUrl || m.destinationUrl || '').trim();
   var budget = m.budget || s.dailyBudget || s.budget || null;
+  // /api/publish/google reads ONLY strategy.budgetRecommendation (a number
+  // or { amount | daily }) and rejects the publish if it isn't a positive
+  // number — mirror exactly that, never the other platforms' fields.
+  if (platform === 'google') {
+    var _br = s.budgetRecommendation;
+    var _amt = (_br && typeof _br === 'object') ? (_br.amount != null ? _br.amount : _br.daily) : _br;
+    budget = (_amt !== undefined && _amt !== null && _amt !== '' && isFinite(Number(_amt)) && Number(_amt) >= 1) ? Number(_amt) : null;
+  }
   return { s: s, m: m, imageUrl: imageUrl, destination: destination, budget: budget, visualConcepts: visualConcepts, concepts: pkg.concepts || [] };
 }
 
@@ -9266,24 +9309,75 @@ function _launchCheckStatusLabel(status){
 // genuinely apply to what this product actually stores/validates today —
 // ad set/audience/schedule fields beyond goal/budget/destination don't
 // exist in the current campaign schema, so they're not fabricated here).
+// JS string literal safe inside a double-quoted onclick attribute.
+function _lqJs(v){ return String(v == null ? '' : v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 function _launchBuildCampaignChecks(camp, fields){
   var checks = [];
+  var P = window.orvWorkspace && orvWorkspace.flow && orvWorkspace.flow.pkg;
+  var pkg = camp.pkg || {};
+  var plat = camp.platform;
+  var id = _lqJs(camp.id);
+  var platName = (typeof LC_PLATFORM_NAMES !== 'undefined' && LC_PLATFORM_NAMES[plat]) || plat;
+  function goAd(label, sec){ return { label: label, fn: "orvWorkspace.flow.openAd('" + id + "','" + sec + "')" }; }
   checks.push({ key:'campaign', label:'Campaign configuration',
     status: (camp.name && fields.s.goal) ? 'pass' : 'warning',
-    reason: (camp.name && fields.s.goal) ? 'Campaign name and objective are set.' : 'This campaign is missing a name or objective.' });
-  checks.push({ key:'creative', label:'Creative assets',
-    status: fields.imageUrl ? 'pass' : 'blocked',
-    reason: fields.imageUrl ? 'A creative image is ready to publish.' : 'No creative image found — the platform will reject this ad without one.',
-    action: fields.imageUrl ? null : { label:'Fix in Create', fn:"openCampaignWorkspace('"+camp.id+"')" } });
+    reason: (camp.name && fields.s.goal) ? 'Campaign name and objective are set.' : 'This campaign is missing a name or objective.',
+    action: (camp.name && fields.s.goal) ? null : goAd('Go to Ad', 'overview') });
+  // Creative — Google Search ads are text-only (the route never sends an
+  // image); every other campaign type is rejected without one.
+  var needsImage = P ? P.needsImage(pkg, plat) : true;
+  var imageUrl = P ? P.image(pkg, plat) : fields.imageUrl;
+  if (!needsImage) {
+    checks.push({ key:'creative', label:'Creative assets', status:'not_applicable', reason:'Search ads are text-only — no image is sent to Google.' });
+  } else {
+    checks.push({ key:'creative', label:'Creative assets',
+      status: imageUrl ? 'pass' : 'blocked',
+      reason: imageUrl ? 'A creative image is ready to publish.' : 'No creative image — ' + platName + ' rejects this ad without one.',
+      action: imageUrl ? goAd('Go to Ad', 'creative') : { label:'Add creative', fn:"openCampaignWorkspace('" + id + "')" } });
+  }
+  if (P && plat === 'google' && P.googleType(pkg) === 'SEARCH') {
+    var g = pkg.googleAds || {};
+    var nh = (g.headlines || []).filter(Boolean).length, nd = (g.descriptions || []).filter(Boolean).length;
+    var copyOk = nh >= 3 && nd >= 2;
+    checks.push({ key:'copy', label:'Ad copy',
+      status: copyOk ? 'pass' : 'blocked',
+      reason: copyOk ? nh + ' headlines and ' + nd + ' descriptions.' : 'Google Search needs at least 3 headlines and 2 descriptions (this ad has ' + nh + ' and ' + nd + ').',
+      action: goAd(copyOk ? 'Go to Ad' : 'Edit copy', 'copy') });
+  }
+  // Destination — required. Google rejects a missing URL; the other routes
+  // would publish with a placeholder page, which OrivenAI never allows.
+  var url = P ? P.url(pkg, plat) : fields.destination;
+  var urlErr = P ? (url ? P.validateUrl(url) : 'missing') : (url ? null : 'missing');
   checks.push({ key:'destination', label:'Destination',
-    status: fields.destination ? 'pass' : 'warning',
-    reason: fields.destination ? 'Destination configured: ' + fields.destination : 'No destination URL is configured for this campaign.' });
-  checks.push({ key:'budget', label:'Budget',
-    status: fields.budget ? 'pass' : 'warning',
-    reason: fields.budget ? 'Daily budget configured.' : 'No budget set — the platform’s own default will apply.' });
+    status: urlErr ? 'blocked' : 'pass',
+    reason: !urlErr ? 'Destination: ' + url
+      : (urlErr === 'missing' ? 'No destination URL. Add the page people should land on before publishing.' : 'The destination “' + url + '” isn’t a valid web address.'),
+    action: goAd(urlErr ? (urlErr === 'missing' ? 'Add URL' : 'Fix URL') : 'Change URL', 'destination') });
+  // Budget — states what the publish route will really do: Google rejects a
+  // missing budget; Meta/TikTok publish at OrivenAI's default of 30/day
+  // (TikTok minimum 10) and Pinterest at 10/day, in the ad account's
+  // currency.
+  var b = P ? P.budget(pkg, plat) : null;
+  var budgetAction = { label: (b && b.source === 'set') ? 'Change budget' : 'Set budget', fn: "orvWorkspace.flow.openBudget('" + id + "')" };
+  if (!b) {
+    checks.push({ key:'budget', label:'Budget', status: fields.budget ? 'pass' : 'warning', reason: fields.budget ? 'Daily budget configured.' : 'No daily budget set.' });
+  } else if (b.source === 'missing') {
+    checks.push({ key:'budget', label:'Budget', status:'blocked', reason: platName + ' needs a daily budget before it can be published.', action: budgetAction });
+  } else if (b.source === 'default') {
+    checks.push({ key:'budget', label:'Budget', status:'warning', reason: 'No daily budget set — OrivenAI will publish at ' + b.applied + ' per day in your ad account’s currency. Optional.', action: budgetAction });
+  } else {
+    checks.push({ key:'budget', label:'Budget', status:'pass',
+      reason: 'Daily budget: ' + b.applied + ' per day in your ad account’s currency.' + (b.adjusted ? ' (Raised to ' + platName + '’s minimum.)' : ''), action: budgetAction });
+  }
+  if (P) {
+    var tg = P.targeting(pkg, plat);
+    checks.push({ key:'targeting', label:'Targeting', status:'pass', reason: 'Sent as: ' + tg.sent + '. ' + tg.note, action: goAd('Go to Ad', 'audience') });
+  }
   checks.push({ key:'tracking', label:'Tracking / conversions',
     status: 'not_checked',
-    reason: 'ORIVEN does not verify pixel or conversion-event setup yet — the platform enforces this itself when the ad is reviewed.' });
+    reason: plat === 'meta'
+      ? 'Sales and Leads objectives need a Meta Pixel on your ad account. OrivenAI checks for one when publishing.'
+      : 'OrivenAI doesn’t verify conversion tracking yet — ' + platName + ' checks it when the ad is reviewed.' });
   return checks;
 }
 
@@ -9433,10 +9527,11 @@ function _lqRenderControl(){
 // badge finally explains itself at a glance — spec: "make READY WITH
 // WARNINGS useful". Falls back to the honest generic sub-text when ready.
 function _lqReadinessSummary(aggregate, checks){
-  if (aggregate.state === 'ready') return aggregate.sub;
-  var n = checks.filter(function(c){ return c.status === 'warning' || c.status === 'blocked'; }).length;
-  if (!n) return aggregate.sub;
-  return n + (n === 1 ? ' check needs' : ' checks need') + ' attention below.';
+  if (aggregate.state === 'ready') return 'Everything required is in place. Review it, then publish from Launch.';
+  var blocked = checks.filter(function(c){ return c.status === 'blocked'; }).map(function(c){ return c.label; });
+  var warn = checks.filter(function(c){ return c.status === 'warning'; }).map(function(c){ return c.label; });
+  if (aggregate.state === 'blocked') return 'Required: ' + blocked.join(', ') + '.' + (warn.length ? ' Optional: ' + warn.join(', ') + '.' : '');
+  return 'Can launch. Optional to review: ' + warn.join(', ') + '.';
 }
 
 // Launch Polish pass — prefer the most specific REAL action available,
@@ -9610,29 +9705,28 @@ window._lqLiveToggle = function(campId){
   var camps = window._orvGetCampaigns ? window._orvGetCampaigns() : [];
   var camp = camps.filter(function(c){ return c.id === campId; })[0];
   if (!camp || !camp.platformCampaignId) return;
+  var F = window.orvWorkspace && orvWorkspace.flow;
+  if (!F) return;
   var toPause = camp.status !== 'paused';
-  var btn = document.getElementById('lqcLiveActBtn');
-  if (btn) { btn.disabled = true; btn.textContent = toPause ? 'Pausing…' : 'Resuming…'; }
   var action = toPause ? 'pause' : 'resume';
-  apiFetch('/api/' + camp.platform + '/campaign/' + encodeURIComponent(camp.platformCampaignId) + '/' + action, { method: 'POST' }).then(function(r){
-    if (!r.ok) {
-      if (btn) { btn.disabled = false; btn.textContent = toPause ? 'Pause campaign' : 'Resume campaign'; }
-      if (typeof toast === 'function') toast('Could not ' + action + ' this campaign: ' + ((r.data && r.data.error) || 'unknown error'), 'warn');
-      return;
-    }
-    // Real confirmed response only — this is the one place a local
-    // record's status is allowed to change to "paused"/"published" for a
-    // live campaign, because it just followed a real API call that
-    // actually succeeded, not a local-only assumption.
-    camp.status = toPause ? 'paused' : 'published';
-    if (typeof window._saveCamps === 'function') window._saveCamps();
-    if (typeof toast === 'function') toast('Campaign ' + (toPause ? 'paused' : 'resumed') + '.', 'ok');
-    _lqRenderControlSelectedLive(camp);
-    if (typeof _launchRenderFilteredList === 'function') _launchRenderFilteredList();
-  }).catch(function(){
-    if (btn) { btn.disabled = false; btn.textContent = toPause ? 'Pause campaign' : 'Resume campaign'; }
-    if (typeof toast === 'function') toast('Network error trying to ' + action + ' this campaign.', 'warn');
-  });
+  F.confirmProviderToggle({ platform: camp.platform, action: action, name: camp.name, run: function(){
+    return apiFetch('/api/' + camp.platform + '/campaign/' + encodeURIComponent(camp.platformCampaignId) + '/' + action, { method: 'POST' }).then(function(r){
+      if (!r.ok) {
+        var m = F.error({ status: r.status, body: r.data, phase: 'publish' });
+        return { ok: false, title: 'Couldn’t ' + action + ' the campaign', message: m.message };
+      }
+      // Real confirmed response only — the one place a live campaign's
+      // local status changes, right after the provider accepted it.
+      camp.status = toPause ? 'paused' : 'published';
+      camp.providerStatus = toPause ? 'paused' : 'active';
+      camp.updated = new Date().toISOString();
+      if (typeof window._saveCamps === 'function') window._saveCamps();
+      if (typeof toast === 'function') toast('Campaign ' + (toPause ? 'paused' : 'resumed') + ' on ' + (LQ_LIVE_PLATFORM_LABEL[camp.platform] || camp.platform) + '.', 'ok');
+      _lqRenderControlSelectedLive(camp);
+      if (typeof _launchRenderFilteredList === 'function') _launchRenderFilteredList();
+      return { ok: true };
+    });
+  } });
 };
 
 function _lqRenderControlSelected(camp){
@@ -9684,7 +9778,11 @@ function _lqRenderControlSelectedState(camp, allChecks){
   stateEl.className = 'lqc-state lqc-state-' + aggregate.state;
   stateEl.innerHTML = '<span class="lqc-state-label">' + _prfEsc(aggregate.label) + '</span><span class="lqc-state-sub">' + _prfEsc(_lqReadinessSummary(aggregate, allChecks)) + '</span>';
   var action = _lqPrimaryAction(camp, allChecks);
-  actionRow.innerHTML = '<button type="button" class="lqc-action-btn lqc-action-btn-' + aggregate.state + '" onclick="' + action.fn + '">' + _prfEsc(action.label) + '</button>';
+  // Primary: the first real blocker's own fix (Set budget / Add URL / …),
+  // or Continue to Launch, where publishing needs its own confirmation.
+  // Secondary: Go to Ad — the structured view of what will be sent.
+  actionRow.innerHTML = '<button type="button" class="lqc-action-btn lqc-action-btn-' + aggregate.state + '" onclick="' + action.fn + '">' + _prfEsc(action.label) + '</button>' +
+    '<button type="button" class="lqc-action-btn lqc-action-btn-secondary" onclick="orvWorkspace.flow.openAd(\'' + _lqJs(camp.id) + '\')">Go to Ad</button>';
 }
 
 // Empty/zero-campaign Launch Control — real platform connection/account
@@ -9868,7 +9966,10 @@ function _launchRenderSnapshot(camp, fields){
   if (!el) return;
   var rows = [
     { label:'Destination', value: fields.destination || 'Not configured', configurable: !fields.destination },
-    { label:'Budget', value: fields.budget ? ('$' + fields.budget + ' / day') : 'Platform default', configurable: !fields.budget },
+    // Amount is in the ad account's own currency (never assume "$"); an
+    // unset budget shows what publishing would really do (see the Budget
+    // check in _launchBuildCampaignChecks).
+    { label:'Budget', value: fields.budget ? (fields.budget + ' / day') : (camp.platform === 'google' ? 'Required' : ('Default ' + ({ pinterest: 10 }[camp.platform] || 30) + ' / day')), configurable: !fields.budget },
     { label:'Creative format', value: camp.creativeMode === 'videos' ? 'Video' : 'Image', configurable: false },
   ];
   el.innerHTML = rows.map(function(r){
@@ -10077,12 +10178,18 @@ window._launchOrivenAsk = function(){
       _launchOrivenAppend('oriven', "That doesn't look like a valid daily budget.");
       return;
     }
-    var platKey = { google:'googleAds', meta:'metaAds', tiktok:'tiktokAds', pinterest:'pinterestAds' }[_lcState.camp.platform] || 'metaAds';
-    if (!_lcState.camp.pkg[platKey]) _lcState.camp.pkg[platKey] = {};
-    _lcState.camp.pkg[platKey].budget = amount;
+    // Written through the same accessor as Set Budget, i.e. the exact field
+    // this platform's publish route reads (Google: strategy.budgetRecommendation;
+    // others: {platform}.budget). Writing googleAds.budget here used to be
+    // silently ignored by /api/publish/google.
+    var _FP = window.orvWorkspace && orvWorkspace.flow && orvWorkspace.flow.pkg;
+    if (!_FP || !_FP.setBudget(_lcState.camp.pkg, _lcState.camp.platform, amount)) {
+      _launchOrivenAppend('oriven', _lcState.camp.platform === 'tiktok' ? 'TikTok needs at least 10 per day.' : "That doesn't look like a valid daily budget.");
+      return;
+    }
     _saveCamps();
     _lcState.fields = _launchExtractFields(_lcState.camp.pkg, _lcState.camp.platform);
-    _launchOrivenAppend('oriven', 'Done — daily budget set to $' + amount + '. Refreshing readiness…');
+    _launchOrivenAppend('oriven', 'Done — daily budget set to ' + amount + ' per day, in your ad account’s currency. Refreshing readiness…');
     _launchRenderSnapshot(_lcState.camp, _lcState.fields);
     var refreshedCampaignChecks = _launchBuildCampaignChecks(_lcState.camp, _lcState.fields);
     var platformChecks = checks.filter(function(c){ return c.key === 'connection' || c.key === 'account' || c.key === 'page'; });
@@ -10169,12 +10276,25 @@ window._launchOrivenAsk = function(){
 // (server.js), and the client-side re-entrancy flag below is the same
 // belt-and-braces pattern already used for Research submission.
 window._launchDeploy = function(){
-  if (_lcState.launching) return;
+  if (_lcState.launching || _lcState.confirming) return;
   var camp = _lcState.camp;
   if (!camp) return;
   var readiness = _launchAggregateReadiness(_lcState.checks);
   if (readiness.state === 'blocked') return; // never a frontend-only bypass — button is already disabled, this is defense in depth
-
+  // Nothing is sent to a provider without an explicit confirmation that
+  // shows what will be created (name, platform, account, budget, schedule).
+  var F = window.orvWorkspace && orvWorkspace.flow;
+  if (!F) return;
+  _lcState.confirming = true;
+  document.getElementById('lcLaunchBtn').disabled = true;
+  F.confirmPublish({ platform: camp.platform, pkg: camp.pkg, name: camp.name }).then(function(ok){
+    _lcState.confirming = false;
+    if (!ok) { _launchRenderLaunchButton(_lcState.checks); return; }
+    _launchDeployConfirmed(camp);
+  });
+};
+function _launchDeployConfirmed(camp){
+  if (_lcState.launching) return;
   _lcState.launching = true;
   document.getElementById('lcLaunchBtn').disabled = true;
   var overlay = document.getElementById('lcDeployOverlay');
@@ -10215,25 +10335,26 @@ window._launchDeploy = function(){
       _lcState.launching = false;
       if (res.ok && res.data && res.data.ok) {
         renderStages(4);
-        try {
-          _loadCamps();
-          for (var i = 0; i < _campaigns.length; i++) { if (_campaigns[i].id === camp.id) { _campaigns[i].status = 'published'; break; } }
-          _saveCamps();
-        } catch (e) {}
+        // Record the provider's real result (external campaign/ad set/ad IDs,
+        // publish time) — without the external ID the durable record can't
+        // be matched to the same campaign once provider sync imports it.
+        try { window._orvMarkPublished(camp.id, res.data); } catch (e) {}
         _launchRenderSuccess(res.data, camp);
       } else {
-        var errMsg = (res.data && res.data.error) || 'Launch could not be completed.';
-        var isLockConflict = res.status === 409 && res.data && res.data.code === 'PUBLISH_IN_PROGRESS';
-        _launchRenderFailure(errMsg, camp, !isLockConflict, res.data);
+        // Never marked live or published on failure — the local record is
+        // untouched, and the route rolls back anything it created.
+        var out = window.orvWorkspace ? orvWorkspace.flow.publishOutcome(camp.platform, res, null) : { message: 'Launch could not be completed.', retry: true };
+        _launchRenderFailure(out.message, camp, out.retry, out.title);
       }
       document.getElementById('lcLaunchBtn').disabled = false;
     })
     .catch(function(e){
       _lcState.launching = false;
       document.getElementById('lcLaunchBtn').disabled = false;
-      _launchRenderFailure('Network error — ' + (e && e.message ? e.message : 'the request could not be completed.'), camp, true, null);
+      var out = window.orvWorkspace ? orvWorkspace.flow.publishOutcome(camp.platform, null, e) : { message: 'The request could not be completed.', retry: true };
+      _launchRenderFailure(out.message, camp, out.retry, out.title);
     });
-};
+}
 
 // Status language (spec 20) — never say "Live" unless the provider's own
 // returned status genuinely means live/active. The real deployment flow
@@ -10263,21 +10384,19 @@ function _launchRenderSuccess(data, camp){
         '<div class="lc-snap-row"><div class="lc-snap-label">Deployed</div><div class="lc-snap-value">' + new Date().toLocaleString() + '</div></div>' +
       '</div>' +
       '<div class="lc-result-actions">' +
-        '<button type="button" class="lc-result-btn lc-result-btn-primary" onclick="_orvNav(\'adsmanager\',\'page-ads-manager\')">View Campaign</button>' +
+        '<button type="button" class="lc-result-btn lc-result-btn-primary" onclick="_launchDeployReset();navigate(\'campaigns\')">Open in Campaigns</button>' +
         '<button type="button" class="lc-result-btn" onclick="_launchDeployReset();_launchBackToSelect();renderLaunchPage();">Back to campaigns</button>' +
       '</div>' +
     '</div>';
 }
 
-function _launchRenderFailure(message, camp, retrySafe, rawData){
+function _launchRenderFailure(message, camp, retrySafe, title){
   var panel = document.getElementById('lcDeployPanel');
-  var detailHtml = rawData ? '<details class="lc-result-details"><summary>Technical details</summary><pre>' + _prfEsc(JSON.stringify(rawData, null, 2)) + '</pre></details>' : '';
   panel.innerHTML =
-    '<div class="lc-result lc-result-failure">' +
-      '<h2 class="lc-result-title">Launch Interrupted</h2>' +
-      '<p class="lc-result-sub">ORIVEN could not complete deployment.</p>' +
+    '<div class="lc-result lc-result-failure" role="alert">' +
+      '<h2 class="lc-result-title">' + _prfEsc(title || 'Launch interrupted') + '</h2>' +
+      '<p class="lc-result-sub">The campaign is still a draft in OrivenAI.</p>' +
       '<p class="lc-result-message">' + _prfEsc(message) + '</p>' +
-      detailHtml +
       '<div class="lc-result-actions">' +
         (retrySafe ? '<button type="button" class="lc-result-btn lc-result-btn-primary" onclick="_launchDeployReset();_launchDeploy();">Retry</button>' : '') +
         '<button type="button" class="lc-result-btn" onclick="_launchDeployReset();">Close</button>' +
@@ -12361,21 +12480,24 @@ window.duplicateCampaign = function(id){
 };
 
 window.deleteCampaign = function(id){
-  // Manual campaigns get their own confirmation copy — spec requires it be
-  // unambiguous that this only removes Oriven's own record, never the real
-  // advertisement running on the external platform (Oriven never had any
-  // ability to touch that ad in the first place for a manual campaign, but
-  // the copy still says so explicitly rather than leaving it ambiguous).
+  _loadCamps();
   var existing = null;
   for (var i = 0; i < _campaigns.length; i++) { if (_campaigns[i].id === id) { existing = _campaigns[i]; break; } }
-  var msg = (existing && existing.manual)
-    ? 'Remove this campaign from Oriven? This only deletes Oriven\'s own record — it will NOT affect the real advertisement on ' + (existing.platformLabel || {google:'Google Ads',meta:'Meta Ads',tiktok:'TikTok Ads',linkedin:'LinkedIn Ads',pinterest:'Pinterest Ads'}[existing.platform] || 'the external platform') + '.'
-    : 'Delete this campaign? This cannot be undone.';
-  if(!confirm(msg)) return;
-  _campaigns = _campaigns.filter(function(c){ return c.id!==id; });
-  _saveCamps();
-  if (typeof _mcCloseDetail === 'function') _mcCloseDetail();
-  if(typeof navigate==='function') navigate('campaigns');
+  if (!existing) return;
+  var F = window.orvWorkspace && orvWorkspace.flow;
+  if (!F) return;
+  F.confirmRemove({ name: existing.name, platform: existing.platform, manual: !!existing.manual,
+    externalId: existing.platformCampaignId || existing.external_campaign_id || null,
+    providerStatus: existing.providerStatus || null }).then(function(ok){
+    if (!ok) return;
+    _loadCamps();
+    _campaigns = _campaigns.filter(function(c){ return c.id!==id; });
+    _saveCamps();
+    if (window.orvWorkspace) orvWorkspace.campaigns.removed(id);
+    if (typeof toast === 'function') toast('Removed from OrivenAI.', 'ok');
+    if (typeof _mcCloseDetail === 'function') _mcCloseDetail();
+    if(typeof navigate==='function') navigate('campaigns');
+  });
 };
 
 // ── Utility ───────────────────────────────────────────────────────
@@ -12422,7 +12544,7 @@ window.cwsDeleteCampaign = function() {
   if (typeof navigate === 'function') navigate('campaigns');
 };
 
-window.admPublishCampaign = function(campId, accountId, accountName, accountExtra, structure) {
+window.admPublishCampaign = function(campId, accountId, accountName, accountExtra, structure, confirmed) {
   _loadCamps();
   var camp = null;
   for (var i = 0; i < _campaigns.length; i++) {
@@ -12444,15 +12566,28 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
     structure = { adSets: 1, adsPerAdSet: 1 };
   }
 
+  /* Explicit confirmation before any account switch or provider call. */
+  if (!confirmed) {
+    var F = window.orvWorkspace && orvWorkspace.flow;
+    if (!F) return;
+    F.confirmPublish({ platform: platform, pkg: camp.pkg, name: camp.name,
+      structure: (platform === 'meta' && structure) ? (structure.adSets + ' ad set(s) × ' + structure.adsPerAdSet + ' ad(s)') : null
+    }).then(function(ok){ if (ok) window.admPublishCampaign(campId, accountId, accountName, accountExtra, structure, true); });
+    return;
+  }
+
   /* Set status → publishing immediately so UI reflects progress */
   _loadCamps();
   for (var i = 0; i < _campaigns.length; i++) {
-    if (_campaigns[i].id === campId) { _campaigns[i].status = 'publishing'; _saveCamps(); break; }
+    if (_campaigns[i].id === campId) {
+      if (_campaigns[i].status === 'publishing') return; // already in flight
+      _campaigns[i].status = 'publishing'; _saveCamps(); break;
+    }
   }
   if (typeof initAdsManager === 'function') initAdsManager();
 
   function _doPublish() {
-    var body = { pkg: camp.pkg };
+    var body = { campId: campId, pkg: camp.pkg };
     if (platform === 'meta') body.structure = structure || { adSets: 1, adsPerAdSet: 1 };
     apiFetch('/api/publish/' + platform, {
       method: 'POST',
@@ -12461,8 +12596,9 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
       _loadCamps();
       for (var j = 0; j < _campaigns.length; j++) {
         if (_campaigns[j].id !== campId) continue;
-        if (r.ok) {
+        if (r.ok && r.data && r.data.ok !== false) {
           _campaigns[j].status = 'published';
+          _campaigns[j].providerStatus = (r.data && r.data.status) ? String(r.data.status).toLowerCase() : null;
           _campaigns[j].publishedAt = new Date().toISOString();
           _campaigns[j].platformCampaignId = (r.data && r.data.campaignId) ? String(r.data.campaignId) : null;
           if (r.data && r.data.adSetId) _campaigns[j].platformAdSetId = String(r.data.adSetId);
@@ -12474,8 +12610,9 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
           }
           delete _campaigns[j].failureReason;
         } else {
+          var _o = window.orvWorkspace ? orvWorkspace.flow.publishOutcome(platform, r, null) : null;
           _campaigns[j].status = 'failed';
-          _campaigns[j].failureReason = (r.data && r.data.error) ? r.data.error : 'Unknown error';
+          _campaigns[j].failureReason = _o ? _o.message : 'Publishing didn’t complete.';
         }
         _saveCamps();
         // Task 3 Part 2 — provider confirmation (r.ok, the real publish
@@ -12493,21 +12630,22 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
           var structNote = (r.data && Array.isArray(r.data.adSets) && Array.isArray(r.data.ads))
             ? ' (' + r.data.adSets.length + ' ad set' + (r.data.adSets.length !== 1 ? 's' : '') + ', ' + r.data.ads.length + ' ad' + (r.data.ads.length !== 1 ? 's' : '') + ')'
             : '';
-          if (typeof window.notifAllowed !== 'function' || window.notifAllowed('notifPublish')) toast('Campaign published to ' + platLabel + structNote, 'ok');
+          if (typeof window.notifAllowed !== 'function' || window.notifAllowed('notifPublish')) toast('Created on ' + platLabel + structNote + ' — paused until you activate it.', 'ok');
         }
-        else toast('Publish failed: ' + ((r.data && r.data.error) || 'Unknown error'), 'error');
+        else { var _o2 = window.orvWorkspace ? orvWorkspace.flow.publishOutcome(platform, r, null) : null; toast((_o2 ? _o2.title + ': ' + _o2.message : 'Publishing didn’t complete.'), 'error'); }
       }
     }).catch(function(e) {
       _loadCamps();
       for (var j = 0; j < _campaigns.length; j++) {
         if (_campaigns[j].id !== campId) continue;
         _campaigns[j].status = 'failed';
-        _campaigns[j].failureReason = (e && e.message) ? e.message : 'Network error';
+        _campaigns[j].failureReason = 'OrivenAI couldn’t confirm the result. Check ' + platform + ' before retrying.';
         _saveCamps();
         break;
       }
       if (typeof initAdsManager === 'function') initAdsManager();
-      if (typeof toast === 'function') toast('Publish failed: ' + ((e && e.message) || 'Network error'), 'error');
+      var _o3 = window.orvWorkspace ? orvWorkspace.flow.publishOutcome(platform, null, e) : null;
+      if (typeof toast === 'function') toast(_o3 ? _o3.title + ': ' + _o3.message : 'Publishing didn’t complete.', 'error');
     });
   }
 
@@ -12561,54 +12699,62 @@ window.admRetryPublish = function(campId) {
   if (typeof initAdsManager === 'function') initAdsManager();
 };
 
+// These used to flip the local status only while the toast said the
+// campaign was paused/resumed — the provider campaign kept running. They
+// now use the real provider route (via _lqLiveToggle) when a platform
+// campaign ID exists, and say so honestly when it doesn't.
+function _admFind(campId){ _loadCamps(); for (var i = 0; i < _campaigns.length; i++) if (_campaigns[i].id === campId) return _campaigns[i]; return null; }
 window.admPauseCampaign = function(campId) {
-  _loadCamps();
-  for (var i = 0; i < _campaigns.length; i++) {
-    if (_campaigns[i].id === campId) {
-      _campaigns[i].status = 'paused';
-      _campaigns[i].updated = new Date().toISOString();
-      _saveCamps();
-      break;
-    }
-  }
-  if (typeof initAdsManager === 'function') initAdsManager();
-  if (typeof toast === 'function') toast('Campaign paused', 'ok');
+  var c = _admFind(campId);
+  if (c && c.platformCampaignId) { window._lqLiveToggle(campId); return; }
+  if (typeof toast === 'function') toast('No platform campaign reference is recorded — pause it on the ad platform directly.', 'warn');
 };
-
-window.admResumeCampaign = function(campId) {
-  _loadCamps();
-  for (var i = 0; i < _campaigns.length; i++) {
-    if (_campaigns[i].id === campId) {
-      _campaigns[i].status = 'published';
-      _campaigns[i].updated = new Date().toISOString();
-      _saveCamps();
-      break;
-    }
-  }
-  if (typeof initAdsManager === 'function') initAdsManager();
-  if (typeof toast === 'function') toast('Campaign resumed', 'ok');
-};
+window.admResumeCampaign = window.admPauseCampaign;
 
 window.admArchiveCampaign = function(campId) {
-  _loadCamps();
-  for (var i = 0; i < _campaigns.length; i++) {
-    if (_campaigns[i].id === campId) {
-      _campaigns[i].status = 'archived';
-      _campaigns[i].updated = new Date().toISOString();
-      _saveCamps();
-      break;
-    }
-  }
-  if (typeof initAdsManager === 'function') initAdsManager();
-  if (typeof toast === 'function') toast('Campaign archived', 'ok');
+  var c = _admFind(campId);
+  if (!c) return;
+  orvWorkspace.flow.confirmArchive({ name: c.name, platform: c.platform }).then(function(ok){
+    if (!ok) return;
+    c = _admFind(campId);
+    if (!c) return;
+    c.status = 'archived';
+    c.updated = new Date().toISOString();
+    _saveCamps();
+    if (typeof initAdsManager === 'function') initAdsManager();
+    if (typeof toast === 'function') toast('Archived in OrivenAI. The campaign on the ad platform is unchanged.', 'ok');
+  });
 };
 
-window.admDeleteCampaign = function(campId) {
+window.admDeleteCampaign = function(campId) { window.deleteCampaign(campId); };
+
+/* Public bridge — records a real, provider-confirmed publish result on the
+   local campaign (external campaign/ad set/ad IDs, publish time) the same
+   way admPublishCampaign always has. Needed by publish paths that live in
+   other script blocks (the Create review screens' cgrPublishTo), which
+   cannot reach the closure-scoped _campaigns — their previous direct
+   `_campaigns[...]` update threw inside a try/catch and silently left the
+   campaign a draft. _saveCamps mirrors the result to /api/campaigns. */
+window._orvMarkPublished = function(campId, d) {
+  d = d || {};
   _loadCamps();
-  _campaigns = _campaigns.filter(function(c){ return c.id !== campId; });
-  _saveCamps();
-  if (typeof initAdsManager === 'function') initAdsManager();
-  if (typeof toast === 'function') toast('Campaign deleted', 'ok');
+  for (var i = 0; i < _campaigns.length; i++) {
+    if (_campaigns[i].id !== campId) continue;
+    _campaigns[i].status = 'published';
+    _campaigns[i].publishedAt = new Date().toISOString();
+    _campaigns[i].updated = _campaigns[i].publishedAt;
+    _campaigns[i].platformCampaignId = d.campaignId ? String(d.campaignId) : null;
+    // What the provider itself reported at creation (every publish route
+    // creates campaigns paused) — "deployed" is not the same as "live".
+    _campaigns[i].providerStatus = d.status ? String(d.status).toLowerCase() : null;
+    if (d.adSetId) _campaigns[i].platformAdSetId = String(d.adSetId);
+    if (Array.isArray(d.adSets)) _campaigns[i].platformAdSetIds = d.adSets.map(function(a){ return a.id; });
+    if (Array.isArray(d.ads))    _campaigns[i].platformAdIds    = d.ads.map(function(a){ return a.id; });
+    delete _campaigns[i].failureReason;
+    _saveCamps();
+    return true;
+  }
+  return false;
 };
 
 /* Public bridge — lets other script blocks (e.g. CGR IIFE) store campaigns
@@ -12620,7 +12766,10 @@ window._orvStoreCampaign = function(campObj) {
   }
   _campaigns.unshift(campObj);
   if (_campaigns.length > 50) _campaigns = _campaigns.slice(0, 50);
-  _saveCamps();
+  // Read by the Build canvas's "Finalizing" stage — a failed local write
+  // (e.g. storage full) is reported honestly; the durable copy below still
+  // runs.
+  window._orvLastStoreOk = _saveCamps();
   if (typeof renderCampaignHub === 'function') setTimeout(renderCampaignHub, 0);
   _orvPersistCampaignDurable(campObj);
 };
@@ -12723,14 +12872,27 @@ window._orvUpdateCampPkg = function(id, pkg) {
   for(var _i=0; _i<_campaigns.length; _i++){
     if(_campaigns[_i].id === id){
       _campaigns[_i].pkg = pkg;
-      var mk = pkg.platform==='meta'?'meta-ads':pkg.platform==='tiktok'?'tiktok-ads':'google-ads';
+      var _pl = pkg.platform || _campaigns[_i].platform;
+      var mk = _pl==='meta'?'meta-ads':_pl==='tiktok'?'tiktok-ads':_pl==='pinterest'?'pinterest-ads':'google-ads';
       if(_campaigns[_i].generated && _campaigns[_i].generated[mk]){
         _campaigns[_i].generated[mk].data = pkg;
       }
-      _saveCamps();
-      return;
+      _campaigns[_i].updated = new Date().toISOString();
+      return _saveCamps();
     }
   }
+  return false;
+};
+
+/* Launch readiness is recalculated from the stored package whenever it
+   changes (Set Budget, Go to Ad, review-screen saves). Re-renders only the
+   views that are currently showing this campaign. */
+window._orvReadinessChanged = function(campId){
+  _loadCamps();
+  var modal = document.getElementById('lqModalOverlay');
+  if (modal && modal.style.display !== 'none' && _lqSelectedCampId === campId && typeof _launchRenderFilteredList === 'function') _launchRenderFilteredList();
+  var ctrl = document.getElementById('launchControlView');
+  if (ctrl && ctrl.style.display !== 'none' && _lcState && _lcState.campId === campId && !_lcState.launching) window._launchOpenControl(campId);
 };
 
 })();
@@ -12776,7 +12938,6 @@ window._orvUpdateCampPkg = function(id, pkg) {
         for(var i=0;i<NODE_COUNT;i++) nodes.push(mkNode());
       }
 
-      var _raf;
       function frame(){
         ctx.clearRect(0,0,W,H);
         var dark = document.body.classList.contains('dark-mode');
@@ -12816,11 +12977,23 @@ window._orvUpdateCampPkg = function(id, pkg) {
           ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
           ctx.fill();
         }
-        _raf=requestAnimationFrame(frame);
       }
 
+      /* Performance pass — this used to redraw every animation frame for
+         the whole session (an O(n²) line pass + a forced layout per frame,
+         measured ~60 layouts/s on every page), yet the authenticated shell
+         paints an opaque page background over it (see the .app > .page
+         background rule in styles.css) — confirmed by a pixel test on every
+         page in both themes. It now draws one frame, and again on resize /
+         theme change, so the texture remains wherever it is ever exposed
+         without costing continuous CPU/GPU work. */
+      var _resizeTimer = null;
       resize(); init(); frame();
-      window.addEventListener('resize',function(){ resize(); init(); });
+      window.addEventListener('resize',function(){
+        clearTimeout(_resizeTimer);
+        _resizeTimer = setTimeout(function(){ resize(); init(); frame(); }, 150);
+      });
+      new MutationObserver(function(){ frame(); }).observe(document.body, { attributes:true, attributeFilter:['class'] });
     }
   }
 
@@ -14020,7 +14193,7 @@ window._orvUpdateCampPkg = function(id, pkg) {
   function _orvAiTimeGreeting(){
     var h = new Date().getHours();
     if (h < 12) return 'Good morning.';
-    if (h < 17) return 'Good afternoon.';
+    if (h < 18) return 'Good afternoon.'; // same ranges as Home's greeting (12:00-17:59 afternoon)
     return 'Good evening.';
   }
 
@@ -14127,7 +14300,7 @@ window._orvUpdateCampPkg = function(id, pkg) {
       if(sub) sub.textContent = 'Nothing to flag right now.';
       return;
     }
-    if(sub) sub.textContent = "Here's what I found today.";
+    if(sub) sub.textContent = cards._fromWorkspace ? 'Here’s what needs you right now.' : "Here's what I found today.";
     list.style.display = '';
     list.innerHTML = cards.map(function(c, i){
       return '<div class="orv-ai-rec-card orv-ai-rec-stagger" style="--i:' + i + '">' +
@@ -14161,7 +14334,10 @@ window._orvUpdateCampPkg = function(id, pkg) {
     // navigate() function, which real navigation (_orvNav) doesn't call;
     // window.orvContext.page is the one _orvNav genuinely keeps current.
     var currentPage = (window.orvContext && window.orvContext.page) || _orvAiCurrentPage;
-    var prompts = ORV_AI_SUGGESTED_PROMPTS[currentPage];
+    // Real-state prompts first (a named campaign, an actual blocker, a
+    // pending approval), then this page's generic examples.
+    var dynamic = (window.orvWorkspace && orvWorkspace.chat) ? orvWorkspace.chat.prompts(currentPage) : [];
+    var prompts = dynamic.concat(ORV_AI_SUGGESTED_PROMPTS[currentPage] || []).slice(0, 3);
     if(!prompts || !prompts.length){ wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
     wrap.style.display = '';
     wrap.innerHTML = '<div class="orv-ai-suggest-hd">Try asking</div>' +
@@ -14418,7 +14594,13 @@ window._orvUpdateCampPkg = function(id, pkg) {
          added alongside reviewSection. */
       launch: oc.launch || null,
       autopilot: oc.autopilot || null,
-      businessSignals: oc.businessSignals || null
+      businessSignals: oc.businessSignals || null,
+      /* Product Experience Revamp — the compact real research summary
+         (question/summary/counts, never the heavy map) and the shared
+         workspace state Home shows (counts + "Needs you" titles), so the
+         assistant answers from the same facts the user is looking at. */
+      research: oc.research || null,
+      workspace: (window.orvWorkspace && orvWorkspace.chat) ? orvWorkspace.chat.summary() : null
     };
 
     var historyToSend = _orvAiHistory.slice(-20);
@@ -14463,7 +14645,8 @@ window._orvUpdateCampPkg = function(id, pkg) {
       var usedChip = (usedContext && usedContext.length)
         ? '<div class="orv-ai-used-context">Using: ' + usedContext.map(_escHtml).join(' · ') + '</div>'
         : '';
-      aiDiv.innerHTML = '<div class="orv-ai-msg-bubble">' + _escHtml(text) + '</div>' + usedChip;
+      var objLinks = (res.ok && window.orvWorkspace && orvWorkspace.chat) ? orvWorkspace.chat.links(text) : '';
+      aiDiv.innerHTML = '<div class="orv-ai-msg-bubble">' + _escHtml(text) + '</div>' + usedChip + objLinks;
       feed.appendChild(aiDiv);
       feed.scrollTop = feed.scrollHeight;
       if(res.ok){
@@ -14877,8 +15060,14 @@ window._orvUpdateCampPkg = function(id, pkg) {
       if(mob) mob.textContent = navTxt;
     }
   }
-  /* Poll every 2s to pick up credits + name written by auth.js */
-  setInterval(_updateApAvatar, 2000);
+  /* Mirror credits + name whenever auth.js/usage.js actually writes them
+     (was a permanent 2s poll). */
+  (function(){
+    var srcs = ['sidebarUserName', 'usageBadge'].map(function(id){ return document.getElementById(id); }).filter(Boolean);
+    if (!srcs.length || typeof MutationObserver === 'undefined') { setInterval(_updateApAvatar, 2000); return; }
+    var mo = new MutationObserver(_updateApAvatar);
+    srcs.forEach(function(el){ mo.observe(el, { childList:true, characterData:true, subtree:true }); });
+  })();
   _updateApAvatar();
 
   /* Set initial active state — default landing is Campaign Studio */
@@ -15160,6 +15349,14 @@ window._orvNav = function(page, explicitPageId) {
   if (page === 'launch' && typeof renderLaunchPage === 'function') setTimeout(renderLaunchPage, 0);
   if (page === 'research' && typeof _researchPlayShellAnim === 'function') setTimeout(_researchPlayShellAnim, 0);
   if (page === 'research' && typeof _researchTryRestoreSession === 'function') setTimeout(_researchTryRestoreSession, 0);
+  /* Product Experience Revamp — one shared workspace state: every
+     navigation keeps it fresh (60s cache, so this is usually free) and
+     repaints the sidebar's real per-area marks. */
+  if (window.orvWorkspace && orvWorkspace.placeBell) orvWorkspace.placeBell();
+  if (window.orvWorkspace && page !== 'dashboard') {
+    orvWorkspace.refresh(false);
+    if (orvWorkspace.campaigns.settled) orvWorkspace.sidebar.paint();
+  }
   /* Oriven 1.0 (V8) — the Workspace Switcher should never stay open across
      a navigation (e.g. selecting an item already closes it, but any other
      nav path — back/forward, a deep link — should too). */
@@ -16487,6 +16684,7 @@ window.researchSubmit = function() {
         // in-memory only, per orivenContext.js's own research getter).
         if (typeof window._orvSaveResearchSession === 'function') window._orvSaveResearchSession(res.data);
         window._researchChatHistory = [];
+        if (window.orvWorkspace) orvWorkspace.research.resetPicks();
         _rmapRender(res.data);
         _researchSetState('researchMapView');
         var followRow = document.getElementById('researchFollowupRow');
@@ -16570,6 +16768,7 @@ window._researchNewSession = function() {
   if (btn) btn.textContent = 'Investigate →';
   window._researchLastResult = null;
   if (typeof window._orvClearResearchSession === 'function') window._orvClearResearchSession();
+  if (window.orvWorkspace) orvWorkspace.research.resetPicks();
   _researchSetState('researchEmptyState');
   if (input) input.focus();
 };
@@ -16582,24 +16781,37 @@ window._researchNewSession = function() {
 // existing Create flow completely untouched. Never auto-generates —
 // the user still reviews/edits the prompt and clicks Build Campaign
 // themselves, same as typing it by hand.
+// Product Experience Revamp — the handoff is now structured, not just
+// text. The picked findings (or, if none were picked, the top real
+// opportunity) are stored as a named Research handoff that Create shows
+// as removable "From Research" context and sends to generation as
+// researchContext (server.js frames it as untrusted, directional data).
+// The prompt is still only prefilled when Create's textarea is empty, so
+// a brief the user already wrote is never overwritten. Never auto-generates.
 window._researchUseInCreate = function() {
   var r = window._researchLastResult;
   if (!r) return;
+  var handoff = (window.orvWorkspace) ? orvWorkspace.research.buildHandoff(r) : null;
   var parts = [];
   if (r.summary) parts.push(r.summary);
   var opp = (r.opportunities || [])[0];
-  if (opp && opp.opportunity) parts.push('Focus on this opportunity: ' + opp.opportunity + '.');
+  if (!handoff && opp && opp.opportunity) parts.push('Focus on this opportunity: ' + opp.opportunity + '.');
   var prompt = parts.join(' ').trim();
   if (!prompt && r.question) prompt = r.question;
   _orvNav('create', 'page-create');
   setTimeout(function(){
     var ta = document.getElementById('aicInput');
     if (!ta) return;
-    ta.value = prompt;
+    var prefilled = false;
+    if (!ta.value.trim()) { ta.value = prompt; prefilled = true; }
     if (typeof window.aicAutoResize === 'function') window.aicAutoResize(ta);
     ta.focus();
-    if (typeof toast === 'function') toast('Research brought into Create — review and adjust before generating.', 'ok');
-  }, 60);
+    if (typeof _cr2RenderStage === 'function') _cr2RenderStage();
+    var ctx = document.querySelector('#cr2Stage .ow-ctx');
+    if (ctx && window.orvWorkspace) orvWorkspace.arrive(ctx);
+    var n = handoff ? handoff.findings.length : 0;
+    if (typeof toast === 'function') toast(n ? (n + ' research finding' + (n === 1 ? '' : 's') + ' added to Create' + (prefilled ? ' with a starting brief' : '') + ' — review before building.') : 'Research brought into Create — review and adjust before generating.', 'ok');
+  }, 80);
 };
 
 // ── Follow-up — the control layer for exploring the current session
@@ -16939,6 +17151,10 @@ window._rmapFit = function(nodesOverride) {
   var w = wrap.clientWidth || 800, h = wrap.clientHeight || 500;
   var contentW = (maxX - minX) + pad * 2, contentH = (maxY - minY) + pad * 2;
   var scale = Math.max(0.3, Math.min(1.4, Math.min(w / contentW, h / contentH)));
+  // Narrow canvases (phones, tablets): fitting the whole graph to ~350px shrank node
+  // labels to ~4px. Keep a readable minimum zoom instead; the map is
+  // pannable and the +/-/fit controls remain.
+  if (w < 900) scale = Math.max(scale, 0.8);
   var cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
   _rmapView.scale = scale;
   _rmapView.x = w / 2 - cx * scale;
@@ -17376,13 +17592,23 @@ function _researchRenderFindingsPanel(data) {
 
   var body = groups.map(function(g) {
     var color = RESEARCH_RAIL_CATEGORY_COLORS[g.def.cat] || 'var(--green)';
+    // Product Experience Revamp — each finding can be picked to travel to
+    // Create as named, removable context (orvWorkspace.research). The pick
+    // toggle is a sibling of the row button, never nested inside it.
+    var groupSingular = { opportunities: 'Opportunity', competitors: 'Competitor', trends: 'Trend', customerSignals: 'Customer signal', advertisingPatterns: 'Ad pattern' }[g.def.key] || g.def.label;
     var rows = g.items.map(function(it) {
       var hasSource = (it.sourceIds || []).length > 0;
-      return '<button type="button" class="rsc-finding-row" onclick="window._rmapSelectNode(\'' + _prfEsc(it.id) + '\')">' +
+      var text = g.def.textFn(it);
+      var fid = g.def.key + ':' + (it.id || text.slice(0, 40));
+      var on = !!(window.orvWorkspace && orvWorkspace.research.isPicked(fid));
+      return '<div class="rsc-finding-item' + (on ? ' is-picked' : '') + '">' +
+        '<button type="button" class="rsc-finding-row" onclick="window._rmapSelectNode(\'' + _prfEsc(it.id) + '\')">' +
         '<span class="rsc-finding-dot" style="background:' + color + '" aria-hidden="true"></span>' +
-        '<span class="rsc-finding-text">' + _prfEsc(g.def.textFn(it)) + '</span>' +
+        '<span class="rsc-finding-text">' + _prfEsc(text) + '</span>' +
         (hasSource ? '<span class="rsc-finding-sourced" title="Backed by a real cited source" aria-label="Backed by a real cited source">●</span>' : '') +
-        '</button>';
+        '</button>' +
+        '<button type="button" class="ow-pick' + (on ? ' is-on' : '') + '" aria-pressed="' + on + '" data-fid="' + _prfEsc(fid) + '" data-group="' + _prfEsc(groupSingular) + '" data-text="' + _prfEsc(text) + '" onclick="orvWorkspace.research.togglePick(this)" title="Use this finding in Create"><span class="ow-pick-box" aria-hidden="true"></span><span class="ow-pick-lbl">Use</span></button>' +
+        '</div>';
     }).join('');
     return '<div class="rsc-findings-group"><div class="rsc-findings-group-label">' + _prfEsc(g.def.label) + '</div><div class="rsc-findings-group-rows">' + rows + '</div></div>';
   }).join('');
@@ -17430,6 +17656,7 @@ function _rmapRender(data) {
   _rmapRenderSvg(graph);
   _rmapRenderSrSummary(data, graph);
   _researchRenderFindingsPanel(data);
+  if (window.orvWorkspace) orvWorkspace.research.syncUseButton();
   _rmapWirePanZoom();
   requestAnimationFrame(function() { window._rmapFit(); });
 
@@ -17660,16 +17887,15 @@ window.conConnect = function(platform) {
 
 window.conDisconnect = function(platform) {
   var names = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
-  var _confirmMsg = typeof t==='function' ? t('confirmDisconnectPlatform').replace('{platform}', names[platform] || platform) : ('Disconnect ' + (names[platform] || platform) + '? Live analytics will stop but your campaign data will be kept.');
-  if (!confirm(_confirmMsg)) return;
-  apiFetch('/api/' + platform + '/disconnect', { method: 'POST' })
-    .then(function() {
+  orvWorkspace.flow.confirmDisconnect(platform, function(){
+    return apiFetch('/api/' + platform + '/disconnect', { method: 'POST' }).then(function(r) {
+      if (!r.ok) return { ok: false, title: 'Couldn’t disconnect', message: 'OrivenAI still has access to ' + (names[platform] || platform) + '. Try again.' };
       _conApplyCard(platform, false);
-      if (typeof toast === 'function') toast((names[platform] || platform) + ' ' + (typeof t==='function'?t('toastDisconnectedSuffix'):'disconnected.'));
-    })
-    .catch(function() {
-      if (typeof toast === 'function') toast(typeof t==='function'?t('toastDisconnectFailed'):'Disconnect failed — please try again.', 'err');
+      if (window.orvWorkspace && orvWorkspace._clearApiCache) orvWorkspace._clearApiCache();
+      if (typeof toast === 'function') toast((names[platform] || platform) + ' ' + (typeof t==='function'?t('toastDisconnectedSuffix'):'disconnected.'), 'ok');
+      return { ok: true };
     });
+  });
 };
 
 /* ── Performance page ── */
@@ -17691,6 +17917,7 @@ var _PRF_PLAT_LABELS = { all: 'All Platforms', google: 'Google Ads', meta: 'Meta
    exist anywhere else in the app yet. */
 window.prfSetRange = function(key) {
   window._prfActiveRange = key;
+  if (key !== 'CUSTOM' && window.orvWorkspace && orvWorkspace.refreshMotion) orvWorkspace.refreshMotion('#page-performance');
   var customEl = document.getElementById('prfCustomRange');
   if (key === 'CUSTOM') {
     if (customEl) customEl.style.display = '';
@@ -17765,6 +17992,12 @@ function _prfBuildCampaignSelect() {
   if (!sel) return;
   var hierarchy = window._prfHierarchy || 'campaigns';
   var names = _prfActiveEntityNames();
+  // Continuity — a campaign handed over from Home/Chat/Launch is selected
+  // as soon as the real campaign list for this platform contains it.
+  if (hierarchy === 'campaigns' && window.orvWorkspace && orvWorkspace.consumeCampaignTarget) {
+    var _owName = orvWorkspace.consumeCampaignTarget(names);
+    if (_owName) { window._prfActiveCampaign = _owName; setTimeout(function(){ _prfApplyView(); }, 0); }
+  }
   var current = window._prfActiveCampaign || 'all';
   if (current !== 'all' && names.indexOf(current) === -1) {
     current = 'all';
@@ -17786,16 +18019,19 @@ function _prfBuildCampaignSelect() {
   sel.setAttribute('title', 'Select ' + noun);
   sel.setAttribute('aria-label', 'Select a specific ' + noun);
   sel.disabled = names.length === 0;
+  if (window.orvWorkspace && orvWorkspace.campPicker) orvWorkspace.campPicker.sync();
 }
 
 window.prfSwitchCampaign = function(name) {
   window._prfActiveCampaign = name || 'all';
   _prfApplyView(); // filters already-loaded data — no new fetch for KPIs/charts
+  if (window.orvWorkspace && orvWorkspace.campPicker) { orvWorkspace.campPicker.sync(); orvWorkspace.refreshMotion('#page-performance'); }
 };
 
 window.prfSwitchPlatform = function(platform) {
   window._prfActivePlatform = platform;
   window._prfActiveCampaign = 'all';
+  if (window.orvWorkspace && orvWorkspace.refreshMotion) orvWorkspace.refreshMotion('#page-performance');
   try { localStorage.setItem('_prfPlatform', platform); } catch(_){}
   // Bug fix (Performance Workspace Refinement): window._prfHierarchy must be
   // resolved for the NEW platform before anything below reads it —
@@ -18135,6 +18371,14 @@ function _prfBuildTabs(connected) {
   if (!validPlat || validPlat === 'all' || ALL_TABS.indexOf(validPlat) === -1) {
     validPlat = 'google';
     window._prfActivePlatform = 'google';
+  }
+  // Product Experience Revamp — never open the control center on a
+  // platform that isn't connected when one that is exists: Campaigns is
+  // where live advertising returns, so it lands where live data is.
+  var _isConn = function(p) { return p === 'tiktok' ? !!window._prfTikTokConnected : connected.indexOf(p) !== -1; };
+  if (!_isConn(validPlat)) {
+    var _firstConn = ALL_TABS.filter(_isConn)[0];
+    if (_firstConn) { validPlat = _firstConn; window._prfActivePlatform = _firstConn; }
   }
   inner.innerHTML = ALL_TABS.map(function(p) {
     /* Connection dot reflects the same status prfInit() already fetched —
@@ -20806,8 +21050,7 @@ window.bizSwitchTab = function(tab){
   var pageEl = document.getElementById('page-business-brain');
   if(pageEl) pageEl.classList.toggle('biz-canvas-active', tab === 'overview');
   if(tab === 'overview'    && !_bizLoaded.overview){    _bizLoaded.overview = true;    bizLoadOverview(); }
-  else if(tab === 'overview'){ bizLoadOverview(); } // cheap re-fetch so completion state reflects whatever just changed in a module
-  if(tab === 'business'    && !_bizLoaded.business){    _bizLoaded.business = true;    bizLoadProfile(); bizLoadList('products'); }
+  else if(tab === 'overview'){ bizLoadOverview(); } // cheap re-fetch so completion state reflects whatever just changed in a module  if(tab === 'business'    && !_bizLoaded.business){    _bizLoaded.business = true;    bizLoadProfile(); bizLoadList('products'); }
   if(tab === 'market'      && !_bizLoaded.market){        _bizLoaded.market = true;      bizLoadList('audiences'); }
   if(tab === 'competitors' && !_bizLoaded.competitors){   _bizLoaded.competitors = true; bizLoadList('competitors'); }
   if(tab === 'brand'){
@@ -23884,7 +24127,13 @@ function _admUpdateBulkBar() {
 window.admBulkDelete = function() {
   var ids = Object.keys(window._admSelectedIds || {});
   if (!ids.length) return;
-  if (!confirm('Delete ' + ids.length + ' campaign' + (ids.length === 1 ? '' : 's') + '?\nThis cannot be undone.')) return;
+  orvWorkspace.flow.confirm({ eyebrow: 'Meta Ads', danger: true, confirmLabel: 'Delete on Meta',
+    title: 'Delete ' + ids.length + ' campaign' + (ids.length === 1 ? '' : 's') + ' on Meta Ads?',
+    body: '<p>This deletes the campaign' + (ids.length === 1 ? '' : 's') + ' on Meta itself (Meta archives any that have already spent). It can’t be undone from OrivenAI.</p>'
+  }).then(function(ok){ if (ok) _admBulkDeleteConfirmed(ids); });
+};
+function _admBulkDeleteConfirmed(ids) {
+  var failed = 0;
   var btn = document.querySelector('#admBulkBar .adm-bulk-del');
   if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
   var done = 0;
@@ -23894,23 +24143,22 @@ window.admBulkDelete = function() {
       if (r.ok) {
         window._admMetaLiveCamps = (window._admMetaLiveCamps || []).filter(function(c){ return c.campaign_id !== campaignId; });
         delete window._admSelectedIds[campaignId];
-      }
-      if (done === ids.length) {
-        if (btn) { btn.disabled = false; btn.textContent = 'Delete Selected'; }
-        _admRenderMetaLive(window._admMetaLiveCamps || []);
-        _admUpdateBulkBar();
-        _admShowSuccess('Done.');
-      }
+      } else failed++;
+      if (done === ids.length) _admBulkDone();
     }).catch(function() {
-      done++;
-      if (done === ids.length) {
-        if (btn) { btn.disabled = false; btn.textContent = 'Delete Selected'; }
-        _admRenderMetaLive(window._admMetaLiveCamps || []);
-        _admUpdateBulkBar();
-      }
+      done++; failed++;
+      if (done === ids.length) _admBulkDone();
     });
   });
-};
+  function _admBulkDone(){
+    if (btn) { btn.disabled = false; btn.textContent = 'Delete Selected'; }
+    _admRenderMetaLive(window._admMetaLiveCamps || []);
+    _admUpdateBulkBar();
+    var okN = ids.length - failed;
+    if (okN) _admShowSuccess(okN + ' deleted on Meta.');
+    if (failed) _admShowErr(failed + ' couldn’t be deleted. They’re still on Meta.');
+  }
+}
 
 /* ── Google Live Campaign Functions ──────────────────────────────── */
 
@@ -24360,18 +24608,7 @@ window.rptExport = function(format) {
   }
 
   /* Navigate to the results page and show loading */
-  var _platLabels = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads' };
-
-  /* Model label for each step index */
-  var _stepModelLabels = [
-    'Running Text Model...',
-    'Running Text Model...',
-    'Running Text Model...',
-    'Running Text Model...',
-    null, /* filled in per creative mode */
-    null,
-    'Building Publishing Package...'
-  ];
+  var _platLabels = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
 
   function _cancelLoadingTimers(){
     (window._cgrBuildQueue||[]).forEach(function(t){ clearTimeout(t); });
@@ -24422,6 +24659,7 @@ window.rptExport = function(format) {
     window._cgrLastPrompt = prompt;
     window._cgrLastPlatform = platform;
     window._cgrLastCreativeMode = creativeMode;
+    window._cgrLastGoal = goal;
     /* Set platform badge (read by the completed view, not the build view) */
     var pb = document.getElementById('cgrPlatBadge');
     if(pb) pb.textContent = _platLabels[platform] || 'Campaign';
@@ -24430,341 +24668,39 @@ window.rptExport = function(format) {
     _cgrBuildStart(creativeMode, platform, _platLabels[platform] || platform || 'CAMPAIGN', goal);
   }
 
-  /* ── Campaign blueprint — the live "building" view ──────────────────
-     A nested `campaign { ... }` object that types itself out like an AI
-     writing structured config in a code editor — visual UI only, not a
-     literal claim that campaigns are built from source code. Three phases:
-
-     PHASE A (cosmetic, _cgrBuildStart) — runs the instant generation
-     starts, alongside the real apiFetch('/api/ai/create-ad') call in
-     cgrGenerate, reusing the same 7 delay checkpoints the old
-     step-checklist used (already tuned to real API timing). Fields whose
-     real value isn't known yet cycle through in-progress words.
-
-     PHASE B (real copy, _cgrBuildFinishCopyPhase) — the instant the real
-     response arrives (_renderPackage), the cosmetic sequence is cancelled
-     and the ENTIRE object is rebuilt fresh with the campaign's actual
-     generated copy (a fast ~900ms typed cascade, not the slow Phase A
-     pacing — the data is already known, this is just a satisfying reveal
-     rhythm). Only `creative` is left active/unresolved and the outer `}`
-     is deliberately withheld, because the real creative image is still
-     generating.
-
-     PHASE C (_cgrBuildCreativeSettled) — called once the real creative
-     asset has actually finished generating AND loading (or failed — see
-     _startCreativesGeneration's onAllSettled callback). Resolves
-     `creative` and adds the closing `}`. This is also the gate on
-     revealing the completed campaign view — see _renderPackage's tail —
-     so the user can never see "generation complete" while the creative
-     is still in flight. ── */
-  var _cgrBlUid = 0;
-  var _cgrBl = null;
-  var _cgrCursorEl = null;
-
-  function _cgrReducedMotion(){
-    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(_){ return false; }
-  }
-  function _cgrCursor(){
-    if(!_cgrCursorEl){ _cgrCursorEl = document.createElement('span'); _cgrCursorEl.className = 'cgr-bl-cursor'; }
-    return _cgrCursorEl;
-  }
-  function _cgrCursorAfter(el){ if(el && el.parentNode) el.parentNode.insertBefore(_cgrCursor(), el.nextSibling); }
-
-  /* Types `text` into el one character at a time, cursor trailing every
-     keystroke. Total duration is clamped regardless of length so a long
-     description doesn't feel slower than a short CTA. Every timer is
-     pushed onto window._cgrBuildQueue so _cancelLoadingTimers() (already
-     called the moment cosmetic content needs to be replaced by real
-     content) always cuts it short cleanly. */
-  function _cgrTypeInto(el, text, cb){
-    text = text || '';
-    if(_cgrReducedMotion()){ el.textContent = text; _cgrCursorAfter(el); if(cb) cb(); return; }
-    var len = text.length;
-    el.textContent = '';
-    if(!len){ _cgrCursorAfter(el); if(cb) cb(); return; }
-    var perChar = Math.max(9, Math.min(38, 480 / len));
-    var i = 0;
-    function step(){
-      i++;
-      el.textContent = text.slice(0, i);
-      _cgrCursorAfter(el);
-      if(i < len) window._cgrBuildQueue.push(setTimeout(step, perChar));
-      else if(cb) cb();
-    }
-    step();
-  }
-  /* Erases whatever's in el, then types newText — the "AI correcting a
-     placeholder into the real value" flourish (Phase A word-cycling and
-     Phase C's creative resolution both use this). */
-  function _cgrEraseType(el, newText, cb){
-    if(_cgrReducedMotion()){ el.textContent = newText || ''; _cgrCursorAfter(el); if(cb) cb(); return; }
-    var old = el.textContent || '';
-    if(!old){ _cgrTypeInto(el, newText, cb); return; }
-    var perChar = Math.max(5, Math.min(16, 200 / old.length));
-    var i = old.length;
-    function step(){
-      i--;
-      el.textContent = old.slice(0, i);
-      _cgrCursorAfter(el);
-      if(i > 0) window._cgrBuildQueue.push(setTimeout(step, perChar));
-      else window._cgrBuildQueue.push(setTimeout(function(){ _cgrTypeInto(el, newText, cb); }, 60));
-    }
-    step();
-  }
-
-  function _cgrBlLine(container, depth, html, extraClass){
-    var row = document.createElement('div');
-    row.className = 'cgr-bl-line cgr-bl-d' + depth + (extraClass ? ' ' + extraClass : '');
-    row.innerHTML = html;
-    container.appendChild(row);
-    return row;
-  }
-  function _cgrBlBrace(container, depth, text){
-    return _cgrBlLine(container, depth, '<span class="cgr-bl-brace">' + _esc(text) + '</span>');
-  }
-  function _cgrBlBlank(container){
-    var row = document.createElement('div');
-    row.className = 'cgr-bl-line cgr-bl-blank';
-    container.appendChild(row);
-    return row;
-  }
-  /* An unresolved field: `key: "value",` where value is still cycling
-     through in-progress words (Phase A) or waiting on a real signal
-     (creative, until Phase C). */
-  function _cgrBlField(container, depth, key, initialText){
-    var uid = 'cgrbl' + (++_cgrBlUid);
-    var row = _cgrBlLine(container, depth,
-      '<span class="cgr-bl-key">' + _esc(key) + '</span><span class="cgr-bl-punct">: </span>'
-      + '<span class="cgr-bl-str">&quot;</span><span class="cgr-bl-value cgr-bl-value-active" id="' + uid + '"></span><span class="cgr-bl-str">&quot;</span><span class="cgr-bl-punct">,</span>',
-      'cgr-bl-line-active');
-    var valueEl = row.querySelector('#' + uid);
-    _cgrTypeInto(valueEl, initialText);
-    return { row: row, valueEl: valueEl };
-  }
-  /* A field whose value is already known and final — typed once, straight
-     into the resolved/green state (used for platform/objective, which are
-     real from the moment the user clicks Generate, and for every field in
-     Phase B once the real response has arrived). */
-  function _cgrBlFieldReal(container, depth, key, value){
-    var uid = 'cgrbl' + (++_cgrBlUid);
-    var row = _cgrBlLine(container, depth,
-      '<span class="cgr-bl-key">' + _esc(key) + '</span><span class="cgr-bl-punct">: </span>'
-      + '<span class="cgr-bl-str">&quot;</span><span class="cgr-bl-value cgr-bl-value-done" id="' + uid + '"></span><span class="cgr-bl-str">&quot;</span><span class="cgr-bl-punct">,</span>');
-    var valueEl = row.querySelector('#' + uid);
-    _cgrTypeInto(valueEl, value);
-    return { row: row, valueEl: valueEl };
-  }
-  /* Swaps an unresolved field's placeholder word for another placeholder
-     word (Phase A liveliness) — stays active/pulsing, not done. */
-  function _cgrBlFieldCycle(field, nextText){ _cgrEraseType(field.valueEl, nextText); }
-  /* Resolves a field to its final value — removes the active glow, marks
-     done (or error), retypes the real value. */
-  function _cgrBlFieldDone(field, finalText, flash, isError){
-    field.row.classList.remove('cgr-bl-line-active');
-    field.valueEl.classList.remove('cgr-bl-value-active');
-    field.valueEl.classList.add(isError ? 'cgr-bl-value-error' : 'cgr-bl-value-done');
-    _cgrEraseType(field.valueEl, finalText);
-    if(flash && !isError){
-      var glow = document.getElementById('cgrBuildGlow');
-      if(glow){ glow.classList.remove('cgr-build-glow-flash'); void glow.offsetWidth; glow.classList.add('cgr-build-glow-flash'); }
-    }
-  }
-
+  /* ── Build Campaign canvas ─────────────────────────────────────────
+     The construction view lives in orivenFlow.js (orvWorkspace.flow.builder).
+     These hooks are the only places it is driven from, and each one is a
+     real lifecycle event:
+       _cgrBuildStart           — Build accepted (after Create's validation
+                                  and credit pre-flight), request not yet sent
+       _cgrBuildFinishCopyPhase — the real package arrived (_renderPackage)
+       _cgrBuildCreativeSettled — the real creative finished or failed
+     window._cgrBuildToken identifies the current build, so a response from
+     an older build can never drive the canvas of a newer one. ── */
+  function _cgrBuilder(){ return (window.orvWorkspace && orvWorkspace.flow && orvWorkspace.flow.builder) || null; }
   function _cgrBuildStart(creativeMode, platform, platformLabel, goal){
-    var lines = document.getElementById('cgrBuildLines');
-    if(!lines) return;
-    lines.innerHTML = '';
-    window._cgrBuildQueue = [];
-    var isVideo = creativeMode === 'videos';
-    var q = function(fn, delay){ window._cgrBuildQueue.push(setTimeout(fn, delay)); };
-
-    /* Same 7 checkpoints the old step-checklist used — tuned to actual
-       API timing, reused as-is so pacing still matches real generation
-       time even though what's displayed at each checkpoint is new. */
-    var d = isVideo
-      ? [0, 5000, 10000, 16000, 22000, 32000, 42000]
-      : [0, 3500, 7500, 12000, 17000, 22000, 26000];
-
-    var f = {};
-    _cgrBl = { lines: lines, fields: f };
-
-    q(function(){
-      _cgrBlBrace(lines, 0, 'campaign {');
-      f.platform  = _cgrBlFieldReal(lines, 1, 'platform', (platformLabel || '').toUpperCase());
-      f.objective = _cgrBlFieldReal(lines, 1, 'objective', (goal || 'Sales').toUpperCase());
-      _cgrBlBlank(lines);
-      _cgrBlBrace(lines, 1, 'advertisement {');
-      f.headline = _cgrBlField(lines, 2, 'headline', 'generating');
-    }, 80);
-
-    q(function(){
-      _cgrBlFieldCycle(f.headline, 'writing');
-      f.description = _cgrBlField(lines, 2, 'description', 'generating');
-    }, d[1]);
-
-    q(function(){
-      _cgrBlFieldCycle(f.description, 'writing');
-      f.creative = _cgrBlField(lines, 2, 'creative', 'generating');
-    }, d[2]);
-
-    q(function(){
-      _cgrBlFieldCycle(f.creative, 'queued');
-      f.cta = _cgrBlField(lines, 2, 'cta', 'generating');
-      _cgrBlFieldCycle(f.headline, 'refining');
-    }, d[3]);
-
-    q(function(){
-      _cgrBlFieldCycle(f.cta, 'drafting');
-      _cgrBlBrace(lines, 1, '},');
-      _cgrBlBlank(lines);
-      _cgrBlBrace(lines, 1, 'targeting {');
-      f.audience = _cgrBlField(lines, 2, 'audience', 'generating');
-    }, d[4]);
-
-    q(function(){
-      _cgrBlFieldCycle(f.audience, 'analyzing');
-      f.location = _cgrBlField(lines, 2, 'location', 'generating');
-    }, d[5]);
-
-    q(function(){
-      _cgrBlFieldCycle(f.location, 'resolving');
-      _cgrBlBrace(lines, 1, '},');
-      _cgrBlBlank(lines);
-      _cgrBlBrace(lines, 1, 'budget {');
-      f.daily        = _cgrBlField(lines, 2, 'daily', 'generating');
-      f.optimization = _cgrBlField(lines, 2, 'optimization', 'generating');
-    }, d[6]);
-
-    /* Long-tail — real generation regularly runs well past this script's
-       last scripted checkpoint (measured: text generation alone commonly
-       takes 30-60s+ depending on provider load, on top of image
-       generation after it), so unlike every other step above, this one
-       doesn't fire once and stop — it keeps cycling indefinitely for as
-       long as the real response takes, so the blueprint never goes
-       static/looks frozen while genuinely still working. Self-limiting:
-       _cancelLoadingTimers() (called the instant the real response
-       arrives) clears every timer this schedules, including future ones,
-       since each tick only queues the next one after actually running. */
-    var _tailWords = ['calculating', 'refining', 'finalizing', 'syncing'];
-    var _tailIdx = 0;
-    function _tailTick(){
-      _cgrBlFieldCycle(f.daily, _tailWords[_tailIdx % _tailWords.length]);
-      _cgrBlFieldCycle(f.optimization, _tailWords[(_tailIdx + 2) % _tailWords.length]);
-      _tailIdx++;
-      q(_tailTick, 4200);
-    }
-    q(_tailTick, d[6] + 3200);
+    var B = _cgrBuilder();
+    if(!B) return;
+    var hasBiz = false, hasResearch = false;
+    try {
+      hasBiz = window._ov3BrandIdentityEnabled !== false && !!((typeof S !== 'undefined' && S.brandCore && S.brandCore.name) || (window.orvWorkspace && orvWorkspace.businessName && orvWorkspace.businessName()));
+      hasResearch = !!(window.orvWorkspace && orvWorkspace.research && orvWorkspace.research.payload());
+    } catch(_){}
+    window._cgrBuildToken = B.start({ platform: platform, goal: goal, creativeMode: creativeMode,
+      googleType: platform === 'google' ? (window._ov3GoogleCampaignType || 'SEARCH') : null,
+      hasBusiness: hasBiz, hasResearch: hasResearch });
   }
-
-  /* Pulls a normalized, display-ready field set out of whichever
-     platform-specific shape the real pkg actually has — same
-     "gd = googleAds||metaAds||tiktokAds" fallback spirit _renderPackage
-     itself already uses elsewhere in this file. */
-  function _cgrBlTrunc(str, max){
-    str = String(str == null ? '' : str).trim();
-    if(!str) return '';
-    return str.length > max ? (str.slice(0, max - 1).trim() + '…') : str;
+  function _cgrBuildFinishCopyPhase(pkg, platform){
+    var B = _cgrBuilder();
+    if(B) B.copy(pkg, platform, window._cgrBuildToken);
   }
-  function _cgrBlPkgFields(pkg, platform){
-    var g = pkg.googleAds || {}, m = pkg.metaAds || {}, tk = pkg.tiktokAds || {};
-    var s = pkg.strategy || {};
-    var headline, description, cta, objective, optimization;
-    if(platform === 'google'){
-      headline     = (g.headlines && g.headlines[0]) || '';
-      description  = (g.descriptions && g.descriptions[0]) || '';
-      cta          = 'Learn More';
-      objective    = g.campaignType || s.goal || pkg.goal || 'Conversions';
-      optimization = g.biddingStrategy || 'Maximize conversions';
-    } else if(platform === 'tiktok'){
-      headline     = tk.hook || '';
-      description  = tk.videoScript || tk.script || '';
-      cta          = tk.cta || 'Shop Now';
-      objective    = tk.campaignObjective || s.goal || pkg.goal || 'Conversions';
-      optimization = 'Auto-optimized';
-    } else {
-      headline     = m.headline || '';
-      description  = m.description || m.primaryText || '';
-      cta          = m.cta || 'Shop Now';
-      objective    = m.campaignObjective || s.goal || pkg.goal || 'Conversions';
-      optimization = 'Auto-optimized';
-    }
-    var audience = s.targetAudience || (platform === 'meta' && m.targetAudience) || (platform === 'google' && g.targetAudience) || 'AI-defined audience';
-    var location = s.location || pkg.location || 'Auto (AI-optimized)';
-    var daily    = s.budgetRecommendation || 'AI-recommended';
-    return {
-      headline:     _cgrBlTrunc(headline, 42) || 'Ready',
-      description:  _cgrBlTrunc(description, 46) || 'Ready',
-      cta:          _cgrBlTrunc(cta, 24) || 'Ready',
-      audience:     _cgrBlTrunc(audience, 42),
-      location:     _cgrBlTrunc(location, 30),
-      daily:        _cgrBlTrunc(String(daily), 22),
-      optimization: _cgrBlTrunc(optimization, 30),
-      objective:    _cgrBlTrunc(String(objective).toUpperCase(), 24)
-    };
-  }
-
-  /* PHASE B — called the instant the real /api/ai/create-ad response
-     arrives (see _renderPackage). Rebuilds the object fresh with real
-     copy rather than trying to patch whichever cosmetic lines Phase A
-     happened to have reached — simpler and correct regardless of how far
-     Phase A got before the real response beat it. `creative` is left
-     active/unresolved and the outer `}` withheld; only
-     _cgrBuildCreativeSettled (Phase C) completes those. */
-  function _cgrBuildFinishCopyPhase(pkg, platform, platformLabel, goal){
-    if(!_cgrBl) return;
-    _cancelLoadingTimers();
-    var lines = _cgrBl.lines;
-    lines.innerHTML = '';
-    window._cgrBuildQueue = [];
-    var f = {};
-    _cgrBl.fields = f;
-    var real = _cgrBlPkgFields(pkg, platform);
-    var q = function(fn, delay){ window._cgrBuildQueue.push(setTimeout(fn, delay)); };
-    var STEP = _cgrReducedMotion() ? 0 : 90;
-
-    q(function(){
-      _cgrBlBrace(lines, 0, 'campaign {');
-      f.platform = _cgrBlFieldReal(lines, 1, 'platform', (platformLabel || '').toUpperCase());
-    }, 0);
-    q(function(){ f.objective = _cgrBlFieldReal(lines, 1, 'objective', real.objective || (goal || 'Sales').toUpperCase()); }, STEP * 1);
-    q(function(){
-      _cgrBlBlank(lines);
-      _cgrBlBrace(lines, 1, 'advertisement {');
-      f.headline = _cgrBlFieldReal(lines, 2, 'headline', real.headline);
-    }, STEP * 2);
-    q(function(){ f.description = _cgrBlFieldReal(lines, 2, 'description', real.description); }, STEP * 3);
-    q(function(){ f.creative = _cgrBlField(lines, 2, 'creative', 'generating'); }, STEP * 4);
-    q(function(){ f.cta = _cgrBlFieldReal(lines, 2, 'cta', real.cta); }, STEP * 5);
-    q(function(){
-      _cgrBlBrace(lines, 1, '},');
-      _cgrBlBlank(lines);
-      _cgrBlBrace(lines, 1, 'targeting {');
-      f.audience = _cgrBlFieldReal(lines, 2, 'audience', real.audience);
-    }, STEP * 6);
-    q(function(){ f.location = _cgrBlFieldReal(lines, 2, 'location', real.location); }, STEP * 7);
-    q(function(){
-      _cgrBlBrace(lines, 1, '},');
-      _cgrBlBlank(lines);
-      _cgrBlBrace(lines, 1, 'budget {');
-      f.daily = _cgrBlFieldReal(lines, 2, 'daily', real.daily);
-    }, STEP * 8);
-    q(function(){ f.optimization = _cgrBlFieldReal(lines, 2, 'optimization', real.optimization); }, STEP * 9);
-  }
-
-  /* PHASE C — called once the real creative asset (image, for the
-     synchronized path — see _startCreativesGeneration's onAllSettled)
-     has actually finished generating AND loading, or every attempt
-     failed. Resolves `creative` and adds the final closing brace; the
-     caller (_renderPackage's tail) only reveals the completed campaign
-     view after this has run. */
-  function _cgrBuildCreativeSettled(success, cb){
-    if(!_cgrBl || !_cgrBl.fields.creative){ if(cb) cb(); return; }
-    var lines = _cgrBl.lines;
-    _cgrBlFieldDone(_cgrBl.fields.creative, success ? 'ready' : 'unavailable', success, !success);
-    window._cgrBuildQueue.push(setTimeout(function(){
-      _cgrBlBrace(lines, 0, '}');
-      if(cb) cb();
-    }, _cgrReducedMotion() ? 0 : 240));
+  /* info: { pkg, platform, failKind } — failKind comes from the real image
+     responses (_generateOneCreative records it). */
+  function _cgrBuildCreativeSettled(success, cb, info){
+    var B = _cgrBuilder();
+    if(!B || !B.isCurrent(window._cgrBuildToken)){ if(cb) cb(); return; }
+    B.creative(success, info, cb, window._cgrBuildToken);
   }
 
   /* ── Per-platform result renderers ──────────────────────────────
@@ -25262,8 +25198,7 @@ window.rptExport = function(format) {
        `creative` is deliberately left unresolved here; Phase C
        (_cgrBuildCreativeSettled, below) only fires once the real creative
        asset has settled. */
-    var _cgrPlatLabels = {google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads', pinterest:'Pinterest Ads'};
-    _cgrBuildFinishCopyPhase(pkg, platform, _cgrPlatLabels[platform] || platform, s.goal || pkg.goal || window._ov3Goal || 'Sales');
+    _cgrBuildFinishCopyPhase(pkg, platform);
 
     /* Every platform now gets the redesigned Preview/Edit/Oriven Review
        experience in place of the old Copy/Audience/Creatives/Settings tab
@@ -25365,7 +25300,11 @@ window.rptExport = function(format) {
           id:campId, name:pkg.campaignName||prompt||'Campaign',
           goal:s.goal||'—', platform:platform, creativeMode:creativeMode,
           status:'generated', progress:100, created:new Date().toISOString(),
-          modules:[modKey], generated:gen, pkg:pkg, prompt:prompt
+          modules:[modKey], generated:gen, pkg:pkg, prompt:prompt,
+          // Where this campaign came from (Business / Research / Create
+          // choices actually sent) — additive metadata, persisted durably
+          // inside the campaign package like every other field here.
+          lineage: (window.orvWorkspace ? orvWorkspace.lineage.take() : null)
         });
       }
       window._cgrCurrentCampId = campId;
@@ -25430,17 +25369,38 @@ window.rptExport = function(format) {
        unchanged by this synchronization fix, which is scoped to the image
        path per its own spec (image mode is the concrete case described,
        and the only one exercised by the regression tests). */
+    window._cgrCreativeFailKind = null;
+    var _cgrB = _cgrBuilder();
     if(creativeMode==='videos'){
-      _cgrReveal();
+      // Video is long-running and polled: the builder finishes its real
+      // stages (copy, checks, save) and marks the creative stage as
+      // continuing in the background, then reveals as before.
+      if(_cgrB && _cgrB.isCurrent(window._cgrBuildToken)) _cgrB.background({ pkg: pkg, platform: platform }, _cgrReveal, window._cgrBuildToken);
+      else _cgrReveal();
       _startVideoCreatives(pkg, campId, platform);
     } else {
       _startCreativesGeneration(pkg, platform, function(creativeReady){
-        _cgrBuildCreativeSettled(creativeReady, _cgrReveal);
+        _cgrBuildCreativeSettled(creativeReady, _cgrReveal, { pkg: _cgrPkg || pkg, platform: platform, failKind: window._cgrCreativeFailKind });
       });
     }
   }
 
   window._cgrRenderPackage = _renderPackage;
+
+  /* An edit saved from Launch (Set Budget / Go to Ad) for the campaign
+     that's open in the review screen re-initialises that screen from the
+     saved package, so its own Save can never write an older copy back. */
+  window._orvSyncReviewPkg = function(campId, pkg){
+    if(window._cgrCurrentCampId !== campId || !pkg) return;
+    _cgrPkg = pkg;
+    var pl = pkg.platform;
+    try {
+      if(pl === 'meta' && _cst.campId === campId) _cgmInitMetaScreen(pkg, campId);
+      else if(pl === 'google' && _cgg.campId === campId) window._cggInitGoogleScreen(pkg, campId);
+      else if(pl === 'tiktok' && typeof window._cgtInitTiktokScreen === 'function') window._cgtInitTiktokScreen(pkg, campId);
+      else if(pl === 'pinterest' && typeof window._cgpInitPinterestScreen === 'function') window._cgpInitPinterestScreen(pkg, campId);
+    } catch(e){ console.warn('[review] resync skipped:', e.message); }
+  };
 
   /* ── V4 AI REVIEW ───────────────────────────────────────────────── */
   function _reviewScore(base, bonuses, cap) {
@@ -25783,25 +25743,37 @@ window.rptExport = function(format) {
       else if(typeof openFreePaywall === 'function') openFreePaywall();
       return;
     }
-    _orvCheckSetupReadyBeforePublish(platform, function(){ _cgrPublishToConfirmed(platform, campId); });
+    if(window._cgrPublishing) return; // one publish at a time from this screen
+    _orvCheckSetupReadyBeforePublish(platform, function(){
+      var F = window.orvWorkspace && orvWorkspace.flow;
+      if(!F) return;
+      F.confirmPublish({ platform: platform, pkg: _cgrPkg, name: (_cgrPkg && _cgrPkg.campaignName) || '' }).then(function(ok){
+        if(ok) _cgrPublishToConfirmed(platform, campId);
+      });
+    });
   };
 
   function _cgrPublishToConfirmed(platform, campId){
-    if(typeof orvToast==='function') orvToast((typeof t==='function'?t('toastPublishingToEllipsis'):'Publishing to')+' '+platform+'…', 'info');
+    var F = window.orvWorkspace && orvWorkspace.flow;
+    var platName = (F && F.PLAT[platform]) || platform;
+    window._cgrPublishing = true;
+    document.querySelectorAll('[onclick*="DoPublish"],[onclick*="cgrPublishTo"]').forEach(function(b){ b.disabled = true; b.setAttribute('aria-busy','true'); });
+    function _done(){
+      window._cgrPublishing = false;
+      document.querySelectorAll('[onclick*="DoPublish"],[onclick*="cgrPublishTo"]').forEach(function(b){ b.disabled = false; b.removeAttribute('aria-busy'); });
+    }
+    if(typeof orvToast==='function') orvToast('Sending to ' + platName + '…', 'info');
     apiFetch('/api/publish/'+platform, {
       method: 'POST',
       body: JSON.stringify({ campId: campId, pkg: _cgrPkg })
     }).then(function(res){
+      _done();
+      var out = F ? F.publishOutcome(platform, res, null) : null;
       if(res.ok && res.data && res.data.ok){
-        if((typeof window.notifAllowed !== 'function' || window.notifAllowed('notifPublish')) && typeof orvToast==='function') orvToast((typeof t==='function'?t('toastCampaignPublishedTo'):'Campaign published to')+' '+platform+'!', 'ok');
-        /* Update status in local storage */
-        try {
-          _loadCamps();
-          for(var i=0;i<_campaigns.length;i++){
-            if(_campaigns[i].id===campId){ _campaigns[i].status='published'; break; }
-          }
-          _saveCamps();
-        } catch(e){}
+        if((typeof window.notifAllowed !== 'function' || window.notifAllowed('notifPublish')) && typeof orvToast==='function') orvToast(out ? out.title + '. ' + out.message : 'Campaign created on ' + platName + '.', 'ok');
+        /* Record the real publish result (status, external IDs) through the
+           sanctioned bridge — this script block can't reach _campaigns. */
+        try { if (typeof window._orvMarkPublished === 'function') window._orvMarkPublished(campId, res.data); } catch(e){}
       } else if(res.status === 403 && res.data && res.data.code === 'SUBSCRIPTION_REQUIRED'){
         if(typeof _orvEndOnboardingIntoPaywall === 'function') _orvEndOnboardingIntoPaywall();
         else if(typeof openFreePaywall === 'function') openFreePaywall();
@@ -25819,11 +25791,12 @@ window.rptExport = function(format) {
         // is only ever set for an actual policy finding.
         _gadsShowPolicyErrorCard(res.data.policy);
       } else {
-        var msg = (res.data&&res.data.error) || 'Publish failed';
-        if(typeof orvToast==='function') orvToast(msg, 'error');
+        if(typeof orvToast==='function') orvToast(out ? out.title + ': ' + out.message : 'Publishing didn’t complete.', 'error');
       }
     }).catch(function(e){
-      if(typeof orvToast==='function') orvToast((typeof t==='function'?t('toastPublishErrorPrefix'):'Publish error:')+' '+e.message, 'error');
+      _done();
+      var out = F ? F.publishOutcome(platform, null, e) : null;
+      if(typeof orvToast==='function') orvToast(out ? out.title + ': ' + out.message : 'Publishing didn’t complete.', 'error');
     });
   };
 
@@ -25920,6 +25893,7 @@ window.rptExport = function(format) {
     var key = _cstCampaignsKey();
     if (!key) return;
     try { localStorage.setItem(key, JSON.stringify(arr)); } catch(_){}
+    if (window.orvWorkspace && orvWorkspace.campaigns) orvWorkspace.campaigns.changed();
   }
 
   /* Initializes the inline Meta Preview/Edit/Oriven Review screen from
@@ -26202,7 +26176,7 @@ window.rptExport = function(format) {
       + '<div class="cst-fld"><label>Target Audience</label><textarea class="crv-inp crv-ta" oninput="_cstAudienceTextInput(this)">'+_cstEsc(m.targetAudience||s.targetAudience||'')+'</textarea></div>';
 
     var campaign = '<div class="cst-fld"><label>Campaign Goal</label><div class="cst-goal-pill"><span class="cst-goal-dot"></span>'+_cstEsc(goal)+'</div></div>'
-      + '<div class="cst-fld"><label>Daily Budget</label><input class="crv-inp" type="text" value="'+_cstEsc(s.budgetRecommendation||'')+'" placeholder="e.g. $20/day" oninput="_cstBudgetInput(this)"></div>'
+      + '<div class="cst-fld"><label>Daily Budget</label><input class="crv-inp" type="text" inputmode="decimal" value="'+_cstEsc((pkg.metaAds && pkg.metaAds.budget) || s.budgetRecommendation || '')+'" placeholder="e.g. 20" aria-describedby="cstBudgetHint" oninput="_cstBudgetInput(this)"><div class="cst-fld-hint" id="cstBudgetHint">Daily amount in your ad account’s currency. Without one, OrivenAI publishes at 30 per day.</div></div>'
       + '<div class="cst-fld-row">'
       +   '<div class="cst-fld"><label>Ad Sets</label><select id="cstAdSetsSel" class="cst-sel" onchange="_cstStructureChanged()" style="width:100%"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option></select></div>'
       +   '<div class="cst-fld"><label>Ads per Ad Set</label><select id="cstAdsPerSetSel" class="cst-sel" onchange="_cstStructureChanged()" style="width:100%"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option></select></div>'
@@ -26257,6 +26231,14 @@ window.rptExport = function(format) {
   window._cstBudgetInput = function(el){
     _cst.pkg.strategy = _cst.pkg.strategy || {};
     _cst.pkg.strategy.budgetRecommendation = el.value;
+    // /api/publish/meta reads metaAds.budget (then strategy.dailyBudget /
+    // strategy.budget) and never budgetRecommendation — so the amount typed
+    // here is also written where the route reads it. Without this, the
+    // edit was discarded and every Meta campaign published at 30/day.
+    _cst.pkg.metaAds = _cst.pkg.metaAds || {};
+    var m = String(el.value || '').match(/(d+(?:[.,]d+)?)/);
+    var n = m ? parseFloat(m[1].replace(',', '.')) : NaN;
+    if (isFinite(n) && n >= 1) _cst.pkg.metaAds.budget = n; else delete _cst.pkg.metaAds.budget;
     _cstMarkDirty();
   };
   window._cstPlacementInput = function(val){
@@ -26337,36 +26319,40 @@ window.rptExport = function(format) {
   }
 
   window._cstDoPublish = function(){
-    var pubBtn = document.getElementById('cstPublishBtn');
-    if (pubBtn) { pubBtn.disabled = true; pubBtn.textContent = 'Publishing…'; }
-
+    if (_cst.publishing) return;
     /* Save first so a mid-publish failure never leaves edited copy unsaved. */
     window._orvUpdateCampPkg(_cst.campId, _cst.pkg);
     _cst.dirty = false; _cstUpdateDirtyUI();
+    var F = window.orvWorkspace && orvWorkspace.flow;
+    if (!F) return;
+    var st = _cstStructure(_cst.pkg) || { adSets: 1, adsPerAdSet: 1 };
+    _cst.publishing = true;
+    F.confirmPublish({ platform: 'meta', pkg: _cst.pkg, name: _cst.pkg.campaignName,
+      structure: st.adSets + ' ad set' + (st.adSets === 1 ? '' : 's') + ' × ' + st.adsPerAdSet + ' ad' + (st.adsPerAdSet === 1 ? '' : 's') })
+      .then(function(ok){ if (ok) _cstDoPublishConfirmed(); else _cst.publishing = false; });
+  };
+  function _cstDoPublishConfirmed(){
+    var pubBtn = document.getElementById('cstPublishBtn');
+    if (pubBtn) { pubBtn.disabled = true; pubBtn.textContent = 'Publishing…'; }
 
     apiFetch('/api/publish/meta', {
       method: 'POST',
-      body: JSON.stringify({ pkg: _cst.pkg, structure: _cstStructure(_cst.pkg) })
+      // campId scopes the server's in-flight publish lock to this campaign
+      // (without it every Meta review publish shared one 'unknown' key).
+      body: JSON.stringify({ campId: _cst.campId, pkg: _cst.pkg, structure: _cstStructure(_cst.pkg) })
     }).then(function(r){
+      _cst.publishing = false;
       if (pubBtn) { pubBtn.disabled = false; pubBtn.textContent = 'Publish to Meta Ads'; }
       if (r.ok && r.data && r.data.ok) {
-        try {
-          var camps = _cstReadCampaigns();
-          for (var i=0;i<camps.length;i++){
-            if (camps[i].id === _cst.campId) {
-              camps[i].status = 'published';
-              camps[i].publishedAt = new Date().toISOString();
-              camps[i].platformCampaignId = r.data.campaignId ? String(r.data.campaignId) : null;
-              break;
-            }
-          }
-          _cstWriteCampaigns(camps);
-        } catch(_){}
-        if (typeof orvToast==='function') orvToast('Campaign published to Meta Ads', 'ok');
+        // Same recorder as every other publish path: status, provider
+        // status (created paused), external campaign / ad set / ad IDs.
+        try { window._orvMarkPublished(_cst.campId, r.data); } catch(_){}
+        var out = window.orvWorkspace ? orvWorkspace.flow.publishOutcome('meta', r, null) : null;
+        if (typeof orvToast==='function') orvToast(out ? out.title + '. ' + out.message : 'Campaign created on Meta Ads.', 'ok');
         /* Inline success state — this is a page, not a modal, so there's
            nothing to close; matches cgrPublishTo's existing behavior of
            leaving the user on the review screen after publish. */
-        if (pubBtn) { pubBtn.disabled = true; pubBtn.textContent = 'Published to Meta Ads ✓'; }
+        if (pubBtn) { pubBtn.disabled = true; pubBtn.textContent = 'Created on Meta (paused) ✓'; }
         var reviewBody = document.getElementById('cstReviewBody');
         if (reviewBody) {
           var existingErr = reviewBody.querySelector('.cst-review-err');
@@ -26383,10 +26369,12 @@ window.rptExport = function(format) {
         }
       }
     }).catch(function(err){
+      _cst.publishing = false;
       if (pubBtn) { pubBtn.disabled = false; pubBtn.textContent = 'Publish to Meta Ads'; }
-      if (typeof orvToast==='function') orvToast('Publish error: '+(err.message||'Network error'), 'error');
+      var out = window.orvWorkspace ? orvWorkspace.flow.publishOutcome('meta', null, err) : null;
+      if (typeof orvToast==='function') orvToast(out ? out.title + ': ' + out.message : 'Publishing didn’t complete.', 'error');
     });
-  };
+  }
 
   /* ══════════════════════════════════════════════════════════════════
      GOOGLE ADS PREVIEW / EDIT / ORIVEN REVIEW
@@ -26428,6 +26416,7 @@ window.rptExport = function(format) {
     var key = _cggCampaignsKey();
     if (!key) return;
     try { localStorage.setItem(key, JSON.stringify(arr)); } catch(_){}
+    if (window.orvWorkspace && orvWorkspace.campaigns) orvWorkspace.campaigns.changed();
   }
 
   function _cggDestinationUrl(pkg){
@@ -27266,6 +27255,7 @@ window.rptExport = function(format) {
     var key = _cgtCampaignsKey();
     if (!key) return;
     try { localStorage.setItem(key, JSON.stringify(arr)); } catch(_){}
+    if (window.orvWorkspace && orvWorkspace.campaigns) orvWorkspace.campaigns.changed();
   }
 
   window._cgtInitTiktokScreen = function(pkg, campId){
@@ -28350,17 +28340,21 @@ window.rptExport = function(format) {
             };
             img.src = url;
           } else if(res.status === 402 && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
+            window._cgrCreativeFailKind = 'credits';
             _cgrCreativeErr(i, task.ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs ' + CREDIT_COSTS.imageAd + ')');
             _onOneDone(false);
           } else if(res.status === 503 && res.data && res.data.code === 'PROVIDER_UNAVAILABLE'){
-            _cgrCreativeErr(i, task.ref, res.data.error || 'AI provider temporarily at capacity — try regenerating in a moment');
+            window._cgrCreativeFailKind = window._cgrCreativeFailKind || 'service';
+            _cgrCreativeErr(i, task.ref, 'Image service temporarily unavailable — try regenerating later' + (res.data.refunded ? ' (credits not charged)' : ''));
             _onOneDone(false);
           } else {
+            window._cgrCreativeFailKind = window._cgrCreativeFailKind || 'failed';
             _cgrCreativeErr(i, task.ref, 'Image generation failed');
             _onOneDone(false);
           }
         }).catch(function(err){
-          _cgrCreativeErr(i, task.ref, err.message || 'Error');
+          window._cgrCreativeFailKind = window._cgrCreativeFailKind || 'failed';
+          _cgrCreativeErr(i, task.ref, 'Couldn’t reach OrivenAI — try regenerating');
           _onOneDone(false);
         });
       }
@@ -28492,6 +28486,7 @@ window.rptExport = function(format) {
         img.src = url;
       } else if(res.status === 402 && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
         console.warn('[cgr] Image generation blocked', idx, '— out of credits');
+        window._cgrCreativeFailKind = 'credits';
         _cgrCreativeErr(idx, ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs ' + CREDIT_COSTS.imageAd + ')');
         if(onDone) onDone(false);
       } else if(res.status === 503 && res.data && res.data.code === 'PROVIDER_UNAVAILABLE'){
@@ -28500,16 +28495,19 @@ window.rptExport = function(format) {
         // retries; credits already refunded server-side before this
         // response was sent (res.data.refunded).
         console.warn('[cgr] Image generation blocked', idx, '— AI provider temporarily unavailable | credits refunded:', !!res.data.refunded);
-        _cgrCreativeErr(idx, ref, res.data.error || 'AI provider temporarily at capacity — try regenerating in a moment');
+        window._cgrCreativeFailKind = window._cgrCreativeFailKind || 'service';
+        _cgrCreativeErr(idx, ref, 'Image service temporarily unavailable — try regenerating later' + (res.data.refunded ? ' (credits not charged)' : ''));
         if(onDone) onDone(false);
       } else {
         console.error('[cgr] Image generation failed', idx, '— status:', res.status, res.data);
+        window._cgrCreativeFailKind = window._cgrCreativeFailKind || 'failed';
         _cgrCreativeErr(idx, ref, 'Image generation failed');
         if(onDone) onDone(false);
       }
     }).catch(function(err){
       console.error('[cgr] Image generation error', idx, ':', err.message);
-      _cgrCreativeErr(idx, ref, err.message || 'Error');
+      window._cgrCreativeFailKind = window._cgrCreativeFailKind || 'failed';
+      _cgrCreativeErr(idx, ref, (window.orvWorkspace && orvWorkspace.flow) ? orvWorkspace.flow.error({ error: err, phase: 'creative' }).title : 'Image generation failed');
       if(onDone) onDone(false);
     });
   }
@@ -28625,9 +28623,22 @@ window.rptExport = function(format) {
        trust boundary. */
     if(window._ov3PageContext) _payload.pageContext = window._ov3PageContext;
     if(window._ov3ReferenceAdContext) _payload.referenceAdContext = window._ov3ReferenceAdContext;
+    /* Product Experience Revamp — Research findings the user brought into
+       Create (shown on the Stage as "From Research", removable) are really
+       sent, capped, as researchContext; server.js treats them as
+       untrusted, directional data. The same payload is captured as this
+       campaign's lineage so it can later show where it came from. */
+    if (window.orvWorkspace) {
+      var _rc = orvWorkspace.research.payload();
+      if (_rc) _payload.researchContext = _rc;
+      orvWorkspace.lineage.capture(_payload);
+    }
     console.log('[Generate] Sending request — platform:', _plat, '| mode:', window._cgrCreativeMode, '| payload keys:', Object.keys(_payload).join(', '));
     console.log('[Generate] Auth token present:', !!window._apiToken, '| API_BASE_URL:', typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : '(undefined)');
     console.log('[cgr] Text generation started — platform:', _plat, 'creativeMode:', window._cgrCreativeMode);
+    var _tok = window._cgrBuildToken;
+    var _F = window.orvWorkspace && orvWorkspace.flow;
+    var _rendering = false;
     apiFetch('/api/ai/create-ad', {
       method: 'POST',
       body: JSON.stringify(_payload)
@@ -28636,89 +28647,83 @@ window.rptExport = function(format) {
       var body = res.data || {};
       var pkg  = body.data || body; /* handle both wrapped and flat responses */
       if(res.ok && body.ok !== false){
-        console.log('[cgr] Text generation complete — pkg keys:', Object.keys(pkg));
-        console.log('[cgr] visualConcepts count:', (pkg.visualConcepts || []).length);
-        if(typeof consumeUsage === 'function') consumeUsage(CREDIT_COSTS.campaign); // real server-side campaign_generation deduction — already matched 25, now reads the canonical constant instead of a bare literal
-        _renderPackage(pkg, prompt);
-      } else if(res.status === 402 && body && body.code === 'CREDITS_EXHAUSTED'){
-        // The real, authoritative rejection — server checked the balance
-        // and refused before spending anything. Must never be shown as the
-        // same generic "try again later" message a real provider failure
-        // gets, or the user has no idea why nothing happened.
-        console.log('[cgr] generation blocked — out of credits');
-        _cancelLoadingTimers();
-        var loadingEl2 = document.getElementById('cgrLoading');
-        if(loadingEl2) loadingEl2.classList.add('cgr-loading--done');
-        var content2 = document.getElementById('cgrContent');
-        if(content2){
-          var bal = body.balance != null ? body.balance : 0;
-          // Fires when the very first step (campaign_generation, the
-          // copy/package) itself is blocked -- before any image/video has
-          // even been requested, so this must not read as "a full ad costs
-          // 25" (that's just this one step; an Image/Video Ad also needs
-          // CREDIT_COSTS.imageAd/video on top of it).
-          content2.innerHTML = '<div class="cgr-error"><div class="cgr-error-ico">⚠</div><div class="cgr-error-title">Not enough credits</div><div class="cgr-error-sub">You have ' + bal + ' credits — starting a campaign needs ' + CREDIT_COSTS.campaign + ' credits, plus the cost of each image or video you generate. Upgrade your plan or wait for your next billing cycle.</div><button class="cgr-action-btn cgr-action-btn-primary" onclick="openSettingsModal()">View Plans</button></div>';
-          content2.style.display = '';
+        // A 200 that doesn't carry a usable package is a failure, not a
+        // success — never render or save an empty campaign.
+        var usable = pkg && typeof pkg === 'object' && !Array.isArray(pkg) &&
+          !!(pkg.googleAds || pkg.metaAds || pkg.tiktokAds || pkg.pinterestAds || (Array.isArray(pkg.concepts) && pkg.concepts.length) || pkg.strategy);
+        if(!usable){
+          console.error('[cgr] generation returned an unusable package — keys:', pkg && typeof pkg === 'object' ? Object.keys(pkg) : typeof pkg);
+          _renderError(prompt, { error: new Error('malformed package') });
+          return;
         }
-        _cgrShowChrome();
-      } else if(res.status === 403 && body && body.code === 'SUBSCRIPTION_REQUIRED'){
+        console.log('[cgr] Text generation complete — pkg keys:', Object.keys(pkg));
+        if(typeof consumeUsage === 'function') consumeUsage(CREDIT_COSTS.campaign); // reflects the real server-side campaign_generation deduction
+        _rendering = true;
+        _renderPackage(pkg, prompt);
+        return;
+      }
+      if(res.status === 403 && body && body.code === 'SUBSCRIPTION_REQUIRED'){
         // Never surface a raw 403 — if this fires during onboarding it means
         // the one free generation was already used; end the tour and hand
         // off to the same paywall Publish would have shown.
-        console.log('[cgr] generation blocked — subscription required, showing paywall instead of raw error');
         if(window._obActive && typeof markOnboardingComplete === 'function'){
           markOnboardingComplete();
           try { localStorage.removeItem('oriven_needs_onboarding'); } catch(_){}
           if(typeof hideOnboarding === 'function') hideOnboarding(true);
         }
         if(typeof openFreePaywall === 'function') openFreePaywall();
-        _cancelLoadingTimers();
-        var loadingEl = document.getElementById('cgrLoading');
-        if(loadingEl) loadingEl.classList.add('cgr-loading--done');
-        _cgrShowChrome();
-      } else if(res.status === 503 && body && body.code === 'PROVIDER_UNAVAILABLE'){
-        // The AI provider (AIML) stayed rate-limited/unavailable through the
-        // backend's own retries (aimlProvider.js) — a materially different,
-        // more honest situation than a real generation failure: it's not
-        // broken, it's temporarily at capacity, and the backend has already
-        // refunded any reserved credits (body.refunded) before this response
-        // was sent. Shown as its own state rather than the generic
-        // "Generation failed" so the user isn't left thinking something on
-        // our end is broken when it's provider capacity.
-        console.log('[cgr] generation blocked — AI provider temporarily unavailable | credits refunded:', !!body.refunded);
-        _renderError(prompt, {
-          title: 'AI provider temporarily at capacity',
-          message: body.error || 'Our AI provider is temporarily at capacity. Please try again in a moment.'
-        });
-      } else {
-        // Full detail stays in the console for debugging — the user only ever
-        // sees a friendly message, never a raw provider/HTTP-status string.
-        var errMsg = (body.error || body.message) || ('HTTP ' + res.status);
-        console.error('[cgr] generation failed — HTTP ' + res.status + ':', errMsg, body);
-        _renderError(prompt);
       }
+      // 402 CREDITS_EXHAUSTED — the server's authoritative balance check
+      // refused before spending anything (shows needed vs. balance).
+      // 503 PROVIDER_UNAVAILABLE — OrivenAI's generation service is out of
+      // capacity or credits; reserved credits already refunded server-side.
+      // Everything else maps to its own category in flow.error().
+      console.warn('[cgr] generation not completed — HTTP ' + res.status + (body && body.code ? ' ' + body.code : ''));
+      _renderError(prompt, { model: _F ? _F.error({ status: res.status, body: body, phase: 'generate', required: CREDIT_COSTS.campaign }) : null });
     }).catch(function(err){
       console.error('[cgr] generation error:', err);
-      _renderError(prompt);
+      if(_rendering && window._cgrCurrentCampId){
+        // The package arrived and was saved; only displaying it failed.
+        _renderError(prompt, { model: { kind: 'render', title: 'Campaign saved, but it couldn’t be shown',
+          message: 'Your campaign was built and saved. Open it from Campaigns.', retry: false, edit: true,
+          action: { label: 'Open Campaigns', fn: 'campaigns' } } });
+        return;
+      }
+      _renderError(prompt, { error: err });
     });
+    var _Bsent = _cgrBuilder();
+    if(_Bsent) _Bsent.sent(_tok);
   };
 
-  /* opts.title/opts.message let a caller show a distinct, more honest
-     state than the generic "Generation failed" — used specifically for
-     PROVIDER_UNAVAILABLE (see cgrGenerate), where the real situation
-     (AI provider temporarily at capacity, credits handled safely) is
-     meaningfully different from an actual generation failure and the
-     backend already supplies a safe, user-appropriate message. */
+  /* Every generation failure lands here with a normalised model from
+     orvWorkspace.flow.error() (see orivenFlow.js for the categories). While
+     the Build canvas is showing, the failure is shown IN the canvas — the
+     failed stage is marked, and Retry / Back to Create / the relevant
+     account action are offered. The fallback below only runs if the canvas
+     isn't available. Raw provider/HTTP detail never reaches the user. */
   function _renderError(prompt, opts){
     opts = opts || {};
     _cancelLoadingTimers();
+    var F = window.orvWorkspace && orvWorkspace.flow;
+    var model = opts.model || (F ? F.error({ status: opts.status, body: opts.body, error: opts.error, phase: 'generate' }) : null);
+    var B = _cgrBuilder();
+    if(model && B && B.fail(model, {
+        retry: function(){ window.cgrGenerate(window._cgrLastPrompt || prompt, window._cgrLastPlatform, window._cgrLastCreativeMode, window._cgrLastGoal); },
+        edit: function(){ if(typeof window._orvNav === 'function') window._orvNav('create', 'page-create'); }
+      }, window._cgrBuildToken)){
+      // The canvas carries its own Back to Create / Try again; the results
+      // chrome (Saved / Copy Package) would describe a campaign that doesn't exist.
+      return;
+    }
     var loading = document.getElementById('cgrLoading');
     var content = document.getElementById('cgrContent');
     if(loading) loading.classList.add('cgr-loading--done');
     if(content){
-      var title = opts.title || 'Generation failed';
-      var friendlyMsg = opts.message || "We're unable to generate your campaign right now. Please try again later.";
-      content.innerHTML = '<div class="cgr-error"><div class="cgr-error-ico">⚠</div><div class="cgr-error-title">' + _esc(title) + '</div><div class="cgr-error-sub">' + _esc(friendlyMsg) + '</div><button class="cgr-action-btn cgr-action-btn-primary" onclick="cgrGenerate(\''+_esc(prompt)+'\')">Try Again</button></div>';
+      var title = (model && model.title) || 'Generation failed';
+      var friendlyMsg = (model && model.message) || "We're unable to generate your campaign right now. Please try again later.";
+      content.innerHTML = '<div class="cgr-error" role="alert"><div class="cgr-error-title">' + _esc(title) + '</div><div class="cgr-error-sub">' + _esc(friendlyMsg) + '</div>'
+        + ((!model || model.retry) ? '<button class="cgr-action-btn cgr-action-btn-primary" onclick="cgrGenerate(window._cgrLastPrompt, window._cgrLastPlatform, window._cgrLastCreativeMode, window._cgrLastGoal)">Try again</button>' : '')
+        + '</div>';
       content.style.display = '';
     }
     _cgrShowChrome();
@@ -28834,34 +28839,39 @@ function _cr2AmbientPulse() {
    as --cr2-mx/--cr2-my custom properties the CSS glow already reads. */
 (function () {
   var MAX_OFFSET = 7; // px — "a few pixels", never a flashlight/cursor-follow effect
-  var LERP = 0.05;
-  var targetX = 0, targetY = 0, curX = 0, curY = 0, rafId = null;
+  var targetX = 0, targetY = 0, curX = 0, curY = 0, timer = null, anim = null;
 
   function canParallax() {
     return document.body.classList.contains('dark-mode')
       && window.matchMedia('(hover: hover) and (pointer: fine)').matches
       && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
-  function tick() {
-    curX += (targetX - curX) * LERP;
-    curY += (targetY - curY) * LERP;
+  /* Performance pass — the glow used to follow the pointer by writing
+     --cr2-mx/--cr2-my on #page-create every frame; custom properties
+     inherit, so each frame restyled the whole Create subtree. The same
+     slow, smoothed drift is now a short Web Animation on the ::before
+     pseudo-element itself (compositor-only), retargeted at most every
+     120ms, and nothing runs while the pointer is still. */
+  function glide() {
+    timer = null;
     var page = document.getElementById('page-create');
-    if (page) {
-      page.style.setProperty('--cr2-mx', curX.toFixed(2) + 'px');
-      page.style.setProperty('--cr2-my', curY.toFixed(2) + 'px');
-    }
-    if (Math.abs(targetX - curX) > 0.05 || Math.abs(targetY - curY) > 0.05) {
-      rafId = requestAnimationFrame(tick);
-    } else {
-      rafId = null;
-    }
+    if (!page || !page.animate) return;
+    if (Math.abs(targetX - curX) < 0.3 && Math.abs(targetY - curY) < 0.3) return;
+    if (anim) anim.cancel();
+    try {
+      anim = page.animate(
+        [{ translate: curX.toFixed(2) + 'px ' + curY.toFixed(2) + 'px' }, { translate: targetX.toFixed(2) + 'px ' + targetY.toFixed(2) + 'px' }],
+        { duration: 900, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'forwards', pseudoElement: '::before' }
+      );
+    } catch (_) { anim = null; }
+    curX = targetX; curY = targetY;
   }
   document.addEventListener('mousemove', function (e) {
     var page = document.getElementById('page-create');
     if (!page || !page.classList.contains('active') || !canParallax()) return;
     targetX = (e.clientX / window.innerWidth - 0.5) * 2 * MAX_OFFSET;
     targetY = (e.clientY / window.innerHeight - 0.5) * 2 * MAX_OFFSET;
-    if (!rafId) rafId = requestAnimationFrame(tick);
+    if (!timer) timer = setTimeout(glide, 120);
   }, { passive: true });
 })();
 
@@ -28933,7 +28943,8 @@ window._cr2ToggleAdvanced = function(){
   if(!body) return;
   var open = body.style.display !== 'none';
   body.style.display = open ? 'none' : '';
-  if(chev) chev.style.transform = open ? '' : 'rotate(90deg)';
+  // Down when collapsed, up when expanded (the path itself is a down chevron).
+  if(chev) chev.style.transform = open ? '' : 'rotate(180deg)';
   if(toggle) toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
 };
 
@@ -29373,7 +29384,15 @@ function _cr2RenderStage() {
   // HEAD — a restrained eyebrow only (Final Visual Polish pass), same
   // label language as the composer's own .cr2-goal-label so the two
   // panels read as one system rather than two unrelated cards.
-  html += '<div class="cr2-stage-head"><span class="cr2-stage-eyebrow">Creative Stage</span></div>';
+  // Product Experience Revamp — the head also shows which campaign
+  // decisions are made (brief, platform, goal, context) and whether the
+  // campaign is ready to build, so each choice visibly lands somewhere.
+  // CONTEXT sits right under the brief so what shapes the campaign —
+  // Business (added server-side to every generation) and any Research
+  // findings the user brought over (sent as researchContext, removable) —
+  // is visible while building, not below the fold.
+  if (window.orvWorkspace && orvWorkspace.create) html += orvWorkspace.create.stageHead() + orvWorkspace.create.briefLine() + orvWorkspace.create.contextSection();
+  else html += '<div class="cr2-stage-head"><span class="cr2-stage-eyebrow">Creative Stage</span></div>';
 
   // FRAME — the real attached image if one exists (never modified, never
   // regenerated — a direct <img> of the user's own data), otherwise
@@ -29405,15 +29424,14 @@ function _cr2RenderStage() {
   // PROVIDER IDENTITY — the exact same real icon the platform pill above uses.
   html += '<div class="cr2-stage-provider cr2-stage-provider-' + plat + '">' + (_cr2PlatIcons[plat] || '') + '<span>' + _cr2Esc(CR2_PLAT_LABELS[plat] || 'Google Ads') + '</span></div>';
 
-  // ACTIVE BRIEF — a visual readout of the real configuration, not generated content.
-  var tags = [(CR2_PLAT_LABELS[plat] || 'Google Ads').toUpperCase(), isVideo ? 'VIDEO' : 'IMAGE'];
-  if (goal) tags.push(goal.toUpperCase());
-  if (plat === 'google' && window._ov3GoogleCampaignType) tags.push((CR2_TYPE_LABELS[window._ov3GoogleCampaignType] || window._ov3GoogleCampaignType).toUpperCase());
-  html += '<div class="cr2-stage-brief">' + tags.map(function (tg) { return '<span class="cr2-stage-tag">' + _cr2Esc(tg) + '</span>'; }).join('') + '</div>';
-
-  // STRUCTURE — the real Ad Groups × Ads-per-Group the user configured.
+  // Final UI cleanup — the tag row (platform/format/goal/type) repeated
+  // selections already visible in the composer; the configuration now
+  // reads as one quiet line next to the provider instead.
   var gN = Math.max(1, parseInt(struct.groups, 10) || 1), aN = Math.max(1, parseInt(struct.adsPerGroup, 10) || 1);
-  html += '<div class="cr2-stage-struct">' + gN + ' Ad ' + (gN === 1 ? 'Group' : 'Groups') + ' · ' + aN + ' Ad' + (aN === 1 ? '' : 's') + ' each</div>';
+  var cfg = [isVideo ? 'Video' : (isSearch ? 'Search' : 'Image')];
+  if (goal) cfg.push(goal);
+  cfg.push(gN + ' ad ' + (gN === 1 ? 'group' : 'groups') + ' × ' + aN);
+  html += '<div class="cr2-stage-struct">' + _cr2Esc(cfg.join(' · ')) + '</div>';
 
   // ATTACHED PRODUCT — context only (never the creative itself), shown
   // only when a real product reference was actually attached. Kept in the
@@ -29424,19 +29442,9 @@ function _cr2RenderStage() {
   }
   html += '</div>'; // /.cr2-stage-meta-campaign
 
-  // BRAND IDENTITY — only ever real name/colors/logo, from the one
-  // authoritative resolver above; an honest "unconfigured" note when the
-  // toggle is on but no real data exists. Its own divider marks the
-  // campaign-context/brand-context boundary.
-  if (biEnabled && brand) {
-    html += '<div class="cr2-stage-meta-brand"><div class="cr2-stage-brand">';
-    if (brand.logoUrl) html += '<img class="cr2-stage-brand-logo" src="' + _cr2Esc(brand.logoUrl) + '" alt="' + _cr2Esc(brand.name) + ' logo">';
-    html += '<span class="cr2-stage-brand-name">' + _cr2Esc(brand.name) + '</span>';
-    if (brand.colors.length) html += '<span class="cr2-stage-brand-swatches">' + brand.colors.slice(0, 4).map(function (c) { return '<span class="cr2-stage-swatch" style="background:' + _cr2Esc(c.hex) + '" title="' + _cr2Esc(c.role || '') + '"></span>'; }).join('') + '</span>';
-    html += '</div></div>';
-  } else if (biEnabled && !brand) {
-    html += '<div class="cr2-stage-meta-brand"><div class="cr2-stage-brand cr2-stage-brand-empty">Brand Identity on — no brand context configured yet</div></div>';
-  }
+  // (Brand identity now appears as one compact chip — name, logo and real
+  // colours — in the context row at the top of the Stage; see
+  // orvWorkspace.create.contextSection. No separate brand block here.)
 
   // AD → YOUR BRAND — only rendered once the user has genuinely confirmed
   // a reference analysis (window._ov3ReferenceAdContext, set by
@@ -29460,15 +29468,8 @@ function _cr2RenderStage() {
       + '</div>';
   }
 
-  // RECENT CREATIVE — a small, read-only shelf of the user's OWN real
-  // prior creative_assets, secondary to everything above, never
-  // auto-selected/modified/regenerated. Omitted entirely for a brand-new
-  // account (the array stays empty, not fabricated).
-  if (window._cr2RecentAssets && window._cr2RecentAssets.length) {
-    html += '<div class="cr2-stage-shelf"><div class="cr2-stage-shelf-label">Your recent creative</div><div class="cr2-stage-shelf-row">'
-      + window._cr2RecentAssets.map(function (a) { return '<img class="cr2-stage-shelf-thumb" src="' + _cr2Esc(a.content.imageUrl) + '" alt="' + _cr2Esc(a.title || 'Previous creative') + '">'; }).join('')
-      + '</div></div>';
-  }
+  // (Recent-creative shelf removed in the final UI cleanup — it made the
+  // Stage much taller than the composer; the asset library keeps them.)
 
   html += '</div>'; // /.cr2-stage-meta
 
@@ -29483,6 +29484,7 @@ function _cr2RenderStage() {
   stage.style.opacity = '0.6';
   stage.innerHTML = html;
   requestAnimationFrame(function () { stage.style.opacity = '1'; });
+  if (window.orvWorkspace && orvWorkspace.create && orvWorkspace.create.afterRender) orvWorkspace.create.afterRender(stage);
 }
 
 window.cr2Init = function() {
@@ -29553,7 +29555,9 @@ window.orvLoadLaunchBiz = function(){
   ]).then(function(results){
     var profRes = results[0], audRes = results[1];
     var profile = (profRes.ok && profRes.data && profRes.data.profile) || null;
-    var audiences = (audRes.ok && audRes.data && audRes.data.audiences) || [];
+    // GET /api/business/audiences returns { items: [...] } (server.js
+    // _registerBusinessCrudRoutes) — the same shape Business itself reads.
+    var audiences = (audRes.ok && audRes.data && (audRes.data.items || audRes.data.audiences)) || [];
     window._orvLaunchBiz = { profile: profile, audiences: audiences };
     // Creative Stage pass — this is where a real business_profile.logo_url
     // (if one exists) first becomes available on Create; re-render so the
@@ -29676,12 +29680,23 @@ window.aicGenerate = function(){
   }
   if(typeof checkUsageLimit === 'function'){
     aicGenerate._checking = true;
-    checkUsageLimit(25).then(function(result){
+    checkUsageLimit(CREDIT_COSTS.campaign).then(function(result){
       aicGenerate._checking = false;
       if(!result.allowed){
+        // Known-insufficient balance: no build request is sent, so the
+        // Build canvas never starts. Shows needed vs. current balance when
+        // the credit status is known, plus the upgrade path.
         _aicRestoreGenerateBtn(btn);
-        if(typeof orvToast==='function') orvToast(result.message || 'Not enough credits.', 'warn');
-        if(typeof openPaywall === 'function') setTimeout(openPaywall, 400);
+        var _F = window.orvWorkspace && orvWorkspace.flow;
+        if(_F && result.balance != null){
+          var _m = _F.error({ status: 402, body: { code: 'CREDITS_EXHAUSTED', balance: result.balance }, required: result.required, phase: 'generate' });
+          _F.confirm({ title: _m.title, eyebrow: 'Build campaign',
+            body: '<p>' + _F.esc(_m.message) + '</p><dl class="ofb-credits"><div><dt>Needed</dt><dd>' + result.required + '</dd></div><div><dt>Your balance</dt><dd>' + result.balance + '</dd></div></dl>',
+            confirmLabel: 'View plans', cancelLabel: 'Not now' }).then(function(yes){ if(yes) _F.runAction('plans'); });
+        } else {
+          if(typeof orvToast==='function') orvToast(result.message && result.message !== 'upgrade' ? result.message : 'Choose a plan to build campaigns.', 'warn');
+          if(typeof openPaywall === 'function') setTimeout(openPaywall, 400);
+        }
         return;
       }
       _aicGenerateProceed(prompt, goal);

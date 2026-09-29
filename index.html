@@ -324,12 +324,19 @@
  #view-landing .ov-system-enhanced .ov-system-heading { position:absolute; top:7%; left:0; width:100%; }
  #view-landing .ov-system-enhanced .ov-system-heading h2 { font-size:clamp(34px,3.5vw,52px); margin:14px 0; }
  #view-landing .ov-system-enhanced .ov-system-heading h2 br { display:none; }
- #view-landing .ov-system-enhanced .ov-system-visual { position:absolute; top:50%; left:50%; width:min(28vw,340px); height:min(31vw,376px); margin:0; transform:translate(-50%,-50%); }
+ /* Height-aware: the story camera scales this ring 1.85x, so on short laptop
+    screens (1366x768, 1280x800, 1024x768) a width-only size let its lower
+    pieces cover the step rail ("01 Business · 02 Research"). The third term
+    keeps the zoomed ring's lower edge above the rail (bottom 54px + 44px). */
+ #view-landing .ov-system-enhanced .ov-system-visual { position:absolute; top:50%; left:50%; width:min(28vw,340px,calc((100vh - 64px) / 2 - 112px)); height:auto; aspect-ratio:534/585; margin:0; transform:translate(-50%,-50%); }
  #view-landing .ov-system-enhanced .ov-system-steps { margin:0; }
  #view-landing .ov-system-enhanced .ov-system-step { position:absolute; left:57%; right:5%; top:38%; border:0; padding:0; opacity:0; pointer-events:none; }
  #view-landing .ov-system-enhanced .ov-system-step h3 { font-size:clamp(30px,3.6vw,54px); }
  #view-landing .ov-system-enhanced .ov-system-step p { font-size:clamp(15px,1.35vw,19px); }
- #view-landing .ov-system-enhanced .ov-system-resolve { position:absolute; top:75%; width:100%; margin:0; opacity:0; }
+ /* Anchored to the step rail (bottom 54px, ~44px tall) instead of top:75%:
+    on short laptop windows (1366x657) the closing line was painted over
+    the rail labels. */
+ #view-landing .ov-system-enhanced .ov-system-resolve { position:absolute; top:auto; bottom:122px; width:100%; margin:0; opacity:0; }
  #view-landing .ov-system-enhanced .ov-system-resolve p { font-size:clamp(22px,2.4vw,34px); }
  #view-landing .ov-system-enhanced .ov-system-nav { position:absolute; bottom:54px; left:50%; transform:translateX(-50%); display:flex; gap:22px; }
  #view-landing .ov-system-nav button { background:none; border:0; border-top:1px solid #ffffff27; padding:12px 0; min-height:44px; color:#94958e; font:11px var(--font-body); cursor:pointer; transition:color .2s,border-color .2s; }
@@ -587,18 +594,83 @@
 #view-landing .ov-closing-o { position:relative; width:min(840px,88vw,calc((100svh - 64px - 128px) * .913)); aspect-ratio:534/585; margin:0 auto; perspective:1300px; }
 #view-landing .ov-closing-o .ov-closing-mark { position:absolute; inset:0; width:100%; height:100%; margin:0; pointer-events:none; }
 #view-landing .ov-closing-o .ov-closing-mark svg { transform-origin:50% 50%; }
-#view-landing .ov-closing-core { position:absolute; left:50%; top:50%; width:40%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; text-align:center; z-index:2; }
-#view-landing .ov-closing-core .ov-section-eyebrow { font-size:clamp(8px,1.1vw,11px); }
-#view-landing .ov-closing-core h2 { font:800 clamp(17px,2.2vw,31px)/1.18 var(--font-display) !important; letter-spacing:-.045em; margin:12px 0 22px !important; color:#f4f4f1; text-wrap:balance; }
-#view-landing .ov-closing-core .ov-btn-primary { white-space:nowrap; }
+#view-landing .ov-closing-core { position:absolute; left:50%; top:50%; width:44%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; text-align:center; z-index:2; }
+/* The O is sized from the viewport HEIGHT on laptops (it must fit on one
+   screen) but the text inside it used to be sized from the viewport WIDTH
+   (2.2vw etc.). On a short laptop window (1366×657, 1280×680, 1024×600)
+   the O shrank while the heading stayed large, so the eyebrow and the
+   Get started button ran underneath the ring pieces. Everything inside
+   the O is now sized from the O itself (container query units), so the
+   text keeps the same proportion to the ring's hole at every width and
+   height — desktop, laptop, tablet and phone. */
+#view-landing .ov-closing-o { container-type:inline-size; }
+#view-landing .ov-closing-core .ov-section-eyebrow { font-size:clamp(8px,2.3cqi,11px); letter-spacing:.12em; white-space:nowrap; }
+#view-landing .ov-closing-core h2 { font:800 clamp(13px,5.2cqi,31px)/1.16 var(--font-display) !important; letter-spacing:-.045em; margin:2.2cqi 0 4cqi !important; color:#f4f4f1; text-wrap:balance; }
+#view-landing .ov-closing-core .ov-btn-primary { white-space:nowrap; font-size:clamp(11px,2.9cqi,16px); padding:.95em 1.55em; }
+#view-landing .ov-closing-core .ov-btn-primary span { margin-left:1.1em; }
 @media (max-width:640px) {
   #view-landing #ov-final.ov-closing { padding:56px 0 70px; }
   #view-landing .ov-closing-o { width:min(94vw,520px); }
-  #view-landing .ov-closing-core { width:40%; }
-  #view-landing .ov-closing-core .ov-section-eyebrow { font-size:8px; letter-spacing:.12em; }
-  #view-landing .ov-closing-core h2 { font-size:clamp(13px,3.6vw,17px) !important; margin:7px 0 12px !important; }
-  #view-landing .ov-closing-core .ov-btn-primary { padding:10px 16px; font-size:12.5px; }
-  #view-landing .ov-closing-core .ov-btn-primary span { margin-left:10px; }
+}
+/* ══ Responsive scroll stories ══════════════════════════════════════
+   The five scroll-linked stories below (Six parts, product films,
+   Context → Campaign → Control, Built around your control, and the
+   creative wall drift) used to run only on large screens (≥901/1024px
+   wide AND ≥620/640px tall); phones, tablets and short laptop windows got
+   a static layout. They now run everywhere motion is allowed (and the
+   window is at least 460px tall), with a compact composition that fits
+   the available height: same pinned stage, same timeline, the step that
+   is active shown in place. The desktop rules above are unchanged. */
+@media (max-width:900px), (max-height:619px) {
+  #view-landing #ov-system.ov-system-enhanced { padding:0; height:420vh; }
+  #view-landing .ov-system-enhanced .ov-system-stage { height:calc(100svh - 64px); position:sticky; top:0; overflow:hidden; max-width:none; }
+  #view-landing .ov-system-enhanced .ov-system-heading { position:absolute; top:5%; left:20px; right:20px; width:auto; }
+  #view-landing .ov-system-enhanced .ov-system-heading h2 { font-size:clamp(28px,7.4vw,42px) !important; margin:10px 0; }
+  #view-landing .ov-system-enhanced .ov-system-heading p { font-size:14px; margin:0; }
+  #view-landing .ov-system-enhanced .ov-system-visual { position:absolute; top:40%; left:50%; width:min(46vw,230px,calc((100svh - 64px) * .26)); height:auto; aspect-ratio:534/585; margin:0; transform:translate(-50%,-50%); }
+  #view-landing .ov-system-enhanced .ov-system-steps { margin:0; max-width:none; }
+  #view-landing .ov-system-enhanced .ov-system-step { position:absolute; left:24px; right:24px; top:auto; bottom:96px; padding:0; border:0; opacity:0; pointer-events:none; text-align:center; }
+  #view-landing .ov-system-enhanced .ov-system-step::before { display:none; }
+  #view-landing .ov-system-enhanced .ov-system-step h3 { font-size:clamp(26px,7vw,40px); margin:8px 0; }
+  #view-landing .ov-system-enhanced .ov-system-step p { font-size:15px; max-width:440px; margin:0 auto; }
+  #view-landing .ov-system-enhanced .ov-system-resolve { position:absolute; left:20px; right:20px; top:auto; bottom:96px; width:auto; margin:0; opacity:0; }
+  #view-landing .ov-system-enhanced .ov-system-resolve p { font-size:clamp(20px,5.6vw,30px); }
+  #view-landing .ov-system-enhanced .ov-system-nav { position:absolute; bottom:36px; left:50%; transform:translateX(-50%); display:flex; gap:12px; }
+  #view-landing .ov-system-enhanced .ov-system-nav button { font-size:0; min-width:34px; min-height:44px; padding:10px 0; background:none; border:0; border-top:1px solid #ffffff27; color:#94958e; cursor:pointer; transition:color .2s,border-color .2s; }
+  #view-landing .ov-system-enhanced .ov-system-nav button span { font-size:11px; margin:0; opacity:1; }
+  #view-landing .ov-system-enhanced .ov-system-nav button[aria-current="step"] { border-color:var(--ov-lime); color:var(--ov-lime); }
+  #view-landing .ov-system-enhanced .ov-system-skip { position:absolute; right:12px; bottom:0; margin:0; }
+}
+@media (max-width:1023px), (max-height:639px) {
+  #view-landing #ov-pillars.ov-films-enhanced { height:200vh; padding:0 16px; }
+  #view-landing .ov-films-enhanced .ov-pillars-inner { position:sticky; top:0; height:calc(100svh - 64px); display:flex; flex-direction:column; justify-content:center; align-items:center; }
+  #view-landing .ov-films-enhanced .ov-pillars-head { position:absolute; top:4%; left:0; right:0; margin:0; z-index:1; }
+  #view-landing .ov-films-enhanced .ov-workspace { opacity:1 !important; transform:none !important; position:relative; z-index:2; transition:none; will-change:width; max-width:100%; }
+
+  #view-landing #ov-intermission.ov-ccc-enhanced { height:300vh; padding:0 20px; }
+  #view-landing .ov-ccc-enhanced .ov-intermission-inner { position:sticky; top:0; height:calc(100svh - 64px); align-content:center; gap:18px; }
+  #view-landing .ov-ccc-enhanced .ov-ccc-copy h2 { margin:10px 0 12px; }
+  #view-landing .ov-ccc-enhanced .ov-ccc-copy h2 span { color:#ffffff38; }
+  #view-landing .ov-ccc-enhanced .ov-ccc-copy h2 span.is-on { color:#eeeee9; }
+  #view-landing .ov-ccc-enhanced .ov-ccc-copy h2 span.is-on em { color:var(--ov-lime); }
+  #view-landing .ov-ccc-enhanced .ov-ccc-copy h2 span:not(.is-on) em { color:inherit; }
+  #view-landing .ov-ccc-enhanced .ov-ccc-steps { margin-top:10px; }
+  #view-landing .ov-ccc-enhanced .ov-ccc-steps li:not(.is-on) { display:none; }
+  #view-landing .ov-ccc-enhanced .ov-ccc-stage { width:min(560px,100%,calc((100svh - 64px) * .56)); }
+
+  #view-landing #ov-proof.ov-ctrl-enhanced { height:300vh; padding:0 20px; }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-stage { position:sticky; top:0; height:calc(100svh - 64px); gap:14px; align-content:center; }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-copy .ov-section-h { font-size:clamp(28px,7.6vw,44px) !important; margin:10px 0 8px; }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-lead { font-size:15px; margin-bottom:12px; }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-list { grid-template-columns:1fr; }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-list li:not(.is-on) { display:none; }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-end { margin-top:14px; font-size:clamp(18px,5vw,26px); }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-visual { width:min(560px,100%,calc((100svh - 64px) * .44)); }
+}
+@media (max-width:1023px) {
+  #view-landing .ov-ccc-enhanced .ov-intermission-inner { display:flex; flex-direction:column; justify-content:center; }
+  #view-landing .ov-ccc-enhanced .ov-intermission-inner h2 { font-size:clamp(30px,8.4vw,48px) !important; }
+  #view-landing .ov-ctrl-enhanced .ov-ctrl-stage { display:flex; flex-direction:column; justify-content:center; }
 }
 </style>
 </head>
@@ -6597,10 +6669,16 @@ window.addEventListener('pageshow', function(e){
  if(window.gsap && window.ScrollTrigger){
    gsap.registerPlugin(ScrollTrigger);
    var mm=gsap.matchMedia();
-   mm.add({motion:'(prefers-reduced-motion: no-preference)',desktop:'(min-width:901px) and (min-height:620px)',pointer:'(hover:hover) and (pointer:fine)'},function(ctx){
+   mm.add({motion:'(prefers-reduced-motion: no-preference)',desktop:'(min-width:901px) and (min-height:620px)',tall:'(min-height:460px)',pointer:'(hover:hover) and (pointer:fine)'},function(ctx){
      if(!ctx.conditions.motion)return;
      var cleanup=[];
-     if(ctx.conditions.desktop){
+     // Runs on every size with room for a pinned stage (≥460px tall). Phones,
+     // tablets and short windows get the compact composition (CSS "Responsive
+     // scroll stories"): the camera zooms in place instead of moving aside.
+     var compact=!ctx.conditions.desktop;
+     var zoom=compact?{xPercent:0,scale:1.3}:{xPercent:-75,scale:1.85};
+     var endScale=compact?.8:.68;
+     if(ctx.conditions.desktop||ctx.conditions.tall){
        system.classList.add('ov-system-enhanced');
        var camera=system.querySelector('.ov-system-camera');
        var heading=system.querySelector('.ov-system-heading');
@@ -6620,12 +6698,37 @@ window.addEventListener('pageshow', function(e){
            gsap.set(pieces[i],{fill:current<0?'#d9dfcf':i===current?'#B6FF3B':'#343a2e'});
          });
        }
+       // Closing frame: on short windows the ring (zoomed back out, centred)
+       // would sit on the closing line's eyebrow; y lifts it just enough —
+       // measured from the real layout and re-measured on every refresh.
+       // 0 on tall screens.
        var timeline=gsap.timeline({scrollTrigger:{trigger:system,scroller:root,start:'top top',end:'bottom bottom',scrub:.6,invalidateOnRefresh:true,onUpdate:function(self){render(self.progress);}}});
-       timeline.to(pieces,{x:0,y:0,rotation:0,opacity:1,stagger:.01,duration:.11,ease:'power2.out'},0)
+       // Compact layout: heading, steps and closing line are never on screen
+       // together, so the ring takes the right place for each phase —
+       // below the heading (clearing its spread-out pieces) during the
+       // intro, then zoomed only as far as the space above the step text
+       // allows, then above the closing line. Everything is measured from
+       // the real layout and re-measured on every refresh.
+       var visual=system.querySelector('.ov-system-visual');
+       var geo=function(){
+         var c0=visual.offsetTop,rh=visual.offsetHeight;
+         var headBottom=heading.offsetTop+heading.offsetHeight;
+         var stepsTop=Math.min.apply(null,steps.map(function(st){return st.offsetTop;}));
+         var avail=Math.max(rh,stepsTop-18-8);
+         var sc=compact?Math.max(1,Math.min(zoom.scale,avail/rh)):zoom.scale;
+         return {
+           intro:compact?Math.max(0,headBottom+16+rh*.62-c0):0,
+           steps:compact?(8+avail/2-c0):0,
+           scale:sc,
+           end:Math.max(8+endScale/2*rh-c0,Math.min(0,resolve.offsetTop-18-(c0+endScale/2*rh)))
+         };
+       };
+       timeline.set(camera,{y:function(){return geo().intro;},immediateRender:true},0)
+         .to(pieces,{x:0,y:0,rotation:0,opacity:1,stagger:.01,duration:.11,ease:'power2.out'},0)
          .to(heading,{opacity:0,y:-18,duration:.05},.16)
          .to(center,{opacity:0,duration:.05},.16)
-         .to(camera,{xPercent:-75,scale:1.85,duration:.08,ease:'power2.inOut'},.17)
-         .to(camera,{xPercent:0,scale:.68,duration:.1,ease:'power2.inOut'},.82)
+         .to(camera,{xPercent:zoom.xPercent,scale:function(){return geo().scale;},y:function(){return geo().steps;},duration:.08,ease:'power2.inOut'},.17)
+         .to(camera,{xPercent:0,scale:endScale,y:function(){return geo().end;},duration:.1,ease:'power2.inOut'},.82)
          .to(resolve,{opacity:1,y:0,duration:.06},.91)
          .to({}, {duration:.03},.97);
        storyTrigger=timeline.scrollTrigger;
@@ -6636,6 +6739,12 @@ window.addEventListener('pageshow', function(e){
      gsap.fromTo('.ov-workflow-signal i',{scaleX:0},{scaleX:1,ease:'none',scrollTrigger:{trigger:'#ov-intermission',scroller:root,start:'top 80%',end:'bottom 40%',scrub:.5}});
      if(ctx.conditions.desktop){
        document.querySelectorAll('.ov-creative-row').forEach(function(row,i){gsap.fromTo(row,{x:i? -100:0},{x:i?0:-100,ease:'none',scrollTrigger:{trigger:'#ov-wall2',scroller:root,start:'top bottom',end:'bottom top',scrub:.65}});});
+     } else {
+       // Phones/tablets: each row is a native horizontal swipe strip, so the
+       // strip itself must not move. The same opposing drift is applied to
+       // the cards inside it, kept within the strip's 20px side padding so
+       // nothing is clipped and swiping is unaffected.
+       document.querySelectorAll('.ov-creative-row').forEach(function(row,i){gsap.fromTo(row.children,{x:i? -18:0},{x:i?0:-18,ease:'none',scrollTrigger:{trigger:'#ov-wall2',scroller:root,start:'top bottom',end:'bottom top',scrub:.65}});});
      }
      return function(){cleanup.forEach(function(fn){fn();});};
    });
@@ -6797,11 +6906,49 @@ window.addEventListener('pageshow', function(e){
    return gsap.to(ring.entry, { v: 0, duration: 1.25, ease: 'power3.out', stagger: .08, delay: delay || 0, onUpdate: wake, onComplete: wake });
  }
 
+ // Lifecycle — the landing view is display:none until the public router
+ // activates it. A visitor who arrives on /login, /pricing etc. and then
+ // opens the home page got ScrollTriggers measured against a hidden (0px)
+ // layout: every scroll story fired in the wrong place, the closing O
+ // stayed broken apart with its text invisible, and the hero O had
+ // already "assembled" unseen — until a refresh. Motion now starts when
+ // the view is actually displayed, and every later show re-measures.
+ function landingShown() { return getComputedStyle(root).display !== 'none'; }
+ function whenLandingShown(fn) {
+   if (landingShown()) { fn(); return; }
+   var mo = new MutationObserver(function () { if (landingShown()) { mo.disconnect(); requestAnimationFrame(fn); } });
+   mo.observe(root, { attributes: true, attributeFilter: ['class', 'style'] });
+ }
+ var shownNow = landingShown();
+ new MutationObserver(function () {
+   var s = landingShown();
+   if (s && !shownNow) requestAnimationFrame(function () { ScrollTrigger.refresh(); });
+   shownNow = s;
+ }).observe(root, { attributes: true, attributeFilter: ['class', 'style'] });
+ // Content that loads after the view appears (lazy images/video in a view
+ // that was hidden) changes the page height; re-measure when — and only
+ // when — the landing's real scroll height changes. Heights produced by
+ // ScrollTrigger's own refresh (pin spacers) are recorded as the new
+ // baseline, so this never loops.
+ var lastH = 0, rq = 0, refreshing = false;
+ ScrollTrigger.addEventListener('refreshInit', function () { refreshing = true; });
+ ScrollTrigger.addEventListener('refresh', function () { refreshing = false; lastH = root.scrollHeight; });
+ if (window.ResizeObserver) {
+   var ro = new ResizeObserver(function () {
+     if (refreshing || !landingShown() || Math.abs(root.scrollHeight - lastH) < 4) return;
+     cancelAnimationFrame(rq);
+     rq = requestAnimationFrame(function () { lastH = root.scrollHeight; ScrollTrigger.refresh(); });
+   });
+   Array.prototype.forEach.call(root.children, function (c) { ro.observe(c); });
+ }
+
+ function startMotion() {
  var mm = gsap.matchMedia();
  mm.add({
    motion: '(prefers-reduced-motion: no-preference)',
    wide: '(min-width:1024px)',
-   pin: '(min-width:1024px) and (min-height:640px)'
+   pin: '(min-width:1024px) and (min-height:640px)',
+   tall: '(min-height:460px)'
  }, function (ctx) {
    var cond = ctx.conditions, undo = [];
    if (!cond.motion) return;
@@ -6851,7 +6998,11 @@ window.addEventListener('pageshow', function(e){
      undo.push(function () { ast.kill(); gsap.set(arrows, { clearProps: 'all' }); });
    }
 
-   if (cond.pin) {
+   // The pinned stories below run on every size with room for a pinned
+   // stage (≥460px tall); phones, tablets and short windows use the compact
+   // composition in the "Responsive scroll stories" CSS.
+   var compact = !cond.pin;
+   if (cond.pin || cond.tall) {
      // ── PRODUCT FILMS: the video frame itself grows from a clean in-section
      // size to a near full-screen showcase, with the six-film selector
      // always directly underneath it. Width is driven straight from scroll
@@ -6866,6 +7017,15 @@ window.addEventListener('pageshow', function(e){
      var fd = { w0: 900, w1: 1200, off: 0 };
      var measureFilms = function () {
        var st = inner.getBoundingClientRect(), railH = rail.offsetHeight, headH = head.offsetHeight;
+       if (compact) {
+         // Grow from 80% to the full available width (height-capped), and
+         // start low enough that the frame clears the heading above it.
+         fd.w1 = Math.max(160, Math.min(st.width, (st.height - railH - 40) * 16 / 9));
+         fd.w0 = Math.min(fd.w1 * .8, Math.max(160, (st.height - headH - railH - 60) * 16 / 9));
+         var wsH0 = fd.w0 * 9 / 16 + railH;
+         fd.off = Math.max(0, st.height * .04 + headH + 14 - (st.height - wsH0) / 2);
+         return;
+       }
        fd.w0 = Math.max(480, Math.min(st.width * .62, (st.height - headH - railH - 90) * 16 / 9));
        fd.w1 = Math.max(fd.w0, Math.min(st.width - 56, (st.height - railH - 40) * 16 / 9));
        fd.off = headH * .6;
@@ -6874,7 +7034,7 @@ window.addEventListener('pageshow', function(e){
        var e = ease(clamp(p / .42, 0, 1));
        ws.style.width = (fd.w0 + (fd.w1 - fd.w0) * e).toFixed(1) + 'px';
        ws.style.marginTop = ((1 - e) * fd.off).toFixed(1) + 'px';
-       head.style.opacity = (1 - e).toFixed(3);
+       head.style.opacity = Math.max(0, 1 - e * 2.5).toFixed(3); // gone before the growing frame reaches it
        head.style.transform = 'translateY(' + (-24 * e).toFixed(1) + 'px)';
      };
      var fstg = ScrollTrigger.create({ trigger: pillars, scroller: root, start: 'top top', end: 'bottom bottom', invalidateOnRefresh: true, onUpdate: function (st) { renderFilms(st.progress); }, onRefresh: function (st) { measureFilms(); renderFilms(st.progress); } });
@@ -6973,6 +7133,8 @@ window.addEventListener('pageshow', function(e){
    }
    return function () { undo.forEach(function (fn) { fn(); }); };
  });
+ }
+ whenLandingShown(startMotion);
  document.fonts && document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
 })();
 </script>

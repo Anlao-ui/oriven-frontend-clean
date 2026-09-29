@@ -1651,116 +1651,14 @@ function _refreshBrainActions(bc, intel){
 // never blocks the rest of the page. Never fabricates a metric — a
 // section that can't get real data says so honestly instead of showing 0.
 function refreshDash(){
-  // Dynamic greeting — real local browser/device time (new Date().getHours()),
-  // never server time, a fixed timezone, or geolocation. Fix: the previous
-  // `h < 5 ? "evening"` branch mislabeled 00:00-04:59 as evening instead of
-  // morning; ranges now match exactly: 00:00-11:59 morning, 12:00-17:59
-  // afternoon, 18:00-23:59 evening. No "Good night" variant introduced.
-  var h = new Date().getHours();
-  var greetEl = document.getElementById("dashHeadlineWord");
-  if (greetEl) greetEl.textContent = h < 12 ? "morning" : h < 18 ? "afternoon" : "evening";
-
-  _dashRenderConnections();
-  _dashRenderCampaignStats();
-  _dashRenderActivity();
-  _dashRenderAutopilot();
-  _dashRenderAssets();
-}
-
-var DASH_PLATFORMS = [
-  { key:"google",    label:"Google Ads",    ep:"/api/google/status" },
-  { key:"meta",       label:"Meta Ads",      ep:"/api/meta/status" },
-  { key:"tiktok",     label:"TikTok Ads",    ep:"/api/tiktok/status" },
-  { key:"pinterest",  label:"Pinterest Ads", ep:"/api/pinterest/status" }
-];
-
-function _dashRenderConnections(){
-  var el = document.getElementById("dashConnRows");
-  if(!el || typeof apiFetch !== "function") return;
-  el.innerHTML = DASH_PLATFORMS.map(function(p){
-    return '<div class="dash-conn-row" data-plat="' + p.key + '">'
-      + '<span class="dash-conn-dot dash-conn-dot-off"></span>'
-      + '<span class="dash-conn-lbl">' + p.label + '</span>'
-      + '<span class="dash-conn-state">Checking…</span>'
-      + '</div>';
-  }).join("");
-  DASH_PLATFORMS.forEach(function(p){
-    apiFetch(p.ep).then(function(res){
-      var row = el.querySelector('[data-plat="' + p.key + '"]');
-      if(!row) return;
-      var connected = !!(res.ok && res.data && res.data.connected);
-      row.querySelector(".dash-conn-dot").className = "dash-conn-dot " + (connected ? "dash-conn-dot-on" : "dash-conn-dot-off");
-      row.querySelector(".dash-conn-state").textContent = connected ? "Connected" : "Not connected";
-    }).catch(function(){
-      var row = el.querySelector('[data-plat="' + p.key + '"]');
-      if(row) row.querySelector(".dash-conn-state").textContent = "Unavailable";
-    });
-  });
-}
-
-// Real counts. Task 3 Part 2: renders immediately from the same client-side
-// campaign list Campaigns/Launch already read (_orvGetCampaigns /
-// oriven_campaigns_<uid>) exactly as before -- this keeps Dashboard's
-// existing synchronous, never-blocked-on-network render behavior fully
-// intact, and is what's shown while (or if) the durable fetch below hasn't
-// resolved. If the new durable /api/campaigns list (server.js, Task 3 Part
-// 2) is reachable and has data, a second pass re-renders with that more
-// complete, cross-device count instead -- durable state is preferred once
-// available, never required. No fabricated cross-platform aggregate either
-// way, since one doesn't exist anywhere in this app.
-function _dashRenderCampaignStats(){
-  var el = document.getElementById("dashStatsRow");
-  if(!el) return;
-  var camps = (typeof window._orvGetCampaigns === "function") ? (window._orvGetCampaigns() || []) : [];
-  _dashRenderCampaignStatsFrom(camps, /*isLocal*/true);
-  _dashFetchDurableCampaignStats();
-}
-
-function _dashFetchDurableCampaignStats(){
-  try {
-    if(typeof apiFetch !== "function") return;
-    apiFetch("/api/campaigns?limit=500").then(function(r){
-      if(!r.ok || !r.data || !Array.isArray(r.data.campaigns) || !r.data.campaigns.length) return; // stay on the local render — see header comment
-      var mapped = r.data.campaigns.map(function(c){
-        return { status: c.status, source: c.source };
-      });
-      _dashRenderCampaignStatsFrom(mapped, /*isLocal*/false);
-    }).catch(function(){ /* durable stats are a nice-to-have upgrade, never required */ });
-  } catch(e){ /* no-op */ }
-}
-
-// Visual Life pass — restrained per-card category accent (top border +
-// value color), reusing the same semantic tokens Campaigns' Metric
-// Explorer and Business's own category cards already use. isLocal picks
-// the right status vocabulary: the legacy local campaign objects use
-// "ready-to-publish"/"draft"/"generated"; durable rows (server.js
-// CAMPAIGN_STATUSES) use "ready"/"draft" directly (server-side aliasing
-// already collapses "ready-to-publish"/"generated"/"publishing" into
-// those on the way in — see _normalizeCampaignStatus, server.js).
-function _dashRenderCampaignStatsFrom(camps, isLocal){
-  var el = document.getElementById("dashStatsRow");
-  if(!el) return;
-  var readyStatus = isLocal ? "ready-to-publish" : "ready";
-  var draftStatuses = isLocal ? ["draft", "generated"] : ["draft"];
-  var stats = [
-    { val: camps.filter(function(c){ return c.status === "published" || c.status === "active"; }).length, label: "Live campaigns", cat: "live" },
-    { val: camps.filter(function(c){ return c.status === readyStatus; }).length, label: "Ready to launch", cat: "ready" },
-    { val: camps.filter(function(c){ return draftStatuses.indexOf(c.status) !== -1; }).length, label: "Drafts", cat: "draft" },
-    { val: camps.filter(function(c){ return c.source === "manual"; }).length, label: "Added manually", cat: "manual" }
-  ];
-  el.innerHTML = stats.map(function(s){
-    return '<div class="dash-stat-card dash-stat-cat-' + s.cat + '"><div class="dash-stat-val">' + s.val + '</div><div class="dash-stat-lbl">' + s.label + '</div></div>';
-  }).join("");
-  var empty = document.getElementById("dashEmptyState");
-  if(empty) empty.style.display = camps.length ? "none" : "";
-  if(empty && !camps.length){
-    empty.innerHTML = '<div class="dash-empty-ttl">Nothing here yet</div>'
-      + '<div class="dash-empty-sub">Connect a platform, set up your business, or create your first campaign to get started.</div>'
-      + '<div class="dash-empty-actions">'
-      + '<button class="dash-qa-btn" onclick="bizGoTo(\'connections\')">Connect a platform</button>'
-      + '<button class="dash-qa-btn" onclick="_orvNav(\'businessbrain\',\'page-business-brain\')">Complete Business</button>'
-      + '<button class="dash-qa-btn" onclick="_orvNav(\'create\',\'page-create\')">Create campaign</button>'
-      + '</div>';
+  // Product Experience Revamp — Home is system state now. The greeting,
+  // six-area state, "Needs you" and "Continue" all come from one shared
+  // model (orivenWorkspace.js), the same one Launch/Campaigns/Autopilot/
+  // Chat read, so Home can never disagree with them. Greeting still uses
+  // real local browser time (00-11 morning, 12-17 afternoon, 18-23 evening).
+  if (window.orvWorkspace) {
+    orvWorkspace.home.render();
+    orvWorkspace.refresh(false);
   }
 }
 
@@ -1919,93 +1817,6 @@ function _dashRenderCreateGrid(){
   });
 
   el.innerHTML = html;
-}
-
-// Real recent activity — same /api/intelligence/home endpoint the Oriven
-// Chat panel's recommendation cards already use (_orvAiLoadRecs), so this
-// never duplicates a separate activity system. Distinguishes "not
-// connected" / "connected, nothing to flag" / real recommendations —
-// never a fabricated activity item.
-function _dashRenderActivity(){
-  var el = document.getElementById("dashActivity");
-  if(!el || typeof apiFetch !== "function") return;
-  apiFetch("/api/intelligence/home").then(function(res){
-    var data = (res.ok && res.data) || null;
-    if(!data || !data.connected){
-      el.innerHTML = '<div class="dash-act-empty">'
-        + '<div class="dash-act-empty-ttl">No activity yet</div>'
-        + '<div class="dash-act-empty-sub">Connect an advertising account to see real activity here.</div>'
-        + '</div>';
-      return;
-    }
-    var actions = data.recommendedActions || [];
-    if(!actions.length){
-      el.innerHTML = '<div class="dash-act-empty">'
-        + '<div class="dash-act-empty-ttl">Nothing needs attention</div>'
-        + '<div class="dash-act-empty-sub">Oriven checks your connected accounts regularly.</div>'
-        + '</div>';
-      return;
-    }
-    var ico = '<path d="M8 1l1.8 4.8H14l-3.9 2.8 1.5 4.7L8 11l-4.6 2.8 1.5-4.7L1 6.8H5.2Z"/>';
-    el.innerHTML = '<div class="dash-act-list">' + actions.slice(0, 5).map(function(a){
-      return '<div class="dash-act-item">'
-        + '<div class="dash-act-ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor">' + ico + '</svg></div>'
-        + '<div class="dash-act-body">'
-        + '<div class="dash-act-label">' + _escHtml(a.title || "Recommendation") + '</div>'
-        + '<div class="dash-act-time">' + _escHtml(a.why || "") + '</div>'
-        + '</div></div>';
-    }).join("") + '</div>';
-  }).catch(function(){
-    el.innerHTML = '<div class="dash-act-empty"><div class="dash-act-empty-ttl">Could not load activity</div></div>';
-  });
-}
-
-// Real Autopilot status — same GET /api/autopilot/rules + enabled/
-// fully_automatic logic _apRenderSystemStatus (autopilot.js) uses, fetched
-// independently here rather than depending on autopilot.js's module state
-// having already loaded.
-function _dashRenderAutopilot(){
-  var el = document.getElementById("dashAutopilot");
-  if(!el || typeof apiFetch !== "function") return;
-  apiFetch("/api/autopilot/rules").then(function(res){
-    if(!res.ok){ el.innerHTML = '<div class="dash-ap-status">Autopilot status unavailable.</div>'; return; }
-    var rules = (res.data && res.data.rules) || [];
-    var enabled = rules.filter(function(r){ return r.enabled; });
-    var hasAuto = enabled.some(function(r){ return (r.action_params || {}).mode === "fully_automatic"; });
-    var stateCls = !enabled.length ? "dash-ap-off" : (hasAuto ? "dash-ap-auto" : "dash-ap-armed");
-    var label = !enabled.length ? "OFF" : (hasAuto ? "ARMED · AUTO-EXECUTE" : "ARMED");
-    var sub = !enabled.length
-      ? (rules.length ? "All automations are disabled." : "No automations yet.")
-      : (enabled.length + " active rule" + (enabled.length !== 1 ? "s" : ""));
-    el.innerHTML = '<div class="dash-ap-status ' + stateCls + '"><span class="dash-ap-dot"></span><span class="dash-ap-lbl">' + label + '</span></div>'
-      + '<div class="dash-ap-sub">' + _escHtml(sub) + '</div>'
-      + (!rules.length ? '<button class="dash-ap-cta" onclick="_orvNav(\'autopilot\',\'page-autopilot\')">Create Automation →</button>' : '');
-  }).catch(function(){
-    el.innerHTML = '<div class="dash-ap-status">Autopilot status unavailable.</div>';
-  });
-}
-
-// Real recent creative — same /api/creative/assets?kind=ad + content.
-// imageUrl field the Create page's own Creative Stage recent-assets strip
-// already reads (_cr2FetchRecentAssets), so this reuses the exact real
-// data shape rather than guessing a new one.
-function _dashRenderAssets(){
-  var el = document.getElementById("dashAssets");
-  if(!el || typeof apiFetch !== "function") return;
-  apiFetch("/api/creative/assets?kind=ad").then(function(res){
-    var items = (res.ok && res.data && res.data.assets) || [];
-    items = items.filter(function(a){ return a && a.content && a.content.imageUrl; }).slice(0, 6);
-    if(!items.length){
-      el.innerHTML = '<div class="dash-act-empty">'
-        + '<div class="dash-act-empty-ttl">No creative yet</div>'
-        + '<div class="dash-act-empty-sub">Generate an ad in Create to see it here.</div>'
-        + '</div>';
-      return;
-    }
-    el.innerHTML = '<div class="dash-assets-strip">' + items.map(function(a){
-      return '<div class="dash-asset-thumb"><img src="' + _escHtml(a.content.imageUrl) + '" alt="" loading="lazy"></div>';
-    }).join("") + '</div>';
-  }).catch(function(){ el.innerHTML = ""; });
 }
 
 // ═══════════════════════════════════════════════════════════════

@@ -319,14 +319,19 @@
   // recommendations. Returns [] (not a fabricated card) when there is
   // genuinely nothing to report at this tier.
   window._orvComputeEntrySignals = function () {
-    var blocked = window._orvFindBlockedCampaigns();
-    var blockedCard = blocked.length ? [{
+    // Product Experience Revamp — the same "Needs you" model Home renders
+    // (orivenWorkspace.js) is the first tier here too, so Chat and Home
+    // always name the same real issues. It already includes blocked
+    // drafts, so the older blocked-only card is used only as a fallback.
+    var wsCards = (window.orvWorkspace && window.orvWorkspace.chat) ? window.orvWorkspace.chat.entryCards() : [];
+    var blocked = wsCards.length ? [] : window._orvFindBlockedCampaigns();
+    var blockedCard = wsCards.length ? wsCards : (blocked.length ? [{
       icon: 'warn',
       label: blocked.length === 1 ? '1 campaign can’t launch yet' : blocked.length + ' campaigns can’t launch yet',
       desc: blocked.length === 1 ? ('“' + (blocked[0].name || 'Untitled') + '” is missing something Launch needs.') : 'Review what’s blocking them in Launch.',
       actionLabel: 'Review →',
       run: function () { if (typeof _orvNav === 'function') _orvNav('launch', 'page-launch'); }
-    }] : [];
+    }] : []);
 
     return window._orvComputeChangesSinceLastVisit().then(function (changes) {
       var changeCard = [];
@@ -345,8 +350,10 @@
       // because _orvAiLoadRecs's own _orvAiRecsLoaded gate already ensures
       // this runs at most once per real session/panel-open.
       window._orvSetLastVisitAt(new Date().toISOString());
-      return blockedCard.concat(changeCard);
-    }).catch(function () { return blockedCard; });
+      var out = blockedCard.concat(changeCard).slice(0, 4);
+      if (wsCards.length) out._fromWorkspace = true;
+      return out;
+    }).catch(function () { if (wsCards.length) blockedCard._fromWorkspace = true; return blockedCard; });
   };
 
   // ── 8. Navigation shortcuts (Phase 8) ───────────────────────────────

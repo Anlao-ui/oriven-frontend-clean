@@ -25,7 +25,10 @@ function _apOpEsc(s) {
 var AP_PLATFORM_DEFS = [
   { v: 'google', label: 'Google Ads', desc: 'Search & Shopping campaigns', icon: '<svg viewBox="0 0 12 12" fill="none" width="20" height="20"><path d="M10.9 6.1c0-.4 0-.8-.1-1.1H6v2.1h2.8a2.4 2.4 0 0 1-1 1.5v1.2h1.7c1-1 1.4-2.3 1.4-3.7z" fill="#4285F4"/><path d="M6 11c1.4 0 2.6-.5 3.5-1.3l-1.7-1.3a3.2 3.2 0 0 1-1.8.5 3.2 3.2 0 0 1-3-2.1H1.3v1.3A5.3 5.3 0 0 0 6 11z" fill="#34A853"/><path d="M3 6.8a3.1 3.1 0 0 1 0-1.6V3.9H1.3a5.3 5.3 0 0 0 0 4.2L3 6.8z" fill="#FBBC05"/><path d="M6 2.7c.8 0 1.5.3 2 .8L9.6 1.9A5.3 5.3 0 0 0 1.3 3.9L3 5.2a3.2 3.2 0 0 1 3-2.5z" fill="#EA4335"/></svg>' },
   { v: 'meta', label: 'Meta Ads', desc: 'Facebook & Instagram campaigns', icon: '<svg viewBox="0 0 12 12" fill="none" width="20" height="20"><rect width="12" height="12" rx="3" fill="#1877F2"/><path d="M8.1 6a2.1 2.1 0 1 0-4.2 0c0 1 .7 1.8 1.7 2V7H4.7V6h.9V5.3c0-.6.3-.9.9-.9h.5V5.2h-.4c-.2 0-.2.1-.2.3V6h.7L7 7H6.4v1c1-.2 1.7-1 1.7-2z" fill="white"/></svg>' },
-  { v: 'tiktok', label: 'TikTok Ads', desc: 'Short-form video campaigns', icon: '<svg viewBox="0 0 12 12" fill="none" width="20" height="20"><rect width="12" height="12" rx="3" fill="#010101"/><path d="M7.9 3.1h-.9v3.7a.75.75 0 1 1-1-.7V4.8a2.5 2.5 0 1 0 2.2 2.5V4.8c.3.2.7.3 1.1.3V4a1.1 1.1 0 0 1-1.4-.9z" fill="white"/></svg>' }
+  // The server accepts TikTok rules, but its 4-hour monitoring cron only
+  // evaluates Google Ads and Meta Ads (_runIntelligenceMonitoring), so a
+  // TikTok rule is saved but never runs — said plainly here.
+  { v: 'tiktok', label: 'TikTok Ads', desc: 'Saved, but not monitored yet', icon: '<svg viewBox="0 0 12 12" fill="none" width="20" height="20"><rect width="12" height="12" rx="3" fill="#010101"/><path d="M7.9 3.1h-.9v3.7a.75.75 0 1 1-1-.7V4.8a2.5 2.5 0 1 0 2.2 2.5V4.8c.3.2.7.3 1.1.3V4a1.1 1.1 0 0 1-1.4-.9z" fill="white"/></svg>' }
 ];
 var AP_METRICS = [
   { v: 'roas', l: 'ROAS' }, { v: 'ctr', l: 'CTR' }, { v: 'cpc', l: 'CPC' }, { v: 'cpa', l: 'CPA' },
@@ -216,6 +219,10 @@ function _apFetchPlatformStatus(p) {
     return apiFetch('/api/' + p.key + '/campaigns').then(function(cr) {
       if (!cr.ok) return { platform: p.key, label: p.label, connected: true, campaignCount: 0, loadError: true };
       var count = (cr.data && cr.data.campaigns) ? cr.data.campaigns.length : 0;
+      // Product Experience Revamp — keep the real list (not just its count)
+      // so the Watching view can show which live campaigns rules cover.
+      window._apPlatformCampaigns = window._apPlatformCampaigns || {};
+      window._apPlatformCampaigns[p.key] = (cr.data && cr.data.campaigns) || [];
       return { platform: p.key, label: p.label, connected: true, campaignCount: count };
     }).catch(function() { return { platform: p.key, label: p.label, connected: true, campaignCount: 0, loadError: true }; });
   }).catch(function() { return { platform: p.key, label: p.label, connected: false, campaignCount: 0, statusError: true }; });
@@ -229,9 +236,12 @@ function _apFetchPlatformStatus(p) {
 // lives in Business → Connections, untouched.
 function apLoadMonitoringSources() {
   if (typeof apiFetch !== 'function') return;
+  window._apPlatformCampaigns = {};
+  if (window.orvWorkspace) orvWorkspace.autopilot.mount();
   Promise.all(AP_MON_PLATFORMS.map(_apFetchPlatformStatus)).then(function(results) {
     window._apSourcesSnapshot = results;
     _apUpdateHeroFacts(results);
+    if (window.orvWorkspace) orvWorkspace.autopilot.render();
   }).catch(function() {});
 }
 function _apUpdateHeroFacts(results) {
@@ -269,14 +279,17 @@ function _apRenderSystemStatus() {
   var pending = window._apPendingApprovals || [];
   if (!rules) return; // apActiveLoad hasn't resolved yet -- keep "Checking status…"
 
-  var enabled = rules.filter(function(r) { return r.enabled; });
+  // Only rules the monitoring cron really evaluates can arm Autopilot.
+  var enabled = rules.filter(_apIsMonitored);
   var hasAuto = enabled.some(function(r) { return (r.action_params || {}).mode === 'fully_automatic'; });
 
   pillEl.classList.remove('ap-sys-off', 'ap-sys-armed', 'ap-sys-auto');
   if (!enabled.length) {
     pillEl.classList.add('ap-sys-off');
     lblEl.textContent = 'OFF';
-    subEl.textContent = rules.length ? 'All automations are disabled — ORIVEN is not evaluating anything.' : 'No automations exist yet — nothing is being evaluated.';
+    var unmonitoredOn = rules.some(function(r) { return r.enabled && !AP_MONITORED_PLATFORMS[r.platform]; });
+    subEl.textContent = unmonitoredOn ? 'Your active rules are on a platform Autopilot doesn’t monitor yet (only Google Ads and Meta Ads) — nothing is being evaluated.'
+      : (rules.length ? 'All automations are disabled — ORIVEN is not evaluating anything.' : 'No automations exist yet — nothing is being evaluated.');
   } else if (hasAuto) {
     pillEl.classList.add('ap-sys-auto');
     lblEl.textContent = 'ARMED · AUTO-EXECUTE';
@@ -764,6 +777,7 @@ function apActiveLoad() {
       if (countEl) countEl.textContent = '';
       _apRenderSystemStatus();
       _apRenderUnmatchedApprovals();
+      if (window.orvWorkspace) orvWorkspace.autopilot.render();
       return;
     }
     el.innerHTML = items.map(_apActiveCard).join('');
@@ -771,6 +785,7 @@ function apActiveLoad() {
     _apRenderSystemStatus();
     _apRenderUnmatchedApprovals();
     _apPlayCardStagger('apActiveList');
+    if (window.orvWorkspace) orvWorkspace.autopilot.render();
   }).catch(function() {
     // A real fetch/server failure is different from "zero automations" --
     // say so explicitly rather than silently showing the teaching template
@@ -851,7 +866,12 @@ function _apModeBadgeInfo(r) {
 // state is a SEPARATE concept, shown by _apExecutionSummary below — a
 // MONITORING automation that has never fired still reads as "Never
 // triggered", never as if something already happened.
+// Platforms the monitoring cron actually evaluates (server.js
+// _runIntelligenceMonitoring: google_ads / meta_ads only).
+var AP_MONITORED_PLATFORMS = { google: true, meta: true };
+function _apIsMonitored(r) { return !!(r && r.enabled && AP_MONITORED_PLATFORMS[r.platform]); }
 function _apRuleStatusInfo(r) {
+  if (r.enabled && !AP_MONITORED_PLATFORMS[r.platform]) return { label: 'NOT MONITORED', cls: 'ap-status-paused' };
   return r.enabled
     ? { label: _apT('apStatusMonitoring', 'MONITORING'), cls: 'ap-status-active' }
     : { label: _apT('apStatusPaused', 'PAUSED'), cls: 'ap-status-paused' };
@@ -1149,6 +1169,7 @@ function apHistLoad(q) {
     window._apHistoryItems = items;
     _apRenderSystemStatus();
     _apRenderUnmatchedApprovals();
+    if (window.orvWorkspace) { orvWorkspace.autopilot.renderHappened(); orvWorkspace.sidebar.paint(); }
     // Each card's execution summary (Waiting for approval / Last
     // triggered / Execution failed) depends on this same data --
     // apActiveLoad() and apHistLoad() run concurrently from apInit, so
@@ -1233,17 +1254,37 @@ function _apSimulationBlock(r) {
     '<div class="ap-sim-note">ORIVEN can predict the requested state change, but no automatic action is attached to this recommendation yet — approving it marks it reviewed; you\'ll need to make this change yourself.</div>' +
   '</div>';
 }
+// Product Experience Revamp — a pending recommendation reads as one
+// story: DETECTED (the real problem + evidence) → WHY IT MATTERS (the
+// stored business/marketing reasons, only if present) → RECOMMENDATION
+// (suggested_action) → ACTION (what approving really does, via the
+// existing honest simulation block). Every field is read straight from the
+// autopilot_recommendations row; a missing field is omitted, never filled.
 function _apHistPendingCard(r) {
   var evidenceLine = _apEvidenceLine(r);
-  return '<div class="oi-card ap-pending-card">' +
+  var why = r.business_reason || r.marketing_reason || r.impact || '';
+  var chips = [];
+  if (r.platform) chips.push('<span class="ow-chip">' + _apOpEsc(AP_PLAT_LABELS[r.platform] || r.platform) + '</span>');
+  if (r.campaign_name) chips.push('<span class="ow-chip">' + _apOpEsc(r.campaign_name) + '</span>');
+  if (typeof r.confidence === 'number') chips.push('<span class="ow-chip">' + r.confidence + '% confidence</span>');
+  if (r.risk) chips.push('<span class="ow-chip ow-chip-risk-' + _apOpEsc(r.risk) + '">' + _apOpEsc(String(r.risk).charAt(0).toUpperCase() + String(r.risk).slice(1)) + ' risk</span>');
+  var step = function(label, body, cur) {
+    return '<div class="ow-story-step' + (cur ? ' is-cur' : '') + '"><span class="ow-story-k">' + label + '</span><div class="ow-story-v">' + body + '</div></div>';
+  };
+  return '<div class="oi-card ap-pending-card ow-story" id="apRec_' + _apOpEsc(r.id) + '">' +
     '<div class="oi-card-top"><div class="oi-card-title">' + _apOpEsc(r.problem) + '</div>' +
       '<span class="clib-status-pill clib-status-awaiting-approval">' + _apT('apAwaitingApproval','Awaiting approval') + '</span></div>' +
-    (evidenceLine ? '<div class="ap-pending-evidence">' + evidenceLine + '</div>' : '') +
-    (r.suggested_action ? '<div class="oi-card-impact">' + _apOpEsc(r.suggested_action) + '</div>' : '') +
+    (chips.length ? '<div class="ow-story-chips">' + chips.join('') + '</div>' : '') +
+    '<div class="ow-story-steps">' +
+      step('Detected', evidenceLine ? evidenceLine : _apOpEsc(r.problem)) +
+      (why ? step('Why it matters', _apOpEsc(why)) : '') +
+      (r.suggested_action ? step('Recommendation', _apOpEsc(r.suggested_action)) : '') +
+      step('Action', 'Waiting for your approval — nothing changes until you decide.', true) +
+    '</div>' +
     _apSimulationBlock(r) +
     '<div class="oi-card-actions">' +
-      '<button class="oi-card-btn oi-card-btn-primary" onclick="apHistApprove(\'' + r.id + '\')">' + _apT('apApproveBtn','Approve action') + '</button>' +
-      '<button class="oi-why-toggle" onclick="apHistReject(\'' + r.id + '\')">' + _apT('apRejectBtn','Reject') + '</button>' +
+      '<button class="oi-card-btn oi-card-btn-primary" onclick="apHistApprove(\'' + r.id + '\', this)">' + _apT('apApproveBtn','Approve action') + '</button>' +
+      '<button class="oi-why-toggle" onclick="apHistReject(\'' + r.id + '\', this)">' + _apT('apRejectBtn','Reject') + '</button>' +
     '</div>' +
   '</div>';
 }
@@ -1254,17 +1295,37 @@ function _apHistPendingCard(r) {
 function _apRefreshOpenRuleDetail() {
   if (window._apRuleDetailOpenId) apShowRuleDetail(window._apRuleDetailOpenId);
 }
-window.apHistApprove = function(id) {
+// Approve/Reject now report what REALLY happened, from the server's own
+// response (status executed/failed + its message), instead of silently
+// re-rendering. Buttons show a pending state while the request runs.
+function _apBusy(btn, label) {
+  if (!btn) return;
+  var card = btn.closest('.oi-card');
+  if (card) card.querySelectorAll('button').forEach(function(b) { b.disabled = true; });
+  btn.textContent = label;
+}
+window.apHistApprove = function(id, btn) {
   if (typeof apiFetch !== 'function') return;
-  apiFetch('/api/autopilot/recommendations/' + id + '/approve', { method: 'POST', body: JSON.stringify({ remember: false }) }).then(function() {
+  _apBusy(btn, 'Approving…');
+  apiFetch('/api/autopilot/recommendations/' + id + '/approve', { method: 'POST', body: JSON.stringify({ remember: false }) }).then(function(res) {
+    var d = res.data || {};
+    if (typeof toast === 'function') {
+      if (res.ok && d.ok !== false) toast('Approved' + (d.status === 'executed' && d.message ? ' — ' + d.message : (d.message ? ' — ' + d.message : '.')), 'ok');
+      else toast('Not applied: ' + (d.error || d.message || 'the action could not be completed.'), 'error');
+    }
     return Promise.all([apHistLoad(), apActiveLoad()]);
-  }).then(_apRefreshOpenRuleDetail).catch(function() {});
+  }).then(_apRefreshOpenRuleDetail).catch(function() {
+    if (typeof toast === 'function') toast('Approval failed — check your connection and try again.', 'error');
+    apHistLoad();
+  });
 };
-window.apHistReject = function(id) {
+window.apHistReject = function(id, btn) {
   if (typeof apiFetch !== 'function') return;
-  apiFetch('/api/autopilot/recommendations/' + id + '/reject', { method: 'POST' }).then(function() {
+  _apBusy(btn, 'Rejecting…');
+  apiFetch('/api/autopilot/recommendations/' + id + '/reject', { method: 'POST' }).then(function(res) {
+    if (typeof toast === 'function') toast(res.ok ? 'Rejected — nothing was changed.' : ('Could not reject: ' + ((res.data && res.data.error) || 'try again.')), res.ok ? 'ok' : 'error');
     return apHistLoad();
-  }).then(_apRefreshOpenRuleDetail).catch(function() {});
+  }).then(_apRefreshOpenRuleDetail).catch(function() { apHistLoad(); });
 };
 
 // "Needs your approval" — the small fallback for a real pending

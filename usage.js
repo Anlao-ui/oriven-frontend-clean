@@ -89,7 +89,7 @@ async function checkUsageLimit(creditCost){
   if(!status) return { allowed: false, message: "upgrade" };
 
   var remaining = Math.max(0, status.balance || 0);
-  if(remaining >= cost) return { allowed: true, message: "" };
+  if(remaining >= cost) return { allowed: true, message: "", balance: remaining, required: cost };
 
   var planName = (ORIVEN_PLANS[status.plan] && ORIVEN_PLANS[status.plan].name) || status.plan;
   var msg;
@@ -99,7 +99,7 @@ async function checkUsageLimit(creditCost){
     msg = "This generation costs " + cost + " credit" + (cost !== 1 ? "s" : "") +
           ", but you only have " + remaining + " remaining. Upgrade to continue.";
   }
-  return { allowed: false, message: msg };
+  return { allowed: false, message: msg, balance: remaining, required: cost };
 }
 
 // ── Reflect a spend client-side after a successful generation ─

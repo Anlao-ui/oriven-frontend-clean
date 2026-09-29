@@ -244,6 +244,7 @@ async function authSignOut(){
   // but reset the in-memory copy too so nothing stale renders before the
   // next sign-in's own _loadCamps() call.
   if(typeof window._campaigns !== "undefined") window._campaigns = [];
+  if(window.orvWorkspace && typeof window.orvWorkspace.reset === "function") window.orvWorkspace.reset();
   try { if(typeof saveSettings === "function") saveSettings({ currentPlan: "free" }); } catch(_){}
   // Clear guest generation flag so user gets a fresh try after logout
   localStorage.removeItem("guestGenerationUsed");
@@ -322,6 +323,9 @@ async function onUserSignedIn(user){
   // Fire non-blocking background work immediately
   loadBrandCoreFromDB(user);
   if(typeof window._orvMigrateLocalCampaigns === "function") window._orvMigrateLocalCampaigns();
+  // Shared workspace state (orivenWorkspace.js): hydrate this device from
+  // the durable campaign store and load the signals Home/Chat/sidebar use.
+  if(window.orvWorkspace && typeof window.orvWorkspace.boot === "function") window.orvWorkspace.boot();
   // NOTE: syncSubscriptionFromDB() intentionally NOT called here.
   // _loadUserProfile() below queries Supabase directly and is the single
   // source of truth for plan state. Calling a second async backend source
