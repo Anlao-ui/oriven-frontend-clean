@@ -32,7 +32,7 @@ var SETTINGS_KEY = "oriven_settings";
 
 var SETTINGS_DEFAULTS = {
   wsName:            "My Workspace",
-  theme:             "light",
+  theme:             "dark", // OrivenAI is dark-only; kept for stored-settings compatibility
   // Accent Color removed as a user-facing setting (Settings audit pass)
   // — ORIVEN's lime accent is canonical. This key is kept only so a
   // value saved before this pass has somewhere harmless to sit; nothing
@@ -145,7 +145,9 @@ function _applySettingsToUI(cfg){
   // (from before this pass, in localStorage or profiles.preferences)
   // might otherwise still carry, so the real stylesheet cascade always
   // wins rather than silently reintroducing an old color choice.
-  _applyTheme(cfg.theme);
+  // Dark-only: any stored "light"/"system" from before is migrated to "dark".
+  if(cfg.theme !== "dark") saveSettings({ theme: "dark" });
+  _applyTheme();
   _applyCanonicalAccent();
 
   // Workspace name
@@ -500,48 +502,18 @@ function _updateHint(id, isOn, onText, offText){
 // APPEARANCE — THEME
 // ════════════════════════════════════════════════════════════════
 
-function setTheme(mode){
-  _applyTheme(mode);
-  // Accent Color no longer exists as a user setting (Settings audit
-  // pass) — re-assert the canonical accent rather than re-applying a
-  // possibly-stale saved accent value now that dark-mode's own CSS vars
-  // have just been (re)toggled.
+// OrivenAI has one theme: dark. There is no Theme setting, no Light or
+// System mode and no OS listener; stored values from before are ignored
+// (and migrated to "dark" in initSettings). setTheme stays as a harmless
+// alias for any old caller.
+function setTheme(){
+  _applyTheme();
   _applyCanonicalAccent();
-  saveSettings({ theme: mode });
-  // Immediate apply, no toast spam (spec B9) — Theme is a two-click
-  // preference, not a form; a toast for every click reads as noisy
-  // rather than useful, and the visual change itself is the feedback.
+  saveSettings({ theme: "dark" });
 }
 
-// Live "System" response (Settings audit pass, spec B6) — this used to
-// read prefers-color-scheme exactly ONCE at the moment "System" was
-// selected, so the app never actually followed a real OS/browser theme
-// change afterward (e.g. the OS flipping to dark at sunset) until the
-// user manually reloaded or re-clicked "System". Registered once; only
-// acts when the user's saved preference is genuinely "system" — Light/
-// Dark stay explicit and are never overridden by this listener.
-var _themeMediaQuery = (typeof window !== "undefined" && window.matchMedia) ? window.matchMedia("(prefers-color-scheme: dark)") : null;
-if(_themeMediaQuery && typeof _themeMediaQuery.addEventListener === "function"){
-  _themeMediaQuery.addEventListener("change", function(e){
-    if(loadSettings().theme !== "system") return;
-    document.body.classList.toggle("dark-mode", e.matches);
-    _applyCanonicalAccent();
-  });
-}
-
-function _applyTheme(mode){
-  if(mode === "system"){
-    var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-    document.body.classList.toggle("dark-mode", prefersDark);
-  } else {
-    document.body.classList.toggle("dark-mode", mode === "dark");
-  }
-  var tl = document.getElementById("themeLight");
-  var td = document.getElementById("themeDark");
-  var ts = document.getElementById("themeSystem");
-  if(tl) tl.classList.toggle("active", mode === "light" || !mode);
-  if(td) td.classList.toggle("active", mode === "dark");
-  if(ts) ts.classList.toggle("active", mode === "system");
+function _applyTheme(){
+  document.body.classList.add("dark-mode");
 }
 
 
@@ -1012,7 +984,7 @@ var LANG_STRINGS = {
     smdDangerZoneTitle:"Danger Zone", smdSignOutTitle:"Sign Out", smdSignOutSub:"Sign out of ORIVEN on this device.", smdSignOutBtn:"Sign Out",
     smdDeleteAcctTitle:"Delete Account", smdDeleteAcctSub:"Permanently remove your account and all data. This cannot be undone.", smdDeleteAcctBtn:"Delete Account",
     smdVersionLabel:"Version", smdVersionHelp:"The ORIVEN version currently running.",
-    smdHelpGeneralHelp:"Your workspace name, theme (light/dark/system), and interface language. Theme and language apply immediately; Workspace Name needs Save.",
+    smdHelpGeneralHelp:"Your workspace name and interface language. Language applies immediately; Workspace Name needs Save.",
     smdHelpSubHelp:"Your current plan, credit balance, and billing management. Upgrade or manage payment details from here.",
     smdHelpNotifHelp:"Control which events appear in your ORIVEN notification bell — Autopilot activity, deployment failures, and billing. ORIVEN does not currently send notification emails.",
     smdHelpAcctHelp:"Your name, sign-in method, and email address, plus sign out and account deletion. Email changes require confirming the new address before they take effect.",
@@ -1054,7 +1026,7 @@ var LANG_STRINGS = {
     obLaunchPageSection:"Launch", obLaunchPageTitle:"Review, then launch.", obLaunchPageDesc:"Drafts from Create wait here with their readiness. Fix what blocks them and launch when you're ready.",
     obBizPlanningDesc:"Plan what you advertise next: dates, platforms, budget and briefs. A plan carries straight into Create.",
     obSettingsSection:"Settings", obSettingsTitle:"Make it yours.",
-    obSettingsDesc:"Personalise your workspace — language, theme, accent colour, notifications, and account.",
+    obSettingsDesc:"Personalise your workspace — language and account.",
     obYourTurnSection:"Your turn",
     obPromptTitle:"Now it's your turn.",
     obPromptDesc:"Let's create your first campaign. Describe what you'd like to advertise here.",
@@ -1399,7 +1371,7 @@ var LANG_STRINGS = {
     smdForgotPwHelp:"Envoyez-vous plutôt un lien de réinitialisation par e-mail.", smdSendResetBtn:"Envoyer l'e-mail de réinitialisation",
     smdDangerZoneTitle:"Zone de danger", smdSignOutTitle:"Se déconnecter", smdSignOutSub:"Se déconnecter d'ORIVEN sur cet appareil.", smdSignOutBtn:"Se déconnecter",
     smdDeleteAcctTitle:"Supprimer le compte", smdDeleteAcctSub:"Supprime définitivement votre compte et toutes vos données. Cette action est irréversible.", smdDeleteAcctBtn:"Supprimer le compte",
-    smdHelpGeneralHelp:"Le nom de votre espace de travail, le thème (clair/sombre/système), la couleur d'accent et la langue de l'interface. La couleur d'accent s'applique à toute l'application — survols, onglets actifs, boutons et anneaux de focus. Les modifications sont enregistrées automatiquement et appliquées immédiatement.",
+    smdHelpGeneralHelp:"Le nom de votre espace de travail et la langue de l'interface. La langue s'applique immédiatement ; le nom de l'espace de travail doit être enregistré.",
     smdHelpSubHelp:"Votre offre actuelle, votre utilisation et la gestion de la facturation. Passez à niveau supérieur, inférieur ou gérez vos informations de paiement ici.",
     smdHelpNotifHelp:"Contrôlez quels événements génèrent une alerte — génération terminée, publication, facturation, mises à jour produit et approbations Autopilot. Désactiver une catégorie empêche ces notifications d'être créées, pas seulement masquées.",
     smdHelpAcctHelp:"Votre méthode de connexion et votre adresse e-mail. Les changements d'e-mail nécessitent de confirmer la nouvelle adresse avant qu'ils ne prennent effet.",
@@ -1749,7 +1721,7 @@ var LANG_STRINGS = {
     smdForgotPwHelp:"Stuur jezelf in plaats daarvan een reset-link per e-mail.", smdSendResetBtn:"Reset-e-mail verzenden",
     smdDangerZoneTitle:"Gevarenzone", smdSignOutTitle:"Uitloggen", smdSignOutSub:"Log uit van ORIVEN op dit apparaat.", smdSignOutBtn:"Uitloggen",
     smdDeleteAcctTitle:"Account verwijderen", smdDeleteAcctSub:"Verwijder je account en alle gegevens permanent. Dit kan niet ongedaan worden gemaakt.", smdDeleteAcctBtn:"Account verwijderen",
-    smdHelpGeneralHelp:"Je werkruimtenaam, thema (licht/donker/systeem), accentkleur en interfacetaal. Accentkleur geldt in de hele app — hoverstatus, actieve tabbladen, knoppen en focusringen. Wijzigingen worden automatisch opgeslagen en direct toegepast.",
+    smdHelpGeneralHelp:"Je werkruimtenaam en interfacetaal. De taal geldt direct; de werkruimtenaam moet je opslaan.",
     smdHelpSubHelp:"Je huidige abonnement, gebruik en facturatiebeheer. Upgrade, downgrade of beheer betaalgegevens vanaf hier.",
     smdHelpNotifHelp:"Bepaal welke gebeurtenissen een melding genereren — generatie voltooid, publicatie, facturatie, productupdates en Autopilot-goedkeuringen. Een categorie uitschakelen voorkomt dat die meldingen worden aangemaakt, niet alleen verborgen.",
     smdHelpAcctHelp:"Je inlogmethode en e-mailadres. E-mailwijzigingen vereisen bevestiging van het nieuwe adres voordat ze van kracht worden.",
@@ -2055,7 +2027,7 @@ var LANG_STRINGS = {
     smdForgotPwHelp:"Envíate un enlace de restablecimiento por correo en su lugar.", smdSendResetBtn:"Enviar correo de restablecimiento",
     smdDangerZoneTitle:"Zona de peligro", smdSignOutTitle:"Cerrar sesión", smdSignOutSub:"Cerrar sesión de ORIVEN en este dispositivo.", smdSignOutBtn:"Cerrar sesión",
     smdDeleteAcctTitle:"Eliminar cuenta", smdDeleteAcctSub:"Elimina permanentemente tu cuenta y todos tus datos. Esta acción no se puede deshacer.", smdDeleteAcctBtn:"Eliminar cuenta",
-    smdHelpGeneralHelp:"El nombre de tu espacio de trabajo, tema (claro/oscuro/sistema), color de acento e idioma de la interfaz. El color de acento se aplica en toda la aplicación — estados hover, pestañas activas, botones y anillos de foco. Los cambios se guardan automáticamente y se aplican de inmediato.",
+    smdHelpGeneralHelp:"El nombre de tu espacio de trabajo y el idioma de la interfaz. El idioma se aplica al instante; el nombre del espacio de trabajo requiere Guardar.",
     smdHelpSubHelp:"Tu plan actual, uso y gestión de facturación. Mejora, reduce o gestiona los datos de pago desde aquí.",
     smdHelpNotifHelp:"Controla qué eventos generan una alerta — generación completa, publicación, facturación, actualizaciones de producto y aprobaciones de Autopilot. Desactivar una categoría impide que se creen esas notificaciones, no solo las oculta.",
     smdHelpAcctHelp:"Tu método de inicio de sesión y dirección de correo. Los cambios de correo requieren confirmar la nueva dirección antes de que surtan efecto.",
@@ -2361,7 +2333,7 @@ var LANG_STRINGS = {
     smdForgotPwHelp:"Envie um link de redefinição por e-mail em vez disso.", smdSendResetBtn:"Enviar e-mail de redefinição",
     smdDangerZoneTitle:"Zona de risco", smdSignOutTitle:"Sair", smdSignOutSub:"Sair da ORIVEN neste dispositivo.", smdSignOutBtn:"Sair",
     smdDeleteAcctTitle:"Excluir conta", smdDeleteAcctSub:"Remove permanentemente sua conta e todos os dados. Isso não pode ser desfeito.", smdDeleteAcctBtn:"Excluir conta",
-    smdHelpGeneralHelp:"O nome do seu espaço de trabalho, tema (claro/escuro/sistema), cor de destaque e idioma da interface. A cor de destaque se aplica a todo o app — estados de hover, abas ativas, botões e anéis de foco. As alterações são salvas automaticamente e aplicadas imediatamente.",
+    smdHelpGeneralHelp:"O nome do seu espaço de trabalho e o idioma da interface. O idioma se aplica na hora; o nome do espaço de trabalho precisa ser salvo.",
     smdHelpSubHelp:"Seu plano atual, uso e gerenciamento de cobrança. Faça upgrade, downgrade ou gerencie os dados de pagamento por aqui.",
     smdHelpNotifHelp:"Controle quais eventos geram um alerta — geração concluída, publicação, cobrança, atualizações de produto e aprovações do Autopilot. Desativar uma categoria impede que essas notificações sejam criadas, não apenas as oculta.",
     smdHelpAcctHelp:"Seu método de login e endereço de e-mail. Alterações de e-mail exigem confirmação do novo endereço antes de entrarem em vigor.",
@@ -2667,7 +2639,7 @@ var LANG_STRINGS = {
     smdForgotPwHelp:"Sende dir stattdessen einen Zurücksetzungslink per E-Mail.", smdSendResetBtn:"Zurücksetzungs-E-Mail senden",
     smdDangerZoneTitle:"Gefahrenzone", smdSignOutTitle:"Abmelden", smdSignOutSub:"Auf diesem Gerät von ORIVEN abmelden.", smdSignOutBtn:"Abmelden",
     smdDeleteAcctTitle:"Konto löschen", smdDeleteAcctSub:"Entfernt dein Konto und alle Daten dauerhaft. Dies kann nicht rückgängig gemacht werden.", smdDeleteAcctBtn:"Konto löschen",
-    smdHelpGeneralHelp:"Dein Arbeitsbereichsname, Design (hell/dunkel/System), Akzentfarbe und Oberflächensprache. Die Akzentfarbe gilt in der gesamten App — Hover-Zustände, aktive Tabs, Schaltflächen und Fokusringe. Änderungen werden automatisch gespeichert und sofort angewendet.",
+    smdHelpGeneralHelp:"Dein Arbeitsbereichsname und die Oberflächensprache. Die Sprache gilt sofort; den Namen musst du speichern.",
     smdHelpSubHelp:"Dein aktueller Plan, deine Nutzung und Abrechnungsverwaltung. Upgrade, Downgrade oder Zahlungsdaten von hier aus verwalten.",
     smdHelpNotifHelp:"Steuere, welche Ereignisse eine Benachrichtigung auslösen — Generierung abgeschlossen, Veröffentlichung, Abrechnung, Produktaktualisierungen und Autopilot-Genehmigungen. Das Deaktivieren einer Kategorie verhindert, dass diese Benachrichtigungen überhaupt erstellt werden, nicht nur ausgeblendet.",
     smdHelpAcctHelp:"Deine Anmeldemethode und E-Mail-Adresse. Bei E-Mail-Änderungen muss die neue Adresse bestätigt werden, bevor sie wirksam wird.",
@@ -3268,7 +3240,10 @@ async function renderPlanPanel(){
   // plan genuinely is 'free'. A paid user (starter/creator/professional)
   // only ever sees the 3 real paid plans, matching the paywall's identical
   // rule (paywall.js _renderPaywallCards).
-  var plansToShow = (currentId === "free") ? ORIVEN_PLAN_LIST : ORIVEN_PAID_PLANS;
+  // All four real plans (plans.js ORIVEN_PLAN_LIST: Free, Starter, Creator,
+  // Professional), whatever the current plan — Free is a genuine plan, and
+  // for a paid account it is where a cancellation lands.
+  var plansToShow = ORIVEN_PLAN_LIST;
   var currentData = plansToShow.find(function(p){ return p.id === currentId; });
   var currentRank = currentData ? plansToShow.indexOf(currentData) : -1;
 
@@ -3292,7 +3267,13 @@ async function renderPlanPanel(){
   // generated / creative_assets count) -- NOT from S.campaigns/S.assets,
   // which are ephemeral in-memory arrays that reset on every login and
   // don't reflect real persisted data.
-  var connCount = (window._gadsConnected ? 1 : 0) + (window._metaConnected ? 1 : 0) + (window._tiktokConnected ? 1 : 0);
+  // All four supported platforms, from the shared status record
+  // (window._orvConnStatus, filled only by real /api/{platform}/status
+  // responses; null = not checked / check failed — never counted).
+  var _conn = window._orvConnStatus || {};
+  var _connKeys = ['google', 'meta', 'tiktok', 'pinterest'];
+  var connCount = _connKeys.filter(function(k){ return _conn[k] === true; }).length;
+  var connKnown = _connKeys.filter(function(k){ return _conn[k] === true || _conn[k] === false; }).length;
 
   function _uRow(label, val, sub){
     return '<div class="sub-usage-row">'
@@ -3373,51 +3354,28 @@ async function renderPlanPanel(){
       else if(renewalStr) html += '<div class="sub-renewal" style="margin:-4px 0 0">Renews ' + renewalStr + '</div>';
     }
 
-    // The three real economic differentiators between plans — everything
-    // else (campaign/image/video generation, platform connections,
-    // Business Brain, Brand Memory) is part of the product on every plan
-    // and governed by the credit economy, not plan-gated, so it's
-    // intentionally not listed here. No .toLocaleString() on plan.credits/
-    // autopilotLimit -- these are the plan's own fixed numbers (1000, 2500,
-    // 4000, 10). Formatted via the one shared orvFormatCredits() (Dutch-
-    // style dot separator, e.g. "12.000") rather than each call site
-    // choosing its own format. Autopilot is measured in "executions", not
-    // "users".
+    // Credits, then the plan's own feature list (plans.js ORIVEN_PLANS) — the
+    // same lists the public pricing and the paywall render, so the three can
+    // never disagree. Excluded items are listed too, marked for screen readers.
     html += '<ul class="sub-pcard-feats">';
     html += '<li><strong>' + orvFormatCredits(plan.credits) + '</strong> AI Credits / ' + (isDaily ? 'day' : 'month') + '</li>';
-    // Final Pricing Cleanup pass — the old "Intelligence: N/month" row was
-    // removed as generic, internal-sounding plan marketing (product
-    // decision: ORIVEN's comparison should name real products/capabilities
-    // -- Research, ORIVEN Chat, Website Intelligence -- not a shared
-    // implementation-level counter easily misread as implying Research
-    // access). The real allowance (PLAN_INTELLIGENCE_LIMITS, creditManager.js)
-    // is untouched server-side; only this marketing line is gone. Explicit
-    // Research and ORIVEN Chat rows below read the exact same
-    // plan.featureFlags the landing page's comparison table reads, so
-    // Settings can never contradict it.
-    html += '<li>Research: ' + (plan.featureFlags && plan.featureFlags.research ? 'Included' : 'Not included') + '</li>';
-    // ORIVEN Chat row — verified against the real POST /api/ai/chat gate
-    // (requireSubIfAuthed) before adding this, not assumed: Free gets a
-    // real 403, every paid plan passes.
-    html += '<li>ORIVEN Chat: ' + (plan.featureFlags && plan.featureFlags.chat ? 'Included' : 'Not included') + '</li>';
-    if(plan.autopilotLimit === Infinity){
-      html += '<li>Autopilot: Unlimited</li>';
-    } else if(typeof plan.autopilotLimit === 'number'){
-      html += '<li>Autopilot: ' + orvFormatCredits(plan.autopilotLimit) + ' executions / month</li>';
-    } else {
-      html += '<li>Autopilot: not included</li>';
-    }
+    (plan.features || []).forEach(function(f){
+      var note = (typeof orvPlanFeatureNote === 'function') ? orvPlanFeatureNote(f) : '';
+      html += '<li>' + f + (note ? '<span class="sub-pcard-note">' + note + '</span>' : '') + '</li>';
+    });
+    (plan.excludedFeatures || []).forEach(function(f){
+      html += '<li class="sub-pcard-feat-off"><span class="ov-sr">Not included: </span>' + f + '</li>';
+    });
     html += '</ul>';
-    if(plan.id === 'professional'){
-      html += '<ul class="sub-pcard-feats" style="margin-top:4px;opacity:.7">';
-      html += '<li>Priority Support</li>';
-      html += '</ul>';
-    }
 
     if(isCurrent){
       html += '<button class="sub-pcard-btn sub-pcard-btn-cur" disabled>Current Plan</button>';
     } else if(isPending){
       html += '<button class="sub-pcard-btn sub-pcard-btn-outline" disabled>Scheduled</button>';
+    } else if(plan.id === 'free'){
+      // Moving a paid plan to Free is a cancellation: the same confirmation
+      // and Stripe cancel-at-period-end flow as "Cancel plan".
+      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" onclick="_showCancelConfirm()">Switch to Free</button>';
     } else if(isUp || !currentData){
       html += '<button class="sub-pcard-btn sub-pcard-btn-up" onclick="switchPlan(\'' + plan.id + '\')">Upgrade</button>';
     } else {
@@ -3467,7 +3425,10 @@ async function renderPlanPanel(){
     // creative_assets count) is untouched and still returned by
     // getCreditStatus() -- this is a display-only removal.
     html += '<div class="sub-usage-list" style="margin-top:16px">';
-    html += _uRow('Intelligence', (currentData ? currentData.intelligence : '—'), 'AI-powered analysis allowance');
+    // (V9) The old 'Intelligence' row is gone: it described the server-side
+    // monthly cap on the 'Analyze with AI' campaign action
+    // (PLAN_INTELLIGENCE_LIMITS, creditManager.js), which no longer has an
+    // entry point in the app. The server cap itself is unchanged.
     // Autopilot — real server-enforced usage for Creator, "Unlimited" for
     // Professional, explicit "not included" for Starter -- consistent with
     // the plan cards above rather than silently omitting the row.
@@ -3480,15 +3441,15 @@ async function renderPlanPanel(){
     } else if(currentData && currentData.autopilotLimit === null){
       html += _uRow('Autopilot', 'Not included', 'upgrade to unlock');
     }
-    html += _uRow('Connected Platforms', connCount + ' / 3', connCount === 0 ? 'none connected' : connCount + ' platform' + (connCount === 1 ? '' : 's') + ' active');
-    html += _uRow('Lifetime', (creditStatus.lifetimeUsed == null ? '—' : orvFormatCredits(creditStatus.lifetimeUsed)), 'AI credits consumed, all time');
+    html += _uRow('Connected Platforms', connKnown ? (connCount + ' / 4') : '—', connKnown ? (connCount === 0 ? 'none connected' : connCount + ' platform' + (connCount === 1 ? '' : 's') + ' connected') : 'status not checked yet');
+    html += _uRow('All-time credit use', (creditStatus.lifetimeUsed == null ? '—' : orvFormatCredits(creditStatus.lifetimeUsed)), 'AI credits used since you joined');
     html += '</div>';
   } else {
     html += '<div class="sub-usage-unavailable">Couldn\'t load your usage right now. <button class="sub-cancel-link" style="text-decoration:underline" onclick="renderPlanPanel()">Try again</button></div>';
   }
 
   html += '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">';
-  html += '<button class="btn btn-g btn-sm" onclick="navigate(\'integrations\')">Manage Integrations</button>';
+  html += '<button class="btn btn-g btn-sm" onclick="if(typeof closeModal===\'function\')closeModal(\'modal-settings\');if(typeof _orvOpenPlatforms===\'function\')_orvOpenPlatforms();else navigate(\'integrations\')">Manage Ad Platforms</button>';
   // Manage Subscription (Settings audit pass) — real Stripe customer
   // portal (billing/payment methods/invoices/cancellation all owned by
   // Stripe itself, never reimplemented here). Only offered to a real
@@ -3533,7 +3494,7 @@ async function renderPlanPanel(){
     ].filter(function(r){ return typeof r[1] === 'number' && r[1] > 0; });
     html += '<div class="sub-usage-card" style="margin-top:16px">';
     html += '<div class="sub-card-eyebrow">Credits</div>';
-    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">Used for generation and intelligence. Launch and Campaigns don’t consume credits for normal use.</div>';
+    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">Used for creating ads, Research, ORIVEN Chat, website analysis and Autopilot. Launch and Campaigns don’t consume credits for normal use.</div>';
     html += '<div class="sub-usage-list">';
     costRows.forEach(function(r){ html += _uRow(r[0], r[1] + (r[1] === 1 ? ' credit' : ' credits'), ''); });
     html += '</div>';
@@ -3545,8 +3506,11 @@ async function renderPlanPanel(){
   // openInviteModal()/POST /api/send-invite are left completely intact,
   // just no longer promoted or linked to from anywhere in the UI.
 
-  // Priority Support — Professional plan only
-  html += '<div id="prioritySupportPanel" class="sub-usage-card" style="margin-top:16px;display:' + (currentId === 'professional' ? '' : 'none') + '">';
+  // Priority Support — only rendered for plans that include it (plans.js
+  // entitlements: Professional). Other plans keep the billing email above.
+  var _hasPrioritySupport = (typeof orvPlanHas === 'function') && orvPlanHas(currentId, 'prioritySupport');
+  if(_hasPrioritySupport){
+  html += '<div id="prioritySupportPanel" class="sub-usage-card" style="margin-top:16px">';
   html += '<div class="sub-card-eyebrow">Priority Support</div>';
   html += '<div id="supportThread" style="max-height:260px;overflow-y:auto;margin:12px 0;display:flex;flex-direction:column;gap:8px"></div>';
   html += '<div style="display:flex;gap:8px">';
@@ -3555,7 +3519,8 @@ async function renderPlanPanel(){
   html += '</div>';
   html += '<div class="smd-field-help" style="margin-top:10px">Replies from the OrivenAI team appear here. You can also email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</div>';
   html += '</div>';
-  if(currentId === 'professional' && typeof loadSupportThread === 'function') setTimeout(loadSupportThread, 0);
+  }
+  if(_hasPrioritySupport && typeof loadSupportThread === 'function') setTimeout(loadSupportThread, 0);
 
   container.innerHTML = html;
 }

@@ -79,8 +79,10 @@
     return window.apiFetch(path, opts).catch(function () { return { ok: false, status: 0, data: null }; });
   }
   function hasAutopilotPlan() {
-    return (typeof window._dbSubscriptionStatus !== 'undefined' && window._dbSubscriptionStatus === 'professional') ||
-      (typeof _dbSubscriptionStatus !== 'undefined' && _dbSubscriptionStatus === 'professional');
+    // Autopilot is included from Starter (plans.js entitlements). An unknown
+    // plan (still loading) is not treated as locked.
+    if (typeof window.orvEntitled === 'function') return window.orvEntitled('autopilot') !== false;
+    return true;
   }
   var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
@@ -705,7 +707,7 @@
     // Autopilot
     var ap;
     if (!hasAutopilotPlan()) {
-      ap = { tone: 'locked', state: 'Professional', summary: 'Available on the Professional plan' };
+      ap = { tone: 'locked', state: 'Starter', summary: 'Available from the Starter plan' };
     } else {
       var rules = apRules();
       var recs = apRecs() || [];
@@ -937,7 +939,7 @@
     if (n.warning) draftParts.push(n.warning + ' with warnings');
     if (n.blocked) draftParts.push(n.blocked + ' blocked');
     var ap;
-    if (!hasAutopilotPlan()) ap = { value: '—', sub: 'Available on Professional', tone: 'muted' };
+    if (!hasAutopilotPlan()) ap = { value: '—', sub: 'Available from Starter', tone: 'muted' };
     else {
       var rules = apRules(), recs = apRecs() || [];
       if (rules === null) ap = { value: '…', sub: 'Checking automations', tone: 'muted' };

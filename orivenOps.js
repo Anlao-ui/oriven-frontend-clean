@@ -96,7 +96,7 @@
   // Keys that only existed during the area experiment → their mature page.
   var OLD_KEYS = {
     dashboard: 'home', home: 'home', control: 'home', overview: 'home', camps: 'campaigns', analysis: 'campaigns',
-    optimize: 'autopilot', planning: 'planning', creative: 'create'
+    optimize: 'autopilot', planning: 'planning', creative: 'create', platforms: 'connections'
   };
   // Kept as no-ops: the mature pages carry their own headers.
   OPS.paintBar = function () {};
@@ -960,14 +960,153 @@
       if (alias) { try { if (alias.apply(this, arguments) === true) return; } catch (e) { console.error('[ops] alias', page, e); } }
       var r = orig.apply(this, arguments);
       try { OPS.enter(page); } catch (e) { console.error('[ops] enter', e); }
+      try { applyEntitlements(); } catch (e) { console.error('[ops] entitlements', e); }
       return r;
     };
     wrapped._ops = true;
     window._orvNav = wrapped;
     return true;
   }
+  // ════════════════════════════════════════════════════════════════
+  // Sidebar workflow progress (V9) — the 01–06 path shows where you are:
+  // every step before the current one is "done" (lime dot and number) and
+  // every connecting segment up to the current step is lime; later steps
+  // stay neutral. Purely visual: nothing is locked or gated, every page
+  // stays open in any order. On a page outside the workflow (Ad Platforms,
+  // Settings) no step is current and the path is neutral.
+  // Driven by the nav buttons' own orv-active class (set by the app's
+  // several navigation paths), so it can never disagree with the highlight.
+  function wfSync() {
+    document.querySelectorAll('.orv-sb-nav, .orv-mob-drawer-nav').forEach(function (root) {
+      var items = root.querySelectorAll(':scope .orv-ni[data-wf]');
+      if (!items.length) return;
+      var cur = 0;
+      items.forEach(function (b) { if (b.classList.contains('orv-active')) cur = +b.getAttribute('data-wf') || 0; });
+      items.forEach(function (b) {
+        var n = +b.getAttribute('data-wf') || 0;
+        var done = cur > 0 && n < cur, isCur = cur > 0 && n === cur;
+        if (b.classList.contains('orv-wf-done') !== done) b.classList.toggle('orv-wf-done', done);
+        if (b.classList.contains('orv-wf-cur') !== isCur) b.classList.toggle('orv-wf-cur', isCur);
+        // the segment below this step (n → n+1) is travelled when n+1 ≤ current
+        var seg = cur > 0 && n < cur;
+        if (b.classList.contains('orv-wf-seg') !== seg) b.classList.toggle('orv-wf-seg', seg);
+        var desc = 'Step ' + n + ' of 6' + (done ? ', done' : (isCur ? ', current' : ''));
+        if (b.getAttribute('aria-description') !== desc) b.setAttribute('aria-description', desc);
+        if (isCur) { if (b.getAttribute('aria-current') !== 'page') b.setAttribute('aria-current', 'page'); }
+        else if (b.getAttribute('aria-current') === 'page') b.removeAttribute('aria-current');
+      });
+    });
+  }
+  OPS.wfSync = wfSync;
+  function wfWatch() {
+    var mo = new MutationObserver(function () { wfSync(); });
+    document.querySelectorAll('.orv-sb-nav, .orv-mob-drawer-nav').forEach(function (root) {
+      mo.observe(root, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    });
+    wfSync();
+  }
+  // ════════════════════════════════════════════════════════════════
+  // Plan entitlements (V10) — what the signed-in plan can use, from the one
+  // table in plans.js (ORIVEN_PLANS[*].entitlements). The server enforces the
+  // same table (server/services/planEntitlements.js); this layer only makes
+  // the product show it honestly:
+  //   • Research / Autopilot (Starter+): the sidebar keeps both steps with a
+  //     lock on Free, and the pages show an upgrade state instead of tools.
+  //   • Oriven Chat (Creator+): launcher hidden otherwise.
+  //   • Notifications (Professional): bell hidden otherwise.
+  // Plan state lives in _dbSubscriptionStatus (auth.js, from Supabase); while
+  // it is still unknown nothing is locked and no premium surface is shown.
+  // ════════════════════════════════════════════════════════════════
+  var GATES = {
+    research: { key: 'research', pageId: 'page-research', step: '02', title: 'Research', lead: 'Understand the market before you create.' },
+    autopilot: { key: 'autopilot', pageId: 'page-autopilot', step: '06', title: 'Autopilot', lead: 'Monitor your advertising and act on supported changes with rules you set.' }
+  };
+  function planId() {
+    var st = (typeof window._dbSubscriptionStatus !== 'undefined') ? window._dbSubscriptionStatus : null;
+    if (typeof st === 'string' && st) return st;
+    if (window._isGuestMode === true || (typeof _isGuestMode !== 'undefined' && _isGuestMode === true)) return 'free';
+    return null;
+  }
+  // true / false, or null while the plan is not known yet
+  window.orvEntitled = function (key) {
+    var p = planId();
+    if (!p) return null;
+    return typeof window.orvPlanHas === 'function' ? window.orvPlanHas(p, key) : null;
+  };
+  window.orvOpenPlans = function () {
+    if (typeof window.openSettingsModal !== 'function') return;
+    window.openSettingsModal();
+    var ni = document.querySelector('.smd-ni[data-smd="subscription"]');
+    if (ni && typeof window.smdNav === 'function') window.smdNav(ni);
+  };
+  var LOCK_SVG = '<svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7"/></svg>';
+  function gateHtml(g) {
+    var min = typeof window.orvMinPlanFor === 'function' ? window.orvMinPlanFor(g.key) : null;
+    var name = min ? min.name : 'Starter';
+    var price = min ? ('€' + min.price.toFixed(2) + ' / month · ' + (typeof window.orvFormatCredits === 'function' ? window.orvFormatCredits(min.credits) : min.credits) + ' credits / month') : '';
+    return '<section class="orv-gate" aria-labelledby="orvGateT_' + g.key + '">' +
+      '<div class="orv-gate-card">' +
+        '<div class="orv-gate-eyebrow"><span class="orv-gate-step">' + g.step + '</span><span class="orv-gate-lock">' + LOCK_SVG + ' ' + name + '</span></div>' +
+        '<h1 class="orv-gate-title" id="orvGateT_' + g.key + '">' + g.title + '</h1>' +
+        '<p class="orv-gate-lead">' + g.lead + '</p>' +
+        '<p class="orv-gate-text">' + g.title + ' is part of the complete OrivenAI workflow, available from ' + name + '.</p>' +
+        '<div class="orv-gate-actions"><button type="button" class="orv-gate-btn" onclick="orvOpenPlans()">View plans</button>' +
+        (price ? '<span class="orv-gate-price">' + name + ': ' + price + '</span>' : '') + '</div>' +
+      '</div></section>';
+  }
+  var lastApplied = '';
+  function applyEntitlements() {
+    var p = planId();
+    var sig = String(p);
+    var has = function (k) { return p ? (typeof window.orvPlanHas === 'function' && window.orvPlanHas(p, k)) : null; };
+    var body = document.body;
+    if (!body) return;
+    // premium surfaces: hidden unless the plan is known AND includes them
+    body.classList.toggle('orv-no-chat', has('orivenChat') !== true);
+    body.classList.toggle('orv-no-notif', has('notifications') !== true);
+    if (has('orivenChat') !== true) {
+      var panel = document.getElementById('orvAiPanel');
+      if (panel && panel.classList.contains('orv-ai-open') && typeof window.orvCloseAi === 'function') window.orvCloseAi();
+    }
+    if (has('notifications') !== true) {
+      var np = document.getElementById('orvNotifPanel'); if (np) np.style.display = 'none';
+    }
+    // workflow steps: locked only when the plan is known and excludes them
+    Object.keys(GATES).forEach(function (k) {
+      var g = GATES[k], locked = has(g.key) === false;
+      document.querySelectorAll('.orv-ni[data-orv-page="' + k + '"]').forEach(function (b) {
+        b.classList.toggle('orv-locked', locked);
+        var mark = b.querySelector('.orv-lock');
+        if (locked && !mark) { mark = document.createElement('span'); mark.className = 'orv-lock'; mark.innerHTML = LOCK_SVG; b.appendChild(mark); }
+        if (!locked && mark) mark.remove();
+        var base = g.title;
+        if (locked) { b.setAttribute('aria-label', base + ' — available from Starter'); if (b.hasAttribute('data-tip')) b.setAttribute('data-tip', base + ' · Starter'); }
+        else { b.removeAttribute('aria-label'); if (b.hasAttribute('data-tip')) b.setAttribute('data-tip', base); }
+      });
+      var page = document.getElementById(g.pageId);
+      if (!page) return;
+      var gate = page.querySelector(':scope > .orv-gate');
+      if (locked && !gate) page.insertAdjacentHTML('afterbegin', gateHtml(g));
+      if (!locked && gate) gate.remove();
+      page.classList.toggle('orv-gated', locked);
+    });
+    if (sig !== lastApplied) { lastApplied = sig; body.setAttribute('data-orv-plan', p || 'unknown'); }
+  }
+  OPS.applyEntitlements = applyEntitlements;
+  // Plan state is set in several places in auth.js; re-apply whenever it changes.
+  function watchPlan() {
+    var seen;
+    applyEntitlements();
+    setInterval(function () {
+      var now = String(planId());
+      if (now !== seen) { seen = now; applyEntitlements(); }
+    }, 400);
+  }
+
   OPS.boot = function () {
     hookNav();
+    wfWatch();
+    watchPlan();
     if (uid()) { hydrated = true; S.hydrate(); }
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', OPS.boot);

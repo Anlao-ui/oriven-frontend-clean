@@ -12,6 +12,9 @@
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- OrivenAI is dark-only: dark form controls/scrollbars and no light flash before CSS loads. -->
+<meta name="color-scheme" content="dark">
+<style>html{background:#0A0A0A;color-scheme:dark}</style>
 <title>ORIVEN AI</title>
 <link rel="icon" href="assets/orivenlogo.png" type="image/png">
 <link rel="shortcut icon" href="assets/orivenlogo.png">
@@ -30,7 +33,7 @@
 </head>
 <body>
 <!-- Apply saved theme instantly to prevent flash of wrong mode -->
-<script>(function(){try{var s=JSON.parse(localStorage.getItem("oriven_settings")||"{}");if(s.theme!=="light")document.body.classList.add("dark-mode");}catch(_){document.body.classList.add("dark-mode");}}());</script>
+<script>document.body.classList.add("dark-mode"); /* OrivenAI is dark-only */</script>
 
 <!-- AUTH OVERLAY — visible until user is signed in -->
 <div id="authOverlay" style="position:fixed;inset:0;z-index:9999;background:#0A0A0A;display:flex;flex-direction:column">
@@ -316,7 +319,7 @@
            /api/{platform}/status calls) -- only the container changes,
            from "always rendered in the rail" to "rendered on demand in a
            small popover", per _orvToggleLauncher() below. -->
-      <button type="button" class="orv-ni orv-launcher-btn" id="orvLauncherBtn" data-tip="Ad Platforms" aria-haspopup="true" aria-expanded="false" onclick="_orvToggleLauncher(event)">
+      <button type="button" class="orv-ni orv-launcher-btn" id="orvLauncherBtn" data-orv-page="platforms" data-tip="Ad Platforms" aria-label="Ad Platforms" onclick="_orvOpenPlatforms()">
         <span class="orv-launcher-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
       </button>
       <div class="orv-sb-sep" aria-hidden="true"></div>
@@ -383,7 +386,6 @@
         <span class="orv-ni-label">Campaigns</span>
         <span class="orv-wf" aria-hidden="true">05</span>
       </button>
-      <div class="orv-ni-plat-group" id="orvPlatShortcutsMob"></div>
       <button class="orv-ni" data-orv-page="autopilot" data-wf="6" data-wf-last onclick="_orvNav('autopilot','page-autopilot',this);_orvDrawerClose()">
         <svg viewBox="0 0 16 16" fill="currentColor" stroke="none"><path class="orv-ni-bolt" d="M8.8 1L3.6 9.2h3.5L6.2 15l6.2-8.7H9.1L8.8 1z"/></svg>
         <span class="orv-ni-label">Autopilot</span>
@@ -393,6 +395,10 @@
            on the desktop sidebar's nav list above. -->
     </nav>
     <div class="orv-mob-drawer-bottom">
+      <button class="orv-ni" data-orv-page="platforms" onclick="_orvOpenPlatforms();_orvDrawerClose()">
+        <span class="orv-launcher-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="orv-ni-label">Ad Platforms</span>
+      </button>
       <button class="orv-ni" onclick="openSettingsModal();_orvDrawerClose()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span class="orv-ni-label">Settings</span>
@@ -1658,7 +1664,7 @@
                    plan, ad and recommendation on. Each card opens its real
                    module (bizGoTo); see _bicRender/_bicCardContent. -->
               <section class="cc-ctx" aria-labelledby="ccCtxH">
-                <div class="cc-sec-hd"><h2 id="ccCtxH">Business context</h2></div>
+                <div class="cc-sec-hd"><h2 id="ccCtxH">Business context</h2><p>What OrivenAI uses for every plan and ad. Open a module to review or change it.</p></div>
                 <div class="bic-grid" id="bicGrid" role="list" aria-label="Business context — Business, Brand, Audience, Competition, Advertising, Knowledge"></div>
               </section>
             </div>
@@ -2082,6 +2088,7 @@
               <span>Back to Control Center</span>
             </button>
           </div>
+          <h1 class="biz-conn-title">Ad Platforms</h1>
           <p class="ov3-ph-sub" style="margin-bottom:16px" data-i18n="bizConnectionsIntro">Your advertising platforms. Connect an account and Oriven can read and manage campaigns on it directly.</p>
       <div class="con-wrap" style="max-width:none;padding:0;height:auto;overflow:visible">
         <div class="con-cards">
@@ -2092,6 +2099,7 @@
               <div class="con-card-logo con-logo-google">
                 <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><path d="M18.2 10.1c0-.6 0-1.2-.1-1.7H10v3.2h4.6a3.9 3.9 0 0 1-1.7 2.6v2.1h2.8c1.6-1.5 2.5-3.7 2.5-6.2z" fill="#4285F4"/><path d="M10 18.6c2.3 0 4.3-.8 5.7-2.1l-2.8-2.2c-.8.5-1.7.8-2.9.8-2.2 0-4.1-1.5-4.8-3.6H2.4v2.2A8.6 8.6 0 0 0 10 18.6z" fill="#34A853"/><path d="M5.2 11.5a5.2 5.2 0 0 1 0-3.3V6H2.4a8.6 8.6 0 0 0 0 7.7l2.8-2.2z" fill="#FBBC05"/><path d="M10 4.6c1.3 0 2.4.4 3.3 1.3l2.5-2.5A8.6 8.6 0 0 0 10 1.4 8.6 8.6 0 0 0 2.4 6l2.8 2.2C5.9 6.1 7.8 4.6 10 4.6z" fill="#EA4335"/></svg>
               </div>
+              <button type="button" class="con-card-open" onclick="_orvPlatOpen('google')" aria-label="Open Google Ads in a new tab" title="Open Google Ads"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></button>
               <div class="con-card-status" id="conStatusGoogle">
                 <div class="con-dot con-dot-off"></div>
                 <span data-i18n="conNotConnected">Not connected</span>
@@ -2128,6 +2136,7 @@
               <div class="con-card-logo con-logo-meta">
                 <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><rect width="20" height="20" rx="5" fill="#1877F2"/><path d="M13.5 10a3.5 3.5 0 1 0-7 0c0 1.7 1.2 3.2 2.8 3.5v-2.4H7.9V10h1.4V8.9c0-.8.5-1.3 1.3-1.3l.9.1v1.2H11c-.4 0-.5.2-.5.5V10h1.1l-.2 1.1H10.5v2.4c1.6-.3 3-1.8 3-3.5z" fill="white"/></svg>
               </div>
+              <button type="button" class="con-card-open" onclick="_orvPlatOpen('meta')" aria-label="Open Meta Ads in a new tab" title="Open Meta Ads"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></button>
               <div class="con-card-status" id="conStatusMeta">
                 <div class="con-dot con-dot-off"></div>
                 <span data-i18n="conNotConnected">Not connected</span>
@@ -2165,6 +2174,7 @@
               <div class="con-card-logo con-logo-tiktok">
                 <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><path d="M13.3 5.8h-1.5v6.1a1.25 1.25 0 1 1-1.8-1.1V9.3a3.75 3.75 0 1 0 3.3 3.7V8.3c.5.4 1.2.6 1.9.6V7.4c-.9 0-1.9-.7-1.9-.7z" fill="white"/></svg>
               </div>
+              <button type="button" class="con-card-open" onclick="_orvPlatOpen('tiktok')" aria-label="Open TikTok Ads in a new tab" title="Open TikTok Ads"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></button>
               <div class="con-card-status" id="conStatusTiktok">
                 <div class="con-dot con-dot-off"></div>
                 <span data-i18n="conNotConnected">Not connected</span>
@@ -2200,6 +2210,7 @@
               <div class="con-card-logo con-logo-pinterest">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.66 7.86 6.4 9.27-.09-.79-.17-2 .04-2.86.19-.78 1.23-4.96 1.23-4.96s-.31-.63-.31-1.55c0-1.45.84-2.54 1.89-2.54.89 0 1.32.67 1.32 1.47 0 .9-.57 2.24-.87 3.48-.25 1.04.52 1.89 1.54 1.89 1.85 0 3.09-2.38 3.09-5.2 0-2.14-1.44-3.75-4.07-3.75-2.97 0-4.82 2.22-4.82 4.7 0 .85.25 1.46.64 1.92.18.21.2.3.14.55-.05.19-.16.65-.21.83-.07.27-.28.37-.52.27-1.44-.59-2.11-2.16-2.11-3.93 0-2.92 2.46-6.43 7.35-6.43 3.93 0 6.51 2.84 6.51 5.9 0 4.04-2.24 7.06-5.55 7.06-1.11 0-2.16-.6-2.51-1.28l-.7 2.71c-.21.85-.62 1.9-.94 2.57.71.21 1.45.32 2.22.32 5.52 0 10-4.48 10-10S17.52 2 12 2z" fill="white"/></svg>
               </div>
+              <button type="button" class="con-card-open" onclick="_orvPlatOpen('pinterest')" aria-label="Open Pinterest Ads in a new tab" title="Open Pinterest Ads"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></button>
               <div class="con-card-status" id="conStatusPinterest">
                 <div class="con-dot con-dot-off"></div>
                 <span data-i18n="conNotConnected">Not connected</span>
@@ -7095,30 +7106,6 @@
               <button class="btn btn-p btn-sm" id="wsNameSaveBtn" onclick="saveWsName()" disabled data-i18n="saveBtn">Save</button>
             </div>
             <div class="smd-field-help" id="wsNameHint" style="display:none"></div>
-          </div>
-          <div class="smd-section">
-            <div class="smd-field-lbl" data-i18n="smdThemeLabel">Theme</div>
-            <div class="smd-field-help" data-i18n="smdThemeHelp">Choose how ORIVEN appears on this device.</div>
-            <div class="smd-theme-row">
-              <div id="themeLight" class="smd-theme-opt active" onclick="setTheme('light')">
-                <div class="smd-theme-prev smd-theme-lt">
-                  <div class="smd-tp-sb"></div>
-                  <div class="smd-tp-main"><div class="smd-tp-card"></div><div class="smd-tp-card"></div></div>
-                </div>
-                <div class="smd-theme-lbl" data-i18n="smdThemeLight">Light</div>
-              </div>
-              <div id="themeDark" class="smd-theme-opt" onclick="setTheme('dark')">
-                <div class="smd-theme-prev smd-theme-dk">
-                  <div class="smd-tp-sb smd-tp-sb-dk"></div>
-                  <div class="smd-tp-main"><div class="smd-tp-card smd-tp-card-dk"></div><div class="smd-tp-card smd-tp-card-dk"></div></div>
-                </div>
-                <div class="smd-theme-lbl" data-i18n="smdThemeDark">Dark</div>
-              </div>
-              <div id="themeSystem" class="smd-theme-opt" onclick="setTheme('system')">
-                <div class="smd-theme-prev smd-theme-sys"></div>
-                <div class="smd-theme-lbl" data-i18n="smdThemeSystem">System</div>
-              </div>
-            </div>
           </div>
           <!-- Sidebar workflow steps — orientation only (small numbers and a
                line beside Business → Research → Create → Launch → Campaigns
@@ -13837,6 +13824,10 @@ window._orvReadinessChanged = function(campId){
   var _orvNotifItems = [];
 
   function _loadNotifications(){
+    if (typeof window.orvEntitled === 'function' && window.orvEntitled('notifications') !== true) {
+      var _b = document.getElementById('orvNotifBell'); if (_b) _b.style.display = 'none';
+      return; // Professional only (plans.js entitlements); nothing fetched
+    }
     var bell = document.getElementById('orvNotifBell');
     var count = document.getElementById('orvNotifCount');
     var list = document.getElementById('orvNotifList');
@@ -14432,6 +14423,11 @@ window._orvReadinessChanged = function(campId){
     _orvAiOpen ? orvCloseAi() : orvOpenAi();
   };
   window.orvOpenAi = function(){
+    // Oriven Chat is a Creator/Professional capability (plans.js entitlements).
+    if (typeof window.orvEntitled === 'function' && window.orvEntitled('orivenChat') === false) {
+      if (typeof openLimitReached === 'function') openLimitReached('chat');
+      return;
+    }
     _orvAiOpen = true;
     var panel = document.getElementById('orvAiPanel');
     var fab   = document.getElementById('orvAiFab');
@@ -14619,6 +14615,7 @@ window._orvReadinessChanged = function(campId){
     apiFetch('/api/ai/chat', {
       method: 'POST',
       body: JSON.stringify({
+        surface: 'oriven-chat',
         message: msg,
         context: ctx,
         brandCore: (typeof S !== 'undefined' ? S.brandCore : null),
@@ -15221,30 +15218,9 @@ window._orvNav = function(page, explicitPageId) {
      helpers, which now check a rolling 24h window instead of "ever used" --
      but browsing the rest of the app (Settings, existing campaigns, Studio,
      etc.) should never be blocked by that on its own. */
-  /* Autopilot is Creator/Professional only (matching
-     creditManager.PLAN_AUTOPILOT_LIMITS -- Free and Starter both have no
-     Autopilot at all) -- a Free or Starter user must never land on a
-     real-looking, empty Autopilot dashboard. This is a soft, dismissible
-     upgrade prompt (openLimitReached), not a hard lock -- the user can
-     close it and keep using the rest of the app.
-
-     Skipped while the onboarding spotlight tour itself is driving
-     navigation (window._obActive) -- the tour's own onEnter handlers walk
-     through every nav item, including Autopilot, purely to show what it
-     is; the sidebar is locked during the tour (_obLockSidebar) so a real
-     user click can't reach here while _obActive is true anyway. Without
-     this guard, the tour's own guided walkthrough of Autopilot opened
-     this same upsell modal ON TOP of onboarding for every Free/Starter
-     user -- the exact "paywall visible behind onboarding" bug. */
-  /* Fixed: this used to let Creator-plan users past this gate onto a
-     page whose every real API call (plans.js: creator.autopilotLimit is
-     null; server.js: requireAutopilotAccess) rejects them with 403
-     AUTOPILOT_NOT_AVAILABLE -- they'd see a broken-looking empty Control
-     Room instead of the real upsell. Only Professional actually has
-     Autopilot; matches the Team gate's single-plan check right below. */
-  if (page === 'autopilot' && !window._obActive && typeof _dbSubscriptionStatus !== 'undefined' && _dbSubscriptionStatus !== 'professional') {
-    if (typeof openLimitReached === 'function') { openLimitReached('autopilot'); return; }
-  }
+  /* V10: Autopilot is included from Starter. Free reaches the page and sees
+     its in-page upgrade state (orivenOps.js applyEntitlements), so there is
+     no redirect here any more. */
   /* Team removed as a product surface entirely (Autopilot Redesign + Team
      Removal sprint) -- no nav button reaches 'team' anymore, but a stale
      bookmark/URL hash or an old script reference still could; redirect to
@@ -15499,6 +15475,7 @@ function _conApplyCard(platform, connected, detail) {
   if (!window._orvPlatformData) window._orvPlatformData = { google:{connected:false}, meta:{connected:false}, tiktok:{connected:false}, pinterest:{connected:false} };
   if (!window._orvPlatformData[platform]) window._orvPlatformData[platform] = { connected:false };
   window._orvPlatformData[platform].connected = !!connected;
+  if (typeof window._orvSetConn === 'function') window._orvSetConn(platform, !!connected);
 
   /* Sync the legacy flags used by the settings usage card */
   if (platform === 'google') window._gadsConnected  = !!connected;
@@ -15522,6 +15499,7 @@ function _conFetchStatus(platform) {
       if (!result.ok) {
         console.error('[Connect]', platform, 'status error HTTP', result.status);
         _conApplyCard(platform, false);
+        _conMarkUnknown(platform);
         return;
       }
       var d = result.data;
@@ -15720,7 +15698,17 @@ function _conFetchStatus(platform) {
     .catch(function(err) {
       console.error('[Connect]', platform, 'fetch failed:', err.message);
       _conApplyCard(platform, false);
+      _conMarkUnknown(platform);
     });
+}
+
+/* The status check itself failed: say so instead of "Not connected" (the
+   connect button stays available, exactly as before). */
+function _conMarkUnknown(platform) {
+  if (typeof window._orvSetConn === 'function') window._orvSetConn(platform, null);
+  var cap = platform === 'tiktok' ? 'Tiktok' : platform.charAt(0).toUpperCase() + platform.slice(1);
+  var statusEl = document.getElementById('conStatus' + cap);
+  if (statusEl) { statusEl.innerHTML = '<div class="con-dot con-dot-off"></div>Status unavailable'; statusEl.className = 'con-card-status con-card-status-unknown'; }
 }
 
 /* Render per-account rows inside the integration card */
@@ -17626,7 +17614,7 @@ function _rmapRenderLegend(data) {
     // already supports), never a fuzzy guess. Clicking jumps straight to
     // that category on the already-visible map.
     parts.push('<button type="button" class="rmap-legend-item rmap-legend-item-btn" onclick="_rmapFilterFromLegend(\'' + c.key + '\')"><span class="rmap-legend-dot" style="background:' + c.color + '" aria-hidden="true"></span>' +
-      c.n + ' ' + RESEARCH_RAIL_CATEGORY_LABELS[c.key] + (c.n === 1 ? '' : 's') + '</button>');
+      c.n + ' ' + (c.n === 1 ? RESEARCH_RAIL_CATEGORY_LABELS[c.key] : String(RESEARCH_RAIL_CATEGORY_LABELS[c.key]).replace(/y$/, 'ie') + 's') + '</button>');
   });
   el.innerHTML = parts.join('');
 }
@@ -21165,11 +21153,23 @@ window.bizSwitchTab = function(tab){
   if(tab === 'overview' && _pl) _pl.paintStrip();
   // Control Center overview: advertising blocks (orivenOpsPages.js) and the
   // greeting/status/Needs you (orivenWorkspace.js) — real data only.
+  _orvSyncPlatformsNav(tab);
   if(tab === 'overview' && window.orvWorkspace){
     if(orvWorkspace.ops && orvWorkspace.ops.renderDashSnap) orvWorkspace.ops.renderDashSnap();
     if(orvWorkspace.home && orvWorkspace.home.render){ orvWorkspace.home.render(); if(orvWorkspace.refresh) orvWorkspace.refresh(false); }
   }
 };
+
+/* The Platforms page lives inside the Control Center page, but it is a
+   utility destination outside the 01–06 workflow: while it is open the
+   Ad Platforms nav item is the active one (not 01 Control Center). */
+function _orvSyncPlatformsNav(tab){
+  var pageEl = document.getElementById('page-business-brain');
+  if(!pageEl || !pageEl.classList.contains('active')) return;
+  var onPlatforms = tab === 'connections';
+  document.querySelectorAll('.orv-ni[data-orv-page="platforms"]').forEach(function(b){ b.classList.toggle('orv-active', onPlatforms); if(onPlatforms) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  document.querySelectorAll('.orv-ni[data-orv-page="businessbrain"]').forEach(function(b){ b.classList.toggle('orv-active', !onPlatforms); });
+}
 
 /* The single navigation entry point for "go to Brand" / "go to
    Connections" from anywhere else in the app — activates the Business
@@ -21348,7 +21348,7 @@ function _bizMapModel(){
     market: { hasData: marketHasData, industry: p.industry || null, country: p.country || null, competitorCount: competitorCount },
     advertising: {
       connCount: connCount,
-      platforms: Object.keys(BMAP_PLATFORM_LABELS).map(function(k){ return { key:k, label: BMAP_PLATFORM_LABELS[k], connected: !!conn[k] }; }),
+      platforms: Object.keys(BMAP_PLATFORM_LABELS).map(function(k){ return { key:k, label: BMAP_PLATFORM_LABELS[k], connected: conn[k] === true ? true : (conn[k] === false ? false : null) }; }),
       leaks: advertisingLeaks
     },
     website: { hasData: websiteHasData, url: websiteRow ? websiteRow.url : null, positioning: websiteRow ? websiteRow.positioning : null, analyzedAt: websiteRow ? websiteRow.analyzed_at : null, leaks: websiteLeaks },
@@ -21662,7 +21662,7 @@ function _bizIntelModel(){
     brand: { hasData: brandHasData, colors: brandColors.slice(0,5), traits: brandTraits.slice(0,3), toneOfVoice: (bc && bc.toneOfVoice) || null, usp: (bc && bc.usp) || null },
     audience: { hasData: audienceCount > 0, count: audienceCount, items: (_bmapData.audiences || []).slice(0,5) },
     competition: { hasData: competitorCount > 0, count: competitorCount, items: (_bmapData.competitors || []).slice(0,5) },
-    advertising: { connCount: connCount, platforms: Object.keys(BMAP_PLATFORM_LABELS).map(function(k){ return { key:k, label: BMAP_PLATFORM_LABELS[k], connected: !!conn[k] }; }), leaks: advertisingLeaks },
+    advertising: { connCount: connCount, platforms: Object.keys(BMAP_PLATFORM_LABELS).map(function(k){ return { key:k, label: BMAP_PLATFORM_LABELS[k], connected: conn[k] === true ? true : (conn[k] === false ? false : null) }; }), leaks: advertisingLeaks },
     knowledge: { memoryCount: (_bmapData.memoryItems || []).length, learningsCount: (_bmapData.learnings || []).length, memoryItems: (_bmapData.memoryItems || []).slice(0,5), opportunities: opportunities },
     website: { hasData: websiteHasData, url: websiteRow ? websiteRow.url : null, positioning: websiteRow ? websiteRow.positioning : null, analyzedAt: websiteRow ? websiteRow.analyzed_at : null },
     sources: sources
@@ -21715,11 +21715,13 @@ function _bicCardContent(kind, model){
     var ad = model.advertising;
     var connectedPlats = ad.platforms.filter(function(p){ return p.connected; });
     return {
-      line1: ad.connCount ? connectedPlats.slice(0,2).map(function(p){ return p.label; }).join(', ') : 'No ad platforms connected.',
+      line1: ad.connCount ? connectedPlats.slice(0,2).map(function(p){ return p.label; }).join(', ')
+        : (ad.platforms.every(function(p){ return p.connected === null; }) ? 'Checking platform connections…' : 'No ad platforms connected.'),
       line2: ad.connCount > 2 ? ('+' + (ad.connCount - 2) + ' more') : (ad.connCount ? (ad.connCount + ' / 4 platforms connected') : null),
       isEmpty: !ad.connCount,
       badge: ad.leaks.length ? (ad.leaks.length + ' issue' + (ad.leaks.length === 1 ? '' : 's')) : null, badgeCls: 'issue',
-      ariaSummary: ad.connCount + ' of 4 platforms connected' + (ad.leaks.length ? ', ' + ad.leaks.length + ' issue' : '')
+      plats: ad.platforms,
+      ariaSummary: ad.platforms.map(function(p){ return p.label + ' ' + (p.connected === true ? 'connected' : (p.connected === false ? 'not connected' : 'status unavailable')); }).join(', ') + (ad.leaks.length ? ', ' + ad.leaks.length + ' issue' + (ad.leaks.length === 1 ? '' : 's') : '')
     };
   }
   if(kind === 'knowledge'){
@@ -21768,10 +21770,22 @@ function _bicRender(){
         '</span>' +
       '</div>' +
       (c.swatches && c.swatches.length ? '<div class="bic-card-swatches">' + c.swatches.map(function(s){ return '<span class="bic-card-swatch" style="background:' + _bizEsc(s.hex) + '"></span>'; }).join('') + '</div>' : '') +
-      (c.line1 ? '<div class="bic-card-line">' + _bizEsc(c.line1) + '</div>' : '') +
+      (c.plats ? _bicPlatStrip(c.plats) : (c.line1 ? '<div class="bic-card-line">' + _bizEsc(c.line1) + '</div>' : '')) +
       (c.line2 ? '<div class="bic-card-line bic-card-line-muted">' + _bizEsc(c.line2) + '</div>' : '') +
     '</button>';
   }).join('');
+}
+
+// Advertising card: the real status of each of the four supported
+// platforms (true / false from /api/{platform}/status, null = unknown —
+// shown as a hollow mark, never as connected). The card's aria-label
+// already carries the summary, so the strip itself is decorative.
+var _BIC_PLAT_SHORT = { google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest' };
+function _bicPlatStrip(plats){
+  return '<div class="bic-card-plats" aria-hidden="true">' + plats.map(function(p){
+    var st = p.connected === true ? 'on' : (p.connected === false ? 'off' : 'unknown');
+    return '<span class="bic-plat-chip bic-plat-' + st + '"><i></i>' + _bizEsc(_BIC_PLAT_SHORT[p.key] || p.label) + '</span>';
+  }).join('') + '</div>';
 }
 
 // ── Card details — a dismissible overlay, never a permanent right-side
@@ -21954,12 +21968,13 @@ window._bicRunVerify = function(id, platform){
 
 function _bicAdvertisingDetail(ad){
   var plats = ad.platforms.map(function(p){
-    return '<div class="bic-plat-row"><span class="bic-plat-name">' + _bizEsc(p.label) + '</span><span class="bic-plat-status' + (p.connected ? ' bic-plat-connected' : '') + '">' + (p.connected ? 'Connected' : 'Not connected') + '</span></div>';
+    var st = p.connected === true ? 'Connected' : (p.connected === false ? 'Not connected' : 'Status unavailable');
+    return '<div class="bic-plat-row"><span class="bic-plat-name">' + _bizEsc(p.label) + '</span><span class="bic-plat-status' + (p.connected === true ? ' bic-plat-connected' : (p.connected === null ? ' bic-plat-unknown' : '')) + '">' + st + '</span></div>';
   }).join('');
   var leaksHtml = ad.leaks.length ? _bicIssueCards(ad.leaks) : '';
   return '<div class="bic-plat-list">' + plats + '</div>' +
     (leaksHtml ? '<div class="bic-detail-sub">ISSUES</div>' + leaksHtml : '') +
-    _bicActionBtn('Manage connections', 'connections');
+    _bicActionBtn('Manage Connections', 'connections');
 }
 function _bicKnowledgeDetail(k){
   var memHtml = k.memoryItems.length
@@ -22039,6 +22054,7 @@ function _bizRenderHero(){
 // _bicRender (the new 3x2 card grid) instead of the retired _bmap2Render
 // (the node-graph) — see _bizIntelModel below for how each real source
 // maps onto the six intelligence cards.
+function _bmConnState(r){ return (r && r.ok && r.data) ? !!r.data.connected : null; }
 function bizLoadOverview(){
   _bizRenderCentralIcon();
   _bizEnsureProfile(function(){ _bizRenderCentralIcon(); _bizRenderHero(); _bicRender(); });
@@ -22064,13 +22080,16 @@ function bizLoadOverview(){
       audiences: (results[4].ok && results[4].data && results[4].data.items) || [],
       memoryItems: (results[5].ok && results[5].data && results[5].data.memory) || [],
       website: (results[6].ok && results[6].data && results[6].data.website) || null,
+      // true / false from a real status response; null when the request
+      // failed, so the UI can say "unknown" instead of "Not connected".
       connections: {
-        google: !!(results[7].ok && results[7].data && results[7].data.connected),
-        meta: !!(results[8].ok && results[8].data && results[8].data.connected),
-        tiktok: !!(results[9].ok && results[9].data && results[9].data.connected),
-        pinterest: !!(results[10].ok && results[10].data && results[10].data.connected)
+        google: _bmConnState(results[7]),
+        meta: _bmConnState(results[8]),
+        tiktok: _bmConnState(results[9]),
+        pinterest: _bmConnState(results[10])
       }
     };
+    ['google','meta','tiktok','pinterest'].forEach(function(p){ if (typeof window._orvSetConn === 'function') window._orvSetConn(p, _bmapData.connections[p]); });
     /* Oriven 1.0 Global Context Engine (Epic 1) — cache into the shared
        context so the AI chat already knows the business's overall health
        without a second fetch, once this page has loaded it. Unchanged
@@ -22801,6 +22820,15 @@ var _ADM_PLAT_LABELS = { all:'All Platforms', google:'Google Ads', meta:'Meta Ad
    same top-level-official-URL convention already used for google/meta
    (no account-specific deep link exists for any of the three), so this
    isn't a new destination pattern, just completing the existing map. */
+/* One shared record of what the app actually knows about each ad platform
+   connection: true / false from a real /api/{platform}/status response,
+   null while unknown (not checked yet, or the check failed). Read by
+   Settings, Control Center and the Platforms page; never guessed. */
+window._orvConnStatus = window._orvConnStatus || { google: null, meta: null, tiktok: null, pinterest: null };
+window._orvSetConn = function(platform, state){
+  if(!(platform in window._orvConnStatus)) return;
+  window._orvConnStatus[platform] = (state === true || state === false) ? state : null;
+};
 var _ADM_PLAT_LINKS  = { google:'https://ads.google.com/', meta:'https://adsmanager.facebook.com/', tiktok:'https://ads.tiktok.com/', pinterest:'https://ads.pinterest.com/' };
 
 /* ── Sidebar platform shortcuts (Navbar Redesign, Final Polish) ────────
@@ -22840,11 +22868,12 @@ function _orvPlatShortcutRow(p, label, connected){
    data can feed both the mobile drawer's always-visible inline list AND
    the desktop App Launcher popover, which renders on demand from
    _orvLauncherPlatData rather than re-fetching every time it opens. */
+var _orvLauncherPlatData = null;
 function _orvFetchPlatStatus(){
   var PLATS = [['google','Google Ads'],['meta','Meta Ads'],['tiktok','TikTok Ads'],['pinterest','Pinterest Ads']];
   return Promise.all(PLATS.map(function(p){
-    return apiFetch('/api/' + p[0] + '/status').then(function(r){ return { p: p[0], label: p[1], connected: !!(r.ok && r.data && r.data.connected) }; })
-      .catch(function(){ return { p: p[0], label: p[1], connected: false }; });
+    return apiFetch('/api/' + p[0] + '/status').then(function(r){ var st = (r.ok && r.data) ? !!r.data.connected : null; if (typeof window._orvSetConn === 'function') window._orvSetConn(p[0], st); return { p: p[0], label: p[1], connected: st === true }; })
+      .catch(function(){ if (typeof window._orvSetConn === 'function') window._orvSetConn(p[0], null); return { p: p[0], label: p[1], connected: false }; });
   })).then(function(results){
     _orvLauncherPlatData = results;
     return results;
@@ -22860,108 +22889,23 @@ function _orvRenderPlatShortcuts(){
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(_orvRenderPlatShortcuts, 900); });
 
-/* ── App Launcher popover (Sidebar Refinement) ─────────────────────────
-   A small, position:fixed popover appended to <body> and positioned via
-   getBoundingClientRect() of the 9-dot button -- same rendering approach
-   as .orv-rail-tip above and for the same reason: .orv-sb-nav's
-   overflow-y:auto forces a clipping context that a purely in-flow/
-   absolutely-positioned popover would fall victim to. Reuses
-   _orvPlatShortcutRow's exact markup/handlers -- no new platform
-   navigation logic, just a different container shown on demand. */
-var _orvLauncherPlatData = null;
-var _orvLauncherPopEl = null;
-var _orvLauncherOpen = false;
-
-function _orvEnsureLauncherPop(){
-  if(_orvLauncherPopEl) return _orvLauncherPopEl;
-  var el = document.createElement('div');
-  el.className = 'orv-launcher-pop';
-  el.setAttribute('role', 'menu');
-  document.body.appendChild(el);
-  _orvLauncherPopEl = el;
-  return el;
-}
-
-function _orvRenderLauncherPop(){
-  var el = _orvEnsureLauncherPop();
-  if(!_orvLauncherPlatData || !_orvLauncherPlatData.length){
-    el.innerHTML = '<div class="orv-launcher-title">Ad Platforms</div><div class="orv-launcher-empty">Loading…</div>';
-    return;
-  }
-  el.innerHTML = '<div class="orv-launcher-title">Ad Platforms</div>' +
-    _orvLauncherPlatData.map(function(r){ return _orvPlatShortcutRow(r.p, r.label, r.connected); }).join('');
-}
-
-function _orvPositionLauncherPop(){
-  var btn = document.getElementById('orvLauncherBtn');
-  var sb = document.querySelector('.orv-sb');
-  var el = _orvLauncherPopEl;
-  if(!btn || !el) return;
-  var r = btn.getBoundingClientRect();
-  var popH = el.offsetHeight || 160;
-  // Anchored to the button's bottom edge (it sits near the very bottom of
-  // the rail) but clamped so it can never render off-screen top or bottom.
-  var top = r.bottom - popH;
-  top = Math.max(8, Math.min(top, window.innerHeight - popH - 8));
-  el.style.top = top + 'px';
-  // Left offset is measured from the RAIL's own right edge, not the
-  // button's -- the button's own box sits inset from the rail (centered,
-  // with side padding), so anchoring to its rect alone could place the
-  // popover a few px inside the rail's edge instead of clearly past it.
-  var railRight = sb ? sb.getBoundingClientRect().right : r.right;
-  el.style.left = (Math.max(railRight, r.right) + 12) + 'px';
-}
-
-window._orvToggleLauncher = function(e){
-  if(e) e.stopPropagation();
-  if(_orvLauncherOpen){ _orvCloseLauncher(); } else { _orvOpenLauncher(); }
-};
-
-function _orvOpenLauncher(){
-  // Dismiss the "Ad Platforms" rail tooltip immediately -- the popover
-  // that's about to open shows its own "Ad Platforms" title, so leaving
-  // the hover tooltip up (the mouse is still over the button after the
-  // click that opened it) would visually duplicate/overlap it.
+/* ── Ad Platforms (V9) ──────────────────────────────────────────────
+   The rail's Ad Platforms button (same 9-dot icon and hover animation) is
+   a page destination now: it opens the one canonical Platforms page
+   (#bizPanelConnections, also reached from Control Center → Advertising →
+   Manage Connections). The old popover that made the user pick a platform
+   first is gone; each platform's own ads-manager link (↗) lives on its card
+   on that page. _orvToggleLauncher/_orvCloseLauncher stay as harmless
+   aliases for any older caller. */
+window._orvOpenPlatforms = function(){
   var lingerTip = document.querySelector('.orv-rail-tip');
   var lingerArrow = document.querySelector('.orv-rail-tip-arrow');
   if(lingerTip){ lingerTip.classList.remove('orv-rail-tip-show'); lingerTip.style.display = 'none'; }
   if(lingerArrow){ lingerArrow.classList.remove('orv-rail-tip-show'); lingerArrow.style.display = 'none'; }
-  var btn = document.getElementById('orvLauncherBtn');
-  var el = _orvEnsureLauncherPop();
-  _orvRenderLauncherPop();
-  el.style.display = 'block';
-  _orvPositionLauncherPop();
-  requestAnimationFrame(function(){
-    if(el) el.classList.add('orv-launcher-pop-show');
-    _orvPositionLauncherPop();
-  });
-  if(btn){ btn.classList.add('orv-launcher-open'); btn.setAttribute('aria-expanded', 'true'); }
-  _orvLauncherOpen = true;
-  // Refresh live connection status in the background so a stale cache
-  // (e.g. user just connected Google Ads elsewhere) never lingers.
-  _orvFetchPlatStatus().then(function(){ if(_orvLauncherOpen) _orvRenderLauncherPop(); });
-}
-
-window._orvCloseLauncher = function(){
-  var btn = document.getElementById('orvLauncherBtn');
-  if(_orvLauncherPopEl){
-    _orvLauncherPopEl.classList.remove('orv-launcher-pop-show');
-    setTimeout(function(){ if(_orvLauncherPopEl && !_orvLauncherOpen) _orvLauncherPopEl.style.display = 'none'; }, 160);
-  }
-  if(btn){ btn.classList.remove('orv-launcher-open'); btn.setAttribute('aria-expanded', 'false'); }
-  _orvLauncherOpen = false;
+  if(typeof window.bizGoTo === 'function') window.bizGoTo('connections');
 };
-
-document.addEventListener('click', function(e){
-  if(!_orvLauncherOpen) return;
-  var btn = document.getElementById('orvLauncherBtn');
-  if(_orvLauncherPopEl && _orvLauncherPopEl.contains(e.target)) return;
-  if(btn && btn.contains(e.target)) return;
-  _orvCloseLauncher();
-});
-document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && _orvLauncherOpen) _orvCloseLauncher(); });
-document.addEventListener('scroll', function(){ if(_orvLauncherOpen) _orvCloseLauncher(); }, true);
-window.addEventListener('resize', function(){ if(_orvLauncherOpen) _orvCloseLauncher(); });
+window._orvToggleLauncher = function(e){ if(e && e.stopPropagation) e.stopPropagation(); window._orvOpenPlatforms(); };
+window._orvCloseLauncher = function(){};
 
 /* ── Sidebar rail hover tooltips ──────────────────────────────────────
    Renders the .orv-rail-tip/.orv-rail-tip-arrow pair (styles.css) for any

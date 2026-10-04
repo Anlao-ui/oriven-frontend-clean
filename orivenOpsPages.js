@@ -236,11 +236,12 @@
     var c = lastOverview && lastOverview.snap ? OPS.findCampaign(lastOverview.snap, platform, id) : null;
     OW.go({ page: 'campaigns', platform: platform, campaignName: c ? c.name : null });
   };
-  function hasAutomationPlan() { return !(typeof _dbSubscriptionStatus !== 'undefined' && _dbSubscriptionStatus !== 'professional'); }
+  // Autopilot is included from Starter (plans.js entitlements); unknown plan = not locked.
+  function hasAutomationPlan() { return typeof window.orvEntitled === 'function' ? window.orvEntitled('autopilot') !== false : true; }
   function paintAutopilotMini(t) {
     var el = document.getElementById('ovAuto'); if (!el) return;
     if (!hasAutomationPlan()) {
-      el.innerHTML = '<p class="ov-auto-h">Recommendations on</p><p class="ov-meta">Rules that act for you are part of Professional.</p>';
+      el.innerHTML = '<p class="ov-auto-h">Not included on Free</p><p class="ov-meta">Autopilot is available from Starter.</p>';
       return;
     }
     Promise.all([window.apiFetch('/api/autopilot/rules'), window.apiFetch('/api/autopilot/recommendations?status=suggested'), window.apiFetch('/api/autopilot/history'), D.status()].map(function (p) { return p.catch(function () { return null; }); })).then(function (x) {

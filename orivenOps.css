@@ -1269,3 +1269,138 @@ body.dark-mode .sub-cancel-chip { color: #FFC857; background: rgba(255, 171, 0, 
 /* Phones stack the two structure cards (styles.css ≤600px column rule); the
    200px row basis above must not become a 200px height there. */
 @media (max-width: 600px) { #cr2AdvancedGroup .cst2-struct-card { flex: none; } }
+
+/* ── Settings → Subscription (V9) ──
+   "Cancel plan" reads as a destructive subscription action: red text, not a
+   button, never the primary CTA. Light: #B42318 on the light modal (≥ 5.9:1);
+   dark: #FF7A6E on the #0E0E0E modal (≥ 7:1). The confirmation flow and the
+   Stripe cancel-at-period-end behaviour are unchanged. */
+#planCancelBtn.sub-cancel-link { color: #B42318 !important; opacity: 1 !important; font-weight: 600; text-decoration: underline; text-decoration-color: rgba(180, 35, 24, .45); text-underline-offset: 3px; padding: 4px 2px; border-radius: 6px; }
+#planCancelBtn.sub-cancel-link:hover { color: #912018 !important; text-decoration-color: currentColor; }
+#planCancelBtn.sub-cancel-link:focus-visible { outline: 2px solid #B42318; outline-offset: 2px; }
+body.dark-mode #planCancelBtn.sub-cancel-link { color: #FF7A6E !important; text-decoration-color: rgba(255, 122, 110, .5); }
+body.dark-mode #planCancelBtn.sub-cancel-link:hover { color: #FFA59C !important; }
+body.dark-mode #planCancelBtn.sub-cancel-link:focus-visible { outline-color: #FF7A6E; }
+
+/* ── Sidebar workflow progress (V9) ──
+   orivenOps.js wfSync() marks steps before the current one .orv-wf-done,
+   the current one .orv-wf-cur, and every segment up to the current step
+   .orv-wf-seg (each step's ::before is the segment to the next step).
+   Lime #B6FF3B for the travelled path; size/weight also differ, so colour
+   is not the only cue (done = solid dot, current = larger ringed dot,
+   future = small faint dot; travelled line 2px, future line 1px faint).
+   Visual only — nothing is gated. Hidden with the rest when the workflow
+   setting is off (body.orv-wf-off, rules above). */
+.orv-sb .orv-ni[data-wf].orv-wf-done::after { opacity: 1; background: #B6FF3B; width: 6px; height: 6px; margin-top: -3px; left: -7.5px; transform: none; }
+.orv-sb .orv-ni[data-wf].orv-wf-cur::after { opacity: 1; background: #B6FF3B; width: 8px; height: 8px; margin-top: -4px; left: -8.5px; transform: none; box-shadow: 0 0 0 3px rgba(182, 255, 59, .22); }
+.orv-sb .orv-ni[data-wf].orv-wf-seg:not([data-wf-last])::before { opacity: 1; background: #B6FF3B; width: 2px; left: -5.5px; }
+.orv-sb .orv-ni[data-wf].orv-wf-done .orv-wf, .orv-sb .orv-ni[data-wf].orv-wf-cur .orv-wf { color: #B6FF3B; opacity: 1; }
+.orv-sb .orv-ni[data-wf].orv-wf-cur .orv-wf { color: inherit; }
+body:not(.dark-mode) .orv-sb .orv-ni[data-wf].orv-wf-done::after,
+body:not(.dark-mode) .orv-sb .orv-ni[data-wf].orv-wf-cur::after { box-shadow: 0 0 0 1px rgba(60, 90, 0, .55); }
+body:not(.dark-mode) .orv-sb .orv-ni[data-wf].orv-wf-cur::after { box-shadow: 0 0 0 1px rgba(60, 90, 0, .55), 0 0 0 4px rgba(182, 255, 59, .3); }
+body:not(.dark-mode) .orv-sb .orv-ni[data-wf].orv-wf-seg:not([data-wf-last])::before { background: #9AD92B; }
+body:not(.dark-mode) .orv-sb .orv-ni[data-wf].orv-wf-done .orv-wf { color: #3F6212; }
+/* Mobile drawer: the step number turns lime and done steps get a check. */
+.orv-mob-drawer .orv-ni[data-wf].orv-wf-done .orv-wf, .orv-mob-drawer .orv-ni[data-wf].orv-wf-cur .orv-wf { opacity: 1; color: #B6FF3B; }
+.orv-mob-drawer .orv-ni[data-wf].orv-wf-done .orv-wf::before { content: '✓ '; }
+body:not(.dark-mode) .orv-mob-drawer .orv-ni[data-wf].orv-wf-done .orv-wf, body:not(.dark-mode) .orv-mob-drawer .orv-ni[data-wf].orv-wf-cur .orv-wf { color: #3F6212; }
+@media (prefers-reduced-motion: reduce) { .orv-sb .orv-ni[data-wf]::before { transition: none; } }
+
+/* Ad Platforms: a page destination, active while the Platforms page is open. */
+.orv-sb .orv-launcher-btn.orv-active .orv-launcher-dots i { opacity: 1; }
+.orv-mob-drawer-bottom .orv-launcher-dots { position: relative; width: 16px; height: 16px; flex-shrink: 0; }
+.biz-conn-title { margin: 0 0 6px; font-size: var(--orv-title-size, 26px); font-weight: 800; letter-spacing: -.03em; line-height: 1.2; color: var(--charcoal); }
+body.dark-mode .biz-conn-title { color: #fff; }
+.con-card-top { position: relative; }
+.con-card-open { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-left: auto; margin-right: 8px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: color .15s ease, border-color .15s ease, transform .15s ease; }
+.con-card-open:hover { color: var(--charcoal); border-color: color-mix(in srgb, var(--green) 45%, var(--border)); transform: translate(1px, -1px); }
+.con-card-open:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+body.dark-mode .con-card-open { border-color: rgba(255, 255, 255, .12); color: rgba(255, 255, 255, .6); }
+body.dark-mode .con-card-open:hover { color: #fff; }
+.con-card-status-unknown { opacity: .75; }
+@media (prefers-reduced-motion: reduce) { .con-card-open:hover { transform: none; } }
+
+/* ── Control Center: Business context as six control modules (V9) ──
+   Each module carries its existing semantic colour across the whole card
+   (tinted surface, border, icon tile, arrow), so the six read as distinct,
+   clickable controls rather than quiet dashboard cards. The Control Center
+   canvas is dark in both app themes, so these are tuned for that surface;
+   text stays light for contrast (checked ≥ 4.5:1). */
+.cc-ctx .bic-card-business    { --mc: #B6FF3B; }
+.cc-ctx .bic-card-brand       { --mc: #A78BFA; }
+.cc-ctx .bic-card-audience    { --mc: #FACC15; }
+.cc-ctx .bic-card-competition { --mc: #60A5FA; }
+.cc-ctx .bic-card-advertising { --mc: #34D399; }
+.cc-ctx .bic-card-knowledge   { --mc: #F97316; }
+.cc-ctx .bic-card {
+  cursor: pointer;
+  background: linear-gradient(140deg, color-mix(in srgb, var(--mc) 15%, #0d0e0c) 0%, color-mix(in srgb, var(--mc) 6%, #0d0e0c) 100%);
+  border: 1px solid color-mix(in srgb, var(--mc) 34%, transparent);
+  border-top-width: 1px;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.cc-ctx .bic-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--mc) 72%, transparent);
+  background: linear-gradient(140deg, color-mix(in srgb, var(--mc) 21%, #0d0e0c) 0%, color-mix(in srgb, var(--mc) 9%, #0d0e0c) 100%);
+  box-shadow: 0 10px 26px -8px color-mix(in srgb, var(--mc) 40%, transparent);
+}
+.cc-ctx .bic-card:active { transform: translateY(0); }
+.cc-ctx .bic-card:focus-visible { outline: 2px solid var(--mc); outline-offset: 2px; }
+.cc-ctx .bic-card-icon { width: 30px; height: 30px; padding: 6px; border-radius: 9px; opacity: 1; color: var(--mc); background: color-mix(in srgb, var(--mc) 18%, transparent); box-sizing: border-box; }
+.cc-ctx .bic-card-label { font-size: 12.5px; font-weight: 700; letter-spacing: .05em; color: #F5F5F0; }
+.cc-ctx .bic-card-line { color: rgba(242, 242, 238, .74); }
+.cc-ctx .bic-card-empty .bic-card-line { color: rgba(242, 242, 238, .58); }
+.cc-ctx .bic-card-chevron { width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center; color: var(--mc); background: color-mix(in srgb, var(--mc) 14%, transparent); transition: transform .16s ease, background .16s ease; }
+.cc-ctx .bic-card:hover .bic-card-chevron { color: #0A0A0A; background: var(--mc); transform: translateX(2px); }
+.cc-ctx .bic-card-top { gap: 10px; }
+.cc-sec-hd p { display: block; margin: 0; font-size: 12px; color: rgba(242, 242, 238, .6); }
+/* Advertising: real per-platform status on the card itself. */
+.bic-card-plats { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: rgba(242, 242, 238, .78); }
+.bic-plat-chip { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.bic-plat-chip i { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.bic-plat-on i { background: #34D399; }
+.bic-plat-off i { border: 1.5px solid rgba(242, 242, 238, .45); }
+.bic-plat-off { color: rgba(242, 242, 238, .55); }
+.bic-plat-unknown i { border: 1.5px dashed rgba(242, 242, 238, .4); }
+.bic-plat-unknown { color: rgba(242, 242, 238, .5); }
+.bic-plat-status.bic-plat-unknown { opacity: .7; }
+@media (prefers-reduced-motion: reduce) {
+  .cc-ctx .bic-card, .cc-ctx .bic-card-chevron { transition: none; }
+  .cc-ctx .bic-card:hover, .cc-ctx .bic-card:hover .bic-card-chevron { transform: none; }
+}
+
+/* ── Plan entitlements (V10) ──
+   Premium surfaces only for plans that include them (orivenOps.js
+   applyEntitlements; server enforces the same table). */
+body.orv-no-chat #orvAiFab, body.orv-no-chat #orvAiPanel { display: none !important; }
+body.orv-no-notif #orvNotifBell, body.orv-no-notif #orvNotifPanel,
+body.orv-no-notif .smd-ni[data-smd="notifications"], body.orv-no-notif #smdp-notifications { display: none !important; }
+/* Locked workflow steps (Free: Research, Autopilot) stay visible and readable,
+   with a lock badge — never only a colour change. */
+.orv-ni.orv-locked { position: relative; }
+.orv-ni .orv-lock { position: absolute; right: 4px; bottom: 4px; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #2A2B27; color: #E8E8E2; box-shadow: 0 0 0 1.5px #0A0A0A; pointer-events: none; }
+.orv-mob-drawer .orv-ni .orv-lock { position: static; width: auto; height: auto; padding: 2px 7px; margin-left: 8px; border-radius: 999px; box-shadow: none; font-size: 10.5px; }
+.orv-mob-drawer .orv-ni .orv-lock::after { content: 'Starter'; margin-left: 4px; font-weight: 600; letter-spacing: .01em; }
+/* In-page upgrade state (replaces the page's tools on Free). */
+.page.orv-gated > :not(.orv-gate) { display: none !important; }
+.page.orv-gated { display: none; }
+.page.orv-gated.active { display: flex !important; flex-direction: column; justify-content: center; min-height: 100%; }
+.orv-gate { width: 100%; padding: clamp(24px, 6vh, 72px) 16px; box-sizing: border-box; display: flex; justify-content: center; }
+.orv-gate-card { width: 100%; max-width: 560px; padding: 28px 28px 24px; border-radius: var(--orv-card-r, 16px); border: 1px solid rgba(255, 255, 255, .09); background: linear-gradient(160deg, rgba(182, 255, 59, .06), rgba(255, 255, 255, .015) 60%); color: #F2F2EE; }
+.orv-gate-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.orv-gate-step { color: #B6FF3B; }
+.orv-gate-lock { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; background: rgba(255, 255, 255, .07); color: #E8E8E2; letter-spacing: .04em; }
+.orv-gate-title { margin: 0 0 8px; font-size: var(--orv-title-size, 26px); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; color: #fff; }
+.orv-gate-lead { margin: 0 0 10px; font-size: 15px; line-height: 1.5; color: rgba(242, 242, 238, .86); }
+.orv-gate-text { margin: 0 0 20px; font-size: 13.5px; line-height: 1.55; color: rgba(242, 242, 238, .7); }
+.orv-gate-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; }
+.orv-gate-btn { min-height: 40px; padding: 0 18px; border-radius: 10px; border: 0; background: #B6FF3B; color: #0A0A0A; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.orv-gate-btn:hover { background: #C8FF6A; }
+.orv-gate-btn:focus-visible { outline: 2px solid #B6FF3B; outline-offset: 3px; }
+.orv-gate-price { font-size: 12.5px; color: rgba(242, 242, 238, .62); font-variant-numeric: tabular-nums; }
+/* Settings plan cards: shared feature notes and excluded items. */
+.sub-pcard-note { display: block; font-size: 10.5px; line-height: 1.35; opacity: .75; margin-top: 1px; }
+.sub-pcard-feats li.sub-pcard-feat-off { opacity: .62; text-decoration: line-through; text-decoration-thickness: 1px; }
+.ov-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

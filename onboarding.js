@@ -224,10 +224,10 @@ function _ob2ShowPlanStep(){
 function _ob2EntitlementNote(goalId){
   try {
     if(goalId === "research"){
-      return "Research is available with Creator and Professional.";
+      return "Research is available from Starter, as part of the complete workflow.";
     }
     if(goalId === "autopilot"){
-      return "Autopilot is available with Professional.";
+      return "Autopilot is available from Starter, as part of the complete workflow.";
     }
   } catch(_){}
   return null;

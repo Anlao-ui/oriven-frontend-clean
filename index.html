@@ -1099,15 +1099,19 @@
 
     <div class="ov-workspace" data-observe>
       <div class="ov-ws-rail" role="tablist" aria-label="Oriven product films">
-        <!-- Final polish pass: film selector order is intentionally
-             Create, Research, Launch, Campaigns, Autopilot, Business. -->
-        <button type="button" class="ov-ws-tab ov-ws-tab-active" data-cap="create" aria-selected="true" role="tab">
-          <svg class="ov-ws-tab-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>
-          <span>Create</span>
+        <!-- Film selector follows the six-step workflow: 01 Control Center,
+             02 Research, 03 Create, 04 Launch, 05 Campaigns, 06 Autopilot. -->
+        <button type="button" class="ov-ws-tab ov-ws-tab-active" data-cap="business" aria-selected="true" role="tab">
+          <svg class="ov-ws-tab-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          <span>Control Center</span>
         </button>
         <button type="button" class="ov-ws-tab" data-cap="research" aria-selected="false" role="tab">
           <svg class="ov-ws-tab-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/></svg>
           <span>Research</span>
+        </button>
+        <button type="button" class="ov-ws-tab" data-cap="create" aria-selected="false" role="tab">
+          <svg class="ov-ws-tab-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>
+          <span>Create</span>
         </button>
         <button type="button" class="ov-ws-tab" data-cap="launch" aria-selected="false" role="tab">
           <svg class="ov-ws-tab-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M12 3l4 4M12 3L8 7"/><path d="M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3"/></svg>
@@ -1121,10 +1125,6 @@
           <svg class="ov-ws-tab-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="4.5"/></svg>
           <span>Autopilot</span>
         </button>
-        <button type="button" class="ov-ws-tab" data-cap="business" aria-selected="false" role="tab">
-          <svg class="ov-ws-tab-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-          <span>Control Center</span>
-        </button>
       </div>
 
       <div class="ov-ws-panel">
@@ -1134,7 +1134,7 @@
              reordering these blocks isn't required for the tab-order
              change above to work correctly. Only the default-active
              panel moved (from Create to Business, matching the rail). -->
-        <div class="ov-ws-content ov-ws-content-active" data-cap="create">
+        <div class="ov-ws-content" data-cap="create">
           <div class="ov-ws-media">
             <video class="ov-ws-video" data-cap="create" muted loop playsinline preload="none"></video>
             <button type="button" class="ov-ws-play" data-cap="create" aria-label="Play Create product demo">
@@ -1209,7 +1209,7 @@
           <p class="ov-ws-panel-desc">Rules that watch your campaigns and act within your limits.</p>
         </div>
 
-        <div class="ov-ws-content" data-cap="business">
+        <div class="ov-ws-content ov-ws-content-active" data-cap="business">
           <div class="ov-ws-media">
             <video class="ov-ws-video" data-cap="business" muted loop playsinline preload="none"></video>
             <button type="button" class="ov-ws-play" data-cap="business" aria-label="Play Control Center product demo">
@@ -1354,12 +1354,12 @@
     <div class="ov-faq-list">
       <div class="ov-faq" data-observe><button type="button" class="ov-faq-q" id="ov-faq-question-1" aria-expanded="false" aria-controls="ov-faq-answer-1" onclick="ovLandingFaq(this)"><span>What does Oriven do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-1" role="region" aria-labelledby="ov-faq-question-1" inert>Oriven is one workspace for advertising, in six steps: Control Center for what is happening, what needs you and what is planned, with your business context; Research to investigate a market; Create to build platform-ready ads; Launch to review and publish them; Campaigns to follow performance; and Autopilot for rules that act within your limits.</div></div>
       <div class="ov-faq" data-observe style="transition-delay:.06s"><button type="button" class="ov-faq-q" id="ov-faq-question-2" aria-expanded="false" aria-controls="ov-faq-answer-2" onclick="ovLandingFaq(this)"><span>What are credits?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-2" role="region" aria-labelledby="ov-faq-question-2" inert>Credits are Oriven's shared monthly usage balance. A complete image ad costs 100 credits, a video ad 225, a chat message 5. They're spent from one pool across every usage-based feature, not a separate allowance per feature.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.12s"><button type="button" class="ov-faq-q" id="ov-faq-question-3" aria-expanded="false" aria-controls="ov-faq-answer-3" onclick="ovLandingFaq(this)"><span>How many ads can I create?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-3" role="region" aria-labelledby="ov-faq-question-3" inert>It depends on your plan and how you split your credits. Starter's 1.000 credits/month is enough for roughly 10 image ads or 4 video ads if used entirely on one type. More if you mix in chat, Research or other usage. There's no separate ad limit beyond your credit balance.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.18s"><button type="button" class="ov-faq-q" id="ov-faq-question-4" aria-expanded="false" aria-controls="ov-faq-answer-4" onclick="ovLandingFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-4" role="region" aria-labelledby="ov-faq-question-4" inert>Starter covers ad creation, campaign management and Control Center. Creator adds Research. Professional adds Autopilot and Priority Support. <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing &rarr;</a></div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.12s"><button type="button" class="ov-faq-q" id="ov-faq-question-3" aria-expanded="false" aria-controls="ov-faq-answer-3" onclick="ovLandingFaq(this)"><span>How many ads can I create?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-3" role="region" aria-labelledby="ov-faq-question-3" inert>It depends on your plan and how you split your credits. Starter's 1.000 credits/month is enough for roughly 10 image ads or 4 video ads if used entirely on one type. Fewer if you also spend credits on Research or other usage. There's no separate ad limit beyond your credit balance.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.18s"><button type="button" class="ov-faq-q" id="ov-faq-question-4" aria-expanded="false" aria-controls="ov-faq-answer-4" onclick="ovLandingFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-4" role="region" aria-labelledby="ov-faq-question-4" inert>Free covers Control Center, Create, Launch and Campaigns. Starter adds Research and Autopilot: the complete workflow. Creator adds Oriven Chat. Professional adds notifications and Priority Support. <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing &rarr;</a></div></div>
       <div class="ov-faq" data-observe style="transition-delay:.24s"><button type="button" class="ov-faq-q" id="ov-faq-question-5" aria-expanded="false" aria-controls="ov-faq-answer-5" onclick="ovLandingFaq(this)"><span>Which advertising platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-5" role="region" aria-labelledby="ov-faq-question-5" inert>Google Ads, Meta Ads (Facebook &amp; Instagram), TikTok Ads, and Pinterest Ads. Every integration uses OAuth. You never share your passwords with Oriven, and we never store your credentials.</div></div>
       <div class="ov-faq" data-observe style="transition-delay:.30s"><button type="button" class="ov-faq-q" id="ov-faq-question-6" aria-expanded="false" aria-controls="ov-faq-answer-6" onclick="ovLandingFaq(this)"><span>Can I connect my existing ad accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-6" role="region" aria-labelledby="ov-faq-question-6" inert>Yes. Connect your existing Google Ads, Meta Ads, TikTok Ads or Pinterest Ads accounts and manage the campaigns already running on them from Oriven. You don't need to start from scratch.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.36s"><button type="button" class="ov-faq-q" id="ov-faq-question-7" aria-expanded="false" aria-controls="ov-faq-answer-7" onclick="ovLandingFaq(this)"><span>How does Research work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-7" role="region" aria-labelledby="ov-faq-question-7" inert>Research helps you understand what's working in advertising outside your own campaigns: creative approaches, messaging patterns, competitor context and trends. Every answer shows its real sources and uses calibrated language, so you always know what's an observed pattern versus a guess, never an invented result. Included on Creator and Professional.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.42s"><button type="button" class="ov-faq-q" id="ov-faq-question-8" aria-expanded="false" aria-controls="ov-faq-answer-8" onclick="ovLandingFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-8" role="region" aria-labelledby="ov-faq-question-8" inert>Autopilot lets you set rules on your Meta and Google campaigns, like "if CPA exceeds &euro;25, reduce budget by 15%", and either asks for your approval or acts within the limits you set. Included on Professional.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.36s"><button type="button" class="ov-faq-q" id="ov-faq-question-7" aria-expanded="false" aria-controls="ov-faq-answer-7" onclick="ovLandingFaq(this)"><span>How does Research work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-7" role="region" aria-labelledby="ov-faq-question-7" inert>Research helps you understand what's working in advertising outside your own campaigns: creative approaches, messaging patterns, competitor context and trends. Every answer shows its real sources and uses calibrated language, so you always know what's an observed pattern versus a guess, never an invented result. Included from Starter.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.42s"><button type="button" class="ov-faq-q" id="ov-faq-question-8" aria-expanded="false" aria-controls="ov-faq-answer-8" onclick="ovLandingFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-8" role="region" aria-labelledby="ov-faq-question-8" inert>Autopilot lets you set rules on your Meta and Google campaigns, like "if CPA exceeds &euro;25, reduce budget by 15%", and either asks for your approval or acts within the limits you set. Included from Starter.</div></div>
       <div class="ov-faq" data-observe style="transition-delay:.48s"><button type="button" class="ov-faq-q" id="ov-faq-question-9" aria-expanded="false" aria-controls="ov-faq-answer-9" onclick="ovLandingFaq(this)"><span>How does signup work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-9" role="region" aria-labelledby="ov-faq-question-9" inert>You can start creating without a credit card, and your first full campaign generation is free before you need to choose a plan. Cancel anytime once you're subscribed.</div></div>
       <div class="ov-faq" data-observe style="transition-delay:.54s"><button type="button" class="ov-faq-q" id="ov-faq-question-10" aria-expanded="false" aria-controls="ov-faq-answer-10" onclick="ovLandingFaq(this)"><span>Can experienced advertisers still control campaigns directly?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-10" role="region" aria-labelledby="ov-faq-question-10" inert>Yes. Autopilot only acts on rules you explicitly set, like a CPA threshold, and every module stays manually editable at any time. Nothing runs on its own without a rule behind it.</div></div>
     </div>
@@ -3198,7 +3198,7 @@
   <section class="ov-sp-cta">
     <div class="ov-sp-cta-inner">
       <h2 class="ov-sp-cta-h">Set the rules once.<br>Let Autopilot handle it.</h2>
-      <p class="ov-sp-cta-sub">Available on the Professional plan.</p>
+      <p class="ov-sp-cta-sub">Included from the Starter plan.</p>
       <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
     </div>
   </section>
@@ -3401,12 +3401,12 @@
       <div class="ov-faq-list" style="width:100%;">
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What does Oriven do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven is one workspace for advertising, in six steps: Control Center for what is happening, what needs you and what is planned, with your business context; Research to investigate a market; Create to build platform-ready ads; Launch to review and publish them; Campaigns to follow performance; and Autopilot for rules that act within your limits.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What are credits?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Credits are Oriven's shared monthly usage balance. A complete image ad costs 100 credits, a video ad 225, a chat message 5. They're spent from one pool across every usage-based feature, not a separate allowance per feature.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How many ads can I create?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">It depends on your plan and how you split your credits. Starter's 1.000 credits/month is enough for roughly 10 image ads or 4 video ads if used entirely on one type. More if you mix in chat, Research or other usage. There's no separate ad limit beyond your credit balance.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Starter covers ad creation, campaign management and Control Center. Creator adds Research. Professional adds Autopilot and Priority Support. <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing &rarr;</a></div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How many ads can I create?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">It depends on your plan and how you split your credits. Starter's 1.000 credits/month is enough for roughly 10 image ads or 4 video ads if used entirely on one type. Fewer if you also spend credits on Research or other usage. There's no separate ad limit beyond your credit balance.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Free covers Control Center, Create, Launch and Campaigns. Starter adds Research and Autopilot: the complete workflow. Creator adds Oriven Chat. Professional adds notifications and Priority Support. <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing &rarr;</a></div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which advertising platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Google Ads, Meta Ads (Facebook &amp; Instagram), TikTok Ads, and Pinterest Ads. Every integration uses OAuth. You never share your passwords with Oriven, and we never store your credentials.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I connect my existing ad accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Connect your existing Google Ads, Meta Ads, TikTok Ads or Pinterest Ads accounts and manage the campaigns already running on them from Oriven. You don't need to start from scratch.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does Research work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Research helps you understand what's working in advertising outside your own campaigns: creative approaches, messaging patterns, competitor context and trends. Every answer shows its real sources and uses calibrated language, so you always know what's an observed pattern versus a guess, never an invented result. Included on Creator and Professional.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Autopilot lets you set rules on your Meta and Google campaigns, like "if CPA exceeds &euro;25, reduce budget by 15%", and either asks for your approval or acts within the limits you set. Included on Professional. Every automated action still runs within a rule you explicitly turned on: nothing acts without a rule in place.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does Research work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Research helps you understand what's working in advertising outside your own campaigns: creative approaches, messaging patterns, competitor context and trends. Every answer shows its real sources and uses calibrated language, so you always know what's an observed pattern versus a guess, never an invented result. Included from Starter.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Autopilot lets you set rules on your Meta and Google campaigns, like "if CPA exceeds &euro;25, reduce budget by 15%", and either asks for your approval or acts within the limits you set. Included from Starter. Every automated action still runs within a rule you explicitly turned on: nothing acts without a rule in place.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Control Center?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Control Center is where you start: what is happening in your advertising, what needs you, what is planned next, and your business profile and Brand Identity (voice, positioning and product context), so every campaign, ad and piece of copy sounds like your brand.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What does connecting an ad account do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Connecting an account (via OAuth, so Oriven never sees your password) lets Oriven pull real campaign, spend and performance data from that platform and publish campaigns you create back to it, all from one workspace instead of switching platforms.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Is Oriven replacing Google, Meta, TikTok or Pinterest?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. Your campaigns still run on each platform's own ad system. Oriven connects to your existing accounts and brings the research, creative, launch, campaign management and optimization work into one workspace on top of them.</div></div>
@@ -3459,7 +3459,7 @@
     <div class="ov-sp-section-inner ov-pricing-fold-wide">
       <h1 class="ov-eyebrow ov-pricing-fold-eyebrow">Simple pricing</h1>
       <div class="ov-pricing-grid-4" id="lpPricingGrid"></div>
-      <p class="ov-pricing-compare-note">Every card lists the same features in the same order, so you can compare plans side by side above.</p>
+      <p class="ov-pricing-compare-note">Every plan includes Control Center, Create, Launch and Campaigns. From Starter you get the complete workflow, Research and Autopilot included. Credits are used the same way on every plan.</p>
     </div>
   </section>
 
@@ -5935,25 +5935,20 @@ async function auSignup(){
 
   // Real asset path: C:\files\assets is served at the plain relative path
   // "assets/..." (confirmed by the existing assets/orivenlogo.png
-  // reference elsewhere on this page). Product Films pass — the six real
-  // finished product films, wired to their real on-disk filenames
-  // (spaces URL-encoded). Create intentionally maps to "ORIVEN Launch
-  // Film" and Launch intentionally maps to "ORIVEN Launch Control Film"
-  // — verified against the real filenames on disk, not assumed from
-  // naming; do not "fix" this pairing, it is correct as specified.
+  // reference elsewhere on this page). One film per workflow step; the
+  // data-cap keys match the tabs above ("business" is Control Center).
   var OV_WS_VIDEOS = {
-    // Second visual polish pass: five new real films recorded read-only from
-    // the live product (1600x900 H.264). Launch keeps its earlier film until
-    // the account has a real campaign to show in Launch Control.
+    // Six product films, one per workflow step, recorded from the current
+    // app with fictional local demo data (1600x900 H.264, 30 fps, muted loops).
+    business: 'assets/film-control-center.mp4',
     research: 'assets/film-research.mp4',
     create: 'assets/film-create.mp4',
-    launch: 'assets/ORIVEN%20Launch%20Control%20Film.mp4',
+    launch: 'assets/film-launch.mp4',
     campaigns: 'assets/film-campaigns.mp4',
-    autopilot: 'assets/film-autopilot.mp4',
-    business: 'assets/film-business.mp4'
+    autopilot: 'assets/film-autopilot.mp4'
   };
   var videoState = {}; // cap -> 'loading' | 'ready' | 'missing' (absent = not checked yet)
-  var activeCap = 'create'; // Landing Page Refinement pass — Business is now tab #1/default active
+  var activeCap = 'business'; // 01 Control Center is the first and default film
   var reducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var sectionVisible = false; // real IntersectionObserver state, set below — never assumed true
 

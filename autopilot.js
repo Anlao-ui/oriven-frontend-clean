@@ -1015,7 +1015,7 @@ function apShowRuleDetail(id) {
     row('OBSERVATION WINDOW', 'Last 7 days of real campaign performance') +
     row('THEN', _apOpEsc(thenText)) +
     row('MODE', '<span class="ap-modebadge ' + modeBadge.cls + '">' + modeBadge.label + '</span>') +
-    row('LIMITS', 'At most once per day · Professional plan only · ' + (typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.autopilot : 25) + ' credits per execution') +
+    row('LIMITS', 'At most once per day · Starter plan and up · ' + (typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.autopilot : 25) + ' credits per execution') +
     lastEventBlock +
     '<div class="ap-rd-actions">' +
       '<button class="oi-card-btn" onclick="apCloseRuleDetail();apActiveEdit(\'' + r.id + '\')">' + _apT('apEditAutomationBtn', 'Edit automation') + '</button>' +

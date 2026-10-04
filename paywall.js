@@ -111,18 +111,22 @@ var _LIMIT_MSGS = {
     sub:     "Upgrade to access up to 365 days of brand intelligence history.",
     upgrade: "professional"
   },
-  // Autopilot's real plan gate is Professional-only (creditManager.
-  // PLAN_AUTOPILOT_LIMITS: free/starter/creator all 0, professional
-  // Infinity — Creator never had Autopilot at the time this copy was
-  // last correct; enforced both here and server-side, requireAutopilotAccess).
-  // This message previously said "Creator or higher" / upgrade:"creator",
-  // which would have sent a paying Creator user through checkout only to
-  // still be blocked by the real 403 on every /api/autopilot/* route —
-  // corrected to match the actual gate, not just reworded.
+  // V10 entitlements (plans.js / server planEntitlements.js): Research and
+  // Autopilot are included from Starter, Oriven Chat from Creator.
   autopilot: {
-    title:   "Autopilot requires the Professional plan.",
-    sub:     "Upgrade to automate the rules you define — ORIVEN watches real campaign data and acts on your conditions.",
-    upgrade: "professional"
+    title:   "Autopilot is available from Starter.",
+    sub:     "Starter includes the complete OrivenAI workflow, from Control Center to Autopilot.",
+    upgrade: "starter"
+  },
+  research: {
+    title:   "Research is available from Starter.",
+    sub:     "Starter includes the complete OrivenAI workflow, from Control Center to Autopilot.",
+    upgrade: "starter"
+  },
+  chat: {
+    title:   "Oriven Chat is available from Creator.",
+    sub:     "Creator adds Oriven Chat to the complete advertising workflow.",
+    upgrade: "creator"
   },
   autopilot_creator: {
     title:   "Autopilot execution limit reached.",
