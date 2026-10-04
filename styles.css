@@ -41918,7 +41918,10 @@ body:not(.dark-mode) .cr2-stage-shelf { border-top-color: rgba(0,0,0,.06); }
    than an instant hard swap — still well under the 150-300ms ceiling. */
 .cr2-stage-frame, .cr2-stage-img { transition: opacity .2s ease; }
 
-@media (max-width: 1280px) {
+/* Stacks only where composer (min ~520px) + Stage (~400px) genuinely no
+   longer fit side by side. Was 1280px, which stacked them on 1280px laptops
+   (1148px of content) and pushed the Stage ~650px down the page. */
+@media (max-width: 1180px) {
   .cr2-workspace-row { flex-direction: column; }
   /* flex: none overrides the desktop-only "flex: 1 1 560px" (.cr2-box's
      rule above, meant as a WIDTH basis for the row-direction desktop

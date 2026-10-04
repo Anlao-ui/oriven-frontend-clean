@@ -25,9 +25,9 @@
    ════════════════════════════════════════════════════════════════ */
 
 // Stable IDs, same values as the sidebar's data-orv-page + the new
-// profiles.primary_goal column (server.js ONBOARDING_GOALS) — and the same
-// order as the real sidebar nav (Create → Research → Launch → Campaigns →
-// Autopilot → Business), not the landing page ring's different ordering.
+// profiles.primary_goal column (server.js ONBOARDING_GOALS). The order is
+// the validated goal order; the sidebar itself runs Control Center (the
+// "business" goal) → Research → Create → Launch → Campaigns → Autopilot.
 var OB2_GOALS = [
   { id: "create", name: "Create", desc: "Create advertising creative and campaign assets.",
     icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M13 8l-3-3M13 8l-3 3"/></svg>' },
@@ -39,7 +39,7 @@ var OB2_GOALS = [
     icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="10" height="11" rx="1.5"/><path d="M6 7h4M6 9.5h4M6 12h2.5"/></svg>' },
   { id: "autopilot", name: "Autopilot", desc: "Automate the advertising rules you define.",
     icon: '<svg viewBox="0 0 16 16" fill="currentColor" stroke="none"><path d="M8.8 1L3.6 9.2h3.5L6.2 15l6.2-8.7H9.1L8.8 1z"/></svg>' },
-  { id: "business", name: "Business", desc: "Build ORIVEN's understanding of your business.",
+  { id: "business", name: "Control Center", desc: "Your business context, advertising overview and plan in one place.",
     icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2C5.5 2 3.5 4 3.5 6.3c0 1.4.7 2.6 1.7 3.4v1.8h5.6v-1.8c1-.8 1.7-2 1.7-3.4C12.5 4 10.5 2 8 2z"/><path d="M6.5 14h3"/></svg>' }
 ];
 

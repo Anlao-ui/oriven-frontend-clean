@@ -513,6 +513,9 @@
 #view-landing .ov-ccc-chip { left:calc(var(--x)/560*100%); top:calc(var(--y)/440*100%); width:calc(160/560*100%); height:calc(44/440*100%); display:flex; align-items:center; justify-content:space-between; gap:6px; padding:0 12px; border:1px solid #ffffff24; border-radius:7px; background:#0d0f0cf0; color:#eeefe8; font-size:clamp(10px,2.3cqi,13px); font-weight:600; opacity:0; }
 #view-landing .ov-ccc-chip i { font-style:normal; font-size:clamp(7px,1.5cqi,9px); letter-spacing:.12em; text-transform:uppercase; color:#8f9189; }
 #view-landing .ov-ccc-chip[data-src="research"] i { color:var(--ov-lime); }
+/* "Control Center" is a longer source tag than the old "Business": on narrow
+   screens it sits under the item name instead of wrapping inside the chip. */
+@media (max-width:820px) { #view-landing .ov-ccc-chip[data-src="business"] { flex-direction:column; align-items:flex-start; justify-content:center; gap:1px; } #view-landing .ov-ccc-chip[data-src="business"] i { letter-spacing:.08em; white-space:nowrap; } }
 #view-landing .ov-ccc-card, #view-landing .ov-ccc-panel { left:calc(90/560*100%); top:calc(70/440*100%); width:calc(300/560*100%); border:1px solid #ffffff2b; border-radius:12px; background:#0c0e0b; padding:14px; box-shadow:0 30px 70px #0008; font-size:clamp(9px,1.9cqi,11px); color:#cfd1c8; }
 #view-landing .ov-ccc-card { opacity:0; }
 #view-landing .ov-ccc-panel { left:calc(30/560*100%); top:calc(100/440*100%); }
@@ -754,8 +757,8 @@
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a4.5 4.5 0 00-2.5 8.25c.4.28.5.6.5 1.05v.7h4v-.7c0-.45.1-.77.5-1.05A4.5 4.5 0 008 1.5z" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linejoin="round"/><line x1="6.5" y1="14" x2="9.5" y2="14" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linecap="round"/></svg>
               </span>
               <span>
-                <span class="lp-dd-item-name">Business</span>
-                <span class="lp-dd-item-desc">Give Oriven the context behind your brand and business.</span>
+                <span class="lp-dd-item-name">Control Center</span>
+                <span class="lp-dd-item-desc">What is happening, what needs you, what is planned, and the business context behind it.</span>
               </span>
             </a>
 
@@ -765,7 +768,7 @@
               </span>
               <span>
                 <span class="lp-dd-item-name">Research</span>
-                <span class="lp-dd-item-desc">Find creative, messaging and market patterns.</span>
+                <span class="lp-dd-item-desc">Investigate markets, competitors, audiences and opportunities.</span>
               </span>
             </a>
 
@@ -785,7 +788,7 @@
               </span>
               <span>
                 <span class="lp-dd-item-name">Launch</span>
-                <span class="lp-dd-item-desc">Create and publish ads.</span>
+                <span class="lp-dd-item-desc">Review readiness and launch to your connected platforms.</span>
               </span>
             </a>
 
@@ -795,7 +798,7 @@
               </span>
               <span>
                 <span class="lp-dd-item-name">Campaigns</span>
-                <span class="lp-dd-item-desc">Bring every connected campaign back into one place.</span>
+                <span class="lp-dd-item-desc">Spend, delivery, traffic and conversions across your platforms.</span>
               </span>
             </a>
 
@@ -805,7 +808,7 @@
               </span>
               <span>
                 <span class="lp-dd-item-name">Autopilot</span>
-                <span class="lp-dd-item-desc">Watch performance and act on the rules you set.</span>
+                <span class="lp-dd-item-desc">Rules that watch your campaigns and act within your limits.</span>
               </span>
             </a>
           </div>
@@ -917,7 +920,7 @@
         <a href="/product/tiktok-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">TikTok Ads</a>
         <a href="/product/pinterest-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">Pinterest Ads</a>
         <div class="lp-mm-cat">Products</div>
-        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Business</a>
+        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Control Center</a>
         <a href="/research" class="lp-mm-dd-link" onclick="lpCloseMm()">Research</a>
         <a href="/create" class="lp-mm-dd-link" onclick="lpCloseMm()">Create</a>
         <a href="/launch" class="lp-mm-dd-link" onclick="lpCloseMm()">Launch</a>
@@ -1080,9 +1083,9 @@
  <div class="ov-system-stage">
   <div class="ov-system-heading"><span class="ov-section-eyebrow">The Oriven system</span><h2 id="ov-system-title">Six parts.<br> One workflow.</h2><p>Every part moves the next one forward.</p></div>
   <div class="ov-system-visual" aria-hidden="true"><div class="ov-system-guides"></div><div class="ov-system-camera"><svg class="ov-brand-ring ov-system-ring" viewBox="244 197 534 585" aria-hidden="true"><path class="ov-ring-piece" data-piece="0" d="M546.00 217.00C547.88 216.80 556.13 217.67 561.00 219.00C565.87 220.33 572.85 224.10 579.00 226.00C585.15 227.90 635.85 242.10 642.00 244.00C648.15 245.90 654.21 248.19 660.00 251.00C665.79 253.81 672.85 257.89 677.00 261.00C681.15 264.11 685.25 267.60 688.00 272.00C690.75 276.40 701.42 296.31 707.00 309.00C712.58 321.69 741.61 393.24 743.00 397.00C744.39 400.76 745.76 405.87 744.00 409.00C742.24 412.13 737.55 412.46 734.00 413.00C730.45 413.54 702.13 415.39 691.00 417.00C679.87 418.61 661.29 423.39 658.00 424.00C654.71 424.61 650.10 425.13 648.00 425.00C645.90 424.87 643.70 424.24 642.00 423.00C640.30 421.76 638.19 419.31 637.00 417.00C635.81 414.69 610.34 361.66 610.00 361.00C609.66 360.34 608.34 360.66 608.00 360.00C607.66 359.34 598.34 338.66 598.00 338.00C597.66 337.34 596.34 337.66 596.00 337.00C595.66 336.34 547.59 241.22 546.00 238.00C544.41 234.78 542.53 230.27 542.00 228.00C541.47 225.73 541.36 222.77 542.00 221.00C542.64 219.23 544.12 217.20 546.00 217.00Z"/><path class="ov-ring-piece" data-piece="1" d="M735.00 426.00C739.05 425.79 744.64 426.89 747.00 428.00C749.36 429.11 750.94 432.18 752.00 434.00C753.06 435.82 753.66 437.92 754.00 440.00C754.34 442.08 757.67 460.59 758.00 471.00C758.33 481.41 757.67 524.22 757.00 535.00C756.33 545.78 754.55 556.51 752.00 567.00C749.45 577.49 742.07 599.41 740.00 605.00C737.93 610.59 734.16 617.62 732.00 621.00C729.84 624.38 727.26 628.29 724.00 630.00C720.74 631.71 716.56 631.94 713.00 631.00C709.44 630.06 695.18 623.19 686.00 620.00C676.82 616.81 647.38 608.26 644.00 607.00C640.62 605.74 636.14 602.26 635.00 601.00C633.86 599.74 633.42 597.60 634.00 596.00C634.58 594.40 644.11 576.07 647.00 568.00C649.89 559.93 651.90 548.94 653.00 543.00C654.10 537.06 655.00 531.04 655.00 525.00C655.00 518.96 653.00 462.11 653.00 460.00C653.00 457.89 653.70 455.66 655.00 454.00C656.30 452.34 660.64 448.19 664.00 446.00C667.36 443.81 673.08 440.75 678.00 439.00C682.92 437.25 700.45 431.95 709.00 430.00C717.55 428.05 730.95 426.21 735.00 426.00Z"/><path class="ov-ring-piece" data-piece="2" d="M616.00 616.00C618.63 615.45 624.04 615.41 628.00 616.00C631.96 616.59 638.04 618.52 643.00 620.00C647.96 621.48 674.11 629.69 675.00 630.00C675.89 630.31 676.11 631.70 677.00 632.00C677.89 632.30 679.74 631.56 681.00 632.00C682.26 632.44 712.08 644.07 714.00 645.00C715.92 645.93 717.46 648.78 718.00 650.00C718.54 651.22 718.57 652.79 718.00 654.00C717.43 655.21 713.35 663.17 710.00 667.00C706.65 670.83 683.49 693.55 683.00 694.00C682.51 694.45 681.53 693.60 681.00 694.00C680.47 694.40 664.05 708.50 662.00 710.00C659.95 711.50 657.15 711.64 655.00 713.00C652.85 714.36 647.33 719.50 643.00 722.00C638.67 724.50 621.34 734.05 610.00 739.00C598.66 743.95 580.49 750.35 572.00 753.00C563.51 755.65 553.93 757.57 546.00 759.00C538.07 760.43 527.65 761.59 522.00 762.00C516.35 762.41 506.79 762.16 505.00 762.00C503.21 761.84 501.49 761.00 500.00 760.00C498.51 759.00 497.02 757.59 496.00 756.00C494.98 754.41 492.50 749.41 491.00 746.00C489.50 742.59 474.80 707.95 474.00 706.00C473.20 704.05 472.12 702.10 472.00 700.00C471.88 697.90 471.72 691.56 473.00 689.00C474.28 686.44 477.26 684.86 480.00 684.00C482.74 683.14 497.86 680.86 505.00 679.00C512.14 677.14 519.15 674.74 526.00 672.00C532.85 669.26 545.65 663.98 555.00 659.00C564.35 654.02 583.91 641.79 588.00 639.00C592.09 636.21 598.47 629.41 599.00 629.00C599.53 628.59 600.50 629.45 601.00 629.00C601.50 628.55 606.97 621.76 609.00 620.00C611.03 618.24 613.37 616.55 616.00 616.00Z"/><path class="ov-ring-piece" data-piece="3" d="M387.00 612.00C389.20 611.22 392.39 611.56 394.00 612.00C395.61 612.44 397.04 613.64 398.00 615.00C398.96 616.36 409.62 633.51 411.00 636.00C412.38 638.49 413.64 643.35 414.00 644.00C414.36 644.65 415.65 644.34 416.00 645.00C416.35 645.66 467.17 742.41 468.00 744.00C468.83 745.59 469.70 747.23 470.00 749.00C470.30 750.77 470.20 755.08 470.00 756.00C469.80 756.92 468.92 757.80 468.00 758.00C467.08 758.20 459.07 759.15 456.00 759.00C452.93 758.85 449.95 757.84 447.00 757.00C444.05 756.16 434.18 753.44 428.00 751.00C421.82 748.56 399.67 738.33 399.00 738.00C398.33 737.67 398.65 736.37 398.00 736.00C397.35 735.63 384.35 729.90 378.00 726.00C371.65 722.10 361.49 715.33 354.00 709.00C346.51 702.67 334.28 689.57 333.00 688.00C331.72 686.43 331.58 683.98 332.00 682.00C332.42 680.02 334.19 676.37 336.00 674.00C337.81 671.63 344.40 665.67 348.00 661.00C351.60 656.33 378.21 619.24 380.00 617.00C381.79 614.76 384.80 612.78 387.00 612.00Z"/><path class="ov-ring-piece" data-piece="4" d="M275.00 411.00C276.85 410.63 286.58 410.54 291.00 411.00C295.42 411.46 299.73 412.75 304.00 414.00C308.27 415.25 318.49 418.40 325.00 421.00C331.51 423.60 339.41 427.42 344.00 430.00C348.59 432.58 353.02 435.68 357.00 439.00C360.98 442.32 365.16 445.66 368.00 450.00C370.84 454.34 374.78 462.81 376.00 468.00C377.22 473.19 376.23 481.26 376.00 484.00C375.77 486.74 375.27 489.56 374.00 492.00C372.73 494.44 367.27 503.78 363.00 509.00C358.73 514.22 349.47 521.82 347.00 525.00C344.53 528.18 342.85 532.09 342.00 536.00C341.15 539.91 341.77 545.90 342.00 548.00C342.23 550.10 342.92 552.19 344.00 554.00C345.08 555.81 348.70 560.85 351.00 563.00C353.30 565.15 356.59 565.97 359.00 568.00C361.41 570.03 368.15 576.66 370.00 579.00C371.85 581.34 373.40 584.75 374.00 587.00C374.60 589.25 374.57 591.74 374.00 594.00C373.43 596.26 371.86 600.30 370.00 603.00C368.14 605.70 358.80 615.94 354.00 623.00C349.20 630.06 336.70 652.13 334.00 656.00C331.30 659.87 326.83 664.81 324.00 666.00C321.17 667.19 317.65 665.56 315.00 664.00C312.35 662.44 309.19 659.07 307.00 656.00C304.81 652.93 294.95 638.41 290.00 629.00C285.05 619.59 279.78 608.01 276.00 597.00C272.22 585.99 267.26 564.90 266.00 559.00C264.74 553.10 264.00 547.04 264.00 541.00C264.00 534.96 265.28 506.86 266.00 501.00C266.72 495.14 268.93 489.53 271.00 484.00C273.07 478.47 279.84 466.93 281.00 461.00C282.16 455.07 280.54 448.84 279.00 443.00C277.46 437.16 271.73 425.56 271.00 423.00C270.27 420.44 270.40 416.79 271.00 415.00C271.60 413.21 273.15 411.37 275.00 411.00Z"/><path class="ov-ring-piece" data-piece="5" d="M476.00 232.00C481.94 231.18 488.86 231.38 494.00 232.00C499.14 232.62 505.79 234.79 509.00 236.00C512.21 237.21 515.29 238.89 518.00 241.00C520.71 243.11 524.48 246.59 527.00 250.00C529.52 253.41 533.08 258.98 535.00 264.00C536.92 269.02 539.50 280.02 540.00 284.00C540.50 287.98 540.27 292.19 539.00 296.00C537.73 299.81 534.15 307.37 531.00 311.00C527.85 314.63 523.61 317.65 519.00 319.00C514.39 320.35 485.26 324.22 473.00 328.00C460.74 331.78 449.01 337.42 438.00 344.00C426.99 350.58 415.24 359.57 406.00 368.00C396.76 376.43 386.14 391.45 381.00 396.00C375.86 400.55 365.50 404.85 363.00 406.00C360.50 407.15 357.74 407.80 355.00 408.00C352.26 408.20 339.75 408.42 335.00 408.00C330.25 407.58 325.54 406.46 321.00 405.00C316.46 403.54 311.27 401.75 307.00 399.00C302.73 396.25 292.06 387.16 290.00 385.00C287.94 382.84 286.55 378.92 286.00 377.00C285.45 375.08 285.63 372.97 286.00 371.00C286.37 369.03 287.54 364.16 289.00 361.00C290.46 357.84 294.61 350.09 298.00 345.00C301.39 339.91 311.33 326.99 313.00 325.00C314.67 323.01 318.57 320.51 319.00 320.00C319.43 319.49 318.54 318.48 319.00 318.00C319.46 317.52 340.85 295.99 349.00 289.00C357.15 282.01 365.92 275.73 375.00 270.00C384.08 264.27 395.28 257.89 406.00 253.00C416.72 248.11 432.23 242.23 443.00 239.00C453.77 235.77 470.06 232.82 476.00 232.00Z"/></svg></div><span class="ov-system-center">IN ORDER</span></div>
-  <ol class="ov-system-steps"><li class="ov-system-step" id="ov-system-step-0"><span class="ov-system-number">01 / 06 <i></i> Context</span><h3>Business</h3><p>Give Oriven the context behind your business and brand.</p></li><li class="ov-system-step" id="ov-system-step-1"><span class="ov-system-number">02 / 06 <i></i> Intelligence</span><h3>Research</h3><p>Turn context into advertising and market intelligence.</p></li><li class="ov-system-step" id="ov-system-step-2"><span class="ov-system-number">03 / 06 <i></i> Creative</span><h3>Create</h3><p>Turn intelligence and ideas into creatives and campaigns.</p></li><li class="ov-system-step" id="ov-system-step-3"><span class="ov-system-number">04 / 06 <i></i> Campaign</span><h3>Launch</h3><p>Prepare and publish campaigns to your connected advertising platforms.</p></li><li class="ov-system-step" id="ov-system-step-4"><span class="ov-system-number">05 / 06 <i></i> Control</span><h3>Campaigns</h3><p>Bring connected campaigns and performance into one control center.</p></li><li class="ov-system-step" id="ov-system-step-5"><span class="ov-system-number">06 / 06 <i></i> Continuity</span><h3>Autopilot</h3><p>Watch performance and act on the rules you set.</p></li></ol>
+  <ol class="ov-system-steps"><li class="ov-system-step" id="ov-system-step-0"><span class="ov-system-number">01 / 06 <i></i> Context</span><h3>Control Center</h3><p>See what is happening, what needs you and what is planned, with your business context behind it.</p></li><li class="ov-system-step" id="ov-system-step-1"><span class="ov-system-number">02 / 06 <i></i> Intelligence</span><h3>Research</h3><p>Investigate markets, competitors and audiences, and map what you find.</p></li><li class="ov-system-step" id="ov-system-step-2"><span class="ov-system-number">03 / 06 <i></i> Creative</span><h3>Create</h3><p>Turn a brief into platform-ready creative and campaign structure.</p></li><li class="ov-system-step" id="ov-system-step-3"><span class="ov-system-number">04 / 06 <i></i> Campaign</span><h3>Launch</h3><p>Review readiness, fix what blocks a launch, and publish to your platforms.</p></li><li class="ov-system-step" id="ov-system-step-4"><span class="ov-system-number">05 / 06 <i></i> Control</span><h3>Campaigns</h3><p>Follow spend, delivery, traffic and conversions across your platforms.</p></li><li class="ov-system-step" id="ov-system-step-5"><span class="ov-system-number">06 / 06 <i></i> Continuity</span><h3>Autopilot</h3><p>Rules that watch your Meta and Google campaigns and act within your limits.</p></li></ol>
   <div class="ov-system-resolve"><span class="ov-section-eyebrow">Connected from the start</span><p>One system.<br>Your advertising workflow.</p></div>
-  <nav class="ov-system-nav" aria-label="Explore the six-part workflow"><button type="button" data-step="0" aria-label="Explore Business"><span>01</span>Business</button><button type="button" data-step="1" aria-label="Explore Research"><span>02</span>Research</button><button type="button" data-step="2" aria-label="Explore Create"><span>03</span>Create</button><button type="button" data-step="3" aria-label="Explore Launch"><span>04</span>Launch</button><button type="button" data-step="4" aria-label="Explore Campaigns"><span>05</span>Campaigns</button><button type="button" data-step="5" aria-label="Explore Autopilot"><span>06</span>Autopilot</button></nav>
+  <nav class="ov-system-nav" aria-label="Explore the six-part workflow"><button type="button" data-step="0" aria-label="Explore Control Center"><span>01</span>Control Center</button><button type="button" data-step="1" aria-label="Explore Research"><span>02</span>Research</button><button type="button" data-step="2" aria-label="Explore Create"><span>03</span>Create</button><button type="button" data-step="3" aria-label="Explore Launch"><span>04</span>Launch</button><button type="button" data-step="4" aria-label="Explore Campaigns"><span>05</span>Campaigns</button><button type="button" data-step="5" aria-label="Explore Autopilot"><span>06</span>Autopilot</button></nav>
   <a class="ov-system-skip" href="#ov-pillars" onclick="ovNavTo(event,'#ov-pillars')">Continue to the product <span aria-hidden="true">↓</span></a>
  </div>
 </section>
@@ -1120,7 +1123,7 @@
         </button>
         <button type="button" class="ov-ws-tab" data-cap="business" aria-selected="false" role="tab">
           <svg class="ov-ws-tab-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-          <span>Business</span>
+          <span>Control Center</span>
         </button>
       </div>
 
@@ -1143,7 +1146,7 @@
           </div>
           <div class="ov-ws-panel-eyebrow">Creative &amp; copy</div>
           <h3 class="ov-ws-panel-title">Create</h3>
-          <p class="ov-ws-panel-desc">Turn insights into ad creatives, copy and landing pages.</p>
+          <p class="ov-ws-panel-desc">Turn a brief into platform-ready ad creative and copy.</p>
         </div>
 
         <div class="ov-ws-content" data-cap="research">
@@ -1158,7 +1161,7 @@
           </div>
           <div class="ov-ws-panel-eyebrow">Researching &amp; discovering</div>
           <h3 class="ov-ws-panel-title">Research</h3>
-          <p class="ov-ws-panel-desc">Find creative, messaging and market patterns.</p>
+          <p class="ov-ws-panel-desc">Investigate a market and see the evidence behind it.</p>
         </div>
 
         <div class="ov-ws-content" data-cap="launch">
@@ -1173,7 +1176,7 @@
           </div>
           <div class="ov-ws-panel-eyebrow">Publishing</div>
           <h3 class="ov-ws-panel-title">Launch</h3>
-          <p class="ov-ws-panel-desc">Publish ads across every connected platform.</p>
+          <p class="ov-ws-panel-desc">Review readiness and launch to your connected platforms.</p>
         </div>
 
         <div class="ov-ws-content" data-cap="campaigns">
@@ -1188,7 +1191,7 @@
           </div>
           <div class="ov-ws-panel-eyebrow">Managing &amp; measuring</div>
           <h3 class="ov-ws-panel-title">Campaigns</h3>
-          <p class="ov-ws-panel-desc">Bring every connected campaign back into one place.</p>
+          <p class="ov-ws-panel-desc">Follow performance across your connected platforms.</p>
         </div>
 
         <div class="ov-ws-content" data-cap="autopilot">
@@ -1203,13 +1206,13 @@
           </div>
           <div class="ov-ws-panel-eyebrow">Detect, recommend, act</div>
           <h3 class="ov-ws-panel-title">Autopilot</h3>
-          <p class="ov-ws-panel-desc">Watch performance and act on the rules you set.</p>
+          <p class="ov-ws-panel-desc">Rules that watch your campaigns and act within your limits.</p>
         </div>
 
         <div class="ov-ws-content" data-cap="business">
           <div class="ov-ws-media">
             <video class="ov-ws-video" data-cap="business" muted loop playsinline preload="none"></video>
-            <button type="button" class="ov-ws-play" data-cap="business" aria-label="Play Business product demo">
+            <button type="button" class="ov-ws-play" data-cap="business" aria-label="Play Control Center product demo">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </button>
             <div class="ov-ws-empty" aria-hidden="true">
@@ -1217,8 +1220,8 @@
             </div>
           </div>
           <div class="ov-ws-panel-eyebrow">Connecting brand &amp; context</div>
-          <h3 class="ov-ws-panel-title">Business</h3>
-          <p class="ov-ws-panel-desc">Give Oriven the context behind your brand and business.</p>
+          <h3 class="ov-ws-panel-title">Control Center</h3>
+          <p class="ov-ws-panel-desc">The business context behind every plan, ad and recommendation.</p>
         </div>
       </div>
     </div>
@@ -1233,7 +1236,7 @@
       <h2 id="ov-ccc-title"><span data-ccc="0">From context.</span><span data-ccc="1">To campaign.</span><span data-ccc="2">To <em>control.</em></span></h2>
       <div class="ov-workflow-signal" aria-hidden="true"><i></i><b></b></div>
       <ol class="ov-ccc-steps">
-        <li data-ccc="0"><b>Context</b> Business and Research give Oriven the brand, audience, market and competitors behind every ad.</li>
+        <li data-ccc="0"><b>Context</b> Control Center and Research give Oriven the brand, audience, market and competitors behind every ad.</li>
         <li data-ccc="1"><b>Campaign</b> That context becomes the creative, the copy and the campaign structure.</li>
         <li data-ccc="2"><b>Control</b> Once live, every connected platform reports back into one Campaigns view.</li>
       </ol>
@@ -1249,12 +1252,12 @@
         <circle class="ov-ccc-pulse" r="3.2" cx="440" cy="250"/>
         <circle class="ov-ccc-pulse" r="3.2" cx="440" cy="320"/>
       </svg>
-      <div class="ov-ccc-brief"><span>Context</span><span>Business · Research</span></div>
-      <div class="ov-ccc-chip" data-src="business" style="--x:62;--y:112">Brand voice<i>Business</i></div>
+      <div class="ov-ccc-brief"><span>Context</span><span>Control Center · Research</span></div>
+      <div class="ov-ccc-chip" data-src="business" style="--x:62;--y:112">Brand voice<i>Control Center</i></div>
       <div class="ov-ccc-chip" data-src="research" style="--x:238;--y:112">Audience<i>Research</i></div>
-      <div class="ov-ccc-chip" data-src="business" style="--x:62;--y:172">Products<i>Business</i></div>
+      <div class="ov-ccc-chip" data-src="business" style="--x:62;--y:172">Products<i>Control Center</i></div>
       <div class="ov-ccc-chip" data-src="research" style="--x:238;--y:172">Competitors<i>Research</i></div>
-      <div class="ov-ccc-chip" data-src="business" style="--x:62;--y:232">Positioning<i>Business</i></div>
+      <div class="ov-ccc-chip" data-src="business" style="--x:62;--y:232">Positioning<i>Control Center</i></div>
       <div class="ov-ccc-chip" data-src="research" style="--x:238;--y:232">Market trends<i>Research</i></div>
       <div class="ov-ccc-card">
         <div class="ov-ccc-card-top"><span>Campaign</span><span>Goal · Sales</span></div>
@@ -1349,14 +1352,14 @@
       <p class="ov-section-sub">Everything you need to know before connecting your ad accounts.</p>
     </div>
     <div class="ov-faq-list">
-      <div class="ov-faq" data-observe><button type="button" class="ov-faq-q" id="ov-faq-question-1" aria-expanded="false" aria-controls="ov-faq-answer-1" onclick="ovLandingFaq(this)"><span>What does Oriven do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-1" role="region" aria-labelledby="ov-faq-question-1" inert>Oriven is one workspace for advertising: research what works, create platform-ready ads, launch them across your connected accounts, and keep improving them, instead of stitching that together across separate tools.</div></div>
+      <div class="ov-faq" data-observe><button type="button" class="ov-faq-q" id="ov-faq-question-1" aria-expanded="false" aria-controls="ov-faq-answer-1" onclick="ovLandingFaq(this)"><span>What does Oriven do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-1" role="region" aria-labelledby="ov-faq-question-1" inert>Oriven is one workspace for advertising, in six steps: Control Center for what is happening, what needs you and what is planned, with your business context; Research to investigate a market; Create to build platform-ready ads; Launch to review and publish them; Campaigns to follow performance; and Autopilot for rules that act within your limits.</div></div>
       <div class="ov-faq" data-observe style="transition-delay:.06s"><button type="button" class="ov-faq-q" id="ov-faq-question-2" aria-expanded="false" aria-controls="ov-faq-answer-2" onclick="ovLandingFaq(this)"><span>What are credits?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-2" role="region" aria-labelledby="ov-faq-question-2" inert>Credits are Oriven's shared monthly usage balance. A complete image ad costs 100 credits, a video ad 225, a chat message 5. They're spent from one pool across every usage-based feature, not a separate allowance per feature.</div></div>
       <div class="ov-faq" data-observe style="transition-delay:.12s"><button type="button" class="ov-faq-q" id="ov-faq-question-3" aria-expanded="false" aria-controls="ov-faq-answer-3" onclick="ovLandingFaq(this)"><span>How many ads can I create?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-3" role="region" aria-labelledby="ov-faq-question-3" inert>It depends on your plan and how you split your credits. Starter's 1.000 credits/month is enough for roughly 10 image ads or 4 video ads if used entirely on one type. More if you mix in chat, Research or other usage. There's no separate ad limit beyond your credit balance.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.18s"><button type="button" class="ov-faq-q" id="ov-faq-question-4" aria-expanded="false" aria-controls="ov-faq-answer-4" onclick="ovLandingFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-4" role="region" aria-labelledby="ov-faq-question-4" inert>Starter covers ad creation, campaign management and Business. Creator adds Research. Professional adds Autopilot and Priority Support. <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing &rarr;</a></div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.18s"><button type="button" class="ov-faq-q" id="ov-faq-question-4" aria-expanded="false" aria-controls="ov-faq-answer-4" onclick="ovLandingFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-4" role="region" aria-labelledby="ov-faq-question-4" inert>Starter covers ad creation, campaign management and Control Center. Creator adds Research. Professional adds Autopilot and Priority Support. <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing &rarr;</a></div></div>
       <div class="ov-faq" data-observe style="transition-delay:.24s"><button type="button" class="ov-faq-q" id="ov-faq-question-5" aria-expanded="false" aria-controls="ov-faq-answer-5" onclick="ovLandingFaq(this)"><span>Which advertising platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-5" role="region" aria-labelledby="ov-faq-question-5" inert>Google Ads, Meta Ads (Facebook &amp; Instagram), TikTok Ads, and Pinterest Ads. Every integration uses OAuth. You never share your passwords with Oriven, and we never store your credentials.</div></div>
       <div class="ov-faq" data-observe style="transition-delay:.30s"><button type="button" class="ov-faq-q" id="ov-faq-question-6" aria-expanded="false" aria-controls="ov-faq-answer-6" onclick="ovLandingFaq(this)"><span>Can I connect my existing ad accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-6" role="region" aria-labelledby="ov-faq-question-6" inert>Yes. Connect your existing Google Ads, Meta Ads, TikTok Ads or Pinterest Ads accounts and manage the campaigns already running on them from Oriven. You don't need to start from scratch.</div></div>
       <div class="ov-faq" data-observe style="transition-delay:.36s"><button type="button" class="ov-faq-q" id="ov-faq-question-7" aria-expanded="false" aria-controls="ov-faq-answer-7" onclick="ovLandingFaq(this)"><span>How does Research work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-7" role="region" aria-labelledby="ov-faq-question-7" inert>Research helps you understand what's working in advertising outside your own campaigns: creative approaches, messaging patterns, competitor context and trends. Every answer shows its real sources and uses calibrated language, so you always know what's an observed pattern versus a guess, never an invented result. Included on Creator and Professional.</div></div>
-      <div class="ov-faq" data-observe style="transition-delay:.42s"><button type="button" class="ov-faq-q" id="ov-faq-question-8" aria-expanded="false" aria-controls="ov-faq-answer-8" onclick="ovLandingFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-8" role="region" aria-labelledby="ov-faq-question-8" inert>Autopilot lets you set rules, like "if CPA exceeds &euro;25, reduce budget by 15%", and Oriven executes them automatically within the limits you set. Included on Professional.</div></div>
+      <div class="ov-faq" data-observe style="transition-delay:.42s"><button type="button" class="ov-faq-q" id="ov-faq-question-8" aria-expanded="false" aria-controls="ov-faq-answer-8" onclick="ovLandingFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-8" role="region" aria-labelledby="ov-faq-question-8" inert>Autopilot lets you set rules on your Meta and Google campaigns, like "if CPA exceeds &euro;25, reduce budget by 15%", and either asks for your approval or acts within the limits you set. Included on Professional.</div></div>
       <div class="ov-faq" data-observe style="transition-delay:.48s"><button type="button" class="ov-faq-q" id="ov-faq-question-9" aria-expanded="false" aria-controls="ov-faq-answer-9" onclick="ovLandingFaq(this)"><span>How does signup work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-9" role="region" aria-labelledby="ov-faq-question-9" inert>You can start creating without a credit card, and your first full campaign generation is free before you need to choose a plan. Cancel anytime once you're subscribed.</div></div>
       <div class="ov-faq" data-observe style="transition-delay:.54s"><button type="button" class="ov-faq-q" id="ov-faq-question-10" aria-expanded="false" aria-controls="ov-faq-answer-10" onclick="ovLandingFaq(this)"><span>Can experienced advertisers still control campaigns directly?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a" id="ov-faq-answer-10" role="region" aria-labelledby="ov-faq-question-10" inert>Yes. Autopilot only acts on rules you explicitly set, like a CPA threshold, and every module stays manually editable at any time. Nothing runs on its own without a rule behind it.</div></div>
     </div>
@@ -1382,7 +1385,7 @@
              /solutions route, and gains Case Studies. -->
         <div class="ov-footer-col">
           <div class="ov-footer-col-h">Product</div>
-          <a href="/business" class="ov-footer-link">Business</a>
+          <a href="/business" class="ov-footer-link">Control Center</a>
           <a href="/research" class="ov-footer-link">Research</a>
           <a href="/create" class="ov-footer-link">Create</a>
           <a href="/launch" class="ov-footer-link">Launch</a>
@@ -1408,7 +1411,7 @@
         <div class="ov-footer-col">
           <div class="ov-footer-col-h">Company</div>
           <a href="/about" class="ov-footer-link">About</a>
-          <a href="mailto:studio.oriven@outlook.com" class="ov-footer-link">Contact</a>
+          <a href="mailto:contact@orivenai.com" class="ov-footer-link">Contact</a>
         </div>
         <div class="ov-footer-col">
           <div class="ov-footer-col-h">Legal</div>
@@ -1571,9 +1574,9 @@
 
       <div class="lp-legal-section">
         <h2>10. Contact</h2>
-        <p>For questions about these Terms, contact us at <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a>.</p>
+        <p>For questions about these Terms, contact us at <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a>.</p>
         <div class="lp-legal-highlight">
-          <p>ORIVEN · KVK: 42039993 · Netherlands · studio.oriven@outlook.com</p>
+          <p>ORIVEN · KVK: 42039993 · Netherlands · contact@orivenai.com</p>
         </div>
       </div>
     </div>
@@ -1610,7 +1613,7 @@
       <div class="lp-legal-section">
         <h2>2. Data Controller</h2>
         <div class="lp-legal-highlight">
-          <p>ORIVEN · KVK: 42039993 · Netherlands<br>Email: <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a></p>
+          <p>ORIVEN · KVK: 42039993 · Netherlands<br>Email: <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a></p>
         </div>
       </div>
 
@@ -1655,7 +1658,7 @@
 
       <div class="lp-legal-section">
         <h2>7. Your Rights Under GDPR</h2>
-        <p>As a data subject, you have the right to: access your personal data, correct inaccurate data, request deletion ("right to be forgotten"), restrict or object to processing, and data portability. To exercise any of these rights, email us at <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a>. We will respond within 30 days.</p>
+        <p>As a data subject, you have the right to: access your personal data, correct inaccurate data, request deletion ("right to be forgotten"), restrict or object to processing, and data portability. To exercise any of these rights, email us at <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a>. We will respond within 30 days.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1670,7 +1673,7 @@
 
       <div class="lp-legal-section">
         <h2>10. Contact</h2>
-        <p>Privacy inquiries: <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a></p>
+        <p>Privacy inquiries: <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a></p>
       </div>
     </div>
   </div>
@@ -1730,7 +1733,7 @@
 
       <div class="lp-legal-section">
         <h2>5. How to Request a Refund</h2>
-        <p>Email <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a> with your account email, subscription details, and reason for the refund request. We review all requests within 5 business days.</p>
+        <p>Email <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a> with your account email, subscription details, and reason for the refund request. We review all requests within 5 business days.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1795,7 +1798,7 @@
 
       <div class="lp-legal-section">
         <h2>5. Contact</h2>
-        <p>For cookie-related questions, email <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a>.</p>
+        <p>For cookie-related questions, email <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a>.</p>
       </div>
     </div>
   </div>
@@ -1862,7 +1865,7 @@
         <h2>Responsible Disclosure</h2>
         <p>If you discover a security vulnerability in ORIVEN, we ask that you report it to us responsibly before any public disclosure. We are committed to working with you to understand and resolve the issue quickly.</p>
         <div class="lp-legal-highlight">
-          <p>To report a security issue, email <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a> with a description of the vulnerability and steps to reproduce. We will acknowledge your report within 48 hours.</p>
+          <p>To report a security issue, email <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a> with a description of the vulnerability and steps to reproduce. We will acknowledge your report within 48 hours.</p>
         </div>
         <p>We kindly ask that you:</p>
         <ul>
@@ -1903,7 +1906,7 @@
         <div class="lp-contact-grid">
           <div class="lp-contact-card">
             <div class="lp-contact-card-lbl">Email</div>
-            <div class="lp-contact-card-val"><a href="mailto:studio.oriven@outlook.com">studio.oriven@outlook.com</a></div>
+            <div class="lp-contact-card-val"><a href="mailto:contact@orivenai.com">contact@orivenai.com</a></div>
           </div>
           <div class="lp-contact-card">
             <div class="lp-contact-card-lbl">Response Time</div>
@@ -1918,7 +1921,7 @@
           <p><strong style="color:rgba(240,240,240,.8)">ORIVEN</strong><br>
           KVK: 42039993<br>
           Netherlands<br>
-          Email: <a href="mailto:studio.oriven@outlook.com" class="lp-legal-email">studio.oriven@outlook.com</a></p>
+          Email: <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a></p>
         </div>
       </div>
 
@@ -2065,7 +2068,7 @@
       </div>
       <div style="margin-top:40px;max-width:480px;margin-left:auto;margin-right:auto;padding:24px 28px;border:1px solid rgba(255,255,255,.06);border-radius:14px;background:rgba(255,255,255,.02);text-align:center;">
         <p style="font-size:12px;color:rgba(255,255,255,.35);margin:0 0 6px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;">Company details</p>
-        <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.85;margin:0">ORIVEN &middot; Registered in the Netherlands &middot; KVK: 42039993<br>Contact: <a href="mailto:studio.oriven@outlook.com" style="color:rgba(183,255,42,.65);text-decoration:none">studio.oriven@outlook.com</a></p>
+        <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.85;margin:0">ORIVEN &middot; Registered in the Netherlands &middot; KVK: 42039993<br>Contact: <a href="mailto:contact@orivenai.com" style="color:rgba(183,255,42,.65);text-decoration:none">contact@orivenai.com</a></p>
       </div>
     </div>
   </section>
@@ -2322,7 +2325,7 @@
             <li>One business profile, set up once</li>
             <li>Every product builds on the same context</li>
           </ul>
-          <div class="ov-sp-audience-link">Business &#8594;</div>
+          <div class="ov-sp-audience-link">Control Center &#8594;</div>
         </a>
       </div>
     </div>
@@ -2408,8 +2411,8 @@
           <div class="ov-plat-feat-desc">Real campaign data, pulled directly from Google Ads. No exports, no manual reporting.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Connected Business Context</div>
-          <div class="ov-plat-feat-desc">Campaigns draw on the same Business and Brand context used across Oriven, so Google Ads stays consistent with everything else you run.</div>
+          <div class="ov-plat-feat-title">Connected business context</div>
+          <div class="ov-plat-feat-desc">Campaigns draw on the same business and brand context from Control Center, so Google Ads stays consistent with everything else you run.</div>
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">One Connected Workflow</div>
@@ -2494,8 +2497,8 @@
           <div class="ov-plat-feat-desc">Real campaign data pulled directly from Meta's own Insights API.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Connected Business Context</div>
-          <div class="ov-plat-feat-desc">Campaigns draw on the same Business and Brand context used across Oriven, so Meta stays consistent with everything else you run.</div>
+          <div class="ov-plat-feat-title">Connected business context</div>
+          <div class="ov-plat-feat-desc">Campaigns draw on the same business and brand context from Control Center, so Meta stays consistent with everything else you run.</div>
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">One Connected Workflow</div>
@@ -2580,8 +2583,8 @@
           <div class="ov-plat-feat-desc">Real campaign data pulled directly from TikTok's own reporting API.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Connected Business Context</div>
-          <div class="ov-plat-feat-desc">Campaigns draw on the same Business and Brand context used across Oriven, so TikTok stays consistent with everything else you run.</div>
+          <div class="ov-plat-feat-title">Connected business context</div>
+          <div class="ov-plat-feat-desc">Campaigns draw on the same business and brand context from Control Center, so TikTok stays consistent with everything else you run.</div>
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">One Connected Workflow</div>
@@ -2677,8 +2680,8 @@
           <div class="ov-plat-feat-desc">Real campaign data pulled directly from Pinterest's own reporting API.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Connected Business Context</div>
-          <div class="ov-plat-feat-desc">Campaigns draw on the same Business and Brand context used across Oriven, so Pinterest stays consistent with everything else you run.</div>
+          <div class="ov-plat-feat-title">Connected business context</div>
+          <div class="ov-plat-feat-desc">Campaigns draw on the same business and brand context from Control Center, so Pinterest stays consistent with everything else you run.</div>
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">One Connected Workflow</div>
@@ -2728,7 +2731,7 @@
     <div class="ov-sp-hero-inner">
       <div class="ov-eyebrow">Launch</div>
       <h1 class="ov-sp-h1">From idea to live campaign.<br>In minutes.</h1>
-      <p class="ov-sp-hero-sub">Describe your product, choose your platforms, and Oriven generates a complete, ready-to-publish campaign: strategy, structure and creative included.</p>
+      <p class="ov-sp-hero-sub">Everything you create lands here as a draft. Launch checks each one against what the platform needs, shows what blocks it, and publishes when you are ready.</p>
       <div class="ov-hero-btns">
         <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Generate a Campaign</a>
         <a href="/" class="ov-btn-ghost">&#8592; Back to Oriven</a>
@@ -2753,7 +2756,7 @@
     <div class="ov-sp-section-inner ov-plat-centered">
       <div class="ov-sp-tag">How Launch Works</div>
       <h2 class="ov-sp-h2">One prompt.<br>A complete campaign.</h2>
-      <p class="ov-sp-sub">Tell Oriven about your product and what you're trying to achieve. It builds the strategy, the structure and the creative, and you review before anything goes live.</p>
+      <p class="ov-sp-sub">Drafts from Create are grouped by platform with their readiness: ready, ready with warnings, or blocked, and why. Nothing goes live until you launch it.</p>
       <div class="ov-plat-connect-grid">
         <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Describe your product</div>
         <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Choose goals &amp; objectives</div>
@@ -2771,19 +2774,19 @@
     <div class="ov-sp-section-inner ov-plat-centered">
       <div class="ov-sp-tag">What You Get</div>
       <h2 class="ov-sp-h2">Everything a campaign needs.<br>Generated together.</h2>
-      <p class="ov-sp-sub">Launch doesn't just write copy. It plans the whole campaign, structured the way each platform actually expects it.</p>
+      <p class="ov-sp-sub">Each campaign is reviewed the way its platform expects it: structure, creative, destination and budget.</p>
       <div class="ov-plat-feat-grid">
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">AI Campaign Creation</div>
-          <div class="ov-plat-feat-desc">Describe your product and Oriven generates a complete campaign strategy, ready to review.</div>
+          <div class="ov-plat-feat-title">Drafts in one place</div>
+          <div class="ov-plat-feat-desc">Every campaign you build in Create waits here, grouped by platform, until you launch it.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Goals &amp; Objectives</div>
-          <div class="ov-plat-feat-desc">Choose what you're optimizing for (conversions, traffic, awareness) and Oriven builds around it.</div>
+          <div class="ov-plat-feat-title">Readiness checks</div>
+          <div class="ov-plat-feat-desc">Ready, ready with warnings, or blocked, with the exact reason and what to fix.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Platform Selection</div>
-          <div class="ov-plat-feat-desc">Launch to Google Ads, Meta Ads or TikTok Ads, or all three from a single workflow.</div>
+          <div class="ov-plat-feat-title">Every connected platform</div>
+          <div class="ov-plat-feat-desc">Launch to Google Ads, Meta Ads, TikTok Ads or Pinterest Ads from one workflow.</div>
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">Campaign Structure</div>
@@ -2823,7 +2826,7 @@
     <div class="ov-sp-hero-inner">
       <div class="ov-eyebrow">Campaigns</div>
       <h1 class="ov-sp-h1">Every campaign.<br>One workspace.</h1>
-      <p class="ov-sp-hero-sub">Track live campaigns, pick up drafts, and review every detail before anything publishes, across Google, Meta and TikTok, all in one place.</p>
+      <p class="ov-sp-hero-sub">Follow spend, delivery, traffic and conversions for your live campaigns across Google, Meta, TikTok and Pinterest, by platform, campaign and date range.</p>
       <div class="ov-hero-btns">
         <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
         <a href="/" class="ov-btn-ghost">&#8592; Back to Oriven</a>
@@ -2848,7 +2851,7 @@
     <div class="ov-sp-section-inner ov-plat-centered">
       <div class="ov-sp-tag">The Campaign Workspace</div>
       <h2 class="ov-sp-h2">Nothing gets lost.<br>Nothing gets rushed.</h2>
-      <p class="ov-sp-sub">Every campaign, live, in review, or still a draft, lives in one workspace you can return to at any time.</p>
+      <p class="ov-sp-sub">Pick a platform, a campaign and a date range. Every number comes straight from the platform, and anything a platform does not report says so.</p>
       <div class="ov-plat-connect-grid">
         <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>See all live campaigns</div>
         <div class="ov-plat-connect-item"><span class="ov-plat-check">&#10003;</span>Resume drafts anytime</div>
@@ -2866,27 +2869,27 @@
     <div class="ov-sp-section-inner ov-plat-centered">
       <div class="ov-sp-tag">What You Get</div>
       <h2 class="ov-sp-h2">From draft to live.<br>Without losing track.</h2>
-      <p class="ov-sp-sub">A single, structured view of everything you've built, and everything still in progress.</p>
+      <p class="ov-sp-sub">Delivery, traffic and conversion metrics side by side, with spend over time where the platform provides it.</p>
       <div class="ov-plat-feat-grid">
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">Campaign Overview</div>
-          <div class="ov-plat-feat-desc">See every campaign across Google, Meta and TikTok in one workspace.</div>
+          <div class="ov-plat-feat-desc">See every connected platform's campaigns in one workspace.</div>
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">Live Campaigns</div>
           <div class="ov-plat-feat-desc">Track status, spend and performance for everything currently running.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Drafts</div>
-          <div class="ov-plat-feat-desc">Pick up unfinished campaigns exactly where you left off.</div>
+          <div class="ov-plat-feat-title">Grouped metrics</div>
+          <div class="ov-plat-feat-desc">Delivery, traffic and conversion metrics grouped so related numbers read together.</div>
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">Campaign Workspace</div>
           <div class="ov-plat-feat-desc">Open any campaign to review structure, creative and settings in detail.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Preview, Edit &amp; Review</div>
-          <div class="ov-plat-feat-desc">Check exactly how an ad will look before it goes live, and make changes inline.</div>
+          <div class="ov-plat-feat-title">Honest by platform</div>
+          <div class="ov-plat-feat-desc">Where a platform reports less, such as account-level data, Campaigns shows that instead of guessing.</div>
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">Publishing</div>
@@ -2985,7 +2988,7 @@
           <div class="ov-plat-feat-desc">Watch your ad take shape as it generates. Real progress, not a generic spinner.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Connected Business Context</div>
+          <div class="ov-plat-feat-title">Connected business context</div>
           <div class="ov-plat-feat-desc">Every generation draws on your Business profile and Brand Identity, so it actually sounds like you.</div>
         </div>
         <div class="ov-plat-feat-card">
@@ -3082,7 +3085,7 @@
           <div class="ov-plat-feat-desc">Real links to Meta Ad Library, Google Ads Transparency Center, TikTok Creative Center and Pinterest Trends.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Connected to your Business</div>
+          <div class="ov-plat-feat-title">Connected to your business context</div>
           <div class="ov-plat-feat-desc">Findings are related to your real brand context, when you've set it up.</div>
         </div>
         <div class="ov-plat-feat-card">
@@ -3119,7 +3122,7 @@
     <div class="ov-sp-hero-inner">
       <div class="ov-eyebrow">Autopilot</div>
       <h1 class="ov-sp-h1">Rules that act,<br>while you don't have to.</h1>
-      <p class="ov-sp-hero-sub">Autopilot turns campaign insights into automated action, reallocating wasted budget and flagging audience fatigue, based on rules you control.</p>
+      <p class="ov-sp-hero-sub">Autopilot watches your Meta and Google campaigns against rules you set, and pauses, resumes, adjusts budgets, notifies you or asks for approval first.</p>
       <div class="ov-hero-btns">
         <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
         <a href="/" class="ov-btn-ghost">&#8592; Back to Oriven</a>
@@ -3169,12 +3172,12 @@
           <div class="ov-plat-feat-desc">Define rules that act on your campaigns automatically, without manual intervention.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Budget Waste Detection</div>
-          <div class="ov-plat-feat-desc">Automatically flags, and can reallocate, spend from underperforming placements.</div>
+          <div class="ov-plat-feat-title">Approval or automatic</div>
+          <div class="ov-plat-feat-desc">Each rule either asks for your approval or acts on its own, within the limits you set.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Audience Saturation Alerts</div>
-          <div class="ov-plat-feat-desc">Know when an audience is fatigued before performance actually drops.</div>
+          <div class="ov-plat-feat-title">Clear conditions</div>
+          <div class="ov-plat-feat-desc">Conditions on real metrics such as CPA, ROAS, CTR or conversions, checked on a schedule.</div>
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">Rule Activity Log</div>
@@ -3212,9 +3215,9 @@
 
   <section class="ov-sp-hero">
     <div class="ov-sp-hero-inner">
-      <div class="ov-eyebrow">Business</div>
+      <div class="ov-eyebrow">Control Center</div>
       <h1 class="ov-sp-h1">One brain, behind<br>every generation.</h1>
-      <p class="ov-sp-hero-sub">Your business profile and Brand Identity give every AI generation the same context, so campaigns, copy and creative actually sound like you.</p>
+      <p class="ov-sp-hero-sub">Control Center keeps your business profile and Brand Identity next to your advertising overview and plan, so every campaign, copy and creative starts from the same context and actually sounds like you.</p>
       <div class="ov-hero-btns">
         <a href="#" class="ov-btn-primary" onclick="lpGetStarted(event)">Get Started</a>
         <a href="/" class="ov-btn-ghost">&#8592; Back to Oriven</a>
@@ -3276,8 +3279,8 @@
           <div class="ov-plat-feat-desc">Keep logos, colors and brand assets organized in one place.</div>
         </div>
         <div class="ov-plat-feat-card">
-          <div class="ov-plat-feat-title">Workspace Configuration</div>
-          <div class="ov-plat-feat-desc">Manage your workspace, team members and connected accounts.</div>
+          <div class="ov-plat-feat-title">Advertising overview</div>
+          <div class="ov-plat-feat-desc">Performance, what needs you, campaign and Autopilot state, and your advertising plan in one place.</div>
         </div>
         <div class="ov-plat-feat-card">
           <div class="ov-plat-feat-title">Business Context</div>
@@ -3396,15 +3399,15 @@
   <section class="ov-faq-section" style="border-bottom:none;padding-top:0;">
     <div class="ov-faq-inner" style="max-width:840px;">
       <div class="ov-faq-list" style="width:100%;">
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What does Oriven do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven is one workspace for advertising: research what works, create platform-ready ads, launch them across your connected accounts, and keep improving them, instead of stitching that together across separate tools.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What does Oriven do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven is one workspace for advertising, in six steps: Control Center for what is happening, what needs you and what is planned, with your business context; Research to investigate a market; Create to build platform-ready ads; Launch to review and publish them; Campaigns to follow performance; and Autopilot for rules that act within your limits.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What are credits?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Credits are Oriven's shared monthly usage balance. A complete image ad costs 100 credits, a video ad 225, a chat message 5. They're spent from one pool across every usage-based feature, not a separate allowance per feature.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How many ads can I create?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">It depends on your plan and how you split your credits. Starter's 1.000 credits/month is enough for roughly 10 image ads or 4 video ads if used entirely on one type. More if you mix in chat, Research or other usage. There's no separate ad limit beyond your credit balance.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Starter covers ad creation, campaign management and Business. Creator adds Research. Professional adds Autopilot and Priority Support. <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing &rarr;</a></div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Starter covers ad creation, campaign management and Control Center. Creator adds Research. Professional adds Autopilot and Priority Support. <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing &rarr;</a></div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which advertising platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Google Ads, Meta Ads (Facebook &amp; Instagram), TikTok Ads, and Pinterest Ads. Every integration uses OAuth. You never share your passwords with Oriven, and we never store your credentials.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I connect my existing ad accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Connect your existing Google Ads, Meta Ads, TikTok Ads or Pinterest Ads accounts and manage the campaigns already running on them from Oriven. You don't need to start from scratch.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does Research work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Research helps you understand what's working in advertising outside your own campaigns: creative approaches, messaging patterns, competitor context and trends. Every answer shows its real sources and uses calibrated language, so you always know what's an observed pattern versus a guess, never an invented result. Included on Creator and Professional.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Autopilot lets you set rules, like "if CPA exceeds &euro;25, reduce budget by 15%", and Oriven executes them automatically within the limits you set. Included on Professional. Every automated action still runs within a rule you explicitly turned on: nothing acts without a rule in place.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Business?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Business is where you set your business profile and Brand Identity once (voice, positioning and product context), so every generated campaign, ad and piece of copy actually sounds like your brand instead of generic AI output.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Autopilot?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Autopilot lets you set rules on your Meta and Google campaigns, like "if CPA exceeds &euro;25, reduce budget by 15%", and either asks for your approval or acts within the limits you set. Included on Professional. Every automated action still runs within a rule you explicitly turned on: nothing acts without a rule in place.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Control Center?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Control Center is where you start: what is happening in your advertising, what needs you, what is planned next, and your business profile and Brand Identity (voice, positioning and product context), so every campaign, ad and piece of copy sounds like your brand.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What does connecting an ad account do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Connecting an account (via OAuth, so Oriven never sees your password) lets Oriven pull real campaign, spend and performance data from that platform and publish campaigns you create back to it, all from one workspace instead of switching platforms.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Is Oriven replacing Google, Meta, TikTok or Pinterest?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. Your campaigns still run on each platform's own ad system. Oriven connects to your existing accounts and brings the research, creative, launch, campaign management and optimization work into one workspace on top of them.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What happens if something needs manual setup on the platform's side?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Some platform-side steps (like a platform's own account verification or ad-account creation flow) happen on that platform, outside Oriven. Oriven will guide you to what's needed rather than claim to complete it for you automatically.</div></div>
@@ -3417,7 +3420,7 @@
     <div class="ov-sp-cta-inner">
       <h2 class="ov-sp-cta-h">Still have questions?</h2>
       <p class="ov-sp-cta-sub">Reach out and we'll help you get started.</p>
-      <a href="mailto:studio.oriven@outlook.com" class="ov-btn-primary">Contact Us</a>
+      <a href="mailto:contact@orivenai.com" class="ov-btn-primary">Contact Us</a>
     </div>
   </section>
   <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">&copy; 2026 ORIVEN &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</div></footer>
@@ -6241,7 +6244,7 @@ async function auSignup(){
       title: 'What You Can Do With Oriven',
       paragraphs: [
         'Oriven connects advertising platforms such as Google Ads, Meta Ads and TikTok Ads into a unified experience.',
-        'Inside Oriven, that means <a href="/research" style="color:inherit;text-decoration:underline">researching</a> what is working before you spend, <a href="/create" style="color:inherit;text-decoration:underline">creating</a> platform-ready ad creative, and <a href="/launch" style="color:inherit;text-decoration:underline">launching</a> a complete campaign from one prompt. Live work stays organized in <a href="/campaigns" style="color:inherit;text-decoration:underline">Campaigns</a>, ongoing optimization runs through <a href="/autopilot" style="color:inherit;text-decoration:underline">Autopilot</a>, and all of it is grounded in the same <a href="/business" style="color:inherit;text-decoration:underline">Business</a> profile.',
+        'Inside Oriven, that means <a href="/research" style="color:inherit;text-decoration:underline">researching</a> what is working before you spend, <a href="/create" style="color:inherit;text-decoration:underline">creating</a> platform-ready ad creative, and <a href="/launch" style="color:inherit;text-decoration:underline">launching</a> a complete campaign from one prompt. Live work stays organized in <a href="/campaigns" style="color:inherit;text-decoration:underline">Campaigns</a>, ongoing optimization runs through <a href="/autopilot" style="color:inherit;text-decoration:underline">Autopilot</a>, and all of it is grounded in the same business profile in <a href="/business" style="color:inherit;text-decoration:underline">Control Center</a>.',
         'The goal is to reduce complexity and make marketing data easier to understand.'
       ]
     },
@@ -6250,7 +6253,7 @@ async function auSignup(){
       paragraphs: [
         'Marketing data is often spread across multiple platforms and dashboards.',
         'Switching between tools wastes time and makes decision-making harder.',
-        'Oriven was created to solve that challenge: one <a href="/business" style="color:inherit;text-decoration:underline">Business</a> profile every feature builds on, and <a href="/research" style="color:inherit;text-decoration:underline">Research</a> that brings outside advertising context into the same workspace, not another disconnected dashboard.'
+        'Oriven was created to solve that challenge: one business profile in <a href="/business" style="color:inherit;text-decoration:underline">Control Center</a> that every feature builds on, and <a href="/research" style="color:inherit;text-decoration:underline">Research</a> that brings outside advertising context into the same workspace, not another disconnected dashboard.'
       ]
     }
   };

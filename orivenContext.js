@@ -368,7 +368,7 @@
     { re: /\b(open|go to|take me to|show me|switch to)\s+(the\s+)?launch\b/i, page: 'launch', pageId: 'page-launch', label: 'Launch' },
     { re: /\b(open|go to|take me to|show me|switch to)\s+(the\s+)?campaigns?\b/i, page: 'performance', pageId: 'page-performance', label: 'Campaigns' },
     { re: /\b(open|go to|take me to|show me|switch to)\s+(the\s+)?autopilot\b/i, page: 'autopilot', pageId: 'page-autopilot', label: 'Autopilot' },
-    { re: /\b(open|go to|take me to|show me|switch to)\s+(the\s+)?business\b/i, page: 'businessbrain', pageId: 'page-business-brain', label: 'Business' }
+    { re: /\b(open|go to|take me to|show me|switch to)\s+(the\s+|my\s+)?(control center|business|home)\b/i, page: 'businessbrain', pageId: 'page-business-brain', label: 'Control Center' }
   ];
   window._orvAiTryNavigate = function (msg) {
     if (!msg || typeof window._orvNav !== 'function') return null;

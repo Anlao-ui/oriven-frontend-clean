@@ -65,7 +65,10 @@ var SETTINGS_DEFAULTS = {
   // duplicate copy of the defaults. null (not {}) is the true "untouched"
   // state so a save of one platform's selection doesn't need to invent
   // empty placeholders for the other two.
-  prfMetrics:       null
+  prfMetrics:       null,
+  // Sidebar workflow steps (numbers + a line beside the six products).
+  // On by default; purely visual — no page is ever gated by it.
+  showWorkflowSteps: true
 };
 
 // Plan data lives in plans.js (ORIVEN_PLANS / ORIVEN_PLAN_LIST / ORIVEN_PAID_PLANS).
@@ -170,6 +173,21 @@ function _applySettingsToUI(cfg){
   if(naf) naf.classList.toggle("on", cfg.notifAutopilotFailures !== false);
   if(nd)  nd.classList.toggle("on", cfg.notifDeployFailures !== false);
   if(nb)  nb.classList.toggle("on", cfg.notifBilling !== false);
+
+  _applyWorkflowSteps(cfg.showWorkflowSteps !== false);
+}
+
+function _applyWorkflowSteps(on){
+  if(document.body) document.body.classList.toggle("orv-wf-off", !on);
+  var t = document.getElementById("tglWorkflowSteps");
+  if(t){ t.classList.toggle("on", on); t.setAttribute("aria-checked", on ? "true" : "false"); }
+}
+
+function toggleWorkflowSteps(el){
+  var on = !el.classList.contains("on");
+  _applyWorkflowSteps(on);
+  saveSettings({ showWorkflowSteps: on });
+  toast(on ? "Workflow steps shown" : "Workflow steps hidden");
 }
 
 
@@ -808,7 +826,7 @@ var LANG_STRINGS = {
     // Banner
     // Builder
     // Settings Completion — current live sidebar/workspace titles (Oriven 1.0)
-    navLaunch:"Launch", navCreate:"Create", navResearch:"Research", navCampaigns:"Campaigns", navIntelligence:"Intelligence", navAutopilot:"Autopilot", navBusiness:"Business", navSettings:"Settings", adLibraryCta:"Browse your Ad Library →",
+    navLaunch:"Launch", navCreate:"Create", navResearch:"Research", navCampaigns:"Campaigns", navIntelligence:"Intelligence", navAutopilot:"Autopilot", navBusiness:"Control Center", navSettings:"Settings", adLibraryCta:"Browse your Ad Library →",
     wsTitleIntelligence:"Intelligence", wsSubIntelligence:"What deserves your attention today.",
     wsTitleBusiness:"Business", wsSubBusiness:"Teach Oriven your business once — every campaign, conversation, and recommendation uses it automatically from then on.",
     wsTitleAutopilot:"Autopilot", wsSubAutopilot:"Automates repetitive advertising work. Nothing more.",
@@ -999,18 +1017,18 @@ var LANG_STRINGS = {
     smdHelpNotifHelp:"Control which events appear in your ORIVEN notification bell — Autopilot activity, deployment failures, and billing. ORIVEN does not currently send notification emails.",
     smdHelpAcctHelp:"Your name, sign-in method, and email address, plus sign out and account deletion. Email changes require confirming the new address before they take effect.",
     smdHelpSecHelp:"Change your password directly (current password required), send yourself a password-reset link by email, or sign out of every other device.",
-    smdHelpBizHelp:"Manage your business details, brand voice, audiences, and connected ad accounts from the Business workspace — separate from personal Settings.",
+    smdHelpBizHelp:"Your business details, brand voice, audiences, connected ad accounts and advertising plan live in Control Center — separate from personal Settings.",
     smdHelpApHelp:"Automation rules that act on your campaigns without manual intervention. Recommendations that need your sign-off appear as Autopilot Approvals notifications, controlled in the Notifications tab.",
     helpTitle:"Help", helpSub:"What each Settings section does.",
     builderResultLabel:"Result", regenerateBtn:"Regenerate", saveToStudioBtn:"Save to Studio",
     // Onboarding tour
     obWelcomeTitle:"Welcome to Oriven.",
-    obWelcomeDesc:"Oriven helps you create, optimise and automate advertising campaigns with AI.",
+    obWelcomeDesc:"Oriven runs your advertising in six steps: Control Center, Research, Create, Launch, Campaigns and Autopilot.",
     obStartTourBtn:"Start Tour",
     obLaunchSection:"Create", obLaunchTitle:"Where every campaign begins.",
     obLaunchDesc:"Describe your business goal, choose a platform, and generate an AI campaign.",
-    obCampaignsSection:"Campaigns", obCampaignsTitle:"Manage everything you've created.",
-    obCampaignsDesc:"Monitor performance, review AI analysis, and improve your campaigns.",
+    obCampaignsSection:"Campaigns", obCampaignsTitle:"How it's performing.",
+    obCampaignsDesc:"Follow spend, delivery, traffic and conversions for your live campaigns across platforms.",
     obOverviewTitle:"Performance at a glance.",
     obOverviewDesc:"Overview gives you performance metrics and AI recommendations.",
     obLiveCampaignsTitle:"Everything that's running.",
@@ -1020,15 +1038,21 @@ var LANG_STRINGS = {
     obIntelligenceSection:"Intelligence", obIntelligenceTitle:"Your daily AI briefing.",
     obIntelligenceDesc:"Intelligence provides daily AI briefings. It tells you what deserves your attention today.",
     obAutopilotSection:"Autopilot", obAutopilotTitle:"Oriven, working for you.",
-    obAutopilotDesc:"Autopilot lets Oriven perform repetitive advertising tasks automatically. You stay in control.",
-    obBusinessSection:"Business", obBusinessTitle:"Teach Oriven your business.",
-    obBusinessDesc:"Business teaches Oriven everything about your company. Better business knowledge produces better campaigns.",
-    obBizTabOverviewDesc:"A complete picture of what Oriven knows about your business.",
+    obAutopilotDesc:"Rules that watch your Meta and Google campaigns and act within your limits, or ask for your approval first.",
+    obBusinessSection:"Control Center", obBusinessTitle:"Start in Control Center.",
+    obBusinessDesc:"Your business context, advertising overview and plan in one place. The better Oriven knows your business, the better every campaign gets.",
+    obBizTabOverviewDesc:"What is happening in your advertising, what needs you, what is planned next, and what Oriven knows about your business.",
     obBizTabBusinessDesc:"Your company profile and website understanding.",
     obBizTabMarketDesc:"Your audience and competitors.",
     obBizTabBrandDesc:"Your voice, identity, and visual direction.",
     obBizTabConnectionsDesc:"Your connected advertising accounts.",
     obBizTabMemoryDesc:"Everything Oriven has learned about your business over time.",
+    obBizPlanningTitle:"Planning",
+    obCcOverviewTitle:"What is happening.", obCcOverviewDesc:"Performance across your platforms, what needs you, and your campaigns and Autopilot at a glance.",
+    obCcContextTitle:"The business behind it.", obCcContextDesc:"Business, brand, audience, competition, advertising and knowledge: the context every plan, ad and recommendation uses.",
+    obResearchSection:"Research", obResearchTitle:"Know the market first.", obResearchDesc:"Investigate a market, competitors or an audience. Oriven maps what it finds, with sources.",
+    obLaunchPageSection:"Launch", obLaunchPageTitle:"Review, then launch.", obLaunchPageDesc:"Drafts from Create wait here with their readiness. Fix what blocks them and launch when you're ready.",
+    obBizPlanningDesc:"Plan what you advertise next: dates, platforms, budget and briefs. A plan carries straight into Create.",
     obSettingsSection:"Settings", obSettingsTitle:"Make it yours.",
     obSettingsDesc:"Personalise your workspace — language, theme, accent colour, notifications, and account.",
     obYourTurnSection:"Your turn",
@@ -1200,7 +1224,7 @@ var LANG_STRINGS = {
     // Banner
     // Builder
     // Settings Completion — current live sidebar/workspace titles (Oriven 1.0)
-    navLaunch:"Lancer", navCreate:"Créer", navResearch:"Recherche", navCampaigns:"Campagnes", navIntelligence:"Intelligence", navAutopilot:"Autopilot", navBusiness:"Business", navSettings:"Paramètres", adLibraryCta:"Parcourir votre bibliothèque publicitaire →",
+    navLaunch:"Lancer", navCreate:"Créer", navResearch:"Recherche", navCampaigns:"Campagnes", navIntelligence:"Intelligence", navAutopilot:"Autopilot", navBusiness:"Control Center", navSettings:"Paramètres", adLibraryCta:"Parcourir votre bibliothèque publicitaire →",
     wsTitleIntelligence:"Intelligence", wsSubIntelligence:"Ce qui mérite votre attention aujourd'hui.",
     wsTitleBusiness:"Business", wsSubBusiness:"Enseignez votre activité à Oriven une seule fois — chaque campagne, conversation et recommandation s'en sert automatiquement par la suite.",
     wsTitleAutopilot:"Autopilot", wsSubAutopilot:"Automatise les tâches publicitaires répétitives. Rien de plus.",
@@ -1380,7 +1404,7 @@ var LANG_STRINGS = {
     smdHelpNotifHelp:"Contrôlez quels événements génèrent une alerte — génération terminée, publication, facturation, mises à jour produit et approbations Autopilot. Désactiver une catégorie empêche ces notifications d'être créées, pas seulement masquées.",
     smdHelpAcctHelp:"Votre méthode de connexion et votre adresse e-mail. Les changements d'e-mail nécessitent de confirmer la nouvelle adresse avant qu'ils ne prennent effet.",
     smdHelpSecHelp:"Changez votre mot de passe directement (mot de passe actuel requis), ou envoyez-vous un lien de réinitialisation par e-mail.",
-    smdHelpBizHelp:"Gérez les détails de votre entreprise, la voix de marque, les audiences et les comptes publicitaires connectés depuis l'espace Business — distinct des Paramètres personnels, car il peut être partagé entre coéquipiers.",
+    smdHelpBizHelp:"Gérez les détails de votre entreprise, la voix de marque, les audiences et les comptes publicitaires connectés depuis le Control Center — distinct des Paramètres personnels, car il peut être partagé entre coéquipiers.",
     smdHelpApHelp:"Règles d'automatisation qui agissent sur vos campagnes sans intervention manuelle. Les recommandations nécessitant votre validation apparaissent comme des notifications d'approbation Autopilot, contrôlées dans l'onglet Notifications.",
     smdRestartObTitle:"Relancer la visite guidée",
     smdRestartObHelp:"Revoir la visite guidée depuis le début. Utile pour une démonstration ou une piqûre de rappel.",
@@ -1550,7 +1574,7 @@ var LANG_STRINGS = {
     resetBCTitle:"Merkidentiteit resetten",
     resetBCDesc:"Dit reset jouw volledige merkinstelling — kleuren, toon, positionering en identiteitsdata. Jouw opgeslagen bestanden in Studio worden niet beïnvloed, maar toekomstige generaties verliezen merkcontext. Deze actie is permanent en kan niet worden teruggedraaid.",
     resetBCBtn:"Merkidentiteit resetten",
-    navLaunch:"Launch", navCreate:"Maken", navResearch:"Onderzoek", navCampaigns:"Campagnes", navIntelligence:"Intelligentie", navAutopilot:"Autopilot", navBusiness:"Bedrijf", navSettings:"Instellingen", adLibraryCta:"Bekijk je advertentiebibliotheek →",
+    navLaunch:"Launch", navCreate:"Maken", navResearch:"Onderzoek", navCampaigns:"Campagnes", navIntelligence:"Intelligentie", navAutopilot:"Autopilot", navBusiness:"Control Center", navSettings:"Instellingen", adLibraryCta:"Bekijk je advertentiebibliotheek →",
     wsTitleIntelligence:"Intelligentie", wsSubIntelligence:"Wat vandaag jouw aandacht verdient.",
     wsTitleBusiness:"Bedrijf", wsSubBusiness:"Leer Oriven eenmalig over je bedrijf — elke campagne, elk gesprek en elke aanbeveling gebruikt dit vanaf dan automatisch.",
     wsTitleAutopilot:"Autopilot", wsSubAutopilot:"Automatiseert repetitief advertentiewerk. Niets meer.",
@@ -1730,7 +1754,7 @@ var LANG_STRINGS = {
     smdHelpNotifHelp:"Bepaal welke gebeurtenissen een melding genereren — generatie voltooid, publicatie, facturatie, productupdates en Autopilot-goedkeuringen. Een categorie uitschakelen voorkomt dat die meldingen worden aangemaakt, niet alleen verborgen.",
     smdHelpAcctHelp:"Je inlogmethode en e-mailadres. E-mailwijzigingen vereisen bevestiging van het nieuwe adres voordat ze van kracht worden.",
     smdHelpSecHelp:"Wijzig je wachtwoord direct (huidig wachtwoord vereist), of stuur jezelf een reset-link per e-mail.",
-    smdHelpBizHelp:"Beheer je bedrijfsgegevens, merkstem, doelgroepen en verbonden advertentieaccounts vanuit de Business-werkruimte — los van persoonlijke Instellingen, omdat deze met teamgenoten kan worden gedeeld.",
+    smdHelpBizHelp:"Beheer je bedrijfsgegevens, merkstem, doelgroepen en verbonden advertentieaccounts vanuit het Control Center — los van persoonlijke Instellingen, omdat deze met teamgenoten kan worden gedeeld.",
     smdHelpApHelp:"Automatiseringsregels die zonder handmatige tussenkomst op je campagnes inwerken. Aanbevelingen die jouw goedkeuring nodig hebben, verschijnen als Autopilot-goedkeuringsmeldingen, beheerd in het tabblad Notificaties.",
     smdRestartObTitle:"Rondleiding opnieuw starten",
     smdRestartObHelp:"Speel de rondleiding opnieuw af vanaf het begin. Handig voor demo's of een opfrisser.",
@@ -1856,7 +1880,7 @@ var LANG_STRINGS = {
     resetBCTitle:"Restablecer identidad de marca",
     resetBCDesc:"Esto reinicia toda tu configuración de marca — colores, tono de voz, posicionamiento y datos de identidad. Tus recursos generados guardados en Studio no se verán afectados, pero todas las generaciones futuras perderán el contexto de marca hasta que crees una nueva identidad de marca. Esta acción es permanente y no se puede revertir.",
     resetBCBtn:"Restablecer identidad de marca",
-    navLaunch:"Lanzar", navCreate:"Crear", navResearch:"Investigación", navCampaigns:"Campañas", navIntelligence:"Inteligencia", navAutopilot:"Autopiloto", navBusiness:"Negocio", navSettings:"Ajustes", adLibraryCta:"Explora tu biblioteca de anuncios →",
+    navLaunch:"Lanzar", navCreate:"Crear", navResearch:"Investigación", navCampaigns:"Campañas", navIntelligence:"Inteligencia", navAutopilot:"Autopiloto", navBusiness:"Control Center", navSettings:"Ajustes", adLibraryCta:"Explora tu biblioteca de anuncios →",
     wsTitleIntelligence:"Inteligencia", wsSubIntelligence:"Qué merece tu atención hoy.",
     wsTitleBusiness:"Negocio", wsSubBusiness:"Enseña a Oriven tu negocio una vez — cada campaña, conversación y recomendación lo usará automáticamente a partir de entonces.",
     wsTitleAutopilot:"Autopiloto", wsSubAutopilot:"Automatiza el trabajo publicitario repetitivo. Nada más.",
@@ -2036,7 +2060,7 @@ var LANG_STRINGS = {
     smdHelpNotifHelp:"Controla qué eventos generan una alerta — generación completa, publicación, facturación, actualizaciones de producto y aprobaciones de Autopilot. Desactivar una categoría impide que se creen esas notificaciones, no solo las oculta.",
     smdHelpAcctHelp:"Tu método de inicio de sesión y dirección de correo. Los cambios de correo requieren confirmar la nueva dirección antes de que surtan efecto.",
     smdHelpSecHelp:"Cambia tu contraseña directamente (se requiere la contraseña actual), o envíate un enlace de restablecimiento por correo.",
-    smdHelpBizHelp:"Gestiona los datos de tu negocio, voz de marca, audiencias y cuentas publicitarias conectadas desde el espacio Business — independiente de los Ajustes personales, ya que puede compartirse con compañeros de equipo.",
+    smdHelpBizHelp:"Gestiona los datos de tu negocio, voz de marca, audiencias y cuentas publicitarias conectadas desde el Control Center — independiente de los Ajustes personales, ya que puede compartirse con compañeros de equipo.",
     smdHelpApHelp:"Reglas de automatización que actúan sobre tus campañas sin intervención manual. Las recomendaciones que necesitan tu aprobación aparecen como notificaciones de aprobación de Autopilot, controladas en la pestaña Notificaciones.",
     smdRestartObTitle:"Reiniciar la incorporación",
     smdRestartObHelp:"Vuelve a ver la visita guiada desde el principio. Útil para demostraciones o como recordatorio.",
@@ -2162,7 +2186,7 @@ var LANG_STRINGS = {
     resetBCTitle:"Redefinir identidade de marca",
     resetBCDesc:"Isso redefine toda a configuração da sua marca — cores, tom de voz, posicionamento e dados de identidade. Os recursos gerados salvos no Studio não serão afetados, mas todas as gerações futuras perderão o contexto de marca até você criar uma nova identidade de marca. Essa ação é permanente e não pode ser desfeita.",
     resetBCBtn:"Redefinir identidade de marca",
-    navLaunch:"Lançar", navCreate:"Criar", navResearch:"Pesquisa", navCampaigns:"Campanhas", navIntelligence:"Inteligência", navAutopilot:"Piloto Automático", navBusiness:"Negócio", navSettings:"Configurações", adLibraryCta:"Explore sua biblioteca de anúncios →",
+    navLaunch:"Lançar", navCreate:"Criar", navResearch:"Pesquisa", navCampaigns:"Campanhas", navIntelligence:"Inteligência", navAutopilot:"Piloto Automático", navBusiness:"Control Center", navSettings:"Configurações", adLibraryCta:"Explore sua biblioteca de anúncios →",
     wsTitleIntelligence:"Inteligência", wsSubIntelligence:"O que merece sua atenção hoje.",
     wsTitleBusiness:"Negócio", wsSubBusiness:"Ensine ao Oriven sobre o seu negócio uma vez — cada campanha, conversa e recomendação o usará automaticamente a partir de então.",
     wsTitleAutopilot:"Piloto Automático", wsSubAutopilot:"Automatiza o trabalho publicitário repetitivo. Nada mais.",
@@ -2342,7 +2366,7 @@ var LANG_STRINGS = {
     smdHelpNotifHelp:"Controle quais eventos geram um alerta — geração concluída, publicação, cobrança, atualizações de produto e aprovações do Autopilot. Desativar uma categoria impede que essas notificações sejam criadas, não apenas as oculta.",
     smdHelpAcctHelp:"Seu método de login e endereço de e-mail. Alterações de e-mail exigem confirmação do novo endereço antes de entrarem em vigor.",
     smdHelpSecHelp:"Altere sua senha diretamente (senha atual necessária) ou envie um link de redefinição por e-mail.",
-    smdHelpBizHelp:"Gerencie os detalhes do seu negócio, voz da marca, públicos e contas de anúncios conectadas a partir do espaço Business — separado das Configurações pessoais, já que pode ser compartilhado entre a equipe.",
+    smdHelpBizHelp:"Gerencie os detalhes do seu negócio, voz da marca, públicos e contas de anúncios conectadas a partir do Control Center — separado das Configurações pessoais, já que pode ser compartilhado entre a equipe.",
     smdHelpApHelp:"Regras de automação que agem em suas campanhas sem intervenção manual. Recomendações que precisam da sua aprovação aparecem como notificações de aprovação do Autopilot, controladas na aba Notificações.",
     smdRestartObTitle:"Reiniciar integração",
     smdRestartObHelp:"Reveja o tour guiado desde o início. Útil para demonstrações ou uma revisão rápida.",
@@ -2468,7 +2492,7 @@ var LANG_STRINGS = {
     resetBCTitle:"Markenidentität zurücksetzen",
     resetBCDesc:"Dadurch wird Ihr gesamtes Markensetup zurückgesetzt — Farben, Tonfall, Positionierung und Identitätsdaten. Ihre in Studio gespeicherten generierten Inhalte sind davon nicht betroffen, aber alle zukünftigen Generierungen verlieren den Markenkontext, bis Sie eine neue Markenidentität erstellen. Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden.",
     resetBCBtn:"Markenidentität zurücksetzen",
-    navLaunch:"Starten", navCreate:"Erstellen", navResearch:"Forschung", navCampaigns:"Kampagnen", navIntelligence:"Intelligenz", navAutopilot:"Autopilot", navBusiness:"Unternehmen", navSettings:"Einstellungen", adLibraryCta:"Durchsuche deine Anzeigenbibliothek →",
+    navLaunch:"Starten", navCreate:"Erstellen", navResearch:"Forschung", navCampaigns:"Kampagnen", navIntelligence:"Intelligenz", navAutopilot:"Autopilot", navBusiness:"Control Center", navSettings:"Einstellungen", adLibraryCta:"Durchsuche deine Anzeigenbibliothek →",
     wsTitleIntelligence:"Intelligenz", wsSubIntelligence:"Was heute Ihre Aufmerksamkeit verdient.",
     wsTitleBusiness:"Unternehmen", wsSubBusiness:"Bringen Sie Oriven einmal Ihr Unternehmen bei — jede Kampagne, jedes Gespräch und jede Empfehlung nutzt dies ab sofort automatisch.",
     wsTitleAutopilot:"Autopilot", wsSubAutopilot:"Automatisiert sich wiederholende Werbearbeit. Nicht mehr.",
@@ -2648,7 +2672,7 @@ var LANG_STRINGS = {
     smdHelpNotifHelp:"Steuere, welche Ereignisse eine Benachrichtigung auslösen — Generierung abgeschlossen, Veröffentlichung, Abrechnung, Produktaktualisierungen und Autopilot-Genehmigungen. Das Deaktivieren einer Kategorie verhindert, dass diese Benachrichtigungen überhaupt erstellt werden, nicht nur ausgeblendet.",
     smdHelpAcctHelp:"Deine Anmeldemethode und E-Mail-Adresse. Bei E-Mail-Änderungen muss die neue Adresse bestätigt werden, bevor sie wirksam wird.",
     smdHelpSecHelp:"Ändere dein Passwort direkt (aktuelles Passwort erforderlich) oder sende dir einen Zurücksetzungslink per E-Mail.",
-    smdHelpBizHelp:"Verwalte deine Unternehmensdetails, Markenstimme, Zielgruppen und verbundenen Werbekonten über den Business-Arbeitsbereich — getrennt von den persönlichen Einstellungen, da er mit Teammitgliedern geteilt werden kann.",
+    smdHelpBizHelp:"Verwalte deine Unternehmensdetails, Markenstimme, Zielgruppen und verbundenen Werbekonten über das Control Center — getrennt von den persönlichen Einstellungen, da er mit Teammitgliedern geteilt werden kann.",
     smdHelpApHelp:"Automatisierungsregeln, die ohne manuelles Eingreifen auf deine Kampagnen wirken. Empfehlungen, die deine Freigabe benötigen, erscheinen als Autopilot-Genehmigungsbenachrichtigungen, gesteuert im Tab Benachrichtigungen.",
     smdRestartObTitle:"Einführung neu starten",
     smdRestartObHelp:"Die geführte Produkttour von vorne abspielen. Nützlich für Demos oder eine Auffrischung.",
@@ -2774,7 +2798,7 @@ var LANG_STRINGS = {
     resetBCTitle:"重置品牌标识",
     resetBCDesc:"这将重置你的整个品牌设置——颜色、语调、定位和身份数据。已保存在 Studio 中的生成资源不会受到影响，但在你创建新的品牌标识之前，未来的所有生成内容都将失去品牌背景信息。此操作是永久性的，无法撤销。",
     resetBCBtn:"重置品牌标识",
-    navLaunch:"启动", navCreate:"创建", navResearch:"研究", navCampaigns:"广告系列", navIntelligence:"智能", navAutopilot:"自动驾驶", navBusiness:"业务", navSettings:"设置", adLibraryCta:"浏览广告素材库 →",
+    navLaunch:"启动", navCreate:"创建", navResearch:"研究", navCampaigns:"广告系列", navIntelligence:"智能", navAutopilot:"自动驾驶", navBusiness:"Control Center", navSettings:"设置", adLibraryCta:"浏览广告素材库 →",
     wsTitleIntelligence:"智能", wsSubIntelligence:"今天值得关注的内容。",
     wsTitleBusiness:"业务", wsSubBusiness:"教会Oriven了解您的业务一次——之后每次营销活动、对话和建议都会自动使用它。",
     wsTitleAutopilot:"自动驾驶", wsSubAutopilot:"自动化重复的广告工作，仅此而已。",
@@ -3061,6 +3085,12 @@ async function switchPlan(planId){
     toast("This change is already scheduled", "warn");
     return;
   }
+  // A cancellation is pending in Stripe: don't layer a plan switch on top
+  // of it. The user resumes first ("Keep plan"), then changes plans.
+  if(cfg.pendingPlan === "free" && planId !== "free"){
+    toast("Your cancellation is scheduled. Choose “Keep plan” first, then change plans.", "warn");
+    return;
+  }
 
   var planData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === planId; });
   var name = planData ? planData.name : planId;
@@ -3154,7 +3184,21 @@ async function switchPlan(planId){
   }
 }
 
-async function cancelPlanChange(){
+var _orvResumeBusy = false;
+async function cancelPlanChange(btn){
+  if(_orvResumeBusy) return;
+  _orvResumeBusy = true;
+  var wasCancel = (loadSettings().pendingPlan === "free");
+  var label = btn ? btn.textContent : "";
+  if(btn){ btn.disabled = true; btn.textContent = wasCancel ? "Keeping plan…" : "Cancelling…"; }
+  try { await _cancelPlanChangeRequest(wasCancel); }
+  finally {
+    _orvResumeBusy = false;
+    if(btn && document.contains(btn)){ btn.disabled = false; btn.textContent = label; }
+  }
+}
+
+async function _cancelPlanChangeRequest(wasCancel){
   // Was previously optimistic: updated local state and showed a success
   // toast BEFORE the backend call ran, then silently swallowed any backend
   // failure. That could tell a user "Scheduled change cancelled" while
@@ -3172,15 +3216,15 @@ async function cancelPlanChange(){
     });
     var data = await res.json().catch(function(){ return {}; });
     if(!res.ok || !data.ok){
-      toast((data && data.error) || "Could not cancel the scheduled change — try again", "err");
+      toast((data && data.error) || (wasCancel ? "Could not keep your plan. Nothing was changed — please try again." : "Could not cancel the scheduled change — try again"), "err");
       return;
     }
     saveSettings({ pendingPlan: null, pendingPlanDate: null });
-    renderPlanPanel();
-    toast("Scheduled change cancelled");
+    await renderPlanPanel();
+    toast(wasCancel ? "Your plan will continue. Cancellation removed." : "Scheduled change cancelled");
   } catch(err){
     console.warn("[Plan] cancelPlanChange backend sync failed:", err.message);
-    toast("Could not cancel the scheduled change — try again", "err");
+    toast(wasCancel ? "Could not keep your plan. Nothing was changed — please try again." : "Could not cancel the scheduled change — try again", "err");
   }
 }
 
@@ -3212,6 +3256,11 @@ async function renderPlanPanel(){
   var pendingId = subInfo ? (subInfo.pending_plan || null)
     : ((typeof S !== "undefined" && S && S.pendingPlan !== undefined) ? S.pendingPlan : (cfg.pendingPlan || null));
   var pendingPlanDateReal = subInfo ? (subInfo.pending_plan_date || null) : (cfg.pendingPlanDate || null);
+  // Kept for the cancel modal: the real Stripe period end (server-resolved
+  // from the signed-in user's own subscription) and how the plan is billed.
+  window._orvSubInfo = subInfo;
+  if(subInfo) saveSettings({ pendingPlan: pendingId, pendingPlanDate: pendingPlanDateReal });
+  var cancelScheduled = pendingId === "free";
 
   // Free is never offered as a selectable plan-card option here -- it's an
   // in-app exploration state, not a public/selectable pricing tier. It only
@@ -3271,10 +3320,11 @@ async function renderPlanPanel(){
     var isCancel = pendingId === "free";
     html += '<div class="sub-pending-notice" style="margin-bottom:14px">';
     if(isCancel){
+      html += '<strong>Cancellation scheduled.</strong> ';
       html += pDate
-        ? 'Your plan will be cancelled — you keep full access until <strong>' + pDate + '</strong>'
-        : 'Your plan is scheduled to cancel at the end of your current billing period';
-      html += ' <button class="sub-undo-btn" onclick="cancelPlanChange()">Undo</button>';
+        ? 'Your ' + currentData.name + ' plan stays active until <strong>' + pDate + '</strong>. You will not be charged again.'
+        : 'Your ' + currentData.name + ' plan stays active until the end of your current billing period. You will not be charged again.';
+      html += ' <button class="sub-undo-btn" id="planResumeBtn" onclick="cancelPlanChange(this)">Keep plan</button>';
     } else {
       html += pDate
         ? '<strong>' + pName + '</strong> goes active from <strong>' + pDate + '</strong>'
@@ -3316,6 +3366,10 @@ async function renderPlanPanel(){
     html += '<div class="sub-pcard-price">€' + plan.price + '<span class="sub-pcard-per">/mo</span></div>';
     if(isCurrent){
       if(isDaily) html += '<div class="sub-renewal" style="margin:-4px 0 0">Resets every 24 hours</div>';
+      else if(cancelScheduled){
+        html += '<div class="sub-renewal" style="margin:-4px 0 0">' + (pendingPlanDateReal ? 'Active until ' + _formatPlanDate(pendingPlanDateReal) : 'Active until the end of this billing period') + '</div>';
+        html += '<div class="sub-cancel-chip">Cancellation scheduled</div>';
+      }
       else if(renewalStr) html += '<div class="sub-renewal" style="margin:-4px 0 0">Renews ' + renewalStr + '</div>';
     }
 
@@ -3382,16 +3436,11 @@ async function renderPlanPanel(){
   // no hunting required.
   // Free has nothing to cancel (no Stripe subscription, no billing period) --
   // "Cancel plan" only makes sense for a genuinely paid current plan.
-  if(currentData && currentId !== "free" && pendingId !== "free"){
-    html += '<div style="margin-top:10px"><button class="sub-cancel-link" onclick="_showCancelConfirm()">Cancel plan</button></div>';
-    html += '<div class="plan-cancel-confirm" id="planCancelConfirm" style="display:none">';
-    html += '<div class="plan-cancel-confirm-title">Cancel ' + currentData.name + ' Plan</div>';
-    html += '<div class="plan-cancel-confirm-text">You will keep full access until <strong>' + (renewalStr || 'the end of your current billing period') + '</strong>.</div>';
-    html += '<div class="plan-cancel-confirm-btns">';
-    html += '<button class="btn btn-g btn-sm" onclick="_hideCancelConfirm()">Keep Plan</button>';
-    html += '<button class="btn btn-danger btn-sm" onclick="switchPlan(\'free\')">Yes, Cancel Plan</button>';
-    html += '</div>';
-    html += '</div>';
+  // The confirmation is a real modal (_showCancelConfirm) that names the
+  // plan and the Stripe period end, instead of the old inline block whose
+  // date came from the credit-reset date rather than the billing period.
+  if(currentData && ORIVEN_PAID_PLANS.some(function(p){ return p.id === currentId; }) && !cancelScheduled){
+    html += '<div style="margin-top:10px"><button class="sub-cancel-link" id="planCancelBtn" onclick="_showCancelConfirm()">Cancel plan</button></div>';
   }
 
   // ── Section 2: USAGE — real backend-authoritative data only. No
@@ -3450,6 +3499,8 @@ async function renderPlanPanel(){
     html += '<button class="btn btn-g btn-sm" id="manageSubBtn" onclick="openBillingPortal(this)">Manage Subscription</button>';
   }
   html += '</div>';
+  // Official contact for billing/subscription questions.
+  html += '<div class="smd-field-help" style="margin-top:12px">Questions about billing or your plan? Email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</div>';
   html += '</div>';
 
   // ── Credits — a compact, canonical reference (Pricing/Credit Consistency
@@ -3502,20 +3553,122 @@ async function renderPlanPanel(){
   html += '<textarea id="supportMsgInput" rows="2" placeholder="Message the Oriven team..." style="flex:1;resize:vertical;border-radius:8px;padding:8px 10px;font-family:inherit"></textarea>';
   html += '<button class="btn btn-p btn-sm" onclick="sendSupportMessage()">Send</button>';
   html += '</div>';
+  html += '<div class="smd-field-help" style="margin-top:10px">Replies from the OrivenAI team appear here. You can also email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</div>';
   html += '</div>';
   if(currentId === 'professional' && typeof loadSupportThread === 'function') setTimeout(loadSupportThread, 0);
 
   container.innerHTML = html;
 }
 
+// ── Cancel plan confirmation modal ──────────────────────────────
+// Cancellation = Stripe cancel_at_period_end, done server-side by
+// /api/schedule-plan-change {plan:'free'}. The request carries only the
+// target plan -- the server resolves the subscription from the signed-in
+// user. The plan name and date shown here come from the server-resolved
+// subscription (window._orvSubInfo, /api/get-subscription), never guessed.
+var _orvCancelBusy = false;
+var _orvCancelReturnFocus = null;
+
+function _cancelModalPlanName(){
+  var id = (typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus) ? _dbSubscriptionStatus
+    : (window._orvSubInfo && window._orvSubInfo.subscription_status) || (typeof S !== "undefined" && S && S.currentPlan) || "";
+  var p = ORIVEN_PLANS[id];
+  return p ? p.name : (id ? id.charAt(0).toUpperCase() + id.slice(1) : "current");
+}
+
 function _showCancelConfirm(){
-  var el = document.getElementById("planCancelConfirm");
-  if(!el) return;
-  el.style.display = "";
-  // Belt-and-suspenders: the block now renders immediately below the
-  // trigger, but scroll it into view anyway in case the panel is already
-  // mid-scroll when clicked.
-  if(typeof el.scrollIntoView === "function") el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  if(_orvCancelBusy) return;
+  _hideCancelConfirm();
+  var info = window._orvSubInfo || {};
+  var name = _cancelModalPlanName();
+  var text;
+  if(info.billing === "none"){
+    // A plan with no Stripe subscription behind it (e.g. granted manually)
+    // has no billing period to run out -- say plainly what happens.
+    text = 'Your ' + name + ' plan isn’t billed through a subscription, so cancelling switches your account to Free right away.';
+  } else {
+    var when = info.current_period_end ? _formatPlanDate(info.current_period_end) : null;
+    text = when
+      ? 'Your ' + name + ' subscription will remain active until <strong>' + when + '</strong>. You will not be charged again after that date.'
+      : 'Your ' + name + ' subscription will remain active until the end of your current billing period. You will not be charged again after that.';
+  }
+  _orvCancelReturnFocus = document.activeElement;
+  var wrap = document.createElement("div");
+  wrap.className = "orv-cancel-modal";
+  wrap.id = "planCancelConfirm";
+  wrap.innerHTML =
+    '<div class="orv-cancel-modal-card" role="alertdialog" aria-modal="true" aria-labelledby="planCancelTitle" aria-describedby="planCancelText">'
+    + '<h2 class="orv-cancel-modal-title" id="planCancelTitle">Cancel your plan?</h2>'
+    + '<p class="orv-cancel-modal-text" id="planCancelText">' + text + '</p>'
+    + '<div class="orv-cancel-modal-err" id="planCancelErr" role="alert" hidden></div>'
+    + '<div class="orv-cancel-modal-btns">'
+    + '<button type="button" class="btn btn-g btn-sm" id="planCancelKeep" onclick="_hideCancelConfirm()">Keep plan</button>'
+    + '<button type="button" class="btn btn-danger btn-sm" id="planCancelGo" onclick="_confirmCancelPlan()">Cancel plan</button>'
+    + '</div></div>';
+  wrap.addEventListener("mousedown", function(e){ if(e.target === wrap) _hideCancelConfirm(); });
+  wrap.addEventListener("keydown", function(e){
+    if(e.key === "Escape"){ e.stopPropagation(); _hideCancelConfirm(); return; }
+    if(e.key === "Tab"){
+      var f = wrap.querySelectorAll("button:not([disabled])");
+      if(!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+  });
+  document.body.appendChild(wrap);
+  var keep = document.getElementById("planCancelKeep");
+  if(keep) keep.focus();
+}
+
+async function _confirmCancelPlan(){
+  if(_orvCancelBusy) return;
+  _orvCancelBusy = true;
+  var go = document.getElementById("planCancelGo"), keep = document.getElementById("planCancelKeep");
+  var err = document.getElementById("planCancelErr"), card = document.querySelector("#planCancelConfirm .orv-cancel-modal-card");
+  if(err){ err.hidden = true; err.textContent = ""; }
+  if(go){ go.disabled = true; go.textContent = "Cancelling…"; }
+  if(keep) keep.disabled = true;
+  if(card) card.setAttribute("aria-busy", "true");
+  var name = _cancelModalPlanName();
+  try {
+    var sessionResult = await SB.auth.getSession();
+    var session = sessionResult.data && sessionResult.data.session;
+    if(!session) throw new Error("Please sign in again to manage your plan.");
+    var r = await apiFetch("/api/schedule-plan-change", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
+      body: JSON.stringify({ plan: "free" })
+    });
+    var data = r.data || {};
+    if(!r.ok || !data.ok) throw new Error(data.error || "Could not cancel your plan. Nothing was changed — please try again.");
+    if(data.subscription_status === "free"){
+      // No subscription behind the plan: the server switched it to Free now.
+      if(typeof S !== "undefined" && S) S.currentPlan = "free";
+      if(typeof _dbSubscriptionStatus !== "undefined") _dbSubscriptionStatus = "free";
+      saveSettings({ currentPlan: "free", pendingPlan: null, pendingPlanDate: null });
+      if(typeof invalidatePlanCache === "function") invalidatePlanCache();
+      toast("Your plan was cancelled. You’re now on Free.");
+    } else {
+      saveSettings({ pendingPlan: "free", pendingPlanDate: data.pending_plan_date || null });
+      toast(data.pending_plan_date
+        ? "Cancellation scheduled. " + name + " stays active until " + _formatPlanDate(data.pending_plan_date) + "."
+        : "Cancellation scheduled. " + name + " stays active until the end of this billing period.");
+    }
+    _orvCancelBusy = false;
+    _hideCancelConfirm();
+    await renderPlanPanel();
+    var resume = document.getElementById("planResumeBtn");
+    if(resume) resume.focus();
+  } catch(e){
+    console.warn("[Plan] cancel failed:", e && e.message);
+    _orvCancelBusy = false;
+    if(err){ err.textContent = (e && e.message) || "Could not cancel your plan. Nothing was changed — please try again."; err.hidden = false; }
+    if(go){ go.disabled = false; go.textContent = "Cancel plan"; }
+    if(keep) keep.disabled = false;
+    if(card) card.removeAttribute("aria-busy");
+    if(go) go.focus();
+  }
 }
 
 // ── Priority Support chat (Professional plan only) ─────────────
@@ -3571,8 +3724,13 @@ async function sendSupportMessage(){
 }
 
 function _hideCancelConfirm(){
+  if(_orvCancelBusy) return; // never dismiss mid-request; the result must be shown
   var el = document.getElementById("planCancelConfirm");
-  if(el) el.style.display = "none";
+  if(!el) return;
+  el.remove();
+  var back = _orvCancelReturnFocus || document.getElementById("planCancelBtn");
+  _orvCancelReturnFocus = null;
+  if(back && document.contains(back) && typeof back.focus === "function") back.focus();
 }
 
 function _updateSidebarPlan(planId){

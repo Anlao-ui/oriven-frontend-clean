@@ -576,7 +576,7 @@
     if (trackingPlats.length) {
       var labels = trackingPlats.map(function (p) { return PLAT[p].label; });
       items.push({
-        id: 'tracking', tone: 'attention', source: 'Business · Advertising',
+        id: 'tracking', tone: 'attention', source: 'Business context · Advertising',
         title: 'Conversion tracking isn’t verified for ' + labels.join(' and '),
         why: 'OrivenAI can’t confirm pixel or conversion-event setup, so results and Autopilot rules that rely on conversions may be incomplete.',
         action: 'Check setup', go: { page: 'business', tab: 'overview' }
@@ -586,8 +586,8 @@
     recsBiz.sort(function (a, b) { return (a.severity === 'high' ? 0 : 1) - (b.severity === 'high' ? 0 : 1); });
     recsBiz.slice(0, 2).forEach(function (r, i) {
       items.push({
-        id: 'biz:' + i + ':' + r.title, tone: 'attention', source: 'Business',
-        title: r.title, why: r.detail || '', action: 'Open Business',
+        id: 'biz:' + i + ':' + r.title, tone: 'attention', source: 'Business context',
+        title: r.title, why: r.detail || '', action: 'Open',
         go: { page: 'business', tab: BIZ_TAB[r.tab] || 'overview' }
       });
     });
@@ -655,7 +655,7 @@
     var overall = D.health && typeof D.health.overall === 'number' ? D.health.overall : null;
     var hasBiz = !!businessName() || (overall !== null && overall > 0);
     mods.push({
-      key: 'business', label: 'Business', go: { page: 'business', tab: 'overview' },
+      key: 'business', label: 'Control Center', go: { page: 'business', tab: 'overview' },
       tone: !hasBiz ? 'empty' : (bizAtt ? 'attention' : 'active'),
       state: !hasBiz ? 'Not set up' : (bizAtt ? 'Needs you' : 'In use'),
       summary: !hasBiz ? 'Tell OrivenAI about your business' : ((overall !== null ? overall + '% complete' : 'Profile saved') + (bizAtt ? ' · ' + plural(bizAtt, 'issue') : ''))
@@ -733,7 +733,11 @@
     var nav = window._orvNav;
     if (typeof nav !== 'function') return;
     switch (t.page) {
-      case 'home': nav('dashboard', 'page-dashboard'); break;
+      case 'home':
+        // Home was merged into Control Center (the Business page's overview).
+        if (typeof window.bizGoTo === 'function') window.bizGoTo('overview');
+        else nav('businessbrain', 'page-business-brain');
+        break;
       case 'business':
         if (typeof window.bizGoTo === 'function') window.bizGoTo(t.tab || 'overview');
         else nav('businessbrain', 'page-business-brain');
@@ -994,7 +998,7 @@
     if (g) g.textContent = 'Good ' + greetingWord() + '.';
     var eb = document.getElementById('owHomeEyebrow');
     var bn = businessName();
-    if (eb) eb.textContent = bn || 'Home';
+    if (eb) eb.textContent = bn || 'Control Center';
 
     if (!C.settled) { root.classList.add('is-loading'); return; }
     root.classList.remove('is-loading');
@@ -1021,18 +1025,21 @@
   function renderNeeds(att) {
     var list = document.getElementById('owNeedsList');
     if (!list) return;
+    // Control Center shows approvals in its Autopilot block, so they are not
+    // repeated here; two rows by default, the rest on request.
+    if (document.getElementById('ovAuto')) att = att.filter(function (a) { return a.id !== 'aprec'; });
     if (!att.length) {
       list.innerHTML = '<p class="ow-calm"><i aria-hidden="true"></i>Nothing needs you right now.</p>';
       return;
     }
-    var shown = needsExpanded ? att : att.slice(0, 4);
+    var shown = needsExpanded ? att : att.slice(0, 2);
     list.innerHTML = shown.map(function (a, i) {
       return '<button type="button" class="ow-row ow-t-' + a.tone + '" style="--i:' + i + '"' + goAttr(a.go) + '>' +
         '<i class="ow-row-dot" aria-hidden="true"></i>' +
         '<span class="ow-row-body"><span class="ow-row-title">' + esc(a.title) + '</span><span class="ow-row-sub">' + esc(a.source) + '</span></span>' +
         '<span class="ow-row-act">' + esc(a.action) + '<span aria-hidden="true"> →</span></span>' +
       '</button>';
-    }).join('') + (att.length > 4 ? '<button type="button" class="ow-panel-more" onclick="orvWorkspace.home.toggleNeeds()">' + (needsExpanded ? 'Show less' : 'View all ' + att.length) + '</button>' : '');
+    }).join('') + (att.length > 2 ? '<button type="button" class="ow-panel-more" onclick="orvWorkspace.home.toggleNeeds()">' + (needsExpanded ? 'Show less' : 'View all ' + att.length) + '</button>' : '');
   }
   var TONE_WORD = { risk: 'Problem', attention: 'Needs you', ready: 'Ready', info: 'Worth knowing' };
   OW.TONE_WORD = TONE_WORD;
@@ -1440,7 +1447,7 @@
   CH.prompts = function (page) {
     var out = [];
     try {
-      if (page === 'dashboard') {
+      if (page === 'dashboard' || page === 'businessbrain') {
         var a = OW.attention()[0];
         if (a) out.push('Help me with this: ' + a.title);
       } else if (page === 'launch') {
@@ -1504,7 +1511,7 @@
   }
   OW.on(function (topic) {
     var page = activePage();
-    if (page === 'page-dashboard') H.render();
+    if (page === 'page-business-brain') H.render();
     else if (C.settled) OW.sidebar.paint();
     // Durable drafts just arrived on this device — refresh Launch if it's
     // open and no campaign is mid-review in its modal.

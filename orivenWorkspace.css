@@ -360,7 +360,7 @@ body.dark-mode .cr2-gen-row {
    difference, and in the rare case its content still doesn't fit, the
    Stage scrolls inside itself instead of growing the page. Expanding
    Advanced Settings grows the composer, and the Stage grows with it. */
-@media (min-width: 1281px) {
+@media (min-width: 1181px) {
   #page-create .cr2-workspace-row { align-items: stretch; }
   #page-create .cr2-stage { position: relative; contain: size; overflow: hidden auto; scrollbar-width: thin; }
   #page-create .cr2-stage-frame { aspect-ratio: auto; flex: 1 1 0; min-height: 132px; }
@@ -586,10 +586,10 @@ body.dark-mode #page-create.active::before {
   #obCornerOrb, .orv-ai-online-dot, .orv-ai-fab-dot, .sh-panel-view:not(.hidden) { animation: none; }
 }
 
-/* Create, stacked layout (≤1280px): the composer spans to the right edge,
+/* Create, stacked layout (≤1180px): the composer spans to the right edge,
    so the sticky Build row shares the bottom-right corner with the floating
    Chat button — which covered "Build Campaign". Reserve its footprint. */
-@media (max-width: 1280px) { #page-create .cr2-gen-row { padding-right: 150px; } }
+@media (max-width: 1180px) { #page-create .cr2-gen-row { padding-right: 150px; } }
 @media (max-width: 768px)  { #page-create .cr2-gen-row { padding-right: 132px; } }
 @media (max-width: 480px)  { #page-create .cr2-gen-row { padding-right: 112px; } }
 @media (prefers-reduced-motion: reduce) { body::before { transition: none; } }

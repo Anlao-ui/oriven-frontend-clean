@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="orivenWorkspace.css">
 <link rel="stylesheet" href="orivenFlow.css">
+<link rel="stylesheet" href="orivenOps.css">
 
 
 
@@ -233,30 +234,16 @@
     </div>
 
     <nav class="orv-sb-nav">
-      <!-- Dashboard/Home — sits above the six core products, separated by
-           the divider below. NOT a seventh core module; it's the workspace
-           overview page (see #page-dashboard). The logo can still act as a
-           home shortcut where wired, but this icon is the real, always-
-           visible discoverability mechanism. -->
-      <button class="orv-ni" data-orv-page="dashboard" data-tip="Home" onclick="_orvNav('dashboard','page-dashboard',this)">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <g class="orv-ni-house-body">
-            <path d="M2.3 8.2L8 3L13.7 8.2"/>
-            <path d="M3.6 7V13.6H12.4V7"/>
-          </g>
-          <path class="orv-ni-house-door" d="M6.6 13.6V9.6C6.6 8.9 7.2 8.4 7.9 8.4H8.1C8.8 8.4 9.4 8.9 9.4 9.6V13.6"/>
-        </svg>
-        <span class="orv-ni-label">Home</span>
-      </button>
-      <div class="orv-sb-sep" aria-hidden="true"></div>
-
-      <!-- Six-product order (Product Flow + Research Chat refinement):
-           Create → Research → Launch → Campaigns → Autopilot → Business.
-           Create is first/default — see auth.js _loadUserProfile(), which
-           already calls navigate("create") on every login path. -->
-      <button class="orv-ni" data-orv-page="create" data-tip="Create" onclick="_orvNav('create','page-create',this)">
-        <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M13 8l-3-3M13 8l-3 3"/></svg></span>
-        <span class="orv-ni-label">Create</span>
+      <!-- The six pages, in workflow order: Control Center (the start
+           page: business context, advertising overview and Planning) →
+           Research → Create → Launch → Campaigns → Autopilot. The step
+           numbers and the line beside them are orientation only (Settings
+           → General → "Show workflow steps"); every page stays open in any
+           order. Control Center keeps the internal key 'businessbrain'. -->
+      <button class="orv-ni" data-orv-page="businessbrain" data-wf="1" data-tip="Control Center" onclick="_orvNav('businessbrain','page-business-brain',this)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle class="orv-ni-bulb-glow" cx="8" cy="6.4" r="5.2" fill="var(--green)" stroke="none" opacity="0"/><g class="orv-ni-bulb-body"><path d="M8 2C5.5 2 3.5 4 3.5 6.3c0 1.4.7 2.6 1.7 3.4v1.8h5.6v-1.8c1-.8 1.7-2 1.7-3.4C12.5 4 10.5 2 8 2z"/><path d="M6.5 14h3"/></g></svg>
+        <span class="orv-ni-label">Control Center</span>
+        <span class="orv-wf" aria-hidden="true">01</span>
       </button>
 
       <!-- Research — replaces the former top-level Intelligence nav item.
@@ -266,9 +253,16 @@
            "what's happening with MY campaigns," which belongs to Campaigns.
            Research is a genuinely different concept: "what's working in
            advertising outside my campaigns" — see #page-research. -->
-      <button class="orv-ni" data-orv-page="research" data-tip="Research" onclick="_orvNav('research','page-research',this)">
+      <button class="orv-ni" data-orv-page="research" data-wf="2" data-tip="Research" onclick="_orvNav('research','page-research',this)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.3 10.3L14 14"/></svg>
         <span class="orv-ni-label">Research</span>
+        <span class="orv-wf" aria-hidden="true">02</span>
+      </button>
+
+      <button class="orv-ni" data-orv-page="create" data-wf="3" data-tip="Create" onclick="_orvNav('create','page-create',this)">
+        <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M13 8l-3-3M13 8l-3 3"/></svg></span>
+        <span class="orv-ni-label">Create</span>
+        <span class="orv-wf" aria-hidden="true">03</span>
       </button>
 
       <!-- Launch — deploy/publish only. Real, dedicated page (see #page-launch)
@@ -278,33 +272,28 @@
            (_orvCheckSetupReadyBeforePublish, per-platform Publish buttons).
            No new platform-integration code — this page is a selection/entry
            point into that existing, working flow. -->
-      <button class="orv-ni" data-orv-page="launch" data-tip="Launch" onclick="_orvNav('launch','page-launch',this)">
+      <button class="orv-ni" data-orv-page="launch" data-wf="4" data-tip="Launch" onclick="_orvNav('launch','page-launch',this)">
         <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.5V3M8 3L4.2 6.8M8 3l3.8 3.8"/><path d="M3 13.5h10"/></svg></span>
         <span class="orv-ni-label">Launch</span>
+        <span class="orv-wf" aria-hidden="true">04</span>
       </button>
 
       <!-- Campaigns hub (Oriven 1.0 nav redesign — absorbs the former separate
            Campaigns / Ads Manager / Analytics sidebar items as tabs; see
            orvHubTabsCampaigns above) -->
-      <button class="orv-ni" data-orv-page="performance" data-orv-hub="campaigns" data-tip="Campaigns" onclick="_orvNav('performance','page-performance',this)">
+      <button class="orv-ni" data-orv-page="performance" data-wf="5" data-orv-hub="campaigns" data-tip="Campaigns" onclick="_orvNav('performance','page-performance',this)">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="10" height="11" rx="1.5"/><path d="M6 7h4M6 9.5h4M6 12h2.5"/><rect class="orv-ni-clip" x="6" y="1.6" width="4" height="2.6" rx="1"/></svg>
         <span class="orv-ni-label">Campaigns</span>
+        <span class="orv-wf" aria-hidden="true">05</span>
         <span class="orv-ni-badge" id="orvIntelBadge" style="display:none"></span>
       </button>
 
       <!-- Autopilot (V9 — restored to primary nav; previously reachable only
            via the notification bell's approval dropdown) -->
-      <button class="orv-ni" data-orv-page="autopilot" data-tip="Autopilot" onclick="_orvNav('autopilot','page-autopilot',this)">
+      <button class="orv-ni" data-orv-page="autopilot" data-wf="6" data-wf-last data-tip="Autopilot" onclick="_orvNav('autopilot','page-autopilot',this)">
         <svg viewBox="0 0 16 16" fill="currentColor" stroke="none"><path class="orv-ni-bolt" d="M8.8 1L3.6 9.2h3.5L6.2 15l6.2-8.7H9.1L8.8 1z"/></svg>
         <span class="orv-ni-label">Autopilot</span>
-      </button>
-
-      <!-- Business (Business Consolidation, Oriven 1.0) — Business Brain,
-           Brand and Connect are sections of this one page now, switched by
-           its own internal tab bar; there's no hub-tabs strip anymore. -->
-      <button class="orv-ni" data-orv-page="businessbrain" data-tip="Business" onclick="_orvNav('businessbrain','page-business-brain',this)">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle class="orv-ni-bulb-glow" cx="8" cy="6.4" r="5.2" fill="var(--green)" stroke="none" opacity="0"/><g class="orv-ni-bulb-body"><path d="M8 2C5.5 2 3.5 4 3.5 6.3c0 1.4.7 2.6 1.7 3.4v1.8h5.6v-1.8c1-.8 1.7-2 1.7-3.4C12.5 4 10.5 2 8 2z"/><path d="M6.5 14h3"/></g></svg>
-        <span class="orv-ni-label">Business</span>
+        <span class="orv-wf" aria-hidden="true">06</span>
       </button>
 
       <!-- Team removed from primary navigation (Autopilot Redesign + Team
@@ -369,41 +358,36 @@
       </button>
     </div>
     <nav class="orv-mob-drawer-nav">
-      <button class="orv-ni" data-orv-page="dashboard" onclick="_orvNav('dashboard','page-dashboard',this);_orvDrawerClose()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <g class="orv-ni-house-body">
-            <path d="M2.3 8.2L8 3L13.7 8.2"/>
-            <path d="M3.6 7V13.6H12.4V7"/>
-          </g>
-          <path class="orv-ni-house-door" d="M6.6 13.6V9.6C6.6 8.9 7.2 8.4 7.9 8.4H8.1C8.8 8.4 9.4 8.9 9.4 9.6V13.6"/>
-        </svg>
-        <span class="orv-ni-label">Home</span>
+      <button class="orv-ni" data-orv-page="businessbrain" data-wf="1" onclick="_orvNav('businessbrain','page-business-brain',this);_orvDrawerClose()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle class="orv-ni-bulb-glow" cx="8" cy="6.4" r="5.2" fill="var(--green)" stroke="none" opacity="0"/><g class="orv-ni-bulb-body"><path d="M8 2C5.5 2 3.5 4 3.5 6.3c0 1.4.7 2.6 1.7 3.4v1.8h5.6v-1.8c1-.8 1.7-2 1.7-3.4C12.5 4 10.5 2 8 2z"/><path d="M6.5 14h3"/></g></svg>
+        <span class="orv-ni-label">Control Center</span>
+        <span class="orv-wf" aria-hidden="true">01</span>
       </button>
-      <div class="orv-sb-sep" aria-hidden="true"></div>
-      <button class="orv-ni" data-orv-page="create" onclick="_orvNav('create','page-create',this);_orvDrawerClose()">
-        <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M13 8l-3-3M13 8l-3 3"/></svg></span>
-        <span class="orv-ni-label">Create</span>
-      </button>
-      <button class="orv-ni" data-orv-page="research" onclick="_orvNav('research','page-research',this);_orvDrawerClose()">
+      <button class="orv-ni" data-orv-page="research" data-wf="2" onclick="_orvNav('research','page-research',this);_orvDrawerClose()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.3 10.3L14 14"/></svg>
         <span class="orv-ni-label">Research</span>
+        <span class="orv-wf" aria-hidden="true">02</span>
       </button>
-      <button class="orv-ni" data-orv-page="launch" onclick="_orvNav('launch','page-launch',this);_orvDrawerClose()">
+      <button class="orv-ni" data-orv-page="create" data-wf="3" onclick="_orvNav('create','page-create',this);_orvDrawerClose()">
+        <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M13 8l-3-3M13 8l-3 3"/></svg></span>
+        <span class="orv-ni-label">Create</span>
+        <span class="orv-wf" aria-hidden="true">03</span>
+      </button>
+      <button class="orv-ni" data-orv-page="launch" data-wf="4" onclick="_orvNav('launch','page-launch',this);_orvDrawerClose()">
         <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.5V3M8 3L4.2 6.8M8 3l3.8 3.8"/><path d="M3 13.5h10"/></svg></span>
         <span class="orv-ni-label">Launch</span>
+        <span class="orv-wf" aria-hidden="true">04</span>
       </button>
-      <button class="orv-ni" data-orv-page="performance" data-orv-hub="campaigns" onclick="_orvNav('performance','page-performance',this);_orvDrawerClose()">
+      <button class="orv-ni" data-orv-page="performance" data-wf="5" data-orv-hub="campaigns" onclick="_orvNav('performance','page-performance',this);_orvDrawerClose()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="10" height="11" rx="1.5"/><path d="M6 7h4M6 9.5h4M6 12h2.5"/><rect class="orv-ni-clip" x="6" y="1.6" width="4" height="2.6" rx="1"/></svg>
         <span class="orv-ni-label">Campaigns</span>
+        <span class="orv-wf" aria-hidden="true">05</span>
       </button>
       <div class="orv-ni-plat-group" id="orvPlatShortcutsMob"></div>
-      <button class="orv-ni" data-orv-page="autopilot" onclick="_orvNav('autopilot','page-autopilot',this);_orvDrawerClose()">
+      <button class="orv-ni" data-orv-page="autopilot" data-wf="6" data-wf-last onclick="_orvNav('autopilot','page-autopilot',this);_orvDrawerClose()">
         <svg viewBox="0 0 16 16" fill="currentColor" stroke="none"><path class="orv-ni-bolt" d="M8.8 1L3.6 9.2h3.5L6.2 15l6.2-8.7H9.1L8.8 1z"/></svg>
         <span class="orv-ni-label">Autopilot</span>
-      </button>
-      <button class="orv-ni" data-orv-page="businessbrain" onclick="_orvNav('businessbrain','page-business-brain',this);_orvDrawerClose()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle class="orv-ni-bulb-glow" cx="8" cy="6.4" r="5.2" fill="var(--green)" stroke="none" opacity="0"/><g class="orv-ni-bulb-body"><path d="M8 2C5.5 2 3.5 4 3.5 6.3c0 1.4.7 2.6 1.7 3.4v1.8h5.6v-1.8c1-.8 1.7-2 1.7-3.4C12.5 4 10.5 2 8 2z"/><path d="M6.5 14h3"/></g></svg>
-        <span class="orv-ni-label">Business</span>
+        <span class="orv-wf" aria-hidden="true">06</span>
       </button>
       <!-- Team removed from primary navigation — see the matching comment
            on the desktop sidebar's nav list above. -->
@@ -771,6 +755,8 @@
                  created/edited today).
                  Default ON, preserving exactly the prior always-on
                  behavior for anyone who never touches this control. -->
+            <!-- Brand Identity row (same ids and handlers as before). -->
+            <div class="cr2-bi-adv-row">
             <div class="cr2-goal-section" id="cr2BrandIdentitySection" style="display:none">
               <div class="cr2-goal-label" data-i18n="brandIdentityLabel">Brand Identity</div>
               <!-- Compact sliding-pill toggle (Brand Identity toggle restyle) --
@@ -793,25 +779,12 @@
               </div>
             </div>
 
-            <!-- Advanced settings — Prompt-First pass: Campaign Type, Meta
-                 Placements, and Campaign Structure are real, useful
-                 controls for anyone who wants them, but shouldn't compete
-                 with the primary prompt/platform/goal decisions for a
-                 first-time user. Collapsed by default (same toggle pattern
-                 as the manual-campaign form's "Advanced (optional)"
-                 section, _mcToggleAdvanced) rather than always-expanded.
-                 None of the three sections inside changed internally --
-                 same ids, same render functions (_cr2RenderPlatObj(),
-                 _cr2RenderStructSection()), same onclick handlers -- only
-                 wrapped in a real collapse/expand instead of being
-                 permanently visible. -->
-            <div class="cr2-advanced-toggle-row">
-              <button type="button" class="cr2-advanced-toggle" onclick="_cr2ToggleAdvanced()" id="cr2AdvancedToggle" aria-expanded="false" aria-controls="cr2AdvancedGroup">
-                <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" width="9" height="9" id="cr2AdvancedChevron"><path d="M2.5 3.5L5 6l2.5-2.5"/></svg>
-                Advanced settings
-              </button>
             </div>
-            <div class="cr2-advanced-group" id="cr2AdvancedGroup" style="display:none">
+            <!-- Campaign settings — always visible (V8: the Advanced settings
+                 disclosure was removed). Same ids and render functions as
+                 before: Assets, Source & context, Campaign configuration
+                 (Campaign Type, Placements, Campaign Structure). -->
+            <div class="cr2-advanced-group" id="cr2AdvancedGroup">
 
               <!-- Assets — Create Simplification pass. Attach Image becomes
                    the ad's actual creative (_applyAttachedCreative, no
@@ -1327,17 +1300,6 @@
                 <div class="rsc-control-label">What do you want to understand?</div>
                 <div class="rsc-control-row">
                   <textarea id="researchQueryInput" class="rsc-control-input" rows="2" maxlength="500" placeholder="Research how premium fitness brands advertise compression shirts in Europe…" aria-label="Research objective"></textarea>
-                  <div class="rsc-control-btn-col">
-                    <button type="button" class="rsc-control-btn" id="researchSubmitBtn" onclick="researchSubmit()">Investigate →</button>
-                    <!-- Pricing/Credit Consistency pass — restrained cost
-                         hint, right where the user is about to trigger a
-                         real billable action, per this task's explicit
-                         "present clearly, don't clutter the READY state"
-                         instruction. CREDIT_COSTS.research (plans.js) is
-                         the same canonical value every other surface
-                         reads, never a hand-typed number. -->
-                    <span class="rsc-cost-hint" id="researchCostHint"></span>
-                  </div>
                 </div>
 
                 <!-- Attached URL context (Research URL Evidence pass) — real,
@@ -1417,8 +1379,32 @@
                       <span class="rsc-starter-text"><span class="rsc-starter-title">Find opportunities</span><span class="rsc-starter-desc">Surface gaps and angles worth investigating.</span></span>
                     </button>
                   </div>
-                  <p class="rsc-outcome-line">ORIVEN researches the web, connects evidence, and builds your Market Map.</p>
                 </div>
+
+                <!-- Action row — what an investigation does, its cost and the
+                     Investigate action, at the bottom of the main workspace (same
+                     ids and handler as before; visible in every pre-result state). -->
+                <div class="rsc-action-row">
+                  <p class="rsc-outcome-line">ORIVEN researches the web, connects evidence, and builds your Market Map.</p>
+                  <div class="rsc-control-btn-col">
+                    <button type="button" class="rsc-control-btn" id="researchSubmitBtn" onclick="researchSubmit()">Investigate →</button>
+                    <!-- Pricing/Credit Consistency pass — restrained cost
+                         hint, right where the user is about to trigger a
+                         real billable action, per this task's explicit
+                         "present clearly, don't clutter the READY state"
+                         instruction. CREDIT_COSTS.research (plans.js) is
+                         the same canonical value every other surface
+                         reads, never a hand-typed number. -->
+                    <span class="rsc-cost-hint" id="researchCostHint"></span>
+                  </div>
+                </div>
+
+                <!-- Context panel (ready state only) — what this investigation
+                     will draw on and what it produces. Real data only: the
+                     saved business profile, the last saved investigation (if
+                     any), and a description of the real result. Filled by
+                     _researchPaintSide(). -->
+                <aside class="rsc-side" id="researchSide" aria-label="Research context"></aside>
               </div>
 
               <!-- STATE strips — same display-toggle mechanism as before
@@ -1562,7 +1548,7 @@
          existing id/class/function from each of those three systems
          unchanged (all confirmed flat/global-id, zero page-scoping) — this
          is a relocation, not a rebuild. ══════════════════════════════ -->
-    <div class="page" id="page-business-brain">
+    <div class="page active" id="page-business-brain">
       <div class="orv-page-wrap orv-page-wrap-biz">
 
         <!-- Business Redesign v2 (Oriven 1.0) — no page header ("Business" /
@@ -1621,33 +1607,60 @@
                  language, not user value) — the six cards are now the only
                  navigation/editing surface; each one is itself the click
                  target into its real, existing editing/management flow. -->
-            <div class="bic-composition">
-              <h1 class="bic-title">Business</h1>
-
-              <!-- Business identity summary — reuses #bizHubIcon/
-                   #bizHubIconActions/#bizHubIconError verbatim (same ids,
-                   same real upload/AI-generate/remove logic, PUT
-                   /api/business/profile/logo). Only real facts render
-                   (spec 5): logo, name, industry/country, real brand traits
-                   — nothing forced or invented. -->
-              <div class="bic-identity" id="bicIdentity">
-                <div class="biz-hero-icon-wrap bic-identity-icon-wrap">
-                  <div class="biz-icon-ambient" aria-hidden="true"></div>
-                  <div class="biz-icon" id="bizHubIcon" onclick="bizUploadBusinessIcon()" role="button" tabindex="0" aria-label="Add or change your business icon"></div>
-                  <div class="biz-icon-actions" id="bizHubIconActions"></div>
-                  <div class="biz-icon-error" id="bizHubIconError" style="display:none"></div>
+            <!-- CONTROL CENTER — step 01 and the start page. Answers, in order:
+                 what is happening, what needs attention, what is planned
+                 next, and the business context behind all of it. Every
+                 block summarises and opens its real home (Campaigns,
+                 Autopilot, Launch, Planning, the six business modules). -->
+            <div class="bic-composition cc-root">
+              <header class="cc-hd">
+                <!-- Business identity — same ids and upload/generate logic
+                     as before (#bizHubIcon etc., PUT /api/business/profile/logo);
+                     only real facts render. -->
+                <div class="bic-identity cc-id" id="bicIdentity">
+                  <div class="biz-hero-icon-wrap bic-identity-icon-wrap">
+                    <div class="biz-icon-ambient" aria-hidden="true"></div>
+                    <div class="biz-icon" id="bizHubIcon" onclick="bizUploadBusinessIcon()" role="button" tabindex="0" aria-label="Add or change your business icon"></div>
+                    <div class="biz-icon-actions" id="bizHubIconActions"></div>
+                    <div class="biz-icon-error" id="bizHubIconError" style="display:none"></div>
+                  </div>
+                  <div class="cc-id-text">
+                    <div class="cc-eyebrow"><span>Control Center</span><span class="cc-sep" aria-hidden="true">·</span><span class="bic-identity-name" id="bizHeroName">Your business</span></div>
+                    <h1 class="cc-greet" id="owHomeGreeting">Good morning.</h1>
+                    <p class="cc-status" id="owHomeStatus" aria-live="polite"><span class="ow-skel" style="width:240px"></span></p>
+                    <div class="cc-facts"><span class="bic-identity-meta" id="bizHeroMeta"></span><span class="bic-identity-traits" id="bicIdentityTraits"></span></div>
+                  </div>
                 </div>
-                <div class="bic-identity-name" id="bizHeroName">Your business</div>
-                <div class="bic-identity-meta" id="bizHeroMeta"></div>
-                <div class="bic-identity-traits" id="bicIdentityTraits"></div>
+              </header>
+
+              <!-- Advertising overview — filled from real data only by
+                   orivenOpsPages.js (blocks) and orivenWorkspace.js (status
+                   line, Needs you list). -->
+              <div class="ow-home cc-home is-loading" id="owHome">
+                <div class="ow-kpis" id="owKpis" aria-label="Workspace status" hidden></div>
+                <div class="ov-grid cc-grid" id="owDashGrid">
+                  <section class="ov-b ov-perf" data-ov="perf" aria-labelledby="ovPerfH"><div class="ov-bh"><h2 id="ovPerfH">Performance</h2><button type="button" class="op-link" onclick="orvWorkspace.ops.go('campaigns')">Open Campaigns</button></div><div class="ov-bb" id="ovPerf"></div></section>
+                  <section class="ov-b ov-att" id="owNeeds" aria-labelledby="owNeedsTitle">
+                    <div class="ov-bh"><h2 id="owNeedsTitle">Needs you</h2><span class="ov-bh-meta" id="ovAttCount"></span></div>
+                    <div class="ov-bb ov-scroll"><div id="ovAtt"></div><div class="ow-panel-list ov-ws-needs" id="owNeedsList" aria-live="polite"><span class="ow-skel ow-skel-row"></span></div></div>
+                  </section>
+                  <section class="ov-b ov-camps" data-ov="camps" aria-labelledby="ovCampsH"><div class="ov-bh"><h2 id="ovCampsH">Campaigns</h2><button type="button" class="op-link" onclick="orvWorkspace.ops.go('campaigns')">All campaigns</button></div><div class="ov-bb" id="ovCamps"></div></section>
+                  <section class="ov-b ov-auto" data-ov="auto" aria-labelledby="ovAutoH"><div class="ov-bh"><h2 id="ovAutoH">Autopilot</h2><button type="button" class="op-link" onclick="orvWorkspace.ops.go('autopilot')">Open</button></div><div class="ov-bb" id="ovAuto"></div></section>
+                </div>
               </div>
 
-              <!-- Six Business Intelligence cards — the primary surface.
-                   role="list" so each real card (role="listitem" button) is
-                   announced correctly; see _bicRender/_bicCardContent. Each
-                   card IS the edit/manage entry point for its area (spec 3
-                   —4): no per-card button row, no separate global editor. -->
-              <div class="bic-grid" id="bicGrid" role="list" aria-label="Business Intelligence — Business, Brand, Audience, Competition, Advertising, Knowledge"></div>
+              <!-- Planning — what the business advertises next. The full
+                   planner is the Planning section (bizGoTo('planning')).
+                   Filled by orivenPlan.js from the user's own plans only. -->
+              <section class="bic-plan" id="bicPlanStrip" aria-label="Advertising plan"></section>
+
+              <!-- Business context — the six modules OrivenAI builds every
+                   plan, ad and recommendation on. Each card opens its real
+                   module (bizGoTo); see _bicRender/_bicCardContent. -->
+              <section class="cc-ctx" aria-labelledby="ccCtxH">
+                <div class="cc-sec-hd"><h2 id="ccCtxH">Business context</h2></div>
+                <div class="bic-grid" id="bicGrid" role="list" aria-label="Business context — Business, Brand, Audience, Competition, Advertising, Knowledge"></div>
+              </section>
             </div>
 
             <!-- Card details — a dismissible overlay, NOT a permanent
@@ -1678,7 +1691,7 @@
           <div class="biz-module-hd">
             <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span data-i18n="bizBackBtn">Back to Business</span>
+              <span>Back to Control Center</span>
             </button>
             <h2 class="biz-module-title" data-i18n="bizModYourBrandTitle">Tell Oriven about your brand.</h2>
           </div>
@@ -1698,7 +1711,7 @@
           <div class="biz-module-hd">
             <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span data-i18n="bizBackBtn">Back to Business</span>
+              <span>Back to Control Center</span>
             </button>
             <h2 class="biz-module-title" data-i18n="bizModMarketTitle">Help Oriven understand your market.</h2>
           </div>
@@ -1712,7 +1725,7 @@
           <div class="biz-module-hd">
             <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span data-i18n="bizBackBtn">Back to Business</span>
+              <span>Back to Control Center</span>
             </button>
             <h2 class="biz-module-title" data-i18n="bizModCompetitorsTitle">Who are you competing against?</h2>
           </div>
@@ -1729,7 +1742,7 @@
           <div class="biz-module-hd">
             <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span data-i18n="bizBackBtn">Back to Business</span>
+              <span>Back to Control Center</span>
             </button>
             <h2 class="biz-module-title" data-i18n="bizModBrandIdentityTitle">Shape how Oriven sees your brand.</h2>
           </div>
@@ -2066,7 +2079,7 @@
           <div class="biz-module-hd">
             <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span data-i18n="bizBackBtn">Back to Business</span>
+              <span>Back to Control Center</span>
             </button>
           </div>
           <p class="ov3-ph-sub" style="margin-bottom:16px" data-i18n="bizConnectionsIntro">Your advertising platforms. Connect an account and Oriven can read and manage campaigns on it directly.</p>
@@ -2214,13 +2227,28 @@
       </div>
         </div>
 
+        <!-- Planning — advertising planning on top of the business context:
+             plans (dates, platforms, budget, objective, audience), the
+             monthly budget plan, briefs and naming/UTM templates. Rendered
+             by orivenPlan.js; hands off to Create / Launch / Campaigns. -->
+        <div class="intel-tab-panel" id="bizPanelPlanning" style="display:none">
+          <div class="biz-module-hd">
+            <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
+              <span>Back to Control Center</span>
+            </button>
+            <h2 class="biz-module-title">Plan your advertising.</h2>
+          </div>
+          <div id="bizPlanningBody" class="pl-body"></div>
+        </div>
+
         <!-- Memory — a separate concept (what Oriven has retained), same
              plain back-link treatment as Connections. -->
         <div class="intel-tab-panel" id="bizPanelMemory" style="display:none">
           <div class="biz-module-hd">
             <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span data-i18n="bizBackBtn">Back to Business</span>
+              <span>Back to Control Center</span>
             </button>
           </div>
           <div class="biz-market-hd" style="margin-bottom:6px">
@@ -4398,51 +4426,10 @@
       </div>
     </div>
 
-    <!-- DASHBOARD / HOME — workspace overview above the six core products,
-         not a seventh module. Repurposes the pre-existing dashboard shell
-         (.dash-outer/.dash-hero-band/.dash-lower/.dash-stats-row — already
-         theme-aware, already responsive) with real advertising data instead
-         of the old client-side Brand Score concept: connection status,
-         campaign counts, recent creative assets, recent activity and
-         Autopilot status all come from the same real endpoints/functions
-         Business/Campaigns/Create/Autopilot already use — see refreshDash()
-         in app.js. Never a fabricated aggregate metric. -->
-    <!-- Default Dashboard Routing pass — Dashboard/Home is the canonical
-         default authenticated page (was Create, hardcoded here as the
-         raw-markup default before any JS runs); every real navigate()
-         call in auth.js's _loadUserProfile() was changed to match. -->
-    <!-- Home — the OrivenAI dashboard (orivenWorkspace.js renders it from
-         the shared workspace model): greeting + one sentence of real state,
-         four status blocks (Live / Drafts / Needs attention / Autopilot),
-         then "Needs you" and "Continue" as two balanced panels. Continue
-         collapses away when there is no recent work. -->
-    <div class="page active" id="page-dashboard">
-      <div class="ow-home is-loading" id="owHome">
-
-        <header class="ow-home-hd">
-          <div class="ow-home-eyebrow" id="owHomeEyebrow">Home</div>
-          <h1 class="ow-home-title" id="owHomeGreeting">Good morning.</h1>
-          <p class="ow-home-status" id="owHomeStatus" aria-live="polite"><span class="ow-skel" style="width:240px"></span></p>
-        </header>
-
-        <div class="ow-kpis" id="owKpis" aria-label="Workspace status">
-          <span class="ow-kpi ow-kpi-skel"><span class="ow-skel"></span></span><span class="ow-kpi ow-kpi-skel"><span class="ow-skel"></span></span>
-          <span class="ow-kpi ow-kpi-skel"><span class="ow-skel"></span></span><span class="ow-kpi ow-kpi-skel"><span class="ow-skel"></span></span>
-        </div>
-
-        <div class="ow-dash-grid" id="owDashGrid">
-          <section class="ow-panel" id="owNeeds" aria-labelledby="owNeedsTitle">
-            <div class="ow-panel-hd"><h2 id="owNeedsTitle">Needs you</h2></div>
-            <div class="ow-panel-list" id="owNeedsList" aria-live="polite"><span class="ow-skel ow-skel-row"></span><span class="ow-skel ow-skel-row"></span></div>
-          </section>
-          <section class="ow-panel" id="owContinue" aria-labelledby="owContinueTitle">
-            <div class="ow-panel-hd"><h2 id="owContinueTitle">Continue where you left off</h2></div>
-            <div class="ow-panel-list" id="owContinueList"><span class="ow-skel ow-skel-row"></span><span class="ow-skel ow-skel-row"></span></div>
-          </section>
-        </div>
-
-      </div>
-    </div>
+    <!-- Home was merged into Control Center (#page-business-brain): the
+         greeting, status line, Performance, Needs you, Campaigns and
+         Autopilot blocks now open the Control Center overview. Old
+         'dashboard'/'home' keys route there (orivenOps.js OLD_KEYS). -->
 
     <!-- [REMOVED — Final Polish cleanup audit] #page-create-legacy: a
          permanently display:none!important page (the file's own comment
@@ -7133,6 +7120,18 @@
               </div>
             </div>
           </div>
+          <!-- Sidebar workflow steps — orientation only (small numbers and a
+               line beside Business → Research → Create → Launch → Campaigns
+               → Autopilot). Saved like every other setting (saveSettings). -->
+          <div class="smd-section">
+            <div class="smd-tgl-row">
+              <div>
+                <div class="smd-tgl-lbl" id="tglWorkflowStepsLbl">Show workflow steps</div>
+                <div class="smd-tgl-sub">Number the sidebar in the order advertising usually moves: Control Center, Research, Create, Launch, Campaigns, Autopilot. You can still open any page at any time.</div>
+              </div>
+              <div class="tgl on" id="tglWorkflowSteps" onclick="toggleWorkflowSteps(this)" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleWorkflowSteps(this);}" role="switch" tabindex="0" aria-checked="true" aria-labelledby="tglWorkflowStepsLbl"></div>
+            </div>
+          </div>
           <div class="smd-section">
             <div class="smd-field-lbl" data-i18n="smdLangLabel">Language</div>
             <div class="smd-field-help" data-i18n="smdLangHelp">Choose the language ORIVEN's interface uses.</div>
@@ -7313,7 +7312,7 @@
             <div class="smd-field-help" data-i18n="smdHelpSecHelp">Change your password directly (current password required), send yourself a password-reset link by email, or sign out of every other device.</div>
           </div>
           <div class="smd-section">
-            <div class="smd-field-lbl" data-i18n="bizTabBusiness">Business</div>
+            <div class="smd-field-lbl" data-i18n="navBusiness">Control Center</div>
             <div class="smd-field-help" data-i18n="smdHelpBizHelp">Manage your business details, brand voice, audiences, and connected ad accounts from the Business workspace — separate from personal Settings.</div>
           </div>
           <div class="smd-section">
@@ -7324,6 +7323,10 @@
             <div class="smd-field-lbl" data-i18n="smdRestartObTitle">Restart Onboarding</div>
             <div class="smd-field-help" data-i18n="smdRestartObHelp">Replay the guided product tour from the beginning. Useful for demos or a refresher.</div>
             <button class="btn btn-g btn-sm" style="margin-top:12px" onclick="restartOnboarding()" data-i18n="smdRestartObBtn">Restart Onboarding</button>
+          </div>
+          <div class="smd-section">
+            <div class="smd-field-lbl">Contact OrivenAI</div>
+            <div class="smd-field-help">Questions about OrivenAI, your account or billing? Email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</div>
           </div>
           <div class="smd-section">
             <div class="smd-field-lbl" data-i18n="smdVersionLabel">Version</div>
@@ -7839,6 +7842,9 @@
 <script src="orivenContext.js"></script>
 <script src="orivenWorkspace.js"></script>
 <script src="orivenFlow.js"></script>
+<script src="orivenOps.js"></script>
+<script src="orivenOpsPages.js"></script>
+<script src="orivenPlan.js"></script>
 
 <!-- ════════════════════════════════════════════════════════════
      AI CONVERSATION FLOW OVERLAY
@@ -14600,6 +14606,10 @@ window._orvReadinessChanged = function(campId){
          workspace state Home shows (counts + "Needs you" titles), so the
          assistant answers from the same facts the user is looking at. */
       research: oc.research || null,
+      /* Home's summary blocks (and a Planning brief) attach the numbers
+         on screen and the rule-based signals when the user asks from there
+         (orvWorkspace.ops.ai.ask) — server.js opsSection. */
+      ops: oc.ops || null,
       workspace: (window.orvWorkspace && orvWorkspace.chat) ? orvWorkspace.chat.summary() : null
     };
 
@@ -14646,7 +14656,10 @@ window._orvReadinessChanged = function(campId){
         ? '<div class="orv-ai-used-context">Using: ' + usedContext.map(_escHtml).join(' · ') + '</div>'
         : '';
       var objLinks = (res.ok && window.orvWorkspace && orvWorkspace.chat) ? orvWorkspace.chat.links(text) : '';
-      aiDiv.innerHTML = '<div class="orv-ai-msg-bubble">' + _escHtml(text) + '</div>' + usedChip + objLinks;
+      // The official contact address (and only that exact string) becomes a
+      // mailto link after escaping.
+      var bubble = _escHtml(text).replace(/contact@orivenai\.com/g, '<a href="mailto:contact@orivenai.com">contact@orivenai.com</a>');
+      aiDiv.innerHTML = '<div class="orv-ai-msg-bubble">' + bubble + '</div>' + usedChip + objLinks;
       feed.appendChild(aiDiv);
       feed.scrollTop = feed.scrollHeight;
       if(res.ok){
@@ -15284,6 +15297,10 @@ window._orvNav = function(page, explicitPageId) {
      exist even if a caller still passes them explicitly; land on
      Business instead of a blank page. */
   if (pgId === 'page-studio' || pgId === 'page-integrations') pgId = 'page-business-brain';
+  /* Home was merged into Control Center: any caller that still asks for
+     page-dashboard (login paths, old links) lands there, never on a blank
+     page — even before orivenOps.js has hooked its key aliases. */
+  if (pgId === 'page-dashboard' || pgId === 'page-overview') pgId = 'page-business-brain';
   var el = document.getElementById(pgId);
   if (el) el.classList.add('active');
   if (window.orvContext) window.orvContext.page = page;
@@ -15293,7 +15310,7 @@ window._orvNav = function(page, explicitPageId) {
      behaves); 'dashboard' is the real one since the Dashboard/Home nav
      item was added. */
   var _backBtn = document.getElementById('orvHeaderBack');
-  if (_backBtn) _backBtn.style.display = (page === 'overview' || page === 'dashboard') ? 'none' : '';
+  if (_backBtn) _backBtn.style.display = (page === 'overview' || page === 'dashboard' || page === 'businessbrain') ? 'none' : '';
   /* Highlight matching sidebar item by data-orv-page key, or by hub membership */
   document.querySelectorAll('.orv-ni[data-orv-page]').forEach(function(b) {
     var hub = b.getAttribute('data-orv-hub');
@@ -16214,6 +16231,9 @@ function _researchSetState(state) {
   // second, independently-guessed visibility rule.
   var launchpad = document.getElementById('researchLaunchpad');
   if (launchpad) launchpad.style.display = (state === 'researchEmptyState') ? '' : 'none';
+  if (instrument) instrument.classList.toggle('rsc-split', state === 'researchEmptyState');
+  var side = document.getElementById('researchSide');
+  if (side) { side.style.display = (state === 'researchEmptyState') ? '' : 'none'; if (state === 'researchEmptyState') _researchPaintSide(); }
   // Optical centering (Research polish pass) — title + workspace center
   // as one composition for every pre-result state (ready/investigating/
   // error/no-results all share #researchCanvas, so this stays visually
@@ -16743,6 +16763,67 @@ function _researchTryRestoreSession() {
   var followRow = document.getElementById('researchFollowupRow');
   if (followRow) followRow.style.display = '';
 }
+
+// Research context panel (ready state). Shows only what is real: the
+// saved business profile Research already sends as context, the last saved
+// investigation (reopened through the same render path as a restore), and
+// what an investigation produces. GET requests only; nothing is charged.
+var _researchSideTok = 0;
+// Ready state on (re)entry: the split layout + panel follow the launchpad,
+// which _researchSetState already shows only before an investigation.
+window._researchSyncSide = function() {
+  var lp = document.getElementById('researchLaunchpad'), inst = document.getElementById('researchInstrument'), side = document.getElementById('researchSide');
+  if (!lp || !inst || !side) return;
+  var ready = lp.style.display !== 'none' && document.getElementById('researchCanvas').style.display !== 'none';
+  inst.classList.toggle('rsc-split', ready);
+  side.style.display = ready ? '' : 'none';
+  if (ready) _researchPaintSide();
+};
+function _researchPaintSide() {
+  var el = document.getElementById('researchSide');
+  if (!el) return;
+  var tok = ++_researchSideTok;
+  var esc = function(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  var stored = (typeof window._orvLoadResearchSession === 'function') ? window._orvLoadResearchSession() : null;
+  var last = stored && stored.result && stored.result.question ? stored : null;
+  var rel = (window.orvWorkspace && orvWorkspace.relTime) ? orvWorkspace.relTime : function(){ return ''; };
+  function render(biz) {
+    if (tok !== _researchSideTok) return;
+    var bizHtml;
+    if (biz === null) bizHtml = '<p class="rsc-side-muted">Loading…</p>';
+    else if (!biz || !biz.name) bizHtml = '<p class="rsc-side-muted">No business profile yet. Add one in Control Center and every investigation is framed around it.</p><button type="button" class="rsc-side-link" onclick="bizGoTo(\'business\')">Set up your business →</button>';
+    else bizHtml = '<p class="rsc-side-name">' + esc(biz.name) + '</p>' +
+      '<p class="rsc-side-muted">' + esc([biz.industry, biz.audiences != null ? biz.audiences + ' audience' + (biz.audiences === 1 ? '' : 's') : '', biz.competitors != null ? biz.competitors + ' competitor' + (biz.competitors === 1 ? '' : 's') : ''].filter(Boolean).join(' · ')) + '</p>' +
+      '<button type="button" class="rsc-side-link" onclick="bizGoTo(\'overview\')">Edit in Control Center →</button>';
+    el.innerHTML =
+      '<section class="rsc-side-b"><h2>Your business</h2>' + bizHtml + '<p class="rsc-side-note">Research uses your business profile as context.</p></section>' +
+      (last ? '<section class="rsc-side-b"><h2>Latest research</h2><p class="rsc-side-q">“' + esc(last.result.question) + '”</p>' + (last.savedAt ? '<p class="rsc-side-muted">' + esc(rel(last.savedAt)) + '</p>' : '') +
+        '<button type="button" class="rsc-side-link" onclick="_researchReopenSaved()">Reopen →</button></section>' : '') +
+      '<section class="rsc-side-b"><h2>What you get</h2><ul class="rsc-side-list">' +
+        '<li>Findings grouped into opportunities, competitors, trends, customer signals and advertising patterns</li>' +
+        '<li>A Market Map with the sources behind it</li>' +
+        '<li>Findings you choose can go straight into Create</li></ul></section>';
+  }
+  render(null);
+  if (typeof apiFetch !== 'function') { render(undefined); return; }
+  Promise.all(['/api/business/profile', '/api/business/audiences', '/api/business/competitors'].map(function(u){ return apiFetch(u).catch(function(){ return null; }); })).then(function(x){
+    var p = x[0] && x[0].ok && x[0].data ? x[0].data.profile : null;
+    var aud = x[1] && x[1].ok && x[1].data && Array.isArray(x[1].data.items) ? x[1].data.items.length : null;
+    var comp = x[2] && x[2].ok && x[2].data && Array.isArray(x[2].data.items) ? x[2].data.items.length : null;
+    render(p && p.company_name ? { name: p.company_name, industry: p.industry || '', audiences: aud, competitors: comp } : undefined);
+  });
+}
+window._researchReopenSaved = function() {
+  var stored = (typeof window._orvLoadResearchSession === 'function') ? window._orvLoadResearchSession() : null;
+  if (!stored || !stored.result || typeof _rmapRender !== 'function') return;
+  window._researchLastResult = stored.result;
+  window._researchChatHistory = [];
+  _researchRailRenderReal(stored.result);
+  _rmapRender(stored.result);
+  _researchSetState('researchMapView');
+  var followRow = document.getElementById('researchFollowupRow');
+  if (followRow) followRow.style.display = '';
+};
 
 window._researchNewSession = function() {
   window._researchLastResult = null;
@@ -19000,10 +19081,17 @@ function _prfRenderMetricExplorer(platform, kpis, activeId) {
   var ids = _prfSelectorMetricIds(platform);
   if (!ids.length) { wrap.style.display = 'none'; grid.innerHTML = ''; return; }
   wrap.style.display = '';
+  // Grouped by the registry's own category (delivery/traffic/conversion), so
+  // related metrics sit together; same tiles, same ids, same selection.
+  var _GROUPS = [['delivery', 'Delivery & spend'], ['traffic', 'Traffic'], ['conversion', 'Conversion']];
+  var _known = _GROUPS.map(function(g){ return g[0]; });
+  var groups = _GROUPS.map(function(g){ return { key: g[0], label: g[1], ids: ids.filter(function(id){ return (ORIVEN_METRICS[id].category || '') === g[0]; }) }; })
+    .concat([{ key: 'other', label: 'Other', ids: ids.filter(function(id){ return _known.indexOf(ORIVEN_METRICS[id].category || '') === -1; }) }])
+    .filter(function(g){ return g.ids.length; });
+  ids = [].concat.apply([], groups.map(function(g){ return g.ids; }));
   var current = Array.prototype.map.call(grid.querySelectorAll('.prf-explorer-tile'), function(el) { return el.getAttribute('data-metric'); });
   var setChanged = current.length !== ids.length || ids.some(function(id, i) { return current[i] !== id; });
-  if (setChanged) {
-    grid.innerHTML = ids.map(function(id) {
+  var tileHtml = function(id) {
       var m = ORIVEN_METRICS[id];
       // Restrained semantic color (Control-Room pass) — reuses this
       // registry's own real category field (delivery/traffic/conversion),
@@ -19013,6 +19101,12 @@ function _prfRenderMetricExplorer(platform, kpis, activeId) {
         '<span class="prf-explorer-label"><span class="prf-explorer-dot" aria-hidden="true"></span>' + _prfEsc(m.label) + '</span>' +
         '<span class="prf-explorer-val" id="prfExp_' + id + '">—</span>' +
       '</button>';
+  };
+  if (setChanged) {
+    grid.innerHTML = groups.map(function(g) {
+      return '<div class="prf-mgroup" data-category="' + g.key + '" role="group" aria-label="' + _prfEsc(g.label) + ' metrics">' +
+        '<div class="prf-mgroup-h">' + _prfEsc(g.label) + '</div>' +
+        '<div class="prf-mgroup-tiles">' + g.ids.map(tileHtml).join('') + '</div></div>';
     }).join('');
   }
   ids.forEach(function(id, i) {
@@ -21036,7 +21130,7 @@ window.bizSwitchTab = function(tab){
   // somewhere real instead of a blank panel.
   if(tab === 'map') tab = 'overview';
   _bizActiveTab = tab;
-  ['overview','business','market','competitors','brand','connections','memory'].forEach(function(t){
+  ['overview','business','market','competitors','brand','connections','memory','planning'].forEach(function(t){
     var el = document.getElementById('bizPanel' + t.charAt(0).toUpperCase() + t.slice(1));
     if(el) el.style.display = (t === tab) ? '' : 'none';
   });
@@ -21064,6 +21158,17 @@ window.bizSwitchTab = function(tab){
   }
   if(tab === 'connections' && !_bizLoaded.connections){   _bizLoaded.connections = true; if(typeof initIntegrations === 'function') initIntegrations(); }
   if(tab === 'memory'      && !_bizLoaded.memory){       _bizLoaded.memory = true;      bizLoadMemory(); }
+  // Planning (orivenPlan.js) — re-rendered on every visit; it's the user's
+  // own local-first data, so this costs no request beyond this month's spend.
+  var _pl = window.orvWorkspace && window.orvWorkspace.ops && window.orvWorkspace.ops.planning;
+  if(tab === 'planning' && _pl) _pl.render();
+  if(tab === 'overview' && _pl) _pl.paintStrip();
+  // Control Center overview: advertising blocks (orivenOpsPages.js) and the
+  // greeting/status/Needs you (orivenWorkspace.js) — real data only.
+  if(tab === 'overview' && window.orvWorkspace){
+    if(orvWorkspace.ops && orvWorkspace.ops.renderDashSnap) orvWorkspace.ops.renderDashSnap();
+    if(orvWorkspace.home && orvWorkspace.home.render){ orvWorkspace.home.render(); if(orvWorkspace.refresh) orvWorkspace.refresh(false); }
+  }
 };
 
 /* The single navigation entry point for "go to Brand" / "go to
@@ -28930,22 +29035,6 @@ window._cr2BrandIdentity = function(btn, enabled) {
   }
   if(typeof window.aicUpdateReviewSummary === 'function') window.aicUpdateReviewSummary();
   if (typeof _cr2RenderStage === 'function') _cr2RenderStage();
-};
-
-// Advanced settings disclosure (Prompt-First pass) — same collapse/expand
-// pattern as the manual-campaign form's _mcToggleAdvanced. Collapsed by
-// default; nothing inside (_cr2RenderPlatObj/_cr2RenderStructSection)
-// changes behavior, they just aren't visible until opened.
-window._cr2ToggleAdvanced = function(){
-  var body = document.getElementById('cr2AdvancedGroup');
-  var chev = document.getElementById('cr2AdvancedChevron');
-  var toggle = document.getElementById('cr2AdvancedToggle');
-  if(!body) return;
-  var open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : '';
-  // Down when collapsed, up when expanded (the path itself is a down chevron).
-  if(chev) chev.style.transform = open ? '' : 'rotate(180deg)';
-  if(toggle) toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
 };
 
 // Campaign Goal — exactly one of Sales/Leads/Traffic/Awareness, required
