@@ -16641,12 +16641,14 @@ window.researchSubmit = function() {
     _researchSetActivityStage('analyzing');
     var reqBody = { question: _researchComposeQuestion(question) };
     if (_researchUrls.length) reqBody.urls = _researchUrls.slice();
-    apiFetch('/api/research/query', { method: 'POST', body: JSON.stringify(reqBody) })
+    apiFetch('/api/research/query', { method: 'POST', body: JSON.stringify(reqBody), idempotencyKey: (typeof window.orvNewActionKey === 'function' ? window.orvNewActionKey() : undefined) })
       .then(function(res) {
         _researchSubmitting = false;
         if (!res.ok) {
           if (btn) btn.disabled = false;
-          _researchShowError((res.data && res.data.error) || 'Research could not be completed. Try again.');
+          var _rsErr = (res.data && res.data.error) || 'Research could not be completed. Try again.';
+          if (res.data && res.data.creditsRefunded) _rsErr += ' Your credits for this attempt were returned.';
+          _researchShowError(_rsErr);
           return;
         }
         _researchSetActivityStage('mapping');
@@ -16937,6 +16939,7 @@ window.researchFollowup = function() {
     method: 'POST',
     body: JSON.stringify({
       message: question,
+      mode: 'research-followup',
       context: { page: 'research', research: window._researchLastResult },
       history: (window._researchChatHistory || []).slice(-20)
     })
@@ -28610,6 +28613,28 @@ window.rptExport = function(format) {
 
   /* Public: main entry point */
   window.cgrGenerate = function(prompt, platform, creativeMode, goal){
+    /* One build at a time. A second call while a build is still running
+       (double click, Enter, Try again, the landing-page prompt timer, a
+       rerender) is ignored here, and the server refuses it too (paid-action
+       lane lock + idempotency key), so it can never charge or call the AI
+       twice. A lock older than 6 minutes is treated as abandoned (the
+       server times provider calls out well before that). */
+    var _inFlight = window._cgrInFlight;
+    if (_inFlight && Date.now() - _inFlight.at < 6 * 60 * 1000) {
+      if (typeof orvToast === 'function') orvToast('Your campaign is still being built. It will appear when it’s ready.', 'info');
+      return;
+    }
+    var _actionKey = typeof window.orvNewActionKey === 'function' ? window.orvNewActionKey() : null;
+    window._cgrInFlight = { key: _actionKey, at: Date.now() };
+    var _slowTimer = setTimeout(function(){
+      if (window._cgrInFlight && window._cgrInFlight.key === _actionKey && typeof orvToast === 'function')
+        orvToast('Still building your campaign. This can take up to a minute. Keep this tab open.', 'info');
+    }, 25000);
+    function _cgrDone(){
+      clearTimeout(_slowTimer);
+      if (window._cgrInFlight && window._cgrInFlight.key === _actionKey) window._cgrInFlight = null;
+      if (typeof _aicRestoreGenerateBtn === 'function') _aicRestoreGenerateBtn(document.getElementById('aicGenBtn'));
+    }
     var _plat = platform || window._ov3Platform || 'google';
     // Real, user-selected goal (Sales/Leads/Traffic/Awareness) — this used
     // to be hardcoded to 'Sales' regardless of what the user actually
@@ -28690,8 +28715,10 @@ window.rptExport = function(format) {
     var _rendering = false;
     apiFetch('/api/ai/create-ad', {
       method: 'POST',
-      body: JSON.stringify(_payload)
+      body: JSON.stringify(_payload),
+      idempotencyKey: _actionKey
     }).then(function(res){
+      _cgrDone(); // the request is over (success or failure) — a new build may start
       /* Backend returns { ok:true, data:<pkg> }  — unwrap the inner pkg */
       var body = res.data || {};
       var pkg  = body.data || body; /* handle both wrapped and flat responses */
@@ -28730,6 +28757,7 @@ window.rptExport = function(format) {
       console.warn('[cgr] generation not completed — HTTP ' + res.status + (body && body.code ? ' ' + body.code : ''));
       _renderError(prompt, { model: _F ? _F.error({ status: res.status, body: body, phase: 'generate', required: CREDIT_COSTS.campaign }) : null });
     }).catch(function(err){
+      _cgrDone();
       console.error('[cgr] generation error:', err);
       if(_rendering && window._cgrCurrentCampId){
         // The package arrived and was saved; only displaying it failed.
@@ -29774,9 +29802,10 @@ function _aicGenerateProceed(prompt, goal){
     var _mode = window._ov3ContentMode || 'images';
     console.log('[Create] Calling cgrGenerate | platform:', platform, '| goal:', goal, '| mode:', _mode);
     window.cgrGenerate(prompt, platform, _mode, goal);
-    /* Button stays disabled — cgrGenerate navigates away.
-       Restore after 8s in case navigation fails. */
-    setTimeout(function(){ _aicRestoreGenerateBtn(btn); }, 8000);
+    /* The button stays disabled until the build request really finishes —
+       cgrGenerate re-enables it on success or failure. There is no timer:
+       a fixed re-enable while a build was still queued let the same
+       campaign be submitted again and again. */
     console.log('[Create] cgrGenerate dispatched | elapsed:', Date.now()-_t0, 'ms');
   } catch(err) {
     console.error('[Create] cgrGenerate threw:', err);

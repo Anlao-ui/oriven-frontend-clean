@@ -47,11 +47,45 @@ SB.auth.getSession().then(function(r){
   _apiToken = r.data && r.data.session ? r.data.session.access_token : null;
 });
 
+// ── Paid actions: one intentional user action = one idempotency key ──
+// The backend (services/paidActions.js) charges credits at most once per
+// X-Idempotency-Key and refuses a second in-flight request in the same lane.
+// Callers that represent one user action pass options.idempotencyKey (from
+// orvNewActionKey()); any other paid POST gets a fresh key here so the
+// server-side lane lock always applies.
+var ORV_PAID_PATH = /^\/api\/(ai\/create-ad|ai\/chat|research\/query|generate-[a-z-]+|video-ads\/generate|motion-graphics\/generate|product-shoots\/generate|creative\/[a-z-]+)(\?|$)/;
+function orvNewActionKey(){
+  try { if (window.crypto && crypto.randomUUID) return 'act-' + crypto.randomUUID(); } catch(_){}
+  return 'act-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 12);
+}
+window.orvNewActionKey = orvNewActionKey;
+
+// One campaign renders one image per ad slot in parallel. The server allows
+// a handful per user at a time, so the browser keeps at most 4 image
+// requests in flight and queues the rest (same images, nothing dropped).
+var _orvImgActive = 0, _orvImgQueue = [], ORV_IMG_MAX = 4;
+function _orvImageSlot(){
+  if (_orvImgActive < ORV_IMG_MAX) { _orvImgActive++; return Promise.resolve(); }
+  return new Promise(function(resolve){ _orvImgQueue.push(resolve); });
+}
+function _orvImageRelease(){
+  var next = _orvImgQueue.shift();
+  if (next) next(); else _orvImgActive--;
+}
+
 async function apiFetch(path, options) {
+  if (String(path).indexOf('/api/generate-image') === 0 && options && String(options.method || '').toUpperCase() === 'POST' && !(options && options._orvImgSlotted)) {
+    await _orvImageSlot();
+    try { return await apiFetch(path, Object.assign({}, options, { _orvImgSlotted: true })); }
+    finally { _orvImageRelease(); }
+  }
   var url    = API_BASE_URL + path;
   var method = (options && options.method) || "GET";
   // Auto-inject auth token so backend can verify subscription
   var headers = Object.assign({}, options && options.headers);
+  if (String(method).toUpperCase() === 'POST' && ORV_PAID_PATH.test(String(path)) && !headers['X-Idempotency-Key']) {
+    headers['X-Idempotency-Key'] = (options && options.idempotencyKey) || orvNewActionKey();
+  }
   if(!headers["Authorization"] && _apiToken){
     headers["Authorization"] = "Bearer " + _apiToken;
   }
@@ -60,6 +94,7 @@ async function apiFetch(path, options) {
     headers["Content-Type"] = "application/json";
   }
   options = Object.assign({}, options, { headers: headers });
+  delete options.idempotencyKey; delete options._orvImgSlotted;
   console.log("[API] →", method, url, "| auth:", headers["Authorization"] ? "Bearer present" : "NO AUTH TOKEN", "| body size:", options.body ? options.body.length + " bytes" : "none");
 
   var resp;
@@ -103,6 +138,11 @@ async function apiFetch(path, options) {
       init.headers = Object.assign({}, init.headers || {});
       if(!init.headers["Authorization"]){
         init.headers["Authorization"] = "Bearer " + _apiToken;
+      }
+      // Raw fetch() callers of paid routes get an idempotency key too.
+      var _p = url.slice(API_BASE_URL.length);
+      if(String(init.method || 'GET').toUpperCase() === 'POST' && ORV_PAID_PATH.test(_p) && !init.headers['X-Idempotency-Key']){
+        init.headers['X-Idempotency-Key'] = orvNewActionKey();
       }
     }
     return _orig(input, init);

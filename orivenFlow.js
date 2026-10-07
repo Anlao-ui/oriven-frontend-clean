@@ -356,10 +356,18 @@
     if (code === 'PROVIDER_UNAVAILABLE') {
       return { kind: 'service', title: 'Generation service unavailable',
         message: phase === 'creative' ? 'OrivenAI can’t create this image right now because the generation service is temporarily unavailable. Please try again later.' : SERVICE_MSG,
-        detail: b.refunded ? 'Your credits were not charged.' : '', retry: true, edit: true };
+        detail: (b.creditsRefunded || b.refunded) ? 'Your credits were returned.' : '', retry: true, edit: true };
     }
     if (st === 401) {
       return { kind: 'session', title: 'Your session has expired', message: 'Sign in again to continue. Nothing was ' + (phase === 'publish' ? 'published.' : 'built.'), retry: false, edit: false, action: { label: 'Sign in again', fn: 'signin' } };
+    }
+    // Paid-action guard (server): the same build is already running, or this
+    // exact action was already sent. Nothing new was charged.
+    if (st === 409 && code === 'ACTION_IN_PROGRESS') {
+      return { kind: 'in_progress', title: 'Already building', message: safeServerText(b.error) || 'This is still running. Wait for it to finish before starting another.', detail: 'Nothing extra was charged.', retry: false, edit: false };
+    }
+    if (st === 409 && code === 'DUPLICATE_ACTION') {
+      return { kind: 'in_progress', title: 'Already sent', message: 'This exact request was already sent once. Start a new build if you want another.', detail: 'Nothing extra was charged.', retry: true, edit: true };
     }
     if (st === 409 && code === 'PUBLISH_IN_PROGRESS') {
       return { kind: 'in_progress', title: 'Already publishing', message: 'This campaign is already being sent. Wait for that to finish before trying again.', retry: false, edit: false };
@@ -380,11 +388,11 @@
         retry: false, edit: true };
     }
     if (st === 502 || st === 503) {
-      return { kind: 'backend', title: 'OrivenAI is temporarily unavailable', message: 'Our servers didn’t respond. Please try again in a minute.', retry: true, edit: true };
+      return { kind: 'backend', title: 'OrivenAI is temporarily unavailable', message: 'Our servers didn’t respond. Please try again in a minute.', detail: b.creditsRefunded ? 'Your credits were returned.' : '', retry: true, edit: true };
     }
     if (code === 'GENERATION_FAILED' || (st >= 500 && phase === 'generate')) {
       return { kind: 'generation', title: 'Campaign generation failed', message: 'OrivenAI couldn’t finish building this campaign. Try again, or adjust the description.',
-        detail: 'Credits reserved for this attempt aren’t returned automatically.', retry: true, edit: true };
+        detail: b.creditsRefunded ? 'Your credits for this attempt were returned.' : '', retry: true, edit: true };
     }
     if (st >= 500) {
       var t2 = phase === 'publish' ? safeServerText(b.error) : '';
