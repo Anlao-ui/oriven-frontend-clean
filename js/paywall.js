@@ -2,9 +2,12 @@
 // PAYWALL MODAL — plan detection + card rendering
 // ════════════════════════════════════════════════════════════════
 
-function openPaywall(){
+function openPaywall(actionCtx){
   console.log("[PW-CHAIN] openPaywall() called | typeof openModal:", typeof openModal);
+  // A plain open (no action) ends any earlier action-specific state.
+  if(!actionCtx) _pwEndAction();
   _renderPaywallCards();
+  if(actionCtx) _pwRenderActionFit(actionCtx);
   var pwEl = document.getElementById("modal-paywall");
   if(!pwEl){
     console.error("[PW-CHAIN] openPaywall() — modal-paywall element NOT FOUND in DOM");
@@ -49,17 +52,7 @@ function _renderPaywallCards(){
 
   // Mark the user's current plan button as inactive/labeled "Current Plan"
   // (Free included when it's genuinely current) rather than presenting it
-  // as another selectable tier -- EXCEPT during onboarding's Plan step
-  // (_obContext === "onboarding", onboarding.js). Every brand-new account
-  // already has subscription_status:'free' by default (server.js /api/signup)
-  // before onboarding has even asked anything, so without this exception the
-  // Free card would always render as a disabled "Current Plan" the very
-  // first time this modal ever opens -- leaving no way to actually click
-  // through the Free path to complete onboarding. Outside onboarding this
-  // disabling is correct (Settings/paywall already-signed-in context).
-  var isOnboarding = false;
-  try { isOnboarding = (typeof _obContext !== "undefined" && _obContext === "onboarding"); } catch(_){}
-  if(isOnboarding) return;
+  // as another selectable tier.
 
   plansForCards.forEach(function(p){
     if(plan !== p.id) return;
@@ -69,6 +62,127 @@ function _renderPaywallCards(){
     btn.disabled    = true;
     btn.className   = "pw-btn";
   });
+}
+
+// ════════════════════════════════════════════════════════════════
+// ACTION PAYWALL — the same modal, opened from a blocked Create/Research
+// action. The server already refused the action (402/403) before anything
+// was spent; this explains why, in the user's terms, and shows per plan
+// whether it covers the action. Everything is derived from plans.js
+// (ORIVEN_PLANS / CREDIT_COSTS), never typed-in numbers.
+//   ctx: { action: 'create'|'image'|'research', code, balance }
+// ════════════════════════════════════════════════════════════════
+
+var _pwAction = null;   // { ctx, title, sub, eyebrow, skip } while an action paywall is showing
+
+function _pwCurrentPlan(){
+  try { if(typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus) return _dbSubscriptionStatus; } catch(_){}
+  return "free";
+}
+
+function _pwActionCopy(ctx){
+  var C = CREDIT_COSTS;
+  var bal = (ctx.balance != null && isFinite(Number(ctx.balance))) ? Number(ctx.balance) : null;
+  var have = bal != null ? ", and you have " + orvFormatCredits(bal) : "";
+  if(ctx.action === "research"){
+    var p = ORIVEN_PLANS[_pwCurrentPlan()];
+    var notIncluded = ctx.code === "PLAN_REQUIRED" || !(p && p.entitlements && p.entitlements.research);
+    return {
+      title: "You’re ready to research your market.",
+      sub: notIncluded
+        ? "Research is included from " + ORIVEN_PLANS.starter.name + ". Each investigation uses " + C.research + " credits. Your question is saved."
+        : "Each investigation uses " + C.research + " credits" + have + ". Your question is saved."
+    };
+  }
+  if(ctx.action === "image"){
+    return { title: "You’re ready to create your ad.",
+      sub: "Rendering an ad image uses " + C.imageAd + " credits" + have + ". Your campaign and brief are saved." };
+  }
+  if(ctx.code === "SUBSCRIPTION_REQUIRED"){
+    return { title: "You’re ready to create your ad.",
+      sub: "Free includes one campaign build a day, and today’s is used. Choose a plan to build this one now. Your brief is saved." };
+  }
+  return { title: "You’re ready to create your ad.",
+    sub: "Building a campaign uses " + C.campaign + " credits" + have + ". Your brief is saved." };
+}
+
+// Whether a plan covers the action, with the honest reason.
+function _pwPlanFit(plan, ctx){
+  var C = CREDIT_COSTS;
+  if(!plan) return null;
+  var perCycle = plan.cycleLabel === "day" ? "day" : "month";
+  if(ctx.action === "research"){
+    if(!(plan.entitlements && plan.entitlements.research)) return { ok: false, text: "Research isn’t included" };
+    return { ok: true, text: "Research included · up to " + orvFormatCredits(Math.floor(plan.credits / C.research)) + " investigations / " + perCycle };
+  }
+  if(plan.id === "free"){
+    if(ctx.action === "image") return { ok: false, text: "Ad images need " + C.imageAd + " credits. Free has " + plan.credits + " a day" };
+    return { ok: false, text: "One campaign build a day · no ad images" };
+  }
+  return { ok: true, text: "Up to " + orvFormatCredits(Math.floor(plan.credits / C.imageAdComplete)) + " complete image ads / " + perCycle };
+}
+
+function _pwRenderActionFit(ctx){
+  var grid = document.getElementById("pwPlanGrid");
+  if(!grid || typeof ORIVEN_PLANS === "undefined") return;
+  var firstFit = null;
+  (typeof ORIVEN_PLAN_LIST !== "undefined" ? ORIVEN_PLAN_LIST : []).forEach(function(p){
+    var btn = document.getElementById("paywall-btn-" + p.id);
+    var card = btn && btn.closest ? btn.closest(".pw-card") : null;
+    if(!card) return;
+    var fit = _pwPlanFit(p, ctx);
+    if(!fit) return;
+    if(fit.ok && !firstFit) firstFit = card;
+    var el = document.createElement("div");
+    el.className = "pw-fit " + (fit.ok ? "pw-fit-yes" : "pw-fit-no");
+    el.innerHTML = '<span class="pw-fit-ic" aria-hidden="true">' + (fit.ok ? "✓" : "–") + '</span><span>' + fit.text + '</span>';
+    var anchor = card.querySelector(".pw-credits-inline");
+    if(anchor && anchor.nextSibling) card.insertBefore(el, anchor.nextSibling); else card.appendChild(el);
+    if(p.id === "free" && btn && !btn.disabled){ btn.textContent = "Stay on Free"; btn.setAttribute("data-label", "Stay on Free"); }
+  });
+  if(firstFit){
+    var line = firstFit.querySelector(".pw-fit-yes");
+    if(line) line.insertAdjacentHTML("beforeend", '<span class="pw-fit-tag">Lowest plan for this</span>');
+  }
+}
+
+function openActionPaywall(ctx){
+  ctx = ctx || {};
+  var modal = document.getElementById("modal-paywall");
+  if(!modal) return;
+  var titleEl = modal.querySelector(".pw-title");
+  var subEl   = modal.querySelector(".pw-sub");
+  var eyeEl   = modal.querySelector(".pw-eyebrow span");
+  var skipEl  = modal.querySelector(".pw-skip-btn");
+  if(!_pwAction){
+    _pwAction = { title: titleEl && titleEl.innerHTML, sub: subEl && subEl.textContent, eyebrow: eyeEl && eyeEl.textContent, skip: skipEl && skipEl.textContent };
+  }
+  _pwAction.ctx = ctx;
+  var copy = _pwActionCopy(ctx);
+  if(titleEl) titleEl.textContent = copy.title;
+  if(subEl)   subEl.textContent = copy.sub;
+  if(eyeEl)   eyeEl.textContent = "Choose your plan";
+  if(skipEl)  skipEl.textContent = "Back to my work";
+  _pwAction.setTitle = titleEl && titleEl.innerHTML;
+  openPaywall(ctx);
+}
+window.openActionPaywall = openActionPaywall;
+
+// Restores the modal's own copy — unless another caller has already set
+// its own title (openLimitReached / openFreePaywall set theirs first).
+function _pwEndAction(){
+  if(!_pwAction) return;
+  var modal = document.getElementById("modal-paywall");
+  if(modal){
+    var titleEl = modal.querySelector(".pw-title");
+    if(titleEl && titleEl.innerHTML === _pwAction.setTitle){
+      titleEl.innerHTML = _pwAction.title;
+      var subEl = modal.querySelector(".pw-sub"); if(subEl) subEl.textContent = _pwAction.sub;
+      var eyeEl = modal.querySelector(".pw-eyebrow span"); if(eyeEl) eyeEl.textContent = _pwAction.eyebrow;
+    }
+    var skipEl = modal.querySelector(".pw-skip-btn"); if(skipEl) skipEl.textContent = _pwAction.skip;
+  }
+  _pwAction = null;
 }
 
 // ════════════════════════════════════════════════════════════════

@@ -7,7 +7,7 @@ var _onboardingShown      = false;
 var _postPayment          = false; // True when landing from Stripe ?success=true — suppresses subscription gate
 var _dbPlanSet            = false; // True once _loadUserProfile() confirms a paid plan from Supabase
 var _dbSubscriptionStatus = null;  // null = not yet loaded | "free"/"creator"/"professional"/"starter"/"agency" = from Supabase
-var _dbPrimaryGoal        = null;  // null = not yet loaded/not yet chosen | one of onboarding.js's OB2_GOALS ids, from Supabase profiles.primary_goal
+var _dbPrimaryGoal        = null;  // null = not yet loaded/not yet chosen | profiles.primary_goal ('create' | 'research' | 'business' = Explore, or an older goal id)
 
 // â”€â”€ Route helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -208,7 +208,7 @@ async function handleSignUp(){
     var signupResult = await apiFetch("/api/signup", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ firstName, lastName, email, password: pass, phone: phone||null })
+      body:    JSON.stringify({ firstName, lastName, email, password: pass, phone: phone||null, marketingOptIn: !!(document.getElementById("suOptIn") || {}).checked })
     });
     if(!signupResult.ok) throw new Error(signupResult.data.error || "Signup failed");
 
@@ -218,7 +218,6 @@ async function handleSignUp(){
 
     _authClearInputErr(["suFirst","suEmail","suPass"]);
     console.log("[Auth] Account created and signed in:", result.data.user.id);
-    try { localStorage.setItem("oriven_needs_onboarding", "1"); } catch(_){}
     await onUserSignedIn(result.data.user);
     trackEvent("created_account", result.data.user);
   } catch(err){
@@ -233,6 +232,9 @@ async function handleSignUp(){
 
 async function authSignOut(){
   console.log("[Auth] Signing out");
+  // Unfinished Create/Research work saved for a plan upgrade (onboarding.js)
+  // stays on a shared computer otherwise.
+  try { if(_currentUser) localStorage.removeItem("oriven_draft_" + _currentUser.id); } catch(_){}
   _currentUser          = null;
   _onboardingShown      = false;
   _dbSubscriptionStatus = null;
@@ -425,7 +427,11 @@ async function _loadUserProfile(user){
     var data = result.data;
     console.log("[Profile] Query SUCCESS | data:", JSON.stringify(data));
     if(data){ console.log("[Profile] subscription_status:", data.subscription_status); }
-    else     { console.warn("[Profile] data is null — no profile row found for user.id:", user.id); }
+    else {
+      console.warn("[Profile] data is null — no profile row found for user.id:", user.id, "— asking the backend to create it");
+      // Insert-only on the server; the browser has no write access to profiles.
+      if(typeof apiFetch === "function") apiFetch("/api/profile/ensure", { method: "POST" }).catch(function(){});
+    }
 
     // Auth is the source of truth for the authenticated email — if a user
     // changed their email via Settings (SB.auth.updateUser), profiles.email
@@ -451,29 +457,13 @@ async function _loadUserProfile(user){
       if(typeof invalidatePlanCache === "function") invalidatePlanCache();
       if(typeof renderPlanPanel === "function") renderPlanPanel();
       showApp();
-      // Check if onboarding is needed in dev mode too (new accounts should see the tour)
       _dbPrimaryGoal = data ? (data.primary_goal || null) : null;
-      var _devObCompleted = data ? data.onboarding_completed === true : false;
-      var _devObNeeded = false;
-      try { _devObNeeded = localStorage.getItem("oriven_needs_onboarding") === "1"; } catch(_){}
-      if(!_devObCompleted || _devObNeeded){
-        // Default Dashboard Routing pass — Dashboard/Home is the canonical
-        // default page whenever there's no explicit valid destination.
-        // startOnboarding() is a full-screen overlay (onboarding.js) fully
-        // independent of whatever page is active underneath it, and its
-        // own OB2_DEST table navigates the user to their EXPLICITLY chosen
-        // goal once they finish — so changing this underlying default from
-        // "create" to "dashboard" cannot affect the onboarding flow itself.
-        // Uses _orvNav (not the legacy navigate()) — navigate("dashboard")
-        // hits a stale app.js alias that redirects to "campaigns" from
-        // before Dashboard existed as a real nav destination; _orvNav is
-        // the single current entry point every live sidebar button uses,
-        // and is the only path that also runs refreshDash().
-        if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
-        startOnboarding(_dbPrimaryGoal);
-      } else {
-        if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
-      }
+      // Uses _orvNav (not the legacy navigate()) — navigate("dashboard")
+      // hits a stale app.js alias; _orvNav is the single current entry point
+      // every live sidebar button uses.
+      if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
+      // Welcome screen: the server decides who sees it (onboarding.js).
+      if(typeof orvOnboardingGate === "function") orvOnboardingGate();
     } else if(_postPayment){
       // Post-payment: DB may not reflect the new plan yet (webhook lag).
       // Read DB anyway — if paid already, set status. If still "free", leave null (= pending).
@@ -491,6 +481,9 @@ async function _loadUserProfile(user){
       // Default Dashboard Routing pass — was "create". Uses _orvNav, not
       // navigate() — see comment on the dev-mode branch above.
       if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
+      // Loads the onboarding state too (first-result suggestion); shows the
+      // welcome screen only if this account is still eligible.
+      if(typeof orvOnboardingGate === "function") orvOnboardingGate();
     } else {
       _dbPrimaryGoal = data ? (data.primary_goal || null) : null;
       var _dbPlan = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
@@ -511,85 +504,61 @@ async function _loadUserProfile(user){
         // Default Dashboard Routing pass — was "create". Uses _orvNav, not
         // navigate() — see comment on the dev-mode branch above.
         if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
-        // Even a paid subscriber gets the tour once, e.g. if they subscribed
-        // before ever opening the app. Same DB-first check as the free branch.
-        var _paidDbCompleted = data ? data.onboarding_completed === true : false;
-        var _paidLsNeedsOb   = false;
-        try { _paidLsNeedsOb = localStorage.getItem("oriven_needs_onboarding") === "1"; } catch(_){}
-        if(!_paidDbCompleted || _paidLsNeedsOb){
-          startOnboarding(_dbPrimaryGoal);
-        }
+        // Welcome screen: the server decides who sees it (onboarding.js) —
+        // new accounts only, never existing customers.
+        if(typeof orvOnboardingGate === "function") orvOnboardingGate();
       } else {
-        // No valid paid subscription — decide: onboarding gate OR hard paywall
-        //
-        // Primary signal: DB onboarding_completed field (reliable across devices,
-        // private browsing, and tab restores). Secondary: localStorage flag set
-        // immediately after account creation as a same-session fast-path.
-        var _dbCompleted = data ? data.onboarding_completed === true : false;
-        var _lsNeedsOb   = false;
-        try { _lsNeedsOb = localStorage.getItem("oriven_needs_onboarding") === "1"; } catch(_){}
-        var _needsOnboarding = !_dbCompleted || _lsNeedsOb;
+        // Free (or no plan yet): the app opens normally; Free is a real plan.
+        showApp();
+        console.log("[PW-CHAIN] _loadUserProfile | sub=free | user:", user.id);
+        console.log("[PW-CHAIN] DB profile data.free_campaign_used:", data && data.free_campaign_used);
 
-        console.log("[Onboarding] dbCompleted:", _dbCompleted, "| lsFlag:", _lsNeedsOb, "| willShow:", _needsOnboarding);
-
-        if(_needsOnboarding){
-          showApp();
-          // Default Dashboard Routing pass — was "create". Uses _orvNav,
-          // not navigate() — see comment on the dev-mode branch above.
-          if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
-          startOnboarding(_dbPrimaryGoal);
-        } else {
-          // Onboarding done, free user — check whether their free campaign has been used
-          showApp();
-          console.log("[PW-CHAIN] _loadUserProfile | onboarding done, sub=free | user:", user.id);
-          console.log("[PW-CHAIN] DB profile data.free_campaign_used:", data && data.free_campaign_used);
-
-          // Sync free_campaign_used from DB profile (survives logout / new devices)
-          var _dbUsedFlag = data && data.free_campaign_used === true;
-          var _scopedKey  = "oriven_fcused_" + user.id;
-          var _legacyKey  = "oriven_free_campaign_used";
-          if(_dbUsedFlag){
-            try { localStorage.setItem(_scopedKey, "1"); } catch(_){}
-            console.log("[PW-CHAIN] Synced free_campaign_used from DB ←’ localStorage key:", _scopedKey);
-          }
-          // Sync the rolling-24h timestamp too -- this, not the lifetime
-          // boolean above, is what _freeCampaignUsed() now actually checks
-          // (mirrors requireSubOrOnboardingGen's server-side daily window,
-          // server.js). The server remains authoritative regardless of what
-          // this local copy says -- this is purely so the client's own UI
-          // (Start Generation button, sidebar nav gate) doesn't show a stale
-          // "blocked" state a day after the server would already allow a
-          // fresh generation.
-          if(data && data.free_campaign_used_at){
-            try { localStorage.setItem("oriven_fcused_at_" + user.id, data.free_campaign_used_at); } catch(_){}
-          }
-          var _lsScopedFlag = false;
-          var _lsLegacyFlag = false;
-          try { _lsScopedFlag = localStorage.getItem(_scopedKey) === "1"; } catch(_){}
-          try { _lsLegacyFlag = localStorage.getItem(_legacyKey) === "1"; } catch(_){}
-          // Migrate legacy key if present
-          if(!_lsScopedFlag && _lsLegacyFlag){
-            try { localStorage.setItem(_scopedKey, "1"); _lsScopedFlag = true; } catch(_){}
-            console.log("[PW-CHAIN] Migrated legacy localStorage key to scoped key for user:", user.id);
-          }
-          var _isUsed = _dbUsedFlag || _lsScopedFlag || _lsLegacyFlag;
-          console.log("[PW-CHAIN] Page load check | _dbSubscriptionStatus:", _dbSubscriptionStatus, "| free_campaign_used:", _isUsed, "| db:", _dbUsedFlag, "| ls-scoped:", _lsScopedFlag, "| ls-legacy:", _lsLegacyFlag);
-
-          // Free is now a real, persistent plan (10 credits/day, 1
-          // Intelligence use/month) -- a returning Free user just lands on
-          // the app normally, same as any other plan, instead of the
-          // paywall re-opening on every single page load. The one-time,
-          // in-session openFreePaywall() call right after their first
-          // generation completes (_orvEndOnboardingIntoPaywall, wired
-          // elsewhere) already covers the "here's what's next" moment;
-          // this used-to-fire-every-load re-announcement was what made
-          // Free feel like an error state rather than a legitimate plan.
-          console.log("[PW-CHAIN] Free user — allowing normal access | campaign previously used:", _isUsed);
-          // Default Dashboard Routing pass — was "create". Uses _orvNav,
-          // not navigate() — see comment on the dev-mode branch above.
-          if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
-          return;
+        // Sync free_campaign_used from DB profile (survives logout / new devices)
+        var _dbUsedFlag = data && data.free_campaign_used === true;
+        var _scopedKey  = "oriven_fcused_" + user.id;
+        var _legacyKey  = "oriven_free_campaign_used";
+        if(_dbUsedFlag){
+          try { localStorage.setItem(_scopedKey, "1"); } catch(_){}
+          console.log("[PW-CHAIN] Synced free_campaign_used from DB ←’ localStorage key:", _scopedKey);
         }
+        // Sync the rolling-24h timestamp too -- this, not the lifetime
+        // boolean above, is what _freeCampaignUsed() now actually checks
+        // (mirrors requireSubOrOnboardingGen's server-side daily window,
+        // server.js). The server remains authoritative regardless of what
+        // this local copy says -- this is purely so the client's own UI
+        // (Start Generation button, sidebar nav gate) doesn't show a stale
+        // "blocked" state a day after the server would already allow a
+        // fresh generation.
+        if(data && data.free_campaign_used_at){
+          try { localStorage.setItem("oriven_fcused_at_" + user.id, data.free_campaign_used_at); } catch(_){}
+        }
+        var _lsScopedFlag = false;
+        var _lsLegacyFlag = false;
+        try { _lsScopedFlag = localStorage.getItem(_scopedKey) === "1"; } catch(_){}
+        try { _lsLegacyFlag = localStorage.getItem(_legacyKey) === "1"; } catch(_){}
+        // Migrate legacy key if present
+        if(!_lsScopedFlag && _lsLegacyFlag){
+          try { localStorage.setItem(_scopedKey, "1"); _lsScopedFlag = true; } catch(_){}
+          console.log("[PW-CHAIN] Migrated legacy localStorage key to scoped key for user:", user.id);
+        }
+        var _isUsed = _dbUsedFlag || _lsScopedFlag || _lsLegacyFlag;
+        console.log("[PW-CHAIN] Page load check | _dbSubscriptionStatus:", _dbSubscriptionStatus, "| free_campaign_used:", _isUsed, "| db:", _dbUsedFlag, "| ls-scoped:", _lsScopedFlag, "| ls-legacy:", _lsLegacyFlag);
+
+        // Free is now a real, persistent plan (10 credits/day, 1
+        // Intelligence use/month) -- a returning Free user just lands on
+        // the app normally, same as any other plan, instead of the
+        // paywall re-opening on every single page load. The one-time,
+        // in-session openFreePaywall() call right after their first
+        // generation completes (_orvEndOnboardingIntoPaywall, wired
+        // elsewhere) already covers the "here's what's next" moment;
+        // this used-to-fire-every-load re-announcement was what made
+        // Free feel like an error state rather than a legitimate plan.
+        console.log("[PW-CHAIN] Free user — allowing normal access | campaign previously used:", _isUsed);
+        // Default Dashboard Routing pass — was "create". Uses _orvNav,
+        // not navigate() — see comment on the dev-mode branch above.
+        if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
+        // Welcome screen: the server decides who sees it (onboarding.js).
+        if(typeof orvOnboardingGate === "function") orvOnboardingGate();
       }
     }
   } catch(err){
@@ -622,16 +591,14 @@ async function _loadUserProfile(user){
   }
 }
 
+// Profiles are written by the backend only (the browser has read access).
 async function markOnboardingComplete(){
   var user = _currentUser;
   if(!user) return;
-  console.log("[Onboarding] Marking complete for user:", user.id);
   try {
-    var result = await SB.from("profiles")
-      .update({ onboarding_completed: true })
-      .eq("id", user.id);
-    if(result.error) throw result.error;
-    console.log("[Onboarding] Marked as complete in database");
+    var result = await apiFetch("/api/onboarding/complete", { method: "POST" });
+    if(!result.ok) throw new Error((result.data && result.data.error) || "HTTP " + result.status);
+    console.log("[Onboarding] Marked as complete");
   } catch(err){
     console.error("[Onboarding] Mark complete error:", err.message);
   }
@@ -1017,14 +984,12 @@ function _obSkip(){
   _obContext = "tour";
   hideOnboarding();
 }
-window.restartOnboarding = async function(){
-  var user = _currentUser;
-  if(!user) return;
-  try {
-    await SB.from("profiles").update({ onboarding_completed: false }).eq("id", user.id);
-  } catch(err){ console.error("[Onboarding] Restart error:", err.message); }
+// Settings → Restart Onboarding: shows the welcome screen again. Display
+// only — the saved onboarding state is not reset.
+window.restartOnboarding = function(){
+  if(!_currentUser) return;
   if(typeof closeModal === "function") closeModal("modal-settings");
-  setTimeout(function(){ if(typeof startOnboarding === "function") startOnboarding(_dbPrimaryGoal); }, 200);
+  setTimeout(function(){ if(typeof startOnboarding === "function") startOnboarding({ force: true }); }, 200);
 };
 
 // â”€â”€ Keyboard: onboarding navigation (Escape=skip, arrows/Enter=nav) +
@@ -1293,13 +1258,13 @@ async function checkSubscriptionStatus(){
     }
 
     if(!resp.data){
-      // Profile row does not exist — create it so future checks work
-      console.warn("[Paywall] No profile row found for user:", user.id, "— upserting defaults");
-      var upsert = await SB.from("profiles").upsert(
-        { id: user.id, email: user.email, subscription_status: "free", onboarding_completed: false },
-        { onConflict: "id" }
-      );
-      if(upsert.error) console.error("[Paywall] Could not upsert profile:", upsert.error.message);
+      // Profile row does not exist — ask the backend to create it (insert-only;
+      // the browser has no write access to profiles).
+      console.warn("[Paywall] No profile row found for user:", user.id, "— asking the backend to create it");
+      try {
+        var ensured = await apiFetch("/api/profile/ensure", { method: "POST" });
+        if(!ensured.ok) console.error("[Paywall] Could not create profile:", (ensured.data && ensured.data.error) || ensured.status);
+      } catch(ensureErr){ console.error("[Paywall] Could not create profile:", ensureErr.message); }
       // Use cached plan in case the upsert path fires for a paid user mid-session
       var _cachedPlan2 = (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : "free";
       return _cachedPlan2;
@@ -1421,16 +1386,13 @@ function closePaywall(){
 
 // After successful Stripe payment: navigate to the page the user came from
 function _postPaymentNavigate(){
-  // Onboarding's Plan step: _obContext (in-memory) does not survive the
-  // real page navigation to/from Stripe -- selectPlan() persisted this
-  // flag right before redirecting away specifically so this moment (a real,
-  // confirmed paid plan just re-read from the DB, right below in the
-  // caller) can be recognized as genuine onboarding completion.
-  var wasOnboarding = false;
-  try { wasOnboarding = localStorage.getItem("oriven_post_payment_onboarding") === "1"; } catch(_){}
-  if(wasOnboarding){
-    try { localStorage.removeItem("oriven_post_payment_onboarding"); } catch(_){}
-    if(typeof _ob2Finish === "function"){ _ob2Finish(); return; }
+  // Flag left by the retired onboarding plan step (older sessions).
+  try { localStorage.removeItem("oriven_post_payment_onboarding"); } catch(_){}
+  // Work the user was doing when the plan modal opened (onboarding.js):
+  // back on its page, inputs intact. Nothing is generated automatically.
+  if(typeof orvResumeDraft === "function" && orvResumeDraft("payment")){
+    try { localStorage.removeItem("oriven_post_payment_return"); } catch(_){}
+    return;
   }
   var returnPage = null;
   try { returnPage = localStorage.getItem("oriven_post_payment_return"); } catch(_){}
@@ -1445,11 +1407,19 @@ function _postPaymentNavigate(){
   // startOnboarding() itself, so there is nothing further to do here.
 }
 
+var _checkoutInFlight = false;
+
 async function selectPlan(plan){
   console.log("[Paywall] Plan selected:", plan);
+  var _pwAct = (typeof _pwAction !== "undefined" && _pwAction && _pwAction.ctx) ? _pwAction.ctx.action : null;
+  if(typeof trackEvent === "function") trackEvent("plan_selected", null, { plan: plan, action: _pwAct || undefined });
 
   // Free never goes through Stripe -- separate, non-payment path.
   if(plan === "free") return continueOnFreePlan();
+
+  // One checkout at a time (double clicks, a second plan's button).
+  if(_checkoutInFlight) return;
+  _checkoutInFlight = true;
 
   var btn = document.querySelector('[onclick="selectPlan(\'' + plan + '\')"]');
   if(btn){ btn.disabled = true; btn.textContent = "Redirectingâ€¦"; }
@@ -1460,15 +1430,6 @@ async function selectPlan(plan){
     if(_cwrPg && _cwrPg.classList.contains("active")){
       localStorage.setItem("oriven_post_payment_return", "campaign-workspace");
     }
-  } catch(_){}
-
-  // Onboarding's Plan step redirects to Stripe (a real page navigation) —
-  // in-memory _obContext does not survive that round trip, so persist the
-  // "this checkout is part of onboarding" fact the same way
-  // oriven_post_payment_return already persists the campaign-workspace
-  // return destination. _postPaymentNavigate() reads this back on return.
-  try {
-    if(typeof _obContext !== "undefined" && _obContext === "onboarding") localStorage.setItem("oriven_post_payment_onboarding", "1");
   } catch(_){}
 
   try {
@@ -1484,12 +1445,21 @@ async function selectPlan(plan){
       _ckErr.serverMessage = result.data && result.data.error;
       throw _ckErr;
     }
+    try { localStorage.setItem("oriven_checkout_plan", plan); } catch(_){}
+    if(typeof trackEvent === "function") trackEvent("checkout_started", null, { plan: plan, action: _pwAct || undefined });
     window.location.href = result.data.url;
   } catch(err) {
     console.error("[Paywall] Checkout error:", err);
     toast(err && err.serverMessage ? err.serverMessage : "Could not start checkout — please try again");
     if(btn){ btn.disabled = false; btn.textContent = btn.getAttribute("data-label") || "Get Started"; }
+    _checkoutInFlight = false;
   }
+}
+
+// Recorded once the paid plan is confirmed from the database (webhook landed).
+function _orvTrackCheckoutCompleted(status){
+  try { localStorage.removeItem("oriven_checkout_plan"); } catch(_){}
+  if(typeof trackEvent === "function") trackEvent("checkout_completed", null, { plan: status });
 }
 
 // Free plan's equivalent of the Stripe-checkout branch above -- confirms
@@ -1515,14 +1485,6 @@ async function continueOnFreePlan(){
     if(typeof closeModal === "function") closeModal("modal-paywall");
     if(typeof _refreshUsageUI === "function") _refreshUsageUI();
 
-    // Onboarding's Plan step: a real, valid Free selection just persisted
-    // server-side -- this IS the "valid onboarding path completed" moment
-    // for the no-payment path, so finish onboarding and route to the
-    // chosen goal instead of the generic toast + staying put.
-    if(typeof _obContext !== "undefined" && _obContext === "onboarding" && typeof _ob2Finish === "function"){
-      _ob2Finish();
-      return;
-    }
     toast("You're on the Free plan — 10 credits refresh every day.");
   } catch(err){
     console.error("[Paywall] continueOnFreePlan error:", err);
@@ -1604,6 +1566,14 @@ document.addEventListener("DOMContentLoaded", async function(){
     console.log("[Auth] Session restored for:", session.user.id);
     await onUserSignedIn(session.user);
 
+    if(_stripeBail){
+      var _cxPlan = null;
+      try { _cxPlan = localStorage.getItem("oriven_checkout_plan"); localStorage.removeItem("oriven_checkout_plan"); } catch(_){}
+      if(typeof trackEvent === "function") trackEvent("checkout_canceled", null, { plan: _cxPlan || undefined });
+      // Back to the work that was waiting on the plan modal, if any.
+      setTimeout(function(){ if(typeof orvResumeDraft === "function") orvResumeDraft("canceled"); }, 400);
+    }
+
     // Fire onboarding tour after payment or dev ?tour=1
     // Use checkSubscriptionStatus() (direct Supabase query) rather than
     // syncSubscriptionFromDB() (backend API) — Supabase is the single source of truth.
@@ -1611,6 +1581,7 @@ document.addEventListener("DOMContentLoaded", async function(){
       setTimeout(async function(){
         var status = await checkSubscriptionStatus();
         if(status && status !== "free"){
+          _orvTrackCheckoutCompleted(status);
           _dbSubscriptionStatus = status;
           S.currentPlan = status;
           if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
@@ -1625,6 +1596,7 @@ document.addEventListener("DOMContentLoaded", async function(){
             status = await checkSubscriptionStatus();
             _dbSubscriptionStatus = status;
             if(status && status !== "free"){
+              _orvTrackCheckoutCompleted(status);
               S.currentPlan = status;
               if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
               if(typeof invalidatePlanCache === "function") invalidatePlanCache();
@@ -1644,7 +1616,7 @@ document.addEventListener("DOMContentLoaded", async function(){
       // onUserSignedIn() -> _loadUserProfile() above.
       setTimeout(async function(){
         var status = await checkSubscriptionStatus();
-        if(status && status !== "free" && typeof startOnboarding === "function") startOnboarding(_dbPrimaryGoal);
+        if(status && status !== "free" && typeof startOnboarding === "function") startOnboarding({ force: true });
       }, 500);
     }
   } else {

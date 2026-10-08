@@ -676,6 +676,7 @@
   #view-landing .ov-ctrl-enhanced .ov-ctrl-stage { display:flex; flex-direction:column; justify-content:center; }
 }
 </style>
+<style>.orv-optin{display:flex;gap:9px;align-items:flex-start;margin:4px 0 14px;font-size:12.5px;line-height:1.45;cursor:pointer}.orv-optin input{margin-top:2px;accent-color:#B7FF2A;flex:0 0 auto}.orv-optin-dark{color:rgba(240,240,240,.7)}</style>
 </head>
 <body class="public-page">
 
@@ -1500,6 +1501,7 @@
       <label class="au-label">Confirm Password</label>
       <input type="password" id="auPassConfirmSignup" class="au-input" placeholder="Repeat your password" autocomplete="new-password">
     </div>
+    <label class="orv-optin orv-optin-dark"><input type="checkbox" id="auOptInSignup"> <span>Send me tips and product updates by email. You can unsubscribe anytime.</span></label>
     <button id="auSubmitSignup" class="au-btn" onclick="auSignup()">Create Account</button>
     <div class="au-divider"></div>
     <div class="au-footer">Already have an account? <a href="/login">Sign In</a></div>
@@ -5469,12 +5471,11 @@ async function auSignup(){
   try {
     var signupRes = await apiFetch('/api/signup', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: pass })
+      body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: pass, marketingOptIn: !!(document.getElementById('auOptInSignup') || {}).checked })
     });
     if(!signupRes.ok) throw new Error(signupRes.data && signupRes.data.error ? signupRes.data.error : 'Signup failed');
     var signinRes = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(signinRes.error) throw signinRes.error;
-    try { localStorage.setItem('oriven_needs_onboarding', '1'); } catch(_){}
     window.location.href = '/app';
   } catch(err){
     _auSetError('auErrorSignup', auMapError(err));

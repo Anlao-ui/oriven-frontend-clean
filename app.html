@@ -63,6 +63,7 @@
         <div class="fg"><label class="lbl">Email *</label><input class="inp" id="suEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
         <div class="fg"><label class="lbl">Password *</label><input class="inp" id="suPass" type="password" placeholder="Min. 6 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleSignUp()"></div>
         <div class="fg"><label class="lbl">Phone <span style="font-weight:400;color:var(--muted,#888)">(optional)</span></label><input class="inp" id="suPhone" type="tel" placeholder="+1 234 567 8900" autocomplete="tel"></div>
+        <label class="orv-optin"><input type="checkbox" id="suOptIn"> <span>Send me tips and product updates by email. You can unsubscribe anytime.</span></label>
         <div id="authErrorSu" style="font-size:12px;color:#EF4444;margin-bottom:12px;padding:8px 10px;background:rgba(239,68,68,.08);border-radius:8px;display:none"></div>
         <button id="authSignupBtn" class="btn btn-p" style="width:100%;justify-content:center" onclick="handleSignUp()">Create Account</button>
       </div>
@@ -7605,51 +7606,53 @@
   </div>
 </div>
 
-<!-- ONBOARDING (rebuild) — Welcome / Goal / Workspace overview. Step 4
-     (Plan/Payment) is NOT built here — it hands off to the real, existing
-     #modal-paywall below (paywall.js / plans.js), same architecture
-     Settings → Subscription already uses. See onboarding.js. -->
-<div class="ob2-overlay" id="ob2Overlay" style="display:none" role="dialog" aria-modal="true" aria-label="Welcome to ORIVEN">
-  <div class="ob2-shell">
-    <div class="ob2-progress" id="ob2Progress" aria-hidden="true"></div>
-
-    <div class="ob2-step ob2-step-welcome" id="ob2StepWelcome">
-      <div class="ob2-ring" aria-hidden="true">
-        <svg viewBox="0 0 220 220" fill="none">
-          <path d="M118.28 15.36 A95 95 0 0 1 187.82 55.51 L157.51 76.73 A58 58 0 0 0 115.06 52.22 Z"/>
-          <path d="M196.10 69.85 A95 95 0 0 1 196.10 150.15 L162.57 134.51 A58 58 0 0 0 162.57 85.49 Z"/>
-          <path d="M187.82 164.49 A95 95 0 0 1 118.28 204.64 L115.06 167.78 A58 58 0 0 0 157.51 143.27 Z"/>
-          <path d="M101.72 204.64 A95 95 0 0 1 32.18 164.49 L62.49 143.27 A58 58 0 0 0 104.94 167.78 Z"/>
-          <path d="M23.90 150.15 A95 95 0 0 1 23.90 69.85 L57.43 85.49 A58 58 0 0 0 57.43 134.51 Z"/>
-          <path d="M32.18 55.51 A95 95 0 0 1 101.72 15.36 L104.94 52.22 A58 58 0 0 0 62.49 76.73 Z"/>
-        </svg>
-      </div>
-      <div class="ob2-wordmark">ORIVEN</div>
-      <h1 class="ob2-h1" data-ob2-heading>Welcome to ORIVEN.</h1>
-      <p class="ob2-lede">One workspace to research, create, launch, understand and automate your advertising.</p>
-      <button type="button" class="ob2-btn ob2-btn-primary ob2-btn-lg" onclick="ob2Next('welcome')">Get started</button>
+<!-- ONBOARDING — one welcome screen for new accounts (js/onboarding.js).
+     Three outcomes, each landing in the real product: no tour, no forced
+     setup, no plan step. Who sees it is decided server-side. -->
+<div class="ob2-overlay" id="ob2Overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="ob3Title" aria-describedby="ob3Lede">
+  <div class="ob2-shell ob3-shell">
+    <div class="ob2-ring ob3-ring" aria-hidden="true">
+      <svg viewBox="0 0 220 220" fill="none">
+        <path d="M118.28 15.36 A95 95 0 0 1 187.82 55.51 L157.51 76.73 A58 58 0 0 0 115.06 52.22 Z"/>
+        <path d="M196.10 69.85 A95 95 0 0 1 196.10 150.15 L162.57 134.51 A58 58 0 0 0 162.57 85.49 Z"/>
+        <path d="M187.82 164.49 A95 95 0 0 1 118.28 204.64 L115.06 167.78 A58 58 0 0 0 157.51 143.27 Z"/>
+        <path d="M101.72 204.64 A95 95 0 0 1 32.18 164.49 L62.49 143.27 A58 58 0 0 0 104.94 167.78 Z"/>
+        <path d="M23.90 150.15 A95 95 0 0 1 23.90 69.85 L57.43 85.49 A58 58 0 0 0 57.43 134.51 Z"/>
+        <path d="M32.18 55.51 A95 95 0 0 1 101.72 15.36 L104.94 52.22 A58 58 0 0 0 62.49 76.73 Z"/>
+      </svg>
     </div>
+    <h1 class="ob2-h1" id="ob3Title" tabindex="-1">Welcome to OrivenAI</h1>
+    <p class="ob2-lede" id="ob3Lede">Your AI-powered marketing workspace. Let’s get you started.</p>
 
-    <div class="ob2-step ob2-step-goal" id="ob2StepGoal" hidden>
-      <h2 class="ob2-h2" data-ob2-heading tabindex="-1">What do you want to achieve first?</h2>
-      <div class="ob2-goal-grid" id="ob2GoalGrid" role="radiogroup" aria-label="Choose your first goal"></div>
-      <p class="ob2-err" id="ob2GoalErr" role="alert" style="display:none"></p>
-      <div class="ob2-footrow">
-        <button type="button" class="ob2-btn ob2-btn-ghost" onclick="ob2Back('goal')">&larr; Back</button>
-        <button type="button" class="ob2-btn ob2-btn-primary" id="ob2GoalContinue" onclick="ob2Next('goal')" disabled>Continue</button>
-      </div>
+    <h2 class="ob3-q" id="ob3Q">What would you like to accomplish first?</h2>
+    <div class="ob3-choices" role="group" aria-labelledby="ob3Q">
+      <button type="button" class="ob3-choice" data-ob3-goal="create" onclick="ob3Choose('create')">
+        <span class="ob3-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 15l4.6-4.6a1.5 1.5 0 0 1 2.1 0L15 15.2"/><path d="M13.5 13.7l1.6-1.6a1.5 1.5 0 0 1 2.1 0l3.3 3.3"/><circle cx="15.8" cy="8.6" r="1.4"/></svg></span>
+        <span class="ob3-txt">
+          <span class="ob3-name">Create my first ad</span>
+          <span class="ob3-desc">Turn your idea into a professional advertisement.</span>
+        </span>
+        <span class="ob3-go" aria-hidden="true">&rarr;</span>
+      </button>
+      <button type="button" class="ob3-choice" data-ob3-goal="research" onclick="ob3Choose('research')">
+        <span class="ob3-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/><path d="M7.8 12.2l1.8-1.9 1.6 1.4 2.2-2.6"/></svg></span>
+        <span class="ob3-txt">
+          <span class="ob3-name">Research my market</span>
+          <span class="ob3-desc">Discover your audience, competitors and market opportunities.</span>
+        </span>
+        <span class="ob3-go" aria-hidden="true">&rarr;</span>
+      </button>
+      <button type="button" class="ob3-choice" data-ob3-goal="explore" onclick="ob3Choose('explore')">
+        <span class="ob3-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M15.4 8.6l-2 4.8-4.8 2 2-4.8z"/></svg></span>
+        <span class="ob3-txt">
+          <span class="ob3-name">Explore OrivenAI</span>
+          <span class="ob3-desc">Take a look around your marketing workspace.</span>
+        </span>
+        <span class="ob3-go" aria-hidden="true">&rarr;</span>
+      </button>
     </div>
-
-    <div class="ob2-step ob2-step-workspace" id="ob2StepWorkspace" hidden>
-      <h2 class="ob2-h2" data-ob2-heading tabindex="-1">Your ORIVEN workspace.</h2>
-      <p class="ob2-sub" id="ob2WsSub"></p>
-      <div class="ob2-ws-grid" id="ob2WsGrid"></div>
-      <p class="ob2-ws-note">Connect ad platforms and manage your workspace anytime — from Ad Platforms and Settings, whenever you need them.</p>
-      <div class="ob2-footrow">
-        <button type="button" class="ob2-btn ob2-btn-ghost" onclick="ob2Back('workspace')">&larr; Back</button>
-        <button type="button" class="ob2-btn ob2-btn-primary" onclick="ob2Next('workspace')">Choose plan</button>
-      </div>
-    </div>
+    <p class="ob2-err" id="ob3Err" role="status" hidden></p>
+    <button type="button" class="ob3-skip" onclick="ob3Skip()">Skip for now</button>
   </div>
 </div>
 
@@ -8218,6 +8221,7 @@
       <div class="gg-field">
         <input type="password" id="ggPass" class="gg-input" placeholder="Password (min. 6 characters)" autocomplete="new-password">
       </div>
+      <label class="orv-optin orv-optin-gg"><input type="checkbox" id="ggOptIn"> <span>Send me tips and product updates by email. You can unsubscribe anytime.</span></label>
       <div class="gg-err" id="ggErr"></div>
       <button class="gg-submit-btn" id="ggSignupBtn" onclick="_ggDoSignup()">Create free account</button>
     </div>
@@ -10944,18 +10948,11 @@ window.startCampaignGeneration = function(){
       } else {
         console.error('[PW-CHAIN] Cannot set localStorage flag — uid is null');
       }
-      // Persist to Supabase profiles so it survives logout and new devices
-      // NOTE: requires free_campaign_used boolean column in profiles table
-      if(_persUid && typeof SB !== 'undefined'){
-        try {
-          SB.from('profiles').update({ free_campaign_used: true }).eq('id', _persUid)
-            .then(function(r){
-              if(r && r.error) console.warn('[PW-CHAIN] DB persist FAILED:', r.error.message, r.error.code);
-              else console.log('[PW-CHAIN] DB persist SUCCESS: free_campaign_used=true for uid:', _persUid);
-            });
-        } catch(e){ console.error('[PW-CHAIN] DB persist EXCEPTION:', e); }
-      } else {
-        console.warn('[PW-CHAIN] DB persist SKIPPED | uid:', _persUid, '| SB type:', typeof SB);
+      // The server records free_campaign_used / free_campaign_used_at itself
+      // on every successful free build (_consumeOnboardingFreeGen, server.js);
+      // the browser has no write access to profiles.
+      if(!_persUid){
+        console.warn('[PW-CHAIN] uid unknown — local flag only');
       }
     }
     genItems.forEach(function(gi){
@@ -16375,6 +16372,7 @@ window.researchSubmit = function() {
   if (!question) { input && input.focus(); return; }
 
   _researchSubmitting = true;
+  if (window.orvActionEvent) orvActionEvent('start', 'research');
   var btn = document.getElementById('researchSubmitBtn');
   if (btn) btn.disabled = true;
   _researchRailReset();
@@ -16393,6 +16391,11 @@ window.researchSubmit = function() {
           var _rsErr = (res.data && res.data.error) || 'Research could not be completed. Try again.';
           if (res.data && res.data.creditsRefunded) _rsErr += ' Your credits for this attempt were returned.';
           _researchShowError(_rsErr);
+          // Not in the plan, or not enough credits: nothing was spent — show
+          // the plans for this action; the question is saved.
+          if ((res.status === 402 || res.status === 403) && window.orvActionEvent) {
+            orvActionEvent('blocked', 'research', { status: res.status, code: res.data && res.data.code, balance: res.data && res.data.balance });
+          }
           return;
         }
         _researchSetActivityStage('mapping');
@@ -16433,6 +16436,7 @@ window.researchSubmit = function() {
           return;
         }
         window._researchLastResult = res.data;
+        if (window.orvActionEvent) orvActionEvent('success', 'research');
         // Continuity/Context Layer sprint — persist to localStorage so this
         // real research result survives a reload/new session (previously
         // in-memory only, per orivenContext.js's own research getter).
@@ -25153,7 +25157,11 @@ window.rptExport = function(format) {
          moment, not a recurring interruption; the same modal is still
          reachable any time via the "Continue Free"/upgrade cards or
          hitting a real credit/Intelligence/Autopilot limit. */
-      if(_isFirstEverCampaign && typeof openFreePaywall === 'function'){
+      // Accounts that came through the new onboarding see their first
+      // result uninterrupted (onboarding.js adds one subtle next step;
+      // refused images offer their own "See plans").
+      var _obNewAccount = !!(window._orvObState && window._orvObState.newAccount);
+      if(_isFirstEverCampaign && !_obNewAccount && typeof openFreePaywall === 'function'){
         setTimeout(function(){ openFreePaywall(); }, 600);
       }
     };
@@ -28137,7 +28145,7 @@ window.rptExport = function(format) {
             img.src = url;
           } else if(res.status === 402 && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
             window._cgrCreativeFailKind = 'credits';
-            _cgrCreativeErr(i, task.ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs ' + CREDIT_COSTS.imageAd + ')');
+            _cgrCreativeErr(i, task.ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs ' + CREDIT_COSTS.imageAd + ')', res.data.balance);
             _onOneDone(false);
           } else if(res.status === 503 && res.data && res.data.code === 'PROVIDER_UNAVAILABLE'){
             window._cgrCreativeFailKind = window._cgrCreativeFailKind || 'service';
@@ -28283,7 +28291,7 @@ window.rptExport = function(format) {
       } else if(res.status === 402 && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
         console.warn('[cgr] Image generation blocked', idx, '— out of credits');
         window._cgrCreativeFailKind = 'credits';
-        _cgrCreativeErr(idx, ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs ' + CREDIT_COSTS.imageAd + ')');
+        _cgrCreativeErr(idx, ref, 'Not enough credits (' + (res.data.balance != null ? res.data.balance : 0) + ' left, needs ' + CREDIT_COSTS.imageAd + ')', res.data.balance);
         if(onDone) onDone(false);
       } else if(res.status === 503 && res.data && res.data.code === 'PROVIDER_UNAVAILABLE'){
         // Same distinction as cgrGenerate's PROVIDER_UNAVAILABLE handling —
@@ -28308,14 +28316,19 @@ window.rptExport = function(format) {
     });
   }
 
-  function _cgrCreativeErr(idx, ref, msg){
+  // creditBalance (4th argument): the image was refused for credits — offer
+  // the plans for this action instead of a retry that would be refused again.
+  function _cgrCreativeErr(idx, ref, msg, creditBalance){
     var card = document.getElementById('cgc'+idx);
     if(!card) return;
+    var outOfCredits = arguments.length > 3 && !!window.orvOpenActionPaywall;
     card.className = 'cgr-creative-card cgr-creative-err-card';
     card.innerHTML = '<div class="cgr-creative-card-body">'
       + '<div class="cgr-creative-ref">'+_esc(ref)+'</div>'
       + '<div class="cgr-creative-err-msg">'+_esc(msg)+'</div>'
-      + '<button class="cgr-crv-btn" onclick="cgrRegenCreative('+idx+',\''+idx+'\')">↺ Retry</button>'
+      + (outOfCredits
+          ? '<button class="cgr-crv-btn" onclick="orvOpenActionPaywall(\'image\',{balance:'+(Number(creditBalance)||0)+'})">See plans</button>'
+          : '<button class="cgr-crv-btn" onclick="cgrRegenCreative('+idx+',\''+idx+'\')">↺ Retry</button>')
       + '</div>';
   }
 
@@ -28370,6 +28383,7 @@ window.rptExport = function(format) {
     }
     var _actionKey = typeof window.orvNewActionKey === 'function' ? window.orvNewActionKey() : null;
     window._cgrInFlight = { key: _actionKey, at: Date.now() };
+    if (window.orvActionEvent) orvActionEvent('start', 'create');
     var _slowTimer = setTimeout(function(){
       if (window._cgrInFlight && window._cgrInFlight.key === _actionKey && typeof orvToast === 'function')
         orvToast('Still building your campaign. This can take up to a minute. Keep this tab open.', 'info');
@@ -28480,6 +28494,7 @@ window.rptExport = function(format) {
         if(typeof consumeUsage === 'function') consumeUsage(CREDIT_COSTS.campaign); // reflects the real server-side campaign_generation deduction
         _rendering = true;
         _renderPackage(pkg, prompt);
+        if(window.orvActionEvent) orvActionEvent('success', 'create');
         return;
       }
       if(res.status === 403 && body && body.code === 'SUBSCRIPTION_REQUIRED'){
@@ -28491,7 +28506,8 @@ window.rptExport = function(format) {
           try { localStorage.removeItem('oriven_needs_onboarding'); } catch(_){}
           if(typeof hideOnboarding === 'function') hideOnboarding(true);
         }
-        if(typeof openFreePaywall === 'function') openFreePaywall();
+        if(window.orvActionEvent) orvActionEvent('blocked', 'create', { status: 403, code: 'SUBSCRIPTION_REQUIRED' });
+        else if(typeof openFreePaywall === 'function') openFreePaywall();
       }
       // 402 CREDITS_EXHAUSTED — the server's authoritative balance check
       // refused before spending anything (shows needed vs. balance).
@@ -29497,7 +29513,7 @@ window.aicGenerate = function(){
           var _m = _F.error({ status: 402, body: { code: 'CREDITS_EXHAUSTED', balance: result.balance }, required: result.required, phase: 'generate' });
           _F.confirm({ title: _m.title, eyebrow: 'Build campaign',
             body: '<p>' + _F.esc(_m.message) + '</p><dl class="ofb-credits"><div><dt>Needed</dt><dd>' + result.required + '</dd></div><div><dt>Your balance</dt><dd>' + result.balance + '</dd></div></dl>',
-            confirmLabel: 'View plans', cancelLabel: 'Not now' }).then(function(yes){ if(yes) _F.runAction('plans'); });
+            confirmLabel: 'View plans', cancelLabel: 'Not now' }).then(function(yes){ if(yes) _F.runAction('plans', { action: 'create', code: 'CREDITS_EXHAUSTED', balance: result.balance }); });
         } else {
           if(typeof orvToast==='function') orvToast(result.message && result.message !== 'upgrade' ? result.message : 'Choose a plan to build campaigns.', 'warn');
           if(typeof openPaywall === 'function') setTimeout(openPaywall, 400);

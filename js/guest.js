@@ -587,13 +587,12 @@ async function _ggDoSignup(){
     document.activeElement && document.activeElement.blur();
     var reg = await apiFetch("/api/signup", {
       method: "POST", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ firstName: first, lastName: last, email: email, password: pass })
+      body: JSON.stringify({ firstName: first, lastName: last, email: email, password: pass, marketingOptIn: !!(document.getElementById('ggOptIn') || {}).checked })
     });
     if(!reg.ok) throw new Error(reg.data.error || "Signup failed");
     var result = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(result.error) throw result.error;
     _ggClearErr(["ggFirst","ggEmail","ggPass"]);
-    try { localStorage.setItem('oriven_needs_onboarding', '1'); } catch(_){}
     _guestOnSignedIn(result.data.user);
     trackEvent("created_account", result.data.user);
   } catch(err){

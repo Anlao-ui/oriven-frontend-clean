@@ -1,268 +1,457 @@
 /* ════════════════════════════════════════════════════════════════
-   ORIVEN Onboarding (rebuild)
+   ORIVEN Onboarding — "start from the outcome"
 
-   ACCOUNT CREATED → WELCOME → GOAL → WORKSPACE → PLAN → WORKSPACE
+   One welcome screen for new accounts:
+     Welcome to OrivenAI → What would you like to accomplish first?
+       Create my first ad   → Create, with a short skippable example
+       Research my market   → Research, with a short skippable example
+       Explore OrivenAI     → Control Center, no tour, no paywall
+   No product tour, no forced business setup, no forced plan step, and
+   nothing here ever starts a paid action.
 
-   Replaces the old spotlight product tour (auth.js — _OB_FRAMES /
-   showOnboarding, retired: no longer called from _loadUserProfile /
-   restartOnboarding) and the old, entirely unreachable "Brand
-   Onboarding" 7-question questionnaire (removed — see removal note in
-   auth.js). This file owns exactly the first three screens; the fourth
-   (Plan / Payment) deliberately does NOT reinvent plan cards or Stripe —
-   it hands off to the SAME modal-paywall / selectPlan() / continueOnFreePlan()
-   architecture Settings → Subscription already uses (paywall.js, plans.js),
-   via the existing (previously unused) _showHardPaywall().
+   Who sees it is decided by the server (GET /api/onboarding/state,
+   services/onboarding.js): accounts created after the rollout whose
+   onboarding isn't complete. Existing accounts never see it. Choosing or
+   skipping is saved with POST /api/onboarding/complete; if that request
+   fails, the choice is kept on this device and retried on the next load
+   (the screen is not shown again meanwhile).
 
-   Server-trusted completion: onboarding_completed is only ever flipped by
-   POST /api/onboarding/complete (server.js), called from here only after a
-   genuinely completed path (real Free selection persisted, or a real paid
-   plan re-read from the DB after Stripe). Never set on Welcome, never set
-   on choosing a goal, never set merely because Checkout opened.
-
-   window._obActive (auth.js) is intentionally NOT touched by this file —
-   that flag belongs to the retired spotlight tour's own keydown handler.
-   This overlay uses its own window._ob2Active so the two can never collide.
+   Also owned here, because they belong to a new user's first result:
+   - the action paywall bridge: when the server refuses a Create/Research
+     action (402/403, nothing spent), the work is saved as a draft and the
+     plan modal explains why (paywall.js openActionPaywall);
+   - drafts: Create/Research inputs survive the Stripe round trip and come
+     back after a successful upgrade or a canceled checkout. Nothing is
+     generated automatically — the user confirms the paid action again;
+   - one subtle next-step suggestion after a new account's first result;
+   - activation events (tracking.js → POST /api/events).
    ════════════════════════════════════════════════════════════════ */
 
-// Stable IDs, same values as the sidebar's data-orv-page + the new
-// profiles.primary_goal column (server.js ONBOARDING_GOALS). The order is
-// the validated goal order; the sidebar itself runs Control Center (the
-// "business" goal) → Research → Create → Launch → Campaigns → Autopilot.
-var OB2_GOALS = [
-  { id: "create", name: "Create", desc: "Create advertising creative and campaign assets.",
-    icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M13 8l-3-3M13 8l-3 3"/></svg>' },
-  { id: "research", name: "Research", desc: "Understand markets, competitors, audiences and opportunities.",
-    icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.3 10.3L14 14"/></svg>' },
-  { id: "launch", name: "Launch", desc: "Prepare and launch advertising campaigns.",
-    icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.5V3M8 3L4.2 6.8M8 3l3.8 3.8"/><path d="M3 13.5h10"/></svg>' },
-  { id: "campaigns", name: "Campaigns", desc: "Understand campaign performance and what changed.",
-    icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="10" height="11" rx="1.5"/><path d="M6 7h4M6 9.5h4M6 12h2.5"/></svg>' },
-  { id: "autopilot", name: "Autopilot", desc: "Automate the advertising rules you define.",
-    icon: '<svg viewBox="0 0 16 16" fill="currentColor" stroke="none"><path d="M8.8 1L3.6 9.2h3.5L6.2 15l6.2-8.7H9.1L8.8 1z"/></svg>' },
-  { id: "business", name: "Control Center", desc: "Your business context, advertising overview and plan in one place.",
-    icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2C5.5 2 3.5 4 3.5 6.3c0 1.4.7 2.6 1.7 3.4v1.8h5.6v-1.8c1-.8 1.7-2 1.7-3.4C12.5 4 10.5 2 8 2z"/><path d="M6.5 14h3"/></svg>' }
-];
+var OB3_DEST = {
+  create:   ["create", "page-create"],
+  research: ["research", "page-research"],
+  explore:  ["businessbrain", "page-business-brain"]
+};
+var OB3_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
-// goal id → [page, pageId] — the SAME nav target the sidebar's own buttons
-// use (_orvNav), never a duplicated routing table.
-var OB2_DEST = {
-  create:    ["create", "page-create"],
-  research:  ["research", "page-research"],
-  launch:    ["launch", "page-launch"],
-  campaigns: ["performance", "page-performance"],
-  autopilot: ["autopilot", "page-autopilot"],
-  business:  ["businessbrain", "page-business-brain"]
+window._orvObState = null;   // last GET /api/onboarding/state result
+var _ob3Busy = false;
+
+function _ob3El(id){ return document.getElementById(id); }
+function _ob3Uid(){ try { return (typeof _currentUser !== "undefined" && _currentUser && _currentUser.id) || null; } catch(_){ return null; } }
+function _ob3Key(name){ var u = _ob3Uid(); return u ? "oriven_" + name + "_" + u : null; }
+function _ob3Get(name){ var k = _ob3Key(name); if(!k) return null; try { return localStorage.getItem(k); } catch(_){ return null; } }
+function _ob3Set(name, v){ var k = _ob3Key(name); if(!k) return; try { if(v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch(_){} }
+function _ob3Track(name, props){ if(typeof trackEvent === "function") trackEvent(name, null, props); }
+function _ob3Plan(){ try { return (typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus) || "free"; } catch(_){ return "free"; } }
+function _ob3Esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]; }); }
+
+// Links from lifecycle emails: /app?start=create|research or /app?plans=1.
+// Read now — sign-in later rewrites the URL to /app.
+var _ob3DeepLink = (function(){
+  try {
+    var q = new URLSearchParams(window.location.search);
+    var start = q.get("start");
+    return { start: (start === "create" || start === "research") ? start : null, plans: q.get("plans") === "1" };
+  } catch(_){ return { start: null, plans: false }; }
+})();
+function _ob3ApplyDeepLink(){
+  var d = _ob3DeepLink; _ob3DeepLink = { start: null, plans: false }; // once
+  if(d.start && typeof _orvNav === "function") _orvNav(d.start, OB3_DEST[d.start][1]);
+  if(d.plans && typeof openPaywall === "function") setTimeout(function(){ openPaywall(); }, 300);
+}
+
+// ── Gate: called by auth.js once the app is visible ───────────────
+window.orvOnboardingGate = async function(){
+  var res;
+  try { res = await apiFetch("/api/onboarding/state"); } catch(_){ _ob3ApplyDeepLink(); return; } // offline: show nothing, try next load
+  if(!res || !res.ok || !res.data){ _ob3ApplyDeepLink(); return; }
+  var st = res.data;
+  window._orvObState = st;
+  var pending = _ob3Get("ob_pending");
+  if(!st.eligible){ if(pending) _ob3Set("ob_pending", null); _ob3ApplyDeepLink(); return; }
+  if(pending){ _ob3Persist(pending === "skip" ? null : pending); _ob3ApplyDeepLink(); return; } // chosen here before; the save didn't land yet
+  startOnboarding();
 };
 
-var _ob2Goal = null;     // in-memory selection, mirrors the persisted value once saved
-var _ob2SaveErr = false;
-
-function _ob2El(id){ return document.getElementById(id); }
-
-// ── Entry point ──────────────────────────────────────────────────
-// resumeGoal: pass the already-persisted primary_goal (from _loadUserProfile's
-// own profile read) when resuming an incomplete account on reload/login/
-// checkout-cancel — per spec, a saved goal is never asked for twice; resume
-// goes straight to the one remaining required step (Plan).
-function startOnboarding(resumeGoal){
-  var overlay = _ob2El("ob2Overlay");
+// ── Welcome screen ───────────────────────────────────────────────
+// opts.force: show regardless of eligibility (Settings → Restart, ?tour=1).
+function startOnboarding(opts){
+  var overlay = _ob3El("ob2Overlay");
   if(!overlay) return;
-  _obContext = "onboarding"; // existing var (auth.js) — lets selectPlan()/continueOnFreePlan()/the Stripe-return handler recognize onboarding mode without a second flag
+  _ob3Busy = false;
+  overlay.querySelectorAll(".ob3-choice").forEach(function(b){ b.disabled = false; });
+  var err = _ob3El("ob3Err"); if(err){ err.hidden = true; err.textContent = ""; }
   window._ob2Active = true;
   overlay.style.display = "flex";
   requestAnimationFrame(function(){ overlay.classList.add("ob2-visible"); });
-
-  if(resumeGoal && OB2_DEST[resumeGoal]){
-    _ob2Goal = resumeGoal;
-    _ob2HideOverlay(true); // the overlay's own 3 screens aren't needed — go straight to Plan
-    _ob2ShowPlanStep();
-    return;
-  }
-  _ob2Goal = null;
-  _ob2GoTo("welcome");
+  document.addEventListener("keydown", _ob3Keys, true);
+  var h = _ob3El("ob3Title");
+  setTimeout(function(){ if(h) h.focus(); }, 60);
+  _ob3Track("onboarding_shown", { source: opts && opts.force ? "restart" : "signup" });
 }
 window.startOnboarding = startOnboarding;
 
-function _ob2HideOverlay(instant){
-  var overlay = _ob2El("ob2Overlay");
-  if(!overlay) return;
+function _ob3Hide(){
+  var overlay = _ob3El("ob2Overlay");
   window._ob2Active = false;
+  document.removeEventListener("keydown", _ob3Keys, true);
+  if(!overlay) return;
   overlay.classList.remove("ob2-visible");
-  if(instant){ overlay.style.display = "none"; return; }
-  setTimeout(function(){ overlay.style.display = "none"; }, 220);
+  setTimeout(function(){ overlay.style.display = "none"; }, 200);
 }
 
-// ── Step navigation (Welcome → Goal → Workspace) ────────────────
-function _ob2GoTo(step){
-  ["welcome","goal","workspace"].forEach(function(s){
-    var el = _ob2El("ob2Step" + _ob2Cap(s));
-    if(el) el.hidden = (s !== step);
+// Focus stays inside the dialog; arrow keys move between the choices.
+function _ob3Keys(e){
+  var overlay = _ob3El("ob2Overlay");
+  if(!overlay || overlay.style.display === "none") return;
+  var items = Array.prototype.slice.call(overlay.querySelectorAll("button:not([disabled])"));
+  if(!items.length) return;
+  var i = items.indexOf(document.activeElement);
+  if(e.key === "Tab"){
+    e.preventDefault();
+    var n = e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : (i === -1 || i === items.length - 1 ? 0 : i + 1);
+    items[n].focus();
+  } else if(e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowLeft"){
+    var choices = Array.prototype.slice.call(overlay.querySelectorAll(".ob3-choice:not([disabled])"));
+    if(!choices.length) return;
+    var c = choices.indexOf(document.activeElement);
+    var fwd = e.key === "ArrowDown" || e.key === "ArrowRight";
+    var next = c === -1 ? 0 : (c + (fwd ? 1 : -1) + choices.length) % choices.length;
+    e.preventDefault();
+    choices[next].focus();
+  }
+}
+
+// goal: 'create' | 'research' | 'explore'. Navigates at once; the save
+// runs in the background so a slow or failed request never blocks the user.
+window.ob3Choose = function(goal){
+  if(_ob3Busy || !OB3_DEST[goal]) return;
+  _ob3Busy = true;
+  _ob3Track("onboarding_goal_selected", { goal: goal });
+  _ob3Set("ob_pending", goal);
+  if(window._orvObState){ window._orvObState.eligible = false; window._orvObState.goal = goal === "explore" ? "business" : goal; }
+  _ob3Hide();
+  if(typeof _orvNav === "function") _orvNav(OB3_DEST[goal][0], OB3_DEST[goal][1]);
+  if(goal === "create" || goal === "research") setTimeout(function(){ _ob3ShowIntro(goal, "choice"); }, 120);
+  _ob3Persist(goal);
+};
+
+window.ob3Skip = function(){
+  if(_ob3Busy) return;
+  _ob3Busy = true;
+  _ob3Track("onboarding_dismissed");
+  _ob3Set("ob_pending", "skip");
+  if(window._orvObState) window._orvObState.eligible = false;
+  _ob3Hide();
+  _ob3Persist(null);
+};
+
+function _ob3Persist(goal){
+  var body = goal ? { goal: goal } : { skipped: true };
+  apiFetch("/api/onboarding/complete", { method: "POST", body: JSON.stringify(body) }).then(function(r){
+    if(r && r.ok){
+      _ob3Set("ob_pending", null);
+      if(r.data && typeof r.data.primary_goal === "string"){ try { _dbPrimaryGoal = r.data.primary_goal; } catch(_){} }
+    }
+  }).catch(function(){ /* kept in ob_pending; retried on the next load */ });
+}
+
+// ── Intro panels on Create / Research ────────────────────────────
+// "choice": after picking that goal — what it produces, a few static
+// examples, and what the account's plan covers. "hint": one line for
+// Explore users the first time they open the page. Both close for good.
+
+var OB3_INTRO = {
+  create: {
+    page: "page-create", after: ".cr2-hero",
+    eyebrow: "Your first ad",
+    title: "Turn your idea into a professional advertisement.",
+    text: "Describe what you sell and who it’s for. OrivenAI writes the campaign for the platform you choose: headlines, ad copy, targeting and visual concepts.",
+    hint: "Create advertisements tailored to your brand.",
+    cta: "Start creating", focus: "aicInput"
+  },
+  research: {
+    page: "page-research", after: ".rsc-page-hdr",
+    eyebrow: "Market research",
+    title: "Understand your market and discover new opportunities.",
+    text: "Ask a question about your market. Research searches live sources and maps what it finds into audiences, competitors, opportunities and recommendations.",
+    hint: "Understand your market and discover new opportunities.",
+    cta: "Write my question", focus: "researchQueryInput"
+  }
+};
+
+function _ob3PlanNote(kind){
+  var C = typeof CREDIT_COSTS !== "undefined" ? CREDIT_COSTS : null;
+  var P = typeof ORIVEN_PLANS !== "undefined" ? ORIVEN_PLANS : null;
+  if(!C || !P) return "";
+  var planId = _ob3Plan(), plan = P[planId] || P.free;
+  if(kind === "create"){
+    var st = window._orvObState;
+    if(planId === "free" && st && st.freeFirstAd && st.freeFirstAd.available){
+      return "Your first complete ad is free: the campaign plus its ad image. After that, Free includes one campaign build a day; ad images use " + C.imageAd + " credits each, included from " + P.starter.name + ".";
+    }
+    if(planId === "free") return "On Free you can build one complete campaign a day: copy, targeting and visual concepts. Rendering ad images uses " + C.imageAd + " credits each, included from " + P.starter.name + ".";
+    return "A complete image ad uses " + C.imageAdComplete + " credits (" + C.campaign + " for the campaign, " + C.imageAd + " for the image). " + plan.name + " includes " + orvFormatCredits(plan.credits) + " credits a month.";
+  }
+  if(!(plan.entitlements && plan.entitlements.research)){
+    return "Research is included from " + P.starter.name + " (€" + P.starter.price + "/month); each investigation uses " + C.research + " credits.";
+  }
+  return "Each investigation uses " + C.research + " credits. " + plan.name + " includes " + orvFormatCredits(plan.credits) + " credits a month.";
+}
+
+function _ob3Examples(kind){
+  if(kind === "create"){
+    return '<figure class="obi-examples">' +
+      '<div class="obi-ex-row">' +
+        '<img src="/assets/ads/MA2.png" alt="Example social ad" loading="lazy">' +
+        '<img src="/assets/ads/GA3.png" alt="Example display ad" loading="lazy">' +
+        '<img src="/assets/ads/PA1.png" alt="Example pin ad" loading="lazy">' +
+      '</div>' +
+      '<figcaption>Example ads</figcaption></figure>';
+  }
+  var rows = [
+    ["Audience", "Busy parents comparing meal-kit prices on mobile"],
+    ["Competitors", "Three subscription brands lead with weekly discounts"],
+    ["Opportunity", "Few competitors advertise same-day delivery"],
+    ["Recommendation", "Lead with convenience in short video ads"]
+  ];
+  return '<figure class="obi-examples obi-examples-research">' +
+    '<dl class="obi-findings">' + rows.map(function(r){ return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join("") + '</dl>' +
+    '<figcaption>Example findings · your results come from live sources</figcaption></figure>';
+}
+
+function _ob3ShowIntro(kind, mode){
+  var cfg = OB3_INTRO[kind];
+  if(!cfg || _ob3Get("ob_intro_" + kind)) return;
+  var page = _ob3El(cfg.page);
+  if(!page || page.querySelector(".obi")) return;
+  // Plan without this step (orivenOps.js gate, e.g. Research on Free): the
+  // page shows its plan gate instead of the form. The example sits inside
+  // the gate as a static preview, and the button opens the plans for it.
+  var gate = page.classList.contains("orv-gated") ? page.querySelector(":scope > .orv-gate") : null;
+  if(gate && mode === "hint") return;
+  var anchor = gate ? gate.querySelector(".orv-gate-card") : page.querySelector(cfg.after);
+  var el = document.createElement("section");
+  el.className = "obi" + (mode === "hint" ? " obi-hint" : "") + (gate ? " obi-in-gate" : "");
+  el.setAttribute("data-obi", kind);
+  el.setAttribute("aria-label", mode === "hint" ? cfg.hint : cfg.eyebrow);
+  if(mode === "hint"){
+    el.innerHTML = '<p class="obi-hint-text">' + _ob3Esc(cfg.hint) + '</p>' +
+      '<button type="button" class="obi-link" onclick="obIntroClose(\'' + kind + '\')">Got it</button>';
+  } else {
+    el.innerHTML =
+      '<div class="obi-body">' +
+        '<div class="obi-eyebrow">' + _ob3Esc(cfg.eyebrow) + '</div>' +
+        '<h2 class="obi-title">' + _ob3Esc(cfg.title) + '</h2>' +
+        '<p class="obi-text">' + _ob3Esc(cfg.text) + '</p>' +
+        '<p class="obi-plan">' + _ob3Esc(_ob3PlanNote(kind)) + '</p>' +
+        '<div class="obi-actions">' +
+          (gate
+            ? '<button type="button" class="obi-btn" onclick="orvOpenActionPaywall(\'' + kind + '\',{code:\'PLAN_REQUIRED\'})">See plans</button>'
+            : '<button type="button" class="obi-btn" onclick="obIntroStart(\'' + kind + '\')">' + _ob3Esc(cfg.cta) + '</button>') +
+          '<button type="button" class="obi-link" onclick="obIntroClose(\'' + kind + '\')">Skip the example</button>' +
+        '</div>' +
+      '</div>' + _ob3Examples(kind) +
+      '<button type="button" class="obi-x" aria-label="Close" onclick="obIntroClose(\'' + kind + '\')">&times;</button>';
+  }
+  if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(el, anchor.nextSibling);
+  else page.insertBefore(el, page.firstChild);
+}
+
+window.obIntroClose = function(kind){
+  _ob3Set("ob_intro_" + kind, "1");
+  var el = document.querySelector('.obi[data-obi="' + kind + '"]');
+  if(el && el.parentNode) el.parentNode.removeChild(el);
+};
+window.obIntroStart = function(kind){
+  window.obIntroClose(kind);
+  var f = OB3_INTRO[kind] && _ob3El(OB3_INTRO[kind].focus);
+  if(f){ try { f.focus({ preventScroll: false }); } catch(_){ f.focus(); } }
+};
+
+// Explore users: a one-line hint the first time Create/Research opens.
+function _ob3WatchPages(){
+  if(typeof MutationObserver === "undefined") return;
+  ["create", "research"].forEach(function(kind){
+    var page = _ob3El(OB3_INTRO[kind].page);
+    if(!page) return;
+    new MutationObserver(function(){
+      if(!page.classList.contains("active")) return;
+      var st = window._orvObState;
+      if(st && st.newAccount && st.goal === "business" && !st.firstValueAt) _ob3ShowIntro(kind, "hint");
+    }).observe(page, { attributes: true, attributeFilter: ["class"] });
   });
-  _ob2RenderProgress(step);
-  if(step === "goal") _ob2RenderGoalStep();
-  if(step === "workspace") _ob2RenderWorkspaceStep();
-  var heading = document.querySelector('#ob2Step' + _ob2Cap(step) + ' [data-ob2-heading]');
-  if(heading){ heading.setAttribute("tabindex","-1"); heading.focus(); }
-}
-function _ob2Cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
-
-function _ob2RenderProgress(step){
-  var order = ["welcome","goal","workspace","plan"];
-  var idx = order.indexOf(step) + 1;
-  var wrap = _ob2El("ob2Progress");
-  if(!wrap) return;
-  wrap.innerHTML = order.map(function(_, i){
-    return '<span class="ob2-dot' + (i + 1 === idx ? ' ob2-dot-active' : (i + 1 < idx ? ' ob2-dot-done' : '')) + '"></span>';
-  }).join("");
-  wrap.setAttribute("aria-label", "Step " + idx + " of 4");
 }
 
-window.ob2Next = function(from){
-  if(from === "welcome") return _ob2GoTo("goal");
-  if(from === "goal") return _ob2ConfirmGoal();
-  if(from === "workspace") return _ob2ShowPlanStep();
-};
-window.ob2Back = function(from){
-  if(from === "goal") return _ob2GoTo("welcome");
-  if(from === "workspace") return _ob2GoTo("goal");
+// ── Action events from Create / Research (app.html) ───────────────
+// type: 'start' | 'success' | 'blocked'; detail.kind: 'create'|'research'
+// (blocked may also carry kind 'image'), plus status/code/balance.
+window.orvActionEvent = function(type, kind, detail){
+  try { document.dispatchEvent(new CustomEvent("orv:action-" + type, { detail: Object.assign({ kind: kind }, detail || {}) })); } catch(_){}
 };
 
-// ── Step 2: Goal selection ──────────────────────────────────────
-function _ob2RenderGoalStep(){
-  var grid = _ob2El("ob2GoalGrid");
-  if(!grid) return;
-  grid.innerHTML = OB2_GOALS.map(function(g){
-    var sel = g.id === _ob2Goal;
-    return '<button type="button" class="ob2-goal-card' + (sel ? " ob2-goal-card-sel" : "") + '" ' +
-      'role="radio" aria-checked="' + (sel ? "true" : "false") + '" data-ob2-goal="' + g.id + '" onclick="_ob2SelectGoal(\'' + g.id + '\')">' +
-      '<span class="ob2-goal-ic">' + g.icon + '</span>' +
-      '<span class="ob2-goal-name">' + g.name + '</span>' +
-      '<span class="ob2-goal-desc">' + g.desc + '</span>' +
-    '</button>';
-  }).join("");
-  var cont = _ob2El("ob2GoalContinue");
-  if(cont) cont.disabled = !_ob2Goal;
-  var err = _ob2El("ob2GoalErr");
-  if(err){ err.style.display = "none"; err.textContent = ""; }
-}
+document.addEventListener("orv:action-start", function(e){
+  var k = e.detail && e.detail.kind;
+  if(k === "create" || k === "research") _ob3Track(k + "_started");
+});
 
-window._ob2SelectGoal = function(id){
-  _ob2Goal = id;
-  document.querySelectorAll(".ob2-goal-card").forEach(function(c){
-    var isSel = c.getAttribute("data-ob2-goal") === id;
-    c.classList.toggle("ob2-goal-card-sel", isSel);
-    c.setAttribute("aria-checked", isSel ? "true" : "false");
-  });
-  var cont = _ob2El("ob2GoalContinue");
-  if(cont) cont.disabled = false;
+document.addEventListener("orv:action-blocked", function(e){
+  var d = e.detail || {};
+  orvOpenActionPaywall(d.kind, d);
+});
+
+document.addEventListener("orv:action-success", function(e){
+  var k = e.detail && e.detail.kind;
+  var draft = _ob3ReadDraft();
+  if(draft && draft.kind === k) _ob3Set("draft", null);
+  var st = window._orvObState;
+  if(!st || !st.newAccount || st.firstValueAt) return;
+  st.firstValueAt = new Date().toISOString(); st.firstValueKind = k; // the server records the real one
+  setTimeout(function(){ _ob3NextStep(k); }, k === "create" ? 2500 : 600);
+});
+
+// ── Action paywall bridge ────────────────────────────────────────
+// action: 'create' | 'image' | 'research'. Saves the work first.
+window.orvOpenActionPaywall = function(action, info){
+  info = info || {};
+  if(action !== "create" && action !== "image" && action !== "research") action = "create";
+  _ob3SaveDraft(action === "research" ? "research" : "create");
+  _ob3Track("paywall_shown", { action: action, reason: info.code ? String(info.code).toLowerCase() : (info.status === 402 ? "credits" : "plan"), plan: _ob3Plan() });
+  if(typeof openActionPaywall === "function") openActionPaywall({ action: action, code: info.code || null, balance: info.balance });
+  else if(typeof openPaywall === "function") openPaywall();
 };
 
-async function _ob2ConfirmGoal(){
-  if(!_ob2Goal) return;
-  var btn = _ob2El("ob2GoalContinue");
-  var err = _ob2El("ob2GoalErr");
-  if(btn){ btn.disabled = true; btn.textContent = "Saving…"; }
-  if(err) err.style.display = "none";
+// ── Drafts (this device only; prompts never leave the browser) ─────
+function _ob3ReadDraft(){
+  var raw = _ob3Get("draft");
+  if(!raw) return null;
   try {
-    var res = await apiFetch("/api/onboarding/goal", {
-      method: "PUT",
-      body: JSON.stringify({ goal: _ob2Goal })
+    var d = JSON.parse(raw);
+    if(!d || !d.kind || !d.at || Date.now() - d.at > OB3_DRAFT_TTL_MS){ _ob3Set("draft", null); return null; }
+    return d;
+  } catch(_){ _ob3Set("draft", null); return null; }
+}
+
+function _ob3SaveDraft(kind){
+  var data = null;
+  if(kind === "create"){
+    var ta = _ob3El("aicInput");
+    var goal = document.querySelector(".cr2-goal-card.cr2-goal-card-on");
+    var plat = document.querySelector(".cr2-pp.cr2-pp-on");
+    data = {
+      prompt: ta ? String(ta.value || "").slice(0, 4000) : "",
+      goal: goal ? goal.getAttribute("data-goal") : null,
+      platform: plat ? plat.getAttribute("data-plat") : null,
+      mode: window._ov3ContentMode || "images"
+    };
+    if(!data.prompt) return;
+  } else {
+    var q = _ob3El("researchQueryInput");
+    data = {
+      question: q ? String(q.value || "").slice(0, 500) : "",
+      focus: (typeof _researchSelectedFocus !== "undefined" && Array.isArray(_researchSelectedFocus)) ? _researchSelectedFocus.slice(0, 6) : [],
+      urls: (typeof _researchUrls !== "undefined" && Array.isArray(_researchUrls)) ? _researchUrls.slice(0, 5) : []
+    };
+    if(!data.question) return;
+  }
+  _ob3Set("draft", JSON.stringify({ kind: kind, at: Date.now(), data: data }));
+}
+
+// Called after Stripe returns (reason: 'payment' | 'canceled'). Puts the
+// saved work back on its page. Returns true when a draft was restored.
+window.orvResumeDraft = function(reason){
+  var d = _ob3ReadDraft();
+  if(!d) return false;
+  if(d.kind === "create") _ob3RestoreCreate(d.data || {});
+  else if(d.kind === "research") _ob3RestoreResearch(d.data || {});
+  else return false;
+  _ob3Track("draft_restored", { kind: d.kind, reason: reason || "return" });
+  if(typeof orvToast === "function"){
+    orvToast(d.kind === "research"
+      ? "Your question is back. Review it and run the research when you’re ready."
+      : "Your brief is back. Review it and generate when you’re ready.", "info");
+  }
+  return true;
+};
+
+function _ob3RestoreCreate(v){
+  if(typeof _orvNav === "function") _orvNav("create", "page-create");
+  setTimeout(function(){
+    var ta = _ob3El("aicInput");
+    if(ta && v.prompt){
+      ta.value = v.prompt;
+      try { ta.dispatchEvent(new Event("input", { bubbles: true })); } catch(_){}
+    }
+    if(v.platform){
+      var pill = document.querySelector('.cr2-pp[data-plat="' + v.platform + '"]');
+      if(pill && !pill.classList.contains("cr2-pp-on")) pill.click();
+    }
+    if(v.goal){
+      var g = document.querySelector('.cr2-goal-card[data-goal="' + v.goal + '"]');
+      if(g && !g.classList.contains("cr2-goal-card-on")) g.click();
+    }
+    if(v.mode && v.mode !== window._ov3ContentMode && typeof ov3SetMode === "function"){
+      var mb = document.querySelector('.ov3-mode-btn[onclick*="\'' + v.mode + '\'"]');
+      ov3SetMode(v.mode, mb);
+    }
+    if(ta) ta.focus();
+  }, 150);
+}
+
+function _ob3RestoreResearch(v){
+  if(typeof _orvNav === "function") _orvNav("research", "page-research");
+  setTimeout(function(){
+    var q = _ob3El("researchQueryInput");
+    if(q && v.question){
+      q.value = v.question;
+      try { q.dispatchEvent(new Event("input", { bubbles: true })); } catch(_){}
+    }
+    (v.focus || []).forEach(function(key){
+      var b = document.querySelector('.rsc-focus-pill[data-focus="' + key + '"]');
+      if(b && b.getAttribute("aria-pressed") !== "true") b.click();
     });
-    if(!res.ok) throw new Error((res.data && res.data.error) || "Could not save your goal");
-    _dbPrimaryGoal = _ob2Goal;
-    _ob2GoTo("workspace");
-  } catch(e){
-    if(err){ err.textContent = "Couldn't save that — please try again."; err.style.display = "block"; }
-    console.error("[Onboarding] goal save failed:", e.message);
-  } finally {
-    if(btn){ btn.disabled = false; btn.textContent = "Continue"; }
+    if(Array.isArray(v.urls) && v.urls.length && typeof _researchUrls !== "undefined"){
+      _researchUrls = v.urls.slice(0, 5);
+      if(typeof _researchRenderUrlChips === "function") _researchRenderUrlChips();
+    }
+    if(q) q.focus();
+  }, 150);
+}
+
+// ── One subtle next step after a new account's first result ───────
+// The Create result is shown in the Ad Editing Workspace when it opens
+// (below its chat), otherwise on the results page. Waits for the result to
+// be revealed (the build animation finishes first), up to ~20s.
+function _ob3NextStep(kind, tries){
+  tries = tries || 0;
+  var cfg = kind === "create"
+    ? { text: "Want to understand your audience better?", link: "Explore Research", go: ["research", "page-research"], target: "research" }
+    : { host: "researchMapView", text: "Turn these insights into your next advertisement.", link: "Open Create", go: ["create", "page-create"], target: "create" };
+  if(kind === "create"){
+    var ws = _ob3El("page-ad-workspace"), res = _ob3El("page-campaign-results");
+    if(ws && ws.classList.contains("active")){ cfg.host = "page-ad-workspace"; cfg.after = "awChatFeed"; }
+    else if(res && res.classList.contains("active") && !document.querySelector(".ofb[data-state='building']")){ cfg.host = "page-campaign-results"; cfg.after = "cgrBackBar"; }
+    else { if(tries < 40) setTimeout(function(){ _ob3NextStep(kind, tries + 1); }, 500); return; }
   }
+  var host = _ob3El(cfg.host);
+  if(!host || host.querySelector(".obn")) return;
+  var el = document.createElement("div");
+  el.className = "obn";
+  el.setAttribute("role", "note");
+  el.innerHTML = '<span class="obn-text">' + _ob3Esc(cfg.text) + '</span>' +
+    '<button type="button" class="obn-link">' + _ob3Esc(cfg.link) + ' &rarr;</button>' +
+    '<button type="button" class="obn-x" aria-label="Dismiss">&times;</button>';
+  el.querySelector(".obn-link").addEventListener("click", function(){
+    _ob3Track("next_step_clicked", { target: cfg.target });
+    if(el.parentNode) el.parentNode.removeChild(el);
+    if(typeof _orvNav === "function") _orvNav(cfg.go[0], cfg.go[1]);
+  });
+  el.querySelector(".obn-x").addEventListener("click", function(){ if(el.parentNode) el.parentNode.removeChild(el); });
+  var after = cfg.after && _ob3El(cfg.after);
+  if(after && after.parentNode) after.parentNode.insertBefore(el, after.nextSibling);
+  else host.insertBefore(el, host.firstChild);
 }
 
-// ── Step 3: Workspace overview ──────────────────────────────────
-function _ob2RenderWorkspaceStep(){
-  var grid = _ob2El("ob2WsGrid");
-  if(!grid) return;
-  grid.innerHTML = OB2_GOALS.map(function(g){
-    var isStart = g.id === _ob2Goal;
-    return '<div class="ob2-ws-card' + (isStart ? " ob2-ws-card-start" : "") + '">' +
-      (isStart ? '<span class="ob2-ws-tag">Your starting point</span>' : "") +
-      '<span class="ob2-ws-ic">' + g.icon + '</span>' +
-      '<span class="ob2-ws-name">' + g.name + '</span>' +
-    '</div>';
-  }).join("");
-  var sub = _ob2El("ob2WsSub");
-  var goalName = (OB2_GOALS.filter(function(g){ return g.id === _ob2Goal; })[0] || {}).name || "your goal";
-  if(sub) sub.textContent = "You chose " + goalName + ". Here's the system around it — every product stays available whenever you need it.";
-}
-
-// ── Step 4: Plan / Payment — hands off to the real, existing paywall ──
-function _ob2ShowPlanStep(){
-  _ob2HideOverlay(true);
-  _ob2RenderProgress("plan");
-
-  var titleEl = document.querySelector("#modal-paywall .pw-title");
-  var subEl   = document.querySelector("#modal-paywall .pw-sub");
-  var eyeEl   = document.querySelector("#modal-paywall .pw-eyebrow span");
-  if(eyeEl) eyeEl.textContent = "Choose Your Plan";
-  if(titleEl) titleEl.innerHTML = "Choose your plan.";
-
-  // Factual entitlement note only — never a fabricated recommendation. Only
-  // shown when the chosen goal genuinely requires a plan above the account's
-  // current one (checked against the same plan.featureFlags/autopilotLimit
-  // data the real paywall cards themselves render from, plans.js).
-  var note = _ob2EntitlementNote(_ob2Goal);
-  if(subEl) subEl.textContent = note || "Pick the plan that fits. You can change this anytime in Settings.";
-
-  if(typeof _showHardPaywall === "function") _showHardPaywall();
-}
-
-// Real entitlement fact, not a personalized pitch — e.g. "Autopilot is
-// available with Professional." Returns null when the chosen goal has no
-// plan restriction (Create/Launch/Campaigns/Business are available on
-// every plan including Free) so the generic sub-copy is used instead.
-function _ob2EntitlementNote(goalId){
-  try {
-    if(goalId === "research"){
-      return "Research is available from Starter, as part of the complete workflow.";
-    }
-    if(goalId === "autopilot"){
-      return "Autopilot is available from Starter, as part of the complete workflow.";
-    }
-  } catch(_){}
-  return null;
-}
-
-// Called once onboarding's plan step has genuinely concluded (real Free
-// selection persisted, or a real paid plan confirmed from the DB after
-// Stripe) — never on Checkout merely opening. Marks completion server-side,
-// then routes to the chosen goal's real destination via the SAME _orvNav
-// the sidebar itself uses, letting the existing, real entitlement gates
-// (e.g. Autopilot's Professional-only nav gate, app.html) explain access
-// truthfully if the chosen plan doesn't actually include the chosen goal —
-// this file never fabricates access and never hides the rest of ORIVEN.
-async function _ob2Finish(){
-  _paywallHard = false;
-  var pw = document.getElementById("modal-paywall");
-  if(pw) pw.classList.remove("pw-hard");
-  _obContext = "tour";
-
-  try {
-    var res = await apiFetch("/api/onboarding/complete", { method: "POST" });
-    if(res.ok && res.data){
-      if(typeof res.data.primary_goal === "string") _dbPrimaryGoal = res.data.primary_goal;
-    }
-  } catch(e){
-    console.error("[Onboarding] complete call failed (non-fatal, plan is already real):", e.message);
-  }
-  try { localStorage.removeItem("oriven_needs_onboarding"); } catch(_){}
-
-  // _ob2Goal is in-memory only and does not survive the real page
-  // navigation to/from Stripe (the paid path) -- _dbPrimaryGoal was just
-  // freshly re-read from Supabase by this same page load's _loadUserProfile()
-  // call, so it's the reliable fallback across that boundary.
-  var goalId = _ob2Goal || (typeof _dbPrimaryGoal !== "undefined" ? _dbPrimaryGoal : null);
-  var dest = OB2_DEST[goalId] || OB2_DEST.create;
-  if(typeof _orvNav === "function") _orvNav(dest[0], dest[1]);
-}
-window._ob2Finish = _ob2Finish;
+if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", _ob3WatchPages);
+else _ob3WatchPages();

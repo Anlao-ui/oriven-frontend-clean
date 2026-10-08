@@ -1,40 +1,43 @@
 // ════ EVENT TRACKING ════════════════════════════════════════════
-// Inserts into Supabase "events" table.
-// Session ID persists across visits; linked to user_id on login/signup.
+// Activation events go to POST /api/events (server.js → `events` table via
+// the service role). The server accepts only allowlisted event names and
+// keeps only short allowlisted props (goal, action, plan, …), so never pass
+// prompts, business details or anything personal here.
+// Session ID persists across visits; linked to the user on login/signup.
+// Fire-and-forget: tracking can never break or slow the product.
 
 function _getSessionId(){
-  var id = localStorage.getItem("session_id");
+  var id = null;
+  try { id = localStorage.getItem("session_id"); } catch(_){}
   if(!id){
     id = (typeof crypto !== "undefined" && crypto.randomUUID)
       ? crypto.randomUUID()
       : "sess-" + Date.now() + "-" + Math.random().toString(36).slice(2);
-    localStorage.setItem("session_id", id);
+    try { localStorage.setItem("session_id", id); } catch(_){}
   }
   return id;
 }
 
-function trackEvent(eventName, user){
-  if(typeof SB === "undefined") return;
-  var payload = {
-    event_name: eventName,
-    session_id: _getSessionId(),
-    user_id:    (user && user.id) ? user.id : null
-  };
-  SB.from("events").insert(payload).then(function(result){
-    if(result.error) console.warn("[Track] Insert error:", eventName, result.error.message);
-    else console.log("[Track]", eventName, payload.session_id.slice(0, 8));
-  });
+function _postEvent(body){
+  if(typeof API_BASE_URL === "undefined" || typeof fetch !== "function") return;
+  try {
+    // window.fetch (supabase.js) attaches the signed-in user's bearer token.
+    fetch(API_BASE_URL + "/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      keepalive: true // survives a navigation to Stripe Checkout
+    }).catch(function(){});
+  } catch(_){}
+}
+
+// user: kept for existing call sites (identity comes from the session token).
+function trackEvent(eventName, user, props){
+  _postEvent({ event: eventName, sessionId: _getSessionId(), props: props || undefined });
 }
 
 function linkSessionToUser(userId){
-  if(typeof SB === "undefined" || !userId) return;
-  var sessionId = _getSessionId();
-  SB.from("events")
-    .update({ user_id: userId })
-    .eq("session_id", sessionId)
-    .is("user_id", null)
-    .then(function(result){
-      if(result.error) console.warn("[Track] Link session error:", result.error.message);
-      else console.log("[Track] Session linked to user:", userId);
-    });
+  if(!userId) return;
+  // Shortly after sign-in, once supabase.js has the session token.
+  setTimeout(function(){ _postEvent({ event: "session_linked", sessionId: _getSessionId() }); }, 1500);
 }

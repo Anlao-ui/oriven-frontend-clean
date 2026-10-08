@@ -347,11 +347,11 @@
         message: 'Building a campaign needs ' + need + ' credits' + (bal != null ? ', and you have ' + bal + '.' : '.') +
           ' Images (' + (c.imageAd || 75) + ' each) and videos (' + (c.video || 200) + ' each) are charged separately.',
         balance: bal, required: need, retry: false, edit: true,
-        action: { label: 'View plans', fn: 'plans' }
+        action: { label: 'View plans', fn: 'plans', ctx: { action: phase === 'creative' ? 'image' : 'create', code: 'CREDITS_EXHAUSTED', balance: bal } }
       };
     }
     if (st === 403 && code === 'SUBSCRIPTION_REQUIRED') {
-      return { kind: 'subscription', title: 'A plan is required', message: 'Choose a plan to keep building campaigns.', retry: false, edit: true, action: { label: 'View plans', fn: 'plans' } };
+      return { kind: 'subscription', title: 'A plan is required', message: 'Choose a plan to keep building campaigns.', retry: false, edit: true, action: { label: 'View plans', fn: 'plans', ctx: { action: 'create', code: 'SUBSCRIPTION_REQUIRED' } } };
     }
     if (code === 'PROVIDER_UNAVAILABLE') {
       return { kind: 'service', title: 'Generation service unavailable',
@@ -400,9 +400,12 @@
     }
     return { kind: 'unknown', title: 'Something went wrong', message: 'Try again. If it keeps happening, contact support.', retry: true, edit: true };
   };
-  F.runAction = function (fn) {
+  // ctx (optional): the blocked action — { action, code, balance } — so the
+  // plan modal can say what it needs and keep the user's work (onboarding.js).
+  F.runAction = function (fn, ctx) {
     if (fn === 'plans') {
-      if (typeof window.openPaywall === 'function') window.openPaywall();
+      if (ctx && typeof window.orvOpenActionPaywall === 'function') window.orvOpenActionPaywall(ctx.action, ctx);
+      else if (typeof window.openPaywall === 'function') window.openPaywall();
       else if (typeof window.openSettingsModal === 'function') window.openSettingsModal();
     } else if (fn === 'signin') {
       try { window.location.reload(); } catch (_) {}
@@ -857,7 +860,7 @@
       return b;
     }
     var first = null;
-    if (model.action) first = btn(model.action.label, 'primary', function () { F.runAction(model.action.fn); });
+    if (model.action) first = btn(model.action.label, 'primary', function () { F.runAction(model.action.fn, model.action.ctx); });
     if (model.retry && handlers.retry) { var r = btn('Try again', model.action ? 'ghost' : 'primary', handlers.retry); first = first || r; }
     if (model.edit !== false && handlers.edit) { var e = btn('Back to Create', 'ghost', handlers.edit); first = first || e; }
     if (first) setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (_) {} }, 30);
