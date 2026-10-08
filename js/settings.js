@@ -2906,6 +2906,68 @@ function applyLanguage(){
 // NOTIFICATIONS
 // ════════════════════════════════════════════════════════════════
 
+// ── Marketing email preference (Settings → Account) ────────────────
+// Off by default. The backend decides (consent stored server-side, honours
+// unsubscribe links and the suppression list); this only shows and changes it.
+var _emailPrefsBusy = false;
+function _emailPrefsSet(el, on){
+  el.classList.toggle("on", !!on);
+  el.setAttribute("aria-checked", on ? "true" : "false");
+}
+function _emailPrefsHint(text){
+  var h = document.getElementById("emailPrefsHint");
+  if(!h) return;
+  h.textContent = text || "";
+  h.style.display = text ? "" : "none";
+}
+async function orvLoadEmailPrefs(){
+  var el = document.getElementById("tglMarketingEmail");
+  if(!el || typeof apiFetch !== "function") return;
+  el.setAttribute("aria-disabled", "true");
+  try {
+    var r = await apiFetch("/api/email/preferences");
+    if(!r.ok || !r.data || r.data.available === false){
+      _emailPrefsSet(el, false);
+      _emailPrefsHint("Email preferences aren’t available right now.");
+      return;
+    }
+    _emailPrefsSet(el, r.data.marketing === true);
+    if(r.data.suppressed){
+      _emailPrefsHint("We can’t send email to your address because earlier emails bounced or were reported. Contact support to fix this.");
+      return;
+    }
+    el.removeAttribute("aria-disabled");
+    _emailPrefsHint("");
+  } catch(_){
+    _emailPrefsHint("Couldn’t load your email preference. Try again later.");
+  }
+}
+async function orvToggleMarketingEmail(el){
+  if(!el || _emailPrefsBusy || el.getAttribute("aria-disabled") === "true") return;
+  var want = !el.classList.contains("on");
+  _emailPrefsBusy = true;
+  _emailPrefsSet(el, want);
+  try {
+    var r = await apiFetch("/api/email/preferences", { method: "PUT", body: JSON.stringify({ marketing: want }) });
+    if(!r.ok){
+      _emailPrefsSet(el, !want);
+      if(r.data && r.data.code === "EMAIL_SUPPRESSED"){
+        el.setAttribute("aria-disabled", "true");
+        _emailPrefsHint("We can’t send email to your address because earlier emails bounced or were reported. Contact support to fix this.");
+      } else {
+        toast((r.data && r.data.error) || "Couldn’t save your email preference.", "warn");
+      }
+      return;
+    }
+    toast(want ? "You’ll get product tips by email. You can turn this off anytime." : "Product emails turned off.");
+  } catch(_){
+    _emailPrefsSet(el, !want);
+    toast("Couldn’t save your email preference.", "warn");
+  } finally {
+    _emailPrefsBusy = false;
+  }
+}
+
 function toggleNotif(el, key){
   el.classList.toggle("on");
   var isOn = el.classList.contains("on");
@@ -4620,6 +4682,7 @@ function openSettingsModal(){
 
 function smdNav(btn){
   var key = btn.dataset.smd;
+  if(key === "account" && typeof orvLoadEmailPrefs === "function") orvLoadEmailPrefs();
   document.querySelectorAll(".smd-ni").forEach(function(b){ b.classList.remove("active"); });
   btn.classList.add("active");
   document.querySelectorAll(".smd-panel").forEach(function(p){ p.classList.remove("active"); });
