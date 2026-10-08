@@ -1472,17 +1472,22 @@ async function selectPlan(plan){
   } catch(_){}
 
   try {
-    var u = S.user || (await SB.auth.getUser()).data.user;
+    // Identity is taken server-side from the signed-in session (the bearer
+    // token apiFetch attaches) — never from the request body.
     var result = await apiFetch("/api/create-checkout-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan, userId: u.id, userEmail: u.email, source: 'app' })
+      body: JSON.stringify({ plan, source: 'app' })
     });
-    if(!result.ok || !result.data.url) throw new Error(result.data.error || "No checkout URL returned");
+    if(!result.ok || !result.data.url){
+      var _ckErr = new Error((result.data && result.data.error) || "No checkout URL returned");
+      _ckErr.serverMessage = result.data && result.data.error;
+      throw _ckErr;
+    }
     window.location.href = result.data.url;
   } catch(err) {
     console.error("[Paywall] Checkout error:", err);
-    toast("Could not start checkout — please try again");
+    toast(err && err.serverMessage ? err.serverMessage : "Could not start checkout — please try again");
     if(btn){ btn.disabled = false; btn.textContent = btn.getAttribute("data-label") || "Get Started"; }
   }
 }
