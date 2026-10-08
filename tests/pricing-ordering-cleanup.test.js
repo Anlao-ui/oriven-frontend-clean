@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
 
 const BASE_URL = 'http://localhost:8899';
 const CHROME_PATH = process.env.TEST_CHROME_PATH || 'C:/Users/Aleck/AppData/Local/ms-playwright/chromium-1228/chrome-win64/chrome.exe';
-const SHOT_DIR = 'C:/files/tests/_shots/pricing_ordering_cleanup';
+const SHOT_DIR = require('path').join(__dirname, '_shots', 'pricing_ordering_cleanup');
 require('fs').mkdirSync(SHOT_DIR, { recursive: true });
 
 let pass = 0, fail = 0;

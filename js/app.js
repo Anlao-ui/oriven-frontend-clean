@@ -495,7 +495,6 @@ function navigate(page){
   var pg=document.getElementById("page-"+page);
   if(pg) pg.classList.add("active");
   var mc=document.querySelector(".mc");
-  if(mc) mc.classList.toggle("mc-locked", page==="team");
   // New IA page aliases
   if(page==="connect")     { navigate("integrations"); return; }
   if(page==="analyze")     { navigate("ads"); return; }
@@ -521,7 +520,6 @@ function navigate(page){
   if(page==="brain")        refreshBrain();
   if(page==="brandcore")    { navigate("studio"); return; }
   if(page==="studio")       refreshStudio();
-  if(page==="assistant")    { if(typeof openFAB==="function") openFAB(); }
   if(page==="competitor")   { if(typeof ciInit==="function") ciInit(); }
   // Legacy sub-page redirects (pages still exist but no longer in nav)
   if(page==="positioning")  { navigate("studio"); return; }
@@ -536,8 +534,6 @@ function navigate(page){
   if(page==="inspiration")  renderInspiration();
   if(page==="aichat")       initChat();
   if(page==="create")       { S._cwsHistory=[]; if(typeof _createRefreshHero==="function") _createRefreshHero(); }
-  if(page==="team")         { if(typeof initTeamPage==="function") initTeamPage(); }
-  if(page==="ugc")          { if(typeof ugcInit==="function") ugcInit(); }
 }
 
 function openBCRegen(){
@@ -1763,62 +1759,6 @@ function _dashComputeIntel(){
   return { pct:score, level:level, score:score, msg:msg, attrs:attrs };
 }
 
-function _dashRenderCreateGrid(){
-  var el = document.getElementById("dashCreateGrid");
-  if(!el) return;
-
-  var items = [
-    {
-      label:"UGC Creator",
-      desc:"AI video ads",
-      icon:'<rect x="2" y="4" width="11" height="10" rx="2"/><path d="M13 8l5-2.5v7L13 10"/>',
-      action:"openAIFlow('ugc')"
-    },
-    {
-      label:"Visuals",
-      desc:"On-brand images",
-      icon:'<rect x="1" y="2" width="14" height="13" rx="2"/><path d="M1 11l4-4 3.5 3.5 2.5-2.5L15 12"/>',
-      action:"openAIFlow('image')"
-    },
-    {
-      label:"Text & Copy",
-      desc:"Headlines, captions",
-      icon:'<path d="M2 5h13M2 9h9M2 13h11"/>',
-      action:"openAIFlow('text')"
-    },
-    {
-      label:"Campaign",
-      desc:"Multi-channel builds",
-      icon:'<path d="M2 13l3-7 3.5 5.5 2.5-3.5 4 5"/><circle cx="5" cy="6" r="1.2" fill="#B7FF2A" stroke="none"/>',
-      action:"openAIFlow('campaign')"
-    },
-    {
-      label:"Web",
-      desc:"Pages & assets",
-      icon:'<rect x="1" y="2.5" width="15" height="12" rx="2"/><path d="M1 6.5h15"/><path d="M6.5 17h4M8.5 14.5v2.5"/>',
-      action:"openAIFlow('web')"
-    },
-    {
-      label:"Oriven",
-      desc:"AI guidance",
-      icon:'<path d="M8.5 1.5l2 5.5H16l-4.3 3.2 1.6 5L8.5 12.5l-4.8 2.7 1.6-5L1 7H6.5Z"/>',
-      action:"openFAB()"
-    }
-  ];
-
-  var html = "";
-  items.forEach(function(item){
-    html += '<button class="dash-cblk" onclick="' + item.action + '">'
-      + '<div class="dash-cblk-ico"><svg viewBox="0 0 17 17" fill="none" stroke="currentColor">'
-      + item.icon + '</svg></div>'
-      + '<div class="dash-cblk-label">' + item.label + '</div>'
-      + '<div class="dash-cblk-desc">' + item.desc + '</div>'
-      + '</button>';
-  });
-
-  el.innerHTML = html;
-}
-
 // ═══════════════════════════════════════════════════════════════
 // AI ENGINE — modular, brand-aware, variant-rich
 // ═══════════════════════════════════════════════════════════════
@@ -2929,7 +2869,6 @@ function runGenBrand(){
     // campaign is fully generated (see _renderPackage/_cgrReveal in
     // app.html) -- it must never show for unrelated actions like Brand
     // Identity setup, especially not mid-onboarding.
-    if(typeof gtAdvance === "function") gtAdvance(1);
   })
   .catch(function(err){
     clearInterval(iv);

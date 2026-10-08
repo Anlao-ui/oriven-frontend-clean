@@ -1,11 +1,22 @@
-server/.env
+# Secrets
 .env
-.env.local
+.env.*
+!.env.example
+server/.env
 
+# Dependencies
 node_modules/
 server/node_modules/
-node_modules/.static-server*.log
-oriven-backand-clean/
-oriven-backand-clean-backup/
 
+# Logs
 *.log
+
+# Test & screenshot output
+test-results/
+playwright-report/
+tests/_shots/
+shots/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db

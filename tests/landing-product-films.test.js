@@ -32,13 +32,14 @@ function scrollToPillars() {
   lv.scrollTop = el.offsetTop - 100;
 }
 
+// V9 product films: one per workflow step ('business' is Control Center).
 const EXPECTED = {
-  research: 'ORIVEN Research Film.mp4',
-  create: 'ORIVEN Launch Film.mp4', // intentional — verified against real files on disk
-  launch: 'ORIVEN Launch Control Film.mp4',
-  campaigns: 'ORIVEN Campaigns Film.mp4',
-  autopilot: 'ORIVEN Autopilot Film.mp4',
-  business: 'ORIVEN Business Film.mp4',
+  research: 'film-research.mp4',
+  create: 'film-create.mp4',
+  launch: 'film-launch.mp4',
+  campaigns: 'film-campaigns.mp4',
+  autopilot: 'film-autopilot.mp4',
+  business: 'film-control-center.mp4',
 };
 
 async function main() {

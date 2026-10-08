@@ -20,10 +20,10 @@
 <link rel="shortcut icon" href="assets/orivenlogo.png">
 <link rel="apple-touch-icon" href="assets/orivenlogo.png">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="orivenWorkspace.css">
-<link rel="stylesheet" href="orivenFlow.css">
-<link rel="stylesheet" href="orivenOps.css">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/orivenWorkspace.css">
+<link rel="stylesheet" href="css/orivenFlow.css">
+<link rel="stylesheet" href="css/orivenOps.css">
 
 
 
@@ -76,44 +76,6 @@
 <div id="obCornerOrb">
   <div style="width:30px;height:30px;background:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:3px">
     <img src="assets/orivenlogo.png" alt="ORIVEN" style="width:100%;height:100%;object-fit:contain;display:block">
-  </div>
-</div>
-
-<!-- Guide Tour: orb message bubble (appears above corner orb) -->
-<div id="gtOrbMsg">
-  <span class="gt-orb-dot"></span>
-  <span id="gtOrbMsgText"></span>
-</div>
-
-<!-- Guide Tour: full-screen backdrop (used for centered final step) -->
-<div id="gtBd"></div>
-
-<!-- Guide Tour: spotlight (transparent box with dark shadow around it) -->
-<div id="gtSpot"></div>
-
-<!-- Guide Tour: tooltip card -->
-<div id="gtTip">
-  <div class="gt-tip-head">
-    <div class="gt-tip-icon">
-      <img src="assets/orivenlogo.png" alt="ORIVEN" style="width:100%;height:100%;object-fit:contain;display:block">
-    </div>
-    <span id="gtTipStep" class="gt-tip-step">1 / 6</span>
-    <button class="gt-tip-close" onclick="gtSkipAll()" title="Skip tour">
-      <svg viewBox="0 0 14 14" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 2l10 10M12 2L2 12"/></svg>
-    </button>
-  </div>
-  <h3 class="gt-tip-title" id="gtTipTitle"></h3>
-  <p class="gt-tip-body" id="gtTipBody"></p>
-  <ul class="gt-tip-bullets" id="gtTipBullets" style="display:none"></ul>
-  <button class="gt-tip-btn" id="gtTipBtn" onclick="gtAction()"></button>
-  <button id="gtSkipBtn" onclick="gtSkipAll()">Skip tour</button>
-  <div class="gt-progress-dots" id="gtProgressDots">
-    <div class="gt-pdot"></div>
-    <div class="gt-pdot"></div>
-    <div class="gt-pdot"></div>
-    <div class="gt-pdot"></div>
-    <div class="gt-pdot"></div>
-    <div class="gt-pdot"></div>
   </div>
 </div>
 
@@ -4707,80 +4669,6 @@
     <!-- TEAM — Professional only (see team.js _teamMax(); page itself is
          reachable by any paid plan's 1-seat workspace, gated to Professional
          at the nav/route level in _orvNav). -->
-    <div class="page" id="page-team">
-      <div class="tm-outer">
-
-        <!-- HEADER — same canonical page-header rhythm as Business/
-             Intelligence (68px top padding via #page-team .tm-outer below),
-             eyebrow + title + accent + subtitle. -->
-        <div class="tm-hdr">
-          <div class="tm-eyebrow">
-            <div class="tm-eyebrow-dot"></div>
-            <span>Team</span>
-          </div>
-          <h1 class="tm-hdr-title">Your team. <em>One intelligence.</em></h1>
-          <p class="tm-hdr-sub">Collaborate on campaigns, insights, and brand intelligence from one workspace.</p>
-        </div>
-
-        <!-- KPI ROW -->
-        <div class="tm-kpi-row">
-          <div class="tm-kpi">
-            <div class="tm-kpi-lbl">Members</div>
-            <div class="tm-kpi-val" id="tmStatMembers">1</div>
-          </div>
-          <div class="tm-kpi">
-            <div class="tm-kpi-lbl">Intelligence</div>
-            <div class="tm-kpi-val" id="tmStatIntel">—</div>
-          </div>
-          <div class="tm-kpi">
-            <div class="tm-kpi-lbl">Workspace</div>
-            <div class="tm-kpi-val tm-stat-status" id="tmStatStatus">Active</div>
-          </div>
-        </div>
-
-        <!-- PROJECTS -->
-        <div class="tm-projects-section">
-          <div class="tm-section">
-            <div class="tm-section-hd">
-              <div class="tm-section-title">Active Projects</div>
-            </div>
-            <div class="tm-proj-list" id="tmProjGrid"></div>
-          </div>
-        </div>
-
-        <!-- LOWER: members + activity side by side -->
-        <div class="tm-lower">
-
-          <!-- Members -->
-          <div class="tm-section tm-lower-panel">
-            <div class="tm-section-hd">
-              <div>
-                <div class="tm-section-title">Team Members</div>
-                <div class="tm-section-sub" id="teamMemberCount">1 member</div>
-              </div>
-              <button class="tm-invite-btn" onclick="openInviteModal()">
-                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 1v12M1 7h12"/></svg>
-                Invite
-              </button>
-            </div>
-            <div id="teamMemberList" class="tm-member-list"></div>
-          </div>
-
-          <!-- Activity -->
-          <div class="tm-section tm-lower-panel">
-            <div class="tm-section-hd">
-              <div class="tm-section-title">Recent Activity</div>
-            </div>
-            <div class="tm-activity" id="tmActivity"></div>
-          </div>
-
-        </div>
-
-        <!-- Hidden for JS compat -->
-        <div style="display:none" id="tmAiInsights"></div>
-
-      </div>
-    </div>
 
     <!-- BUILDER (guided flow) -->
     <div class="page" id="page-builder">
@@ -4841,40 +4729,6 @@
     <div class="page" id="page-settings"></div>
 
     <!-- ── UGC VIDEO TEST ─────────────────────────────────── -->
-    <div class="page" id="page-ugc">
-      <div class="ph">
-        <div class="ph-ttl">AI UGC Video</div>
-        <div class="ph-sub">Generate AI creator-style videos from a script. Powered by HeyGen.</div>
-      </div>
-      <div class="ugc-wrap">
-
-        <div class="ugc-card">
-          <div>
-            <label class="ugc-label">Script</label>
-            <textarea id="ugcScript" class="ugc-textarea" rows="5" placeholder="Hi! I've been using this skincare brand for 3 weeks and my skin has honestly never looked better. The texture is light, it absorbs instantly, and I've noticed a real difference. If you've been looking for something that actually works — this is it."></textarea>
-          </div>
-
-          <div class="ugc-selects">
-            <div class="ugc-field">
-              <label class="ugc-label">Avatar</label>
-              <select id="ugcAvatarSel" class="inp ugc-sel"><option value="">Loading…</option></select>
-            </div>
-            <div class="ugc-field">
-              <label class="ugc-label">Voice</label>
-              <select id="ugcVoiceSel" class="inp ugc-sel"><option value="">Loading…</option></select>
-            </div>
-          </div>
-
-          <button class="btn btn-p" id="ugcGenBtn" onclick="ugcGenerate()" style="width:fit-content">Generate UGC Video</button>
-        </div>
-
-        <div class="ugc-result" id="ugcResult" style="display:none">
-          <div id="ugcStatus"></div>
-          <video id="ugcVideo" controls playsinline style="display:none;width:100%;max-width:360px;border-radius:12px;margin-top:12px"></video>
-        </div>
-
-      </div>
-    </div>
 
     <!-- ════════════════════════════════════════════════════════════
          ASSETS — saved asset library
@@ -7800,111 +7654,38 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="supabase.js"></script>
-<script src="plans.js"></script>
-<script src="metrics.js"></script>
-<script src="tracking.js"></script>
-<script src="auth.js"></script>
-<script src="guest.js"></script>
-<script src="guide.js"></script>
-<script src="app.js"></script>
-<script src="studio.js"></script>
-<script src="create.js"></script>
-<script src="assistant.js"></script>
-<script src="settings.js"></script>
-<script src="ads.js"></script>
-<script src="usage.js"></script>
-<script src="paywall.js"></script>
-<script src="onboarding.js"></script>
-<script src="team.js"></script>
-<script src="create-flow.js"></script>
-<script src="ugc.js"></script>
-<script src="videoads.js"></script>
-<script src="productshoots.js"></script>
-<script src="motiongraphics.js"></script>
-<script src="inspiration.js"></script>
-<script src="competitor.js"></script>
-<script src="workspace.js"></script>
-<script src="autopilot.js"></script>
-<script src="orivenContext.js"></script>
-<script src="orivenWorkspace.js"></script>
-<script src="orivenFlow.js"></script>
-<script src="orivenOps.js"></script>
-<script src="orivenOpsPages.js"></script>
-<script src="orivenPlan.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/plans.js"></script>
+<script src="js/metrics.js"></script>
+<script src="js/tracking.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/guest.js"></script>
+<script src="js/app.js"></script>
+<script src="js/studio.js"></script>
+<script src="js/create.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/ads.js"></script>
+<script src="js/usage.js"></script>
+<script src="js/paywall.js"></script>
+<script src="js/onboarding.js"></script>
+<script src="js/videoads.js"></script>
+<script src="js/productshoots.js"></script>
+<script src="js/motiongraphics.js"></script>
+<script src="js/inspiration.js"></script>
+<script src="js/competitor.js"></script>
+<script src="js/workspace.js"></script>
+<script src="js/autopilot.js"></script>
+<script src="js/orivenContext.js"></script>
+<script src="js/orivenWorkspace.js"></script>
+<script src="js/orivenFlow.js"></script>
+<script src="js/orivenOps.js"></script>
+<script src="js/orivenOpsPages.js"></script>
+<script src="js/orivenPlan.js"></script>
 
 <!-- ════════════════════════════════════════════════════════════
      AI CONVERSATION FLOW OVERLAY
      Used for: Image, Text, Campaign
      ════════════════════════════════════════════════════════════ -->
-<div id="cfOverlay" class="cf-overlay" style="display:none" role="dialog" aria-modal="true" aria-label="AI Create Flow">
-  <div class="cf-panel">
-
-    <!-- Top bar -->
-    <div class="cf-topbar">
-      <div class="cf-type-pill">
-        <span class="cf-type-icon" id="cfTypeIcon"></span>
-        <span class="cf-type-label" id="cfTypeLabel">Image</span>
-      </div>
-      <span class="cf-credit-pill" id="cfCreditPill">1 Credit</span>
-      <button class="cf-close-btn" onclick="closeAIFlow()" aria-label="Close">
-        <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-          <path d="M1 1l10 10M11 1L1 11"/>
-        </svg>
-      </button>
-    </div>
-
-    <!-- Brand Identity indicator -->
-    <div class="cf-brand-bar" id="cfBrandBar" style="display:none">
-      <span class="cf-brand-bar-dot"></span>
-      <span class="cf-brand-bar-label">Using Brand Identity</span>
-      <span class="cf-brand-bar-name" id="cfBrandBarName"></span>
-      <span class="cf-brand-bar-sep">·</span>
-      <span class="cf-brand-bar-detail" id="cfBrandBarDetail"></span>
-    </div>
-
-    <!-- Progress track -->
-    <div class="cf-progress-track">
-      <div class="cf-progress-fill" id="cfProgressFill"></div>
-    </div>
-
-    <!-- Conversation history (answered questions) -->
-    <div class="cf-history" id="cfHistory"></div>
-
-    <!-- Stage: current question + answers -->
-    <div class="cf-stage">
-
-      <!-- AI question block -->
-      <div class="cf-question-block" id="cfQuestionBlock">
-        <div class="cf-avatar">
-          <img src="assets/orivenlogo.png" alt="ORIVEN AI" width="22" height="22">
-        </div>
-        <div class="cf-question-content">
-          <div class="cf-question-text" id="cfQuestionText"></div>
-          <div class="cf-question-desc" id="cfQuestionDesc"></div>
-        </div>
-      </div>
-
-      <!-- Pill options -->
-      <div class="cf-options" id="cfOptions"></div>
-
-      <!-- Free-text input (for textarea steps) -->
-      <div class="cf-free-input" id="cfFreeInput" style="display:none">
-        <textarea class="cf-textarea" id="cfTextarea" rows="3" placeholder="Type here…"></textarea>
-        <div class="cf-input-row">
-          <button class="cf-skip-btn" id="cfSkipBtn" onclick="cfSkipStep()">Skip</button>
-          <button class="cf-continue-btn" onclick="cfSubmitText()">
-            Continue
-            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 8h10M9 4l4 4-4 4"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
 
 
 <!-- VIDEO ADS OVERLAY — self-contained multi-phase creator -->
@@ -8128,42 +7909,6 @@
   </div>
 </div>
 
-<div id="ucOverlay" class="cf-overlay" style="display:none;opacity:0" role="dialog" aria-modal="true" aria-label="AI UGC Creator">
-  <div class="cf-panel uc-panel">
-
-    <div class="cf-topbar">
-      <div class="cf-type-pill">
-        <span class="cf-type-icon">
-          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="4" width="12" height="12" rx="2.5"/><path d="M13.5 8L18 6v9l-4.5-2"/></svg>
-        </span>
-        <span class="cf-type-label">AI UGC Creator</span>
-      </div>
-      <button class="cf-close-btn" onclick="closeUGCCreator()" aria-label="Close">
-        <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg>
-      </button>
-    </div>
-
-    <div class="uc-body">
-      <div id="ucStatusWrap" class="uc-status-wrap"></div>
-      <div id="ucVideoWrap" style="display:none">
-        <div id="ucVideoFrame" class="uc-video-frame uc-fmt-vertical">
-          <video id="ucVideoEl" controls playsinline class="uc-video-el"></video>
-        </div>
-        <p class="uc-dl-hint">Use the ⋯ menu on the video to download.</p>
-      </div>
-      <div id="ucRetryRow" class="uc-action-row" style="display:none">
-        <button class="btn btn-g" onclick="ucStartOver()">Try Again</button>
-      </div>
-      <div id="ucNewRow" class="uc-action-row" style="display:none">
-        <button class="btn btn-p" style="display:flex;align-items:center;gap:7px" onclick="ucStartOver()">
-          <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3.5" width="9" height="9" rx="2"/><path d="M10.5 7l4-1.5v6L10.5 10"/></svg>
-          Create Another
-        </button>
-      </div>
-    </div>
-
-  </div>
-</div>
 
 <!-- PRODUCT SHOOTS RESULT OVERLAY -->
 <div id="psOverlay" class="cf-overlay" style="display:none;opacity:0" role="dialog" aria-modal="true" aria-label="Product Shoots Generator">
@@ -15321,7 +15066,6 @@ window._orvNav = function(page, explicitPageId) {
      tmStat* stayed at their static placeholder markup forever, since
      initTeamPage() (team.js) was only ever called from addTeamMember()/
      removeTeamMember()'s own post-mutation refresh, never on first visit. */
-  if (page === 'team' && typeof initTeamPage === 'function') setTimeout(initTeamPage, 0);
   if (page === 'create' && typeof cr2Init === 'function') setTimeout(cr2Init, 0);
   if (page === 'create' && typeof orvLoadLaunchBiz === 'function') setTimeout(orvLoadLaunchBiz, 0);
   /* Render the platform-objective + campaign-structure sections for the

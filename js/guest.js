@@ -11,12 +11,9 @@ var _guestGenerating      = false;
 var _originalNavigate     = null;
 var _originalOpenModal    = null;
 var _originalSaveBCToDB   = null;
-var _originalOpenAIFlow   = null;
 var _guestPopstateHandler = null;
 var _guestCreateType      = "image"; // "image" | "campaign" | "copy"
 var _guestAdCount         = 1;       // 1 | 3 | 5 (campaign only)
-var _savedGT_STEPS        = null;
-var _savedGT_TOTAL        = null;
 
 // ── Entry point (called from auth.js on no-session + on signout) ──
 
@@ -656,7 +653,6 @@ function _guestOnSignedIn(user){
   }
 
   if(_originalNavigate)   { navigate    = _originalNavigate;   _originalNavigate   = null; }
-  if(_originalOpenAIFlow) { openAIFlow  = _originalOpenAIFlow; _originalOpenAIFlow = null; }
   if(_originalSaveBCToDB) { saveBCToDB  = _originalSaveBCToDB; _originalSaveBCToDB = null; }
   if(_originalOpenModal)  { openModal   = _originalOpenModal;  _originalOpenModal  = null; }
 
@@ -667,21 +663,6 @@ function _guestOnSignedIn(user){
     var el = document.getElementById(id);
     if(el){ el.style.opacity = "0"; setTimeout(function(){ el.style.display = "none"; }, 300); }
   });
-
-  if(_savedGT_STEPS){ try{ GT_STEPS = _savedGT_STEPS; }catch(_){} _savedGT_STEPS = null; }
-  if(_savedGT_TOTAL !== null){
-    try {
-      GT_TOTAL = _savedGT_TOTAL;
-      var dotsEl = document.getElementById("gtProgressDots");
-      if(dotsEl){
-        dotsEl.innerHTML = "";
-        for(var ri = 0; ri < _savedGT_TOTAL; ri++){
-          var rd = document.createElement("div"); rd.className = "gt-pdot"; dotsEl.appendChild(rd);
-        }
-      }
-    } catch(_){}
-    _savedGT_TOTAL = null;
-  }
 
   onUserSignedIn(user);
 }

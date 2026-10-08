@@ -684,8 +684,8 @@ async function main() {
   // Product Films pass — the placeholder "assets/Create.mp4" this check
   // originally asserted was replaced with the real finished film once one
   // existed. Per that pass's explicit, verified-against-real-filenames
-  // spec, Create intentionally maps to "ORIVEN Launch Film.mp4" (not a
-  // file named after Create) — updated here to match, not a regression.
+  // spec. V9 replaced those films with one film per workflow step
+  // (assets/films/film-*.mp4); Create plays film-create.mp4.
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
@@ -698,7 +698,7 @@ async function main() {
         const v = document.querySelector('.ov-ws-content[data-cap="create"] .ov-ws-video');
         return v ? v.getAttribute('src') : null;
       });
-      check('17t. Create tab probes the real ORIVEN Launch Film.mp4 (intentional Create/Launch mapping)', src === 'assets/ORIVEN%20Launch%20Film.mp4', src);
+      check('17t. Create tab plays the Create product film (V9 films)', src === 'assets/films/film-create.mp4', src);
       const hasSettingsTab = await page.evaluate(() => !!document.querySelector('.ov-ws-tab[data-cap="settings"]'));
       check('17u. Settings tab removed from the showcase (spec: Settings is a product area, not one of the six fragments)', !hasSettingsTab);
     } finally {
@@ -747,11 +747,11 @@ async function main() {
           firstHasDomain: !!first.querySelector('.ov-adx-gc-domain'),
           firstHasHeadline: !!first.querySelector('.ov-adx-gc-headline'),
           firstHasDesc: !!first.querySelector('.ov-adx-gc-desc'),
-          firstHasImg: !!first.querySelector('.ov-adx-gc-media img[src^="assets/GA"]'),
+          firstHasImg: !!first.querySelector('.ov-adx-gc-media img[src^="/assets/ads/GA"]'),
           everyCardHasFullStructure: cards.every(c =>
             c.querySelector('.ov-adx-gc-query') && c.querySelector('.ov-adx-gc-badge') &&
             c.querySelector('.ov-adx-gc-domain') && c.querySelector('.ov-adx-gc-headline') &&
-            c.querySelector('.ov-adx-gc-desc') && c.querySelector('.ov-adx-gc-media img[src^="assets/GA"]')),
+            c.querySelector('.ov-adx-gc-desc') && c.querySelector('.ov-adx-gc-media img[src^="/assets/ads/GA"]')),
         };
       });
       check('17x. Google Ads carousel renders per-image ad cards (a multiple of the 10 creatives, repeated as needed to fill the viewport), no leftover global search frame', google.cardCount > 0 && google.cardCount % 10 === 0 && google.noGlobalFrame, JSON.stringify(google));
@@ -794,12 +794,12 @@ async function main() {
           firstHasSponsored: /Sponsored/.test(first.querySelector('.ov-adx-mc-sponsored').textContent),
           firstHasText: !!first.querySelector('.ov-adx-mc-text'),
           firstHasCta: !!first.querySelector('.ov-adx-mc-cta'),
-          firstHasImg: !!first.querySelector('.ov-adx-mc-media img[src^="assets/MA"]'),
+          firstHasImg: !!first.querySelector('.ov-adx-mc-media img[src^="/assets/ads/MA"]'),
           everyCardHasFullStructure: cards.every(c =>
             c.querySelector('.ov-adx-mc-avatar') && c.querySelector('.ov-adx-mc-name') &&
             /Sponsored/.test(c.querySelector('.ov-adx-mc-sponsored').textContent) &&
             c.querySelector('.ov-adx-mc-text') && c.querySelector('.ov-adx-mc-cta') &&
-            c.querySelector('.ov-adx-mc-media img[src^="assets/MA"]')),
+            c.querySelector('.ov-adx-mc-media img[src^="/assets/ads/MA"]')),
           differsFromGoogle: !first.querySelector('.ov-adx-gc-search'), // no Google search-bar chrome leaking into Meta cards
         };
       });
@@ -845,10 +845,10 @@ async function main() {
           cardCount: cards.length,
           firstHasBadge: /Promoted/i.test((first.querySelector('.ov-adx-pc-badge') || {}).textContent || ''),
           firstHasTitle: !!first.querySelector('.ov-adx-pc-title'),
-          firstHasImg: !!first.querySelector('.ov-adx-pc-media img[src^="assets/PA"]'),
+          firstHasImg: !!first.querySelector('.ov-adx-pc-media img[src^="/assets/ads/PA"]'),
           everyCardHasFullStructure: cards.every(c =>
             /Promoted/i.test((c.querySelector('.ov-adx-pc-badge') || {}).textContent || '') &&
-            c.querySelector('.ov-adx-pc-title') && c.querySelector('.ov-adx-pc-media img[src^="assets/PA"]')),
+            c.querySelector('.ov-adx-pc-title') && c.querySelector('.ov-adx-pc-media img[src^="/assets/ads/PA"]')),
         };
       });
       check('17za. Pinterest Ads renders per-card Pin units (Promoted badge, advertiser, title, description, CTA, real image), distinct from the other three platforms\' chrome', pinterest.everyCardHasFullStructure && pinterest.cardCount > 0, JSON.stringify(pinterest));
@@ -955,8 +955,8 @@ async function main() {
           gapBoundary, gapNormal,
         };
       });
-      const GA_TOP = ['assets/GA1.png','assets/GA2.png','assets/GA3.png','assets/GA4.png','assets/GA5.png'];
-      const GA_BOTTOM = ['assets/GA6.png','assets/GA7.png','assets/GA8.png','assets/GA9.png','assets/GA10.png'];
+      const GA_TOP = ['/assets/ads/GA1.png','/assets/ads/GA2.png','/assets/ads/GA3.png','/assets/ads/GA4.png','/assets/ads/GA5.png'];
+      const GA_BOTTOM = ['/assets/ads/GA6.png','/assets/ads/GA7.png','/assets/ads/GA8.png','/assets/ads/GA9.png','/assets/ads/GA10.png'];
       check('18b. GA1-GA5 present, in order, in row 1\'s first sequence', JSON.stringify(info.seq1First) === JSON.stringify(GA_TOP), JSON.stringify(info.seq1First));
       check('18b2. GA1-GA5 present, in order (not reversed), in row 1\'s repeated sequence', JSON.stringify(info.seq1Second) === JSON.stringify(GA_TOP), JSON.stringify(info.seq1Second));
       check('18c. GA6-GA10 present, in order, in row 2\'s first sequence', JSON.stringify(info.seq2First) === JSON.stringify(GA_BOTTOM), JSON.stringify(info.seq2First));
@@ -1135,8 +1135,8 @@ async function main() {
           gapNormal: seqACards[1].offsetLeft - (seqACards[0].offsetLeft + seqACards[0].offsetWidth),
         };
       });
-      const MA_TOP = ['assets/MA1.png','assets/MA2.png','assets/MA3.png','assets/MA4.png','assets/MA5.png'];
-      const MA_BOTTOM = ['assets/MA6.png','assets/MA7.png','assets/MA8.png','assets/MA9.png','assets/MA10.png'];
+      const MA_TOP = ['/assets/ads/MA1.png','/assets/ads/MA2.png','/assets/ads/MA3.png','/assets/ads/MA4.png','/assets/ads/MA5.png'];
+      const MA_BOTTOM = ['/assets/ads/MA6.png','/assets/ads/MA7.png','/assets/ads/MA8.png','/assets/ads/MA9.png','/assets/ads/MA10.png'];
       check('19b. MA assets are referenced correctly: MA1-MA5 present, in order, in row 1\'s first sequence', JSON.stringify(info.seq1First) === JSON.stringify(MA_TOP), JSON.stringify(info.seq1First));
       check('19b2. MA1-MA5 present, in order, in row 1\'s repeated sequence', JSON.stringify(info.seq1Second) === JSON.stringify(MA_TOP), JSON.stringify(info.seq1Second));
       check('19c. MA6-MA10 present, in order, in row 2\'s first sequence', JSON.stringify(info.seq2First) === JSON.stringify(MA_BOTTOM), JSON.stringify(info.seq2First));
@@ -1385,8 +1385,8 @@ async function main() {
           gapNormal: seqACards[1].offsetLeft - (seqACards[0].offsetLeft + seqACards[0].offsetWidth),
         };
       });
-      const PA_TOP = ['assets/PA1.png','assets/PA2.png','assets/PA3.png','assets/PA4.png','assets/PA5.png'];
-      const PA_BOTTOM = ['assets/PA6.png','assets/PA7.png','assets/PA8.png','assets/PA9.png','assets/PA10.png'];
+      const PA_TOP = ['/assets/ads/PA1.png','/assets/ads/PA2.png','/assets/ads/PA3.png','/assets/ads/PA4.png','/assets/ads/PA5.png'];
+      const PA_BOTTOM = ['/assets/ads/PA6.png','/assets/ads/PA7.png','/assets/ads/PA8.png','/assets/ads/PA9.png','/assets/ads/PA10.png'];
       check('19i. PA assets are referenced correctly: PA1-PA5 present, in order, in row 1\'s first sequence', JSON.stringify(info.seq1First) === JSON.stringify(PA_TOP), JSON.stringify(info.seq1First));
       check('19i2. PA1-PA5 present, in order, in row 1\'s repeated sequence', JSON.stringify(info.seq1Second) === JSON.stringify(PA_TOP), JSON.stringify(info.seq1Second));
       check('19j. PA6-PA10 present, in order, in row 2\'s first sequence', JSON.stringify(info.seq2First) === JSON.stringify(PA_BOTTOM), JSON.stringify(info.seq2First));
@@ -1434,13 +1434,13 @@ async function main() {
           firstHasTitle: !!first.querySelector('.ov-adx-pc-title'),
           firstHasDesc: !!first.querySelector('.ov-adx-pc-desc'),
           firstHasCta: !!first.querySelector('.ov-adx-pc-cta'),
-          firstHasImg: !!first.querySelector('.ov-adx-pc-media img[src^="assets/PA"]'),
+          firstHasImg: !!first.querySelector('.ov-adx-pc-media img[src^="/assets/ads/PA"]'),
           badgeText: first.querySelector('.ov-adx-pc-badge').textContent.trim(),
           everyCardHasFullStructure: cards.every(c =>
             c.querySelector('.ov-adx-pc-badge') && c.querySelector('.ov-adx-pc-avatar') &&
             c.querySelector('.ov-adx-pc-name') && c.querySelector('.ov-adx-pc-title') &&
             c.querySelector('.ov-adx-pc-desc') && c.querySelector('.ov-adx-pc-cta') &&
-            c.querySelector('.ov-adx-pc-media img[src^="assets/PA"]')),
+            c.querySelector('.ov-adx-pc-media img[src^="/assets/ads/PA"]')),
           imgIsDominant: cards.every(c => {
             const media = c.querySelector('.ov-adx-pc-media').getBoundingClientRect();
             const card = c.getBoundingClientRect();

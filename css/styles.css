@@ -45759,7 +45759,6 @@ body.dark-mode #page-team .tm-member-row { background: var(--bg); border-color: 
 
 /* Team invite acceptance notice on the signup/login pages. Appended at
    end of file per this codebase's established safe-append convention. */
-.au-invite-notice { background: rgba(182,255,59,.08); border: 1px solid rgba(182,255,59,.25); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,.85); margin: 0 0 16px; }
 
 /* ══════════════════════════════════════════════════════════════════
    Sidebar Redesign — icon-only navigation rail
@@ -46525,8 +46524,8 @@ body.dark-mode .cr2-adv-subgroup + .cr2-adv-subgroup { border-top-color: rgba(25
    convention as every video/image placeholder elsewhere on this page. */
 @font-face {
   font-family: 'Fuuld';
-  src: url('assets/fonts/Fuuld-Bold.woff2') format('woff2'),
-       url('assets/fonts/Fuuld-Bold.woff') format('woff');
+  src: url('../assets/fonts/Fuuld-Bold.woff2') format('woff2'),
+       url('../assets/fonts/Fuuld-Bold.woff') format('woff');
   font-weight: 700 900;
   font-style: normal;
   font-display: swap;
@@ -46691,7 +46690,7 @@ body.dark-mode .cr2-adv-subgroup + .cr2-adv-subgroup { border-top-color: rgba(25
   display: flex; align-items: center; justify-content: center;
 }
 .ov-adx-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-/* TikTok Ads showcase pass — real <video> creatives (assets/TA1.mp4 ...
+/* TikTok Ads showcase pass — real <video> creatives (assets/ads/TA1.mp4 ...
    TA10.mp4), same fill/crop rule as every platform's <img>: object-fit:
    cover keeps each video's real aspect ratio intact (never stretched),
    cropping only what overflows the fixed card box. */

@@ -14,7 +14,7 @@ const { chromium } = require('playwright');
 
 const BASE_URL = 'http://localhost:8899';
 const CHROME_PATH = process.env.TEST_CHROME_PATH || 'C:/Users/Aleck/AppData/Local/ms-playwright/chromium-1228/chrome-win64/chrome.exe';
-const SHOT_DIR = 'C:/files/tests/_shots/pricing_consistency';
+const SHOT_DIR = require('path').join(__dirname, '_shots', 'pricing_consistency');
 require('fs').mkdirSync(SHOT_DIR, { recursive: true });
 
 let pass = 0, fail = 0;
@@ -26,14 +26,14 @@ function check(name, cond, detail) {
 // ── A. Backend/frontend registry contract (no browser, no server needed —
 //    reads both source files directly) ─────────────────────────────────
 function runContractTest() {
-  const creditManager = require('C:/files/oriven-backand-clean/server/services/creditManager.js');
+  const creditManager = require(require('path').join(__dirname, '..', '..', 'oriven-backend', 'server', 'services', 'creditManager.js'));
   // creditManager doesn't export FEATURE_COSTS directly -- re-derive it the
   // same way the real module does, by reading the source text for the
   // canonical object literal (avoids needing a code change to creditManager
   // purely to expose a test hook, and avoids silently trusting a stale copy
   // pasted into this test file).
   const fs = require('fs');
-  const cmSrc = fs.readFileSync('C:/files/oriven-backand-clean/server/services/creditManager.js', 'utf8');
+  const cmSrc = fs.readFileSync(require('path').join(__dirname, '..', '..', 'oriven-backend', 'server', 'services', 'creditManager.js'), 'utf8');
   const fcMatch = cmSrc.match(/const FEATURE_COSTS = \{([\s\S]*?)\n\};/);
   if (!fcMatch) { check('A0. Could locate FEATURE_COSTS in creditManager.js', false); return; }
   const fc = {};
@@ -42,7 +42,7 @@ function runContractTest() {
     if (m) fc[m[1]] = parseInt(m[2], 10);
   });
 
-  const plansSrc = fs.readFileSync('C:/files/plans.js', 'utf8');
+  const plansSrc = fs.readFileSync(require('path').join(__dirname, '..', 'js', 'plans.js'), 'utf8');
   const ccMatch = plansSrc.match(/var CREDIT_COSTS = \{([\s\S]*?)\n\};/);
   if (!ccMatch) { check('A0b. Could locate CREDIT_COSTS in plans.js', false); return; }
   const cc = {};
@@ -91,9 +91,9 @@ function runContractTest() {
 
   check('A25. No stale "Team" plan id anywhere in plans.js', !/\bteam:\s*\{/.test(plansSrc));
   check('A26. No "premium" plan id anywhere in plans.js', !/\bpremium:\s*\{/.test(plansSrc));
-  check('A27. No remaining "N credits for copy" string anywhere in app.html', !/credits for copy/i.test(fs.readFileSync('C:/files/app.html', 'utf8')));
-  check('A28. No remaining hardcoded wrong consumeUsage(40) in app.html', !/consumeUsage\(40\)/.test(fs.readFileSync('C:/files/app.html', 'utf8')));
-  check('A29. No remaining hardcoded wrong consumeUsage(120) in app.html', !/consumeUsage\(120\)/.test(fs.readFileSync('C:/files/app.html', 'utf8')));
+  check('A27. No remaining "N credits for copy" string anywhere in app.html', !/credits for copy/i.test(fs.readFileSync(require('path').join(__dirname, '..', 'app.html'), 'utf8')));
+  check('A28. No remaining hardcoded wrong consumeUsage(40) in app.html', !/consumeUsage\(40\)/.test(fs.readFileSync(require('path').join(__dirname, '..', 'app.html'), 'utf8')));
+  check('A29. No remaining hardcoded wrong consumeUsage(120) in app.html', !/consumeUsage\(120\)/.test(fs.readFileSync(require('path').join(__dirname, '..', 'app.html'), 'utf8')));
 }
 
 // ── B. Browser-based rendering / functional checks ──────────────────────
