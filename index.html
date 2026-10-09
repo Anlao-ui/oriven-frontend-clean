@@ -1,15 +1,12 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18112493101"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'AW-18112493101');
-  </script>
+  <!-- Consent first: Google Consent Mode v2 defaults to "denied" and the
+       Google Ads tag (AW-18112493101) only loads after the visitor accepts
+       advertising (js/consent.js). js/site-analytics.js: OrivenAI's own
+       cookieless page statistics + first-touch signup source. -->
+  <script src="/js/consent.js"></script>
+  <script src="/js/site-analytics.js" defer></script>
   <meta charset="UTF-8">
   <meta name="google-site-verification" content="WRvFU4ubESxQDgW_GpxGTCpyVtSrBs53NsIyICfVx9I" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -1447,6 +1444,7 @@
           <a href="/privacy" class="ov-footer-link">Privacy Policy</a>
           <a href="/terms" class="ov-footer-link">Terms of Service</a>
           <a href="/cookie-policy" class="ov-footer-link">Cookie Policy</a>
+          <a href="#cookie-settings" class="ov-footer-link" data-cookie-settings>Cookie settings</a>
         </div>
       </nav>
     </div>
@@ -1632,7 +1630,7 @@
     <div class="lp-legal-inner">
       <div class="lp-legal-header">
         <h1>Privacy Policy</h1>
-        <div class="lp-legal-date">Last updated: June 2026</div>
+        <div class="lp-legal-date">Last updated: October 2026</div>
       </div>
 
       <div class="lp-legal-section">
@@ -1654,7 +1652,14 @@
           <li>Usage data: features used, credits consumed, generation history</li>
           <li>Payment data: processed via Stripe. We do not store card details.</li>
           <li>Technical data: IP address, browser type, device information, session tokens</li>
+          <li>Acquisition data: how you first found OrivenAI, recorded once when you create an account (a traffic channel such as “Google search” or “LinkedIn”, campaign tags in the link you used, the referring website’s domain and the first page you visited). Only if statistics are on.</li>
         </ul>
+      </div>
+
+      <div class="lp-legal-section">
+        <h2>3a. Website statistics and advertising measurement</h2>
+        <p><strong style="color:rgba(240,240,240,.75)">Our own statistics.</strong> We count page views on orivenai.com to understand which pages are useful. This uses no cookies and stores no IP address: each page view keeps the page, the traffic channel and campaign tags, the referring domain and a visitor code that is derived from your connection and browser and changes every day, so it cannot be used to follow you over time. Raw records are deleted after 13 months. Legal basis: our legitimate interest in understanding and improving our website (Art. 6(1)(f) GDPR). You can switch this off at any time in <a href="#cookie-settings" class="lp-legal-email" data-cookie-settings>Cookie settings</a>; a Do Not Track or Global Privacy Control signal from your browser switches it off automatically.</p>
+        <p><strong style="color:rgba(240,240,240,.75)">Advertising measurement.</strong> Only if you accept advertising cookies, we load Google Ads (Google Ireland Ltd.) to measure the results of our ads. Without your consent, the Google Ads tag is not loaded. Legal basis: your consent (Art. 6(1)(a) GDPR), which you can withdraw at any time in <a href="#cookie-settings" class="lp-legal-email" data-cookie-settings>Cookie settings</a>.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1677,6 +1682,8 @@
           <li><strong style="color:rgba(240,240,240,.75)">OpenAI</strong>: AI content generation (campaigns, copy, visuals, websites, and other generators)</li>
           <li><strong style="color:rgba(240,240,240,.75)">Anthropic</strong>: AI content generation (brand analysis, Brand Identity intelligence, and strategic outputs)</li>
           <li><strong style="color:rgba(240,240,240,.75)">HeyGen</strong>: AI video generation (UGC Creator video production)</li>
+          <li><strong style="color:rgba(240,240,240,.75)">Resend</strong>: sending account and, if you opted in, marketing emails</li>
+          <li><strong style="color:rgba(240,240,240,.75)">Google</strong>: advertising measurement (Google Ads), only after you accept advertising cookies</li>
         </ul>
         <p>No personally identifiable information is included in AI generation prompts sent to OpenAI, Anthropic, or HeyGen. Prompts contain only brand-related content you choose to provide within the platform.</p>
       </div>
@@ -1693,7 +1700,7 @@
 
       <div class="lp-legal-section">
         <h2>8. Cookies</h2>
-        <p>We use essential cookies for authentication and service functionality, and optional analytics cookies to improve the platform. See our <a href="/cookie-policy" class="lp-legal-email">Cookie Policy</a> for full details.</p>
+        <p>We use essential storage for sign-in and service functionality, our own cookieless statistics (which you can switch off), and Google Ads cookies only with your consent. See our <a href="/cookie-policy" class="lp-legal-email">Cookie Policy</a> for full details, or change your choices in <a href="#cookie-settings" class="lp-legal-email" data-cookie-settings>Cookie settings</a>.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1793,7 +1800,7 @@
     <div class="lp-legal-inner">
       <div class="lp-legal-header">
         <h1>Cookie Policy</h1>
-        <div class="lp-legal-date">Last updated: June 2026</div>
+        <div class="lp-legal-date">Last updated: October 2026</div>
       </div>
 
       <div class="lp-legal-section">
@@ -1802,28 +1809,22 @@
       </div>
 
       <div class="lp-legal-section">
-        <h2>2. How ORIVEN Uses Cookies</h2>
-        <p>ORIVEN uses cookies to keep you signed in, remember your workspace preferences, and understand how the platform is used so we can improve it. We do not use cookies for advertising.</p>
+        <h2>2. How OrivenAI uses cookies and similar storage</h2>
+        <p>OrivenAI uses three categories. You choose the optional ones in <a href="#cookie-settings" class="lp-legal-email" data-cookie-settings>Cookie settings</a>, which you can open again at any time from the footer.</p>
       </div>
 
       <div class="lp-legal-section">
-        <h2>3. Types of Cookies We Use</h2>
+        <h2>3. Categories</h2>
         <ul>
-          <li><strong style="color:rgba(240,240,240,.7)">Essential cookies</strong>: required for the Service to function. These include authentication tokens and session management cookies. They cannot be disabled without breaking the Service.</li>
-          <li><strong style="color:rgba(240,240,240,.7)">Preference cookies</strong>: remember your settings and interface choices (theme, sidebar state).</li>
-          <li><strong style="color:rgba(240,240,240,.7)">Analytics cookies</strong>: anonymous, aggregated data used to understand usage patterns and improve the platform. No personally identifiable information is linked.</li>
+          <li><strong>Essential (always on)</strong>: your sign-in session (stored by our authentication provider, Supabase), your workspace preferences, and your cookie choice itself (<em>orv_consent_v1</em>, kept until you change it). Without these the service doesn’t work.</li>
+          <li><strong>Statistics (on, you can switch it off)</strong>: OrivenAI’s own page statistics. No cookies are set and no IP address is stored; a visitor code that changes every day is calculated on our server. To remember how you first arrived until you sign up, the first page, referring domain and campaign tags are kept in your browser tab (<em>sessionStorage</em>: <em>orv_first_touch_v1</em>), which is cleared when you close the tab. A Do Not Track or Global Privacy Control signal switches statistics off.</li>
+          <li><strong>Advertising (off unless you accept)</strong>: Google Ads cookies (for example <em>_gcl_au</em>) to measure the results of our ads. The Google Ads tag isn’t loaded until you accept. Withdrawing consent stops it and removes these cookies from orivenai.com.</li>
         </ul>
       </div>
 
       <div class="lp-legal-section">
-        <h2>4. Managing Your Cookie Preferences</h2>
-        <p>Essential cookies are necessary for the Service and cannot be turned off. You can control optional cookies through your browser settings. Common browser cookie controls:</p>
-        <ul>
-          <li>Chrome: Settings → Privacy and Security → Cookies</li>
-          <li>Firefox: Preferences → Privacy & Security → Cookies</li>
-          <li>Safari: Preferences → Privacy → Cookies</li>
-        </ul>
-        <p>Note: disabling cookies may affect the functionality of the Service, including your ability to stay signed in.</p>
+        <h2>4. Managing your choices</h2>
+        <p>Open <a href="#cookie-settings" class="lp-legal-email" data-cookie-settings>Cookie settings</a> to accept or reject advertising and to switch statistics on or off. Your browser settings can also block or delete cookies; blocking essential storage may stop you from staying signed in.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -3680,6 +3681,9 @@
     } else if(existingFaqLd){
       existingFaqLd.remove();
     }
+    // Cookieless page statistics (js/site-analytics.js): one page view per
+    // route shown; the script itself de-duplicates repeated calls.
+    if(window.orvSiteAnalytics && seo.path) window.orvSiteAnalytics.pageview(seo.path);
   };
 
   window._applyPageSeo(seoKey);
@@ -5497,9 +5501,11 @@ async function auSignup(){
   if(passConfirm !== pass){ _auSetError('auErrorSignup', 'Passwords do not match.'); document.getElementById('auPassConfirmSignup').classList.add('au-err'); document.getElementById('auPassConfirmSignup').focus(); return; }
   btn.disabled = true; btn.textContent = 'Creating account…';
   try {
+    if(window.orvSiteAnalytics) orvSiteAnalytics.signupStarted();
     var signupRes = await apiFetch('/api/signup', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: pass, marketingOptIn: !!(document.getElementById('auOptInSignup') || {}).checked })
+      body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: pass, marketingOptIn: !!(document.getElementById('auOptInSignup') || {}).checked,
+        attribution: window.orvSiteAnalytics ? orvSiteAnalytics.attribution() : undefined })
     });
     if(!signupRes.ok) throw new Error(signupRes.data && signupRes.data.error ? signupRes.data.error : 'Signup failed');
     var signinRes = await SB.auth.signInWithPassword({ email: email, password: pass });

@@ -11,5 +11,7 @@ Allow: /
 Disallow: /app
 Disallow: /app.html
 Disallow: /onboarding
+# Owner analytics: private (also noindex and protected by the server).
+Disallow: /admin/
 
 Sitemap: https://orivenai.com/sitemap.xml

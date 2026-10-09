@@ -69,7 +69,7 @@ function footer() {
     ${col('Product', [['/business', 'Control Center'], ['/research', 'Research'], ['/create', 'Create'], ['/launch', 'Launch'], ['/campaigns', 'Campaigns'], ['/autopilot', 'Autopilot']])}
     ${col('Solutions', [['/ppc-automation-software/', 'PPC automation'], ['/cross-platform-ad-management/', 'Cross-platform ad management'], ['/product/google-ads', 'Google Ads'], ['/product/meta-ads', 'Meta Ads'], ['/product/tiktok-ads', 'TikTok Ads'], ['/product/pinterest-ads', 'Pinterest Ads']])}
     ${col('Resources', [['/learn/', 'Learn'], ['/pricing', 'Pricing'], ['/faq', 'FAQ'], ['/blog', 'Blog'], ['/about', 'About']])}
-    ${col('Legal', [['/privacy', 'Privacy Policy'], ['/terms', 'Terms of Service'], ['/cookie-policy', 'Cookie Policy'], ['mailto:contact@orivenai.com', 'Contact']])}
+    ${col('Legal', [['/privacy', 'Privacy Policy'], ['/terms', 'Terms of Service'], ['/cookie-policy', 'Cookie Policy'], ['#cookie-settings', 'Cookie settings'], ['mailto:contact@orivenai.com', 'Contact']])}
   </div>
   <div class="sp-footer-bottom"><span>&copy; 2026 OrivenAI (Oriven) &middot; KVK 42039993 &middot; Netherlands</span><a href="/signup" data-cta="footer_signup">Get started for free &rarr;</a></div>
 </div></footer>`;
@@ -164,10 +164,11 @@ ${page.kind === 'article' ? `<meta property="article:published_time" content="${
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/seo.css">
 ${lds.map(ld).join('\n')}
-<!-- Same Google tag as the rest of orivenai.com (no additional analytics). -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18112493101"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','AW-18112493101');
-document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[data-cta]');if(a)gtag('event','cta_click',{cta:a.getAttribute('data-cta'),page_path:location.pathname});});</script>
+<!-- Consent first (js/consent.js): the Google Ads tag loads only after the visitor
+     accepts advertising. js/site-analytics.js: OrivenAI's own cookieless statistics. -->
+<script src="/js/consent.js"></script>
+<script src="/js/site-analytics.js" defer></script>
+<script>document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[data-cta]');if(a&&window.orvConsent&&orvConsent.adsAllowed())gtag('event','cta_click',{cta:a.getAttribute('data-cta'),page_path:location.pathname});});</script>
 </head>
 <body>
 <a class="sp-skip" href="#main">Skip to content</a>

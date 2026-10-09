@@ -587,7 +587,8 @@ async function _ggDoSignup(){
     document.activeElement && document.activeElement.blur();
     var reg = await apiFetch("/api/signup", {
       method: "POST", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ firstName: first, lastName: last, email: email, password: pass, marketingOptIn: !!(document.getElementById('ggOptIn') || {}).checked })
+      body: JSON.stringify({ firstName: first, lastName: last, email: email, password: pass, marketingOptIn: !!(document.getElementById('ggOptIn') || {}).checked,
+        attribution: window.orvSiteAnalytics ? orvSiteAnalytics.attribution() : undefined })
     });
     if(!reg.ok) throw new Error(reg.data.error || "Signup failed");
     var result = await SB.auth.signInWithPassword({ email: email, password: pass });

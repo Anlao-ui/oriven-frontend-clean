@@ -208,7 +208,8 @@ async function handleSignUp(){
     var signupResult = await apiFetch("/api/signup", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ firstName, lastName, email, password: pass, phone: phone||null, marketingOptIn: !!(document.getElementById("suOptIn") || {}).checked })
+      body:    JSON.stringify({ firstName, lastName, email, password: pass, phone: phone||null, marketingOptIn: !!(document.getElementById("suOptIn") || {}).checked,
+                 attribution: window.orvSiteAnalytics ? orvSiteAnalytics.attribution() : undefined })
     });
     if(!signupResult.ok) throw new Error(signupResult.data.error || "Signup failed");
 
@@ -1534,6 +1535,7 @@ document.addEventListener("DOMContentLoaded", async function(){
   // Handle Stripe return URLs
   var params      = new URLSearchParams(window.location.search);
   var _stripeOk   = params.get("success")  === "true";
+  var _stripeSessionId = params.get("session_id"); // reconciled directly below (no webhook dependency)
   var _stripeBail = params.get("canceled") === "true";
   var _tourParam  = params.get("tour")     === "1";
 
@@ -1585,6 +1587,12 @@ document.addEventListener("DOMContentLoaded", async function(){
     // syncSubscriptionFromDB() (backend API) — Supabase is the single source of truth.
     if(_stripeOk){
       setTimeout(async function(){
+        // Confirm this checkout with the server straight away: it reads the
+        // session from Stripe and activates the plan if paid (idempotent with
+        // the webhook). Fail-soft: the polling below still runs.
+        if(_stripeSessionId && /^cs_(test|live)_/.test(_stripeSessionId)){
+          try { await apiFetch("/api/billing/sync-checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: _stripeSessionId }) }); } catch(_){}
+        }
         var status = await checkSubscriptionStatus();
         if(status && status !== "free"){
           _orvTrackCheckoutCompleted(status);

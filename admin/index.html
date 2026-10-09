@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Owner analytics | OrivenAI</title>
+<link rel="icon" href="/assets/orivenlogo.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<!-- Owner-only analytics. This page holds no data: everything comes from
+     /api/admin/analytics, which verifies the session and the admin list
+     (ADMIN_USER_IDS) on the server and returns aggregates only. -->
+<div class="ad-wrap" id="adRoot">
+  <div class="ad-gate" id="adGate"><h1>Loading…</h1></div>
+</div>
+<div class="ad-tip" id="adTip" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase.js"></script>
+<script src="/js/admin-analytics.js"></script>
+</body>
+</html>
