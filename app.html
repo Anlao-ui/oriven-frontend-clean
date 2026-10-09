@@ -7620,9 +7620,10 @@
 </div>
 
 <!-- ONBOARDING — welcome modal for new accounts (js/onboarding.js), shown
-     over the real dashboard. Three outcomes; Free users then choose a plan
-     in the shared plan modal (paywall.js openOnboardingPlans), where Free is
-     always selectable. Who sees it is decided server-side. -->
+     over the real dashboard. Two outcomes: "Create Your First Ad" opens
+     Create (the first image ad is free, then the plan step), "Explore
+     OrivenAI" goes through the plan step first. Free is always selectable.
+     Who sees it, and which step comes next, is decided server-side. -->
 <div class="ob2-overlay" id="ob2Overlay" style="display:none">
   <div class="ob4-modal" role="dialog" aria-modal="true" aria-labelledby="ob3Title" aria-describedby="ob3Q">
     <!-- The official logo: the same asset and treatment as the sidebar (.orv-sb-logo-img). -->
@@ -7633,24 +7634,16 @@
       <button type="button" class="ob3-choice" data-ob3-goal="create" onclick="ob3Choose('create')">
         <span class="ob3-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 15l4.6-4.6a1.5 1.5 0 0 1 2.1 0L15 15.2"/><path d="M13.5 13.7l1.6-1.6a1.5 1.5 0 0 1 2.1 0l3.3 3.3"/><circle cx="15.8" cy="8.6" r="1.4"/></svg></span>
         <span class="ob3-txt">
-          <span class="ob3-name">Create an Ad</span>
-          <span class="ob3-desc">Start creating your first AI-powered ad.</span>
+          <span class="ob3-name">Create Your First Ad</span>
+          <span class="ob3-desc">Create your first AI-powered advertisement.</span>
         </span>
         <span class="ob3-cta" aria-hidden="true"><span class="ob3-cta-label">Start creating</span> <span class="ob3-go">&rarr;</span></span>
-      </button>
-      <button type="button" class="ob3-choice" data-ob3-goal="research" onclick="ob3Choose('research')">
-        <span class="ob3-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/><path d="M7.8 12.2l1.8-1.9 1.6 1.4 2.2-2.6"/></svg></span>
-        <span class="ob3-txt">
-          <span class="ob3-name">Research</span>
-          <span class="ob3-desc">Discover insights for your next campaign.</span>
-        </span>
-        <span class="ob3-cta" aria-hidden="true"><span class="ob3-cta-label">Start researching</span> <span class="ob3-go">&rarr;</span></span>
       </button>
       <button type="button" class="ob3-choice" data-ob3-goal="explore" onclick="ob3Choose('explore')">
         <span class="ob3-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M15.4 8.6l-2 4.8-4.8 2 2-4.8z"/></svg></span>
         <span class="ob3-txt">
           <span class="ob3-name">Explore OrivenAI</span>
-          <span class="ob3-desc">Take a look around your workspace.</span>
+          <span class="ob3-desc">Discover your AI marketing workspace.</span>
         </span>
         <span class="ob3-cta" aria-hidden="true"><span class="ob3-cta-label">Explore</span> <span class="ob3-go">&rarr;</span></span>
       </button>
@@ -25147,6 +25140,8 @@ window.rptExport = function(format) {
          generation started). Additive only — see that function's own
          header comment for why it must never go through window._orvNav. */
       if(typeof window._awOpenWorkspace === 'function') window._awOpenWorkspace(pkg, prompt, campId, platform);
+      // Onboarding (js/onboarding.js): the build is on screen now.
+      try { document.dispatchEvent(new CustomEvent('orv:build-revealed', { detail: { campId: campId, platform: platform, mode: creativeMode, creativeReady: window._cgrLastCreativeReady !== false } })); } catch(_){}
 
       /* Show the paywall exactly once: the FIRST time a Free-plan account
          ever reaches a genuinely completed campaign (copy generated AND
@@ -25186,7 +25181,9 @@ window.rptExport = function(format) {
       else _cgrReveal();
       _startVideoCreatives(pkg, campId, platform);
     } else {
+      window._cgrLastCreativeReady = null;
       _startCreativesGeneration(pkg, platform, function(creativeReady){
+        window._cgrLastCreativeReady = !!creativeReady;
         _cgrBuildCreativeSettled(creativeReady, _cgrReveal, { pkg: _cgrPkg || pkg, platform: platform, failKind: window._cgrCreativeFailKind });
       });
     }
@@ -27861,6 +27858,9 @@ window.rptExport = function(format) {
     }
 
     var creativeCount = _cgrCreativeCount(pkg, platform || pkg.platform || window._ov3Platform || 'google');
+    // A new Free account's free first ad covers ONE image (services/firstAd.js
+    // on the server); further slots would only be refused for credits.
+    if(typeof window.orvFirstAdImageOnly === 'function' && window.orvFirstAdImageOnly()) creativeCount = 1;
     console.log('[cgr] Image generation — ad structure requires', creativeCount, 'creative(s) (visualConcepts available:', pool.length, ')');
 
     // Attached images (Launch's existing "Attach Image" feature,
@@ -28080,6 +28080,8 @@ window.rptExport = function(format) {
     }
 
     var plan = _getGoogleCreativeAssetPlan('PERFORMANCE_MAX');
+    // Free first ad: one image (the first variant) — see _startCreativesGeneration.
+    if(typeof window.orvFirstAdImageOnly === 'function' && window.orvFirstAdImageOnly()) plan = plan.slice(0, 1);
     var attachedMap = await _ov3ClassifyAttachedImages();
 
     _cgrImagePrompts = plan.map(function(variant){
@@ -28244,6 +28246,8 @@ window.rptExport = function(format) {
         var img = new Image();
         img.onload = function(){
           console.log('[cgr] Image loaded', idx);
+          // Onboarding (js/onboarding.js): the free first ad is ready once its image is.
+          try { document.dispatchEvent(new CustomEvent('orv:image-ready', { detail: { campId: window._cgrCurrentCampId || null } })); } catch(_){}
           /* Persist imageUrl so reopening the campaign restores it */
           if(_cgrPkg && _cgrPkg.visualConcepts && _cgrPkg.visualConcepts[idx]){
             _cgrPkg.visualConcepts[idx].generatedImageUrl = url;
@@ -28322,6 +28326,8 @@ window.rptExport = function(format) {
   // creditBalance (4th argument): the image was refused for credits — offer
   // the plans for this action instead of a retry that would be refused again.
   function _cgrCreativeErr(idx, ref, msg, creditBalance){
+    // Onboarding (js/onboarding.js): a failed image during the free first ad.
+    try { document.dispatchEvent(new CustomEvent('orv:image-failed', { detail: { idx: idx } })); } catch(_){}
     var card = document.getElementById('cgc'+idx);
     if(!card) return;
     var outOfCredits = arguments.length > 3 && !!window.orvOpenActionPaywall;

@@ -183,13 +183,24 @@ window.openActionPaywall = openActionPaywall;
 // selectable; paid plans use the normal Stripe checkout (selectPlan). For
 // Create/Research each card also says whether it covers that action, from
 // the same plan config as the action paywall. "Back" returns to the welcome.
-//   goal: 'create' | 'research' | 'explore'
+//   goal: 'create' | 'explore' — before anything is made ("Back" returns to
+//         the welcome); 'first_ad' — right after the free first ad: no Back,
+//         no close, the user picks a plan (Free is one of them).
 // ════════════════════════════════════════════════════════════════
 var _PW_ONBOARDING_COPY = {
   create:   { eyebrow: "Your first ad",   title: "Choose how you’d like to start.", sub: "Start on Free or pick a plan for more credits and ad images. You can change your plan anytime in Settings." },
-  research: { eyebrow: "Research",        title: "Choose how you’d like to start.", sub: "Research is included from " + (typeof ORIVEN_PLANS !== "undefined" ? ORIVEN_PLANS.starter.name : "Starter") + ". You can also start on Free and upgrade whenever you need it." },
-  explore:  { eyebrow: "Your workspace",  title: "Choose how you’d like to start.", sub: "Start on Free and look around, or pick a plan now. You can change your plan anytime in Settings." }
+  explore:  { eyebrow: "Your workspace",  title: "Choose how you’d like to start.", sub: "Start on Free and look around, or pick a plan now. You can change your plan anytime in Settings." },
+  first_ad: { eyebrow: "Your first ad is ready", title: "Your first ad is ready!", sub: "You’ve created your first campaign with OrivenAI. Choose how you’d like to continue." }
 };
+
+// The honest Free line under the cards after the first ad: Free credits
+// reset every day (ensure_free_daily_cycle sets the balance, it never adds),
+// so they never add up to another image ad. Numbers from plans.js.
+function _pwFreeNote(){
+  if(typeof ORIVEN_PLANS === "undefined" || typeof CREDIT_COSTS === "undefined") return "";
+  return "Free includes " + ORIVEN_PLANS.free.credits + " credits a day. They reset daily rather than add up, so another image ad (" +
+    CREDIT_COSTS.imageAdComplete + " credits) needs a paid plan. Research and Autopilot are included from " + ORIVEN_PLANS.starter.name + ". Your first ad stays in your workspace either way.";
+}
 
 function openOnboardingPlans(goal){
   var modal = document.getElementById("modal-paywall");
@@ -201,7 +212,7 @@ function openOnboardingPlans(goal){
   if(!_pwAction){
     _pwAction = { title: titleEl && titleEl.innerHTML, sub: subEl && subEl.textContent, eyebrow: eyeEl && eyeEl.textContent, skip: skipEl && skipEl.textContent };
   }
-  _pwAction.ctx = { onboarding: goal, action: goal === "explore" ? null : goal };
+  _pwAction.ctx = { onboarding: goal, action: goal === "explore" ? null : "create" };
   var copy = _PW_ONBOARDING_COPY[goal];
   if(titleEl) titleEl.textContent = copy.title;
   if(subEl)   subEl.textContent = copy.sub;
@@ -209,6 +220,16 @@ function openOnboardingPlans(goal){
   if(skipEl)  skipEl.textContent = "Back";
   _pwAction.setTitle = titleEl && titleEl.innerHTML;
   modal.classList.add("pw-onboarding");
+  if(goal === "first_ad"){
+    modal.classList.add("pw-choose");
+    var grid = document.getElementById("pwPlanGrid");
+    if(grid && !modal.querySelector(".pw-ob-note")){
+      var note = document.createElement("p");
+      note.className = "pw-ob-note";
+      note.textContent = _pwFreeNote();
+      grid.parentNode.insertBefore(note, grid);
+    }
+  }
   _renderPaywallCards();
   if(_pwAction.ctx.action) _pwRenderActionFit(_pwAction.ctx);
   // No paywall_shown event here: lifecycle emails read it as a blocked
@@ -262,7 +283,7 @@ window.endOnboardingPlans = function(){ _pwEndAction(); };
     document.addEventListener("keydown", function(e){
       if(!isOpen(m)) return;
       if(e.key === "Escape"){
-        if(m.classList.contains("pw-hard")) return;
+        if(m.classList.contains("pw-hard") || m.classList.contains("pw-choose")) return;
         e.preventDefault();
         if(typeof closePaywall === "function") closePaywall(); else m.classList.remove("open");
         return;
@@ -284,7 +305,8 @@ function _pwEndAction(){
   if(!_pwAction) return;
   var modal = document.getElementById("modal-paywall");
   if(modal){
-    modal.classList.remove("pw-onboarding");
+    modal.classList.remove("pw-onboarding", "pw-choose");
+    var obNote = modal.querySelector(".pw-ob-note"); if(obNote && obNote.parentNode) obNote.parentNode.removeChild(obNote);
     var titleEl = modal.querySelector(".pw-title");
     if(titleEl && titleEl.innerHTML === _pwAction.setTitle){
       titleEl.innerHTML = _pwAction.title;

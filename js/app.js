@@ -593,7 +593,8 @@ document.querySelectorAll(".mbk").forEach(function(b){
   b.addEventListener("click",function(e){
     if(e.target !== b) return;
     // Hard paywall: never close on backdrop click
-    if(b.id === "modal-paywall" && b.classList.contains("pw-hard")) return;
+    // ...nor in the plan step after the first ad (pw-choose: Free is one of the choices).
+    if(b.id === "modal-paywall" && (b.classList.contains("pw-hard") || b.classList.contains("pw-choose"))) return;
     b.classList.remove("open");
   });
 });

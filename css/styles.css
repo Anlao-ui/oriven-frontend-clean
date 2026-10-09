@@ -5341,6 +5341,10 @@ body.dark-mode .meta-ad-preview-headline{color:var(--text);}
 /* Hard paywall mode — close button and skip button hidden */
 #modal-paywall.pw-hard .pw-close-btn,
 #modal-paywall.pw-hard .pw-skip-btn { display:none !important; }
+/* Plan step right after the free first ad (paywall.js openOnboardingPlans
+   'first_ad'): a choice is required, and Free is one of the choices. */
+#modal-paywall.pw-choose .pw-close-btn,
+#modal-paywall.pw-choose .pw-skip-btn { display:none !important; }
 
 /* Flow step indicator in paywall (shown in hard mode only) */
 .pw-flow-steps{
@@ -13639,10 +13643,8 @@ select:focus {
 @media (max-width: 768px) {
   #mobileBottomNav { display: flex; }
 
-  /* Push page content up so bottom nav doesn't cover it */
-  .mc {
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
-  }
+  /* (Bottom-nav clearance on .mc removed: the nav is retired. The
+     chat-button clearance lives in orivenWorkspace.css.) */
 
   /* Hide hamburger button — bottom nav replaces sidebar access */
   #sbToggle { display: none !important; }
@@ -20560,7 +20562,8 @@ body.dark-mode { background: var(--ap-bg); }
     color: #000 !important;
   }
   .mbn-create-btn svg { stroke: #000 !important; opacity: 1 !important; }
-  .mc { padding-bottom: 58px !important; }
+  /* (.mc padding for this bottom nav removed — the nav is retired, see
+     #mobileBottomNav display:none !important in the workspace redesign.) */
   .ap-home-outer { padding: 22px 16px 20px !important; }
   .asl-outer { padding: 22px 16px 20px !important; }
   .camp-hub { padding: 22px 16px 20px !important; }
@@ -41960,7 +41963,12 @@ body:not(.dark-mode) .cr2-stage-shelf { border-top-color: rgba(0,0,0,.06); }
 /* Scoped to .active — #page-create alone would out-specificity .page{display:none}
    and stay visible even when another page is the active one. */
 #page-create.active {
-  min-height: calc(100vh - 56px);
+  /* Fills its real container (.mc, the app's scroll area) instead of
+     calc(100vh - 56px): that subtracted a 56px top bar the app no longer has,
+     so the page (and its ambient background, ::before/::after) stopped 56px
+     short of the window and .mc's darker background showed as a black band
+     along the bottom. Taller content still grows and scrolls in .mc. */
+  min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48831,7 +48839,7 @@ body.dark-mode .ob2-overlay{background:rgba(0,0,0,.5)}
 .ob2-overlay.ob2-visible{opacity:1}
 
 .ob4-modal{
-  position:relative;width:100%;max-width:760px;margin:auto;
+  position:relative;width:100%;max-width:640px;margin:auto;
   display:flex;flex-direction:column;align-items:center;text-align:center;
   background:var(--surface);border:1px solid var(--border);border-radius:22px;
   padding:40px 36px 24px;
@@ -48850,7 +48858,7 @@ body.dark-mode .ob2-overlay{background:rgba(0,0,0,.5)}
 .ob4-h1:focus{outline:none}
 .ob4-sub{font-size:15px;line-height:1.6;color:var(--muted);margin:0 0 28px}
 
-.ob3-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%}
+.ob3-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%}
 .ob3-choice{
   display:flex;flex-direction:column;align-items:flex-start;gap:14px;width:100%;text-align:left;
   background:var(--sf2);border:1.5px solid var(--border);border-radius:16px;
@@ -48870,6 +48878,18 @@ body.dark-mode .ob2-overlay{background:rgba(0,0,0,.5)}
 .ob3-go{display:inline-block;color:var(--m2);transition:transform var(--orv-t-fast),color var(--t)}
 .ob3-choice:hover .ob3-go,.ob3-choice:focus-visible .ob3-go{color:var(--charcoal);transform:translateX(3px)}
 .ob2-err{color:var(--err-c);font-size:13px;margin-top:10px}
+
+/* ── First ad (onboarding.js): one quiet line above the Create composer while
+   a new Free account still has its free welcome image ad. ── */
+.obf{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:12px 16px;border-radius:14px;
+  background:var(--glt);border:1px solid color-mix(in srgb,var(--green) 28%,transparent);color:var(--charcoal);font-size:13px;line-height:1.5}
+.obf-ic{flex:0 0 auto;width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--green);color:var(--green-deep)}
+.obf-ic svg{width:16px;height:16px}
+.obf-txt{flex:1;min-width:0}
+.obf-txt strong{font-weight:600;color:var(--charcoal)}
+.obf-txt span{color:var(--muted)}
+/* Plan step after the first ad: the honest Free line under the cards. */
+.pw-ob-note{margin:0 auto 18px;max-width:640px;padding:0 24px;text-align:center;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,.6)}
 
 /* ── Intro panel on Create / Research (after choosing that goal) ── */
 .obi{

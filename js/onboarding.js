@@ -3,19 +3,30 @@
 
    One welcome modal for new accounts, over the real dashboard:
      Welcome to OrivenAI → What would you like to do first?
-       Create an Ad      → plan step → Create, with a short skippable example
-       Research          → plan step → Research, with a short skippable example
-       Explore OrivenAI  → plan step → the dashboard
+       Create Your First Ad → Create → build → the ad, with its image free
+                              (one-time welcome benefit) → plan step
+       Explore OrivenAI     → plan step → the dashboard
+   Research isn't offered: it (like Autopilot) is a Starter+ feature, and a
+   Free account's first experience shouldn't lead into a locked page.
+
    The plan step is the shared plan modal (paywall.js openOnboardingPlans):
    Free is always selectable, paid plans go through the normal Stripe
-   checkout, "Back" returns to the welcome. Accounts already on a paid plan
-   skip it. There is no skip link: every new user picks a goal and then a
-   plan, and Free is always one of the plans. No product tour, no forced business setup, no forced payment,
-   and nothing here ever starts a paid action.
+   checkout. Before anything is made, "Back" returns to the welcome; after
+   the first ad there is no Back — the user picks a plan, Free included.
+   Accounts already on a paid plan skip it. No forced payment, and nothing
+   here ever starts a paid action.
 
-   Who sees it is decided by the server (GET /api/onboarding/state,
-   services/onboarding.js): accounts created after the rollout whose
-   onboarding isn't complete. Existing accounts never see it. Choosing or
+   The first-ad path needs the free image (services/firstAd.js, server-side,
+   FREE_FIRST_AD_ENABLED). Without it, "Create Your First Ad" goes through
+   the plan step first, as before.
+
+   Who sees it, and where an account is in the flow, is decided by the
+   server (GET /api/onboarding/state → stage, services/onboarding.js):
+   'welcome', 'first_ad' (chose the first ad, free image still available),
+   'choose_plan' (free image used) or 'done'. Existing accounts never see it.
+   "Create Your First Ad" saves the goal with PUT /api/onboarding/goal without
+   completing onboarding, so a refresh, another sign-in or another device
+   returns to the same step; the free image can't be reset from the browser. Choosing or
    skipping is saved with POST /api/onboarding/complete once the plan step is
    resolved (Free chosen, or right before the Stripe redirect); if that
    request fails, the choice is kept on this device and retried on the next
@@ -43,7 +54,8 @@ var OB3_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
 window._orvObState = null;   // last GET /api/onboarding/state result
 var _ob3Busy = false;
-var _ob3PlanGoal = null;     // goal while the plan step is open
+var _ob3PlanGoal = null;     // goal while the plan step is open ('first_ad' after the first ad)
+var _ob3BuildActive = false; // a Create build is running (its image may land before it's shown)
 var _ob3LastGoal = null;     // for focus when coming back from the plan step
 
 function _ob3El(id){ return document.getElementById(id); }
@@ -80,8 +92,14 @@ window.orvOnboardingGate = async function(){
   var pending = _ob3Get("ob_pending");
   // Back from Stripe after the onboarding plan step: open the chosen goal.
   var intent = _ob3Get("ob_intent");
-  if(intent){ _ob3Set("ob_intent", null); if(OB3_DEST[intent]) _ob3Go(intent, 300); }
+  if(intent){
+    _ob3Set("ob_intent", null);
+    if(intent === "first_ad") setTimeout(function(){ if(!_ob3OpenFirstAdCampaign()) _ob3Go("create", 0); }, 300);
+    else if(OB3_DEST[intent]) _ob3Go(intent, 300);
+  }
   if(!st.eligible){ if(pending) _ob3Set("ob_pending", null); _ob3ApplyDeepLink(); return; }
+  if(!pending && st.stage === "first_ad"){ _ob3EnterFirstAd({ resume: true }); return; }
+  if(!pending && st.stage === "choose_plan"){ _ob3FirstAdReady({ resume: true }); return; }
   // Chosen here before; the save didn't land yet. ("skip" comes from before
   // the skip link was removed and is still saved as skipped.)
   if(pending){ _ob3Persist(pending === "skip" ? null : pending); _ob3ApplyDeepLink(); return; }
@@ -149,6 +167,7 @@ window.ob3Choose = function(goal){
   _ob3Track("onboarding_goal_selected", { goal: goal });
   _ob3LastGoal = goal;
   if(_ob3Plan() !== "free" || typeof openOnboardingPlans !== "function"){ _ob3Finish(goal); return; }
+  if(goal === "create" && _ob3FreeAdAvailable()){ _ob3StartFirstAd(); return; }
   _ob3PlanGoal = goal;
   _ob3Hide();
   setTimeout(function(){
@@ -158,12 +177,15 @@ window.ob3Choose = function(goal){
 
 // Navigates at once; the save runs in the background so a slow or failed
 // request never blocks the user.
-function _ob3Finish(goal){
+// opts.stay: keep the current screen (the first ad's result).
+function _ob3Finish(goal, opts){
   _ob3Busy = true;
   _ob3Set("ob_pending", goal);
-  if(window._orvObState){ window._orvObState.eligible = false; window._orvObState.goal = goal === "explore" ? "business" : goal; }
+  var st = window._orvObState;
+  if(st){ st.eligible = false; st.stage = "done"; st.goal = goal === "explore" ? "business" : goal; }
   _ob3Hide();
-  _ob3Go(goal, 0);
+  _ob3RemoveFirstAdNote();
+  if(!(opts && opts.stay)) _ob3Go(goal, 0);
   _ob3Persist(goal);
 }
 
@@ -182,6 +204,17 @@ window.orvOnboardingPlanChosen = function(plan){
   if(!goal) return false;
   _ob3PlanGoal = null;
   if(typeof endOnboardingPlans === "function") endOnboardingPlans();
+  if(goal === "first_ad"){
+    // After the first ad: stay on it. Free → done; paid → Stripe, and back
+    // from Stripe the ad opens again (ob_intent "first_ad").
+    if(plan === "free"){ _ob3Finish("create", { stay: true }); return true; }
+    _ob3Busy = true;
+    _ob3Set("ob_intent", "first_ad");
+    _ob3Set("ob_pending", "create");
+    var s1 = window._orvObState; if(s1){ s1.eligible = false; s1.stage = "done"; s1.goal = "create"; }
+    _ob3Persist("create");
+    return true;
+  }
   if(plan === "free"){ _ob3Finish(goal); return true; }
   // Paid: Stripe takes over this tab. Onboarding is complete either way
   // (paying is optional); on return the user lands on their goal.
@@ -200,6 +233,7 @@ function _ob3WatchPlanModal(){
   if(!m || typeof MutationObserver === "undefined") return;
   new MutationObserver(function(){
     if(!_ob3PlanGoal || m.classList.contains("open")) return;
+    if(_ob3PlanGoal === "first_ad"){ setTimeout(function(){ if(_ob3PlanGoal === "first_ad") _ob3OpenFirstAdPlans(); }, 50); return; } // a choice is needed here
     _ob3PlanGoal = null;
     if(typeof endOnboardingPlans === "function") endOnboardingPlans();
     startOnboarding({ back: true });
@@ -367,7 +401,149 @@ document.addEventListener("orv:action-success", function(e){
   var st = window._orvObState;
   if(!st || !st.newAccount || st.firstValueAt) return;
   st.firstValueAt = new Date().toISOString(); st.firstValueKind = k; // the server records the real one
+  if(k === "create" && _ob3Plan() === "free") return; // its next step (Research) is a Starter+ feature
   setTimeout(function(){ _ob3NextStep(k); }, k === "create" ? 2500 : 600);
+});
+
+// ── Create Your First Ad ─────────────────────────────────────────
+// The real Create page and the real build. The server grants the free image
+// (services/firstAd.js: one per eligible new Free account, claimed
+// atomically, released if the image fails, at most two attempts); the build
+// renders one image while it is available (orvFirstAdImageOnly). When the
+// image is on screen the plan step opens ("Your first ad is ready!").
+
+function _ob3FreeAdAvailable(){
+  var st = window._orvObState;
+  return !!(st && st.freeFirstAd && st.freeFirstAd.available) && _ob3Plan() === "free";
+}
+// Read by app.html's image generation: render a single image while the
+// account's free first image is still available.
+window.orvFirstAdImageOnly = function(){ return _ob3FreeAdAvailable(); };
+function _ob3InFirstAd(){ var st = window._orvObState; return !!(st && st.eligible && st.stage === "first_ad"); }
+
+function _ob3StartFirstAd(){
+  _ob3Busy = true;
+  var st = window._orvObState; if(st){ st.goal = "create"; st.stage = "first_ad"; }
+  // Goal only — onboarding completes at the plan step.
+  apiFetch("/api/onboarding/goal", { method: "PUT", body: JSON.stringify({ goal: "create" }) }).catch(function(){});
+  _ob3Hide();
+  _ob3EnterFirstAd({ resume: false });
+}
+
+function _ob3EnterFirstAd(opts){
+  _ob3Busy = true;
+  // Back after a build whose image failed: reopen that campaign (its image
+  // can be tried again there) instead of building a second campaign.
+  if(opts && opts.resume && _ob3OpenFirstAdCampaign()){ _ob3ShowFirstAdNote(); return; }
+  if(typeof _orvNav === "function") _orvNav("create", "page-create");
+  setTimeout(function(){
+    // Image ads (the free welcome ad is an image ad).
+    if(window._ov3ContentMode === "videos" && typeof ov3SetMode === "function"){
+      ov3SetMode("images", document.querySelector('.ov3-mode-btn[onclick*="\'images\'"]'));
+    }
+    _ob3ShowFirstAdNote();
+  }, 120);
+}
+
+function _ob3ShowFirstAdNote(){
+  var page = _ob3El("page-create");
+  if(!page || page.querySelector(".obf")) return;
+  var anchor = page.querySelector(".cr2-hero");
+  var el = document.createElement("div");
+  el.className = "obf"; el.setAttribute("role", "note");
+  el.innerHTML = '<span class="obf-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8"/><path d="M2 7h20v5H2z"/><path d="M12 21V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>' +
+    '<span class="obf-txt"><strong>Your first image ad is on us.</strong> <span>A one-time welcome gift: build your campaign and its ad image is free. Video ads and extra images use credits.</span></span>';
+  if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(el, anchor.nextSibling);
+  else page.insertBefore(el, page.firstChild);
+}
+function _ob3RemoveFirstAdNote(){
+  var el = document.querySelector("#page-create .obf");
+  if(el && el.parentNode) el.parentNode.removeChild(el);
+}
+
+// The first ad's campaign (saved by Create on this device) back on screen.
+function _ob3OpenFirstAdCampaign(){
+  var id = _ob3Get("first_ad_camp");
+  if(!id || typeof window._orvGetCampaigns !== "function" || typeof window._awOpenWorkspace !== "function") return false;
+  var c = (window._orvGetCampaigns() || []).filter(function(x){ return x && x.id === id; })[0];
+  if(!c || !c.pkg) return false;
+  window._cgrCurrentCampId = c.id;
+  window._awOpenWorkspace(c.pkg, c.prompt || "", c.id, c.platform || c.pkg.platform);
+  return true;
+}
+
+// The free image is on screen (or both free attempts are used up): the
+// plan step. resume: after a refresh / sign-in — reopen the ad first.
+function _ob3FirstAdReady(opts){
+  var st = window._orvObState;
+  if(st){ st.stage = "choose_plan"; if(st.freeFirstAd) st.freeFirstAd.available = false; }
+  _ob3Busy = true;
+  _ob3RemoveFirstAdNote();
+  if(opts && opts.resume) _ob3OpenFirstAdCampaign();
+  // A few seconds to see the finished ad (and the "Campaign generated" toast to clear) first.
+  setTimeout(_ob3OpenFirstAdPlans, opts && opts.resume ? 700 : 3200);
+}
+function _ob3OpenFirstAdPlans(){
+  if(typeof openOnboardingPlans !== "function") return;
+  _ob3PlanGoal = "first_ad";
+  if(!openOnboardingPlans("first_ad")) _ob3PlanGoal = null;
+}
+
+document.addEventListener("orv:action-start", function(e){
+  if(e.detail && e.detail.kind === "create") _ob3BuildActive = true;
+});
+document.addEventListener("orv:action-blocked", function(e){
+  if(e.detail && e.detail.kind === "create") _ob3BuildActive = false;
+});
+document.addEventListener("orv:build-revealed", function(e){
+  _ob3BuildActive = false;
+  if(!_ob3InFirstAd()) return;
+  var d = e.detail || {};
+  if(d.campId) _ob3Set("first_ad_camp", d.campId);
+  if(d.mode === "videos") return; // video isn't the free ad; normal credit rules apply
+  if(d.creativeReady){ _ob3FirstAdReady(); return; }
+  _ob3AfterImageFailure();
+});
+// The server released the free image (unless both attempts are used) — ask
+// it which step comes next.
+function _ob3AfterImageFailure(){
+  apiFetch("/api/onboarding/state").then(function(r){
+    var s = r && r.ok && r.data;
+    if(s){ window._orvObState = s; }
+    if(s && s.stage === "choose_plan"){ _ob3FirstAdReady(); return; }
+    _ob3ShowImageRetry();
+  }).catch(function(){});
+}
+// The free image failed: one quiet line on the result with a retry (the
+// server allows a second free attempt; the build itself isn't repeated).
+function _ob3ShowImageRetry(){
+  var host = document.querySelector('#page-ad-workspace.active') || document.querySelector('#page-campaign-results.active') || _ob3El('page-create');
+  if(!host || host.querySelector('.obn-retry')) return;
+  var el = document.createElement('div');
+  el.className = 'obn obn-retry'; el.setAttribute('role', 'status');
+  el.innerHTML = '<span class="obn-text">Your campaign is saved, but its image couldn’t be created. Your free first ad hasn’t been used.</span>' +
+    (typeof window.cgrRegenCreative === 'function' ? '<button type="button" class="obn-link">Try the image again &rarr;</button>' : '');
+  var btn = el.querySelector('.obn-link');
+  if(btn) btn.addEventListener('click', function(){
+    if(el.parentNode) el.parentNode.removeChild(el);
+    window.cgrRegenCreative(0);
+  });
+  host.insertBefore(el, host.firstChild);
+}
+
+// A retried image failed (outside a build): the server knows whether a free
+// attempt is left.
+document.addEventListener("orv:image-failed", function(){
+  if(_ob3BuildActive || !_ob3InFirstAd()) return;
+  _ob3AfterImageFailure();
+});
+
+// An image that lands outside a build (trying a failed image again).
+document.addEventListener("orv:image-ready", function(e){
+  if(_ob3BuildActive || !_ob3InFirstAd()) return;
+  var d = e.detail || {};
+  if(d.campId) _ob3Set("first_ad_camp", d.campId);
+  _ob3FirstAdReady();
 });
 
 // ── Action paywall bridge ────────────────────────────────────────

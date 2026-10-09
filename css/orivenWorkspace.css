@@ -571,6 +571,14 @@ body.dark-mode #page-create.active::before {
   /* position:sticky offsets are measured inside the scroller's padding,
      so the Build row cancels that 80px to sit on the real bottom edge. */
   #page-create .cr2-gen-row { bottom: -80px; }
+  /* Create paints its own background (ambient ::before/::after); without
+     this the 80px clearance showed .mc's darker fill as a band under the
+     page. The page box now reaches into the clearance (same scroll length). */
+  #page-create.active { padding-bottom: 80px; margin-bottom: -80px; }
+  /* No chat button on this plan (orv-no-chat): nothing to scroll clear of. */
+  body.orv-no-chat .mc { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  body.orv-no-chat #page-create .cr2-gen-row { bottom: 0; }
+  body.orv-no-chat #page-create.active { padding-bottom: 0; margin-bottom: 0; }
 }
 
 /* Research market map: on phones the fit-to-width zoom shrank node labels
