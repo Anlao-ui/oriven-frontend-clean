@@ -23,6 +23,11 @@ a{color:var(--lime)}
 .ad-custom{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
 .ad-custom input{background:var(--surface);border:1px solid var(--line-2);color:var(--ink);border-radius:10px;padding:7px 8px;font:13px var(--font);color-scheme:dark}
 .ad-custom button{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:999px;padding:8px 14px;font:600 13px var(--font);cursor:pointer;min-height:36px}
+.ad-custom.is-active input{border-color:var(--lime-line)}
+.ad-custom button[aria-pressed="true"]{background:var(--lime);color:#0A0A0A;border-color:var(--lime)}
+.ad-status{font-size:13px;color:var(--muted);min-width:70px}
+.ad-loading .ad-section{opacity:.5;transition:opacity .15s}
+@media (prefers-reduced-motion:reduce){.ad-loading .ad-section{transition:none}}
 .ad-h1{font-size:28px;font-weight:700;letter-spacing:-.02em;margin:0}
 .ad-sub{color:var(--muted);font-size:13px;margin:4px 0 0}
 .ad-gate{max-width:520px;margin:12vh auto;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:36px 28px}

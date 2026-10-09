@@ -9,7 +9,7 @@
 (function () {
   var root = document.getElementById('adRoot');
   var tip = document.getElementById('adTip');
-  var state = { days: '30', from: null, to: null, data: null };
+  var state = { days: '30', from: null, to: null, data: null, loading: false, error: null, admin: false };
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function fmt(n) { return n == null ? '—' : Number(n).toLocaleString('en-US'); }
@@ -21,11 +21,17 @@
   function gate(title, text, link) {
     root.innerHTML = '<div class="ad-gate"><h1>' + esc(title) + '</h1><p>' + esc(text) + '</p>' + (link ? '<a class="ad-btn" href="' + link.href + '">' + esc(link.label) + '</a>' : '') + '</div>';
   }
+  // The session from Supabase; if the SDK doesn't answer within 5 s, the
+  // token js/supabase.js keeps from its auth listener (_apiToken).
   async function token() {
-    try { var r = await SB.auth.getSession(); return r && r.data && r.data.session ? r.data.session.access_token : null; } catch (_) { return null; }
+    try {
+      var r = await Promise.race([SB.auth.getSession(), new Promise(function (res) { setTimeout(function () { res('timeout'); }, 5000); })]);
+      if (r === 'timeout') return (typeof _apiToken === 'string' && _apiToken) || null;
+      return r && r.data && r.data.session ? r.data.session.access_token : null;
+    } catch (_) { return null; }
   }
-  async function api(path, tok) {
-    var r = await fetch(API_BASE_URL + path, { headers: { Authorization: 'Bearer ' + tok }, cache: 'no-store' });
+  async function api(path, tok, signal) {
+    var r = await fetch(API_BASE_URL + path, { headers: { Authorization: 'Bearer ' + tok }, cache: 'no-store', signal: signal });
     var body = null; try { body = await r.json(); } catch (_) {}
     return { status: r.status, body: body };
   }
@@ -78,8 +84,10 @@
     var siteOk = w.status === 'ok';
     var top = '<div class="ad-top"><div><a class="ad-brand" href="/"><img src="/assets/orivenlogo.png" alt=""><span>OrivenAI</span><small>Owner analytics</small></a>' +
       '<p class="ad-sub">' + esc(day(d.range.from)) + ' – ' + esc(day(d.range.to)) + ' · generated ' + esc(new Date(d.generatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })) + '</p></div>' +
-      '<div class="ad-filters"><div class="ad-seg" role="group" aria-label="Date range">' + ['7', '30', '90'].map(function (n) { return '<button type="button" data-days="' + n + '" aria-pressed="' + (state.days === n) + '">Last ' + n + ' days</button>'; }).join('') + '</div>' +
-      '<form class="ad-custom" id="adCustom"><label>From <input type="date" name="from" value="' + esc(state.from || d.range.from.slice(0, 10)) + '" required></label><label>To <input type="date" name="to" value="' + esc(state.to || d.range.to.slice(0, 10)) + '" required></label><button type="submit">Apply</button></form></div></div>';
+      '<div class="ad-filters"><div class="ad-seg" role="group" aria-label="Date range">' + ['7', '30', '90'].map(function (n) { return '<button type="button" data-days="' + n + '" aria-pressed="' + (!state.from && state.days === n) + '">Last ' + n + ' days</button>'; }).join('') + '</div>' +
+      '<form class="ad-custom' + (state.from ? ' is-active' : '') + '" id="adCustom"><label>From <input type="date" name="from" value="' + esc(state.from || d.range.from.slice(0, 10)) + '" required></label><label>To <input type="date" name="to" value="' + esc(state.to || d.range.to.slice(0, 10)) + '" required></label><button type="submit" aria-pressed="' + !!state.from + '">Apply</button></form>' +
+      '<span class="ad-status" role="status" aria-live="polite">' + (state.loading ? 'Updating…' : '') + '</span></div></div>' +
+      (state.error ? '<div class="ad-err" role="alert">' + esc(state.error) + '</div>' : '');
 
     var site = '<div class="ad-section"><h2>Website ' + (siteOk ? coverage(tr.pageviewsSince) : '<span class="ad-pill warn">' + (w.status === 'not_tracked' ? 'Not tracked yet (run the analytics migration)' : 'Unavailable') + '</span>') + '</h2>' +
       (siteOk ? '<div class="ad-grid">' +
@@ -142,34 +150,84 @@
       card('Signup attribution', tr.attributionSince ? '<span class="ad-pill ok">Recording</span>' : '<span class="ad-pill warn">No attributed signups yet</span>', fmt(tr.cohortWithAttribution) + ' of ' + fmt(reg.signups) + ' signups in range have a source') +
       '</div></div>';
 
+    // Re-rendering replaces the controls; keep keyboard focus on the one in use.
+    var a = document.activeElement, keep = a && root.contains(a) ? (a.getAttribute('data-days') ? 'button[data-days="' + a.getAttribute('data-days') + '"]' : a.name ? '#adCustom [name="' + a.name + '"]' : a.type === 'submit' ? '#adCustom button' : null) : null;
     root.innerHTML = top + funnel + site + regs + acti + subs + system;
+    root.classList.toggle('ad-loading', !!state.loading);
+    root.setAttribute('aria-busy', state.loading ? 'true' : 'false');
+    if (keep) { var el = root.querySelector(keep); if (el) el.focus(); }
   }
 
+  // One request at a time: a newer selection cancels the older one, and a
+  // reply that arrives after a newer selection is ignored. A failed or slow
+  // request never fails silently: the error is shown and the selection goes
+  // back to the range of the numbers still on screen.
+  var seq = 0, inflight = null, shown = null;
+  var SIGN_IN = ['Sign in first', 'Owner analytics is only available to the OrivenAI owner. Sign in with the owner account, then come back to this page.', { href: '/login', label: 'Sign in' }];
+  var NOT_ADMIN = ['Not authorized', 'This page is only for the OrivenAI owner.', { href: '/app', label: 'Back to OrivenAI' }];
   async function load() {
-    var tok = await token();
-    if (!tok) return gate('Sign in first', 'Owner analytics is only available to the OrivenAI owner. Sign in with the owner account, then come back to this page.', { href: '/login', label: 'Sign in' });
-    var me = await api('/api/admin/me', tok);
-    if (me.status !== 200 || !me.body || me.body.admin !== true) return gate('Not authorized', 'This page is only for the OrivenAI owner.', { href: '/app', label: 'Back to OrivenAI' });
-    var q = state.from && state.to ? '?from=' + encodeURIComponent(state.from) + '&to=' + encodeURIComponent(state.to) : '?days=' + state.days;
-    if (!state.data) root.innerHTML = '<div class="ad-gate"><h1>Loading analytics…</h1></div>';
-    var r = await api('/api/admin/analytics' + q, tok);
-    if (r.status !== 200) {
-      var msg = (r.body && r.body.error) || 'Could not load analytics.';
-      if (state.data) { render(); root.insertAdjacentHTML('beforeend', '<div class="ad-err" role="alert">' + esc(msg) + '</div>'); return; }
-      return gate('Could not load analytics', msg);
+    var my = ++seq;
+    if (inflight) { try { inflight.abort(); } catch (_) {} }
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    var timer = ctl ? setTimeout(function () { ctl.abort(); }, 30000) : null;
+    inflight = ctl; state.loading = true; state.error = null;
+    if (state.data) render(); else root.innerHTML = '<div class="ad-gate"><h1>Loading analytics…</h1></div>';
+    try {
+      var tok = await token();
+      if (my !== seq) return;
+      if (!tok) return gate.apply(null, SIGN_IN);
+      if (!state.admin) {
+        var me = await api('/api/admin/me', tok, ctl && ctl.signal);
+        if (my !== seq) return;
+        if (me.status !== 200 || !me.body || me.body.admin !== true) return gate.apply(null, NOT_ADMIN);
+        state.admin = true;
+      }
+      var q = state.from && state.to ? '?from=' + encodeURIComponent(state.from) + '&to=' + encodeURIComponent(state.to) : '?days=' + state.days;
+      var r = await api('/api/admin/analytics' + q, tok, ctl && ctl.signal);
+      if (my !== seq) return;
+      if (r.status === 401) return gate.apply(null, SIGN_IN);
+      if (r.status === 403) return gate.apply(null, NOT_ADMIN);
+      if (r.status !== 200 || !r.body || !r.body.range) throw new Error((r.body && r.body.error) || 'Could not load analytics.');
+      state.data = r.body;
+      shown = { days: state.days, from: state.from, to: state.to };
+    } catch (err) {
+      if (my !== seq) return; // replaced by a newer selection
+      var msg = err && err.name === 'AbortError' ? 'The server took too long to respond. Try again.'
+        : err && err.name === 'TypeError' ? 'Could not reach the server. Check your connection and try again.'
+        : (err && err.message) || 'Could not load analytics.';
+      if (!state.data) return gate('Could not load analytics', msg);
+      state.days = shown.days; state.from = shown.from; state.to = shown.to;
+      state.error = msg + ' Still showing ' + rangeLabel() + '.';
+    } finally {
+      if (timer) clearTimeout(timer);
+      if (my === seq) { state.loading = false; inflight = null; }
     }
-    state.data = r.body;
-    render();
+    if (my === seq) render();
+  }
+  function rangeLabel() {
+    return state.from && state.to ? state.from + ' – ' + state.to : 'the last ' + state.days + ' days';
+  }
+  function select(days, from, to) {
+    state.days = days; state.from = from; state.to = to;
+    load();
   }
 
   root.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-days]'); if (!b) return;
-    state.days = b.getAttribute('data-days'); state.from = state.to = null; load();
+    var d = b.getAttribute('data-days');
+    if (d === state.days && !state.from && !state.loading) return; // already showing this range
+    select(d, null, null);
   });
   root.addEventListener('submit', function (e) {
     if (e.target.id !== 'adCustom') return;
     e.preventDefault();
-    var f = new FormData(e.target); state.from = f.get('from'); state.to = f.get('to'); state.days = null; load();
+    var f = new FormData(e.target), from = String(f.get('from') || ''), to = String(f.get('to') || '');
+    var a = Date.parse(from), b = Date.parse(to);
+    var bad = !Number.isFinite(a) || !Number.isFinite(b) ? 'Choose both a start and an end date.'
+      : a > b ? 'The start date must be on or before the end date.'
+      : b - a > 366 * 864e5 ? 'Choose a range of at most 366 days.' : null;
+    if (bad) { state.error = bad; render(); return; }
+    select(null, from, to);
   });
   // Hover read-out for the daily charts (value for the nearest day).
   root.addEventListener('mousemove', function (e) {
