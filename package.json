@@ -32,7 +32,9 @@
     "test:workspace-polish": "node tests/live-campaigns-drafts.test.js",
     "test:launch-mobile": "node tests/launch-mobile.test.js",
     "test:pinterest": "node tests/pinterest-ads.test.js",
-    "test:pinterest-launch": "node tests/pinterest-launch.test.js"
+    "test:pinterest-launch": "node tests/pinterest-launch.test.js",
+    "test:seo": "node tests/seo.test.js",
+    "build:seo": "node tools/seo/build.js"
   },
   "devDependencies": {
     "playwright": "^1.62.1",

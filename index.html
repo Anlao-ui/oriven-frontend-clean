@@ -25,26 +25,28 @@
        canonical/OG is applied by JS per-route (see PAGE_SEO / applyPageSeo
        further down this file) since this is a single static HTML
        document serving every URL (see vercel.json / _redirects). -->
-  <meta name="description" content="Oriven is an AI advertising workspace: create, launch and manage campaigns across Google, Meta, TikTok and Pinterest, with research and automation built in.">
-  <title>AI Advertising Platform | ORIVEN</title>
+  <meta name="description" content="OrivenAI is an AI advertising platform: research your market, create image and video ads, and launch and automate campaigns on Google, Meta, TikTok and Pinterest. Free plan available.">
+  <title>OrivenAI: AI Advertising Platform for Google, Meta, TikTok & Pinterest Ads</title>
   <link rel="canonical" href="https://orivenai.com/" id="ovCanonical">
   <meta name="robots" content="index, follow" id="ovRobotsMeta">
 
   <!-- Open Graph / Twitter — homepage baseline, updated per-route by
-       applyPageSeo(). No fabricated preview image exists yet (a proper
-       1200x630 social card is a real asset someone still needs to
-       design); the real 1024x1024 ORIVEN mark is used until one exists,
-       which is accurate, not invented. -->
+       applyPageSeo() in the browser and by the seo-meta edge function
+       (netlify/edge-functions/seo-meta.js) in the HTML crawlers receive.
+       assets/og/orivenai-og.png is the 1200x630 social card. -->
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="ORIVEN">
-  <meta property="og:title" content="AI Advertising Platform | ORIVEN" id="ovOgTitle">
-  <meta property="og:description" content="Oriven is an AI advertising workspace: create, launch and manage campaigns across Google, Meta, TikTok and Pinterest, with research and automation built in." id="ovOgDesc">
+  <meta property="og:site_name" content="OrivenAI">
+  <meta property="og:title" content="OrivenAI: AI Advertising Platform for Google, Meta, TikTok & Pinterest Ads" id="ovOgTitle">
+  <meta property="og:description" content="OrivenAI is an AI advertising platform: research your market, create image and video ads, and launch and automate campaigns on Google, Meta, TikTok and Pinterest. Free plan available." id="ovOgDesc">
   <meta property="og:url" content="https://orivenai.com/" id="ovOgUrl">
-  <meta property="og:image" content="https://orivenai.com/assets/orivenlogo.png">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="AI Advertising Platform | ORIVEN" id="ovTwTitle">
-  <meta name="twitter:description" content="Oriven is an AI advertising workspace: create, launch and manage campaigns across Google, Meta, TikTok and Pinterest, with research and automation built in." id="ovTwDesc">
-  <meta name="twitter:image" content="https://orivenai.com/assets/orivenlogo.png">
+  <meta property="og:image" content="https://orivenai.com/assets/og/orivenai-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="OrivenAI, the AI advertising platform">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="OrivenAI: AI Advertising Platform for Google, Meta, TikTok & Pinterest Ads" id="ovTwTitle">
+  <meta name="twitter:description" content="OrivenAI is an AI advertising platform: research your market, create image and video ads, and launch and automate campaigns on Google, Meta, TikTok and Pinterest. Free plan available." id="ovTwDesc">
+  <meta name="twitter:image" content="https://orivenai.com/assets/og/orivenai-og.png">
 
   <!-- Structured data — only real, currently-true facts (no ratings,
        reviews, prices, user counts, or social profiles invented; ORIVEN
@@ -54,27 +56,45 @@
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "ORIVEN",
+    "@id": "https://orivenai.com/#organization",
+    "name": "OrivenAI",
+    "alternateName": ["Oriven", "ORIVEN", "Oriven AI"],
     "url": "https://orivenai.com/",
-    "logo": "https://orivenai.com/assets/orivenlogo.png"
+    "logo": "https://orivenai.com/assets/orivenlogo.png",
+    "email": "contact@orivenai.com",
+    "description": "OrivenAI (orivenai.com) is an AI advertising platform for researching, creating, launching and automating ad campaigns."
   }
   </script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "ORIVEN",
-    "url": "https://orivenai.com/"
+    "name": "OrivenAI",
+    "alternateName": "Oriven",
+    "url": "https://orivenai.com/",
+    "publisher": { "@id": "https://orivenai.com/#organization" }
   }
   </script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "ORIVEN",
+    "name": "OrivenAI",
     "applicationCategory": "BusinessApplication",
-    "operatingSystem": "Web",
-    "description": "AI advertising workspace for creating, launching and managing campaigns across Google Ads, Meta Ads, TikTok Ads and Pinterest Ads."
+    "applicationSubCategory": "Advertising software",
+    "operatingSystem": "Web browser",
+    "url": "https://orivenai.com/",
+    "description": "AI advertising platform for researching markets, creating image and video ads, launching campaigns on Google Ads, Meta Ads, TikTok Ads and Pinterest Ads, and automating campaign rules.",
+    "offers": {
+      "@type": "AggregateOffer", "priceCurrency": "EUR", "lowPrice": "0", "highPrice": "34.95", "offerCount": 4,
+      "offers": [
+        { "@type": "Offer", "name": "Free", "price": "0.00", "priceCurrency": "EUR", "description": "10 credits a day" },
+        { "@type": "Offer", "name": "Starter", "price": "9.95", "priceCurrency": "EUR", "description": "1,000 credits a month" },
+        { "@type": "Offer", "name": "Creator", "price": "19.95", "priceCurrency": "EUR", "description": "2,500 credits a month" },
+        { "@type": "Offer", "name": "Professional", "price": "34.95", "priceCurrency": "EUR", "description": "4,000 credits a month" }
+      ]
+    },
+    "publisher": { "@id": "https://orivenai.com/#organization" }
   }
   </script>
 
@@ -864,6 +884,9 @@
         </button>
         <div class="lp-dropdown lp-dd-simple" role="menu">
           <div class="lp-dd-col">
+            <a href="/learn/" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Learn</span><span class="lp-dd-item-desc">Guides to AI advertising, PPC automation and ad platforms.</span></span>
+            </a>
             <a href="/blog" class="lp-dd-item" role="menuitem">
               <span><span class="lp-dd-item-name">Blog</span><span class="lp-dd-item-desc">Advertising, product and growth insights.</span></span>
             </a>
@@ -952,6 +975,7 @@
         Resources <span class="lp-mm-chev">&#8250;</span>
       </button>
       <div class="lp-mm-dd-items">
+        <a href="/learn/" class="lp-mm-dd-link">Learn</a>
         <a href="/blog" class="lp-mm-dd-link" onclick="lpCloseMm()">Blog</a>
         <a href="/faq" class="lp-mm-dd-link" onclick="lpCloseMm()">FAQ</a>
         <a href="/case-studies" class="lp-mm-dd-link" onclick="lpCloseMm()">Case Studies</a>
@@ -1000,6 +1024,7 @@
            word beyond the existing h1 treatment, so it reads naturally
            rather than as a gimmick. Line break kept at the same sentence
            boundary the previous two-line headline used. -->
+      <p class="ov-section-eyebrow ov-hero-category">AI advertising platform</p>
       <h1 class="lp-hero-h1 ov-h1">Advertising gets complicated.<br>ORIVEN puts it in ORDER.</h1>
 
       <p class="lp-hero-sub ov-hero-desc">Create, launch and improve ads across every platform, from one workspace.</p>
@@ -1400,9 +1425,12 @@
           <a href="/product/meta-ads" class="ov-footer-link">Meta Ads</a>
           <a href="/product/tiktok-ads" class="ov-footer-link">TikTok Ads</a>
           <a href="/product/pinterest-ads" class="ov-footer-link">Pinterest Ads</a>
+          <a href="/cross-platform-ad-management/" class="ov-footer-link">Cross-platform ads</a>
+          <a href="/ppc-automation-software/" class="ov-footer-link">PPC automation</a>
         </div>
         <div class="ov-footer-col">
           <div class="ov-footer-col-h">Resources</div>
+          <a href="/learn/" class="ov-footer-link">Learn</a>
           <a href="/solutions" class="ov-footer-link">Solutions</a>
           <a href="/pricing" class="ov-footer-link">Pricing</a>
           <a href="/faq" class="ov-footer-link">FAQ</a>
@@ -3574,36 +3602,36 @@
   // whatever was hardcoded in <head>. Descriptions are drawn from each
   // page's own real, existing hero sub-copy — nothing invented.
   var PAGE_SEO = {
-    landing: { title: 'AI Advertising Platform | ORIVEN', desc: 'Oriven is an AI advertising workspace: create, launch and manage campaigns across Google, Meta, TikTok and Pinterest, with research and automation built in.', path: '/' },
-    login: { title: 'Login | ORIVEN', desc: 'Log in to your ORIVEN account to manage your advertising campaigns.', path: '/login', noindex: true },
-    signup: { title: 'Create Your Account | ORIVEN', desc: 'Create a free ORIVEN account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
-    terms: { title: 'Terms of Service | ORIVEN', desc: 'Terms of Service for using the ORIVEN advertising platform.', path: '/terms' },
-    privacy: { title: 'Privacy Policy | ORIVEN', desc: 'How ORIVEN collects, uses and protects your data.', path: '/privacy' },
-    'refund-policy': { title: 'Refund Policy | ORIVEN', desc: 'ORIVEN’s refund policy for subscriptions and credits.', path: '/refund-policy' },
-    'cookie-policy': { title: 'Cookie Policy | ORIVEN', desc: 'How ORIVEN uses cookies on this website.', path: '/cookie-policy' },
-    security: { title: 'Security | ORIVEN', desc: 'How ORIVEN protects your advertising accounts and data.', path: '/security' },
-    contact: { title: 'Contact | ORIVEN', desc: 'Get in touch with the ORIVEN team.', path: '/contact' },
-    about: { title: 'About ORIVEN | AI Advertising Platform', desc: 'Marketing data is scattered across platforms. Oriven brings it together so you can spend less time in dashboards and more time making better decisions.', path: '/about' },
-    blog: { title: 'Blog | ORIVEN', desc: 'Insights, updates and ideas from the Oriven team.', path: '/blog' },
-    product: { title: 'Connect Your Advertising Platforms | ORIVEN', desc: 'Oriven connects to Google Ads, Meta Ads, TikTok Ads and Pinterest Ads. Research, creative, launch, campaign management and automation in one workspace.', path: '/product' },
-    solutions: { title: 'Advertising Solutions | ORIVEN', desc: 'Every Oriven solution maps to one real product: no generic promises, just the actual thing that fixes it.', path: '/solutions' },
-    'case-studies': { title: 'Case Studies | ORIVEN', desc: 'Illustrative examples of how Oriven changes a real advertising workflow.', path: '/case-studies' },
-    pricing: { title: 'Pricing | ORIVEN', desc: 'ORIVEN pricing plans and credits for AI advertising creation, research, launch, campaign management and automation.', path: '/pricing' },
-    faq: { title: 'FAQ | ORIVEN', desc: 'Answers to common questions about ORIVEN, credits, connecting ad accounts and plans.', path: '/faq' },
-    'product-google-ads': { title: 'Google Ads AI & Campaign Workflow | ORIVEN', desc: 'Connect your Google Ads account and Oriven creates, launches and tracks campaigns for you: Search, Performance Max and Demand Gen, backed by real reporting.', path: '/product/google-ads' },
-    'product-meta-ads': { title: 'Meta Ads AI & Campaign Workflow | ORIVEN', desc: 'Connect Facebook and Instagram advertising to Oriven. Create campaigns, launch them through Meta’s own API and track results in one workspace.', path: '/product/meta-ads' },
-    'product-tiktok-ads': { title: 'TikTok Ads AI & Campaign Workflow | ORIVEN', desc: 'Connect TikTok Ads to Oriven. Create and launch campaigns through TikTok’s own API, alongside Google, Meta and Pinterest.', path: '/product/tiktok-ads' },
-    'product-pinterest-ads': { title: 'Pinterest Ads AI & Campaign Workflow | ORIVEN', desc: 'Connect Pinterest Ads to Oriven. Create your ad account, build campaigns and launch Pins through Pinterest’s own API.', path: '/product/pinterest-ads' },
-    'product-create': { title: 'AI Ad Creation & Creative Workspace | ORIVEN', desc: 'The Creative Playground turns a product description into platform-ready ad creative, image or video, informed by your real Business and Brand context.', path: '/create' },
-    'product-launch': { title: 'Campaign Launch & AI Ad Generation | ORIVEN', desc: 'Describe your product, choose your platforms, and Oriven generates a complete, ready-to-publish campaign: strategy, structure and creative included.', path: '/launch' },
-    'product-campaigns': { title: 'Campaign Management & Tracking | ORIVEN', desc: 'Track live campaigns, pick up drafts, and review every detail before anything publishes, across Google, Meta and TikTok, all in one place.', path: '/campaigns' },
-    'product-research': { title: 'AI Advertising Research | ORIVEN', desc: 'Understand creative approaches, messaging patterns and advertising trends outside your own campaigns, so you can test the right ideas, not guess.', path: '/research' },
-    'product-autopilot': { title: 'Advertising Automation | ORIVEN', desc: 'Autopilot turns campaign insights into automated action, reallocating wasted budget and flagging audience fatigue, based on rules you control.', path: '/autopilot' },
-    'product-business': { title: 'Brand Context for AI Advertising | ORIVEN', desc: 'Your business profile and Brand Identity give every AI generation the same context, so campaigns, copy and creative actually sound like you.', path: '/business' },
-    'blog-1': { title: 'Oriven AI Is Now Live | ORIVEN Blog', desc: 'After months of planning, designing and building, Oriven is officially live. Learn more about our mission and what’s coming next for the platform.', path: '/blog/oriven-ai-is-now-live' },
-    'blog-2': { title: 'What You Can Do With Oriven | ORIVEN Blog', desc: 'Discover how Oriven helps marketers and businesses connect advertising data, generate insights and make better decisions from one platform.', path: '/blog/what-you-can-do-with-oriven' },
-    'blog-3': { title: 'Why We Built Oriven | ORIVEN Blog', desc: 'Marketing data is fragmented across multiple platforms. Learn how that challenge inspired the creation of Oriven and the vision behind the platform.', path: '/blog/why-we-built-oriven' },
-    '404': { title: 'Page Not Found | ORIVEN', desc: 'The page you are looking for does not exist or has been moved.', path: null, noindex: true }
+    landing: { title: 'OrivenAI: AI Advertising Platform for Google, Meta, TikTok & Pinterest Ads', desc: 'OrivenAI is an AI advertising platform: research your market, create image and video ads, and launch and automate campaigns on Google, Meta, TikTok and Pinterest. Free plan available.', path: '/' },
+    login: { title: 'Login | OrivenAI', desc: 'Log in to your OrivenAI account to manage your advertising campaigns.', path: '/login', noindex: true },
+    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create a free OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
+    terms: { title: 'Terms of Service | OrivenAI', desc: 'Terms of Service for using the OrivenAI advertising platform.', path: '/terms' },
+    privacy: { title: 'Privacy Policy | OrivenAI', desc: 'How OrivenAI collects, uses and protects your data.', path: '/privacy' },
+    'refund-policy': { title: 'Refund Policy | OrivenAI', desc: 'OrivenAI’s refund policy for subscriptions and credits.', path: '/refund-policy' },
+    'cookie-policy': { title: 'Cookie Policy | OrivenAI', desc: 'How OrivenAI uses cookies on this website.', path: '/cookie-policy' },
+    security: { title: 'Security | OrivenAI', desc: 'How OrivenAI protects your advertising accounts and data.', path: '/security' },
+    contact: { title: 'Contact | OrivenAI', desc: 'Get in touch with the OrivenAI team.', path: '/contact' },
+    about: { title: 'About OrivenAI | AI Advertising Platform', desc: 'Marketing data is scattered across platforms. Oriven brings it together so you can spend less time in dashboards and more time making better decisions.', path: '/about' },
+    blog: { title: 'Blog | OrivenAI', desc: 'Insights, updates and ideas from the Oriven team.', path: '/blog' },
+    product: { title: 'Connect Your Advertising Platforms | OrivenAI', desc: 'Oriven connects to Google Ads, Meta Ads, TikTok Ads and Pinterest Ads. Research, creative, launch, campaign management and automation in one workspace.', path: '/product' },
+    solutions: { title: 'Advertising Solutions | OrivenAI', desc: 'Every Oriven solution maps to one real product: no generic promises, just the actual thing that fixes it.', path: '/solutions' },
+    'case-studies': { title: 'Case Studies | OrivenAI', desc: 'Illustrative examples of how Oriven changes a real advertising workflow.', path: '/case-studies' },
+    pricing: { title: 'Pricing | OrivenAI', desc: 'OrivenAI pricing plans and credits for AI advertising creation, research, launch, campaign management and automation.', path: '/pricing' },
+    faq: { title: 'FAQ | OrivenAI', desc: 'Answers to common questions about OrivenAI, credits, connecting ad accounts and plans.', path: '/faq' },
+    'product-google-ads': { title: 'AI Google Ads Management: Create, Launch & Automate | OrivenAI', desc: 'Manage Google Ads with AI: OrivenAI builds Search, Performance Max and Demand Gen campaigns from a brief, launches them through Google’s API, tracks results and runs rules you set.', path: '/product/google-ads' },
+    'product-meta-ads': { title: 'Meta Ads Automation for Facebook & Instagram | OrivenAI', desc: 'Create Facebook and Instagram campaigns from a brief, launch them through Meta’s API, track results and automate pause, resume and budget rules with OrivenAI Autopilot.', path: '/product/meta-ads' },
+    'product-tiktok-ads': { title: 'TikTok Ads AI & Campaign Workflow | OrivenAI', desc: 'Connect TikTok Ads to Oriven. Create and launch campaigns through TikTok’s own API, alongside Google, Meta and Pinterest.', path: '/product/tiktok-ads' },
+    'product-pinterest-ads': { title: 'Pinterest Ads AI & Campaign Workflow | OrivenAI', desc: 'Connect Pinterest Ads to Oriven. Create your ad account, build campaigns and launch Pins through Pinterest’s own API.', path: '/product/pinterest-ads' },
+    'product-create': { title: 'AI Ad Creation & Creative Workspace | OrivenAI', desc: 'The Creative Playground turns a product description into platform-ready ad creative, image or video, informed by your real Business and Brand context.', path: '/create' },
+    'product-launch': { title: 'Campaign Launch & AI Ad Generation | OrivenAI', desc: 'Describe your product, choose your platforms, and Oriven generates a complete, ready-to-publish campaign: strategy, structure and creative included.', path: '/launch' },
+    'product-campaigns': { title: 'Campaign Management & Tracking | OrivenAI', desc: 'Track live campaigns, pick up drafts, and review every detail before anything publishes, across Google, Meta and TikTok, all in one place.', path: '/campaigns' },
+    'product-research': { title: 'AI Advertising Research | OrivenAI', desc: 'Understand creative approaches, messaging patterns and advertising trends outside your own campaigns, so you can test the right ideas, not guess.', path: '/research' },
+    'product-autopilot': { title: 'Advertising Automation | OrivenAI', desc: 'Autopilot turns campaign insights into automated action, reallocating wasted budget and flagging audience fatigue, based on rules you control.', path: '/autopilot' },
+    'product-business': { title: 'Brand Context for AI Advertising | OrivenAI', desc: 'Your business profile and Brand Identity give every AI generation the same context, so campaigns, copy and creative actually sound like you.', path: '/business' },
+    'blog-1': { title: 'Oriven AI Is Now Live | OrivenAI Blog', desc: 'After months of planning, designing and building, Oriven is officially live. Learn more about our mission and what’s coming next for the platform.', path: '/blog/oriven-ai-is-now-live' },
+    'blog-2': { title: 'What You Can Do With Oriven | OrivenAI Blog', desc: 'Discover how Oriven helps marketers and businesses connect advertising data, generate insights and make better decisions from one platform.', path: '/blog/what-you-can-do-with-oriven' },
+    'blog-3': { title: 'Why We Built Oriven | OrivenAI Blog', desc: 'Marketing data is fragmented across multiple platforms. Learn how that challenge inspired the creation of Oriven and the vision behind the platform.', path: '/blog/why-we-built-oriven' },
+    '404': { title: 'Page Not Found | OrivenAI', desc: 'The page you are looking for does not exist or has been moved.', path: null, noindex: true }
   };
   window.PAGE_SEO = PAGE_SEO;
 
