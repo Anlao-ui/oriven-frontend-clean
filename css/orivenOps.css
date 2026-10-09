@@ -1275,12 +1275,19 @@ body.dark-mode .sub-cancel-chip { color: #FFC857; background: rgba(255, 171, 0, 
    button, never the primary CTA. Light: #B42318 on the light modal (≥ 5.9:1);
    dark: #FF7A6E on the #0E0E0E modal (≥ 7:1). The confirmation flow and the
    Stripe cancel-at-period-end behaviour are unchanged. */
-#planCancelBtn.sub-cancel-link { color: #B42318 !important; opacity: 1 !important; font-weight: 600; text-decoration: underline; text-decoration-color: rgba(180, 35, 24, .45); text-underline-offset: 3px; padding: 4px 2px; border-radius: 6px; }
-#planCancelBtn.sub-cancel-link:hover { color: #912018 !important; text-decoration-color: currentColor; }
-#planCancelBtn.sub-cancel-link:focus-visible { outline: 2px solid #B42318; outline-offset: 2px; }
-body.dark-mode #planCancelBtn.sub-cancel-link { color: #FF7A6E !important; text-decoration-color: rgba(255, 122, 110, .5); }
-body.dark-mode #planCancelBtn.sub-cancel-link:hover { color: #FFA59C !important; }
-body.dark-mode #planCancelBtn.sub-cancel-link:focus-visible { outline-color: #FF7A6E; }
+/* Cancel plan: a clear red button (white text), same shape as the other
+   settings buttons; the confirmation modal (_showCancelConfirm) is unchanged. */
+#planCancelBtn.sub-cancel-link, body.dark-mode #planCancelBtn.sub-cancel-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #D92D20 !important; color: #fff !important; opacity: 1 !important;
+  border: 1px solid #D92D20; border-radius: 10px; padding: 9px 18px;
+  font: inherit; font-size: 13px; font-weight: 600; line-height: 1.2; text-decoration: none;
+  cursor: pointer; transition: background .15s ease, border-color .15s ease;
+}
+#planCancelBtn.sub-cancel-link:hover, body.dark-mode #planCancelBtn.sub-cancel-link:hover { background: #B42318 !important; border-color: #B42318; color: #fff !important; }
+#planCancelBtn.sub-cancel-link:active, body.dark-mode #planCancelBtn.sub-cancel-link:active { background: #912018 !important; border-color: #912018; }
+#planCancelBtn.sub-cancel-link:focus-visible, body.dark-mode #planCancelBtn.sub-cancel-link:focus-visible { outline: 2px solid #FF7A6E; outline-offset: 2px; }
+#planCancelBtn.sub-cancel-link:disabled { opacity: .6 !important; cursor: default; }
 
 /* ── Sidebar workflow progress (V9) ──
    orivenOps.js wfSync() marks steps before the current one .orv-wf-done,

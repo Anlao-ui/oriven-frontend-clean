@@ -7073,10 +7073,12 @@
                backend is the source of truth — GET/PUT /api/email/preferences). -->
           <div class="smd-section" id="emailPrefsSection">
             <div class="smd-field-lbl">Email preferences</div>
+            <!-- Lives here, not under Notifications: that panel is Professional-only
+                 (body.orv-no-notif), and every plan must be able to change this. -->
             <div class="smd-tgl-row">
               <div>
-                <div class="smd-tgl-lbl" id="tglMarketingEmailLbl">Product tips and updates</div>
-                <div class="smd-tgl-sub">Occasional emails to help you get more from OrivenAI. Account and billing emails are always sent.</div>
+                <div class="smd-tgl-lbl" id="tglMarketingEmailLbl">Marketing Emails</div>
+                <div class="smd-tgl-sub">Receive product updates, new features, tips, and special offers from OrivenAI. Account, security and billing emails are always sent.</div>
               </div>
               <div class="tgl" id="tglMarketingEmail" onclick="orvToggleMarketingEmail(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();orvToggleMarketingEmail(this);}" role="switch" aria-checked="false" aria-labelledby="tglMarketingEmailLbl" aria-disabled="true" tabindex="0"></div>
             </div>

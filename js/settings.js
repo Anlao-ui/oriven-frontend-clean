@@ -2959,7 +2959,7 @@ async function orvToggleMarketingEmail(el){
       }
       return;
     }
-    toast(want ? "You’ll get product tips by email. You can turn this off anytime." : "Product emails turned off.");
+    toast(want ? "Marketing emails turned on. You can turn them off anytime." : "Marketing emails turned off.");
   } catch(_){
     _emailPrefsSet(el, !want);
     toast("Couldn’t save your email preference.", "warn");
