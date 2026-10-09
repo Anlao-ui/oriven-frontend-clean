@@ -1422,7 +1422,7 @@ async function selectPlan(plan){
   _checkoutInFlight = true;
 
   var btn = document.querySelector('[onclick="selectPlan(\'' + plan + '\')"]');
-  if(btn){ btn.disabled = true; btn.textContent = "Redirectingâ€¦"; }
+  if(btn){ btn.disabled = true; btn.textContent = "Redirecting…"; }
 
   // Save return destination — if free user is converting from campaign-workspace, send them back there
   try {
@@ -1447,6 +1447,8 @@ async function selectPlan(plan){
     }
     try { localStorage.setItem("oriven_checkout_plan", plan); } catch(_){}
     if(typeof trackEvent === "function") trackEvent("checkout_started", null, { plan: plan, action: _pwAct || undefined });
+    // Onboarding plan step: keep the chosen goal for the return from Stripe.
+    if(typeof orvOnboardingPlanChosen === "function") orvOnboardingPlanChosen(plan);
     window.location.href = result.data.url;
   } catch(err) {
     console.error("[Paywall] Checkout error:", err);
@@ -1468,7 +1470,7 @@ function _orvTrackCheckoutCompleted(status){
 // details required.
 async function continueOnFreePlan(){
   var btn = document.getElementById("paywall-btn-free");
-  if(btn){ btn.disabled = true; btn.textContent = "Continuingâ€¦"; }
+  if(btn){ btn.disabled = true; btn.textContent = "Continuing…"; }
   try {
     var result = await apiFetch("/api/select-free-plan", {
       method: "POST",
@@ -1478,6 +1480,10 @@ async function continueOnFreePlan(){
 
     _dbSubscriptionStatus = "free";
     if(typeof S !== "undefined" && S) S.currentPlan = "free";
+
+    // Onboarding plan step: finish onboarding and continue to the chosen
+    // goal (before the modal closes, so it doesn't read as "Back").
+    if(typeof orvOnboardingPlanChosen === "function") orvOnboardingPlanChosen("free");
 
     // Close regardless of any hard-paywall flag -- choosing Free is always
     // a legitimate way to leave the paywall, not something that should be

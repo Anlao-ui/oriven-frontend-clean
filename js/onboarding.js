@@ -1,20 +1,27 @@
 /* ════════════════════════════════════════════════════════════════
    ORIVEN Onboarding — "start from the outcome"
 
-   One welcome screen for new accounts:
-     Welcome to OrivenAI → What would you like to accomplish first?
-       Create my first ad   → Create, with a short skippable example
-       Research my market   → Research, with a short skippable example
-       Explore OrivenAI     → Control Center, no tour, no paywall
-   No product tour, no forced business setup, no forced plan step, and
-   nothing here ever starts a paid action.
+   One welcome modal for new accounts, over the real dashboard:
+     Welcome to OrivenAI → What would you like to do first?
+       Create an Ad      → plan step → Create, with a short skippable example
+       Research          → plan step → Research, with a short skippable example
+       Explore OrivenAI  → plan step → the dashboard
+   The plan step is the shared plan modal (paywall.js openOnboardingPlans):
+   Free is always selectable, paid plans go through the normal Stripe
+   checkout, "Back" returns to the welcome. Accounts already on a paid plan
+   skip it. There is no skip link: every new user picks a goal and then a
+   plan, and Free is always one of the plans. No product tour, no forced business setup, no forced payment,
+   and nothing here ever starts a paid action.
 
    Who sees it is decided by the server (GET /api/onboarding/state,
    services/onboarding.js): accounts created after the rollout whose
    onboarding isn't complete. Existing accounts never see it. Choosing or
-   skipping is saved with POST /api/onboarding/complete; if that request
-   fails, the choice is kept on this device and retried on the next load
-   (the screen is not shown again meanwhile).
+   skipping is saved with POST /api/onboarding/complete once the plan step is
+   resolved (Free chosen, or right before the Stripe redirect); if that
+   request fails, the choice is kept on this device and retried on the next
+   load (the modal is not shown again meanwhile). Interrupted before a plan
+   was chosen (refresh, closed tab), the welcome simply shows again. Back
+   from Stripe (paid or canceled), the user lands on the goal they chose.
 
    Also owned here, because they belong to a new user's first result:
    - the action paywall bridge: when the server refuses a Create/Research
@@ -30,12 +37,14 @@
 var OB3_DEST = {
   create:   ["create", "page-create"],
   research: ["research", "page-research"],
-  explore:  ["businessbrain", "page-business-brain"]
+  explore:  ["dashboard", "page-dashboard"]
 };
 var OB3_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
 window._orvObState = null;   // last GET /api/onboarding/state result
 var _ob3Busy = false;
+var _ob3PlanGoal = null;     // goal while the plan step is open
+var _ob3LastGoal = null;     // for focus when coming back from the plan step
 
 function _ob3El(id){ return document.getElementById(id); }
 function _ob3Uid(){ try { return (typeof _currentUser !== "undefined" && _currentUser && _currentUser.id) || null; } catch(_){ return null; } }
@@ -69,26 +78,35 @@ window.orvOnboardingGate = async function(){
   var st = res.data;
   window._orvObState = st;
   var pending = _ob3Get("ob_pending");
+  // Back from Stripe after the onboarding plan step: open the chosen goal.
+  var intent = _ob3Get("ob_intent");
+  if(intent){ _ob3Set("ob_intent", null); if(OB3_DEST[intent]) _ob3Go(intent, 300); }
   if(!st.eligible){ if(pending) _ob3Set("ob_pending", null); _ob3ApplyDeepLink(); return; }
-  if(pending){ _ob3Persist(pending === "skip" ? null : pending); _ob3ApplyDeepLink(); return; } // chosen here before; the save didn't land yet
+  // Chosen here before; the save didn't land yet. ("skip" comes from before
+  // the skip link was removed and is still saved as skipped.)
+  if(pending){ _ob3Persist(pending === "skip" ? null : pending); _ob3ApplyDeepLink(); return; }
   startOnboarding();
 };
 
 // ── Welcome screen ───────────────────────────────────────────────
 // opts.force: show regardless of eligibility (Settings → Restart, ?tour=1).
+// opts.back: returning from the plan step (no new "shown" event).
 function startOnboarding(opts){
   var overlay = _ob3El("ob2Overlay");
   if(!overlay) return;
   _ob3Busy = false;
+  _ob3PlanGoal = null;
+  if(!(opts && opts.back)) _ob3Set("ob_intent", null); // stale Stripe intent from an earlier attempt
   overlay.querySelectorAll(".ob3-choice").forEach(function(b){ b.disabled = false; });
   var err = _ob3El("ob3Err"); if(err){ err.hidden = true; err.textContent = ""; }
   window._ob2Active = true;
   overlay.style.display = "flex";
   requestAnimationFrame(function(){ overlay.classList.add("ob2-visible"); });
   document.addEventListener("keydown", _ob3Keys, true);
-  var h = _ob3El("ob3Title");
+  var back = opts && opts.back && _ob3LastGoal && overlay.querySelector('.ob3-choice[data-ob3-goal="' + _ob3LastGoal + '"]');
+  var h = back || _ob3El("ob3Title");
   setTimeout(function(){ if(h) h.focus(); }, 60);
-  _ob3Track("onboarding_shown", { source: opts && opts.force ? "restart" : "signup" });
+  if(!(opts && opts.back)) _ob3Track("onboarding_shown", { source: opts && opts.force ? "restart" : "signup" });
 }
 window.startOnboarding = startOnboarding;
 
@@ -123,29 +141,70 @@ function _ob3Keys(e){
   }
 }
 
-// goal: 'create' | 'research' | 'explore'. Navigates at once; the save
-// runs in the background so a slow or failed request never blocks the user.
+// goal: 'create' | 'research' | 'explore'. A Free account chooses a plan
+// first (the shared plan modal); an account already on a paid plan goes
+// straight to its goal. Nothing is saved until the plan step is resolved.
 window.ob3Choose = function(goal){
-  if(_ob3Busy || !OB3_DEST[goal]) return;
-  _ob3Busy = true;
+  if(_ob3Busy || _ob3PlanGoal || !OB3_DEST[goal]) return;
   _ob3Track("onboarding_goal_selected", { goal: goal });
+  _ob3LastGoal = goal;
+  if(_ob3Plan() !== "free" || typeof openOnboardingPlans !== "function"){ _ob3Finish(goal); return; }
+  _ob3PlanGoal = goal;
+  _ob3Hide();
+  setTimeout(function(){
+    if(_ob3PlanGoal === goal && !openOnboardingPlans(goal)){ _ob3PlanGoal = null; _ob3Finish(goal); }
+  }, 120);
+};
+
+// Navigates at once; the save runs in the background so a slow or failed
+// request never blocks the user.
+function _ob3Finish(goal){
+  _ob3Busy = true;
   _ob3Set("ob_pending", goal);
   if(window._orvObState){ window._orvObState.eligible = false; window._orvObState.goal = goal === "explore" ? "business" : goal; }
   _ob3Hide();
-  if(typeof _orvNav === "function") _orvNav(OB3_DEST[goal][0], OB3_DEST[goal][1]);
-  if(goal === "create" || goal === "research") setTimeout(function(){ _ob3ShowIntro(goal, "choice"); }, 120);
+  _ob3Go(goal, 0);
   _ob3Persist(goal);
+}
+
+function _ob3Go(goal, delay){
+  setTimeout(function(){
+    if(typeof _orvNav === "function") _orvNav(OB3_DEST[goal][0], OB3_DEST[goal][1]);
+    if(goal === "create" || goal === "research") setTimeout(function(){ _ob3ShowIntro(goal, "choice"); }, 120);
+  }, delay || 0);
+}
+
+// Called by auth.js when a plan is chosen in the plan modal: 'free' once the
+// Free plan is confirmed, a paid plan id right before the Stripe redirect.
+// Does nothing outside the onboarding plan step.
+window.orvOnboardingPlanChosen = function(plan){
+  var goal = _ob3PlanGoal;
+  if(!goal) return false;
+  _ob3PlanGoal = null;
+  if(typeof endOnboardingPlans === "function") endOnboardingPlans();
+  if(plan === "free"){ _ob3Finish(goal); return true; }
+  // Paid: Stripe takes over this tab. Onboarding is complete either way
+  // (paying is optional); on return the user lands on their goal.
+  _ob3Busy = true;
+  _ob3Set("ob_intent", goal);
+  _ob3Set("ob_pending", goal);
+  if(window._orvObState){ window._orvObState.eligible = false; window._orvObState.goal = goal === "explore" ? "business" : goal; }
+  _ob3Persist(goal);
+  return true;
 };
 
-window.ob3Skip = function(){
-  if(_ob3Busy) return;
-  _ob3Busy = true;
-  _ob3Track("onboarding_dismissed");
-  _ob3Set("ob_pending", "skip");
-  if(window._orvObState) window._orvObState.eligible = false;
-  _ob3Hide();
-  _ob3Persist(null);
-};
+// The plan modal closed without a choice (Back, close button, Esc,
+// backdrop): back to the welcome, with the same option focused.
+function _ob3WatchPlanModal(){
+  var m = _ob3El("modal-paywall");
+  if(!m || typeof MutationObserver === "undefined") return;
+  new MutationObserver(function(){
+    if(!_ob3PlanGoal || m.classList.contains("open")) return;
+    _ob3PlanGoal = null;
+    if(typeof endOnboardingPlans === "function") endOnboardingPlans();
+    startOnboarding({ back: true });
+  }).observe(m, { attributes: true, attributeFilter: ["class"] });
+}
 
 function _ob3Persist(goal){
   var body = goal ? { goal: goal } : { skipped: true };
@@ -453,5 +512,6 @@ function _ob3NextStep(kind, tries){
   else host.insertBefore(el, host.firstChild);
 }
 
-if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", _ob3WatchPages);
-else _ob3WatchPages();
+function _ob3Watch(){ _ob3WatchPages(); _ob3WatchPlanModal(); }
+if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", _ob3Watch);
+else _ob3Watch();

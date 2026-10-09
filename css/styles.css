@@ -230,6 +230,11 @@ textarea.inp{resize:vertical;min-height:80px}
 /* MODAL */
 .mbk{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:900;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .2s}
 .mbk.open{opacity:1;pointer-events:all}
+/* The plan modal sits above all app chrome: sidebar (.orv-sb 9200), Oriven
+   Chat (9250), launcher (9295) and rail tooltips (9310), so its backdrop
+   blocks the whole interface. Below the welcome modal (.ob2-overlay 9900)
+   and the full-screen guest/landing overlays, which never show with it. */
+#modal-paywall{z-index:9400}
 .modal{background:var(--surface);border-radius:var(--rx);padding:28px;box-shadow:var(--shl);width:440px;max-width:calc(100vw - 40px);max-height:calc(100vh - 80px);overflow-y:auto;transform:translateY(8px);transition:transform .2s}
 .mbk.open .modal{transform:translateY(0)}
 .modal-ttl{font-family:'Instrument Serif',serif;font-size:20px;color:var(--charcoal);margin-bottom:4px}
@@ -20498,7 +20503,8 @@ body.dark-mode { background: var(--ap-bg); }
   background: var(--ap-bg3) !important; border: 1px solid var(--ap-border) !important;
   border-radius: 10px !important; padding: 10px 18px !important;
   font-size: 13px !important; color: var(--ap-text) !important;
-  z-index: 9000 !important; transition: transform .25s, opacity .25s !important;
+  /* Above the plan modal (#modal-paywall, 9400) so checkout messages show. */
+  z-index: 9450 !important; transition: transform .25s, opacity .25s !important;
   max-width: calc(100vw - 32px) !important; white-space: normal !important; text-align: center !important;
 }
 /* app.js toast() only ever applies class "show" (never "toast-show") — this
@@ -48813,53 +48819,56 @@ body.dark-mode .bmap-cov-label { color: rgba(255,255,255,.88); }
    automatically follows light/dark/system theme and the rest of the
    product's typography — no separate onboarding design language.
    ══════════════════════════════════════════════════════════════════ */
+/* ── Welcome modal: centered over the real dashboard ── */
 .ob2-overlay{
   position:fixed;inset:0;z-index:9900;display:none;align-items:center;justify-content:center;
-  padding:32px 24px;background:var(--bg);
-  background-image:radial-gradient(560px 420px at 50% 38%, var(--gpale), transparent 70%);
+  padding:32px 24px;background:rgba(10,10,10,.34);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
   opacity:0;transition:opacity 220ms cubic-bezier(.22,.61,.36,1);
-  overflow-y:auto;
+  overflow-y:auto;overscroll-behavior:contain;
 }
+body.dark-mode .ob2-overlay{background:rgba(0,0,0,.5)}
 .ob2-overlay.ob2-visible{opacity:1}
 
-.ob2-shell{width:100%;max-width:640px;margin:auto;display:flex;flex-direction:column;align-items:center}
+.ob4-modal{
+  position:relative;width:100%;max-width:760px;margin:auto;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  background:var(--surface);border:1px solid var(--border);border-radius:22px;
+  padding:40px 36px 24px;
+  box-shadow:0 1px 2px rgba(0,0,0,.06),0 24px 64px -12px rgba(0,0,0,.35);
+  transform:translateY(10px) scale(.985);
+  transition:transform 260ms cubic-bezier(.22,.61,.36,1);
+}
+.ob2-overlay.ob2-visible .ob4-modal{transform:none}
 
-.ob2-ring{width:104px;height:104px;margin-bottom:20px}
-.ob2-ring svg{width:100%;height:100%}
-.ob2-ring path{fill:none;stroke:var(--green);stroke-width:2.4;opacity:.85}
-.ob2-h1{font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(30px,4.4vw,44px);letter-spacing:-1px;line-height:1.1;color:var(--charcoal);margin-bottom:14px}
+/* Same asset and treatment as the sidebar logo (.orv-sb-logo-img: contain,
+   8px radius at 40px), scaled to 56px. */
+.ob4-logo{width:56px;height:56px;object-fit:contain;border-radius:11px;display:block;margin-bottom:20px}
+.ob4-h1{font-family:'Geist',system-ui,-apple-system,sans-serif;font-weight:600;font-size:clamp(26px,3.2vw,34px);letter-spacing:-.02em;line-height:1.15;color:var(--charcoal);margin:0 0 8px}
 /* The heading takes focus when the dialog opens so screen readers announce
    it; it's never in the Tab order, so no focus ring. */
-.ob2-h1:focus{outline:none}
-.ob2-lede{font-size:15px;line-height:1.6;color:var(--muted);max-width:440px;margin-bottom:32px}
+.ob4-h1:focus{outline:none}
+.ob4-sub{font-size:15px;line-height:1.6;color:var(--muted);margin:0 0 28px}
 
-
-/* ── Welcome: three outcomes ── */
-.ob3-shell{max-width:600px;text-align:center}
-.ob3-ring{width:72px;height:72px;margin-bottom:22px}
-.ob3-shell .ob2-lede{margin-bottom:34px}
-.ob3-q{font-size:13px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
-.ob3-choices{display:flex;flex-direction:column;gap:10px;width:100%}
+.ob3-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%}
 .ob3-choice{
-  display:flex;align-items:center;gap:16px;width:100%;text-align:left;
-  background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rl);
-  padding:16px 18px;cursor:pointer;font:inherit;color:inherit;outline:none;
-  transition:border-color var(--t),transform var(--orv-t-fast),background var(--t);
+  display:flex;flex-direction:column;align-items:flex-start;gap:14px;width:100%;text-align:left;
+  background:var(--sf2);border:1.5px solid var(--border);border-radius:16px;
+  padding:20px 18px 18px;cursor:pointer;font:inherit;color:inherit;outline:none;
+  transition:border-color var(--t),transform var(--orv-t-fast),background var(--t),box-shadow var(--t);
 }
-.ob3-choice:hover:not(:disabled){border-color:var(--b2);transform:translateY(var(--orv-lift-sm))}
+.ob3-choice:hover:not(:disabled){border-color:var(--b2);background:var(--surface);transform:translateY(-2px);box-shadow:0 10px 24px -14px rgba(0,0,0,.35)}
 .ob3-choice:focus-visible{border-color:var(--green);box-shadow:0 0 0 3px var(--glt)}
 .ob3-choice:disabled{cursor:default;opacity:.6}
-.ob3-ic{flex:0 0 44px;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--glt);color:var(--charcoal)}
+.ob3-ic{flex:0 0 auto;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--glt);color:var(--charcoal);transition:background var(--t),color var(--t)}
 .ob3-ic svg{width:22px;height:22px}
-.ob3-choice:hover .ob3-ic,.ob3-choice:focus-visible .ob3-ic{color:var(--gm)}
-.ob3-txt{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.ob3-choice:hover .ob3-ic,.ob3-choice:focus-visible .ob3-ic{background:var(--green);color:var(--green-deep)}
+.ob3-txt{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
 .ob3-name{font-size:15px;font-weight:600;color:var(--charcoal)}
 .ob3-desc{font-size:13px;line-height:1.5;color:var(--muted)}
-.ob3-go{flex:0 0 auto;font-size:16px;color:var(--m2);transition:transform var(--orv-t-fast),color var(--t)}
+.ob3-cta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--charcoal)}
+.ob3-go{display:inline-block;color:var(--m2);transition:transform var(--orv-t-fast),color var(--t)}
 .ob3-choice:hover .ob3-go,.ob3-choice:focus-visible .ob3-go{color:var(--charcoal);transform:translateX(3px)}
-.ob3-skip{margin-top:22px;background:none;border:none;font:inherit;font-size:13px;color:var(--muted);cursor:pointer;padding:6px 10px;border-radius:var(--r);outline:none}
-.ob3-skip:hover{color:var(--charcoal)}
-.ob3-skip:focus-visible{box-shadow:0 0 0 3px var(--glt);color:var(--charcoal)}
 .ob2-err{color:var(--err-c);font-size:13px;margin-top:10px}
 
 /* ── Intro panel on Create / Research (after choosing that goal) ── */
@@ -48916,22 +48925,25 @@ body.dark-mode .bmap-cov-label { color: rgba(255,255,255,.88); }
 
 /* ── Responsive ── */
 @media (max-width:768px){
+  .ob3-choices{grid-template-columns:1fr;gap:10px}
+  .ob3-choice{flex-direction:row;align-items:center;gap:14px;padding:16px}
+  .ob3-cta-label{display:none}
   .obi{grid-template-columns:1fr;gap:16px;padding:18px}
 }
 @media (max-width:480px){
-  .ob2-overlay{padding:24px 16px;align-items:flex-start}
-  .ob2-shell{margin-top:8px}
-  .ob3-ring{width:56px;height:56px;margin-bottom:16px}
-  .ob3-shell .ob2-lede{margin-bottom:24px}
+  .ob2-overlay{padding:16px;align-items:flex-start}
+  .ob4-modal{padding:28px 18px 16px;border-radius:18px}
+  .ob4-logo{width:48px;height:48px;border-radius:10px;margin-bottom:16px}
+  .ob4-sub{margin-bottom:20px}
   .ob3-choice{padding:14px;gap:12px}
-  .ob3-ic{flex-basis:38px;width:38px;height:38px}
-  .ob3-go{display:none}
+  .ob3-ic{width:38px;height:38px}
   .obi-findings div{grid-template-columns:1fr;gap:2px}
   .obi.obi-hint{flex-direction:column;align-items:flex-start}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .ob2-overlay,.ob3-choice,.ob3-go,.obi-btn{transition:none !important}
+  .ob2-overlay,.ob4-modal,.ob3-choice,.ob3-go,.ob3-ic,.obi-btn{transition:none !important}
+  .ob4-modal{transform:none !important}
   .ob3-choice:hover,.ob3-choice:hover .ob3-go,.obi-btn:hover{transform:none !important}
   .obi{animation:none}
 }

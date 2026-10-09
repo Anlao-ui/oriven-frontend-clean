@@ -54,8 +54,17 @@ function _renderPaywallCards(){
   // (Free included when it's genuinely current) rather than presenting it
   // as another selectable tier.
 
+  // Onboarding plan step (openOnboardingPlans): a new Free account picks how
+  // to start, so Free stays selectable ("Continue with Free") instead of
+  // showing as the disabled current plan.
+  var onboarding = !!(_pwAction && _pwAction.ctx && _pwAction.ctx.onboarding);
   plansForCards.forEach(function(p){
     if(plan !== p.id) return;
+    if(onboarding && p.id === "free"){
+      var fb = document.getElementById("paywall-btn-free");
+      if(fb){ fb.textContent = "Continue with Free"; fb.setAttribute("data-label", "Continue with Free"); }
+      return;
+    }
     var btn = document.getElementById("paywall-btn-" + p.id);
     if(!btn) return;
     btn.textContent = "Current Plan";
@@ -138,7 +147,7 @@ function _pwRenderActionFit(ctx){
     el.innerHTML = '<span class="pw-fit-ic" aria-hidden="true">' + (fit.ok ? "✓" : "–") + '</span><span>' + fit.text + '</span>';
     var anchor = card.querySelector(".pw-credits-inline");
     if(anchor && anchor.nextSibling) card.insertBefore(el, anchor.nextSibling); else card.appendChild(el);
-    if(p.id === "free" && btn && !btn.disabled){ btn.textContent = "Stay on Free"; btn.setAttribute("data-label", "Stay on Free"); }
+    if(p.id === "free" && btn && !btn.disabled && !ctx.onboarding){ btn.textContent = "Stay on Free"; btn.setAttribute("data-label", "Stay on Free"); }
   });
   if(firstFit){
     var line = firstFit.querySelector(".pw-fit-yes");
@@ -168,12 +177,114 @@ function openActionPaywall(ctx){
 }
 window.openActionPaywall = openActionPaywall;
 
+// ════════════════════════════════════════════════════════════════
+// ONBOARDING PLAN STEP — the same modal, opened from the welcome modal
+// (onboarding.js) after a new Free account picks what to do first. Free is
+// selectable; paid plans use the normal Stripe checkout (selectPlan). For
+// Create/Research each card also says whether it covers that action, from
+// the same plan config as the action paywall. "Back" returns to the welcome.
+//   goal: 'create' | 'research' | 'explore'
+// ════════════════════════════════════════════════════════════════
+var _PW_ONBOARDING_COPY = {
+  create:   { eyebrow: "Your first ad",   title: "Choose how you’d like to start.", sub: "Start on Free or pick a plan for more credits and ad images. You can change your plan anytime in Settings." },
+  research: { eyebrow: "Research",        title: "Choose how you’d like to start.", sub: "Research is included from " + (typeof ORIVEN_PLANS !== "undefined" ? ORIVEN_PLANS.starter.name : "Starter") + ". You can also start on Free and upgrade whenever you need it." },
+  explore:  { eyebrow: "Your workspace",  title: "Choose how you’d like to start.", sub: "Start on Free and look around, or pick a plan now. You can change your plan anytime in Settings." }
+};
+
+function openOnboardingPlans(goal){
+  var modal = document.getElementById("modal-paywall");
+  if(!modal || !_PW_ONBOARDING_COPY[goal]) return false;
+  var titleEl = modal.querySelector(".pw-title");
+  var subEl   = modal.querySelector(".pw-sub");
+  var eyeEl   = modal.querySelector(".pw-eyebrow span");
+  var skipEl  = modal.querySelector(".pw-skip-btn");
+  if(!_pwAction){
+    _pwAction = { title: titleEl && titleEl.innerHTML, sub: subEl && subEl.textContent, eyebrow: eyeEl && eyeEl.textContent, skip: skipEl && skipEl.textContent };
+  }
+  _pwAction.ctx = { onboarding: goal, action: goal === "explore" ? null : goal };
+  var copy = _PW_ONBOARDING_COPY[goal];
+  if(titleEl) titleEl.textContent = copy.title;
+  if(subEl)   subEl.textContent = copy.sub;
+  if(eyeEl)   eyeEl.textContent = copy.eyebrow;
+  if(skipEl)  skipEl.textContent = "Back";
+  _pwAction.setTitle = titleEl && titleEl.innerHTML;
+  modal.classList.add("pw-onboarding");
+  _renderPaywallCards();
+  if(_pwAction.ctx.action) _pwRenderActionFit(_pwAction.ctx);
+  // No paywall_shown event here: lifecycle emails read it as a blocked
+  // action. onboarding_goal_selected + plan_selected cover this step.
+  if(typeof openModal === "function") openModal("modal-paywall");
+  return true;
+}
+window.openOnboardingPlans = openOnboardingPlans;
+window.endOnboardingPlans = function(){ _pwEndAction(); };
+
+// ════════════════════════════════════════════════════════════════
+// KEYBOARD — however the plan modal opens (openPaywall, action, onboarding,
+// limit, free): focus moves to the first plan button, Tab stays inside the
+// modal, Esc closes it (except the hard paywall, which closePaywall() and
+// app.js already keep open), and focus returns to where it was.
+// ════════════════════════════════════════════════════════════════
+(function(){
+  var _pwReturnFocus = null;
+  function modal(){ return document.getElementById("modal-paywall"); }
+  function isOpen(m){ return !!m && m.classList.contains("open"); }
+  function focusables(m){
+    return Array.prototype.slice.call(m.querySelectorAll("button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex='-1'])"))
+      .filter(function(el){ return el.offsetParent !== null; });
+  }
+  function watch(){
+    var m = modal();
+    if(!m || typeof MutationObserver === "undefined") return;
+    var wasOpen = isOpen(m);
+    new MutationObserver(function(){
+      var open = isOpen(m);
+      if(open === wasOpen) return;
+      wasOpen = open;
+      if(open){
+        var a = document.activeElement;
+        _pwReturnFocus = (a && a !== document.body && !m.contains(a)) ? a : null;
+        setTimeout(function(){
+          if(!isOpen(m) || m.contains(document.activeElement)) return;
+          var first = m.querySelector("#pwPlanGrid .pw-btn:not([disabled])") || m.querySelector(".pw-close-btn");
+          if(first) first.focus();
+        }, 80);
+      } else {
+        var r = _pwReturnFocus; _pwReturnFocus = null;
+        // Only if nothing else (e.g. the welcome modal) has taken focus meanwhile.
+        setTimeout(function(){
+          if(r && r.isConnected && r.offsetParent !== null && (!document.activeElement || document.activeElement === document.body || m.contains(document.activeElement))){
+            try { r.focus(); } catch(_){}
+          }
+        }, 120);
+      }
+    }).observe(m, { attributes: true, attributeFilter: ["class"] });
+    document.addEventListener("keydown", function(e){
+      if(!isOpen(m)) return;
+      if(e.key === "Escape"){
+        if(m.classList.contains("pw-hard")) return;
+        e.preventDefault();
+        if(typeof closePaywall === "function") closePaywall(); else m.classList.remove("open");
+        return;
+      }
+      if(e.key !== "Tab") return;
+      var items = focusables(m);
+      if(!items.length) return;
+      var i = items.indexOf(document.activeElement);
+      e.preventDefault();
+      items[e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : (i === -1 || i === items.length - 1 ? 0 : i + 1)].focus();
+    }, true);
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", watch); else watch();
+})();
+
 // Restores the modal's own copy — unless another caller has already set
 // its own title (openLimitReached / openFreePaywall set theirs first).
 function _pwEndAction(){
   if(!_pwAction) return;
   var modal = document.getElementById("modal-paywall");
   if(modal){
+    modal.classList.remove("pw-onboarding");
     var titleEl = modal.querySelector(".pw-title");
     if(titleEl && titleEl.innerHTML === _pwAction.setTitle){
       titleEl.innerHTML = _pwAction.title;
