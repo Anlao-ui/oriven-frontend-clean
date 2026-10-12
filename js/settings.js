@@ -367,7 +367,13 @@ async function sendPasswordReset(){
     var res = await SB.auth.getSession();
     var session = res && res.data && res.data.session;
     if(!session || !session.user){ toast("Not signed in", "warn"); return; }
-    await SB.auth.resetPasswordForEmail(session.user.email, { redirectTo: window.location.origin + '/app' });
+    var sent = await SB.auth.resetPasswordForEmail(session.user.email, { redirectTo: window.location.origin + '/app' });
+    var err = sent && sent.error;
+    if(err){
+      toast(err.status === 429 || /rate limit|too many|only request this after/i.test(String(err.message || ""))
+        ? "Too many reset requests. Please wait a few minutes, then try again." : "Could not send reset email — try again", "err");
+      return;
+    }
     toast("Password reset email sent");
   } catch(err){
     toast("Could not send reset email — try again", "err");
@@ -1041,9 +1047,9 @@ var LANG_STRINGS = {
     obPaywallTitle:"Ready to Publish",
     obPaywallSub:"You've built your first campaign with Oriven. Choose a plan to publish it to your connected ad account.",
     obPaywallEyebrow:"Your First Campaign Is Ready",
-    smdRestartObTitle:"Restart Onboarding",
-    smdRestartObHelp:"Replay the guided product tour from the beginning. Useful for demos or a refresher.",
-    smdRestartObBtn:"Restart Onboarding",
+    smdRestartObTitle:"Product tour",
+    smdRestartObHelp:"Walk through the six parts of OrivenAI again: Control Center, Research, Create, Launch, Campaigns and Autopilot. Nothing in your account changes.",
+    smdRestartObBtn:"Take a product tour",
     notifMarkAllRead:"Mark all read", notifClearInbox:"Clear inbox",
     notifClearConfirm:"Clear all notifications? This cannot be undone.",
     notifDeleteBtn:"Delete notification", notifInboxCleared:"Inbox cleared",
@@ -1378,9 +1384,9 @@ var LANG_STRINGS = {
     smdHelpSecHelp:"Changez votre mot de passe directement (mot de passe actuel requis), ou envoyez-vous un lien de réinitialisation par e-mail.",
     smdHelpBizHelp:"Gérez les détails de votre entreprise, la voix de marque, les audiences et les comptes publicitaires connectés depuis le Control Center — distinct des Paramètres personnels, car il peut être partagé entre coéquipiers.",
     smdHelpApHelp:"Règles d'automatisation qui agissent sur vos campagnes sans intervention manuelle. Les recommandations nécessitant votre validation apparaissent comme des notifications d'approbation Autopilot, contrôlées dans l'onglet Notifications.",
-    smdRestartObTitle:"Relancer la visite guidée",
-    smdRestartObHelp:"Revoir la visite guidée depuis le début. Utile pour une démonstration ou une piqûre de rappel.",
-    smdRestartObBtn:"Relancer la visite guidée",
+    smdRestartObTitle:"Visite du produit",
+    smdRestartObHelp:"Revoir les six parties d’OrivenAI : Control Center, Research, Create, Launch, Campaigns et Autopilot. Rien ne change dans votre compte.",
+    smdRestartObBtn:"Faire la visite du produit",
     helpTitle:"Aide", helpSub:"Ce que fait chaque section des Paramètres.",
     builderResultLabel:"Résultat", regenerateBtn:"Régénérer", saveToStudioBtn:"Enregistrer dans Studio",
     notifMarkAllRead:"Tout marquer comme lu", notifClearInbox:"Vider la boîte de réception",
@@ -1728,9 +1734,9 @@ var LANG_STRINGS = {
     smdHelpSecHelp:"Wijzig je wachtwoord direct (huidig wachtwoord vereist), of stuur jezelf een reset-link per e-mail.",
     smdHelpBizHelp:"Beheer je bedrijfsgegevens, merkstem, doelgroepen en verbonden advertentieaccounts vanuit het Control Center — los van persoonlijke Instellingen, omdat deze met teamgenoten kan worden gedeeld.",
     smdHelpApHelp:"Automatiseringsregels die zonder handmatige tussenkomst op je campagnes inwerken. Aanbevelingen die jouw goedkeuring nodig hebben, verschijnen als Autopilot-goedkeuringsmeldingen, beheerd in het tabblad Notificaties.",
-    smdRestartObTitle:"Rondleiding opnieuw starten",
-    smdRestartObHelp:"Speel de rondleiding opnieuw af vanaf het begin. Handig voor demo's of een opfrisser.",
-    smdRestartObBtn:"Rondleiding opnieuw starten",
+    smdRestartObTitle:"Producttour",
+    smdRestartObHelp:"Loop opnieuw door de zes onderdelen van OrivenAI: Control Center, Research, Create, Launch, Campaigns en Autopilot. Er verandert niets in je account.",
+    smdRestartObBtn:"Productrondleiding starten",
     helpTitle:"Help", helpSub:"Wat elk instellingenonderdeel doet.",
     builderResultLabel:"Resultaat", regenerateBtn:"Opnieuw genereren", saveToStudioBtn:"Opslaan in Studio",
     notifMarkAllRead:"Alles als gelezen markeren", notifClearInbox:"Postvak legen",
@@ -2034,9 +2040,9 @@ var LANG_STRINGS = {
     smdHelpSecHelp:"Cambia tu contraseña directamente (se requiere la contraseña actual), o envíate un enlace de restablecimiento por correo.",
     smdHelpBizHelp:"Gestiona los datos de tu negocio, voz de marca, audiencias y cuentas publicitarias conectadas desde el Control Center — independiente de los Ajustes personales, ya que puede compartirse con compañeros de equipo.",
     smdHelpApHelp:"Reglas de automatización que actúan sobre tus campañas sin intervención manual. Las recomendaciones que necesitan tu aprobación aparecen como notificaciones de aprobación de Autopilot, controladas en la pestaña Notificaciones.",
-    smdRestartObTitle:"Reiniciar la incorporación",
-    smdRestartObHelp:"Vuelve a ver la visita guiada desde el principio. Útil para demostraciones o como recordatorio.",
-    smdRestartObBtn:"Reiniciar la incorporación",
+    smdRestartObTitle:"Recorrido por el producto",
+    smdRestartObHelp:"Vuelve a recorrer las seis partes de OrivenAI: Control Center, Research, Create, Launch, Campaigns y Autopilot. Nada cambia en tu cuenta.",
+    smdRestartObBtn:"Hacer el recorrido",
     helpTitle:"Ayuda", helpSub:"Qué hace cada sección de Ajustes.",
     builderResultLabel:"Resultado", regenerateBtn:"Regenerar", saveToStudioBtn:"Guardar en Studio",
     notifMarkAllRead:"Marcar todo como leído", notifClearInbox:"Vaciar bandeja de entrada",
@@ -2340,9 +2346,9 @@ var LANG_STRINGS = {
     smdHelpSecHelp:"Altere sua senha diretamente (senha atual necessária) ou envie um link de redefinição por e-mail.",
     smdHelpBizHelp:"Gerencie os detalhes do seu negócio, voz da marca, públicos e contas de anúncios conectadas a partir do Control Center — separado das Configurações pessoais, já que pode ser compartilhado entre a equipe.",
     smdHelpApHelp:"Regras de automação que agem em suas campanhas sem intervenção manual. Recomendações que precisam da sua aprovação aparecem como notificações de aprovação do Autopilot, controladas na aba Notificações.",
-    smdRestartObTitle:"Reiniciar integração",
-    smdRestartObHelp:"Reveja o tour guiado desde o início. Útil para demonstrações ou uma revisão rápida.",
-    smdRestartObBtn:"Reiniciar integração",
+    smdRestartObTitle:"Tour do produto",
+    smdRestartObHelp:"Percorra de novo as seis partes do OrivenAI: Control Center, Research, Create, Launch, Campaigns e Autopilot. Nada muda na sua conta.",
+    smdRestartObBtn:"Fazer o tour do produto",
     helpTitle:"Ajuda", helpSub:"O que cada seção de Configurações faz.",
     builderResultLabel:"Resultado", regenerateBtn:"Regenerar", saveToStudioBtn:"Salvar no Studio",
     notifMarkAllRead:"Marcar tudo como lido", notifClearInbox:"Limpar caixa de entrada",
@@ -2646,9 +2652,9 @@ var LANG_STRINGS = {
     smdHelpSecHelp:"Ändere dein Passwort direkt (aktuelles Passwort erforderlich) oder sende dir einen Zurücksetzungslink per E-Mail.",
     smdHelpBizHelp:"Verwalte deine Unternehmensdetails, Markenstimme, Zielgruppen und verbundenen Werbekonten über das Control Center — getrennt von den persönlichen Einstellungen, da er mit Teammitgliedern geteilt werden kann.",
     smdHelpApHelp:"Automatisierungsregeln, die ohne manuelles Eingreifen auf deine Kampagnen wirken. Empfehlungen, die deine Freigabe benötigen, erscheinen als Autopilot-Genehmigungsbenachrichtigungen, gesteuert im Tab Benachrichtigungen.",
-    smdRestartObTitle:"Einführung neu starten",
-    smdRestartObHelp:"Die geführte Produkttour von vorne abspielen. Nützlich für Demos oder eine Auffrischung.",
-    smdRestartObBtn:"Einführung neu starten",
+    smdRestartObTitle:"Produkttour",
+    smdRestartObHelp:"Die sechs Bereiche von OrivenAI noch einmal durchgehen: Control Center, Research, Create, Launch, Campaigns und Autopilot. An deinem Konto ändert sich nichts.",
+    smdRestartObBtn:"Produkttour starten",
     helpTitle:"Hilfe", helpSub:"Was jeder Einstellungsbereich bewirkt.",
     builderResultLabel:"Ergebnis", regenerateBtn:"Neu generieren", saveToStudioBtn:"In Studio speichern",
     notifMarkAllRead:"Alle als gelesen markieren", notifClearInbox:"Posteingang leeren",

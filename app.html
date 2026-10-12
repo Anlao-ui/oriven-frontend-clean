@@ -22,6 +22,8 @@
 <link rel="stylesheet" href="css/orivenWorkspace.css">
 <link rel="stylesheet" href="css/orivenFlow.css">
 <link rel="stylesheet" href="css/orivenOps.css">
+<link rel="stylesheet" href="css/create-fit.css">
+<link rel="stylesheet" href="css/tour.css">
 
 
 
@@ -7175,9 +7177,9 @@
             <div class="smd-field-help" data-i18n="smdHelpApHelp">Automation rules that act on your campaigns without manual intervention. Recommendations that need your sign-off appear as Autopilot Approvals notifications, controlled in the Notifications tab.</div>
           </div>
           <div class="smd-section">
-            <div class="smd-field-lbl" data-i18n="smdRestartObTitle">Restart Onboarding</div>
-            <div class="smd-field-help" data-i18n="smdRestartObHelp">Replay the guided product tour from the beginning. Useful for demos or a refresher.</div>
-            <button class="btn btn-g btn-sm" style="margin-top:12px" onclick="restartOnboarding()" data-i18n="smdRestartObBtn">Restart Onboarding</button>
+            <div class="smd-field-lbl" data-i18n="smdRestartObTitle">Product tour</div>
+            <div class="smd-field-help" data-i18n="smdRestartObHelp">Walk through the six parts of OrivenAI again: Control Center, Research, Create, Launch, Campaigns and Autopilot. Nothing in your account changes.</div>
+            <button class="btn btn-g btn-sm" style="margin-top:12px" onclick="restartOnboarding()" data-i18n="smdRestartObBtn">Take a product tour</button>
           </div>
           <div class="smd-section">
             <div class="smd-field-lbl">Contact OrivenAI</div>
@@ -7619,38 +7621,9 @@
   </div>
 </div>
 
-<!-- ONBOARDING — welcome modal for new accounts (js/onboarding.js), shown
-     over the real dashboard. Two outcomes: "Create Your First Ad" opens
-     Create (the first image ad is free, then the plan step), "Explore
-     OrivenAI" goes through the plan step first. Free is always selectable.
-     Who sees it, and which step comes next, is decided server-side. -->
-<div class="ob2-overlay" id="ob2Overlay" style="display:none">
-  <div class="ob4-modal" role="dialog" aria-modal="true" aria-labelledby="ob3Title" aria-describedby="ob3Q">
-    <!-- The official logo: the same asset and treatment as the sidebar (.orv-sb-logo-img). -->
-    <img src="assets/orivenlogo.png" alt="OrivenAI" class="ob4-logo" width="56" height="56">
-    <h1 class="ob4-h1" id="ob3Title" tabindex="-1">Welcome to OrivenAI</h1>
-    <p class="ob4-sub" id="ob3Q">What would you like to do first?</p>
-    <div class="ob3-choices" role="group" aria-labelledby="ob3Q">
-      <button type="button" class="ob3-choice" data-ob3-goal="create" onclick="ob3Choose('create')">
-        <span class="ob3-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 15l4.6-4.6a1.5 1.5 0 0 1 2.1 0L15 15.2"/><path d="M13.5 13.7l1.6-1.6a1.5 1.5 0 0 1 2.1 0l3.3 3.3"/><circle cx="15.8" cy="8.6" r="1.4"/></svg></span>
-        <span class="ob3-txt">
-          <span class="ob3-name">Create Your First Ad</span>
-          <span class="ob3-desc">Create your first AI-powered advertisement.</span>
-        </span>
-        <span class="ob3-cta" aria-hidden="true"><span class="ob3-cta-label">Start creating</span> <span class="ob3-go">&rarr;</span></span>
-      </button>
-      <button type="button" class="ob3-choice" data-ob3-goal="explore" onclick="ob3Choose('explore')">
-        <span class="ob3-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M15.4 8.6l-2 4.8-4.8 2 2-4.8z"/></svg></span>
-        <span class="ob3-txt">
-          <span class="ob3-name">Explore OrivenAI</span>
-          <span class="ob3-desc">Discover your AI marketing workspace.</span>
-        </span>
-        <span class="ob3-cta" aria-hidden="true"><span class="ob3-cta-label">Explore</span> <span class="ob3-go">&rarr;</span></span>
-      </button>
-    </div>
-    <p class="ob2-err" id="ob3Err" role="status" hidden></p>
-  </div>
-</div>
+<!-- ONBOARDING — the first-run "Discover OrivenAI" tour is built by
+     js/tour.js (css/tour.css) over the real app; js/onboarding.js decides
+     who sees it and saves the outcome. -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="js/supabase.js"></script>
@@ -7666,6 +7639,8 @@
 <script src="js/ads.js"></script>
 <script src="js/usage.js"></script>
 <script src="js/paywall.js"></script>
+<script src="js/orivenRing.js"></script>
+<script src="js/tour.js"></script>
 <script src="js/onboarding.js"></script>
 <script src="js/videoads.js"></script>
 <script src="js/productshoots.js"></script>

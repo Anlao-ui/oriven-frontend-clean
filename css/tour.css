@@ -1,0 +1,177 @@
+/* ════════════════════════════════════════════════════════════════
+   Discover OrivenAI — first-run product tour (js/tour.js).
+   The O is js/orivenRing.js (the landing page's six-part mark).
+
+   One root, four layers:
+     .ot-scrim  dark veil (welcome / completion); blocks the app while
+                the tour runs, so nothing on the page can be triggered
+     .ot-focus  spotlight frame around the current page's main area; its
+                outer shadow dims everything else
+     .ot-shell  the panel's surface — animated between layouts (welcome
+                card → bottom dock → completion card)
+     .ot-panel  the panel's content, positioned to the same box
+   Near-black in both app themes, like the landing's system section.
+   ════════════════════════════════════════════════════════════════ */
+.ot-root{
+  --ot-bg:#0b0c0a; --ot-raise:#141611; --ot-line:rgba(255,255,255,.09); --ot-line-2:rgba(255,255,255,.16);
+  --ot-ink:#f3f4ef; --ot-ink-2:rgba(243,244,239,.74); --ot-muted:rgba(243,244,239,.52);
+  --ot-lime:#B6FF3B; --ot-lime-ink:#0a0b08;
+  --ot-ease:cubic-bezier(.22,1,.36,1); --ot-ease-in:cubic-bezier(.55,0,.75,.3); --ot-spring:cubic-bezier(.34,1.36,.64,1);
+  --ot-morph:620ms;
+  position:fixed; inset:0; z-index:9800; font-family:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  -webkit-font-smoothing:antialiased; color:var(--ot-ink);
+}
+.ot-root[hidden]{display:none}
+
+.ot-scrim{position:absolute; inset:0; background:rgba(4,5,3,.6); opacity:0; transition:opacity 480ms var(--ot-ease)}
+.ot-root.is-in .ot-scrim{opacity:1}
+.ot-root[data-mode="dock"] .ot-scrim{opacity:0}
+.ot-root[data-mode="done"].is-in .ot-scrim{opacity:1}
+.ot-root.is-out .ot-scrim{opacity:0}
+
+.ot-focus{
+  position:fixed; left:0; top:0; width:100vw; height:100vh; border-radius:20px; pointer-events:none; opacity:0;
+  box-shadow:0 0 0 1px rgba(182,255,59,.28), 0 0 0 6px rgba(182,255,59,.05), 0 0 0 200vmax rgba(4,5,3,.5);
+  transition:left 680ms var(--ot-ease), top 680ms var(--ot-ease), width 680ms var(--ot-ease), height 680ms var(--ot-ease), opacity 360ms var(--ot-ease);
+}
+.ot-root[data-mode="dock"] .ot-focus.is-on{opacity:1}
+
+.ot-shell{
+  position:fixed; left:0; top:0; width:0; height:0; border-radius:24px; background:var(--ot-bg);
+  border:1px solid var(--ot-line);
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 24px 60px -18px rgba(0,0,0,.7), 0 8px 18px -10px rgba(0,0,0,.5);
+  opacity:0; transform:translateY(14px) scale(.965); transform-origin:50% 60%;
+  transition:opacity 420ms var(--ot-ease), transform 560ms var(--ot-ease);
+}
+.ot-root.is-in .ot-shell{opacity:1; transform:none}
+.ot-root.is-out .ot-shell{opacity:0; transform:translateY(10px) scale(.97); transition-duration:260ms; transition-timing-function:var(--ot-ease-in)}
+
+.ot-panel{position:fixed; left:0; top:0; box-sizing:border-box; outline:none; opacity:0; transition:opacity 380ms var(--ot-ease) 90ms}
+.ot-root.is-in .ot-panel{opacity:1}
+.ot-root.is-out .ot-panel{opacity:0; transition:opacity 180ms var(--ot-ease-in)}
+
+/* ── content ───────────────────────────────────────────────────── */
+.ot-body{display:grid; gap:0}
+.ot-copy,.ot-actions{transition:opacity 260ms var(--ot-ease)}
+/* Layout change (welcome → dock → completion): text and buttons step out, the O stays. */
+.ot-body.is-swapping .ot-copy,.ot-body.is-swapping .ot-actions{opacity:0; transition-duration:150ms; transition-timing-function:var(--ot-ease-in)}
+.ot-ring-slot{display:flex; justify-content:center}
+.ot-ring{position:relative; width:var(--ot-ring-w,116px); aspect-ratio:534/585; transform-origin:0 0; will-change:transform}
+.ot-ring .orv-ring{display:block; width:100%; height:100%; overflow:visible}
+.ot-copy{min-width:0}
+.ot-eyebrow{display:flex; align-items:center; gap:10px; font-size:11px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--ot-lime); font-variant-numeric:tabular-nums}
+.ot-eyebrow i{width:22px; height:1px; background:rgba(255,255,255,.22)}
+.ot-eyebrow .ot-of{color:var(--ot-muted)}
+.ot-title{margin:10px 0 0; font-size:30px; line-height:1.14; font-weight:600; letter-spacing:-.035em; color:var(--ot-ink); text-wrap:balance}
+.ot-desc{margin:12px 0 0; font-size:15px; line-height:1.6; color:var(--ot-ink-2); text-wrap:pretty; max-width:44ch}
+/* Masked line reveal: text rises out of / into an overflow:hidden line. */
+.ot-mask{display:block; overflow:hidden; padding-bottom:.08em; margin-bottom:-.08em}
+.ot-line{display:block; transform:translateY(0); transition:transform 520ms var(--ot-ease), opacity 360ms var(--ot-ease)}
+.ot-copy.is-leaving .ot-line{transform:translateY(-104%); opacity:0; transition-duration:220ms; transition-timing-function:var(--ot-ease-in)}
+.ot-copy.is-entering .ot-line{transform:translateY(104%); opacity:0; transition:none}
+.ot-copy.is-back.is-leaving .ot-line{transform:translateY(104%)}
+.ot-copy.is-back.is-entering .ot-line{transform:translateY(-104%)}
+.ot-desc{transition:opacity 420ms var(--ot-ease) 80ms, transform 520ms var(--ot-ease) 80ms}
+.ot-copy.is-leaving .ot-desc{opacity:0; transform:translateY(-4px); transition-delay:0ms; transition-duration:200ms}
+.ot-copy.is-entering .ot-desc{opacity:0; transform:translateY(8px); transition:none}
+
+.ot-actions{display:flex; align-items:center; gap:10px}
+.ot-btn{
+  -webkit-appearance:none; appearance:none; border:0; cursor:pointer; font:600 14px/1 'Geist',system-ui,sans-serif; letter-spacing:-.005em;
+  min-height:44px; padding:0 20px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; gap:10px; white-space:nowrap;
+  transition:background-color 200ms var(--ot-ease), color 200ms var(--ot-ease), border-color 200ms var(--ot-ease), transform 200ms var(--ot-ease), box-shadow 200ms var(--ot-ease);
+}
+.ot-btn:focus-visible,.ot-skip:focus-visible{outline:2px solid rgba(243,244,239,.82); outline-offset:3px}
+.ot-btn:active{transform:scale(.97)}
+.ot-next{background:var(--ot-lime); color:var(--ot-lime-ink); box-shadow:0 1px 0 rgba(255,255,255,.35) inset}
+.ot-next:hover{background:#c4ff5e}
+.ot-arrow{display:inline-block; transition:transform 260ms var(--ot-spring)}
+.ot-next:hover .ot-arrow{transform:translateX(3px)}
+.ot-alt{background:transparent; color:var(--ot-ink-2); border:1px solid var(--ot-line-2)}
+.ot-alt:hover{color:var(--ot-ink); border-color:rgba(255,255,255,.3); background:rgba(255,255,255,.04)}
+.ot-alt:hover .ot-arrow{transform:translateX(-3px)}
+.ot-alt[hidden]{display:none}
+.ot-alt.is-quiet{border-color:transparent; padding:0 14px}
+.ot-alt.is-quiet:hover{background:rgba(255,255,255,.05); border-color:transparent}
+.ot-skip{
+  position:absolute; top:12px; right:12px; -webkit-appearance:none; appearance:none; border:0; background:none; cursor:pointer;
+  font:500 12.5px 'Geist',system-ui,sans-serif; color:var(--ot-muted); padding:8px 10px; min-height:32px; border-radius:8px;
+  transition:color 180ms var(--ot-ease), background-color 180ms var(--ot-ease);
+}
+.ot-skip:hover{color:var(--ot-ink); background:rgba(255,255,255,.05)}
+.ot-skip[hidden]{display:none}
+.ot-sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; margin:-1px}
+
+/* ── welcome + completion: centred card ────────────────────────── */
+.ot-root[data-mode="welcome"] .ot-panel,.ot-root[data-mode="done"] .ot-panel{padding:40px 40px 32px; text-align:center}
+.ot-root[data-mode="welcome"] .ot-body,.ot-root[data-mode="done"] .ot-body{justify-items:center}
+.ot-root[data-mode="welcome"] .ot-ring-slot{margin:28px 0 30px}
+.ot-root[data-mode="done"] .ot-ring-slot{margin:0 0 28px}
+.ot-root[data-mode="welcome"] .ot-eyebrow,.ot-root[data-mode="done"] .ot-eyebrow{justify-content:center}
+.ot-root[data-mode="welcome"] .ot-desc,.ot-root[data-mode="done"] .ot-desc{margin-left:auto; margin-right:auto}
+.ot-root[data-mode="welcome"] .ot-ring{--ot-ring-w:108px}
+.ot-root[data-mode="done"] .ot-ring{--ot-ring-w:150px}
+.ot-root[data-mode="welcome"] .ot-actions,.ot-root[data-mode="done"] .ot-actions{justify-content:center; margin-top:4px}
+.ot-root[data-mode="welcome"] .ot-actions{flex-direction:row-reverse}
+.ot-root[data-mode="welcome"] .ot-skip,.ot-root[data-mode="done"] .ot-skip{display:none}
+.ot-root[data-mode="welcome"] .ot-ring-slot{order:3}
+.ot-root[data-mode="done"] .ot-actions{margin-top:28px}
+.ot-root[data-mode="welcome"] .ot-actions{order:4}
+.ot-root[data-mode="done"] .ot-ring-slot{order:-1}
+.ot-root[data-mode="welcome"] .ot-title{font-size:32px}
+.ot-root[data-mode="done"] .ot-title{font-size:32px}
+
+/* ── tour: compact dock near the bottom ────────────────────────── */
+.ot-root[data-mode="dock"] .ot-panel{padding:20px 22px 18px}
+.ot-root[data-mode="dock"] .ot-body{grid-template-columns:auto 1fr; column-gap:20px; row-gap:16px; align-items:center}
+.ot-root[data-mode="dock"] .ot-ring{--ot-ring-w:58px}
+.ot-root[data-mode="dock"] .ot-ring-slot{grid-row:1; align-self:start; padding-top:2px}
+.ot-root[data-mode="dock"] .ot-copy{grid-row:1; padding-right:64px}
+.ot-root[data-mode="dock"] .ot-title{font-size:21px; margin-top:8px; letter-spacing:-.025em}
+.ot-root[data-mode="dock"] .ot-desc{font-size:14px; margin-top:6px; line-height:1.55}
+.ot-root[data-mode="dock"] .ot-actions{grid-column:1 / -1; justify-content:space-between; border-top:1px solid var(--ot-line); padding-top:14px}
+.ot-root[data-mode="dock"] .ot-btn{min-height:40px}
+
+/* ── the O ─────────────────────────────────────────────────────── */
+.ot-root .orv-ring-piece{
+  transform-box:fill-box; transform-origin:center;
+  transition:transform 760ms var(--ot-ease), fill 460ms var(--ot-ease), opacity 520ms var(--ot-ease);
+}
+/* Assembling from the scattered intro: staggered, like the landing story. */
+.ot-root .orv-ring[data-from="scattered"] .orv-ring-piece{transition-delay:calc(var(--i) * 45ms)}
+.ot-root .orv-ring-piece.is-active{transition:transform 640ms var(--ot-spring), fill 420ms var(--ot-ease), opacity 420ms var(--ot-ease)}
+/* Completion: the pieces light one after another, in workflow order. */
+.ot-root .orv-ring[data-state="complete"] .orv-ring-piece{transition-delay:calc(var(--i) * 70ms)}
+.ot-root .orv-ring.orv-ring-instant .orv-ring-piece{transition:none !important}
+
+/* ── small screens: bottom sheet ───────────────────────────────── */
+@media (max-width:640px){
+  .ot-root[data-mode="welcome"] .ot-panel,.ot-root[data-mode="done"] .ot-panel{padding:30px 22px 22px}
+  .ot-root[data-mode="welcome"] .ot-title,.ot-root[data-mode="done"] .ot-title{font-size:26px}
+  .ot-root[data-mode="welcome"] .ot-ring-slot{margin:22px 0 24px}
+  .ot-root[data-mode="welcome"] .ot-ring{--ot-ring-w:92px}
+  .ot-root[data-mode="done"] .ot-ring{--ot-ring-w:120px}
+  .ot-root[data-mode="welcome"] .ot-actions,.ot-root[data-mode="done"] .ot-actions{flex-direction:column; align-items:stretch; width:100%}
+  .ot-root[data-mode="welcome"] .ot-actions{flex-direction:column-reverse}
+  .ot-root[data-mode="welcome"] .ot-actions .ot-btn,.ot-root[data-mode="done"] .ot-actions .ot-btn{width:100%}
+  .ot-root[data-mode="dock"] .ot-panel{padding:16px 16px calc(14px + env(safe-area-inset-bottom,0px))}
+  .ot-root[data-mode="dock"] .ot-body{column-gap:14px; row-gap:12px}
+  .ot-root[data-mode="dock"] .ot-ring{--ot-ring-w:42px}
+  .ot-root[data-mode="dock"] .ot-copy{padding-right:56px}
+  .ot-root[data-mode="dock"] .ot-title{font-size:18px; margin-top:6px}
+  .ot-root[data-mode="dock"] .ot-desc{font-size:13.5px; margin-top:4px}
+  .ot-root[data-mode="dock"] .ot-actions{padding-top:12px}
+  .ot-root[data-mode="dock"] .ot-btn{flex:1 1 0; padding:0 14px}
+  .ot-skip{top:8px; right:8px}
+}
+
+/* ── reduced motion: crossfades only, nothing travels ───────────── */
+@media (prefers-reduced-motion:reduce){
+  .ot-root *, .ot-root .orv-ring-piece{transition-duration:1ms !important; transition-delay:0ms !important; animation:none !important}
+  .ot-shell,.ot-root.is-in .ot-shell{transform:none}
+  .ot-scrim,.ot-shell,.ot-panel,.ot-copy,.ot-actions,.ot-focus{transition:opacity 180ms linear !important}
+}
+@media (forced-colors:active){
+  .ot-shell{border:1px solid CanvasText}
+  .ot-focus{outline:2px solid Highlight}
+}

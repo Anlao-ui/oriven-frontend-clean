@@ -1,24 +1,24 @@
 /* ════════════════════════════════════════════════════════════════
    ORIVEN Onboarding — "start from the outcome"
 
-   One welcome modal for new accounts, over the real dashboard:
-     Welcome to OrivenAI → What would you like to do first?
-       Create Your First Ad → Create → build → the ad, with its image free
-                              (one-time welcome benefit) → plan step
-       Explore OrivenAI     → plan step → the dashboard
-   Research isn't offered: it (like Autopilot) is a Starter+ feature, and a
-   Free account's first experience shouldn't lead into a locked page.
+   New accounts are welcomed by the "Discover OrivenAI" product tour
+   (js/tour.js), over the real app:
+     welcome → six real pages (Control Center … Autopilot) → "You're ready
+     to create." → "Start using OrivenAI" → plan step → Control Center
+     "Skip tour" (any time) → saved as skipped, the user stays where they are
+   The tour itself saves nothing; it reports back here
+   (orvOnboardingTourDone / orvOnboardingTourSkipped).
 
    The plan step is the shared plan modal (paywall.js openOnboardingPlans):
    Free is always selectable, paid plans go through the normal Stripe
-   checkout. Before anything is made, "Back" returns to the welcome; after
-   the first ad there is no Back — the user picks a plan, Free included.
+   checkout. Closing it without a choice returns to the tour's last card.
    Accounts already on a paid plan skip it. No forced payment, and nothing
    here ever starts a paid action.
 
-   The first-ad path needs the free image (services/firstAd.js, server-side,
-   FREE_FIRST_AD_ENABLED). Without it, "Create Your First Ad" goes through
-   the plan step first, as before.
+   The first-ad path (stage 'first_ad' / 'choose_plan' below) belongs to
+   accounts that chose "Create Your First Ad" in the earlier welcome modal;
+   it still resumes for them. The free image itself is granted server-side
+   (services/firstAd.js, FREE_FIRST_AD_ENABLED) on any eligible build.
 
    Who sees it, and where an account is in the flow, is decided by the
    server (GET /api/onboarding/state → stage, services/onboarding.js):
@@ -56,7 +56,6 @@ window._orvObState = null;   // last GET /api/onboarding/state result
 var _ob3Busy = false;
 var _ob3PlanGoal = null;     // goal while the plan step is open ('first_ad' after the first ad)
 var _ob3BuildActive = false; // a Create build is running (its image may land before it's shown)
-var _ob3LastGoal = null;     // for focus when coming back from the plan step
 
 function _ob3El(id){ return document.getElementById(id); }
 function _ob3Uid(){ try { return (typeof _currentUser !== "undefined" && _currentUser && _currentUser.id) || null; } catch(_){ return null; } }
@@ -106,58 +105,33 @@ window.orvOnboardingGate = async function(){
   startOnboarding();
 };
 
-// ── Welcome screen ───────────────────────────────────────────────
-// opts.force: show regardless of eligibility (Settings → Restart, ?tour=1).
-// opts.back: returning from the plan step (no new "shown" event).
+// ── Welcome: the product tour ────────────────────────────────────
+// opts.force: show regardless of eligibility (Settings → "Take a product
+// tour", ?tour=1). opts.back: returning from the plan step (the tour's
+// completion card again, no new "shown" event).
 function startOnboarding(opts){
-  var overlay = _ob3El("ob2Overlay");
-  if(!overlay) return;
   _ob3Busy = false;
   _ob3PlanGoal = null;
   if(!(opts && opts.back)) _ob3Set("ob_intent", null); // stale Stripe intent from an earlier attempt
-  overlay.querySelectorAll(".ob3-choice").forEach(function(b){ b.disabled = false; });
-  var err = _ob3El("ob3Err"); if(err){ err.hidden = true; err.textContent = ""; }
-  window._ob2Active = true;
-  overlay.style.display = "flex";
-  requestAnimationFrame(function(){ overlay.classList.add("ob2-visible"); });
-  document.addEventListener("keydown", _ob3Keys, true);
-  var back = opts && opts.back && _ob3LastGoal && overlay.querySelector('.ob3-choice[data-ob3-goal="' + _ob3LastGoal + '"]');
-  var h = back || _ob3El("ob3Title");
-  setTimeout(function(){ if(h) h.focus(); }, 60);
-  if(!(opts && opts.back)) _ob3Track("onboarding_shown", { source: opts && opts.force ? "restart" : "signup" });
+  if(window.orvTour) window.orvTour.open(opts || {});
 }
 window.startOnboarding = startOnboarding;
 
-function _ob3Hide(){
-  var overlay = _ob3El("ob2Overlay");
-  window._ob2Active = false;
-  document.removeEventListener("keydown", _ob3Keys, true);
-  if(!overlay) return;
-  overlay.classList.remove("ob2-visible");
-  setTimeout(function(){ overlay.style.display = "none"; }, 200);
-}
+// The tour is a UI layer; it reports here. Nothing is saved before one of these.
+window._ob3TrackTour = function(kind, source){ if(kind === "shown") _ob3Track("onboarding_shown", { source: source }); };
+// "Start using OrivenAI": same as choosing Explore — the plan step for a Free
+// account (saved once a plan is chosen), straight to done for a paid one.
+window.orvOnboardingTourDone = function(){ window.ob3Choose("explore"); };
+// "Skip tour": saved as skipped; the user stays on the page they're on.
+window.orvOnboardingTourSkipped = function(){
+  if(_ob3PlanGoal) return;
+  _ob3Busy = true;
+  _ob3Set("ob_pending", "skip");
+  var st = window._orvObState; if(st){ st.eligible = false; st.stage = "done"; }
+  _ob3Persist(null);
+};
 
-// Focus stays inside the dialog; arrow keys move between the choices.
-function _ob3Keys(e){
-  var overlay = _ob3El("ob2Overlay");
-  if(!overlay || overlay.style.display === "none") return;
-  var items = Array.prototype.slice.call(overlay.querySelectorAll("button:not([disabled])"));
-  if(!items.length) return;
-  var i = items.indexOf(document.activeElement);
-  if(e.key === "Tab"){
-    e.preventDefault();
-    var n = e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : (i === -1 || i === items.length - 1 ? 0 : i + 1);
-    items[n].focus();
-  } else if(e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowLeft"){
-    var choices = Array.prototype.slice.call(overlay.querySelectorAll(".ob3-choice:not([disabled])"));
-    if(!choices.length) return;
-    var c = choices.indexOf(document.activeElement);
-    var fwd = e.key === "ArrowDown" || e.key === "ArrowRight";
-    var next = c === -1 ? 0 : (c + (fwd ? 1 : -1) + choices.length) % choices.length;
-    e.preventDefault();
-    choices[next].focus();
-  }
-}
+function _ob3Hide(){ window._ob2Active = false; }
 
 // goal: 'create' | 'research' | 'explore'. A Free account chooses a plan
 // first (the shared plan modal); an account already on a paid plan goes
@@ -165,7 +139,6 @@ function _ob3Keys(e){
 window.ob3Choose = function(goal){
   if(_ob3Busy || _ob3PlanGoal || !OB3_DEST[goal]) return;
   _ob3Track("onboarding_goal_selected", { goal: goal });
-  _ob3LastGoal = goal;
   if(_ob3Plan() !== "free" || typeof openOnboardingPlans !== "function"){ _ob3Finish(goal); return; }
   if(goal === "create" && _ob3FreeAdAvailable()){ _ob3StartFirstAd(); return; }
   _ob3PlanGoal = goal;

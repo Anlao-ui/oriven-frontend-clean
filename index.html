@@ -5425,11 +5425,21 @@ async function auForgotPassword(e){
   var link = document.getElementById('auForgotLink');
   if(link){ link.textContent = 'Sending…'; link.style.pointerEvents = 'none'; }
   try {
-    await SB.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/app' });
+    // Supabase answers the same way whether or not the address has an
+    // account, and so does this message (no account enumeration).
+    var res = await SB.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/app' });
+    var err = res && res.error;
+    if(err){
+      var m = String(err.message || '');
+      if(err.status === 429 || /rate limit|too many|only request this after/i.test(m)) _auSetError('auErrorLogin', 'Too many reset requests. Please wait a few minutes, then try again.');
+      else if(/invalid.*email|validate email/i.test(m)) _auSetError('auErrorLogin', 'Please enter a valid email address.');
+      else _auSetError('auErrorLogin', 'We couldn’t send the reset email right now. Please try again in a few minutes.');
+      return;
+    }
     var errEl = document.getElementById('auErrorLogin');
-    if(errEl){ errEl.textContent = 'Reset link sent. Check your inbox.'; errEl.style.display = 'block'; errEl.style.color = '#B7FF2A'; }
+    if(errEl){ errEl.textContent = 'If an OrivenAI account exists for this email, a reset link is on its way. Check your inbox and spam folder.'; errEl.style.display = 'block'; errEl.style.color = '#B7FF2A'; }
   } catch(_){
-    _auSetError('auErrorLogin', 'Could not send reset email. Please try again.');
+    _auSetError('auErrorLogin', 'We couldn’t send the reset email right now. Please try again in a few minutes.');
   } finally {
     if(link){ link.textContent = 'Forgot password?'; link.style.pointerEvents = ''; }
   }
@@ -5443,6 +5453,22 @@ async function auForgotPassword(e){
 if(window._pubView === 'login'){
   var devLink = document.getElementById('devOnboardingLink');
   if(ORIVEN_DEV && devLink) devLink.style.display = 'block';
+  _auShowLinkError();
+}
+
+// A password reset (or other account email) link that expired, was already
+// used or is invalid lands here (js/supabase.js) with ?link=expired|invalid.
+function _auShowLinkError(){
+  var kind = window._orvAuthLinkError || null;
+  try {
+    var u = new URL(window.location.href);
+    if(!kind) kind = u.searchParams.get('link');
+    if(u.searchParams.has('link')){ u.searchParams.delete('link'); history.replaceState(null, '', u.pathname + u.search); }
+  } catch(_){}
+  if(kind !== 'expired' && kind !== 'invalid') return;
+  _auSetError('auErrorLogin', kind === 'expired'
+    ? 'This link has expired or was already used. Enter your email and choose “Forgot password?” to get a new one.'
+    : 'This link isn’t valid. Enter your email and choose “Forgot password?” to get a new one.');
 }
 
 async function auLogin(){

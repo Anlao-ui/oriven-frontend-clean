@@ -1391,9 +1391,16 @@ body.orv-no-notif .smd-ni[data-smd="notifications"], body.orv-no-notif #smdp-not
 .orv-mob-drawer .orv-ni .orv-lock { position: static; width: auto; height: auto; padding: 2px 7px; margin-left: 8px; border-radius: 999px; box-shadow: none; font-size: 10.5px; }
 .orv-mob-drawer .orv-ni .orv-lock::after { content: 'Starter'; margin-left: 4px; font-weight: 600; letter-spacing: .01em; }
 /* In-page upgrade state (replaces the page's tools on Free). */
-.page.orv-gated > :not(.orv-gate) { display: none !important; }
+body:not(.orv-tour-preview) .page.orv-gated > :not(.orv-gate) { display: none !important; }
 .page.orv-gated { display: none; }
-.page.orv-gated.active { display: flex !important; flex-direction: column; justify-content: center; min-height: 100%; }
+body:not(.orv-tour-preview) .page.orv-gated.active { display: flex !important; flex-direction: column; justify-content: center; min-height: 100%; }
+/* Discover OrivenAI tour (js/tour.js): while the tour is open the page's real
+   interface is shown instead of the upgrade card — a look only. The app is
+   inert under the tour (no clicks, no keyboard focus) and the server checks
+   the plan on every Research / Autopilot request, so nothing becomes usable.
+   The class is removed the moment the tour closes. */
+body.orv-tour-preview .page.orv-gated > .orv-gate { display: none !important; }
+body.orv-tour-preview .page.orv-gated.active { display: block; }
 .orv-gate { width: 100%; padding: clamp(24px, 6vh, 72px) 16px; box-sizing: border-box; display: flex; justify-content: center; }
 .orv-gate-card { width: 100%; max-width: 560px; padding: 28px 28px 24px; border-radius: var(--orv-card-r, 16px); border: 1px solid rgba(255, 255, 255, .09); background: linear-gradient(160deg, rgba(182, 255, 59, .06), rgba(255, 255, 255, .015) 60%); color: #F2F2EE; }
 .orv-gate-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }

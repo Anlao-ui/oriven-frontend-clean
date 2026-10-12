@@ -288,7 +288,8 @@ function _apRenderSystemStatus() {
     pillEl.classList.add('ap-sys-off');
     lblEl.textContent = 'OFF';
     var unmonitoredOn = rules.some(function(r) { return r.enabled && !AP_MONITORED_PLATFORMS[r.platform]; });
-    subEl.textContent = unmonitoredOn ? 'Your active rules are on a platform Autopilot doesn’t monitor yet (only Google Ads and Meta Ads) — nothing is being evaluated.'
+    subEl.textContent = window._apNotOnPlan ? 'Autopilot is included from Starter — nothing is being evaluated on this plan.'
+      : unmonitoredOn ?'Your active rules are on a platform Autopilot doesn’t monitor yet (only Google Ads and Meta Ads) — nothing is being evaluated.'
       : (rules.length ? 'All automations are disabled — ORIVEN is not evaluating anything.' : 'No automations exist yet — nothing is being evaluated.');
   } else if (hasAuto) {
     pillEl.classList.add('ap-sys-auto');
@@ -767,8 +768,14 @@ function apActiveLoad() {
     // page exists to avoid. Routed through the same real-failure branch
     // the .catch() below already used for a network-level exception,
     // rather than defaulting to an empty array either way.
-    if (!res.ok) { throw new Error((res.data && res.data.error) || 'Request failed'); }
-    var items = (res.data && res.data.rules) || [];
+    // The plan doesn't include Autopilot (requireAutopilotAccess → 403): that
+    // is a real answer, not a failure — no automation runs on this plan. The
+    // page is normally behind its plan card then; this is what the Discover
+    // OrivenAI tour shows while it previews the page.
+    var noPlan = !res.ok && res.status === 403 && res.data && res.data.code === 'AUTOPILOT_NOT_AVAILABLE';
+    window._apNotOnPlan = noPlan;
+    if (!res.ok && !noPlan) { throw new Error((res.data && res.data.error) || 'Request failed'); }
+    var items = noPlan ? [] : ((res.data && res.data.rules) || []);
     window._apRules = items;
     if (section) section.style.display = '';
     var countEl = document.getElementById('apActiveCount');

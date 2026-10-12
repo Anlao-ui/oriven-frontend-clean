@@ -1,0 +1,101 @@
+/* ════════════════════════════════════════════════════════════════
+   Create — fits the screen it is on.
+
+   Loaded after the other stylesheets; scoped to #page-create. Nothing is
+   hidden, scaled or removed: spacing, control sizes and type step down as
+   the window gets shorter, so the brief, platform, goal, campaign settings
+   and Build Campaign stay on one screen on laptops.
+
+   Laptop windows are shorter than the screen: browser tabs and address bar
+   take ~110–150px, so a 1366×768 laptop gives the page ~625px, and 1920×1080
+   at 150% Windows scaling gives ~1280×580. Width alone doesn't say that,
+   so the tiers below key on height. Where the content still can't fit
+   (Meta with every section, very short windows) the composer scrolls and
+   Build Campaign stays pinned at its bottom — never clipped.
+
+   Tiers (two-column layouts, ≥1024px wide):
+     ≤ 860px tall  compact — tighter spacing, slightly smaller controls
+     ≤ 700px tall  tight   — smallest comfortable sizes
+   Plus: 1024–1180px wide keeps the composer and Creative Stage side by
+   side (125%-zoomed laptops are 1093–1152px wide; they used to stack and
+   push the Stage below the fold).
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 1024–1180px wide: side by side instead of stacked ───────────── */
+@media (min-width: 1024px) and (max-width: 1180px) {
+  #page-create .cr2-wrap { padding-left: 20px; padding-right: 20px; }
+  #page-create .cr2-workspace-row { flex-direction: row; gap: 16px; }
+  /* Row direction again: the stacked layout's flex:none/width:100% (which
+     guards against a height clip in column direction) doesn't apply. */
+  #page-create .cr2-workspace-row > .cr2-box { flex: 1 1 540px; max-width: 620px; width: auto; }
+  #page-create .cr2-stage { flex: 1 1 320px; min-width: 300px; width: auto; }
+  #page-create .cr2-stage-frame { aspect-ratio: auto; }
+  #page-create #aicInputWrap .cr2-goal-section .cr2-goal-card { padding: 10px 10px; }
+}
+
+/* Settings rows (Campaign type / Meta objective / Placements / Structure):
+   narrower label column and card minimum, so three options stay on one row
+   in a narrower composer. Same rows, same controls. */
+@media (min-width: 1024px) and (max-width: 1180px), (min-width: 1024px) and (max-height: 860px) {
+  #page-create #cr2AdvancedGroup .cr2-goal-section { grid-template-columns: 100px minmax(0, 1fr); gap: 6px 10px; margin-bottom: 6px; }
+  #page-create #cr2AdvancedGroup .cr2-goal-grid { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 6px; }
+  #page-create #cr2AdvancedGroup .cr2-goal-label { line-height: 1.3; }
+}
+
+/* ── Compact: laptop-height windows ──────────────────────────────── */
+@media (min-width: 1024px) and (max-height: 860px) {
+  #page-create .cr2-wrap { padding-top: 12px; gap: 6px; }
+  #page-create .cr2-hero { padding: 0; }
+  #page-create .cr2-h1 { font-size: 23px; line-height: 1.2; margin: 0 0 4px; }
+  #page-create .cr2-workspace-row { padding-top: 10px; gap: 18px; }
+
+  /* Brief: two lines to start (the placeholder's example fits); grows as
+     the user types (aicAutoResize). */
+  #page-create .cr2-ta { height: 66px; min-height: 66px; padding: 12px 18px 6px; font-size: 14.5px; line-height: 1.55; }
+  #page-create .cr2-box-foot { gap: 10px; padding: 9px 12px 10px; }
+
+  /* Platform pills + Image/Video on one line where the composer is wide enough. */
+  #page-create .cr2-foot-controls { gap: 6px; }
+  #page-create .cr2-pp { padding: 6px 11px; font-size: 12.5px; gap: 5px; }
+  #page-create .ov3-mode-seg .ov3-mode-btn { padding: 4px 11px; }
+
+  /* Goal cards keep their description, with less air around it. */
+  #page-create .cr2-goal-label { margin-bottom: 6px; }
+  #page-create .cr2-goal-grid { gap: 8px; }
+  /* (#aicInputWrap: matches orivenOps.css's own two-id rule for these cards.) */
+  #page-create #aicInputWrap .cr2-goal-section .cr2-goal-card { padding: 9px 10px 9px; row-gap: 2px; border-radius: 10px; }
+  #page-create .cr2-goal-desc { font-size: 10.5px; line-height: 1.35; }
+
+  #page-create .cr2-advanced-group { gap: 8px; }
+  #page-create .cr2-adv-subgroup { gap: 6px; }
+  #page-create .cr2-adv-subgroup + .cr2-adv-subgroup { margin-top: 10px; padding-top: 10px; }
+  #page-create .cr2-advanced-group .cr2-goal-card { padding: 7px 9px 7px; }
+
+  #page-create .cr2-gen-row { margin-top: 12px; padding-top: 8px; padding-bottom: 10px; }
+  #page-create .cr2-gen-btn { min-height: 36px; }
+
+  #page-create .cr2-stage { padding: 16px; gap: 10px; }
+  #page-create .cr2-stage-frame { max-height: 30vh; }
+}
+
+/* ── Tight: short windows (1366×768 and 1280×720 laptops, zoomed) ── */
+@media (min-width: 1024px) and (max-height: 700px) {
+  #page-create .cr2-wrap { padding-top: 8px; }
+  #page-create .cr2-h1 { font-size: 20px; margin-bottom: 2px; }
+  #page-create .cr2-workspace-row { padding-top: 8px; }
+  #page-create .cr2-ta { height: 58px; min-height: 58px; padding: 10px 16px 4px; font-size: 14px; }
+  #page-create .cr2-box-foot { gap: 8px; padding: 8px 12px 9px; }
+  #page-create #aicInputWrap .cr2-goal-section .cr2-goal-card { padding: 7px 9px; }
+  /* Long descriptions stop at two lines; the goal title carries the choice. */
+  #page-create .cr2-goal-desc { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  #page-create .cr2-adv-subgroup + .cr2-adv-subgroup { margin-top: 8px; padding-top: 8px; }
+  #page-create .cr2-gen-row { margin-top: 8px; padding-top: 7px; padding-bottom: 9px; }
+  #page-create .cr2-stage { padding: 14px; }
+  #page-create .cr2-stage-frame { max-height: 24vh; }
+}
+
+/* ── ≤1024px: clear the fixed menu button (#orvMobToggle, 56px, top-left) ──
+   The title used to sit under it on tablets and narrow laptop windows. */
+@media (min-width: 641px) and (max-width: 1024px) {
+  #page-create .cr2-wrap { padding-top: 68px; }
+}

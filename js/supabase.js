@@ -25,6 +25,23 @@ var API_BASE_URL = ORIVEN_DEV
   ? "http://localhost:5500"
   : "https://oriven-backand-clean.onrender.com";
 
+// ── Auth email links that didn't work (expired, already used, invalid) ──
+// Supabase sends the browser back with #error=…&error_code=… instead of a
+// session. Read it before the SDK sees the URL, remove it from the address
+// bar, and show the sign-in page with a plain explanation (index.html,
+// _auShowLinkError). Nothing from the link is logged or stored.
+(function(){
+  try {
+    var h = window.location.hash || "";
+    if(!/(^|[#&])error(_code|_description)?=/.test(h)) return;
+    var q = new URLSearchParams(h.replace(/^#/, ""));
+    var kind = q.get("error_code") === "otp_expired" ? "expired" : "invalid";
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    if(window.location.pathname !== "/login"){ window.location.replace("/login?link=" + kind); return; }
+    window._orvAuthLinkError = kind;
+  } catch(_){}
+})();
+
 var SB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 console.log("[Supabase] Client initialized →", SUPABASE_URL);

@@ -985,8 +985,8 @@ function _obSkip(){
   _obContext = "tour";
   hideOnboarding();
 }
-// Settings → Restart Onboarding: shows the welcome screen again. Display
-// only — the saved onboarding state is not reset.
+// Settings → "Take a product tour": runs the tour (js/tour.js) from the
+// start. Display only — the saved onboarding state is not reset.
 window.restartOnboarding = function(){
   if(!_currentUser) return;
   if(typeof closeModal === "function") closeModal("modal-settings");
