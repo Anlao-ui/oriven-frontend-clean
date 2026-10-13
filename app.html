@@ -7980,7 +7980,7 @@
       </button>
       <button class="gob-login" onclick="_guestOnboardLogin()">Log in</button>
     </div>
-    <p class="gob-note">No account required &middot; Free to start</p>
+    <p class="gob-note">Free plan &middot; No credit card needed</p>
   </div>
 </div>
 
@@ -27663,7 +27663,17 @@ window.rptExport = function(format) {
   function _pollCgrVideo(videoId, idx, ref, campId, pkg, onDone){
     if(!videoId){ _cgrVideoErr(idx, ref, 'No video ID returned'); onDone&&onDone(); return; }
     var apiBase = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
-    fetch(apiBase + '/api/ugc-video-status/' + encodeURIComponent(videoId))
+    // The status endpoint is per-account (sign-in + ownership of the job),
+    // so the poll sends the session token like the generate call above.
+    var tokenP;
+    try {
+      tokenP = (typeof SB !== 'undefined' && SB.auth && SB.auth.getSession)
+        ? SB.auth.getSession().then(function(s){ return (s&&s.data&&s.data.session&&s.data.session.access_token)||''; })
+        : Promise.resolve('');
+    } catch(_){ tokenP = Promise.resolve(''); }
+    tokenP.then(function(token){
+      return fetch(apiBase + '/api/ugc-video-status/' + encodeURIComponent(videoId), { headers: { 'Authorization': 'Bearer ' + token } });
+    })
     .then(function(r){ return r.json(); })
     .then(function(data){
       if(data.status === 'completed' && data.videoUrl){

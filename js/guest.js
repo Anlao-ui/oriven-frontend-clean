@@ -129,7 +129,15 @@ function _guestShowEntry(){
   });
 }
 
+// AI generation needs an account (the server refuses it without a session),
+// so "Try for free" goes to signup; a new Free account then gets its free
+// first ad. The guest generation steps below are kept but no longer reached.
+function _guestGoSignup(){
+  window.location.href = '/signup';
+}
+
 function _guestOnboardTryFree(){
+  return _guestGoSignup();
   var overlay = document.getElementById("guestOnboard");
   if(overlay){
     overlay.style.transition = "opacity 0.4s ease";
@@ -279,6 +287,7 @@ function _guestSetAdCount(n){
 // ── Generation (create page) ──────────────────────────────────
 
 async function _guestGenerate(){
+  if(_isGuestMode) return _guestGoSignup(); // no AI without an account
   if(_guestGenerating) return;
 
   var inputEl = document.getElementById("gcInput");
@@ -689,6 +698,7 @@ function _gbeChooseManual(){ if(typeof openModal === "function") openModal("moda
 function _gbeBack(){         _gbeShowState("choose"); }
 
 function _gbeGenerate(){
+  if(_isGuestMode) return _guestGoSignup(); // no AI without an account
   var input = document.getElementById("gbeInput");
   var idea  = input ? input.value.trim() : "";
   if(!idea){
@@ -730,6 +740,7 @@ function _gbeAnimateSteps(){
 // ── Auto-generate logo after BrandCore creation ───────────────
 
 function _guestAutoGenerateLogo(){
+  if(_isGuestMode) return; // no AI without an account
   if(!S || !S.brandCore) return;
   var bc = S.brandCore;
   var brandName = bc.name || "";
