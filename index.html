@@ -1159,6 +1159,7 @@
              panel moved (from Create to Business, matching the rail). -->
         <div class="ov-ws-content" data-cap="create">
           <div class="ov-ws-media">
+            <img class="ov-ws-poster" src="assets/films/posters/film-create-800.webp" srcset="assets/films/posters/film-create-800.webp 800w, assets/films/posters/film-create.webp 1600w" sizes="(max-width: 1080px) 100vw, 1040px" width="1600" height="900" alt="" loading="lazy" decoding="async">
             <video class="ov-ws-video" data-cap="create" muted loop playsinline preload="none"></video>
             <button type="button" class="ov-ws-play" data-cap="create" aria-label="Play Create product demo">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -1174,6 +1175,7 @@
 
         <div class="ov-ws-content" data-cap="research">
           <div class="ov-ws-media">
+            <img class="ov-ws-poster" src="assets/films/posters/film-research-800.webp" srcset="assets/films/posters/film-research-800.webp 800w, assets/films/posters/film-research.webp 1600w" sizes="(max-width: 1080px) 100vw, 1040px" width="1600" height="900" alt="" loading="lazy" decoding="async">
             <video class="ov-ws-video" data-cap="research" muted loop playsinline preload="none"></video>
             <button type="button" class="ov-ws-play" data-cap="research" aria-label="Play Research product demo">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -1189,6 +1191,7 @@
 
         <div class="ov-ws-content" data-cap="launch">
           <div class="ov-ws-media">
+            <img class="ov-ws-poster" src="assets/films/posters/film-launch-800.webp" srcset="assets/films/posters/film-launch-800.webp 800w, assets/films/posters/film-launch.webp 1600w" sizes="(max-width: 1080px) 100vw, 1040px" width="1600" height="900" alt="" loading="lazy" decoding="async">
             <video class="ov-ws-video" data-cap="launch" muted loop playsinline preload="none"></video>
             <button type="button" class="ov-ws-play" data-cap="launch" aria-label="Play Launch product demo">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -1204,6 +1207,7 @@
 
         <div class="ov-ws-content" data-cap="campaigns">
           <div class="ov-ws-media">
+            <img class="ov-ws-poster" src="assets/films/posters/film-campaigns-800.webp" srcset="assets/films/posters/film-campaigns-800.webp 800w, assets/films/posters/film-campaigns.webp 1600w" sizes="(max-width: 1080px) 100vw, 1040px" width="1600" height="900" alt="" loading="lazy" decoding="async">
             <video class="ov-ws-video" data-cap="campaigns" muted loop playsinline preload="none"></video>
             <button type="button" class="ov-ws-play" data-cap="campaigns" aria-label="Play Campaigns product demo">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -1219,6 +1223,7 @@
 
         <div class="ov-ws-content" data-cap="autopilot">
           <div class="ov-ws-media">
+            <img class="ov-ws-poster" src="assets/films/posters/film-autopilot-800.webp" srcset="assets/films/posters/film-autopilot-800.webp 800w, assets/films/posters/film-autopilot.webp 1600w" sizes="(max-width: 1080px) 100vw, 1040px" width="1600" height="900" alt="" loading="lazy" decoding="async">
             <video class="ov-ws-video" data-cap="autopilot" muted loop playsinline preload="none"></video>
             <button type="button" class="ov-ws-play" data-cap="autopilot" aria-label="Play Autopilot product demo">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -1234,6 +1239,7 @@
 
         <div class="ov-ws-content ov-ws-content-active" data-cap="business">
           <div class="ov-ws-media">
+            <img class="ov-ws-poster" src="assets/films/posters/film-control-center-800.webp" srcset="assets/films/posters/film-control-center-800.webp 800w, assets/films/posters/film-control-center.webp 1600w" sizes="(max-width: 1080px) 100vw, 1040px" width="1600" height="900" alt="" loading="lazy" decoding="async">
             <video class="ov-ws-video" data-cap="business" muted loop playsinline preload="none"></video>
             <button type="button" class="ov-ws-play" data-cap="business" aria-label="Play Control Center product demo">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -5951,90 +5957,171 @@ async function auSignup(){
     campaigns: 'assets/films/film-campaigns.mp4',
     autopilot: 'assets/films/film-autopilot.mp4'
   };
-  var videoState = {}; // cap -> 'loading' | 'ready' | 'missing' (absent = not checked yet)
+  // ── Loading (product films loading pass) ──────────────────────────
+  // Root cause of the "first film never loads" bug: the startup call
+  // prepared 'create' (left over from when Create was the default tab),
+  // while the panel actually shown on load is Control Center ('business').
+  // Control Center only got a source once a tab was activated — hover,
+  // focus or click — which is why going to another film and back "fixed"
+  // it. Now the ACTIVE film is prepared as the section approaches (below),
+  // whichever film that is.
+  //
+  // Each film: poster (its real first frame) first, then the video, which
+  // only becomes visible once it has a decoded frame. A source is set once
+  // and never reset, so revisiting a film reuses what the browser already
+  // has. Only the active film loads in full; once it plays, the next film
+  // in order is buffered so switching feels immediate (not on data saver /
+  // 2G). Inactive films are paused.
+  var order = tabs.map(function(t){ return t.dataset.cap; });
+  var videoState = {}; // cap -> 'loading' | 'ready' | 'missing' (absent = no source yet)
   var activeCap = 'business'; // 01 Control Center is the first and default film
   var reducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var sectionVisible = false; // real IntersectionObserver state, set below — never assumed true
+  var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  var lite = !!(conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))); // data saver / 2G
+  var autoplayBlocked = false;
+  var prefetched = {};
+  var STALL_MS = 20000; // no frame this long while visible → offer a retry (loading keeps going)
 
   function mediaFor(cap){
     var content = contents.filter(function(c){ return c.dataset.cap === cap; })[0];
     return content && content.querySelector('.ov-ws-media');
   }
-
-  // Ambient, silent preview loop — never audio, never native controls, and
-  // only ever for the currently ACTIVE tab while the workspace section is
-  // actually in view (spec: "when a product film becomes meaningfully
-  // visible... may autoplay muted... pause when it leaves"). Respects
-  // prefers-reduced-motion by never starting automatically; the real play
-  // button (already the honest fallback for a blocked/undesired autoplay)
-  // stays available either way.
-  function maybeAutoplay(cap){
-    if(reducedMotion || !sectionVisible || cap !== activeCap) return;
-    if(videoState[cap] !== 'ready') return;
-    var media = mediaFor(cap);
-    var video = media && media.querySelector('.ov-ws-video');
-    if(!video || !video.paused) return;
-    video.muted = true; // never produce audio, including for ambient autoplay
-    video.play().then(function(){
-      media.classList.add('ov-ws-playing'); // also hides the play-button overlay (CSS)
-    }).catch(function(){ /* autoplay blocked (policy/data-saver) — the visible play button remains the fallback */ });
+  function videoFor(cap){ var m = mediaFor(cap); return m && m.querySelector('.ov-ws-video'); }
+  function wantsAutoplay(){ return !reducedMotion && !lite && !autoplayBlocked; }
+  // Play button only when the film won't start by itself.
+  function syncTap(cap){
+    var media = mediaFor(cap); if(!media) return;
+    media.classList.toggle('ov-ws-tap', !wantsAutoplay());
   }
 
-  // Lazily probes ONE capability's video for existence — cheap
-  // (preload="metadata", not the full file), and only ever called for a
-  // tab the user has actually activated, first time it's activated.
-  // Never shows a play affordance pointing at nothing: the play button
-  // (and the video itself) only appear once loadedmetadata confirms the
-  // file is real; on 'error' the clean .ov-ws-empty placeholder is what
-  // stays visible — never a broken video, black rectangle, or
-  // missing-media icon.
-  function ensureChecked(cap){
-    if(videoState[cap]) return;
-    var media = mediaFor(cap);
-    var video = media && media.querySelector('.ov-ws-video');
+  // Poster: shown as soon as it has loaded (lazy: hidden panels fetch theirs
+  // only when shown).
+  contents.forEach(function(c){
+    var media = c.querySelector('.ov-ws-media'); var img = media && media.querySelector('.ov-ws-poster');
+    if(!img) return;
+    var ok = function(){ if(img.naturalWidth) media.classList.add('ov-ws-poster-ok'); };
+    if(img.complete) ok(); else img.addEventListener('load', ok);
+  });
+
+  // Sets a film's source once. full: buffer it (active / next); otherwise
+  // metadata only.
+  function prepare(cap, full){
+    var media = mediaFor(cap), video = videoFor(cap);
     if(!video) return;
+    if(full && !lite && video.preload !== 'auto') video.preload = 'auto';
+    if(videoState[cap]) return;
     videoState[cap] = 'loading';
     video.addEventListener('loadedmetadata', function(){
       videoState[cap] = 'ready';
       media.classList.add('ov-ws-has-video');
+      media.classList.remove('ov-ws-error');
       maybeAutoplay(cap);
     });
+    // A decoded frame exists: fade the video in over its (identical) poster.
+    video.addEventListener('loadeddata', function(){ media.classList.add('ov-ws-frame'); media.classList.remove('ov-ws-error'); });
+    video.addEventListener('playing', function(){ media.classList.add('ov-ws-playing', 'ov-ws-frame'); media.classList.remove('ov-ws-error'); if(cap === activeCap) prefetchNext(cap); });
+    video.addEventListener('pause', function(){ media.classList.remove('ov-ws-playing'); });
     video.addEventListener('error', function(){
       videoState[cap] = 'missing';
+      media.classList.add('ov-ws-error');
       media.classList.remove('ov-ws-has-video');
     });
-    video.preload = 'metadata';
+    video.preload = full && !lite ? 'auto' : 'metadata';
     video.src = OV_WS_VIDEOS[cap];
+    syncTap(cap);
   }
 
-  // Manual play-button fallback — used when autoplay didn't start (reduced
-  // motion, a blocked autoplay policy, or the section wasn't visible yet
-  // when the tab was first activated). Stays muted always — spec: "No
-  // video should produce audio," unconditionally, not just by default.
+  // After the active film starts, quietly buffer the next one in order.
+  function prefetchNext(cap){
+    if(lite) return;
+    var next = order[(order.indexOf(cap) + 1) % order.length];
+    if(!next || prefetched[next] || videoState[next]) return;
+    prefetched[next] = true;
+    setTimeout(function(){ if(!videoState[next]) prepare(next, true); }, 1200);
+  }
+
+  // Ambient, silent preview loop — never audio, never native controls, and
+  // only for the ACTIVE film while the section is in view. Respects
+  // prefers-reduced-motion and data saver by never starting automatically;
+  // the play button stays available either way.
+  function maybeAutoplay(cap){
+    if(!sectionVisible || cap !== activeCap || videoState[cap] === 'missing') return;
+    syncTap(cap);
+    if(!wantsAutoplay()) return;
+    var media = mediaFor(cap), video = videoFor(cap);
+    if(!video || !video.paused || !video.currentSrc) return;
+    video.muted = true; // never produce audio
+    var p = video.play();
+    if(p && p.catch) p.catch(function(err){
+      // NotAllowedError = autoplay policy: show the play button instead.
+      // AbortError = a newer pause()/switch interrupted it: nothing to do.
+      if(err && err.name === 'NotAllowedError'){ autoplayBlocked = true; contents.forEach(function(c){ syncTap(c.dataset.cap); }); }
+    });
+    armStallWatch(cap);
+  }
+
+  // Never stuck: if the visible film has no frame after STALL_MS, offer a
+  // retry (loading carries on; the retry hides once a frame arrives).
+  var stallTimer = 0;
+  function armStallWatch(cap){
+    clearTimeout(stallTimer);
+    stallTimer = setTimeout(function(){
+      var video = videoFor(cap), media = mediaFor(cap);
+      if(cap === activeCap && sectionVisible && video && video.readyState < 2) media.classList.add('ov-ws-error');
+    }, STALL_MS);
+  }
+  function retry(cap){
+    var media = mediaFor(cap), video = videoFor(cap);
+    if(!video) return;
+    media.classList.remove('ov-ws-error');
+    if(videoState[cap] === 'missing' || video.error){
+      videoState[cap] = 'loading';
+      video.preload = 'auto';
+      video.src = OV_WS_VIDEOS[cap]; // same file; a fresh request after a failure
+      video.load();
+    }
+    if(wantsAutoplay()) maybeAutoplay(cap); else playVideo(cap);
+    armStallWatch(cap);
+  }
+
+  // Manual play button — reduced motion, data saver or blocked autoplay.
+  // Stays muted always.
   function playVideo(cap){
-    var media = mediaFor(cap);
-    var video = media && media.querySelector('.ov-ws-video');
-    if(!video || videoState[cap] !== 'ready') return;
+    var media = mediaFor(cap), video = videoFor(cap);
+    if(!video) return;
+    prepare(cap, true);
     video.muted = true;
-    media.classList.add('ov-ws-playing');
-    video.play().catch(function(){});
+    var p = video.play();
+    if(p && p.catch) p.catch(function(){});
   }
 
   contents.forEach(function(content){
     var cap = content.dataset.cap;
+    var media = content.querySelector('.ov-ws-media');
     var playBtn = content.querySelector('.ov-ws-play');
-    if(!playBtn) return;
-    playBtn.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); playVideo(cap); });
+    if(playBtn) playBtn.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); playVideo(cap); });
+    if(media){
+      var label = (content.querySelector('.ov-ws-panel-title') || {}).textContent || 'this';
+      var rb = document.createElement('button');
+      rb.type = 'button'; rb.className = 'ov-ws-retry';
+      rb.setAttribute('aria-label', 'Retry loading the ' + label + ' product demo');
+      rb.textContent = 'Video didn’t load · Retry';
+      rb.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); retry(cap); });
+      media.appendChild(rb);
+    }
   });
 
   function pauseCap(cap){
-    var media = mediaFor(cap);
-    var video = media && media.querySelector('.ov-ws-video');
+    var video = videoFor(cap);
     if(video && !video.paused){ video.pause(); }
-    if(media) media.classList.remove('ov-ws-playing');
   }
 
-  function activate(cap){
+  // Hover activation (desktop) shouldn't start a download for every tab the
+  // pointer passes over: a hovered film starts loading once the pointer has
+  // rested on it briefly. Click, tap and keyboard focus load at once.
+  var loadTimer = 0;
+  function activate(cap, viaHover){
     activeCap = cap;
     tabs.forEach(function(t){
       var on = t.dataset.cap === cap;
@@ -6056,36 +6143,45 @@ async function auSignup(){
       // capability's film plays at once.
       if(!isActive) pauseCap(c.dataset.cap);
     });
-    ensureChecked(cap); // only the tab actually being shown, right now
-    maybeAutoplay(cap); // already-loaded tabs (e.g. switching back) resume immediately
+    clearTimeout(loadTimer);
+    var go = function(){ if(activeCap !== cap) return; prepare(cap, true); maybeAutoplay(cap); };
+    if(viaHover && !videoState[cap]) loadTimer = setTimeout(go, 160); else go(); // already-loaded films resume immediately
   }
 
   tabs.forEach(function(tab){
-    tab.addEventListener('mouseenter', function(){ activate(tab.dataset.cap); });
+    tab.addEventListener('mouseenter', function(){ activate(tab.dataset.cap, true); });
     tab.addEventListener('focus', function(){ activate(tab.dataset.cap); });
     tab.addEventListener('click', function(){ activate(tab.dataset.cap); }); // buttons: Enter/Space already fire 'click' natively
   });
 
-  // Dedicated, single IntersectionObserver scoped to this one section (not
-  // one per video) — pauses the active film when the whole workspace
-  // scrolls out of view, resumes it (if not reduced-motion) when it scrolls
-  // back in. Reuses the same root/threshold convention as this page's
-  // existing generic data-observe/.ov-vis reveal observer.
+  // Two observers on this one section (not one per video):
+  // - "near": starts loading the active film while the section is still
+  //   about a screen away, so it is ready (or nearly) when it arrives;
+  // - "visible": plays the active film while the section is in view and
+  //   pauses it when it scrolls out.
+  // Both use the landing page's own scroller as root, like the page's
+  // other observers.
   if(workspace && 'IntersectionObserver' in window){
     var landingView = document.getElementById('view-landing');
+    var nearObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){ if(entry.isIntersecting) prepare(activeCap, true); });
+    }, { root: landingView || null, rootMargin: '100% 0px 100% 0px', threshold: 0 });
+    nearObserver.observe(workspace);
     var wsObserver = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
         sectionVisible = entry.isIntersecting;
-        if(sectionVisible) maybeAutoplay(activeCap);
-        else pauseCap(activeCap);
+        if(sectionVisible){ prepare(activeCap, true); maybeAutoplay(activeCap); }
+        else { pauseCap(activeCap); clearTimeout(stallTimer); }
       });
     }, { root: landingView || null, threshold: 0.18 });
     wsObserver.observe(workspace);
   } else {
-    sectionVisible = true; // no IntersectionObserver support — fail open to the existing click-to-play fallback, never silently broken
+    // No IntersectionObserver: load the active film now and fall back to
+    // the play button — never silently broken.
+    sectionVisible = true;
+    prepare(activeCap, true);
   }
-
-  ensureChecked('create'); // the one tab visible on load — nothing else, yet (Business is now first/default)
+  contents.forEach(function(c){ syncTap(c.dataset.cap); });
 
   // Mobile Polish pass — scroll-position-aware edge fades for
   // .ov-ws-rail (styles.css handles the actual gradients; this just

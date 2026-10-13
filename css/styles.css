@@ -26393,12 +26393,21 @@ button.ov-frag-hit:focus-visible {
 }
 .ov-ws-video {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-  opacity: 0; transition: opacity .4s ease;
+  opacity: 0; transition: opacity .4s ease; z-index: 2;
 }
-/* Only once JS has confirmed the file actually exists (ov-ws-has-video)
-   does the video layer + play button become visible — never a play
-   button pointing at nothing, never a broken/black rectangle. */
-.ov-ws-has-video .ov-ws-video { opacity: 1; }
+/* Product films loading pass — layers, bottom to top: the faint icon
+   placeholder, the poster (the film's own first frame, assets/films/
+   posters/), the video, then the play / retry controls. The poster shows
+   as soon as it has loaded; the video only fades in once it has a decoded
+   frame (ov-ws-frame), so the poster → video change is seamless (same
+   frame) — never a black or empty box while the film loads. */
+.ov-ws-poster {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity .35s ease; z-index: 1;
+}
+.ov-ws-poster-ok .ov-ws-poster { opacity: 1; }
+.ov-ws-poster-ok .ov-ws-empty { opacity: 0; }
+.ov-ws-frame .ov-ws-video { opacity: 1; }
 .ov-ws-has-video .ov-ws-empty { opacity: 0; }
 /* Clean, neutral placeholder — a large faint outline of the capability's
    own icon, nothing else. Shown by default and whenever no real video
@@ -26418,18 +26427,38 @@ button.ov-frag-hit:focus-visible {
   background: var(--green); color: #0a0a0d;
   display: none; align-items: center; justify-content: center;
   padding-left: 3px; /* optically center the triangle */
-  border: none; cursor: pointer;
+  border: none; cursor: pointer; z-index: 3;
   box-shadow: 0 8px 28px rgba(0,0,0,.4);
   transition: transform .2s ease, filter .2s ease;
 }
-.ov-ws-has-video .ov-ws-play { display: flex; }
+/* Only when the film won't start by itself (reduced motion, data saver,
+   or the browser blocked muted autoplay) — not as a flash while it loads. */
+.ov-ws-has-video.ov-ws-tap .ov-ws-play { display: flex; }
+/* A film that failed (or is taking unusually long) keeps its poster and
+   offers a retry instead of leaving the frame stuck. */
+.ov-ws-retry {
+  position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 3;
+  display: none; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18); background: rgba(8,8,8,.82); color: #f2f2ee;
+  font-family: inherit; font-size: 13px; font-weight: 600; line-height: 1; cursor: pointer;
+}
+.ov-ws-retry:hover { border-color: rgba(182,255,59,.6); }
+.ov-ws-retry:focus-visible { outline: 2px solid #B6FF3B; outline-offset: 2px; }
+.ov-ws-error .ov-ws-retry { display: inline-flex; }
+.ov-ws-error .ov-ws-play { display: none; }
 .ov-ws-playing .ov-ws-play { display: none; }
 .ov-ws-play:hover { transform: translate(-50%, -50%) scale(1.06); filter: brightness(1.08); }
+/* The global button:active press (transform: scale(.97)) would replace the
+   centring translate, so the button jumped 32px away under the pointer
+   mid-press and the release landed on the video — the click never reached
+   the button (always with reduced motion, on slower presses otherwise). */
+.ov-ws-play:active:not(:disabled) { transform: translate(-50%, -50%) scale(.97); }
+.ov-ws-retry:active:not(:disabled) { transform: translateX(-50%) scale(.97); }
 .ov-ws-play:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.6), 0 0 0 5px rgba(182,255,59,.5); }
 
 @media (prefers-reduced-motion: reduce) {
   .ov-ws-content { animation: none; }
-  .ov-ws-tab, .ov-ws-tab-ico, .ov-ws-video, .ov-ws-play, .ov-ws-empty { transition: none; }
+  .ov-ws-tab, .ov-ws-tab-ico, .ov-ws-video, .ov-ws-poster, .ov-ws-play, .ov-ws-empty { transition: none; }
 }
 
 @media (max-width: 900px) {

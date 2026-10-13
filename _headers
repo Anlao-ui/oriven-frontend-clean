@@ -1,0 +1,10 @@
+# Netlify response headers.
+#
+# Product films and their poster frames (index.html, "Oriven is built for the
+# way you advertise"): reuse the browser's copy for a day, and for up to a
+# week after that serve it while checking for a new version in the
+# background. Without this, Netlify's default (max-age=0, must-revalidate)
+# makes every visit re-check each film before it can play. If a film is ever
+# replaced, give it a new file name so visitors get it at once.
+/assets/films/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
