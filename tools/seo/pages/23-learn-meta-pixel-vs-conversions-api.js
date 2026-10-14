@@ -59,6 +59,6 @@ module.exports = {
     ['What happens if I don’t deduplicate?', '<p>Events received from both the browser and the server may be counted twice, which inflates conversions and misleads optimization and reporting.</p>'],
     ['Does the Conversions API replace consent banners?', '<p>No. Consent and data-protection requirements apply to server events as well as browser events.</p>'],
   ],
-  related: ['/learn/google-ads-vs-meta-ads/', '/learn/how-to-automate-google-ads-safely/', '/product/meta-ads'],
+  related: ['/learn/how-to-create-facebook-and-instagram-ads-with-ai/', '/learn/google-ads-vs-meta-ads/', '/product/meta-ads'],
   cta: { title: 'Plan, create and launch Meta campaigns', text: 'Connect your Meta ad account and build Facebook and Instagram campaigns from a brief.', label: 'Get Started Free' },
 };

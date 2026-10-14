@@ -66,6 +66,6 @@ module.exports = {
     ['Do AI advertising platforms run the ads themselves?', '<p>No. The ads run on the ad networks (Google, Meta, TikTok, Pinterest and others). The platform prepares, publishes and manages campaigns through the networks’ APIs.</p>'],
     ['Can AI manage advertising campaigns on its own?', '<p>It can apply rules and make routine changes, but it works best within limits a person sets: budgets, thresholds and approval steps. Fully hands-off management carries real budget risk.</p>'],
   ],
-  related: ['/learn/what-is-ppc-automation/', '/cross-platform-ad-management/', '/learn/google-ads-vs-meta-ads/'],
+  related: ['/learn/best-ai-advertising-tools-for-small-business/', '/learn/what-is-ppc-automation/', '/cross-platform-ad-management/'],
   cta: { title: 'See an AI advertising platform in practice', text: 'Describe what you sell and build your first campaign on the Free plan.', label: 'Create Your First Ad' },
 };

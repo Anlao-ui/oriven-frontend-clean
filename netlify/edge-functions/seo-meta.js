@@ -129,21 +129,6 @@ export const ROUTES = {
     "title": "Brand Context for AI Advertising | OrivenAI",
     "desc": "Your business profile and Brand Identity give every AI generation the same context, so campaigns, copy and creative actually sound like you.",
     "noindex": false
-  },
-  "/blog/oriven-ai-is-now-live": {
-    "title": "Oriven AI Is Now Live | OrivenAI Blog",
-    "desc": "After months of planning, designing and building, Oriven is officially live. Learn more about our mission and what’s coming next for the platform.",
-    "noindex": false
-  },
-  "/blog/what-you-can-do-with-oriven": {
-    "title": "What You Can Do With Oriven | OrivenAI Blog",
-    "desc": "Discover how Oriven helps marketers and businesses connect advertising data, generate insights and make better decisions from one platform.",
-    "noindex": false
-  },
-  "/blog/why-we-built-oriven": {
-    "title": "Why We Built Oriven | OrivenAI Blog",
-    "desc": "Marketing data is fragmented across multiple platforms. Learn how that challenge inspired the creation of Oriven and the vision behind the platform.",
-    "noindex": false
   }
 };
 
@@ -184,6 +169,6 @@ export default async (request, context) => {
 };
 
 export const config = {
-  path: ["/about","/autopilot","/blog","/blog/oriven-ai-is-now-live","/blog/what-you-can-do-with-oriven","/blog/why-we-built-oriven","/business","/campaigns","/case-studies","/contact","/cookie-policy","/create","/faq","/launch","/login","/pricing","/privacy","/product","/product/google-ads","/product/meta-ads","/product/pinterest-ads","/product/tiktok-ads","/refund-policy","/research","/security","/signup","/solutions","/terms"],
+  path: ["/about","/autopilot","/blog","/business","/campaigns","/case-studies","/contact","/cookie-policy","/create","/faq","/launch","/login","/pricing","/privacy","/product","/product/google-ads","/product/meta-ads","/product/pinterest-ads","/product/tiktok-ads","/refund-policy","/research","/security","/signup","/solutions","/terms"],
   onError: 'bypass',
 };

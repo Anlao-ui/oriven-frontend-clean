@@ -21,11 +21,14 @@
 <meta name="twitter:description" content="Running Google, Meta, TikTok and Pinterest ads at once? A practical system for shared briefs, consistent naming and UTMs, honest cross-platform reporting and budget decisions.">
 <meta name="twitter:image" content="https://orivenai.com/assets/og/orivenai-og.png">
 <meta property="article:published_time" content="2026-10-09">
+<meta property="article:modified_time" content="2026-10-09">
 <link rel="icon" href="/assets/orivenlogo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/seo.css">
+<link rel="stylesheet" href="/css/site-nav.css">
+<script src="/js/site-nav.js" defer></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://orivenai.com/#organization","name":"OrivenAI","alternateName":["Oriven","ORIVEN","Oriven AI"],"url":"https://orivenai.com/","logo":"https://orivenai.com/assets/orivenlogo.png","email":"contact@orivenai.com","description":"OrivenAI (orivenai.com) is an AI advertising platform for researching, creating, launching and automating ad campaigns."}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"How to manage multiple ad platforms without losing track","description":"Running Google, Meta, TikTok and Pinterest ads at once? A practical system for shared briefs, consistent naming and UTMs, honest cross-platform reporting and budget decisions.","url":"https://orivenai.com/learn/how-to-manage-multiple-ad-platforms/","mainEntityOfPage":"https://orivenai.com/learn/how-to-manage-multiple-ad-platforms/","datePublished":"2026-10-09","dateModified":"2026-10-09","inLanguage":"en","author":{"@type":"Organization","name":"OrivenAI","url":"https://orivenai.com/"},"publisher":{"@type":"Organization","name":"OrivenAI","logo":{"@type":"ImageObject","url":"https://orivenai.com/assets/orivenlogo.png"}},"image":"https://orivenai.com/assets/og/orivenai-og.png","about":"Multi-channel advertising management"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://orivenai.com/"},{"@type":"ListItem","position":2,"name":"Learn","item":"https://orivenai.com/learn/"},{"@type":"ListItem","position":3,"name":"How to manage multiple ad platforms","item":"https://orivenai.com/learn/how-to-manage-multiple-ad-platforms/"}]}</script>
@@ -36,34 +39,252 @@
 <script src="/js/site-analytics.js" defer></script>
 <script>document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[data-cta]');if(a&&window.orvConsent&&orvConsent.adsAllowed())gtag('event','cta_click',{cta:a.getAttribute('data-cta'),page_path:location.pathname});});</script>
 </head>
-<body>
+<body data-lpnav="1">
 <a class="sp-skip" href="#main">Skip to content</a>
-<header class="sp-nav"><div class="sp-wrap sp-nav-in">
-  <a class="sp-logo" href="/" aria-label="OrivenAI home"><img src="/assets/orivenlogo.png" alt="" width="30" height="30"><span>OrivenAI</span></a>
-  <nav class="sp-links" aria-label="Main"><a href="/product">Product</a><a href="/learn/" aria-current="page">Learn</a><a href="/pricing">Pricing</a><a href="/faq">FAQ</a></nav>
-  <div class="sp-actions">
-    <a class="sp-login" href="/login">Login</a>
-    <a class="sp-btn sp-btn-primary sp-btn-sm" href="/signup" data-cta="nav_signup">Get Started Free</a>
-    <details class="sp-menu"><summary>Menu</summary><div class="sp-menu-panel"><a href="/product">Product</a><a href="/learn/" aria-current="page">Learn</a><a href="/pricing">Pricing</a><a href="/faq">FAQ</a><a href="/login">Login</a></div></details>
+<nav class="lp-nav" id="lpNav">
+  <div class="lp-nav-inner">
+    <a href="/" class="lp-logo">
+      <img src="/assets/orivenlogo.png" alt="ORIVEN" class="lp-logo-img">
+    </a>
+    <div class="lp-nav-links">
+      <div class="lp-nav-item lp-has-dd" id="lpDdProduct">
+        <button class="lp-dd-trig" type="button" aria-haspopup="true" aria-expanded="false">
+          Product
+          <svg class="lp-dd-chev" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lp-dropdown lp-dd-mega" role="menu">
+          <div class="lp-dd-col">
+            <div class="lp-dd-colhead">Advertising Platforms</div>
+            <a href="/product/google-ads" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              </span>
+              <span class="lp-dd-item-inner">
+                <span class="lp-dd-item-name">Google Ads</span>
+                <span class="lp-dd-badge">Live</span>
+              </span>
+            </a>
+            <a href="/product/meta-ads" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 12 12"><rect width="12" height="12" rx="3" fill="#1877F2"/><path d="M8.1 6a2.1 2.1 0 1 0-4.2 0c0 1 .7 1.8 1.7 2V7H4.7V6h.9V5.3c0-.6.3-.9.9-.9h.5V5.2h-.4c-.2 0-.2.1-.2.3V6h.7L7 7H6.4v1c1-.2 1.7-1 1.7-2z" fill="white"/></svg>
+              </span>
+              <span class="lp-dd-item-inner">
+                <span class="lp-dd-item-name">Meta Ads</span>
+                <span class="lp-dd-badge">Live</span>
+              </span>
+            </a>
+            <a href="/product/tiktok-ads" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon" style="background:#000;border-color:#1a1a1a">
+                <svg width="14" height="16" viewBox="0 0 28 32"><g fill="#69C9D0" transform="translate(1.5,1.2)"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g><g fill="#EE1D52" transform="translate(-1.5,-1.2)"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g><g fill="white"><ellipse cx="8" cy="24" rx="6.5" ry="5.5" transform="rotate(-10 8 24)"/><rect x="12" y="2" width="3" height="23"/><path d="M15,2 C16,2 23,4 25,11 C25,16 21,19 15,17 L15,14.5 C20,15.5 20,11.5 15,6 Z"/></g></svg>
+              </span>
+              <span class="lp-dd-item-inner">
+                <span class="lp-dd-item-name">TikTok Ads</span>
+                <span class="lp-dd-badge">Live</span>
+              </span>
+            </a>
+            <a href="/product/pinterest-ads" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#E60023"/><path fill="#fff" d="M12.1 5.2c-3.8 0-6.3 2.7-6.3 5.7 0 1.75.94 3.06 2.4 3.6.18.06.32 0 .38-.2l.26-1c.06-.2.04-.28-.1-.46-.33-.42-.6-1.15-.6-2 0-1.92 1.44-3.88 3.92-3.88 2.14 0 3.64 1.36 3.64 3.42 0 2.56-1.1 4.56-2.72 4.56-.88 0-1.56-.72-1.34-1.64.26-1.1.76-2.3.76-3.1 0-.72-.38-1.3-1.2-1.3-.94 0-1.7 1-1.7 2.3 0 .86.28 1.42.28 1.42l-1.16 4.88c-.34 1.44-.06 3.2-.02 3.38.02.1.16.12.22.06.1-.12 1.26-1.58 1.66-3l.6-2.56c.32.62 1.26 1.16 2.24 1.16 2.96 0 5.1-2.72 5.1-6.1 0-3.24-2.64-5.24-5.72-5.24z"/></svg>
+              </span>
+              <span class="lp-dd-item-inner">
+                <span class="lp-dd-item-name">Pinterest Ads</span>
+                <span class="lp-dd-badge">Live</span>
+              </span>
+            </a>
+          </div>
+          <div class="lp-dd-col">
+            <div class="lp-dd-colhead">Products</div>
+            <a href="/business" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a4.5 4.5 0 00-2.5 8.25c.4.28.5.6.5 1.05v.7h4v-.7c0-.45.1-.77.5-1.05A4.5 4.5 0 008 1.5z" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linejoin="round"/><line x1="6.5" y1="14" x2="9.5" y2="14" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linecap="round"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Control Center</span>
+                <span class="lp-dd-item-desc">What is happening, what needs you, what is planned, and the business context behind it.</span>
+              </span>
+            </a>
+            <a href="/research" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="rgba(183,255,42,.8)" stroke-width="1.3"/><path d="M10.3 10.3L14 14" stroke="rgba(183,255,42,.8)" stroke-width="1.3" stroke-linecap="round"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Research</span>
+                <span class="lp-dd-item-desc">Investigate markets, competitors, audiences and opportunities.</span>
+              </span>
+            </a>
+            <a href="/create" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2.5 13.5l1-3.8L10.5 2.7a1.3 1.3 0 011.8 0l1 1a1.3 1.3 0 010 1.8L6.3 12.5z" stroke="rgba(183,255,42,.8)" stroke-width="1.2" stroke-linejoin="round"/><path d="M9.3 4.2l2.5 2.5" stroke="rgba(183,255,42,.8)" stroke-width="1.2"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Create</span>
+                <span class="lp-dd-item-desc">Turn strategy into platform-ready creative.</span>
+              </span>
+            </a>
+            <a href="/launch" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H6M13 3V10" stroke="rgba(183,255,42,.8)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Launch</span>
+                <span class="lp-dd-item-desc">Review readiness and launch to your connected platforms.</span>
+              </span>
+            </a>
+            <a href="/campaigns" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="3" y="2.5" width="10" height="12" rx="1.5" stroke="rgba(183,255,42,.8)" stroke-width="1.3"/><rect x="6" y="1" width="4" height="2.5" rx="1" fill="rgba(183,255,42,.8)"/><line x1="5.5" y1="7" x2="10.5" y2="7" stroke="rgba(183,255,42,.8)" stroke-width="1.1"/><line x1="5.5" y1="10" x2="10.5" y2="10" stroke="rgba(183,255,42,.8)" stroke-width="1.1"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Campaigns</span>
+                <span class="lp-dd-item-desc">Spend, delivery, traffic and conversions across your platforms.</span>
+              </span>
+            </a>
+            <a href="/autopilot" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="rgba(183,255,42,.8)"><path d="M8.5 1L3 9h4l-1 6 6.5-9H8l1-5z"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Autopilot</span>
+                <span class="lp-dd-item-desc">Rules that watch your campaigns and act within your limits.</span>
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="lp-nav-item lp-has-dd" id="lpDdSolutions">
+        <button class="lp-dd-trig" type="button" aria-haspopup="true" aria-expanded="false">
+          Solutions
+          <svg class="lp-dd-chev" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lp-dropdown lp-dd-simple" role="menu">
+          <div class="lp-dd-col">
+            <a href="/launch" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Create better ads</span><span class="lp-dd-item-desc">Build advertising around your brand instead of starting from scratch.</span></span>
+            </a>
+            <a href="/campaigns" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Manage every campaign</span><span class="lp-dd-item-desc">See and manage advertising across the platforms you use from one workspace.</span></span>
+            </a>
+            <a href="/business" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Stay consistent with your brand</span><span class="lp-dd-item-desc">Give every generated ad the same voice, context and business profile.</span></span>
+            </a>
+            <a href="/autopilot" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Automate the repetitive work</span><span class="lp-dd-item-desc">Use your own rules to automatically act when performance changes.</span></span>
+            </a>
+            <a href="/research" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Understand what works</span><span class="lp-dd-item-desc">Use Research and campaign data to discover stronger creative and messaging patterns.</span></span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="lp-nav-item lp-has-dd" id="lpDdResources">
+        <button class="lp-dd-trig" type="button" aria-haspopup="true" aria-expanded="false">
+          Resources
+          <svg class="lp-dd-chev" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lp-dropdown lp-dd-simple" role="menu">
+          <div class="lp-dd-col">
+            <a href="/learn/" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Learn</span><span class="lp-dd-item-desc">Guides to AI advertising, PPC automation and ad platforms.</span></span>
+            </a>
+            <a href="/blog" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Blog</span><span class="lp-dd-item-desc">Advertising, product and growth insights.</span></span>
+            </a>
+            <a href="/faq" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">FAQ</span><span class="lp-dd-item-desc">Answers to common questions.</span></span>
+            </a>
+            <a href="/case-studies" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Case Studies</span><span class="lp-dd-item-desc">Illustrative examples of the Oriven workflow.</span></span>
+            </a>
+            <a href="/about" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">About</span><span class="lp-dd-item-desc">Who's building Oriven.</span></span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <a href="/pricing" class="lp-nav-link">Pricing</a>
+    </div>
+    <div class="lp-nav-right">
+      <a href="/login" class="lp-nav-login">Login</a>
+      <a href="/signup" class="lp-cta-btn" data-cta="nav_signup">Start Creating</a>
+    </div>
+    <button class="lp-hamburger" id="lpHamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
-</div></header>
+</nav>
+<div class="lp-mobile-menu" id="lpMobileMenu">
+  <button class="lp-mm-close" id="lpMmClose" aria-label="Close menu">&#x2715;</button>
+  <div class="lp-mm-scroll" id="lpMmScroll">
+  <nav class="lp-mm-nav">
+    <div class="lp-mm-item lp-mm-has-dd">
+      <button class="lp-mm-dd-trig" onclick="lpMmToggle(this)" aria-expanded="false">
+        Product <span class="lp-mm-chev">&#8250;</span>
+      </button>
+      <div class="lp-mm-dd-items">
+        <div class="lp-mm-cat">Advertising Platforms</div>
+        <a href="/product/google-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">Google Ads</a>
+        <a href="/product/meta-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">Meta Ads</a>
+        <a href="/product/tiktok-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">TikTok Ads</a>
+        <a href="/product/pinterest-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">Pinterest Ads</a>
+        <div class="lp-mm-cat">Products</div>
+        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Control Center</a>
+        <a href="/research" class="lp-mm-dd-link" onclick="lpCloseMm()">Research</a>
+        <a href="/create" class="lp-mm-dd-link" onclick="lpCloseMm()">Create</a>
+        <a href="/launch" class="lp-mm-dd-link" onclick="lpCloseMm()">Launch</a>
+        <a href="/campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Campaigns</a>
+        <a href="/autopilot" class="lp-mm-dd-link" onclick="lpCloseMm()">Autopilot</a>
+      </div>
+    </div>
+    <div class="lp-mm-item lp-mm-has-dd">
+      <button class="lp-mm-dd-trig" onclick="lpMmToggle(this)" aria-expanded="false">
+        Solutions <span class="lp-mm-chev">&#8250;</span>
+      </button>
+      <div class="lp-mm-dd-items">
+        <a href="/launch" class="lp-mm-dd-link" onclick="lpCloseMm()">Create better ads</a>
+        <a href="/campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Manage every campaign</a>
+        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Stay consistent with your brand</a>
+        <a href="/autopilot" class="lp-mm-dd-link" onclick="lpCloseMm()">Automate the repetitive work</a>
+        <a href="/research" class="lp-mm-dd-link" onclick="lpCloseMm()">Understand what works</a>
+      </div>
+    </div>
+    <div class="lp-mm-item lp-mm-has-dd">
+      <button class="lp-mm-dd-trig" onclick="lpMmToggle(this)" aria-expanded="false">
+        Resources <span class="lp-mm-chev">&#8250;</span>
+      </button>
+      <div class="lp-mm-dd-items">
+        <a href="/learn/" class="lp-mm-dd-link">Learn</a>
+        <a href="/blog" class="lp-mm-dd-link" onclick="lpCloseMm()">Blog</a>
+        <a href="/faq" class="lp-mm-dd-link" onclick="lpCloseMm()">FAQ</a>
+        <a href="/case-studies" class="lp-mm-dd-link" onclick="lpCloseMm()">Case Studies</a>
+        <a href="/about" class="lp-mm-dd-link" onclick="lpCloseMm()">About</a>
+      </div>
+    </div>
+    <a href="/pricing" class="lp-mm-link" onclick="lpCloseMm()">Pricing</a>
+  </nav>
+  <div class="lp-mm-divider"></div>
+  <div class="lp-mm-actions">
+    <a href="/login" class="lp-mm-login">Login</a>
+    <a href="/signup" class="lp-mm-cta" data-cta="nav_signup">Start Creating</a>
+  </div>
+  </div>
+</div>
 <main id="main">
 <nav class="sp-crumbs sp-wrap" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/learn/">Learn</a></li><li aria-current="page">How to manage multiple ad platforms</li></ol></nav>
 <header class="sp-hero sp-wrap"><p class="sp-eyebrow">Cross-platform advertising</p><h1>How to manage multiple ad platforms without losing track</h1>
        <p class="sp-meta"><span>By the OrivenAI team</span><span>Published <time datetime="2026-10-09">9 October 2026</time></span><span>7 min read</span></p></header>
-<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article">
+<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article"><nav class="sp-toc" aria-labelledby="toc-h"><p id="toc-h">On this page</p><ol><li><a href="#1-write-one-brief-then-adapt-it">1. Write one brief, then adapt it</a></li><li><a href="#2-respect-each-platform-s-structure">2. Respect each platform’s structure</a></li><li><a href="#3-standardize-naming-and-utms">3. Standardize naming and UTMs</a></li><li><a href="#4-report-honestly-across-platforms">4. Report honestly across platforms</a></li><li><a href="#5-decide-budgets-with-rules-not-moods">5. Decide budgets with rules, not moods</a></li><li><a href="#6-keep-one-list-of-what-needs-attention">6. Keep one list of what needs attention</a></li><li><a href="#a-weekly-routine-that-works">A weekly routine that works</a></li><li><a href="#how-orivenai-supports-this">How OrivenAI supports this</a></li></ol></nav>
 <div class="sp-tldr"><strong>Short answer</strong><p>Keep one shared foundation (offer, audience, brand and naming rules), let each platform keep its own structure and creative formats, report each platform against its own history instead of summing conversions, and move budget based on your real sales.</p></div>
 
-<h2>1. Write one brief, then adapt it</h2>
+<h2 id="1-write-one-brief-then-adapt-it">1. Write one brief, then adapt it</h2>
 <p>Start every campaign from a single brief: what you sell, who it’s for, why they should care, and what action you want. That brief stays the same everywhere. What changes per platform is the execution: keyword-focused text on Google Search, thumb-stopping visuals on Meta, vertical video on TikTok, inspirational imagery on Pinterest.</p>
 
-<h2>2. Respect each platform’s structure</h2>
+<h2 id="2-respect-each-platform-s-structure">2. Respect each platform’s structure</h2>
 <p>Forcing one structure on every network causes problems. Google Search campaigns are organized around keywords and ad groups; Meta campaigns around ad sets with an audience, budget and placements; TikTok uses ad groups; Pinterest organizes campaigns around Pins. Build each campaign the way its platform expects, so its delivery systems can do their job.</p>
 
-<h2>3. Standardize naming and UTMs</h2>
+<h2 id="3-standardize-naming-and-utms">3. Standardize naming and UTMs</h2>
 <p>Consistent names are what make multi-platform reporting possible. Choose one pattern, for example <em>market_objective_product_date</em>, and use it everywhere. Do the same for UTM parameters (utm_source, utm_medium, utm_campaign) so your analytics tool can group traffic correctly regardless of which platform sent it.</p>
 
-<h2>4. Report honestly across platforms</h2>
+<h2 id="4-report-honestly-across-platforms">4. Report honestly across platforms</h2>
 <p>Each platform attributes conversions with its own rules and windows, and they often overlap: the same purchase can appear in Google’s and Meta’s reports. So:</p>
 <ul>
   <li>Compare each platform with its own history, not with the other platforms’ numbers.</li>
@@ -71,13 +292,13 @@
   <li>Watch spend, cost per result and trend direction per platform, side by side.</li>
 </ul>
 
-<h2>5. Decide budgets with rules, not moods</h2>
+<h2 id="5-decide-budgets-with-rules-not-moods">5. Decide budgets with rules, not moods</h2>
 <p>Set a target cost per acquisition or return on ad spend per platform, and agree in advance what happens when a platform beats or misses it, for example moving 10% of budget after two weeks above target. Written rules prevent overreacting to a single good or bad day, and they’re easy to automate later.</p>
 
-<h2>6. Keep one list of what needs attention</h2>
+<h2 id="6-keep-one-list-of-what-needs-attention">6. Keep one list of what needs attention</h2>
 <p>With several accounts, the risk isn’t a lack of data; it’s missing the one thing that broke. Check a single list each day: rejected ads, campaigns over budget, tracking that stopped reporting, drafts waiting to launch.</p>
 
-<h2>A weekly routine that works</h2>
+<h2 id="a-weekly-routine-that-works">A weekly routine that works</h2>
 <ol>
   <li><strong>Monday:</strong> review last week per platform against its own targets.</li>
   <li><strong>Midweek:</strong> refresh creative where performance is fading; launch new tests.</li>
@@ -85,7 +306,7 @@
   <li><strong>Monthly:</strong> rebalance budget across platforms using your own sales data.</li>
 </ol>
 
-<h2>How OrivenAI supports this</h2>
+<h2 id="how-orivenai-supports-this">How OrivenAI supports this</h2>
 <p>OrivenAI is built around this workflow. Your business and brand context lives in Control Center and informs every campaign; Create adapts one brief into each platform’s structure for Google Ads, Meta Ads, TikTok Ads and Pinterest Ads; Planning includes naming and UTM templates; Launch shows each draft’s readiness before you publish; Campaigns shows each platform’s results side by side; and Control Center lists what needs your attention. See <a href="/cross-platform-ad-management/">cross-platform ad management</a>.</p></article></div></section>
 <section class="sp-section" aria-labelledby="faq-h"><div class="sp-wrap"><h2 id="faq-h">Frequently asked questions</h2><div class="sp-faq"><details><summary>How many ad platforms should a small business run?</summary><div class="sp-faq-a"><p>Usually one or two, chosen by where your customers are and how they buy. Add a platform when you can fund enough spend on it to learn, not just to be present.</p></div></details><details><summary>Why do conversion numbers differ between ad platforms and analytics?</summary><div class="sp-faq-a"><p>Platforms use their own attribution models and windows, and can each claim the same conversion. Analytics tools apply one model across all sources. Neither is wrong; they answer different questions.</p></div></details><details><summary>What is a good UTM naming convention?</summary><div class="sp-faq-a"><p>One that’s consistent and lower-case, for example utm_source=google or meta, utm_medium=cpc or paid_social, and utm_campaign matching your campaign naming pattern.</p></div></details></div></div></section>
 <section class="sp-section" aria-labelledby="rel-h"><div class="sp-wrap"><h2 id="rel-h">Keep reading</h2><div class="sp-related"><a href="/cross-platform-ad-management/"><strong>Cross-platform ad management</strong><span>One brief, adapted per platform, launched and followed from one workspace.</span></a><a href="/learn/google-ads-vs-meta-ads/"><strong>Google Ads vs Meta Ads</strong><span>Search intent vs discovery: how the two platforms differ and when to use each.</span></a><a href="/learn/what-is-an-ai-advertising-platform/"><strong>What is an AI advertising platform?</strong><span>What the category covers, what AI does well in advertising, and its limits.</span></a></div></div></section>

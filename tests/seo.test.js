@@ -24,12 +24,12 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   let fresh = true;
   try { execFileSync(process.execPath, [path.join(ROOT, 'tools/seo/build.js'), '--check'], { stdio: 'pipe' }); } catch (_) { fresh = false; }
   check('generated pages, sitemap block and edge function are up to date (build --check)', fresh);
-  const { loadPages } = require(path.join(ROOT, 'tools/seo/build.js'));
+  const { loadPages, outFile } = require(path.join(ROOT, 'tools/seo/build.js'));
   const pages = loadPages();
-  check('9 pages: learn hub, 6 articles, 2 commercial pages', pages.length === 9 && pages.filter((p) => p.kind === 'article').length === 6 && pages.filter((p) => p.kind === 'commercial').length === 2, pages.map((p) => p.path));
+  check('18 pages: learn hub, 12 Learn articles, 3 blog posts, 2 commercial pages', pages.length === 18 && pages.filter((p) => p.kind === 'article' && p.path.startsWith('/learn/')).length === 12 && pages.filter((p) => p.path.startsWith('/blog/')).length === 3 && pages.filter((p) => p.kind === 'commercial').length === 2, pages.map((p) => p.path));
   const titles = new Set(), descs = new Set();
   for (const p of pages) {
-    const html = read(p.path.slice(1) + 'index.html');
+    const html = read(outFile(p));
     const t = (html.match(/<title>([^<]*)<\/title>/) || [])[1];
     const d = (html.match(/<meta name="description" content="([^"]*)"/) || [])[1];
     const canon = all(/<link rel="canonical" href="([^"]*)"/, html).map((m) => m[1]);
@@ -75,11 +75,11 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
     return fs.existsSync(path.join(ROOT, u.replace(/^\//, '')));
   };
   const broken = [];
-  for (const p of pages) for (const m of all(/href="([^"]+)"/, read(p.path.slice(1) + 'index.html'))) if (!resolves(m[1])) broken.push(p.path + ' → ' + m[1]);
+  for (const p of pages) for (const m of all(/href="([^"]+)"/, read(outFile(p)))) if (!resolves(m[1])) broken.push(p.path + ' → ' + m[1]);
   for (const m of all(/href="(\/(?:learn\/[^"]*|ppc-automation-software\/|cross-platform-ad-management\/))"/, idx)) if (!resolves(m[1])) broken.push('index.html → ' + m[1]);
   check('every internal link on generated pages (and new links in index.html) resolves', broken.length === 0, broken);
-  check('no generated page links into the private app (/app)', !pages.some((p) => /href="\/app/.test(read(p.path.slice(1) + 'index.html'))));
-  const inbound = (target) => pages.some((p) => p.path !== target && read(p.path.slice(1) + 'index.html').includes(`href="${target}"`)) || idx.includes(`href="${target}"`);
+  check('no generated page links into the private app (/app)', !pages.some((p) => /href="\/app/.test(read(outFile(p)))));
+  const inbound = (target) => pages.some((p) => p.path !== target && read(outFile(p)).includes(`href="${target}"`)) || idx.includes(`href="${target}"`);
   check('no orphan pages: every generated page has an inbound link', pages.every((p) => inbound(p.path)), pages.filter((p) => !inbound(p.path)).map((p) => p.path));
   check('homepage nav + footer link to /learn/ and both solution pages', idx.includes('href="/learn/" class="lp-dd-item"') && idx.includes('href="/learn/" class="ov-footer-link"') && idx.includes('href="/ppc-automation-software/"') && idx.includes('href="/cross-platform-ad-management/"'));
 
@@ -104,7 +104,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   check('plan prices on public pages = plans.js', F.plans.every((p) => P[p.id] && Number(P[p.id].price) === p.price), F.plans.map((p) => [p.id, P[p.id] && P[p.id].price]));
   check('image/video ad credit costs = plans.js', F.costs.imageAd === C.imageAdComplete && (C.videoAdComplete == null || F.costs.videoAd === C.videoAdComplete), [C.imageAdComplete, C.videoAdComplete]);
   check('SoftwareApplication offers in index.html = plans.js', app.offers.offers.every((o) => P[o.name.toLowerCase()] && Number(P[o.name.toLowerCase()].price) === Number(o.price)));
-  const allHtml = pages.map((p) => read(p.path.slice(1) + 'index.html')).join('\n');
+  const allHtml = pages.map((p) => read(outFile(p))).join('\n');
   check('pages never claim Autopilot on TikTok/Pinterest or team/agency features', !/autopilot[^.]{0,60}(tiktok|pinterest)[^.]{0,30}(yes|support)/i.test(text(allHtml)) && !/multi-client|agency dashboard|team seats|invite (your )?team/i.test(text(allHtml)));
 
   console.log('\nE. sitemap.xml and robots.txt');
@@ -153,6 +153,41 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   r = await call('/learn/', mkRes(idx, 'text/html'));
   check('handler: routes it does not own are not touched (returns nothing → Netlify continues)', r === undefined);
 
-  console.log(`\n${pass} checks run, ${pass} passed, ${fail} failed.`);
+  console.log('\nG. Shared navbar, blog URLs, article dates and contents');
+  const navSrc = idx.slice(idx.indexOf('<nav class="lp-nav" id="lpNav">'), idx.indexOf('<!-- Mobile menu'));
+  const navLabels = (h) => all(/<(?:button class="lp-dd-trig"[^>]*|a href="[^"]*" class="lp-(?:nav-link|dd-item)"[^>]*)>([\s\S]*?)<\/(?:button|a)>/, h).map((m) => text(m[1]));
+  const siteLabels = navLabels(navSrc);
+  const navBad = pages.filter((p) => {
+    const h = read(outFile(p));
+    return !(h.includes('<body data-lpnav="1">') && h.includes('<nav class="lp-nav" id="lpNav">') && h.includes('<div class="lp-mobile-menu" id="lpMobileMenu">')
+      && h.includes('href="/css/site-nav.css"') && h.includes('src="/js/site-nav.js"') && !h.includes('class="sp-nav"')
+      && h.includes('<a href="/login" class="lp-nav-login">') && h.includes('<a href="/signup" class="lp-cta-btn"') && !/href="#"|lpHandleLogin|lpGetStarted/.test(h)
+      && JSON.stringify(navLabels(h.slice(h.indexOf('<nav class="lp-nav"'), h.indexOf('<div class="lp-mobile-menu"')))) === JSON.stringify(siteLabels));
+  }).map((p) => p.path);
+  check('every static page uses the site’s main navbar (same items as index.html), not a separate one', navBad.length === 0 && siteLabels.length > 10, navBad);
+  check('main navbar logo leads to the homepage', /<a href="\/" class="lp-logo">/.test(read('learn/index.html')));
+  const navCss = read('css/site-nav.css');
+  check('css/site-nav.css carries the navbar rules (#lpNav shown via data-lpnav, dropdowns, mobile menu)', /body\[data-lpnav="1"\] #lpNav\{display: flex !important;\}/.test(navCss) && /\.lp-dropdown\{/.test(navCss) && /\.lp-mobile-menu\{/.test(navCss) && navCss.length < 60000, navCss.length);
+  check('js/site-nav.js defines the handlers the copied markup calls', /window\.lpMmToggle\s*=/.test(read('js/site-nav.js')) && /window\.lpCloseMm\s*=/.test(read('js/site-nav.js')));
+  const blogPages = pages.filter((p) => p.path.startsWith('/blog/'));
+  check('blog posts keep their original URLs: /blog/<slug>, served from blog/<slug>.html, self-canonical', blogPages.length === 3 && blogPages.every((p) => /^\/blog\/[a-z0-9-]+$/.test(p.path) && outFile(p) === p.path.slice(1) + '.html' && read(outFile(p)).includes(`<link rel="canonical" href="${ORIGIN + p.path}">`)), blogPages.map((p) => p.path));
+  check('blog post URLs are no longer rewritten by the edge function or routed by the app', blogPages.every((p) => !E.ROUTES[p.path]) && /var blogSlugs = \{\};/.test(idx));
+  check('the /blog page links to each post as a plain link (no modal)', blogPages.every((p) => idx.includes(`<a href="${p.path}" class="ov-blog-art-btn">`)) && !/ovBlogModalOpen\(\d\);return false/.test(idx));
+  check('blog posts keep their first publication date and show the update', blogPages.every((p) => p.datePublished === '2026-07-13' && p.dateModified > p.datePublished && read(outFile(p)).includes(`<meta property="article:modified_time" content="${p.dateModified}">`) && read(outFile(p)).includes(`Updated <time datetime="${p.dateModified}">`)));
+  const arts = pages.filter((p) => p.kind === 'article');
+  check('every article has article:published_time and article:modified_time', arts.every((p) => /article:published_time/.test(read(outFile(p))) && /article:modified_time/.test(read(outFile(p)))));
+  const tocBad = [];
+  for (const p of arts) {
+    const h = read(outFile(p));
+    const ids = all(/<h2 id="([^"]+)">/, h).map((m) => m[1]);
+    const links = all(/<a href="#([^"]+)">/, h.slice(h.indexOf('<nav class="sp-toc"'), h.indexOf('</nav>', h.indexOf('<nav class="sp-toc"')))).map((m) => m[1]);
+    if (new Set(ids).size !== ids.length || (links.length && !links.every((l) => ids.includes(l))) || (ids.length >= 4 && !links.length)) tocBad.push(p.path);
+  }
+  check('article contents: unique heading ids, every "On this page" link resolves', tocBad.length === 0, tocBad);
+  check('one topic per article (unique about, h1 and crumb)', new Set(arts.map((p) => p.about)).size === arts.length && new Set(arts.map((p) => p.h1)).size === arts.length && new Set(arts.map((p) => p.crumb)).size === arts.length);
+  check('Learn hub links every Learn article and blog post', [...arts].every((p) => read('learn/index.html').includes(`href="${p.path}"`)));
+  check('heading order: one h1, no h3 before the first h2 in any article body', arts.every((p) => { const b = read(outFile(p)).split('<article class="sp-article">')[1] || ''; return !/^[\s\S]*?<h3/.test(b.split('<h2')[0]); }));
+
+  console.log(`\n${pass + fail} checks run, ${pass} passed, ${fail} failed.`);
   process.exit(fail ? 1 : 0);
 })().catch((e) => { console.log('CRASH', e && e.stack || e); process.exit(1); });

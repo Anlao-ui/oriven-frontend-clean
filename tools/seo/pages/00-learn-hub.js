@@ -5,10 +5,10 @@ const F = require('../facts');
 module.exports = {
   path: '/learn/',
   kind: 'hub',
-  lastmod: '2026-10-09',
+  lastmod: '2026-10-14',
   title: 'Learn: Guides to AI Advertising, PPC Automation and Ad Platforms | OrivenAI',
   ogTitle: 'OrivenAI Learn: practical advertising guides',
-  description: 'Practical guides to AI advertising, PPC automation, Google Ads, Meta Ads and running campaigns across several ad platforms, from the team behind OrivenAI.',
+  description: 'Practical guides to AI advertising: creating and testing ads, researching competitors, PPC automation, Google Ads, Meta Ads and running several ad platforms, from the team behind OrivenAI.',
   crumb: 'Learn',
   teaser: 'Guides to AI advertising, PPC automation and ad platforms.',
   eyebrow: 'Learn',
@@ -19,6 +19,14 @@ module.exports = {
 <section class="sp-section" aria-labelledby="g1"><div class="sp-wrap">
   <div class="sp-hub-group"><h2 id="g1">AI advertising</h2><div class="sp-related">
     <a href="/learn/what-is-an-ai-advertising-platform/"><strong>What is an AI advertising platform?</strong><span>What the category covers, what AI does well in advertising, and its limits.</span></a>
+    <a href="/learn/best-ai-advertising-tools-for-small-business/"><strong>The best AI advertising tools for small businesses</strong><span>Which kinds of AI ad tools exist, what they’re good at, and how to choose.</span></a>
+    <a href="/learn/adcreative-ai-alternatives/"><strong>AdCreative.ai alternatives</strong><span>Six alternatives, sorted by the job you need done.</span></a>
+  </div></div>
+  <div class="sp-hub-group"><h2 id="g6">Creating ads</h2><div class="sp-related">
+    <a href="/learn/how-to-create-facebook-and-instagram-ads-with-ai/"><strong>How to create Facebook and Instagram ads with AI</strong><span>From brief to launch: objectives, formats, placements and what to check.</span></a>
+    <a href="/learn/ai-ads-for-ecommerce/"><strong>AI ads for e-commerce</strong><span>Product imagery, copy, catalog ads and seasonal campaigns with AI.</span></a>
+    <a href="/learn/how-to-research-competitor-ads/"><strong>How to research competitor ads</strong><span>Free ad libraries, what to look for, and turning it into a brief.</span></a>
+    <a href="/learn/how-to-test-ad-creatives/"><strong>How to test ad creatives</strong><span>What to test first, how to read results, and when creative wears out.</span></a>
   </div></div>
   <div class="sp-hub-group"><h2 id="g2">PPC automation</h2><div class="sp-related">
     <a href="/learn/what-is-ppc-automation/"><strong>What is PPC automation?</strong><span>The types of PPC automation, rule-based vs AI, and the risks to manage.</span></a>
@@ -35,6 +43,11 @@ module.exports = {
     <a href="/ppc-automation-software/"><strong>PPC automation software</strong><span>Rules that pause, resume, adjust budgets or ask first, on Google Ads and Meta Ads.</span></a>
     <a href="/cross-platform-ad-management/"><strong>Cross-platform ad management</strong><span>One brief, adapted per platform, launched and followed from one workspace.</span></a>
     <a href="/pricing"><strong>Pricing</strong><span>Free, Starter, Creator and Professional plans.</span></a>
+  </div></div>
+  <div class="sp-hub-group"><h2 id="g7">From the OrivenAI blog</h2><div class="sp-related">
+    <a href="/blog/what-you-can-do-with-oriven"><strong>What you can do with OrivenAI</strong><span>A walkthrough of Control Center, Research, Create, Launch, Campaigns and Autopilot.</span></a>
+    <a href="/blog/why-we-built-oriven"><strong>Why we built OrivenAI</strong><span>The problem we saw, and the principles behind the product.</span></a>
+    <a href="/blog/oriven-ai-is-now-live"><strong>OrivenAI is now live</strong><span>What OrivenAI is, what it does today, and how to get started.</span></a>
   </div></div>
 </div></section>`,
   faqTitle: 'About OrivenAI',

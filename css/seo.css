@@ -24,29 +24,32 @@ img{max-width:100%;height:auto}
 :focus-visible{outline:2px solid var(--lime);outline-offset:3px;border-radius:6px}
 .sp-wrap{width:min(var(--max),100% - 2*var(--gutter));margin-inline:auto}
 
-/* ── Nav ── */
-.sp-nav{position:sticky;top:0;z-index:5;background:rgba(10,10,10,.86);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.sp-nav-in{display:flex;align-items:center;gap:20px;height:64px}
+/* ── Nav: the site's main navbar (#lpNav, fixed, 64px) — markup copied from
+   index.html, styles in css/site-nav.css, behaviour in js/site-nav.js. ── */
+body[data-lpnav="1"]{padding-top:64px}
+/* What the navbar inherits on the main site (body line-height 1.6, links not underlined). */
+#lpNav,#lpMobileMenu{line-height:1.6;font-family:'Geist',system-ui,-apple-system,sans-serif}
+#lpNav a,#lpMobileMenu a{text-decoration:none}
+html{scroll-padding-top:84px}
+
+/* ── Logo (footer) ── */
 .sp-logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;letter-spacing:.2px}
 .sp-logo img{width:30px;height:30px;display:block}
-.sp-links{display:flex;gap:26px;margin-left:auto;margin-right:auto}
-.sp-links a{text-decoration:none;color:var(--ink-2);font-size:14px;font-weight:600}
-.sp-links a:hover,.sp-links a[aria-current="page"]{color:var(--ink)}
-.sp-actions{display:flex;align-items:center;gap:14px}
-.sp-login{text-decoration:none;color:var(--muted);font-size:14px;font-weight:600}
-.sp-login:hover{color:var(--ink)}
+
+/* ── Buttons ── */
 .sp-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 22px;border-radius:999px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid transparent;transition:background .15s ease,border-color .15s ease,color .15s ease}
 .sp-btn-primary{background:var(--lime);color:var(--lime-ink)}
 .sp-btn-primary:hover{background:#c8ff5a}
 .sp-btn-ghost{background:var(--surface-2);color:var(--ink);border-color:var(--line-2)}
 .sp-btn-ghost:hover{border-color:rgba(255,255,255,.3)}
 .sp-btn-sm{min-height:38px;padding:0 18px;font-size:14px}
-.sp-menu{display:none;position:relative}
-.sp-menu summary{list-style:none;cursor:pointer;min-height:40px;padding:0 14px;display:flex;align-items:center;border:1px solid var(--line-2);border-radius:999px;font-size:14px;font-weight:600}
-.sp-menu summary::-webkit-details-marker{display:none}
-.sp-menu-panel{position:absolute;right:0;top:48px;min-width:220px;background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:8px;display:flex;flex-direction:column}
-.sp-menu-panel a{padding:10px 12px;border-radius:10px;text-decoration:none;font-size:15px}
-.sp-menu-panel a:hover{background:var(--surface-2)}
+
+/* ── Article contents ("On this page") ── */
+.sp-toc{margin:0 0 36px;padding:18px 22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+.sp-toc p{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.sp-toc ol{margin:0;padding-left:20px;display:grid;gap:4px;font-size:15px;line-height:1.5}
+.sp-toc a{text-decoration:none;color:var(--ink-2)}
+.sp-toc a:hover{color:var(--lime)}
 
 /* ── Breadcrumb ── */
 .sp-crumbs{padding-top:28px;font-size:13px;color:var(--muted)}
@@ -151,10 +154,6 @@ h3{font-size:19px;line-height:1.35;font-weight:600;margin:0 0 8px}
 @media (max-width:760px){
   :root{--gutter:16px}
   body{font-size:16px}
-  .sp-links,.sp-login{display:none}
-  .sp-menu{display:block}
-  .sp-nav-in{gap:10px}
-  .sp-actions{margin-left:auto}
   .sp-hero{padding:36px 0 28px}
   .sp-section{padding:40px 0}
   .sp-grid,.sp-grid-2,.sp-related{grid-template-columns:1fr}

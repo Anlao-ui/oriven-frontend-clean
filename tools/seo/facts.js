@@ -56,6 +56,7 @@ module.exports = {
     '/': { name: 'OrivenAI home', description: 'The AI advertising platform: research, create, launch and automate ads.' },
     '/pricing': { name: 'Pricing', description: 'Free, Starter, Creator and Professional plans, with what each includes.' },
     '/faq': { name: 'FAQ', description: 'Answers about credits, plans and connecting ad accounts.' },
+    '/blog': { name: 'Blog', description: 'Product updates and the story behind OrivenAI.' },
     '/autopilot': { name: 'Autopilot', description: 'Rules that pause, resume or adjust Google and Meta campaigns within limits you set.' },
     '/create': { name: 'Create', description: 'Turn a brief into platform-ready image or video ad creative and campaign structure.' },
     '/launch': { name: 'Launch', description: 'Review each draft’s readiness and publish when you choose.' },

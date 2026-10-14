@@ -31,34 +31,122 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 const strip = (html) => String(html).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 const ld = (obj) => `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, '\\u003c')}</script>`;
 
+// Page paths: directory pages end in "/" (written to <path>/index.html).
+// Blog posts keep their original extension-less URLs (/blog/<slug>), written
+// to blog/<slug>.html — Netlify serves /blog/<slug> from that file with a 200
+// (a directory would answer /blog/<slug> with a 301 to /blog/<slug>/).
+function outFile(p) { return p.path.endsWith('/') ? p.path.slice(1) + 'index.html' : p.path.slice(1) + '.html'; }
+
 function loadPages() {
   const dir = path.join(__dirname, 'pages');
   return fs.readdirSync(dir).filter((f) => f.endsWith('.js')).sort().map((f) => {
     const p = require(path.join(dir, f));
     for (const k of ['path', 'title', 'description', 'h1', 'kind']) if (!p[k]) throw new Error(`${f}: missing ${k}`);
-    if (!/^\/[a-z0-9/-]*\/$/.test(p.path)) throw new Error(`${f}: path must start and end with "/" (${p.path})`);
+    if (!/^\/[a-z0-9/-]*\/$/.test(p.path) && !/^\/blog\/[a-z0-9-]+$/.test(p.path)) throw new Error(`${f}: path must end with "/" (or be /blog/<slug>) (${p.path})`);
     return Object.assign({ file: f }, p);
   });
 }
 
-const NAV = [
-  { href: '/product', label: 'Product' },
-  { href: '/learn/', label: 'Learn' },
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/faq', label: 'FAQ' },
-];
+// ── Main site navbar ──
+// The static pages carry the SAME navbar as the rest of the site: its markup
+// is copied from index.html (#lpNav + #lpMobileMenu) at build time, so the
+// two can't drift apart. Only the app-only handlers change: Login and
+// "Start Creating" become plain links to /login and /signup. Behaviour
+// (dropdowns, hamburger, mobile accordions) comes from js/site-nav.js, the
+// styles from css/site-nav.css (generated below from the site's own CSS).
+let _siteNav = null;
+function siteNavHtml() {
+  if (_siteNav) return _siteNav;
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const cut = (startMarker, endMarker) => {
+    const s = html.indexOf(startMarker), e = html.indexOf(endMarker, s);
+    if (s < 0 || e < 0) throw new Error('navbar markup not found in index.html: ' + startMarker);
+    return html.slice(s, e);
+  };
+  let nav = cut('<nav class="lp-nav" id="lpNav">', '\n<!-- Mobile menu');
+  let mm = cut('<div class="lp-mobile-menu" id="lpMobileMenu">', '\n<!-- ═');
+  const clean = (s) => s.replace(/<!--[\s\S]*?-->/g, '').replace(/\n\s*\n+/g, '\n').trim();
+  nav = clean(nav)
+    .replace(/<a href="#" class="lp-nav-login" onclick="lpHandleLogin\(event\)">/, '<a href="/login" class="lp-nav-login">')
+    .replace(/<a href="#" class="lp-cta-btn" onclick="lpGetStarted\(event\)">/, '<a href="/signup" class="lp-cta-btn" data-cta="nav_signup">');
+  mm = clean(mm)
+    .replace(/<a href="#" class="lp-mm-login" onclick="lpHandleLogin\(event\)">/, '<a href="/login" class="lp-mm-login">')
+    .replace(/<a class="lp-mm-cta" onclick="lpGetStarted\(event\)">/, '<a href="/signup" class="lp-mm-cta" data-cta="nav_signup">');
+  if (/lpHandleLogin|lpGetStarted|href="#"/.test(nav + mm)) throw new Error('navbar: an app-only handler was not replaced');
+  _siteNav = nav + '\n' + mm;
+  return _siteNav;
+}
 
-function nav(page) {
-  const links = NAV.map((l) => `<a href="${l.href}"${page.path.startsWith(l.href) && l.href !== '/' ? ' aria-current="page"' : ''}>${l.label}</a>`).join('');
-  return `<header class="sp-nav"><div class="sp-wrap sp-nav-in">
-  <a class="sp-logo" href="/" aria-label="OrivenAI home"><img src="/assets/orivenlogo.png" alt="" width="30" height="30"><span>OrivenAI</span></a>
-  <nav class="sp-links" aria-label="Main">${links}</nav>
-  <div class="sp-actions">
-    <a class="sp-login" href="/login">Login</a>
-    <a class="sp-btn sp-btn-primary sp-btn-sm" href="/signup" data-cta="nav_signup">Get Started Free</a>
-    <details class="sp-menu"><summary>Menu</summary><div class="sp-menu-panel">${links}<a href="/login">Login</a></div></details>
-  </div>
-</div></header>`;
+// ── Navbar CSS: the navbar's own rules, extracted from css/styles.css and
+// index.html's inline styles (2 MB app stylesheet → a few KB). ──
+const NAV_SEL = /\.lp-(nav|logo|dd|dropdown|has-dd|hamburger|mobile-menu|mm|cta-btn)\b|#lp(Nav|MobileMenu|Hamburger|Mm|Dd)/;
+function splitTop(s, sep) { // split on sep at paren depth 0
+  const out = []; let depth = 0, cur = '';
+  for (const ch of s) { if (ch === '(') depth++; else if (ch === ')') depth--; if (ch === sep && depth === 0) { out.push(cur); cur = ''; } else cur += ch; }
+  out.push(cur); return out;
+}
+function cssBlocks(css) { // [{ prelude, body }] at one nesting level
+  const out = []; let i = 0;
+  while (i < css.length) {
+    const open = css.indexOf('{', i);
+    if (open < 0) break;
+    const prelude = css.slice(i, open).split(';').pop().trim();
+    let depth = 1, j = open + 1;
+    while (j < css.length && depth) { if (css[j] === '{') depth++; else if (css[j] === '}') depth--; j++; }
+    out.push({ prelude, body: css.slice(open + 1, j - 1) });
+    i = j;
+  }
+  return out;
+}
+function pickNavRules(css) {
+  const out = [];
+  for (const b of cssBlocks(css)) {
+    if (/^@(media|supports)/i.test(b.prelude)) {
+      const inner = pickNavRules(b.body);
+      if (inner.length) out.push(`${b.prelude}{\n${inner.join('\n')}\n}`);
+    } else if (!b.prelude.startsWith('@')) {
+      const sels = splitTop(b.prelude, ',').map((x) => x.trim()).filter((x) => NAV_SEL.test(x));
+      if (sels.length) out.push(`${sels.join(',')}{${b.body.trim()}}`);
+    }
+  }
+  return out;
+}
+function navCssSource() {
+  const noComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '');
+  const styles = noComments(fs.readFileSync(path.join(ROOT, 'css', 'styles.css'), 'utf8'));
+  const idx = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const head = idx.slice(0, idx.indexOf('</head>'));
+  const inline = noComments(all(/<style[^>]*>([\s\S]*?)<\/style>/g, head).map((m) => m[1]).join('\n'));
+  const rules = pickNavRules(styles).concat(pickNavRules(inline)); // same order as on the site: stylesheet, then inline
+  // Custom properties the rules use, with the values the site defines on :root.
+  const used = new Set(all(/var\((--[\w-]+)/g, rules.join('\n')).map((m) => m[1]));
+  const rootDecls = {};
+  for (const b of cssBlocks(styles)) if (/^:root$/.test(b.prelude)) for (const d of b.body.split(';')) { const m = /^\s*(--[\w-]+)\s*:\s*([\s\S]+?)\s*$/.exec(d); if (m) rootDecls[m[1]] = m[2]; }
+  for (let grew = true; grew;) { // follow var() references inside the values too
+    grew = false;
+    for (const v of [...used]) if (rootDecls[v]) for (const m of all(/var\((--[\w-]+)/g, rootDecls[v])) if (!used.has(m[1])) { used.add(m[1]); grew = true; }
+  }
+  const vars = [...used].sort().filter((v) => rootDecls[v]).map((v) => `${v}:${rootDecls[v]}`);
+  return `/* GENERATED by tools/seo/build.js from css/styles.css and index.html — do not edit by hand.
+   The site's main navbar (#lpNav, mobile menu, dropdowns) for the static pages, without the 2 MB app stylesheet. */
+${vars.length ? `:root{${vars.join(';')}}\n` : ''}${rules.join('\n')}
+`;
+}
+function all(re, s) { const out = []; let m; const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'); while ((m = r.exec(s))) out.push(m); return out; }
+
+// ── Article contents ("On this page"): ids on every <h2>, list when ≥ 4 ──
+const slugify = (s) => strip(s).toLowerCase().replace(/&[a-z]+;/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+function withToc(body) {
+  const seen = new Set(), items = [];
+  const html = body.replace(/<h2>([\s\S]*?)<\/h2>/g, (m, inner) => {
+    let id = slugify(inner) || 'section'; while (seen.has(id)) id += '-2'; seen.add(id);
+    items.push([id, strip(inner)]);
+    return `<h2 id="${id}">${inner}</h2>`;
+  });
+  const toc = items.length >= 4
+    ? `<nav class="sp-toc" aria-labelledby="toc-h"><p id="toc-h">On this page</p><ol>${items.map(([id, t]) => `<li><a href="#${id}">${esc(t)}</a></li>`).join('')}</ol></nav>`
+    : '';
+  return { html, toc };
 }
 
 function footer() {
@@ -125,16 +213,20 @@ function render(page, all) {
   lds.push(c.json);
   if (fq.json) lds.push(fq.json);
 
+  const updated = page.dateModified && page.dateModified !== page.datePublished
+    ? `<span>Updated <time datetime="${page.dateModified}">${F.fmtDate(page.dateModified)}</time></span>` : '';
   const hero = page.kind === 'article'
     ? `<header class="sp-hero sp-wrap"><p class="sp-eyebrow">${esc(page.eyebrow || 'Learn')}</p><h1>${esc(page.h1)}</h1>
-       <p class="sp-meta"><span>By the OrivenAI team</span><span>Published <time datetime="${page.datePublished}">${F.fmtDate(page.datePublished)}</time></span>${page.readMinutes ? `<span>${page.readMinutes} min read</span>` : ''}</p></header>`
+       <p class="sp-meta"><span>By the OrivenAI team</span><span>Published <time datetime="${page.datePublished}">${F.fmtDate(page.datePublished)}</time></span>${updated}${page.readMinutes ? `<span>${page.readMinutes} min read</span>` : ''}</p></header>`
     : `<header class="sp-hero sp-wrap"><p class="sp-eyebrow">${esc(page.eyebrow)}</p><h1>${esc(page.h1)}</h1><p class="sp-lede">${page.lede}</p>
        <div class="sp-cta-row"><a class="sp-btn sp-btn-primary" href="/signup" data-cta="hero_signup">${esc((page.cta && page.cta.label) || 'Get Started Free')} &rarr;</a>${page.secondary ? `<a class="sp-btn sp-btn-ghost" href="${page.secondary.href}">${esc(page.secondary.label)}</a>` : ''}</div>
        ${page.heroNote ? `<p class="sp-note">${page.heroNote}</p>` : ''}</header>`;
 
-  const body = page.kind === 'article'
-    ? `<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article">${page.body}</article></div></section>`
-    : page.body;
+  let body = page.body;
+  if (page.kind === 'article') {
+    const t = withToc(page.body);
+    body = `<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article">${t.toc}${t.html}</article></div></section>`;
+  }
 
   return `<!doctype html>
 <html lang="en">
@@ -158,11 +250,13 @@ function render(page, all) {
 <meta name="twitter:title" content="${esc(page.ogTitle || page.title)}">
 <meta name="twitter:description" content="${esc(page.description)}">
 <meta name="twitter:image" content="${OG_IMAGE}">
-${page.kind === 'article' ? `<meta property="article:published_time" content="${page.datePublished}">\n` : ''}<link rel="icon" href="/assets/orivenlogo.png" type="image/png">
+${page.kind === 'article' ? `<meta property="article:published_time" content="${page.datePublished}">\n<meta property="article:modified_time" content="${page.dateModified || page.datePublished}">\n` : ''}<link rel="icon" href="/assets/orivenlogo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/seo.css">
+<link rel="stylesheet" href="/css/site-nav.css">
+<script src="/js/site-nav.js" defer></script>
 ${lds.map(ld).join('\n')}
 <!-- Consent first (js/consent.js): the Google Ads tag loads only after the visitor
      accepts advertising. js/site-analytics.js: OrivenAI's own cookieless statistics. -->
@@ -170,9 +264,9 @@ ${lds.map(ld).join('\n')}
 <script src="/js/site-analytics.js" defer></script>
 <script>document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[data-cta]');if(a&&window.orvConsent&&orvConsent.adsAllowed())gtag('event','cta_click',{cta:a.getAttribute('data-cta'),page_path:location.pathname});});</script>
 </head>
-<body>
+<body data-lpnav="1">
 <a class="sp-skip" href="#main">Skip to content</a>
-${nav(page)}
+${siteNavHtml()}
 <main id="main">
 ${c.html}
 ${hero}
@@ -287,8 +381,14 @@ function main() {
     stale.push('netlify/edge-functions/seo-meta.js');
     if (!CHECK) { fs.mkdirSync(path.dirname(edgePath), { recursive: true }); fs.writeFileSync(edgePath, edgeSrc); }
   }
+  const navCssPath = path.join(ROOT, 'css', 'site-nav.css');
+  const navCss = navCssSource();
+  if ((fs.existsSync(navCssPath) ? fs.readFileSync(navCssPath, 'utf8') : null) !== navCss) {
+    stale.push('css/site-nav.css');
+    if (!CHECK) fs.writeFileSync(navCssPath, navCss);
+  }
   for (const p of pages) {
-    const out = path.join(ROOT, p.path, 'index.html');
+    const out = path.join(ROOT, outFile(p));
     const html = render(p, pages);
     const cur = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : null;
     if (cur !== html) {
@@ -313,4 +413,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { loadPages, render };
+module.exports = { loadPages, render, outFile };
