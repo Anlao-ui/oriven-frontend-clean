@@ -44,6 +44,12 @@
   var PROVIDER = { google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest' };
   var PK = { google: 'googleAds', meta: 'metaAds', tiktok: 'tiktokAds', pinterest: 'pinterestAds' };
   F.PLAT = PLAT;
+  var HIER = {
+    google: ['Campaign', 'Ad group', 'Responsive search ad'],
+    meta: ['Campaign', 'Ad set', 'Ad'],
+    tiktok: ['Campaign', 'Ad group', 'Ad'],
+    pinterest: ['Campaign', 'Ad group', 'Pin']
+  };
 
   function costs() { return (typeof window.CREDIT_COSTS === 'object' && window.CREDIT_COSTS) || {}; }
 
@@ -534,264 +540,110 @@
   };
 
   // ════════════════════════════════════════════════════════════════
-  // 4. BUILDER — Build Campaign construction canvas
+  // 4. BUILDER — campaign generation progress (js/orivenProgress.js)
   // ════════════════════════════════════════════════════════════════
-  // Every state change is triggered by a real lifecycle event:
+  // Every stage change is driven by a real lifecycle event:
   //   start()        – Build accepted (after Create's own validation and
   //                    the credit pre-flight), before the request is sent
   //   sent()         – POST /api/ai/create-ad dispatched
   //   copy(pkg)      – the real package arrived
   //   creative(ok)   – the real image(s) finished (or failed)
-  //   background()   – video mode: creative continues after reveal
+  //   background()   – video mode: the video keeps rendering after reveal;
+  //                    its own progress is shown on the video card
   //   fail(model)    – any failure, from any phase
-  // Between events, the only motion is the pen re-drafting outlines on a
-  // slow timer (no rAF), paused while the tab is hidden, off under
-  // reduced motion, and cleared on completion or error.
+  // Only operations that really happen during generation are listed —
+  // nothing about publishing (targeting, budget, tracking) appears here.
+  //
+  // Fix: callbacks queued while the content stage was still settling
+  // (afterCopy) were dropped in video mode, so the reveal never ran and the
+  // old canvas stayed on its last tile ("Pixel checked at publish") while
+  // the video was in fact already rendering behind it. The queue is now
+  // always drained.
   var B = F.builder = {};
   var bs = null;
-  var STAGES = [
-    { k: 'prepare', t: 'Preparing campaign' },
-    { k: 'structure', t: 'Building campaign structure' },
-    { k: 'business', t: 'Applying business context' },
-    { k: 'research', t: 'Applying research context' },
-    { k: 'copy', t: 'Organizing ad copy' },
-    { k: 'creative', t: 'Creating creative' },
-    { k: 'check', t: 'Checking campaign' },
-    { k: 'finalize', t: 'Finalizing' }
-  ];
-  var HIER = {
-    google: ['Campaign', 'Ad group', 'Responsive search ad'],
-    meta: ['Campaign', 'Ad set', 'Ad'],
-    tiktok: ['Campaign', 'Ad group', 'Ad'],
-    pinterest: ['Campaign', 'Ad group', 'Pin']
-  };
-  var LABELS = {
-    google: { headline: 'Headlines', copy: 'Descriptions', cta: 'Keywords' },
-    meta: { headline: 'Headline', copy: 'Primary text', cta: 'Call to action' },
-    tiktok: { headline: 'Hook', copy: 'Ad text', cta: 'Call to action' },
-    pinterest: { headline: 'Pin title', copy: 'Description', cta: 'Call to action' }
-  };
-  var RATIO = { google: '1.91 / 1', meta: '1 / 1', tiktok: '9 / 16', pinterest: '2 / 3' };
-
+  function stagesFor(o) {
+    var isVideo = o.creativeMode === 'videos';
+    var textOnly = !isVideo && o.platform === 'google' && (!o.googleType || o.googleType === 'SEARCH');
+    var list = [
+      { k: 'prepare', t: 'Preparing your campaign' },
+      { k: 'content', t: 'Creating your ad content', status: 'Writing your ad content' + ((o.hasBusiness || o.hasResearch) ? ' with your ' + [o.hasBusiness ? 'business profile' : '', o.hasResearch ? 'research' : ''].filter(Boolean).join(' and ') : '') }
+    ];
+    if (isVideo) list.push({ k: 'creative', t: 'Generating your video', status: 'Starting your video' });
+    else if (!textOnly) list.push({ k: 'creative', t: 'Generating your image', status: 'Generating your image' });
+    list.push({ k: 'finalize', t: 'Finalizing your campaign' });
+    list.push({ k: 'ready', t: 'Ready to review' });
+    return list;
+  }
   function host() { return document.getElementById('cgrLoading'); }
-  function q(sel) { return bs && bs.root ? bs.root.querySelector(sel) : null; }
   function later(fn, ms) { if (!bs) return; var tok = bs.token; var t = setTimeout(function () { if (bs && bs.token === tok) fn(); }, ms); bs.timers.push(t); }
   function clearTimers() { if (!bs) return; bs.timers.forEach(clearTimeout); bs.timers = []; }
   function stepMs(ms) { return reduceMotion() ? 0 : ms; }
-
-  function partHtml(key, label, extraCls, inner) {
-    return '<div class="ofb-part' + (extraCls ? ' ' + extraCls : '') + '" data-part="' + key + '">' +
-      '<span class="ofb-part-lbl">' + esc(label) + '</span>' +
-      (inner || '<span class="ofb-part-val"></span>') +
-      '<span class="ofb-part-edge" aria-hidden="true"></span></div>';
-  }
+  var OPR = function () { return window.OrivenProgress; };
 
   B.start = function (o) {
     o = o || {};
     B.stop();
     var el = host();
-    if (!el) return null;
+    if (!el || !OPR()) return null;
     var p = PLAT[o.platform] ? o.platform : 'meta';
-    var L = LABELS[p], H = HIER[p];
     var isVideo = o.creativeMode === 'videos';
-    var searchText = p === 'google' && o.googleType && o.googleType !== 'SEARCH' ? false : (p === 'google');
-    bs = { token: Date.now() + Math.random(), platform: p, timers: [], outline: [], phase: 'request', root: null, isVideo: isVideo,
-      hasBusiness: !!o.hasBusiness, hasResearch: !!o.hasResearch, startedAt: Date.now(), afterCopy: [], copyDone: false };
+    var textOnly = !isVideo && p === 'google' && (!o.googleType || o.googleType === 'SEARCH');
+    bs = { token: Date.now() + Math.random(), platform: p, timers: [], phase: 'request', isVideo: isVideo,
+      startedAt: Date.now(), afterCopy: [], copyDone: false };
     el.classList.add('ofb-host');
-    el.innerHTML =
-      '<section class="ofb" data-state="building" aria-labelledby="ofbTitle">' +
-        '<header class="ofb-head">' +
-          '<div class="ofb-meta"><span>' + esc(PLAT[p]) + '</span><span>' + esc(o.goal || 'Sales') + '</span><span>' + (isVideo ? 'Video ad' : (searchText ? 'Search ad' : 'Image ad')) + '</span></div>' +
-          '<h1 class="ofb-title" id="ofbTitle">Building your campaign</h1>' +
-          '<p class="ofb-now" id="ofbNow" role="status" aria-live="polite">Preparing campaign</p>' +
-        '</header>' +
-        '<div class="ofb-body">' +
-          '<div class="ofb-canvas" aria-hidden="true">' +
-            '<div class="ofb-sheet">' +
-              partHtml('structure', 'Structure', 'ofb-p-structure', '<span class="ofb-hier">' + H.map(function (h) { return '<span>' + esc(h) + '</span>'; }).join('<i></i>') + '</span>') +
-              partHtml('creative', isVideo ? 'Video' : (searchText ? 'Search result' : 'Creative'), 'ofb-p-creative',
-                '<span class="ofb-frame" style="aspect-ratio:' + (searchText ? '2.4 / 1' : RATIO[p]) + '"><span class="ofb-frame-x"></span><img class="ofb-frame-img" alt="" hidden></span>') +
-              partHtml('headline', L.headline, 'ofb-p-headline') +
-              partHtml('copy', L.copy, 'ofb-p-copy') +
-              partHtml('cta', L.cta, 'ofb-p-cta') +
-              partHtml('destination', 'Destination', 'ofb-p-dest') +
-              partHtml('targeting', 'Targeting', 'ofb-p-target') +
-              partHtml('budget', 'Budget & schedule', 'ofb-p-budget') +
-              partHtml('tracking', 'Tracking', 'ofb-p-track') +
-              partHtml('readiness', 'Readiness', 'ofb-p-ready') +
-            '</div>' +
-            '<span class="ofb-pen"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 21l3.8-1 11-11a2 2 0 0 0-2.8-2.8l-11 11L3 21z" fill="currentColor" opacity=".16"/><path d="M3 21l3.8-1 11-11a2 2 0 0 0-2.8-2.8l-11 11L3 21zM13.5 7.5l3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>' +
-          '</div>' +
-          '<ol class="ofb-steps" aria-label="Build progress">' +
-            STAGES.map(function (s) {
-              return '<li class="ofb-step" data-step="' + s.k + '" data-s="pending"><span class="ofb-step-mark" aria-hidden="true"></span><span class="ofb-step-t">' + esc(s.t) + '</span><span class="ofb-step-note"></span><span class="ofb-sr"> — waiting</span></li>';
-            }).join('') +
-          '</ol>' +
-        '</div>' +
-        '<div class="ofb-foot" id="ofbFoot"></div>' +
-      '</section>';
-    bs.root = el.querySelector('.ofb');
-    bs.outline = ['structure', 'headline', 'copy', 'cta', 'creative', 'destination', 'targeting', 'budget', 'tracking', 'readiness'];
-    setStep('prepare', 'active');
-    if (reduceMotion()) {
-      bs.outline.forEach(function (k) { markPart(k, 'drafted'); });
-      bs.outline = [];
-    } else {
-      later(idleTick, 350);
-    }
-    // Honest long-wait notice — never a fake ETA.
+    bs.ui = OPR().create(el, {
+      title: 'Building your campaign',
+      chips: [PLAT[p], o.goal || 'Sales', isVideo ? 'Video ad' : (textOnly ? 'Search ad' : 'Image ad')],
+      stages: stagesFor({ creativeMode: o.creativeMode, platform: p, googleType: o.googleType, hasBusiness: o.hasBusiness, hasResearch: o.hasResearch }),
+      kind: 'build-content'
+    });
+    bs.ui.stage('prepare', 'active');
+    // Honest long-wait notice, based on this device's real build times
+    // when there are enough of them — never a fake ETA.
+    var est = OPR().estimateMs('build-content');
     later(function () {
-      if (bs && bs.phase === 'request') {
-        var f = q('#ofbFoot');
-        if (f) f.innerHTML = '<p class="ofb-slow">This is taking longer than usual. The build is still running — keep this page open.</p>';
-      }
-    }, 70000);
+      if (bs && bs.phase === 'request') bs.ui.notice('This is taking longer than usual, but your campaign is still being created. Please keep this page open.', 'slow');
+    }, Math.max(70000, est ? est * 1.6 : 0));
     return bs.token;
   };
   B.isCurrent = function (token) { return !!bs && bs.token === token; };
   B.active = function () { return !!bs && bs.phase !== 'done' && bs.phase !== 'error'; };
   B.stop = function () { clearTimers(); bs = null; };
 
-  function setStep(k, state, note) {
-    if (!bs) return;
-    var li = q('.ofb-step[data-step="' + k + '"]');
-    if (!li) return;
-    li.setAttribute('data-s', state);
-    var sr = li.querySelector('.ofb-sr');
-    if (sr) sr.textContent = ' — ' + ({ pending: 'waiting', active: 'in progress', done: 'done', skipped: 'not included', warn: 'finished with a warning', failed: 'failed', bg: 'continues in the background' }[state] || state);
-    var n = li.querySelector('.ofb-step-note');
-    if (n) n.textContent = note || '';
-    if (state === 'active') {
-      var now = q('#ofbNow');
-      var def = STAGES.filter(function (s) { return s.k === k; })[0];
-      if (now && def) now.textContent = def.t;
-    }
-  }
-  function markPart(k, cls) {
-    var el = q('.ofb-part[data-part="' + k + '"]');
-    if (el) el.classList.add('ofb-' + cls);
-    return el;
-  }
-  function movePen(k) {
-    if (!bs || reduceMotion()) return;
-    var el = q('.ofb-part[data-part="' + k + '"]');
-    var pen = q('.ofb-pen');
-    var canvas = q('.ofb-canvas');
-    if (!el || !pen || !canvas) return;
-    var x = el.offsetLeft + Math.min(el.offsetWidth - 18, 26 + (el.offsetWidth * 0.55));
-    var y = el.offsetTop + Math.min(el.offsetHeight - 10, 22);
-    pen.style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y) + 'px,0)';
-    pen.classList.add('ofb-pen-on');
-    canvas.querySelectorAll('.ofb-part.ofb-focus').forEach(function (n) { n.classList.remove('ofb-focus'); });
-    el.classList.add('ofb-focus');
-  }
-  function idleTick() {
-    if (!bs || bs.phase !== 'request') return;
-    if (!document.hidden) {
-      var next = bs.outline.shift();
-      if (next) { movePen(next); markPart(next, 'drafted'); }
-      else {
-        // Everything outlined; keep the pen visiting parts that are still
-        // waiting for real content, slowly. No values are invented.
-        var waiting = ['headline', 'copy', 'creative', 'cta', 'budget', 'targeting'];
-        bs.wander = ((bs.wander || 0) + 1) % waiting.length;
-        movePen(waiting[bs.wander]);
-      }
-    }
-    later(idleTick, bs.outline.length ? 900 : 2600);
-  }
-
   B.sent = function (token) {
     if (!bs || (token && bs.token !== token)) return;
-    setStep('prepare', 'done');
-    setStep('structure', 'active');
-    setStep('business', bs.hasBusiness ? 'active' : 'skipped', bs.hasBusiness ? '' : 'No business profile yet');
-    setStep('research', bs.hasResearch ? 'active' : 'skipped', bs.hasResearch ? '' : 'No research findings selected');
-    var now = q('#ofbNow'); if (now) now.textContent = 'Building campaign structure';
+    bs.ui.stage('prepare', 'done').stage('content', 'active');
   };
-
-  function fillPart(k, text, extraCls) {
-    var el = markPart(k, 'filled');
-    if (!el) return;
-    el.classList.add('ofb-drafted');
-    if (extraCls) el.classList.add(extraCls);
-    var v = el.querySelector('.ofb-part-val');
-    if (v) v.textContent = text;
-    movePen(k);
-  }
 
   B.copy = function (pkg, platform, token) {
     if (!bs || (token && bs.token !== token)) return;
     bs.phase = 'copy';
     clearTimers();
-    var f = q('#ofbFoot'); if (f) f.innerHTML = '';
-    var p = platform || bs.platform;
-    var s = P.summary(pkg, p);
-    setStep('prepare', 'done');
-    setStep('structure', 'done');
-    if (bs.hasBusiness) setStep('business', 'done');
-    if (bs.hasResearch) setStep('research', 'done');
-    setStep('copy', 'active');
-    bs.outline.forEach(function (k) { markPart(k, 'drafted'); });
-    bs.outline = [];
-    var tgt = P.targeting(pkg, p);
-    var b = s.budget;
-    var kws = ((pkg.googleAds || {}).keywords || []).filter(Boolean);
-    var seq = [
-      ['structure', null],
-      ['headline', trunc(s.headline, 70) || 'Written'],
-      ['copy', trunc(s.copy, 120) || 'Written'],
-      ['cta', p === 'google' ? (kws.length ? trunc(kws.slice(0, 3).join(' · '), 60) : 'None') : (s.cta || 'Set at publish')],
-      ['destination', s.url ? trunc(s.url.replace(/^https?:\/\//, ''), 44) : 'Needs a URL', s.url ? '' : 'ofb-need'],
-      ['targeting', trunc(tgt.sent, 48)],
-      ['budget', (b.source === 'missing' ? 'Needs a daily budget' : (b.applied + ' / day' + (b.source === 'default' ? ' (default)' : ''))) + ' · created paused', b.source === 'missing' ? 'ofb-need' : ''],
-      ['tracking', p === 'meta' ? 'Pixel checked at publish' : 'Checked by ' + PROVIDER[p] + ' at review']
-    ];
-    var gap = stepMs(170);
-    seq.forEach(function (row, i) {
-      later(function () {
-        if (row[0] === 'structure') { markPart('structure', 'filled'); movePen('structure'); return; }
-        fillPart(row[0], row[1], row[2]);
-      }, gap * i);
-    });
-    later(function () {
-      setStep('copy', 'done');
-      bs.copyDone = true;
-      if (bs.isVideo) return;
-      setStep('creative', 'active');
-      markPart('creative', 'working');
-      movePen('creative');
-      var fns = bs.afterCopy.slice(); bs.afterCopy = [];
-      fns.forEach(function (fn) { fn(); });
-    }, gap * seq.length);
+    bs.ui.notice('');
+    if (OPR()) OPR().record('build-content', Date.now() - bs.startedAt);
+    bs.ui.stage('prepare', 'done').stage('content', 'done');
+    bs.creativeAt = Date.now();
+    if (bs.ui.q('.op-stage[data-k="creative"]')) bs.ui.stage('creative', 'active');
+    bs.copyDone = true;
+    var fns = bs.afterCopy.slice(); bs.afterCopy = [];
+    fns.forEach(function (fn) { fn(); });
   };
 
   function afterCopy(fn) { if (!bs) return; if (bs.copyDone) fn(); else bs.afterCopy.push(fn); }
 
-  function checkAndFinish(pkg, p, cb) {
-    setStep('check', 'active');
-    movePen('readiness');
+  // Saving happens synchronously in _renderPackage before this runs; the
+  // stage reports the real outcome of that save.
+  function finishBuild(cb) {
+    bs.ui.stage('finalize', 'active');
     later(function () {
-      var issues = pkg ? P.issues(pkg, p) : [];
-      var blockers = issues.filter(function (i) { return i.blocker; });
-      var ready = q('.ofb-part[data-part="readiness"]');
-      var text = !issues.length ? 'Ready for Launch review'
-        : (blockers.length ? blockers.length + ' to finish before launch' : 'Ready, ' + issues.length + ' optional');
-      fillPart('readiness', text, blockers.length ? 'ofb-need' : '');
-      if (ready) ready.setAttribute('title', issues.map(function (i) { return i.label; }).join(', '));
-      setStep('check', blockers.length ? 'warn' : 'done', blockers.length ? blockers.map(function (i) { return i.label; }).join(', ') : '');
-      setStep('finalize', 'active');
-      later(function () {
-        var saveOk = window._orvLastStoreOk !== false;
-        setStep('finalize', saveOk ? 'done' : 'warn', saveOk ? 'Saved to Campaigns' : 'Saved to your account; this device’s copy failed');
-        bs.phase = 'done';
-        bs.root.setAttribute('data-state', 'done');
-        var t = q('#ofbTitle'); if (t) t.textContent = 'Campaign ready';
-        var now = q('#ofbNow'); if (now) now.textContent = 'Opening your campaign';
-        var pen = q('.ofb-pen'); if (pen) pen.classList.remove('ofb-pen-on');
-        later(function () { var done = cb; B.stop(); if (done) done(); }, stepMs(650));
-      }, stepMs(380));
-    }, stepMs(320));
+      var saveOk = window._orvLastStoreOk !== false;
+      bs.ui.stage('finalize', saveOk ? 'done' : 'warn', saveOk ? 'Saved to Campaigns' : 'Saved to your account; this device’s copy failed');
+      bs.ui.stage('ready', 'done');
+      bs.phase = 'done';
+      bs.ui.finish('done', 'Your campaign is ready');
+      bs.ui.status(bs.isVideo ? 'Opening your campaign — your video keeps generating' : 'Opening your campaign');
+      later(function () { var done = cb; B.stop(); if (done) done(); }, stepMs(700));
+    }, stepMs(350));
   }
 
   // info: { pkg, platform, failKind: 'credits'|'service'|'failed', count }
@@ -799,32 +651,19 @@
     if (!bs || (token && bs.token !== token)) { if (cb) cb(); return; }
     info = info || {};
     afterCopy(function () {
-      var p = info.platform || bs.platform;
-      var el = q('.ofb-part[data-part="creative"]');
-      if (el) el.classList.remove('ofb-working');
-      var img = info.pkg ? P.image(info.pkg, p) : null;
-      if (ok && img) {
-        var im = q('.ofb-frame-img');
-        if (im) { im.onload = function () { if (el) el.classList.add('ofb-filled'); }; im.src = img; im.hidden = false; }
-      } else if (ok) {
-        if (el) el.classList.add('ofb-filled');
-      } else if (el) {
-        el.classList.add('ofb-need');
-      }
+      if (ok && bs.creativeAt && OPR()) OPR().record('build-image', Date.now() - bs.creativeAt);
       var why = info.failKind === 'credits' ? 'Not enough credits for the image'
         : info.failKind === 'service' ? 'Image service unavailable — add or regenerate it later'
         : 'Image not created — add or regenerate it later';
-      setStep('creative', ok ? 'done' : 'warn', ok ? '' : why);
-      later(function () { checkAndFinish(info.pkg, p, cb); }, stepMs(ok ? 420 : 200));
+      bs.ui.stage('creative', ok ? 'done' : 'warn', ok ? '' : why);
+      later(function () { finishBuild(cb); }, stepMs(ok ? 250 : 150));
     });
   };
   B.background = function (info, cb, token) {
     if (!bs || (token && bs.token !== token)) { if (cb) cb(); return; }
-    info = info || {};
     afterCopy(function () {
-      setStep('creative', 'bg', 'Video continues in the background');
-      markPart('creative', 'working');
-      checkAndFinish(info.pkg, info.platform || bs.platform, cb);
+      bs.ui.stage('creative', 'bg', 'Keeps generating while you review — progress is shown on the video');
+      finishBuild(cb);
     });
   };
 
@@ -833,15 +672,12 @@
     clearTimers();
     handlers = handlers || {};
     bs.phase = 'error';
-    var activeLi = q('.ofb-step[data-s="active"]');
-    q('.ofb-steps').querySelectorAll('.ofb-step[data-s="active"]').forEach(function (li) { li.setAttribute('data-s', 'pending'); });
-    if (activeLi) setStep(activeLi.getAttribute('data-step'), 'failed');
-    bs.root.setAttribute('data-state', 'error');
-    bs.root.setAttribute('data-kind', model.kind);
-    var pen = q('.ofb-pen'); if (pen) pen.classList.remove('ofb-pen-on');
-    var t = q('#ofbTitle'); if (t) t.textContent = model.title;
-    var now = q('#ofbNow'); if (now) { now.textContent = ''; }
-    var foot = q('#ofbFoot');
+    var activeLi = bs.ui.q('.op-stage[data-s="active"]');
+    if (activeLi) bs.ui.stage(activeLi.getAttribute('data-k'), 'failed');
+    bs.ui.root.setAttribute('data-kind', model.kind);
+    bs.ui.finish('error', model.title);
+    bs.ui.status('');
+    var foot = bs.ui.q('.op-foot');
     var creditRow = (model.kind === 'credits' && model.balance != null)
       ? '<dl class="ofb-credits"><div><dt>Needed</dt><dd>' + esc(model.required) + '</dd></div><div><dt>Your balance</dt><dd>' + esc(model.balance) + '</dd></div></dl>' : '';
     foot.innerHTML =

@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/orivenWorkspace.css">
 <link rel="stylesheet" href="css/orivenFlow.css">
+<link rel="stylesheet" href="css/orivenProgress.css">
 <link rel="stylesheet" href="css/orivenOps.css">
 <link rel="stylesheet" href="css/create-fit.css">
 <link rel="stylesheet" href="css/tour.css">
@@ -7661,6 +7662,7 @@
 <script src="js/autopilot.js"></script>
 <script src="js/orivenContext.js"></script>
 <script src="js/orivenWorkspace.js"></script>
+<script src="js/orivenProgress.js"></script>
 <script src="js/campaignSpec.js"></script>
 <script src="js/orivenFlow.js"></script>
 <script src="js/orivenOps.js"></script>
@@ -16092,15 +16094,49 @@ window._researchRefineQuestion = function() {
 // into map geometry client-side ("mapping"). No fake browsing/searching
 // events are ever pushed, because none occur.
 var RESEARCH_ACTIVITY_STAGES = [
-  { key: 'preparing', label: 'Understanding research objective' },
-  { key: 'analyzing', label: 'Analyzing research' },
-  { key: 'mapping', label: 'Structuring market map' },
+  { key: 'preparing', label: 'Understanding your question' },
+  { key: 'analyzing', label: 'Researching your market' },
+  { key: 'mapping', label: 'Building your market map' },
 ];
 var _researchActivityEvents = [];
+// Shared progress UI (js/orivenProgress.js): the same three real stages,
+// plus elapsed time, an indeterminate bar and — after 3+ measured runs on
+// this device — a "usually about …" estimate. A new investigation starts a
+// new panel (and clock).
+var _researchProgress = null;
+var _researchProgressSlowTimer = null;
+function _researchProgressReset() {
+  _researchProgress = null;
+  if (_researchProgressSlowTimer) { clearTimeout(_researchProgressSlowTimer); _researchProgressSlowTimer = null; }
+}
+function _researchProgressDone() {
+  if (_researchProgressSlowTimer) { clearTimeout(_researchProgressSlowTimer); _researchProgressSlowTimer = null; }
+  if (!_researchProgress) return;
+  var ms = _researchProgress.finish('done');
+  if (window.OrivenProgress) window.OrivenProgress.record('research', ms);
+}
 
 function _researchRenderActivity() {
   var el = document.getElementById('researchActivityFeed');
   if (!el) return;
+  if (window.OrivenProgress) {
+    if (!_researchProgress || !el.contains(_researchProgress.root)) {
+      _researchProgress = window.OrivenProgress.create(el, { compact: true, kind: 'research',
+        stages: RESEARCH_ACTIVITY_STAGES.map(function(st) { return { k: st.key, t: st.label }; }) });
+      var est = window.OrivenProgress.estimateMs('research');
+      var pr = _researchProgress;
+      _researchProgressSlowTimer = setTimeout(function() {
+        if (_researchProgress === pr && pr.root.getAttribute('data-state') === 'running') pr.notice('Still researching — this can take a minute or two. Keep this page open.', 'slow');
+      }, Math.max(60000, est ? est * 1.6 : 0));
+    }
+    var extra = [];
+    _researchActivityEvents.forEach(function(ev) {
+      if (/^event-/.test(ev.key)) { extra.push(ev.label); return; }
+      _researchProgress.stage(ev.key, ev.status === 'idle' ? 'pending' : ev.status);
+    });
+    if (extra.length) _researchProgress.stage('mapping', 'active', extra.join(' · '));
+    return;
+  }
   el.innerHTML = _researchActivityEvents.map(function(ev) {
     var icon = ev.status === 'done' ? '✓' : ev.status === 'active' ? '●' : '○';
     return '<div class="rsc-activity-row rsc-activity-row-' + ev.status + '">' +
@@ -16389,6 +16425,7 @@ window.researchSubmit = function() {
   var btn = document.getElementById('researchSubmitBtn');
   if (btn) btn.disabled = true;
   _researchRailReset();
+  _researchProgressReset();
   _researchSetState('researchLoadingState');
   _researchSetActivityStage('preparing');
 
@@ -16449,6 +16486,7 @@ window.researchSubmit = function() {
           return;
         }
         window._researchLastResult = res.data;
+        _researchProgressDone();
         if (window.orvActionEvent) orvActionEvent('success', 'research');
         // Continuity/Context Layer sprint — persist to localStorage so this
         // real research result survives a reload/new session (previously
@@ -16470,6 +16508,8 @@ window.researchSubmit = function() {
 };
 
 function _researchShowError(message) {
+  if (_researchProgress) _researchProgress.finish('error');
+  _researchProgressReset();
   var errEl = document.getElementById('researchErrorState');
   if (errEl) {
     errEl.innerHTML = '<p class="research-error-msg">' + _prfEsc(message) + '</p>' +
@@ -27697,9 +27737,9 @@ window.rptExport = function(format) {
       var asset = (pkg.videoAssets||[]).filter(function(v){ return v && v.ref === task.ref && v.videoUrl; })[0];
       var job = pkg.videoJobs.filter(function(j){ return j && j.ref === task.ref && j.videoId; })[0];
       if(asset){ st.settled[i] = true; _cgrVideoReady(i, task.ref, asset.videoUrl); }
-      else if(job){ _cgrVideoPending(i, task.ref, 'Rendering video…'); _pollCgrVideo(st, i, job); }
+      else if(job){ _cgrVideoPending(i, task.ref, 'generating', { since: job.startedAt }); _pollCgrVideo(st, i, job); }
       else if(opts.reopen){ st.settled[i] = true; _cgrVideoMissing(st, i); }
-      else { toSubmit++; _cgrVideoPending(i, task.ref, 'Waiting to start…'); st.queue.push(i); }
+      else { toSubmit++; _cgrVideoPending(i, task.ref, 'queued'); st.queue.push(i); }
     });
     _cgrVideoPill(st);
     if(toSubmit) _cgrShowCreativeCostPill(pill, toSubmit, 'video_generation', 'video');
@@ -27711,7 +27751,7 @@ window.rptExport = function(format) {
     var total = st.tasks.length, ready = 0, open = 0;
     st.tasks.forEach(function(t, i){
       if((st.pkg.videoAssets||[]).some(function(v){ return v && v.ref === t.ref && v.videoUrl; })) ready++;
-      else if(!st.settled[i]) open++;
+      else if(!st.settled[i] || (st.pkg.videoJobs||[]).some(function(j){ return j && j.ref === t.ref; })) open++; // a saved job is still rendering
     });
     if(open){ st.pill.textContent = 'Generating video' + (open === 1 ? '' : 's') + '… ' + ready + ' of ' + total + ' ready'; st.pill.className = 'cgr2-gen-pill'; }
     else { st.pill.textContent = ready + ' of ' + total + ' video' + (total === 1 ? '' : 's') + ' ready'; st.pill.className = 'cgr2-gen-pill done'; }
@@ -27729,7 +27769,7 @@ window.rptExport = function(format) {
   function _cgrSubmitVideo(st, i, key, attempt){
     var task = st.tasks[i];
     key = key || _cgrNewVideoKey(st.campId, i);
-    _cgrVideoPending(i, task.ref, 'Starting video…');
+    _cgrVideoPending(i, task.ref, 'starting');
     return _cgrSessionToken().then(function(token){
       return fetch(API_BASE_URL + '/api/generate-ugc-video', {
         method: 'POST',
@@ -27744,7 +27784,7 @@ window.rptExport = function(format) {
         st.pkg.videoJobs.push(job);
         _cgrSaveVideoState(st.pkg, st.campId);
         if(typeof consumeUsage === 'function') consumeUsage(CREDIT_COSTS.video); // charged at submission (server: video_generation)
-        _cgrVideoPending(i, task.ref, 'Rendering video…');
+        _cgrVideoPending(i, task.ref, 'generating', { since: job.startedAt });
         _pollCgrVideo(st, i, job);
         return;
       }
@@ -27782,13 +27822,66 @@ window.rptExport = function(format) {
     _cgrVideoNext(st);
   }
 
-  function _cgrVideoPending(idx, ref, label){
+  /* Video card progress — real stages only:
+       queued     waiting for the previous video to be accepted (one at a time)
+       starting   submission request in flight
+       generating the provider is rendering (status queued/processing)
+       finalizing finished; the video file is loading for preview
+     Elapsed time counts from the job's saved start (pkg.videoJobs), so it
+     is right after leaving and coming back. No percentage is shown — the
+     provider doesn't report one. "Usually about …" appears only after this
+     device has measured 3+ real renders. */
+  var VIDEO_STAGE = {
+    queued:     { t: 'Waiting to start', m: 'Videos are started one at a time.' },
+    starting:   { t: 'Starting your video', m: 'Sending your ad to the video service.' },
+    generating: { t: 'Generating your video', m: 'Your video is being generated. This can take a few minutes.' },
+    finalizing: { t: 'Finalizing your creative', m: 'Loading your finished video.' }
+  };
+  function _cgrVideoPending(idx, ref, stage, opts){
+    opts = opts || {};
     var card = document.getElementById('cgcv'+idx);
     if(!card) return;
-    card.className = 'cgr-creative-card cgr-creative-skel-card';
-    card.innerHTML = '<div class="cgr-creative-skel-img"></div>'
-      +'<div class="cgr-creative-card-body"><div class="cgr-creative-ref">'+_esc(ref)+'</div>'
-      +'<div class="cgr-creative-gen-label" role="status">'+_esc(label)+'</div></div>';
+    var def = VIDEO_STAGE[stage] || VIDEO_STAGE.generating;
+    var OPg = window.OrivenProgress;
+    var since = opts.since || Date.now();
+    var est = (stage === 'generating' && OPg) ? OPg.estimateText('video-render') : '';
+    card.className = 'cgr-creative-card op-vcard';
+    card.setAttribute('data-vstage', stage);
+    card.innerHTML = '<div class="op-vframe" aria-hidden="true">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor" stroke="none"/></svg>'
+      +'<div class="op-vprog"><div class="op-bar"><span></span></div></div></div>'
+      +'<div class="op-vbody"><div class="cgr-creative-ref">'+_esc(ref)+'</div>'
+      +'<p class="op-vstage" role="status">'+_esc(def.t)+'</p>'
+      +'<p class="op-vmsg">'+_esc(opts.message || def.m)+'</p>'
+      +((stage === 'generating' || stage === 'finalizing') && OPg ? '<p class="op-vmeta">'+OPg.elapsedHtml(since)+(est ? '<span>· '+_esc(est)+'</span>' : '')+'</p>' : '')
+      +'<div class="op-vnote"></div></div>';
+    if(OPg) OPg.startTicker();
+    _cgrVideoNotice(idx, opts.notice || '', opts.noticeKind);
+  }
+  // Not a failure: the job is still rendering but OrivenAI stopped checking
+  // (15-minute limit, or repeated connection problems). Neutral styling,
+  // elapsed time from the job's real start, and a manual "Check again".
+  function _cgrVideoPaused(idx, ref, since, message, onCheck){
+    _cgrVideoPending(idx, ref, 'generating', { since: since, message: message });
+    var card = document.getElementById('cgcv'+idx);
+    if(!card) return;
+    card.setAttribute('data-vstage', 'paused');
+    var bar = card.querySelector('.op-vprog'); if(bar) bar.remove();
+    var st = card.querySelector('.op-vstage'); if(st) st.textContent = 'Still generating';
+    var el = card.querySelector('.op-elapsed'); if(el) el.removeAttribute('data-op-since');
+    var n = card.querySelector('.op-vnote');
+    if(n){
+      n.innerHTML = '<div class="cgr-creative-actions"><button type="button" class="cgr-crv-btn" data-vid-check>Check again</button></div>';
+      var b = n.querySelector('[data-vid-check]');
+      b.addEventListener('click', function(){ b.disabled = true; onCheck(); });
+    }
+  }
+  function _cgrVideoNotice(idx, text, kind){
+    var card = document.getElementById('cgcv'+idx);
+    var n = card && card.querySelector('.op-vnote');
+    if(!n) return;
+    var html = text ? '<p class="op-notice'+(kind ? ' op-notice-'+kind : '')+'">'+_esc(text)+'</p>' : '';
+    if(n.innerHTML !== html) n.innerHTML = html;
   }
 
   function _cgrVideoReady(idx, ref, url){
@@ -27858,13 +27951,18 @@ window.rptExport = function(format) {
     if(window._cgrVideoRun !== st) return; // another campaign was opened; it resumes from pkg.videoJobs
     if(Date.now() > deadline){
       st.settled[idx] = true;
-      _cgrVideoErr(idx, ref, 'This video is taking longer than usual. It keeps rendering — check again in a few minutes.',
-        function(){ st.settled[idx] = false; _cgrVideoPending(idx, ref, 'Rendering video…'); _pollCgrVideo(st, idx, job, Date.now() + 5 * 60 * 1000, 0); _cgrVideoPill(st); }, 'Check again');
+      _cgrVideoPaused(idx, ref, job.startedAt, 'This is taking longer than usual. The video keeps generating — check again in a few minutes, or reopen this campaign later.',
+        function(){ st.settled[idx] = false; _cgrVideoPending(idx, ref, 'generating', { since: job.startedAt }); _pollCgrVideo(st, idx, job, Date.now() + 5 * 60 * 1000, 0); _cgrVideoPill(st); });
       _cgrVideoPill(st);
       return;
     }
     var apiBase = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
     var elapsed = Date.now() - (job.startedAt || Date.now());
+    // Longer than usual (this device's real median ×1.5, at least 4 min):
+    // say so, and that leaving is safe — the job is saved in the campaign.
+    var _est = window.OrivenProgress ? window.OrivenProgress.estimateMs('video-render') : null;
+    var _slowAt = Math.max(4 * 60 * 1000, _est ? _est * 1.5 : 0);
+    if(errors === 0) _cgrVideoNotice(idx, elapsed > _slowAt ? 'Taking longer than usual. You can leave this page — the video keeps generating and appears here when you reopen this campaign.' : '', 'slow');
     var wait = elapsed < 2 * 60 * 1000 ? 5000 : 10000;
     function again(ms, errs){ setTimeout(function(){ _pollCgrVideo(st, idx, job, deadline, errs); }, ms); }
     function dropJob(){ st.pkg.videoJobs = (st.pkg.videoJobs||[]).filter(function(j){ return j && j.videoId !== job.videoId; }); }
@@ -27877,7 +27975,7 @@ window.rptExport = function(format) {
       var data = res.data;
       if(res.status === 401){
         st.settled[idx] = true;
-        _cgrVideoErr(idx, ref, 'Your session has expired. Sign in again — the video keeps rendering and appears when you reopen this campaign.', null);
+        _cgrVideoPaused(idx, ref, job.startedAt, 'Your session has expired. Sign in again — the video keeps generating and appears when you reopen this campaign.', function(){ st.settled[idx] = false; _cgrVideoPending(idx, ref, 'generating', { since: job.startedAt }); _pollCgrVideo(st, idx, job, deadline, 0); _cgrVideoPill(st); });
         _cgrVideoPill(st); return;
       }
       if(res.status === 404){
@@ -27889,21 +27987,31 @@ window.rptExport = function(format) {
       if(res.status >= 500 || res.status === 0){
         if(errors + 1 >= 6){
           st.settled[idx] = true;
-          _cgrVideoErr(idx, ref, 'OrivenAI couldn’t check this video’s progress. It keeps rendering.', function(){ st.settled[idx] = false; _cgrVideoPending(idx, ref, 'Rendering video…'); _pollCgrVideo(st, idx, job, deadline, 0); _cgrVideoPill(st); }, 'Check again');
+          _cgrVideoPaused(idx, ref, job.startedAt, 'OrivenAI couldn’t reach the server to check this video. It keeps generating — check again when your connection is back.', function(){ st.settled[idx] = false; _cgrVideoPending(idx, ref, 'generating', { since: job.startedAt }); _pollCgrVideo(st, idx, job, deadline, 0); _cgrVideoPill(st); });
           _cgrVideoPill(st); return;
         }
+        _cgrVideoNotice(idx, 'Connection issue — still checking. Your video keeps generating.', 'retry');
         return again(Math.min(30000, 5000 * Math.pow(2, errors)), errors + 1);
       }
       if(data.status === 'completed' && data.videoUrl){
+        if(window.OrivenProgress && job.startedAt) window.OrivenProgress.record('video-render', Date.now() - job.startedAt);
         if(!Array.isArray(st.pkg.videoAssets)) st.pkg.videoAssets = [];
         var existing = st.pkg.videoAssets.filter(function(v){ return v && v.ref === ref; });
         if(existing.length){ existing[0].videoUrl = data.videoUrl; existing[0].createdAt = Date.now(); }
         else st.pkg.videoAssets.push({ ref: ref, videoUrl: data.videoUrl, createdAt: Date.now() });
         dropJob(); _cgrSaveVideoState(st.pkg, st.campId);
-        st.settled[idx] = true;
-        _cgrVideoReady(idx, ref, data.videoUrl);
-        _cgrVideoPill(st);
-        console.log('[cgr] Video ready', idx);
+        // Finalizing: show the player once the file can actually play
+        // (or after 15 s, so a slow network never hides a finished video).
+        _cgrVideoPending(idx, ref, 'finalizing', { since: job.startedAt });
+        var _shown = false;
+        var _show = function(){ if(_shown) return; _shown = true; st.settled[idx] = true; _cgrVideoReady(idx, ref, data.videoUrl); _cgrVideoPill(st); console.log('[cgr] Video ready', idx); };
+        try {
+          var _pv = document.createElement('video');
+          _pv.preload = 'metadata'; _pv.muted = true;
+          _pv.addEventListener('loadedmetadata', _show); _pv.addEventListener('error', _show);
+          _pv.src = data.videoUrl;
+        } catch(_){ _show(); }
+        setTimeout(_show, 15000);
         return;
       }
       if(data.status === 'failed'){
@@ -27915,9 +28023,10 @@ window.rptExport = function(format) {
       again(wait, 0);
     }).catch(function(){
       // Network hiccup: keep trying with backoff, then offer a manual check.
+      _cgrVideoNotice(idx, 'Connection issue — still checking. Your video keeps generating.', 'retry');
       if(errors + 1 >= 6){
         st.settled[idx] = true;
-        _cgrVideoErr(idx, ref, 'OrivenAI couldn’t check this video’s progress. It keeps rendering.', function(){ st.settled[idx] = false; _cgrVideoPending(idx, ref, 'Rendering video…'); _pollCgrVideo(st, idx, job, deadline, 0); _cgrVideoPill(st); }, 'Check again');
+        _cgrVideoPaused(idx, ref, job.startedAt, 'OrivenAI couldn’t reach the server to check this video. It keeps generating — check again when your connection is back.', function(){ st.settled[idx] = false; _cgrVideoPending(idx, ref, 'generating', { since: job.startedAt }); _pollCgrVideo(st, idx, job, deadline, 0); _cgrVideoPill(st); });
         _cgrVideoPill(st); return;
       }
       again(Math.min(30000, 5000 * Math.pow(2, errors)), errors + 1);

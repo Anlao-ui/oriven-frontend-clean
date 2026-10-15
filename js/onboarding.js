@@ -639,7 +639,7 @@ function _ob3NextStep(kind, tries){
   if(kind === "create"){
     var ws = _ob3El("page-ad-workspace"), res = _ob3El("page-campaign-results");
     if(ws && ws.classList.contains("active")){ cfg.host = "page-ad-workspace"; cfg.after = "awChatFeed"; }
-    else if(res && res.classList.contains("active") && !document.querySelector(".ofb[data-state='building']")){ cfg.host = "page-campaign-results"; cfg.after = "cgrBackBar"; }
+    else if(res && res.classList.contains("active") && !document.querySelector("#cgrLoading .op[data-state='running']")){ cfg.host = "page-campaign-results"; cfg.after = "cgrBackBar"; }
     else { if(tries < 40) setTimeout(function(){ _ob3NextStep(kind, tries + 1); }, 500); return; }
   }
   var host = _ob3El(cfg.host);

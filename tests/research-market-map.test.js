@@ -460,7 +460,7 @@ async function main() {
 
     // 6. Activity stages (real, sequential, no fake browsing labels)
     const activityHtml = await page.evaluate(() => document.getElementById('researchActivityFeed').innerHTML);
-    check('6. Activity shows real stage labels, never fake browsing/searching claims', /Understanding research objective|Analyzing research|Structuring market map/.test(activityHtml) && !/Opening source|Reading page|Searching Google/i.test(activityHtml), activityHtml.replace(/\s+/g, ' ').slice(0, 200));
+    check('6. Activity shows real stage labels, never fake browsing/searching claims', /Understanding your question|Researching your market|Building your market map/.test(activityHtml) && !/Opening source|Reading page|Searching Google/i.test(activityHtml), activityHtml.replace(/\s+/g, ' ').slice(0, 200));
 
     await page.waitForTimeout(3500); // let the real (billing-blocked) request resolve to its honest error
     const afterSubmit = await page.evaluate(() => ({
@@ -890,7 +890,7 @@ async function main() {
       canvasHidden: getComputedStyle(document.getElementById('researchCanvas')).display === 'none',
       nodeCount: document.querySelectorAll('.rmap-node').length,
       activityFeedEmpty: (document.getElementById('researchActivityFeed').textContent || '').trim() === '' ||
-        !/Understanding research objective|Analyzing research|Structuring market map/.test(document.getElementById('researchActivityFeed').textContent),
+        !/Understanding your question|Researching your market|Building your market map/.test(document.getElementById('researchActivityFeed').textContent),
     }));
     check('W12. Restored session lands directly in the Market Map (workspace canvas hidden, no empty-state detour needed to be waited out)', restored.mapVisible && restored.canvasHidden && restored.nodeCount > 8, restored);
     check('W13. Restore never replays the fake preparing/analyzing/mapping activity stages for already-completed research', restored.activityFeedEmpty, restored.activityFeedEmpty);
