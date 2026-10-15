@@ -5796,6 +5796,16 @@
           _awPersist();
           _awPlatformTransition(r.platform);
           break;
+        case 'edit_campaign_settings':
+          // Server applied the change with the same rules as the review
+          // screen (services/campaignSpec.js applyChanges) and re-validated it.
+          if(!r.pkg) break;
+          _awState.pkg = r.pkg;
+          if(window._orvAiCurrentCampaign) window._orvAiCurrentCampaign.pkg = r.pkg;
+          _awPersist();
+          if(window.OrivenSpec && r.spec) window.OrivenSpec.remember({ id:_awState.campId, platform:_awState.platform || r.platform, pkg:r.pkg }, { ok:true, spec:r.spec, issues:r.issues || [] });
+          _awRenderDetails();
+          break;
         case 'select_concept_variant':
           pkg.activeConceptIndex = r.idx;
           _awPersist();
@@ -7651,6 +7661,7 @@
 <script src="js/autopilot.js"></script>
 <script src="js/orivenContext.js"></script>
 <script src="js/orivenWorkspace.js"></script>
+<script src="js/campaignSpec.js"></script>
 <script src="js/orivenFlow.js"></script>
 <script src="js/orivenOps.js"></script>
 <script src="js/orivenOpsPages.js"></script>
@@ -9059,17 +9070,18 @@ function _launchBuildCampaignChecks(camp, fields){
   }
   // Destination — required. Google rejects a missing URL; the other routes
   // would publish with a placeholder page, which OrivenAI never allows.
+  var _sr = window.OrivenSpec ? window.OrivenSpec.forCampaign(camp) : null;
   var url = P ? P.url(pkg, plat) : fields.destination;
+  // The campaign spec also accepts the business profile website.
+  if (!url && _sr && _sr.spec && _sr.spec.tracking.destinationUrl) url = _sr.spec.tracking.destinationUrl;
   var urlErr = P ? (url ? P.validateUrl(url) : 'missing') : (url ? null : 'missing');
   checks.push({ key:'destination', label:'Destination',
     status: urlErr ? 'blocked' : 'pass',
     reason: !urlErr ? 'Destination: ' + url
       : (urlErr === 'missing' ? 'No destination URL. Add the page people should land on before publishing.' : 'The destination “' + url + '” isn’t a valid web address.'),
     action: goAd(urlErr ? (urlErr === 'missing' ? 'Add URL' : 'Fix URL') : 'Change URL', 'destination') });
-  // Budget — states what the publish route will really do: Google rejects a
-  // missing budget; Meta/TikTok publish at OrivenAI's default of 30/day
-  // (TikTok minimum 10) and Pinterest at 10/day, in the ad account's
-  // currency.
+  // Budget — always the user's decision: every platform is blocked until a
+  // daily budget is set (TikTok: more than 20 per ad group).
   var b = P ? P.budget(pkg, plat) : null;
   var budgetAction = { label: (b && b.source === 'set') ? 'Change budget' : 'Set budget', fn: "orvWorkspace.flow.openBudget('" + id + "')" };
   if (!b) {
@@ -9078,19 +9090,46 @@ function _launchBuildCampaignChecks(camp, fields){
     checks.push({ key:'budget', label:'Budget', status:'blocked', reason: platName + ' needs a daily budget before it can be published.', action: budgetAction });
   } else if (b.source === 'default') {
     checks.push({ key:'budget', label:'Budget', status:'warning', reason: 'No daily budget set — OrivenAI will publish at ' + b.applied + ' per day in your ad account’s currency. Optional.', action: budgetAction });
+  } else if (b.low) {
+    checks.push({ key:'budget', label:'Budget', status:'blocked', reason: platName + ' needs more than 20 per day per ad group (this campaign has ' + b.applied + ').', action: budgetAction });
   } else {
     checks.push({ key:'budget', label:'Budget', status:'pass',
-      reason: 'Daily budget: ' + b.applied + ' per day in your ad account’s currency.' + (b.adjusted ? ' (Raised to ' + platName + '’s minimum.)' : ''), action: budgetAction });
+      reason: 'Daily budget: ' + b.applied + ' per day in your ad account’s currency.', action: budgetAction });
   }
-  if (P) {
-    var tg = P.targeting(pkg, plat);
-    checks.push({ key:'targeting', label:'Targeting', status:'pass', reason: 'Sent as: ' + tg.sent + '. ' + tg.note, action: goAd('Go to Ad', 'audience') });
+  // Targeting, conversion tracking, compliance and identity come from the
+  // server-built campaign spec (POST /api/campaigns/spec), validated with
+  // live account facts. The same validation runs again before publishing.
+  var OS = window.OrivenSpec;
+  var sr = OS ? OS.forCampaign(camp) : null;
+  var GROUPS = [
+    { key:'targeting', label:'Targeting', re:/^targeting/, sec:'targeting' },
+    { key:'tracking', label:'Tracking / conversions', re:/^tracking\.(pixelId|conversion)/, sec:'tracking' },
+    { key:'compliance', label:'Compliance', re:/^(compliance|campaign\.specialAdCategories)/, sec:'compliance', only:'meta' },
+    { key:'identity', label:'Identity', re:/^identity/, sec:'identity', only:{ meta:1, tiktok:1 } },
+    { key:'settings', label:'Other campaign settings', re:/^(campaign\.goal|campaignType|assets|creative|pin\.)/, sec:'ads' }
+  ];
+  function onlyFor(g){ return !g.only || (typeof g.only === 'string' ? g.only === plat : g.only[plat]); }
+  if (!OS) {
+    checks.push({ key:'targeting', label:'Campaign settings', status:'not_checked', reason:'Campaign settings are checked when you publish.' });
+  } else if (!sr) {
+    GROUPS.filter(onlyFor).forEach(function(g){ checks.push({ key:g.key, label:g.label, status:'not_checked', reason:'Checking against your ' + platName + ' account…' }); });
+  } else if (sr.error) {
+    checks.push({ key:'targeting', label:'Campaign settings', status:'warning', reason: sr.error + ' Publishing re-checks everything before anything is sent.', action: goAd('Review settings', 'settings') });
+  } else {
+    var all = (sr.issues || []).filter(function(i){ return i.level !== 'info'; });
+    GROUPS.filter(onlyFor).forEach(function(g){
+      var mine = all.filter(function(i){ return g.re.test(i.field || ''); });
+      var err = mine.filter(function(i){ return i.level === 'error'; });
+      var okText = g.key === 'targeting' ? (OS.summaryRows(sr).filter(function(r){ return r[0] === 'Countries' || r[0] === 'Ages' || r[0] === 'Placements'; }).map(function(r){ return r[0] + ': ' + r[1]; }).join(' · '))
+        : g.key === 'tracking' ? (sr.spec.tracking.needsConversion ? 'Conversion tracking is set up.' : 'Not needed for this objective.')
+        : 'Complete.';
+      if (g.key === 'settings' && !mine.length) return;
+      checks.push({ key:g.key, label:g.label,
+        status: err.length ? 'blocked' : (mine.length ? 'warning' : 'pass'),
+        reason: err.length ? err.map(function(i){ return i.message; }).join(' ') : (mine.length ? mine.map(function(i){ return i.message; }).join(' ') : okText),
+        action: goAd(err.length ? 'Fix' : 'Review', g.sec) });
+    });
   }
-  checks.push({ key:'tracking', label:'Tracking / conversions',
-    status: 'not_checked',
-    reason: plat === 'meta'
-      ? 'Sales and Leads objectives need a Meta Pixel on your ad account. OrivenAI checks for one when publishing.'
-      : 'OrivenAI doesn’t verify conversion tracking yet — ' + platName + ' checks it when the ad is reviewed.' });
   return checks;
 }
 
@@ -10000,7 +10039,7 @@ window._launchDeploy = function(){
   if (!F) return;
   _lcState.confirming = true;
   document.getElementById('lcLaunchBtn').disabled = true;
-  F.confirmPublish({ platform: camp.platform, pkg: camp.pkg, name: camp.name }).then(function(ok){
+  F.confirmPublish({ platform: camp.platform, pkg: camp.pkg, name: camp.name, campId: camp.id }).then(function(ok){
     _lcState.confirming = false;
     if (!ok) { _launchRenderLaunchButton(_lcState.checks); return; }
     _launchDeployConfirmed(camp);
@@ -12276,7 +12315,7 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
   if (!confirmed) {
     var F = window.orvWorkspace && orvWorkspace.flow;
     if (!F) return;
-    F.confirmPublish({ platform: platform, pkg: camp.pkg, name: camp.name,
+    F.confirmPublish({ platform: platform, pkg: camp.pkg, name: camp.name, campId: camp.id,
       structure: (platform === 'meta' && structure) ? (structure.adSets + ' ad set(s) × ' + structure.adsPerAdSet + ' ad(s)') : null
     }).then(function(ok){ if (ok) window.admPublishCampaign(campId, accountId, accountName, accountExtra, structure, true); });
     return;
@@ -24593,11 +24632,9 @@ window.rptExport = function(format) {
     if(sn.length) copyHtml += '<div class="crv-section"><div class="crv-section-hd">Structured Snippets</div>'+_chipField('cgrSnChips',sn)+'</div>';
 
     /* Audience panel */
-    var audHtml = '<div class="crv-section"><div class="crv-section-hd">Demographics</div>'
-      +_fld('Age Range','<input class="crv-inp" type="text" value="'+_esc(g.ageRange||s.ageRange||'18–65')+'" placeholder="e.g. 25–54">')
+    var audHtml = (window.OrivenSpec ? window.OrivenSpec.targetingLinkHtml(window._cgrCurrentCampId) : '')
+      +'<div class="crv-section"><div class="crv-section-hd">Audience notes <span style="font-weight:400;opacity:.6">· guide the ad copy, not sent as targeting</span></div>'
       +_fld('Gender','<input class="crv-inp" type="text" value="'+_esc(g.gender||'All Genders')+'">')
-      +_fld('Countries / Regions','<input class="crv-inp" type="text" value="'+_esc(Array.isArray(g.locations)?g.locations.join(', '):(g.locations||s.geo||''))+'" placeholder="e.g. United States, Canada">')
-      +_fld('Languages','<input class="crv-inp" type="text" value="'+_esc(g.languages||'English')+'">')
       +_fld('Devices','<input class="crv-inp" type="text" value="'+_esc(g.devices||'All Devices')+'">')
       +'</div>'
       +'<div class="crv-section"><div class="crv-section-hd">Custom Audiences</div>'
@@ -24678,11 +24715,9 @@ window.rptExport = function(format) {
     if(hlv.length) copyHtml += '<div class="crv-section"><div class="crv-section-hd">Headline Variations</div>'+_arrField('cgrMetaHlvArr',hlv,'Add variation…')+'</div>';
 
     /* Audience panel */
-    var audHtml = '<div class="crv-section"><div class="crv-section-hd">Demographics</div>'
-      +_fld('Age Range','<input class="crv-inp" type="text" value="'+_esc(a.ageRange||m.ageRange||'18–65')+'" placeholder="e.g. 25–54">')
+    var audHtml = (window.OrivenSpec ? window.OrivenSpec.targetingLinkHtml(window._cgrCurrentCampId) : '')
+      +'<div class="crv-section"><div class="crv-section-hd">Audience notes <span style="font-weight:400;opacity:.6">· guide the ad copy, not sent as targeting</span></div>'
       +_fld('Gender','<input class="crv-inp" type="text" value="'+_esc(a.gender||m.gender||'All Genders')+'">')
-      +_fld('Countries / Regions','<input class="crv-inp" type="text" value="'+_esc(Array.isArray(a.locations)?a.locations.join(', '):(a.locations||a.countries||''))+'" placeholder="e.g. United States, Canada">')
-      +_fld('Languages','<input class="crv-inp" type="text" value="'+_esc(a.languages||'English')+'">')
       +'</div>'
       +'<div class="crv-section"><div class="crv-section-hd">Interests &amp; Behaviours</div>'
       +_fld('Interests','<input class="crv-inp" type="text" value="'+_esc(Array.isArray(a.interests)?a.interests.join(', '):(a.interests||''))+'" placeholder="e.g. fitness, health">')
@@ -24764,11 +24799,9 @@ window.rptExport = function(format) {
     copyHtml += '<div class="crv-section"><div class="crv-section-hd">Hashtags</div>'+_chipField('cgrTtHashChips',t.hashtags||t.hashtagSuggestions||[])+'</div>';
 
     /* Audience panel */
-    var audHtml = '<div class="crv-section"><div class="crv-section-hd">Demographics</div>'
-      +_fld('Age Range','<input class="crv-inp" type="text" value="'+_esc(t.ageRange||'18–34')+'" placeholder="e.g. 18–34">')
+    var audHtml = (window.OrivenSpec ? window.OrivenSpec.targetingLinkHtml(window._cgrCurrentCampId) : '')
+      +'<div class="crv-section"><div class="crv-section-hd">Audience notes <span style="font-weight:400;opacity:.6">· guide the ad copy, not sent as targeting</span></div>'
       +_fld('Gender','<input class="crv-inp" type="text" value="'+_esc(t.gender||'All Genders')+'">')
-      +_fld('Countries / Regions','<input class="crv-inp" type="text" value="'+_esc(Array.isArray(t.locations)?t.locations.join(', '):(t.locations||''))+'" placeholder="e.g. United States">')
-      +_fld('Languages','<input class="crv-inp" type="text" value="'+_esc(t.languages||'English')+'">')
       +_fld('Devices','<input class="crv-inp" type="text" value="'+_esc(t.devices||'Mobile')+'">')
       +'</div>'
       +'<div class="crv-section"><div class="crv-section-hd">Interests &amp; Behaviours</div>'
@@ -25526,7 +25559,7 @@ window.rptExport = function(format) {
     _orvCheckSetupReadyBeforePublish(platform, function(){
       var F = window.orvWorkspace && orvWorkspace.flow;
       if(!F) return;
-      F.confirmPublish({ platform: platform, pkg: _cgrPkg, name: (_cgrPkg && _cgrPkg.campaignName) || '' }).then(function(ok){
+      F.confirmPublish({ platform: platform, pkg: _cgrPkg, name: (_cgrPkg && _cgrPkg.campaignName) || '', campId: campId }).then(function(ok){
         if(ok) _cgrPublishToConfirmed(platform, campId);
       });
     });
@@ -25947,10 +25980,9 @@ window.rptExport = function(format) {
       + '<div class="cst-fld-hint" style="margin-top:8px">'+(v.isFallback ? 'Single creative used across all Ads.' : ('Concept: <b style="color:rgba(255,255,255,.7)">'+_cstEsc(v.angle)+'</b>'))+'</div>';
 
     var audience = '<div class="cst-fld-row">'
-      +   '<div class="cst-fld"><label>Age Range</label><input class="crv-inp" type="text" value="'+_cstEsc(a.ageRange||m.ageRange||'18-65')+'" oninput="_cstAudienceInput(\'ageRange\',this)"></div>'
       +   '<div class="cst-fld"><label>Gender</label><input class="crv-inp" type="text" value="'+_cstEsc(a.gender||m.gender||'All Genders')+'" oninput="_cstAudienceInput(\'gender\',this)"></div>'
       + '</div>'
-      + '<div class="cst-fld"><label>Countries / Regions</label><input class="crv-inp" type="text" value="'+_cstEsc(Array.isArray(a.locations)?a.locations.join(', '):(a.locations||a.countries||''))+'" placeholder="e.g. United States, Canada" oninput="_cstAudienceInput(\'locations\',this)"></div>'
+      + (window.OrivenSpec ? window.OrivenSpec.targetingLinkHtml(_cst.campId) : '')
       + '<div class="cst-fld"><label>Interests</label><input class="crv-inp" type="text" value="'+_cstEsc(Array.isArray(a.interests)?a.interests.join(', '):(a.interests||''))+'" placeholder="e.g. fitness, health" oninput="_cstAudienceInput(\'interests\',this)"></div>'
       + '<div class="cst-fld"><label>Target Audience</label><textarea class="crv-inp crv-ta" oninput="_cstAudienceTextInput(this)">'+_cstEsc(m.targetAudience||s.targetAudience||'')+'</textarea></div>';
 
@@ -26106,7 +26138,7 @@ window.rptExport = function(format) {
     if (!F) return;
     var st = _cstStructure(_cst.pkg) || { adSets: 1, adsPerAdSet: 1 };
     _cst.publishing = true;
-    F.confirmPublish({ platform: 'meta', pkg: _cst.pkg, name: _cst.pkg.campaignName,
+    F.confirmPublish({ platform: 'meta', pkg: _cst.pkg, name: _cst.pkg.campaignName, campId: _cst.campId,
       structure: st.adSets + ' ad set' + (st.adSets === 1 ? '' : 's') + ' × ' + st.adsPerAdSet + ' ad' + (st.adsPerAdSet === 1 ? '' : 's') })
       .then(function(ok){ if (ok) _cstDoPublishConfirmed(); else _cst.publishing = false; });
   };

@@ -63,13 +63,13 @@
   function googleType(pkg) { return ((pkg.googleAds || {}).campaignType) || 'SEARCH'; }
   P.googleType = googleType;
 
-  // Budget. Google: strategy.budgetRecommendation must be a number (or
-  // {amount|daily}) ≥ 1, otherwise the route rejects the publish.
-  // Meta / TikTok / Pinterest: {platform}.budget → strategy.dailyBudget →
-  // strategy.budget, parsed with the route's own expression; missing means
-  // the route's built-in default (30 / 30 / 10). TikTok floors at 10.
+  // Budget. The user always sets the daily budget — publishing is blocked
+  // until they do (services/campaignSpec.js budgetOf). Google: strategy.
+  // budgetRecommendation as {amount}; Meta / TikTok / Pinterest:
+  // {platform}.budget. The AI's recommendation is only shown as a
+  // suggestion. TikTok needs more than 20 per day per ad group.
   var BUDGET_RULE = {
-    meta: { def: 30, min: 1 }, tiktok: { def: 30, min: 10 }, pinterest: { def: 10, min: 1 }
+    meta: { min: 1 }, tiktok: { min: 20.01, label: 'more than 20' }, pinterest: { min: 1 }
   };
   function looseNumber(v) {
     if (v == null || v === '') return null;
@@ -95,15 +95,13 @@
     }
     var rule = BUDGET_RULE[p] || BUDGET_RULE.meta;
     var o = platObj(pkg, p);
-    var rawB = o.budget || s.dailyBudget || s.budget;
-    if (!rawB) {
-      return { platform: p, required: false, min: rule.min, def: rule.def, amount: null, applied: rule.def, source: 'default',
-        suggestion: looseNumber(s.budgetRecommendation) };
+    var set = looseNumber(o.budget);
+    if (!set) {
+      var sb = s.budgetRecommendation;
+      return { platform: p, required: true, min: rule.min, amount: null, applied: null, source: 'missing',
+        suggestion: looseNumber(sb && typeof sb === 'object' ? (sb.amount || sb.daily) : sb) || looseNumber(s.dailyBudget) || looseNumber(s.budget) };
     }
-    var parsed = parseFloat(String(rawB).replace(/[^0-9.]/g, ''));
-    var applied = Math.max(rule.min, parsed || rule.def);
-    return { platform: p, required: false, min: rule.min, def: rule.def, amount: applied, applied: applied, source: 'set',
-      adjusted: applied !== parsed, raw: rawB };
+    return { platform: p, required: true, min: rule.min, amount: set, applied: set, source: 'set', low: set < rule.min, raw: o.budget };
   };
   P.setBudget = function (pkg, p, amount) {
     var n = Number(amount);
@@ -124,7 +122,6 @@
     var cur = currency || b.currency;
     function money(v) { return cur ? (v + ' ' + cur) : String(v); }
     if (b.source === 'missing') return 'Not set';
-    if (b.source === 'default') return money(b.applied) + ' / day (OrivenAI default)';
     return money(b.applied) + ' / day';
   };
 
@@ -257,20 +254,18 @@
     };
   };
 
-  // What the publish route actually sends as targeting — stated plainly,
-  // because the AI audience text is guidance and not sent everywhere.
+  // Targeting summary from the package alone (the full, validated targeting
+  // comes from the campaign spec — js/campaignSpec.js). Countries are the
+  // user's choice or the business profile's country; never a default.
   P.targeting = function (pkg, p) {
     pkg = pkg || {};
-    if (p === 'meta') {
-      var placement = (platObj(pkg, 'meta').placement === 'instagram_only') ? 'Instagram only' : 'Facebook and Instagram';
-      return { sent: 'United States · ages 18–65 · ' + placement, note: 'This is OrivenAI’s current Meta publish setting. The audience description is used for copy, not sent as targeting. You can refine targeting on Meta after the paused campaign is created.' };
-    }
-    if (p === 'pinterest') return { sent: 'United States', note: 'Pinterest campaigns are created with United States location targeting. Refine it on Pinterest after the paused campaign is created.' };
-    if (p === 'tiktok') return { sent: 'Automatic placement', note: 'TikTok chooses placements. No audience targeting is sent; refine it on TikTok after the paused campaign is created.' };
-    var kw = ((pkg.googleAds || {}).keywords || []).filter(Boolean);
-    return googleType(pkg) === 'SEARCH'
-      ? { sent: kw.length ? kw.length + ' keyword' + (kw.length === 1 ? '' : 's') : 'No keywords', note: 'Search ads are matched to these keywords.' }
-      : { sent: 'Google’s automatic audience', note: 'This campaign type uses Google’s own audience signals.' };
+    var ov = (pkg.spec && pkg.spec.overrides) || {};
+    var parts = [];
+    parts.push(ov.countries && ov.countries.length ? ov.countries.join(', ') : 'Country from your business profile');
+    if (p === 'meta' || p === 'tiktok') parts.push('ages ' + (ov.ageMin || 18) + '–' + (ov.ageMax || 65) + ((ov.ageMax || 65) === 65 ? '+' : ''));
+    if (p === 'meta') { var pl = platObj(pkg, 'meta').placement; parts.push(pl === 'instagram_only' ? 'Instagram only' : pl === 'facebook_only' ? 'Facebook only' : 'Facebook and Instagram'); }
+    if (p === 'google' && googleType(pkg) === 'SEARCH') { var kw = ((pkg.googleAds || {}).keywords || []).filter(Boolean); parts.push(kw.length + ' keyword' + (kw.length === 1 ? '' : 's')); }
+    return { sent: parts.join(' · '), note: 'Checked against your ad account before publishing. If no country is set, OrivenAI asks you to choose one — it never defaults to a country.' };
   };
 
   // Mirrors the route's hard rejections plus OrivenAI's own blockers.
@@ -279,7 +274,7 @@
     if (!P.url(pkg, p) || P.validateUrl(P.url(pkg, p))) list.push({ key: 'destination', label: 'Destination URL', blocker: true });
     var b = P.budget(pkg, p);
     if (b.source === 'missing') list.push({ key: 'budget', label: 'Daily budget', blocker: true });
-    else if (b.source === 'default') list.push({ key: 'budget', label: 'Daily budget (default ' + b.applied + ' / day)', blocker: false });
+    else if (b.low) list.push({ key: 'budget', label: 'Daily budget (' + PLAT[p] + ' needs ' + ((BUDGET_RULE[p] || {}).label || 'at least ' + b.min) + ' per day)', blocker: true });
     if (P.needsImage(pkg, p) && !P.image(pkg, p)) list.push({ key: 'creative', label: 'Creative image', blocker: true });
     if (p === 'google' && googleType(pkg) === 'SEARCH') {
       var g = pkg.googleAds || {};
@@ -380,6 +375,11 @@
     }
     if (code === 'CONTENT_POLICY' || code === 'POLICY_VIOLATION' || /policy/i.test(String(b.error || '')) && st === 400 && phase === 'generate') {
       return { kind: 'policy', title: 'This request can’t be built', message: 'The description includes content OrivenAI can’t create ads for. Edit the description and try again.', retry: false, edit: true };
+    }
+    if (st === 422 && code === 'CAMPAIGN_INVALID') {
+      var errs = (b.issues || []).filter(function (i) { return i && i.level === 'error'; }).map(function (i) { return String(i.message || '').slice(0, 300); }).filter(Boolean);
+      return { kind: 'invalid', title: 'Campaign settings need your input', message: errs[0] || 'Some campaign settings are missing.',
+        detail: errs.length > 1 ? (errs.length - 1) + ' more to fix in Campaign settings. Nothing was sent.' : 'Nothing was sent.', retry: false, edit: true };
     }
     if (st === 400 || st === 422) {
       var t = safeServerText(b.error || b.message);
@@ -917,7 +917,7 @@
       var v = parseFloat(String(input.value).replace(',', '.'));
       var msg = null;
       if (!isFinite(v) || v <= 0) msg = 'Enter a daily amount greater than zero.';
-      else if (v < rule.min) msg = PLAT[p] + ' needs at least ' + rule.min + ' per day.';
+      else if (v < rule.min) msg = PLAT[p] + ' needs ' + (rule.label || 'at least ' + rule.min) + ' per day.';
       if (msg) { errEl.textContent = msg; errEl.hidden = false; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
       var fresh = F.findCampaign(campId);
       var pkg = clone(fresh.pkg);
@@ -929,9 +929,9 @@
     }
   };
   function budgetHint(p, b) {
-    if (p === 'google') return 'Google Ads needs a daily budget before it can publish. Your ad account’s currency is used.';
-    if (p === 'tiktok') return 'TikTok requires at least 10 per day. Without a budget, OrivenAI uses ' + b.def + ' per day. Your ad account’s currency is used.';
-    return 'Without a budget, OrivenAI uses ' + b.def + ' per day. Your ad account’s currency is used.';
+    var sug = b && b.suggestion ? ' OrivenAI suggested ' + b.suggestion + ' per day.' : '';
+    if (p === 'tiktok') return 'TikTok needs more than 20 per day per ad group. Your ad account’s currency is used.' + sug;
+    return 'You choose the daily budget — OrivenAI never sets one for you. Your ad account’s currency is used.' + sug;
   }
 
   // ════════════════════════════════════════════════════════════════
@@ -939,16 +939,73 @@
   // ════════════════════════════════════════════════════════════════
   var SECTIONS = [
     { k: 'overview', t: 'Overview' }, { k: 'creative', t: 'Creative' }, { k: 'copy', t: 'Copy' },
-    { k: 'audience', t: 'Audience' }, { k: 'budget', t: 'Budget & schedule' },
-    { k: 'destination', t: 'Destination & tracking' }, { k: 'platform', t: 'Platform settings' }, { k: 'readiness', t: 'Readiness' }
+    { k: 'settings', t: 'Campaign settings' }, { k: 'budget', t: 'Budget & schedule' },
+    { k: 'destination', t: 'Destination' }, { k: 'readiness', t: 'Readiness' }
   ];
+  // Older links ("audience", "platform", "tracking") open the settings review.
+  var SECTION_ALIAS = { audience: 'settings', platform: 'settings', tracking: 'settings', targeting: 'settings', compliance: 'settings', identity: 'settings', ads: 'settings', objective: 'settings', assets: 'settings', advanced: 'settings' };
   F.openAd = function (campId, section) {
     var camp = F.findCampaign(campId);
     if (!camp || !camp.pkg) { toast('This campaign couldn’t be found. Reload and try again.', 'warn'); return; }
     var p = camp.platform || camp.pkg.platform;
     var work = clone(camp.pkg);
     var dirty = false;
-    var cur = section || 'overview';
+    var cur = SECTION_ALIAS[section] || section || 'overview';
+    var OS = window.OrivenSpec;
+    // Campaign settings review (server-built spec). Edits come back as an
+    // updated package and are saved with the rest of the ad.
+    var specState = { res: null, open: {}, stale: true, loading: null, platform: p };
+    if (section && SECTION_ALIAS[section] === 'settings' && section !== 'settings') specState.open[section === 'audience' ? 'targeting' : section] = true;
+    function loadSpec(changes) {
+      if (!OS) return Promise.resolve(null);
+      var p0 = OS.load(work, p, changes ? { changes: changes } : null).then(function (res) {
+        if (changes && res && res.pkg && res.applied && res.applied.length) { work = res.pkg; markDirty(); }
+        specState.res = res; specState.stale = false;
+        if (specState.loading === p0) specState.loading = null;
+        if (cur === 'settings' || cur === 'readiness' || cur === 'overview') renderSpecInto();
+        return res;
+      });
+      specState.loading = p0;
+      return p0;
+    }
+    function renderSpecInto() {
+      var host = d.body.querySelector('.ocs-host');
+      if (host && OS) OS.render(host, specState);
+      var rh = d.body.querySelector('.ofe-spec-issues');
+      if (rh) { rh.innerHTML = specIssuesHtml(); bindSpecGo(rh); }
+    }
+    specState.onChange = function (changes) { return loadSpec(changes); };
+    specState.onRetry = function () { specState.res = null; renderSpecInto(); loadSpec(); };
+    function specIssuesHtml() {
+      var r = specState.res;
+      if (!OS) return '';
+      if (!r) return '<p class="ofe-note" role="status">Checking campaign settings against your ad account…</p>';
+      if (r.error) return '<p class="ofe-note">' + esc(r.error) + '</p>';
+      var list = (r.issues || []).filter(function (i) { return i.level !== 'info'; });
+      if (!list.length) return '<p class="ofe-ok">Campaign settings are complete.</p>';
+      return '<ul class="ofe-issues">' + list.map(function (i) {
+        return '<li class="ofe-issue ofe-issue-' + (i.level === 'error' ? 'req' : 'opt') + '"><span class="ofe-issue-tag">' + (i.level === 'error' ? 'Required' : 'Check') + '</span> ' + esc(i.message) +
+          ' <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-spec-go="' + OS.sectionOf(i.field) + '">Fix</button></li>';
+      }).join('') + '</ul>';
+    }
+    // Local content checks; a destination the spec resolved (e.g. from the
+    // business website) isn't reported as missing.
+    function adIssues() {
+      var r = specState.res, list = P.issues(work, p);
+      if (r && !r.error && r.spec && r.spec.tracking.destinationUrl && !specState.stale) list = list.filter(function (i) { return i.key !== 'destination'; });
+      return list;
+    }
+    function bindSpecGo(root) {
+      root.querySelectorAll('[data-spec-go]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var sec = b.getAttribute('data-spec-go');
+          specState.open = {}; specState.open[sec] = true;
+          render('settings');
+          var el = d.body.querySelector('details.ocs-sec[data-sec="' + sec + '"]');
+          if (el) { el.scrollIntoView({ block: 'start' }); var sm = el.querySelector('summary'); if (sm) sm.focus(); }
+        });
+      });
+    }
     var d = F.dialog({
       title: camp.name || 'Campaign', eyebrow: 'Ad · ' + (PLAT[p] || p), wide: true,
       onClose: function () {},
@@ -972,6 +1029,7 @@
       F.savePackage(campId, work);
       camp = F.findCampaign(campId) || camp;
       work = clone(camp.pkg);
+      if (OS && specState.res && !specState.res.error && !specState.stale) OS.remember(camp, specState.res);
       dirty = false;
       actions();
       render(cur);
@@ -984,6 +1042,7 @@
       return out;
     }
     function markDirty() { if (!dirty) { dirty = true; actions(); } }
+    function markEdited() { specState.stale = true; markDirty(); }
     function nav() {
       return '<nav class="ofe-nav" aria-label="Ad sections"><ul>' + SECTIONS.map(function (s) {
         return '<li><button type="button" class="ofe-tab" data-sec="' + s.k + '"' + (s.k === cur ? ' aria-current="true"' : '') + '>' + esc(s.t) + '</button></li>';
@@ -996,15 +1055,15 @@
     function sectionHtml(k) {
       var s = P.summary(work, p);
       if (k === 'overview') {
-        var issues = P.issues(work, p);
+        var issues = adIssues();
         return '<dl class="ofe-dl">' +
           row('Campaign', esc(camp.name || s.name || 'Untitled')) +
           row('Platform', esc(PLAT[p] || p)) +
           row('Objective', esc(s.goal || 'Not set')) +
           row('Structure', esc(HIER[p].join(' › '))) +
           row('Created as', 'Paused', 'Nothing spends until you activate it on ' + PROVIDER[p] + '.') +
-          row('Readiness', issues.length ? esc(issues.map(function (i) { return i.label + (i.blocker ? ' (required)' : ' (optional)'); }).join(', ')) : 'Nothing left to fix') +
-        '</dl>';
+          row('Ad content', issues.length ? esc(issues.map(function (i) { return i.label + (i.blocker ? ' (required)' : ' (optional)'); }).join(', ')) : 'Complete') +
+        '</dl><h4 class="ofe-sub">Campaign settings</h4><div class="ofe-spec-issues">' + specIssuesHtml() + '</div>';
       }
       if (k === 'creative') {
         var img = P.image(work, p);
@@ -1036,18 +1095,14 @@
         });
         return html;
       }
-      if (k === 'audience') {
-        var tg = P.targeting(work, p);
-        return '<dl class="ofe-dl">' +
-          row('Sent to ' + PROVIDER[p], esc(tg.sent), tg.note) +
-          (s.audienceText ? row('Audience description', esc(trunc(s.audienceText, 400)), 'Written by OrivenAI to guide copy.') : '') +
-        '</dl>';
+      if (k === 'settings') {
+        return '<p class="ofe-note">Everything ' + esc(PROVIDER[p]) + ' receives. Badges show where each setting comes from; open a section to change it. Changes are checked against ' + esc(PROVIDER[p]) + '’s rules straight away and saved with “Save changes”.</p><div class="ocs-host"></div>';
       }
       if (k === 'budget') {
         var b = P.budget(work, p);
         return '<dl class="ofe-dl">' +
           row('Daily budget', esc(P.budgetLabel(work, p)) + ' <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-act="budget">' + (b.source === 'set' ? 'Change' : 'Set budget') + '</button>',
-            b.source === 'missing' ? 'Required before Google Ads can publish.' : (b.adjusted ? 'The stored value is adjusted to ' + b.applied + ' by ' + PLAT[p] + '’s minimum.' : 'Charged in your ad account’s currency.')) +
+            b.source === 'missing' ? 'Required before publishing — OrivenAI never sets a budget for you.' + (b.suggestion ? ' Suggested: ' + b.suggestion + ' per day.' : '') : (b.low ? PLAT[p] + ' needs ' + ((BUDGET_RULE[p] || {}).label || 'at least ' + b.min) + ' per day.' : 'Charged in your ad account’s currency.')) +
           row('Schedule', 'Starts when you activate it', 'OrivenAI creates the campaign paused on ' + PROVIDER[p] + '. There is no end date.') +
         '</dl>';
       }
@@ -1058,36 +1113,30 @@
           '<input id="ofeUrl" class="ofd-input" type="url" inputmode="url" placeholder="https://yourshop.com/offer" value="' + esc(u) + '" aria-describedby="ofeUrlHint ofeUrlErr"' + (err ? ' aria-invalid="true"' : '') + '>' +
           '<p class="ofe-note" id="ofeUrlHint">Where people land after clicking the ad. Required before publishing.</p>' +
           '<p class="ofd-err" id="ofeUrlErr" role="alert"' + (err ? '' : ' hidden') + '>' + esc(err || '') + '</p></div>' +
-          '<dl class="ofe-dl">' + row('Tracking', p === 'meta' ? 'Meta Pixel' : 'Platform conversion tracking',
-            p === 'meta' ? 'Sales and Leads objectives need a Meta Pixel on your ad account. OrivenAI checks for one when publishing.' : 'OrivenAI doesn’t verify conversion tracking yet. ' + PROVIDER[p] + ' checks it during ad review.') + '</dl>';
-      }
-      if (k === 'platform') {
-        var o = platObj(work, p);
-        var rows = [];
-        if (p === 'meta') rows.push(row('Placements', esc(o.placement === 'instagram_only' ? 'Instagram only' : 'Facebook and Instagram')));
-        if (p === 'google') rows.push(row('Campaign type', esc(googleType(work).replace(/_/g, ' ').toLowerCase().replace(/^\w/, function (c) { return c.toUpperCase(); }))));
-        if (p === 'google' && googleType(work) === 'SEARCH') rows.push(row('Keywords', esc(((o.keywords || []).filter(Boolean).slice(0, 12).join(', ')) || 'None')));
-        if (p === 'tiktok') rows.push(row('Identity', 'The TikTok identity selected in Connections'));
-        if (p === 'pinterest') rows.push(row('Format', esc(o.creativeType === 'video' ? 'Video pin' : 'Image pin')));
-        rows.push(row('Objective', esc(s.goal || 'Not set'), 'Translated to ' + PROVIDER[p] + '’s matching objective when publishing.'));
-        return '<dl class="ofe-dl">' + rows.join('') + '</dl><p class="ofe-note">Other platform settings are edited in the campaign’s review screen. <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-act="review">Open review screen</button></p>';
+          '<p class="ofe-note">Tracking parameters (UTM) and conversion tracking are in <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-sec-go="settings">Campaign settings</button>.</p>';
       }
       if (k === 'readiness') {
-        var list = P.issues(work, p);
-        if (!list.length) return '<p class="ofe-ok">Everything this ad needs is in place. Account and connection checks run in Launch.</p>';
-        return '<ul class="ofe-issues">' + list.map(function (i) {
+        var list = adIssues();
+        var adHtml = !list.length ? '<p class="ofe-ok">Ad content is complete.</p>' : '<ul class="ofe-issues">' + list.map(function (i) {
           return '<li class="ofe-issue ofe-issue-' + (i.blocker ? 'req' : 'opt') + '"><span class="ofe-issue-tag">' + (i.blocker ? 'Required' : 'Optional') + '</span> ' + esc(i.label) +
             ' <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-sec-go="' + (i.key === 'budget' ? 'budget' : i.key) + '">Fix</button></li>';
         }).join('') + '</ul>';
+        return '<h4 class="ofe-sub">Ad content</h4>' + adHtml + '<h4 class="ofe-sub">Campaign settings</h4><div class="ofe-spec-issues">' + specIssuesHtml() + '</div>' +
+          '<p class="ofe-note">Account and connection checks run in Launch.</p>';
       }
       return '';
     }
     function render(k) {
-      cur = k || cur;
+      cur = SECTION_ALIAS[k] || k || cur;
       d.setBody('<div class="ofe-wrap">' + nav() + '<div class="ofe-main" tabindex="-1"><h3 class="ofe-h">' + esc(SECTIONS.filter(function (s) { return s.k === cur; })[0].t) + '</h3>' + sectionHtml(cur) + '</div></div>');
       bind();
+      if (cur === 'settings' || cur === 'readiness' || cur === 'overview') {
+        if (specState.stale && !specState.loading) { if (cur === 'settings') specState.res = null; loadSpec(); }
+        renderSpecInto();
+      }
     }
     function bind() {
+      bindSpecGo(d.body);
       d.body.querySelectorAll('.ofe-tab').forEach(function (b) {
         b.addEventListener('click', function () { render(b.getAttribute('data-sec')); var m = d.body.querySelector('.ofe-main'); if (m) m.focus(); });
       });
@@ -1107,14 +1156,14 @@
             var num = c.querySelector('.ofe-cnum');
             if (num) num.textContent = countText(len, f.max);
           }
-          markDirty();
+          markEdited();
         });
       });
       var url = d.body.querySelector('#ofeUrl');
       if (url) {
         url.addEventListener('input', function () {
           strat(work, true).landingPageUrl = url.value.trim();
-          markDirty();
+          markEdited();
         });
         url.addEventListener('blur', function () {
           var e = url.value.trim() ? P.validateUrl(url.value) : 'Enter the page people land on after clicking the ad.';
@@ -1128,7 +1177,7 @@
           var a = b.getAttribute('data-act');
           if (a === 'budget') {
             var go = function () {
-              F.openBudget(campId, { onSaved: function () { camp = F.findCampaign(campId) || camp; work = clone(camp.pkg); render('budget'); } });
+              F.openBudget(campId, { onSaved: function () { camp = F.findCampaign(campId) || camp; work = clone(camp.pkg); specState.stale = true; render('budget'); } });
             };
             if (dirty) { F.savePackage(campId, work); dirty = false; actions(); }
             go();
@@ -1172,11 +1221,24 @@
           { label: 'Publish', kind: 'primary', disabled: true, onClick: function () {} }
         ]
       });
-      F.account(p).then(function (acct) {
+      // The campaign settings check (server-built spec, live account facts)
+      // runs alongside the account check; its errors block publishing here,
+      // and the server validates the same spec again before any API call.
+      var OS = window.OrivenSpec;
+      var specP = OS ? OS.load(pkg, p, { refresh: true }) : Promise.resolve(null);
+      Promise.all([F.account(p), specP]).then(function (both) {
+        var acct = both[0], sr = both[1];
         var tg = P.targeting(pkg, p);
         var cur = acct && acct.currency;
         var acctTxt = acct && (acct.name || acct.id) ? (acct.name ? acct.name + (acct.id ? ' · ' + acct.id : '') : acct.id) : 'No ad account selected';
-        var blocked = issues.length > 0 || !(acct && acct.connected) || !(acct && (acct.name || acct.id));
+        var specErrs = sr && !sr.error ? OS.errors(sr) : [];
+        var specFail = !!(OS && (!sr || sr.error));
+        var specRows = sr && !sr.error ? OS.summaryRows(sr) : null;
+        if (sr && sr.spec && sr.spec.budget && sr.spec.budget.currency) cur = sr.spec.budget.currency;
+        // The server spec checks destination (incl. the business website),
+        // budget, creative and copy itself, so it replaces the local checks.
+        if (sr && !sr.error) issues = [];
+        var blocked = issues.length > 0 || specErrs.length > 0 || specFail || !(acct && acct.connected) || !(acct && (acct.name || acct.id));
         var dl =
           '<dl class="ofe-dl ofd-summary">' +
             '<div class="ofe-row"><dt>Campaign</dt><dd>' + esc(o.name || pkg.campaignName || 'Untitled campaign') + '</dd></div>' +
@@ -1184,18 +1246,20 @@
             '<div class="ofe-row"><dt>Ad account</dt><dd>' + esc(acctTxt) + '</dd></div>' +
             '<div class="ofe-row"><dt>Daily budget</dt><dd>' + esc(P.budgetLabel(pkg, p, cur)) + '</dd></div>' +
             '<div class="ofe-row"><dt>Schedule</dt><dd>Created paused — starts when you activate it on ' + esc(PROVIDER[p]) + '</dd></div>' +
-            '<div class="ofe-row"><dt>Targeting</dt><dd>' + esc(tg.sent) + '</dd></div>' +
-            (o.structure ? '<div class="ofe-row"><dt>Structure</dt><dd>' + esc(o.structure) + '</dd></div>' : '') +
+            (specRows ? specRows.map(function (r) { return '<div class="ofe-row"><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('')
+              : '<div class="ofe-row"><dt>Targeting</dt><dd>' + esc(tg.sent) + '</dd></div>' + (o.structure ? '<div class="ofe-row"><dt>Structure</dt><dd>' + esc(o.structure) + '</dd></div>' : '')) +
           '</dl>';
         var warn = issues.length
           ? '<p class="ofd-err" role="alert">Fix before publishing: ' + esc(issues.map(function (i) { return i.label; }).join(', ')) + '.</p>'
+          : specFail ? '<p class="ofd-err" role="alert">' + esc((sr && sr.error) || 'Campaign settings couldn’t be checked.') + ' Nothing was sent.</p>'
+          : specErrs.length ? '<div class="ofd-err" role="alert"><p>Fix before publishing:</p><ul class="ofd-errlist">' + specErrs.map(function (i) { return '<li>' + esc(i.message) + '</li>'; }).join('') + '</ul></div>'
           : (!(acct && acct.connected) ? '<p class="ofd-err" role="alert">' + esc(PLAT[p]) + ' isn’t connected. Connect it in Business → Connections.</p>'
           : (!(acct.name || acct.id) ? '<p class="ofd-err" role="alert">Select an ad account in Business → Connections first.</p>' : ''));
         d.setBody(dl + warn + '<p class="ofd-muted">This creates real campaign objects on ' + esc(PROVIDER[p]) + '. Nothing spends until you activate the campaign there.</p>');
-        d.setActions([
-          { label: 'Cancel', kind: 'ghost', onClick: function (api) { api.close(false); } },
-          { label: 'Publish paused campaign', kind: 'primary', disabled: blocked, onClick: function (api) { api.close(true); } }
-        ]);
+        var acts = [{ label: 'Cancel', kind: 'ghost', onClick: function (api) { api.close(false); } }];
+        if ((specErrs.length || issues.length) && o.campId && F.findCampaign(o.campId)) acts.push({ label: 'Review settings', kind: 'ghost', onClick: function (api) { api.close(false); F.openAd(o.campId, 'settings'); } });
+        acts.push({ label: 'Publish paused campaign', kind: 'primary', disabled: blocked, onClick: function (api) { api.close(true); } });
+        d.setActions(acts);
         d.focusFirst();
       });
     });
