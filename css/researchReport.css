@@ -1,0 +1,41 @@
+/* ════════════════════════════════════════════════════════════════
+   Research report panel + saved research (app.html #researchReportPanel,
+   #researchSide). Theme tokens from orivenWorkspace.css (light + dark).
+   Evidence basis is always spelled out in words, never colour alone.
+   ════════════════════════════════════════════════════════════════ */
+.rsc-report:empty { display: none; }
+.rsc-report { display: grid; gap: 14px; }
+.rsc-report-basis { border: 1px solid var(--ow-line); border-radius: 12px; padding: 12px 14px; background: var(--ow-raise); display: grid; gap: 4px; }
+.rsc-report-basis-main { margin: 0; font-size: 13.5px; font-weight: 600; color: var(--ow-ink); line-height: 1.5; }
+.rsc-report-basis-sub { margin: 0; font-size: 12.5px; color: var(--ow-sub); line-height: 1.5; }
+.rsc-report-counts { font-weight: 500; color: var(--ow-sub); white-space: nowrap; }
+.rsc-report-sec h3 { margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ow-sub); }
+.rsc-report-sec ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.rsc-report-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 10px; }
+.rsc-report-item:hover { background: var(--ow-raise); }
+.rsc-report-text { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.rsc-report-main { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--ow-ink); font-weight: 560; overflow-wrap: anywhere; }
+.rsc-report-sub { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--ow-sub); overflow-wrap: anywhere; }
+.rsc-report-meta { margin: 2px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.rsc-report-limit .rsc-report-main { font-weight: 400; color: var(--ow-sub); font-size: 12.5px; }
+.rsc-report-limit::before { content: 'ⓘ'; color: var(--ow-sub); font-size: 12px; line-height: 1.6; }
+
+.rsc-basis { font-size: 10.5px; font-weight: 650; letter-spacing: .02em; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--ow-line); color: var(--ow-sub); white-space: nowrap; line-height: 1.6; flex-shrink: 0; }
+.rsc-basis-verified { color: var(--ow-lime); border-color: color-mix(in srgb, var(--ow-lime) 45%, transparent); }
+.rsc-basis-inference { border-style: dashed; }
+.rsc-basis-recommendation { color: var(--ow-blue); border-color: color-mix(in srgb, var(--ow-blue) 40%, transparent); }
+.rsc-finding-row .rsc-basis { margin-top: 2px; }
+.rsc-src-chip { font-size: 11.5px; color: var(--ow-sub); text-decoration: none; border-bottom: 1px dotted currentColor; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rsc-src-chip:hover { color: var(--ow-ink); }
+.rsc-src-chip:focus-visible { outline: 2px solid var(--ow-blue); outline-offset: 2px; border-radius: 3px; }
+
+.rsc-saved-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.rsc-saved-item { width: 100%; text-align: left; display: grid; gap: 2px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--ow-line); background: transparent; color: inherit; cursor: pointer; font: inherit; }
+.rsc-saved-item:hover { background: var(--ow-raise); }
+.rsc-saved-item:focus-visible { outline: 2px solid var(--ow-blue); outline-offset: 2px; }
+.rsc-saved-q { font-size: 13px; font-weight: 560; color: var(--ow-ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+@media (max-width: 640px) {
+  .rsc-report-item { padding: 8px 4px; }
+  .rsc-report-counts { white-space: normal; display: block; }
+}

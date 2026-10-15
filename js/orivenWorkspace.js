@@ -885,8 +885,13 @@
     if (!result) return null;
     var findings = Object.keys(picked).map(function (k) { return picked[k]; });
     if (!findings.length) {
+      // Nothing picked: the top recommended angle (it's written as ad
+      // messaging), else the top opportunity. Always a recommendation, never
+      // a confirmed campaign setting.
+      var ang = (result.angles || []).filter(function (g) { return g && g.angle; })[0];
       var opp = (result.opportunities || []).filter(function (o) { return o && o.opportunity; })[0];
-      if (opp) findings.push({ id: opp.id || 'opp0', group: 'Opportunity', text: opp.opportunity });
+      if (ang) findings.push({ id: 'Angle:' + (ang.id || 'g0'), group: 'Angle', text: ang.angle + (ang.message ? ' — ' + ang.message : '') });
+      else if (opp) findings.push({ id: opp.id || 'opp0', group: 'Opportunity', text: opp.opportunity });
     }
     if (!findings.length) return null;
     var h = { question: result.question || '', summary: result.summary || '', savedAt: new Date().toISOString(), findings: findings.slice(0, 8) };

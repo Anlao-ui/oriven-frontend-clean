@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="css/orivenWorkspace.css">
 <link rel="stylesheet" href="css/orivenFlow.css">
 <link rel="stylesheet" href="css/orivenProgress.css">
+<link rel="stylesheet" href="css/researchReport.css">
 <link rel="stylesheet" href="css/orivenOps.css">
 <link rel="stylesheet" href="css/create-fit.css">
 <link rel="stylesheet" href="css/tour.css">
@@ -1467,6 +1468,11 @@
                on the Market Map below (_rmapSelectNode) — Findings and
                Map are two views of the same real data, not two separate
                claims. -->
+          <!-- Research report (services/researchReport.js): what was retrieved,
+               audiences, angles, creative concepts, risks, next steps and
+               limitations. Every item is badged Verified (cites a page really
+               retrieved for this research), Inference or Recommendation. -->
+          <div class="rsc-report" id="researchReportPanel"></div>
           <div class="rsc-findings" id="researchFindingsPanel"></div>
 
           <!-- Restrained real-evidence legend (Investigation Workspace pass) —
@@ -16421,6 +16427,7 @@ window.researchSubmit = function() {
   if (!question) { input && input.focus(); return; }
 
   _researchSubmitting = true;
+  var _rsStartedAt = Date.now();
   if (window.orvActionEvent) orvActionEvent('start', 'research');
   var btn = document.getElementById('researchSubmitBtn');
   if (btn) btn.disabled = true;
@@ -16436,6 +16443,14 @@ window.researchSubmit = function() {
     apiFetch('/api/research/query', { method: 'POST', body: JSON.stringify(reqBody), idempotencyKey: (typeof window.orvNewActionKey === 'function' ? window.orvNewActionKey() : undefined) })
       .then(function(res) {
         _researchSubmitting = false;
+        if (!res.ok && (res.status === 504 || res.status === 524 || res.status === 502) && !(res.data && res.data.code)) {
+          // Gateway answered instead of OrivenAI: the research may still have finished.
+          return _researchRecover(reqBody.question, _rsStartedAt).then(function(found) {
+            _researchSubmitting = false;
+            if (btn) btn.disabled = false;
+            if (!found) _researchShowError('The connection timed out before the research finished. Check Saved research in a minute, or try again.');
+          });
+        }
         if (!res.ok) {
           if (btn) btn.disabled = false;
           var _rsErr = (res.data && res.data.error) || 'Research could not be completed. Try again.';
@@ -16500,9 +16515,13 @@ window.researchSubmit = function() {
         if (followRow) followRow.style.display = '';
       })
       .catch(function() {
-        _researchSubmitting = false;
-        if (btn) btn.disabled = false;
-        _researchShowError('Research could not be completed. Check your connection and try again.');
+        // No answer (dropped connection, gateway timeout page): look for the
+        // saved report before reporting a failure.
+        _researchRecover(reqBody.question, _rsStartedAt).then(function(found) {
+          _researchSubmitting = false;
+          if (btn) btn.disabled = false;
+          if (!found) _researchShowError('The connection was interrupted before the research finished. If it completes it will appear under Saved research — check again in a minute, or try again.');
+        });
       });
   });
 };
@@ -16578,8 +16597,21 @@ function _researchPaintSide() {
   var stored = (typeof window._orvLoadResearchSession === 'function') ? window._orvLoadResearchSession() : null;
   var last = stored && stored.result && stored.result.question ? stored : null;
   var rel = (window.orvWorkspace && orvWorkspace.relTime) ? orvWorkspace.relTime : function(){ return ''; };
+  var saved = null; // null = loading, [] = none, [...] = list
+  function savedHtml() {
+    if (saved === null) return '<section class="rsc-side-b"><h2>Saved research</h2><p class="rsc-side-muted">Loading…</p></section>';
+    if (saved && saved.length) {
+      return '<section class="rsc-side-b"><h2>Saved research</h2><ul class="rsc-saved-list">' + saved.slice(0, 5).map(function(x) {
+        return '<li><button type="button" class="rsc-saved-item" onclick="_researchOpenSaved(\'' + esc(x.id) + '\', this)"><span class="rsc-saved-q">' + esc(x.question) + '</span><span class="rsc-side-muted">' + esc(rel(x.createdAt)) + (x.sourceCount ? ' · ' + x.sourceCount + ' source' + (x.sourceCount === 1 ? '' : 's') : '') + '</span></button></li>';
+      }).join('') + '</ul></section>';
+    }
+    return last ? '<section class="rsc-side-b"><h2>Latest research</h2><p class="rsc-side-q">“' + esc(last.result.question) + '”</p>' + (last.savedAt ? '<p class="rsc-side-muted">' + esc(rel(last.savedAt)) + '</p>' : '') +
+      '<button type="button" class="rsc-side-link" onclick="_researchReopenSaved()">Reopen →</button></section>' : '';
+  }
+  var lastBiz = null;
   function render(biz) {
     if (tok !== _researchSideTok) return;
+    lastBiz = biz;
     var bizHtml;
     if (biz === null) bizHtml = '<p class="rsc-side-muted">Loading…</p>';
     else if (!biz || !biz.name) bizHtml = '<p class="rsc-side-muted">No business profile yet. Add one in Control Center and every investigation is framed around it.</p><button type="button" class="rsc-side-link" onclick="bizGoTo(\'business\')">Set up your business →</button>';
@@ -16588,15 +16620,15 @@ function _researchPaintSide() {
       '<button type="button" class="rsc-side-link" onclick="bizGoTo(\'overview\')">Edit in Control Center →</button>';
     el.innerHTML =
       '<section class="rsc-side-b"><h2>Your business</h2>' + bizHtml + '<p class="rsc-side-note">Research uses your business profile as context.</p></section>' +
-      (last ? '<section class="rsc-side-b"><h2>Latest research</h2><p class="rsc-side-q">“' + esc(last.result.question) + '”</p>' + (last.savedAt ? '<p class="rsc-side-muted">' + esc(rel(last.savedAt)) + '</p>' : '') +
-        '<button type="button" class="rsc-side-link" onclick="_researchReopenSaved()">Reopen →</button></section>' : '') +
+      savedHtml() +
       '<section class="rsc-side-b"><h2>What you get</h2><ul class="rsc-side-list">' +
-        '<li>Findings grouped into opportunities, competitors, trends, customer signals and advertising patterns</li>' +
-        '<li>A Market Map with the sources behind it</li>' +
-        '<li>Findings you choose can go straight into Create</li></ul></section>';
+        '<li>Competitors, customer needs, trends and advertising patterns — marked Verified when a retrieved page supports them</li>' +
+        '<li>Audiences, angles, creative concepts and risks to consider</li>' +
+        '<li>Saved to your account; choose findings to use in Create</li></ul></section>';
   }
   render(null);
   if (typeof apiFetch !== 'function') { render(undefined); return; }
+  apiFetch('/api/research/reports').then(function(r) { saved = (r && r.ok && r.data && r.data.reports) || []; render(lastBiz); }).catch(function() { saved = []; render(lastBiz); });
   Promise.all(['/api/business/profile', '/api/business/audiences', '/api/business/competitors'].map(function(u){ return apiFetch(u).catch(function(){ return null; }); })).then(function(x){
     var p = x[0] && x[0].ok && x[0].data ? x[0].data.profile : null;
     var aud = x[1] && x[1].ok && x[1].data && Array.isArray(x[1].data.items) ? x[1].data.items.length : null;
@@ -17478,7 +17510,7 @@ function _researchRenderFindingsPanel(data) {
         '<button type="button" class="rsc-finding-row" onclick="window._rmapSelectNode(\'' + _prfEsc(it.id) + '\')">' +
         '<span class="rsc-finding-dot" style="background:' + color + '" aria-hidden="true"></span>' +
         '<span class="rsc-finding-text">' + _prfEsc(text) + '</span>' +
-        (hasSource ? '<span class="rsc-finding-sourced" title="Backed by a real cited source" aria-label="Backed by a real cited source">●</span>' : '') +
+        _researchBasisBadge(_researchBasisOf(it, g.def.key === 'opportunities' ? 'recommendation' : null)) +
         '</button>' +
         '<button type="button" class="ow-pick' + (on ? ' is-on' : '') + '" aria-pressed="' + on + '" data-fid="' + _prfEsc(fid) + '" data-group="' + _prfEsc(groupSingular) + '" data-text="' + _prfEsc(text) + '" onclick="orvWorkspace.research.togglePick(this)" title="Use this finding in Create"><span class="ow-pick-box" aria-hidden="true"></span><span class="ow-pick-lbl">Use</span></button>' +
         '</div>';
@@ -17487,6 +17519,121 @@ function _researchRenderFindingsPanel(data) {
   }).join('');
 
   el.innerHTML = header + body;
+}
+
+// ── Research report panel ────────────────────────────────────────
+var RESEARCH_BASIS = {
+  verified: { l: 'Verified', t: 'Supported by a page retrieved for this research' },
+  inference: { l: 'Inference', t: 'AI analysis — not backed by a retrieved source' },
+  recommendation: { l: 'Recommendation', t: 'A strategy worth testing — not a measured result' }
+};
+function _researchBasisOf(it, fallback) {
+  if (it && RESEARCH_BASIS[it.basis]) return it.basis;
+  if (fallback) return fallback;
+  return (it && it.sourceIds && it.sourceIds.length) ? 'verified' : 'inference';
+}
+function _researchBasisBadge(b) {
+  var d = RESEARCH_BASIS[b] || RESEARCH_BASIS.inference;
+  return '<span class="rsc-basis rsc-basis-' + b + '" title="' + _prfEsc(d.t) + '">' + _prfEsc(d.l) + '</span>';
+}
+function _researchSourceChips(ids) {
+  var by = window._rmapSourceById || {};
+  return (ids || []).map(function(id) {
+    var src = by[id];
+    if (!src || !src.url) return '';
+    return '<a class="rsc-src-chip" href="' + _prfEsc(src.url) + '" target="_blank" rel="noopener noreferrer" title="' + _prfEsc(src.title || src.domain || '') + '">' + _prfEsc(src.domain || 'source') + '</a>';
+  }).join('');
+}
+function _researchPick(group, id, text) {
+  var fid = group + ':' + id;
+  var on = !!(window.orvWorkspace && orvWorkspace.research.isPicked(fid));
+  return '<button type="button" class="ow-pick' + (on ? ' is-on' : '') + '" aria-pressed="' + on + '" data-fid="' + _prfEsc(fid) + '" data-group="' + _prfEsc(group) + '" data-text="' + _prfEsc(text) + '" onclick="orvWorkspace.research.togglePick(this)" title="Use this in Create"><span class="ow-pick-box" aria-hidden="true"></span><span class="ow-pick-lbl">Use</span></button>';
+}
+function _researchRenderReport(data) {
+  var el = document.getElementById('researchReportPanel');
+  if (!el) return;
+  var web = (data.webSources || []).length, att = (data.urlSources || []).filter(function(u) { return u.provenance !== 'own_website'; }).length;
+  var own = (data.urlSources || []).some(function(u) { return u.provenance === 'own_website'; });
+  var basisLine;
+  if (web || att || own) {
+    var parts = [];
+    if (web) parts.push(web + ' live web source' + (web === 1 ? '' : 's'));
+    if (own) parts.push('your website');
+    if (att) parts.push(att + ' page' + (att === 1 ? '' : 's') + ' you attached');
+    basisLine = 'Based on ' + parts.join(', ') + '.';
+  } else {
+    basisLine = 'No live sources could be retrieved for this research — it is AI analysis of general knowledge, not verified market data.';
+  }
+  var notes = [];
+  if (data.retrieval && data.retrieval.ok === false && (web + att) === 0 && own) notes.push('Live web search was unavailable.');
+  if (data.ownWebsite && data.ownWebsite.ok === false) notes.push('Your website couldn’t be opened (' + (data.ownWebsite.reason || 'unavailable') + ').');
+  if (data.partial) notes.push('The answer was cut short, so some sections may be incomplete.');
+  if (data.market_country) notes.push('Market: ' + data.market_country + '.');
+  var c = data.counts;
+  var head = '<div class="rsc-report-basis" role="note">' +
+    '<p class="rsc-report-basis-main">' + _prfEsc(basisLine) + (c ? ' <span class="rsc-report-counts">' + c.verified + ' verified · ' + c.inference + ' inferred · ' + c.recommendations + ' recommendations</span>' : '') + '</p>' +
+    (notes.length ? '<p class="rsc-report-basis-sub">' + _prfEsc(notes.join(' ')) + '</p>' : '') +
+    '<p class="rsc-report-basis-sub">No competitor ad performance data is available — nothing here says an ad is profitable or high-performing.</p></div>';
+
+  function section(title, items, row) {
+    items = (items || []).filter(Boolean);
+    if (!items.length) return '';
+    return '<section class="rsc-report-sec"><h3>' + _prfEsc(title) + '</h3><ul>' + items.map(row).join('') + '</ul></section>';
+  }
+  function item(main, sub, basis, ids, pick) {
+    return '<li class="rsc-report-item"><div class="rsc-report-text"><p class="rsc-report-main">' + _prfEsc(main) + '</p>' +
+      (sub ? '<p class="rsc-report-sub">' + _prfEsc(sub) + '</p>' : '') +
+      '<p class="rsc-report-meta">' + _researchBasisBadge(basis) + _researchSourceChips(ids) + '</p></div>' + (pick || '') + '</li>';
+  }
+  var m = data.market;
+  var html = head +
+    (m ? section('Market overview', [m], function(x) { return item(x.name, (x.characteristics || []).join(' · '), _researchBasisOf(x), x.sourceIds); }) : '') +
+    section('Audiences to consider', data.audiences, function(a) { return item(a.segment, a.why, 'recommendation', [], _researchPick('Audience', a.id, a.segment + (a.why ? ' — ' + a.why : ''))); }) +
+    section('Advertising angles to test', data.angles, function(g) { return item(g.angle, [g.message ? '“' + g.message + '”' : '', g.why].filter(Boolean).join(' — '), 'recommendation', [], _researchPick('Angle', g.id, g.angle + (g.message ? ' — ' + g.message : ''))); }) +
+    section('Creative concepts to test', data.creativeConcepts, function(k) { return item(k.concept + (k.format ? ' · ' + k.format : ''), k.hook ? 'Hook: ' + k.hook : '', 'recommendation', [], _researchPick('Creative concept', k.id, k.concept + (k.format ? ' (' + k.format + ')' : '') + (k.hook ? ' — hook: ' + k.hook : ''))); }) +
+    section('Risks and what to avoid', data.risks, function(r) { return item(r.risk, r.mitigation, 'recommendation', [], _researchPick('Risk to avoid', r.id, r.risk + (r.mitigation ? ' — ' + r.mitigation : ''))); }) +
+    section('Next steps', (data.nextSteps || []).map(function(t) { return { t: t }; }), function(x) { return item(x.t, '', 'recommendation', []); }) +
+    section('Limitations', (data.dataGaps || []).concat(data.assumptions || []).map(function(t) { return { t: t }; }), function(x) { return '<li class="rsc-report-item rsc-report-limit"><p class="rsc-report-main">' + _prfEsc(x.t) + '</p></li>'; });
+  el.innerHTML = html;
+}
+
+// Saved research (account) — GET /api/research/reports.
+function _researchOpenReport(report) {
+  if (!report || typeof _rmapRender !== 'function') return;
+  window._researchLastResult = report;
+  window._researchChatHistory = [];
+  if (typeof window._orvSaveResearchSession === 'function') window._orvSaveResearchSession(report);
+  if (window.orvWorkspace) orvWorkspace.research.resetPicks();
+  _researchRailRenderReal(report);
+  _rmapRender(report);
+  _researchSetState('researchMapView');
+  var followRow = document.getElementById('researchFollowupRow');
+  if (followRow) followRow.style.display = '';
+}
+window._researchOpenSaved = function(id, btn) {
+  if (!id || typeof apiFetch !== 'function') return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Opening…'; }
+  apiFetch('/api/research/reports/' + encodeURIComponent(id)).then(function(r) {
+    if (r && r.ok && r.data && r.data.report) { _researchOpenReport(r.data.report); return; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Couldn’t open — try again'; }
+  }).catch(function() { if (btn) { btn.disabled = false; btn.textContent = 'Couldn’t open — try again'; } });
+};
+// After a dropped connection or timeout: the server saves a finished report
+// before answering, so look for it before reporting a failure.
+function _researchRecover(question, since) {
+  if (typeof apiFetch !== 'function') return Promise.resolve(false);
+  return apiFetch('/api/research/reports').then(function(r) {
+    var list = (r && r.ok && r.data && r.data.reports) || [];
+    var hit = list.filter(function(x) { return x.question === question && new Date(x.createdAt).getTime() >= since - 5000; })[0];
+    if (!hit) return false;
+    return apiFetch('/api/research/reports/' + encodeURIComponent(hit.id)).then(function(r2) {
+      if (!(r2 && r2.ok && r2.data && r2.data.report)) return false;
+      _researchProgressDone();
+      _researchOpenReport(r2.data.report);
+      if (typeof toast === 'function') toast('Your research finished — opened from Saved research.', 'ok');
+      return true;
+    });
+  }).catch(function() { return false; });
 }
 
 function _rmapRender(data) {
@@ -17528,6 +17675,7 @@ function _rmapRender(data) {
   _rmapRenderFilters(graph);
   _rmapRenderSvg(graph);
   _rmapRenderSrSummary(data, graph);
+  _researchRenderReport(data);
   _researchRenderFindingsPanel(data);
   if (window.orvWorkspace) orvWorkspace.research.syncUseButton();
   _rmapWirePanZoom();
