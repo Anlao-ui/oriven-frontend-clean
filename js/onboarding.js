@@ -270,9 +270,9 @@ function _ob3Examples(kind){
   if(kind === "create"){
     return '<figure class="obi-examples">' +
       '<div class="obi-ex-row">' +
-        '<img src="/assets/ads/MA2.png" alt="Example social ad" loading="lazy">' +
-        '<img src="/assets/ads/GA3.png" alt="Example display ad" loading="lazy">' +
-        '<img src="/assets/ads/PA1.png" alt="Example pin ad" loading="lazy">' +
+        '<img src="/assets/ads/web/MA2.webp" alt="Example social ad" loading="lazy">' +
+        '<img src="/assets/ads/web/GA3.webp" alt="Example display ad" loading="lazy">' +
+        '<img src="/assets/ads/web/PA1.webp" alt="Example pin ad" loading="lazy">' +
       '</div>' +
       '<figcaption>Example ads</figcaption></figure>';
   }

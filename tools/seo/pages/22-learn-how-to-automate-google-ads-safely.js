@@ -5,16 +5,19 @@ module.exports = {
   path: '/learn/how-to-automate-google-ads-safely/',
   kind: 'article',
   datePublished: '2026-10-09',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 8,
   title: 'How to Automate Google Ads Safely: A Practical Checklist | OrivenAI',
   ogTitle: 'How to automate Google Ads safely',
-  description: 'A practical checklist for automating Google Ads without losing control: tracking first, clear limits, approval steps, sensible data windows and no conflicting automations.',
+  description: 'A checklist for automating Google Ads without losing control: tracking first, clear limits, approval steps and no conflicting automations.',
   crumb: 'How to automate Google Ads safely',
   teaser: 'A checklist for Google Ads automation that doesn’t surprise you.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
   eyebrow: 'Google Ads',
   h1: 'How to automate Google Ads safely',
   about: 'Google Ads automation',
+  sources: [{"title":"Set up automated rules — Google Ads Help","url":"https://support.google.com/google-ads/answer/2472779"},{"title":"About Smart Bidding — Google Ads Help","url":"https://support.google.com/google-ads/answer/7065882"},{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"Add keywords — Google Ads Help","url":"https://support.google.com/google-ads/answer/2453980"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Automate Google Ads in this order: verify conversion tracking, decide your limits, start with alerts and approvals, then let rules act on small, capped changes with enough data behind them. And never let two automations control the same setting.</p></div>
 
@@ -55,6 +58,7 @@ module.exports = {
 </ul>
 
 <h2>Automating Google Ads with OrivenAI</h2>
+<figure class="sp-figure"><img src="/assets/films/posters/film-autopilot-800.webp" alt="The OrivenAI Autopilot screen with automation rules for connected campaigns" width="800" height="450" loading="lazy" decoding="async"><figcaption>Autopilot in OrivenAI: rules you write, with the limits you set. (Screenshot from the product.)</figcaption></figure>
 <p>OrivenAI connects to your Google Ads account through Google’s official API. Create builds Search, Performance Max and Demand Gen campaigns from a brief; Launch shows each draft’s readiness and publishes only when you choose; and Autopilot (from the Starter plan) applies rules that can pause, resume or adjust budgets, or notify you and request approval first. Each rule runs at most once per day, and Control Center flags accounts where conversion tracking can’t be verified. See <a href="/product/google-ads">OrivenAI for Google Ads</a> and <a href="/ppc-automation-software/">PPC automation in OrivenAI</a>.</p>`,
   faq: [
     ['Should I use automated rules with smart bidding?', '<p>Yes, but not on the same setting. Let smart bidding own bids, and use rules for things it doesn’t control, such as pausing campaigns, budget caps and alerts.</p>'],

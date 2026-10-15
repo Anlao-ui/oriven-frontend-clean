@@ -5,12 +5,17 @@
    lime #B7FF2A primary pills, hairline borders) without loading the app's
    2 MB stylesheet, so these pages stay fast and fully readable as HTML.
    ════════════════════════════════════════════════════════════════ */
+/* Metric-matched fallback for Geist so text wraps the same before and after the web font loads (no layout shift). Widths measured against Geist per weight. */
+@font-face{font-family:'Geist Fallback';font-weight:400;src:local('Arial'),local('ArialMT'),local('Liberation Sans'),local('Arimo');size-adjust:102.5%}
+@font-face{font-family:'Geist Fallback';font-weight:500;src:local('Arial'),local('ArialMT'),local('Liberation Sans'),local('Arimo');size-adjust:105%}
+@font-face{font-family:'Geist Fallback';font-weight:600;src:local('Arial Bold'),local('Arial-BoldMT'),local('Liberation Sans Bold'),local('Arimo Bold');size-adjust:100%}
+@font-face{font-family:'Geist Fallback';font-weight:700;src:local('Arial Bold'),local('Arial-BoldMT'),local('Liberation Sans Bold'),local('Arimo Bold');size-adjust:104%}
 :root{
   --bg:#0A0A0A; --surface:#121212; --surface-2:#181818; --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
   --ink:#F2F2F0; --ink-2:rgba(242,242,240,.78); --muted:rgba(242,242,240,.58);
   --lime:#B7FF2A; --lime-ink:#0A0A0A; --lime-soft:rgba(183,255,42,.09); --lime-line:rgba(183,255,42,.28);
   --radius:16px; --gutter:24px; --max:1120px; --prose:720px;
-  --font:'Geist',system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+  --font:'Geist','Geist Fallback',system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -28,7 +33,7 @@ img{max-width:100%;height:auto}
    index.html, styles in css/site-nav.css, behaviour in js/site-nav.js. ── */
 body[data-lpnav="1"]{padding-top:64px}
 /* What the navbar inherits on the main site (body line-height 1.6, links not underlined). */
-#lpNav,#lpMobileMenu{line-height:1.6;font-family:'Geist',system-ui,-apple-system,sans-serif}
+#lpNav,#lpMobileMenu{line-height:1.6;font-family:'Geist','Geist Fallback',system-ui,-apple-system,sans-serif}
 #lpNav a,#lpMobileMenu a{text-decoration:none}
 html{scroll-padding-top:84px}
 
@@ -160,3 +165,20 @@ h3{font-size:19px;line-height:1.35;font-weight:600;margin:0 0 8px}
   .sp-band{margin-bottom:48px}
   .sp-cta-row .sp-btn{flex:1 1 auto}
 }
+
+/* Figures (real product screenshots), sources, and the character counter tool */
+.sp-figure{margin:28px 0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.sp-figure img{display:block;width:100%;height:auto}
+.sp-figure figcaption{padding:12px 16px;font-size:13.5px;color:var(--muted);border-top:1px solid var(--line)}
+.sp-sources-note{font-size:14px;color:var(--muted)}
+.sp-sources{padding-left:20px}
+.sp-sources li{margin:6px 0;font-size:15px}
+.sp-sources span{color:var(--muted);font-size:13.5px}
+.sp-tool{margin:24px 0;padding:20px;border:1px solid var(--lime-line);border-radius:var(--radius);background:var(--surface);display:grid;gap:12px}
+.sp-tool label{font-weight:600;font-size:14px}
+.sp-tool select,.sp-tool textarea{width:100%;font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.sp-tool textarea{min-height:96px;resize:vertical}
+.sp-tool select:focus-visible,.sp-tool textarea:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.sp-tool-out{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.sp-tool-out strong{color:var(--ink)}
+.sp-tool-over{color:#ff6b5e}

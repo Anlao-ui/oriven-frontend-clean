@@ -5,16 +5,19 @@ module.exports = {
   path: '/learn/ai-ads-for-ecommerce/',
   kind: 'article',
   datePublished: '2026-10-14',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 9,
   title: 'AI Ads for E-commerce: How to Create Better Product Ads With AI | OrivenAI',
   ogTitle: 'How AI helps e-commerce brands create better ads',
-  description: 'How e-commerce businesses can use AI to create better product ads: product imagery and video, copy that sells, catalog and Shopping campaigns, seasonal campaigns and what to keep human.',
+  description: 'How online stores can use AI for better product ads: imagery and video, copy that sells, catalog and Shopping campaigns, and what to keep human.',
   crumb: 'AI ads for e-commerce',
   teaser: 'Product imagery, copy, catalog ads and seasonal campaigns with AI.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
   eyebrow: 'E-commerce',
   h1: 'How AI can help e-commerce businesses create better ads',
   about: 'AI advertising for online stores',
+  sources: [{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"Review ad specs — Pinterest Business help","url":"https://help.pinterest.com/en/business/article/pinterest-product-specs"},{"title":"Install the Pinterest tag — Pinterest Business help","url":"https://help.pinterest.com/en/business/article/install-the-pinterest-tag"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>AI helps online stores most with the work that scales with the size of the catalog: product imagery and short video, copy variations for each product and audience, and keeping seasonal campaigns fresh. Feed-based formats such as Google Shopping and Meta catalog ads remain essential for large catalogs. Pricing, claims, margins and which products to push stay human decisions.</p></div>
 
@@ -61,6 +64,7 @@ module.exports = {
 <p>Judge AI-made ads the same way as any other: cost per purchase, return on ad spend and new customers, measured over enough time to be meaningful. Use your store’s own order data as the reference, because each ad platform reports conversions with its own attribution rules. When you advertise on more than one platform, compare each with its own history; our guide to <a href="/learn/how-to-manage-multiple-ad-platforms/">managing multiple ad platforms</a> explains why.</p>
 
 <h2>How OrivenAI fits an online store</h2>
+<figure class="sp-figure"><img src="/assets/films/posters/film-create-800.webp" alt="The OrivenAI Create screen: a brief, the four ad platforms, campaign goals, campaign type and structure, and the creative stage" width="800" height="450" loading="lazy" decoding="async"><figcaption>Create in OrivenAI: one brief, a platform, a goal, and the campaign structure you want. (Screenshot from the product.)</figcaption></figure>
 <p>OrivenAI focuses on the creative campaign side. In <a href="/create">Create</a>, you can attach product photos and describe the product and offer; OrivenAI uses your store’s profile from Control Center to build a campaign with copy and image or video creative for Google Ads, Meta Ads, TikTok Ads or Pinterest Ads, which you publish to your own account through <a href="/launch">Launch</a>. <a href="/research">Research</a> (from the Starter plan) helps you look at your market and competitors first.</p>
 <p>To be clear about what it doesn’t do: OrivenAI doesn’t manage product feeds and doesn’t create Google Shopping or Meta catalog campaigns, which need Merchant Center and Commerce Manager. Many stores use both: feed-based campaigns for the catalog, and OrivenAI for creative campaigns around specific products and promotions.</p>`,
   faq: [

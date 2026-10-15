@@ -14,121 +14,6 @@ export const ROUTES = {
     "title": "Create Your Account | OrivenAI",
     "desc": "Create a free OrivenAI account to start creating, launching and managing advertising campaigns.",
     "noindex": true
-  },
-  "/terms": {
-    "title": "Terms of Service | OrivenAI",
-    "desc": "Terms of Service for using the OrivenAI advertising platform.",
-    "noindex": false
-  },
-  "/privacy": {
-    "title": "Privacy Policy | OrivenAI",
-    "desc": "How OrivenAI collects, uses and protects your data.",
-    "noindex": false
-  },
-  "/refund-policy": {
-    "title": "Refund Policy | OrivenAI",
-    "desc": "OrivenAI’s refund policy for subscriptions and credits.",
-    "noindex": false
-  },
-  "/cookie-policy": {
-    "title": "Cookie Policy | OrivenAI",
-    "desc": "How OrivenAI uses cookies on this website.",
-    "noindex": false
-  },
-  "/security": {
-    "title": "Security | OrivenAI",
-    "desc": "How OrivenAI protects your advertising accounts and data.",
-    "noindex": false
-  },
-  "/contact": {
-    "title": "Contact | OrivenAI",
-    "desc": "Get in touch with the OrivenAI team.",
-    "noindex": false
-  },
-  "/about": {
-    "title": "About OrivenAI | AI Advertising Platform",
-    "desc": "Marketing data is scattered across platforms. Oriven brings it together so you can spend less time in dashboards and more time making better decisions.",
-    "noindex": false
-  },
-  "/blog": {
-    "title": "Blog | OrivenAI",
-    "desc": "Insights, updates and ideas from the Oriven team.",
-    "noindex": false
-  },
-  "/product": {
-    "title": "Connect Your Advertising Platforms | OrivenAI",
-    "desc": "Oriven connects to Google Ads, Meta Ads, TikTok Ads and Pinterest Ads. Research, creative, launch, campaign management and automation in one workspace.",
-    "noindex": false
-  },
-  "/solutions": {
-    "title": "Advertising Solutions | OrivenAI",
-    "desc": "Every Oriven solution maps to one real product: no generic promises, just the actual thing that fixes it.",
-    "noindex": false
-  },
-  "/case-studies": {
-    "title": "Case Studies | OrivenAI",
-    "desc": "Illustrative examples of how Oriven changes a real advertising workflow.",
-    "noindex": false
-  },
-  "/pricing": {
-    "title": "Pricing | OrivenAI",
-    "desc": "OrivenAI pricing plans and credits for AI advertising creation, research, launch, campaign management and automation.",
-    "noindex": false
-  },
-  "/faq": {
-    "title": "FAQ | OrivenAI",
-    "desc": "Answers to common questions about OrivenAI, credits, connecting ad accounts and plans.",
-    "noindex": false
-  },
-  "/product/google-ads": {
-    "title": "AI Google Ads Management: Create, Launch & Automate | OrivenAI",
-    "desc": "Manage Google Ads with AI: OrivenAI builds Search, Performance Max and Demand Gen campaigns from a brief, launches them through Google’s API, tracks results and runs rules you set.",
-    "noindex": false
-  },
-  "/product/meta-ads": {
-    "title": "Meta Ads Automation for Facebook & Instagram | OrivenAI",
-    "desc": "Create Facebook and Instagram campaigns from a brief, launch them through Meta’s API, track results and automate pause, resume and budget rules with OrivenAI Autopilot.",
-    "noindex": false
-  },
-  "/product/tiktok-ads": {
-    "title": "TikTok Ads AI & Campaign Workflow | OrivenAI",
-    "desc": "Connect TikTok Ads to Oriven. Create and launch campaigns through TikTok’s own API, alongside Google, Meta and Pinterest.",
-    "noindex": false
-  },
-  "/product/pinterest-ads": {
-    "title": "Pinterest Ads AI & Campaign Workflow | OrivenAI",
-    "desc": "Connect Pinterest Ads to Oriven. Create your ad account, build campaigns and launch Pins through Pinterest’s own API.",
-    "noindex": false
-  },
-  "/create": {
-    "title": "AI Ad Creation & Creative Workspace | OrivenAI",
-    "desc": "The Creative Playground turns a product description into platform-ready ad creative, image or video, informed by your real Business and Brand context.",
-    "noindex": false
-  },
-  "/launch": {
-    "title": "Campaign Launch & AI Ad Generation | OrivenAI",
-    "desc": "Describe your product, choose your platforms, and Oriven generates a complete, ready-to-publish campaign: strategy, structure and creative included.",
-    "noindex": false
-  },
-  "/campaigns": {
-    "title": "Campaign Management & Tracking | OrivenAI",
-    "desc": "Track live campaigns, pick up drafts, and review every detail before anything publishes, across Google, Meta and TikTok, all in one place.",
-    "noindex": false
-  },
-  "/research": {
-    "title": "AI Advertising Research | OrivenAI",
-    "desc": "Understand creative approaches, messaging patterns and advertising trends outside your own campaigns, so you can test the right ideas, not guess.",
-    "noindex": false
-  },
-  "/autopilot": {
-    "title": "Advertising Automation | OrivenAI",
-    "desc": "Autopilot turns campaign insights into automated action, reallocating wasted budget and flagging audience fatigue, based on rules you control.",
-    "noindex": false
-  },
-  "/business": {
-    "title": "Brand Context for AI Advertising | OrivenAI",
-    "desc": "Your business profile and Brand Identity give every AI generation the same context, so campaigns, copy and creative actually sound like you.",
-    "noindex": false
   }
 };
 
@@ -169,6 +54,6 @@ export default async (request, context) => {
 };
 
 export const config = {
-  path: ["/about","/autopilot","/blog","/business","/campaigns","/case-studies","/contact","/cookie-policy","/create","/faq","/launch","/login","/pricing","/privacy","/product","/product/google-ads","/product/meta-ads","/product/pinterest-ads","/product/tiktok-ads","/refund-policy","/research","/security","/signup","/solutions","/terms"],
+  path: ["/login","/signup"],
   onError: 'bypass',
 };

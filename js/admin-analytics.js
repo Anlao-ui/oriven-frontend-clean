@@ -82,7 +82,7 @@
   function render() {
     var d = state.data, w = d.website || {}, reg = d.registrations, act = d.activation, sub = d.subscriptions, fun = d.funnel, tr = d.tracking || {}, sys = d.system || {};
     var siteOk = w.status === 'ok';
-    var top = '<div class="ad-top"><div><a class="ad-brand" href="/"><img src="/assets/orivenlogo.png" alt=""><span>OrivenAI</span><small>Owner analytics</small></a>' +
+    var top = '<div class="ad-top"><div><a class="ad-brand" href="/"><img src="/assets/orivenlogo-256.webp" alt=""><span>OrivenAI</span><small>Owner analytics</small></a>' +
       '<p class="ad-sub">' + esc(day(d.range.from)) + ' – ' + esc(day(d.range.to)) + ' · generated ' + esc(new Date(d.generatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })) + '</p></div>' +
       '<div class="ad-filters"><div class="ad-seg" role="group" aria-label="Date range">' + ['7', '30', '90'].map(function (n) { return '<button type="button" data-days="' + n + '" aria-pressed="' + (!state.from && state.days === n) + '">Last ' + n + ' days</button>'; }).join('') + '</div>' +
       '<form class="ad-custom' + (state.from ? ' is-active' : '') + '" id="adCustom"><label>From <input type="date" name="from" value="' + esc(state.from || d.range.from.slice(0, 10)) + '" required></label><label>To <input type="date" name="to" value="' + esc(state.to || d.range.to.slice(0, 10)) + '" required></label><button type="submit" aria-pressed="' + !!state.from + '">Apply</button></form>' +

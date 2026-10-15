@@ -11,7 +11,7 @@ module.exports = {
   readMinutes: 7,
   title: 'What You Can Do With OrivenAI: A Walkthrough of Every Feature | OrivenAI Blog',
   ogTitle: 'What you can do with OrivenAI',
-  description: 'A walkthrough of what you can do with OrivenAI today: Control Center, Research, Create, Launch, Campaigns and Autopilot, with the ad platforms each supports and what is included on every plan.',
+  description: 'A walkthrough of OrivenAI today: Control Center, Research, Create, Launch, Campaigns and Autopilot, the platforms each supports and what each plan includes.',
   crumb: 'What you can do with OrivenAI',
   teaser: 'A walkthrough of Control Center, Research, Create, Launch, Campaigns and Autopilot.',
   breadcrumbs: [{ name: 'Blog', path: '/blog' }],
@@ -27,7 +27,7 @@ module.exports = {
 <p>Control Center is where OrivenAI learns about your business: what you sell, who you sell to, your brand voice and visual identity, and the context behind your campaigns. It’s also the start page that shows what’s happening, what needs your attention and what’s planned. Every other part of OrivenAI reads from it, which is why ads come out sounding like you rather than like a template.</p>
 
 <h2>Research: understand the market before you spend</h2>
-<p><a href="/research">Research</a> lets you ask questions about your market, competitors, audiences and opportunities, and returns an organized analysis with its sources listed. It also links to the platforms’ official ad libraries, such as the Meta Ad Library, so you can look at real ads yourself; it doesn’t pull ads from those libraries. Research is included from the Starter plan. See <a href="/learn/how-to-research-competitor-ads/">how to research competitor ads</a> for the method behind it.</p>
+<p><a href="/research">Research</a> lets you ask questions about your market, competitors, audiences and opportunities, and returns a structured report: a live web search, your own website and any pages you attach are used as evidence, and each finding is labelled Verified, Inference or Recommendation. Reports are saved to your account. It links to the platforms’ official ad libraries, such as the Meta Ad Library, so you can look at real ads yourself; it doesn’t pull ads from those libraries or show how competitors’ ads perform. Research is included from the Starter plan. See <a href="/learn/how-to-research-competitor-ads/">how to research competitor ads</a> for the method behind it.</p>
 
 <h2>Create: from a short brief to a complete campaign</h2>
 <p>In <a href="/create">Create</a>, you describe what you want to advertise, choose a platform and a goal (Sales, Leads, Traffic or Awareness), and choose image or video. You can attach product photos. OrivenAI builds the campaign in that platform’s own structure (for example campaign, ad sets and ads on Meta) with ad copy, targeting and creative. A complete image ad uses ${F.costs.imageAd} credits and a video ad ${F.costs.videoAd}.</p>

@@ -153,7 +153,7 @@ function footer() {
   const col = (h, items) => `<div><h2>${h}</h2><ul>${items.map(([href, label]) => `<li><a href="${href}">${label}</a></li>`).join('')}</ul></div>`;
   return `<footer class="sp-footer"><div class="sp-wrap">
   <div class="sp-footer-top">
-    <div class="sp-footer-brand"><a class="sp-logo" href="/"><img src="/assets/orivenlogo.png" alt="" width="30" height="30"><span>OrivenAI</span></a><p>${esc(F.tagline)}</p></div>
+    <div class="sp-footer-brand"><a class="sp-logo" href="/"><img src="/assets/orivenlogo-256.webp" alt="" width="30" height="30"><span>OrivenAI</span></a><p>${esc(F.tagline)}</p></div>
     ${col('Product', [['/business', 'Control Center'], ['/research', 'Research'], ['/create', 'Create'], ['/launch', 'Launch'], ['/campaigns', 'Campaigns'], ['/autopilot', 'Autopilot']])}
     ${col('Solutions', [['/ppc-automation-software/', 'PPC automation'], ['/cross-platform-ad-management/', 'Cross-platform ad management'], ['/product/google-ads', 'Google Ads'], ['/product/meta-ads', 'Meta Ads'], ['/product/tiktok-ads', 'TikTok Ads'], ['/product/pinterest-ads', 'Pinterest Ads']])}
     ${col('Resources', [['/learn/', 'Learn'], ['/pricing', 'Pricing'], ['/faq', 'FAQ'], ['/blog', 'Blog'], ['/about', 'About']])}
@@ -204,7 +204,7 @@ function render(page, all) {
   if (page.kind === 'article') {
     lds.push({ '@context': 'https://schema.org', '@type': 'Article', headline: page.h1, description: page.description, url,
       mainEntityOfPage: url, datePublished: page.datePublished, dateModified: page.dateModified || page.datePublished, inLanguage: 'en',
-      author: { '@type': 'Organization', name: 'OrivenAI', url: ORIGIN + '/' }, publisher: { '@type': 'Organization', name: 'OrivenAI', logo: { '@type': 'ImageObject', url: ORIGIN + '/assets/orivenlogo.png' } },
+      author: { '@type': 'Organization', name: 'OrivenAI', url: ORIGIN + '/' }, publisher: { '@type': 'Organization', name: 'OrivenAI', logo: { '@type': 'ImageObject', url: ORIGIN + '/assets/orivenlogo-192.png' } },
       image: OG_IMAGE, about: page.about || undefined });
   } else {
     lds.push({ '@context': 'https://schema.org', '@type': page.kind === 'hub' ? 'CollectionPage' : 'WebPage', name: page.title, description: page.description, url, inLanguage: 'en', isPartOf: { '@type': 'WebSite', name: 'OrivenAI', url: ORIGIN + '/' } });
@@ -223,9 +223,16 @@ function render(page, all) {
        ${page.heroNote ? `<p class="sp-note">${page.heroNote}</p>` : ''}</header>`;
 
   let body = page.body;
+  // Sources: primary documentation the page relies on (each URL checked when
+  // added). Rendered as a plain list after the article.
+  const sources = (page.sources || []).length
+    ? `<h2 id="sources">Sources</h2><p class="sp-sources-note">Official documentation this guide relies on${page.reviewed ? `, last checked <time datetime="${page.reviewed}">${F.fmtDate(page.reviewed)}</time>` : ''}. Platforms change their rules often; check the source before you rely on a number.</p><ul class="sp-sources">${page.sources.map((x) => `<li><a href="${esc(x.url)}" rel="noopener">${esc(x.title)}</a>${x.note ? ` <span>${esc(x.note)}</span>` : ''}</li>`).join('')}</ul>`
+    : '';
   if (page.kind === 'article') {
-    const t = withToc(page.body);
+    const t = withToc(page.body + sources);
     body = `<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article">${t.toc}${t.html}</article></div></section>`;
+  } else if (sources) {
+    body += `<section class="sp-section"><div class="sp-wrap"><div class="sp-article">${sources}</div></div></section>`;
   }
 
   return `<!doctype html>
@@ -250,7 +257,8 @@ function render(page, all) {
 <meta name="twitter:title" content="${esc(page.ogTitle || page.title)}">
 <meta name="twitter:description" content="${esc(page.description)}">
 <meta name="twitter:image" content="${OG_IMAGE}">
-${page.kind === 'article' ? `<meta property="article:published_time" content="${page.datePublished}">\n<meta property="article:modified_time" content="${page.dateModified || page.datePublished}">\n` : ''}<link rel="icon" href="/assets/orivenlogo.png" type="image/png">
+${page.kind === 'article' ? `<meta property="article:published_time" content="${page.datePublished}">\n<meta property="article:modified_time" content="${page.dateModified || page.datePublished}">\n` : ''}<link rel="icon" href="/assets/favicon-48.png" type="image/png" sizes="48x48">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -276,6 +284,7 @@ ${related(page, all)}
 ${band(page)}
 </main>
 ${footer()}
+${page.script ? `<script>${page.script}</script>` : ''}
 </body>
 </html>
 `;
@@ -308,6 +317,9 @@ function edgeFunctionSource() {
   for (const k of Object.keys(seo)) {
     const s = seo[k];
     if (!s.path || s.path === '/') continue; // '/' is index.html's own static <head>
+    // Marketing routes are prerendered static files with their own <head>
+    // (tools/seo/prerender.js); only the app entry points still need this.
+    if (!['/login', '/signup'].includes(s.path)) continue;
     routes[s.path] = { title: s.title, desc: s.desc, noindex: !!s.noindex };
   }
   const paths = Object.keys(routes).sort();

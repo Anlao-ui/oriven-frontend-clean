@@ -7,16 +7,19 @@ module.exports = {
   path: '/learn/how-to-research-competitor-ads/',
   kind: 'article',
   datePublished: '2026-10-14',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 8,
-  title: 'How to Research Competitor Ads: Free Ad Libraries and What to Look For | OrivenAI',
+  title: 'How to Research Competitor Ads: Free Ad Libraries to Use | OrivenAI',
   ogTitle: 'How to research your competitors’ ads',
-  description: 'How to research competitor ads with free official tools like the Meta Ad Library, Google Ads Transparency Center and TikTok Creative Center, what to look for, and how to use it without copying.',
+  description: 'Research competitor ads with free official tools like the Meta Ad Library and Google Ads Transparency Center: what to look for, without copying.',
   crumb: 'How to research competitor ads',
   teaser: 'Free ad libraries, what to look for, and turning it into a brief.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
   eyebrow: 'Research',
   h1: 'How to research your competitors’ ads',
   about: 'Competitor advertising research',
+  sources: [{"title":"Meta Ad Library","url":"https://www.facebook.com/ads/library/"},{"title":"Google Ads Transparency Center","url":"https://adstransparency.google.com/"},{"title":"TikTok One Creative Suite (formerly TikTok Creative Center)","url":"https://ads.tiktok.com/business/creativecenter"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Use the platforms’ free transparency tools (the Meta Ad Library, the Google Ads Transparency Center and the TikTok Creative Center) to see which ads your competitors run. Look for patterns in offers, angles, formats and landing pages rather than individual ads, write down what you observe, and use it to sharpen your own brief, not to copy.</p></div>
 
@@ -27,8 +30,8 @@ module.exports = {
 <p>The <a href="https://www.facebook.com/ads/library/" rel="noopener">Meta Ad Library</a> lists ads currently running across Facebook, Instagram and Meta’s other apps. You can search by advertiser name or keyword and filter by country, platform and media type. For ads shown in the European Union it can show additional detail, and ads about social issues, elections or politics are kept in the library with spending information.</p>
 <h3>Google Ads Transparency Center</h3>
 <p>The <a href="https://adstransparency.google.com/" rel="noopener">Google Ads Transparency Center</a> shows ads from verified advertisers across Google’s surfaces, such as Search, YouTube and the Display Network. You can search by advertiser or website and filter by region, format and date.</p>
-<h3>TikTok Creative Center</h3>
-<p>The <a href="https://ads.tiktok.com/business/creativecenter" rel="noopener">TikTok Creative Center</a> highlights top-performing ads and trending content, sounds and hashtags by region and industry. It’s less about one specific competitor and more about what works on TikTok in your category right now.</p>
+<h3>TikTok Creative Center (now TikTok One)</h3>
+<p>The <a href="https://ads.tiktok.com/business/creativecenter" rel="noopener">TikTok Creative Center</a>, now part of TikTok’s One Creative Suite, highlights top-performing ads and trending content, sounds and hashtags by region and industry. It’s less about one specific competitor and more about what works on TikTok in your category right now.</p>
 
 <h2>What to look for</h2>
 <p>Single ads tell you little. Patterns across many ads tell you a lot:</p>
@@ -62,9 +65,10 @@ module.exports = {
 </ul>
 
 <h2>How OrivenAI Research helps</h2>
-<p>OrivenAI’s <a href="/research">Research</a> (from the Starter plan) structures this work: you ask a question about your market, competitors or audience, and it returns an organized analysis (competitors, customer signals, advertising patterns, trends and opportunities) with its sources listed, informed by the business profile in your Control Center. It’s explicit about what it is: it doesn’t pull ads from the Meta Ad Library, the Google Ads Transparency Center or the TikTok Creative Center, and instead links to those official tools so you can view the real ads yourself. When you’re ready, you can take the findings into <a href="/create">Create</a> to build a campaign.</p>`,
+<figure class="sp-figure"><img src="/assets/films/posters/film-research-800.webp" alt="The OrivenAI Research screen with a research question, investigation starters and the business profile used as context" width="800" height="450" loading="lazy" decoding="async"><figcaption>Research in OrivenAI: ask a question about your market; your business profile is used as context. (Screenshot from the product.)</figcaption></figure>
+<p>OrivenAI’s <a href="/research">Research</a> (from the Starter plan) does the first pass for you. You ask a question, for example “Who are my main competitors in the Netherlands and what do they advertise?”, and it runs a live web search using your industry and country, reads your own website from your business profile, and reads any competitor pages you attach. The report covers competitors, customer needs, advertising patterns and trends, plus audiences, angles and creative concepts to test. Every finding is labelled <strong>Verified</strong> (supported by a page it retrieved, with the link), <strong>Inference</strong> (analysis without a retrieved source) or <strong>Recommendation</strong>. It doesn’t pull ads from the Meta Ad Library, the Google Ads Transparency Center or TikTok’s tools, and it has no data on how competitors’ ads perform, so it links to those libraries for you to check the real ads. Reports are saved to your account, and you can send chosen findings to <a href="/create">Create</a>.</p>`,
   faq: [
-    ['Is it legal to look at competitors’ ads?', '<p>Yes. The Meta Ad Library, Google Ads Transparency Center and TikTok Creative Center are public tools published by the platforms themselves. Copying another brand’s creative is a different matter and can infringe their rights.</p>'],
+    ['Is it legal to look at competitors’ ads?', '<p>Yes. The Meta Ad Library, Google Ads Transparency Center and TikTok’s creative tools are public tools published by the platforms themselves. Copying another brand’s creative is a different matter and can infringe their rights.</p>'],
     ['Can I see how much competitors spend on ads?', '<p>Generally not. Spending is shown mainly for ads about social issues, elections or politics in the Meta Ad Library. For other ads you can see what runs and for how long, not the budget.</p>'],
     ['How often should I research competitor ads?', '<p>Monthly is enough for most small businesses, plus before major campaigns and seasonal peaks.</p>'],
   ],

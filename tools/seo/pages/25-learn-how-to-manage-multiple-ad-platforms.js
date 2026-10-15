@@ -5,16 +5,19 @@ module.exports = {
   path: '/learn/how-to-manage-multiple-ad-platforms/',
   kind: 'article',
   datePublished: '2026-10-09',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 7,
   title: 'How to Manage Multiple Ad Platforms Without Losing Track | OrivenAI',
   ogTitle: 'How to manage multiple ad platforms',
-  description: 'Running Google, Meta, TikTok and Pinterest ads at once? A practical system for shared briefs, consistent naming and UTMs, honest cross-platform reporting and budget decisions.',
+  description: 'Running Google, Meta, TikTok and Pinterest ads? A system for shared briefs, consistent naming and UTMs, honest reporting and budget decisions.',
   crumb: 'How to manage multiple ad platforms',
   teaser: 'Shared briefs, naming and UTMs, honest reporting and budget decisions.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
   eyebrow: 'Cross-platform advertising',
   h1: 'How to manage multiple ad platforms without losing track',
   about: 'Multi-channel advertising management',
+  sources: [{"title":"Set up automated rules — Google Ads Help","url":"https://support.google.com/google-ads/answer/2472779"},{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"TikTok Auction In-Feed Ads specifications — TikTok Ads Manager help","url":"https://ads.tiktok.com/help/article/video-ads-specifications"},{"title":"Review ad specs — Pinterest Business help","url":"https://help.pinterest.com/en/business/article/pinterest-product-specs"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Keep one shared foundation (offer, audience, brand and naming rules), let each platform keep its own structure and creative formats, report each platform against its own history instead of summing conversions, and move budget based on your real sales.</p></div>
 
@@ -50,6 +53,7 @@ module.exports = {
 </ol>
 
 <h2>How OrivenAI supports this</h2>
+<figure class="sp-figure"><img src="/assets/films/posters/film-campaigns-800.webp" alt="The OrivenAI Campaigns screen with performance by platform, campaign and date range" width="800" height="450" loading="lazy" decoding="async"><figcaption>Campaigns in OrivenAI: performance pulled from each ad platform, in one place. (Screenshot from the product.)</figcaption></figure>
 <p>OrivenAI is built around this workflow. Your business and brand context lives in Control Center and informs every campaign; Create adapts one brief into each platform’s structure for Google Ads, Meta Ads, TikTok Ads and Pinterest Ads; Planning includes naming and UTM templates; Launch shows each draft’s readiness before you publish; Campaigns shows each platform’s results side by side; and Control Center lists what needs your attention. See <a href="/cross-platform-ad-management/">cross-platform ad management</a>.</p>`,
   faq: [
     ['How many ad platforms should a small business run?', '<p>Usually one or two, chosen by where your customers are and how they buy. Add a platform when you can fund enough spend on it to learn, not just to be present.</p>'],

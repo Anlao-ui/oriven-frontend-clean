@@ -8,7 +8,7 @@ module.exports = {
   lastmod: '2026-10-14',
   title: 'Learn: Guides to AI Advertising, PPC Automation and Ad Platforms | OrivenAI',
   ogTitle: 'OrivenAI Learn: practical advertising guides',
-  description: 'Practical guides to AI advertising: creating and testing ads, researching competitors, PPC automation, Google Ads, Meta Ads and running several ad platforms, from the team behind OrivenAI.',
+  description: 'Practical guides to AI advertising: creating and testing ads, competitor research, PPC automation, and Google, Meta, TikTok and Pinterest ads.',
   crumb: 'Learn',
   teaser: 'Guides to AI advertising, PPC automation and ad platforms.',
   eyebrow: 'Learn',
@@ -27,7 +27,13 @@ module.exports = {
     <a href="/learn/ai-ads-for-ecommerce/"><strong>AI ads for e-commerce</strong><span>Product imagery, copy, catalog ads and seasonal campaigns with AI.</span></a>
     <a href="/learn/how-to-research-competitor-ads/"><strong>How to research competitor ads</strong><span>Free ad libraries, what to look for, and turning it into a brief.</span></a>
     <a href="/learn/how-to-test-ad-creatives/"><strong>How to test ad creatives</strong><span>What to test first, how to read results, and when creative wears out.</span></a>
+    <a href="/learn/ad-character-limits/"><strong>Ad character limits (with a free counter)</strong><span>Google, Meta, TikTok and Pinterest text limits, checked against each platform’s docs.</span></a>
   </div></div>
+  <div class="sp-hub-group"><h2 id="g8">TikTok and Pinterest</h2><div class="sp-related">
+    <a href="/learn/tiktok-ads-for-small-business/"><strong>TikTok ads for small business</strong><span>Budgets, video specs, the TikTok Pixel and a first campaign plan.</span></a>
+    <a href="/learn/pinterest-ads-for-small-business/"><strong>Pinterest ads for small business</strong><span>When Pinterest fits, what to set up, and a first campaign plan.</span></a>
+  </div></div>
+
   <div class="sp-hub-group"><h2 id="g2">PPC automation</h2><div class="sp-related">
     <a href="/learn/what-is-ppc-automation/"><strong>What is PPC automation?</strong><span>The types of PPC automation, rule-based vs AI, and the risks to manage.</span></a>
     <a href="/learn/how-to-automate-google-ads-safely/"><strong>How to automate Google Ads safely</strong><span>A checklist for Google Ads automation that doesn’t surprise you.</span></a>

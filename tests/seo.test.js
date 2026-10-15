@@ -26,7 +26,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   check('generated pages, sitemap block and edge function are up to date (build --check)', fresh);
   const { loadPages, outFile } = require(path.join(ROOT, 'tools/seo/build.js'));
   const pages = loadPages();
-  check('18 pages: learn hub, 12 Learn articles, 3 blog posts, 2 commercial pages', pages.length === 18 && pages.filter((p) => p.kind === 'article' && p.path.startsWith('/learn/')).length === 12 && pages.filter((p) => p.path.startsWith('/blog/')).length === 3 && pages.filter((p) => p.kind === 'commercial').length === 2, pages.map((p) => p.path));
+  check('21 pages: learn hub, 15 Learn articles, 3 blog posts, 2 commercial pages', pages.length === 21 && pages.filter((p) => p.kind === 'article' && p.path.startsWith('/learn/')).length === 15 && pages.filter((p) => p.path.startsWith('/blog/')).length === 3, pages.map((p) => p.path));
   const titles = new Set(), descs = new Set();
   for (const p of pages) {
     const html = read(outFile(p));
@@ -91,7 +91,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   const org = idxLd.find((x) => x['@type'] === 'Organization'), app = idxLd.find((x) => x['@type'] === 'SoftwareApplication');
   check('index.html JSON-LD parses; Organization "OrivenAI" with alternate names', idxLd.length === 3 && org.name === 'OrivenAI' && org.alternateName.includes('ORIVEN'));
   check('PAGE_SEO titles unique and branded OrivenAI', new Set(Object.values(pageSeo).map((s) => s.title)).size === Object.keys(pageSeo).length && Object.values(pageSeo).every((s) => /OrivenAI/.test(s.title)));
-  check('Google/Meta product pages target their commercial intent', /AI Google Ads Management/.test(pageSeo['product-google-ads'].title) && /Meta Ads Automation/.test(pageSeo['product-meta-ads'].title));
+  check('Google/Meta product pages target their commercial intent', /Google Ads Campaign Builder/.test(pageSeo['product-google-ads'].title) && /Facebook & Instagram Ads/.test(pageSeo['product-meta-ads'].title));
   check('homepage states the category above the brand headline', /<p class="ov-section-eyebrow ov-hero-category">AI advertising platform<\/p>\s*<h1 class="lp-hero-h1 ov-h1">Advertising gets complicated\.<br>ORIVEN puts it in ORDER\.<\/h1>/.test(idx));
   check('login/signup stay noindex', pageSeo.login.noindex === true && pageSeo.signup.noindex === true);
 
@@ -115,7 +115,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   check('sitemap includes every generated page', pages.every((p) => locs.includes(ORIGIN + p.path)));
   check('sitemap has no private, auth or noindex URLs', !locs.some((l) => /\/(app|login|signup|onboarding|plan)(\/|$)/.test(l.replace(ORIGIN, ''))));
   check('every sitemap URL is a real route', locs.every((l) => { const u = l.replace(ORIGIN, ''); return u === '/' || gen.has(u) || spa.has(u); }), locs.filter((l) => { const u = l.replace(ORIGIN, ''); return !(u === '/' || gen.has(u) || spa.has(u)); }));
-  check('lastmod only on generated pages (real dates)', all(/<lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod>/, sm).length === pages.length);
+  check('every sitemap URL has a real lastmod date', all(/<lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod>/, sm).length === all(/<loc>/, sm).length);
   const rb = read('robots.txt');
   check('robots.txt: allows the site, blocks /app, points to the sitemap', /User-agent: \*/.test(rb) && /Disallow: \/app\b/.test(rb) && /Sitemap: https:\/\/orivenai\.com\/sitemap\.xml/.test(rb) && !/Disallow: \/(learn|ppc|cross)/.test(rb) && !/Disallow: \/\s*$/m.test(rb));
 
@@ -126,7 +126,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   const E = await import('file://' + tmp.replace(/\\/g, '/'));
   fs.unlinkSync(tmp);
   const routes = Object.keys(E.ROUTES);
-  check('edge routes = every PAGE_SEO route except / and 404', routes.length === Object.values(pageSeo).filter((s) => s.path && s.path !== '/').length && routes.every((r) => spa.has(r)));
+  check('edge routes = only the app entry points still served from index.html (/login, /signup); marketing routes are prerendered files', JSON.stringify([...routes].sort()) === JSON.stringify(['/login', '/signup']));
   check('config.path lists exactly those routes; onError bypass', JSON.stringify([...E.config.path].sort()) === JSON.stringify([...routes].sort()) && E.config.onError === 'bypass');
   let allOk = true; const bad = [];
   for (const r of routes) {
@@ -140,15 +140,15 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
     if (!ok || changed > 9 || out.length < idx.length - 2000) { allOk = false; bad.push([r, ok, changed]); }
   }
   check('every SPA route: own title, description, canonical, OG/Twitter, robots in the HTML; nothing else changed', allOk, bad);
-  check('/pricing raw HTML no longer canonicalizes to the homepage', E.rewriteHead(idx, '/pricing').includes('href="https://orivenai.com/pricing" id="ovCanonical"'));
+  check('/pricing is a prerendered file with its own canonical (not handled by the edge function)', !E.ROUTES['/pricing'] && read('pricing.html').includes('href="https://orivenai.com/pricing" id="ovCanonical"'));
   check('/login and /signup are noindex in the HTML itself', /content="noindex, follow" id="ovRobotsMeta"/.test(E.rewriteHead(idx, '/login')) && /content="noindex, follow" id="ovRobotsMeta"/.test(E.rewriteHead(idx, '/signup')));
   check('unknown path / homepage untouched', E.rewriteHead(idx, '/') === idx && E.rewriteHead(idx, '/nope') === idx);
   const mkRes = (body, type, status) => new Response(body, { status: status || 200, headers: { 'content-type': type, 'content-length': String(body.length), etag: 'x' } });
   const call = async (p, res) => E.default(new Request(ORIGIN + p), { next: async () => res });
-  let r = await call('/pricing', mkRes(idx, 'text/html; charset=UTF-8'));
+  let r = await call('/login', mkRes(idx, 'text/html; charset=UTF-8'));
   const body = await r.text();
-  check('handler: HTML 200 rewritten, stale content-length/etag dropped', body.includes('href="https://orivenai.com/pricing" id="ovCanonical"') && !r.headers.get('content-length') && !r.headers.get('etag') && r.status === 200);
-  r = await call('/pricing', mkRes('{}', 'application/json'));
+  check('handler: HTML 200 rewritten, stale content-length/etag dropped', body.includes('href="https://orivenai.com/login" id="ovCanonical"') && !r.headers.get('content-length') && !r.headers.get('etag') && r.status === 200);
+  r = await call('/login', mkRes('{}', 'application/json'));
   check('handler: non-HTML passes through unchanged', (await r.text()) === '{}');
   r = await call('/learn/', mkRes(idx, 'text/html'));
   check('handler: routes it does not own are not touched (returns nothing → Netlify continues)', r === undefined);

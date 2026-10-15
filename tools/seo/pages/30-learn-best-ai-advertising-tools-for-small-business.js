@@ -7,16 +7,19 @@ module.exports = {
   path: '/learn/best-ai-advertising-tools-for-small-business/',
   kind: 'article',
   datePublished: '2026-10-14',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 10,
   title: 'Best AI Advertising Tools for Small Businesses (2026 Guide) | OrivenAI',
   ogTitle: 'The best AI advertising tools for small businesses',
-  description: 'A practical guide to AI advertising tools for small businesses: what each type of tool does, the built-in AI you already have in Google and Meta, and how to choose without overspending.',
+  description: 'AI advertising tools for small businesses: what each type does, the AI already built into Google and Meta, and how to choose without overspending.',
   crumb: 'Best AI advertising tools for small businesses',
   teaser: 'Which kinds of AI ad tools exist, what they’re good at, and how to choose.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
   eyebrow: 'AI advertising',
   h1: 'The best AI advertising tools for small businesses',
   about: 'AI advertising tools for small businesses',
+  sources: [{"title":"About Smart Bidding — Google Ads Help","url":"https://support.google.com/google-ads/answer/7065882"},{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"About Demand Gen campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/13695777"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Start with the AI already built into Google Ads and Meta Ads, because it costs nothing extra. Add a creative tool if making ads is your bottleneck, a management or automation tool if keeping campaigns healthy is, and an all-in-one platform if switching between tools is what slows you down. Pick by the job you need done, not by the length of a feature list.</p></div>
 
@@ -49,6 +52,7 @@ module.exports = {
 <p><strong>Good for:</strong> accounts that already run several campaigns and lose money through slow reactions. <strong>Less good for:</strong> a business that hasn’t launched yet; there’s nothing to optimize. Rules also need limits. Our guides to <a href="/learn/what-is-ppc-automation/">PPC automation</a> and <a href="/learn/how-to-automate-google-ads-safely/">automating Google Ads safely</a> explain how to set them up without surprises.</p>
 
 <h2>4. All-in-one AI advertising platforms</h2>
+<figure class="sp-figure"><img src="/assets/films/posters/film-create-800.webp" alt="The OrivenAI Create screen: a brief, the four ad platforms, campaign goals, campaign type and structure, and the creative stage" width="800" height="450" loading="lazy" decoding="async"><figcaption>Create in OrivenAI: one brief, a platform, a goal, and the campaign structure you want. (Screenshot from the product.)</figcaption></figure>
 <p>A newer group of tools tries to cover the whole loop: research, creative, campaign setup, publishing and follow-up, across several ad networks. The benefit is less switching and one business profile that every step uses. The trade-off is depth: a specialist tool may go further in its one area. We explain the category in <a href="/learn/what-is-an-ai-advertising-platform/">What is an AI advertising platform?</a></p>
 <p>OrivenAI is in this group. Concretely, it does the following today:</p>
 <ul>

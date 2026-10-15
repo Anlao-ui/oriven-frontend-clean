@@ -6,16 +6,19 @@ module.exports = {
   path: '/learn/how-to-create-facebook-and-instagram-ads-with-ai/',
   kind: 'article',
   datePublished: '2026-10-14',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 9,
   title: 'How to Create Facebook and Instagram Ads With AI: Step by Step | OrivenAI',
   ogTitle: 'How to create Facebook and Instagram ads with AI',
-  description: 'A step-by-step guide to creating Facebook and Instagram ads with AI: writing a useful brief, choosing the objective, formats and placements, reviewing AI output and launching safely.',
+  description: 'How to create Facebook and Instagram ads with AI, step by step: a useful brief, the right objective, formats and placements, and a safe launch.',
   crumb: 'Create Facebook and Instagram ads with AI',
   teaser: 'From brief to launch: objectives, formats, placements and what to check.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
   eyebrow: 'Meta Ads',
   h1: 'How to create Facebook and Instagram ads with AI',
   about: 'Creating Meta ads with artificial intelligence',
+  sources: [{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"Meta Pixel — Meta for Developers","url":"https://developers.facebook.com/docs/meta-pixel/"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Give the AI a specific brief (offer, audience, proof and one action), choose the Meta objective that matches your goal, generate a few variations in the right formats for feed, Stories and Reels, edit them for accuracy and brand voice, and launch with a modest budget and working conversion tracking. AI speeds up the drafting; the decisions stay yours.</p></div>
 
@@ -83,6 +86,7 @@ module.exports = {
 <p>Start with a budget you can afford to learn with, run two or three different angles, and give them enough time to deliver before judging. Then keep the angle that works and test new variations against it; our guide to <a href="/learn/how-to-test-ad-creatives/">testing ad creatives</a> explains how.</p>
 
 <h2>How the same steps work in OrivenAI</h2>
+<figure class="sp-figure"><img src="/assets/films/posters/film-create-800.webp" alt="The OrivenAI Create screen: a brief, the four ad platforms, campaign goals, campaign type and structure, and the creative stage" width="800" height="450" loading="lazy" decoding="async"><figcaption>Create in OrivenAI: one brief, a platform, a goal, and the campaign structure you want. (Screenshot from the product.)</figcaption></figure>
 <p>OrivenAI follows this process with less manual setup:</p>
 <ol>
   <li>Describe your business once in Control Center: offer, audience, brand voice and visual identity.</li>

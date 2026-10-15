@@ -10,7 +10,7 @@ module.exports = {
   readMinutes: 5,
   title: 'Why We Built OrivenAI: Advertising Without the Tool Sprawl | OrivenAI Blog',
   ogTitle: 'Why we built OrivenAI',
-  description: 'Why we built OrivenAI: small teams juggle separate tools to research, create, launch and watch their ads. The problem we saw, and the principles that shape how OrivenAI works.',
+  description: 'Why we built OrivenAI: small teams juggle separate tools to research, create, launch and watch ads. The problem we saw and the principles we follow.',
   crumb: 'Why we built OrivenAI',
   teaser: 'The problem we saw, and the principles behind the product.',
   breadcrumbs: [{ name: 'Blog', path: '/blog' }],

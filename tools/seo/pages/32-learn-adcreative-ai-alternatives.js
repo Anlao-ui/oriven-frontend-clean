@@ -6,10 +6,12 @@ module.exports = {
   path: '/learn/adcreative-ai-alternatives/',
   kind: 'article',
   datePublished: '2026-10-14',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 9,
   title: 'AdCreative.ai Alternatives: 6 Options Compared by Use Case | OrivenAI',
   ogTitle: 'AdCreative.ai alternatives, compared by what you need',
-  description: 'Looking for an AdCreative.ai alternative? Six options compared by use case: design control, built-in platform AI, social content, high-volume production and tools that also launch campaigns.',
+  description: 'Looking for an AdCreative.ai alternative? Six options compared by use case, from design control and built-in platform AI to tools that launch campaigns.',
   crumb: 'AdCreative.ai alternatives',
   teaser: 'Six alternatives, sorted by the job you need done.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
@@ -52,6 +54,7 @@ module.exports = {
 <p><strong>Consider it if</strong> you’re comfortable writing prompts and assembling ads yourself. <strong>Keep in mind</strong> that you supply the brand rules every time, resize everything manually and do all campaign setup by hand.</p>
 
 <h2>6. OrivenAI: when you want the campaign, not just the creative</h2>
+<figure class="sp-figure"><img src="/assets/films/posters/film-create-800.webp" alt="The OrivenAI Create screen: a brief, the four ad platforms, campaign goals, campaign type and structure, and the creative stage" width="800" height="450" loading="lazy" decoding="async"><figcaption>Create in OrivenAI: one brief, a platform, a goal, and the campaign structure you want. (Screenshot from the product.)</figcaption></figure>
 <p>OrivenAI is an AI advertising platform rather than a creative generator. In <a href="/create">Create</a>, a short brief becomes a complete campaign in the chosen platform’s structure: ad copy, targeting, and image or video creative built from the business and brand context in your Control Center. <a href="/launch">Launch</a> then checks the draft and publishes it to your own ad account on Google Ads, Meta Ads, TikTok Ads or Pinterest Ads through each platform’s official API, and <a href="/campaigns">Campaigns</a> follows the results.</p>
 <p><strong>Consider it if</strong> the time you lose is in turning creatives into live campaigns across several platforms. <strong>Keep in mind</strong> that it offers less hands-on design editing than a dedicated design tool, and it isn’t built for producing hundreds of banner sizes.</p>
 

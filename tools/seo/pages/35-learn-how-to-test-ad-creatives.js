@@ -7,16 +7,19 @@ module.exports = {
   path: '/learn/how-to-test-ad-creatives/',
   kind: 'article',
   datePublished: '2026-10-14',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 9,
-  title: 'How to Test Ad Creatives: A Practical Framework for Small Budgets | OrivenAI',
+  title: 'How to Test Ad Creatives on a Small Budget | OrivenAI',
   ogTitle: 'How to test ad creatives on a small budget',
-  description: 'A practical framework for ad creative testing: what to test first, how to structure tests on Meta and Google, which metrics to read, how long to wait and how to spot creative fatigue.',
+  description: 'A framework for ad creative testing on small budgets: what to test first, how to structure tests on Meta and Google, and how to spot fatigue.',
   crumb: 'How to test ad creatives',
   teaser: 'What to test first, how to read results, and when creative wears out.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
   eyebrow: 'Creative strategy',
   h1: 'How to test ad creatives (even on a small budget)',
   about: 'Ad creative testing',
+  sources: [{"title":"About responsive search ads — Google Ads Help","url":"https://support.google.com/google-ads/answer/7684791"},{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"TikTok Auction In-Feed Ads specifications — TikTok Ads Manager help","url":"https://ads.tiktok.com/help/article/video-ads-specifications"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Test big differences before small ones: the concept or angle first, then the format, then details like headlines and colors. Change one thing at a time, give each version enough spend to reach a meaningful number of results, judge by cost per result rather than clicks alone, and keep a simple log so every test teaches you something.</p></div>
 
@@ -61,6 +64,7 @@ module.exports = {
 <p>A simple table turns tests into knowledge: date, platform, what you tested, the versions, the result, and what you’ll do next. After a few months it tells you which angles and formats work for your audience, which is worth more than any single winning ad.</p>
 
 <h2>Where OrivenAI helps</h2>
+<figure class="sp-figure"><img src="/assets/films/posters/film-campaigns-800.webp" alt="The OrivenAI Campaigns screen with performance by platform, campaign and date range" width="800" height="450" loading="lazy" decoding="async"><figcaption>Campaigns in OrivenAI: performance pulled from each ad platform, in one place. (Screenshot from the product.)</figcaption></figure>
 <p>Testing needs a steady supply of meaningful variations. In <a href="/create">Create</a>, you can generate a campaign with several ads, each with its own copy and image or video, built from the same brief and brand context, so versions differ where you want them to. <a href="/campaigns">Campaigns</a> shows results per platform and campaign, and <a href="/autopilot">Autopilot</a> (from the Starter plan) can apply rules you set to Google Ads and Meta Ads campaigns, such as pausing a campaign whose cost per acquisition (CPA) goes above your limit. If you want ideas for angles to test, see <a href="/learn/how-to-research-competitor-ads/">how to research competitor ads</a>.</p>`,
   faq: [
     ['How many ad creatives should I test at once?', '<p>On a small budget, two to four. More versions split the budget so thinly that none reaches enough results to judge.</p>'],

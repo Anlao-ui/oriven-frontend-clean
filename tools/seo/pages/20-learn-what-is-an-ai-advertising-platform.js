@@ -5,16 +5,19 @@ module.exports = {
   path: '/learn/what-is-an-ai-advertising-platform/',
   kind: 'article',
   datePublished: '2026-10-09',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 7,
-  title: 'What Is an AI Advertising Platform? How It Works and What to Expect | OrivenAI',
+  title: 'What Is an AI Advertising Platform? How It Works | OrivenAI',
   ogTitle: 'What is an AI advertising platform?',
-  description: 'An AI advertising platform uses AI to help research, create, launch and manage ad campaigns. Here’s what it does well, what it can’t do, and how to evaluate one.',
+  description: 'An AI advertising platform helps research, create, launch and manage ad campaigns. What it does well, what it can’t do, and how to evaluate one.',
   crumb: 'What is an AI advertising platform?',
   teaser: 'What the category covers, what AI does well in advertising, and its limits.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
   eyebrow: 'AI advertising',
   h1: 'What is an AI advertising platform?',
   about: 'AI advertising software',
+  sources: [{"title":"About Smart Bidding — Google Ads Help","url":"https://support.google.com/google-ads/answer/7065882"},{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"About Demand Gen campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/13695777"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>An AI advertising platform is software that uses AI models to help with the work around paid ads: researching a market, writing and designing ads, structuring campaigns for each ad network, publishing them, and watching results. The ad networks still run the auctions and deliver the ads; the platform speeds up and organizes everything around them.</p></div>
 
@@ -59,6 +62,7 @@ module.exports = {
 </ol>
 
 <h2>Where OrivenAI fits</h2>
+<figure class="sp-figure"><img src="/assets/films/posters/film-launch-800.webp" alt="The OrivenAI Launch screen showing campaign drafts and readiness checks before publishing" width="800" height="450" loading="lazy" decoding="async"><figcaption>Launch in OrivenAI: each draft is checked before it can be published, and campaigns are created paused. (Screenshot from the product.)</figcaption></figure>
 <p>OrivenAI is an AI advertising platform that helps businesses research their market, create image and video ads, launch campaigns on Google Ads, Meta Ads, TikTok Ads and Pinterest Ads, and automate routine campaign decisions with rules they control. Campaigns are published to your own ad accounts through each network’s official API, launching is always a manual step, and Autopilot rules (on Google Ads and Meta Ads) can be set to ask for approval before acting.</p>
 <p>The Free plan includes creating, launching and tracking campaigns; Research and Autopilot are included from the Starter plan. See <a href="/pricing">pricing</a> for details, or read how <a href="/ppc-automation-software/">PPC automation in OrivenAI</a> works.</p>`,
   faq: [

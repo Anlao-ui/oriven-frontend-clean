@@ -9,7 +9,7 @@ module.exports = {
   lastmod: '2026-10-09',
   title: 'PPC Automation Software with Rules You Control | OrivenAI',
   ogTitle: 'PPC automation software with rules you control',
-  description: 'Automate routine PPC decisions on Google Ads and Meta Ads with OrivenAI Autopilot: rules that pause, resume or adjust budgets, notify you, or ask for approval first.',
+  description: 'Automate routine PPC decisions on Google Ads and Meta Ads with rules that pause, resume or adjust budgets, notify you, or ask for approval first.',
   crumb: 'PPC automation software',
   teaser: 'Rules that pause, resume, adjust budgets or ask first, on Google Ads and Meta Ads.',
   eyebrow: 'PPC automation',

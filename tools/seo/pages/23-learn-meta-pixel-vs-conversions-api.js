@@ -5,16 +5,19 @@ module.exports = {
   path: '/learn/meta-pixel-vs-conversions-api/',
   kind: 'article',
   datePublished: '2026-10-09',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 7,
   title: 'Meta Pixel vs Conversions API: Differences and When to Use Both | OrivenAI',
   ogTitle: 'Meta Pixel vs Conversions API: what’s the difference?',
-  description: 'The Meta Pixel tracks events in the browser; the Conversions API sends them from your server. Learn how they differ, why Meta recommends both, and how deduplication works.',
+  description: 'The Meta Pixel tracks events in the browser; the Conversions API sends them from your server. How they differ, and how deduplication works.',
   crumb: 'Meta Pixel vs Conversions API',
   teaser: 'Browser vs server tracking, deduplication, and why to use both.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
   eyebrow: 'Meta Ads',
   h1: 'Meta Pixel vs Conversions API: what’s the difference?',
   about: 'Meta Ads conversion tracking',
+  sources: [{"title":"Meta Pixel — Meta for Developers","url":"https://developers.facebook.com/docs/meta-pixel/"},{"title":"Conversions API — Meta for Developers","url":"https://developers.facebook.com/docs/marketing-api/conversions-api/"},{"title":"Handling duplicate Pixel and Conversions API events — Meta for Developers","url":"https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events/"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>The Meta Pixel is JavaScript that reports events from the visitor’s browser. The Conversions API (CAPI) reports the same kinds of events directly from your server. The browser misses events when scripts are blocked or restricted; the server path doesn’t depend on the browser. Meta recommends running both, with deduplication so each conversion is counted once.</p></div>
 

@@ -36,7 +36,7 @@ module.exports = {
   organizationLd: {
     '@context': 'https://schema.org', '@type': 'Organization', '@id': ORIGIN + '/#organization',
     name: 'OrivenAI', alternateName: ['Oriven', 'ORIVEN', 'Oriven AI'], url: ORIGIN + '/',
-    logo: ORIGIN + '/assets/orivenlogo.png', email: 'contact@orivenai.com',
+    logo: ORIGIN + '/assets/orivenlogo-192.png', email: 'contact@orivenai.com',
     description: 'OrivenAI (orivenai.com) is an AI advertising platform for researching, creating, launching and automating ad campaigns.',
   },
 
@@ -65,5 +65,8 @@ module.exports = {
     '/product': { name: 'Supported platforms', description: 'Google Ads, Meta Ads, TikTok Ads and Pinterest Ads in one workspace.' },
     '/product/google-ads': { name: 'OrivenAI for Google Ads', description: 'Search, Performance Max and Demand Gen campaigns, created and launched from OrivenAI.' },
     '/product/meta-ads': { name: 'OrivenAI for Meta Ads', description: 'Facebook and Instagram campaigns, created and launched through Meta’s API.' },
+    '/product/tiktok-ads': { name: 'OrivenAI for TikTok Ads', description: 'Vertical video ads prepared in OrivenAI and created on TikTok paused, ready for review.' },
+    '/product/pinterest-ads': { name: 'OrivenAI for Pinterest Ads', description: 'Pins, campaigns and country targeting prepared in OrivenAI and created on Pinterest paused.' },
+    '/business': { name: 'Control Center', description: 'Your business profile, brand identity and ad account connections in one place.' },
   },
 };

@@ -4,16 +4,19 @@ module.exports = {
   path: '/learn/google-ads-vs-meta-ads/',
   kind: 'article',
   datePublished: '2026-10-09',
+  dateModified: '2026-10-15',
+  reviewed: '2026-10-15',
   readMinutes: 7,
   title: 'Google Ads vs Meta Ads: Key Differences and When to Use Each | OrivenAI',
   ogTitle: 'Google Ads vs Meta Ads: key differences',
-  description: 'Google Ads reaches people searching for something; Meta Ads reaches people based on who they are and what they engage with. How the two differ, and when to use each or both.',
+  description: 'Google Ads reaches people searching; Meta Ads reaches people by who they are and what they engage with. How they differ and when to use each.',
   crumb: 'Google Ads vs Meta Ads',
   teaser: 'Search intent vs discovery: how the two platforms differ and when to use each.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
   eyebrow: 'Cross-platform advertising',
   h1: 'Google Ads vs Meta Ads: key differences and when to use each',
   about: 'Google Ads and Meta Ads',
+  sources: [{"title":"Add keywords — Google Ads Help","url":"https://support.google.com/google-ads/answer/2453980"},{"title":"About responsive search ads — Google Ads Help","url":"https://support.google.com/google-ads/answer/7684791"},{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Google Ads is strongest at capturing <em>existing demand</em>: people already searching for what you sell. Meta Ads (Facebook and Instagram) is strongest at <em>creating demand</em>: showing your product to people likely to want it before they search. Most growing businesses use both, for different jobs.</p></div>
 
@@ -51,6 +54,7 @@ module.exports = {
 <p>The platforms often work as two halves of one funnel: Meta introduces the product, and Google captures people when they later search for it or for your brand. Running both does make measurement harder. Each platform attributes conversions with its own rules, so the same sale can appear in both reports. Compare each platform’s results against its own history and your actual sales, rather than adding their conversion numbers together.</p>
 
 <h2>Running both without doubling the work</h2>
+<figure class="sp-figure"><img src="/assets/films/posters/film-create-800.webp" alt="The OrivenAI Create screen: a brief, the four ad platforms, campaign goals, campaign type and structure, and the creative stage" width="800" height="450" loading="lazy" decoding="async"><figcaption>Create in OrivenAI: one brief, a platform, a goal, and the campaign structure you want. (Screenshot from the product.)</figcaption></figure>
 <p>The work that doesn’t have to be duplicated is the thinking: your offer, audience and brand. In OrivenAI you describe your business once, create a campaign for each platform in its own structure (Search, Performance Max or Demand Gen on Google; Facebook and Instagram placements on Meta), launch each when it’s ready, and follow both side by side in Campaigns. See <a href="/cross-platform-ad-management/">cross-platform ad management in OrivenAI</a>.</p>`,
   faq: [
     ['Is Google Ads or Meta Ads cheaper?', '<p>Neither is cheaper in general. Costs depend on your industry, competition, targeting and how well your ads and landing pages convert. Compare cost per acquisition for your own business, not average click prices.</p>'],
