@@ -11422,6 +11422,9 @@ window.openCampaignWorkspace = function(id){
     var loading = document.getElementById('cgrLoading');
     if(loading){ loading.style.display='none'; loading.classList.remove('cgr-loading--done'); }
     window._cgrReopenMode = true;
+    var _rp = camp.pkg || {};
+    window._cgrReopenCreativeMode = camp.creativeMode ||
+      (((_rp.videoAssets && _rp.videoAssets.length) || (_rp.videoJobs && _rp.videoJobs.length)) ? 'videos' : 'images');
     window._cgrCurrentCampId = camp.id;
     window._cgrRenderPackage(camp.pkg, camp.prompt || camp.name || '');
     window._cgrReopenMode = false;
@@ -24993,7 +24996,10 @@ window.rptExport = function(format) {
       }
     }
     var platform = pkg.platform || window._ov3Platform || 'google';
-    var creativeMode = window._cgrCreativeMode || 'images';
+    // A reopened campaign keeps its own creative mode — the Create toggle's
+    // current value must never start (and charge for) videos or images the
+    // campaign never had.
+    var creativeMode = window._cgrReopenMode ? (window._cgrReopenCreativeMode || 'images') : (window._cgrCreativeMode || 'images');
     var s = pkg.strategy || {};
 
     /* PHASE B of the campaign blueprint (see _cgrBuildFinishCopyPhase's
@@ -25187,7 +25193,7 @@ window.rptExport = function(format) {
       // continuing in the background, then reveals as before.
       if(_cgrB && _cgrB.isCurrent(window._cgrBuildToken)) _cgrB.background({ pkg: pkg, platform: platform }, _cgrReveal, window._cgrBuildToken);
       else _cgrReveal();
-      _startVideoCreatives(pkg, campId, platform);
+      _startVideoCreatives(pkg, campId, platform, { reopen: !!window._cgrReopenMode });
     } else {
       window._cgrLastCreativeReady = null;
       _startCreativesGeneration(pkg, platform, function(creativeReady){
@@ -27597,14 +27603,24 @@ window.rptExport = function(format) {
     window.cgrPublishTo('pinterest', _cgp.campId);
   };
 
-  function _startVideoCreatives(pkg, campId, platform){
-    var section = document.getElementById('cgrCreativesSection');
-    var grid    = document.getElementById('cgrCreativesGrid');
-    var pill    = document.getElementById('cgrCreativesPill');
-    if(!section || !grid) return;
+  /* ── Video creatives ────────────────────────────────────────────
+     One video per ad slot (same "pool cycled to the real ad count" rule as
+     images — see _cgrCreativeCount). Rules:
+       • Submitted one at a time: the server allows one video submission per
+         account at a time (paidActions 'video' lane), so parallel requests
+         were refused with 409 for every video after the first.
+       • Each submission carries its own X-Idempotency-Key, so a resent
+         request can never be charged twice.
+       • Every submitted job is recorded in pkg.videoJobs and every finished
+         video in pkg.videoAssets, so a campaign opened later shows its
+         videos and resumes unfinished jobs — it never submits (or charges)
+         again on its own. Missing videos get an explicit "Generate" button.
+       • Polling stops after VIDEO_POLL_TIMEOUT_MS with a "Check again"
+         action; temporary errors are retried, a vanished job is reported.
+     The server refunds failed or abandoned jobs (paidActions). */
+  var VIDEO_POLL_TIMEOUT_MS = 15 * 60 * 1000;
 
-    /* Available scripts to draw from, same "pool, cycled to the real ad
-       count" pattern as the image path above — see _cgrCreativeCount. */
+  function _cgrVideoTasks(pkg, platform){
     var concepts = pkg.tiktokAds || pkg.metaAds || {};
     var pool  = [];
     if(concepts.videoScript) pool.push({ script: concepts.videoScript, ref: 'Video Ad' });
@@ -27618,153 +27634,296 @@ window.rptExport = function(format) {
     if(!pool.length){
       pool.push({ script: (pkg.campaignName||'') + '. ' + ((pkg.strategy||{}).targetAudience||''), ref: 'Video Ad' });
     }
-
     var creativeCount = _cgrCreativeCount(pkg, platform || pkg.platform || window._ov3Platform || 'google');
-    var scripts = [];
+    var tasks = [];
     for(var i=0;i<creativeCount;i++){
       var src = pool[i % pool.length];
-      var ref = creativeCount > pool.length ? (src.ref + ' — Ad ' + (i+1)) : src.ref;
-      scripts.push({ script: src.script, ref: ref });
+      tasks.push({ script: src.script, ref: creativeCount > pool.length ? (src.ref + ' — Ad ' + (i+1)) : src.ref });
     }
-    console.log('[cgr] Video generation started — ad structure requires', scripts.length, 'video(s)');
+    return tasks;
+  }
+
+  function _cgrSessionToken(){
+    try {
+      return (typeof SB !== 'undefined' && SB.auth && SB.auth.getSession)
+        ? SB.auth.getSession().then(function(s){ return (s&&s.data&&s.data.session&&s.data.session.access_token)||''; })
+        : Promise.resolve('');
+    } catch(_){ return Promise.resolve(''); }
+  }
+
+  function _cgrNewVideoKey(campId, i){
+    var rnd = (window.crypto && crypto.getRandomValues) ? Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(6)), function(b){ return ('0'+b.toString(16)).slice(-2); }).join('') : String(Math.random()).slice(2, 14);
+    return 'vid-' + String(campId||'c').replace(/[^A-Za-z0-9_-]/g,'').slice(0,40) + '-' + i + '-' + Date.now().toString(36) + '-' + rnd;
+  }
+
+  // Writes the package's video state everywhere it is held (campaign store,
+  // and the Google / Pinterest screens' working clones) and refreshes their
+  // previews so a finished video shows without navigating away.
+  function _cgrSaveVideoState(pkg, campId){
+    if(!pkg || !campId) return;
+    try { window._orvUpdateCampPkg(campId, pkg); } catch(e){ console.error('[cgr] Failed to save video state:', e.message); }
+    if(typeof _cgg !== 'undefined' && _cgg.campId === campId && _cgg.pkg){
+      _cgg.pkg.videoAssets = pkg.videoAssets; _cgg.pkg.videoJobs = pkg.videoJobs;
+      if(typeof _cggRenderPreview === 'function') _cggRenderPreview();
+      if(_cgg.stage === 'review' && typeof _cggRenderReviewStage === 'function') _cggRenderReviewStage();
+    }
+    if(typeof _cgp !== 'undefined' && _cgp.campId === campId && _cgp.pkg){
+      _cgp.pkg.videoAssets = pkg.videoAssets; _cgp.pkg.videoJobs = pkg.videoJobs;
+      if(typeof _cgpRenderPreview === 'function') _cgpRenderPreview();
+      if(_cgp.stage === 'review' && typeof _cgpRenderReviewStage === 'function') _cgpRenderReviewStage();
+    }
+  }
+
+  function _startVideoCreatives(pkg, campId, platform, opts){
+    opts = opts || {};
+    var section = document.getElementById('cgrCreativesSection');
+    var grid    = document.getElementById('cgrCreativesGrid');
+    var pill    = document.getElementById('cgrCreativesPill');
+    if(!section || !grid) return;
+
+    var tasks = _cgrVideoTasks(pkg, platform);
+    if(!Array.isArray(pkg.videoJobs)) pkg.videoJobs = [];
+    var st = { pkg: pkg, campId: campId, tasks: tasks, pill: pill, queue: [], busy: false, settled: {} };
+    window._cgrVideoRun = st;
+    console.log('[cgr] Video creatives —', tasks.length, 'slot(s)', opts.reopen ? '(reopened)' : '');
 
     section.style.display = '';
-    if(pill){ pill.textContent = 'Generating video…'; pill.className = 'cgr2-gen-pill'; }
-    _cgrShowCreativeCostPill(pill, scripts.length, 'video_generation', 'video');
-
-    grid.innerHTML = scripts.map(function(t,i){
-      return '<div class="cgr-creative-card cgr-creative-skel-card" id="cgcv'+i+'">'
-        +'<div class="cgr-creative-skel-img"></div>'
-        +'<div class="cgr-creative-card-body"><div class="cgr-creative-ref">'+_esc(t.ref)+'</div>'
-        +'<div class="cgr-creative-gen-label">Generating video…</div></div></div>';
+    grid.innerHTML = tasks.map(function(t,i){
+      return '<div class="cgr-creative-card cgr-creative-skel-card" id="cgcv'+i+'"></div>';
     }).join('');
 
-    var done = 0;
-    scripts.forEach(function(task, i){
-      var tokenP;
-      try {
-        tokenP = (typeof SB !== 'undefined' && SB.auth && SB.auth.getSession)
-          ? SB.auth.getSession().then(function(s){ return (s&&s.data&&s.data.session&&s.data.session.access_token)||''; })
-          : Promise.resolve('');
-      } catch(_){ tokenP = Promise.resolve(''); }
-      console.log('[cgr] Video generation request', i, '— script length:', task.script.length);
-      tokenP.then(function(token){
-        return fetch(API_BASE_URL + '/api/generate-ugc-video', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ script: task.script })
-        }).then(function(r){ return r.json().then(function(data){ return { status: r.status, data: data }; }); });
-      }).then(function(res){
-        var data = res.data;
-        if(res.status === 402 && data.code === 'CREDITS_EXHAUSTED'){
-          console.warn('[cgr] Video generation blocked', i, '— out of credits');
-          _cgrVideoErr(i, task.ref, 'Not enough credits (' + (data.balance != null ? data.balance : 0) + ' left, needs ' + CREDIT_COSTS.video + ')');
-          done++; _checkVideoDone(done,scripts.length,pill); return;
-        }
-        if(data.error){ console.error('[cgr] Video generation error', i, ':', data.error); _cgrVideoErr(i, task.ref, data.error); done++; _checkVideoDone(done,scripts.length,pill); return; }
-        console.log('[cgr] Video job submitted', i, '— videoId:', data.videoId, '— polling…');
-        // 200, not the old hardcoded 120 -- matches the server's real
-        // FEATURE_COSTS.video_generation charge (CREDIT_COSTS.video,
-        // plans.js), charged at successful submission.
-        if(typeof consumeUsage === 'function') consumeUsage(CREDIT_COSTS.video);
-        _pollCgrVideo(data.videoId, i, task.ref, campId, pkg, function(){
-          console.log('[cgr] Video generation complete', i);
-          done++; _checkVideoDone(done, scripts.length, pill);
-        });
-      }).catch(function(e){ console.error('[cgr] Video fetch error', i, ':', e.message); _cgrVideoErr(i, task.ref, e.message||'Error'); done++; _checkVideoDone(done,scripts.length,pill); });
+    var toSubmit = 0;
+    tasks.forEach(function(task, i){
+      var asset = (pkg.videoAssets||[]).filter(function(v){ return v && v.ref === task.ref && v.videoUrl; })[0];
+      var job = pkg.videoJobs.filter(function(j){ return j && j.ref === task.ref && j.videoId; })[0];
+      if(asset){ st.settled[i] = true; _cgrVideoReady(i, task.ref, asset.videoUrl); }
+      else if(job){ _cgrVideoPending(i, task.ref, 'Rendering video…'); _pollCgrVideo(st, i, job); }
+      else if(opts.reopen){ st.settled[i] = true; _cgrVideoMissing(st, i); }
+      else { toSubmit++; _cgrVideoPending(i, task.ref, 'Waiting to start…'); st.queue.push(i); }
+    });
+    _cgrVideoPill(st);
+    if(toSubmit) _cgrShowCreativeCostPill(pill, toSubmit, 'video_generation', 'video');
+    _cgrVideoNext(st);
+  }
+
+  function _cgrVideoPill(st){
+    if(!st.pill) return;
+    var total = st.tasks.length, ready = 0, open = 0;
+    st.tasks.forEach(function(t, i){
+      if((st.pkg.videoAssets||[]).some(function(v){ return v && v.ref === t.ref && v.videoUrl; })) ready++;
+      else if(!st.settled[i]) open++;
+    });
+    if(open){ st.pill.textContent = 'Generating video' + (open === 1 ? '' : 's') + '… ' + ready + ' of ' + total + ' ready'; st.pill.className = 'cgr2-gen-pill'; }
+    else { st.pill.textContent = ready + ' of ' + total + ' video' + (total === 1 ? '' : 's') + ' ready'; st.pill.className = 'cgr2-gen-pill done'; }
+  }
+
+  function _cgrVideoNext(st){
+    if(st.busy || !st.queue.length) return;
+    st.busy = true;
+    var i = st.queue.shift();
+    _cgrSubmitVideo(st, i, null, 0).then(function(){ st.busy = false; _cgrVideoNext(st); });
+  }
+
+  // Resolves when this submission has an outcome (job started or an error
+  // shown), so the next one can be sent.
+  function _cgrSubmitVideo(st, i, key, attempt){
+    var task = st.tasks[i];
+    key = key || _cgrNewVideoKey(st.campId, i);
+    _cgrVideoPending(i, task.ref, 'Starting video…');
+    return _cgrSessionToken().then(function(token){
+      return fetch(API_BASE_URL + '/api/generate-ugc-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, 'X-Idempotency-Key': key },
+        body: JSON.stringify({ script: task.script })
+      }).then(function(r){ return r.json().catch(function(){ return {}; }).then(function(data){ return { status: r.status, data: data || {} }; }); });
+    }).then(function(res){
+      var data = res.data;
+      if(res.status === 200 && data.videoId){
+        st.pkg.videoJobs = (st.pkg.videoJobs||[]).filter(function(j){ return j && j.ref !== task.ref; });
+        var job = { ref: task.ref, videoId: data.videoId, startedAt: Date.now() };
+        st.pkg.videoJobs.push(job);
+        _cgrSaveVideoState(st.pkg, st.campId);
+        if(typeof consumeUsage === 'function') consumeUsage(CREDIT_COSTS.video); // charged at submission (server: video_generation)
+        _cgrVideoPending(i, task.ref, 'Rendering video…');
+        _pollCgrVideo(st, i, job);
+        return;
+      }
+      // Another submission from this account is still being sent: nothing
+      // was charged, so wait and resend the same request.
+      if(res.status === 409 && data.code === 'ACTION_IN_PROGRESS' && attempt < 8){
+        return new Promise(function(r){ setTimeout(r, 4000); }).then(function(){ return _cgrSubmitVideo(st, i, key, attempt + 1); });
+      }
+      st.settled[i] = true;
+      if(res.status === 402 && data.code === 'CREDITS_EXHAUSTED'){
+        _cgrVideoErr(i, task.ref, 'Not enough credits (' + (data.balance != null ? data.balance : 0) + ' left, a video needs ' + CREDIT_COSTS.video + ').', null);
+      } else if(res.status === 401){
+        _cgrVideoErr(i, task.ref, 'Your session has expired. Sign in again to generate this video.', null);
+      } else if(res.status === 409 && data.code === 'DUPLICATE_ACTION'){
+        _cgrVideoErr(i, task.ref, 'This video request was already sent. Reopen the campaign to see it.', null);
+      } else {
+        var msg = (data.error && typeof data.error === 'object') ? (data.error.message || 'Generation failed') : (data.error || 'Could not start this video. Please try again.');
+        _cgrVideoErr(i, task.ref, msg + (data.creditsRefunded ? ' Your credits were returned.' : ''), function(){ _cgrRetryVideo(st, i); });
+      }
+      _cgrVideoPill(st);
+    }).catch(function(e){
+      // No answer: the request may or may not have reached OrivenAI. Retrying
+      // with the SAME key can't charge twice.
+      console.error('[cgr] Video submit network error', i, ':', e && e.message);
+      st.settled[i] = true;
+      _cgrVideoErr(i, task.ref, 'The connection dropped before OrivenAI confirmed this video started.', function(){ st.settled[i] = false; _cgrSubmitVideo(st, i, key, 0); });
+      _cgrVideoPill(st);
     });
   }
 
-  function _checkVideoDone(done, total, pill){
-    if(done===total && pill){ pill.textContent=total+' video'+(total===1?'':'s')+' generated'; pill.className='cgr2-gen-pill done'; }
+  function _cgrRetryVideo(st, i){
+    st.settled[i] = false;
+    st.queue.push(i);
+    _cgrVideoPill(st);
+    _cgrVideoNext(st);
   }
 
-  function _cgrVideoErr(idx, ref, msg){
+  function _cgrVideoPending(idx, ref, label){
     var card = document.getElementById('cgcv'+idx);
     if(!card) return;
-    // msg can arrive as a provider error object rather than a string --
-    // _esc() does String(msg||'') internally, which silently produces the
-    // literal text "[object Object]" for a real error object. Same class
-    // of bug as videoads.js/motiongraphics.js's error handlers.
+    card.className = 'cgr-creative-card cgr-creative-skel-card';
+    card.innerHTML = '<div class="cgr-creative-skel-img"></div>'
+      +'<div class="cgr-creative-card-body"><div class="cgr-creative-ref">'+_esc(ref)+'</div>'
+      +'<div class="cgr-creative-gen-label" role="status">'+_esc(label)+'</div></div>';
+  }
+
+  function _cgrVideoReady(idx, ref, url){
+    var card = document.getElementById('cgcv'+idx);
+    if(!card) return;
+    var name = String(ref||'video').replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'') + '.mp4';
+    card.className = 'cgr-creative-card';
+    card.innerHTML = '<div class="cgr-creative-img-wrap">'
+      +'<video class="cgr-vid-thumb" controls playsinline muted loop autoplay preload="metadata"><source src="'+_esc(url)+'" type="video/mp4"></video>'
+      +'</div><div class="cgr-creative-card-body"><div class="cgr-creative-ref">'+_esc(ref)+'</div>'
+      +'<div class="cgr-creative-actions">'
+      +'<a class="cgr-crv-btn" href="'+_esc(url)+'" download="'+_esc(name)+'" target="_blank" rel="noopener" data-vid-dl>↓ Download</a>'
+      +'</div></div>';
+    var a = card.querySelector('[data-vid-dl]');
+    if(a) a.addEventListener('click', function(e){ e.preventDefault(); _cgrDownloadVideo(url, name, a); });
+  }
+
+  // Saves the file directly; if the browser can't read it (cross-site
+  // restrictions), opens it in a new tab instead.
+  function _cgrDownloadVideo(url, name, btn){
+    var label = btn ? btn.textContent : '';
+    if(btn){ btn.textContent = 'Downloading…'; btn.setAttribute('aria-busy', 'true'); }
+    function reset(){ if(btn){ btn.textContent = label; btn.removeAttribute('aria-busy'); } }
+    fetch(url).then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); }).then(function(blob){
+      var obj = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href = obj; a.download = name; a.style.display = 'none';
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(obj); a.remove(); }, 1500);
+      reset();
+    }).catch(function(){ window.open(url, '_blank', 'noopener'); reset(); });
+  }
+  window._cgrDownloadVideo = _cgrDownloadVideo;
+
+  function _cgrVideoErr(idx, ref, msg, retry, retryLabel){
+    var card = document.getElementById('cgcv'+idx);
+    if(!card) return;
+    // msg can arrive as a provider error object rather than a string.
     var msgText = (msg && typeof msg === 'object') ? (msg.message || msg.error || 'Generation failed') : msg;
     card.className = 'cgr-creative-card cgr-creative-err-card';
     card.innerHTML = '<div class="cgr-creative-card-body"><div class="cgr-creative-ref">'+_esc(ref)+'</div>'
-      +'<div class="cgr-creative-err-msg">'+_esc(msgText)+'</div></div>';
+      +'<div class="cgr-creative-err-msg" role="alert">'+_esc(msgText)+'</div>'
+      +(retry ? '<div class="cgr-creative-actions"><button type="button" class="cgr-crv-btn" data-vid-retry>'+_esc(retryLabel || 'Try again')+'</button></div>' : '')
+      +'</div>';
+    var b = retry && card.querySelector('[data-vid-retry]');
+    if(b) b.addEventListener('click', function(){ b.disabled = true; retry(); });
   }
 
-  function _pollCgrVideo(videoId, idx, ref, campId, pkg, onDone){
-    if(!videoId){ _cgrVideoErr(idx, ref, 'No video ID returned'); onDone&&onDone(); return; }
-    var apiBase = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
-    // The status endpoint is per-account (sign-in + ownership of the job),
-    // so the poll sends the session token like the generate call above.
-    var tokenP;
-    try {
-      tokenP = (typeof SB !== 'undefined' && SB.auth && SB.auth.getSession)
-        ? SB.auth.getSession().then(function(s){ return (s&&s.data&&s.data.session&&s.data.session.access_token)||''; })
-        : Promise.resolve('');
-    } catch(_){ tokenP = Promise.resolve(''); }
-    tokenP.then(function(token){
-      return fetch(apiBase + '/api/ugc-video-status/' + encodeURIComponent(videoId), { headers: { 'Authorization': 'Bearer ' + token } });
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if(data.status === 'completed' && data.videoUrl){
-        var card = document.getElementById('cgcv'+idx);
-        if(card){
-          card.className = 'cgr-creative-card';
-          card.innerHTML = '<div class="cgr-creative-img-wrap">'
-            +'<video class="cgr-vid-thumb" controls playsinline muted loop autoplay><source src="'+_esc(data.videoUrl)+'" type="video/mp4"></video>'
-            +'</div><div class="cgr-creative-card-body"><div class="cgr-creative-ref">'+_esc(ref)+'</div>'
-            +'<div class="cgr-creative-actions">'
-            +'<a class="cgr-crv-btn" href="'+_esc(data.videoUrl)+'" download="'+_esc(ref.replace(/[^a-z0-9]/gi,'_'))+'.mp4" target="_blank">↓ Download</a>'
-            +'</div></div>';
-        }
-        // Persist the video URL into the campaign package -- previously
-        // this only ever rendered into the throwaway DOM card above and
-        // was never written back into pkg, so no publish path could ever
-        // reference a generated video (confirmed by code inspection: zero
-        // write-back existed anywhere in this file before this fix).
-        // Mirrors how _generateOneCreative persists images into
-        // pkg.visualConcepts[idx].generatedImageUrl.
-        if(pkg && campId){
-          if(!Array.isArray(pkg.videoAssets)) pkg.videoAssets = [];
-          var existing = pkg.videoAssets.filter(function(v){ return v && v.ref === ref; });
-          if(existing.length) existing[0].videoUrl = data.videoUrl;
-          else pkg.videoAssets.push({ ref: ref, videoUrl: data.videoUrl, createdAt: Date.now() });
-          try { window._orvUpdateCampPkg(campId, pkg); } catch(e){ console.error('[cgr] Failed to persist video URL:', e.message); }
-          // Final Polish — _cggInitGoogleScreen took a deep CLONE of pkg
-          // into _cgg.pkg before this video finished generating (video
-          // generation is async/polled, easily many seconds), so writing
-          // to `pkg` above never reached that clone -- the YouTube preview
-          // kept showing "no video" even after one existed. Refresh the
-          // clone and re-render whichever view is currently open so the
-          // preview/review reflect the video the moment it's ready,
-          // without waiting for the user to navigate away and back.
-          if(typeof _cgg !== 'undefined' && _cgg.campId === campId && _cgg.pkg){
-            _cgg.pkg.videoAssets = pkg.videoAssets;
-            if(typeof _cggRenderPreview === 'function') _cggRenderPreview();
-            if(_cgg.stage === 'review' && typeof _cggRenderReviewStage === 'function') _cggRenderReviewStage();
-          }
-          // Same stale-clone fix, for Pinterest's screen (_cgp) — Pinterest
-          // genuinely supports video ads (creative_type VIDEO, real Pin
-          // created from the video at publish time), so this preview must
-          // reflect a video the moment it's ready too, not just Google's.
-          if(typeof _cgp !== 'undefined' && _cgp.campId === campId && _cgp.pkg){
-            _cgp.pkg.videoAssets = pkg.videoAssets;
-            if(typeof _cgpRenderPreview === 'function') _cgpRenderPreview();
-            if(_cgp.stage === 'review' && typeof _cgpRenderReviewStage === 'function') _cgpRenderReviewStage();
-          }
-        }
-        onDone&&onDone();
-      } else if(data.status === 'failed' || data.error){
-        _cgrVideoErr(idx, ref, data.error||'Generation failed');
-        onDone&&onDone();
-      } else {
-        setTimeout(function(){ _pollCgrVideo(videoId, idx, ref, campId, pkg, onDone); }, 5000);
-      }
-    })
-    .catch(function(){ setTimeout(function(){ _pollCgrVideo(videoId, idx, ref, campId, pkg, onDone); }, 8000); });
+  // Reopened campaign with no video for this slot: generating one is an
+  // explicit, paid choice.
+  function _cgrVideoMissing(st, i){
+    var task = st.tasks[i];
+    var card = document.getElementById('cgcv'+i);
+    if(!card) return;
+    card.className = 'cgr-creative-card cgr-creative-err-card';
+    card.innerHTML = '<div class="cgr-creative-card-body"><div class="cgr-creative-ref">'+_esc(task.ref)+'</div>'
+      +'<div class="cgr-creative-gen-label">No video yet.</div>'
+      +'<div class="cgr-creative-actions"><button type="button" class="cgr-crv-btn" data-vid-gen>Generate video · '+CREDIT_COSTS.video+' credits</button></div></div>';
+    var b = card.querySelector('[data-vid-gen]');
+    if(b) b.addEventListener('click', function(){ b.disabled = true; _cgrRetryVideo(st, i); });
   }
+
+  function _pollCgrVideo(st, idx, job, deadline, errors){
+    var ref = job.ref;
+    if(!job.videoId){ st.settled[idx] = true; _cgrVideoErr(idx, ref, 'No video ID returned', function(){ _cgrRetryVideo(st, idx); }); _cgrVideoPill(st); return; }
+    deadline = deadline || ((job.startedAt || Date.now()) + VIDEO_POLL_TIMEOUT_MS);
+    errors = errors || 0;
+    if(window._cgrVideoRun !== st) return; // another campaign was opened; it resumes from pkg.videoJobs
+    if(Date.now() > deadline){
+      st.settled[idx] = true;
+      _cgrVideoErr(idx, ref, 'This video is taking longer than usual. It keeps rendering — check again in a few minutes.',
+        function(){ st.settled[idx] = false; _cgrVideoPending(idx, ref, 'Rendering video…'); _pollCgrVideo(st, idx, job, Date.now() + 5 * 60 * 1000, 0); _cgrVideoPill(st); }, 'Check again');
+      _cgrVideoPill(st);
+      return;
+    }
+    var apiBase = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : '';
+    var elapsed = Date.now() - (job.startedAt || Date.now());
+    var wait = elapsed < 2 * 60 * 1000 ? 5000 : 10000;
+    function again(ms, errs){ setTimeout(function(){ _pollCgrVideo(st, idx, job, deadline, errs); }, ms); }
+    function dropJob(){ st.pkg.videoJobs = (st.pkg.videoJobs||[]).filter(function(j){ return j && j.videoId !== job.videoId; }); }
+    // The status endpoint is per-account (sign-in + ownership of the job).
+    _cgrSessionToken().then(function(token){
+      return fetch(apiBase + '/api/ugc-video-status/' + encodeURIComponent(job.videoId), { headers: { 'Authorization': 'Bearer ' + token } });
+    }).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(data){ return { status: r.status, data: data || {} }; });
+    }).then(function(res){
+      var data = res.data;
+      if(res.status === 401){
+        st.settled[idx] = true;
+        _cgrVideoErr(idx, ref, 'Your session has expired. Sign in again — the video keeps rendering and appears when you reopen this campaign.', null);
+        _cgrVideoPill(st); return;
+      }
+      if(res.status === 404){
+        dropJob(); _cgrSaveVideoState(st.pkg, st.campId);
+        st.settled[idx] = true;
+        _cgrVideoErr(idx, ref, 'This video is no longer available.', function(){ _cgrRetryVideo(st, idx); });
+        _cgrVideoPill(st); return;
+      }
+      if(res.status >= 500 || res.status === 0){
+        if(errors + 1 >= 6){
+          st.settled[idx] = true;
+          _cgrVideoErr(idx, ref, 'OrivenAI couldn’t check this video’s progress. It keeps rendering.', function(){ st.settled[idx] = false; _cgrVideoPending(idx, ref, 'Rendering video…'); _pollCgrVideo(st, idx, job, deadline, 0); _cgrVideoPill(st); }, 'Check again');
+          _cgrVideoPill(st); return;
+        }
+        return again(Math.min(30000, 5000 * Math.pow(2, errors)), errors + 1);
+      }
+      if(data.status === 'completed' && data.videoUrl){
+        if(!Array.isArray(st.pkg.videoAssets)) st.pkg.videoAssets = [];
+        var existing = st.pkg.videoAssets.filter(function(v){ return v && v.ref === ref; });
+        if(existing.length){ existing[0].videoUrl = data.videoUrl; existing[0].createdAt = Date.now(); }
+        else st.pkg.videoAssets.push({ ref: ref, videoUrl: data.videoUrl, createdAt: Date.now() });
+        dropJob(); _cgrSaveVideoState(st.pkg, st.campId);
+        st.settled[idx] = true;
+        _cgrVideoReady(idx, ref, data.videoUrl);
+        _cgrVideoPill(st);
+        console.log('[cgr] Video ready', idx);
+        return;
+      }
+      if(data.status === 'failed'){
+        dropJob(); _cgrSaveVideoState(st.pkg, st.campId);
+        st.settled[idx] = true;
+        _cgrVideoErr(idx, ref, (data.error || 'The video couldn’t be rendered.') + (data.creditsRefunded ? ' Your credits were returned.' : ''), function(){ _cgrRetryVideo(st, idx); });
+        _cgrVideoPill(st); return;
+      }
+      again(wait, 0);
+    }).catch(function(){
+      // Network hiccup: keep trying with backoff, then offer a manual check.
+      if(errors + 1 >= 6){
+        st.settled[idx] = true;
+        _cgrVideoErr(idx, ref, 'OrivenAI couldn’t check this video’s progress. It keeps rendering.', function(){ st.settled[idx] = false; _cgrVideoPending(idx, ref, 'Rendering video…'); _pollCgrVideo(st, idx, job, deadline, 0); _cgrVideoPill(st); }, 'Check again');
+        _cgrVideoPill(st); return;
+      }
+      again(Math.min(30000, 5000 * Math.pow(2, errors)), errors + 1);
+    });
+  }
+  window._cgrVideoInternals = { tasks: _cgrVideoTasks, start: _startVideoCreatives, timeoutMs: VIDEO_POLL_TIMEOUT_MS };
 
   /* ── Creative count — tied to the actual ad structure, not a fixed
      number of AI-proposed marketing angles ──────────────────────────
