@@ -38,7 +38,7 @@ const server = http.createServer((req, res) => {
   if (!p.endsWith('/') && fs.existsSync(path.join(dir, 'index.html')) && !fs.existsSync(dir + '.html')) { res.writeHead(301, { location: p + '/' }); return res.end(); }
   const existing = fileFor(p);
   for (const r of rules) {
-    const m = r.from.endsWith('/*') ? p.startsWith(r.from.slice(0, -1)) : p === r.from;
+    const m = r.from.endsWith('/*') ? p.startsWith(r.from.slice(0, -1)) : (p === r.from || p === r.from + '/'); // Netlify ignores a trailing slash when matching
     if (!m) continue;
     if (existing && !r.force) break; // a real file shadows a non-forced rule
     if (r.status === 301 || r.status === 302) { res.writeHead(r.status, { location: r.to }); return res.end(); }
@@ -72,11 +72,9 @@ async function run() {
       const canon = all(/<link rel="canonical" href="([^"]*)"/, h).map((m) => m[1]);
       const robots = (h.match(/<meta name="robots" content="([^"]*)"/) || [])[1] || '';
       const lds = all(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/, h).map((m) => { try { return JSON.parse(m[1]); } catch (_) { return 'INVALID'; } });
-      // H1s that are actually in the delivered page body (hidden views excluded).
       const body = h.slice(h.indexOf('<body'));
-      const visibleBody = p === '/' ? body.replace(/<div id="view-(?!landing)[a-z0-9-]+" class="pub-view"[\s\S]*?<!-- \/view-[a-z0-9-]+ -->/g, '') : body;
-      const h1 = all(/<h1[\s>]/, visibleBody).length;
-      const words = textOf(p === '/' ? visibleBody : body).split(' ').length;
+      const h1 = all(/<h1[\s>]/, body).length;
+      const words = textOf(body).split(' ').length;
       const problems = [];
       if (r.status !== 200) problems.push('status ' + r.status);
       const tDec = (t || '').replace(/&amp;/g, '&').replace(/&quot;/g, '"');
@@ -87,7 +85,7 @@ async function run() {
       if (lds.some((x) => x === 'INVALID') || !lds.length) problems.push('json-ld');
       if (lds.some((x) => x !== 'INVALID' && /"aggregateRating"|"@type":"Review"|"reviewRating"/.test(JSON.stringify(x)))) problems.push('ratings in schema');
       if (h1 !== 1) problems.push('h1=' + h1);
-      if (p !== '/' && /class="pub-view"/.test(body)) problems.push('hidden views in body');
+      if (all(/class="pub-view"/, body).length > (p === '/' ? 1 : 0)) problems.push('hidden views in body');
       if (words < 250 && !/terms|privacy|refund|cookie|contact|security|blog$/.test(p)) problems.push('thin ' + words + ' words');
       if (titles.has(t)) problems.push('duplicate title with ' + titles.get(t)); titles.set(t, p);
       if (descs.has(d)) problems.push('duplicate description'); descs.set(d, p);
@@ -104,10 +102,12 @@ async function run() {
     check('unknown Learn URL → 404', r.status === 404, r.status);
     r = await get('/assets/fonts/Fuuld-Bold.woff2');
     check('missing asset → 404 (no longer the 470 KB homepage)', r.status === 404, r.status);
-    for (const [from, to] of [['/pricing/', '/pricing'], ['/product/meta-ads/', '/product/meta-ads'], ['/faq/', '/faq'], ['/learn/how-to-test-ad-creatives', '/learn/how-to-test-ad-creatives/']]) {
+    for (const [from, canon] of [['/pricing/', '/pricing'], ['/product/meta-ads/', '/product/meta-ads'], ['/faq/', '/faq']]) {
       r = await get(from);
-      check(`${from} → 301 ${to}`, r.status === 301 && r.location === to, r);
+      check(`${from} serves the same page with canonical ${canon}`, r.status === 200 && r.body.includes('href="' + ORIGIN + canon + '" id="ovCanonical"'), r.status);
     }
+    r = await get('/learn/how-to-test-ad-creatives');
+    check('/learn/how-to-test-ad-creatives → 301 to the trailing-slash URL', r.status === 301 && r.location === '/learn/how-to-test-ad-creatives/', r);
     for (const p of ['/app', '/login', '/signup']) { r = await get(p); check(`${p} still served (200)`, r.status === 200, r.status); }
     r = await get('/onboarding'); check('/onboarding → 302 to the app tour', r.status === 302 && /\/app\?tour=1/.test(r.location));
     r = await get('/login');
@@ -160,6 +160,22 @@ async function run() {
     check('in-page navigation from a prerendered page loads the other page', /\/create$/.test(page.url()) && (await page.textContent('h1')).length > 5, page.url());
     await Promise.all([page.waitForNavigation({ timeout: 8000 }).catch(() => {}), page.evaluate(() => window.lpGetStarted())]);
     check('"Get started" from a prerendered page opens /signup', /\/signup$/.test(page.url()) && (await page.evaluate(() => !!document.getElementById('view-signup') && getComputedStyle(document.getElementById('view-signup')).display !== 'none')), page.url());
+    await ctx.close();
+    // Homepage (home.html: landing view only).
+    ctx = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+    page = await ctx.newPage(); await block(page);
+    const homeErrs = []; page.on('pageerror', (e) => homeErrs.push(e.message));
+    await page.goto(BASE + '/', { waitUntil: 'load' }); await page.waitForTimeout(1200);
+    const home = await page.evaluate(() => ({ views: 1 + ['pricing', 'signup', 'login', 'faq', 'product-create'].filter((k) => document.getElementById('view-' + k)).length, landing: !!document.getElementById('view-landing') && getComputedStyle(document.getElementById('view-landing')).display !== 'none', h1: (document.querySelector('#view-landing h1') || {}).textContent || '' }));
+    check('homepage: only the landing view, visible, no script errors', home.views === 1 && home.landing && home.h1.length > 5 && homeErrs.length === 0, { home, homeErrs });
+    await Promise.all([page.waitForNavigation({ timeout: 8000 }).catch(() => {}), page.evaluate(() => window.lpNavigate('/pricing'))]);
+    check('homepage → /pricing loads the pricing page with plan cards', /\/pricing$/.test(page.url()) && (await page.evaluate(() => document.querySelectorAll('#lpPricingGrid > *').length)) >= 4, page.url());
+    await page.goto(BASE + '/', { waitUntil: 'load' });
+    await Promise.all([page.waitForNavigation({ timeout: 8000 }).catch(() => {}), page.evaluate(() => window.lpGetStarted())]);
+    check('homepage "Get started" opens /signup', /\/signup$/.test(page.url()) && (await page.evaluate(() => getComputedStyle(document.getElementById('view-signup')).display !== 'none')), page.url());
+    await page.goto(BASE + '/', { waitUntil: 'load' });
+    await Promise.all([page.waitForNavigation({ timeout: 8000 }).catch(() => {}), page.evaluate(() => window.lpNavigate('/login'))]);
+    check('homepage → /login shows the login form', /\/login$/.test(page.url()) && (await page.evaluate(() => getComputedStyle(document.getElementById('view-login')).display !== 'none')), page.url());
     await ctx.close();
     // No JavaScript: content still there.
     ctx = await browser.newContext({ javaScriptEnabled: false });

@@ -9,6 +9,7 @@
 /onboarding     /app?tour=1     302
 
 # Prerendered marketing pages: one static file per route
+/                          /home.html                     200!
 /about                     /about.html                     200!
 /blog                      /blog.html                      200!
 /product                   /product.html                   200!
@@ -32,31 +33,6 @@
 /research                  /research.html                  200!
 /autopilot                 /autopilot.html                 200!
 /business                  /business.html                  200!
-
-# Trailing-slash variants redirect to the canonical URL
-/about/                    /about                          301
-/blog/                     /blog                           301
-/product/                  /product                        301
-/solutions/                /solutions                      301
-/case-studies/             /case-studies                   301
-/pricing/                  /pricing                        301
-/faq/                      /faq                            301
-/terms/                    /terms                          301
-/privacy/                  /privacy                        301
-/refund-policy/            /refund-policy                  301
-/cookie-policy/            /cookie-policy                  301
-/security/                 /security                       301
-/contact/                  /contact                        301
-/product/google-ads/       /product/google-ads             301
-/product/meta-ads/         /product/meta-ads               301
-/product/tiktok-ads/       /product/tiktok-ads             301
-/product/pinterest-ads/    /product/pinterest-ads          301
-/create/                   /create                         301
-/launch/                   /launch                         301
-/campaigns/                /campaigns                      301
-/research/                 /research                       301
-/autopilot/                /autopilot                      301
-/business/                 /business                       301
 
 # Everything else that is not a real file: a genuine 404
 /*              /404.html       404
