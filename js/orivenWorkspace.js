@@ -121,10 +121,9 @@
     pinterest: { label: 'Pinterest Ads', short: 'Pinterest' }
   };
   OW.PLAT = PLAT;
-  // Real provider capability, mirrored from server.js: the 4-hour
-  // monitoring cron (_runIntelligenceMonitoring) only analyzes Google Ads
-  // and Meta Ads, so only those two can honestly be called "watched".
-  var AUTOPILOT_MONITORED = { google: true, meta: true };
+  // Platforms the Automations engine reads and acts on (server
+  // services/automations/platforms.js — the rules cron evaluates all four).
+  var AUTOPILOT_MONITORED = { google: true, meta: true, tiktok: true, pinterest: true };
   OW.AUTOPILOT_MONITORED = AUTOPILOT_MONITORED;
 
   function platDot(p) { return '<i class="ow-pdot ow-pdot-' + esc(p || 'none') + '" aria-hidden="true"></i>'; }
@@ -306,6 +305,7 @@
     deployed:  { label: 'Deployed · paused', tone: 'muted' },
     paused:    { label: 'Paused', tone: 'muted' },
     publishing:{ label: 'Publishing', tone: 'info' },
+    unconfirmed:{ label: 'Not confirmed', tone: 'attention' },
     failed:    { label: 'Publish failed', tone: 'risk' },
     ready:     { label: 'Ready to launch', tone: 'ready' },
     warning:   { label: 'Ready · warnings', tone: 'attention' },
@@ -343,7 +343,9 @@
     var st = (c && c.status) || 'draft';
     if (st === 'published' || st === 'active') return localIsLive(c, importedByExternal()) ? Object.assign({ key: 'live' }, STAGES.live) : Object.assign({ key: 'deployed' }, STAGES.deployed);
     if (st === 'paused') return Object.assign({ key: 'paused' }, STAGES.paused);
-    if (st === 'publishing') return Object.assign({ key: 'publishing' }, STAGES.publishing);
+    // A publish this tab isn't running any more never finished: "not
+    // confirmed" until Launch's status check settles it.
+    if (st === 'publishing') return (window.orvLaunch && !window.orvLaunch.isInFlight(c.id)) ? Object.assign({ key: 'unconfirmed' }, STAGES.unconfirmed) : Object.assign({ key: 'publishing' }, STAGES.publishing);
     if (st === 'failed') return Object.assign({ key: 'failed' }, STAGES.failed);
     if (st === 'archived') return Object.assign({ key: 'archived' }, STAGES.archived);
     if (typeof window._launchListReadiness === 'function' && c.pkg) {
@@ -442,7 +444,7 @@
     C.rows = null; C.loadedAt = 0; C.loading = null; C.error = null; C.settled = false; C.lastHydrate = null;
     baseline = null;
     D.connections = null; D.health = null; D.profile = null; D.apRules = null; D.apRecs = null; D.apTasks = null; D.events = null; D.loadedAt = 0;
-    dataLoading = null; pendingLaunch = null; pendingPrf = null; pendingLineage = null; picked = {};
+    dataLoading = null; pendingLaunch = null; pendingPrf = null; pendingLineage = null;
     currentUid = null;
     if (OW._clearApiCache) OW._clearApiCache();
     document.querySelectorAll('.ow-ni-mark').forEach(function (m) { m.remove(); });
@@ -451,9 +453,18 @@
     // Chat read these, so they must not survive into the next account.
     ['_apRules', '_apPendingApprovals', '_apHistoryItems', '_apPlatformCampaigns', '_apSourcesSnapshot',
      '_orvLaunchBiz', '_cr2RecentAssets'].forEach(function (k) { try { window[k] = undefined; } catch (_) {} });
-    if (window._researchLastResult && typeof window._researchNewSession === 'function' && !user()) {
-      // No user is signed in at this point, so this only resets the view —
-      // it cannot touch anyone's persisted research.
+    // Control Center: forget the previous account's live-campaign count and
+    // the merged Needs card state (it re-fills from the new account's data).
+    if (window.orvCC && typeof window.orvCC.reset === 'function') { try { window.orvCC.reset(); } catch (_) {} }
+    // Launch readiness (spec checks, setup reads) belongs to the previous account.
+    if (window.orvLaunch && typeof window.orvLaunch.reset === 'function') { try { window.orvLaunch.reset(); } catch (_) {} }
+    var ccNeeds = document.getElementById('owNeeds');
+    if (ccNeeds) { ccNeeds.removeAttribute('data-sig-ready'); ccNeeds.removeAttribute('data-ws-ready'); ['ovAtt', 'owNeedsList'].forEach(function (id) { var e = document.getElementById(id); if (e) e.innerHTML = ''; }); }
+    ['ovPerf', 'ovCamps', 'ovAuto'].forEach(function (id) { var e = document.getElementById(id); if (e) e.innerHTML = ''; });
+    // Research keeps the previous account's library/report in memory; reset
+    // the view (server data stays untouched).
+    if (window.orvResearch && typeof window.orvResearch.reset === 'function') { try { window.orvResearch.reset(); } catch (_) {} }
+    else if (window._researchLastResult && typeof window._researchNewSession === 'function' && !user()) {
       try { window._researchNewSession(); } catch (_) {}
     }
     window._researchLastResult = null;
@@ -482,9 +493,10 @@
         })
       ];
       if (hasAutopilotPlan()) {
-        sub.push(api('/api/autopilot/rules').then(function (r) { D.apRules = (r.ok && r.data && r.data.rules) || (r.ok ? [] : null); emit('autopilot'); }));
-        sub.push(api('/api/autopilot/recommendations?status=suggested').then(function (r) { D.apRecs = (r.ok && r.data && r.data.recommendations) || (r.ok ? [] : null); emit('autopilot'); }));
-        sub.push(api('/api/autopilot/tasks').then(function (r) { D.apTasks = (r.ok && r.data && r.data.tasks) || (r.ok ? [] : null); emit('autopilot'); }));
+        var AUc = window.orvAutomations || {};
+        sub.push(api('/api/automations').then(function (r) { D.apRules = r.ok ? (AUc.compatRules ? AUc.compatRules((r.data && r.data.automations) || []) : []) : null; emit('autopilot'); }));
+        sub.push(api('/api/automations/approvals').then(function (r) { D.apRecs = r.ok ? (AUc.compatApprovals ? AUc.compatApprovals((r.data && r.data.approvals) || []) : []) : null; emit('autopilot'); }));
+        D.apTasks = [];
       }
       dataLoading = Promise.all(sub).then(function () { dataLoading = null; });
       tasks.push(dataLoading);
@@ -520,6 +532,7 @@
     return rules.filter(function (r) {
       if (!r.enabled || r.platform !== platform) return false;
       var ap = r.action_params || {};
+      if (Array.isArray(r.campaign_ids)) return !!externalId && r.campaign_ids.map(String).indexOf(String(externalId)) !== -1;
       if (!ap.campaign_id || ap.campaign_id === 'all') return true;
       return (externalId && String(ap.campaign_id) === String(externalId)) || (name && ap.campaign_name === name);
     });
@@ -540,10 +553,22 @@
     // Publish failures — a real, recorded provider rejection.
     local.filter(function (c) { return c.status === 'failed'; }).slice(0, 2).forEach(function (c) {
       items.push({
-        id: 'fail:' + c.id, tone: 'risk', source: 'Launch · ' + ((PLAT[c.platform] || {}).label || 'Publish'),
+        id: 'fail:' + c.id, tone: 'risk', source: 'Launch · ' + ((PLAT[c.platform] || {}).label || 'Publish'), srcKey: 'launch', srcExtra: (PLAT[c.platform] || {}).label || null,
+        tKey: 'att.failTitle', tVars: { name: c.name || null }, whyKey: c.failureReason ? null : 'att.failWhy', actKey: 'review',
         title: 'Publishing “' + (c.name || 'Untitled') + '” failed',
         why: c.failureReason ? String(c.failureReason).slice(0, 160) : 'The platform rejected the last publish attempt.',
         action: 'Review', go: { page: 'launch', campaignId: c.id, platform: c.platform }
+      });
+    });
+
+    // A publish whose result was never confirmed — Launch has the status check.
+    local.filter(function (c) { return c.status === 'publishing' && !(window.orvLaunch && window.orvLaunch.isInFlight(c.id)); }).slice(0, 2).forEach(function (c) {
+      items.push({
+        id: 'unconf:' + c.id, tone: 'risk', source: 'Launch · ' + ((PLAT[c.platform] || {}).label || 'Publish'), srcKey: 'launch', srcExtra: (PLAT[c.platform] || {}).label || null,
+        tKey: 'att.unconfTitle', tVars: { name: c.name || null }, whyKey: 'att.unconfWhy', actKey: 'checkStatus',
+        title: 'Publishing “' + (c.name || 'Untitled') + '” wasn’t confirmed',
+        why: 'OrivenAI didn’t get an answer. Check the status before publishing again.',
+        action: 'Check status', go: { page: 'launch', campaignId: c.id, platform: c.platform }
       });
     });
 
@@ -551,19 +576,20 @@
     (D.events || []).filter(function (e) { return e && !e.dismissed && !e.read && (e.severity === 'high' || e.severity === 'critical'); })
       .slice(0, 2).forEach(function (e) {
         items.push({
-          id: 'ev:' + e.id, tone: 'risk', source: 'Campaigns' + (e.platform && PLAT[e.platform] ? ' · ' + PLAT[e.platform].label : ''),
+          id: 'ev:' + e.id, tone: 'risk', source: 'Campaigns' + (e.platform && PLAT[e.platform] ? ' · ' + PLAT[e.platform].label : ''), srcKey: 'campaigns', srcExtra: e.platform && PLAT[e.platform] ? PLAT[e.platform].label : null,
+          tKey: e.title ? null : 'att.perfAlert', actKey: 'open',
           title: e.title || 'Performance alert', why: e.detail || '',
           action: 'Open', go: { page: 'campaigns', platform: e.platform, campaignName: e.campaign_name }
         });
       });
 
-    // Autopilot recommendations waiting for approval.
+    // Automation changes waiting for approval.
     var recs = apRecs();
     if (recs && recs.length) {
       var r0 = recs[0];
       items.push({
-        id: 'aprec', tone: 'attention', source: 'Autopilot',
-        title: recs.length === 1 ? 'A recommendation is waiting for your approval' : recs.length + ' recommendations are waiting for your approval',
+        id: 'aprec', tone: 'attention', source: 'Automations', srcKey: 'automations', tKey: recs.length === 1 ? 'att.aprec1' : 'att.aprecN', tVars: { n: recs.length }, whyKey: r0.problem ? null : 'att.aprecWhy', actKey: 'review',
+        title: recs.length === 1 ? 'An automation change is waiting for your approval' : recs.length + ' automation changes are waiting for your approval',
         why: r0.problem ? String(r0.problem).slice(0, 170) : 'Nothing happens until you approve or reject.',
         action: 'Review', go: { page: 'autopilot' }
       });
@@ -578,9 +604,9 @@
     if (trackingPlats.length) {
       var labels = trackingPlats.map(function (p) { return PLAT[p].label; });
       items.push({
-        id: 'tracking', tone: 'attention', source: 'Business context · Advertising',
+        id: 'tracking', tone: 'attention', source: 'Business context · Advertising', srcKey: 'bizAdv', tKey: 'att.tracking', tVars: { listArr: labels }, whyKey: 'att.trackingWhy', actKey: 'checkSetup',
         title: 'Conversion tracking isn’t verified for ' + labels.join(' and '),
-        why: 'OrivenAI can’t confirm pixel or conversion-event setup, so results and Autopilot rules that rely on conversions may be incomplete.',
+        why: 'OrivenAI can’t confirm pixel or conversion-event setup, so results and automation rules that rely on conversions may be incomplete.',
         action: 'Check setup', go: { page: 'business', tab: 'overview' }
       });
     }
@@ -588,7 +614,7 @@
     recsBiz.sort(function (a, b) { return (a.severity === 'high' ? 0 : 1) - (b.severity === 'high' ? 0 : 1); });
     recsBiz.slice(0, 2).forEach(function (r, i) {
       items.push({
-        id: 'biz:' + i + ':' + r.title, tone: 'attention', source: 'Business context',
+        id: 'biz:' + i + ':' + r.title, tone: 'attention', source: 'Business context', srcKey: 'biz', actKey: 'open',
         title: r.title, why: r.detail || '', action: 'Open',
         go: { page: 'business', tab: BIZ_TAB[r.tab] || 'overview' }
       });
@@ -601,7 +627,7 @@
       var reason = blockedReason(blockedCamps);
       var bp = mostCommon(blockedCamps.map(function (c) { return c.platform || 'meta'; }));
       items.push({
-        id: 'blocked', tone: 'attention', source: 'Launch',
+        id: 'blocked', tone: 'attention', source: 'Launch', srcKey: 'launch', tKey: n.blocked === 1 ? 'att.blocked1' : 'att.blockedN', tVars: { n: n.blocked, name: n.blocked === 1 ? (blockedCamps[0].name || null) : null }, whyKey: reason ? null : 'att.blockedWhy', actKey: 'fixLaunch',
         title: n.blocked === 1 ? '“' + (blockedCamps[0].name || 'A draft') + '” can’t launch yet' : n.blocked + ' drafts can’t launch yet',
         why: reason || 'Launch found a required item missing.',
         action: 'Fix in Launch', go: { page: 'launch', platform: bp, status: 'blocked', campaignId: n.blocked === 1 ? blockedCamps[0].id : null }
@@ -610,7 +636,7 @@
     if (n.ready) {
       var readyCamps = local.filter(function (c) { return C.stage(c).key === 'ready'; });
       items.push({
-        id: 'ready', tone: 'ready', source: 'Launch',
+        id: 'ready', tone: 'ready', source: 'Launch', srcKey: 'launch', tKey: n.ready === 1 ? 'att.ready1' : 'att.readyN', tVars: { n: n.ready, name: n.ready === 1 ? (readyCamps[0].name || null) : null }, actKey: 'review',
         title: n.ready === 1 ? '“' + (readyCamps[0].name || 'A campaign') + '” is ready to launch' : n.ready + ' campaigns are ready to launch',
         why: 'Every required launch check passes. Review and publish when you’re ready.',
         action: 'Review', go: { page: 'launch', platform: readyCamps[0].platform, status: 'ready', campaignId: n.ready === 1 ? readyCamps[0].id : null }
@@ -704,7 +730,7 @@
         (connected.length ? connected.map(function (p) { return PLAT[p].short; }).join(', ') + ' connected' : 'Connect an ad platform')
     });
 
-    // Autopilot
+    // Automations
     var ap;
     if (!hasAutopilotPlan()) {
       ap = { tone: 'locked', state: 'Starter', summary: 'Available from the Starter plan' };
@@ -715,10 +741,10 @@
       var watched = C.live().filter(function (l) { return AUTOPILOT_MONITORED[l.platform] && rulesFor(l.platform, l.externalId, l.name).length; }).length;
       if (rules === null) ap = { tone: 'empty', state: 'Checking', summary: 'Reading your automations…' };
       else if (recs.length) ap = { tone: 'attention', state: 'Needs you', summary: plural(recs.length, 'approval') + ' waiting' };
-      else if (enabled.length) ap = { tone: 'live', state: 'Watching', summary: plural(enabled.length, 'rule') + (watched ? ' · ' + plural(watched, 'campaign') + ' covered' : '') };
-      else ap = { tone: 'empty', state: 'Off', summary: rules.length ? 'All rules paused' : 'No rules yet' };
+      else if (enabled.length) ap = { tone: 'live', state: 'Active', summary: plural(enabled.length, 'automation') + (watched ? ' · ' + plural(watched, 'campaign') + ' covered' : '') };
+      else ap = { tone: 'empty', state: 'Off', summary: rules.length ? 'All automations paused' : 'No automations yet' };
     }
-    mods.push(Object.assign({ key: 'autopilot', label: 'Autopilot', go: { page: 'autopilot' } }, ap));
+    mods.push(Object.assign({ key: 'autopilot', label: 'Automations', go: { page: 'autopilot' } }, ap));
     return mods;
   };
 
@@ -851,52 +877,25 @@
   // 7. RESEARCH → CREATE HANDOFF
   // ══════════════════════════════════════════════════════════════════
   var R = OW.research = {};
-  var picked = {}; // finding id -> { group, text } (current Research view only)
+  // Research 2.0 — the insights the user selected in a report (js/research.js,
+  // at most 8, never chosen automatically) are stored here for Create. Each
+  // keeps its evidence label, sources, the research type and report id.
+  var HANDOFF_MAX = 8;
   function handoffKey() { return uidKey('oriven_research_handoff_'); }
   R.handoff = function () { var h = readJSON(handoffKey(), null); return (h && Array.isArray(h.findings) && h.findings.length) ? h : null; };
-
-  R.isPicked = function (id) { return !!picked[id]; };
-  R.pickedCount = function () { return Object.keys(picked).length; };
-  R.resetPicks = function () { picked = {}; R.syncUseButton(); };
-  R.togglePick = function (btn) {
-    if (!btn) return;
-    var id = btn.getAttribute('data-fid');
-    if (picked[id]) delete picked[id];
-    else picked[id] = { id: id, group: btn.getAttribute('data-group') || '', text: btn.getAttribute('data-text') || '' };
-    var on = !!picked[id];
-    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    btn.classList.toggle('is-on', on);
-    var row = btn.closest('.rsc-finding-item');
-    if (row) row.classList.toggle('is-picked', on);
-    R.syncUseButton();
-  };
-  R.syncUseButton = function () {
-    var btn = document.getElementById('researchUseInCreateBtn');
-    if (!btn) return;
-    var n = R.pickedCount();
-    btn.textContent = n ? ('Use ' + plural(n, 'finding') + ' in Create →') : 'Use in Create →';
-    btn.classList.toggle('ow-count-bump', false); void btn.offsetWidth;
-    if (n) btn.classList.add('ow-count-bump');
-  };
-
-  // Builds the handoff from the real result (selected findings, or the top
-  // opportunity when nothing is selected) and stores it for Create.
-  R.buildHandoff = function (result) {
-    if (!result) return null;
-    var findings = Object.keys(picked).map(function (k) { return picked[k]; });
-    if (!findings.length) {
-      // Nothing picked: the top recommended angle (it's written as ad
-      // messaging), else the top opportunity. Always a recommendation, never
-      // a confirmed campaign setting.
-      var ang = (result.angles || []).filter(function (g) { return g && g.angle; })[0];
-      var opp = (result.opportunities || []).filter(function (o) { return o && o.opportunity; })[0];
-      if (ang) findings.push({ id: 'Angle:' + (ang.id || 'g0'), group: 'Angle', text: ang.angle + (ang.message ? ' — ' + ang.message : '') });
-      else if (opp) findings.push({ id: opp.id || 'opp0', group: 'Opportunity', text: opp.opportunity });
-    }
-    if (!findings.length) return null;
-    var h = { question: result.question || '', summary: result.summary || '', savedAt: new Date().toISOString(), findings: findings.slice(0, 8) };
-    writeJSON(handoffKey(), h);
-    return h;
+  R.setHandoff = function (h) {
+    if (!h || !Array.isArray(h.findings) || !h.findings.length) { R.clearHandoff(true); return null; }
+    var clean = {
+      question: trunc(h.question || '', 500), summary: trunc(h.summary || '', 600), title: trunc(h.title || '', 120),
+      researchType: ['market', 'competitor', 'audience', 'opportunity'].indexOf(h.researchType) !== -1 ? h.researchType : null,
+      reportId: h.reportId ? String(h.reportId).slice(0, 64) : null, savedAt: new Date().toISOString(),
+      findings: h.findings.slice(0, HANDOFF_MAX).map(function (f) {
+        return { id: String(f.id || '').slice(0, 80), group: trunc(f.group || '', 40), text: trunc(f.text || '', 280), basis: f.basis || null,
+          sources: (Array.isArray(f.sources) ? f.sources : []).slice(0, 3).map(function (s) { return { title: trunc((s && s.title) || '', 120), url: String((s && s.url) || '').slice(0, 500), domain: trunc((s && s.domain) || '', 80) }; }) };
+      }),
+    };
+    writeJSON(handoffKey(), clean);
+    return clean;
   };
   R.removeFinding = function (id) {
     var h = R.handoff(); if (!h) return;
@@ -915,7 +914,9 @@
     return {
       question: trunc(h.question, 300),
       summary: trunc(h.summary, 600),
-      findings: h.findings.slice(0, 8).map(function (f) { return { group: trunc(f.group, 40), text: trunc(f.text, 280) }; })
+      researchType: h.researchType || null,
+      reportId: h.reportId || null,
+      findings: h.findings.slice(0, HANDOFF_MAX).map(function (f) { return { group: trunc(f.group, 40), text: trunc(f.text, 280), basis: f.basis || null, sources: (f.sources || []).slice(0, 3).map(function (x) { return { domain: x.domain, url: x.url }; }) }; })
     };
   };
 
@@ -949,10 +950,9 @@
       var rules = apRules(), recs = apRecs() || [];
       if (rules === null) ap = { value: '…', sub: 'Checking automations', tone: 'muted' };
       else {
-        // Only rules the monitoring cron really evaluates (Google/Meta) count.
         var on = rules.filter(function (r) { return r.enabled && AUTOPILOT_MONITORED[r.platform]; }).length;
-        ap = on ? { value: String(on), sub: (on === 1 ? 'active rule' : 'active rules') + (recs.length ? ' · ' + recs.length + ' awaiting approval' : ''), tone: recs.length ? 'attention' : 'live' }
-                : { value: 'Off', sub: rules.some(function (r) { return r.enabled; }) ? 'Rules not on a monitored platform' : (rules.length ? 'All rules paused' : 'No automations yet'), tone: 'muted' };
+        ap = on ? { value: String(on), sub: (on === 1 ? 'active automation' : 'active automations') + (recs.length ? ' · ' + recs.length + ' awaiting approval' : ''), tone: recs.length ? 'attention' : 'live' }
+                : { value: 'Off', sub: rules.length ? 'All automations paused' : 'No automations yet', tone: 'muted' };
       }
     }
     return [
@@ -1001,13 +1001,19 @@
     var root = document.getElementById('owHome');
     if (!root) return;
     if (OW.placeBell) OW.placeBell();
+    var CC = window.orvCC;
     var g = document.getElementById('owHomeGreeting');
-    if (g) g.textContent = 'Good ' + greetingWord() + '.';
+    if (g) g.textContent = CC ? CC.T(CC.greetingKey()) + '.' : 'Good ' + greetingWord() + '.';
     var eb = document.getElementById('owHomeEyebrow');
     var bn = businessName();
     if (eb) eb.textContent = bn || 'Control Center';
 
-    if (!C.settled) { root.classList.add('is-loading'); return; }
+    if (!C.settled) {
+      root.classList.add('is-loading');
+      var st0 = document.getElementById('owHomeStatus'); if (st0 && CC && !st0.querySelector('.ow-skel')) st0.textContent = CC.T('stLoading');
+      if (CC) CC.renderSetup();
+      return;
+    }
     root.classList.remove('is-loading');
 
     var n = C.counts();
@@ -1017,11 +1023,17 @@
     if (n.drafts) parts.push(plural(n.drafts, 'draft') + ' in progress');
     var urgent = att.filter(function (a) { return a.tone === 'risk' || a.tone === 'attention'; }).length;
     if (urgent) parts.push(urgent === 1 ? '1 thing needs your attention' : urgent + ' things need your attention');
-    var status = document.getElementById('owHomeStatus');
-    if (status) status.textContent = parts.length ? parts.join(' · ') + '.' : 'Nothing is running yet — build your first campaign when you’re ready.';
-
     renderKpis(n, att);
     renderNeeds(att);
+    // Header: "running" only from the live platform read (orvCC.setRunning,
+    // orivenOpsPages.js); drafts from OrivenAI's records; attention from the
+    // merged Needs card (problems + warnings, both sources).
+    var status = document.getElementById('owHomeStatus');
+    if (CC) {
+      var urgentAll = document.querySelectorAll('#owNeeds [data-rank="0"], #owNeeds [data-rank="1"]').length;
+      if (status) status.textContent = CC.statusLine(n.drafts, urgentAll);
+      CC.renderSetup();
+    } else if (status) status.textContent = parts.length ? parts.join(' · ') + '.' : 'Nothing is running yet — build your first campaign when you’re ready.';
     var hasContinue = renderContinue();
     var grid = document.getElementById('owDashGrid');
     if (grid) grid.classList.toggle('is-single', !hasContinue);
@@ -1032,6 +1044,25 @@
   function renderNeeds(att) {
     var list = document.getElementById('owNeedsList');
     if (!list) return;
+    var CC = window.orvCC, card = document.getElementById('owNeeds');
+    if (CC && card && card.classList.contains('ccx-needs')) {
+      // Control Center: one ranked list with the ad signals (orvCC.needsSync).
+      var RANK = { risk: 0, attention: 1, ready: 2, info: 2 };
+      list.innerHTML = att.map(function (a, i) {
+        var v = Object.assign({}, a.tVars || {});
+        if (v.listArr) v.list = CC.list(v.listArr);
+        if ('name' in v && !v.name) v.name = CC.T(a.tKey === 'att.failTitle' ? 'att.untitled' : a.tKey === 'att.ready1' ? 'att.aCampaign' : 'att.aDraft');
+        var title = a.tKey ? CC.T(a.tKey, v) : a.title;
+        var src = a.srcKey ? CC.T('src.' + a.srcKey) + (a.srcExtra ? ' · ' + a.srcExtra : '') : a.source;
+        var actTxt = a.actKey ? CC.T('act.' + a.actKey) : a.action;
+        return '<button type="button" class="ccx-nrow ccx-t-' + a.tone + '" data-rank="' + (RANK[a.tone] != null ? RANK[a.tone] : 2) + '" data-i="' + (100 + i) + '"' + goAttr(a.go) + '>' +
+          '<i class="ccx-dot" aria-hidden="true"></i><span class="ccx-nbody"><span class="ccx-ntitle"><span class="ccx-sr">' + esc(CC.T('sev.' + (a.tone === 'risk' ? 'risk' : a.tone === 'ready' ? 'ready' : 'attention'))) + ': </span>' + esc(title) + '</span><span class="ccx-nsub">' + esc(src) + '</span></span>' +
+          '<span class="ccx-nact">' + esc(actTxt) + '<span aria-hidden="true"> →</span></span></button>';
+      }).join('');
+      card.setAttribute('data-ws-ready', '1');
+      CC.needsSync();
+      return;
+    }
     // Control Center shows approvals in its Autopilot block, so they are not
     // repeated here; two rows by default, the rest on request.
     if (document.getElementById('ovAuto')) att = att.filter(function (a) { return a.id !== 'aprec'; });
@@ -1050,7 +1081,7 @@
   }
   var TONE_WORD = { risk: 'Problem', attention: 'Needs you', ready: 'Ready', info: 'Worth knowing' };
   OW.TONE_WORD = TONE_WORD;
-  H.toggleNeeds = function () { needsExpanded = !needsExpanded; renderNeeds(OW.attention()); };
+  H.toggleNeeds = function () { if (window.orvCC && document.querySelector('#owNeeds.ccx-needs')) { window.orvCC.needsToggle(); return; } needsExpanded = !needsExpanded; renderNeeds(OW.attention()); };
 
   // "Continue" — platform, name, one meaningful state, one action.
   function renderContinue() {
@@ -1418,6 +1449,8 @@
   // Live brief + readiness update without rebuilding the Stage per keystroke.
   var briefTimer = null;
   function onPromptInput() {
+    // Create 2.0 renders its own live Stage (js/createFlow.js renderStage).
+    if (window.orvCreate && document.getElementById('cfSteps')) return;
     clearTimeout(briefTimer);
     briefTimer = setTimeout(function () {
       var el = document.getElementById('owStageBrief');
@@ -1469,7 +1502,7 @@
         if (rs) out.push('Which opportunity from this research should I act on first?');
       } else if (page === 'autopilot') {
         var recs = apRecs() || [];
-        if (recs.length) out.push('Should I approve the pending Autopilot recommendation?');
+        if (recs.length) out.push('Should I approve the pending automation change?');
       } else if (page === 'businessbrain') {
         if (D.health && D.health.recommendations && D.health.recommendations[0]) out.push(D.health.recommendations[0].message || ('Help me: ' + D.health.recommendations[0].title));
       } else if (page === 'create') {

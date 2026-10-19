@@ -553,13 +553,18 @@ function _ob3SaveDraft(kind){
       platform: plat ? plat.getAttribute("data-plat") : null,
       mode: window._ov3ContentMode || "images"
     };
-    if(!data.prompt) return;
+    // Create 2.0 — the guided form's full state (product, platform, goal,
+    // format, language, notes…) so a paywall round-trip restores every step.
+    if(window.orvCreate && typeof window.orvCreate.getState === "function") data.state = window.orvCreate.getState();
+    if(!data.prompt && !(data.state && (data.state.productName || data.state.description))) return;
   } else {
+    // Research 2.0 (js/research.js): question, research type and extra websites.
+    var rd = (window.orvResearch && typeof window.orvResearch.getDraft === "function") ? window.orvResearch.getDraft() : null;
     var q = _ob3El("researchQueryInput");
     data = {
-      question: q ? String(q.value || "").slice(0, 500) : "",
-      focus: (typeof _researchSelectedFocus !== "undefined" && Array.isArray(_researchSelectedFocus)) ? _researchSelectedFocus.slice(0, 6) : [],
-      urls: (typeof _researchUrls !== "undefined" && Array.isArray(_researchUrls)) ? _researchUrls.slice(0, 5) : []
+      question: String((rd && rd.question) || (q && q.value) || "").slice(0, 500),
+      type: rd ? rd.type : null,
+      urls: rd && Array.isArray(rd.urls) ? rd.urls.slice(0, 5) : []
     };
     if(!data.question) return;
   }
@@ -586,6 +591,17 @@ window.orvResumeDraft = function(reason){
 function _ob3RestoreCreate(v){
   if(typeof _orvNav === "function") _orvNav("create", "page-create");
   setTimeout(function(){
+    // Create 2.0 — restore the guided state exactly (drafts saved by the
+    // new flow). Older drafts (prompt/platform/goal only) fall through below.
+    if(window.orvCreate && typeof window.orvCreate.setState === "function"){
+      if(v.state){ window.orvCreate.setState(v.state); return; }
+      var st = { description: v.prompt || "" };
+      if(v.platform) st.platform = v.platform;
+      if(v.goal) st.goal = v.goal;
+      if(v.mode) st.format = v.mode === "videos" ? "video" : null;
+      window.orvCreate.setState(st);
+      return;
+    }
     var ta = _ob3El("aicInput");
     if(ta && v.prompt){
       ta.value = v.prompt;
@@ -610,19 +626,10 @@ function _ob3RestoreCreate(v){
 function _ob3RestoreResearch(v){
   if(typeof _orvNav === "function") _orvNav("research", "page-research");
   setTimeout(function(){
+    if(window.orvResearch && typeof window.orvResearch.setDraft === "function"){
+      window.orvResearch.setDraft({ question: v.question || "", type: v.type || null, urls: Array.isArray(v.urls) ? v.urls : [] });
+    }
     var q = _ob3El("researchQueryInput");
-    if(q && v.question){
-      q.value = v.question;
-      try { q.dispatchEvent(new Event("input", { bubbles: true })); } catch(_){}
-    }
-    (v.focus || []).forEach(function(key){
-      var b = document.querySelector('.rsc-focus-pill[data-focus="' + key + '"]');
-      if(b && b.getAttribute("aria-pressed") !== "true") b.click();
-    });
-    if(Array.isArray(v.urls) && v.urls.length && typeof _researchUrls !== "undefined"){
-      _researchUrls = v.urls.slice(0, 5);
-      if(typeof _researchRenderUrlChips === "function") _researchRenderUrlChips();
-    }
     if(q) q.focus();
   }, 150);
 }

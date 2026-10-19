@@ -154,7 +154,7 @@ function footer() {
   return `<footer class="sp-footer"><div class="sp-wrap">
   <div class="sp-footer-top">
     <div class="sp-footer-brand"><a class="sp-logo" href="/"><img src="/assets/orivenlogo-256.webp" alt="" width="30" height="30"><span>OrivenAI</span></a><p>${esc(F.tagline)}</p></div>
-    ${col('Product', [['/business', 'Control Center'], ['/research', 'Research'], ['/create', 'Create'], ['/launch', 'Launch'], ['/campaigns', 'Campaigns'], ['/autopilot', 'Autopilot']])}
+    ${col('Product', [['/business', 'Control Center'], ['/research', 'Research'], ['/create', 'Create'], ['/launch', 'Launch'], ['/campaigns', 'Campaigns'], ['/autopilot', 'Automations']])}
     ${col('Solutions', [['/ppc-automation-software/', 'PPC automation'], ['/cross-platform-ad-management/', 'Cross-platform ad management'], ['/product/google-ads', 'Google Ads'], ['/product/meta-ads', 'Meta Ads'], ['/product/tiktok-ads', 'TikTok Ads'], ['/product/pinterest-ads', 'Pinterest Ads']])}
     ${col('Resources', [['/learn/', 'Learn'], ['/pricing', 'Pricing'], ['/faq', 'FAQ'], ['/blog', 'Blog'], ['/about', 'About']])}
     ${col('Legal', [['/privacy', 'Privacy Policy'], ['/terms', 'Terms of Service'], ['/cookie-policy', 'Cookie Policy'], ['#cookie-settings', 'Cookie settings'], ['mailto:contact@orivenai.com', 'Contact']])}

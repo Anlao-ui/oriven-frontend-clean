@@ -126,7 +126,7 @@
     var e = OPS._sig && OPS._sig(id); if (!e) return;
     var s = e.s;
     var acts = (s.actions || []).map(function (a, i) { return { label: a.label, kind: i === 0 ? 'primary' : 'ghost', onClick: function (d) { d.close(true); OPS.runSignalAction(s.id, i); } }; });
-    acts.push({ label: 'Open Autopilot', kind: 'ghost', onClick: function (d) { d.close(true); OPS.go('autopilot'); } });
+    acts.push({ label: 'Open Automations', kind: 'ghost', onClick: function (d) { d.close(true); OPS.go('autopilot'); } });
     OW.flow.dialog({ title: s.title, eyebrow: (s.platform ? CAP[s.platform].name + ' · ' : '') + SEV[s.severity] + ' · ' + s.category, wide: true, body: sigDetail(s), actions: acts });
   };
 
@@ -162,73 +162,141 @@
   // ════════════════════════════════════════════════════════════════
   // HOME — summary blocks
   // ════════════════════════════════════════════════════════════════
-  var lastOverview = null;
+  var lastOverview = null, lastAuto = null;
+  // Control Center words (js/controlCenter.js); English fallback if absent.
+  function CT(k, v) { return window.orvCC ? window.orvCC.T(k, v) : k; }
+  function CN(k, n, v) { return window.orvCC ? window.orvCC.N(k, n, v) : String(n); }
+  function needsCard() { return document.getElementById('owNeeds'); }
   function renderOverview() {
     if (!document.getElementById('ovPerf')) return;
     if (!(typeof window._getCurrentUser === 'function' && window._getCurrentUser())) return;
     var t = token('dash');
-    ['ovPerf', 'ovCamps', 'ovAuto'].forEach(function (id) { var el = document.getElementById(id); if (el && !el.innerHTML) el.innerHTML = '<span class="ow-skel ow-skel-row"></span>'; });
+    ['ovPerf', 'ovCamps', 'ovAuto'].forEach(function (id) { var el = document.getElementById(id); if (el && !el.innerHTML) el.innerHTML = '<span class="ow-skel ow-skel-row"></span><span class="ow-skel ow-skel-row"></span>'; });
     Promise.all([D.compare({ key: 'LAST_7_DAYS' }), OPS.data.metaAds().catch(function () { return null; })]).then(function (x) {
       if (stale('dash', t)) return;
       var snap = x[0], ads = adsIndex(x[1]);
       var sig = OPS.signals.compute(snap, {}).filter(function (s) { return s.severity !== 'info'; });
       OPS.registerSignals(sig, snap);
-      lastOverview = { snap: snap, sig: sig, ads: ads };
+      lastOverview = { snap: snap, sig: sig, ads: ads, error: false };
       paintPerf(snap); paintAttention(sig); paintCampaignsMini(snap, ads);
     }).catch(function () {
       if (stale('dash', t)) return;
-      var p = document.getElementById('ovPerf'); if (p) p.innerHTML = '<p class="op-note op-note-warn">Couldn’t load your advertising data. <button type="button" class="op-link" onclick="orvWorkspace.ops.refreshAll(\'dash\')">Try again</button></p>';
-      paintAttention([]);
-      paintCampaignsMini(null, {});
+      lastOverview = { snap: null, sig: [], ads: {}, error: true };
+      paintPerf(null, true); paintAttention([]); paintCampaignsMini(null, {}, true);
     });
     paintAutopilotMini(t);
   }
   OPS.renderDashSnap = renderOverview;
-  function paintPerf(snap) {
+  // Language change: repaint from what is already loaded (no new requests).
+  OPS.repaintOverview = function () {
+    if (lastOverview) { paintPerf(lastOverview.snap, lastOverview.error); paintAttention(lastOverview.sig); paintCampaignsMini(lastOverview.snap, lastOverview.ads, lastOverview.error); }
+    if (lastAuto) paintAutoFrom(lastAuto);
+  };
+  // Which connected platforms could not be read (status or data error).
+  function unreadable(snap) { return snap ? OPS.PLATFORMS.filter(function (p) { var P = snap.platforms[p]; return P && ((P.connected && P.error) || P.statusError); }) : []; }
+  function paintPerf(snap, failed) {
     var el = document.getElementById('ovPerf'); if (!el) return;
+    if (failed || !snap) {
+      el.innerHTML = '<div class="ccx-state ccx-state-warn" role="status"><p>' + esc(CT('perfErr')) + '</p><button type="button" class="ccx-btn ccx-btn-ghost" onclick="orvWorkspace.ops.refreshAll(\'dash\')">' + esc(CT('retry')) + '</button></div>';
+      return;
+    }
+    var bad = unreadable(snap);
     if (noConnections(snap)) {
-      el.innerHTML = '<div class="ov-empty"><p>See spend, results and what needs attention across Meta, Google, TikTok and Pinterest — read directly from the platforms.</p><button type="button" class="op-btn op-btn-primary" onclick="bizGoTo(\'connections\')">Connect a platform</button></div>';
+      // A status check that failed is "unavailable", not "not connected".
+      if (bad.length) { el.innerHTML = '<div class="ccx-state ccx-state-warn" role="status"><p>' + esc(CT('perfStatusErr')) + '</p><button type="button" class="ccx-btn ccx-btn-ghost" onclick="orvWorkspace.ops.refreshAll(\'dash\')">' + esc(CT('retry')) + '</button></div>'; return; }
+      el.innerHTML = '<div class="ccx-state"><p class="ccx-state-t">' + esc(CT('perfNone')) + '</p><p>' + esc(CT('perfNoneText')) + '</p><button type="button" class="ccx-btn ccx-btn-primary" onclick="bizGoTo(\'connections\')">' + esc(CT('connect')) + '</button></div>';
       return;
     }
     var tot = snap.totals, ptot = snap.prevTotals, cur = tot.currency;
     var split = OPS.PLATFORMS.filter(function (p) { return snap.platforms[p].connected && snap.platforms[p].totals; });
+    var badNote = bad.length ? '<p class="ccx-note ccx-note-warn" role="status">' + esc(CT('perfUnavailable', { list: window.orvCC ? orvCC.list(bad.map(function (p) { return CAP[p].name; })) : bad.join(', ') })) + ' <button type="button" class="ccx-link" onclick="orvWorkspace.ops.refreshAll(\'dash\')">' + esc(CT('retry')) + '</button></p>' : '';
+    // Connected, but nothing could be read, or nothing reported: a sentence,
+    // never a row of empty tiles. No campaigns at all = no activity.
+    if (!split.length || (!isNum(tot.spend) && !isNum(tot.conversions))) {
+      var why = !split.length && bad.length ? '' : (snap.campaigns.length ? CT('noFigures') : CT('perfQuiet'));
+      el.innerHTML = '<p class="ccx-meta">' + esc(CT('perfMeta')) + '</p>' + badNote + (why ? '<p class="ccx-quiet">' + esc(why) + '</p>' : '');
+      return;
+    }
+    var quiet = !tot.mixedCurrency && isNum(tot.spend) && tot.spend === 0 && (!ptot || !isNum(ptot.spend) || ptot.spend === 0);
     var max = Math.max.apply(null, split.map(function (p) { return snap.platforms[p].totals.spend || 0; }).concat([1]));
-    el.innerHTML = '<p class="ov-meta">Last 7 days vs the 7 days before · platform-reported</p>' +
-      (tot.mixedCurrency ? '<p class="op-foot">Your accounts use different currencies, so spend is shown per platform below.</p>' : '') +
-      '<div class="op-figs op-figs-ov">' + figure('Spend', 'spend', tot, ptot, cur) + figure('Conversions', 'conversions', tot, ptot, cur) + figure('CPA', 'cpa', tot, ptot, cur) +
-        figure('ROAS', 'roas', tot, ptot, cur, { why: tot.partialValue ? 'Not every platform reports value' : '' }) + '</div>' +
-      '<ul class="ov-split" aria-label="Spend by platform">' + split.map(function (p) {
+    el.innerHTML = '<p class="ccx-meta">' + esc(CT('perfMeta')) + '</p>' + badNote +
+      (tot.mixedCurrency ? '<p class="ccx-note">' + esc(CT('perfMixed')) + '</p>' : '') +
+      (quiet ? '<p class="ccx-quiet">' + esc(CT('perfQuiet')) + '</p>' : '') +
+      '<div class="op-figs op-figs-ov ccx-figs">' + figure(CT('fig.spend'), 'spend', tot, ptot, cur) + figure(CT('fig.conversions'), 'conversions', tot, ptot, cur) + figure(CT('fig.cpa'), 'cpa', tot, ptot, cur) +
+        figure(CT('fig.roas'), 'roas', tot, ptot, cur, { why: tot.partialValue ? CT('partialValue') : '' }) + '</div>' +
+      '<ul class="ccx-split" aria-label="' + esc(CT('splitAria')) + '">' + split.map(function (p) {
         var T = snap.platforms[p].totals, c = snap.platforms[p].currency;
-        return '<li><span class="ov-split-l">' + UI.platBadge(p) + '</span><span class="ov-split-bar"><i class="ov-pl-' + p + '" style="width:' + Math.max(3, (T.spend || 0) / max * 100).toFixed(1) + '%"></i></span>' +
-          '<span class="ov-split-v">' + esc(F.money(T.spend, c)) + '</span><span class="ov-split-c op-meta">' + esc(F.num(T.conversions)) + ' conv.</span></li>';
+        return '<li><span class="ccx-split-l">' + UI.platBadge(p) + '</span><span class="ccx-split-bar"><i class="ov-pl-' + p + '" style="width:' + Math.max(3, (T.spend || 0) / max * 100).toFixed(1) + '%"></i></span>' +
+          '<span class="ccx-split-v">' + esc(F.money(T.spend, c)) + '</span><span class="ccx-split-c">' + esc(CT('conv', { n: F.num(T.conversions) })) + '</span></li>';
       }).join('') + '</ul>';
   }
+  var attSig = [], attAll = false;
+  OPS.showAllSignals = function () { attAll = true; if (window.orvCC && needsCard() && needsCard().classList.contains('ccx-needs')) { window.orvCC.needsToggle(); return; } paintAttention(attSig); };
+  function sigText(s) {
+    var e = s.evidence && s.evidence[0];
+    if (s.type === 'no_conv') return CT('sigNoConv', { cur: e.cur });
+    if (s.type === 'no_spend') return CT('sigNoSpend');
+    if (s.type === 'limited') return CT('sigLimited');
+    if (s.type === 'tracking') return CT('sigTracking');
+    if (e && e.change && e.change !== '—' && e.prev != null) return CT('sigChange', { label: e.label, change: e.change });
+    return sigShort(s);
+  }
   function paintAttention(sig) {
-    var el = document.getElementById('ovAtt'), cnt = document.getElementById('ovAttCount'); if (!el) return;
-    var shown = sig.slice(0, 2);
+    var el = document.getElementById('ovAtt'), card = needsCard(); if (!el) return;
+    if (sig !== attSig) attAll = false;
+    attSig = sig;
+    if (window.orvCC && card && card.classList.contains('ccx-needs')) {
+      // Control Center: ranked rows merged with the workspace items.
+      el.innerHTML = sig.map(function (s, i) {
+        var c = s.campaign && s.campaign.name ? s.campaign.name : (s.platform ? CT('sigAccount', { p: CAP[s.platform].name }) : CT('sigAll'));
+        var rank = s.severity === 'high' ? 0 : 1;
+        return '<button type="button" class="ccx-nrow ccx-t-' + (rank === 0 ? 'risk' : 'attention') + '" data-rank="' + rank + '" data-i="' + i + '" onclick="orvWorkspace.ops.openSignal(\'' + jsq(s.id) + '\')">' +
+          '<i class="ccx-dot" aria-hidden="true"></i><span class="ccx-nbody"><span class="ccx-ntitle"><span class="ccx-sr">' + esc(CT(rank === 0 ? 'sev.risk' : 'sev.attention')) + ': </span>' + (s.platform ? UI.platBadge(s.platform) + ' ' : '') + esc(c) + ' — ' + esc(sigText(s)) + '</span><span class="ccx-nsub">' + esc(CT('sigSource')) + '</span></span>' +
+          '<span class="ccx-nact">' + esc(CT('sigView')) + '<span class="op-sr"> ' + esc(CT('sigWhy', { c: c })) + '</span><span aria-hidden="true"> →</span></span></button>';
+      }).join('');
+      card.setAttribute('data-sig-ready', '1');
+      window.orvCC.needsSync();
+      if (OW.home && OW.home.render) OW.home.render(); // header attention count
+      return;
+    }
+    var cnt = document.getElementById('ovAttCount');
+    var shown = attAll ? sig : sig.slice(0, 2);
     if (cnt) cnt.textContent = sig.length ? sig.length + ' in your ads' : '';
     el.innerHTML = shown.length ? '<ul class="ov-att-list">' + shown.map(function (s) {
       var c = s.campaign && s.campaign.name ? s.campaign.name : (s.platform ? CAP[s.platform].name + ' account' : 'All platforms');
       return '<li class="ov-att-i ov-sev-' + esc(s.severity) + '"><span class="ov-att-w">' + (s.platform ? UI.platBadge(s.platform) : '') + '<b>' + esc(c) + '</b></span>' +
         '<span class="ov-att-m">' + esc(sigShort(s)) + '</span><button type="button" class="op-btn op-btn-ghost ov-att-b" onclick="orvWorkspace.ops.openSignal(\'' + jsq(s.id) + '\')">View<span class="op-sr"> why ' + esc(c) + ' was flagged</span></button></li>';
-    }).join('') + '</ul>' + (sig.length > 2 ? '<button type="button" class="op-link ov-more" onclick="orvWorkspace.ops.go(\'autopilot\')">View all ' + sig.length + ' in Autopilot</button>' : '')
-      : '<p class="ov-calm"><i aria-hidden="true"></i>Nothing in your ads needs a decision. Rules only fire with enough data.</p>';
+    }).join('') + '</ul>' + (sig.length > 2 && !attAll ? '<button type="button" class="op-link ov-more" onclick="orvWorkspace.ops.showAllSignals()">View all ' + sig.length + '</button>' : '')
+      : '<p class="ov-calm"><i aria-hidden="true"></i>Nothing in your ads needs a decision.</p>';
   }
-  function paintCampaignsMini(snap, ads) {
+  // Campaigns: three states from their real sources — running (the live
+  // platform read), drafts (OrivenAI's own records) and needing attention
+  // (OrivenAI records that failed or are blocked). Never one merged number.
+  function paintCampaignsMini(snap, ads, failed) {
     var el = document.getElementById('ovCamps'); if (!el) return;
     var drafts = draftRows();
+    var C = OW.campaigns, n = C && C.counts ? C.counts() : { failed: 0, blocked: 0 };
+    var needAtt = (n.failed || 0) + (n.blocked || 0);
+    var bad = unreadable(snap), connected = snap ? snap.connected.length : 0;
     var live = snap ? snap.campaigns.filter(function (c) { return c.status === 'active'; }) : [];
     live.sort(function (a, b) { return (b.spend || 0) - (a.spend || 0); });
+    // "Running" is only claimed from a successful platform read.
+    var runningKnown = !!snap && !failed && connected > 0 && bad.length < connected;
+    if (window.orvCC) window.orvCC.setRunning(runningKnown ? live.length : null);
+    var runningVal = !snap || failed ? '<span class="ccx-stat-na">' + esc(CT('unavailable')) + '</span>' : !connected ? '<span class="ccx-stat-na">' + esc(CT(bad.length ? 'unavailable' : 'notConnected')) + '</span>' : (bad.length === connected ? '<span class="ccx-stat-na">' + esc(CT('unavailable')) + '</span>' : '<b>' + live.length + '</b>' + (bad.length ? '<span class="ccx-stat-flag" title="' + esc(CT('perfUnavailable', { list: bad.map(function (p) { return CAP[p].name; }).join(', ') })) + '">*</span>' : ''));
+    var stat = function (val, label, src, cls) { return '<div class="ccx-stat' + (cls ? ' ' + cls : '') + '"><span class="ccx-stat-v">' + val + '</span><span class="ccx-stat-l">' + esc(label) + '</span><span class="ccx-stat-s">' + esc(src) + '</span></div>'; };
+    var stats = '<div class="ccx-stats">' + stat(runningVal, CT('running'), CT('runningSrc')) + stat('<b>' + drafts.length + '</b>', CT('drafts'), CT('draftsSrc')) + stat('<b>' + needAtt + '</b>', CT('needAtt'), CT('needAttSrc'), needAtt ? 'is-warn' : '') + '</div>';
     var pick = live.slice(0, 3);
     if (pick.length < 3) pick = pick.concat(drafts.slice(0, 3 - pick.length));
-    var meta = '<p class="ov-cstate">' + (snap ? '<span><b>' + live.length + '</b> active in your ad accounts</span>' : '<span>Platform campaigns unavailable</span>') + '<span><b>' + drafts.length + '</b> not launched</span></p>';
-    if (!pick.length) { el.innerHTML = meta + '<div class="ov-empty"><p>No campaigns yet.</p><button type="button" class="op-btn op-btn-ghost" onclick="_orvNav(\'create\',\'page-create\')">Create one</button></div>'; return; }
-    el.innerHTML = meta + '<ul class="ov-clist">' + pick.map(function (c) {
+    var total = live.length + drafts.length;
+    if (!pick.length) { el.innerHTML = stats + '<div class="ccx-state ccx-state-sm"><p>' + esc(CT('campsNone')) + '</p><button type="button" class="ccx-btn ccx-btn-ghost" onclick="_orvNav(\'create\',\'page-create\')">' + esc(CT('createOne')) + '</button></div>'; return; }
+    el.innerHTML = stats + '<ul class="ccx-clist">' + pick.map(function (c) {
       var cr = creativeFor(c, ads);
-      return '<li><button type="button" class="ov-crow" onclick="orvWorkspace.ops.openCampaign(\'' + c.platform + '\',\'' + jsq(c.id) + '\',' + (c.draft ? 'true' : 'false') + ')">' +
-        '<span class="ov-cthumb ov-pl-' + c.platform + '" aria-hidden="true">' + (cr.url ? '<img src="' + esc(cr.url) + '" alt="" loading="lazy">' : PLAT_MARK[c.platform]) + '</span>' +
-        '<span class="ov-cname"><b>' + esc(c.name) + '</b><em>' + esc(CAP[c.platform].short + (c.draft ? ' · ' + c.stage.label : '')) + '</em></span><span class="ov-cgo" aria-hidden="true">→</span></button></li>';
-    }).join('') + '</ul>';
+      var stageTxt = c.draft ? (CT('stage.' + c.stage.key) || c.stage.label) : CT('stage.live');
+      return '<li><button type="button" class="ccx-crow" onclick="orvWorkspace.ops.openCampaign(\'' + c.platform + '\',\'' + jsq(c.id) + '\',' + (c.draft ? 'true' : 'false') + ')">' +
+        '<span class="ccx-cthumb ov-pl-' + c.platform + '" aria-hidden="true">' + (cr.url ? '<img src="' + esc(cr.url) + '" alt="" loading="lazy">' : PLAT_MARK[c.platform]) + '</span>' +
+        '<span class="ccx-cname"><b>' + esc(c.name) + '</b><em>' + esc(CAP[c.platform].short) + ' · ' + esc(stageTxt) + '</em></span><span class="ccx-go" aria-hidden="true">→</span></button></li>';
+    }).join('') + '</ul>' + (total > pick.length ? '<p class="ccx-more-line">' + esc(CT('more', { n: total - pick.length })) + ' · <button type="button" class="ccx-link" onclick="orvWorkspace.ops.go(\'campaigns\')">' + esc(CT('viewCampaigns')) + '</button></p>' : '');
   }
   OPS.openCampaign = function (platform, id, isDraft) {
     if (!OW.go) return OPS.go(isDraft ? 'launch' : 'campaigns');
@@ -236,32 +304,35 @@
     var c = lastOverview && lastOverview.snap ? OPS.findCampaign(lastOverview.snap, platform, id) : null;
     OW.go({ page: 'campaigns', platform: platform, campaignName: c ? c.name : null });
   };
-  // Autopilot is included from Starter (plans.js entitlements); unknown plan = not locked.
+  // Automations is included from Starter (plans.js entitlements); unknown plan = not locked.
   function hasAutomationPlan() { return typeof window.orvEntitled === 'function' ? window.orvEntitled('autopilot') !== false : true; }
+  // Real counts from /api/automations/overview; the last line is the latest
+  // real entry in the automation activity ledger.
   function paintAutopilotMini(t) {
     var el = document.getElementById('ovAuto'); if (!el) return;
-    if (!hasAutomationPlan()) {
-      el.innerHTML = '<p class="ov-auto-h">Not included on Free</p><p class="ov-meta">Autopilot is available from Starter.</p>';
-      return;
-    }
-    Promise.all([window.apiFetch('/api/autopilot/rules'), window.apiFetch('/api/autopilot/recommendations?status=suggested'), window.apiFetch('/api/autopilot/history'), D.status()].map(function (p) { return p.catch(function () { return null; }); })).then(function (x) {
+    if (!hasAutomationPlan()) { lastAuto = { locked: true }; paintAutoFrom(lastAuto); return; }
+    Promise.all([window.apiFetch('/api/automations/overview'), window.apiFetch('/api/automations/activity?limit=1')].map(function (p) { return p.catch(function () { return null; }); })).then(function (x) {
       if (stale('dash', t)) return;
-      var rules = x[0] && x[0].ok && x[0].data ? x[0].data.rules || [] : null, recs = x[1] && x[1].ok && x[1].data ? x[1].data.recommendations || [] : [];
-      var hist = x[2] && x[2].ok && x[2].data ? x[2].data.items || [] : [];
-      if (!rules) { el.innerHTML = '<p class="ov-meta">Couldn’t load Autopilot right now.</p>'; return; }
-      var on = rules.filter(function (r) { return r.enabled; });
-      el.innerHTML = '<p class="ov-auto-h"><span class="ov-dot' + (on.length ? ' is-on' : '') + '" aria-hidden="true"></span>' + (on.length ? on.length + ' rule' + (on.length === 1 ? '' : 's') + ' active' : 'No rules active') + '</p>' +
-        '<p class="ov-meta">' + esc(watchLine(on.length, x[3])) + (recs.length ? '' : ' · nothing waiting') + '</p>' +
-        (recs.length ? '<button type="button" class="ov-auto-ap" onclick="orvWorkspace.ops.go(\'autopilot\')"><b>' + recs.length + ' waiting for approval →</b></button>'
-          : hist[0] ? '<p class="ov-meta ov-auto-last">Last: ' + esc(hist[0].title || '') + ' · ' + esc(rel(hist[0].created_at)) + '</p>' : '');
+      var o = x[0] && x[0].ok ? x[0].data : null;
+      lastAuto = { o: o, last: x[1] && x[1].ok && x[1].data && x[1].data.items ? x[1].data.items[0] : null, error: !o };
+      paintAutoFrom(lastAuto);
     });
   }
-  // Only claims to watch what is really watched: Meta/Google, connected, with a rule on.
-  function watchLine(nRules, st) {
-    var mon = ['meta', 'google'].filter(function (p) { return st && st[p] && st[p].connected; });
-    if (!mon.length) return 'Autopilot monitors Meta and Google — connect one to start';
-    var names = mon.map(function (p) { return CAP[p].short; }).join(' and ');
-    return nRules ? 'Watching ' + names : names + ' connected · add a rule to start watching';
+  function paintAutoFrom(a) {
+    var el = document.getElementById('ovAuto'); if (!el) return;
+    if (a.locked) { el.innerHTML = '<p class="ccx-line">' + esc(CT('autoFree')) + '</p><p class="ccx-meta">' + esc(CT('autoFreeSub')) + '</p>'; return; }
+    if (a.error) { el.innerHTML = '<p class="ccx-meta">' + esc(CT('autoErr')) + '</p>'; return; }
+    var o = a.o, last = a.last, c = o.counts || {}, on = c.active || 0, waiting = c.pendingApprovals || 0;
+    var conn = (o.accounts || []).filter(function (x) { return x.connected; }).map(function (x) { return (CAP[x.platform] && CAP[x.platform].short) || x.platform; });
+    var head = o.pausedAll ? CT('autoPaused') : on ? CN('autoActive', on) : CT('autoNone');
+    var sub = on ? (conn.length ? CT('autoManaging', { list: window.orvCC ? orvCC.list(conn) : conn.join(', ') }) : '') : (conn.length ? CT('autoConnected', { list: window.orvCC ? orvCC.list(conn) : conn.join(', ') }) : CT('autoNoAccounts'));
+    var lines = [];
+    if (o.nextRun) lines.push(CT('autoNext', { when: window.orvCC ? orvCC.rel(o.nextRun.run_at) : rel(o.nextRun.run_at) }));
+    if (last && !waiting) lines.push(CT('autoLast', { what: (CT('autoAct.' + last.action) || last.action) + (last.campaign_name ? ' · ' + last.campaign_name : ''), when: window.orvCC ? orvCC.rel(last.created_at) : rel(last.created_at) }));
+    el.innerHTML = '<p class="ccx-line"><span class="ccx-sdot' + (on && !o.pausedAll ? ' is-on' : o.pausedAll ? ' is-warn' : '') + '" aria-hidden="true"></span>' + esc(head) + '</p>' +
+      (sub ? '<p class="ccx-meta">' + esc(sub) + '</p>' : '') +
+      (lines.length ? '<p class="ccx-meta">' + lines.map(esc).join(' · ') + '</p>' : '') +
+      (waiting ? '<button type="button" class="ccx-pill-btn" onclick="orvWorkspace.ops.go(\'autopilot\')">' + esc(CN('autoWaiting', waiting)) + ' <span aria-hidden="true">→</span></button>' : '');
   }
   OPS.askOverview = function () {
     var o = lastOverview;

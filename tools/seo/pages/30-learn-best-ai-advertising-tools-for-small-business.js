@@ -60,9 +60,9 @@ module.exports = {
   <li><strong><a href="/research">Research</a></strong> investigates a market, competitors and audiences and shows its sources (from the Starter plan).</li>
   <li><strong><a href="/create">Create</a></strong> turns a short brief into a campaign in the chosen platform’s structure, with ad copy, targeting and image or video creative.</li>
   <li><strong><a href="/launch">Launch</a></strong> checks each draft’s readiness and publishes it to your own ad account through the platform’s official API.</li>
-  <li><strong><a href="/campaigns">Campaigns</a></strong> shows results per platform, and <strong><a href="/autopilot">Autopilot</a></strong> applies rules you set on Google Ads and Meta Ads campaigns (from Starter).</li>
+  <li><strong><a href="/campaigns">Campaigns</a></strong> shows results per platform, and <strong><a href="/autopilot">Automations</a></strong> schedule campaigns and apply rules you set (from Starter).</li>
 </ul>
-<p>It supports ${F.platforms.join(', ').replace(/, ([^,]*)$/, ' and $1')}. It doesn’t replace your analytics tool, and Autopilot doesn’t act on TikTok or Pinterest campaigns.</p>
+<p>It supports ${F.platforms.join(', ').replace(/, ([^,]*)$/, ' and $1')}. It doesn’t replace your analytics tool.</p>
 
 <h2>Comparison at a glance</h2>
 <div class="sp-table-wrap"><table class="sp-table">

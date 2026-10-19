@@ -45,10 +45,10 @@
       title: 'Stay in control.',
       text: 'Manage your campaigns from one central workspace.',
       focus: ['#prfPerfCol', '.prf-wrap'] },
-    { nav: ['autopilot', 'page-autopilot'], name: 'Autopilot',
-      title: 'Work smarter with Autopilot.',
-      text: 'Explore how AI-powered automation can support your advertising workflow.',
-      focus: ['#apPageWrap'] }
+    { nav: ['autopilot', 'page-autopilot'], name: 'Automations',
+      title: 'Automate your advertising workflows.',
+      text: 'Schedule campaigns and set rules that act within limits you choose, or ask you first.',
+      focus: ['#auRoot'] }
   ];
   var WELCOME = {
     eyebrow: 'Welcome to OrivenAI',

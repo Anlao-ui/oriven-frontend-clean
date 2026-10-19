@@ -89,6 +89,12 @@ async function loadAndEnterCreate(page) {
     if (typeof _orvNav === 'function') _orvNav('create', 'page-create');
   });
   await page.waitForTimeout(600);
+  // Create 2.0: "Ad → Your Brand" lives in step 5 (Customise) under "More options".
+  await page.evaluate(() => {
+    if (window.orvCreate) orvCreate.setState({ step: 5, maxStep: 5, productName: 'Wallet', description: 'Leather wallet', platform: 'meta', goal: 'Sales', format: 'image' });
+    var more = document.getElementById('cfMore'); if (more) more.open = true;
+  });
+  await page.waitForTimeout(150);
   return consoleErrors;
 }
 
@@ -293,10 +299,11 @@ async function main() {
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, type: 'page', url: 'https://mybrand.com/', domain: 'mybrand.com', title: 'My Brand', description: 'A real product page', text: 'Real page content.' }) });
     });
     await loadAndEnterCreate(page);
-    await page.click('#ov3PageUrlBtn');
-    await page.fill('#ov3PageUrlInput', 'mybrand.com');
-    await page.click('#ov3PageUrlAddBtn');
-    await page.waitForTimeout(400);
+    // Create 2.0: the Website field on step 1 drives the same page analyzer.
+    await page.evaluate(() => orvCreate.setState({ step: 1 }));
+    await page.fill('#cfWebsite', 'mybrand.com');
+    await page.click('#cfWebRead');
+    await page.waitForTimeout(600);
     check('55. Your Page workflow still functions after the Reference Ad refactor', await page.locator('#ov3PageUrlChip .cr2-url-chip').count() === 1);
     const pageCtx = await page.evaluate(() => window._ov3PageContext);
     check('56. window._ov3PageContext still populates correctly', pageCtx && pageCtx.domain === 'mybrand.com');

@@ -26,6 +26,42 @@ var ORIVEN_METRIC_CATEGORIES = [
 // ── Formatters — shared by KPI tiles, the Customize Metrics modal, and
 // trend chart tooltips, so a given metric always reads the same way
 // everywhere it appears. ─────────────────────────────────────────
+// Money is always shown in the ad account's own currency (ISO 4217, e.g.
+// EUR/USD/GBP/JPY), via Intl.NumberFormat — never a hardcoded symbol. The
+// currency comes from the caller, else from window.orvMetricCurrency
+// (Campaigns sets it for the selected account). Unknown currency → the
+// number without a symbol (never silently EUR). Large amounts use compact
+// notation (€1.2K); zero-decimal currencies (JPY, KRW…) get no decimals.
+function orvMetricLocale() {
+  var l = (typeof CURRENT_LANG !== 'undefined' && CURRENT_LANG) || 'en';
+  return { en: 'en-US', nl: 'nl-NL', de: 'de-DE', fr: 'fr-FR', es: 'es-ES', pt: 'pt-PT' }[l] || 'en-US';
+}
+function orvFormatMoney(v, currency, opts) {
+  if (v == null || !isFinite(v)) return '—';
+  opts = opts || {};
+  var cur = currency === undefined ? (typeof window !== 'undefined' ? window.orvMetricCurrency : null) : currency;
+  cur = cur && /^[A-Za-z]{3}$/.test(cur) ? String(cur).toUpperCase() : null;
+  var big = Math.abs(v) >= 1000 && !opts.full;
+  try {
+    var o = { maximumFractionDigits: big ? 1 : 2 };
+    if (cur) { o.style = 'currency'; o.currency = cur; o.currencyDisplay = 'narrowSymbol'; }
+    if (big) o.notation = 'compact';
+    else if (Number.isInteger(Math.round(v * 100) / 100)) o.minimumFractionDigits = 0;
+    else o.minimumFractionDigits = 2;
+    var nf = new Intl.NumberFormat(orvMetricLocale(), o);
+    // Zero-decimal currencies: Intl already caps fraction digits; respect it.
+    if (cur && !big) { var dflt = new Intl.NumberFormat('en', { style: 'currency', currency: cur }).resolvedOptions().maximumFractionDigits; if (dflt === 0) nf = new Intl.NumberFormat(orvMetricLocale(), { style: 'currency', currency: cur, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0 }); }
+    return nf.format(v);
+  } catch (_) {
+    var r = Math.round(v * 100) / 100;
+    return (cur ? cur + ' ' : '') + (Number.isInteger(r) ? r.toLocaleString() : r.toFixed(2));
+  }
+}
+// Minor units per currency (Meta and others report budgets in them).
+function orvCurrencyMinorUnits(currency) {
+  try { return new Intl.NumberFormat('en', { style: 'currency', currency: String(currency || '').toUpperCase() }).resolvedOptions().maximumFractionDigits; }
+  catch (_) { return null; }
+}
 var ORIVEN_METRIC_FORMATS = {
   number:   function(v) { return (v == null) ? '—' : (typeof _prfFmt === 'function' ? _prfFmt(v) : String(Math.round(v))); },
   // Campaigns Composition polish pass — real cost metrics like CPC/CPA/
@@ -38,15 +74,12 @@ var ORIVEN_METRIC_FORMATS = {
   // (€0.38, €12.50) and stay clean when it is (€8, €28, €210) -- at/above
   // €1000, unchanged K/M notation via _prfFmt (fine at that scale, cents
   // were never legible there anyway).
-  currency: function(v) {
-    if (v == null) return '—';
-    if (Math.abs(v) >= 1000) return '€' + (typeof _prfFmt === 'function' ? _prfFmt(v) : Math.round(v).toLocaleString());
-    var rounded = Math.round(v * 100) / 100;
-    return '€' + (Number.isInteger(rounded) ? rounded.toLocaleString() : rounded.toFixed(2));
-  },
+  currency: function(v, currency) { return orvFormatMoney(v, currency); },
   percent:  function(v) { return (v == null) ? '—' : v.toFixed(1) + '%'; },
   decimal:  function(v) { return (v == null) ? '—' : v.toFixed(2); },
-  multiple: function(v) { return (v == null || v < 0.005) ? '—' : v.toFixed(2) + 'x'; }
+  // A real ROAS of 0 (spend, no conversion value) shows 0.00x — only a
+  // missing value is "—".
+  multiple: function(v) { return (v == null || !isFinite(v)) ? '—' : v.toFixed(2) + 'x'; }
 };
 
 // Each metric: id, label, category, platforms[], format (key into
@@ -102,9 +135,15 @@ var ORIVEN_METRICS = {
   deliveryStatus: { id:'deliveryStatus', label:'Delivery Status', category:'delivery', platforms:['google','meta','tiktok','pinterest'], format:'text', trend:false,
     tooltip:'Whether the campaign is currently active, paused, or otherwise not delivering.',
     get:function(k){ return k.status || null; } },
-  budget: { id:'budget', label:'Budget', category:'delivery', platforms:['meta','tiktok'], format:'currency', trend:false,
-    tooltip:'The daily or lifetime amount allocated to spend on this campaign.',
+  // Daily and lifetime budgets are different things and are never added
+  // together. "All campaigns" sums only campaigns that aren't paused or
+  // archived; a campaign without that budget type contributes nothing.
+  budget: { id:'budget', label:'Daily budget', category:'delivery', platforms:['meta','tiktok'], format:'currency', trend:false,
+    tooltip:'The daily budget. For all campaigns: the sum of daily budgets of campaigns that are not paused.',
     get:function(k){ return k.budget; } },
+  lifetimeBudget: { id:'lifetimeBudget', label:'Lifetime budget', category:'delivery', platforms:['meta','tiktok'], format:'currency', trend:false,
+    tooltip:'The total budget for the campaign’s whole run. For all campaigns: the sum of lifetime budgets of campaigns that are not paused.',
+    get:function(k){ return k.lifetimeBudget; } },
   searchImpressionShare: { id:'searchImpressionShare', label:'Search Impression Share', category:'delivery', platforms:['google'], format:'percent', trend:false,
     tooltip:'The percentage of eligible impressions your Search ads actually received. Only available for Search campaigns.',
     get:function(k){ return k.searchImpressionShare; } },
@@ -124,11 +163,11 @@ var ORIVEN_METRICS = {
     get:function(k){ return k.linkClicks; } },
   ctr: { id:'ctr', label:'CTR', category:'traffic', platforms:['google','meta','tiktok','pinterest'], format:'percent', trend:true,
     tooltip:'Click-through rate: clicks divided by impressions.',
-    get:function(k){ return k.impr > 0 ? (k.clicks / k.impr) * 100 : (k.ctr != null ? k.ctr : null); },
+    get:function(k){ return (k.impr > 0 && k.clicks != null) ? (k.clicks / k.impr) * 100 : null; },
     seriesGet:function(d){ return d.impressions > 0 ? (d.clicks / d.impressions) * 100 : null; } },
   cpc: { id:'cpc', label:'CPC', category:'traffic', platforms:['google','meta','tiktok','pinterest'], format:'currency', trend:true,
     tooltip:'Average cost per click.',
-    get:function(k){ return k.clicks > 0 ? k.spend / k.clicks : (k.cpc != null ? k.cpc : null); },
+    get:function(k){ return (k.clicks > 0 && k.spend != null) ? k.spend / k.clicks : (k.cpc != null ? k.cpc : null); },
     seriesGet:function(d){ return d.clicks > 0 ? d.spend / d.clicks : null; } },
 
   // ── Conversion ────────────────────────────────────────────────
@@ -149,11 +188,11 @@ var ORIVEN_METRICS = {
     get:function(k){ return k.conv; }, seriesGet:function(d){ return d.conversions; } },
   conversionRate: { id:'conversionRate', label:'Conversion Rate', category:'conversion', platforms:['google','meta','tiktok','pinterest'], format:'percent', trend:true,
     tooltip:'Conversions divided by clicks.',
-    get:function(k){ return k.clicks > 0 ? (k.conv / k.clicks) * 100 : null; },
+    get:function(k){ return (k.clicks > 0 && k.conv != null) ? (k.conv / k.clicks) * 100 : null; },
     seriesGet:function(d){ return d.clicks > 0 ? (d.conversions / d.clicks) * 100 : null; } },
   cpa: { id:'cpa', label:'CPA', category:'conversion', platforms:['google','meta','tiktok','pinterest'], format:'currency', trend:true,
     tooltip:'Cost per acquisition: average spend per conversion.',
-    get:function(k){ return k.conv > 0 ? k.spend / k.conv : (k.cpa != null ? k.cpa : null); },
+    get:function(k){ return (k.conv > 0 && k.spend != null) ? k.spend / k.conv : (k.cpa != null ? k.cpa : null); },
     seriesGet:function(d){ return d.conversions > 0 ? d.spend / d.conversions : null; } },
   conversionValue: { id:'conversionValue', label:'Conversion Value', category:'conversion', platforms:['google','meta'], format:'currency', trend:true,
     tooltip:'Total revenue attributed to conversions.',
@@ -164,8 +203,8 @@ var ORIVEN_METRICS = {
     // a value that was never fetched.
     seriesGet:function(d){ return d.hasValue ? d.conversions_value : null; } },
   roas: { id:'roas', label:'ROAS', category:'conversion', platforms:['google','meta'], format:'multiple', trend:true,
-    tooltip:'Return on ad spend: revenue generated for every $1 spent on advertising.',
-    get:function(k){ return (k.spend > 0 && k.convVal > 0) ? k.convVal / k.spend : null; },
+    tooltip:'Return on ad spend: conversion value generated for every 1 spent on advertising.',
+    get:function(k){ return (k.spend > 0 && k.convVal != null) ? k.convVal / k.spend : null; },
     // Meta's daily series doesn't carry conversion value (see _prfLoadChartSeries,
     // app.html) -- d.hasValue is only ever true when at least one platform's
     // daily row actually reported it, so ROAS honestly stays empty otherwise
@@ -213,10 +252,24 @@ function orvMetricsForCategory(categoryId, platform) {
   });
 }
 
-function orvFormatMetric(metricId, rawVal) {
+function orvFormatMetric(metricId, rawVal, currency) {
   var m = ORIVEN_METRICS[metricId];
   if (!m) return '—';
   if (m.format === 'text') return rawVal || '—';
   var fmt = ORIVEN_METRIC_FORMATS[m.format] || ORIVEN_METRIC_FORMATS.number;
-  return fmt(rawVal);
+  return fmt(rawVal, currency);
+}
+
+// Labels, tooltips and category names in the user's language (settings.js
+// t(); keys added by js/campaignsI18n.js). English registry text is the
+// fallback, so a missing key never shows a raw id.
+function _orvMetricT(key, fallback) {
+  if (typeof t === 'function') { var s = t(key); if (s && s !== key) return s; }
+  return fallback;
+}
+function orvMetricLabel(metricId) { var m = ORIVEN_METRICS[metricId]; return m ? _orvMetricT('cmpM_' + metricId, m.label) : metricId; }
+function orvMetricTooltip(metricId) { var m = ORIVEN_METRICS[metricId]; return m ? _orvMetricT('cmpT_' + metricId, m.tooltip || '') : ''; }
+function orvMetricCategoryLabel(catId) {
+  for (var i = 0; i < ORIVEN_METRIC_CATEGORIES.length; i++) if (ORIVEN_METRIC_CATEGORIES[i].id === catId) return _orvMetricT('cmpCat_' + catId, ORIVEN_METRIC_CATEGORIES[i].label);
+  return catId;
 }

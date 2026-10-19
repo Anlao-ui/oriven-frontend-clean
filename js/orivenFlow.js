@@ -88,15 +88,18 @@
     pkg = pkg || {};
     var s = strat(pkg);
     if (p === 'google') {
+      // Only a budget the user confirmed counts — stored as {amount} by
+      // setBudget (services/campaignSpec.js budgetOf). A bare number or text
+      // is the AI's suggestion, shown but never published as-is.
       var br = s.budgetRecommendation;
-      var raw = (br && typeof br === 'object') ? (br.amount != null ? br.amount : br.daily) : br;
+      var raw = (br && typeof br === 'object') ? (br.amount != null ? br.amount : br.daily) : null;
       var n = Number(raw);
       var ok = raw !== undefined && raw !== null && raw !== '' && isFinite(n) && n >= 1;
       return {
         platform: p, required: true, min: 1,
         amount: ok ? n : null, applied: ok ? n : null, source: ok ? 'set' : 'missing',
         currency: (br && typeof br === 'object' && br.currency) || null,
-        suggestion: ok ? null : looseNumber(typeof br === 'string' ? br : null)
+        suggestion: ok ? null : (typeof br === 'number' ? looseNumber(br) : looseNumber(typeof br === 'string' ? br : null))
       };
     }
     var rule = BUDGET_RULE[p] || BUDGET_RULE.meta;
@@ -109,9 +112,9 @@
     }
     return { platform: p, required: true, min: rule.min, amount: set, applied: set, source: 'set', low: set < rule.min, raw: o.budget };
   };
-  P.setBudget = function (pkg, p, amount) {
+  P.setBudget = function (pkg, p, amount, minOverride) {
     var n = Number(amount);
-    var min = p === 'google' ? 1 : (BUDGET_RULE[p] || BUDGET_RULE.meta).min;
+    var min = typeof minOverride === 'number' ? minOverride : (p === 'google' ? 1 : (BUDGET_RULE[p] || BUDGET_RULE.meta).min);
     if (!isFinite(n) || n < min) return false;
     n = Math.round(n * 100) / 100;
     if (p === 'google') {
@@ -163,8 +166,12 @@
     var vc = (pkg.visualConcepts || []).filter(function (v) { return v && v.generatedImageUrl; })[0];
     return o.imageUrl || (p === 'meta' ? o.uploadedImageUrl : null) || (vc && vc.generatedImageUrl) || null;
   };
+  function hasVideo(pkg, p) { var o = platObj(pkg, p); return !!(o.videoUrl || (Array.isArray(pkg.videoAssets) && pkg.videoAssets.some(function (v) { return v && v.videoUrl; }))); }
   P.needsImage = function (pkg, p) {
     if (p === 'google') return googleType(pkg) !== 'SEARCH';
+    // TikTok ads are videos; without a cover image the publish route uses a
+    // frame of the video (services/campaignSpec.js tiktok_cover_auto).
+    if (p === 'tiktok' && hasVideo(pkg || {}, p)) return false;
     if (p === 'pinterest') {
       var pin = platObj(pkg, 'pinterest');
       if (pin.creativeType === 'video' && ((pkg.videoAssets && pkg.videoAssets[0] && pkg.videoAssets[0].videoUrl) || pin.videoUrl)) return false;
@@ -327,9 +334,17 @@
     var c = costs();
     var msg = err && err.message ? String(err.message) : '';
     var noun = phase === 'publish' ? 'campaign' : 'build';
+    // Publishing: no readable answer (dropped connection, a proxy's HTML
+    // error page, a crash before the server replied) is NOT proof that
+    // nothing was created. Only the status check decides.
+    // (input.sending: only a campaign publish request — not pause/resume/budget calls)
+    var sending = phase === 'publish' && !!input.sending;
+    if (sending && ((err && !st) || (st >= 500 && !code))) {
+      return { kind: 'unconfirmed', title: 'Publishing result not confirmed', message: 'OrivenAI didn’t get a clear answer, so it can’t confirm whether the campaign was created. Check the status before trying again — nothing will be sent twice.', retry: false, edit: false, unconfirmed: true };
+    }
     if (err && !st) {
       if (/could not reach/i.test(msg) || /failed to fetch|network/i.test(msg) || (typeof navigator !== 'undefined' && navigator.onLine === false)) {
-        if (phase === 'publish') return { kind: 'network', title: 'Result not confirmed', message: 'The connection dropped before the platform replied, so OrivenAI can’t confirm whether the campaign was created. Check your ad account before trying again.', retry: false, edit: false };
+        if (sending) return { kind: 'unconfirmed', title: 'Publishing result not confirmed', message: 'The connection dropped before OrivenAI replied, so it can’t confirm whether the campaign was created. Check the status before trying again — nothing will be sent twice.', retry: false, edit: false, unconfirmed: true };
         return { kind: 'network', title: 'Can’t reach OrivenAI', message: 'Check your internet connection, then try again. Nothing was ' + (phase === 'publish' ? 'published.' : 'built.'), retry: true, edit: true };
       }
       if (/unexpected response|not found|starting/i.test(msg)) {
@@ -376,8 +391,25 @@
     if (st === 429) {
       return { kind: 'rate_limit', title: 'Too many requests', message: 'Wait a minute, then try again.', retry: true, edit: true };
     }
+    // Publishing: a timeout or a gateway error is NOT proof that nothing was
+    // created — the server may still be finishing. Only the status check
+    // decides (POST /api/publish/{p}/status); never an automatic retry.
+    if (sending && (st === 408 || st === 504 || ((st === 502 || st === 503) && !code))) {
+      return { kind: 'unconfirmed', title: 'Publishing result not confirmed', message: 'OrivenAI didn’t get an answer in time, so it can’t confirm whether the campaign was created. Check the status before trying again — nothing will be sent twice.', retry: false, edit: false, unconfirmed: true };
+    }
     if (st === 408 || st === 504) {
       return { kind: 'timeout', title: 'This took too long', message: 'The ' + noun + ' didn’t finish in time. Try again.', retry: true, edit: true };
+    }
+    if (phase === 'publish' && code === 'PUBLISH_LEDGER_UNAVAILABLE') {
+      return { kind: 'backend', title: 'Publishing is temporarily unavailable', message: safeServerText(b.error) || 'Nothing was sent. Try again in a few minutes.', retry: true, edit: false };
+    }
+    if (phase === 'publish' && (code === 'ALREADY_PUBLISHED' || code === 'RESULT_UNCONFIRMED')) {
+      return { kind: code === 'ALREADY_PUBLISHED' ? 'already' : 'unconfirmed', title: code === 'ALREADY_PUBLISHED' ? 'Already published' : 'Publishing result not confirmed', message: safeServerText(b.error) || '', retry: false, edit: false, unconfirmed: code === 'RESULT_UNCONFIRMED' };
+    }
+    if (phase === 'publish' && code === 'PUBLISH_FAILED') {
+      var rb = b.rollback || {};
+      return { kind: 'failed', title: 'The platform didn’t accept the campaign', message: safeServerText(b.error) || 'Publishing didn’t complete.',
+        detail: rb.complete === false ? (rb.leftovers + ' paused object' + (rb.leftovers === 1 ? '' : 's') + ' couldn’t be removed from the platform. Nothing spends, but check your ad account and delete them.') : 'Everything that had been created was removed again.', retry: true, edit: true, confirmedFailure: true };
     }
     if (code === 'CONTENT_POLICY' || code === 'POLICY_VIOLATION' || /policy/i.test(String(b.error || '')) && st === 400 && phase === 'generate') {
       return { kind: 'policy', title: 'This request can’t be built', message: 'The description includes content OrivenAI can’t create ads for. Edit the description and try again.', retry: false, edit: true };
@@ -748,6 +780,9 @@
     d.el.querySelector('form').addEventListener('submit', function (e) { e.preventDefault(); save(d); });
     F.account(p).then(function (acct) {
       if (acct && acct.currency) { var u = d.el.querySelector('#ofdBudgetUnit'); if (u) u.textContent = acct.currency + ' per day'; }
+      // TikTok's fixed minimum (more than 20) applies to USD/EUR/GBP accounts;
+      // for other currencies TikTok sets its own minimum, checked when publishing.
+      if (p === 'tiktok' && acct && acct.currency && ['USD', 'EUR', 'GBP'].indexOf(String(acct.currency).toUpperCase()) === -1) { rule = { min: 1 }; input.setAttribute('min', '1'); }
     });
     function save(api) {
       var v = parseFloat(String(input.value).replace(',', '.'));
@@ -757,7 +792,7 @@
       if (msg) { errEl.textContent = msg; errEl.hidden = false; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
       var fresh = F.findCampaign(campId);
       var pkg = clone(fresh.pkg);
-      P.setBudget(pkg, p, v);
+      P.setBudget(pkg, p, v, rule.min);
       F.savePackage(campId, pkg);
       api.close(true);
       toast('Daily budget saved: ' + v + ' per day.', 'ok');
@@ -1061,7 +1096,7 @@
       // runs alongside the account check; its errors block publishing here,
       // and the server validates the same spec again before any API call.
       var OS = window.OrivenSpec;
-      var specP = OS ? OS.load(pkg, p, { refresh: true }) : Promise.resolve(null);
+      var specP = OS ? OS.load(pkg, p, { refresh: true, campId: o.campId }) : Promise.resolve(null);
       Promise.all([F.account(p), specP]).then(function (both) {
         var acct = both[0], sr = both[1];
         var tg = P.targeting(pkg, p);
@@ -1074,7 +1109,12 @@
         // The server spec checks destination (incl. the business website),
         // budget, creative and copy itself, so it replaces the local checks.
         if (sr && !sr.error) issues = [];
-        var blocked = issues.length > 0 || specErrs.length > 0 || specFail || !(acct && acct.connected) || !(acct && (acct.name || acct.id));
+        // The server's record of this campaign's publish wins over everything.
+        var pubState = sr && sr.publish && sr.publish.state;
+        var pubBlock = pubState === 'published' ? 'This campaign was already published' + (sr.publish.campaignId ? ' (campaign ' + sr.publish.campaignId + ')' : '') + '. Publishing it again would create a duplicate.'
+          : pubState === 'unconfirmed' ? 'An earlier publish of this campaign was never confirmed. Check its status in Launch first.'
+          : pubState === 'publishing' ? 'This campaign is being published right now.' : '';
+        var blocked = !!pubBlock || issues.length > 0 || specErrs.length > 0 || specFail || !(acct && acct.connected) || !(acct && (acct.name || acct.id));
         var dl =
           '<dl class="ofe-dl ofd-summary">' +
             '<div class="ofe-row"><dt>Campaign</dt><dd>' + esc(o.name || pkg.campaignName || 'Untitled campaign') + '</dd></div>' +
@@ -1085,7 +1125,8 @@
             (specRows ? specRows.map(function (r) { return '<div class="ofe-row"><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('')
               : '<div class="ofe-row"><dt>Targeting</dt><dd>' + esc(tg.sent) + '</dd></div>' + (o.structure ? '<div class="ofe-row"><dt>Structure</dt><dd>' + esc(o.structure) + '</dd></div>' : '')) +
           '</dl>';
-        var warn = issues.length
+        var warn = pubBlock ? '<p class="ofd-err" role="alert">' + esc(pubBlock) + '</p>'
+          : issues.length
           ? '<p class="ofd-err" role="alert">Fix before publishing: ' + esc(issues.map(function (i) { return i.label; }).join(', ')) + '.</p>'
           : specFail ? '<p class="ofd-err" role="alert">' + esc((sr && sr.error) || 'Campaign settings couldn’t be checked.') + ' Nothing was sent.</p>'
           : specErrs.length ? '<div class="ofd-err" role="alert"><p>Fix before publishing:</p><ul class="ofd-errlist">' + specErrs.map(function (i) { return '<li>' + esc(i.message) + '</li>'; }).join('') + '</ul></div>'
@@ -1175,7 +1216,7 @@
       return { ok: true, title: live ? 'Live on ' + PLAT[p] : 'Created on ' + PLAT[p],
         message: live ? PROVIDER[p] + ' confirmed the campaign is live.' : PROVIDER[p] + ' created the campaign paused. Activate it on ' + PROVIDER[p] + ' when you’re ready.' };
     }
-    var model = F.error({ status: res && res.status, body: res && res.data, error: err, phase: 'publish' });
-    return { ok: false, title: model.title, message: model.message, retry: model.retry, kind: model.kind };
+    var model = F.error({ status: res && res.status, body: res && res.data, error: err, phase: 'publish', sending: true });
+    return { ok: false, title: model.title, message: model.message, detail: model.detail || '', retry: model.retry, kind: model.kind, unconfirmed: !!model.unconfirmed, confirmedFailure: !!model.confirmedFailure };
   };
 })();

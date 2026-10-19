@@ -35,7 +35,7 @@ module.exports = {
   <li><strong>Create campaigns from a brief.</strong> <a href="/create">Create</a> turns a short description into a campaign in the chosen platform’s structure, with ad copy, targeting and image or video creative.</li>
   <li><strong>Launch when you’re ready.</strong> <a href="/launch">Launch</a> checks each draft and publishes it to your own ad account through the platform’s official API.</li>
   <li><strong>Follow results.</strong> <a href="/campaigns">Campaigns</a> shows performance per platform.</li>
-  <li><strong>Automate routine decisions.</strong> <a href="/autopilot">Autopilot</a> applies rules you set, such as pausing a campaign or adjusting its budget, on Google Ads and Meta Ads.</li>
+  <li><strong>Automate routine decisions.</strong> <a href="/autopilot">Automations</a> schedule campaigns and apply rules you set, such as pausing a campaign or adjusting its budget within your limits.</li>
 </ul>
 
 <h2>Supported ad platforms</h2>

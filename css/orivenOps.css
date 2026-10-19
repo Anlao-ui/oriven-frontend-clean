@@ -583,94 +583,6 @@ body {
 .ov-pl-none { --pl: var(--ow-muted-tone); --pl-ink: #fff; }
 .op-btn-sm { min-height: 30px; padding: 0 11px; font-size: 12.5px; }
 
-/* ── Home: summary blocks ──────────────────────────────────────── */
-.ov-hd { flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 16px; padding-right: 64px; }
-.ov-hd-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.ov-hd-act { display: flex; gap: 8px; flex-shrink: 0; }
-.ov-home .ow-home-title { font-size: clamp(26px, 3.6vh, 36px); }
-.ov-home .ow-home-status { font-size: 14.5px; }
-.ov-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
-.ov-b { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-radius: 16px; background: var(--ow-card); padding: 14px 16px; overflow: hidden; color: var(--ow-ink); }
-body:not(.dark-mode) .ov-b { box-shadow: 0 0 0 1px var(--ow-line); }
-.ov-bh { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-shrink: 0; }
-.ov-bh h2 { font-size: 13px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; margin: 0; color: var(--ow-sub); }
-.ov-bh-meta { font-size: 12px; color: var(--ow-amber); font-weight: 600; }
-.ov-bb { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
-.ov-scroll { overflow-y: auto; scrollbar-width: thin; }
-.ov-meta { font-size: 12px; color: var(--ow-sub); margin: 0; }
-.ov-more { align-self: flex-start; margin-top: auto; }
-.ov-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
-.ov-empty p { margin: 0; font-size: 13px; color: var(--ow-sub); line-height: 1.5; }
-.ov-calm { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ow-sub); margin: 0; }
-.ov-calm i { width: 8px; height: 8px; border-radius: 50%; background: var(--ow-lime-fill); flex-shrink: 0; }
-.op-figs-ov { margin: 0 0 4px; border-top: 0; }
-.op-figs-ov .op-fig { padding-top: 6px; padding-bottom: 8px; }
-.op-figs-ov .op-fig-v { font-size: clamp(22px, 3.2vh, 30px); }
-.ov-split { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.ov-split li { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto 64px; align-items: center; gap: 10px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
-.ov-split-bar { height: 8px; border-radius: 4px; background: var(--ow-raise-2); overflow: hidden; }
-.ov-split-bar i { display: block; height: 100%; border-radius: 4px; background: var(--pl); }
-body.dark-mode .ov-split-bar i.ov-pl-tiktok { background: var(--tk-cyan); }
-.ov-split-c { text-align: right; }
-.ov-att { border-top: 3px solid var(--ow-amber); }
-.ov-att-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.ov-att-i { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "w b" "m b"; gap: 2px 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--ow-raise-2); }
-.ov-att-i.ov-sev-high { box-shadow: inset 3px 0 0 var(--ow-coral); }
-.ov-att-i.ov-sev-medium { box-shadow: inset 3px 0 0 var(--ow-amber); }
-.ov-att-w { grid-area: w; display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; }
-.ov-att-w b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ov-att-m { grid-area: m; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.ov-att-b { grid-area: b; }
-.ov-ws-needs { margin-top: 6px; border-top: 1px solid var(--ow-line); padding-top: 4px; }
-.ov-ws-needs .ow-row { padding: 9px 6px; }
-.ov-ws-needs .ow-calm { display: none; }
-.ov-thumbs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 8px; flex: 1; min-height: 0; }
-.ov-thumb { position: relative; overflow: hidden; border-radius: 12px; border: 0; padding: 0; cursor: pointer; background: var(--pl); color: var(--pl-ink); min-height: 64px; font: inherit; text-align: left; transition: transform var(--ow-fast) var(--ow-ease); }
-.ov-thumb:hover { transform: translateY(-2px); }
-.ov-thumb:focus-visible { outline: 2px solid var(--ow-lime-fill); outline-offset: 2px; }
-.ov-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.ov-thumb-mark { position: absolute; top: 8px; left: 10px; font-size: 22px; font-weight: 800; opacity: .45; }
-.ov-thumb-t { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 10px 8px; display: flex; flex-direction: column; gap: 1px; background: linear-gradient(transparent, rgba(0,0,0,.75)); color: #fff; }
-.ov-thumb-t span { font-size: 12.5px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ov-thumb-t em { font-style: normal; font-size: 11px; opacity: .88; }
-.ov-auto-h { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; margin: 0; letter-spacing: -.015em; }
-.ov-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ow-muted-tone); }
-.ov-dot.is-on { background: var(--ow-lime-fill); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ow-lime-fill) 22%, transparent); }
-.ov-auto-ap { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 12px; border: 0; cursor: pointer; font: inherit; color: var(--ow-ink); background: color-mix(in srgb, var(--ow-amber) 16%, transparent); }
-.ov-auto-ap b { font-size: 13px; color: var(--ow-amber); }
-.ov-auto-ap span { font-size: 12px; color: var(--ow-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ov-auto-ap:focus-visible { outline: 2px solid var(--ow-lime-fill); outline-offset: 2px; }
-.ov-auto-last { margin-top: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@media (min-width: 1101px) {
-  .ov-perf { grid-column: 1 / 8; grid-row: 1; }
-  .ov-att { grid-column: 8 / 13; grid-row: 1 / 3; }
-  .ov-camps { grid-column: 1 / 5; grid-row: 2; }
-  .ov-auto { grid-column: 5 / 8; grid-row: 2; }
-}
-@media (max-width: 1100px) {
-  .ov-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ov-perf, .ov-att { grid-column: 1 / -1; }
-  .ov-thumbs { grid-auto-rows: 120px; }
-}
-@media (max-width: 700px) {
-  .ov-grid { grid-template-columns: minmax(0, 1fr); }
-  .ov-hd { flex-direction: column; align-items: flex-start; padding-right: 0; }
-  .ov-split li { grid-template-columns: 80px minmax(0, 1fr) auto; }
-  .ov-split-c { display: none; }
-}
-
-/* Per-platform rows in two columns on desktop so all four fit the block. */
-@media (min-width: 1101px) {
-  .ov-split { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 20px; }
-  .ov-split li { grid-template-columns: 82px minmax(0, 1fr) auto; }
-  .ov-split-c { display: none; }
-  .ov-perf .ov-bb { overflow-y: auto; scrollbar-width: thin; }
-}
-@media (min-width: 1101px) and (max-height: 820px) {
-  .op-figs-ov .op-fig-v { font-size: 22px; }
-  .op-figs-ov .op-fig-n { display: none; }
-}
-
 /* ── Business · Planning ──────────────────────────────────────────── */
 .pl-body { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
 .pl-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -760,27 +672,6 @@ body.dark-mode .op-chip.pl-st-progress { color: #F5C26B; background: rgba(245, 1
   .pl-bud { display: block; overflow-x: auto; }
 }
 
-/* ── Business overview: the plan strip under the six cards ───────────
-   The overview canvas is deliberately always dark, so this is too. */
-.bic-plan { width: 100%; max-width: 1160px; margin: 18px auto 0; box-sizing: border-box; border-radius: 16px; border: 1px solid rgba(255,255,255,.08); background: #121311; color: #F2F2EE; padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 10px; }
-.bic-plan:empty { display: none; }
-.bps-hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.bps-t { font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #F2F2EE; display: inline-flex; align-items: center; gap: 8px; }
-.bps-t::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: #B6FF3B; }
-.bps-open { background: none; border: 0; padding: 4px 0; font: inherit; font-size: 13px; font-weight: 600; color: #B6FF3B; cursor: pointer; }
-.bps-open:hover span { display: inline-block; transform: translateX(2px); }
-.bps-open:focus-visible, .bps-list button:focus-visible { outline: 2px solid #B6FF3B; outline-offset: 2px; border-radius: 6px; }
-.bps-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.bps-list button { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 10px; text-align: left; padding: 9px 12px; border-radius: 10px; border: 0; background: rgba(255,255,255,.05); color: #F2F2EE; font: inherit; cursor: pointer; }
-.bps-list button:hover { background: rgba(255,255,255,.09); }
-.bps-d { grid-row: 1 / 3; align-self: center; font-size: 12px; font-weight: 700; color: #B6FF3B; font-variant-numeric: tabular-nums; min-width: 46px; }
-.bps-n { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bps-m { font-size: 12px; color: rgba(242,242,238,.62); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bps-empty { margin: 0; font-size: 13px; color: rgba(242,242,238,.7); line-height: 1.5; }
-@media (max-width: 900px) { .bps-list { grid-template-columns: minmax(0, 1fr); } }
-
-/* Home: plan items open the plan. */
-
 /* ── Sidebar: optional workflow steps ────────────────────────────────
    Orientation only — every page stays open in any order. A thin line
    with a dot per step in the rail's left gutter (inside the nav's 8px
@@ -825,115 +716,10 @@ body.orv-wf-off .orv-sb .orv-ni[data-wf]::before { display: none !important; }
 #bizPanelPlanning .pl-soon { color: #F5C26B; }
 #bizPanelPlanning .pl-cal-bar.ov-pl-none { background: #3A3D36; color: #F0F0F0; }
 
-/* ── Control Center (step 01, the start page) ────────────────────────
-   Part of the deliberately always-dark Business canvas, so it uses the
-   dark --ow-* values (set with #bizPanelPlanning above) in both themes.
-   One screen on desktop: a compact header, then what is happening and
-   what needs you, then a one-row plan strip and the six business
-   modules as short control cards. Natural page scroll remains for
-   shorter viewports and long content — nothing is clipped. */
+/* Control Center page frame. Everything inside it: css/controlCenter.css. */
 #page-business-brain.biz-canvas-active .orv-page-wrap-biz { height: auto; min-height: 100vh; max-width: var(--orv-page-maxw, 1400px); padding-top: var(--orv-page-top, 24px); padding-bottom: 20px; }
 #page-business-brain.biz-canvas-active #bizPanelOverview { flex: none; display: block; }
 #bizCanvas.biz-canvas { justify-content: flex-start; align-items: stretch; gap: 0; }
-.cc-root { max-width: none; align-items: stretch; gap: 12px; }
-.cc-hd { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-@media (min-width: 1025px) { .cc-hd { padding-right: 56px; } }
-.cc-id.bic-identity { flex-direction: row; align-items: center; text-align: left; gap: 14px; min-width: 0; }
-.cc-id .bic-identity-icon-wrap { width: 44px; margin: 0; flex-shrink: 0; }
-.cc-id-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.cc-eyebrow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #B6FF3B; }
-.cc-eyebrow .bic-identity-name { font-size: inherit; font-weight: 700; color: rgba(255, 255, 255, .72); line-height: inherit; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40ch; }
-.cc-sep { color: rgba(255, 255, 255, .3); }
-.cc-greet { margin: 0; font-size: var(--orv-title-size, 26px); font-weight: 700; letter-spacing: -.025em; line-height: 1.15; color: #fff; display: inline; }
-.cc-status { margin: 0; font-size: 13.5px; color: rgba(255, 255, 255, .7); }
-/* Industry/traits are in the Business module; the header stays one line tall. */
-.cc-facts { display: none; }
-.cc-act { display: flex; gap: 8px; flex-shrink: 0; }
-.cc-home { display: block; }
-/* One card language for the whole page: the business cards' dark surface. */
-#bizPanelOverview .ov-b { background: rgba(255, 255, 255, .025); border: 1px solid rgba(255, 255, 255, .08); border-radius: var(--orv-card-r, 16px); box-shadow: none; padding: 12px 16px; }
-#bizPanelOverview .ov-att { border-top: 3px solid var(--ow-amber); }
-#bizPanelOverview .ov-split-bar i.ov-pl-tiktok { background: var(--tk-cyan); }
-#bizPanelOverview .ov-bh { margin-bottom: 6px; }
-#bizPanelOverview .ov-bh h2 { font-size: 12px; letter-spacing: .06em; }
-#bizPanelOverview .op-figs-ov .op-fig { padding-top: 2px; padding-bottom: 6px; }
-#bizPanelOverview .op-figs-ov .op-fig-v { font-size: 24px; }
-#bizPanelOverview .op-fig-n { display: none; }
-#bizPanelOverview .ov-meta { font-size: 11.5px; }
-.cc-grid { grid-template-rows: auto auto; align-items: stretch; gap: 12px; }
-/* Needs you: a short list (three + "View all"), no inner scroller. */
-.cc-grid .ov-att .ov-bb { max-height: none; overflow: visible; }
-#bizPanelOverview .ov-att-i { padding: 8px 10px; }
-#bizPanelOverview .ov-ws-needs { margin-top: 4px; }
-#bizPanelOverview .ov-ws-needs .ow-row { padding: 7px 6px; }
-@media (min-width: 1101px) {
-  .cc-grid .ov-perf { grid-column: 1 / 8; grid-row: 1; }
-  .cc-grid .ov-att { grid-column: 8 / 13; grid-row: 1 / 3; }
-  .cc-grid .ov-camps { grid-column: 1 / 5; grid-row: 2; }
-  .cc-grid .ov-auto { grid-column: 5 / 8; grid-row: 2; }
-}
-/* Campaigns: counts + three compact rows. */
-.ov-cstate { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0 0 6px; font-size: 12px; color: var(--ow-sub); }
-.ov-cstate b { color: var(--ow-ink); font-size: 13px; font-variant-numeric: tabular-nums; }
-.ov-clist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.ov-crow { width: 100%; display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 5px 6px; border: 0; border-radius: 9px; background: transparent; color: var(--ow-ink); font: inherit; text-align: left; cursor: pointer; }
-.ov-crow:hover { background: var(--ow-raise-2); }
-.ov-crow:focus-visible { outline: 2px solid var(--ow-lime-fill); outline-offset: 1px; }
-.ov-cthumb { width: 28px; height: 28px; border-radius: 7px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--pl); color: var(--pl-ink); font-size: 12px; font-weight: 800; }
-.ov-cthumb img { width: 100%; height: 100%; object-fit: cover; }
-.ov-cthumb.ov-pl-tiktok { box-shadow: inset 2px 0 0 var(--tk-cyan), inset -2px 0 0 var(--tk-red); }
-.ov-cname { display: flex; flex-direction: column; min-width: 0; }
-.ov-cname b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ov-cname em { font-style: normal; font-size: 11.5px; color: var(--ow-sub); }
-.ov-cgo { color: var(--ow-sub); }
-/* Autopilot: three lines at most. */
-#bizPanelOverview .ov-auto-h { font-size: 16px; }
-#bizPanelOverview .ov-auto-ap { padding: 7px 10px; }
-#bizPanelOverview .ov-auto-last { margin-top: 4px; }
-/* Advertising plan: one row — label, what is next, open. */
-.cc-root .bic-plan { max-width: none; margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; align-items: center; gap: 8px 18px; padding: 10px 16px; border-radius: var(--orv-card-r, 16px); }
-.cc-root .bic-plan .bps-hd { display: contents; }
-.cc-root .bic-plan .bps-t { grid-column: 1; }
-.cc-root .bic-plan .bps-open { grid-column: 3; grid-row: 1; }
-.cc-root .bic-plan .bps-list, .cc-root .bic-plan .bps-empty { grid-column: 2; grid-row: 1; }
-.cc-root .bic-plan .bps-list button { padding: 6px 10px; }
-.cc-root .bic-plan .bps-m { display: none; }
-.cc-root .bic-plan .bps-empty { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* Business context: six short control modules (icon, name, one line). */
-.cc-ctx { display: flex; flex-direction: column; gap: 8px; }
-.cc-sec-hd { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; }
-.cc-sec-hd h2 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #F2F2EE; }
-.cc-sec-hd p { margin: 0; font-size: 12px; color: rgba(242, 242, 238, .6); }
-.cc-ctx .bic-grid { max-width: none; gap: 10px; }
-.cc-ctx .bic-card { height: auto; min-height: 0; padding: 12px 16px 13px; gap: 6px; border-radius: 14px; }
-.cc-ctx .bic-card:hover { transform: translateY(-2px); }
-.cc-ctx .bic-card-swatches, .cc-ctx .bic-card .bic-card-line.bic-card-line-muted { display: none; }
-.cc-ctx .bic-card-line { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; -webkit-line-clamp: unset; }
-@media (max-width: 1100px) {
-  .cc-hd { flex-direction: column; align-items: flex-start; }
-  .cc-root .bic-plan { grid-template-columns: minmax(0, 1fr) max-content; }
-  .cc-root .bic-plan .bps-list, .cc-root .bic-plan .bps-empty { grid-column: 1 / -1; grid-row: 2; white-space: normal; }
-  .cc-root .bic-plan .bps-open { grid-column: 2; }
-}
-@media (max-width: 760px) {
-  .cc-act { width: 100%; }
-  .cc-act .op-btn { flex: 1; }
-}
-/* Short desktop viewports (1366×768, 1280×800): tighter rhythm, same type. */
-@media (min-width: 1101px) and (max-height: 820px) {
-  #page-business-brain.biz-canvas-active .orv-page-wrap-biz { padding-top: 14px; padding-bottom: 12px; }
-  .cc-root, .cc-grid { gap: 10px; }
-  #bizPanelOverview .ov-b { padding: 10px 14px; }
-  #bizPanelOverview .ov-bh { margin-bottom: 4px; }
-  #bizPanelOverview .op-figs-ov .op-fig-v { font-size: 21px; }
-  #bizPanelOverview .ov-split { gap: 4px 20px; }
-  #bizPanelOverview .ov-att-i { padding: 6px 10px; }
-  #bizPanelOverview .ov-ws-needs .ow-row { padding: 5px 6px; }
-  .ov-crow { padding: 3px 6px; }
-  .cc-root .bic-plan { padding: 8px 14px; }
-  .cc-ctx { gap: 6px; }
-  .cc-ctx .bic-card { padding: 10px 14px 11px; gap: 4px; }
-}
 
 /* ══════════════════════════════════════════════════════════════════
    ONE PAGE SYSTEM for the six pages (Control Center, Research, Create,
@@ -1127,21 +913,6 @@ body.dark-mode #page-autopilot .ap-shell-hdr-wrap { border-bottom-color: rgba(25
   #page-create .cr2-hero { margin-bottom: 10px; }
 }
 
-/* ── Control Center: calmer (final polish) ─────────────────────────
-   No header actions (chat and Create are always one click away); fewer
-   lines per item; a little more air between the four bands. */
-#bizPanelOverview .ov-ws-needs .ow-row-sub { display: none; }
-#bizPanelOverview .ov-ws-needs .ow-row { padding: 8px 6px; }
-#bizPanelOverview .ov-att-i { padding: 9px 12px; }
-#bizPanelOverview .ov-auto-ap b { font-weight: 600; }
-.cc-root { gap: 18px; }
-.cc-grid { gap: 14px; }
-.cc-hd { padding-bottom: 2px; }
-@media (min-width: 1101px) and (max-height: 820px) {
-  .cc-root { gap: 12px; }
-  .cc-grid { gap: 12px; }
-}
-
 /* ── Research: balanced workspace, action at the bottom (final polish) ── */
 #page-research .orv-page-wrap { max-width: 1240px; margin-left: auto; margin-right: auto; }
 @media (min-width: 1025px) {
@@ -1205,37 +976,6 @@ body.dark-mode .orv-cancel-modal-err { color: #FF8A80; background: rgba(255, 82,
 body.dark-mode .sub-cancel-chip { color: #FFC857; background: rgba(255, 171, 0, .1); border-color: rgba(255, 171, 0, .28); }
 #planResumeBtn:disabled { opacity: .6; cursor: progress; }
 #planResumeBtn { padding: 4px 10px; min-height: 28px; font-size: 12px; }
-
-/* ── Control Center hierarchy (V8) ──
-   Three tiers on the same layout (no size/spacing change, so the page keeps
-   its one-screen fit):
-   1. Primary — Performance, Needs you: brightest surface and headings.
-   2. Secondary — Campaigns, Autopilot: quieter surface, softer headings.
-   3. Reference — Advertising plan strip, Business context: no fill, neutral
-      borders, colour only in the module icons. */
-#bizPanelOverview .ov-perf, #bizPanelOverview .ov-att { background: rgba(255, 255, 255, .042); border-color: rgba(255, 255, 255, .11); }
-#bizPanelOverview .ov-perf .ov-bh h2, #bizPanelOverview .ov-att .ov-bh h2 { color: #F2F2EE; }
-#bizPanelOverview .ov-camps, #bizPanelOverview .ov-auto { background: rgba(255, 255, 255, .016); border-color: rgba(255, 255, 255, .065); }
-#bizPanelOverview .ov-camps .ov-bh h2, #bizPanelOverview .ov-auto .ov-bh h2 { color: rgba(242, 242, 238, .58); }
-#bizPanelOverview .ov-camps .ov-bh .op-link, #bizPanelOverview .ov-auto .ov-bh .op-link { font-weight: 500; color: rgba(242, 242, 238, .7); }
-#bizPanelOverview .ov-crow .ov-cname b { font-weight: 600; color: rgba(242, 242, 238, .88); }
-#bizPanelOverview .ov-auto-h { font-size: 15px; font-weight: 600; color: rgba(242, 242, 238, .9); }
-#bizPanelOverview .ov-auto-ap { background: color-mix(in srgb, var(--ow-amber) 10%, transparent); }
-#bizPanelOverview .ov-auto-ap b { font-weight: 600; }
-.cc-root .bic-plan { background: transparent; border: 1px solid rgba(255, 255, 255, .07); box-shadow: none; }
-.cc-root .bic-plan .bps-t { color: rgba(242, 242, 238, .62); font-weight: 600; }
-.cc-root .bic-plan .bps-t::before { opacity: .7; }
-.cc-root .bic-plan .bps-empty { color: rgba(242, 242, 238, .55); }
-.cc-root .bic-plan .bps-open { font-weight: 500; }
-.cc-sec-hd h2 { color: rgba(242, 242, 238, .55); font-weight: 600; }
-.cc-ctx .bic-card { background: transparent; border-color: rgba(255, 255, 255, .07); border-top-width: 1px; }
-.cc-ctx .bic-card:hover { border-color: rgba(255, 255, 255, .16); box-shadow: none; }
-.cc-ctx .bic-card-label { font-size: 12px; font-weight: 600; letter-spacing: .05em; color: rgba(242, 242, 238, .74); }
-.cc-ctx .bic-card-icon { width: 18px; height: 18px; opacity: .85; }
-.cc-ctx .bic-card-line { color: rgba(242, 242, 238, .62); }
-.cc-ctx .bic-card-empty .bic-card-line { color: rgba(242, 242, 238, .42); }
-@media (prefers-reduced-motion: reduce) { .cc-ctx .bic-card:hover { transform: none; } }
-#bizPanelOverview .ov-att { border-top: 3px solid var(--ow-amber); }
 
 /* ── 02 Research: the whole composition (title, workspace, side panel) sits
    middle-upper in the viewport before a result exists (V8). Two flex spacers
@@ -1328,41 +1068,7 @@ body.dark-mode .con-card-open:hover { color: #fff; }
 .con-card-status-unknown { opacity: .75; }
 @media (prefers-reduced-motion: reduce) { .con-card-open:hover { transform: none; } }
 
-/* ── Control Center: Business context as six control modules (V9) ──
-   Each module carries its existing semantic colour across the whole card
-   (tinted surface, border, icon tile, arrow), so the six read as distinct,
-   clickable controls rather than quiet dashboard cards. The Control Center
-   canvas is dark in both app themes, so these are tuned for that surface;
-   text stays light for contrast (checked ≥ 4.5:1). */
-.cc-ctx .bic-card-business    { --mc: #B6FF3B; }
-.cc-ctx .bic-card-brand       { --mc: #A78BFA; }
-.cc-ctx .bic-card-audience    { --mc: #FACC15; }
-.cc-ctx .bic-card-competition { --mc: #60A5FA; }
-.cc-ctx .bic-card-advertising { --mc: #34D399; }
-.cc-ctx .bic-card-knowledge   { --mc: #F97316; }
-.cc-ctx .bic-card {
-  cursor: pointer;
-  background: linear-gradient(140deg, color-mix(in srgb, var(--mc) 15%, #0d0e0c) 0%, color-mix(in srgb, var(--mc) 6%, #0d0e0c) 100%);
-  border: 1px solid color-mix(in srgb, var(--mc) 34%, transparent);
-  border-top-width: 1px;
-  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
-}
-.cc-ctx .bic-card:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--mc) 72%, transparent);
-  background: linear-gradient(140deg, color-mix(in srgb, var(--mc) 21%, #0d0e0c) 0%, color-mix(in srgb, var(--mc) 9%, #0d0e0c) 100%);
-  box-shadow: 0 10px 26px -8px color-mix(in srgb, var(--mc) 40%, transparent);
-}
-.cc-ctx .bic-card:active { transform: translateY(0); }
-.cc-ctx .bic-card:focus-visible { outline: 2px solid var(--mc); outline-offset: 2px; }
-.cc-ctx .bic-card-icon { width: 30px; height: 30px; padding: 6px; border-radius: 9px; opacity: 1; color: var(--mc); background: color-mix(in srgb, var(--mc) 18%, transparent); box-sizing: border-box; }
-.cc-ctx .bic-card-label { font-size: 12.5px; font-weight: 700; letter-spacing: .05em; color: #F5F5F0; }
-.cc-ctx .bic-card-line { color: rgba(242, 242, 238, .74); }
-.cc-ctx .bic-card-empty .bic-card-line { color: rgba(242, 242, 238, .58); }
-.cc-ctx .bic-card-chevron { width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center; color: var(--mc); background: color-mix(in srgb, var(--mc) 14%, transparent); transition: transform .16s ease, background .16s ease; }
-.cc-ctx .bic-card:hover .bic-card-chevron { color: #0A0A0A; background: var(--mc); transform: translateX(2px); }
-.cc-ctx .bic-card-top { gap: 10px; }
-.cc-sec-hd p { display: block; margin: 0; font-size: 12px; color: rgba(242, 242, 238, .6); }
+/* ── Business context: real per-platform status (_bicPlatStrip). ── */
 /* Advertising: real per-platform status on the card itself. */
 .bic-card-plats { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: rgba(242, 242, 238, .78); }
 .bic-plat-chip { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
@@ -1373,11 +1079,6 @@ body.dark-mode .con-card-open:hover { color: #fff; }
 .bic-plat-unknown i { border: 1.5px dashed rgba(242, 242, 238, .4); }
 .bic-plat-unknown { color: rgba(242, 242, 238, .5); }
 .bic-plat-status.bic-plat-unknown { opacity: .7; }
-@media (prefers-reduced-motion: reduce) {
-  .cc-ctx .bic-card, .cc-ctx .bic-card-chevron { transition: none; }
-  .cc-ctx .bic-card:hover, .cc-ctx .bic-card:hover .bic-card-chevron { transform: none; }
-}
-
 /* ── Plan entitlements (V10) ──
    Premium surfaces only for plans that include them (orivenOps.js
    applyEntitlements; server enforces the same table). */

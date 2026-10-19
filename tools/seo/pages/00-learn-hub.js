@@ -51,7 +51,7 @@ module.exports = {
     <a href="/pricing"><strong>Pricing</strong><span>Free, Starter, Creator and Professional plans.</span></a>
   </div></div>
   <div class="sp-hub-group"><h2 id="g7">From the OrivenAI blog</h2><div class="sp-related">
-    <a href="/blog/what-you-can-do-with-oriven"><strong>What you can do with OrivenAI</strong><span>A walkthrough of Control Center, Research, Create, Launch, Campaigns and Autopilot.</span></a>
+    <a href="/blog/what-you-can-do-with-oriven"><strong>What you can do with OrivenAI</strong><span>A walkthrough of Control Center, Research, Create, Launch, Campaigns and Automations.</span></a>
     <a href="/blog/why-we-built-oriven"><strong>Why we built OrivenAI</strong><span>The problem we saw, and the principles behind the product.</span></a>
     <a href="/blog/oriven-ai-is-now-live"><strong>OrivenAI is now live</strong><span>What OrivenAI is, what it does today, and how to get started.</span></a>
   </div></div>
@@ -59,11 +59,11 @@ module.exports = {
   faqTitle: 'About OrivenAI',
   faq: [
     ['What is OrivenAI?', `<p>${F.canonical}</p>`],
-    ['How does OrivenAI work?', '<p>You describe your business once in Control Center. In Create, you write a short brief and choose a platform; OrivenAI builds a campaign in that platform’s structure, with ad copy, targeting and image or video creative. Launch shows whether each draft is ready and publishes it to your own ad account when you choose. Campaigns tracks results, and Autopilot can apply rules you set.</p>'],
+    ['How does OrivenAI work?', '<p>You describe your business once in Control Center. In Create, you write a short brief and choose a platform; OrivenAI builds a campaign in that platform’s structure, with ad copy, targeting and image or video creative. Launch shows whether each draft is ready and publishes it to your own ad account when you choose. Campaigns tracks results, and Automations can schedule campaigns and apply rules you set.</p>'],
     ['Who is OrivenAI designed for?', '<p>Small businesses, founders and marketers who run ads on Google, Meta, TikTok or Pinterest and want to research, create, launch and follow campaigns in one place, without stitching together separate tools.</p>'],
     ['Can OrivenAI create image and video ads?', `<p>Yes. Create generates image ads and video ads in each platform’s formats. A complete image ad uses ${F.costs.imageAd} credits and a video ad ${F.costs.videoAd} credits.</p>`],
-    ['Which ad platforms does OrivenAI support?', '<p>Google Ads (Search, Performance Max and Demand Gen), Meta Ads (Facebook and Instagram), TikTok Ads and Pinterest Ads. Campaigns are created and published through each platform’s official API. Autopilot rules currently act on Google Ads and Meta Ads.</p>'],
-    ['Does OrivenAI have a free plan?', '<p>Yes. The Free plan includes Control Center, Create, Launch and Campaigns, with 10 credits a day that reset daily and one campaign build a day. Starter (€9.95/month) adds Research and Autopilot with 1,000 credits a month; Creator (€19.95) adds Oriven Chat; Professional (€34.95) adds notifications and Priority Support.</p>'],
+    ['Which ad platforms does OrivenAI support?', '<p>Google Ads (Search, Performance Max and Demand Gen), Meta Ads (Facebook and Instagram), TikTok Ads and Pinterest Ads. Campaigns are created and published through each platform’s official API. Automations work with campaigns in your connected ad accounts; what they can change depends on the platform and how the campaign is set up.</p>'],
+    ['Does OrivenAI have a free plan?', '<p>Yes. The Free plan includes Control Center, Create, Launch and Campaigns, with 10 credits a day that reset daily and one campaign build a day. Starter (€9.95/month) adds Research and Automations with 1,000 credits a month; Creator (€19.95) adds Oriven Chat; Professional (€34.95) adds notifications and Priority Support.</p>'],
     ['Is OrivenAI related to other companies named “Oriven”?', '<p>OrivenAI is the AI advertising platform at orivenai.com, operated from the Netherlands (KVK 42039993). It isn’t affiliated with other businesses that use the name Oriven.</p>'],
   ],
   related: [],

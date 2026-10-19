@@ -120,7 +120,7 @@ async function main() {
     const freeExcluded = await page.locator('#lpPricingGrid .ov-pc').nth(0).locator('.ov-pc-feat-excluded').evaluateAll((els) => els.map((e) => e.textContent.trim()));
     check('13. Free excludes Create Ads', freeExcluded.some((t) => /create ads/i.test(t)), JSON.stringify(freeExcluded));
     check('14. Free excludes Research', freeExcluded.some((t) => /research/i.test(t)), JSON.stringify(freeExcluded));
-    check('15. Free excludes Autopilot', freeExcluded.some((t) => /autopilot/i.test(t)), JSON.stringify(freeExcluded));
+    check('15. Free excludes Automations', freeExcluded.some((t) => /automations/i.test(t)), JSON.stringify(freeExcluded));
     check('16. Free excludes ORIVEN Chat', freeExcluded.some((t) => /oriven chat/i.test(t)), JSON.stringify(freeExcluded));
     const freeIncluded = await page.locator('#lpPricingGrid .ov-pc').nth(0).locator('.ov-pc-list li:not(.ov-pc-feat-excluded)').evaluateAll((els) => els.map((e) => e.textContent.trim()));
     check('17. Free includes Launch/Campaigns/Business (truthful, ungated routes)', ['Launch', 'Campaigns', 'Business'].every((f) => freeIncluded.includes(f)), JSON.stringify(freeIncluded));

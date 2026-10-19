@@ -57,7 +57,7 @@ function runContractTest() {
   check('A4. Backend FEATURE_COSTS.ai_chat is 5', fc.ai_chat === 5, String(fc.ai_chat));
   check('A5. Backend FEATURE_COSTS.ai_analysis (Research) is 25', fc.ai_analysis === 25, String(fc.ai_analysis));
   check('A6. Backend FEATURE_COSTS.website_analysis (Business Intelligence) is 30', fc.website_analysis === 30, String(fc.website_analysis));
-  check('A7. Backend FEATURE_COSTS.autopilot is 25', fc.autopilot === 25, String(fc.autopilot));
+  check('A7. Backend FEATURE_COSTS.automation is 50 (once per new automation)', fc.automation === 50, String(fc.automation));
 
   check('A8. Frontend CREDIT_COSTS.imageAdComplete (100) === campaign_generation+image_generation', cc.imageAdComplete === fc.campaign_generation + fc.image_generation, cc.imageAdComplete + ' vs ' + (fc.campaign_generation + fc.image_generation));
   check('A9. Frontend CREDIT_COSTS.videoAdComplete (225) === campaign_generation+video_generation', cc.videoAdComplete === fc.campaign_generation + fc.video_generation, cc.videoAdComplete + ' vs ' + (fc.campaign_generation + fc.video_generation));
@@ -66,7 +66,7 @@ function runContractTest() {
   check('A12. Frontend CREDIT_COSTS.chat === backend ai_chat', cc.chat === fc.ai_chat);
   check('A13. Frontend CREDIT_COSTS.research === backend ai_analysis', cc.research === fc.ai_analysis);
   check('A14. Frontend CREDIT_COSTS.business === backend website_analysis', cc.business === fc.website_analysis);
-  check('A15. Frontend CREDIT_COSTS.autopilot === backend autopilot', cc.autopilot === fc.autopilot);
+  check('A15. Frontend CREDIT_COSTS.automation === backend automation', cc.automation === fc.automation);
   check('A16. Frontend CREDIT_COSTS.campaign === backend campaign_generation', cc.campaign === fc.campaign_generation);
 
   // Plan allowances — re-derive from creditManager.js and cross-check plans.js
@@ -116,7 +116,7 @@ function mockCreditStatus(plan, balance, monthlyAllowance) {
     balance, monthlyAllowance, usedThisMonth: Math.max(0, monthlyAllowance - balance),
     plan, resetDate: new Date(Date.now() + 20 * 86400000).toISOString(), lifetimeUsed: 500,
     campaignsGenerated: 3, savedAssets: 7,
-    featureCosts: { ai_chat: 5, ai_analysis: 25, campaign_improvement: 10, competitor_analysis: 15, brand_voice: 20, campaign_generation: 25, website_analysis: 30, image_generation: 75, video_generation: 200, autopilot: 25 },
+    featureCosts: { ai_chat: 5, ai_analysis: 25, campaign_improvement: 10, competitor_analysis: 15, brand_voice: 20, campaign_generation: 25, website_analysis: 30, image_generation: 75, video_generation: 200, automation: 50 },
     autopilotUsage: { used: 0, limit: plan === 'professional' ? null : 0 },
   };
 }
@@ -167,7 +167,7 @@ async function main() {
     // Credit Usage card (the 6-row canonical list)
     const usageLabels = await page.locator('.sub-usage-list .sub-usage-lbl').evaluateAll((els) => els.map((e) => e.textContent));
     check('B.' + plan + '.5 Credits card shows Image Ad / Video Ad (not "credits for copy")', usageLabels.includes('Image Ad') && usageLabels.includes('Video Ad'), JSON.stringify(usageLabels));
-    check('B.' + plan + '.6 Credits card shows Research, ORIVEN Chat, Website Intelligence, Autopilot Execution', ['Research', 'ORIVEN Chat', 'Website Intelligence', 'Autopilot Execution'].every((l) => usageLabels.includes(l)), JSON.stringify(usageLabels));
+    check('B.' + plan + '.6 Credits card shows Research, ORIVEN Chat, Website Intelligence, New automation', ['Research', 'ORIVEN Chat', 'Website Intelligence', 'New automation'].every((l) => usageLabels.includes(l)), JSON.stringify(usageLabels));
     const usageVals = await page.locator('.sub-usage-list .sub-usage-val').evaluateAll((els) => els.map((e) => e.textContent));
     const imageAdRow = usageVals[usageLabels.indexOf('Image Ad')];
     const videoAdRow = usageVals[usageLabels.indexOf('Video Ad')];
@@ -299,18 +299,20 @@ async function main() {
     await page.evaluate((mock) => { window.__mockCreditStatus = mock; }, mockCreditStatus('creator', 1500, 2500));
     await page.evaluate(() => { if (typeof navigate === 'function') navigate('create'); });
     await page.waitForTimeout(400);
-    await page.evaluate(() => { if (typeof _aicRenderCost === 'function') _aicRenderCost(); });
+    // Create 2.0: the cost is shown on the Review step for the exact
+    // platform + format chosen (one total; the breakdown sits beside it).
+    await page.evaluate(() => { if (window.orvCreate) orvCreate.setState({ step: 6, maxStep: 6, productName: 'Wallet', description: 'Leather wallet', platform: 'meta', goal: 'Sales', format: 'image', groups: 1, adsPerGroup: 1 }); });
     await page.waitForTimeout(400);
     await page.screenshot({ path: SHOT_DIR + '/11_create_image_cost.png' });
     const imgCostText = await page.locator('#aicGenCost').textContent();
-    check('E1. Create Image mode shows "Image Ad — 100 credits" (not split copy/image)', /Image Ad.*100 credits/.test(imgCostText), imgCostText);
+    check('E1. Create shows 100 credits for one image ad', /\b100 credits\b/.test(imgCostText), imgCostText);
     check('E1b. No "credits for copy" language', !/for copy/i.test(imgCostText), imgCostText);
 
-    await page.evaluate(() => { if (typeof ov3SetMode === 'function') ov3SetMode('videos'); });
+    await page.evaluate(() => { if (window.orvCreate) orvCreate.setState({ platform: 'tiktok', goal: 'Traffic', format: 'video' }); });
     await page.waitForTimeout(400);
     await page.screenshot({ path: SHOT_DIR + '/12_create_video_cost.png' });
     const vidCostText = await page.locator('#aicGenCost').textContent();
-    check('E2. Create Video mode shows "Video Ad — 225 credits"', /Video Ad.*225 credits/.test(vidCostText), vidCostText);
+    check('E2. Create shows 225 credits for one video ad', /\b225 credits\b/.test(vidCostText), vidCostText);
     await page.close();
   }
 
@@ -334,9 +336,9 @@ async function main() {
     const hasCanonicalRef = await page.evaluate(() => {
       // Confirm the fixed line reads from CREDIT_COSTS.autopilot rather than
       // a hardcoded literal, without needing a real rule row to render it.
-      return typeof CREDIT_COSTS !== 'undefined' && CREDIT_COSTS.autopilot === 25;
+      return typeof CREDIT_COSTS !== 'undefined' && CREDIT_COSTS.automation === 50;
     });
-    check('G1. Autopilot execution cost constant is 25, reachable from CREDIT_COSTS', hasCanonicalRef);
+    check('G1. New-automation cost constant is 50 (once), reachable from CREDIT_COSTS', hasCanonicalRef);
     await page.screenshot({ path: SHOT_DIR + '/14_autopilot_cost.png' });
     await page.close();
   }

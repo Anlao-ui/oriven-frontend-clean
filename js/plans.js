@@ -52,7 +52,9 @@ var CREDIT_COSTS = {
   imageAd:      75,  // == image_generation
   videoAd:      200, // == video_generation
   intelligence: 25,  // == ai_analysis
-  autopilot:    25,
+  automation:   50,  // == FEATURE_COSTS.automation: once per new automation;
+                      // its checks and campaign changes are free
+  autopilot:    50,  // legacy alias of automation (older call sites)
   chat:         5,   // == ai_chat
   research:     25,  // == ai_analysis (Research shares the same server-side
                       // rate as Campaign Insights — confirmed against
@@ -94,7 +96,7 @@ var ORIVEN_CREDIT_ACTIONS = [
   { key: "research",    label: "Research",             cost: CREDIT_COSTS.research },
   { key: "chat",        label: "ORIVEN Chat",          cost: CREDIT_COSTS.chat },
   { key: "business",    label: "Website Intelligence", cost: CREDIT_COSTS.business },
-  { key: "autopilot",   label: "Autopilot Execution",  cost: CREDIT_COSTS.autopilot }
+  { key: "automation",  label: "New automation",       cost: CREDIT_COSTS.automation }
 ];
 
 // ── Homepage + Pricing Polish Pass — shared feature-comparison categories.
@@ -127,7 +129,7 @@ var ORIVEN_FEATURE_CATEGORIES = [
   { key: "performance",      label: "Campaigns" },
   { key: "creativeMgmt",     label: "Creative management" },
   { key: "business",         label: "Business" },
-  { key: "autopilot",        label: "Autopilot",         costKey: "autopilot",       costUnit: "execution" },
+  { key: "autopilot",        label: "Automations",       costKey: "automation",      costUnit: "automation" },
   { key: "prioritySupport",  label: "Priority Support" }
 ];
 
@@ -147,10 +149,10 @@ var ORIVEN_FEATURE_CATEGORIES = [
 //
 // autopilotLimit: null = Autopilot not included (Free); Infinity = no separate
 // monthly execution cap beyond credits (creditManager.PLAN_AUTOPILOT_LIMITS).
-var ORIVEN_WORKFLOW_STEPS = ["Control Center", "Research", "Create", "Launch", "Campaigns", "Autopilot"];
+var ORIVEN_WORKFLOW_STEPS = ["Control Center", "Research", "Create", "Launch", "Campaigns", "Automations"];
 var ORIVEN_ENTITLEMENT_LABELS = {
   research: "Research",
-  autopilot: "Autopilot",
+  autopilot: "Automations",
   orivenChat: "Oriven Chat",
   notifications: "Notifications",
   prioritySupport: "Priority Support"
@@ -179,7 +181,7 @@ var ORIVEN_PLANS = {
     },
     features: ["Control Center", "Create", "Launch", "Campaigns"],
     allFeatures: ["Control Center", "Create", "Launch", "Campaigns"],
-    excludedFeatures: ["Research", "Autopilot"]
+    excludedFeatures: ["Research", "Automations"]
   },
 
   starter: {
@@ -200,7 +202,7 @@ var ORIVEN_PLANS = {
       creativeMgmt: true, business: true, research: true, autopilot: true,
       notifications: false, prioritySupport: false
     },
-    features: ["Full advertising workflow", "Research", "Autopilot"],
+    features: ["Full advertising workflow", "Research", "Automations"],
     excludedFeatures: ["Oriven Chat", "Notifications", "Priority Support"]
   },
 

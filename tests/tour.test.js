@@ -39,7 +39,7 @@ const STEPS = tsb.window.orvTour && tsb.window.orvTour.STEPS;
 const nav = [...app.matchAll(/<button class="orv-ni" data-orv-page="([a-z]+)" data-wf="(\d)"[^>]*onclick="_orvNav\('([a-z]+)','([a-z-]+)',this\)"/g)].slice(0, 6).map((m) => [m[3], m[4]]);
 check('tour has six steps', STEPS && STEPS.length === 6);
 check('each step opens the same page as the sidebar item 01–06', JSON.stringify(STEPS.map((s) => s.nav)) === JSON.stringify(nav), { tour: STEPS.map((s) => s.nav), sidebar: nav });
-check('step names: Control Center, Research, Create, Launch, Campaigns, Autopilot', STEPS.map((s) => s.name).join() === 'Control Center,Research,Create,Launch,Campaigns,Autopilot');
+check('step names: Control Center, Research, Create, Launch, Campaigns, Automations', STEPS.map((s) => s.name).join() === 'Control Center,Research,Create,Launch,Campaigns,Automations');
 STEPS.forEach((s) => check(`${s.name}: page exists in app.html (#${s.nav[1]})`, app.includes('id="' + s.nav[1] + '"')));
 
 console.log('\nC. Wiring and safety');
@@ -58,7 +58,7 @@ check('plan card hides the page only when the tour preview is off', /body:not\(\
 check('during the preview the plan card is hidden and the page shown', /body\.orv-tour-preview \.page\.orv-gated > \.orv-gate \{ display: none !important; \}/.test(ops) && /body\.orv-tour-preview \.page\.orv-gated\.active \{ display: block; \}/.test(ops));
 check('the tour turns the preview on with the app inert, and off again when it closes', /classList\.toggle\('orv-tour-preview', !!on\)/.test(tourJs) && /app\.setAttribute\('inert', ''\)/.test(tourJs) && /app\.removeAttribute\('inert'\)/.test(tourJs) && /preview\(true\)/.test(tourJs) && /preview\(false\)/.test(tourJs) && /document\.body\.classList\.remove\('orv-tour-preview'\)/.test(tourJs));
 check('orivenOps.js still decides who is gated (plan entitlements untouched)', /page\.classList\.toggle\('orv-gated', locked\)/.test(read('js/orivenOps.js')));
-check('Autopilot: only the server’s plan answer (403 AUTOPILOT_NOT_AVAILABLE) renders as the empty state; other failures still say so', /res\.status === 403 && res\.data && res\.data\.code === 'AUTOPILOT_NOT_AVAILABLE'/.test(read('js/autopilot.js')) && /if \(!res\.ok && !noPlan\) \{ throw new Error/.test(read('js/autopilot.js')) && /Could not load your automations\./.test(read('js/autopilot.js')));
+check('Automations: only the server’s plan answer (403 AUTOPILOT_NOT_AVAILABLE) renders as the intro; other failures still say so', /A\.locked = r\[0\]\.status === 403 && !!\(r\[0\]\.data && r\[0\]\.data\.code === 'AUTOPILOT_NOT_AVAILABLE'\)/.test(read('js/automations.js')) && /A\.error = A\.locked \? null : errText\(r\[0\]\)/.test(read('js/automations.js')));
 
 console.log('\nE. Create fits the screen');
 const fit = read('css/create-fit.css');

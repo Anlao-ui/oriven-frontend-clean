@@ -322,7 +322,8 @@
       })).then(function (rows) {
         var snap = { range: r, at: Date.now(), platforms: {}, campaigns: [], connected: conn };
         OPS.PLATFORMS.forEach(function (pl) {
-          snap.platforms[pl] = { connected: st[pl].connected, account: st[pl].account, currency: st[pl].account && st[pl].account.currency || null, totals: null, campaigns: [], error: null };
+          // statusError: the status check itself failed — unknown, not "not connected".
+          snap.platforms[pl] = { connected: st[pl].connected, statusError: !!st[pl].error, account: st[pl].account, currency: st[pl].account && st[pl].account.currency || null, totals: null, campaigns: [], error: null };
         });
         rows.forEach(function (x) {
           var P = snap.platforms[x.p];
@@ -612,7 +613,7 @@
           why: 'Budget may produce more results where conversions are cheaper — but each platform counts conversions with its own attribution.',
           evidence: [ev(CAP[lo].short + ' CPA', loT.cpa, undefined, 'money', snap.platforms[lo].currency), ev(CAP[hi].short + ' CPA', hiT.cpa, undefined, 'money', snap.platforms[hi].currency)],
           rule: 'Platform-reported CPA differs by 1.5× or more, each with at least ' + th.minConversions * 3 + ' conversions.',
-          recommendation: 'Review the budget allocation in Autopilot before moving spend; confirm with your own sales data where possible.',
+          recommendation: 'Review the budget allocation before moving spend; confirm with your own sales data where possible.',
           actions: [{ type: 'optimizeBudget', label: 'Review budget allocation' }] });
       }
     }
@@ -1019,7 +1020,7 @@
   // ════════════════════════════════════════════════════════════════
   var GATES = {
     research: { key: 'research', pageId: 'page-research', step: '02', title: 'Research', lead: 'Understand the market before you create.' },
-    autopilot: { key: 'autopilot', pageId: 'page-autopilot', step: '06', title: 'Autopilot', lead: 'Monitor your advertising and act on supported changes with rules you set.' }
+    autopilot: { key: 'autopilot', pageId: 'page-autopilot', step: '06', title: 'Automations', lead: 'Schedule campaigns, monitor performance and manage advertising actions with rule-based automations.' }
   };
   function planId() {
     var st = (typeof window._dbSubscriptionStatus !== 'undefined') ? window._dbSubscriptionStatus : null;

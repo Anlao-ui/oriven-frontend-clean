@@ -38,7 +38,7 @@ module.exports = {
   <li><strong>One business profile, used everywhere.</strong> You describe your business once in Control Center, and Research, Create and every other step build on it.</li>
   <li><strong>Respect each platform’s structure.</strong> Create builds campaigns the way each ad platform expects, instead of forcing one format on all of them.</li>
   <li><strong>You stay in control of what goes live.</strong> Launch shows whether a draft is ready, and campaigns are created paused in your own ad account so you review them before they run.</li>
-  <li><strong>Automation within limits you set.</strong> Autopilot only applies rules you define, on Google Ads and Meta Ads.</li>
+  <li><strong>Automation within limits you set.</strong> Automations only apply the schedules and rules you define, within the limits you set.</li>
   <li><strong>No invented numbers.</strong> Performance comes from the ad platforms themselves, predictions are labeled as predictions, and Research shows its sources.</li>
 </ul>
 

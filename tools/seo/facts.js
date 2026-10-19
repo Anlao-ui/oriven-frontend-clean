@@ -4,9 +4,9 @@
 // Every value here is taken from the product code, not from marketing
 // wishes. Keep in sync with:
 //   js/plans.js (ORIVEN_PLANS, CREDIT_COSTS) — prices, credits, costs
-//   backend services/planEntitlements.js     — Research/Autopilot from Starter
+//   backend services/planEntitlements.js     — Research/Automations from Starter
 //   backend server.js (/api/publish/{google,meta,tiktok,pinterest})
-//   backend server.js AUTOPILOT_* + the Autopilot UI ("At most once per day")
+//   backend services/automations/* (engine, limits, platforms) + js/automations.js
 // When a fact changes, change it here and re-run: node tools/seo/build.js
 // ════════════════════════════════════════════════════════════════
 
@@ -23,7 +23,7 @@ module.exports = {
   // The canonical one-line description, used verbatim wherever OrivenAI is defined.
   canonical: 'OrivenAI is an AI advertising platform that helps businesses research their market, create image and video ads, launch campaigns on Google Ads, Meta Ads, TikTok Ads and Pinterest Ads, and automate routine campaign decisions with rules they control.',
   tagline: 'The AI advertising platform. Research, create, launch and automate ads from one workspace.',
-  freePlanLine: 'The Free plan includes Control Center, Create, Launch and Campaigns. Upgrade only when you need Research, Autopilot or more credits.',
+  freePlanLine: 'The Free plan includes Control Center, Create, Launch and Campaigns. Upgrade only when you need Research, Automations or more credits.',
   plans,
   costs: { imageAd: 100, videoAd: 225, autopilotRun: 25, researchRun: 25 },
   platforms: ['Google Ads', 'Meta Ads (Facebook and Instagram)', 'TikTok Ads', 'Pinterest Ads'],
@@ -57,7 +57,7 @@ module.exports = {
     '/pricing': { name: 'Pricing', description: 'Free, Starter, Creator and Professional plans, with what each includes.' },
     '/faq': { name: 'FAQ', description: 'Answers about credits, plans and connecting ad accounts.' },
     '/blog': { name: 'Blog', description: 'Product updates and the story behind OrivenAI.' },
-    '/autopilot': { name: 'Autopilot', description: 'Rules that pause, resume or adjust Google and Meta campaigns within limits you set.' },
+    '/autopilot': { name: 'Automations', description: 'Schedules and rules that switch campaigns on or off, pause, resume or adjust budgets within limits you set.' },
     '/create': { name: 'Create', description: 'Turn a brief into platform-ready image or video ad creative and campaign structure.' },
     '/launch': { name: 'Launch', description: 'Review each draft’s readiness and publish when you choose.' },
     '/research': { name: 'Research', description: 'Investigate a market, competitors and audiences, with sources.' },

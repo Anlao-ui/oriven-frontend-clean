@@ -1,0 +1,281 @@
+/* ══════════════════════════════════════════════════════════════════
+   CONTROL CENTER — operations + context rail
+   Markup: app.html (#bizPanelOverview). Words: js/controlCenter.js.
+   Painters: orivenWorkspace.js (header, Needs you), orivenOpsPages.js
+   (performance, signals, campaigns, automations), orivenPlan.js (plan),
+   app.html _bicRender (business context).
+
+   The Business canvas is dark in both app themes, so these tokens are
+   the dark values only. Spacing scale 4/8/12/16/24/32; one card radius;
+   lime is kept for the primary action, links and "done" — amber means a
+   warning, coral an error. Nothing here invents a value: empty and
+   unknown states are styled as such, never as zero.
+   ══════════════════════════════════════════════════════════════════ */
+#bizPanelOverview {
+  --ccx-ink: #F2F2EE;
+  --ccx-sub: rgba(242, 242, 238, .66);
+  --ccx-muted: rgba(242, 242, 238, .46);
+  --ccx-line: rgba(255, 255, 255, .08);
+  --ccx-line-2: rgba(255, 255, 255, .14);
+  --ccx-surface: rgba(255, 255, 255, .028);
+  --ccx-raise: rgba(255, 255, 255, .045);
+  --ccx-raise-2: rgba(255, 255, 255, .075);
+  --ccx-lime: #B6FF3B;
+  --ccx-amber: #F5B84A;
+  --ccx-coral: #FF7A6E;
+  --ccx-r: 14px;
+  --ccx-r-sm: 10px;
+  --ccx-gap: 16px;
+  --ccx-pad: 18px 20px;
+  --ccx-ease: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* ── Frame ───────────────────────────────────────────────────────── */
+#bizPanelOverview .cc-root { max-width: none; width: 100%; align-items: stretch; gap: 24px; color: var(--ccx-ink); }
+#bizPanelOverview .cc-home { display: block; }
+.ccx-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ccx-gap); align-items: start; }
+.ccx-main, .ccx-rail { display: flex; flex-direction: column; gap: var(--ccx-gap); min-width: 0; }
+.ccx-ops { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--ccx-gap); }
+.ccx-ops > .ccx-card { grid-column: 1 / -1; }
+
+/* ── Header ──────────────────────────────────────────────────────── */
+.ccx-hd { display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; }
+.ccx-hd .cc-id.bic-identity { flex-direction: row; align-items: center; text-align: left; gap: 16px; min-width: 0; }
+.ccx-hd .bic-identity-icon-wrap { width: 56px; margin: 0; flex-shrink: 0; }
+.ccx-hd .cc-id-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ccx-hd .cc-eyebrow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ccx-muted); }
+.ccx-hd .cc-eyebrow .bic-identity-name { font-size: inherit; font-weight: 600; line-height: inherit; color: var(--ccx-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40ch; }
+.ccx-hd .cc-sep { color: var(--ccx-muted); }
+.ccx-hd .cc-greet { display: block; margin: 0; font-size: clamp(24px, 2.1vw, 30px); font-weight: 700; letter-spacing: -.025em; line-height: 1.15; color: #fff; text-wrap: balance; }
+.ccx-hd .cc-status { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ccx-sub); font-variant-numeric: tabular-nums; }
+.ccx-hd .cc-facts { display: none; }
+.ccx-hd-act { display: flex; gap: 8px; flex-shrink: 0; }
+/* Leave room for the notification bell (OW.placeBell) on desktop. */
+@media (min-width: 1025px) { .ccx-hd { padding-right: 56px; } }
+
+/* Business icon: the real logo, else the business initial (else a neutral
+   glyph) — no invented placeholder logo. Upload/Generate stay on hover. */
+#bizHubIcon.biz-hub-icon-initial { border-style: solid; border-color: var(--ccx-line-2); background: var(--ccx-raise-2); }
+.biz-icon-initial { font-size: 22px; font-weight: 700; line-height: 1; color: var(--ccx-ink); letter-spacing: -.02em; }
+.biz-icon-glyph { display: flex; color: var(--ccx-muted); }
+#bizHubIcon:focus-visible { outline: 2px solid var(--ccx-lime); outline-offset: 3px; }
+.ccx-hd .biz-icon-link { font-size: 8px; }
+
+/* ── Cards ───────────────────────────────────────────────────────── */
+.ccx-card { display: flex; flex-direction: column; gap: 12px; min-width: 0; box-sizing: border-box; padding: var(--ccx-pad); border-radius: var(--ccx-r); border: 1px solid var(--ccx-line); background: var(--ccx-surface); color: var(--ccx-ink); }
+.ccx-card[hidden] { display: none; }
+.ccx-card-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; }
+.ccx-h { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -.005em; line-height: 1.3; color: var(--ccx-ink); }
+.ccx-sub { margin: -6px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ccx-sub); }
+.ccx-meta { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ccx-sub); }
+.ccx-muted { color: var(--ccx-muted); }
+.ccx-bb { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.ccx-line { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; font-weight: 500; line-height: 1.4; color: var(--ccx-ink); }
+.ccx-quiet { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ccx-sub); }
+.ccx-note { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--ccx-sub); }
+.ccx-note-warn { padding: 8px 12px; border-radius: var(--ccx-r-sm); color: #F7CB7A; background: rgba(245, 184, 74, .08); border: 1px solid rgba(245, 184, 74, .22); }
+.ccx-sr { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Reserved height while a block's first read is in flight — no jump, and
+   no zero shown before there is data. */
+#bizPanelOverview .ccx-bb:empty { min-height: 88px; border-radius: var(--ccx-r-sm); background: linear-gradient(90deg, var(--ccx-raise) 0%, var(--ccx-raise-2) 50%, var(--ccx-raise) 100%); background-size: 200% 100%; animation: ccxShimmer 1.4s linear infinite; }
+#bizPanelOverview #ovAuto.ccx-bb:empty { min-height: 44px; }
+@keyframes ccxShimmer { to { background-position: -200% 0; } }
+
+/* ── Buttons & links ─────────────────────────────────────────────── */
+.ccx-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 0 16px; border-radius: var(--ccx-r-sm); border: 1px solid transparent; font: inherit; font-size: 13.5px; font-weight: 600; line-height: 1; white-space: nowrap; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
+.ccx-btn-primary { background: var(--ccx-lime); color: #0A0A0A; }
+.ccx-btn-primary:hover { background: #C8FF6A; }
+.ccx-btn-ghost { background: transparent; color: var(--ccx-ink); border-color: var(--ccx-line-2); }
+.ccx-btn-ghost:hover { background: var(--ccx-raise); border-color: rgba(255, 255, 255, .22); }
+.ccx-link { background: none; border: 0; padding: 2px 0; font: inherit; font-size: 13px; font-weight: 500; color: var(--ccx-lime); cursor: pointer; white-space: nowrap; text-underline-offset: 3px; }
+.ccx-link:hover { text-decoration: underline; }
+.ccx-btn:focus-visible, .ccx-link:focus-visible, .ccx-nrow:focus-visible, .ccx-crow:focus-visible, .ccx-mod:focus-visible,
+.ccx-step-btn:focus-visible, .ccx-pill-btn:focus-visible, #bizPanelOverview .bps-list button:focus-visible { outline: 2px solid var(--ccx-lime); outline-offset: 2px; }
+.ccx-go { color: var(--ccx-muted); flex-shrink: 0; transition: transform .16s var(--ccx-ease), color .16s ease; }
+
+/* ── Needs you ───────────────────────────────────────────────────── */
+.ccx-needs #ovAttCount:empty { display: none; }
+.ccx-needs #ovAttCount { padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ccx-sub); background: var(--ccx-raise-2); }
+.ccx-needs.is-risk #ovAttCount { color: #FFB1A9; background: rgba(255, 122, 110, .14); }
+.ccx-needs.is-warn #ovAttCount { color: #F7CB7A; background: rgba(245, 184, 74, .13); }
+.ccx-calm { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--ccx-sub); }
+.ccx-calm[hidden] { display: none; }
+.ccx-calm::before { content: ''; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--ccx-lime); opacity: .8; }
+.ccx-calm.is-loading::before { background: var(--ccx-muted); animation: ccxPulse 1.2s ease-in-out infinite alternate; }
+.ccx-calm i { display: none; }
+@keyframes ccxPulse { from { opacity: .35; } to { opacity: 1; } }
+.ccx-nlist { display: flex; flex-direction: column; gap: 6px; }
+.ccx-nlist:not(:has(.ccx-nrow:not([hidden]))) { display: none; }
+.ccx-nsrc { display: contents; }
+.ccx-nrow { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border-radius: var(--ccx-r-sm); border: 0; background: var(--ccx-raise); color: var(--ccx-ink); font: inherit; text-align: left; cursor: pointer; transition: background-color .15s ease; }
+.ccx-nrow[hidden] { display: none; }
+.ccx-nrow:hover { background: var(--ccx-raise-2); }
+.ccx-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ccx-muted); }
+.ccx-t-risk .ccx-dot { background: var(--ccx-coral); }
+.ccx-t-attention .ccx-dot { background: var(--ccx-amber); }
+.ccx-t-ready .ccx-dot { background: var(--ccx-lime); }
+.ccx-nbody { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ccx-ntitle { font-size: 13.5px; font-weight: 500; line-height: 1.4; color: var(--ccx-ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.ccx-ntitle .op-plat { vertical-align: -1px; }
+.ccx-nsub { font-size: 12px; color: var(--ccx-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ccx-nact { font-size: 12.5px; font-weight: 500; color: var(--ccx-lime); white-space: nowrap; }
+.ccx-more { align-self: flex-start; }
+.ccx-more[hidden] { display: none; }
+
+/* ── Performance ─────────────────────────────────────────────────── */
+#bizPanelOverview .ccx-figs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; border: 0; }
+#bizPanelOverview .ccx-figs .op-fig { padding: 12px 14px; border: 0; border-radius: var(--ccx-r-sm); background: var(--ccx-raise); }
+#bizPanelOverview .ccx-figs .op-fig + .op-fig { padding-left: 14px; border-left: 0; }
+#bizPanelOverview .ccx-figs .op-fig-l { font-size: 12px; color: var(--ccx-sub); }
+#bizPanelOverview .ccx-figs .op-fig-v { font-size: 24px; font-weight: 600; color: var(--ccx-ink); }
+#bizPanelOverview .ccx-figs .op-fig-d { font-size: 12px; }
+#bizPanelOverview .ccx-figs .op-fig-n { display: block; font-size: 11.5px; line-height: 1.4; color: var(--ccx-muted); }
+.ccx-split { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px 24px; }
+.ccx-split li { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; font-size: 12.5px; color: var(--ccx-sub); font-variant-numeric: tabular-nums; }
+.ccx-split-bar { height: 6px; border-radius: 3px; background: var(--ccx-raise-2); overflow: hidden; }
+.ccx-split-bar i { display: block; height: 100%; border-radius: 3px; background: var(--pl); }
+.ccx-split-bar i.ov-pl-tiktok { background: var(--tk-cyan, #25F4EE); }
+.ccx-split-v { color: var(--ccx-ink); font-weight: 500; text-align: right; }
+.ccx-split-c { min-width: 64px; text-align: right; color: var(--ccx-muted); }
+.ccx-state { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 4px 0; }
+.ccx-state p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--ccx-sub); max-width: 60ch; }
+.ccx-state .ccx-state-t { font-size: 15px; font-weight: 600; color: var(--ccx-ink); }
+.ccx-state .ccx-btn { margin-top: 4px; }
+.ccx-state-warn p { color: #F7CB7A; }
+.ccx-state-sm { padding: 0; }
+
+/* ── Campaigns ───────────────────────────────────────────────────── */
+.ccx-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ccx-stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 12px 14px; border-radius: var(--ccx-r-sm); background: var(--ccx-raise); }
+.ccx-stat-v { display: flex; align-items: baseline; gap: 4px; min-height: 28px; }
+.ccx-stat-v b { font-size: 22px; font-weight: 600; letter-spacing: -.02em; line-height: 1.25; color: var(--ccx-ink); font-variant-numeric: tabular-nums; }
+.ccx-stat.is-warn .ccx-stat-v b { color: var(--ccx-amber); }
+.ccx-stat-na { align-self: center; font-size: 13px; font-weight: 500; color: var(--ccx-muted); }
+.ccx-stat-flag { font-size: 13px; font-weight: 700; color: var(--ccx-amber); cursor: help; }
+.ccx-stat-l { font-size: 12.5px; font-weight: 500; color: var(--ccx-ink); }
+.ccx-stat-s { font-size: 11.5px; line-height: 1.35; color: var(--ccx-muted); overflow-wrap: anywhere; }
+.ccx-clist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.ccx-crow { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; padding: 8px; border-radius: var(--ccx-r-sm); border: 0; background: transparent; color: var(--ccx-ink); font: inherit; text-align: left; cursor: pointer; transition: background-color .15s ease; }
+.ccx-crow:hover { background: var(--ccx-raise); }
+.ccx-cthumb { width: 32px; height: 32px; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--pl); color: var(--pl-ink); font-size: 12px; font-weight: 800; }
+.ccx-cthumb img { width: 100%; height: 100%; object-fit: cover; }
+.ccx-cthumb.ov-pl-tiktok { box-shadow: inset 2px 0 0 var(--tk-cyan, #25F4EE), inset -2px 0 0 var(--tk-red, #FE2C55); }
+.ccx-cname { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ccx-cname b { font-size: 13.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ccx-cname em { font-style: normal; font-size: 12px; color: var(--ccx-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ccx-more-line { margin: 0; font-size: 12.5px; color: var(--ccx-sub); }
+
+/* ── Automations ─────────────────────────────────────────────────── */
+.ccx-sdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--ccx-muted); }
+.ccx-sdot.is-on { background: var(--ccx-lime); }
+.ccx-sdot.is-warn { background: var(--ccx-amber); }
+.ccx-pill-btn { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(245, 184, 74, .28); background: rgba(245, 184, 74, .1); color: #F7CB7A; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.ccx-pill-btn:hover { background: rgba(245, 184, 74, .16); }
+
+/* ── Setup checklist ─────────────────────────────────────────────── */
+.ccx-progress { height: 4px; border-radius: 2px; background: var(--ccx-raise-2); overflow: hidden; }
+.ccx-progress i { display: block; height: 100%; border-radius: 2px; background: var(--ccx-lime); transition: width .3s var(--ccx-ease); }
+.ccx-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.ccx-step-btn { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 8px; border-radius: var(--ccx-r-sm); border: 0; background: transparent; color: var(--ccx-ink); font: inherit; font-size: 13.5px; text-align: left; }
+button.ccx-step-btn { cursor: pointer; transition: background-color .15s ease; }
+button.ccx-step-btn:hover { background: var(--ccx-raise); }
+.ccx-step-mark { width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid var(--ccx-line-2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; line-height: 1; }
+.ccx-step.is-done .ccx-step-mark { border-color: var(--ccx-lime); background: var(--ccx-lime); color: #0A0A0A; }
+.ccx-step.is-unknown .ccx-step-mark { border-style: dashed; }
+.ccx-step.is-done .ccx-step-l { color: var(--ccx-sub); }
+.ccx-step-l { min-width: 0; line-height: 1.4; }
+.ccx-step-st { font-size: 12px; color: var(--ccx-sub); }
+
+/* ── Advertising plan (rail) ─────────────────────────────────────── */
+#bizPanelOverview .bic-plan { width: auto; max-width: none; margin: 0; }
+#bizPanelOverview .bic-plan:empty { display: none; }
+#bizPanelOverview .bic-plan .bps-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+#bizPanelOverview .bic-plan .bps-list button { width: 100%; display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 12px; padding: 8px 10px; border-radius: var(--ccx-r-sm); border: 0; background: var(--ccx-raise); color: var(--ccx-ink); font: inherit; text-align: left; cursor: pointer; }
+#bizPanelOverview .bic-plan .bps-list button:hover { background: var(--ccx-raise-2); }
+#bizPanelOverview .bic-plan .bps-d { grid-row: 1 / 3; align-self: center; font-size: 12px; font-weight: 600; color: var(--ccx-sub); font-variant-numeric: tabular-nums; }
+#bizPanelOverview .bic-plan .bps-n { font-size: 13.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#bizPanelOverview .bic-plan .bps-m { font-size: 12px; color: var(--ccx-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#bizPanelOverview .bic-plan .bps-empty { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ccx-sub); }
+
+/* ── Business context (rail): six quiet rows ─────────────────────── */
+.ccx-mods { display: flex; flex-direction: column; gap: 2px; margin: 0 -8px; }
+.ccx-mod { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; width: 100%; padding: 8px; border-radius: var(--ccx-r-sm); border: 0; background: transparent; color: var(--ccx-ink); font: inherit; text-align: left; cursor: pointer; transition: background-color .15s ease; }
+.ccx-mod:hover { background: var(--ccx-raise); }
+.ccx-mod:hover .ccx-go, .ccx-crow:hover .ccx-go, button.ccx-step-btn:hover .ccx-go { color: var(--ccx-ink); transform: translateX(2px); }
+.ccx-mod-ic { width: 30px; height: 30px; box-sizing: border-box; padding: 7px; border-radius: 8px; display: flex; background: var(--ccx-raise-2); color: var(--ccx-sub); }
+.ccx-mod-ic svg { width: 100%; height: 100%; }
+.ccx-mod-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ccx-mod-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ccx-mod-name { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+.ccx-mod-badge { padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; color: #FFB1A9; background: rgba(255, 122, 110, .14); }
+.ccx-mod-line { font-size: 12.5px; line-height: 1.4; color: var(--ccx-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ccx-mod.is-empty .ccx-mod-line { color: var(--ccx-muted); }
+.ccx-mod .bic-card-plats { gap: 2px 10px; font-size: 11.5px; }
+.ccx-mod-st { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--ccx-sub); }
+.ccx-mod-st::before { content: ''; width: 6px; height: 6px; border-radius: 50%; box-sizing: border-box; flex-shrink: 0; }
+.ccx-mod-st.is-ok::before { background: var(--ccx-lime); }
+.ccx-mod-st.is-todo { color: var(--ccx-muted); }
+.ccx-mod-st.is-todo::before { border: 1.5px solid var(--ccx-muted); }
+.ccx-mod-st.is-unknown { color: var(--ccx-muted); }
+.ccx-mod-st.is-unknown::before { border: 1.5px dashed var(--ccx-muted); }
+
+/* ── Layout by width ─────────────────────────────────────────────── */
+/* Desktop: operations (≈8/12) + context rail (≈4/12). */
+@media (min-width: 1100px) {
+  .ccx-layout { grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); }
+}
+/* Wide: Campaigns and Automations side by side in the main column. */
+@media (min-width: 1360px) {
+  .ccx-ops > .ccx-camps { grid-column: 1 / 8; }
+  .ccx-ops > .ccx-auto { grid-column: 8 / -1; }
+  .ccx-split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ccx-split li { grid-template-columns: 76px minmax(0, 1fr) auto; }
+  .ccx-split-c { display: none; }
+}
+/* Below desktop: one column. Setup first (while incomplete), then the
+   operations (#owDashGrid stays one box for the tour spotlight), then the
+   plan and business context — side by side on tablets. */
+@media (max-width: 1099px) {
+  .ccx-rail { display: contents; }
+  .ccx-layout > .ccx-main { order: 1; }
+  .ccx-setup { order: 0; }
+  #bicPlanStrip, .cc-ctx { order: 2; }
+}
+@media (min-width: 760px) and (max-width: 1099px) {
+  .ccx-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ccx-layout > .ccx-main, .ccx-setup { grid-column: 1 / -1; }
+  .ccx-ops > .ccx-camps { grid-column: 1 / 8; }
+  .ccx-ops > .ccx-auto { grid-column: 8 / -1; }
+}
+@media (max-width: 899px) {
+  .ccx-hd { flex-direction: column; align-items: stretch; }
+  .ccx-hd-act .ccx-btn { flex: 1; }
+}
+@media (max-width: 759px) {
+  #bizPanelOverview { --ccx-pad: 16px; }
+  #bizPanelOverview .cc-root { gap: 16px; }
+  .ccx-layout, .ccx-ops { gap: 12px; }
+  .ccx-hd .bic-identity-icon-wrap { width: 48px; }
+}
+@media (max-width: 599px) {
+  #bizPanelOverview .ccx-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ccx-split li { grid-template-columns: 72px minmax(0, 1fr) auto; gap: 8px; }
+  .ccx-split-c { display: none; }
+  .ccx-stats { gap: 6px; }
+  .ccx-stat { padding: 10px; }
+  .ccx-nrow { grid-template-columns: 8px minmax(0, 1fr); }
+  .ccx-nact { grid-column: 2; }
+  .ccx-mod { grid-template-columns: 30px minmax(0, 1fr) auto; }
+  .ccx-mod .ccx-go { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #bizPanelOverview .ccx-bb:empty, .ccx-calm.is-loading::before { animation: none; }
+  .ccx-go, .ccx-progress i { transition: none; }
+  .ccx-mod:hover .ccx-go, .ccx-crow:hover .ccx-go, button.ccx-step-btn:hover .ccx-go { transform: none; }
+}
+@media (forced-colors: active) {
+  .ccx-card, .ccx-nrow, .ccx-stat { border: 1px solid CanvasText; }
+  .ccx-dot, .ccx-sdot, .ccx-mod-st::before { forced-color-adjust: none; }
+}

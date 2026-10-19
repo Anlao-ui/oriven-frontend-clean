@@ -1,0 +1,60 @@
+/* ══════════════════════════════════════════════════════════════════
+   Launch — states added by the shared readiness model
+   (js/launchReadiness.js). Same palette and components as the existing
+   Launch styles in styles.css: amber = warning / not confirmed,
+   red = blocked / failed, muted = checking.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Card pills */
+.lq-readiness-checking, .lq-readiness-publishing { color: var(--m2, #6b7280); background: var(--sf2, rgba(0,0,0,.05)); }
+.lq-readiness-unavailable { color: #92400E; background: rgba(245,166,35,.12); }
+body.dark-mode .lq-readiness-unavailable { color: #F5A623; }
+.lq-readiness-failed { color: #b91c1c; background: rgba(217,83,79,.14); }
+body.dark-mode .lq-readiness-failed { color: #f87171; }
+.lq-readiness-unconfirmed { color: #92400E; background: rgba(245,166,35,.18); }
+body.dark-mode .lq-readiness-unconfirmed { color: #F5A623; }
+.lq-card-st-failed::before { background: color-mix(in srgb, #D9534F 80%, transparent); }
+.lq-card-st-unconfirmed::before { background: color-mix(in srgb, #F5A623 80%, transparent); }
+
+/* Popup state banner */
+.lqc-state-checking { background: var(--sf2, var(--bg2)); }
+.lqc-state-checking .lqc-state-label { color: var(--muted); font-weight: 700; }
+.lqc-state-unavailable, .lqc-state-unconfirmed { background: rgba(245,166,35,.12); }
+.lqc-state-unavailable .lqc-state-label, .lqc-state-unconfirmed .lqc-state-label { color: #92400E; }
+body.dark-mode .lqc-state-unavailable .lqc-state-label, body.dark-mode .lqc-state-unconfirmed .lqc-state-label { color: #F5A623; }
+.lqc-state-live-paused .lqc-state-label, .lqc-state-live-unknown .lqc-state-label, .lqc-state-live-archived .lqc-state-label { color: var(--muted); }
+body.dark-mode .lqc-state-live-paused .lqc-state-label, body.dark-mode .lqc-state-live-unknown .lqc-state-label { color: #93c5fd; }
+
+/* What happened to the last publish */
+.lqc-pub { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.5; }
+.lqc-pub b { font-weight: 700; }
+.lqc-pub-failed { color: #7f1d1d; background: rgba(217,83,79,.10); border: 1px solid rgba(217,83,79,.28); }
+body.dark-mode .lqc-pub-failed { color: #fecaca; }
+.lqc-pub-unconfirmed { color: #78350f; background: rgba(245,166,35,.10); border: 1px solid rgba(245,166,35,.30); }
+body.dark-mode .lqc-pub-unconfirmed { color: #fde68a; }
+
+/* Check rows */
+.lw-check-checking .lw-check-status, .lqc-check-checking .lqc-check-status { color: var(--m2); }
+.lw-check-checking .lw-check-icon, .lqc-check-checking .lqc-check-icon { animation: lcPulse 1.2s ease-in-out infinite alternate; }
+.lw-check-unavailable .lw-check-icon, .lqc-check-unavailable .lqc-check-icon { background: #F5A623; color: #1a1a1a; }
+.lw-check-unavailable .lw-check-status, .lqc-check-unavailable .lqc-check-status { color: #92400E; }
+body.dark-mode .lw-check-unavailable .lw-check-status, body.dark-mode .lqc-check-unavailable .lqc-check-status { color: #F5A623; }
+.lc-check-warn { color: #92400E; }
+body.dark-mode .lc-check-warn { color: #F5A623; }
+.lc-check-note { opacity: .8; font-size: .95em; }
+.lw-launch-state-checking { color: var(--muted); }
+.lw-launch-state-unavailable { color: #92400E; } body.dark-mode .lw-launch-state-unavailable { color: #F5A623; }
+@keyframes lcPulse { from { opacity: .35; } to { opacity: 1; } }
+
+/* Disabled primary action (checking / publishing) */
+.lqc-action-btn:disabled { opacity: .55; cursor: default; }
+
+/* Video creative in the ad preview */
+.lw-adp-video video { display: block; width: 100%; height: 100%; object-fit: cover; background: #000; }
+
+/* Result panel: extra detail line */
+.lc-result-detail { opacity: .85; font-size: .95em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lw-check-checking .lw-check-icon, .lqc-check-checking .lqc-check-icon { animation: none; }
+}

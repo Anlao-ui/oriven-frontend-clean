@@ -37,11 +37,11 @@ for (const [key, data] of Object.entries(D)) {
   const F = require('./facts');
   const yes = '<span aria-label="Included">✓</span>', no = '<span aria-label="Not included">—</span>';
   const ent = { free: [1,1,0,0,0,0], starter: [1,1,1,1,0,0], creator: [1,1,1,1,1,0], professional: [1,1,1,1,1,1] };
-  const rows = [['Control Center, Create, Launch and Campaigns'], ['Google Ads, Meta Ads, TikTok Ads and Pinterest Ads'], ['Research'], ['Autopilot'], ['Oriven Chat'], ['Notifications and priority support']];
+  const rows = [['Control Center, Create, Launch and Campaigns'], ['Google Ads, Meta Ads, TikTok Ads and Pinterest Ads'], ['Research'], ['Automations'], ['Oriven Chat'], ['Notifications and priority support']];
   const head = F.plans.map((p) => '<th scope="col">' + p.name + '<br><span>' + (p.price ? '€' + p.price.toFixed(2) + ' / month' : 'Free') + '</span></th>').join('');
   const body = '<tr><th scope="row">Credits</th>' + F.plans.map((p) => '<td>' + p.credits + '</td>').join('') + '</tr>' +
     rows.map((r, i) => '<tr><th scope="row">' + r[0] + '</th>' + F.plans.map((p) => '<td>' + (ent[p.id][i] ? yes : no) + '</td>').join('') + '</tr>').join('');
-  const costs = [['Campaign draft (copy and structure)', 25], ['Image (per ad)', 75], ['Video (per ad)', 200], ['Research report', 25], ['Autopilot rule execution', 25]];
+  const costs = [['Campaign draft (copy and structure)', 25], ['Image (per ad)', 75], ['Video (per ad)', 200], ['Research report', 25], ['New automation (once; its checks and changes are free)', 50]];
   const block = `<!-- pricing-detail:start -->
   <section class="ov-sp-section ov-deep ov-price-detail" aria-labelledby="price-detail-h">
     <div class="ov-sp-section-inner">
@@ -53,7 +53,7 @@ for (const [key, data] of Object.entries(D)) {
       <div class="ov-price-table-wrap"><table class="ov-price-table ov-price-costs"><tbody>${costs.map((c) => '<tr><th scope="row">' + c[0] + '</th><td>' + c[1] + ' credits</td></tr>').join('')}</tbody></table></div>
       <div class="ov-deep-cols">
         <div><h3>How credits work</h3><ul><li>The Free plan gets 10 credits a day; paid plans get a monthly allowance.</li><li>An image ad campaign typically uses 100 credits (draft plus one image); a video ad campaign 225.</li><li>If a generation fails, its credits are returned.</li></ul></div>
-        <div><h3>Good to know</h3><ul><li>You can start on Free and upgrade when you need Research, Autopilot or more credits.</li><li>Your ad spend is paid to the ad platforms directly; OrivenAI never charges ad budgets.</li><li>Campaigns are created paused, so nothing spends until you switch it on.</li></ul></div>
+        <div><h3>Good to know</h3><ul><li>You can start on Free and upgrade when you need Research, Automations or more credits.</li><li>Your ad spend is paid to the ad platforms directly; OrivenAI never charges ad budgets.</li><li>Campaigns are created paused, so nothing spends until you switch it on.</li></ul></div>
       </div>
       <p class="ov-deep-links"><span>Questions</span><a href="/faq">Read the FAQ</a><a href="/contact">Contact us</a></p>
     </div>

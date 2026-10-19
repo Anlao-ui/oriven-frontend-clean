@@ -1336,7 +1336,7 @@ function openFreePaywall(){
   console.log("[PW-CHAIN] Title element:", titleEl ? "found" : "NOT FOUND");
   console.log("[PW-CHAIN] Sub element:", subEl ? "found" : "NOT FOUND");
   if(titleEl)  titleEl.innerHTML = _obT("obPaywallTitle", "Start free. Upgrade when you need more.");
-  if(subEl)    subEl.textContent = _obT("obPaywallSub", "You've built your first campaign with Oriven. Stay on the Free plan and come back daily, or upgrade now for more credits, Autopilot, and higher limits.");
+  if(subEl)    subEl.textContent = _obT("obPaywallSub", "You've built your first campaign with Oriven. Stay on the Free plan and come back daily, or upgrade now for more credits, Automations, and higher limits.");
   if(eyeEl)    eyeEl.textContent = _obT("obPaywallEyebrow", "Your First Campaign Is Ready");
 
   console.log("[PW-CHAIN] Calling openPaywall() | typeof openPaywall:", typeof openPaywall);

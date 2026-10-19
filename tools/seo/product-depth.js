@@ -6,7 +6,7 @@
 //
 // Accuracy: every statement reflects the product code as of 2026-10-15
 // (services/campaignSpec.js, routes/publishRoutes.js, Research route,
-// Autopilot monitoring for Google and Meta, credit costs in js/plans.js).
+// Automations engine in services/automations/*, credit costs in js/plans.js).
 // Platform publishing creates campaigns PAUSED; nothing is activated.
 // ════════════════════════════════════════════════════════════════
 const fig = (name, alt, cap) => `<figure class="ov-deep-fig"><img src="/assets/films/posters/film-${name}-800.webp" srcset="/assets/films/posters/film-${name}-800.webp 800w, /assets/films/posters/film-${name}.webp 1600w" sizes="(max-width: 900px) 100vw, 860px" alt="${alt}" width="800" height="450" loading="lazy" decoding="async"><figcaption>${cap}</figcaption></figure>`;
@@ -59,21 +59,21 @@ const D = {
   },
   'product-research': {
     title: 'Research your market before you spend',
-    intro: 'Research answers questions like “Who are my main competitors and what do they advertise?” with a structured report you can act on, and is clear about which findings are backed by sources.',
+    intro: 'Research answers questions like “Who are my main competitors and what do they advertise?” with a structured report you can act on, and shows which findings were checked against a source.',
     steps: [
-      ['Ask a question.', 'About your market, competitors, audience or opportunities. Add competitor pages if you want them read too.'],
-      ['OrivenAI gathers evidence.', 'A live web search using your industry and country, your own website from your business profile, and any pages you attached.'],
-      ['Get a structured report.', 'Market overview, competitors and their positioning, customer needs and pain points, advertising patterns and trends, plus audiences, angles and creative concepts worth testing, risks and next steps.'],
-      ['See what each finding rests on.', 'Every item is labelled Verified (supported by a page that was retrieved, with the link), Inference (analysis without a retrieved source) or Recommendation.'],
-      ['Use it.', 'Reports are saved to your account. Pick the findings you want and send them to Create as context for your next campaign.'],
+      ['Ask a question and choose a research type.', 'Market, competitor, audience or opportunity research — each searches for different things and returns its own report. Add competitor pages if you want them read too.'],
+      ['OrivenAI gathers evidence.', 'Up to three targeted web searches using your industry and country, then it reads up to five of the most relevant pages, your own website and any pages you attached.'],
+      ['Get a structured report.', 'An executive summary with the key conclusions, then sections that fit the research type: competitor cards and a comparison, customer needs and objections, trends, or opportunities with suggested tests.'],
+      ['See what each finding rests on.', 'Findings are labelled Source-checked (a quoted passage was found in a page it read), Cited (a source was named but not checked), Analysis, or Idea to test. Source-checked findings show the quoted passage and the link.'],
+      ['Use it.', 'Reports are saved to your Research library. Add up to eight insights to Create as context for your next campaign.'],
     ],
-    fig: fig('research', 'The OrivenAI Research screen: a research question, investigation starters and the business profile used as context', 'The Research screen. Screenshot from the product.'),
+    fig: fig('research', 'The OrivenAI Research screen: a research question, research types and the business profile used as context', 'The Research screen. Screenshot from the product.'),
     who: ['Businesses planning a first campaign in a new market', 'Marketers who want competitor context before writing ads', 'Anyone who needs evidence, not just AI opinions'],
     know: ['Included from the Starter plan; each report uses 25 credits (refunded if it fails)', 'It has no access to competitors’ ad performance, budgets or results, and never claims an ad “works”', 'It doesn’t pull ads from the Meta Ad Library or Google Ads Transparency Center; it links to them so you can check real ads', 'Set your country in your business profile so findings are specific to your market'],
     faq: [
-      ['Is Research based on real data?', 'It runs a live web search and reads your website and any pages you attach. Findings backed by those pages are marked Verified with the source. Everything else is marked as inference or recommendation.'],
+      ['Is Research based on real data?', 'It runs live web searches and reads the most relevant pages, your website and any pages you attach. A finding is only marked Source-checked when the passage it quotes was found in a page it read; everything else is marked Cited, Analysis or Idea to test.'],
       ['Can it show how my competitors’ ads perform?', 'No. No tool has access to another advertiser’s results. Research describes what competitors publicly do and say, and suggests what to test.'],
-      ['Where are my reports kept?', 'In your account, under Saved research, so you can reopen them later on any device.'],
+      ['Where are my reports kept?', 'In your account, in your Research library, so you can reopen, rename or delete them on any device.'],
     ],
     links: [['/learn/how-to-research-competitor-ads/', 'How to research competitor ads'], ['/learn/best-ai-advertising-tools-for-small-business/', 'AI advertising tools for small businesses'], ['/learn/what-is-an-ai-advertising-platform/', 'What an AI advertising platform does']],
   },
@@ -104,7 +104,7 @@ const D = {
       ['Connect your ad accounts.', 'Google Ads, Meta Ads, TikTok Ads and Pinterest Ads, in Control Center.'],
       ['Choose a view.', 'Filter by platform, campaign and date range; read spend, clicks, conversions and the other metrics each platform reports.'],
       ['Act on what you see.', 'Pause or resume Google Ads, Meta Ads and Pinterest Ads campaigns from OrivenAI, with a confirmation first.'],
-      ['Automate what repeats.', 'Turn a check you do every week into an Autopilot rule.'],
+      ['Automate what repeats.', 'Turn a check you do every week into an automation rule.'],
     ],
     fig: fig('campaigns', 'The OrivenAI Campaigns screen with performance by platform, campaign and date range', 'The Campaigns screen. Screenshot from the product.'),
     who: ['Businesses advertising on two or more platforms', 'Owners who want a quick, honest view of what’s running', 'Marketers who report across platforms'],
@@ -117,19 +117,19 @@ const D = {
   },
   'product-autopilot': {
     title: 'Rules you can read, actions you can predict',
-    intro: 'Autopilot is rule-based automation for Google Ads and Meta Ads: you decide the condition, the action and the limits, and every action is logged.',
+    intro: 'Automations are schedules and rules for campaigns that already run in your ad accounts: you decide the condition or the time, the action and the limits, and every action is logged.',
     steps: [
       ['Write a rule.', 'A condition on a metric such as CPA, ROAS, CPC, CTR, conversions or spend, for example “if CPA is above €40 over 7 days”.'],
       ['Choose the action and its limits.', 'Pause or resume a campaign, adjust its budget within a range you set, notify you, or ask for your approval first.'],
-      ['Autopilot checks on a schedule.', 'Connected Google Ads and Meta Ads campaigns are checked automatically, and each rule acts at most once per day.'],
+      ['Checked for you, also when you’re offline.', 'Schedules run at the time you set in your time zone, and rules are checked regularly on OrivenAI’s servers. Budget rules have a maximum budget and limits on how often and how much they change.'],
       ['Review what happened.', 'Every run and action is recorded, so you can see why something changed.'],
     ],
-    fig: fig('autopilot', 'The OrivenAI Autopilot screen with automation rules', 'The Autopilot screen. Screenshot from the product.'),
+    fig: fig('autopilot', 'The OrivenAI Automations screen with automation rules', 'The Automations screen. Screenshot from the product.'),
     who: ['Advertisers who check the same numbers every day', 'Small teams that can’t watch campaigns around the clock', 'Anyone who wants automation they can explain'],
-    know: ['Included from the Starter plan; each rule execution uses 25 credits', 'Automatic monitoring covers Google Ads and Meta Ads', 'Rules only do what you wrote; they don’t make open-ended AI decisions', 'Approval mode lets you confirm each action before it happens'],
+    know: ['Included from the Starter plan; creating an automation costs 50 credits once, its checks and changes are free', 'Works with the campaigns in your connected ad accounts; shared and lifetime budgets are never changed', 'Rules only do what you wrote; no AI decides what happens', 'Approval mode lets you confirm each change before it happens'],
     faq: [
-      ['Can Autopilot spend more than I want?', 'Only through a budget rule you wrote, within the limits you set. You can also require approval before any action.'],
-      ['How is this different from Google’s automated bidding?', 'Smart Bidding sets bids inside a campaign. Autopilot rules act on whole campaigns (pause, resume, budget) based on conditions you choose, across Google Ads and Meta Ads.'],
+      ['Can an automation spend more than I want?', 'A rule can only raise a budget up to the maximum you set, by at most the percentage you allow, and only after you confirm it may act on its own. You can also require approval before any change.'],
+      ['How is this different from Google’s automated bidding?', 'Smart Bidding sets bids inside a campaign. Automations act on whole campaigns (switch on, pause, resume, budget) at times or on conditions you choose, across your connected ad accounts.'],
     ],
     links: [['/learn/what-is-ppc-automation/', 'What is PPC automation?'], ['/learn/how-to-automate-google-ads-safely/', 'How to automate Google Ads safely'], ['/ppc-automation-software/', 'PPC automation software']],
   },
@@ -164,7 +164,7 @@ const D = {
     who: ['Businesses whose customers search for what they sell', 'Advertisers who want Search, Performance Max and Demand Gen from one brief'],
     know: ['Sales and Leads campaigns need conversion actions in your Google Ads account', 'Performance Max and Demand Gen need a logo and business name in your profile', 'Campaigns are created paused; Google reviews ads under its own policies'],
     faq: [
-      ['Does OrivenAI change my existing Google Ads campaigns?', 'Not unless you ask it to: it creates new campaigns, and Autopilot only acts through rules you write.'],
+      ['Does OrivenAI change my existing Google Ads campaigns?', 'Not unless you ask it to: it creates new campaigns, and Automations only act through schedules and rules you set up.'],
       ['Which bidding strategy is used?', 'One that matches your goal, for example maximising conversions for Sales or clicks for Traffic. You can change it in Google Ads.'],
     ],
     links: [['/learn/how-to-automate-google-ads-safely/', 'How to automate Google Ads safely'], ['/learn/google-ads-vs-meta-ads/', 'Google Ads vs Meta Ads'], ['/learn/ad-character-limits/', 'Ad character limits']],

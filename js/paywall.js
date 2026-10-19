@@ -199,7 +199,7 @@ var _PW_ONBOARDING_COPY = {
 function _pwFreeNote(){
   if(typeof ORIVEN_PLANS === "undefined" || typeof CREDIT_COSTS === "undefined") return "";
   return "Free includes " + ORIVEN_PLANS.free.credits + " credits a day. They reset daily rather than add up, so another image ad (" +
-    CREDIT_COSTS.imageAdComplete + " credits) needs a paid plan. Research and Autopilot are included from " + ORIVEN_PLANS.starter.name + ". Your first ad stays in your workspace either way.";
+    CREDIT_COSTS.imageAdComplete + " credits) needs a paid plan. Research and Automations are included from " + ORIVEN_PLANS.starter.name + ". Your first ad stays in your workspace either way.";
 }
 
 function openOnboardingPlans(goal){
@@ -361,13 +361,13 @@ var _LIMIT_MSGS = {
   // V10 entitlements (plans.js / server planEntitlements.js): Research and
   // Autopilot are included from Starter, Oriven Chat from Creator.
   autopilot: {
-    title:   "Autopilot is available from Starter.",
-    sub:     "Starter includes the complete OrivenAI workflow, from Control Center to Autopilot.",
+    title:   "Automations are available from Starter.",
+    sub:     "Starter includes the complete OrivenAI workflow, from Control Center to Automations.",
     upgrade: "starter"
   },
   research: {
     title:   "Research is available from Starter.",
-    sub:     "Starter includes the complete OrivenAI workflow, from Control Center to Autopilot.",
+    sub:     "Starter includes the complete OrivenAI workflow, from Control Center to Automations.",
     upgrade: "starter"
   },
   chat: {
@@ -376,8 +376,8 @@ var _LIMIT_MSGS = {
     upgrade: "creator"
   },
   autopilot_creator: {
-    title:   "Autopilot execution limit reached.",
-    sub:     "Upgrade to Professional for unlimited Autopilot executions.",
+    title:   "Automation limit reached.",
+    sub:     "Upgrade for more active automations.",
     upgrade: "professional"
   },
   intelligence: {

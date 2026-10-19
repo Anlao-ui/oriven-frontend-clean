@@ -3,7 +3,7 @@
 // publish on Google, Meta, TikTok, Pinterest (/api/publish/*), Launch
 // readiness per platform, Campaigns performance by platform, Control Center
 // attention items (incl. unverified conversion tracking), Planning naming/
-// UTM templates (js/orivenPlan.js), Autopilot on Google + Meta only.
+// UTM templates (js/orivenPlan.js), Automations on all four (mock-tested).
 module.exports = {
   path: '/cross-platform-ad-management/',
   kind: 'commercial',
@@ -40,12 +40,12 @@ module.exports = {
 <section class="sp-section" aria-labelledby="support-h"><div class="sp-wrap">
   <h2 id="support-h">What works on each platform</h2>
   <div class="sp-table-wrap"><table class="sp-table">
-    <thead><tr><th scope="col">Platform</th><th scope="col">Create campaigns</th><th scope="col">Publish via API</th><th scope="col">Track performance</th><th scope="col">Autopilot rules</th></tr></thead>
+    <thead><tr><th scope="col">Platform</th><th scope="col">Create campaigns</th><th scope="col">Publish via API</th><th scope="col">Track performance</th><th scope="col">Automations</th></tr></thead>
     <tbody>
       <tr><th scope="row">Google Ads (Search, Performance Max, Demand Gen)</th><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td></tr>
       <tr><th scope="row">Meta Ads (Facebook and Instagram)</th><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td></tr>
-      <tr><th scope="row">TikTok Ads</th><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-no">Not yet</td></tr>
-      <tr><th scope="row">Pinterest Ads</th><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-no">Not yet</td></tr>
+      <tr><th scope="row">TikTok Ads</th><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td></tr>
+      <tr><th scope="row">Pinterest Ads</th><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td><td class="sp-yes">Yes</td></tr>
     </tbody>
   </table></div>
   <p>Performance tracking shows what each platform’s API reports; the available metrics and history differ by platform.</p>
@@ -63,7 +63,7 @@ module.exports = {
     ['Does OrivenAI combine conversions from different platforms into one number?', '<p>No. Google, Meta, TikTok and Pinterest each attribute conversions in their own way, so adding them up would double-count. OrivenAI shows each platform’s reported results side by side instead.</p>'],
     ['Do I need an existing ad account on each platform?', '<p>You connect your own ad accounts through each platform’s sign-in. Campaigns are published to, and billed by, those accounts. OrivenAI charges only for its own plan and credits.</p>'],
     ['Does OrivenAI publish campaigns automatically?', '<p>No. Launching is always a manual step. Each draft shows its readiness, and you choose when to publish.</p>'],
-    ['Is cross-platform management included in the Free plan?', '<p>Yes. Control Center, Create, Launch and Campaigns are included in the Free plan. Research and Autopilot are included from Starter.</p>'],
+    ['Is cross-platform management included in the Free plan?', '<p>Yes. Control Center, Create, Launch and Campaigns are included in the Free plan. Research and Automations are included from Starter.</p>'],
   ],
   related: ['/learn/how-to-manage-multiple-ad-platforms/', '/learn/google-ads-vs-meta-ads/', '/ppc-automation-software/', '/product/google-ads', '/product/meta-ads', '/pricing'],
   relatedTitle: 'Related',

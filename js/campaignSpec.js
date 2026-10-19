@@ -31,6 +31,7 @@
     var body = { pkg: pkg, platform: platform, choices: !choices };
     if (opts.changes) body.changes = opts.changes;
     if (opts.refresh) body.refresh = true;
+    if (opts.campId) body.campId = String(opts.campId);
     return window.apiFetch('/api/campaigns/spec', { method: 'POST', body: JSON.stringify(body) }).then(function (r) {
       var d = r && r.data;
       if (!r || !r.ok || !d || !d.ok) return { error: (d && d.error) || 'Campaign settings couldn’t be checked right now.', status: r && r.status };
@@ -40,26 +41,54 @@
   };
   S.choices = function () { return choices; };
 
-  // Per-campaign cache for Launch readiness, keyed on the package content.
-  var cache = {}, inflight = {};
+  // Per-campaign cache for Launch readiness (js/launchReadiness.js). The key
+  // is the package content + the platform's account epoch + a per-campaign
+  // nonce, so a result is reused only while neither the campaign nor the
+  // ad account changed:
+  //   invalidatePlatform(p) — the account changed (Page, pixel, identity,
+  //     reconnect): the next check for p is run LIVE on the server;
+  //   refresh(camp)         — re-check this campaign live now (popup open, Retry);
+  //   reset()               — signed out / another account.
+  // A failed check is never kept as an answer: it is retried after 15 s.
+  var cache = {}, inflight = {}, epoch = {}, liveDone = {}, nonce = {};
+  var ERR_TTL = 15000;
+  function keyOf(camp, p) { return hash([p, camp.pkg, epoch[p] || 0, nonce[camp.id] || 0]); }
+  function fetchFor(camp, p, k, live) {
+    inflight[camp.id] = k;
+    S.load(camp.pkg, p, { refresh: live, campId: camp.id }).then(function (res) {
+      if (inflight[camp.id] !== k) return;
+      delete inflight[camp.id];
+      cache[camp.id] = { key: k, res: res, at: Date.now(), live: !!live };
+      if (typeof window._orvReadinessChanged === 'function') window._orvReadinessChanged(camp.id);
+    });
+  }
   S.forCampaign = function (camp) {
     if (!camp || !camp.id || !camp.pkg) return null;
     var p = camp.platform || camp.pkg.platform;
-    var k = hash([p, camp.pkg]);
+    var k = keyOf(camp, p);
     var c = cache[camp.id];
-    if (c && c.key === k) return c.res;
-    if (!inflight[camp.id] || inflight[camp.id] !== k) {
-      inflight[camp.id] = k;
-      S.load(camp.pkg, p).then(function (res) {
-        if (inflight[camp.id] !== k) return;
-        delete inflight[camp.id];
-        cache[camp.id] = { key: k, res: res };
-        if (typeof window._orvReadinessChanged === 'function') window._orvReadinessChanged(camp.id);
-      });
+    if (c && c.key === k && !(c.res && c.res.error && Date.now() - c.at > ERR_TTL)) return c.res;
+    if (inflight[camp.id] !== k) {
+      var ek = p + '|' + (epoch[p] || 0);
+      var live = !liveDone[ek]; liveDone[ek] = true; // first check after an account change runs live
+      fetchFor(camp, p, k, live);
     }
     return null;
   };
-  S.remember = function (camp, res) { if (camp && camp.id && camp.pkg && res && !res.error) cache[camp.id] = { key: hash([camp.platform || camp.pkg.platform, camp.pkg]), res: res }; };
+  S.refresh = function (camp) {
+    if (!camp || !camp.id || !camp.pkg) return;
+    var p = camp.platform || camp.pkg.platform;
+    var c = cache[camp.id];
+    // Just checked live (popup reopened within 20 s): reuse that answer.
+    if (c && c.live && c.key === keyOf(camp, p) && !(c.res && c.res.error) && Date.now() - c.at < 20000) return;
+    nonce[camp.id] = (nonce[camp.id] || 0) + 1;
+    fetchFor(camp, p, keyOf(camp, p), true);
+  };
+  S.invalidatePlatform = function (p) { epoch[p] = (epoch[p] || 0) + 1; };
+  S.invalidateAll = function () { ['meta', 'google', 'tiktok', 'pinterest'].forEach(S.invalidatePlatform); };
+  S.reset = function () { cache = {}; inflight = {}; epoch = {}; liveDone = {}; nonce = {}; };
+  S.peek = function (camp) { var c = camp && cache[camp.id]; return c ? c.res : null; };
+  S.remember = function (camp, res) { if (camp && camp.id && camp.pkg && res && !res.error) { var p = camp.platform || camp.pkg.platform; cache[camp.id] = { key: keyOf(camp, p), res: res, at: Date.now() }; } };
   S.errors = function (res) { return (res && res.issues || []).filter(function (i) { return i.level === 'error'; }); };
 
   // ── Labels ───────────────────────────────────────────────────────

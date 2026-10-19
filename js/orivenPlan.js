@@ -262,10 +262,12 @@
     var el = document.getElementById('bicPlanStrip'); if (!el) return;
     if (!(typeof window._getCurrentUser === 'function' && window._getCurrentUser())) { el.innerHTML = ''; return; }
     var rows = current().slice(0, 3);
-    el.innerHTML = '<div class="bps-hd"><span class="bps-t">Advertising plan</span><button type="button" class="bps-open" onclick="bizGoTo(\'planning\')">' + (rows.length ? 'Open planning' : 'Plan advertising') + ' <span aria-hidden="true">→</span></button></div>' +
+    // Words from js/controlCenter.js (Control Center rail card).
+    var W = function (k, fb) { return window.orvCC ? window.orvCC.T(k) : fb; };
+    el.innerHTML = '<div class="ccx-card-hd bps-hd"><h2 class="ccx-h bps-t">' + esc(W('planTitle', 'Advertising plan')) + '</h2><button type="button" class="ccx-link bps-open" onclick="bizGoTo(\'planning\')">' + esc(rows.length ? W('planOpen', 'Open planning') : W('planStart', 'Plan advertising')) + ' <span aria-hidden="true">→</span></button></div>' +
       (rows.length ? '<ul class="bps-list">' + rows.map(function (r) {
-        return '<li><button type="button" onclick="bizGoTo(\'planning\')"><span class="bps-d">' + esc(r.start ? shortDate(r.start) : 'No date') + '</span><span class="bps-n">' + esc(r.campaign) + '</span><span class="bps-m">' + esc([PL.platformsText(r), PL.statusLabel(r.status)].filter(Boolean).join(' · ')) + '</span></button></li>';
-      }).join('') + '</ul>' : '<p class="bps-empty">Plan what you’ll advertise next: when, where and with what budget.</p>');
+        return '<li><button type="button" onclick="bizGoTo(\'planning\')"><span class="bps-d">' + esc(r.start ? shortDate(r.start) : W('noDate', 'No date')) + '</span><span class="bps-n">' + esc(r.campaign) + '</span><span class="bps-m">' + esc([PL.platformsText(r), PL.statusLabel(r.status)].filter(Boolean).join(' · ')) + '</span></button></li>';
+      }).join('') + '</ul>' : '<p class="bps-empty">' + esc(W('planEmpty', 'Plan what you’ll advertise next: when, where and with what budget.')) + '</p>');
   }
   PL.paintStrip = paintStrip;
 

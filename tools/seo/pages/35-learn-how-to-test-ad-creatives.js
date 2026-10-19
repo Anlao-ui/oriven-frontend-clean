@@ -2,7 +2,7 @@
 // (informational). Platform features named are the platforms' own
 // (Meta A/B tests in Ads Manager, Google Ads experiments and asset
 // reports). OrivenAI's role: producing variations (Create), following
-// results (Campaigns), campaign-level rules on Google/Meta (Autopilot).
+// results (Campaigns), campaign-level rules (Automations).
 module.exports = {
   path: '/learn/how-to-test-ad-creatives/',
   kind: 'article',
@@ -65,7 +65,7 @@ module.exports = {
 
 <h2>Where OrivenAI helps</h2>
 <figure class="sp-figure"><img src="/assets/films/posters/film-campaigns-800.webp" alt="The OrivenAI Campaigns screen with performance by platform, campaign and date range" width="800" height="450" loading="lazy" decoding="async"><figcaption>Campaigns in OrivenAI: performance pulled from each ad platform, in one place. (Screenshot from the product.)</figcaption></figure>
-<p>Testing needs a steady supply of meaningful variations. In <a href="/create">Create</a>, you can generate a campaign with several ads, each with its own copy and image or video, built from the same brief and brand context, so versions differ where you want them to. <a href="/campaigns">Campaigns</a> shows results per platform and campaign, and <a href="/autopilot">Autopilot</a> (from the Starter plan) can apply rules you set to Google Ads and Meta Ads campaigns, such as pausing a campaign whose cost per acquisition (CPA) goes above your limit. If you want ideas for angles to test, see <a href="/learn/how-to-research-competitor-ads/">how to research competitor ads</a>.</p>`,
+<p>Testing needs a steady supply of meaningful variations. In <a href="/create">Create</a>, you can generate a campaign with several ads, each with its own copy and image or video, built from the same brief and brand context, so versions differ where you want them to. <a href="/campaigns">Campaigns</a> shows results per platform and campaign, and <a href="/autopilot">Automations</a> (from the Starter plan) can apply rules you set to your campaigns, such as pausing a campaign whose cost per acquisition (CPA) goes above your limit. If you want ideas for angles to test, see <a href="/learn/how-to-research-competitor-ads/">how to research competitor ads</a>.</p>`,
   faq: [
     ['How many ad creatives should I test at once?', '<p>On a small budget, two to four. More versions split the budget so thinly that none reaches enough results to judge.</p>'],
     ['What is a good CTR for an ad?', '<p>It varies widely by platform, placement, industry and offer, so compare with your own previous ads rather than a general benchmark. Judge winners on cost per result, not CTR alone.</p>'],

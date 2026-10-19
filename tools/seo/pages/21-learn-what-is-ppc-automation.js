@@ -58,13 +58,13 @@ module.exports = {
 <div class="sp-callout"><p>Automation should save you time without taking away your ability to explain what happened in your account.</p></div>
 
 <h2>PPC automation in OrivenAI</h2>
-<figure class="sp-figure"><img src="/assets/films/posters/film-autopilot-800.webp" alt="The OrivenAI Autopilot screen with automation rules for connected campaigns" width="800" height="450" loading="lazy" decoding="async"><figcaption>Autopilot in OrivenAI: rules you write, with the limits you set. (Screenshot from the product.)</figcaption></figure>
-<p>OrivenAI’s Autopilot is rule-based by design. You write rules on metrics such as ROAS, CPA, CPC, CTR, conversions and spend; actions can pause or resume a campaign, change its budget, notify you, or request approval first. Rules act on Google Ads and Meta Ads campaigns, each rule runs at most once per day, and there’s an activity log of what happened. AI is used where it’s strongest: turning a brief into a full campaign and creative in Create. Read more about <a href="/ppc-automation-software/">OrivenAI’s PPC automation</a>.</p>`,
+<figure class="sp-figure"><img src="/assets/films/posters/film-autopilot-800.webp" alt="The OrivenAI Automations screen with automation rules for connected campaigns" width="800" height="450" loading="lazy" decoding="async"><figcaption>Automations in OrivenAI: rules you write, with the limits you set. (Screenshot from the product.)</figcaption></figure>
+<p>OrivenAI’s Automations are rule-based by design, with no AI deciding what happens. You write rules on metrics such as ROAS, CPA, CPC, CTR, conversions and spend, or schedule campaigns to switch on and off at set times; actions can pause or resume a campaign, change its daily budget within limits, notify you, or request approval first. Rules wait for enough data, budget changes are capped, and there’s an activity log of what happened. AI is used where it’s strongest: turning a brief into a full campaign and creative in Create. Read more about <a href="/ppc-automation-software/">OrivenAI’s PPC automation</a>.</p>`,
   faq: [
     ['Is PPC automation worth it for small businesses?', '<p>Usually yes, starting with alerts and a few simple rules. The time saved is large relative to the risk, as long as conversion tracking works and changes are capped.</p>'],
     ['Will automation replace a PPC manager?', '<p>It replaces repetitive checks, not judgment. Someone still has to set goals, choose thresholds, review creative and decide what the business can afford.</p>'],
     ['What is the difference between automated rules and smart bidding?', '<p>Smart bidding is Google’s auction-time bid optimization toward a goal. Automated rules are explicit conditions you write, such as pausing a campaign, that act on a schedule rather than in each auction.</p>'],
   ],
   related: ['/ppc-automation-software/', '/learn/how-to-automate-google-ads-safely/', '/learn/what-is-an-ai-advertising-platform/'],
-  cta: { title: 'Automate with rules you can read', text: 'Start free, then add Autopilot from the Starter plan when you’re ready.', label: 'Get Started Free' },
+  cta: { title: 'Automate with rules you can read', text: 'Start free, then add Automations from the Starter plan when you’re ready.', label: 'Get Started Free' },
 };
