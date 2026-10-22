@@ -100,6 +100,7 @@ async function loadAndEnterCreate(page) {
 
 async function main() {
   const browser = await chromium.launch({ executablePath: CHROME_PATH });
+  require('./_fence').fenceBrowser(browser, BASE_URL);
 
   // ── 1-20: Core URL-method flow, 1440 ─────────────────────────────
   {

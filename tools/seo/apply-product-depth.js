@@ -41,7 +41,7 @@ for (const [key, data] of Object.entries(D)) {
   const head = F.plans.map((p) => '<th scope="col">' + p.name + '<br><span>' + (p.price ? '€' + p.price.toFixed(2) + ' / month' : 'Free') + '</span></th>').join('');
   const body = '<tr><th scope="row">Credits</th>' + F.plans.map((p) => '<td>' + p.credits + '</td>').join('') + '</tr>' +
     rows.map((r, i) => '<tr><th scope="row">' + r[0] + '</th>' + F.plans.map((p) => '<td>' + (ent[p.id][i] ? yes : no) + '</td>').join('') + '</tr>').join('');
-  const costs = [['Campaign draft (copy and structure)', 25], ['Image (per ad)', 75], ['Video (per ad)', 200], ['Research report', 25], ['New automation (once; its checks and changes are free)', 50]];
+  const costs = [['Campaign draft (copy and structure)', 25], ['Image (per ad)', 75], ['Video (per ad)', 200], ['Research report', 25], ['Oriven Chat message (Creator and Professional)', 5], ['New automation (once; its checks and changes are free)', 50]];
   const block = `<!-- pricing-detail:start -->
   <section class="ov-sp-section ov-deep ov-price-detail" aria-labelledby="price-detail-h">
     <div class="ov-sp-section-inner">

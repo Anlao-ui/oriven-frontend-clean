@@ -27439,9 +27439,18 @@ body.dark-mode .orv-sb-user-name { color: rgba(255,255,255,.9); }
    Platforms control intentionally keep their own separate rules
    untouched (Settings: #orvNavSettingsBtn below, still var(--orv-nit));
    Add Platforms has no per-icon animation of its own to begin with. */
-.orv-ni[data-orv-page="create"]:hover .orv-ni-ic svg {
-  animation: orv-ni-arrow-loop 740ms 1;
+/* Create — sparkles rise a little in turn with a brief lime shimmer, then
+   settle back (ends exactly at rest, so leaving hover never jumps). */
+@keyframes orv-ni-spk-rise {
+  0%   { transform: translateY(0); opacity: 1; filter: none; }
+  40%  { transform: translateY(-1.4px); opacity: .55; filter: drop-shadow(0 0 2.5px color-mix(in srgb, var(--green) 85%, transparent)); }
+  65%  { transform: translateY(-1px); opacity: 1; filter: drop-shadow(0 0 1.5px color-mix(in srgb, var(--green) 55%, transparent)); }
+  100% { transform: translateY(0); opacity: 1; filter: none; }
 }
+.orv-ni[data-orv-page="create"] svg .orv-ni-spk { transform-box: fill-box; transform-origin: center; }
+.orv-ni[data-orv-page="create"]:is(:hover, :focus-visible) svg .orv-ni-spk { animation: orv-ni-spk-rise 820ms cubic-bezier(.22,.61,.36,1) 1 both; }
+.orv-ni[data-orv-page="create"]:is(:hover, :focus-visible) svg .orv-ni-spk-b { animation-delay: 110ms; }
+.orv-ni[data-orv-page="create"]:is(:hover, :focus-visible) svg .orv-ni-spk-c { animation-delay: 200ms; }
 
 /* Research — one-shot scale pulse (matches the Autopilot bolt's mechanic:
    a keyframe `animation` that plays once per hover-in, not a hover-held
@@ -27536,16 +27545,19 @@ body.dark-mode .orv-sb-user-name { color: rgba(255,255,255,.9); }
    was interrupted by hover ending mid-pulse (e.g. clicking navigates
    away while still hovered). */
 .orv-ni[data-orv-page="autopilot"] svg { transform: scale(1); }
-.orv-ni[data-orv-page="autopilot"]:hover svg {
-  /* Nav Motion Timing pass — 300ms -> 380ms (+27%). The other icon that
-     visibly scales (1.18x), called out specifically by the task.
-     animation-fill-mode: forwards makes the end-of-animation value
-     explicit (scale(1), matching the rest rule above exactly) instead of
-     relying on the implicit "revert to non-animated cascade" behavior,
-     so there's no ambiguous instant for a stuck paint/compositing frame
-     to survive. */
-  animation: orv-ni-bolt-pulse 380ms cubic-bezier(.22,.61,.36,1) 1 forwards;
-}
+/* Automations — the workflow builds step by step: top-left node, lower
+   node, right node, then the connections draw in. The end state is the
+   normal icon, so it stays complete while hovered and leaving hover never
+   jumps. */
+@keyframes orv-ni-wf-node { 0% { opacity: 0; transform: scale(.55); } 70% { opacity: 1; transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes orv-ni-wf-line { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.orv-ni[data-orv-page="autopilot"] svg .orv-ni-wf-n { transform-box: fill-box; transform-origin: center; }
+.orv-ni[data-orv-page="autopilot"] svg .orv-ni-wf-l { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.orv-ni[data-orv-page="autopilot"]:is(:hover, :focus-visible) svg .orv-ni-wf-n { animation: orv-ni-wf-node 260ms cubic-bezier(.22,.61,.36,1) 1 both; }
+.orv-ni[data-orv-page="autopilot"]:is(:hover, :focus-visible) svg .orv-ni-wf-n2 { animation-delay: 170ms; }
+.orv-ni[data-orv-page="autopilot"]:is(:hover, :focus-visible) svg .orv-ni-wf-n3 { animation-delay: 340ms; }
+.orv-ni[data-orv-page="autopilot"]:is(:hover, :focus-visible) svg .orv-ni-wf-l { animation: orv-ni-wf-line 300ms ease-out 520ms 1 both; }
+.orv-ni[data-orv-page="autopilot"]:is(:hover, :focus-visible) svg .orv-ni-wf-l2 { animation-delay: 600ms; }
 
 /* Business / Brand Brain — the bulb switches OFF briefly, then back ON,
    ending slightly brighter than its resting state (restrained glow). BUG
@@ -27614,8 +27626,9 @@ body.dark-mode .orv-sb-user-name { color: rgba(255,255,255,.9); }
 @media (prefers-reduced-motion: reduce) {
   .orv-ni svg, .orv-ni svg .orv-ni-clockhand, .orv-ni svg .orv-ni-clip,
   .orv-ni svg .orv-ni-bulb-body, .orv-ni svg .orv-ni-bulb-glow,
-  .orv-ni svg .orv-ni-house-door,
+  .orv-ni svg .orv-ni-house-door, .orv-ni svg .orv-ni-spk, .orv-ni svg .orv-ni-wf-n, .orv-ni svg .orv-ni-wf-l,
   .orv-ni-ic svg { transition: none !important; animation: none !important; }
+  .orv-ni svg .orv-ni-wf-l { stroke-dashoffset: 0 !important; }
   .orv-ni[data-orv-page="create"]:hover .orv-ni-ic svg,
   .orv-ni[data-orv-page="research"]:hover svg,
   .orv-ni[data-orv-page="launch"]:hover .orv-ni-ic svg,

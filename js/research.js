@@ -462,7 +462,7 @@
         '<textarea id="researchQueryInput" class="rx-input rx-q" rows="3" maxlength="' + Q_MAX + '" placeholder="' + esc(T('qPh')) + '" aria-describedby="rxQCount' + (S.formErr ? ' rxFormErr' : '') + '">' + esc(S.question) + '</textarea>' +
         '<div class="rx-row rx-row-between"><span class="rx-hint" id="rxQCount" aria-live="polite">' + esc(T('qCount', { n: n, max: Q_MAX })) + '</span></div>' +
         '<fieldset class="rx-fs"><legend class="rx-lbl">' + esc(T('typeLabel')) + '</legend>' + typeCards() + '</fieldset>' +
-        '<div class="rx-ctx"><span class="rx-lbl">' + esc(T('ctxLabel')) + '</span>' + bizBlock() + sitesBlock() + '</div>' +
+        '<div class="rx-ctx"><div class="rx-ctx-biz"><span class="rx-lbl">' + esc(T('ctxLabel')) + '</span>' + bizBlock() + '</div>' + sitesBlock() + '</div>' +
         (S.formErr ? '<p class="rx-err" id="rxFormErr" role="alert">' + S.formErr + '</p>' : '') +
         '<div class="rx-start"><div class="rx-cost"><b>' + esc(T('cost', { n: cost() })) + '</b><span>' + esc(T('costWhat')) + '</span></div>' +
           '<button type="submit" class="rx-btn rx-btn-primary rx-btn-lg" id="researchSubmitBtn"' + (S.starting || running ? ' disabled' : '') + '>' + esc(S.starting ? T('starting') : T('start')) + '</button></div>' +

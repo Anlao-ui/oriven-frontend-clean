@@ -388,7 +388,7 @@
   // source, ad quantity and the live Stage (same six languages).
   var STR_MORE = {
     en: {
-      priceL: 'Product price', priceHelp: 'Leave empty to keep the price out of the ad.', errPrice: 'Enter a price such as 29.99 — numbers only, no minus sign.', curSugg: 'Currency suggested from your business country — check it’s the one you sell in.', curLocale: 'Currency suggested from your browser — check it’s the one you sell in.',
+      priceL: 'Product price', priceHelp: 'Shown in the ad exactly as you enter it.', required: 'required', errPriceMissing: 'Enter the product price, for example 29.99.', errPrice: 'Enter a price such as 29.99 — numbers only, no minus sign.', curSugg: 'Currency suggested from your business country — check it’s the one you sell in.', curLocale: 'Currency suggested from your browser — check it’s the one you sell in.',
       offerL: 'Special offer', offerP: 'e.g. Free shipping this weekend', offerHelp: 'Only real offers — the ad never invents a discount or promotion.',
       webOk: 'Page read: {title}', webOkPlain: 'Page read.', webOptional: 'The website is optional — you can continue without it.',
       webErrInvalid: 'This doesn’t look like a website address. Check it, for example yourshop.com.', webErrDns: 'We couldn’t open this website. Please check the address and try again.', webErrHttp: 'This page couldn’t be opened — it may not exist. Check the address.', webErrTimeout: 'The website didn’t respond. Try again in a moment.', webErrBlocked: 'We can’t read this address. Use the public address of your website.', webErrContent: 'We couldn’t read the content of this page.',
@@ -407,7 +407,7 @@
       stEyebrow: 'Creative Stage', stReady: 'Ready to create', stNext: 'Next: {step}', stNoName: 'Your product', stAiImg: 'The AI image is created when you create the ad.', stOwnNone: 'Upload your image in step 4.', stVideo: 'The AI video is created when you create the ad.', stText: 'Preview from your answers. The final headlines and descriptions are written when you create the ad.', stPickFormat: 'Choose a format in step 4.', stAds: '{n} ads', stAd1: '1 ad', stGenerated: 'Generated', stSponsored: 'Sponsored', stNotes: 'Notes', stUploading: 'Uploading…',
     },
     nl: {
-      priceL: 'Productprijs', priceHelp: 'Laat leeg om de prijs niet in de advertentie te noemen.', errPrice: 'Vul een prijs in zoals 29,99 — alleen cijfers, geen minteken.', curSugg: 'Valuta voorgesteld op basis van je bedrijfsland — controleer of je in deze valuta verkoopt.', curLocale: 'Valuta voorgesteld op basis van je browser — controleer of je in deze valuta verkoopt.',
+      priceL: 'Productprijs', priceHelp: 'Wordt in de advertentie getoond zoals je hem invult.', required: 'verplicht', errPriceMissing: 'Vul de productprijs in, bijvoorbeeld 29,99.', errPrice: 'Vul een prijs in zoals 29,99 — alleen cijfers, geen minteken.', curSugg: 'Valuta voorgesteld op basis van je bedrijfsland — controleer of je in deze valuta verkoopt.', curLocale: 'Valuta voorgesteld op basis van je browser — controleer of je in deze valuta verkoopt.',
       offerL: 'Speciale aanbieding', offerP: 'bijv. Gratis verzending dit weekend', offerHelp: 'Alleen echte aanbiedingen — de advertentie verzint nooit een korting of actie.',
       webOk: 'Pagina gelezen: {title}', webOkPlain: 'Pagina gelezen.', webOptional: 'De website is optioneel — je kunt ook zonder doorgaan.',
       webErrInvalid: 'Dit lijkt geen websiteadres. Controleer het, bijvoorbeeld jouwwinkel.nl.', webErrDns: 'We konden deze website niet openen. Controleer het adres en probeer het opnieuw.', webErrHttp: 'Deze pagina kon niet worden geopend — misschien bestaat ze niet. Controleer het adres.', webErrTimeout: 'De website reageerde niet. Probeer het zo opnieuw.', webErrBlocked: 'Dit adres kunnen we niet lezen. Gebruik het openbare adres van je website.', webErrContent: 'We konden de inhoud van deze pagina niet lezen.',
@@ -426,7 +426,7 @@
       stEyebrow: 'Creative Stage', stReady: 'Klaar om te maken', stNext: 'Volgende: {step}', stNoName: 'Je product', stAiImg: 'De AI-afbeelding wordt gemaakt wanneer je de advertentie maakt.', stOwnNone: 'Upload je afbeelding in stap 4.', stVideo: 'De AI-video wordt gemaakt wanneer je de advertentie maakt.', stText: 'Voorbeeld op basis van je antwoorden. De definitieve koppen en beschrijvingen worden geschreven wanneer je de advertentie maakt.', stPickFormat: 'Kies een formaat in stap 4.', stAds: '{n} advertenties', stAd1: '1 advertentie', stGenerated: 'Gegenereerd', stSponsored: 'Gesponsord', stNotes: 'Notities', stUploading: 'Uploaden…',
     },
     de: {
-      priceL: 'Produktpreis', priceHelp: 'Leer lassen, damit der Preis nicht in der Anzeige steht.', errPrice: 'Gib einen Preis wie 29,99 ein — nur Ziffern, kein Minuszeichen.', curSugg: 'Währung anhand deines Unternehmenslandes vorgeschlagen — prüfe, ob du in dieser Währung verkaufst.', curLocale: 'Währung anhand deines Browsers vorgeschlagen — prüfe, ob du in dieser Währung verkaufst.',
+      priceL: 'Produktpreis', priceHelp: 'Wird in der Anzeige so gezeigt, wie du ihn eingibst.', required: 'erforderlich', errPriceMissing: 'Gib den Produktpreis ein, zum Beispiel 29,99.', errPrice: 'Gib einen Preis wie 29,99 ein — nur Ziffern, kein Minuszeichen.', curSugg: 'Währung anhand deines Unternehmenslandes vorgeschlagen — prüfe, ob du in dieser Währung verkaufst.', curLocale: 'Währung anhand deines Browsers vorgeschlagen — prüfe, ob du in dieser Währung verkaufst.',
       offerL: 'Sonderangebot', offerP: 'z. B. Kostenloser Versand an diesem Wochenende', offerHelp: 'Nur echte Angebote — die Anzeige erfindet nie einen Rabatt oder eine Aktion.',
       webOk: 'Seite gelesen: {title}', webOkPlain: 'Seite gelesen.', webOptional: 'Die Website ist optional — du kannst auch ohne sie weitermachen.',
       webErrInvalid: 'Das sieht nicht nach einer Website-Adresse aus. Prüfe sie, zum Beispiel deinshop.de.', webErrDns: 'Wir konnten diese Website nicht öffnen. Bitte prüfe die Adresse und versuche es erneut.', webErrHttp: 'Diese Seite konnte nicht geöffnet werden — vielleicht existiert sie nicht. Prüfe die Adresse.', webErrTimeout: 'Die Website hat nicht geantwortet. Versuche es gleich noch einmal.', webErrBlocked: 'Diese Adresse können wir nicht lesen. Verwende die öffentliche Adresse deiner Website.', webErrContent: 'Wir konnten den Inhalt dieser Seite nicht lesen.',
@@ -445,7 +445,7 @@
       stEyebrow: 'Creative Stage', stReady: 'Bereit zum Erstellen', stNext: 'Als Nächstes: {step}', stNoName: 'Dein Produkt', stAiImg: 'Das KI-Bild wird erstellt, wenn du die Anzeige erstellst.', stOwnNone: 'Lade dein Bild in Schritt 4 hoch.', stVideo: 'Das KI-Video wird erstellt, wenn du die Anzeige erstellst.', stText: 'Vorschau aus deinen Antworten. Die endgültigen Überschriften und Beschreibungen werden geschrieben, wenn du die Anzeige erstellst.', stPickFormat: 'Wähle in Schritt 4 ein Format.', stAds: '{n} Anzeigen', stAd1: '1 Anzeige', stGenerated: 'Erstellt', stSponsored: 'Gesponsert', stNotes: 'Notizen', stUploading: 'Wird hochgeladen…',
     },
     fr: {
-      priceL: 'Prix du produit', priceHelp: 'Laissez vide pour ne pas mentionner le prix dans l’annonce.', errPrice: 'Saisissez un prix comme 29,99 — uniquement des chiffres, sans signe moins.', curSugg: 'Devise suggérée d’après le pays de votre entreprise — vérifiez que c’est celle dans laquelle vous vendez.', curLocale: 'Devise suggérée d’après votre navigateur — vérifiez que c’est celle dans laquelle vous vendez.',
+      priceL: 'Prix du produit', priceHelp: 'Affiché dans l’annonce tel que vous le saisissez.', required: 'obligatoire', errPriceMissing: 'Saisissez le prix du produit, par exemple 29,99.', errPrice: 'Saisissez un prix comme 29,99 — uniquement des chiffres, sans signe moins.', curSugg: 'Devise suggérée d’après le pays de votre entreprise — vérifiez que c’est celle dans laquelle vous vendez.', curLocale: 'Devise suggérée d’après votre navigateur — vérifiez que c’est celle dans laquelle vous vendez.',
       offerL: 'Offre spéciale', offerP: 'ex. Livraison gratuite ce week-end', offerHelp: 'Uniquement des offres réelles — l’annonce n’invente jamais de réduction ni de promotion.',
       webOk: 'Page lue : {title}', webOkPlain: 'Page lue.', webOptional: 'Le site web est facultatif — vous pouvez continuer sans.',
       webErrInvalid: 'Cela ne ressemble pas à une adresse de site web. Vérifiez-la, par exemple votreboutique.fr.', webErrDns: 'Nous n’avons pas pu ouvrir ce site web. Vérifiez l’adresse et réessayez.', webErrHttp: 'Cette page n’a pas pu être ouverte — elle n’existe peut-être pas. Vérifiez l’adresse.', webErrTimeout: 'Le site web n’a pas répondu. Réessayez dans un instant.', webErrBlocked: 'Nous ne pouvons pas lire cette adresse. Utilisez l’adresse publique de votre site.', webErrContent: 'Nous n’avons pas pu lire le contenu de cette page.',
@@ -464,7 +464,7 @@
       stEyebrow: 'Creative Stage', stReady: 'Prêt à créer', stNext: 'Ensuite : {step}', stNoName: 'Votre produit', stAiImg: 'L’image IA est créée quand vous créez l’annonce.', stOwnNone: 'Importez votre image à l’étape 4.', stVideo: 'La vidéo IA est créée quand vous créez l’annonce.', stText: 'Aperçu d’après vos réponses. Les titres et descriptions définitifs sont rédigés quand vous créez l’annonce.', stPickFormat: 'Choisissez un format à l’étape 4.', stAds: '{n} annonces', stAd1: '1 annonce', stGenerated: 'Générée', stSponsored: 'Sponsorisé', stNotes: 'Notes', stUploading: 'Importation…',
     },
     es: {
-      priceL: 'Precio del producto', priceHelp: 'Déjalo vacío para no incluir el precio en el anuncio.', errPrice: 'Introduce un precio como 29,99 — solo números, sin signo menos.', curSugg: 'Moneda sugerida según el país de tu empresa — comprueba que es la moneda en la que vendes.', curLocale: 'Moneda sugerida según tu navegador — comprueba que es la moneda en la que vendes.',
+      priceL: 'Precio del producto', priceHelp: 'Se muestra en el anuncio tal como lo escribas.', required: 'obligatorio', errPriceMissing: 'Introduce el precio del producto, por ejemplo 29,99.', errPrice: 'Introduce un precio como 29,99 — solo números, sin signo menos.', curSugg: 'Moneda sugerida según el país de tu empresa — comprueba que es la moneda en la que vendes.', curLocale: 'Moneda sugerida según tu navegador — comprueba que es la moneda en la que vendes.',
       offerL: 'Oferta especial', offerP: 'p. ej. Envío gratis este fin de semana', offerHelp: 'Solo ofertas reales — el anuncio nunca inventa un descuento ni una promoción.',
       webOk: 'Página leída: {title}', webOkPlain: 'Página leída.', webOptional: 'El sitio web es opcional — puedes continuar sin él.',
       webErrInvalid: 'Esto no parece una dirección web. Revísala, por ejemplo tutienda.es.', webErrDns: 'No pudimos abrir este sitio web. Revisa la dirección e inténtalo de nuevo.', webErrHttp: 'No se pudo abrir esta página — puede que no exista. Revisa la dirección.', webErrTimeout: 'El sitio web no respondió. Inténtalo de nuevo en un momento.', webErrBlocked: 'No podemos leer esta dirección. Usa la dirección pública de tu sitio web.', webErrContent: 'No pudimos leer el contenido de esta página.',
@@ -483,7 +483,7 @@
       stEyebrow: 'Creative Stage', stReady: 'Listo para crear', stNext: 'Siguiente: {step}', stNoName: 'Tu producto', stAiImg: 'La imagen de IA se crea cuando creas el anuncio.', stOwnNone: 'Sube tu imagen en el paso 4.', stVideo: 'El vídeo de IA se crea cuando creas el anuncio.', stText: 'Vista previa a partir de tus respuestas. Los títulos y descripciones finales se escriben cuando creas el anuncio.', stPickFormat: 'Elige un formato en el paso 4.', stAds: '{n} anuncios', stAd1: '1 anuncio', stGenerated: 'Generada', stSponsored: 'Patrocinado', stNotes: 'Notas', stUploading: 'Subiendo…',
     },
     pt: {
-      priceL: 'Preço do produto', priceHelp: 'Deixe vazio para não incluir o preço no anúncio.', errPrice: 'Digite um preço como 29,99 — apenas números, sem sinal de menos.', curSugg: 'Moeda sugerida pelo país da sua empresa — confira se é a moeda em que você vende.', curLocale: 'Moeda sugerida pelo seu navegador — confira se é a moeda em que você vende.',
+      priceL: 'Preço do produto', priceHelp: 'Aparece no anúncio exatamente como você digitar.', required: 'obrigatório', errPriceMissing: 'Digite o preço do produto, por exemplo 29,99.', errPrice: 'Digite um preço como 29,99 — apenas números, sem sinal de menos.', curSugg: 'Moeda sugerida pelo país da sua empresa — confira se é a moeda em que você vende.', curLocale: 'Moeda sugerida pelo seu navegador — confira se é a moeda em que você vende.',
       offerL: 'Oferta especial', offerP: 'ex. Frete grátis neste fim de semana', offerHelp: 'Apenas ofertas reais — o anúncio nunca inventa um desconto ou promoção.',
       webOk: 'Página lida: {title}', webOkPlain: 'Página lida.', webOptional: 'O site é opcional — você pode continuar sem ele.',
       webErrInvalid: 'Isto não parece um endereço de site. Confira, por exemplo sualoja.com.br.', webErrDns: 'Não conseguimos abrir este site. Confira o endereço e tente novamente.', webErrHttp: 'Não foi possível abrir esta página — talvez ela não exista. Confira o endereço.', webErrTimeout: 'O site não respondeu. Tente novamente em instantes.', webErrBlocked: 'Não conseguimos ler este endereço. Use o endereço público do seu site.', webErrContent: 'Não conseguimos ler o conteúdo desta página.',
@@ -899,6 +899,7 @@
     var ph = { cfName: 'nameP', aicInput: 'descP', cfWebsite: 'webP', cfOffer: 'offerP', cfAudience: 'audP', cfNotes: 'notesP' };
     Object.keys(ph).forEach(function (id) { var el = $(id); if (el) el.placeholder = T(ph[id]); });
     document.querySelectorAll('[data-cf-opt]').forEach(function (el) { el.textContent = T('optional'); });
+    document.querySelectorAll('[data-cf-req]').forEach(function (el) { el.textContent = T('required'); });
     var wr = $('cfWebRead'); if (wr && !wr.disabled) wr.textContent = S.website && S.websiteRead === S.website && webStatus && webStatus.kind === 'ok' ? T('webReadDone') : T('webRead');
     renderPrice();
     renderWebMsg();
@@ -952,7 +953,11 @@
     if (n === 1) {
       if (!S.productName.trim()) return { msg: T('errName'), focus: 'cfName' };
       if (S.description.trim().length < 3) return { msg: T('errDesc'), focus: 'aicInput' };
-      if (!priceParsed().ok) return { msg: T('errPrice'), focus: 'cfPrice' };
+      // Product price is required: a real price above zero (never invented).
+      if (!String(S.price || '').trim()) return { msg: T('errPriceMissing'), focus: 'cfPrice' };
+      var pp1 = priceParsed();
+      if (!pp1.ok) return { msg: T('errPrice'), focus: 'cfPrice' };
+      if (!(pp1.amount > 0)) return { msg: T('errPriceMissing'), focus: 'cfPrice' };
     }
     if (n === 2 && !S.platform) return { msg: T('errPlatform') };
     if (n === 3 && !S.goal) return { msg: T('errGoal') };

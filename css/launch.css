@@ -58,3 +58,10 @@ body.dark-mode .lc-check-warn { color: #F5A623; }
 @media (prefers-reduced-motion: reduce) {
   .lw-check-checking .lw-check-icon, .lqc-check-checking .lqc-check-icon { animation: none; }
 }
+
+/* Phones/tablets: the Launch hub clears the fixed hamburger (.orv-mob-toggle,
+   44px at top 12px). The generic "body.dark-mode .camp-hub" phone padding
+   (styles.css) outranked .lq-hub's 64px, so the title sat under the button. */
+@media (max-width: 1024px) {
+  body.dark-mode .camp-hub.lq-hub, .camp-hub.lq-hub { padding-top: 64px !important; }
+}

@@ -38,7 +38,14 @@
 #page-create .cf-step-sub { margin: -6px 0 2px; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
 #page-create .cf-field { display: flex; flex-direction: column; gap: 5px; }
 #page-create .cf-lbl { font-size: 13px; font-weight: 600; color: var(--charcoal); }
-#page-create .cf-opt { font-weight: 500; color: var(--muted); font-size: 12px; }
+/* "Optional" next to a label: plain muted text. (The legacy option-button
+   .cf-opt in styles.css would otherwise paint it as a pill.) */
+#page-create .cf-lbl .cf-opt, body.dark-mode #page-create .cf-lbl .cf-opt {
+  display: inline; margin-left: 4px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none;
+  font-weight: 400; color: var(--muted); font-size: 12px; cursor: inherit; animation: none; transition: none; transform: none;
+}
+#page-create .cf-lbl .cf-opt:hover { background: none; border: 0; color: var(--muted); transform: none; }
+#page-create .cf-req { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
 #page-create .cf-help { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
 #page-create .cf-inp, #page-create .cf-ta {
   width: 100%; box-sizing: border-box; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface);

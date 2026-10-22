@@ -44,6 +44,7 @@ const EXPECTED = {
 
 async function main() {
   const browser = await chromium.launch({ executablePath: CHROME_PATH });
+  require('./_fence').fenceBrowser(browser, BASE_URL);
   try {
     // ════════════════════════════════════════════════════════════
     // 1-8. Section exists, exactly six correct product->film mappings
@@ -76,7 +77,10 @@ async function main() {
       // (src="", 0x0) that was never actually broken, just never opened.
       const caps = ['create', 'research', 'launch', 'campaigns', 'autopilot', 'business'];
       for (const cap of caps) {
-        if (cap !== 'create') { await page.click('.ov-ws-tab[data-cap="' + cap + '"]'); await page.waitForTimeout(700); }
+        // The default film is now 01 Control Center (index.html: activeCap =
+        // 'business'); clicking every tab — the active one included — opens
+        // each film whatever the default is.
+        await page.click('.ov-ws-tab[data-cap="' + cap + '"]'); await page.waitForTimeout(700);
         const info = await page.evaluate((c) => {
           const v = document.querySelector('.ov-ws-content[data-cap="' + c + '"] .ov-ws-video');
           return { src: v.currentSrc, muted: v.muted, playsInline: v.playsInline, loop: v.loop, paused: v.paused, width: v.videoWidth, height: v.videoHeight };

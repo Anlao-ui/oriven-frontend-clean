@@ -40,15 +40,17 @@
   function clone(o) { try { return JSON.parse(JSON.stringify(o)); } catch (_) { return o; } }
 
   F.esc = esc;
+  // Text in the user's language (js/flowI18n.js).
+  function TX(k, v) { return window.orvTx ? window.orvTx(k, v) : k; }
   var PLAT = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
   var PROVIDER = { google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest' };
   var PK = { google: 'googleAds', meta: 'metaAds', tiktok: 'tiktokAds', pinterest: 'pinterestAds' };
   F.PLAT = PLAT;
   var HIER = {
-    google: ['Campaign', 'Ad group', 'Responsive search ad'],
-    meta: ['Campaign', 'Ad set', 'Ad'],
-    tiktok: ['Campaign', 'Ad group', 'Ad'],
-    pinterest: ['Campaign', 'Ad group', 'Pin']
+    google: ['ofl_hCampaign', 'ofl_hAdGroup', 'ofl_hRsa'],
+    meta: ['ofl_hCampaign', 'ofl_hAdSet', 'ofl_hAd'],
+    tiktok: ['ofl_hCampaign', 'ofl_hAdGroup', 'ofl_hAd'],
+    pinterest: ['ofl_hCampaign', 'ofl_hAdGroup', 'ofl_hPin']
   };
 
   function costs() { return (typeof window.CREDIT_COSTS === 'object' && window.CREDIT_COSTS) || {}; }
@@ -75,7 +77,7 @@
   // {platform}.budget. The AI's recommendation is only shown as a
   // suggestion. TikTok needs more than 20 per day per ad group.
   var BUDGET_RULE = {
-    meta: { min: 1 }, tiktok: { min: 20.01, label: 'more than 20' }, pinterest: { min: 1 }
+    meta: { min: 1 }, tiktok: { min: 20.01, label: 'ofl_moreThan20' }, pinterest: { min: 1 }
   };
   function looseNumber(v) {
     if (v == null || v === '') return null;
@@ -130,8 +132,8 @@
     var b = P.budget(pkg, p);
     var cur = currency || b.currency;
     function money(v) { return cur ? (v + ' ' + cur) : String(v); }
-    if (b.source === 'missing') return 'Not set';
-    return money(b.applied) + ' / day';
+    if (b.source === 'missing') return TX('ofl_notSet');
+    return TX('ofl_perDayShort', { amount: money(b.applied) });
   };
 
   // Destination. Every route reads strategy.landingPageUrl first, then a
@@ -146,11 +148,11 @@
   };
   P.validateUrl = function (u) {
     u = String(u || '').trim();
-    if (!u) return 'Enter the page people land on after clicking the ad.';
+    if (!u) return TX('ofl_urlEmpty');
     var parsed;
-    try { parsed = new URL(u); } catch (_) { return 'Enter a full address, for example https://yourshop.com/offer.'; }
-    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return 'The address must start with https:// or http://.';
-    if (!/\./.test(parsed.hostname)) return 'That address has no domain. Check it and try again.';
+    try { parsed = new URL(u); } catch (_) { return TX('ofl_urlFull'); }
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return TX('ofl_urlProtocol');
+    if (!/\./.test(parsed.hostname)) return TX('ofl_urlDomain');
     return null;
   };
   P.setUrl = function (pkg, p, u) {
@@ -197,48 +199,48 @@
       var hl = Array.isArray(g.headlines) ? g.headlines : (g.headlines = []);
       var ds = Array.isArray(g.descriptions) ? g.descriptions : (g.descriptions = []);
       hl.forEach(function (h, i) {
-        field('Headlines', 'h' + i, 'Headline ' + (i + 1), function () { return h; }, function (v) { hl[i] = v; }, { max: 30, note: 'Google shows up to 30 characters.' });
+        field(TX('ofl_gHeadlines'), 'h' + i, TX('ofl_gHeadlineN', { n: i + 1 }), function () { return h; }, function (v) { hl[i] = v; }, { max: 30, note: TX('ofl_gHeadlineNote') });
       });
       ds.forEach(function (d, i) {
-        field('Descriptions', 'd' + i, 'Description ' + (i + 1), function () { return d; }, function (v) { ds[i] = v; }, { max: 90, multiline: true, note: 'Google shows up to 90 characters.' });
+        field(TX('ofl_gDescriptions'), 'd' + i, TX('ofl_gDescriptionN', { n: i + 1 }), function () { return d; }, function (v) { ds[i] = v; }, { max: 90, multiline: true, note: TX('ofl_gDescriptionNote') });
       });
       return out;
     }
     if (p === 'pinterest') {
       var pin = platObj(pkg, 'pinterest', true);
-      field('Pin', 'title', 'Pin title', function () { return pin.title; }, function (v) { pin.title = v; }, { max: 100 });
-      field('Pin', 'description', 'Description', function () { return pin.description; }, function (v) { pin.description = v; }, { max: 500, multiline: true });
-      field('Pin', 'altText', 'Image alt text', function () { return pin.altText; }, function (v) { pin.altText = v; }, { max: 500 });
+      field(TX('ofl_hPin'), 'title', TX('ofl_pinTitle'), function () { return pin.title; }, function (v) { pin.title = v; }, { max: 100 });
+      field(TX('ofl_hPin'), 'description', TX('ofl_description'), function () { return pin.description; }, function (v) { pin.description = v; }, { max: 500, multiline: true });
+      field(TX('ofl_hPin'), 'altText', TX('ofl_altText'), function () { return pin.altText; }, function (v) { pin.altText = v; }, { max: 500 });
       return out;
     }
     if (p === 'tiktok') {
       if (concepts.length) {
         concepts.forEach(function (c, i) {
-          var grp = 'Ad variant ' + (i + 1);
+          var grp = TX('ofl_variantN', { n: i + 1 });
           var hookKey = c.hook ? 'hook' : null;
-          field(grp, 'hook' + i, 'Hook', function () { return c.hook || conceptCopy(c).headline || o.hook; },
+          field(grp, 'hook' + i, TX('ofl_hook'), function () { return c.hook || conceptCopy(c).headline || o.hook; },
             function (v) { if (hookKey) c.hook = v; else conceptCopy(c).headline = v; });
-          field(grp, 'text' + i, 'Ad text', function () { return conceptCopy(c).primaryText || o.script; },
-            function (v) { conceptCopy(c).primaryText = v; }, { max: 100, multiline: true, note: 'TikTok uses the first 100 characters.' });
+          field(grp, 'text' + i, TX('ofl_adText'), function () { return conceptCopy(c).primaryText || o.script; },
+            function (v) { conceptCopy(c).primaryText = v; }, { max: 100, multiline: true, note: TX('ofl_ttTextNote') });
         });
       } else {
         var tk = platObj(pkg, 'tiktok', true);
-        field('Ad', 'hook', 'Hook', function () { return tk.hook; }, function (v) { tk.hook = v; });
-        field('Ad', 'script', 'Ad text', function () { return tk.script; }, function (v) { tk.script = v; }, { max: 100, multiline: true, note: 'TikTok uses the first 100 characters.' });
+        field(TX('ofl_hAd'), 'hook', TX('ofl_hook'), function () { return tk.hook; }, function (v) { tk.hook = v; });
+        field(TX('ofl_hAd'), 'script', TX('ofl_adText'), function () { return tk.script; }, function (v) { tk.script = v; }, { max: 100, multiline: true, note: TX('ofl_ttTextNote') });
       }
       return out;
     }
     // meta
     if (concepts.length) {
       concepts.forEach(function (c, i) {
-        var grp = 'Ad variant ' + (i + 1);
-        field(grp, 'headline' + i, 'Headline', function () { return conceptCopy(c).headline || o.headline; }, function (v) { conceptCopy(c).headline = v; }, { max: 40 });
-        field(grp, 'primary' + i, 'Primary text', function () { return conceptCopy(c).primaryText || o.primaryText || o.description; }, function (v) { conceptCopy(c).primaryText = v; }, { max: 125, multiline: true, note: 'Meta shows about 125 characters before “See more”.' });
+        var grp = TX('ofl_variantN', { n: i + 1 });
+        field(grp, 'headline' + i, TX('ofl_headline'), function () { return conceptCopy(c).headline || o.headline; }, function (v) { conceptCopy(c).headline = v; }, { max: 40 });
+        field(grp, 'primary' + i, TX('ofl_primaryText'), function () { return conceptCopy(c).primaryText || o.primaryText || o.description; }, function (v) { conceptCopy(c).primaryText = v; }, { max: 125, multiline: true, note: TX('ofl_metaPrimaryNote') });
       });
     } else {
       var m = platObj(pkg, 'meta', true);
-      field('Ad', 'headline', 'Headline', function () { return m.headline; }, function (v) { m.headline = v; }, { max: 40 });
-      field('Ad', 'primaryText', 'Primary text', function () { return m.primaryText || m.description; }, function (v) { m.primaryText = v; }, { max: 125, multiline: true });
+      field(TX('ofl_hAd'), 'headline', TX('ofl_headline'), function () { return m.headline; }, function (v) { m.headline = v; }, { max: 40 });
+      field(TX('ofl_hAd'), 'primaryText', TX('ofl_primaryText'), function () { return m.primaryText || m.description; }, function (v) { m.primaryText = v; }, { max: 125, multiline: true });
     }
     return out;
   };
@@ -274,28 +276,30 @@
     pkg = pkg || {};
     var ov = (pkg.spec && pkg.spec.overrides) || {};
     var parts = [];
-    parts.push(ov.countries && ov.countries.length ? ov.countries.join(', ') : 'Country from your business profile');
-    if (p === 'meta' || p === 'tiktok') parts.push('ages ' + (ov.ageMin || 18) + '–' + (ov.ageMax || 65) + ((ov.ageMax || 65) === 65 ? '+' : ''));
-    if (p === 'meta') { var pl = platObj(pkg, 'meta').placement; parts.push(pl === 'instagram_only' ? 'Instagram only' : pl === 'facebook_only' ? 'Facebook only' : 'Facebook and Instagram'); }
-    if (p === 'google' && googleType(pkg) === 'SEARCH') { var kw = ((pkg.googleAds || {}).keywords || []).filter(Boolean); parts.push(kw.length + ' keyword' + (kw.length === 1 ? '' : 's')); }
-    return { sent: parts.join(' · '), note: 'Checked against your ad account before publishing. If no country is set, OrivenAI asks you to choose one — it never defaults to a country.' };
+    parts.push(ov.countries && ov.countries.length ? ov.countries.join(', ') : TX('ofl_countryFromProfile'));
+    if (p === 'meta' || p === 'tiktok') parts.push(TX('ofl_ages', { from: ov.ageMin || 18, to: (ov.ageMax || 65) + ((ov.ageMax || 65) === 65 ? '+' : '') }));
+    if (p === 'meta') { var pl = platObj(pkg, 'meta').placement; parts.push(TX(pl === 'instagram_only' ? 'ofl_igOnly' : pl === 'facebook_only' ? 'ofl_fbOnly' : 'ofl_fbIg')); }
+    if (p === 'google' && googleType(pkg) === 'SEARCH') { var kw = ((pkg.googleAds || {}).keywords || []).filter(Boolean); parts.push(kw.length === 1 ? TX('ofl_nKeyword1') : TX('ofl_nKeywords', { n: kw.length })); }
+    return { sent: parts.join(' · '), note: TX('ofl_targetingNote') };
   };
 
   // Mirrors the route's hard rejections plus OrivenAI's own blockers.
   P.issues = function (pkg, p) {
     var list = [];
-    if (!P.url(pkg, p) || P.validateUrl(P.url(pkg, p))) list.push({ key: 'destination', label: 'Destination URL', blocker: true });
+    if (!P.url(pkg, p) || P.validateUrl(P.url(pkg, p))) list.push({ key: 'destination', label: TX('ofl_destUrl'), blocker: true });
     var b = P.budget(pkg, p);
-    if (b.source === 'missing') list.push({ key: 'budget', label: 'Daily budget', blocker: true });
-    else if (b.low) list.push({ key: 'budget', label: 'Daily budget (' + PLAT[p] + ' needs ' + ((BUDGET_RULE[p] || {}).label || 'at least ' + b.min) + ' per day)', blocker: true });
-    if (P.needsImage(pkg, p) && !P.image(pkg, p)) list.push({ key: 'creative', label: 'Creative image', blocker: true });
+    if (b.source === 'missing') list.push({ key: 'budget', label: TX('ofl_dailyBudget'), blocker: true });
+    else if (b.low) list.push({ key: 'budget', label: TX('ofl_dailyBudgetNeeds', { platform: PLAT[p], min: minText(p, b.min) }), blocker: true });
+    if (P.needsImage(pkg, p) && !P.image(pkg, p)) list.push({ key: 'creative', label: TX('ofl_creativeImage'), blocker: true });
     if (p === 'google' && googleType(pkg) === 'SEARCH') {
       var g = pkg.googleAds || {};
       var h = (g.headlines || []).filter(Boolean).length, d = (g.descriptions || []).filter(Boolean).length;
-      if (h < 3 || d < 2) list.push({ key: 'copy', label: 'At least 3 headlines and 2 descriptions', blocker: true });
+      if (h < 3 || d < 2) list.push({ key: 'copy', label: TX('ofl_minCopy'), blocker: true });
     }
     return list;
   };
+  // "more than 20" (TikTok) or "at least N" — the platform's daily minimum.
+  function minText(p, min) { var lbl = (BUDGET_RULE[p] || {}).label; return lbl ? TX(lbl) : TX('ofl_atLeast', { n: min }); }
 
   // Saves an edited package into the campaign record (local cache + durable
   // mirror via _saveCamps) and tells open Launch views to recalculate.
@@ -319,7 +323,7 @@
   // ════════════════════════════════════════════════════════════════
   // input: { status, body, error, phase: 'generate'|'publish'|'creative' }
   // output: { kind, title, message, detail?, retry, edit, action? }
-  var SERVICE_MSG = 'OrivenAI cannot generate this campaign right now because the generation service is temporarily unavailable. Please try again later.';
+
   function safeServerText(t) {
     t = String(t || '');
     t = t.replace(/\(#\d+\)\s*/g, '').trim();
@@ -327,116 +331,132 @@
     if (/aiml|api[_ -]?key|stack|econn|undefined|null|exception|at\s+\w+\s*\(|<\/?[a-z]/i.test(t)) return '';
     return t;
   }
+  // A coded server error in the user's language (js/serverI18n.js); English and
+  // uncoded errors keep the server's own (cleaned) text.
+  function srvText(b) { return window.orvTx && window.orvTx.serverError ? window.orvTx.serverError(b, safeServerText) : safeServerText(b && (b.error || b.message)); }
+  function issueText(i) { return window.orvTx && window.orvTx.issue ? window.orvTx.issue(i) : String(i.message || ''); }
   F.error = function (input) {
     input = input || {};
     var st = input.status || 0, b = input.body || {}, err = input.error, phase = input.phase || 'generate';
     var code = b && b.code;
     var c = costs();
     var msg = err && err.message ? String(err.message) : '';
-    var noun = phase === 'publish' ? 'campaign' : 'build';
     // Publishing: no readable answer (dropped connection, a proxy's HTML
     // error page, a crash before the server replied) is NOT proof that
     // nothing was created. Only the status check decides.
     // (input.sending: only a campaign publish request — not pause/resume/budget calls)
     var sending = phase === 'publish' && !!input.sending;
     if (sending && ((err && !st) || (st >= 500 && !code))) {
-      return { kind: 'unconfirmed', title: 'Publishing result not confirmed', message: 'OrivenAI didn’t get a clear answer, so it can’t confirm whether the campaign was created. Check the status before trying again — nothing will be sent twice.', retry: false, edit: false, unconfirmed: true };
+      return { kind: 'unconfirmed', title: TX('ofl_eUnconfTitle'), message: TX('ofl_eUnconfUnclear'), retry: false, edit: false, unconfirmed: true };
     }
     if (err && !st) {
       if (/could not reach/i.test(msg) || /failed to fetch|network/i.test(msg) || (typeof navigator !== 'undefined' && navigator.onLine === false)) {
-        if (sending) return { kind: 'unconfirmed', title: 'Publishing result not confirmed', message: 'The connection dropped before OrivenAI replied, so it can’t confirm whether the campaign was created. Check the status before trying again — nothing will be sent twice.', retry: false, edit: false, unconfirmed: true };
-        return { kind: 'network', title: 'Can’t reach OrivenAI', message: 'Check your internet connection, then try again. Nothing was ' + (phase === 'publish' ? 'published.' : 'built.'), retry: true, edit: true };
+        if (sending) return { kind: 'unconfirmed', title: TX('ofl_eUnconfTitle'), message: TX('ofl_eUnconfDropped'), retry: false, edit: false, unconfirmed: true };
+        return { kind: 'network', title: TX('ofl_eNetTitle'), message: TX(phase === 'publish' ? 'ofl_eNetPublish' : 'ofl_eNetBuild'), retry: true, edit: true };
       }
       if (/unexpected response|not found|starting/i.test(msg)) {
-        return { kind: 'backend', title: 'OrivenAI is temporarily unavailable', message: 'Our servers didn’t respond as expected. Please try again in a minute.', retry: true, edit: true };
+        return { kind: 'backend', title: TX('ofl_eBackendTitle'), message: TX('ofl_eBackendUnexpected'), retry: true, edit: true };
       }
       if (phase === 'generate' && /malformed|incomplete/i.test(msg)) {
-        return { kind: 'malformed', title: 'The campaign came back incomplete', message: 'OrivenAI received a campaign it couldn’t use, so nothing was saved. Try building it again.', retry: true, edit: true };
+        return { kind: 'malformed', title: TX('ofl_eMalformedTitle'), message: TX('ofl_eMalformedMsg'), retry: true, edit: true };
       }
-      return { kind: 'unknown', title: phase === 'publish' ? 'Publishing didn’t complete' : 'The build didn’t complete', message: 'Something unexpected happened. Try again — if it keeps happening, contact support.', retry: true, edit: true };
+      return { kind: 'unknown', title: TX(phase === 'publish' ? 'ofl_ePubIncomplete' : 'ofl_eBuildIncomplete'), message: TX('ofl_eUnexpected'), retry: true, edit: true };
     }
     if (st === 402 || code === 'CREDITS_EXHAUSTED') {
       var bal = b.balance != null ? Number(b.balance) : null;
-      var need = input.required || c.campaign || 25;
+      // An image / video that ran out of credits needs its own price, not a campaign's.
+      var need = input.required || (phase === 'creative' ? (c.imageAd || 75) : (c.campaign || 25));
       return {
-        kind: 'credits', title: 'Not enough credits',
-        message: 'Building a campaign needs ' + need + ' credits' + (bal != null ? ', and you have ' + bal + '.' : '.') +
-          ' Images (' + (c.imageAd || 75) + ' each) and videos (' + (c.video || 200) + ' each) are charged separately.',
+        kind: 'credits', title: TX('ofl_eCreditsTitle'),
+        message: TX(phase === 'creative' ? 'ofl_eCreditsCreative' : 'ofl_eCreditsCampaign', { need: need }) + (bal != null ? ' ' + TX('ofl_eCreditsHave', { bal: bal }) : '') +
+          (phase === 'creative' ? '' : ' ' + TX('ofl_eCreditsSeparate', { image: c.imageAd || 75, video: c.video || 200 })),
         balance: bal, required: need, retry: false, edit: true,
-        action: { label: 'View plans', fn: 'plans', ctx: { action: phase === 'creative' ? 'image' : 'create', code: 'CREDITS_EXHAUSTED', balance: bal } }
+        action: { label: TX('ofl_viewPlans'), fn: 'plans', ctx: { action: phase === 'creative' ? 'image' : 'create', code: 'CREDITS_EXHAUSTED', balance: bal } }
       };
     }
     if (st === 403 && code === 'SUBSCRIPTION_REQUIRED') {
-      return { kind: 'subscription', title: 'A plan is required', message: 'Choose a plan to keep building campaigns.', retry: false, edit: true, action: { label: 'View plans', fn: 'plans', ctx: { action: 'create', code: 'SUBSCRIPTION_REQUIRED' } } };
+      return { kind: 'subscription', title: TX('ofl_ePlanTitle'), message: TX('ofl_ePlanMsg'), retry: false, edit: true, action: { label: TX('ofl_viewPlans'), fn: 'plans', ctx: { action: 'create', code: 'SUBSCRIPTION_REQUIRED' } } };
     }
     if (code === 'PROVIDER_UNAVAILABLE') {
-      return { kind: 'service', title: 'Generation service unavailable',
-        message: phase === 'creative' ? 'OrivenAI can’t create this image right now because the generation service is temporarily unavailable. Please try again later.' : SERVICE_MSG,
-        detail: (b.creditsRefunded || b.refunded) ? 'Your credits were returned.' : '', retry: true, edit: true };
+      return { kind: 'service', title: TX('ofl_eServiceTitle'),
+        message: TX(phase === 'creative' ? 'ofl_eServiceImage' : 'ofl_eServiceCampaign'),
+        detail: (b.creditsRefunded || b.refunded) ? TX('ofl_creditsReturned') : '', retry: true, edit: true };
     }
-    if (st === 401) {
-      return { kind: 'session', title: 'Your session has expired', message: 'Sign in again to continue. Nothing was ' + (phase === 'publish' ? 'published.' : 'built.'), retry: false, edit: false, action: { label: 'Sign in again', fn: 'signin' } };
+    // An ad platform's expired / revoked connection is not an OrivenAI
+    // session problem: provider routes answer it with a code (or, older
+    // routes, a 401 whose message says to reconnect). Signing in again
+    // wouldn't help — reconnecting the platform does.
+    if (code === 'RECONNECT_REQUIRED' || code === 'NOT_CONNECTED' || (st === 401 && !code && /reconnect|access token|token expired|not connected/i.test(String(b.error || '')))) {
+      return { kind: 'reconnect', title: TX(code === 'NOT_CONNECTED' ? 'ofl_eNotConnTitle' : 'ofl_eReconnectTitle'),
+        message: srvText(b) || TX('ofl_eReconnectMsg'), detail: TX(phase === 'publish' ? 'ofl_nothingChangedPlatform' : 'ofl_nothingBuilt'),
+        retry: false, edit: false, action: { label: TX('ofl_openConnections'), fn: 'connections' } };
+    }
+    if (st === 401 && (!code || code === 'AUTH_REQUIRED')) {
+      return { kind: 'session', title: TX('ofl_eSessionTitle'), message: TX(phase === 'publish' ? 'ofl_eSessionPublish' : 'ofl_eSessionBuild'), retry: false, edit: false, action: { label: TX('ofl_signInAgain'), fn: 'signin' } };
     }
     // Paid-action guard (server): the same build is already running, or this
     // exact action was already sent. Nothing new was charged.
     if (st === 409 && code === 'ACTION_IN_PROGRESS') {
-      return { kind: 'in_progress', title: 'Already building', message: safeServerText(b.error) || 'This is still running. Wait for it to finish before starting another.', detail: 'Nothing extra was charged.', retry: false, edit: false };
+      return { kind: 'in_progress', title: TX('ofl_eBuildingTitle'), message: srvText(b) || TX('ofl_eBuildingMsg'), detail: TX('ofl_nothingExtraCharged'), retry: false, edit: false };
     }
     if (st === 409 && code === 'DUPLICATE_ACTION') {
-      return { kind: 'in_progress', title: 'Already sent', message: 'This exact request was already sent once. Start a new build if you want another.', detail: 'Nothing extra was charged.', retry: true, edit: true };
+      return { kind: 'in_progress', title: TX('ofl_eSentTitle'), message: TX('ofl_eSentMsg'), detail: TX('ofl_nothingExtraCharged'), retry: true, edit: true };
     }
     if (st === 409 && code === 'PUBLISH_IN_PROGRESS') {
-      return { kind: 'in_progress', title: 'Already publishing', message: 'This campaign is already being sent. Wait for that to finish before trying again.', retry: false, edit: false };
+      return { kind: 'in_progress', title: TX('ofl_ePubBusyTitle'), message: TX('ofl_ePubBusyMsg'), retry: false, edit: false };
     }
     if (st === 429) {
-      return { kind: 'rate_limit', title: 'Too many requests', message: 'Wait a minute, then try again.', retry: true, edit: true };
+      return { kind: 'rate_limit', title: TX('ofl_eRateTitle'), message: TX('ofl_eRateMsg'), retry: true, edit: true };
     }
     // Publishing: a timeout or a gateway error is NOT proof that nothing was
     // created — the server may still be finishing. Only the status check
     // decides (POST /api/publish/{p}/status); never an automatic retry.
     if (sending && (st === 408 || st === 504 || ((st === 502 || st === 503) && !code))) {
-      return { kind: 'unconfirmed', title: 'Publishing result not confirmed', message: 'OrivenAI didn’t get an answer in time, so it can’t confirm whether the campaign was created. Check the status before trying again — nothing will be sent twice.', retry: false, edit: false, unconfirmed: true };
+      return { kind: 'unconfirmed', title: TX('ofl_eUnconfTitle'), message: TX('ofl_eUnconfTimeout'), retry: false, edit: false, unconfirmed: true };
     }
     if (st === 408 || st === 504) {
-      return { kind: 'timeout', title: 'This took too long', message: 'The ' + noun + ' didn’t finish in time. Try again.', retry: true, edit: true };
+      return { kind: 'timeout', title: TX('ofl_eTimeoutTitle'), message: TX(phase === 'publish' ? 'ofl_eTimeoutCampaign' : 'ofl_eTimeoutBuild'), retry: true, edit: true };
     }
     if (phase === 'publish' && code === 'PUBLISH_LEDGER_UNAVAILABLE') {
-      return { kind: 'backend', title: 'Publishing is temporarily unavailable', message: safeServerText(b.error) || 'Nothing was sent. Try again in a few minutes.', retry: true, edit: false };
+      return { kind: 'backend', title: TX('ofl_eLedgerTitle'), message: srvText(b) || TX('ofl_eLedgerMsg'), retry: true, edit: false };
     }
     if (phase === 'publish' && (code === 'ALREADY_PUBLISHED' || code === 'RESULT_UNCONFIRMED')) {
-      return { kind: code === 'ALREADY_PUBLISHED' ? 'already' : 'unconfirmed', title: code === 'ALREADY_PUBLISHED' ? 'Already published' : 'Publishing result not confirmed', message: safeServerText(b.error) || '', retry: false, edit: false, unconfirmed: code === 'RESULT_UNCONFIRMED' };
+      return { kind: code === 'ALREADY_PUBLISHED' ? 'already' : 'unconfirmed', title: TX(code === 'ALREADY_PUBLISHED' ? 'ofl_eAlreadyTitle' : 'ofl_eUnconfTitle'), message: srvText(b) || '', retry: false, edit: false, unconfirmed: code === 'RESULT_UNCONFIRMED' };
     }
     if (phase === 'publish' && code === 'PUBLISH_FAILED') {
       var rb = b.rollback || {};
-      return { kind: 'failed', title: 'The platform didn’t accept the campaign', message: safeServerText(b.error) || 'Publishing didn’t complete.',
-        detail: rb.complete === false ? (rb.leftovers + ' paused object' + (rb.leftovers === 1 ? '' : 's') + ' couldn’t be removed from the platform. Nothing spends, but check your ad account and delete them.') : 'Everything that had been created was removed again.', retry: true, edit: true, confirmedFailure: true };
+      return { kind: 'failed', title: TX('ofl_eRejectedTitle'), message: safeServerText(b.error) || TX('ofl_ePubIncompleteDot'),
+        detail: rb.complete === false ? (rb.leftovers === 1 ? TX('ofl_eLeftovers1') : TX('ofl_eLeftoversN', { n: rb.leftovers })) : TX('ofl_eRolledBack'), retry: true, edit: true, confirmedFailure: true };
     }
     if (code === 'CONTENT_POLICY' || code === 'POLICY_VIOLATION' || /policy/i.test(String(b.error || '')) && st === 400 && phase === 'generate') {
-      return { kind: 'policy', title: 'This request can’t be built', message: 'The description includes content OrivenAI can’t create ads for. Edit the description and try again.', retry: false, edit: true };
+      return { kind: 'policy', title: TX('ofl_ePolicyTitle'), message: TX('ofl_ePolicyMsg'), retry: false, edit: true };
     }
     if (st === 422 && code === 'CAMPAIGN_INVALID') {
-      var errs = (b.issues || []).filter(function (i) { return i && i.level === 'error'; }).map(function (i) { return String(i.message || '').slice(0, 300); }).filter(Boolean);
-      return { kind: 'invalid', title: 'Campaign settings need your input', message: errs[0] || 'Some campaign settings are missing.',
-        detail: errs.length > 1 ? (errs.length - 1) + ' more to fix in Campaign settings. Nothing was sent.' : 'Nothing was sent.', retry: false, edit: true };
+      var errs = (b.issues || []).filter(function (i) { return i && i.level === 'error'; }).map(function (i) { return issueText(i).slice(0, 300); }).filter(Boolean);
+      return { kind: 'invalid', title: TX('ofl_eInvalidTitle'), message: errs[0] || TX('ofl_eInvalidMissing'),
+        detail: errs.length > 1 ? TX('ofl_eInvalidMore', { n: errs.length - 1 }) : TX('ofl_nothingSent'), retry: false, edit: true };
     }
     if (st === 400 || st === 422) {
-      var t = safeServerText(b.error || b.message);
-      return { kind: 'invalid', title: phase === 'publish' ? 'The platform needs a change first' : 'Check the campaign details',
-        message: t || (phase === 'publish' ? 'Something in this campaign needs fixing before it can be sent.' : 'Something in this request is missing or invalid. Review it in Create and try again.'),
+      var t = srvText(b);
+      return { kind: 'invalid', title: TX(phase === 'publish' ? 'ofl_eNeedsChangeTitle' : 'ofl_eCheckDetailsTitle'),
+        message: t || TX(phase === 'publish' ? 'ofl_eNeedsChangeMsg' : 'ofl_eCheckDetailsMsg'),
         retry: false, edit: true };
     }
+    if (code === 'CREDIT_CHECK_FAILED') {
+      return { kind: 'backend', title: TX('ofl_eCreditCheckTitle'), message: TX('ofl_eCreditCheckMsg'), detail: TX('ofl_nothingCharged'), retry: true, edit: true };
+    }
     if (st === 502 || st === 503) {
-      return { kind: 'backend', title: 'OrivenAI is temporarily unavailable', message: 'Our servers didn’t respond. Please try again in a minute.', detail: b.creditsRefunded ? 'Your credits were returned.' : '', retry: true, edit: true };
+      return { kind: 'backend', title: TX('ofl_eBackendTitle'), message: TX('ofl_eBackendNoResponse'), detail: b.creditsRefunded ? TX('ofl_creditsReturned') : '', retry: true, edit: true };
     }
     if (code === 'GENERATION_FAILED' || (st >= 500 && phase === 'generate')) {
-      return { kind: 'generation', title: 'Campaign generation failed', message: 'OrivenAI couldn’t finish building this campaign. Try again, or adjust the description.',
-        detail: b.creditsRefunded ? 'Your credits for this attempt were returned.' : '', retry: true, edit: true };
+      return { kind: 'generation', title: TX('ofl_eGenTitle'), message: TX('ofl_eGenMsg'),
+        detail: b.creditsRefunded ? TX('ofl_creditsReturnedAttempt') : '', retry: true, edit: true };
     }
     if (st >= 500) {
-      var t2 = phase === 'publish' ? safeServerText(b.error) : '';
-      return { kind: 'unknown', title: phase === 'publish' ? 'Publishing didn’t complete' : 'Something went wrong', message: t2 || 'Try again. If it keeps happening, contact support.', retry: true, edit: true };
+      var t2 = phase === 'publish' ? srvText(b) : '';
+      return { kind: 'unknown', title: TX(phase === 'publish' ? 'ofl_ePubIncomplete' : 'ofl_eWrongTitle'), message: t2 || TX('ofl_eWrongMsg'), retry: true, edit: true };
     }
-    return { kind: 'unknown', title: 'Something went wrong', message: 'Try again. If it keeps happening, contact support.', retry: true, edit: true };
+    return { kind: 'unknown', title: TX('ofl_eWrongTitle'), message: TX('ofl_eWrongMsg'), retry: true, edit: true };
   };
   // ctx (optional): the blocked action — { action, code, balance } — so the
   // plan modal can say what it needs and keep the user's work (onboarding.js).
@@ -447,8 +467,11 @@
       else if (typeof window.openSettingsModal === 'function') window.openSettingsModal();
     } else if (fn === 'signin') {
       try { window.location.reload(); } catch (_) {}
+    } else if (fn === 'connections') {
+      if (typeof window.bizGoTo === 'function') window.bizGoTo('connections');
     } else if (fn === 'campaigns') {
-      if (typeof window.navigate === 'function') window.navigate('campaigns');
+      if (window.orvWorkspace && window.orvWorkspace.go) window.orvWorkspace.go({ page: 'campaigns' });
+      else if (typeof window._orvNav === 'function') window._orvNav('performance', 'page-performance');
     }
   };
 
@@ -468,7 +491,7 @@
         '<div class="ofd-head">' +
           (opts.eyebrow ? '<div class="ofd-eyebrow">' + esc(opts.eyebrow) + '</div>' : '') +
           '<h2 class="ofd-title" id="' + id + 't">' + esc(opts.title || '') + '</h2>' +
-          '<button type="button" class="ofd-x" aria-label="Close">×</button>' +
+          '<button type="button" class="ofd-x" aria-label="' + esc(TX('ofl_close')) + '">×</button>' +
         '</div>' +
         '<div class="ofd-body" id="' + id + 'b"></div>' +
         '<div class="ofd-foot"></div>' +
@@ -542,25 +565,25 @@
         body: opts.body || '',
         onClose: function (r) { if (!done) { done = true; resolve(!!r); } },
         actions: [
-          { label: opts.cancelLabel || 'Cancel', kind: 'ghost', onClick: function (api) { api.close(false); } },
-          { label: opts.confirmLabel || 'Confirm', kind: opts.danger ? 'danger' : 'primary', onClick: function (api) {
+          { label: opts.cancelLabel || TX('ofl_cancel'), kind: 'ghost', onClick: function (api) { api.close(false); } },
+          { label: opts.confirmLabel || TX('ofl_confirm'), kind: opts.danger ? 'danger' : 'primary', onClick: function (api) {
             if (typeof opts.run !== 'function') { api.close(true); return; }
             // Long-running confirmation: keep the dialog open, busy, until the
             // real result arrives, then show the outcome in place.
-            api.busy(true, opts.busyLabel || 'Working…');
+            api.busy(true, opts.busyLabel || TX('ofl_working'));
             Promise.resolve().then(opts.run).then(function (res) {
               api.busy(false);
               if (res && res.ok === false) {
-                api.setBody('<div class="ofd-result ofd-result-err" role="alert"><strong>' + esc(res.title || 'That didn’t work') + '</strong><p>' + esc(res.message || '') + '</p></div>');
-                api.setActions([{ label: 'Close', kind: 'ghost', onClick: function (a) { a.close(false); } }]);
+                api.setBody('<div class="ofd-result ofd-result-err" role="alert"><strong>' + esc(res.title || TX('ofl_didntWork')) + '</strong><p>' + esc(res.message || '') + '</p>' + (res.detail ? '<p>' + esc(res.detail) + '</p>' : '') + '</div>');
+                api.setActions([{ label: TX('ofl_close'), kind: 'ghost', onClick: function (a) { a.close(false); } }]);
                 api.focusFirst();
               } else {
                 done = true; resolve(true); api.close(true);
               }
             }, function () {
               api.busy(false);
-              api.setBody('<div class="ofd-result ofd-result-err" role="alert"><strong>That didn’t work</strong><p>Check your connection and try again.</p></div>');
-              api.setActions([{ label: 'Close', kind: 'ghost', onClick: function (a) { a.close(false); } }]);
+              api.setBody('<div class="ofd-result ofd-result-err" role="alert"><strong>' + esc(TX('ofl_didntWork')) + '</strong><p>' + esc(TX('ofl_checkConnection')) + '</p></div>');
+              api.setActions([{ label: TX('ofl_close'), kind: 'ghost', onClick: function (a) { a.close(false); } }]);
               api.focusFirst();
             });
           } }
@@ -597,13 +620,13 @@
     var isVideo = o.creativeMode === 'videos';
     var textOnly = !isVideo && o.platform === 'google' && (!o.googleType || o.googleType === 'SEARCH');
     var list = [
-      { k: 'prepare', t: 'Preparing your campaign' },
-      { k: 'content', t: 'Creating your ad content', status: 'Writing your ad content' + ((o.hasBusiness || o.hasResearch) ? ' with your ' + [o.hasBusiness ? 'business profile' : '', o.hasResearch ? 'research' : ''].filter(Boolean).join(' and ') : '') }
+      { k: 'prepare', t: TX('ofl_bPrepare') },
+      { k: 'content', t: TX('ofl_bContent'), status: TX(o.hasBusiness && o.hasResearch ? 'ofl_bWritingBoth' : o.hasBusiness ? 'ofl_bWritingBiz' : o.hasResearch ? 'ofl_bWritingRes' : 'ofl_bWriting') }
     ];
-    if (isVideo) list.push({ k: 'creative', t: 'Generating your video', status: 'Starting your video' });
-    else if (!textOnly) list.push({ k: 'creative', t: 'Generating your image', status: 'Generating your image' });
-    list.push({ k: 'finalize', t: 'Finalizing your campaign' });
-    list.push({ k: 'ready', t: 'Ready to review' });
+    if (isVideo) list.push({ k: 'creative', t: TX('ofl_bVideo'), status: TX('ofl_bVideoStart') });
+    else if (!textOnly) list.push({ k: 'creative', t: TX('ofl_bImage'), status: TX('ofl_bImage') });
+    list.push({ k: 'finalize', t: TX('ofl_bFinalize') });
+    list.push({ k: 'ready', t: TX('ofl_bReady') });
     return list;
   }
   function host() { return document.getElementById('cgrLoading'); }
@@ -624,8 +647,8 @@
       startedAt: Date.now(), afterCopy: [], copyDone: false };
     el.classList.add('ofb-host');
     bs.ui = OPR().create(el, {
-      title: 'Building your campaign',
-      chips: [PLAT[p], o.goal || 'Sales', isVideo ? 'Video ad' : (textOnly ? 'Search ad' : 'Image ad')],
+      title: TX('ofl_bTitle'),
+      chips: [PLAT[p], o.goal || 'Sales', TX(isVideo ? 'ofl_bChipVideo' : (textOnly ? 'ofl_bChipSearch' : 'ofl_bChipImage'))],
       stages: stagesFor({ creativeMode: o.creativeMode, platform: p, googleType: o.googleType, hasBusiness: o.hasBusiness, hasResearch: o.hasResearch }),
       kind: 'build-content'
     });
@@ -634,7 +657,7 @@
     // when there are enough of them — never a fake ETA.
     var est = OPR().estimateMs('build-content');
     later(function () {
-      if (bs && bs.phase === 'request') bs.ui.notice('This is taking longer than usual, but your campaign is still being created. Please keep this page open.', 'slow');
+      if (bs && bs.phase === 'request') bs.ui.notice(TX('ofl_bSlow'), 'slow');
     }, Math.max(70000, est ? est * 1.6 : 0));
     return bs.token;
   };
@@ -669,11 +692,11 @@
     bs.ui.stage('finalize', 'active');
     later(function () {
       var saveOk = window._orvLastStoreOk !== false;
-      bs.ui.stage('finalize', saveOk ? 'done' : 'warn', saveOk ? 'Saved to Campaigns' : 'Saved to your account; this device’s copy failed');
+      bs.ui.stage('finalize', saveOk ? 'done' : 'warn', TX(saveOk ? 'ofl_bSaved' : 'ofl_bSavedPartly'));
       bs.ui.stage('ready', 'done');
       bs.phase = 'done';
-      bs.ui.finish('done', 'Your campaign is ready');
-      bs.ui.status(bs.isVideo ? 'Opening your campaign — your video keeps generating' : 'Opening your campaign');
+      bs.ui.finish('done', TX('ofl_bDone'));
+      bs.ui.status(TX(bs.isVideo ? 'ofl_bOpeningVideo' : 'ofl_bOpening'));
       later(function () { var done = cb; B.stop(); if (done) done(); }, stepMs(700));
     }, stepMs(350));
   }
@@ -684,9 +707,7 @@
     info = info || {};
     afterCopy(function () {
       if (ok && bs.creativeAt && OPR()) OPR().record('build-image', Date.now() - bs.creativeAt);
-      var why = info.failKind === 'credits' ? 'Not enough credits for the image'
-        : info.failKind === 'service' ? 'Image service unavailable — add or regenerate it later'
-        : 'Image not created — add or regenerate it later';
+      var why = TX(info.failKind === 'credits' ? 'ofl_bImgCredits' : info.failKind === 'service' ? 'ofl_bImgService' : 'ofl_bImgFailed');
       bs.ui.stage('creative', ok ? 'done' : 'warn', ok ? '' : why);
       later(function () { finishBuild(cb); }, stepMs(ok ? 250 : 150));
     });
@@ -694,7 +715,7 @@
   B.background = function (info, cb, token) {
     if (!bs || (token && bs.token !== token)) { if (cb) cb(); return; }
     afterCopy(function () {
-      bs.ui.stage('creative', 'bg', 'Keeps generating while you review — progress is shown on the video');
+      bs.ui.stage('creative', 'bg', TX('ofl_bVideoBg'));
       finishBuild(cb);
     });
   };
@@ -711,7 +732,7 @@
     bs.ui.status('');
     var foot = bs.ui.q('.op-foot');
     var creditRow = (model.kind === 'credits' && model.balance != null)
-      ? '<dl class="ofb-credits"><div><dt>Needed</dt><dd>' + esc(model.required) + '</dd></div><div><dt>Your balance</dt><dd>' + esc(model.balance) + '</dd></div></dl>' : '';
+      ? '<dl class="ofb-credits"><div><dt>' + esc(TX('ofl_needed')) + '</dt><dd>' + esc(model.required) + '</dd></div><div><dt>' + esc(TX('ofl_yourBalance')) + '</dt><dd>' + esc(model.balance) + '</dd></div></dl>' : '';
     foot.innerHTML =
       '<div class="ofb-err" role="alert">' +
         '<p class="ofb-err-msg">' + esc(model.message) + '</p>' +
@@ -729,8 +750,8 @@
     }
     var first = null;
     if (model.action) first = btn(model.action.label, 'primary', function () { F.runAction(model.action.fn, model.action.ctx); });
-    if (model.retry && handlers.retry) { var r = btn('Try again', model.action ? 'ghost' : 'primary', handlers.retry); first = first || r; }
-    if (model.edit !== false && handlers.edit) { var e = btn('Back to Create', 'ghost', handlers.edit); first = first || e; }
+    if (model.retry && handlers.retry) { var r = btn(TX('ofl_tryAgain'), model.action ? 'ghost' : 'primary', handlers.retry); first = first || r; }
+    if (model.edit !== false && handlers.edit) { var e = btn(TX('ofl_backToCreate'), 'ghost', handlers.edit); first = first || e; }
     if (first) setTimeout(function () { try { first.focus({ preventScroll: true }); } catch (_) {} }, 30);
     try { var mc = document.querySelector('.mc'); if (mc) mc.scrollTop = 0; window.scrollTo(0, 0); } catch (_) {}
     return true;
@@ -755,31 +776,31 @@
   F.openBudget = function (campId, opts) {
     opts = opts || {};
     var camp = F.findCampaign(campId);
-    if (!camp || !camp.pkg) { toast('This campaign couldn’t be found. Reload and try again.', 'warn'); return; }
+    if (!camp || !camp.pkg) { toast(TX('ofl_campNotFound'), 'warn'); return; }
     var p = camp.platform || camp.pkg.platform;
     var b = P.budget(camp.pkg, p);
     var start = b.source === 'set' ? b.applied : (b.suggestion || '');
     var rule = p === 'google' ? { min: 1 } : BUDGET_RULE[p];
     var d = F.dialog({
-      title: 'Set daily budget', eyebrow: PLAT[p] || p,
+      title: TX('ofl_setDailyBudget'), eyebrow: PLAT[p] || p,
       body:
         '<form class="ofd-form" novalidate>' +
-          '<label class="ofd-lbl" for="ofdBudget">Daily budget</label>' +
+          '<label class="ofd-lbl" for="ofdBudget">' + esc(TX('ofl_dailyBudget')) + '</label>' +
           '<div class="ofd-money"><input id="ofdBudget" class="ofd-input" type="number" inputmode="decimal" min="' + rule.min + '" step="0.01" value="' + esc(start) + '" aria-describedby="ofdBudgetHint ofdBudgetErr" data-autofocus>' +
-          '<span class="ofd-money-unit" id="ofdBudgetUnit">per day</span></div>' +
+          '<span class="ofd-money-unit" id="ofdBudgetUnit">' + esc(TX('ofl_perDay')) + '</span></div>' +
           '<p class="ofd-hint" id="ofdBudgetHint">' + esc(budgetHint(p, b)) + '</p>' +
           '<p class="ofd-err" id="ofdBudgetErr" role="alert" hidden></p>' +
         '</form>',
       actions: [
-        { label: 'Cancel', kind: 'ghost', onClick: function (api) { api.close(false); } },
-        { label: 'Save budget', kind: 'primary', onClick: save }
+        { label: TX('ofl_cancel'), kind: 'ghost', onClick: function (api) { api.close(false); } },
+        { label: TX('ofl_saveBudget'), kind: 'primary', onClick: save }
       ]
     });
     var input = d.el.querySelector('#ofdBudget');
     var errEl = d.el.querySelector('#ofdBudgetErr');
     d.el.querySelector('form').addEventListener('submit', function (e) { e.preventDefault(); save(d); });
     F.account(p).then(function (acct) {
-      if (acct && acct.currency) { var u = d.el.querySelector('#ofdBudgetUnit'); if (u) u.textContent = acct.currency + ' per day'; }
+      if (acct && acct.currency) { var u = d.el.querySelector('#ofdBudgetUnit'); if (u) u.textContent = TX('ofl_curPerDay', { currency: acct.currency }); }
       // TikTok's fixed minimum (more than 20) applies to USD/EUR/GBP accounts;
       // for other currencies TikTok sets its own minimum, checked when publishing.
       if (p === 'tiktok' && acct && acct.currency && ['USD', 'EUR', 'GBP'].indexOf(String(acct.currency).toUpperCase()) === -1) { rule = { min: 1 }; input.setAttribute('min', '1'); }
@@ -787,37 +808,37 @@
     function save(api) {
       var v = parseFloat(String(input.value).replace(',', '.'));
       var msg = null;
-      if (!isFinite(v) || v <= 0) msg = 'Enter a daily amount greater than zero.';
-      else if (v < rule.min) msg = PLAT[p] + ' needs ' + (rule.label || 'at least ' + rule.min) + ' per day.';
+      if (!isFinite(v) || v <= 0) msg = TX('ofl_budgetPositive');
+      else if (v < rule.min) msg = TX('ofl_budgetMin', { platform: PLAT[p], min: rule.label ? TX(rule.label) : TX('ofl_atLeast', { n: rule.min }) });
       if (msg) { errEl.textContent = msg; errEl.hidden = false; input.setAttribute('aria-invalid', 'true'); input.focus(); return; }
       var fresh = F.findCampaign(campId);
       var pkg = clone(fresh.pkg);
       P.setBudget(pkg, p, v, rule.min);
       F.savePackage(campId, pkg);
       api.close(true);
-      toast('Daily budget saved: ' + v + ' per day.', 'ok');
+      toast(TX('ofl_budgetSaved', { amount: v }), 'ok');
       if (opts.onSaved) opts.onSaved(v);
     }
   };
   function budgetHint(p, b) {
-    var sug = b && b.suggestion ? ' OrivenAI suggested ' + b.suggestion + ' per day.' : '';
-    if (p === 'tiktok') return 'TikTok needs more than 20 per day per ad group. Your ad account’s currency is used.' + sug;
-    return 'You choose the daily budget — OrivenAI never sets one for you. Your ad account’s currency is used.' + sug;
+    var sug = b && b.suggestion ? ' ' + TX('ofl_budgetSuggested', { amount: b.suggestion }) : '';
+    if (p === 'tiktok') return TX('ofl_budgetHintTt') + sug;
+    return TX('ofl_budgetHint') + sug;
   }
 
   // ════════════════════════════════════════════════════════════════
   // 5c. GO TO AD — structured editor over the real package
   // ════════════════════════════════════════════════════════════════
   var SECTIONS = [
-    { k: 'overview', t: 'Overview' }, { k: 'creative', t: 'Creative' }, { k: 'copy', t: 'Copy' },
-    { k: 'settings', t: 'Campaign settings' }, { k: 'budget', t: 'Budget & schedule' },
-    { k: 'destination', t: 'Destination' }, { k: 'readiness', t: 'Readiness' }
+    { k: 'overview', t: 'ofl_secOverview' }, { k: 'creative', t: 'ofl_secCreative' }, { k: 'copy', t: 'ofl_secCopy' },
+    { k: 'settings', t: 'ofl_secSettings' }, { k: 'budget', t: 'ofl_secBudget' },
+    { k: 'destination', t: 'ofl_secDestination' }, { k: 'readiness', t: 'ofl_secReadiness' }
   ];
   // Older links ("audience", "platform", "tracking") open the settings review.
   var SECTION_ALIAS = { audience: 'settings', platform: 'settings', tracking: 'settings', targeting: 'settings', compliance: 'settings', identity: 'settings', ads: 'settings', objective: 'settings', assets: 'settings', advanced: 'settings' };
   F.openAd = function (campId, section) {
     var camp = F.findCampaign(campId);
-    if (!camp || !camp.pkg) { toast('This campaign couldn’t be found. Reload and try again.', 'warn'); return; }
+    if (!camp || !camp.pkg) { toast(TX('ofl_campNotFound'), 'warn'); return; }
     var p = camp.platform || camp.pkg.platform;
     var work = clone(camp.pkg);
     var dirty = false;
@@ -850,13 +871,13 @@
     function specIssuesHtml() {
       var r = specState.res;
       if (!OS) return '';
-      if (!r) return '<p class="ofe-note" role="status">Checking campaign settings against your ad account…</p>';
+      if (!r) return '<p class="ofe-note" role="status">' + esc(TX('ofl_specChecking')) + '</p>';
       if (r.error) return '<p class="ofe-note">' + esc(r.error) + '</p>';
       var list = (r.issues || []).filter(function (i) { return i.level !== 'info'; });
-      if (!list.length) return '<p class="ofe-ok">Campaign settings are complete.</p>';
+      if (!list.length) return '<p class="ofe-ok">' + esc(TX('ofl_specComplete')) + '</p>';
       return '<ul class="ofe-issues">' + list.map(function (i) {
-        return '<li class="ofe-issue ofe-issue-' + (i.level === 'error' ? 'req' : 'opt') + '"><span class="ofe-issue-tag">' + (i.level === 'error' ? 'Required' : 'Check') + '</span> ' + esc(i.message) +
-          ' <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-spec-go="' + OS.sectionOf(i.field) + '">Fix</button></li>';
+        return '<li class="ofe-issue ofe-issue-' + (i.level === 'error' ? 'req' : 'opt') + '"><span class="ofe-issue-tag">' + esc(TX(i.level === 'error' ? 'ofl_tagRequired' : 'ofl_tagCheck')) + '</span> ' + esc(issueText(i)) +
+          ' <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-spec-go="' + OS.sectionOf(i.field) + '">' + esc(TX('ofl_fix')) + '</button></li>';
       }).join('') + '</ul>';
     }
     // Local content checks; a destination the spec resolved (e.g. from the
@@ -878,20 +899,20 @@
       });
     }
     var d = F.dialog({
-      title: camp.name || 'Campaign', eyebrow: 'Ad · ' + (PLAT[p] || p), wide: true,
+      title: camp.name || TX('ofl_rCampaign'), eyebrow: TX('ofl_adEyebrow', { platform: PLAT[p] || p }), wide: true,
       onClose: function () {},
       actions: []
     });
     d.el.classList.add('ofe');
     function actions() {
       d.setActions([
-        { label: 'Close', kind: 'ghost', onClick: tryClose },
-        { label: dirty ? 'Save changes' : 'Saved', kind: 'primary', disabled: !dirty, onClick: saveAll }
+        { label: TX('ofl_close'), kind: 'ghost', onClick: tryClose },
+        { label: TX(dirty ? 'ofl_saveChanges' : 'ofl_saved'), kind: 'primary', disabled: !dirty, onClick: saveAll }
       ]);
     }
     function tryClose(api) {
       if (!dirty) { api.close(false); return; }
-      F.confirm({ title: 'Discard unsaved changes?', body: '<p>Your edits to this ad haven’t been saved.</p>', confirmLabel: 'Discard', danger: true })
+      F.confirm({ title: TX('ofl_discardTitle'), body: '<p>' + esc(TX('ofl_discardBody')) + '</p>', confirmLabel: TX('ofl_discard'), danger: true })
         .then(function (yes) { if (yes) d.close(false); });
     }
     function saveAll() {
@@ -904,7 +925,7 @@
       dirty = false;
       actions();
       render(cur);
-      toast('Ad saved. Launch readiness is updated.', 'ok');
+      toast(TX('ofl_adSaved'), 'ok');
     }
     function validate() {
       var out = [];
@@ -915,11 +936,11 @@
     function markDirty() { if (!dirty) { dirty = true; actions(); } }
     function markEdited() { specState.stale = true; markDirty(); }
     function nav() {
-      return '<nav class="ofe-nav" aria-label="Ad sections"><ul>' + SECTIONS.map(function (s) {
-        return '<li><button type="button" class="ofe-tab" data-sec="' + s.k + '"' + (s.k === cur ? ' aria-current="true"' : '') + '>' + esc(s.t) + '</button></li>';
+      return '<nav class="ofe-nav" aria-label="' + esc(TX('ofl_adSections')) + '"><ul>' + SECTIONS.map(function (s) {
+        return '<li><button type="button" class="ofe-tab" data-sec="' + s.k + '"' + (s.k === cur ? ' aria-current="true"' : '') + '>' + esc(TX(s.t)) + '</button></li>';
       }).join('') + '</ul></nav>';
     }
-    function countText(len, max) { return len + ' / ' + max + (len > max ? ' — ' + PROVIDER[p] + ' cuts off the rest' : ''); }
+    function countText(len, max) { return len > max ? TX('ofl_cutsOff', { len: len, max: max, provider: PROVIDER[p] }) : len + ' / ' + max; }
     function row(label, value, note) {
       return '<div class="ofe-row"><dt>' + esc(label) + '</dt><dd>' + value + (note ? '<p class="ofe-note">' + esc(note) + '</p>' : '') + '</dd></div>';
     }
@@ -928,26 +949,26 @@
       if (k === 'overview') {
         var issues = adIssues();
         return '<dl class="ofe-dl">' +
-          row('Campaign', esc(camp.name || s.name || 'Untitled')) +
-          row('Platform', esc(PLAT[p] || p)) +
-          row('Objective', esc(s.goal || 'Not set')) +
-          row('Structure', esc(HIER[p].join(' › '))) +
-          row('Created as', 'Paused', 'Nothing spends until you activate it on ' + PROVIDER[p] + '.') +
-          row('Ad content', issues.length ? esc(issues.map(function (i) { return i.label + (i.blocker ? ' (required)' : ' (optional)'); }).join(', ')) : 'Complete') +
-        '</dl><h4 class="ofe-sub">Campaign settings</h4><div class="ofe-spec-issues">' + specIssuesHtml() + '</div>';
+          row(TX('ofl_rCampaign'), esc(camp.name || s.name || TX('ofl_untitled'))) +
+          row(TX('ofl_rPlatform'), esc(PLAT[p] || p)) +
+          row(TX('ofl_rObjective'), esc(s.goal || TX('ofl_notSet'))) +
+          row(TX('ofl_rStructure'), esc(HIER[p].map(TX).join(' › '))) +
+          row(TX('ofl_rCreatedAs'), esc(TX('ofl_paused')), TX('ofl_pausedNote', { provider: PROVIDER[p] })) +
+          row(TX('ofl_rAdContent'), issues.length ? esc(issues.map(function (i) { return TX(i.blocker ? 'ofl_requiredParen' : 'ofl_optionalParen', { label: i.label }); }).join(', ')) : esc(TX('ofl_complete'))) +
+        '</dl><h4 class="ofe-sub">' + esc(TX('ofl_secSettings')) + '</h4><div class="ofe-spec-issues">' + specIssuesHtml() + '</div>';
       }
       if (k === 'creative') {
         var img = P.image(work, p);
         var need = P.needsImage(work, p);
         return '<div class="ofe-creative">' +
-          (img ? '<figure class="ofe-fig"><img src="' + esc(img) + '" alt="Ad creative for ' + esc(camp.name || 'this campaign') + '"><figcaption>Preview of the image sent to ' + esc(PROVIDER[p]) + '. The platform crops it for each placement.</figcaption></figure>'
-               : '<p class="ofe-empty">' + (need ? 'No creative yet. ' + PLAT[p] + ' can’t publish this ad without an image.' : 'Search ads are text-only — no image is sent.') + '</p>') +
-          (need ? '<button type="button" class="ofd-btn ofd-btn-ghost" data-act="creative">' + (img ? 'Change or regenerate image' : 'Add creative') + '</button><p class="ofe-note">Opens the campaign’s creative editor, where you can attach your own image or generate a new one.</p>' : '') +
+          (img ? '<figure class="ofe-fig"><img src="' + esc(img) + '" alt="' + esc(TX('ofl_creativeAlt', { name: camp.name || TX('ofl_thisCampaign') })) + '"><figcaption>' + esc(TX('ofl_creativeCaption', { provider: PROVIDER[p] })) + '</figcaption></figure>'
+               : '<p class="ofe-empty">' + esc(need ? TX('ofl_noCreativeNeed', { platform: PLAT[p] }) : TX('ofl_searchTextOnly')) + '</p>') +
+          (need ? '<button type="button" class="ofd-btn ofd-btn-ghost" data-act="creative">' + esc(TX(img ? 'ofl_changeImage' : 'ofl_addCreative')) + '</button><p class="ofe-note">' + esc(TX('ofl_creativeEditorNote')) + '</p>' : '') +
         '</div>';
       }
       if (k === 'copy') {
         var fields = P.copyFields(work, p);
-        if (!fields.length) return '<p class="ofe-empty">This campaign has no editable copy fields.</p>';
+        if (!fields.length) return '<p class="ofe-empty">' + esc(TX('ofl_noCopyFields')) + '</p>';
         var groups = {};
         fields.forEach(function (f) { (groups[f.group] = groups[f.group] || []).push(f); });
         var html = '';
@@ -967,39 +988,39 @@
         return html;
       }
       if (k === 'settings') {
-        return '<p class="ofe-note">Everything ' + esc(PROVIDER[p]) + ' receives. Badges show where each setting comes from; open a section to change it. Changes are checked against ' + esc(PROVIDER[p]) + '’s rules straight away and saved with “Save changes”.</p><div class="ocs-host"></div>';
+        return '<p class="ofe-note">' + esc(TX('ofl_settingsIntro', { provider: PROVIDER[p] })) + '</p><div class="ocs-host"></div>';
       }
       if (k === 'budget') {
         var b = P.budget(work, p);
         return '<dl class="ofe-dl">' +
-          row('Daily budget', esc(P.budgetLabel(work, p)) + ' <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-act="budget">' + (b.source === 'set' ? 'Change' : 'Set budget') + '</button>',
-            b.source === 'missing' ? 'Required before publishing — OrivenAI never sets a budget for you.' + (b.suggestion ? ' Suggested: ' + b.suggestion + ' per day.' : '') : (b.low ? PLAT[p] + ' needs ' + ((BUDGET_RULE[p] || {}).label || 'at least ' + b.min) + ' per day.' : 'Charged in your ad account’s currency.')) +
-          row('Schedule', 'Starts when you activate it', 'OrivenAI creates the campaign paused on ' + PROVIDER[p] + '. There is no end date.') +
+          row(TX('ofl_dailyBudget'), esc(P.budgetLabel(work, p)) + ' <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-act="budget">' + esc(TX(b.source === 'set' ? 'ofl_change' : 'ofl_setBudget')) + '</button>',
+            b.source === 'missing' ? TX('ofl_budgetRequiredNote') + (b.suggestion ? ' ' + TX('ofl_suggestedPerDay', { amount: b.suggestion }) : '') : (b.low ? TX('ofl_budgetMin', { platform: PLAT[p], min: minText(p, b.min) }) : TX('ofl_chargedInCurrency'))) +
+          row(TX('ofl_schedule'), esc(TX('ofl_startsWhenActivated')), TX('ofl_scheduleNote', { provider: PROVIDER[p] })) +
         '</dl>';
       }
       if (k === 'destination') {
         var u = P.url(work, p);
         var err = u ? P.validateUrl(u) : null;
-        return '<div class="ofe-field"><label for="ofeUrl">Destination URL</label>' +
+        return '<div class="ofe-field"><label for="ofeUrl">' + esc(TX('ofl_destUrl')) + '</label>' +
           '<input id="ofeUrl" class="ofd-input" type="url" inputmode="url" placeholder="https://yourshop.com/offer" value="' + esc(u) + '" aria-describedby="ofeUrlHint ofeUrlErr"' + (err ? ' aria-invalid="true"' : '') + '>' +
-          '<p class="ofe-note" id="ofeUrlHint">Where people land after clicking the ad. Required before publishing.</p>' +
+          '<p class="ofe-note" id="ofeUrlHint">' + esc(TX('ofl_urlHint')) + '</p>' +
           '<p class="ofd-err" id="ofeUrlErr" role="alert"' + (err ? '' : ' hidden') + '>' + esc(err || '') + '</p></div>' +
-          '<p class="ofe-note">Tracking parameters (UTM) and conversion tracking are in <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-sec-go="settings">Campaign settings</button>.</p>';
+          '<p class="ofe-note">' + esc(TX('ofl_utmNote', { link: '\u0001' })).replace('\u0001', '<button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-sec-go="settings">' + esc(TX('ofl_secSettings')) + '</button>') + '</p>';
       }
       if (k === 'readiness') {
         var list = adIssues();
-        var adHtml = !list.length ? '<p class="ofe-ok">Ad content is complete.</p>' : '<ul class="ofe-issues">' + list.map(function (i) {
-          return '<li class="ofe-issue ofe-issue-' + (i.blocker ? 'req' : 'opt') + '"><span class="ofe-issue-tag">' + (i.blocker ? 'Required' : 'Optional') + '</span> ' + esc(i.label) +
-            ' <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-sec-go="' + (i.key === 'budget' ? 'budget' : i.key) + '">Fix</button></li>';
+        var adHtml = !list.length ? '<p class="ofe-ok">' + esc(TX('ofl_adContentComplete')) + '</p>' : '<ul class="ofe-issues">' + list.map(function (i) {
+          return '<li class="ofe-issue ofe-issue-' + (i.blocker ? 'req' : 'opt') + '"><span class="ofe-issue-tag">' + esc(TX(i.blocker ? 'ofl_tagRequired' : 'ofl_tagOptional')) + '</span> ' + esc(i.label) +
+            ' <button type="button" class="ofd-btn ofd-btn-ghost ofe-inline" data-sec-go="' + (i.key === 'budget' ? 'budget' : i.key) + '">' + esc(TX('ofl_fix')) + '</button></li>';
         }).join('') + '</ul>';
-        return '<h4 class="ofe-sub">Ad content</h4>' + adHtml + '<h4 class="ofe-sub">Campaign settings</h4><div class="ofe-spec-issues">' + specIssuesHtml() + '</div>' +
-          '<p class="ofe-note">Account and connection checks run in Launch.</p>';
+        return '<h4 class="ofe-sub">' + esc(TX('ofl_rAdContent')) + '</h4>' + adHtml + '<h4 class="ofe-sub">' + esc(TX('ofl_secSettings')) + '</h4><div class="ofe-spec-issues">' + specIssuesHtml() + '</div>' +
+          '<p class="ofe-note">' + esc(TX('ofl_accountChecksInLaunch')) + '</p>';
       }
       return '';
     }
     function render(k) {
       cur = SECTION_ALIAS[k] || k || cur;
-      d.setBody('<div class="ofe-wrap">' + nav() + '<div class="ofe-main" tabindex="-1"><h3 class="ofe-h">' + esc(SECTIONS.filter(function (s) { return s.k === cur; })[0].t) + '</h3>' + sectionHtml(cur) + '</div></div>');
+      d.setBody('<div class="ofe-wrap">' + nav() + '<div class="ofe-main" tabindex="-1"><h3 class="ofe-h">' + esc(TX(SECTIONS.filter(function (s) { return s.k === cur; })[0].t)) + '</h3>' + sectionHtml(cur) + '</div></div>');
       bind();
       if (cur === 'settings' || cur === 'readiness' || cur === 'overview') {
         if (specState.stale && !specState.loading) { if (cur === 'settings') specState.res = null; loadSpec(); }
@@ -1037,7 +1058,7 @@
           markEdited();
         });
         url.addEventListener('blur', function () {
-          var e = url.value.trim() ? P.validateUrl(url.value) : 'Enter the page people land on after clicking the ad.';
+          var e = url.value.trim() ? P.validateUrl(url.value) : TX('ofl_urlEmpty');
           var el = d.body.querySelector('#ofeUrlErr');
           if (el) { el.textContent = e || ''; el.hidden = !e; }
           if (e) url.setAttribute('aria-invalid', 'true'); else url.removeAttribute('aria-invalid');
@@ -1084,12 +1105,12 @@
       var settled = false;
       function finish(v) { if (!settled) { settled = true; confirmOpen = false; resolve(v); } }
       var d = F.dialog({
-        title: 'Publish to ' + (PLAT[p] || p) + '?', eyebrow: 'Confirm publish', alert: true,
+        title: TX('ofl_pubTitle', { platform: PLAT[p] || p }), eyebrow: TX('ofl_pubEyebrow'), alert: true,
         onClose: function (r) { finish(!!r); },
-        body: '<p class="ofd-muted">Checking your ' + esc(PROVIDER[p] || p) + ' account…</p>',
+        body: '<p class="ofd-muted">' + esc(TX('ofl_pubChecking', { provider: PROVIDER[p] || p })) + '</p>',
         actions: [
-          { label: 'Cancel', kind: 'ghost', onClick: function (api) { api.close(false); } },
-          { label: 'Publish', kind: 'primary', disabled: true, onClick: function () {} }
+          { label: TX('ofl_cancel'), kind: 'ghost', onClick: function (api) { api.close(false); } },
+          { label: TX('ofl_publish'), kind: 'primary', disabled: true, onClick: function () {} }
         ]
       });
       // The campaign settings check (server-built spec, live account facts)
@@ -1101,7 +1122,7 @@
         var acct = both[0], sr = both[1];
         var tg = P.targeting(pkg, p);
         var cur = acct && acct.currency;
-        var acctTxt = acct && (acct.name || acct.id) ? (acct.name ? acct.name + (acct.id ? ' · ' + acct.id : '') : acct.id) : 'No ad account selected';
+        var acctTxt = acct && (acct.name || acct.id) ? (acct.name ? acct.name + (acct.id ? ' · ' + acct.id : '') : acct.id) : TX('ofl_noAccount');
         var specErrs = sr && !sr.error ? OS.errors(sr) : [];
         var specFail = !!(OS && (!sr || sr.error));
         var specRows = sr && !sr.error ? OS.summaryRows(sr) : null;
@@ -1111,31 +1132,31 @@
         if (sr && !sr.error) issues = [];
         // The server's record of this campaign's publish wins over everything.
         var pubState = sr && sr.publish && sr.publish.state;
-        var pubBlock = pubState === 'published' ? 'This campaign was already published' + (sr.publish.campaignId ? ' (campaign ' + sr.publish.campaignId + ')' : '') + '. Publishing it again would create a duplicate.'
-          : pubState === 'unconfirmed' ? 'An earlier publish of this campaign was never confirmed. Check its status in Launch first.'
-          : pubState === 'publishing' ? 'This campaign is being published right now.' : '';
+        var pubBlock = pubState === 'published' ? (sr.publish.campaignId ? TX('ofl_pubAlreadyId', { id: sr.publish.campaignId }) : TX('ofl_pubAlready'))
+          : pubState === 'unconfirmed' ? TX('ofl_pubUnconfirmed')
+          : pubState === 'publishing' ? TX('ofl_pubInProgress') : '';
         var blocked = !!pubBlock || issues.length > 0 || specErrs.length > 0 || specFail || !(acct && acct.connected) || !(acct && (acct.name || acct.id));
         var dl =
           '<dl class="ofe-dl ofd-summary">' +
-            '<div class="ofe-row"><dt>Campaign</dt><dd>' + esc(o.name || pkg.campaignName || 'Untitled campaign') + '</dd></div>' +
-            '<div class="ofe-row"><dt>Platform</dt><dd>' + esc(PLAT[p] || p) + '</dd></div>' +
-            '<div class="ofe-row"><dt>Ad account</dt><dd>' + esc(acctTxt) + '</dd></div>' +
-            '<div class="ofe-row"><dt>Daily budget</dt><dd>' + esc(P.budgetLabel(pkg, p, cur)) + '</dd></div>' +
-            '<div class="ofe-row"><dt>Schedule</dt><dd>Created paused — starts when you activate it on ' + esc(PROVIDER[p]) + '</dd></div>' +
+            '<div class="ofe-row"><dt>' + esc(TX('ofl_rCampaign')) + '</dt><dd>' + esc(o.name || pkg.campaignName || TX('ofl_untitledCampaign')) + '</dd></div>' +
+            '<div class="ofe-row"><dt>' + esc(TX('ofl_rPlatform')) + '</dt><dd>' + esc(PLAT[p] || p) + '</dd></div>' +
+            '<div class="ofe-row"><dt>' + esc(TX('ofl_adAccount')) + '</dt><dd>' + esc(acctTxt) + '</dd></div>' +
+            '<div class="ofe-row"><dt>' + esc(TX('ofl_dailyBudget')) + '</dt><dd>' + esc(P.budgetLabel(pkg, p, cur)) + '</dd></div>' +
+            '<div class="ofe-row"><dt>' + esc(TX('ofl_schedule')) + '</dt><dd>' + esc(TX('ofl_pubSchedule', { provider: PROVIDER[p] })) + '</dd></div>' +
             (specRows ? specRows.map(function (r) { return '<div class="ofe-row"><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('')
-              : '<div class="ofe-row"><dt>Targeting</dt><dd>' + esc(tg.sent) + '</dd></div>' + (o.structure ? '<div class="ofe-row"><dt>Structure</dt><dd>' + esc(o.structure) + '</dd></div>' : '')) +
+              : '<div class="ofe-row"><dt>' + esc(TX('ofl_targeting')) + '</dt><dd>' + esc(tg.sent) + '</dd></div>' + (o.structure ? '<div class="ofe-row"><dt>' + esc(TX('ofl_rStructure')) + '</dt><dd>' + esc(o.structure) + '</dd></div>' : '')) +
           '</dl>';
         var warn = pubBlock ? '<p class="ofd-err" role="alert">' + esc(pubBlock) + '</p>'
           : issues.length
-          ? '<p class="ofd-err" role="alert">Fix before publishing: ' + esc(issues.map(function (i) { return i.label; }).join(', ')) + '.</p>'
-          : specFail ? '<p class="ofd-err" role="alert">' + esc((sr && sr.error) || 'Campaign settings couldn’t be checked.') + ' Nothing was sent.</p>'
-          : specErrs.length ? '<div class="ofd-err" role="alert"><p>Fix before publishing:</p><ul class="ofd-errlist">' + specErrs.map(function (i) { return '<li>' + esc(i.message) + '</li>'; }).join('') + '</ul></div>'
-          : (!(acct && acct.connected) ? '<p class="ofd-err" role="alert">' + esc(PLAT[p]) + ' isn’t connected. Connect it in Business → Connections.</p>'
-          : (!(acct.name || acct.id) ? '<p class="ofd-err" role="alert">Select an ad account in Business → Connections first.</p>' : ''));
-        d.setBody(dl + warn + '<p class="ofd-muted">This creates real campaign objects on ' + esc(PROVIDER[p]) + '. Nothing spends until you activate the campaign there.</p>');
-        var acts = [{ label: 'Cancel', kind: 'ghost', onClick: function (api) { api.close(false); } }];
-        if ((specErrs.length || issues.length) && o.campId && F.findCampaign(o.campId)) acts.push({ label: 'Review settings', kind: 'ghost', onClick: function (api) { api.close(false); F.openAd(o.campId, 'settings'); } });
-        acts.push({ label: 'Publish paused campaign', kind: 'primary', disabled: blocked, onClick: function (api) { api.close(true); } });
+          ? '<p class="ofd-err" role="alert">' + esc(TX('ofl_fixBeforePublishing')) + ' ' + esc(issues.map(function (i) { return i.label; }).join(', ')) + '.</p>'
+          : specFail ? '<p class="ofd-err" role="alert">' + esc((sr && sr.error) || TX('ofl_specCouldntCheck')) + ' ' + esc(TX('ofl_nothingSent')) + '</p>'
+          : specErrs.length ? '<div class="ofd-err" role="alert"><p>' + esc(TX('ofl_fixBeforePublishing')) + '</p><ul class="ofd-errlist">' + specErrs.map(function (i) { return '<li>' + esc(issueText(i)) + '</li>'; }).join('') + '</ul></div>'
+          : (!(acct && acct.connected) ? '<p class="ofd-err" role="alert">' + esc(TX('ofl_pubNotConnected', { platform: PLAT[p] })) + '</p>'
+          : (!(acct.name || acct.id) ? '<p class="ofd-err" role="alert">' + esc(TX('ofl_pubSelectAccount')) + '</p>' : ''));
+        d.setBody(dl + warn + '<p class="ofd-muted">' + esc(TX('ofl_pubRealObjects', { provider: PROVIDER[p] })) + '</p>');
+        var acts = [{ label: TX('ofl_cancel'), kind: 'ghost', onClick: function (api) { api.close(false); } }];
+        if ((specErrs.length || issues.length) && o.campId && F.findCampaign(o.campId)) acts.push({ label: TX('ofl_reviewSettings'), kind: 'ghost', onClick: function (api) { api.close(false); F.openAd(o.campId, 'settings'); } });
+        acts.push({ label: TX('ofl_publishPaused'), kind: 'primary', disabled: blocked, onClick: function (api) { api.close(true); } });
         d.setActions(acts);
         d.focusFirst();
       });
@@ -1152,40 +1173,40 @@
   F.confirmProviderToggle = function (o) {
     var p = o.platform, toPause = o.action === 'pause';
     var name = PLAT[p] || p;
+    // o.first: the campaign has never run (published paused by OrivenAI).
+    var verb = toPause ? 'Pause' : o.first ? 'Activate' : 'Resume';
+    var nm = trunc(o.name || TX('ofl_thisCampaign'), 60), prov = PROVIDER[p] || p;
     return F.confirm({
-      eyebrow: name, title: (toPause ? 'Pause' : 'Resume') + ' “' + trunc(o.name || 'this campaign', 60) + '”?',
-      body: toPause
-        ? '<p>' + esc(PROVIDER[p] || p) + ' stops delivering this campaign’s ads. Nothing is deleted, and you can resume it from OrivenAI.</p>'
-        : '<p>' + esc(PROVIDER[p] || p) + ' starts delivering again and spends at the campaign’s daily budget.</p>',
-      confirmLabel: toPause ? 'Pause campaign' : 'Resume campaign',
-      busyLabel: toPause ? 'Pausing…' : 'Resuming…',
+      eyebrow: name, title: TX('ofl_t' + verb, { name: nm }),
+      body: '<p>' + esc(TX('ofl_body' + verb, { provider: prov, platform: name })) + '</p>',
+      confirmLabel: TX('ofl_c' + verb),
+      busyLabel: TX(toPause ? 'ofl_pausing' : o.first ? 'ofl_activating' : 'ofl_resuming'),
       run: o.run
     });
   };
   F.confirmRemove = function (o) {
-    var p = o.platform, name = PLAT[p] || p || 'the platform';
+    var p = o.platform, name = PLAT[p] || p || TX('ofl_thePlatform');
     var onProvider = !!o.externalId || !!o.manual;
     var body = o.manual
-      ? '<p>This removes OrivenAI’s record only. The ad on ' + esc(name) + ' isn’t changed.</p>'
+      ? '<p>' + esc(TX('ofl_rmManual', { platform: name })) + '</p>'
       : onProvider
-        ? '<p>This removes the campaign from OrivenAI on every device. <strong>It stays on ' + esc(name) + '</strong>' +
-          (o.providerStatus ? ' (currently ' + esc(o.providerStatus) + ')' : '') + ' — pause or delete it there if you don’t want it to run.</p>'
-        : '<p>This deletes the draft from OrivenAI on every device. Nothing was ever sent to ' + esc(name) + '.</p>';
-    return F.confirm({ eyebrow: 'Campaigns', title: (onProvider ? 'Remove “' : 'Delete “') + trunc(o.name || 'this campaign', 60) + '” from OrivenAI?',
-      body: body, confirmLabel: onProvider ? 'Remove from OrivenAI' : 'Delete draft', danger: true });
+        ? '<p>' + esc(o.providerStatus ? TX('ofl_rmProviderStatus', { platform: name, status: o.providerStatus }) : TX('ofl_rmProvider', { platform: name })) + '</p>'
+        : '<p>' + esc(TX('ofl_rmDraft', { platform: name })) + '</p>';
+    return F.confirm({ eyebrow: TX('ofl_campaignsEyebrow'), title: TX(onProvider ? 'ofl_rmTitle' : 'ofl_delTitle', { name: trunc(o.name || TX('ofl_thisCampaign'), 60) }),
+      body: body, confirmLabel: TX(onProvider ? 'ofl_rmConfirm' : 'ofl_delConfirm'), danger: true });
   };
   F.confirmArchive = function (o) {
-    var name = PLAT[o.platform] || o.platform || 'the platform';
-    return F.confirm({ eyebrow: 'Campaigns', title: 'Archive “' + trunc(o.name || 'this campaign', 60) + '”?',
-      body: '<p>This moves it out of OrivenAI’s active lists. The campaign on ' + esc(name) + ' isn’t paused or changed.</p>',
-      confirmLabel: 'Archive in OrivenAI' });
+    var name = PLAT[o.platform] || o.platform || TX('ofl_thePlatform');
+    return F.confirm({ eyebrow: TX('ofl_campaignsEyebrow'), title: TX('ofl_archTitle', { name: trunc(o.name || TX('ofl_thisCampaign'), 60) }),
+      body: '<p>' + esc(TX('ofl_archBody', { platform: name })) + '</p>',
+      confirmLabel: TX('ofl_archConfirm') });
   };
   F.confirmDisconnect = function (p, run) {
     var name = PLAT[p] || p;
-    return F.confirm({ eyebrow: 'Connections', title: 'Disconnect ' + name + '?',
-      body: '<p>OrivenAI stops reading performance from ' + esc(name) + ' and can’t publish, pause or resume campaigns there. Autopilot rules for ' + esc(name) + ' stop running.</p>' +
-        '<p><strong>Campaigns already on ' + esc(name) + ' keep running</strong> — disconnecting doesn’t pause them. Your OrivenAI campaign data is kept.</p>',
-      confirmLabel: 'Disconnect', danger: true, busyLabel: 'Disconnecting…', run: run });
+    return F.confirm({ eyebrow: TX('ofl_connectionsEyebrow'), title: TX('ofl_discTitle', { platform: name }),
+      body: '<p>' + esc(TX('ofl_discBody1', { platform: name })) + '</p>' +
+        '<p><strong>' + esc(TX('ofl_discBody2', { platform: name })) + '</strong></p>',
+      confirmLabel: TX('ofl_disconnect'), danger: true, busyLabel: TX('ofl_disconnecting'), run: run });
   };
 
   // The Ads Manager live tables call real provider pause/resume handlers
@@ -1213,8 +1234,8 @@
     if (res && res.ok && res.data && res.data.ok) {
       var st = String(res.data.status || 'paused').toLowerCase();
       var live = /^(active|enabled|running|live)$/.test(st);
-      return { ok: true, title: live ? 'Live on ' + PLAT[p] : 'Created on ' + PLAT[p],
-        message: live ? PROVIDER[p] + ' confirmed the campaign is live.' : PROVIDER[p] + ' created the campaign paused. Activate it on ' + PROVIDER[p] + ' when you’re ready.' };
+      return { ok: true, title: TX(live ? 'ofl_liveOn' : 'ofl_createdOn', { platform: PLAT[p] }),
+        message: TX(live ? 'ofl_liveMsg' : 'ofl_createdMsg', { provider: PROVIDER[p] }) };
     }
     var model = F.error({ status: res && res.status, body: res && res.data, error: err, phase: 'publish', sending: true });
     return { ok: false, title: model.title, message: model.message, detail: model.detail || '', retry: model.retry, kind: model.kind, unconfirmed: !!model.unconfirmed, confirmedFailure: !!model.confirmedFailure };

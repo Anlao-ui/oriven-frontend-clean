@@ -81,6 +81,7 @@ async function gotoPricingView(page) {
 
 async function main() {
   const browser = await chromium.launch({ executablePath: CHROME_PATH });
+  require('./_fence').fenceBrowser(browser, BASE_URL, { backend401: true });
 
   // ── Landing pricing: cadence, credits-near-price, no redundant footer, Chat row, cost sub-labels ──
   {
@@ -102,28 +103,55 @@ async function main() {
     check('5. No generic "Intelligence" plan-marketing copy anywhere in the pricing grid', !/\bIntelligence\b/i.test(gridText), 'found Intelligence in: ' + (gridText.match(/.{20}Intelligence.{20}/i) || [''])[0]);
     check('5b. No "1 Intelligence use" anywhere in the pricing grid', !/intelligence use/i.test(gridText));
 
-    const rowLabels = await page.locator('.ov-pc:not(.ov-pc-pro) .ov-pc-list li').first().locator('xpath=../..').count(); // sanity no-op
-    const starterLabels = await page.locator('#lpPricingGrid .ov-pc').nth(1).locator('.ov-pc-list li').evaluateAll((els) => els.map((e) => e.childNodes[0].textContent.trim()));
-    check('6. ORIVEN Chat row present in the feature comparison', starterLabels.includes('ORIVEN Chat'), JSON.stringify(starterLabels));
-    check('7. Row labels use real product names Launch/Campaigns (not "Campaign management"/"insights")', starterLabels.includes('Launch') && starterLabels.includes('Campaigns'), JSON.stringify(starterLabels));
-    check('7b. Row labels use "Create Image Ads"/"Create Video Ads"', starterLabels.includes('Create Image Ads') && starterLabels.includes('Create Video Ads'), JSON.stringify(starterLabels));
+    // V10 plan model (js/plans.js ORIVEN_PLANS = backend planEntitlements.js):
+    // the workflow is on every plan; Research + Automations from Starter;
+    // Oriven Chat from Creator; Notifications + Priority Support on Professional.
+    const starterRows = await page.locator('#lpPricingGrid .ov-pc').nth(1).locator('.ov-pc-list li').evaluateAll((els) => els.map((e) => { const c = e.cloneNode(true); c.querySelectorAll('.ov-pc-feat-cost, .ov-sr').forEach((x) => x.remove()); return { label: c.textContent.trim(), excluded: e.classList.contains('ov-pc-feat-excluded'), note: e.querySelector('.ov-pc-feat-cost') ? e.querySelector('.ov-pc-feat-cost').textContent : null }; }));
+    const starterLabels = starterRows.map((r) => r.label);
+    check('6. Oriven Chat row present on the Starter card, as NOT included (Chat is from Creator)', starterRows.some((r) => r.label === 'Oriven Chat' && r.excluded), JSON.stringify(starterRows));
+    const wfNote = (starterRows.find((r) => r.label === 'Full advertising workflow') || {}).note || '';
+    const gridAll = await page.locator('#lpPricingGrid').textContent();
+    check('7. Workflow row names the real product steps (Control Center, Research, Create, Launch, Campaigns, Automations), no "Campaign management"/"insights"', ['Control Center', 'Research', 'Create', 'Launch', 'Campaigns', 'Automations'].every((s) => wfNote.includes(s)) && !/Campaign management|performance insights/i.test(gridAll), wfNote);
+    // Every card's capability rows agree with that plan's entitlements (no over- or under-claiming).
+    const entCheck = await page.evaluate(() => {
+      const names = { research: 'Research', autopilot: 'Automations', orivenChat: 'Oriven Chat', notifications: 'Notifications', prioritySupport: 'Priority Support' };
+      const out = [];
+      document.querySelectorAll('#lpPricingGrid .ov-pc').forEach((card, i) => {
+        const plan = ORIVEN_PLAN_LIST[i];
+        const rows = Array.from(card.querySelectorAll('.ov-pc-list li')).map((e) => { const c = e.cloneNode(true); c.querySelectorAll('.ov-pc-feat-cost, .ov-sr').forEach((x) => x.remove()); return { label: c.textContent.trim(), excluded: e.classList.contains('ov-pc-feat-excluded') }; });
+        const fullWorkflow = rows.some((r) => r.label === 'Full advertising workflow' && !r.excluded);
+        Object.keys(names).forEach((k) => {
+          const row = rows.find((r) => r.label === names[k]);
+          const shownIncluded = row ? !row.excluded : (fullWorkflow && (k === 'research' || k === 'autopilot'));
+          if (shownIncluded !== !!plan.entitlements[k]) out.push(plan.id + ':' + k + ' shown ' + (row ? (row.excluded ? 'excluded' : 'included') : 'absent') + ', entitled ' + plan.entitlements[k]);
+        });
+      });
+      return out;
+    });
+    check('7b. Every card\u2019s Research / Automations / Oriven Chat / Notifications / Priority Support rows match the plan\u2019s entitlements', entCheck.length === 0, JSON.stringify(entCheck));
 
-    // Cost sub-labels, read dynamically per card (never hand-typed in the test beyond the expected canonical numbers)
-    const costTexts = await page.locator('#lpPricingGrid .ov-pc').nth(1).locator('.ov-pc-feat-cost').evaluateAll((els) => els.map((e) => e.textContent));
-    check('8. Image Ad cost sub-label reads "100 credits / ad"', costTexts.includes('100 credits / ad'), JSON.stringify(costTexts));
-    check('9. Video Ad cost sub-label reads "225 credits / ad"', costTexts.includes('225 credits / ad'), JSON.stringify(costTexts));
-    check('10. ORIVEN Chat cost sub-label reads "5 credits / message"', costTexts.includes('5 credits / message'), JSON.stringify(costTexts));
-    check('11. Research cost sub-label reads "25 credits / investigation"', costTexts.includes('25 credits / investigation'), JSON.stringify(costTexts));
-    check('12. Autopilot cost sub-label reads "25 credits / execution"', costTexts.includes('25 credits / execution'), JSON.stringify(costTexts));
+    // Credit costs: the pricing view's static cost table, checked against the
+    // canonical registry (CREDIT_COSTS, which mirrors creditManager FEATURE_COSTS).
+    const costRows = await page.locator('#view-pricing .ov-price-costs tr').evaluateAll((els) => els.map((e) => [e.querySelector('th').textContent, e.querySelector('td').textContent]));
+    const C = await page.evaluate(() => CREDIT_COSTS);
+    const costOf = (re) => { const r = costRows.find((x) => re.test(x[0])); return r ? r[1] : null; };
+    check('8. Image cost reads "' + C.imageAd + ' credits" (per ad, with a ' + C.campaign + '-credit draft = ' + C.imageAdComplete + ')', costOf(/^Image/) === C.imageAd + ' credits' && costOf(/^Campaign draft/) === C.campaign + ' credits' && C.imageAd + C.campaign === C.imageAdComplete, JSON.stringify(costRows));
+    check('9. Video cost reads "' + C.videoAd + ' credits" (draft + video = ' + C.videoAdComplete + ')', costOf(/^Video/) === C.videoAd + ' credits' && C.videoAd + C.campaign === C.videoAdComplete, JSON.stringify(costRows));
+    check('10. Oriven Chat cost disclosed: "' + C.chat + ' credits" per message', costOf(/^Oriven Chat message/) === C.chat + ' credits', JSON.stringify(costRows));
+    check('11. Research cost reads "' + C.research + ' credits" per report', costOf(/^Research report/) === C.research + ' credits', JSON.stringify(costRows));
+    check('12. Automations cost reads "' + C.automation + ' credits" once per new automation (no per-run charge)', costOf(/^New automation \(once/) === C.automation + ' credits' && !/per (run|execution)/i.test(JSON.stringify(costRows)), JSON.stringify(costRows));
+    const pricingText = await page.locator('#view-pricing').textContent();
+    check('12b. Typical totals stated match the registry (image ad ' + C.imageAdComplete + ', video ad ' + C.videoAdComplete + ')', pricingText.includes('uses ' + C.imageAdComplete + ' credits') && pricingText.includes('video ad campaign ' + C.videoAdComplete), '');
 
     // Free card: exclusions
     const freeExcluded = await page.locator('#lpPricingGrid .ov-pc').nth(0).locator('.ov-pc-feat-excluded').evaluateAll((els) => els.map((e) => e.textContent.trim()));
-    check('13. Free excludes Create Ads', freeExcluded.some((t) => /create ads/i.test(t)), JSON.stringify(freeExcluded));
+    // Free includes Create (one campaign build every 24 hours: server requireSubOrOnboardingGen).
+    check('13. Free does NOT list Create as excluded (Create is on every plan)', !freeExcluded.some((t) => /create/i.test(t)), JSON.stringify(freeExcluded));
     check('14. Free excludes Research', freeExcluded.some((t) => /research/i.test(t)), JSON.stringify(freeExcluded));
     check('15. Free excludes Automations', freeExcluded.some((t) => /automations/i.test(t)), JSON.stringify(freeExcluded));
     check('16. Free excludes ORIVEN Chat', freeExcluded.some((t) => /oriven chat/i.test(t)), JSON.stringify(freeExcluded));
     const freeIncluded = await page.locator('#lpPricingGrid .ov-pc').nth(0).locator('.ov-pc-list li:not(.ov-pc-feat-excluded)').evaluateAll((els) => els.map((e) => e.textContent.trim()));
-    check('17. Free includes Launch/Campaigns/Business (truthful, ungated routes)', ['Launch', 'Campaigns', 'Business'].every((f) => freeIncluded.includes(f)), JSON.stringify(freeIncluded));
+    check('17. Free includes Control Center/Create/Launch/Campaigns (truthful, ungated routes)', JSON.stringify(freeIncluded) === JSON.stringify(['Control Center', 'Create', 'Launch', 'Campaigns']), JSON.stringify(freeIncluded));
 
     check('18. No horizontal overflow at 1440', await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2));
     check('19. Console errors clean (1440)', consoleErrors.filter((e) => !/401|404|ERR_FAILED|ERR_ABORTED/i.test(e)).length === 0, JSON.stringify(consoleErrors));
@@ -166,10 +194,11 @@ async function main() {
 
     const featTexts = await page.locator('.sub-pcard-active .sub-pcard-feats li').evaluateAll((els) => els.map((e) => e.textContent));
     check('S.' + plan + '.2 No "Intelligence: N/month" row in Settings', !featTexts.some((t) => /^Intelligence:/.test(t)), JSON.stringify(featTexts));
-    check('S.' + plan + '.3 Explicit "ORIVEN Chat: Included/Not included" row present', featTexts.some((t) => /^ORIVEN Chat:/.test(t)), JSON.stringify(featTexts));
-    const chatRow = featTexts.find((t) => /^ORIVEN Chat:/.test(t));
-    const expectChatIncluded = plan !== 'free';
-    check('S.' + plan + '.4 ORIVEN Chat entitlement correct (' + (expectChatIncluded ? 'Included' : 'Not included') + ')', chatRow === ('ORIVEN Chat: ' + (expectChatIncluded ? 'Included' : 'Not included')), chatRow);
+    check('S.' + plan + '.3 Explicit Oriven Chat row present on the current plan card', featTexts.some((t) => /^(Not included: )?Oriven Chat$/.test(t.trim())), JSON.stringify(featTexts));
+    const chatRow = (featTexts.find((t) => /^(Not included: )?Oriven Chat$/.test(t.trim())) || '').trim();
+    // Oriven Chat is from Creator (plans.js entitlements.orivenChat = backend planEntitlements.js).
+    const expectChatIncluded = plan === 'creator' || plan === 'professional';
+    check('S.' + plan + '.4 Oriven Chat entitlement correct (' + (expectChatIncluded ? 'Included' : 'Not included') + ')', chatRow === (expectChatIncluded ? 'Oriven Chat' : 'Not included: Oriven Chat') && expectChatIncluded === await page.evaluate((p) => orvPlanHas(p, 'orivenChat'), plan), chatRow);
 
     console.log('  console errors (' + plan + '):', JSON.stringify(consoleErrors.filter((e) => !/401|404|ERR_FAILED|ERR_ABORTED/i.test(e))));
     await page.close();

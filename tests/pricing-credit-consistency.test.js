@@ -139,6 +139,7 @@ async function main() {
   runContractTest();
 
   const browser = await chromium.launch({ executablePath: CHROME_PATH });
+  require('./_fence').fenceBrowser(browser, BASE_URL, { backend401: true });
 
   // ── 1-4: Settings -> Subscription per plan ──
   const shotNames = { free: '01_settings_free.png', starter: '02_settings_starter.png', creator: '03_settings_creator.png', professional: '04_settings_professional.png' };
@@ -155,14 +156,23 @@ async function main() {
     if (plan === 'free') {
       check('B.free.2 Settings shows all 4 plans (incl. Free) when current plan is Free', JSON.stringify(cardNames) === JSON.stringify(['Free', 'Starter', 'Creator', 'Professional']), JSON.stringify(cardNames));
     } else {
-      check('B.' + plan + '.2 Settings shows only the 3 paid plans when current plan is paid', JSON.stringify(cardNames) === JSON.stringify(['Starter', 'Creator', 'Professional']), JSON.stringify(cardNames));
+      // Free is a real plan and, for a paid account, where a cancellation
+      // lands (switchPlan('free') -> /api/schedule-plan-change -> Stripe
+      // cancel_at_period_end), so Settings lists all four; it is never the
+      // current card for a paid account.
+      const curName = await page.locator('.sub-pcard-active .sub-pcard-name').textContent().catch(() => null);
+      check('B.' + plan + '.2 Settings shows all 4 plans (Free = cancellation target), current card is the paid plan', JSON.stringify(cardNames) === JSON.stringify(['Free', 'Starter', 'Creator', 'Professional']) && curName && curName.toLowerCase() === plan, JSON.stringify(cardNames) + ' current=' + curName);
     }
     check('B.' + plan + '.3 No Team card anywhere', !cardNames.some((n) => /team/i.test(n)));
 
     // Explicit Research row present and correct per plan
-    const researchTexts = await page.locator('.sub-pcard-feats li').evaluateAll((els) => els.map((e) => e.textContent).filter((t) => /^Research:/.test(t)));
-    const expectedResearch = plan === 'creator' || plan === 'professional' ? 'Research: Included' : 'Research: Not included';
-    check('B.' + plan + '.4 explicit Research row present on every card, correct per plan', researchTexts.length > 0 && researchTexts.every((t) => plan === 'free' ? true : true), JSON.stringify(researchTexts));
+    // Research is from Starter (plans.js entitlements.research = backend planEntitlements.js).
+    // Free lists it as not included; Starter lists it; Creator/Professional
+    // include it through "Full advertising workflow" (whose note names Research).
+    const curFeats = await page.locator('.sub-pcard-active .sub-pcard-feats li').evaluateAll((els) => els.map((e) => e.textContent.trim()));
+    const researchOk = plan === 'free' ? curFeats.includes('Not included: Research')
+      : !curFeats.some((t) => /^Not included: Research/.test(t)) && (curFeats.includes('Research') || curFeats.some((t) => /^Full advertising workflow.*Research/.test(t)));
+    check('B.' + plan + '.4 Research shown correctly for this plan (' + (plan === 'free' ? 'not included' : 'included') + ')', researchOk && (plan !== 'free') === await page.evaluate((p) => orvPlanHas(p, 'research'), plan), JSON.stringify(curFeats));
 
     // Credit Usage card (the 6-row canonical list)
     const usageLabels = await page.locator('.sub-usage-list .sub-usage-lbl').evaluateAll((els) => els.map((e) => e.textContent));
@@ -187,13 +197,16 @@ async function main() {
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await loadAndEnterApp(page);
-    await page.evaluate(() => { window._dbSubscriptionStatus = 'starter'; window._getCreditStatus = async () => window.__mockCreditStatus; });
-    await page.evaluate((mock) => { window.__mockCreditStatus = mock; }, mockCreditStatus('starter', 500, 1000));
+    // Research and Automations are included from Starter, so their access
+    // paywall is reached by a Free account (Starter already has both).
+    await page.evaluate(() => { window._dbSubscriptionStatus = 'free'; window._getCreditStatus = async () => window.__mockCreditStatus; });
+    await page.evaluate((mock) => { window.__mockCreditStatus = mock; }, mockCreditStatus('free', 7, 10));
+    const minPlan = await page.evaluate(() => ({ research: orvMinPlanFor('research').name, autopilot: orvMinPlanFor('autopilot').name }));
     await page.evaluate(() => { if (typeof openLimitReached === 'function') openLimitReached('research'); });
     await page.waitForTimeout(300);
     await page.screenshot({ path: SHOT_DIR + '/06_paywall_research.png' });
     const researchTitle = await page.locator('#modal-paywall .pw-title').textContent();
-    check('C1. Research paywall message is truthful (mentions Creator)', /Creator/i.test(researchTitle), researchTitle);
+    check('C1. Research paywall message is truthful (names its lowest plan, Starter)', minPlan.research === 'Starter' && new RegExp('Research is available from ' + minPlan.research + '.*Upgrade to ' + minPlan.research).test(researchTitle) && !/Creator|Professional/.test(researchTitle), researchTitle);
     await page.evaluate(() => { if (typeof closeModal === 'function') closeModal('modal-paywall'); });
 
     await page.evaluate(() => { if (typeof openLimitReached === 'function') openLimitReached('autopilot'); });
@@ -201,8 +214,8 @@ async function main() {
     await page.screenshot({ path: SHOT_DIR + '/07_paywall_autopilot.png' });
     const autoTitle = await page.locator('#modal-paywall .pw-title').textContent();
     const autoSub = await page.locator('#modal-paywall .pw-sub').textContent();
-    check('C2. Autopilot paywall message is truthful (Professional, not Creator)', /Professional/i.test(autoTitle), autoTitle);
-    check('C3. Autopilot message frames it as ACCESS, not a per-use credit purchase', /automate|rules/i.test(autoSub), autoSub);
+    check('C2. Automations paywall message is truthful (names its lowest plan, Starter)', minPlan.autopilot === 'Starter' && new RegExp('Automations are available from ' + minPlan.autopilot + '.*Upgrade to ' + minPlan.autopilot).test(autoTitle) && !/Creator|Professional/.test(autoTitle), autoTitle);
+    check('C3. Automations message frames it as ACCESS (plan includes it), not a per-use credit purchase', /includes/i.test(autoSub) && /Automations/.test(autoSub) && !/credit/i.test(autoSub), autoSub);
     await page.close();
   }
 
@@ -320,11 +333,14 @@ async function main() {
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await loadAndEnterApp(page);
-    await page.evaluate(() => { window._dbSubscriptionStatus = 'creator'; if (typeof navigate === 'function') navigate('research'); });
-    await page.waitForTimeout(400);
+    // _orvNav is the app's navigation entry point (it calls orvResearch.enter()).
+    await page.evaluate(() => { window._dbSubscriptionStatus = 'creator'; if (typeof _orvNav === 'function') _orvNav('research', 'page-research'); });
+    await page.waitForTimeout(800);
     await page.screenshot({ path: SHOT_DIR + '/13_research_cost.png' });
-    const hintText = await page.locator('#researchCostHint').textContent();
-    check('F1. Research composer shows "25 credits" near Investigate', hintText === '25 credits', hintText);
+    // Research 2.0 (js/research.js) shows the cost on its start panel (.rx-cost).
+    const hintText = await page.locator('#page-research .rx-cost b').textContent({ timeout: 8000 }).catch(() => null);
+    const researchCost = await page.evaluate(() => CREDIT_COSTS.research);
+    check('F1. Research start panel shows "' + researchCost + ' credits" (CREDIT_COSTS.research = 25)', researchCost === 25 && hintText === researchCost + ' credits', hintText);
     await page.close();
   }
 

@@ -23,21 +23,27 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function hash(o) { var s = ''; try { s = JSON.stringify(o); } catch (_) {} var h = 5381; for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return String(h); }
   S.esc = esc;
+  // Text in the user's language (js/specI18n.js).
+  function T(k, v) { return window.orvTx ? window.orvTx(k, v) : k; }
+  var meta_ = function (p) { return p === 'meta' ? 'meta' : 'group'; };
+  function groupsText(p, n) { return n === 1 ? T(p === 'meta' ? 'lch_nAdSet1' : 'lch_nAdGroup1') : T(p === 'meta' ? 'lch_nAdSets' : 'lch_nAdGroups', { n: n }); }
+  function adsText(n) { return n === 1 ? T('lch_nAd1') : T('lch_nAds', { n: n }); }
+  function goalLabel(g) { var k = 'ocs_goal_' + g, s = T(k); return s && s !== k ? s : g; }
 
   // ── Loading ──────────────────────────────────────────────────────
   S.load = function (pkg, platform, opts) {
     opts = opts || {};
-    if (typeof window.apiFetch !== 'function') return Promise.resolve({ error: 'OrivenAI isn’t ready yet. Reload and try again.' });
+    if (typeof window.apiFetch !== 'function') return Promise.resolve({ error: T('ocs_notReady') });
     var body = { pkg: pkg, platform: platform, choices: !choices };
     if (opts.changes) body.changes = opts.changes;
     if (opts.refresh) body.refresh = true;
     if (opts.campId) body.campId = String(opts.campId);
     return window.apiFetch('/api/campaigns/spec', { method: 'POST', body: JSON.stringify(body) }).then(function (r) {
       var d = r && r.data;
-      if (!r || !r.ok || !d || !d.ok) return { error: (d && d.error) || 'Campaign settings couldn’t be checked right now.', status: r && r.status };
+      if (!r || !r.ok || !d || !d.ok) return { error: (d && d.error) || T('ocs_couldntCheck'), status: r && r.status };
       if (d.choices) choices = d.choices;
       return d;
-    }).catch(function (e) { return { error: (e && e.message) || 'Campaign settings couldn’t be checked right now.' }; });
+    }).catch(function (e) { return { error: (e && e.message) || T('ocs_couldntCheck') }; });
   };
   S.choices = function () { return choices; };
 
@@ -58,7 +64,7 @@
     S.load(camp.pkg, p, { refresh: live, campId: camp.id }).then(function (res) {
       if (inflight[camp.id] !== k) return;
       delete inflight[camp.id];
-      cache[camp.id] = { key: k, res: res, at: Date.now(), live: !!live };
+      cache[camp.id] = { key: k, res: res, at: Date.now(), live: !!live, ph: hash([p, camp.pkg]) };
       if (typeof window._orvReadinessChanged === 'function') window._orvReadinessChanged(camp.id);
     });
   }
@@ -88,17 +94,26 @@
   S.invalidateAll = function () { ['meta', 'google', 'tiktok', 'pinterest'].forEach(S.invalidatePlatform); };
   S.reset = function () { cache = {}; inflight = {}; epoch = {}; liveDone = {}; nonce = {}; };
   S.peek = function (camp) { var c = camp && cache[camp.id]; return c ? c.res : null; };
+  // The previous answer for exactly this campaign content, while its re-check
+  // (account change, periodic refresh) is running — shown so the card doesn't
+  // flicker back to "checking"; never used to publish (js/launchReadiness.js).
+  S.lastKnown = function (camp) {
+    if (!camp || !camp.id || !camp.pkg || !inflight[camp.id]) return null;
+    var c = cache[camp.id], p = camp.platform || camp.pkg.platform;
+    return c && c.res && !c.res.error && c.ph === hash([p, camp.pkg]) ? c.res : null;
+  };
   S.remember = function (camp, res) { if (camp && camp.id && camp.pkg && res && !res.error) { var p = camp.platform || camp.pkg.platform; cache[camp.id] = { key: keyOf(camp, p), res: res, at: Date.now() }; } };
   S.errors = function (res) { return (res && res.issues || []).filter(function (i) { return i.level === 'error'; }); };
 
   // ── Labels ───────────────────────────────────────────────────────
   var PLAT = { meta: 'Meta', google: 'Google Ads', tiktok: 'TikTok', pinterest: 'Pinterest' };
-  var GROUP = { meta: ['Ad set', 'Ad sets'], google: ['Ad group', 'Ad groups'], tiktok: ['Ad group', 'Ad groups'], pinterest: ['Ad group', 'Ad groups'] };
-  var CAT = { HOUSING: 'Housing', EMPLOYMENT: 'Employment', FINANCIAL_PRODUCTS_SERVICES: 'Financial products and services', ISSUES_ELECTIONS_POLITICS: 'Social issues, elections or politics' };
+  var CAT_KEYS = ['HOUSING', 'EMPLOYMENT', 'FINANCIAL_PRODUCTS_SERVICES', 'ISSUES_ELECTIONS_POLITICS'];
+  function catLabel(c) { return CAT_KEYS.indexOf(c) >= 0 ? T('ocs_cat_' + c) : pretty(c); }
   var BADGE = {
-    user: ['Your choice', 'user'], profile: ['Business profile', 'profile'], auto: ['Automatic', 'auto'], ai: ['AI suggestion', 'ai'],
-    missing: ['Missing', 'missing'], unsupported: ['Not supported', 'unsupported'], invalid: ['Needs a fix', 'invalid']
+    user: ['ocs_b_user', 'user'], profile: ['ocs_b_profile', 'profile'], auto: ['ocs_b_auto', 'auto'], ai: ['ocs_b_ai', 'ai'],
+    missing: ['ocs_b_missing', 'missing'], unsupported: ['ocs_b_unsupported', 'unsupported'], invalid: ['ocs_b_invalid', 'invalid']
   };
+  function autoBadge(k) { return '<span class="ocs-badge ocs-b-' + BADGE[k][1] + '">' + esc(T(BADGE[k][0])) + '</span>'; }
   function pretty(s) { return String(s || '').replace(/_/g, ' ').toLowerCase().replace(/^\w/, function (c) { return c.toUpperCase(); }); }
   function countryName(iso) { var c = choices && choices.countries.filter(function (x) { return x.iso === iso; })[0]; return c ? c.name : iso; }
   function langName(code) { var l = choices && choices.languages.filter(function (x) { return x.code === code; })[0]; return l ? l.name : code; }
@@ -119,9 +134,9 @@
   S.render = function (host, state) {
     if (!host) return;
     var res = state.res;
-    if (!res) { host.innerHTML = '<p class="ocs-loading" role="status">Checking this campaign’s settings…</p>'; return; }
+    if (!res) { host.innerHTML = '<p class="ocs-loading" role="status">' + esc(T('ocs_loading')) + '</p>'; return; }
     if (res.error) {
-      host.innerHTML = '<div class="ocs-fail" role="alert"><p>' + esc(res.error) + '</p><button type="button" class="ofd-btn ofd-btn-ghost" data-ocs-retry>Try again</button></div>';
+      host.innerHTML = '<div class="ocs-fail" role="alert"><p>' + esc(res.error) + '</p><button type="button" class="ofd-btn ofd-btn-ghost" data-ocs-retry>' + esc(T('ocs_tryAgain')) + '</button></div>';
       var rb = host.querySelector('[data-ocs-retry]'); if (rb) rb.addEventListener('click', function () { if (state.onRetry) state.onRetry(); });
       return;
     }
@@ -130,27 +145,29 @@
     // Result of the last edit: a refused change keeps its editor open with
     // the reason; an applied one closes it.
     var edErr = null;
-    if (res.rejected && res.rejected.length && state.openEd) edErr = res.rejected.map(function (x) { return x.reason; }).join(' ');
+    if (res.rejected && res.rejected.length && state.openEd) edErr = res.rejected.map(function (x) { return window.orvTx && orvTx.rejection ? orvTx.rejection(x) : x.reason; }).join(' ');
     else if (res.applied && res.applied.length) state.openEd = null;
+    // The server's issue text in the user's language (js/serverI18n.js).
+    function msgOf(i) { return window.orvTx && orvTx.issue ? orvTx.issue(i) : i.message; }
     var bySec = {};
     issues.forEach(function (i) { if (i.level === 'info') return; var k = sectionOf(i.field); (bySec[k] = bySec[k] || []).push(i); });
     function issuesFor(re) { return issues.filter(function (i) { return i.level !== 'info' && re.test(i.field || ''); }); }
     function badge(source, fieldRe) {
       var bad = fieldRe ? issuesFor(fieldRe).filter(function (i) { return i.level === 'error'; }) : [];
       var b = bad.length ? (source === 'missing' || /missing|none|unconfirmed|choose/.test(bad[0].code) ? BADGE.missing : BADGE.invalid) : (BADGE[source] || BADGE.auto);
-      return '<span class="ocs-badge ocs-b-' + b[1] + '">' + b[0] + '</span>';
+      return '<span class="ocs-badge ocs-b-' + b[1] + '">' + esc(T(b[0])) + '</span>';
     }
     function fieldIssues(re) {
       var list = issuesFor(re);
-      return list.length ? '<ul class="ocs-fi">' + list.map(function (i) { return '<li class="ocs-fi-' + i.level + '">' + esc(i.message) + '</li>'; }).join('') + '</ul>' : '';
+      return list.length ? '<ul class="ocs-fi">' + list.map(function (i) { return '<li class="ocs-fi-' + i.level + '">' + esc(msgOf(i)) + '</li>'; }).join('') + '</ul>' : '';
     }
     function row(label, value, b, extra) {
       return '<div class="ocs-row"><dt>' + esc(label) + (b || '') + '</dt><dd>' + value + (extra || '') + '</dd></div>';
     }
     function editor(id, inner, applyLabel) {
-      return '<details class="ocs-ed"' + (state.openEd === id ? ' open' : '') + ' data-ed="' + id + '"><summary>Change</summary><div class="ocs-ed-body">' + inner +
+      return '<details class="ocs-ed"' + (state.openEd === id ? ' open' : '') + ' data-ed="' + id + '"><summary>' + esc(T('ocs_change')) + '</summary><div class="ocs-ed-body">' + inner +
         (edErr && state.openEd === id ? '<p class="ocs-ed-err" role="alert">' + esc(edErr) + '</p>' : '') +
-        '<div class="ocs-ed-act"><button type="button" class="ofd-btn ofd-btn-primary ocs-apply" data-apply="' + id + '">' + esc(applyLabel || 'Apply') + '</button></div></div></details>';
+        '<div class="ocs-ed-act"><button type="button" class="ofd-btn ofd-btn-primary ocs-apply" data-apply="' + id + '">' + esc(applyLabel || T('ocs_apply')) + '</button></div></div></details>';
     }
     function select(name, list, cur, labelFn) {
       return '<select class="ofd-input" name="' + name + '">' + list.map(function (v) {
@@ -164,7 +181,7 @@
       var open = state.open[k] != null ? state.open[k] : n > 0;
       return '<details class="ocs-sec" data-sec="' + k + '"' + (open ? ' open' : '') + '><summary><span class="ocs-sec-t">' + esc(title) + '</span>' +
         (sub ? '<span class="ocs-sec-sub">' + esc(sub) + '</span>' : '') +
-        (n ? '<span class="ocs-count ocs-count-err">' + n + ' to fix</span>' : w ? '<span class="ocs-count ocs-count-warn">' + w + ' to check</span>' : '<span class="ocs-count ocs-count-ok">OK</span>') +
+        (n ? '<span class="ocs-count ocs-count-err">' + esc(T('ocs_toFix', { n: n })) + '</span>' : w ? '<span class="ocs-count ocs-count-warn">' + esc(T('ocs_toCheck', { n: w })) + '</span>' : '<span class="ocs-count ocs-count-ok">' + esc(T('ocs_ok')) + '</span>') +
         '</summary><dl class="ocs-dl">' + body + '</dl></details>';
     }
 
@@ -172,84 +189,85 @@
     var warns = issues.filter(function (i) { return i.level === 'warning'; });
     var html = '';
     html += '<div class="ocs-head ' + (errs.length ? 'ocs-head-err' : 'ocs-head-ok') + '" role="status">' +
-      '<strong>' + (errs.length ? errs.length + (errs.length === 1 ? ' setting needs' : ' settings need') + ' your input before publishing' : 'Ready to publish — created paused') + '</strong>' +
-      '<span>' + (errs.length ? 'Nothing is sent to ' + PLAT[p] + ' until these are fixed and you confirm.' : 'Nothing spends until you activate it on ' + PLAT[p] + '.') + (warns.length ? ' ' + warns.length + ' optional check' + (warns.length === 1 ? '' : 's') + '.' : '') + '</span></div>';
+      '<strong>' + esc(errs.length ? (errs.length === 1 ? T('ocs_headErr1') : T('ocs_headErrN', { n: errs.length })) : T('ocs_headOk')) + '</strong>' +
+      '<span>' + esc(T(errs.length ? 'ocs_headErrSub' : 'ocs_headOkSub', { platform: PLAT[p] }) + (warns.length ? ' ' + (warns.length === 1 ? T('ocs_optional1') : T('ocs_optionalN', { n: warns.length })) : '')) + '</span></div>';
     if (errs.length) {
       html += '<ul class="ocs-todo">' + errs.map(function (i) {
-        return '<li><span>' + esc(i.message) + '</span><button type="button" class="ofd-btn ofd-btn-ghost ocs-go" data-go="' + sectionOf(i.field) + '">Fix</button></li>';
+        return '<li><span>' + esc(msgOf(i)) + '</span><button type="button" class="ofd-btn ofd-btn-ghost ocs-go" data-go="' + sectionOf(i.field) + '">' + esc(T('ocs_fix')) + '</button></li>';
       }).join('') + '</ul>';
     }
 
     // Overview / objective
     var goals = p === 'tiktok' && choices ? choices.tiktokGoals : (choices ? choices.goals : ['Sales', 'Leads', 'Traffic', 'Awareness']);
-    var structure = spec.adGroups.length + ' ' + (spec.adGroups.length === 1 ? GROUP[p][0] : GROUP[p][1]).toLowerCase() + ' · ' +
-      spec.adGroups.reduce(function (n, g) { return n + (g.ads ? g.ads.length : 0); }, 0) + ' ads';
-    html += section('objective', 'Objective & optimisation', [
-      row('Status', 'Paused', '<span class="ocs-badge ocs-b-auto">Always</span>', '<p class="ocs-note">OrivenAI never activates campaigns. You switch it on in ' + PLAT[p] + ' when you’re ready.</p>'),
-      p === 'google' ? row('Campaign type', esc(pretty(spec.campaignType)), '<span class="ocs-badge ocs-b-auto">Chosen in Create</span>', fieldIssues(/^campaignType/)) : '',
-      row('Objective', esc(spec.campaign.goal) + (spec.campaign.objective ? ' <span class="ocs-code">' + esc(spec.campaign.objective) + '</span>' : ''), '<span class="ocs-badge ocs-b-user">Your choice</span>',
-        fieldIssues(/^campaign\.goal/) + editor('goal', '<label class="ocs-lbl">Objective' + select('goal', goals, spec.campaign.goal) + '</label>' +
-          (p === 'tiktok' ? '<p class="ocs-note">TikTok Sales and Leads aren’t available in OrivenAI yet (they need a TikTok Pixel or instant forms).</p>' : '') +
-          '<p class="ocs-note">Optimisation, bidding and conversion settings follow the objective.</p>')),
-      spec.optimization ? row('Optimisation', esc([spec.optimization.goal, spec.optimization.billingEvent || spec.optimization.billableEvent].filter(Boolean).map(pretty).join(' · ')), '<span class="ocs-badge ocs-b-auto">Automatic</span>') : '',
-      p === 'google' && spec.campaign.bidStrategyLabel ? row('Bidding', esc(spec.campaign.bidStrategyLabel), '<span class="ocs-badge ocs-b-auto">Automatic</span>') : '',
-      row('Structure', esc(structure), '<span class="ocs-badge ocs-b-auto">Chosen in Create</span>')
-    ].join(''), spec.campaign.goal);
+    var structure = groupsText(p, spec.adGroups.length) + ' · ' +
+      adsText(spec.adGroups.reduce(function (n, g) { return n + (g.ads ? g.ads.length : 0); }, 0));
+    var inCreate = '<span class="ocs-badge ocs-b-auto">' + esc(T('ocs_chosenInCreate')) + '</span>';
+    html += section('objective', T('ocs_secObjective'), [
+      row(T('ocs_status'), esc(T('ocs_paused')), '<span class="ocs-badge ocs-b-auto">' + esc(T('ocs_always')) + '</span>', '<p class="ocs-note">' + esc(T('ocs_statusNote', { platform: PLAT[p] })) + '</p>'),
+      p === 'google' ? row(T('ocs_campaignType'), esc(pretty(spec.campaignType)), inCreate, fieldIssues(/^campaignType/)) : '',
+      row(T('ocs_objective'), esc(goalLabel(spec.campaign.goal)) + (spec.campaign.objective ? ' <span class="ocs-code">' + esc(spec.campaign.objective) + '</span>' : ''), autoBadge('user'),
+        fieldIssues(/^campaign\.goal/) + editor('goal', '<label class="ocs-lbl">' + esc(T('ocs_objective')) + select('goal', goals, spec.campaign.goal, goalLabel) + '</label>' +
+          (p === 'tiktok' ? '<p class="ocs-note">' + esc(T('ocs_ttGoalsNote')) + '</p>' : '') +
+          '<p class="ocs-note">' + esc(T('ocs_followNote')) + '</p>')),
+      spec.optimization ? row(T('ocs_optimisation'), esc([spec.optimization.goal, spec.optimization.billingEvent || spec.optimization.billableEvent].filter(Boolean).map(pretty).join(' · ')), autoBadge('auto')) : '',
+      p === 'google' && spec.campaign.bidStrategyLabel ? row(T('ocs_bidding'), esc(spec.campaign.bidStrategyLabel), autoBadge('auto')) : '',
+      row(T('ocs_structure'), esc(structure), inCreate)
+    ].join(''), goalLabel(spec.campaign.goal));
 
     // Budget
-    html += section('budget', 'Budget & schedule', [
-      row('Daily budget', spec.budget.amount != null ? esc(money(spec.budget.amount, spec.budget.currency)) + ' per day' : '<span class="ocs-miss">Not set</span>' + (spec.budget.suggestion ? ' <span class="ocs-sugg">AI suggestion: ' + esc(money(spec.budget.suggestion, spec.budget.currency)) + '</span>' : ''),
+    html += section('budget', T('ocs_secBudget'), [
+      row(T('ocs_dailyBudget'), spec.budget.amount != null ? esc(T('ocs_perDayVal', { amount: money(spec.budget.amount, spec.budget.currency) })) : '<span class="ocs-miss">' + esc(T('ocs_notSet')) + '</span>' + (spec.budget.suggestion ? ' <span class="ocs-sugg">' + esc(T('ocs_aiSuggestion', { amount: money(spec.budget.suggestion, spec.budget.currency) })) + '</span>' : ''),
         badge(spec.sources.budget === 'user' ? 'user' : 'missing', /^budget/),
-        fieldIssues(/^budget/) + editor('budget', '<label class="ocs-lbl">Amount per day' + (spec.budget.currency ? ' (' + esc(spec.budget.currency) + ')' : '') +
+        fieldIssues(/^budget/) + editor('budget', '<label class="ocs-lbl">' + esc(T('ocs_amountPerDay')) + (spec.budget.currency ? ' (' + esc(spec.budget.currency) + ')' : '') +
           '<input class="ofd-input" type="number" inputmode="decimal" min="' + (p === 'tiktok' && choices ? choices.tiktokMinDaily + 1 : 1) + '" step="0.01" name="budget" value="' + esc(spec.budget.amount != null ? spec.budget.amount : (spec.budget.suggestion || '')) + '"></label>' +
-          '<p class="ocs-note">' + (p === 'tiktok' ? 'TikTok needs more than ' + (choices ? choices.tiktokMinDaily : 20) + ' per day per ad group. ' : '') + 'Charged in your ad account’s currency. Budgets are never set for you.</p>', 'Save budget')),
-      row('Budget level', esc(spec.campaign.budgetLevel === 'CAMPAIGN' ? 'Campaign' : spec.campaign.budgetLevel === 'AD_GROUP' ? 'Each ad group' : spec.campaign.budgetLevel === 'AD_SET' ? 'Each ad set' : 'Campaign'), '<span class="ocs-badge ocs-b-auto">Automatic</span>'),
-      row('Schedule', 'Runs continuously once you activate it', '<span class="ocs-badge ocs-b-auto">Automatic</span>')
-    ].join(''), spec.budget.amount != null ? money(spec.budget.amount, spec.budget.currency) + '/day' : 'Not set');
+          '<p class="ocs-note">' + esc((p === 'tiktok' ? T('ocs_ttMin', { n: choices ? choices.tiktokMinDaily : 20 }) + ' ' : '') + T('ocs_budgetNote')) + '</p>', T('ocs_saveBudget'))),
+      row(T('ocs_budgetLevel'), esc(T(spec.campaign.budgetLevel === 'AD_GROUP' ? 'ocs_lvlAdGroup' : spec.campaign.budgetLevel === 'AD_SET' ? 'ocs_lvlAdSet' : 'ocs_lvlCampaign')), autoBadge('auto')),
+      row(T('ocs_schedule'), esc(T('ocs_runsContinuously')), autoBadge('auto'))
+    ].join(''), spec.budget.amount != null ? T('ocs_perDayShort', { amount: money(spec.budget.amount, spec.budget.currency) }) : T('ocs_notSet'));
 
     // Targeting
     var cList = spec.targeting.countries || [];
     var countriesEd = '<div class="ocs-chips" data-chips="countries">' + cList.map(function (c) {
-      return '<span class="ocs-chip" data-v="' + esc(c) + '">' + esc(countryName(c)) + '<button type="button" aria-label="Remove ' + esc(countryName(c)) + '" data-chip-x>×</button></span>';
+      return '<span class="ocs-chip" data-v="' + esc(c) + '">' + esc(countryName(c)) + '<button type="button" aria-label="' + esc(T('ocs_removeX', { name: countryName(c) })) + '" data-chip-x>×</button></span>';
     }).join('') + '</div>' +
-      '<label class="ocs-lbl">Add a country' + select('countryAdd', [{ v: '', l: 'Choose a country…' }].concat((choices ? choices.countries : []).filter(function (c) { return cList.indexOf(c.iso) < 0; }).map(function (c) { return { v: c.iso, l: c.name + (p === 'pinterest' && !c.pinterest ? ' (not a Pinterest ads market)' : '') }; })), '') + '</label>' +
-      '<p class="ocs-note">Ads are shown only in these countries. OrivenAI never targets every country or picks one for you.</p>';
+      '<label class="ocs-lbl">' + esc(T('ocs_addCountry')) + select('countryAdd', [{ v: '', l: T('ocs_chooseCountry') }].concat((choices ? choices.countries : []).filter(function (c) { return cList.indexOf(c.iso) < 0; }).map(function (c) { return { v: c.iso, l: p === 'pinterest' && !c.pinterest ? T('ocs_notPinMarket', { name: c.name }) : c.name }; })), '') + '</label>' +
+      '<p class="ocs-note">' + esc(T('ocs_countriesNote')) + '</p>';
     var lList = spec.targeting.languages || [];
-    var langEd = '<label class="ocs-lbl">Languages (hold Ctrl/⌘ to pick several; none = all languages)<select class="ofd-input" name="languages" multiple size="5">' + (choices ? choices.languages : []).map(function (l) {
+    var langEd = '<label class="ocs-lbl">' + esc(T('ocs_langsLabel')) + '<select class="ofd-input" name="languages" multiple size="5">' + (choices ? choices.languages : []).map(function (l) {
       return '<option value="' + esc(l.code) + '"' + (lList.indexOf(l.code) >= 0 ? ' selected' : '') + '>' + esc(l.name) + '</option>';
     }).join('') + '</select></label>';
     var hasAge = p === 'meta' || p === 'tiktok';
     var ageOpts = []; for (var a = 18; a <= 65; a++) ageOpts.push({ v: a, l: a === 65 ? '65+' : String(a) });
-    html += section('targeting', 'Targeting & audience', [
-      row('Countries', cList.length ? esc(cList.map(countryName).join(', ')) : '<span class="ocs-miss">Choose at least one country</span>', badge(src.countries, /^targeting\.countries/),
-        fieldIssues(/^targeting\.countries/) + editor('countries', countriesEd, 'Save countries')),
-      row('Languages', lList.length ? esc(lList.map(langName).join(', ')) : 'All languages', badge(src.languages, /^targeting\.languages/), editor('languages', langEd, 'Save languages')),
-      hasAge ? row('Ages', esc(spec.targeting.ageMin + '–' + spec.targeting.ageMax + (spec.targeting.ageMax === 65 ? '+' : '')), badge(src.age, /^targeting\.age/),
-        fieldIssues(/^targeting\.age/) + editor('age', '<div class="ocs-pair"><label class="ocs-lbl">From' + select('ageMin', ageOpts, spec.targeting.ageMin) + '</label><label class="ocs-lbl">To' + select('ageMax', ageOpts, spec.targeting.ageMax) + '</label></div>', 'Save ages')) : '',
-      p === 'meta' ? row('Placements', esc(spec.targeting.placementLabel), badge(src.placement), editor('placement', '<label class="ocs-lbl">Placements' + select('placement', Object.keys(choices ? choices.metaPlacements : { automatic: 1 }).map(function (k) { return { v: k, l: choices ? choices.metaPlacements[k] : k }; }), spec.targeting.placement) + '</label>', 'Save placements')) : '',
-      p === 'meta' ? row('Advantage+ audience', spec.targeting.advantageAudience ? 'On — Meta may reach beyond your ages and interests' : 'Off — your age range is a hard limit', '<span class="ocs-badge ocs-b-auto">Automatic</span>', '<p class="ocs-note">Countries are always a hard limit.</p>') : '',
-      p === 'tiktok' ? row('Placement', 'TikTok feed', '<span class="ocs-badge ocs-b-auto">Automatic</span>') : '',
-      p === 'google' && spec.campaignType === 'SEARCH' ? row('Networks', 'Google Search and search partners (no Display)', '<span class="ocs-badge ocs-b-auto">Automatic</span>') : '',
-      spec.suggestions && spec.suggestions.audienceDescription ? row('Audience idea', esc(spec.suggestions.audienceDescription), '<span class="ocs-badge ocs-b-ai">AI suggestion</span>', '<p class="ocs-note">Used to write the ads. It isn’t sent as targeting — platforms find this audience through the creative and your objective.</p>') : ''
-    ].join(''), cList.length ? cList.map(countryName).join(', ') : 'Country needed');
+    html += section('targeting', T('ocs_secTargeting'), [
+      row(T('ocs_countries'), cList.length ? esc(cList.map(countryName).join(', ')) : '<span class="ocs-miss">' + esc(T('ocs_chooseOneCountry')) + '</span>', badge(src.countries, /^targeting\.countries/),
+        fieldIssues(/^targeting\.countries/) + editor('countries', countriesEd, T('ocs_saveCountries'))),
+      row(T('ocs_languages'), lList.length ? esc(lList.map(langName).join(', ')) : esc(T('ocs_allLanguages')), badge(src.languages, /^targeting\.languages/), editor('languages', langEd, T('ocs_saveLanguages'))),
+      hasAge ? row(T('ocs_ages'), esc(spec.targeting.ageMin + '–' + spec.targeting.ageMax + (spec.targeting.ageMax === 65 ? '+' : '')), badge(src.age, /^targeting\.age/),
+        fieldIssues(/^targeting\.age/) + editor('age', '<div class="ocs-pair"><label class="ocs-lbl">' + esc(T('ocs_from')) + select('ageMin', ageOpts, spec.targeting.ageMin) + '</label><label class="ocs-lbl">' + esc(T('ocs_to')) + select('ageMax', ageOpts, spec.targeting.ageMax) + '</label></div>', T('ocs_saveAges'))) : '',
+      p === 'meta' ? row(T('ocs_placements'), esc(spec.targeting.placementLabel), badge(src.placement), editor('placement', '<label class="ocs-lbl">' + esc(T('ocs_placements')) + select('placement', Object.keys(choices ? choices.metaPlacements : { automatic: 1 }).map(function (k) { return { v: k, l: choices ? choices.metaPlacements[k] : k }; }), spec.targeting.placement) + '</label>', T('ocs_savePlacements'))) : '',
+      p === 'meta' ? row(T('ocs_advantage'), esc(T(spec.targeting.advantageAudience ? 'ocs_advOn' : 'ocs_advOff')), autoBadge('auto'), '<p class="ocs-note">' + esc(T('ocs_countriesHard')) + '</p>') : '',
+      p === 'tiktok' ? row(T('ocs_placement'), esc(T('ocs_ttFeed')), autoBadge('auto')) : '',
+      p === 'google' && spec.campaignType === 'SEARCH' ? row(T('ocs_networks'), esc(T('ocs_searchNetworks')), autoBadge('auto')) : '',
+      spec.suggestions && spec.suggestions.audienceDescription ? row(T('ocs_audienceIdea'), esc(spec.suggestions.audienceDescription), autoBadge('ai'), '<p class="ocs-note">' + esc(T('ocs_audienceIdeaNote')) + '</p>') : ''
+    ].join(''), cList.length ? cList.map(countryName).join(', ') : T('ocs_countryNeeded'));
 
     // Ad sets / groups + ads
     var canGroups = !(p === 'google' && spec.campaignType !== 'SEARCH');
     var groupsHtml = spec.adGroups.map(function (g, i) {
-      var ages = g.ageMin != null ? ' · ages ' + g.ageMin + '–' + g.ageMax : '';
+      var ages = g.ageMin != null ? ' · ' + T('ocs_groupAges', { from: g.ageMin, to: g.ageMax }) : '';
       var ads = (g.ads || []).map(function (ad) { return '<li>' + esc(ad.name) + (ad.headline ? ' — “' + esc(ad.headline) + '”' : '') + '</li>'; }).join('');
-      var kw = g.keywords && g.keywords.length ? '<p class="ocs-note">Keywords: ' + esc(g.keywords.map(function (k) { return k.text + (k.matchType && k.matchType !== 'BROAD' ? ' (' + pretty(k.matchType) + ')' : ''); }).join(', ')) + '</p>' : '';
+      var kw = g.keywords && g.keywords.length ? '<p class="ocs-note">' + esc(T('ocs_keywords', { list: g.keywords.map(function (k) { return k.text + (k.matchType && k.matchType !== 'BROAD' ? ' (' + pretty(k.matchType) + ')' : ''); }).join(', ') })) + '</p>' : '';
       return '<div class="ocs-group"><div class="ocs-group-h"><strong>' + esc(g.name) + '</strong><span>' + esc(ages) + '</span>' +
-        (canGroups && spec.adGroups.length > 1 ? '<button type="button" class="ofd-btn ofd-btn-ghost ocs-mini" data-remove-group="' + i + '">Remove</button>' : '') + '</div>' + kw + '<ul class="ocs-ads">' + ads + '</ul></div>';
+        (canGroups && spec.adGroups.length > 1 ? '<button type="button" class="ofd-btn ofd-btn-ghost ocs-mini" data-remove-group="' + i + '">' + esc(T('ocs_remove')) + '</button>' : '') + '</div>' + kw + '<ul class="ocs-ads">' + ads + '</ul></div>';
     }).join('');
-    html += section('ads', GROUP[p][1] + ' & ads', [
+    html += section('ads', T('ocs_secAds_' + meta_(p)), [
       '<div class="ocs-groups">' + groupsHtml + '</div>',
       fieldIssues(/^(assets\.(headlines|descriptions|squareImage|landscapeImage)|creative|pin\.)/),
-      p === 'tiktok' ? row('Format', spec.creative.format === 'VIDEO' ? 'Video ad (with cover image)' : '<span class="ocs-miss">Video needed</span>', badge(spec.creative.format === 'VIDEO' ? 'auto' : 'unsupported', /^creative\.video/)) : '',
-      p === 'google' && spec.campaignType === 'PERFORMANCE_MAX' ? row('Landscape image', spec.assets.landscapeImageUrl ? 'Ready — cropped to 1.91:1 when publishing' : '<span class="ocs-miss">Missing</span>', badge(spec.assets.landscapeImageUrl ? 'auto' : 'missing', /^assets\.landscapeImage/)) : '',
-      canGroups && spec.adGroups.length < 5 ? editor('addGroup', '<label class="ocs-lbl">Name<input class="ofd-input" name="groupName" maxlength="80" placeholder="' + esc(GROUP[p][0]) + ' ' + (spec.adGroups.length + 1) + '"></label>' +
-        (hasAge ? '<div class="ocs-pair"><label class="ocs-lbl">Ages from' + select('gAgeMin', ageOpts, spec.targeting.ageMin) + '</label><label class="ocs-lbl">to' + select('gAgeMax', ageOpts, spec.targeting.ageMax) + '</label></div>' : '') +
-        '<p class="ocs-note">Uses the same ads, budget and countries. Each ' + GROUP[p][0].toLowerCase() + ' gets its own daily budget on ' + PLAT[p] + '.</p>', 'Add ' + GROUP[p][0].toLowerCase()) : ''
+      p === 'tiktok' ? row(T('ocs_format'), spec.creative.format === 'VIDEO' ? esc(T('ocs_videoWithCover')) : '<span class="ocs-miss">' + esc(T('ocs_videoNeeded')) + '</span>', badge(spec.creative.format === 'VIDEO' ? 'auto' : 'unsupported', /^creative\.video/)) : '',
+      p === 'google' && spec.campaignType === 'PERFORMANCE_MAX' ? row(T('ocs_landscape'), spec.assets.landscapeImageUrl ? esc(T('ocs_landscapeReady')) : '<span class="ocs-miss">' + esc(T('ocs_missing')) + '</span>', badge(spec.assets.landscapeImageUrl ? 'auto' : 'missing', /^assets\.landscapeImage/)) : '',
+      canGroups && spec.adGroups.length < 5 ? editor('addGroup', '<label class="ocs-lbl">' + esc(T('ocs_name')) + '<input class="ofd-input" name="groupName" maxlength="80" placeholder="' + esc(T('ocs_groupPh_' + meta_(p), { n: spec.adGroups.length + 1 })) + '"></label>' +
+        (hasAge ? '<div class="ocs-pair"><label class="ocs-lbl">' + esc(T('ocs_agesFrom')) + select('gAgeMin', ageOpts, spec.targeting.ageMin) + '</label><label class="ocs-lbl">' + esc(T('ocs_toLower')) + select('gAgeMax', ageOpts, spec.targeting.ageMax) + '</label></div>' : '') +
+        '<p class="ocs-note">' + esc(T('ocs_addGroupNote_' + meta_(p), { platform: PLAT[p] })) + '</p>', T('ocs_addGroup_' + meta_(p))) : ''
     ].join(''), structure);
 
     // Conversion tracking
@@ -257,34 +275,34 @@
     if (p === 'meta') {
       if (spec.tracking.needsConversion) {
         var px = opt.pixels || [];
-        trk.push(row('Meta Pixel', spec.tracking.pixelId ? esc((px.filter(function (x) { return x.id === spec.tracking.pixelId; })[0] || {}).name || spec.tracking.pixelId) : '<span class="ocs-miss">' + (px.length ? 'Choose a pixel' : 'No pixel on this ad account') + '</span>', badge(src.pixel, /^tracking\.pixelId/),
-          fieldIssues(/^tracking\.pixelId/) + (px.length ? editor('pixel', '<label class="ocs-lbl">Pixel' + select('pixelId', [{ v: '', l: 'Choose…' }].concat(px.map(function (x) { return { v: x.id, l: x.name + ' (' + x.id + ')' }; })), spec.tracking.pixelId || '') + '</label>', 'Use this pixel') : '')));
-        trk.push(row('Conversion event', esc(pretty(spec.tracking.conversionEvent)), badge(src.conversionEvent), editor('event', '<label class="ocs-lbl">Event' + select('conversionEvent', (choices ? choices.metaConversionEvents : [spec.tracking.conversionEvent]), spec.tracking.conversionEvent, pretty) + '</label><p class="ocs-note">Must be an event your pixel actually records.</p>', 'Use this event')));
-      } else trk.push(row('Conversion tracking', 'Not needed for ' + esc(spec.campaign.goal), '<span class="ocs-badge ocs-b-auto">Automatic</span>'));
+        trk.push(row(T('ocs_metaPixel'), spec.tracking.pixelId ? esc((px.filter(function (x) { return x.id === spec.tracking.pixelId; })[0] || {}).name || spec.tracking.pixelId) : '<span class="ocs-miss">' + esc(T(px.length ? 'ocs_choosePixel' : 'ocs_noPixel')) + '</span>', badge(src.pixel, /^tracking\.pixelId/),
+          fieldIssues(/^tracking\.pixelId/) + (px.length ? editor('pixel', '<label class="ocs-lbl">' + esc(T('ocs_pixel')) + select('pixelId', [{ v: '', l: T('ocs_choose') }].concat(px.map(function (x) { return { v: x.id, l: x.name + ' (' + x.id + ')' }; })), spec.tracking.pixelId || '') + '</label>', T('ocs_usePixel')) : '')));
+        trk.push(row(T('ocs_convEvent'), esc(pretty(spec.tracking.conversionEvent)), badge(src.conversionEvent), editor('event', '<label class="ocs-lbl">' + esc(T('ocs_event')) + select('conversionEvent', (choices ? choices.metaConversionEvents : [spec.tracking.conversionEvent]), spec.tracking.conversionEvent, pretty) + '</label><p class="ocs-note">' + esc(T('ocs_eventNote')) + '</p>', T('ocs_useEvent'))));
+      } else trk.push(row(T('ocs_convTracking'), esc(T('ocs_notNeededFor', { goal: goalLabel(spec.campaign.goal) })), autoBadge('auto')));
     } else if (p === 'pinterest') {
       if (spec.tracking.needsConversion) {
         var tags = opt.conversionTags || [];
-        trk.push(row('Pinterest Tag', spec.tracking.conversionTagId ? esc((tags.filter(function (x) { return x.id === spec.tracking.conversionTagId; })[0] || {}).name || spec.tracking.conversionTagId) : '<span class="ocs-miss">' + (tags.length ? 'Choose a tag' : 'No Pinterest Tag on this ad account') + '</span>', badge(src.conversionTag, /^tracking\.conversionTagId/),
-          fieldIssues(/^tracking\.conversionTagId/) + (tags.length ? editor('tag', '<label class="ocs-lbl">Tag' + select('conversionTagId', [{ v: '', l: 'Choose…' }].concat(tags.map(function (x) { return { v: x.id, l: (x.name || x.id) }; })), spec.tracking.conversionTagId || '') + '</label>', 'Use this tag') : '')));
+        trk.push(row(T('ocs_pinTag'), spec.tracking.conversionTagId ? esc((tags.filter(function (x) { return x.id === spec.tracking.conversionTagId; })[0] || {}).name || spec.tracking.conversionTagId) : '<span class="ocs-miss">' + esc(T(tags.length ? 'ocs_chooseTag' : 'ocs_noTag')) + '</span>', badge(src.conversionTag, /^tracking\.conversionTagId/),
+          fieldIssues(/^tracking\.conversionTagId/) + (tags.length ? editor('tag', '<label class="ocs-lbl">' + esc(T('ocs_tag')) + select('conversionTagId', [{ v: '', l: T('ocs_choose') }].concat(tags.map(function (x) { return { v: x.id, l: (x.name || x.id) }; })), spec.tracking.conversionTagId || '') + '</label>', T('ocs_useTag')) : '')));
         var pev = choices && choices.pinterestConversionEvents[spec.campaign.goal] || [spec.tracking.conversionEvent];
-        trk.push(row('Conversion event', esc(pretty(spec.tracking.conversionEvent)), badge('auto'), editor('pevent', '<label class="ocs-lbl">Event' + select('conversionEvent', pev, spec.tracking.conversionEvent, pretty) + '</label>', 'Use this event')));
-      } else trk.push(row('Conversion tracking', 'Not needed for ' + esc(spec.campaign.goal), '<span class="ocs-badge ocs-b-auto">Automatic</span>'));
+        trk.push(row(T('ocs_convEvent'), esc(pretty(spec.tracking.conversionEvent)), badge('auto'), editor('pevent', '<label class="ocs-lbl">' + esc(T('ocs_event')) + select('conversionEvent', pev, spec.tracking.conversionEvent, pretty) + '</label>', T('ocs_useEvent'))));
+      } else trk.push(row(T('ocs_convTracking'), esc(T('ocs_notNeededFor', { goal: goalLabel(spec.campaign.goal) })), autoBadge('auto')));
     } else if (p === 'google') {
       var ca = spec.tracking.conversionActions;
-      trk.push(row('Conversion actions', spec.tracking.needsConversion ? (ca == null ? 'Couldn’t be checked' : ca ? ca + ' active in your account' : '<span class="ocs-miss">None in your account</span>') : 'Not needed for ' + esc(spec.campaign.goal),
-        badge(spec.tracking.needsConversion ? (ca ? 'auto' : 'missing') : 'auto', /^tracking\.conversion/), fieldIssues(/^tracking\.conversion/) + (spec.tracking.needsConversion ? '<p class="ocs-note">Set up conversion actions in Google Ads → Goals. OrivenAI doesn’t create them.</p>' : '')));
+      trk.push(row(T('ocs_convActions'), spec.tracking.needsConversion ? (ca == null ? esc(T('ocs_couldntBeChecked')) : ca ? esc(T('ocs_activeInAccount', { n: ca })) : '<span class="ocs-miss">' + esc(T('ocs_noneInAccount')) + '</span>') : esc(T('ocs_notNeededFor', { goal: goalLabel(spec.campaign.goal) })),
+        badge(spec.tracking.needsConversion ? (ca ? 'auto' : 'missing') : 'auto', /^tracking\.conversion/), fieldIssues(/^tracking\.conversion/) + (spec.tracking.needsConversion ? '<p class="ocs-note">' + esc(T('ocs_gConvNote')) + '</p>' : '')));
     } else {
-      trk.push(row('Conversion tracking', 'Not used — TikTok campaigns from OrivenAI optimise for clicks or reach', '<span class="ocs-badge ocs-b-unsupported">Not supported</span>'));
+      trk.push(row(T('ocs_convTracking'), esc(T('ocs_ttNoConv')), autoBadge('unsupported')));
     }
-    html += section('tracking', 'Conversion tracking', trk.join(''));
+    html += section('tracking', T('ocs_convTracking'), trk.join(''));
 
     // Destination & UTM
     var utm = spec.tracking.utm || {};
-    html += section('destination', 'Destination & UTM', [
-      row('Destination URL', spec.tracking.destinationUrl ? '<span class="ocs-url">' + esc(spec.tracking.destinationUrl) + '</span>' : '<span class="ocs-miss">Missing</span>', badge(src.destinationUrl, /^tracking\.destinationUrl/),
-        fieldIssues(/^tracking\.destinationUrl/) + editor('url', '<label class="ocs-lbl">Page people land on<input class="ofd-input" type="url" inputmode="url" name="destinationUrl" value="' + esc(spec.tracking.destinationUrl || '') + '" placeholder="https://yourshop.com/offer"></label>', 'Save URL')),
-      row('UTM parameters', '<span class="ocs-code">' + esc(spec.tracking.urlParams) + '</span>', badge(src.utm), editor('utm',
-        ['source', 'medium', 'campaign', 'content'].map(function (k) { return '<label class="ocs-lbl">utm_' + k + '<input class="ofd-input" name="utm_' + k + '" maxlength="100" value="' + esc(utm[k] || '') + '"></label>'; }).join(''), 'Save UTM'))
+    html += section('destination', T('ocs_secDest'), [
+      row(T('ocs_destUrl'), spec.tracking.destinationUrl ? '<span class="ocs-url">' + esc(spec.tracking.destinationUrl) + '</span>' : '<span class="ocs-miss">' + esc(T('ocs_missing')) + '</span>', badge(src.destinationUrl, /^tracking\.destinationUrl/),
+        fieldIssues(/^tracking\.destinationUrl/) + editor('url', '<label class="ocs-lbl">' + esc(T('ocs_pageLand')) + '<input class="ofd-input" type="url" inputmode="url" name="destinationUrl" value="' + esc(spec.tracking.destinationUrl || '') + '" placeholder="https://yourshop.com/offer"></label>', T('ocs_saveUrl'))),
+      row(T('ocs_utm'), '<span class="ocs-code">' + esc(spec.tracking.urlParams) + '</span>', badge(src.utm), editor('utm',
+        ['source', 'medium', 'campaign', 'content'].map(function (k) { return '<label class="ocs-lbl">utm_' + k + '<input class="ofd-input" name="utm_' + k + '" maxlength="100" value="' + esc(utm[k] || '') + '"></label>'; }).join(''), T('ocs_saveUtm')))
     ].join(''));
 
     // Google assets
@@ -292,54 +310,54 @@
       var as = spec.assets || {};
       var assetRows = [];
       if (spec.campaignType === 'SEARCH') {
-        assetRows.push(row('Negative keywords', as.negativeKeywords.length ? esc(as.negativeKeywords.join(', ')) : 'None', badge(src.negativeKeywords),
-          editor('negatives', '<label class="ocs-lbl">One per line<textarea class="ofd-input" rows="4" name="negativeKeywords">' + esc(as.negativeKeywords.join('\n')) + '</textarea></label><p class="ocs-note">Added as phrase-match negatives at campaign level.</p>', 'Save negatives')));
-        assetRows.push(row('Callouts', as.callouts.length ? esc(as.callouts.join(' · ')) : 'None', badge('ai', /^assets\.callouts/), fieldIssues(/^assets\.callouts/) +
-          editor('callouts', '<label class="ocs-lbl">One per line (max 25 characters)<textarea class="ofd-input" rows="4" name="callouts">' + esc(as.callouts.join('\n')) + '</textarea></label>', 'Save callouts')));
-        assetRows.push(row('Structured snippet', as.structuredSnippet ? esc(as.structuredSnippet.header + ': ' + as.structuredSnippet.values.join(', ')) : 'None', badge('ai', /^assets\.structuredSnippet/), fieldIssues(/^assets\.structuredSnippet/) +
-          (as.structuredSnippet ? editor('snippet', '<label class="ocs-lbl">Header' + select('snippetHeader', choices ? choices.googleSnippetHeaders : [as.structuredSnippet.header], as.structuredSnippet.header) + '</label>', 'Save header') : '')));
+        assetRows.push(row(T('ocs_negKeywords'), as.negativeKeywords.length ? esc(as.negativeKeywords.join(', ')) : esc(T('ocs_none')), badge(src.negativeKeywords),
+          editor('negatives', '<label class="ocs-lbl">' + esc(T('ocs_onePerLine')) + '<textarea class="ofd-input" rows="4" name="negativeKeywords">' + esc(as.negativeKeywords.join('\n')) + '</textarea></label><p class="ocs-note">' + esc(T('ocs_negNote')) + '</p>', T('ocs_saveNegatives'))));
+        assetRows.push(row(T('ocs_callouts'), as.callouts.length ? esc(as.callouts.join(' · ')) : esc(T('ocs_none')), badge('ai', /^assets\.callouts/), fieldIssues(/^assets\.callouts/) +
+          editor('callouts', '<label class="ocs-lbl">' + esc(T('ocs_calloutsLabel')) + '<textarea class="ofd-input" rows="4" name="callouts">' + esc(as.callouts.join('\n')) + '</textarea></label>', T('ocs_saveCallouts'))));
+        assetRows.push(row(T('ocs_snippet'), as.structuredSnippet ? esc(as.structuredSnippet.header + ': ' + as.structuredSnippet.values.join(', ')) : esc(T('ocs_none')), badge('ai', /^assets\.structuredSnippet/), fieldIssues(/^assets\.structuredSnippet/) +
+          (as.structuredSnippet ? editor('snippet', '<label class="ocs-lbl">' + esc(T('ocs_header')) + select('snippetHeader', choices ? choices.googleSnippetHeaders : [as.structuredSnippet.header], as.structuredSnippet.header) + '</label>', T('ocs_saveHeader')) : '')));
         var sl = as.sitelinks || [];
-        assetRows.push(row('Sitelinks', sl.length ? sl.map(function (x) { return esc(x.text) + (x.url ? ' → <span class="ocs-url">' + esc(x.url) + '</span>' : ' <span class="ocs-miss">(no page yet — not sent)</span>'); }).join('<br>') : 'None', badge(sl.length && sl.every(function (x) { return x.url; }) ? 'user' : 'ai', /^assets\.sitelinks/),
-          fieldIssues(/^assets\.sitelinks/) + '<p class="ocs-note">A sitelink is only sent once it points to a real page on your site.</p>' +
-          editor('sitelink', '<label class="ocs-lbl">Link text' + (sl.length ? select('slText', sl.map(function (x) { return x.text; }), (sl.filter(function (x) { return !x.url; })[0] || sl[0]).text) : '<input class="ofd-input" name="slText" maxlength="25">') + '</label>' +
-            '<label class="ocs-lbl">Page address<input class="ofd-input" type="url" name="slUrl" placeholder="https://yourshop.com/page"></label>', 'Save sitelink')));
+        assetRows.push(row(T('ocs_sitelinks'), sl.length ? sl.map(function (x) { return esc(x.text) + (x.url ? ' → <span class="ocs-url">' + esc(x.url) + '</span>' : ' <span class="ocs-miss">' + esc(T('ocs_noPageYet')) + '</span>'); }).join('<br>') : esc(T('ocs_none')), badge(sl.length && sl.every(function (x) { return x.url; }) ? 'user' : 'ai', /^assets\.sitelinks/),
+          fieldIssues(/^assets\.sitelinks/) + '<p class="ocs-note">' + esc(T('ocs_sitelinkNote')) + '</p>' +
+          editor('sitelink', '<label class="ocs-lbl">' + esc(T('ocs_linkText')) + (sl.length ? select('slText', sl.map(function (x) { return x.text; }), (sl.filter(function (x) { return !x.url; })[0] || sl[0]).text) : '<input class="ofd-input" name="slText" maxlength="25">') + '</label>' +
+            '<label class="ocs-lbl">' + esc(T('ocs_pageAddress')) + '<input class="ofd-input" type="url" name="slUrl" placeholder="https://yourshop.com/page"></label>', T('ocs_saveSitelink'))));
       }
       if (spec.campaignType !== 'SEARCH') {
-        assetRows.push(row('Business name', as.businessName ? esc(as.businessName) : '<span class="ocs-miss">Missing</span>', badge(src.businessName, /^assets\.businessName/), fieldIssues(/^assets\.businessName/) + '<p class="ocs-note">From Business → Profile.</p>'));
-        assetRows.push(row('Logo', as.logoUrl ? '<img class="ocs-logo" src="' + esc(as.logoUrl) + '" alt="Your logo">' : '<span class="ocs-miss">Missing</span>', badge(src.logo, /^assets\.logo/), fieldIssues(/^assets\.logo/) + '<p class="ocs-note">From Business → Profile. Padded to a square when publishing.</p>'));
+        assetRows.push(row(T('ocs_businessName'), as.businessName ? esc(as.businessName) : '<span class="ocs-miss">' + esc(T('ocs_missing')) + '</span>', badge(src.businessName, /^assets\.businessName/), fieldIssues(/^assets\.businessName/) + '<p class="ocs-note">' + esc(T('ocs_fromProfile')) + '</p>'));
+        assetRows.push(row(T('ocs_logo'), as.logoUrl ? '<img class="ocs-logo" src="' + esc(as.logoUrl) + '" alt="' + esc(T('ocs_yourLogo')) + '">' : '<span class="ocs-miss">' + esc(T('ocs_missing')) + '</span>', badge(src.logo, /^assets\.logo/), fieldIssues(/^assets\.logo/) + '<p class="ocs-note">' + esc(T('ocs_logoNote')) + '</p>'));
       }
-      html += section('assets', spec.campaignType === 'SEARCH' ? 'Keywords & extensions' : 'Brand assets', assetRows.join(''));
+      html += section('assets', T(spec.campaignType === 'SEARCH' ? 'ocs_secKeywords' : 'ocs_secBrand'), assetRows.join(''));
     }
 
     // Compliance (Meta)
     if (p === 'meta') {
       var cats = spec.campaign.specialAdCategories || [];
-      var catEd = (choices ? choices.metaSpecialCategories : Object.keys(CAT)).map(function (c) {
-        return '<label class="ocs-check"><input type="checkbox" name="cat" value="' + c + '"' + (cats.indexOf(c) >= 0 ? ' checked' : '') + '> ' + esc(CAT[c] || pretty(c)) + '</label>';
-      }).join('') + '<p class="ocs-note">Leave all unticked if your ad isn’t about any of these. Special categories limit age and location targeting.</p>';
-      var comp = [row('Special ad categories', spec.campaign.specialAdCategoriesConfirmed ? (cats.length ? esc(cats.map(function (c) { return CAT[c] || c; }).join(', ')) : 'None apply') : '<span class="ocs-miss">Please confirm</span>',
-        badge(spec.campaign.specialAdCategoriesConfirmed ? 'user' : 'missing', /^campaign\.specialAdCategories/), fieldIssues(/^campaign\.specialAdCategories/) + editor('cats', catEd, 'Confirm categories'))];
+      var catEd = (choices ? choices.metaSpecialCategories : CAT_KEYS).map(function (c) {
+        return '<label class="ocs-check"><input type="checkbox" name="cat" value="' + c + '"' + (cats.indexOf(c) >= 0 ? ' checked' : '') + '> ' + esc(catLabel(c)) + '</label>';
+      }).join('') + '<p class="ocs-note">' + esc(T('ocs_catNote')) + '</p>';
+      var comp = [row(T('ocs_specialCats'), spec.campaign.specialAdCategoriesConfirmed ? (cats.length ? esc(cats.map(catLabel).join(', ')) : esc(T('ocs_noneApply'))) : '<span class="ocs-miss">' + esc(T('ocs_pleaseConfirm')) + '</span>',
+        badge(spec.campaign.specialAdCategoriesConfirmed ? 'user' : 'missing', /^campaign\.specialAdCategories/), fieldIssues(/^campaign\.specialAdCategories/) + editor('cats', catEd, T('ocs_confirmCats')))];
       if (spec.compliance.euTargeted) {
-        comp.push(row('EU transparency (DSA)', esc('Beneficiary: ' + (spec.compliance.dsaBeneficiary || '—') + ' · Paid by: ' + (spec.compliance.dsaPayor || '—')), badge(src.dsa, /^compliance/),
-          fieldIssues(/^compliance/) + editor('dsa', '<label class="ocs-lbl">Who benefits from the ad<input class="ofd-input" name="dsaBeneficiary" maxlength="200" value="' + esc(spec.compliance.dsaBeneficiary || '') + '"></label><label class="ocs-lbl">Who pays for it<input class="ofd-input" name="dsaPayor" maxlength="200" value="' + esc(spec.compliance.dsaPayor || '') + '"></label>', 'Save')));
+        comp.push(row(T('ocs_dsa'), esc(T('ocs_dsaVal', { b: spec.compliance.dsaBeneficiary || '—', p: spec.compliance.dsaPayor || '—' })), badge(src.dsa, /^compliance/),
+          fieldIssues(/^compliance/) + editor('dsa', '<label class="ocs-lbl">' + esc(T('ocs_dsaWho')) + '<input class="ofd-input" name="dsaBeneficiary" maxlength="200" value="' + esc(spec.compliance.dsaBeneficiary || '') + '"></label><label class="ocs-lbl">' + esc(T('ocs_dsaPays')) + '<input class="ofd-input" name="dsaPayor" maxlength="200" value="' + esc(spec.compliance.dsaPayor || '') + '"></label>', T('ocs_save'))));
       }
-      html += section('compliance', 'Compliance', comp.join(''));
+      html += section('compliance', T('ocs_secCompliance'), comp.join(''));
     }
 
     // Identity
     var idRows = [];
     if (p === 'meta') {
-      idRows.push(row('Facebook Page', spec.identity.pageId ? 'Connected page' : '<span class="ocs-miss">Not selected</span>', badge(spec.identity.pageId ? 'auto' : 'missing', /^identity\.pageId/), fieldIssues(/^identity\.pageId/)));
-      idRows.push(row('Instagram account', spec.identity.instagramUsername ? '@' + esc(spec.identity.instagramUsername) : (spec.targeting.placement === 'facebook_only' ? 'Not needed' : '<span class="ocs-miss">Not linked to your Page</span>'), badge(spec.identity.instagramUserId ? 'auto' : (spec.targeting.placement === 'facebook_only' ? 'auto' : 'missing'), /^identity\.instagram/), fieldIssues(/^identity\.instagram/)));
+      idRows.push(row(T('ocs_fbPage'), spec.identity.pageId ? esc(T('ocs_connectedPage')) : '<span class="ocs-miss">' + esc(T('ocs_notSelected')) + '</span>', badge(spec.identity.pageId ? 'auto' : 'missing', /^identity\.pageId/), fieldIssues(/^identity\.pageId/)));
+      idRows.push(row(T('ocs_igAccount'), spec.identity.instagramUsername ? '@' + esc(spec.identity.instagramUsername) : (spec.targeting.placement === 'facebook_only' ? esc(T('ocs_notNeeded')) : '<span class="ocs-miss">' + esc(T('ocs_notLinked')) + '</span>'), badge(spec.identity.instagramUserId ? 'auto' : (spec.targeting.placement === 'facebook_only' ? 'auto' : 'missing'), /^identity\.instagram/), fieldIssues(/^identity\.instagram/)));
     }
-    if (p === 'tiktok') idRows.push(row('TikTok identity', spec.identity.displayName ? esc(spec.identity.displayName) : '<span class="ocs-miss">Not selected</span>', badge(spec.identity.identityId ? 'auto' : 'missing', /^identity/), fieldIssues(/^identity/) + '<p class="ocs-note">Choose it in Business → Connections.</p>'));
-    if (idRows.length) html += section('identity', 'Identity', idRows.join(''));
+    if (p === 'tiktok') idRows.push(row(T('ocs_ttIdentity'), spec.identity.displayName ? esc(spec.identity.displayName) : '<span class="ocs-miss">' + esc(T('ocs_notSelected')) + '</span>', badge(spec.identity.identityId ? 'auto' : 'missing', /^identity/), fieldIssues(/^identity/) + '<p class="ocs-note">' + esc(T('ocs_chooseInConnections')) + '</p>'));
+    if (idRows.length) html += section('identity', T('ocs_secIdentity'), idRows.join(''));
 
     // Advanced
-    html += section('advanced', 'Advanced', [
-      row('Created as', 'Paused (campaign, ' + GROUP[p][1].toLowerCase() + ' and ads)', '<span class="ocs-badge ocs-b-auto">Always</span>'),
-      spec.suggestions && (spec.suggestions.retargetingIdea || spec.suggestions.lookalikeIdea) ? row('Audience ideas', esc([spec.suggestions.retargetingIdea, spec.suggestions.lookalikeIdea].filter(Boolean).join(' · ')), '<span class="ocs-badge ocs-b-ai">AI suggestion</span>', '<p class="ocs-note">Not sent — set up retargeting or lookalike audiences in ' + PLAT[p] + ' if you want them.</p>') : '',
-      row('Live testing', esc((spec.liveUnverified || []).join(' ')), '<span class="ocs-badge ocs-b-unsupported">Not yet verified</span>')
+    html += section('advanced', T('ocs_secAdvanced'), [
+      row(T('ocs_createdAs'), esc(T('ocs_createdAsVal_' + meta_(p))), '<span class="ocs-badge ocs-b-auto">' + esc(T('ocs_always')) + '</span>'),
+      spec.suggestions && (spec.suggestions.retargetingIdea || spec.suggestions.lookalikeIdea) ? row(T('ocs_audienceIdeas'), esc([spec.suggestions.retargetingIdea, spec.suggestions.lookalikeIdea].filter(Boolean).join(' · ')), autoBadge('ai'), '<p class="ocs-note">' + esc(T('ocs_audienceIdeasNote', { platform: PLAT[p] })) + '</p>') : '',
+      row(T('ocs_liveTesting'), esc((spec.liveUnverified || []).join(' ')), '<span class="ocs-badge ocs-b-unsupported">' + esc(T('ocs_notVerified')) + '</span>')
     ].join(''));
 
     host.innerHTML = '<div class="ocs">' + html + '</div>';
@@ -376,7 +394,7 @@
         else if (id === 'countries') {
           var list = Array.prototype.map.call(box.querySelectorAll('.ocs-chip'), function (c) { return c.getAttribute('data-v'); });
           if (v('countryAdd')) list.push(v('countryAdd'));
-          if (!list.length) { note(b, 'Choose at least one country.'); return; }
+          if (!list.length) { note(b, T('ocs_chooseOneCountryDot')); return; }
           ch.countries = list;
         } else if (id === 'languages') ch.languages = Array.prototype.map.call(box.querySelector('select[name="languages"]').selectedOptions, function (o) { return o.value; });
         else if (id === 'age') { ch.ageMin = v('ageMin'); ch.ageMax = v('ageMax'); }
@@ -387,8 +405,8 @@
           var own = lo != null && (lo !== t.ageMin || hi !== t.ageMax);
           ch.addAdGroup = { name: v('groupName') || undefined, ageMin: own ? lo : undefined, ageMax: own ? hi : undefined };
         }
-        else if (id === 'pixel') { if (!v('pixelId')) { note(b, 'Choose a pixel.'); return; } ch.pixelId = v('pixelId'); }
-        else if (id === 'tag') { if (!v('conversionTagId')) { note(b, 'Choose a tag.'); return; } ch.conversionTagId = v('conversionTagId'); }
+        else if (id === 'pixel') { if (!v('pixelId')) { note(b, T('ocs_choosePixelDot')); return; } ch.pixelId = v('pixelId'); }
+        else if (id === 'tag') { if (!v('conversionTagId')) { note(b, T('ocs_chooseTagDot')); return; } ch.conversionTagId = v('conversionTagId'); }
         else if (id === 'event' || id === 'pevent') ch.conversionEvent = v('conversionEvent');
         else if (id === 'url') ch.destinationUrl = v('destinationUrl');
         else if (id === 'utm') ch.utm = { source: v('utm_source'), medium: v('utm_medium'), campaign: v('utm_campaign'), content: v('utm_content') };
@@ -425,10 +443,9 @@
   // campaign settings review.
   S.targetingLinkHtml = function (campId) {
     var id = String(campId || '').replace(/[^A-Za-z0-9_-]/g, '');
-    return '<div class="crv-section ocs-tlink"><div class="crv-section-hd">Targeting sent to the platform</div>' +
-      '<p class="ocs-note">Countries, languages and ages are set in Campaign settings and checked against your ad account before publishing. ' +
-      'If no country is set, OrivenAI asks you to choose one. Gender, interests and audience notes guide the ad copy and aren’t sent as targeting.</p>' +
-      (id ? '<button type="button" class="ofd-btn ofd-btn-ghost" onclick="window.orvWorkspace&&orvWorkspace.flow&&orvWorkspace.flow.openAd(\'' + id + '\',\'targeting\')">Open campaign settings</button>' : '') +
+    return '<div class="crv-section ocs-tlink"><div class="crv-section-hd">' + esc(T('ocs_tlTitle')) + '</div>' +
+      '<p class="ocs-note">' + esc(T('ocs_tlNote')) + '</p>' +
+      (id ? '<button type="button" class="ofd-btn ofd-btn-ghost" onclick="window.orvWorkspace&&orvWorkspace.flow&&orvWorkspace.flow.openAd(\'' + id + '\',\'targeting\')">' + esc(T('ocs_openSettings')) + '</button>' : '') +
       '</div>';
   };
 
@@ -436,14 +453,14 @@
   S.summaryRows = function (res) {
     if (!res || !res.spec) return [];
     var sp = res.spec, p = sp.platform, rows = [];
-    rows.push(['Objective', sp.campaign.goal + (sp.campaign.objective ? ' (' + pretty(sp.campaign.objective) + ')' : '')]);
-    rows.push(['Countries', (sp.targeting.countries || []).length ? sp.targeting.countries.map(countryName).join(', ') : 'Not chosen']);
-    rows.push(['Languages', (sp.targeting.languages || []).length ? sp.targeting.languages.map(langName).join(', ') : 'All languages']);
-    if (p === 'meta' || p === 'tiktok') rows.push(['Ages', sp.targeting.ageMin + '–' + sp.targeting.ageMax + (sp.targeting.ageMax === 65 ? '+' : '')]);
-    if (p === 'meta') rows.push(['Placements', sp.targeting.placementLabel]);
-    if (sp.tracking.needsConversion) rows.push(['Conversion', p === 'meta' ? (sp.tracking.pixelId ? 'Pixel ' + sp.tracking.pixelId + ' · ' + pretty(sp.tracking.conversionEvent) : 'No pixel selected') : p === 'pinterest' ? (sp.tracking.conversionTagId ? 'Tag ' + sp.tracking.conversionTagId + ' · ' + pretty(sp.tracking.conversionEvent) : 'No tag selected') : (sp.tracking.conversionActions ? sp.tracking.conversionActions + ' conversion actions' : 'None found')]);
-    rows.push(['Structure', sp.adGroups.length + ' ' + (sp.adGroups.length === 1 ? GROUP[p][0] : GROUP[p][1]).toLowerCase() + ', ' + sp.adGroups.reduce(function (n, g) { return n + (g.ads ? g.ads.length : 0); }, 0) + ' ads']);
-    rows.push(['Destination', sp.tracking.destinationUrl || 'Missing']);
+    rows.push([T('ocs_objective'), goalLabel(sp.campaign.goal) + (sp.campaign.objective ? ' (' + pretty(sp.campaign.objective) + ')' : '')]);
+    rows.push([T('ocs_countries'), (sp.targeting.countries || []).length ? sp.targeting.countries.map(countryName).join(', ') : T('ocs_notChosen')]);
+    rows.push([T('ocs_languages'), (sp.targeting.languages || []).length ? sp.targeting.languages.map(langName).join(', ') : T('ocs_allLanguages')]);
+    if (p === 'meta' || p === 'tiktok') rows.push([T('ocs_ages'), sp.targeting.ageMin + '–' + sp.targeting.ageMax + (sp.targeting.ageMax === 65 ? '+' : '')]);
+    if (p === 'meta') rows.push([T('ocs_placements'), sp.targeting.placementLabel]);
+    if (sp.tracking.needsConversion) rows.push([T('ocs_conversion'), p === 'meta' ? (sp.tracking.pixelId ? T('ocs_pixelVal', { id: sp.tracking.pixelId, event: pretty(sp.tracking.conversionEvent) }) : T('ocs_noPixelSel')) : p === 'pinterest' ? (sp.tracking.conversionTagId ? T('ocs_tagVal', { id: sp.tracking.conversionTagId, event: pretty(sp.tracking.conversionEvent) }) : T('ocs_noTagSel')) : (sp.tracking.conversionActions ? T('ocs_nConvActions', { n: sp.tracking.conversionActions }) : T('ocs_noneFound'))]);
+    rows.push([T('ocs_structure'), groupsText(p, sp.adGroups.length) + ', ' + adsText(sp.adGroups.reduce(function (n, g) { return n + (g.ads ? g.ads.length : 0); }, 0))]);
+    rows.push([T('ocs_destination'), sp.tracking.destinationUrl || T('ocs_missing')]);
     return rows;
   };
 })();

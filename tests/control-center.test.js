@@ -137,7 +137,7 @@ function read(page) {
     return {
       greeting: txt('#owHomeGreeting'), status: txt('#owHomeStatus'), eyebrow: txt('.cc-eyebrow'),
       icon: { html: $('#bizHubIcon').innerHTML, initial: txt('#bizHubIcon .biz-icon-initial'), glyph: !!$('#bizHubIcon .biz-icon-glyph'), img: !!$('#bizHubIcon img'), plus: !!$('#bizHubIcon .biz-icon-plus') },
-      create: txt('#ccxCreateBtn'),
+      create: txt('#ccxCreateBtn'), hdText: txt('.ccx-hd'),
       needs: { cls: needs.className, count: txt('#ovAttCount'), calm: $('#ccxNeedsCalm').hidden ? null : txt('#ccxNeedsCalm'), rows, more: $('#ccxNeedsMore').hidden ? null : txt('#ccxNeedsMore') },
       perf: { text: txt('#ovPerf'), figs: document.querySelectorAll('#ovPerf .op-fig').length, connect: !!$('#ovPerf .ccx-btn-primary'), retry: !!$('#ovPerf .ccx-state-warn, #ovPerf .ccx-note-warn'), notes: Array.from(document.querySelectorAll('#ovPerf .op-fig-n')).map((e) => getComputedStyle(e).display) },
       camps: { stats: Array.from(document.querySelectorAll('#ovCamps .ccx-stat')).map((s) => s.querySelector('.ccx-stat-v').innerText.trim()), rows: document.querySelectorAll('#ovCamps .ccx-crow').length, text: txt('#ovCamps') },
@@ -180,7 +180,8 @@ const shot = (page, name, full) => page.screenshot({ path: path.join(SHOT_DIR, n
     check('new user: Running shows "Not connected", not 0', /not connected/i.test(A.newUser.camps.stats[0]) && !/^0$/.test(A.newUser.camps.stats[0]), A.newUser.camps.stats);
     check('new user: header status says nothing is running yet', A.newUser.status && !/running/i.test(A.newUser.status.replace(/nothing is running/i, '')) && A.newUser.status.length > 5, A.newUser.status);
     check('new user: icon shows a neutral glyph (no name to take an initial from)', A.newUser.icon.glyph && !A.newUser.icon.img, A.newUser.icon);
-    check('greeting + eyebrow', /^Good (morning|afternoon|evening)/.test(A.newUser.greeting) && /CONTROL CENTER/i.test(A.newUser.eyebrow), [A.newUser.greeting, A.newUser.eyebrow]);
+    check('header: greeting only — no "Control Center" eyebrow, no brand name repeated, no Create campaign button', /^Good (morning|afternoon|evening)/.test(A.newUser.greeting) && A.newUser.eyebrow === null && A.full.create === null && !/CONTROL CENTER|Linnen & Co|Create campaign/i.test(A.full.hdText), [A.newUser.greeting, A.newUser.eyebrow, A.full.create, A.full.hdText]);
+    check('business logo + name lead the Business context card', await A.fullPage.evaluate(() => { const c = document.querySelector('.cc-ctx'); return !!(c && c.contains(document.getElementById('bizHubIcon')) && /Linnen & Co/.test(document.getElementById('bizHeroName').innerText)); }));
     // Incomplete profile
     check('incomplete profile: business initial "L" shown', A.incomplete.icon.initial === 'L', A.incomplete.icon);
     check('incomplete profile: Business row is "Incomplete", profile step still to do', A.incomplete.mods[0].st === 'Incomplete' && /todo/.test(A.incomplete.mods[0].tone) && A.incomplete.setup.todo >= 1, [A.incomplete.mods[0], A.incomplete.setup]);
@@ -222,14 +223,12 @@ const shot = (page, name, full) => page.screenshot({ path: path.join(SHOT_DIR, n
       const wrap = (name) => { const o = window[name]; window[name] = function () { log.push(name + ':' + Array.from(arguments).join(',')); }; return () => { window[name] = o; }; };
       const un = [wrap('bizUploadBusinessIcon'), wrap('bizGoTo'), wrap('_orvNav')];
       document.getElementById('bizHubIcon').click();
-      document.getElementById('ccxCreateBtn').click();
       const crow = document.querySelector('#ovCamps .ccx-crow'); const OPS = orvWorkspace.ops; const oc = OPS.openCampaign; OPS.openCampaign = function (p, id, d) { log.push('openCampaign:' + p + ',' + id + ',' + d); }; crow && crow.click(); OPS.openCampaign = oc;
       const og = OPS.go; OPS.go = function (x) { log.push('ops.go:' + x); }; document.querySelector('.ccx-perf .ccx-link').click(); document.querySelector('.ccx-auto .ccx-link').click(); OPS.go = og;
       un.forEach((f) => f());
       return log;
     });
     check('logo click → bizUploadBusinessIcon()', calls.includes('bizUploadBusinessIcon:'), calls);
-    check('Create campaign → _orvNav(create)', calls.some((c) => /^_orvNav:create,page-create/.test(c)), calls);
     check('campaign row → OPS.openCampaign(platform, id)', calls.some((c) => /^openCampaign:meta,10[12],false/.test(c)), calls);
     check('card links → Campaigns / Automations', calls.includes('ops.go:campaigns') && calls.includes('ops.go:autopilot'), calls);
     await page.click('#bicGrid .ccx-mod-brand');
@@ -239,6 +238,52 @@ const shot = (page, name, full) => page.screenshot({ path: path.join(SHOT_DIR, n
     await shot(page, 'overlay-brand', false);
     await page.keyboard.press('Escape'); await page.waitForTimeout(200);
     check('overlay closes (_bicCloseFocus)', await page.evaluate(() => getComputedStyle(document.getElementById('bicFocusOverlay')).display === 'none'));
+
+    // ── 3b. Business context: every Edit opens the real module IN the dialog ──
+    const PANEL = { business: 'bizPanelBusiness', brand: 'bizPanelBrand', audience: 'bizPanelMarket', competition: 'bizPanelCompetitors', advertising: 'bizPanelConnections', knowledge: 'bizPanelMemory' };
+    for (const kind of Object.keys(PANEL)) {
+      await page.click('#bicGrid .ccx-mod-' + kind);
+      await page.waitForTimeout(250);
+      await page.click('#bicFocusBody .bic-detail-action');
+      await page.waitForTimeout(700);
+      const e = await page.evaluate((id) => {
+        const ov = document.getElementById('bicFocusOverlay'), host = document.getElementById('bicEditHost'), p = document.getElementById(id);
+        const b = host.getBoundingClientRect();
+        return { open: getComputedStyle(ov).display !== 'none' && ov.classList.contains('is-editing'), inHost: host.contains(p), shown: p && p.style.display !== 'none', page: document.querySelector('.page.active').id,
+          title: document.getElementById('bicFocusTitle').innerText, backHidden: Array.from(host.querySelectorAll('.biz-back-btn')).every((x) => !x.offsetParent), fits: b.bottom <= window.innerHeight + 1 && b.top >= 0, scrolls: getComputedStyle(host).overflowY,
+          text: (p.innerText || '').trim().length };
+      }, PANEL[kind]);
+      check(kind + ': Edit opens the module in the dialog (no page change), titled, back link hidden, scrolls inside', e.open && e.inHost && e.shown && e.page === 'page-business-brain' && e.title && e.backHidden && e.fits && e.scrolls === 'auto' && e.text > 10, e);
+      if (kind === 'business') await shot(page, 'editor-business', false);
+      await page.click('#bicFocusClose'); await page.waitForTimeout(250);
+      const back = await page.evaluate((id) => { const p = document.getElementById(id); return { closed: getComputedStyle(document.getElementById('bicFocusOverlay')).display === 'none', home: p.parentNode.id === 'bizPanelOverview' ? 'overview' : p.parentNode && p.parentNode.closest && !!p.parentNode.closest('#page-business-brain') && !document.getElementById('bicEditHost').contains(p), hidden: p.style.display === 'none' }; }, PANEL[kind]);
+      check(kind + ': closing puts the module back where it lives, hidden', back.closed && back.home && back.hidden, back);
+    }
+    // Business profile loads in the editor (its loader used to sit behind a // comment).
+    await page.evaluate(() => _bicOpenEditor('business'));
+    await page.waitForTimeout(800);
+    check('Business editor shows the profile form (bizLoadProfile ran)', await page.evaluate(() => document.getElementById('bizProfileBody').innerHTML.trim().length > 50));
+    // Unsaved input: Escape asks first; "Keep editing" keeps it open; discard closes.
+    const field = await page.$('#bicEditHost #bizProfileBody input, #bicEditHost #bizProfileBody textarea');
+    if (field) { await field.click(); await page.keyboard.type(' x'); }
+    await page.keyboard.press('Escape'); await page.waitForTimeout(350);
+    const asked = await page.evaluate(() => !!document.querySelector('.ofd-backdrop'));
+    check('unsaved input: Escape asks before discarding', !!field && asked, { field: !!field, asked });
+    if (asked) {
+      await page.evaluate(() => { const b = Array.from(document.querySelectorAll('.ofd-backdrop .ofd-foot button')); b[0].click(); });
+      await page.waitForTimeout(300);
+      check('"Keep editing" keeps the editor open', await page.evaluate(() => document.getElementById('bicFocusOverlay').classList.contains('is-editing')));
+      await page.click('#bicFocusClose'); await page.waitForTimeout(300);
+      await page.evaluate(() => { const b = Array.from(document.querySelectorAll('.ofd-backdrop .ofd-foot button')); b[b.length - 1].click(); });
+      await page.waitForTimeout(300);
+      check('"Discard changes" closes it', await page.evaluate(() => getComputedStyle(document.getElementById('bicFocusOverlay')).display === 'none'));
+    }
+    // Deep links to a module page land in the dialog over Control Center.
+    await page.evaluate(() => bizGoTo('competitors'));
+    await page.waitForTimeout(700);
+    check('bizGoTo(competitors) → dialog over Control Center, not a hidden page', await page.evaluate(() => document.getElementById('bicEditHost').contains(document.getElementById('bizPanelCompetitors')) && document.getElementById('bizPanelOverview').style.display !== 'none'));
+    await page.evaluate(() => bizGoTo('overview')); await page.waitForTimeout(300);
+    check('"Back to Control Center" inside the dialog closes it', await page.evaluate(() => getComputedStyle(document.getElementById('bicFocusOverlay')).display === 'none'));
     const hooks = await page.evaluate(() => ({
       fns: ['bizUploadBusinessIcon', 'bizGoTo', '_bicRender', '_bicCardContent', '_bicFocusNode', '_bicCloseFocus', '_bizRenderCentralIcon'].filter((f) => typeof window[f] !== 'function'),
       ow: ['placeBell', 'reset', 'attention'].filter((f) => typeof orvWorkspace[f] !== 'function'),
@@ -258,6 +303,14 @@ const shot = (page, name, full) => page.screenshot({ path: path.join(SHOT_DIR, n
     check('refresh: figures repaint from the same real data', afterRefresh.perf.figs === A.full.perf.figs && afterRefresh.camps.stats[0] === A.full.camps.stats[0], [afterRefresh.perf.figs, afterRefresh.camps.stats]);
 
     // ── 4. Widths ────────────────────────────────────────────────────
+    // No vertical scrolling at standard desktop sizes (nothing clipped or hidden to get there).
+    for (const [w, h] of [[1366, 768], [1440, 900]]) {
+      await page.setViewportSize({ width: w, height: h }); await page.waitForTimeout(500);
+      const sc = await page.evaluate(() => { const mc = document.querySelector('.mc'); const doc = document.scrollingElement; const clipped = Array.from(document.querySelectorAll('#bizPanelOverview .ccx-card')).filter((c) => c.scrollHeight > c.clientHeight + 1 || getComputedStyle(c).overflow === 'hidden').map((c) => c.className); return { mc: mc ? [mc.scrollHeight, mc.clientHeight] : null, doc: [doc.scrollHeight, doc.clientHeight], clipped, ctxB: Math.round(document.querySelector('.cc-ctx').getBoundingClientRect().bottom), dashB: Math.round(document.getElementById('owDashGrid').getBoundingClientRect().bottom) }; });
+      console.log('  fit ' + w + 'x' + h + ': ' + JSON.stringify(sc));
+      check(w + '×' + h + ': Control Center does not scroll vertically, no card clipped', (!sc.mc || sc.mc[0] <= sc.mc[1] + 1) && sc.doc[0] <= sc.doc[1] + 1 && !sc.clipped.length, sc);
+      await shot(page, 'fit-' + w + 'x' + h, false);
+    }
     for (const w of [1600, 1440, 1280, 1024, 768, 390]) {
       await page.setViewportSize({ width: w, height: w <= 390 ? 844 : w <= 768 ? 1024 : 900 });
       await page.waitForTimeout(450);
@@ -270,7 +323,7 @@ const shot = (page, name, full) => page.screenshot({ path: path.join(SHOT_DIR, n
       if (w >= 1100) check(w + ': rail beside operations (≈8/4)', g.rail.l > g.main.r - 1 && g.main.w / (g.main.w + g.rail.w) > 0.6 && g.main.w / (g.main.w + g.rail.w) < 0.75, { main: g.main, rail: g.rail });
       else check(w + ': single column, context after operations', g.ctx.t >= g.dash.b - 1 && g.plan.t >= g.dash.b - 1, { dash: g.dash, ctx: g.ctx, plan: g.plan });
       check(w + ': spotlight targets have a box', [g.dash, g.plan, g.grid].every((x) => x && x.w > 0 && x.h > 0), [g.dash, g.plan, g.grid]);
-      if (w <= 390) check(w + ': Create campaign full width on phones', g.btn.w > g.iw * 0.7, g.btn);
+      if (w === 1440) check('1440×900: the whole dashboard fits the first screen (operations and rail)', g.dash.b <= 900 && g.ctx.b <= 900, { dash: g.dash, ctx: g.ctx });
       await shot(page, 'full-' + w);
     }
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -281,9 +334,9 @@ const shot = (page, name, full) => page.screenshot({ path: path.join(SHOT_DIR, n
     for (const l of ['en', 'nl', 'de', 'fr', 'es', 'pt']) {
       await page.evaluate((lng) => { CURRENT_LANG = lng; applyLanguage(); }, l);
       await page.waitForTimeout(500);
-      const t = await page.evaluate(() => ({ needs: document.getElementById('owNeedsTitle').innerText, perf: document.getElementById('ovPerfH').innerText, ctx: document.getElementById('ccCtxH').innerText, create: document.getElementById('ccxCreateBtn').innerText, greet: document.getElementById('owHomeGreeting').innerText, mod0: document.querySelector('#bicGrid .ccx-mod-name').innerText, st0: document.querySelector('#bicGrid .ccx-mod-st').innerText, all: document.getElementById('bizPanelOverview').innerText }));
+      const t = await page.evaluate(() => ({ needs: document.getElementById('owNeedsTitle').innerText, perf: document.getElementById('ovPerfH').innerText, ctx: document.getElementById('ccCtxH').innerText, greet: document.getElementById('owHomeGreeting').innerText, mod0: document.querySelector('#bicGrid .ccx-mod-name').innerText, st0: document.querySelector('#bicGrid .ccx-mod-st').innerText, all: document.getElementById('bizPanelOverview').innerText }));
       const S = STR[l];
-      const ok = t.needs === S.needsTitle && t.ctx === S.ctxTitle && t.create === S.createCampaign && t.mod0 === S.mod.business && t.st0 === S.ms.added && Object.values(S.greetings || {}).concat([S.morning, S.afternoon, S.evening]).filter(Boolean).some((g) => t.greet.indexOf(g.replace(/[.!]$/, '')) === 0);
+      const ok = t.needs === S.needsTitle && t.ctx === S.ctxTitle && t.mod0 === S.mod.business && t.st0 === S.ms.added && Object.values(S.greetings || {}).concat([S.morning, S.afternoon, S.evening]).filter(Boolean).some((g) => t.greet.indexOf(g.replace(/[.!]$/, '')) === 0);
       const raw = /\b(mod|ms|ml|st|sev|att|src|act|fig|stage|auto|autoAct|plat|icon|setup)\.[a-zA-Z]+\b|\{[a-z]+\}/.test(t.all);
       const eng = l !== 'en' && /\b(Needs you|Business context|Create campaign|View campaigns|Not connected|Running|Drafts)\b/.test(t.all);
       check(l + ': Control Center translated, no raw keys, no leftover English', ok && !raw && !eng, { t: Object.assign({}, t, { all: t.all.slice(0, 400) }), raw, eng });

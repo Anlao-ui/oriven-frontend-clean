@@ -20,7 +20,12 @@
 (function () {
   'use strict';
   var PLAT = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
-  var ASSET_LABEL = { meta: 'Facebook Page', tiktok: 'TikTok identity' };
+  var ASSET_KEY = { meta: 'lch_fbPage', tiktok: 'lch_ttIdentity' };
+  // Text in the user's language (js/launchI18n.js); keys only — no English here.
+  function T(k, v) { return window.orvTx ? window.orvTx(k, v) : k; }
+  function assetLabel(p) { return ASSET_KEY[p] ? T(ASSET_KEY[p]) : null; }
+  // Section labels by key; a section the app doesn't know keeps the server's label.
+  function secLabel(sec) { var k = 'lch_sec_' + sec.key; var s = T(k); return s && s !== k ? s : sec.label; }
   var SETUP_TTL = 60000, SETUP_ERR_TTL = 10000;
   var L = window.orvLaunch = {};
   var setup = {};          // platform -> { at, data, error, inflight, sig }
@@ -126,16 +131,19 @@
   function actionFor(key, status, id) {
     var bad = status === 'blocked';
     switch (key) {
-      case 'budget': return { label: bad ? 'Set budget' : 'Change budget', fn: "orvWorkspace.flow.openBudget('" + id + "')" };
-      case 'creative': return goAd(id, bad ? 'Add creative' : 'Go to Ad', 'creative');
-      case 'copy': case 'keywords': return goAd(id, bad ? 'Edit copy' : 'Go to Ad', 'copy');
-      case 'destination': return goAd(id, bad ? 'Add URL' : 'Change URL', 'destination');
-      case 'targeting': case 'tracking': case 'compliance': case 'identity': return goAd(id, bad ? 'Fix' : 'Review', key);
-      case 'campaign': return goAd(id, bad ? 'Fix' : 'Review', 'objective');
-      default: return goAd(id, bad ? 'Fix' : 'Review', 'settings');
+      case 'budget': return { label: T(bad ? 'lch_aSetBudget' : 'lch_aChangeBudget'), fn: "orvWorkspace.flow.openBudget('" + id + "')" };
+      case 'creative': return goAd(id, T(bad ? 'lch_aAddCreative' : 'lch_aGoToAd'), 'creative');
+      case 'copy': case 'keywords': return goAd(id, T(bad ? 'lch_aEditCopy' : 'lch_aGoToAd'), 'copy');
+      case 'destination': return goAd(id, T(bad ? 'lch_aAddUrl' : 'lch_aChangeUrl'), 'destination');
+      case 'targeting': case 'tracking': case 'compliance': case 'identity': return goAd(id, T(bad ? 'lch_aFix' : 'lch_aReview'), key);
+      case 'campaign': return goAd(id, T(bad ? 'lch_aFix' : 'lch_aReview'), 'objective');
+      default: return goAd(id, T(bad ? 'lch_aFix' : 'lch_aReview'), 'settings');
     }
   }
-  function msgs(list) { return (list || []).map(function (i) { return i.message || i; }).join(' '); }
+  // Server messages in the user's language (js/serverI18n.js; English = the server's own text).
+  function msgs(list) { return (list || []).map(function (i) { return window.orvTx && orvTx.issue ? orvTx.issue(i) : (i.message || i); }).join(' '); }
+  function sumText(sec) { return window.orvTx && orvTx.summary ? orvTx.summary(sec) : sec.summary; }
+  function stepText(st) { return st && (window.orvTx && orvTx.setupReason ? orvTx.setupReason(st) : st.reason); }
 
   // ── The model ───────────────────────────────────────────────────
   L.readiness = function (camp) {
@@ -145,61 +153,64 @@
     var name = PLAT[p] || p;
     var OS = window.OrivenSpec;
     var sr = OS ? OS.forCampaign(camp) : null;
+    // Re-check running for unchanged content: keep showing the last answer,
+    // but nothing can be published until the fresh one arrives.
+    var refreshing = false;
+    if (!sr && OS && OS.lastKnown) { sr = OS.lastKnown(camp); refreshing = !!sr; }
     var st = L.setup(p);
     var checks = [];
 
     // 1. Campaign content — the server spec, section by section.
-    if (!OS) checks.push({ key: 'spec', label: 'Campaign settings', status: 'unavailable', reason: 'Launch checks couldn’t load. Reload the page.' });
-    else if (!sr) checks.push({ key: 'spec', label: 'Campaign settings', status: 'checking', reason: 'Checking this campaign against your ' + name + ' account…' });
-    else if (sr.error) checks.push({ key: 'spec', label: 'Campaign settings', status: 'unavailable', reason: sr.error + ' Nothing can be published until this check succeeds.', action: { label: 'Try again', fn: "orvLaunch.retry('" + id + "')" } });
+    if (!OS) checks.push({ key: 'spec', label: T('lch_sec_settings'), status: 'unavailable', reason: T('lch_specUnavailable') });
+    else if (!sr) checks.push({ key: 'spec', label: T('lch_sec_settings'), status: 'checking', reason: T('lch_specChecking', { platform: name }) });
+    else if (sr.error) checks.push({ key: 'spec', label: T('lch_sec_settings'), status: 'unavailable', reason: sr.error + ' ' + T('lch_specErrTail'), action: { label: T('lch_tryAgain'), fn: "orvLaunch.retry('" + id + "')" } });
     else if (Array.isArray(sr.sections)) {
       sr.sections.forEach(function (sec) {
-        var reason = sec.status === 'blocked' ? msgs(sec.errors) : sec.status === 'warning' ? msgs(sec.warnings) : (sec.summary || 'Complete.');
-        checks.push({ key: sec.key, label: sec.key === 'identity' ? (ASSET_LABEL[p] || sec.label) : sec.label, status: sec.status, reason: reason,
+        var reason = sec.status === 'blocked' ? msgs(sec.errors) : sec.status === 'warning' ? msgs(sec.warnings) : (sumText(sec) || T('lch_complete'));
+        checks.push({ key: sec.key, label: sec.key === 'identity' ? (assetLabel(p) || secLabel(sec)) : secLabel(sec), status: sec.status, reason: reason,
           warnings: sec.status === 'blocked' ? msgs(sec.warnings) : '', notes: (sec.notes || []).join(' '), action: actionFor(sec.key, sec.status, id) });
       });
     } else {
       // Older server without sections: never drop anything — one row with every issue.
       var errs = (sr.issues || []).filter(function (i) { return i.level === 'error'; });
       var warns = (sr.issues || []).filter(function (i) { return i.level === 'warning'; });
-      checks.push({ key: 'settings', label: 'Campaign settings', status: errs.length ? 'blocked' : warns.length ? 'warning' : 'pass', reason: errs.length ? msgs(errs) : warns.length ? msgs(warns) : 'Checked.', action: actionFor('settings', errs.length ? 'blocked' : 'pass', id) });
+      checks.push({ key: 'settings', label: T('lch_sec_settings'), status: errs.length ? 'blocked' : warns.length ? 'warning' : 'pass', reason: errs.length ? msgs(errs) : warns.length ? msgs(warns) : T('lch_checked'), action: actionFor('settings', errs.length ? 'blocked' : 'pass', id) });
     }
 
     // 2. Platform setup — connection, ad account, Page / identity (merged
     // into the spec's identity row so it appears once).
-    var conn = { key: 'connection', label: name + ' connection' };
-    if (!st.at) { conn.status = 'checking'; conn.reason = 'Checking your ' + name + ' connection…'; }
-    else if (st.error) { conn.status = 'unavailable'; conn.reason = 'OrivenAI couldn’t check your ' + name + ' connection right now.'; conn.action = { label: 'Try again', fn: "orvLaunch.retry('" + id + "')" }; }
-    else if (!st.data.connected) { conn.status = 'blocked'; conn.reason = name + ' is not connected — connect it before this campaign can be launched.'; conn.action = { label: 'Connect ' + name, fn: "bizGoTo('connections')" }; }
-    else if (sr && !sr.error && sr.options && sr.options.connected === false) { conn.status = 'blocked'; conn.reason = (sr.options.connectionError || ('OrivenAI can’t reach your ' + name + ' account.')) + ' Reconnect it in Connections.'; conn.action = { label: 'Review in Connections', fn: "bizGoTo('connections')" }; }
-    else { conn.status = 'pass'; conn.reason = name + ' is connected.'; }
+    var conn = { key: 'connection', label: T('lch_connLabel', { platform: name }) };
+    if (!st.at) { conn.status = 'checking'; conn.reason = T('lch_connChecking', { platform: name }); }
+    else if (st.error) { conn.status = 'unavailable'; conn.reason = T('lch_connCouldnt', { platform: name }); conn.action = { label: T('lch_tryAgain'), fn: "orvLaunch.retry('" + id + "')" }; }
+    else if (!st.data.connected) { conn.status = 'blocked'; conn.reason = T('lch_connMissing', { platform: name }); conn.action = { label: T('lch_connect', { platform: name }), fn: "bizGoTo('connections')" }; }
+    else if (sr && !sr.error && sr.options && sr.options.connected === false) { conn.status = 'blocked'; conn.reason = ((window.orvTx && orvTx._serverLang && orvTx._serverLang() !== 'en' ? '' : sr.options.connectionError) || T('lch_connCantReach', { platform: name })) + ' ' + T('lch_reconnectIn'); conn.action = { label: T('lch_reviewConnections'), fn: "bizGoTo('connections')" }; }
+    else { conn.status = 'pass'; conn.reason = T('lch_connOk', { platform: name }); }
     checks.push(conn);
     var steps = st.data && st.data.connected && st.data.steps ? st.data.steps : null;
     if (steps && steps.account) {
       var ok = steps.account.status === 'complete';
-      checks.push({ key: 'account', label: 'Ad account', status: ok ? 'pass' : (steps.account.status === 'action_required' ? 'blocked' : 'checking'),
-        reason: steps.account.reason || (ok ? 'Ad account selected.' : 'Select the ad account to publish to.'), action: ok ? null : { label: 'Review in Connections', fn: "bizGoTo('connections')" } });
+      checks.push({ key: 'account', label: T('lch_adAccount'), status: ok ? 'pass' : (steps.account.status === 'action_required' ? 'blocked' : 'checking'),
+        reason: stepText(steps.account) || (ok ? T('lch_acctOk') : T('lch_selectAccount')), action: ok ? null : { label: T('lch_reviewConnections'), fn: "bizGoTo('connections')" } });
     }
-    if (steps && steps.assets && ASSET_LABEL[p] && steps.assets.status === 'action_required') {
+    if (steps && steps.assets && ASSET_KEY[p] && steps.assets.status === 'action_required') {
       var row = checks.filter(function (c) { return c.key === 'identity'; })[0];
-      var why = steps.assets.reason || ('A ' + ASSET_LABEL[p] + ' is required to publish.');
-      if (row) { if (row.status !== 'blocked') { row.status = 'blocked'; row.reason = why; } else if (row.reason.indexOf(why) === -1) row.reason += ' ' + why; row.action = { label: 'Review in Connections', fn: "bizGoTo('connections')" }; }
-      else checks.push({ key: 'identity', label: ASSET_LABEL[p], status: 'blocked', reason: why, action: { label: 'Review in Connections', fn: "bizGoTo('connections')" } });
+      var why = stepText(steps.assets) || T('lch_assetRequired', { asset: assetLabel(p) });
+      if (row) { if (row.status !== 'blocked') { row.status = 'blocked'; row.reason = why; } else if (row.reason.indexOf(why) === -1) row.reason += ' ' + why; row.action = { label: T('lch_reviewConnections'), fn: "bizGoTo('connections')" }; }
+      else checks.push({ key: 'identity', label: assetLabel(p), status: 'blocked', reason: why, action: { label: T('lch_reviewConnections'), fn: "bizGoTo('connections')" } });
     }
 
     // 3. Aggregate. READY only when the spec was validated, nothing blocks
     // and the account is confirmed.
     var has = function (s) { return checks.some(function (c) { return c.status === s; }); };
     var state = has('blocked') ? 'blocked' : has('unavailable') ? 'unavailable' : has('checking') ? 'checking' : has('warning') ? 'warning' : 'ready';
-    var LBL = { blocked: 'BLOCKED', unavailable: 'CAN’T CHECK', checking: 'CHECKING…', warning: 'READY WITH WARNINGS', ready: 'READY TO LAUNCH' };
-    var SUB = {
-      blocked: 'Required: ' + checks.filter(function (c) { return c.status === 'blocked'; }).map(function (c) { return c.label; }).join(', ') + '.',
-      unavailable: 'Some checks couldn’t run. Nothing can be published until they do.',
-      checking: 'Running the pre-flight checks…',
-      warning: 'Can launch. Review: ' + checks.filter(function (c) { return c.status === 'warning'; }).map(function (c) { return c.label; }).join(', ') + '.',
-      ready: 'Everything required for deployment is in place.',
-    };
-    return { state: state, label: LBL[state], sub: SUB[state], checks: checks, canPublish: state === 'ready' || state === 'warning', spec: sr && !sr.error ? sr : null,
+    var LBL = { blocked: 'lch_aggBlocked', unavailable: 'lch_aggUnavailable', checking: 'lch_aggChecking', warning: 'lch_aggWarning', ready: 'lch_aggReady' };
+    var labelsOf = function (s) { return checks.filter(function (c) { return c.status === s; }).map(function (c) { return c.label; }).join(', '); };
+    var sub = state === 'blocked' ? T('lch_subRequired', { list: labelsOf('blocked') })
+      : state === 'unavailable' ? T('lch_aggUnavailableSub')
+      : state === 'checking' || refreshing ? T('lch_aggCheckingSub')
+      : state === 'warning' ? T('lch_subCanLaunchReview', { list: labelsOf('warning') })
+      : T('lch_subReadyInPlace');
+    return { state: state, label: T(LBL[state]), sub: sub, checks: checks, canPublish: !refreshing && (state === 'ready' || state === 'warning'), refreshing: refreshing, spec: sr && !sr.error ? sr : null,
       format: sr && sr.format ? sr.format : null, publish: sr && sr.publish ? sr.publish : null, platform: p };
   };
 
@@ -207,16 +218,26 @@
   var LIVE_RE = /^(active|enabled|enable|running|live|delivering)$/;
   L.publishedState = function (c) {
     var st = c.status || 'draft', ps = String(c.providerStatus || '').toLowerCase();
-    if (st === 'archived') return { state: 'live', kind: 'archived', label: 'ARCHIVED', text: 'Archived in OrivenAI — the campaign on the platform isn’t changed.' };
-    if (st === 'paused' || ps === 'paused') return { state: 'live', kind: 'paused', label: 'PUBLISHED · PAUSED', text: 'Published — paused on the platform. Nothing spends until you activate it.' };
-    if (LIVE_RE.test(ps)) return { state: 'live', kind: 'active', label: 'ACTIVE', text: 'Active on the platform (last status OrivenAI recorded).' };
-    return { state: 'live', kind: 'unknown', label: 'PUBLISHED', text: 'Published — OrivenAI hasn’t confirmed whether it is running.' };
+    if (st === 'archived') return { state: 'live', kind: 'archived', label: T('lch_psArchived'), text: T('lch_psArchivedText') };
+    var act = c.activation || {};
+    // The last Activate didn't finish: the campaign was left paused (nothing spends).
+    if ((st === 'paused' || ps === 'paused' || !LIVE_RE.test(ps)) && act.state === 'failed') return { state: 'live', kind: 'paused', label: T('lch_psActFailed'), text: T('lch_psActFailedText') };
+    if (st === 'paused' || ps === 'paused') return { state: 'live', kind: 'paused', label: T('lch_psPaused'), text: T('lch_psPausedText') };
+    // On, but OrivenAI couldn't read back the ad sets and ads: not "active".
+    if (LIVE_RE.test(ps) && act.state === 'unverified') return { state: 'live', kind: 'unknown', label: T('lch_psUnverified'), text: T('lch_psUnverifiedText') };
+    if (LIVE_RE.test(ps) && (act.state === 'partial' || c.childrenPaused) && act.stillPaused) return { state: 'live', kind: 'unknown', label: T('lch_psOnAdsPaused'), text: T('lch_psOnAdsPausedCount', { n: act.stillPaused }) };
+    // Switched on, but the platform answer didn't confirm that the ad sets /
+    // ads OrivenAI created paused were switched on too: nothing delivers yet.
+    // Kind 'unknown' offers both Activate (which retries them) and Pause.
+    if (LIVE_RE.test(ps) && c.childrenPaused) return { state: 'live', kind: 'unknown', label: T('lch_psOnAdsPaused'), text: T('lch_psOnAdsPausedText') };
+    if (LIVE_RE.test(ps)) return { state: 'live', kind: 'active', label: T('lch_psActive'), text: T('lch_psActiveText') };
+    return { state: 'live', kind: 'unknown', label: T('lch_psPublished'), text: T('lch_psPublishedText') };
   };
   L.cardState = function (c) {
     var st = c.status || 'draft';
     if (st === 'published' || st === 'paused' || st === 'archived' || st === 'active') return L.publishedState(c);
-    if (st === 'publishing') return inFlight[c.id] ? { state: 'publishing', label: 'PUBLISHING…' } : { state: 'unconfirmed', label: 'NOT CONFIRMED' };
-    if (st === 'failed') return { state: 'failed', label: 'PUBLISH FAILED' };
+    if (st === 'publishing') return inFlight[c.id] ? { state: 'publishing', label: T('lch_publishingCaps') } : { state: 'unconfirmed', label: T('lch_notConfirmed') };
+    if (st === 'failed') return { state: 'failed', label: T('lch_publishFailed') };
     var r = L.readiness(c);
     return { state: r.state, label: r.label };
   };

@@ -132,7 +132,8 @@ async function reset(page) {
 }
 const st = (page) => page.evaluate(() => orvCreate.getState());
 async function next(page) { await page.click('#cfNext'); await page.waitForTimeout(120); }
-async function step1(page, name, desc) { await page.fill('#cfName', name || 'Handmade leather wallet'); await page.fill('#aicInput', desc || 'Leather wallets from our Amsterdam workshop, with free name engraving.'); await next(page); }
+// Product price is required (a real price above 0).
+async function step1(page, name, desc, price) { await page.fill('#cfName', name || 'Handmade leather wallet'); await page.fill('#aicInput', desc || 'Leather wallets from our Amsterdam workshop, with free name engraving.'); await page.fill('#cfPrice', price || '29.99'); await next(page); }
 async function build(page, o, cfg) {
   await reset(page);
   await step1(page);
@@ -173,6 +174,16 @@ async function build(page, o, cfg) {
     check('step 1 Next with empty fields → stays, explains what is missing, no request', (await st(page)).step === 1 && /name/i.test(await page.textContent('#cfNavMsg')) && o.createCalls.length === 0);
     await page.fill('#cfName', 'Wallet'); await next(page);
     check('…description still missing → stays on step 1', (await st(page)).step === 1 && /description/i.test(await page.textContent('#cfNavMsg')));
+    await page.fill('#aicInput', 'Leather wallets from our Amsterdam workshop.'); await page.fill('#cfPrice', ''); await next(page);
+    const pr = await page.evaluate(() => ({ msg: document.getElementById('cfNavMsg').textContent, req: document.getElementById('cfPrice').getAttribute('aria-required'), lbl: document.querySelector('label[for="cfPrice"]').textContent, focus: document.activeElement && document.activeElement.id }));
+    check('…Product price missing → stays on step 1, clear price message, field marked required and focused', (await st(page)).step === 1 && /price/i.test(pr.msg) && pr.req === 'true' && /required/.test(pr.lbl) && !/optional/.test(pr.lbl) && pr.focus === 'cfPrice', pr);
+    await page.fill('#cfPrice', '0'); await next(page);
+    check('…a price of 0 is not accepted either (never invented, never "free" by accident)', (await st(page)).step === 1 && /price/i.test(await page.textContent('#cfNavMsg')));
+    await page.fill('#cfPrice', '24.5'); await next(page);
+    check('…with a real price it continues to step 2', (await st(page)).step === 2);
+    await page.evaluate(() => orvCreate.goTo(1));
+    const opt = await page.evaluate(() => Array.from(document.querySelectorAll('#page-create .cf-lbl .cf-opt')).map((e) => { const c = getComputedStyle(e); return { t: e.textContent, bg: c.backgroundColor, bw: c.borderTopWidth, pad: c.paddingLeft }; }));
+    check('"Optional" (website, special offer) is plain small grey text — no pill', opt.length === 2 && opt.every((o) => /optional/i.test(o.t) && (o.bg === 'rgba(0, 0, 0, 0)' || o.bg === 'transparent') && o.bw === '0px' && o.pad === '0px'), opt);
     await reset(page); await step1(page);
     check('step 2 shows the four platforms with plain explanations', await page.evaluate(() => ['google', 'meta', 'tiktok', 'pinterest'].every((p) => { const b = document.querySelector('#cfPlatforms [data-plat="' + p + '"]'); return b && b.querySelector('.cf-card-d').textContent.length > 20; })));
     await next(page);
@@ -273,7 +284,7 @@ async function build(page, o, cfg) {
     }
     // Website + offer + customise reach the brief; website read via the existing (free) analyzer.
     await reset(page);
-    await page.fill('#cfName', 'Linen dress'); await page.fill('#aicInput', 'A summer linen dress.'); await page.fill('#cfWebsite', 'leathershop.example/dress'); await page.fill('#cfOffer', '€59');
+    await page.fill('#cfName', 'Linen dress'); await page.fill('#aicInput', 'A summer linen dress.'); await page.fill('#cfWebsite', 'leathershop.example/dress'); await page.fill('#cfOffer', '€59'); await page.fill('#cfPrice', '59');
     await next(page);
     await page.waitForTimeout(500);
     check('website is read with the existing free page analyzer (no credits) when leaving step 1', o.analyzeCalls.length >= 1 && o.analyzeCalls[o.analyzeCalls.length - 1].url === 'https://leathershop.example/dress', o.analyzeCalls);
@@ -306,7 +317,7 @@ async function build(page, o, cfg) {
     await page.evaluate(() => orvCreate.setState({ step: 6, maxStep: 6, productName: 'Wallet', description: 'Leather wallet', platform: 'meta', goal: 'Sales', format: 'video' }));
     const s = await st(page);
     check('forcing Meta + video into the state: corrected to image with a notice (never kept)', s.format === 'image');
-    await page.evaluate(() => orvCreate.setState({ step: 6, maxStep: 6, productName: 'Wallet', description: 'Leather wallet', platform: 'tiktok', goal: 'Sales', format: 'video' }));
+    await page.evaluate(() => orvCreate.setState({ step: 6, maxStep: 6, productName: 'Wallet', description: 'Leather wallet', price: '29.99', platform: 'tiktok', goal: 'Sales', format: 'video' }));
     check('forcing TikTok + sales: goal cleared, review blocks creation', (await st(page)).goal === null);
     const c0 = o.createCalls.length;
     await page.evaluate(() => orvCreate.generate());
@@ -353,7 +364,7 @@ async function build(page, o, cfg) {
 
     // Research → Create
     await reset(page);
-    await page.fill('#cfName', 'Coffee beans'); await page.fill('#aicInput', 'Single-origin coffee beans.');
+    await page.fill('#cfName', 'Coffee beans'); await page.fill('#aicInput', 'Single-origin coffee beans.'); await page.fill('#cfPrice', '12.50');
     // Research 2.0: only the insights the user selected travel (js/research.js → orvWorkspace.research.setHandoff).
     await page.evaluate(() => {
       orvWorkspace.research.setHandoff({ question: 'coffee market', summary: 'The Dutch coffee market is growing.', researchType: 'opportunity', reportId: 'r-1',
@@ -607,6 +618,7 @@ async function build(page, o, cfg) {
     await page.evaluate(() => { window.CURRENT_LANG = 'en'; orvCreate.relabel(); });
 
     // Old saved draft with the combined "price or offer" field still works
+    await reset(page);
     const old = await page.evaluate(() => { orvCreate.setState({ step: 1, maxStep: 1, productName: 'Old', description: 'Old draft', offer: '€45, or 10% off this week', price: undefined }); return { offer: document.getElementById('cfOffer').value, price: document.getElementById('cfPrice').value, brief: null }; });
     check('an older draft’s combined "price or offer" text stays in Special offer (never guessed into a price)', old.offer === '€45, or 10% off this week' && old.price === '');
     await page.close();

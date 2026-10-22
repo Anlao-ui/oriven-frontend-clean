@@ -4,7 +4,7 @@
    so light and dark share one set of rules.
    ════════════════════════════════════════════════════════════════ */
 .rx-wrap { --rx-soft: color-mix(in srgb, var(--charcoal) 5%, transparent); --rx-ok: #1f7a46; --rx-warn: #9a5b00; --rx-bad: #b83a2e; --rx-info: #2f5fb3;
-  max-width: 1120px; margin: 0 auto; padding: var(--orv-page-top, 28px) 24px 120px; color: var(--charcoal); display: flex; flex-direction: column; gap: 20px; box-sizing: border-box; width: 100%; }
+  max-width: min(var(--orv-page-maxw, 1440px), 1400px); margin: 0 auto; padding: var(--orv-page-top, 28px) 24px 120px; color: var(--charcoal); display: flex; flex-direction: column; gap: 20px; box-sizing: border-box; width: 100%; }
 body.dark-mode .rx-wrap { --rx-ok: #5fd68f; --rx-warn: #f0b04a; --rx-bad: #ff7b6b; --rx-info: #8fb4ff; }
 .rx-wrap *, .rx-wrap *::before, .rx-wrap *::after { box-sizing: border-box; }
 .rx-wrap :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
@@ -57,7 +57,15 @@ body.dark-mode .rx-wrap { --rx-ok: #5fd68f; --rx-warn: #f0b04a; --rx-bad: #ff7b6
 .rx-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 
 /* Home */
-.rx-home { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr); gap: 20px; align-items: start; }
+.rx-home { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); gap: 20px; align-items: start; }
+/* Wide screens: the four types side by side; business context next to the extra websites. */
+@media (min-width: 1280px) {
+  .rx-home .rx-types { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rx-home .rx-ctx { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; align-items: start; }
+  .rx-home .rx-ctx .rx-sites { margin-top: 0; }
+}
+/* Readable line length for report prose on wide screens. */
+.rx-body p, .rx-body li { max-width: 78ch; }
 .rx-fs { border: 0; margin: 0; padding: 0; min-width: 0; }
 .rx-types { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .rx-type { position: relative; display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: border-color .14s, background .14s; }
@@ -235,3 +243,5 @@ body.dark-mode .rx-wrap { --rx-ok: #5fd68f; --rx-warn: #f0b04a; --rx-bad: #ff7b6
   .rx-pulse, .rx-step.is-on .rx-step-dot { animation: none; }
   .rx-type { transition: none; }
 }
+/* Same left edge as Control Center, Launch and Campaigns on desktop. */
+@media (min-width: 1025px) { .rx-wrap { padding-left: 40px; padding-right: 40px; } }

@@ -16,6 +16,7 @@
 
   var STR = {
     en: {
+      edClose: 'Close', edDiscardT: 'Discard your changes?', edDiscardB: 'Some changes here aren’t saved yet. If you close now, they’re lost.', edDiscard: 'Discard changes', edKeep: 'Keep editing',
       eyebrow: 'Control Center', morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening',
       createCampaign: 'Create campaign', yourBusiness: 'Your business',
       stRunning1: '1 campaign running on your ad platforms', stRunningN: '{n} campaigns running on your ad platforms',
@@ -73,6 +74,7 @@
       plat: { connected: 'connected', notConnected: 'not connected', unknown: 'status unavailable' },
     },
     nl: {
+      edClose: 'Sluiten', edDiscardT: 'Wijzigingen weggooien?', edDiscardB: 'Sommige wijzigingen zijn nog niet opgeslagen. Als je nu sluit, gaan ze verloren.', edDiscard: 'Wijzigingen weggooien', edKeep: 'Verder bewerken',
       eyebrow: 'Control Center', morning: 'Goedemorgen', afternoon: 'Goedemiddag', evening: 'Goedenavond',
       createCampaign: 'Campagne maken', yourBusiness: 'Je bedrijf',
       stRunning1: '1 campagne actief op je advertentieplatforms', stRunningN: '{n} campagnes actief op je advertentieplatforms',
@@ -123,6 +125,7 @@
       plat: { connected: 'gekoppeld', notConnected: 'niet gekoppeld', unknown: 'status onbekend' },
     },
     de: {
+      edClose: 'Schließen', edDiscardT: 'Änderungen verwerfen?', edDiscardB: 'Einige Änderungen sind noch nicht gespeichert. Wenn du jetzt schließt, gehen sie verloren.', edDiscard: 'Änderungen verwerfen', edKeep: 'Weiter bearbeiten',
       eyebrow: 'Control Center', morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend',
       createCampaign: 'Kampagne erstellen', yourBusiness: 'Dein Unternehmen',
       stRunning1: '1 Kampagne läuft auf deinen Werbeplattformen', stRunningN: '{n} Kampagnen laufen auf deinen Werbeplattformen',
@@ -173,6 +176,7 @@
       plat: { connected: 'verbunden', notConnected: 'nicht verbunden', unknown: 'Status unbekannt' },
     },
     fr: {
+      edClose: 'Fermer', edDiscardT: 'Abandonner vos modifications ?', edDiscardB: 'Certaines modifications ne sont pas encore enregistrées. Si vous fermez maintenant, elles seront perdues.', edDiscard: 'Abandonner les modifications', edKeep: 'Continuer la modification',
       eyebrow: 'Control Center', morning: 'Bonjour', afternoon: 'Bon après-midi', evening: 'Bonsoir',
       createCampaign: 'Créer une campagne', yourBusiness: 'Votre entreprise',
       stRunning1: '1 campagne active sur vos plateformes publicitaires', stRunningN: '{n} campagnes actives sur vos plateformes publicitaires',
@@ -223,6 +227,7 @@
       plat: { connected: 'connecté', notConnected: 'non connecté', unknown: 'statut indisponible' },
     },
     es: {
+      edClose: 'Cerrar', edDiscardT: '¿Descartar los cambios?', edDiscardB: 'Algunos cambios aún no se han guardado. Si cierras ahora, se perderán.', edDiscard: 'Descartar cambios', edKeep: 'Seguir editando',
       eyebrow: 'Control Center', morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches',
       createCampaign: 'Crear campaña', yourBusiness: 'Tu negocio',
       stRunning1: '1 campaña activa en tus plataformas publicitarias', stRunningN: '{n} campañas activas en tus plataformas publicitarias',
@@ -273,6 +278,7 @@
       plat: { connected: 'conectada', notConnected: 'sin conectar', unknown: 'estado no disponible' },
     },
     pt: {
+      edClose: 'Fechar', edDiscardT: 'Descartar as alterações?', edDiscardB: 'Algumas alterações ainda não foram guardadas. Se fechar agora, perdem-se.', edDiscard: 'Descartar alterações', edKeep: 'Continuar a editar',
       eyebrow: 'Control Center', morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite',
       createCampaign: 'Criar campanha', yourBusiness: 'Seu negócio',
       stRunning1: '1 campanha ativa nas suas plataformas de anúncios', stRunningN: '{n} campanhas ativas nas suas plataformas de anúncios',
@@ -424,7 +430,8 @@
   // ── Language change: repaint every block from what is already loaded ──
   function relabel() {
     var g = document.getElementById('ccxCreateBtn'); if (g) g.textContent = T('createCampaign');
-    document.querySelectorAll('[data-cc]').forEach(function (el) { el.textContent = T(el.getAttribute('data-cc')); });
+    // Only Control Center's own labels (the consent banner uses data-cc-act).
+    document.querySelectorAll('#page-business-brain [data-cc]').forEach(function (el) { el.textContent = T(el.getAttribute('data-cc')); });
     try { if (window.orvWorkspace && orvWorkspace.home && orvWorkspace.home.render) orvWorkspace.home.render(); } catch (_) {}
     try { if (window.orvWorkspace && orvWorkspace.ops && orvWorkspace.ops.repaintOverview) orvWorkspace.ops.repaintOverview(); } catch (_) {}
     try { if (typeof window._bicRender === 'function') window._bicRender(); } catch (_) {}

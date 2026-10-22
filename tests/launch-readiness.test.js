@@ -51,6 +51,7 @@ const CAMPS = [
 
 // ── Fake backend deps (shapes of the real server.js helpers) ────────
 const st = {
+  toggleReqs: [], toggleMode: 'legacy',
   user: 'mock-launch', metaPage: 'pg1', setup: {}, pinFound: [], metaFound: [], pinAdsFail: false, archiveFail: false, specDelay: 0, specFailFor: null,
   pinPosts: 0, publishReqs: [],
 };
@@ -121,6 +122,24 @@ app.get(/^\/api\/(meta|google|tiktok|pinterest)\/status$/, (q, r) => r.json({ co
 app.get('/api/business/profile', (q, r) => r.json({ profile: { company_name: 'Linnen & Co', country: 'Netherlands', website: 'linnenco.example' } }));
 app.get('/api/campaigns', (q, r) => r.json({ campaigns: [] }));
 app.get('/api/credits/status', (q, r) => r.json({ balance: 1000, plan: 'starter' }));
+app.post(/^\/api\/(meta|google|tiktok|pinterest)\/campaign\/[^/]+\/(pause|resume)$/, (q, r) => {
+  st.toggleReqs.push({ path: q.path, body: q.body || {} });
+  // Answers in the shape of server.js + services/campaignActivation.js.
+  const rep = (o) => Object.assign({ enabled: { adSets: [], ads: [] }, failed: { adSets: [], ads: [] }, missing: { adSets: [], ads: [] }, remainingPaused: { adSets: [], ads: [] }, verified: true, campaign: 'active' }, o);
+  if (/pause$/.test(q.path) || st.toggleMode === 'legacy') return r.json({ ok: true, status: /pause$/.test(q.path) ? 'PAUSED' : 'ACTIVE' });
+  const M = {
+    active: [200, { ok: true, status: 'ACTIVE', activation: rep({ state: 'active', enabled: { adSets: ['s1'], ads: ['a1', 'a2'] } }) }],
+    partial: [200, { ok: true, status: 'ACTIVE', activation: rep({ state: 'partial', remainingPaused: { adSets: ['s2'], ads: ['a3'] } }) }],
+    unverified: [200, { ok: true, status: 'ACTIVE', activation: rep({ state: 'unverified', verified: false }) }],
+    failed: [502, { ok: false, code: 'ACTIVATION_INCOMPLETE', step: 'ads', error: 'Some of the campaign’s ads couldn’t be switched on, so the campaign was left paused. Nothing is spending.', activation: rep({ campaign: 'paused', enabled: { adSets: [], ads: ['a1'] }, failed: { adSets: [], ads: ['a2'] } }) }],
+    timeout: [502, { ok: false, code: 'ACTIVATION_INCOMPLETE', step: 'campaign', timeout: true, error: 'x', activation: rep({ campaign: 'paused' }) }],
+    busy: [409, { ok: false, code: 'ACTIVATION_IN_PROGRESS', error: 'x' }],
+    wrongacct: [409, { ok: false, code: 'WRONG_ACCOUNT', error: 'x' }],
+    notfound: [404, { ok: false, code: 'CAMPAIGN_NOT_FOUND', error: 'x' }],
+    reconnect: [409, { ok: false, code: 'RECONNECT_REQUIRED', error: 'Meta Ads needs to be reconnected. Reconnect it in Connections, then try again. Nothing was changed.' }],
+  }[st.toggleMode];
+  r.status(M[0]).json(M[1]);
+});
 app.all(/^\/api\//, (q, r) => r.json({}));
 app.get('/', (q, r) => r.redirect('/app.html'));
 app.use(express.static(ROOT));
@@ -229,6 +248,29 @@ const server = app.listen(PORT, async () => {
     check('valid Google Search campaign → READY TO LAUNCH', google['google-ok'] === 'READY TO LAUNCH', google);
     check('TikTok video from Create 2.0 (no separate image) → READY TO LAUNCH (was BLOCKED)', tiktok['tiktok-video'] === 'READY TO LAUNCH', tiktok);
     check('valid Pinterest campaign → READY TO LAUNCH', pin['pin-ok'] === 'READY TO LAUNCH', pin);
+
+    // Page subtitle (six languages) under the Launch title.
+    const subs = {};
+    for (const l of ['en', 'nl', 'de', 'fr', 'es', 'pt']) { subs[l] = await page.evaluate((lg) => { CURRENT_LANG = lg; applyLanguage(); const e = document.querySelector('#page-launch .lq-hdr .orv-page-sub'); return e && e.offsetParent ? e.textContent : null; }, l); }
+    await page.evaluate(() => { CURRENT_LANG = 'en'; applyLanguage(); });
+    check('Launch subtitle under the title, in all six languages', subs.en === 'Review your ads, resolve any issues and launch campaigns to your connected platforms.' && /Bekijk je advertenties/.test(subs.nl) && /Prüfe deine Anzeigen/.test(subs.de) && /Vérifiez vos publicités/.test(subs.fr) && /Revisa tus anuncios/.test(subs.es) && /Reveja os seus anúncios/.test(subs.pt), subs);
+
+    // Re-checks never flash the cards back to "checking": the last answer for the
+    // same content stays on screen while the live re-check runs, and nothing can
+    // be published from it until the fresh answer arrives.
+    await cards(page, 'meta');
+    st.specDelay = 1500;
+    await page.evaluate(() => { OrivenSpec.invalidateAll(); orvLaunch.changed(); });
+    await settle(page, 400);
+    const mid = await page.evaluate(() => { const c = _orvGetCampaigns().filter((x) => x.id === 'meta-ok')[0]; const r = orvLaunch.readiness(c); const card = document.querySelector('.lq-card[data-camp-id="meta-ok"] .lq-readiness'); return { card: card && card.innerText, refreshing: r.refreshing, canPublish: r.canPublish, state: r.state }; });
+    await settle(page, 2000);
+    st.specDelay = 0;
+    const after = await page.evaluate(() => { const c = _orvGetCampaigns().filter((x) => x.id === 'meta-ok')[0]; const r = orvLaunch.readiness(c); return { refreshing: r.refreshing, canPublish: r.canPublish, state: r.state }; });
+    check('re-check in flight: card keeps READY TO LAUNCH (no flicker), publishing waits for the fresh answer', mid.card === 'READY TO LAUNCH' && mid.refreshing === true && mid.canPublish === false, mid);
+    check('…fresh answer arrives: publishing available again', after.refreshing === false && after.canPublish === true && after.state === 'ready', after);
+    // Campaigns subtitle (same translation system).
+    const cs = await page.evaluate(() => { const e = document.querySelector('#orvHubTabsCampaigns .camp-shell-hdr .orv-page-sub'); CURRENT_LANG = 'de'; applyLanguage(); const de = e && e.textContent; CURRENT_LANG = 'en'; applyLanguage(); return { en: e && e.textContent, de }; });
+    check('Campaigns subtitle present and translated', cs.en === 'Monitor campaign performance, track key metrics and manage your advertising across platforms.' && /Behalte die Leistung deiner Kampagnen/.test(cs.de), cs);
     check('Google Search without keywords → BLOCKED (was READY)', google['google-nokw'] === 'BLOCKED', google);
     check('Google headlines over 30 chars (only 1 usable) → BLOCKED', google['google-longh'] === 'BLOCKED', google);
     check('Google numeric budget (an AI suggestion) → BLOCKED until confirmed (was READY)', google['google-numbud'] === 'BLOCKED', google);
@@ -250,6 +292,31 @@ const server = app.listen(PORT, async () => {
     p = await popup(page, 'google-numbud');
     d = await detail(page, 'budget');
     check('numeric Google budget: Budget blocked, "Confirm the daily budget"', /Confirm the daily budget/.test(d) && p.actions[0] === 'Set budget', { d, actions: p.actions });
+
+    // Server messages in the user's language (js/serverI18n.js): the real
+    // spec route sends code + params; switching language with the popup open
+    // re-renders it; English is the server's own text.
+    const openDetail = async (key) => { const t = await page.evaluate(() => (document.getElementById('lqcCheckDetail') || {}).innerText || ''); return t || detail(page, key); };
+    const serverBudgetEn = d;
+    await page.evaluate(() => setLanguage('de')); await settle(page, 700);
+    let dl = await openDetail('budget');
+    check('language → de (popup open): server budget message in German, with the AI value', /Bestätige das Tagesbudget/.test(dl) && /25/.test(dl) && !/Confirm the daily budget/.test(dl), dl);
+    await page.evaluate(() => setLanguage('nl')); await settle(page, 700);
+    dl = await openDetail('budget');
+    check('language → nl: the same message switches to Dutch', /Bevestig het dagbudget/.test(dl) && !/Bestätige/.test(dl), dl);
+    await closePopup(page);
+    p = await popup(page, 'google-nokw');
+    dl = await detail(page, 'keywords');
+    check('nl: "no keywords" (param: ad group name) in Dutch', /heeft geen zoekwoorden/.test(dl) && !/has no keywords/.test(dl), dl);
+    await closePopup(page);
+    p = await popup(page, 'tiktok-video');
+    dl = await detail(page, 'creative');
+    check('nl: section summary (TikTok cover frame) in Dutch', /TikTok gebruikt een frame uit de video als cover/.test(dl), dl);
+    await closePopup(page);
+    await page.evaluate(() => setLanguage('en')); await settle(page, 700);
+    p = await popup(page, 'google-numbud');
+    d = await detail(page, 'budget');
+    check('language → en: exactly the server’s English text again', d === serverBudgetEn && /Confirm the daily budget/.test(d), { d, serverBudgetEn });
     await closePopup(page);
     p = await popup(page, 'tiktok-video');
     d = await detail(page, 'creative');
@@ -329,6 +396,43 @@ const server = app.listen(PORT, async () => {
     // Popup for a published campaign.
     p = await popup(page, 'meta-pub');
     check('published-paused popup: "PUBLISHED · PAUSED", Activate offered, no Pause', p.state === 'PUBLISHED · PAUSED' && p.actions.includes('Activate campaign') && !p.actions.includes('Pause campaign'), p);
+    // First activation — the dialog says Activate (not Resume), the request
+    // says firstActivation, and a server that doesn't confirm the ad sets/ads
+    // were switched on never leaves the campaign looking ACTIVE.
+    await page.click('#lqcLiveActBtn'); await settle(page, 400);
+    const actDlg = await page.evaluate(() => ({ title: (document.querySelector('.ofd-title') || {}).innerText || '', btns: Array.from(document.querySelectorAll('.ofd-foot button')).map((b) => b.innerText) }));
+    check('Activate dialog for a never-run campaign says “Activate”, not “Resume”', /^Activate “/.test(actDlg.title) && actDlg.btns.includes('Activate campaign') && !actDlg.btns.some((b) => /Resume/.test(b)), actDlg);
+    await page.keyboard.press('Escape'); await settle(page, 300);
+    // One Activate / Pause round trip with the server answering in `mode`.
+    const toggle = async (mode, btnText) => {
+      st.toggleMode = mode;
+      if (btnText) await page.locator('#lqcActionRow button', { hasText: btnText }).click(); else await page.click('#lqcLiveActBtn');
+      await settle(page, 400);
+      const title = await page.evaluate(() => (document.querySelector('.ofd-title') || {}).innerText || '');
+      await page.click('.ofd-foot .ofd-btn-primary, .ofd-foot .ofd-btn-danger'); await settle(page, 1200);
+      const err = await page.evaluate(() => (document.querySelector('.ofd-result-err') || {}).innerText || '');
+      if (err) { await page.click('.ofd-foot button'); await settle(page, 300); }
+      const v = await page.evaluate(() => ({ state: (document.querySelector('#lqControlCol .lqc-state-label') || {}).innerText, sub: (document.querySelector('#lqControlCol .lqc-state-sub') || {}).innerText, toast: (document.getElementById('toast') || {}).innerText || '', rec: _orvGetCampaigns().filter((c) => c.id === 'meta-pub')[0] }));
+      return Object.assign(v, { title, err, req: st.toggleReqs[st.toggleReqs.length - 1] || {} });
+    };
+    let v = await toggle('failed');
+    check('activation request: POST …/9001/resume with firstActivation:true and the campaign name', /\/api\/meta\/campaign\/9001\/resume$/.test(v.req.path || '') && v.req.body.firstActivation === true && v.req.body.campaignName === 'Meta — published paused', v.req);
+    check('child failure → dialog says the campaign is still paused (1 on, 1 not); card “ACTIVATION FAILED”, not active', /still paused/.test(v.err) && /1 .*1/.test(v.err) && v.state === 'ACTIVATION FAILED' && v.rec.providerStatus === 'paused' && v.rec.activation.state === 'failed', v);
+    v = await toggle('partial');
+    check('retry after a failure is still a first activation; ads still paused → “ON · ADS PAUSED” with the count (2), warning toast', v.req.body.firstActivation === true && v.state === 'ON · ADS PAUSED' && /\b2\b/.test(v.sub) && /\b2\b/.test(v.toast) && v.rec.activation.stillPaused === 2, v);
+    v = await toggle('active');
+    check('everything OrivenAI created switched on and read back → ACTIVE', v.req.body.firstActivation === true && v.state === 'ACTIVE' && !v.rec.childrenPaused && v.rec.activation.state === 'active', v);
+    v = await toggle('legacy', 'Pause campaign');
+    check('pause → POST …/pause (firstActivation false) → PUBLISHED · PAUSED', /\/pause$/.test(v.req.path || '') && v.req.body.firstActivation === false && v.state === 'PUBLISHED · PAUSED', v);
+    v = await toggle('unverified');
+    check('resume after a pause: “Resume” wording, firstActivation false (paused ad sets stay paused)', /^Resume “/.test(v.title) && v.req.body.firstActivation === false, { title: v.title, req: v.req });
+    check('server couldn’t read the ads back → “ON · NOT VERIFIED”, never ACTIVE', v.state === 'ON · NOT VERIFIED' && v.rec.activation.state === 'unverified', v);
+    v = await toggle('legacy', 'Pause campaign');
+    for (const [mode, re, name] of [['busy', /already being activated/, 'duplicate request'], ['wrongacct', /another ad account/, 'record from another ad account'], ['notfound', /wasn’t found/, 'campaign not in the connected account'], ['reconnect', /reconnect/i, 'expired platform login'], ['timeout', /didn’t answer in time/, 'provider timeout']]) {
+      v = await toggle(mode);
+      check(name + ' → explained in the dialog, the campaign is not shown as active', re.test(v.err) && v.state !== 'ACTIVE' && v.rec.providerStatus === 'paused', { err: v.err, state: v.state });
+    }
+    st.toggleMode = 'legacy';
     await closePopup(page);
     p = await popup(page, 'meta-failed');
     check('failed campaign popup: failure banner + readiness, can publish again', /Last publish failed/.test(p.banner || '') && p.state === 'READY TO LAUNCH' && p.actions[0] === 'Continue to Launch →', p);
@@ -452,6 +556,36 @@ const server = app.listen(PORT, async () => {
       await closePopup(page);
     }
     await page.setViewportSize({ width: 1440, height: 900 });
+
+    // ── TRANSLATIONS: Launch, Go to Ad, Set budget in all six languages ──
+    // UI strings OrivenAI owns; campaign names, platform names and the
+    // server's own explanations are excluded on purpose.
+    const EN_UI = /\b(READY TO LAUNCH|READY WITH WARNINGS|ACTION REQUIRED|All statuses|Clear filters|Search campaigns|Continue to Launch|Go to Ad|Check publishing status|Review in Connections|Ready to Launch|Ready with Warnings|Overview|Save changes|Created as|Ad content|Budget & schedule|Set daily budget|Save budget|Campaign & format|Ad copy)\b/;
+    const RAW_KEY = /\b(lch|ofl|ocs)_[A-Za-z]/;
+    for (const lang of ['nl', 'de', 'fr', 'es', 'pt']) {
+      await page.evaluate((l) => { CURRENT_LANG = l; applyLanguage(); }, lang);
+      await settle(page, 400);
+      const mc2 = await cards(page, 'meta');
+      const pills = await page.evaluate(() => document.getElementById('lqStatusPills').innerText + ' ' + document.getElementById('lqSearchInput').placeholder);
+      const pp = await popup(page, 'meta-ok');
+      const popTxt = await page.evaluate(() => document.getElementById('lqControlCol').innerText);
+      await closePopup(page);
+      await page.evaluate(() => orvWorkspace.flow.openAd('meta-ok', 'overview'));
+      await settle(page, 900);
+      const adTxt = await page.evaluate(() => (document.querySelector('.ofd.ofe') || {}).innerText || '');
+      await page.keyboard.press('Escape'); await settle(page, 250);
+      await page.evaluate(() => orvWorkspace.flow.openBudget('meta-ok'));
+      await settle(page, 400);
+      const budTxt = await page.evaluate(() => Array.from(document.querySelectorAll('.ofd')).map((d) => d.innerText).join(' '));
+      await page.keyboard.press('Escape'); await settle(page, 250);
+      const all = Object.values(mc2).join(' ') + ' ' + pills + ' ' + popTxt + ' ' + adTxt + ' ' + budTxt;
+      const eng = all.match(EN_UI), raw = all.match(RAW_KEY);
+      check(lang + ': Launch cards, filters, Launch Control, Go to Ad and Set budget have no English UI text and no raw keys', !eng && !raw && adTxt.length > 50 && budTxt.length > 20, { eng: eng && eng[0], raw: raw && raw[0], card: mc2['meta-ok'], state: pp.state });
+    }
+    await page.evaluate(() => { CURRENT_LANG = 'en'; applyLanguage(); });
+    await settle(page, 400);
+    const backEn = await cards(page, 'meta');
+    check('back to English: card labels are English again', Object.values(backEn).some((v) => /READY TO LAUNCH|BLOCKED|READY WITH WARNINGS|PUBLISHED/.test(v)), backEn);
 
     // ── ACCOUNT SWITCH: nothing carries over ──────────────────────
     await page.evaluate(() => { try { _lqCloseModal(); } catch (_) {} orvWorkspace.reset(); });

@@ -181,7 +181,8 @@ var ORIVEN_PLANS = {
     },
     features: ["Control Center", "Create", "Launch", "Campaigns"],
     allFeatures: ["Control Center", "Create", "Launch", "Campaigns"],
-    excludedFeatures: ["Research", "Automations"]
+    // Every capability Free lacks (entitlements above), as on the Starter card.
+    excludedFeatures: ["Research", "Automations", "Oriven Chat"]
   },
 
   starter: {

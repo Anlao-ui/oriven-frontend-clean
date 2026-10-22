@@ -745,6 +745,8 @@ body {
 /* ── Titles: left-aligned, one size, everywhere ───────────────────── */
 .rsc-page-hdr, .camp-shell-hdr, .lq-hdr, .cr2-hero { text-align: left; }
 .rsc-page-h1, .camp-shell-title, .lq-hdr-title, .cr2-h1 { font-size: var(--orv-title-size) !important; line-height: 1.2; margin: 0; }
+/* Page subtitle under a module title (Launch, Campaigns) — same type as Research / Automations. */
+.orv-page-sub { margin: 6px 0 0; max-width: 72ch; font-size: 14.5px; line-height: 1.5; color: var(--muted); text-align: left; text-wrap: pretty; }
 @media (min-width: 1025px) {
   /* Same top edge on every page (the bell sits in the gutter top-right). */
   #page-research .orv-page-wrap, #orvHubTabsCampaigns, #page-autopilot .ap-op-outer { padding-top: var(--orv-page-top) !important; }

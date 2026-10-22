@@ -456,6 +456,8 @@
     // Control Center: forget the previous account's live-campaign count and
     // the merged Needs card state (it re-fills from the new account's data).
     if (window.orvCC && typeof window.orvCC.reset === 'function') { try { window.orvCC.reset(); } catch (_) {} }
+    // Campaigns analytics (lists, metrics, chart, Replay, in-flight reads).
+    if (typeof window.prfReset === 'function') { try { window.prfReset(); } catch (_) {} }
     // Launch readiness (spec checks, setup reads) belongs to the previous account.
     if (window.orvLaunch && typeof window.orvLaunch.reset === 'function') { try { window.orvLaunch.reset(); } catch (_) {} }
     var ccNeeds = document.getElementById('owNeeds');
@@ -782,7 +784,10 @@
           window._prfActiveCampaign = 'all';
           try { localStorage.setItem('_prfPlatform', t.platform); } catch (_) {}
         }
-        pendingPrf = t.campaignName ? { name: t.campaignName, at: Date.now() } : null;
+        // Campaigns selects by the platform campaign id; a name is only a
+        // fallback when no id is known and exactly one campaign has it.
+        pendingPrf = (t.campaignId || t.campaignName) ? { id: t.campaignId ? String(t.campaignId) : null, name: t.campaignName || null, platform: t.platform || null, accountId: t.accountId ? String(t.accountId) : null, accountName: t.accountName || null, at: Date.now() } : null;
+        if (t.platform) window._prfPlatformPinned = true;
         nav('performance', 'page-performance');
         break;
       case 'autopilot': nav('autopilot', 'page-autopilot'); break;
@@ -796,11 +801,19 @@
   };
   // Campaigns consumes the target only once its real name list contains
   // it; it expires rather than applying to a much later reload.
-  OW.consumeCampaignTarget = function (names) {
+  // entities: [{ key, id, name }] of the platform whose list just loaded.
+  // Returns { key } (found), { missing, id, name } (not returned by the
+  // provider yet) or null. Never picks a different campaign by name.
+  OW.consumeCampaignTarget = function (entities, platform) {
     if (!pendingPrf) return null;
-    if (Date.now() - pendingPrf.at > 20000) { pendingPrf = null; return null; }
-    if (names && names.indexOf(pendingPrf.name) !== -1) { var n = pendingPrf.name; pendingPrf = null; return n; }
-    return null;
+    if (Date.now() - pendingPrf.at > 120000) { pendingPrf = null; return null; }
+    if (pendingPrf.platform && platform && pendingPrf.platform !== platform) return null;
+    var p = pendingPrf, list = entities || [], hit = null;
+    pendingPrf = null;
+    if (p.id) hit = list.filter(function (e) { return String(e.id) === p.id; })[0] || null;
+    else if (p.name) { var same = list.filter(function (e) { return e.name === p.name; }); if (same.length === 1) hit = same[0]; }
+    if (hit) return { key: hit.key };
+    return (p.id || p.name) ? { missing: true, id: p.id, name: p.name, accountId: p.accountId || null, accountName: p.accountName || null } : null;
   };
 
   // Delegated click handling for any element carrying data-ow-go — keeps
@@ -1199,27 +1212,31 @@
     var e = pickerEls();
     if (!e.sel) return [];
     var plat = window._prfActivePlatform;
-    var byName = {};
-    (window._prfAllCampaigns || []).forEach(function (c) { if (c.platform === plat && c.name) byName[c.name] = c; });
+    var byKey = {};
+    (window._prfAllCampaigns || []).forEach(function (c) { if (c.platform === plat && c.key) byKey[c.key] = c; });
+    var tr = function (k, fb) { var s = (typeof t === 'function') ? t(k) : null; return (s && s !== k) ? s : fb; };
     var campaignsLevel = (window._prfHierarchy || 'campaigns') === 'campaigns';
     return [].map.call(e.sel.options, function (o) {
-      var c = campaignsLevel ? byName[o.value] : null;
+      var c = campaignsLevel ? byKey[o.value] : null;
       var meta = '';
-      var live = false;
+      var live = false, tone = 'muted';
       if (c) {
-        live = liveProviderStatus(c.status);
-        var st = String(c.status || '').toLowerCase();
-        var local = C.findByExternal(plat, c.id, c.name);
-        meta = (live ? 'Live' : (st ? st.charAt(0).toUpperCase() + st.slice(1) : '')) + (local ? (local.manual ? ' · Added manually' : ' · Made in OrivenAI') : '');
+        // Configured/effective status from the provider; the green dot only
+        // with delivery evidence (impressions in the selected period).
+        var si = typeof window._prfStatusInfoFor === 'function' ? window._prfStatusInfoFor(plat, c) : { label: String(c.status || ''), delivered: false, key: 'unknown' };
+        live = !!si.delivered;
+        tone = si.delivered ? 'live' : (si.key === 'issue' || si.key === 'in_review') ? 'attention' : 'muted';
+        var local = C.findByExternal(plat, c.id, null);
+        meta = si.label + (local ? (local.manual ? ' · ' + tr('cmpAddedManually', 'Added manually') : ' · ' + tr('cmpMadeInOriven', 'Made in OrivenAI')) : '');
       }
-      return { value: o.value, label: o.textContent, meta: meta, live: live, all: o.value === 'all' };
+      return { value: o.value, label: o.textContent, meta: meta, live: live, tone: tone, all: o.value === 'all' };
     });
   }
   P.sync = function () {
     var e = pickerEls();
     if (!e.sel || !e.btn) return;
     var opt = e.sel.options[e.sel.selectedIndex];
-    if (e.lbl) e.lbl.textContent = opt ? opt.textContent : 'All Campaigns';
+    if (e.lbl) e.lbl.textContent = opt ? opt.textContent : ((typeof t === 'function' && t('apAllCampaigns') !== 'apAllCampaigns') ? t('apAllCampaigns') : 'All Campaigns');
     e.btn.disabled = !!e.sel.disabled;
     e.btn.title = e.sel.getAttribute('title') || '';
     e.btn.setAttribute('aria-label', (e.sel.getAttribute('aria-label') || 'Select') + (opt ? ': ' + opt.textContent : ''));
@@ -1232,15 +1249,16 @@
     var q = P.q.trim().toLowerCase();
     var shown = opts.filter(function (o) { return o.all || !q || o.label.toLowerCase().indexOf(q) !== -1; });
     var cur = e.sel ? e.sel.value : 'all';
-    var search = opts.length > 6 ? '<div class="ow-cpick-search"><input type="search" id="owCampPickQ" placeholder="Search campaigns" aria-label="Search campaigns" value="' + esc(P.q) + '" autocomplete="off"></div>' : '';
+    var trq = function (k, fb) { var s = (typeof t === 'function') ? t(k) : null; return (s && s !== k) ? s : fb; };
+    var search = opts.length > 6 ? '<div class="ow-cpick-search"><input type="search" id="owCampPickQ" placeholder="' + esc(trq('cmpSearchCampaigns', 'Search campaigns')) + '" aria-label="' + esc(trq('cmpSearchCampaigns', 'Search campaigns')) + '" value="' + esc(P.q) + '" autocomplete="off"></div>' : '';
     e.pop.innerHTML = search + '<div class="ow-cpick-list" role="listbox" aria-label="Campaigns">' + shown.map(function (o, i) {
       var on = o.value === cur;
       return '<button type="button" role="option" class="ow-cpick-opt' + (on ? ' is-on' : '') + (i === P.idx ? ' is-kb' : '') + '" aria-selected="' + on + '" data-v="' + esc(o.value) + '">' +
-        (o.all ? '' : '<i class="ow-sdot ' + (o.live ? 'ow-t-live' : 'ow-t-muted') + '" aria-hidden="true"></i>') +
+        (o.all ? '' : '<i class="ow-sdot ow-t-' + (o.tone || (o.live ? 'live' : 'muted')) + '" aria-hidden="true"></i>') +
         '<span class="ow-cpick-txt"><span class="ow-cpick-name">' + esc(o.label) + '</span>' + (o.meta ? '<span class="ow-cpick-meta">' + esc(o.meta) + '</span>' : '') + '</span>' +
         (on ? '<span class="ow-cpick-check" aria-hidden="true"></span>' : '') +
       '</button>';
-    }).join('') + (shown.length <= 1 && q ? '<p class="ow-cpick-none">No campaign matches “' + esc(P.q) + '”.</p>' : '') + '</div>';
+    }).join('') + (shown.length <= 1 && q ? '<p class="ow-cpick-none">' + esc(trq('cmpNoMatch', 'No campaign matches “{q}”.').split('{q}').join(P.q)) + '</p>' : '') + '</div>';
     e.pop.querySelectorAll('.ow-cpick-opt').forEach(function (b) {
       b.addEventListener('click', function () { P.choose(b.getAttribute('data-v')); });
     });
@@ -1495,8 +1513,8 @@
         if (lc && lc.camp && lc.camp.name) out.push('Can I launch “' + trunc(lc.camp.name, 40) + '” yet?');
         else if (C.counts().blocked) out.push('What is blocking my drafts from launching?');
       } else if (page === 'performance') {
-        var sel = window._prfActiveCampaign;
-        if (sel && sel !== 'all') out.push('Summarize how “' + trunc(sel, 40) + '” is performing');
+        var sel = typeof window._prfActiveCampaignName === 'function' ? window._prfActiveCampaignName() : null;
+        if (sel) out.push('Summarize how “' + trunc(sel, 40) + '” is performing');
       } else if (page === 'research') {
         var rs = researchSession();
         if (rs) out.push('Which opportunity from this research should I act on first?');

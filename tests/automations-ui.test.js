@@ -137,6 +137,9 @@ async function noSideScroll(page) { return page.evaluate(() => document.document
 
     check('Automations page is the active page', await page.evaluate(() => document.querySelector('.page.active').id === 'page-autopilot'));
     check('page title says Automations', (await text(page, '.atm-title')) === 'Automations');
+    const lay = await page.evaluate(() => { const b = document.querySelector('[data-au="settings"]'); const w = document.querySelector('.atm-wrap').getBoundingClientRect(); const head = document.querySelector('.atm-head-actions').getBoundingClientRect(), title = document.querySelector('.atm-title').getBoundingClientRect(); return { label: b && b.getAttribute('aria-label'), title: b && b.getAttribute('title'), svg: b ? b.querySelector('svg').innerHTML : '', w: Math.round(w.width), actionsBesideTitle: head.top < title.bottom + 40 && head.left > title.right, rail: !!document.querySelector('.atm-ovgrid .atm-ovrail'), railLeft: document.querySelector('.atm-ovrail') ? Math.round(document.querySelector('.atm-ovrail').getBoundingClientRect().left) : 0, mainRight: document.querySelector('.atm-ovmain') ? Math.round(document.querySelector('.atm-ovmain').getBoundingClientRect().right) : 0 }; });
+    check('settings button: sliders icon (not the sun-like one), labelled "Automation settings"', lay.label === 'Automation settings' && lay.title === 'Automation settings' && (lay.svg.match(/<circle/g) || []).length === 3 && !/M8 1.5v2/.test(lay.svg), lay);
+    check('wider operations layout at 1366: content uses the page width, actions beside the title, rail beside the main column', lay.w >= 1200 && lay.actionsBesideTitle && lay.rail && lay.railLeft > lay.mainRight, lay);
     check('sidebar label renamed', await page.evaluate(() => Array.from(document.querySelectorAll('.orv-ni[data-orv-page="autopilot"] .orv-ni-label')).every((e) => e.textContent.trim() === 'Automations')));
     check('old Autopilot script no longer loaded', await page.evaluate(() => typeof window.apWizStart === 'undefined' && typeof window.orvAutomations === 'object'));
     check('four tabs with roles', await page.evaluate(() => document.querySelectorAll('#auRoot [role="tab"]').length === 4 && document.querySelector('#auRoot [role="tabpanel"]') !== null));
@@ -302,7 +305,8 @@ async function noSideScroll(page) { return page.evaluate(() => document.document
     S.activity = [
       { id: 'e1', automation_id: 'auto-2', automation_name: 'Scale winners', platform: 'meta', campaign_id: 'm1', campaign_name: 'Spring Sale', mode: 'automatic', action: 'increase_budget', status: 'completed', previous_value: { amount: 40, currency: 'EUR' }, new_value: { amount: 46, currency: 'EUR' }, trigger: { metric: 'roas', operator: '>', threshold: 3, observed: 3.4, window_days: 7 }, created_at: iso(-3600e3) },
       { id: 'e2', automation_id: 'auto-2', automation_name: 'Scale winners', platform: 'meta', campaign_id: 'm2', campaign_name: 'Retargeting', mode: 'automatic', action: 'increase_budget', status: 'skipped', reason: 'insufficient_data', created_at: iso(-2 * 3600e3) },
-      { id: 'e3', automation_id: 'auto-3', automation_name: 'Hours', platform: 'meta', campaign_id: 'm1', campaign_name: 'Spring Sale', mode: 'scheduled', action: 'pause', status: 'failed', reason: 'auth', error: 'token expired', trigger: { scheduled_for: '2026-10-16T18:00', timezone: 'Europe/Amsterdam' }, created_at: iso(-20 * 3600e3) }];
+      { id: 'e3', automation_id: 'auto-3', automation_name: 'Hours', platform: 'meta', campaign_id: 'm1', campaign_name: 'Spring Sale', mode: 'scheduled', action: 'pause', status: 'failed', reason: 'auth', error: 'token expired', trigger: { scheduled_for: '2026-10-16T18:00', timezone: 'Europe/Amsterdam' }, created_at: iso(-20 * 3600e3) },
+      { id: 'e4', automation_id: 'auto-3', automation_name: 'Hours', platform: 'tiktok', campaign_id: 't1', campaign_name: 'Launch Week', mode: 'scheduled', action: 'activate', status: 'partial', reason: 'activation_partial', error: 'The campaign is on, but 2 of its ad sets and ads are still paused, so they don’t deliver.', created_at: iso(-21 * 3600e3) }];
     await reload(page);
     await tab(page, 'activity');
     const act = await text(page, '#auPanel');
@@ -314,6 +318,11 @@ async function noSideScroll(page) { return page.evaluate(() => document.document
     await page.waitForTimeout(300);
     check('filter asks the server for that status', /status=failed/.test((lastCall(S, 'GET', '/api/automations/activity') || {}).q || ''));
     check('filtered list shows only failures', (await page.$$('#auPanel .atm-act')).length === 1);
+    // Activation that switched the campaign on but left ads paused: never shown as Completed.
+    await page.click('#auRoot [data-au="filter"][data-filter="partial"]');
+    await page.waitForTimeout(300);
+    const partRows = await page.$$eval('#auPanel .atm-act', (els) => els.map((el) => ({ t: el.textContent, badge: (el.querySelector('.atm-badge') || {}).className })));
+    check('partial activation: own filter, warn badge "Partly done", reason + counts shown', /status=partial/.test((lastCall(S, 'GET', '/api/automations/activity') || {}).q || '') && partRows.length === 1 && /is-warn/.test(partRows[0].badge) && /Partly done/.test(partRows[0].t) && /some ad sets or ads are still paused/.test(partRows[0].t) && /2 of its ad sets and ads/.test(partRows[0].t) && !/Completed/.test(partRows[0].t), partRows);
     // keyboard: arrow keys move between tabs
     await page.focus('#auTab-activity');
     await page.keyboard.press('ArrowLeft');

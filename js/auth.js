@@ -307,6 +307,13 @@ async function syncSubscriptionFromDB(){
   }
 }
 
+// The start page after sign-in — unless the user (or a link) already opened
+// another page while the profile was loading: never pull them back.
+function _orvGoStartPage(){
+  if(window._orvNavSinceSignIn) return;
+  if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
+}
+
 async function onUserSignedIn(user){
   // Guard: if the same user is already initialised with a known plan, skip re-init.
   // Prevents a second SIGNED_IN event (e.g. from a token refresh) from re-running
@@ -316,6 +323,7 @@ async function onUserSignedIn(user){
     return;
   }
   _currentUser = user;
+  window._orvNavSinceSignIn = false; // set by _orvNav when another page is opened (app.html)
   linkSessionToUser(user.id);
   console.log("[Auth] User signed in:", user.id);
   updateSidebarUser(user);
@@ -462,7 +470,7 @@ async function _loadUserProfile(user){
       // Uses _orvNav (not the legacy navigate()) — navigate("dashboard")
       // hits a stale app.js alias; _orvNav is the single current entry point
       // every live sidebar button uses.
-      if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
+      _orvGoStartPage();
       // Welcome screen: the server decides who sees it (onboarding.js).
       if(typeof orvOnboardingGate === "function") orvOnboardingGate();
     } else if(_postPayment){
@@ -481,7 +489,7 @@ async function _loadUserProfile(user){
       showApp();
       // Default Dashboard Routing pass — was "create". Uses _orvNav, not
       // navigate() — see comment on the dev-mode branch above.
-      if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
+      _orvGoStartPage();
       // Loads the onboarding state too (first-result suggestion); shows the
       // welcome screen only if this account is still eligible.
       if(typeof orvOnboardingGate === "function") orvOnboardingGate();
@@ -504,7 +512,7 @@ async function _loadUserProfile(user){
         showApp();
         // Default Dashboard Routing pass — was "create". Uses _orvNav, not
         // navigate() — see comment on the dev-mode branch above.
-        if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
+        _orvGoStartPage();
         // Welcome screen: the server decides who sees it (onboarding.js) —
         // new accounts only, never existing customers.
         if(typeof orvOnboardingGate === "function") orvOnboardingGate();
@@ -557,7 +565,7 @@ async function _loadUserProfile(user){
         console.log("[PW-CHAIN] Free user — allowing normal access | campaign previously used:", _isUsed);
         // Default Dashboard Routing pass — was "create". Uses _orvNav,
         // not navigate() — see comment on the dev-mode branch above.
-        if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
+        _orvGoStartPage();
         // Welcome screen: the server decides who sees it (onboarding.js).
         if(typeof orvOnboardingGate === "function") orvOnboardingGate();
       }
@@ -587,7 +595,7 @@ async function _loadUserProfile(user){
     showApp();
     // Default Dashboard Routing pass — was "create". Uses _orvNav, not
     // navigate() — see comment on the dev-mode branch above.
-    if(typeof _orvNav === "function") _orvNav("dashboard", "page-dashboard");
+    _orvGoStartPage();
     if(typeof toast === "function") toast("Profile failed to load — please refresh the page.", "error");
   }
 }
@@ -628,7 +636,7 @@ function _obBizNav(tab){
 
 var _OB_FRAMES = [
   { majorStep:1, centered:true, titleKey:"obWelcomeTitle", descKey:"obWelcomeDesc" },
-  // The six steps, in sidebar order: 01 Control Center … 06 Autopilot.
+  // The six steps, in sidebar order: 01 Control Center … 06 Automations.
   { majorStep:2, selector:'.orv-ni[data-orv-page="businessbrain"]', sectionKey:"obBusinessSection", titleKey:"obBusinessTitle", descKey:"obBusinessDesc",
     onEnter:function(){ _obNav("businessbrain","page-business-brain"); } },
   { majorStep:2, selector:'#owDashGrid', sectionKey:"obBusinessSection", titleKey:"obCcOverviewTitle", descKey:"obCcOverviewDesc",

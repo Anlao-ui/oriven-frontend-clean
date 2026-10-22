@@ -40,8 +40,8 @@
       edit: 'Edit', history: 'History', del: 'Delete', on: 'On', off: 'Off', turnOn: 'Turn on', turnOff: 'Turn off',
       lastChecked: 'Last checked {when}: {checked} campaign(s), {matched} matched.', notChecked: 'Not checked yet.', blockedLine: 'On hold: {why}', skippedLine: 'Not acted on: {list}',
       nextRun: 'Next: {when}',
-      fAll: 'All', fCompleted: 'Completed', fFailed: 'Failed', fPending: 'Pending approval', fSkipped: 'Skipped', fCancelled: 'Cancelled',
-      exCompleted: 'Completed', exFailed: 'Failed', exSkipped: 'Skipped', exPending: 'Pending approval', exRunning: 'Running', exCancelled: 'Cancelled', exScheduled: 'Scheduled',
+      fAll: 'All', fCompleted: 'Completed', fFailed: 'Failed', fPartial: 'Partly done', fPending: 'Pending approval', fSkipped: 'Skipped', fCancelled: 'Cancelled',
+      exCompleted: 'Completed', exFailed: 'Failed', exPartial: 'Partly done', exSkipped: 'Skipped', exPending: 'Pending approval', exRunning: 'Running', exCancelled: 'Cancelled', exScheduled: 'Scheduled',
       trigLine: 'Because {metric} was {observed} ({op} {threshold}, last {days} days)', schedLineAt: 'Scheduled for {when}',
       // Builder
       bRuleTitle: 'New rule', bScheduleTitle: 'Schedule campaign', bEditTitle: 'Edit automation',
@@ -75,7 +75,7 @@
       sumSchedule: 'For {scope}: {items}.', sumOnce: '{action} on {when}', sumWeekly: '{action} every {days} at {time}',
       // Settings
       setH: 'Automation settings', setInApp: 'Show automation updates in OrivenAI', setEmail: 'Email me automation updates', setEmailEvents: 'Email me about', setSaved: 'Settings saved.',
-      ev: { executed: 'Actions taken', failed: 'Failures', approval: 'Approvals needed', paused: 'Campaigns paused', resumed: 'Campaigns resumed', budget_changed: 'Budget changes', scheduled_completed: 'Scheduled actions', disconnected: 'Disconnected accounts', credentials_expired: 'Expired connections' },
+      ev: { executed: 'Actions taken', failed: 'Failures', partial: 'Partly completed actions', approval: 'Approvals needed', paused: 'Campaigns paused', resumed: 'Campaigns resumed', budget_changed: 'Budget changes', scheduled_completed: 'Scheduled actions', disconnected: 'Disconnected accounts', credentials_expired: 'Expired connections' },
       emailNote: 'Updates from one check are grouped into one email (at most 6 per hour).',
       // Confirms / toasts
       confDeleteH: 'Delete this automation?', confDeleteP: 'It stops right away and its upcoming runs are cancelled. Its history stays in Activity. The {n} credits aren’t refunded.',
@@ -89,7 +89,7 @@
       rs: {
         insufficient_data: 'not enough data yet', no_data: 'no data from the platform', undefined_ratio: 'not enough results to calculate it', unavailable: 'not reported for this platform',
         not_running: 'campaign isn’t running', not_paused: 'campaign isn’t paused', shared_budget: 'shared budget (affects other campaigns)', lifetime_budget: 'lifetime budget', no_budget: 'no daily budget', unknown_currency: 'currency unknown',
-        budget_not_editable: 'budget can’t be changed', campaign_not_found: 'campaign not found in your account', campaign_archived: 'campaign archived', already_paused: 'already paused', already_active: 'already running', status_unknown: 'status can’t be changed now',
+        budget_not_editable: 'budget can’t be changed', campaign_not_found: 'campaign not found in your account', activation_partial: 'campaign is on, but some ad sets or ads are still paused', activation_unverified: 'campaign is on, but delivery couldn’t be confirmed', no_publish_record: 'no record of the ad sets and ads OrivenAI created', wrong_account: 'campaign belongs to a different ad account', activation_incomplete: 'not everything could be switched on', activation_unconfirmed: 'the platform didn’t confirm in time', activation_in_progress: 'another activation of this campaign was running', campaign_archived: 'campaign archived', already_paused: 'already paused', already_active: 'already running', status_unknown: 'status can’t be changed now',
         campaign_not_active: 'campaign isn’t running', no_max_budget: 'no maximum budget set', max_budget_required: 'set a maximum budget', at_max_budget: 'already at the maximum budget', cumulative_limit: 'total increase limit reached', daily_action_limit: 'daily change limit reached', too_soon: 'too soon after the last change',
         at_min_budget: 'already at the minimum budget', change_too_small: 'change too small', conflict: 'another automation wanted the opposite change', superseded_by_pause: 'a pause took priority', duplicate_rule: 'another automation already did this',
         paused_all: 'all automations paused', kill_switch: 'paused by OrivenAI', automation_paused: 'automation turned off', automation_deleted: 'automation deleted', missed: 'missed — not run late', expired: 'approval expired', rejected: 'rejected', cancelled_by_user: 'cancelled by you',
@@ -130,8 +130,8 @@
       edit: 'Bewerken', history: 'Geschiedenis', del: 'Verwijderen', on: 'Aan', off: 'Uit', turnOn: 'Aanzetten', turnOff: 'Uitzetten',
       lastChecked: 'Laatst gecontroleerd {when}: {checked} campagne(s), {matched} voldeed.', notChecked: 'Nog niet gecontroleerd.', blockedLine: 'In de wacht: {why}', skippedLine: 'Niet uitgevoerd: {list}',
       nextRun: 'Volgende: {when}',
-      fAll: 'Alles', fCompleted: 'Uitgevoerd', fFailed: 'Mislukt', fPending: 'Wacht op goedkeuring', fSkipped: 'Overgeslagen', fCancelled: 'Geannuleerd',
-      exCompleted: 'Uitgevoerd', exFailed: 'Mislukt', exSkipped: 'Overgeslagen', exPending: 'Wacht op goedkeuring', exRunning: 'Bezig', exCancelled: 'Geannuleerd', exScheduled: 'Gepland',
+      fAll: 'Alles', fCompleted: 'Uitgevoerd', fFailed: 'Mislukt', fPartial: 'Deels uitgevoerd', fPending: 'Wacht op goedkeuring', fSkipped: 'Overgeslagen', fCancelled: 'Geannuleerd',
+      exCompleted: 'Uitgevoerd', exFailed: 'Mislukt', exPartial: 'Deels uitgevoerd', exSkipped: 'Overgeslagen', exPending: 'Wacht op goedkeuring', exRunning: 'Bezig', exCancelled: 'Geannuleerd', exScheduled: 'Gepland',
       trigLine: 'Omdat {metric} {observed} was ({op} {threshold}, laatste {days} dagen)', schedLineAt: 'Gepland voor {when}',
       bRuleTitle: 'Nieuwe regel', bScheduleTitle: 'Campagne plannen', bEditTitle: 'Automatisering bewerken',
       s1: 'Advertentieplatform', s2: 'Campagnes', s3: 'Voorwaarde', s4: 'Wat moet er gebeuren', s5: 'Controleren', s3s: 'Wat en wanneer',
@@ -162,7 +162,7 @@
       sumActPause: 'de campagne te pauzeren', sumActResume: 'de campagne te hervatten', sumActInc: 'het dagbudget met {pct}% te verhogen (nooit boven {max})', sumActDec: 'het dagbudget met {pct}% te verlagen',
       sumSchedule: 'Voor {scope}: {items}.', sumOnce: '{action} op {when}', sumWeekly: '{action} elke {days} om {time}',
       setH: 'Instellingen voor automatiseringen', setInApp: 'Updates van automatiseringen tonen in OrivenAI', setEmail: 'Updates van automatiseringen per e-mail', setEmailEvents: 'E-mail mij over', setSaved: 'Instellingen opgeslagen.',
-      ev: { executed: 'Uitgevoerde acties', failed: 'Mislukte acties', approval: 'Goedkeuring nodig', paused: 'Gepauzeerde campagnes', resumed: 'Hervatte campagnes', budget_changed: 'Budgetwijzigingen', scheduled_completed: 'Geplande acties', disconnected: 'Ontkoppelde accounts', credentials_expired: 'Verlopen koppelingen' },
+      ev: { executed: 'Uitgevoerde acties', failed: 'Mislukte acties', partial: 'Deels uitgevoerde acties', approval: 'Goedkeuring nodig', paused: 'Gepauzeerde campagnes', resumed: 'Hervatte campagnes', budget_changed: 'Budgetwijzigingen', scheduled_completed: 'Geplande acties', disconnected: 'Ontkoppelde accounts', credentials_expired: 'Verlopen koppelingen' },
       emailNote: 'Updates van één controle komen samen in één e-mail (hoogstens 6 per uur).',
       confDeleteH: 'Deze automatisering verwijderen?', confDeleteP: 'Ze stopt direct en komende acties worden geannuleerd. De geschiedenis blijft in Activiteit. De {n} credits worden niet terugbetaald.',
       confPauseAllH: 'Alle automatiseringen pauzeren?', confPauseAllP: 'Geen regel of planning wijzigt een campagne tot je hervat. Er wordt niets verwijderd.',
@@ -174,7 +174,7 @@
       rs: {
         insufficient_data: 'nog niet genoeg gegevens', no_data: 'geen gegevens van het platform', undefined_ratio: 'te weinig resultaten om dit te berekenen', unavailable: 'niet gerapporteerd voor dit platform',
         not_running: 'campagne draait niet', not_paused: 'campagne is niet gepauzeerd', shared_budget: 'gedeeld budget (raakt andere campagnes)', lifetime_budget: 'looptijdbudget', no_budget: 'geen dagbudget', unknown_currency: 'valuta onbekend',
-        budget_not_editable: 'budget kan niet worden gewijzigd', campaign_not_found: 'campagne niet gevonden in je account', campaign_archived: 'campagne gearchiveerd', already_paused: 'al gepauzeerd', already_active: 'draait al', status_unknown: 'status kan nu niet worden gewijzigd',
+        budget_not_editable: 'budget kan niet worden gewijzigd', campaign_not_found: 'campagne niet gevonden in je account', activation_partial: 'campagne staat aan, maar sommige advertentiesets of advertenties zijn nog gepauzeerd', activation_unverified: 'campagne staat aan, maar levering kon niet worden bevestigd', no_publish_record: 'geen gegevens van de advertentiesets en advertenties die OrivenAI heeft gemaakt', wrong_account: 'campagne hoort bij een ander advertentieaccount', activation_incomplete: 'niet alles kon worden aangezet', activation_unconfirmed: 'het platform heeft niet op tijd bevestigd', activation_in_progress: 'er liep al een activering van deze campagne', campaign_archived: 'campagne gearchiveerd', already_paused: 'al gepauzeerd', already_active: 'draait al', status_unknown: 'status kan nu niet worden gewijzigd',
         campaign_not_active: 'campagne draait niet', no_max_budget: 'geen maximaal budget ingesteld', max_budget_required: 'stel een maximaal budget in', at_max_budget: 'al op het maximale budget', cumulative_limit: 'grens voor totale verhoging bereikt', daily_action_limit: 'dagelijkse grens voor wijzigingen bereikt', too_soon: 'te snel na de vorige wijziging',
         at_min_budget: 'al op het minimale budget', change_too_small: 'wijziging te klein', conflict: 'een andere automatisering wilde het omgekeerde', superseded_by_pause: 'een pauze had voorrang', duplicate_rule: 'een andere automatisering deed dit al',
         paused_all: 'alle automatiseringen gepauzeerd', kill_switch: 'gepauzeerd door OrivenAI', automation_paused: 'automatisering staat uit', automation_deleted: 'automatisering verwijderd', missed: 'gemist — niet te laat uitgevoerd', expired: 'goedkeuring verlopen', rejected: 'afgewezen', cancelled_by_user: 'door jou geannuleerd',
@@ -215,8 +215,8 @@
       edit: 'Bearbeiten', history: 'Verlauf', del: 'Löschen', on: 'An', off: 'Aus', turnOn: 'Einschalten', turnOff: 'Ausschalten',
       lastChecked: 'Zuletzt geprüft {when}: {checked} Kampagne(n), {matched} zutreffend.', notChecked: 'Noch nicht geprüft.', blockedLine: 'Angehalten: {why}', skippedLine: 'Nicht ausgeführt: {list}',
       nextRun: 'Nächste: {when}',
-      fAll: 'Alle', fCompleted: 'Erledigt', fFailed: 'Fehlgeschlagen', fPending: 'Wartet auf Freigabe', fSkipped: 'Übersprungen', fCancelled: 'Abgebrochen',
-      exCompleted: 'Erledigt', exFailed: 'Fehlgeschlagen', exSkipped: 'Übersprungen', exPending: 'Wartet auf Freigabe', exRunning: 'Läuft', exCancelled: 'Abgebrochen', exScheduled: 'Geplant',
+      fAll: 'Alle', fCompleted: 'Erledigt', fFailed: 'Fehlgeschlagen', fPartial: 'Teilweise erledigt', fPending: 'Wartet auf Freigabe', fSkipped: 'Übersprungen', fCancelled: 'Abgebrochen',
+      exCompleted: 'Erledigt', exFailed: 'Fehlgeschlagen', exPartial: 'Teilweise erledigt', exSkipped: 'Übersprungen', exPending: 'Wartet auf Freigabe', exRunning: 'Läuft', exCancelled: 'Abgebrochen', exScheduled: 'Geplant',
       trigLine: 'Weil {metric} bei {observed} lag ({op} {threshold}, letzte {days} Tage)', schedLineAt: 'Geplant für {when}',
       bRuleTitle: 'Neue Regel', bScheduleTitle: 'Kampagne planen', bEditTitle: 'Automatisierung bearbeiten',
       s1: 'Werbeplattform', s2: 'Kampagnen', s3: 'Bedingung', s4: 'Was soll passieren', s5: 'Überprüfen', s3s: 'Was und wann',
@@ -247,7 +247,7 @@
       sumActPause: 'die Kampagne pausieren', sumActResume: 'die Kampagne fortsetzen', sumActInc: 'das Tagesbudget um {pct} % erhöhen (nie über {max})', sumActDec: 'das Tagesbudget um {pct} % senken',
       sumSchedule: 'Für {scope}: {items}.', sumOnce: '{action} am {when}', sumWeekly: '{action} jeden {days} um {time}',
       setH: 'Einstellungen für Automatisierungen', setInApp: 'Updates von Automatisierungen in OrivenAI anzeigen', setEmail: 'Updates von Automatisierungen per E-Mail', setEmailEvents: 'E-Mail bei', setSaved: 'Einstellungen gespeichert.',
-      ev: { executed: 'Ausgeführten Aktionen', failed: 'Fehlern', approval: 'Nötigen Freigaben', paused: 'Pausierten Kampagnen', resumed: 'Fortgesetzten Kampagnen', budget_changed: 'Budgetänderungen', scheduled_completed: 'Geplanten Aktionen', disconnected: 'Getrennten Konten', credentials_expired: 'Abgelaufenen Verbindungen' },
+      ev: { executed: 'Ausgeführten Aktionen', failed: 'Fehlern', partial: 'Teilweise erledigten Aktionen', approval: 'Nötigen Freigaben', paused: 'Pausierten Kampagnen', resumed: 'Fortgesetzten Kampagnen', budget_changed: 'Budgetänderungen', scheduled_completed: 'Geplanten Aktionen', disconnected: 'Getrennten Konten', credentials_expired: 'Abgelaufenen Verbindungen' },
       emailNote: 'Updates einer Prüfung kommen gesammelt in einer E-Mail (höchstens 6 pro Stunde).',
       confDeleteH: 'Diese Automatisierung löschen?', confDeleteP: 'Sie stoppt sofort und anstehende Aktionen werden abgebrochen. Der Verlauf bleibt in Aktivität. Die {n} Credits werden nicht erstattet.',
       confPauseAllH: 'Alle Automatisierungen pausieren?', confPauseAllP: 'Keine Regel und kein Zeitplan ändert eine Kampagne, bis du fortsetzt. Es wird nichts gelöscht.',
@@ -259,7 +259,7 @@
       rs: {
         insufficient_data: 'noch nicht genug Daten', no_data: 'keine Daten von der Plattform', undefined_ratio: 'zu wenige Ergebnisse für die Berechnung', unavailable: 'für diese Plattform nicht gemeldet',
         not_running: 'Kampagne läuft nicht', not_paused: 'Kampagne ist nicht pausiert', shared_budget: 'gemeinsames Budget (betrifft andere Kampagnen)', lifetime_budget: 'Laufzeitbudget', no_budget: 'kein Tagesbudget', unknown_currency: 'Währung unbekannt',
-        budget_not_editable: 'Budget kann nicht geändert werden', campaign_not_found: 'Kampagne in deinem Konto nicht gefunden', campaign_archived: 'Kampagne archiviert', already_paused: 'bereits pausiert', already_active: 'läuft bereits', status_unknown: 'Status kann gerade nicht geändert werden',
+        budget_not_editable: 'Budget kann nicht geändert werden', campaign_not_found: 'Kampagne in deinem Konto nicht gefunden', activation_partial: 'Kampagne ist an, aber einige Anzeigengruppen oder Anzeigen sind noch pausiert', activation_unverified: 'Kampagne ist an, aber die Auslieferung konnte nicht bestätigt werden', no_publish_record: 'keine Aufzeichnung der Anzeigengruppen und Anzeigen, die OrivenAI erstellt hat', wrong_account: 'Kampagne gehört zu einem anderen Werbekonto', activation_incomplete: 'nicht alles konnte eingeschaltet werden', activation_unconfirmed: 'die Plattform hat nicht rechtzeitig bestätigt', activation_in_progress: 'eine andere Aktivierung dieser Kampagne lief bereits', campaign_archived: 'Kampagne archiviert', already_paused: 'bereits pausiert', already_active: 'läuft bereits', status_unknown: 'Status kann gerade nicht geändert werden',
         campaign_not_active: 'Kampagne läuft nicht', no_max_budget: 'kein maximales Budget festgelegt', max_budget_required: 'lege ein maximales Budget fest', at_max_budget: 'bereits beim maximalen Budget', cumulative_limit: 'Grenze für die Gesamterhöhung erreicht', daily_action_limit: 'tägliche Änderungsgrenze erreicht', too_soon: 'zu kurz nach der letzten Änderung',
         at_min_budget: 'bereits beim minimalen Budget', change_too_small: 'Änderung zu klein', conflict: 'eine andere Automatisierung wollte das Gegenteil', superseded_by_pause: 'eine Pause hatte Vorrang', duplicate_rule: 'eine andere Automatisierung hat das bereits erledigt',
         paused_all: 'alle Automatisierungen pausiert', kill_switch: 'von OrivenAI pausiert', automation_paused: 'Automatisierung ausgeschaltet', automation_deleted: 'Automatisierung gelöscht', missed: 'verpasst — nicht verspätet ausgeführt', expired: 'Freigabe abgelaufen', rejected: 'abgelehnt', cancelled_by_user: 'von dir abgebrochen',
@@ -300,8 +300,8 @@
       edit: 'Modifier', history: 'Historique', del: 'Supprimer', on: 'Activée', off: 'Désactivée', turnOn: 'Activer', turnOff: 'Désactiver',
       lastChecked: 'Vérifiée {when} : {checked} campagne(s), {matched} concernée(s).', notChecked: 'Pas encore vérifiée.', blockedLine: 'En attente : {why}', skippedLine: 'Non appliqué : {list}',
       nextRun: 'Prochaine : {when}',
-      fAll: 'Tout', fCompleted: 'Effectuées', fFailed: 'Échouées', fPending: 'En attente d’approbation', fSkipped: 'Ignorées', fCancelled: 'Annulées',
-      exCompleted: 'Effectuée', exFailed: 'Échouée', exSkipped: 'Ignorée', exPending: 'En attente d’approbation', exRunning: 'En cours', exCancelled: 'Annulée', exScheduled: 'Planifiée',
+      fAll: 'Tout', fCompleted: 'Effectuées', fFailed: 'Échouées', fPartial: 'Partiellement effectuées', fPending: 'En attente d’approbation', fSkipped: 'Ignorées', fCancelled: 'Annulées',
+      exCompleted: 'Effectuée', exFailed: 'Échouée', exPartial: 'Partiellement effectuée', exSkipped: 'Ignorée', exPending: 'En attente d’approbation', exRunning: 'En cours', exCancelled: 'Annulée', exScheduled: 'Planifiée',
       trigLine: 'Car {metric} était de {observed} ({op} {threshold}, {days} derniers jours)', schedLineAt: 'Planifiée pour {when}',
       bRuleTitle: 'Nouvelle règle', bScheduleTitle: 'Planifier une campagne', bEditTitle: 'Modifier l’automatisation',
       s1: 'Plateforme publicitaire', s2: 'Campagnes', s3: 'Condition', s4: 'Que doit-il se passer', s5: 'Vérifier', s3s: 'Quoi et quand',
@@ -332,7 +332,7 @@
       sumActPause: 'la mettre en pause', sumActResume: 'la reprendre', sumActInc: 'augmenter son budget quotidien de {pct} % (jamais au-delà de {max})', sumActDec: 'baisser son budget quotidien de {pct} %',
       sumSchedule: 'Pour {scope} : {items}.', sumOnce: '{action} le {when}', sumWeekly: '{action} chaque {days} à {time}',
       setH: 'Paramètres des automatisations', setInApp: 'Afficher les mises à jour dans OrivenAI', setEmail: 'Recevoir les mises à jour par e-mail', setEmailEvents: 'M’écrire pour', setSaved: 'Paramètres enregistrés.',
-      ev: { executed: 'Actions effectuées', failed: 'Échecs', approval: 'Approbations nécessaires', paused: 'Campagnes en pause', resumed: 'Campagnes reprises', budget_changed: 'Changements de budget', scheduled_completed: 'Actions planifiées', disconnected: 'Comptes déconnectés', credentials_expired: 'Connexions expirées' },
+      ev: { executed: 'Actions effectuées', failed: 'Échecs', partial: 'Actions partiellement effectuées', approval: 'Approbations nécessaires', paused: 'Campagnes en pause', resumed: 'Campagnes reprises', budget_changed: 'Changements de budget', scheduled_completed: 'Actions planifiées', disconnected: 'Comptes déconnectés', credentials_expired: 'Connexions expirées' },
       emailNote: 'Les mises à jour d’une vérification sont regroupées dans un seul e-mail (6 par heure au maximum).',
       confDeleteH: 'Supprimer cette automatisation ?', confDeleteP: 'Elle s’arrête tout de suite et ses actions à venir sont annulées. Son historique reste dans Activité. Les {n} crédits ne sont pas remboursés.',
       confPauseAllH: 'Mettre toutes les automatisations en pause ?', confPauseAllP: 'Aucune règle ni planification ne modifiera une campagne avant la reprise. Rien n’est supprimé.',
@@ -344,7 +344,7 @@
       rs: {
         insufficient_data: 'pas encore assez de données', no_data: 'aucune donnée de la plateforme', undefined_ratio: 'pas assez de résultats pour le calculer', unavailable: 'non fourni pour cette plateforme',
         not_running: 'la campagne ne tourne pas', not_paused: 'la campagne n’est pas en pause', shared_budget: 'budget partagé (touche d’autres campagnes)', lifetime_budget: 'budget global', no_budget: 'pas de budget quotidien', unknown_currency: 'devise inconnue',
-        budget_not_editable: 'le budget ne peut pas être modifié', campaign_not_found: 'campagne introuvable dans votre compte', campaign_archived: 'campagne archivée', already_paused: 'déjà en pause', already_active: 'déjà active', status_unknown: 'le statut ne peut pas être modifié maintenant',
+        budget_not_editable: 'le budget ne peut pas être modifié', campaign_not_found: 'campagne introuvable dans votre compte', activation_partial: 'la campagne est active, mais certains ensembles de publicités ou publicités sont encore en pause', activation_unverified: 'la campagne est active, mais la diffusion n’a pas pu être confirmée', no_publish_record: 'aucune trace des ensembles de publicités et publicités créés par OrivenAI', wrong_account: 'la campagne appartient à un autre compte publicitaire', activation_incomplete: 'tout n’a pas pu être activé', activation_unconfirmed: 'la plateforme n’a pas confirmé à temps', activation_in_progress: 'une autre activation de cette campagne était en cours', campaign_archived: 'campagne archivée', already_paused: 'déjà en pause', already_active: 'déjà active', status_unknown: 'le statut ne peut pas être modifié maintenant',
         campaign_not_active: 'la campagne ne tourne pas', no_max_budget: 'aucun budget maximal défini', max_budget_required: 'définissez un budget maximal', at_max_budget: 'déjà au budget maximal', cumulative_limit: 'limite d’augmentation totale atteinte', daily_action_limit: 'limite quotidienne de changements atteinte', too_soon: 'trop tôt après le dernier changement',
         at_min_budget: 'déjà au budget minimal', change_too_small: 'changement trop faible', conflict: 'une autre automatisation voulait l’inverse', superseded_by_pause: 'une pause était prioritaire', duplicate_rule: 'une autre automatisation l’a déjà fait',
         paused_all: 'toutes les automatisations en pause', kill_switch: 'mis en pause par OrivenAI', automation_paused: 'automatisation désactivée', automation_deleted: 'automatisation supprimée', missed: 'manquée — pas exécutée en retard', expired: 'approbation expirée', rejected: 'refusée', cancelled_by_user: 'annulée par vous',
@@ -385,8 +385,8 @@
       edit: 'Editar', history: 'Historial', del: 'Eliminar', on: 'Activada', off: 'Desactivada', turnOn: 'Activar', turnOff: 'Desactivar',
       lastChecked: 'Revisada {when}: {checked} campaña(s), {matched} coincidieron.', notChecked: 'Todavía no revisada.', blockedLine: 'En espera: {why}', skippedLine: 'No aplicada: {list}',
       nextRun: 'Próxima: {when}',
-      fAll: 'Todo', fCompleted: 'Hechas', fFailed: 'Fallidas', fPending: 'Pendientes de aprobación', fSkipped: 'Omitidas', fCancelled: 'Canceladas',
-      exCompleted: 'Hecha', exFailed: 'Fallida', exSkipped: 'Omitida', exPending: 'Pendiente de aprobación', exRunning: 'En curso', exCancelled: 'Cancelada', exScheduled: 'Programada',
+      fAll: 'Todo', fCompleted: 'Hechas', fFailed: 'Fallidas', fPartial: 'Hechas en parte', fPending: 'Pendientes de aprobación', fSkipped: 'Omitidas', fCancelled: 'Canceladas',
+      exCompleted: 'Hecha', exFailed: 'Fallida', exPartial: 'Hecha en parte', exSkipped: 'Omitida', exPending: 'Pendiente de aprobación', exRunning: 'En curso', exCancelled: 'Cancelada', exScheduled: 'Programada',
       trigLine: 'Porque {metric} fue {observed} ({op} {threshold}, últimos {days} días)', schedLineAt: 'Programada para {when}',
       bRuleTitle: 'Nueva regla', bScheduleTitle: 'Programar campaña', bEditTitle: 'Editar automatización',
       s1: 'Plataforma publicitaria', s2: 'Campañas', s3: 'Condición', s4: 'Qué debe pasar', s5: 'Revisar', s3s: 'Qué y cuándo',
@@ -417,7 +417,7 @@
       sumActPause: 'pausarla', sumActResume: 'reanudarla', sumActInc: 'subir su presupuesto diario un {pct} % (nunca por encima de {max})', sumActDec: 'bajar su presupuesto diario un {pct} %',
       sumSchedule: 'Para {scope}: {items}.', sumOnce: '{action} el {when}', sumWeekly: '{action} cada {days} a las {time}',
       setH: 'Ajustes de automatizaciones', setInApp: 'Mostrar novedades de automatizaciones en OrivenAI', setEmail: 'Enviarme novedades por correo', setEmailEvents: 'Escribirme sobre', setSaved: 'Ajustes guardados.',
-      ev: { executed: 'Acciones realizadas', failed: 'Fallos', approval: 'Aprobaciones necesarias', paused: 'Campañas pausadas', resumed: 'Campañas reanudadas', budget_changed: 'Cambios de presupuesto', scheduled_completed: 'Acciones programadas', disconnected: 'Cuentas desconectadas', credentials_expired: 'Conexiones caducadas' },
+      ev: { executed: 'Acciones realizadas', failed: 'Fallos', partial: 'Acciones hechas en parte', approval: 'Aprobaciones necesarias', paused: 'Campañas pausadas', resumed: 'Campañas reanudadas', budget_changed: 'Cambios de presupuesto', scheduled_completed: 'Acciones programadas', disconnected: 'Cuentas desconectadas', credentials_expired: 'Conexiones caducadas' },
       emailNote: 'Las novedades de una revisión llegan juntas en un solo correo (6 por hora como máximo).',
       confDeleteH: '¿Eliminar esta automatización?', confDeleteP: 'Se detiene al momento y se cancelan sus próximas acciones. Su historial sigue en Actividad. Los {n} créditos no se devuelven.',
       confPauseAllH: '¿Pausar todas las automatizaciones?', confPauseAllP: 'Ninguna regla ni programación cambiará una campaña hasta que reanudes. No se elimina nada.',
@@ -429,7 +429,7 @@
       rs: {
         insufficient_data: 'todavía no hay suficientes datos', no_data: 'sin datos de la plataforma', undefined_ratio: 'pocos resultados para calcularlo', unavailable: 'no disponible en esta plataforma',
         not_running: 'la campaña no está activa', not_paused: 'la campaña no está pausada', shared_budget: 'presupuesto compartido (afecta a otras campañas)', lifetime_budget: 'presupuesto total', no_budget: 'sin presupuesto diario', unknown_currency: 'moneda desconocida',
-        budget_not_editable: 'el presupuesto no se puede cambiar', campaign_not_found: 'campaña no encontrada en tu cuenta', campaign_archived: 'campaña archivada', already_paused: 'ya estaba pausada', already_active: 'ya estaba activa', status_unknown: 'el estado no se puede cambiar ahora',
+        budget_not_editable: 'el presupuesto no se puede cambiar', campaign_not_found: 'campaña no encontrada en tu cuenta', activation_partial: 'la campaña está activa, pero algunos conjuntos de anuncios o anuncios siguen en pausa', activation_unverified: 'la campaña está activa, pero no se pudo confirmar la entrega', no_publish_record: 'no hay registro de los conjuntos de anuncios y anuncios que creó OrivenAI', wrong_account: 'la campaña pertenece a otra cuenta publicitaria', activation_incomplete: 'no se pudo activar todo', activation_unconfirmed: 'la plataforma no confirmó a tiempo', activation_in_progress: 'ya había otra activación de esta campaña en curso', campaign_archived: 'campaña archivada', already_paused: 'ya estaba pausada', already_active: 'ya estaba activa', status_unknown: 'el estado no se puede cambiar ahora',
         campaign_not_active: 'la campaña no está activa', no_max_budget: 'sin presupuesto máximo', max_budget_required: 'fija un presupuesto máximo', at_max_budget: 'ya está en el presupuesto máximo', cumulative_limit: 'límite de aumento total alcanzado', daily_action_limit: 'límite diario de cambios alcanzado', too_soon: 'demasiado pronto tras el último cambio',
         at_min_budget: 'ya está en el presupuesto mínimo', change_too_small: 'cambio demasiado pequeño', conflict: 'otra automatización quería lo contrario', superseded_by_pause: 'una pausa tuvo prioridad', duplicate_rule: 'otra automatización ya lo hizo',
         paused_all: 'todas las automatizaciones en pausa', kill_switch: 'pausado por OrivenAI', automation_paused: 'automatización desactivada', automation_deleted: 'automatización eliminada', missed: 'perdida — no se ejecutó tarde', expired: 'aprobación caducada', rejected: 'rechazada', cancelled_by_user: 'cancelada por ti',
@@ -470,8 +470,8 @@
       edit: 'Editar', history: 'Histórico', del: 'Excluir', on: 'Ligada', off: 'Desligada', turnOn: 'Ligar', turnOff: 'Desligar',
       lastChecked: 'Verificada {when}: {checked} campanha(s), {matched} atenderam.', notChecked: 'Ainda não verificada.', blockedLine: 'Em espera: {why}', skippedLine: 'Não aplicada: {list}',
       nextRun: 'Próxima: {when}',
-      fAll: 'Tudo', fCompleted: 'Concluídas', fFailed: 'Com falha', fPending: 'Aguardando aprovação', fSkipped: 'Ignoradas', fCancelled: 'Canceladas',
-      exCompleted: 'Concluída', exFailed: 'Com falha', exSkipped: 'Ignorada', exPending: 'Aguardando aprovação', exRunning: 'Em andamento', exCancelled: 'Cancelada', exScheduled: 'Agendada',
+      fAll: 'Tudo', fCompleted: 'Concluídas', fFailed: 'Com falha', fPartial: 'Concluídas em parte', fPending: 'Aguardando aprovação', fSkipped: 'Ignoradas', fCancelled: 'Canceladas',
+      exCompleted: 'Concluída', exFailed: 'Com falha', exPartial: 'Concluída em parte', exSkipped: 'Ignorada', exPending: 'Aguardando aprovação', exRunning: 'Em andamento', exCancelled: 'Cancelada', exScheduled: 'Agendada',
       trigLine: 'Porque {metric} foi {observed} ({op} {threshold}, últimos {days} dias)', schedLineAt: 'Agendada para {when}',
       bRuleTitle: 'Nova regra', bScheduleTitle: 'Agendar campanha', bEditTitle: 'Editar automação',
       s1: 'Plataforma de anúncios', s2: 'Campanhas', s3: 'Condição', s4: 'O que deve acontecer', s5: 'Revisar', s3s: 'O quê e quando',
@@ -502,7 +502,7 @@
       sumActPause: 'pausá-la', sumActResume: 'retomá-la', sumActInc: 'aumentar o orçamento diário em {pct}% (nunca acima de {max})', sumActDec: 'reduzir o orçamento diário em {pct}%',
       sumSchedule: 'Para {scope}: {items}.', sumOnce: '{action} em {when}', sumWeekly: '{action} toda {days} às {time}',
       setH: 'Configurações de automações', setInApp: 'Mostrar novidades das automações na OrivenAI', setEmail: 'Receber novidades por e-mail', setEmailEvents: 'Me escrever sobre', setSaved: 'Configurações salvas.',
-      ev: { executed: 'Ações realizadas', failed: 'Falhas', approval: 'Aprovações necessárias', paused: 'Campanhas pausadas', resumed: 'Campanhas retomadas', budget_changed: 'Mudanças de orçamento', scheduled_completed: 'Ações agendadas', disconnected: 'Contas desconectadas', credentials_expired: 'Conexões expiradas' },
+      ev: { executed: 'Ações realizadas', failed: 'Falhas', partial: 'Ações concluídas em parte', approval: 'Aprovações necessárias', paused: 'Campanhas pausadas', resumed: 'Campanhas retomadas', budget_changed: 'Mudanças de orçamento', scheduled_completed: 'Ações agendadas', disconnected: 'Contas desconectadas', credentials_expired: 'Conexões expiradas' },
       emailNote: 'As novidades de uma verificação chegam juntas em um só e-mail (no máximo 6 por hora).',
       confDeleteH: 'Excluir esta automação?', confDeleteP: 'Ela para na hora e as próximas ações são canceladas. O histórico continua em Atividade. Os {n} créditos não são devolvidos.',
       confPauseAllH: 'Pausar todas as automações?', confPauseAllP: 'Nenhuma regra ou agendamento vai mudar uma campanha até você retomar. Nada é excluído.',
@@ -514,7 +514,7 @@
       rs: {
         insufficient_data: 'ainda não há dados suficientes', no_data: 'sem dados da plataforma', undefined_ratio: 'poucos resultados para calcular', unavailable: 'não informado para esta plataforma',
         not_running: 'a campanha não está rodando', not_paused: 'a campanha não está pausada', shared_budget: 'orçamento compartilhado (afeta outras campanhas)', lifetime_budget: 'orçamento total', no_budget: 'sem orçamento diário', unknown_currency: 'moeda desconhecida',
-        budget_not_editable: 'o orçamento não pode ser alterado', campaign_not_found: 'campanha não encontrada na sua conta', campaign_archived: 'campanha arquivada', already_paused: 'já estava pausada', already_active: 'já estava rodando', status_unknown: 'o status não pode ser alterado agora',
+        budget_not_editable: 'o orçamento não pode ser alterado', campaign_not_found: 'campanha não encontrada na sua conta', activation_partial: 'a campanha está ativa, mas alguns conjuntos de anúncios ou anúncios ainda estão pausados', activation_unverified: 'a campanha está ativa, mas a veiculação não pôde ser confirmada', no_publish_record: 'não há registro dos conjuntos de anúncios e anúncios que a OrivenAI criou', wrong_account: 'a campanha pertence a outra conta de anúncios', activation_incomplete: 'nem tudo pôde ser ativado', activation_unconfirmed: 'a plataforma não confirmou a tempo', activation_in_progress: 'outra ativação desta campanha já estava em andamento', campaign_archived: 'campanha arquivada', already_paused: 'já estava pausada', already_active: 'já estava rodando', status_unknown: 'o status não pode ser alterado agora',
         campaign_not_active: 'a campanha não está rodando', no_max_budget: 'nenhum orçamento máximo definido', max_budget_required: 'defina um orçamento máximo', at_max_budget: 'já está no orçamento máximo', cumulative_limit: 'limite de aumento total atingido', daily_action_limit: 'limite diário de mudanças atingido', too_soon: 'cedo demais após a última mudança',
         at_min_budget: 'já está no orçamento mínimo', change_too_small: 'mudança pequena demais', conflict: 'outra automação queria o contrário', superseded_by_pause: 'uma pausa teve prioridade', duplicate_rule: 'outra automação já fez isso',
         paused_all: 'todas as automações pausadas', kill_switch: 'pausado pela OrivenAI', automation_paused: 'automação desligada', automation_deleted: 'automação excluída', missed: 'perdida — não executada com atraso', expired: 'aprovação expirada', rejected: 'recusada', cancelled_by_user: 'cancelada por você',
@@ -665,7 +665,7 @@
     return '<header class="atm-head"><div class="atm-head-text"><h1 class="atm-title">' + esc(T('title')) + '</h1><p class="atm-sub">' + esc(T('subtitle')) + '</p>' + (A.overview ? statusPill() : '') + '</div>' +
       '<div class="atm-head-actions">' +
       '<button type="button" class="atm-btn atm-btn-ghost" data-au="pauseall" aria-pressed="' + !!paused + '">' + esc(paused ? T('resumeAll') : T('pauseAll')) + '</button>' +
-      '<button type="button" class="atm-btn atm-btn-ghost atm-icon-btn" data-au="settings" aria-label="' + esc(T('settings')) + '" title="' + esc(T('settings')) + '"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg></button>' +
+      '<button type="button" class="atm-btn atm-btn-ghost atm-icon-btn" data-au="settings" aria-label="' + esc(T('setH')) + '" title="' + esc(T('setH')) + '"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></button>' +
       '<button type="button" class="atm-btn atm-btn-ghost" data-au="new-schedule">' + esc(T('newSchedule')) + '</button>' +
       '<button type="button" class="atm-btn atm-btn-primary" data-au="new-rule">+ ' + esc(T('newRule')) + '</button>' +
       '</div></header>';
@@ -705,22 +705,23 @@
   function overview() {
     var o = A.overview, c = o.counts || {};
     var html = '';
-    if (!A.automations.length) html += emptyIntro();
+    var main = '', rail = '';
+    if (!A.automations.length) main += emptyIntro();
     html += '<div class="atm-tiles">' + tile(T('tActive'), c.active || 0, c.active ? 'live' : null) + tile(T('tScheduled'), c.scheduled || 0) + tile(T('tApprovals'), c.pendingApprovals || 0, c.pendingApprovals ? 'warn' : null) + tile(T('tDone'), c.completed7d || 0) + tile(T('tFailed'), c.failed7d || 0, c.failed7d ? 'bad' : null) + '</div>';
-    if (A.approvals.length) html += '<div class="atm-card"><h2 class="atm-h2">' + esc(T('approvalsH')) + '</h2>' + A.approvals.map(approvalCard).join('') + '</div>';
+    if (A.approvals.length) main += '<div class="atm-card"><h2 class="atm-h2">' + esc(T('approvalsH')) + '</h2>' + A.approvals.map(approvalCard).join('') + '</div>';
     var nx = o.nextRun;
     var managing = c.managedCampaigns || c.accountWide && c.accountWide.length ? [c.managedCampaigns ? T('managingN', { n: c.managedCampaigns }) : '', c.accountWide && c.accountWide.length ? T('managingAll', { platforms: c.accountWide.map(platName).join(', ') }) : ''].filter(Boolean).join(' · ') : T('managingNone');
-    html += '<div class="atm-grid2"><div class="atm-card"><dl class="atm-facts">' +
+    rail += '<div class="atm-card"><dl class="atm-facts">' +
       '<div><dt>' + esc(T('nextRunH')) + '</dt><dd>' + (nx ? esc(T('act.' + nx.action)) + ' · ' + esc(nx.campaign_name || '') + '<br><span class="atm-muted">' + esc(localWhen(nx.local_time, nx.timezone)) + ' · ' + esc(rel(nx.run_at)) + '</span>' : esc(T('nextRunNone'))) + '</dd></div>' +
       '<div><dt>' + esc(T('lastCheckH')) + '</dt><dd>' + (o.lastCheckAt ? esc(rel(o.lastCheckAt)) : esc(T('lastCheckNever'))) + '</dd></div>' +
-      '<div><dt>' + esc(T('managingH')) + '</dt><dd>' + esc(managing) + '</dd></div></dl></div>' +
-      '<div class="atm-card"><h2 class="atm-h2">' + esc(T('accountsH')) + '</h2><ul class="atm-accts">' + (o.accounts || []).map(function (a) {
+      '<div><dt>' + esc(T('managingH')) + '</dt><dd>' + esc(managing) + '</dd></div></dl></div>';
+    rail += '<div class="atm-card"><h2 class="atm-h2">' + esc(T('accountsH')) + '</h2><ul class="atm-accts">' + (o.accounts || []).map(function (a) {
         return '<li><span class="atm-dot' + (a.connected ? ' is-on' : '') + '" aria-hidden="true"></span>' + esc(platName(a.platform)) + '<span class="atm-muted">' + esc(a.connected ? T('connected') : T('notConnected')) + '</span></li>';
-      }).join('') + '</ul>' + ((o.accounts || []).some(function (a) { return !a.connected; }) ? '<button type="button" class="atm-link" data-au="connect">' + esc(T('connect')) + '</button>' : '') + '</div></div>';
-    html += '<div class="atm-card"><div class="atm-card-head"><h2 class="atm-h2">' + esc(T('recentH')) + '</h2>' + (A.activity.length ? '<button type="button" class="atm-link" data-tab="activity">' + esc(T('viewAll')) + '</button>' : '') + '</div>' +
+      }).join('') + '</ul>' + ((o.accounts || []).some(function (a) { return !a.connected; }) ? '<button type="button" class="atm-link" data-au="connect">' + esc(T('connect')) + '</button>' : '') + '</div>';
+    main += '<div class="atm-card"><div class="atm-card-head"><h2 class="atm-h2">' + esc(T('recentH')) + '</h2>' + (A.activity.length ? '<button type="button" class="atm-link" data-tab="activity">' + esc(T('viewAll')) + '</button>' : '') + '</div>' +
       (A.activity.length ? '<ul class="atm-acts">' + A.activity.slice(0, 5).map(actRow).join('') + '</ul>' : '<p class="atm-muted">' + esc(T('noActivity')) + '</p>') + '</div>';
-    html += '<p class="atm-note">' + esc(T('launchNote')) + ' <button type="button" class="atm-link" data-au="launch">' + esc(T('openLaunch')) + '</button></p>';
-    return html;
+    rail += '<p class="atm-note">' + esc(T('launchNote')) + ' <button type="button" class="atm-link" data-au="launch">' + esc(T('openLaunch')) + '</button></p>';
+    return html + '<div class="atm-ovgrid"><div class="atm-ovmain">' + main + '</div><aside class="atm-ovrail" aria-label="' + esc(T('accountsH')) + '">' + rail + '</aside></div>';
   }
 
   function statusBadge(a) {
@@ -763,7 +764,7 @@
     }).join('') + '</ul>' : '<p class="atm-muted">' + esc(T('upcomingNone')) + '</p>') + '</div>';
     return html;
   }
-  var EX = { completed: 'exCompleted', failed: 'exFailed', skipped: 'exSkipped', pending_approval: 'exPending', running: 'exRunning', cancelled: 'exCancelled', scheduled: 'exScheduled' };
+  var EX = { completed: 'exCompleted', failed: 'exFailed', partial: 'exPartial', skipped: 'exSkipped', pending_approval: 'exPending', running: 'exRunning', cancelled: 'exCancelled', scheduled: 'exScheduled' };
   function valueText(e) {
     var p = e.previous_value || {}, n = e.new_value || {};
     if (p.amount != null && n.amount != null) return T('valuesChange', { from: money(p.amount, p.currency), to: money(n.amount, n.currency) });
@@ -775,15 +776,15 @@
     var why = t.metric ? T('trigLine', { metric: metricName(t.metric), observed: fmtMetric(t.metric, t.observed, (e.previous_value && e.previous_value.currency) || null), op: T('op.' + t.operator) || t.operator, threshold: fmtMetric(t.metric, t.threshold, null), days: t.window_days || 7 })
       : t.scheduled_for ? T('schedLineAt', { when: localWhen(t.scheduled_for, t.timezone) }) : '';
     var v = valueText(e);
-    var tone = e.status === 'completed' ? 'live' : e.status === 'failed' ? 'bad' : e.status === 'pending_approval' ? 'warn' : 'muted';
+    var tone = e.status === 'completed' ? 'live' : e.status === 'failed' ? 'bad' : e.status === 'pending_approval' || e.status === 'partial' ? 'warn' : 'muted';
     return '<li class="atm-act"><span class="atm-badge is-' + tone + '">' + esc(T(EX[e.status] || 'exSkipped')) + '</span><div class="atm-act-main"><b>' + esc(T('act.' + e.action)) + ' · ' + esc(e.campaign_name || e.campaign_id || '') + '</b>' +
       '<span class="atm-muted">' + esc((e.automation_name || '') + ' · ' + platName(e.platform) + ' · ' + T(e.mode === 'notify' ? 'mNotify' : e.mode === 'approval' ? 'mApproval' : e.mode === 'scheduled' ? 'mScheduled' : 'mAutomatic')) + '</span>' +
       (v ? '<span>' + esc(v) + '</span>' : '') + (why ? '<span class="atm-muted">' + esc(why) + '</span>' : '') +
-      (e.reason && e.status !== 'completed' ? '<span class="' + (e.status === 'failed' ? 'atm-warn' : 'atm-muted') + '">' + esc(reason(e.reason)) + (e.error && e.status === 'failed' ? ' — ' + esc(String(e.error).slice(0, 160)) : '') + '</span>' : '') +
+      (e.reason && e.status !== 'completed' ? '<span class="' + (e.status === 'failed' ? 'atm-warn' : 'atm-muted') + '">' + esc(reason(e.reason)) + (e.error && (e.status === 'failed' || e.status === 'partial') ? ' — ' + esc(String(e.error).slice(0, 160)) : '') + '</span>' : '') +
       '</div><time class="atm-muted" datetime="' + esc(e.created_at) + '">' + esc(rel(e.created_at)) + '</time></li>';
   }
   function activity() {
-    var F = [['all', 'fAll'], ['completed', 'fCompleted'], ['failed', 'fFailed'], ['pending_approval', 'fPending'], ['skipped', 'fSkipped'], ['cancelled', 'fCancelled']];
+    var F = [['all', 'fAll'], ['completed', 'fCompleted'], ['failed', 'fFailed'], ['partial', 'fPartial'], ['pending_approval', 'fPending'], ['skipped', 'fSkipped'], ['cancelled', 'fCancelled']];
     return '<div class="atm-filters" role="group" aria-label="' + esc(T('tabActivity')) + '">' + F.map(function (f) { return '<button type="button" class="atm-chip' + (A.filter === f[0] ? ' is-on' : '') + '" aria-pressed="' + (A.filter === f[0]) + '" data-au="filter" data-filter="' + f[0] + '">' + esc(T(f[1])) + '</button>'; }).join('') + '</div>' +
       '<div class="atm-card">' + (A.activity.length ? '<ul class="atm-acts">' + A.activity.map(actRow).join('') + '</ul>' : '<p class="atm-muted">' + esc(T('noActivity')) + '</p>') + '</div>';
   }

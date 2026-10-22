@@ -26,6 +26,10 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const ORIGIN = 'https://orivenai.com';
 const OG_IMAGE = ORIGIN + '/assets/og/orivenai-og.png';
 const CHECK = process.argv.includes('--check');
+// Line endings don't count as a change: a Windows checkout (core.autocrlf)
+// holds CRLF copies of the LF files this build writes, which made --check
+// report every page as stale and a build rewrite them all.
+const sameText = (a, b) => a != null && b != null && a.replace(/\r\n/g, '\n') === b.replace(/\r\n/g, '\n');
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const strip = (html) => String(html).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
@@ -389,13 +393,13 @@ function main() {
     if (!(p.dateModified || p.datePublished || p.lastmod)) throw new Error(p.file + ': needs a real date (datePublished / lastmod)');
   }
   let stale = [];
-  if (edgeCur !== edgeSrc) {
+  if (!sameText(edgeCur, edgeSrc)) {
     stale.push('netlify/edge-functions/seo-meta.js');
     if (!CHECK) { fs.mkdirSync(path.dirname(edgePath), { recursive: true }); fs.writeFileSync(edgePath, edgeSrc); }
   }
   const navCssPath = path.join(ROOT, 'css', 'site-nav.css');
   const navCss = navCssSource();
-  if ((fs.existsSync(navCssPath) ? fs.readFileSync(navCssPath, 'utf8') : null) !== navCss) {
+  if (!sameText(fs.existsSync(navCssPath) ? fs.readFileSync(navCssPath, 'utf8') : null, navCss)) {
     stale.push('css/site-nav.css');
     if (!CHECK) fs.writeFileSync(navCssPath, navCss);
   }
@@ -403,7 +407,7 @@ function main() {
     const out = path.join(ROOT, outFile(p));
     const html = render(p, pages);
     const cur = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : null;
-    if (cur !== html) {
+    if (!sameText(cur, html)) {
       stale.push(p.path);
       if (!CHECK) { fs.mkdirSync(path.dirname(out), { recursive: true }); fs.writeFileSync(out, html); }
     }
@@ -415,7 +419,7 @@ function main() {
   let next;
   if (sm.includes(START)) next = sm.replace(new RegExp(START.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[\\s\\S]*?' + END.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), block);
   else next = sm.replace('</urlset>', block + '\n\n</urlset>');
-  if (next !== sm) { stale.push('sitemap.xml'); if (!CHECK) fs.writeFileSync(smPath, next); }
+  if (!sameText(next, sm)) { stale.push('sitemap.xml'); if (!CHECK) fs.writeFileSync(smPath, next); }
   if (CHECK) {
     if (stale.length) { console.error('Stale generated files: ' + stale.join(', ') + '\nRun: node tools/seo/build.js'); process.exit(1); }
     console.log('All ' + pages.length + ' generated pages and the sitemap are up to date.');
