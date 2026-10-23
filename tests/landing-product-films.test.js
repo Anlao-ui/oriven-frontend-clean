@@ -34,12 +34,12 @@ function scrollToPillars() {
 
 // V9 product films: one per workflow step ('business' is Control Center).
 const EXPECTED = {
-  research: 'film-research.mp4',
+  research: 'film-research-v2.mp4',
   create: 'film-create.mp4',
   launch: 'film-launch.mp4',
   campaigns: 'film-campaigns.mp4',
   autopilot: 'film-autopilot.mp4',
-  business: 'film-control-center.mp4',
+  business: 'film-control-center-v2.mp4',
 };
 
 async function main() {

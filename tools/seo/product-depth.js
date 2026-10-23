@@ -67,7 +67,7 @@ const D = {
       ['See what each finding rests on.', 'Findings are labelled Source-checked (a quoted passage was found in a page it read), Cited (a source was named but not checked), Analysis, or Idea to test. Source-checked findings show the quoted passage and the link.'],
       ['Use it.', 'Reports are saved to your Research library. Add up to eight insights to Create as context for your next campaign.'],
     ],
-    fig: fig('research', 'The OrivenAI Research screen: a research question, research types and the business profile used as context', 'The Research screen. Screenshot from the product.'),
+    fig: fig('research-v2', 'The OrivenAI Research screen: a research question, research types and the business profile used as context', 'The Research screen. Screenshot from the product.'),
     who: ['Businesses planning a first campaign in a new market', 'Marketers who want competitor context before writing ads', 'Anyone who needs evidence, not just AI opinions'],
     know: ['Included from the Starter plan; each report uses 25 credits (refunded if it fails)', 'It has no access to competitors’ ad performance, budgets or results, and never claims an ad “works”', 'It doesn’t pull ads from the Meta Ad Library or Google Ads Transparency Center; it links to them so you can check real ads', 'Set your country in your business profile so findings are specific to your market'],
     faq: [
@@ -142,7 +142,7 @@ const D = {
       ['Connect your ad accounts.', 'Google Ads, Meta Ads, TikTok Ads and Pinterest Ads, through each platform’s official sign-in.'],
       ['Let the other modules use it.', 'Research uses your country and website; Create uses your brand; Launch uses your country and business name as defaults you can change.'],
     ],
-    fig: fig('control-center', 'The OrivenAI Control Center with the business profile, brand identity and connected ad accounts', 'Control Center. Screenshot from the product.'),
+    fig: fig('control-center-v2', 'The OrivenAI Control Center with the business profile, brand identity and connected ad accounts', 'Control Center. Screenshot from the product.'),
     who: ['Every OrivenAI user: it’s where setup happens', 'Businesses with more than one ad platform to connect'],
     know: ['Your country matters: it’s used as the default market for research and campaigns, and OrivenAI never assumes one', 'Disconnecting an ad account doesn’t pause campaigns already running on it'],
     faq: [
