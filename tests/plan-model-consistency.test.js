@@ -42,16 +42,17 @@ check('A1. Frontend plan order is Free, Starter, Creator, Professional (= backen
 ORDER.forEach((id) => {
   check('B.' + id + ' entitlements identical to backend planEntitlements.js', JSON.stringify(ORIVEN_PLANS[id].entitlements) === JSON.stringify(ent.PLAN_ENTITLEMENTS[id]), { fe: ORIVEN_PLANS[id].entitlements, be: ent.PLAN_ENTITLEMENTS[id] });
 });
-check('B.min Lowest plan per capability: Research/Automations Starter, Oriven Chat Creator, Notifications/Priority Support Professional',
-  ent.minPlanFor('research') === 'starter' && ent.minPlanFor('autopilot') === 'starter' && ent.minPlanFor('orivenChat') === 'creator' && ent.minPlanFor('notifications') === 'professional' && ent.minPlanFor('prioritySupport') === 'professional');
+check('B.min Lowest plan per capability: Research/Automations Starter, Oriven Chat + in-app notifications Creator, Priority Support + weekly report Professional',
+  ent.minPlanFor('research') === 'starter' && ent.minPlanFor('autopilot') === 'starter' && ent.minPlanFor('orivenChat') === 'creator' && ent.minPlanFor('notifications') === 'creator' && ent.minPlanFor('prioritySupport') === 'professional' && ent.minPlanFor('weeklyReport') === 'professional');
 
 // C. Card lists never claim more (or less) than the entitlements.
-const LABEL = { research: 'Research', autopilot: 'Automations', orivenChat: 'Oriven Chat', notifications: 'Notifications', prioritySupport: 'Priority Support' };
+const LABEL = { research: 'Research', autopilot: 'Automations', orivenChat: 'Oriven Chat', notifications: 'In-app notifications', prioritySupport: 'Priority Support', weeklyReport: 'Weekly AI Performance Report' };
 ORDER.forEach((id) => {
   const p = ORIVEN_PLANS[id], bad = [];
   Object.keys(LABEL).forEach((k) => {
     const inc = (p.features || []).includes(LABEL[k]) || ((p.features || []).includes('Full advertising workflow') && (k === 'research' || k === 'autopilot'));
-    const exc = (p.excludedFeatures || []).includes(LABEL[k]);
+    // "Limited advertising workflow" (Free) states Research/Automations are not part of it (its note).
+    const exc = (p.excludedFeatures || []).includes(LABEL[k]) || ((p.features || []).includes('Limited advertising workflow') && (k === 'research' || k === 'autopilot'));
     if (inc && !p.entitlements[k]) bad.push('claims ' + k);
     if (exc && p.entitlements[k]) bad.push('denies ' + k);
     if (!inc && !exc && (id === 'free' || id === 'starter') && (k === 'research' || k === 'autopilot' || k === 'orivenChat')) bad.push('silent on ' + k);

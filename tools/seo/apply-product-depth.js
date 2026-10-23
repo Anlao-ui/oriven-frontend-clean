@@ -31,16 +31,19 @@ for (const [key, data] of Object.entries(D)) {
 // Pricing: the plan cards are rendered by JavaScript (plans.js); this static
 // comparison gives every visitor (and crawler) the same facts in plain HTML.
 // Values from tools/seo/facts.js (mirrors js/plans.js) and the backend's
-// planEntitlements.js (Oriven Chat from Creator; notifications and priority
-// support on Professional).
+// planEntitlements.js (Oriven Chat and in-app notifications from Creator;
+// Priority Support and the Weekly AI Performance Report on Professional).
 {
   const F = require('./facts');
   const yes = '<span aria-label="Included">✓</span>', no = '<span aria-label="Not included">—</span>';
-  const ent = { free: [1,1,0,0,0,0], starter: [1,1,1,1,0,0], creator: [1,1,1,1,1,0], professional: [1,1,1,1,1,1] };
-  const rows = [['Control Center, Create, Launch and Campaigns'], ['Google Ads, Meta Ads, TikTok Ads and Pinterest Ads'], ['Research'], ['Automations'], ['Oriven Chat'], ['Notifications and priority support']];
+  // The workflow is one row (Free: limited; paid plans: all six steps), never
+  // six separate module rows. A string cell is shown as text.
+  const ent = { free: ['Limited',1,0,0,0,0], starter: ['Full',1,0,0,0,0], creator: ['Full',1,1,1,0,0], professional: ['Full',1,1,1,1,1] };
+  const rows = [['Advertising workflow'], ['Google Ads, Meta Ads, TikTok Ads and Pinterest Ads'], ['Oriven Chat'], ['In-app notifications'], ['Priority Support'], [F.weeklyReportLive ? 'Weekly AI Performance Report' : 'Weekly AI Performance Report (coming soon)']];
   const head = F.plans.map((p) => '<th scope="col">' + p.name + '<br><span>' + (p.price ? '€' + p.price.toFixed(2) + ' / month' : 'Free') + '</span></th>').join('');
   const body = '<tr><th scope="row">Credits</th>' + F.plans.map((p) => '<td>' + p.credits + '</td>').join('') + '</tr>' +
-    rows.map((r, i) => '<tr><th scope="row">' + r[0] + '</th>' + F.plans.map((p) => '<td>' + (ent[p.id][i] ? yes : no) + '</td>').join('') + '</tr>').join('');
+    rows.map((r, i) => '<tr><th scope="row">' + r[0] + '</th>' + F.plans.map((p) => '<td>' + (typeof ent[p.id][i] === 'string' ? ent[p.id][i] : ent[p.id][i] ? yes : no) + '</td>').join('') + '</tr>').join('') +
+    '<tr><th scope="row"><span class="ov-sr">Note</span></th><td colspan="4">Limited: Control Center, Create, Launch and Campaigns. Full: all six steps, adding Research and Automations.</td></tr>';
   const costs = [['Campaign draft (copy and structure)', 25], ['Image (per ad)', 75], ['Video (per ad)', 200], ['Research report', 25], ['Oriven Chat message (Creator and Professional)', 5], ['New automation (once; its checks and changes are free)', 50]];
   const block = `<!-- pricing-detail:start -->
   <section class="ov-sp-section ov-deep ov-price-detail" aria-labelledby="price-detail-h">

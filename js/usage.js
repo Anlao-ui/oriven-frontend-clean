@@ -227,6 +227,10 @@ async function updatePrioritySupportVisibility(){
   var plan = await _getCachedPlan();
   var el   = document.getElementById("prioritySupportPanel");
   if(el) el.style.display = plan === "professional" ? "" : "none";
+  // Settings → Notifications: the Weekly AI Performance Report toggle
+  // (plans.js entitlement weeklyReport, Professional).
+  var wr = document.getElementById("smdWeeklyReportRow");
+  if(wr) wr.style.display = (typeof orvPlanHas === "function" && orvPlanHas(plan, "weeklyReport")) ? "" : "none";
 }
 
 // ── Browser timezone sync — feeds the once-per-local-day daily

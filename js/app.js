@@ -481,7 +481,13 @@ function navigate(page){
       if(typeof openPaywall==="function") openPaywall();
       return;
     }
-    // null (loading) or any paid plan → allow
+    // The assistant is Oriven Chat (Creator and Professional; the server
+    // enforces the same: /api/generate-text type 'assistant').
+    if(typeof window.orvEntitled === "function" && window.orvEntitled("orivenChat") === false){
+      if(typeof openLimitReached === "function") openLimitReached("chat");
+      return;
+    }
+    // null (loading) or an entitled plan → allow
   }
   document.querySelectorAll(".ni").forEach(function(e){e.classList.remove("active");});
   document.querySelectorAll(".page").forEach(function(e){e.classList.remove("active");});

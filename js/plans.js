@@ -138,10 +138,14 @@ var ORIVEN_FEATURE_CATEGORIES = [
 // the in-app paywall and the public landing pricing all render from it, and
 // the backend enforces the same capabilities (server/services/planEntitlements.js).
 //
-//   Free         Control Center, Create, Launch, Campaigns
-//   Starter      the full 01–06 workflow (adds Research and Autopilot)
-//   Creator      full workflow + Oriven Chat
-//   Professional full workflow + Oriven Chat + notifications + Priority Support
+//   Free         limited workflow: Control Center, Create, Launch, Campaigns
+//   Starter      the full 01–06 workflow (adds Research and Automations)
+//   Creator      full workflow + Oriven Chat + in-app notifications
+//   Professional full workflow + Oriven Chat + in-app notifications +
+//                Priority Support + Weekly AI Performance Report
+//
+// "In-app notifications" is the notification center (the bell). Automation
+// emails are part of Automations and work on every plan that has them.
 //
 // Access is not usage: entitled plans still pay the normal credit cost of
 // metered actions (CREDIT_COSTS above, unchanged). Prices and credit
@@ -154,8 +158,9 @@ var ORIVEN_ENTITLEMENT_LABELS = {
   research: "Research",
   autopilot: "Automations",
   orivenChat: "Oriven Chat",
-  notifications: "Notifications",
-  prioritySupport: "Priority Support"
+  notifications: "In-app notifications",
+  prioritySupport: "Priority Support",
+  weeklyReport: "Weekly AI Performance Report"
 };
 var ORIVEN_PLANS = {
   free: {
@@ -173,16 +178,16 @@ var ORIVEN_PLANS = {
     desc:        "An introduction to OrivenAI: your business context, Create, Launch and Campaigns.",
     intelligence:   "1 use / month", // legacy server cap, not shown in pricing
     autopilotLimit: null,
-    entitlements: { research: false, autopilot: false, orivenChat: false, notifications: false, prioritySupport: false },
+    entitlements: { research: false, autopilot: false, orivenChat: false, notifications: false, prioritySupport: false, weeklyReport: false },
     featureFlags: {
       imageAds: true, videoAds: true, chat: false, campaignMgmt: true, performance: true,
       creativeMgmt: true, business: true, research: false, autopilot: false,
-      notifications: false, prioritySupport: false
+      notifications: false, prioritySupport: false, weeklyReport: false
     },
-    features: ["Control Center", "Create", "Launch", "Campaigns"],
-    allFeatures: ["Control Center", "Create", "Launch", "Campaigns"],
-    // Every capability Free lacks (entitlements above), as on the Starter card.
-    excludedFeatures: ["Research", "Automations", "Oriven Chat"]
+    // The workflow is one line on every card; its note names Free's steps.
+    features: ["Limited advertising workflow"],
+    allFeatures: ["Limited advertising workflow"],
+    excludedFeatures: ["Oriven Chat", "In-app notifications", "Priority Support", "Weekly AI Performance Report"]
   },
 
   starter: {
@@ -197,15 +202,15 @@ var ORIVEN_PLANS = {
     desc:        "The complete OrivenAI advertising workflow.",
     intelligence:   "40 insights / month", // legacy server cap, not shown in pricing
     autopilotLimit: Infinity,
-    entitlements: { research: true, autopilot: true, orivenChat: false, notifications: false, prioritySupport: false },
+    entitlements: { research: true, autopilot: true, orivenChat: false, notifications: false, prioritySupport: false, weeklyReport: false },
     featureFlags: {
       imageAds: true, videoAds: true, chat: false, campaignMgmt: true, performance: true,
       creativeMgmt: true, business: true, research: true, autopilot: true,
-      notifications: false, prioritySupport: false
+      notifications: false, prioritySupport: false, weeklyReport: false
     },
     // Research and Automations are part of the full workflow (its note lists all six steps).
     features: ["Full advertising workflow"],
-    excludedFeatures: ["Oriven Chat", "Notifications", "Priority Support"]
+    excludedFeatures: ["Oriven Chat", "In-app notifications", "Priority Support", "Weekly AI Performance Report"]
   },
 
   creator: {
@@ -218,17 +223,17 @@ var ORIVEN_PLANS = {
     limit:       2500,
     teamMembers: 1,
     explore:     false,
-    desc:        "The full workflow, with Oriven Chat at your side.",
+    desc:        "The full workflow, with Oriven Chat and in-app notifications.",
     intelligence:   "100 insights / month", // legacy server cap, not shown in pricing
     autopilotLimit: Infinity,
-    entitlements: { research: true, autopilot: true, orivenChat: true, notifications: false, prioritySupport: false },
+    entitlements: { research: true, autopilot: true, orivenChat: true, notifications: true, prioritySupport: false, weeklyReport: false },
     featureFlags: {
       imageAds: true, videoAds: true, chat: true, campaignMgmt: true, performance: true,
       creativeMgmt: true, business: true, research: true, autopilot: true,
-      notifications: false, prioritySupport: false
+      notifications: true, prioritySupport: false, weeklyReport: false
     },
-    features: ["Full advertising workflow", "Oriven Chat"],
-    excludedFeatures: ["Notifications", "Priority Support"]
+    features: ["Full advertising workflow", "Oriven Chat", "In-app notifications"],
+    excludedFeatures: ["Priority Support", "Weekly AI Performance Report"]
   },
 
   professional: {
@@ -240,22 +245,22 @@ var ORIVEN_PLANS = {
     limit:       4000,
     teamMembers: 10,
     explore:     false,
-    desc:        "Everything in OrivenAI, with notifications and Priority Support.",
+    desc:        "Everything in OrivenAI, with Priority Support and a weekly AI performance report.",
     intelligence:   "Unlimited insights", // legacy server cap, not shown in pricing
     autopilotLimit: Infinity,
-    entitlements: { research: true, autopilot: true, orivenChat: true, notifications: true, prioritySupport: true },
+    entitlements: { research: true, autopilot: true, orivenChat: true, notifications: true, prioritySupport: true, weeklyReport: true },
     featureFlags: {
       imageAds: true, videoAds: true, chat: true, campaignMgmt: true, performance: true,
       creativeMgmt: true, business: true, research: true, autopilot: true,
-      notifications: true, prioritySupport: true
+      notifications: true, prioritySupport: true, weeklyReport: true
     },
-    features: ["Full advertising workflow", "Oriven Chat", "Notifications", "Priority Support"],
+    features: ["Full advertising workflow", "Oriven Chat", "In-app notifications", "Priority Support", "Weekly AI Performance Report"],
     excludedFeatures: []
   }
 };
 
 // Does a plan include a capability? (research | autopilot | orivenChat |
-// notifications | prioritySupport). Unknown plans include nothing.
+// notifications | prioritySupport | weeklyReport). Unknown plans include nothing.
 function orvPlanHas(planId, key){
   var p = ORIVEN_PLANS[planId];
   return !!(p && p.entitlements && p.entitlements[key]);
@@ -333,11 +338,43 @@ function _ovFeatCostLabel(cat){
   return orvFormatCredits(n) + ' credits / ' + cat.costUnit;
 }
 
-// Secondary line for a plan feature (keeps "Full advertising workflow"
-// concrete wherever plans are shown).
+// The Weekly AI Performance Report is shown as "Coming soon" until weekly
+// delivery is switched on in production (backend WEEKLY_REPORTS_ENABLED and
+// a verified test send). Set to true then — and in tools/seo/facts.js.
+var ORIVEN_WEEKLY_REPORT_LIVE = false;
+
+// Secondary line for a plan feature (keeps the workflow line concrete
+// wherever plans are shown).
 function orvPlanFeatureNote(feature){
-  if(feature === "Full advertising workflow") return "All six steps: " + ORIVEN_WORKFLOW_STEPS.join(", ");
+  if(feature === "Full advertising workflow") return orvPlanT("All six steps: ") + ORIVEN_WORKFLOW_STEPS.join(", ");
+  if(feature === "Limited advertising workflow") return orvPlanT("Control Center, Create, Launch and Campaigns");
+  if(feature === "Weekly AI Performance Report") return orvPlanT(ORIVEN_WEEKLY_REPORT_LIVE ? "By email every Monday, from your connected ad accounts" : "Coming soon: by email every Monday, from your connected ad accounts");
   return "";
+}
+
+// Plan-card wording in the app's six languages (Settings and the paywall
+// use CURRENT_LANG from settings.js). The public website is English, so
+// without CURRENT_LANG every string stays as written.
+var ORIVEN_PLAN_I18N = {
+  "Limited advertising workflow": { nl: "Beperkte advertentieworkflow", de: "Eingeschränkter Werbe-Workflow", fr: "Workflow publicitaire limité", es: "Flujo publicitario limitado", pt: "Fluxo de publicidade limitado" },
+  "Full advertising workflow": { nl: "Volledige advertentieworkflow", de: "Kompletter Werbe-Workflow", fr: "Workflow publicitaire complet", es: "Flujo publicitario completo", pt: "Fluxo de publicidade completo" },
+  "In-app notifications": { nl: "Meldingen in de app", de: "In-App-Benachrichtigungen", fr: "Notifications dans l’app", es: "Notificaciones en la app", pt: "Notificações na app" },
+  "Weekly AI Performance Report": { nl: "Wekelijks AI-prestatierapport", de: "Wöchentlicher KI-Leistungsbericht", fr: "Rapport de performance IA hebdomadaire", es: "Informe semanal de rendimiento con IA", pt: "Relatório semanal de desempenho com IA" },
+  "All six steps: ": { nl: "Alle zes stappen: ", de: "Alle sechs Schritte: ", fr: "Les six étapes : ", es: "Los seis pasos: ", pt: "Os seis passos: " },
+  "Control Center, Create, Launch and Campaigns": { nl: "Control Center, Create, Launch en Campaigns", de: "Control Center, Create, Launch und Campaigns", fr: "Control Center, Create, Launch et Campaigns", es: "Control Center, Create, Launch y Campaigns", pt: "Control Center, Create, Launch e Campaigns" },
+  "Coming soon: by email every Monday, from your connected ad accounts": { nl: "Binnenkort: elke maandag per e-mail, uit je gekoppelde advertentieaccounts", de: "Demnächst: jeden Montag per E-Mail, aus deinen verbundenen Werbekonten", fr: "Bientôt : chaque lundi par e-mail, à partir de vos comptes publicitaires connectés", es: "Próximamente: cada lunes por correo, de tus cuentas publicitarias conectadas", pt: "Em breve: todas as segundas-feiras por email, das suas contas de anúncios ligadas" },
+  "By email every Monday, from your connected ad accounts": { nl: "Elke maandag per e-mail, uit je gekoppelde advertentieaccounts", de: "Jeden Montag per E-Mail, aus deinen verbundenen Werbekonten", fr: "Chaque lundi par e-mail, à partir de vos comptes publicitaires connectés", es: "Cada lunes por correo, de tus cuentas publicitarias conectadas", pt: "Todas as segundas-feiras por email, das suas contas de anúncios ligadas" },
+  "Coming soon": { nl: "Binnenkort beschikbaar", de: "Demnächst verfügbar", fr: "Bientôt disponible", es: "Próximamente", pt: "Em breve" },
+  "Not included: ": { nl: "Niet inbegrepen: ", de: "Nicht enthalten: ", fr: "Non inclus : ", es: "No incluido: ", pt: "Não incluído: " },
+  "An introduction to OrivenAI: your business context, Create, Launch and Campaigns.": { nl: "Een kennismaking met OrivenAI: je bedrijfscontext, Create, Launch en Campaigns.", de: "Ein Einstieg in OrivenAI: dein Unternehmenskontext, Create, Launch und Campaigns.", fr: "Une introduction à OrivenAI : le contexte de votre entreprise, Create, Launch et Campaigns.", es: "Una introducción a OrivenAI: el contexto de tu negocio, Create, Launch y Campaigns.", pt: "Uma introdução ao OrivenAI: o contexto do seu negócio, Create, Launch e Campaigns." },
+  "The complete OrivenAI advertising workflow.": { nl: "De complete OrivenAI-advertentieworkflow.", de: "Der komplette OrivenAI-Werbe-Workflow.", fr: "Le workflow publicitaire OrivenAI complet.", es: "El flujo publicitario completo de OrivenAI.", pt: "O fluxo de publicidade completo do OrivenAI." },
+  "The full workflow, with Oriven Chat and in-app notifications.": { nl: "De volledige workflow, met Oriven Chat en meldingen in de app.", de: "Der komplette Workflow, mit Oriven Chat und In-App-Benachrichtigungen.", fr: "Le workflow complet, avec Oriven Chat et les notifications dans l’app.", es: "El flujo completo, con Oriven Chat y notificaciones en la app.", pt: "O fluxo completo, com Oriven Chat e notificações na app." },
+  "Everything in OrivenAI, with Priority Support and a weekly AI performance report.": { nl: "Alles in OrivenAI, met Priority Support en een wekelijks AI-prestatierapport.", de: "Alles in OrivenAI, mit Priority Support und einem wöchentlichen KI-Leistungsbericht.", fr: "Tout OrivenAI, avec Priority Support et un rapport de performance IA hebdomadaire.", es: "Todo OrivenAI, con Priority Support y un informe semanal de rendimiento con IA.", pt: "Tudo no OrivenAI, com Priority Support e um relatório semanal de desempenho com IA." }
+};
+function orvPlanT(str){
+  var lang = (typeof CURRENT_LANG === "string") ? CURRENT_LANG : "en";
+  var row = ORIVEN_PLAN_I18N[str];
+  return (row && row[lang]) || str;
 }
 function renderLPPricingCards(containerEl){
   if(!containerEl) return;
@@ -403,10 +440,10 @@ function renderPWPricingCards(containerEl, plansArr){
     var isFree = plan.id === "free";
     var feats = (plan.features || plan.allFeatures || []).map(function(f){
       var note = orvPlanFeatureNote(f);
-      return '<li class="pw-feat">' + f + (note ? '<span class="pw-feat-note">' + note + '</span>' : '') + '</li>';
+      return '<li class="pw-feat">' + orvPlanT(f) + (note ? '<span class="pw-feat-note">' + note + '</span>' : '') + '</li>';
     }).join("");
     var excludedFeats = (plan.excludedFeatures || []).map(function(f){
-      return '<li class="pw-feat pw-feat-excluded">' + f + '</li>';
+      return '<li class="pw-feat pw-feat-excluded"><span class="ov-sr">' + orvPlanT('Not included: ') + '</span>' + orvPlanT(f) + '</li>';
     }).join("");
     var btnLabel = isFree ? "Continue Free" : "Get Started";
     // Final Pricing Cleanup pass — price suffix always "/mo" (same reasoning
@@ -422,7 +459,7 @@ function renderPWPricingCards(containerEl, plansArr){
           '<span class="pw-period">/mo</span>',
         '</div>',
         '<div class="pw-credits-inline">' + orvFormatCredits(plan.credits) + ' credits / ' + creditsCycle + '</div>',
-        plan.desc ? '<div class="pw-card-desc">' + plan.desc + '</div>' : '',
+        plan.desc ? '<div class="pw-card-desc">' + orvPlanT(plan.desc) + '</div>' : '',
         '<div class="pw-card-divider"></div>',
         '<ul class="pw-feats-list">' + feats + excludedFeats + '</ul>',
         '<button id="paywall-btn-' + plan.id + '" class="pw-btn ' + (plan.popular ? 'pw-btn-primary' : 'pw-btn-outline') + '" onclick="selectPlan(\'' + plan.id + '\')" data-label="' + btnLabel + '">' + btnLabel + '</button>',
@@ -436,7 +473,7 @@ function renderPLPricingCards(containerEl){
   if(!containerEl) return;
   containerEl.innerHTML = ORIVEN_PAID_PLANS.map(function(plan){
     var feats = (plan.features || plan.allFeatures || []).map(function(f){
-      return '<li class="pl-feat"><div class="pl-feat-chk">' + _PLAN_CHK_SVG + '</div><span>' + f + '</span></li>';
+      return '<li class="pl-feat"><div class="pl-feat-chk">' + _PLAN_CHK_SVG + '</div><span>' + orvPlanT(f) + '</span></li>';
     }).join("");
     var priceHtml = '<div class="pl-price"><span class="pl-price-num">€' + plan.price + '</span><span class="pl-price-period">/month</span></div>';
     var btnHtml = '<button class="pl-btn ' + (plan.popular ? 'pl-btn-primary' : 'pl-btn-outline') + '" onclick="selectPlan(\'' + plan.id + '\',this)">Choose ' + plan.name + '</button>';

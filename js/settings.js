@@ -53,6 +53,9 @@ var SETTINGS_DEFAULTS = {
   notifAutopilotFailures: true,
   notifDeployFailures:    true,
   notifBilling:           true,
+  // Weekly AI Performance Report email (Professional). Synced to
+  // profiles.preferences, which the report job reads; false = don't send.
+  weeklyReportEmail:      true,
   // "free" is the only safe default — paid plans must be explicitly granted.
   // In production this value is overwritten on sign-in from the backend/Stripe.
   currentPlan:      "free",
@@ -175,6 +178,13 @@ function _applySettingsToUI(cfg){
   if(naf) naf.classList.toggle("on", cfg.notifAutopilotFailures !== false);
   if(nd)  nd.classList.toggle("on", cfg.notifDeployFailures !== false);
   if(nb)  nb.classList.toggle("on", cfg.notifBilling !== false);
+  var nw  = document.getElementById("tglWeeklyReport");
+  if(nw){ nw.classList.toggle("on", cfg.weeklyReportEmail !== false); nw.setAttribute("aria-checked", cfg.weeklyReportEmail !== false ? "true" : "false"); }
+  var nwr = document.getElementById("smdWeeklyReportRow");
+  if(nwr) nwr.style.display = (typeof window.orvEntitled === "function" && window.orvEntitled("weeklyReport") === true) ? "" : "none";
+  // Until weekly delivery is live (plans.js ORIVEN_WEEKLY_REPORT_LIVE) the row says so.
+  var nws = document.getElementById("smdWeeklyReportSoon");
+  if(nws){ nws.style.display = (typeof ORIVEN_WEEKLY_REPORT_LIVE !== "undefined" && !ORIVEN_WEEKLY_REPORT_LIVE) ? "" : "none"; nws.textContent = typeof orvPlanT === "function" ? orvPlanT("Coming soon") : "Coming soon"; }
 
   _applyWorkflowSteps(cfg.showWorkflowSteps !== false);
 }
@@ -974,12 +984,13 @@ var LANG_STRINGS = {
     smdThemeLabel:"Theme", smdThemeHelp:"Choose how ORIVEN appears on this device.", smdThemeLight:"Light", smdThemeDark:"Dark", smdThemeSystem:"System",
     smdLangLabel:"Language", smdLangHelp:"Choose the language ORIVEN's interface uses.",
     smdLoadingEllipsis:"Loading…",
-    smdNotifChannelNote:"These control your in-app notification bell. ORIVEN does not currently send notification emails.",
+    smdNotifChannelNote:"These control the in-app notification center (Creator and Professional). Automation emails are set in Automations → Settings.",
     smdNotifApTitle:"Automation approvals", smdNotifApSub:"Notify me when an automation needs my approval.",
     smdNotifApActTitle:"Automation actions", smdNotifApActSub:"Notify me when an automation changes a campaign.",
     smdNotifApFailTitle:"Automation failures", smdNotifApFailSub:"Notify me when an automation action fails.",
     smdNotifDeployTitle:"Launch & Deployment Failures", smdNotifDeploySub:"Notify me when ORIVEN cannot complete a campaign deployment.",
     smdNotifBillTitle:"Credits & Billing", smdNotifBillSub:"Notify me about important credit or billing issues.",
+    smdNotifWeeklyTitle:"Weekly AI Performance Report", smdNotifWeeklySub:"Email me a report on my connected ad accounts every Monday.",
     smdNameLabel:"Name", smdNameHelp:"The name associated with your ORIVEN account.",
     smdSignedInWith:"Signed in with", smdEmailLabel:"Email Address", smdEmailHelp:"The email address used to sign in to ORIVEN.",
     smdChangePwTitle:"Password", smdChangePwHelp:"Change the password used to sign in to ORIVEN.",
@@ -1368,6 +1379,7 @@ var LANG_STRINGS = {
     smdNotifGenTitle:"Génération terminée", smdNotifGenSub:"Vous avertir lorsque l'IA termine de générer du contenu.",
     smdNotifPubTitle:"Publication terminée", smdNotifPubSub:"Vous avertir lorsque le contenu a été publié.",
     smdNotifBillTitle:"Mises à jour de facturation", smdNotifBillSub:"Alertes pour les renouvellements et l'activité de paiement.",
+    smdNotifWeeklyTitle:"Rapport de performance IA hebdomadaire", smdNotifWeeklySub:"M’envoyer chaque lundi un rapport sur mes comptes publicitaires connectés.", smdNotifChannelNote:"Ces options règlent le centre de notifications dans l’app (Creator et Professional). Les e-mails d’automatisation se règlent dans Automations → Settings.",
     smdNotifUpdTitle:"Mises à jour produit", smdNotifUpdSub:"Annonces in-app sur les nouvelles fonctionnalités.",
     smdNotifApTitle:"Approbations des automatisations", smdNotifApSub:"Me prévenir quand une automatisation a besoin de mon approbation.",
     smdSignedInWith:"Connecté avec", smdEmailLabel:"Adresse e-mail", smdEmailHelp:"Utilisée pour vous connecter et recevoir les notifications de compte.",
@@ -1718,6 +1730,7 @@ var LANG_STRINGS = {
     smdNotifGenTitle:"Generatie voltooid", smdNotifGenSub:"Waarschuw me wanneer AI klaar is met content genereren.",
     smdNotifPubTitle:"Publicatie voltooid", smdNotifPubSub:"Waarschuw me wanneer content is gepubliceerd.",
     smdNotifBillTitle:"Facturatie-updates", smdNotifBillSub:"Meldingen voor verlengingen en betalingsactiviteit.",
+    smdNotifWeeklyTitle:"Wekelijks AI-prestatierapport", smdNotifWeeklySub:"Stuur me elke maandag een rapport over mijn gekoppelde advertentieaccounts.", smdNotifChannelNote:"Deze instellingen gelden voor het meldingencentrum in de app (Creator en Professional). E-mails van automatiseringen stel je in bij Automations → Settings.",
     smdNotifUpdTitle:"Productupdates", smdNotifUpdSub:"In-app aankondigingen over nieuwe functies.",
     smdNotifApTitle:"Goedkeuringen voor automatiseringen", smdNotifApSub:"Waarschuw me wanneer een automatisering mijn goedkeuring nodig heeft.",
     smdSignedInWith:"Ingelogd met", smdEmailLabel:"E-mailadres", smdEmailHelp:"Gebruikt om in te loggen en accountmeldingen te ontvangen.",
@@ -2024,6 +2037,7 @@ var LANG_STRINGS = {
     smdNotifGenTitle:"Generación completa", smdNotifGenSub:"Avisarme cuando la IA termine de generar contenido.",
     smdNotifPubTitle:"Publicación completa", smdNotifPubSub:"Avisarme cuando el contenido haya sido publicado.",
     smdNotifBillTitle:"Actualizaciones de facturación", smdNotifBillSub:"Alertas de renovaciones y actividad de pago.",
+    smdNotifWeeklyTitle:"Informe semanal de rendimiento con IA", smdNotifWeeklySub:"Enviarme cada lunes un informe de mis cuentas publicitarias conectadas.", smdNotifChannelNote:"Estas opciones controlan el centro de notificaciones de la app (Creator y Professional). Los correos de automatizaciones se configuran en Automations → Settings.",
     smdNotifUpdTitle:"Actualizaciones de producto", smdNotifUpdSub:"Anuncios in-app sobre nuevas funciones.",
     smdNotifApTitle:"Aprobaciones de automatizaciones", smdNotifApSub:"Avisarme cuando una automatización necesite mi aprobación.",
     smdSignedInWith:"Conectado con", smdEmailLabel:"Dirección de correo electrónico", smdEmailHelp:"Se usa para iniciar sesión y recibir notificaciones de cuenta.",
@@ -2330,6 +2344,7 @@ var LANG_STRINGS = {
     smdNotifGenTitle:"Geração concluída", smdNotifGenSub:"Avisar quando a IA terminar de gerar conteúdo.",
     smdNotifPubTitle:"Publicação concluída", smdNotifPubSub:"Avisar quando o conteúdo tiver sido publicado.",
     smdNotifBillTitle:"Atualizações de cobrança", smdNotifBillSub:"Alertas de renovações e atividade de pagamento.",
+    smdNotifWeeklyTitle:"Relatório semanal de desempenho com IA", smdNotifWeeklySub:"Enviar-me todas as segundas-feiras um relatório das minhas contas de anúncios ligadas.", smdNotifChannelNote:"Estas opções controlam o centro de notificações na app (Creator e Professional). Os emails de automações configuram-se em Automations → Settings.",
     smdNotifUpdTitle:"Atualizações do produto", smdNotifUpdSub:"Anúncios no app sobre novos recursos.",
     smdNotifApTitle:"Aprovações de automações", smdNotifApSub:"Avisar quando uma automação precisar da minha aprovação.",
     smdSignedInWith:"Conectado com", smdEmailLabel:"Endereço de e-mail", smdEmailHelp:"Usado para entrar e receber notificações da conta.",
@@ -2636,6 +2651,7 @@ var LANG_STRINGS = {
     smdNotifGenTitle:"Generierung abgeschlossen", smdNotifGenSub:"Benachrichtige mich, wenn die KI die Inhaltserstellung abgeschlossen hat.",
     smdNotifPubTitle:"Veröffentlichung abgeschlossen", smdNotifPubSub:"Benachrichtige mich, wenn Inhalte veröffentlicht wurden.",
     smdNotifBillTitle:"Abrechnungsaktualisierungen", smdNotifBillSub:"Hinweise zu Verlängerungen und Zahlungsaktivitäten.",
+    smdNotifWeeklyTitle:"Wöchentlicher KI-Leistungsbericht", smdNotifWeeklySub:"Schick mir jeden Montag einen Bericht zu meinen verbundenen Werbekonten.", smdNotifChannelNote:"Diese Optionen steuern das Benachrichtigungscenter in der App (Creator und Professional). Automations-E-Mails stellst du unter Automations → Settings ein.",
     smdNotifUpdTitle:"Produktaktualisierungen", smdNotifUpdSub:"In-App-Ankündigungen zu neuen Funktionen.",
     smdNotifApTitle:"Freigaben für Automatisierungen", smdNotifApSub:"Benachrichtige mich, wenn eine Automatisierung meine Freigabe braucht.",
     smdSignedInWith:"Angemeldet mit", smdEmailLabel:"E-Mail-Adresse", smdEmailHelp:"Wird zum Anmelden und für Kontobenachrichtigungen verwendet.",
@@ -3429,10 +3445,10 @@ async function renderPlanPanel(){
     html += '<li><strong>' + orvFormatCredits(plan.credits) + '</strong> AI Credits / ' + (isDaily ? 'day' : 'month') + '</li>';
     (plan.features || []).forEach(function(f){
       var note = (typeof orvPlanFeatureNote === 'function') ? orvPlanFeatureNote(f) : '';
-      html += '<li>' + f + (note ? '<span class="sub-pcard-note">' + note + '</span>' : '') + '</li>';
+      html += '<li>' + (typeof orvPlanT === 'function' ? orvPlanT(f) : f) + (note ? '<span class="sub-pcard-note">' + note + '</span>' : '') + '</li>';
     });
     (plan.excludedFeatures || []).forEach(function(f){
-      html += '<li class="sub-pcard-feat-off"><span class="ov-sr">Not included: </span>' + f + '</li>';
+      html += '<li class="sub-pcard-feat-off"><span class="ov-sr">' + (typeof orvPlanT === 'function' ? orvPlanT('Not included: ') : 'Not included: ') + '</span>' + (typeof orvPlanT === 'function' ? orvPlanT(f) : f) + '</li>';
     });
     html += '</ul>';
 

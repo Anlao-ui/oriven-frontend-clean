@@ -53,7 +53,7 @@ module.exports = {
 </table></div>
 
 <h2>What’s included on each plan</h2>
-<p>${F.freePlanLine} Starter (€${F.plans[1].price.toFixed(2)} a month) adds Research and Automations, Creator (€${F.plans[2].price.toFixed(2)}) adds Oriven Chat, and Professional (€${F.plans[3].price.toFixed(2)}) adds notifications and priority support. Full details are on the <a href="/pricing">Pricing</a> page.</p>
+<p>${F.freePlanLine} Starter (€${F.plans[1].price.toFixed(2)} a month) adds Research and Automations, Creator (€${F.plans[2].price.toFixed(2)}) adds Oriven Chat and in-app notifications, and Professional (€${F.plans[3].price.toFixed(2)}) adds Priority Support and a Weekly AI Performance Report by email (${F.weeklyReportLive ? 'every Monday' : 'coming soon'}). Full details are on the <a href="/pricing">Pricing</a> page.</p>
 
 <h2>Where to start</h2>
 <p>The quickest way to see OrivenAI work is to fill in Control Center, then create one campaign for the platform you already use. If you advertise on several platforms, our guide to <a href="/learn/how-to-manage-multiple-ad-platforms/">managing multiple ad platforms</a> explains how to keep them organized.</p>`,

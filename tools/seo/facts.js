@@ -25,6 +25,9 @@ module.exports = {
   tagline: 'The AI advertising platform. Research, create, launch and automate ads from one workspace.',
   freePlanLine: 'The Free plan includes Control Center, Create, Launch and Campaigns. Upgrade only when you need Research, Automations or more credits.',
   plans,
+  // The Weekly AI Performance Report is labelled "coming soon" until weekly
+  // delivery is live in production (mirrors js/plans.js ORIVEN_WEEKLY_REPORT_LIVE).
+  weeklyReportLive: false,
   // automationCreate: charged once per new automation; its checks and changes are free (creditManager FEATURE_COSTS.automation).
   costs: { imageAd: 100, videoAd: 225, automationCreate: 50, researchRun: 25, chatMessage: 5 },
   platforms: ['Google Ads', 'Meta Ads (Facebook and Instagram)', 'TikTok Ads', 'Pinterest Ads'],

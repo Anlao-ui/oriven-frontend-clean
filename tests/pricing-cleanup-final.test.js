@@ -103,9 +103,10 @@ async function main() {
     check('5. No generic "Intelligence" plan-marketing copy anywhere in the pricing grid', !/\bIntelligence\b/i.test(gridText), 'found Intelligence in: ' + (gridText.match(/.{20}Intelligence.{20}/i) || [''])[0]);
     check('5b. No "1 Intelligence use" anywhere in the pricing grid', !/intelligence use/i.test(gridText));
 
-    // V10 plan model (js/plans.js ORIVEN_PLANS = backend planEntitlements.js):
-    // the workflow is on every plan; Research + Automations from Starter;
-    // Oriven Chat from Creator; Notifications + Priority Support on Professional.
+    // Plan model (js/plans.js ORIVEN_PLANS = backend planEntitlements.js):
+    // Free has the limited workflow; the full workflow (Research + Automations)
+    // from Starter; Oriven Chat + in-app notifications from Creator; Priority
+    // Support + the Weekly AI Performance Report on Professional.
     const starterRows = await page.locator('#lpPricingGrid .ov-pc').nth(1).locator('.ov-pc-list li').evaluateAll((els) => els.map((e) => { const c = e.cloneNode(true); c.querySelectorAll('.ov-pc-feat-cost, .ov-sr').forEach((x) => x.remove()); return { label: c.textContent.trim(), excluded: e.classList.contains('ov-pc-feat-excluded'), note: e.querySelector('.ov-pc-feat-cost') ? e.querySelector('.ov-pc-feat-cost').textContent : null }; }));
     const starterLabels = starterRows.map((r) => r.label);
     check('6. Oriven Chat row present on the Starter card, as NOT included (Chat is from Creator)', starterRows.some((r) => r.label === 'Oriven Chat' && r.excluded), JSON.stringify(starterRows));
@@ -114,7 +115,7 @@ async function main() {
     check('7. Workflow row names the real product steps (Control Center, Research, Create, Launch, Campaigns, Automations), no "Campaign management"/"insights"', ['Control Center', 'Research', 'Create', 'Launch', 'Campaigns', 'Automations'].every((s) => wfNote.includes(s)) && !/Campaign management|performance insights/i.test(gridAll), wfNote);
     // Every card's capability rows agree with that plan's entitlements (no over- or under-claiming).
     const entCheck = await page.evaluate(() => {
-      const names = { research: 'Research', autopilot: 'Automations', orivenChat: 'Oriven Chat', notifications: 'Notifications', prioritySupport: 'Priority Support' };
+      const names = { research: 'Research', autopilot: 'Automations', orivenChat: 'Oriven Chat', notifications: 'In-app notifications', prioritySupport: 'Priority Support', weeklyReport: 'Weekly AI Performance Report' };
       const out = [];
       document.querySelectorAll('#lpPricingGrid .ov-pc').forEach((card, i) => {
         const plan = ORIVEN_PLAN_LIST[i];
@@ -128,7 +129,8 @@ async function main() {
       });
       return out;
     });
-    check('7b. Every card\u2019s Research / Automations / Oriven Chat / Notifications / Priority Support rows match the plan\u2019s entitlements', entCheck.length === 0, JSON.stringify(entCheck));
+    check('7b. Every card\u2019s workflow / Oriven Chat / In-app notifications / Priority Support / Weekly AI Performance Report rows match the plan\u2019s entitlements', entCheck.length === 0, JSON.stringify(entCheck));
+    check('7c. No AI Analysis / AI Analyze row in the public pricing', !/AI Analy[sz]/i.test(gridAll) && !/AI Analy[sz]/i.test(await page.locator('#view-pricing .ov-price-table').first().textContent()), '');
 
     // Credit costs: the pricing view's static cost table, checked against the
     // canonical registry (CREDIT_COSTS, which mirrors creditManager FEATURE_COSTS).
@@ -147,11 +149,12 @@ async function main() {
     const freeExcluded = await page.locator('#lpPricingGrid .ov-pc').nth(0).locator('.ov-pc-feat-excluded').evaluateAll((els) => els.map((e) => e.textContent.trim()));
     // Free includes Create (one campaign build every 24 hours: server requireSubOrOnboardingGen).
     check('13. Free does NOT list Create as excluded (Create is on every plan)', !freeExcluded.some((t) => /create/i.test(t)), JSON.stringify(freeExcluded));
-    check('14. Free excludes Research', freeExcluded.some((t) => /research/i.test(t)), JSON.stringify(freeExcluded));
-    check('15. Free excludes Automations', freeExcluded.some((t) => /automations/i.test(t)), JSON.stringify(freeExcluded));
+    const freeNote = await page.locator('#lpPricingGrid .ov-pc').nth(0).locator('.ov-pc-feat-cost').first().textContent();
+    check('14. Free shows the limited workflow, whose note leaves out Research and Automations', freeNote === 'Control Center, Create, Launch and Campaigns' && !/research|automations/i.test(freeNote), freeNote);
+    check('15. Free excludes in-app notifications, Priority Support and the weekly report', ['In-app notifications', 'Priority Support', 'Weekly AI Performance Report'].every((l) => freeExcluded.some((t) => t.includes(l))), JSON.stringify(freeExcluded));
     check('16. Free excludes ORIVEN Chat', freeExcluded.some((t) => /oriven chat/i.test(t)), JSON.stringify(freeExcluded));
     const freeIncluded = await page.locator('#lpPricingGrid .ov-pc').nth(0).locator('.ov-pc-list li:not(.ov-pc-feat-excluded)').evaluateAll((els) => els.map((e) => e.textContent.trim()));
-    check('17. Free includes Control Center/Create/Launch/Campaigns (truthful, ungated routes)', JSON.stringify(freeIncluded) === JSON.stringify(['Control Center', 'Create', 'Launch', 'Campaigns']), JSON.stringify(freeIncluded));
+    check('17. Free includes exactly one row: the limited workflow (Control Center, Create, Launch, Campaigns)', freeIncluded.length === 1 && freeIncluded[0].startsWith('Limited advertising workflow'), JSON.stringify(freeIncluded));
 
     check('18. No horizontal overflow at 1440', await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2));
     check('19. Console errors clean (1440)', consoleErrors.filter((e) => !/401|404|ERR_FAILED|ERR_ABORTED/i.test(e)).length === 0, JSON.stringify(consoleErrors));

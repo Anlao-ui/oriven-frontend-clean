@@ -6404,6 +6404,15 @@
               </div>
               <div class="tgl on" id="tglNotifBilling" onclick="toggleNotif(this,'notifBilling')" role="switch" aria-checked="true"></div>
             </div>
+            <!-- Professional: shown by _applySettingsToUI when the plan includes it. -->
+            <div class="smd-tgl-row" id="smdWeeklyReportRow" style="display:none">
+              <div>
+                <div class="smd-tgl-lbl" data-i18n="smdNotifWeeklyTitle">Weekly AI Performance Report</div>
+                <div class="smd-tgl-sub" data-i18n="smdNotifWeeklySub">Email me a report on my connected ad accounts every Monday.</div>
+                <div class="smd-tgl-sub" id="smdWeeklyReportSoon" style="display:none;font-weight:600">Coming soon</div>
+              </div>
+              <div class="tgl on" id="tglWeeklyReport" onclick="toggleNotif(this,'weeklyReportEmail')" role="switch" aria-checked="true" tabindex="0"></div>
+            </div>
           </div>
         </div>
 
@@ -6436,7 +6445,7 @@
                backend is the source of truth — GET/PUT /api/email/preferences). -->
           <div class="smd-section" id="emailPrefsSection">
             <div class="smd-field-lbl">Email preferences</div>
-            <!-- Lives here, not under Notifications: that panel is Professional-only
+            <!-- Lives here, not under Notifications: that panel is Creator and Professional only
                  (body.orv-no-notif), and every plan must be able to change this. -->
             <div class="smd-tgl-row">
               <div>
@@ -13067,7 +13076,7 @@ window._launchRepaint = function(){
   function _loadNotifications(){
     if (typeof window.orvEntitled === 'function' && window.orvEntitled('notifications') !== true) {
       var _b = document.getElementById('orvNotifBell'); if (_b) _b.style.display = 'none';
-      return; // Professional only (plans.js entitlements); nothing fetched
+      return; // Creator and Professional (plans.js entitlements; the server enforces the same on /api/notifications)
     }
     var bell = document.getElementById('orvNotifBell');
     var count = document.getElementById('orvNotifCount');
@@ -13075,12 +13084,13 @@ window._launchRepaint = function(){
     /* V10 (Epic 12) — respects the Autopilot Approvals notification
        setting (settings.js) instead of always fetching pending approvals. */
     var _notifAutopilotOn = (typeof loadSettings !== 'function') || loadSettings().notifAutopilot !== false;
-    Promise.all([
-      apiFetch('/api/intelligence/events?severity=high&dismissed=false&days=7'),
-      apiFetch('/api/intelligence/events?dismissed=false&days=7'),
-      (_notifAutopilotOn && typeof apiFetch === 'function' ? apiFetch('/api/automations/approvals') : Promise.resolve({ok:false}))
-    ]).then(function(results){
-      var highRes = results[0], allRes = results[1], recRes = results[2];
+    /* One gated feed for the notification center (GET /api/notifications:
+       high-severity events, all undismissed events, pending approvals). */
+    apiFetch('/api/notifications').then(function(nres){
+      var nd = (nres && nres.ok && nres.data) || null;
+      var highRes = { ok: !!nd, data: nd ? { events: nd.highEvents || [] } : null };
+      var allRes = { ok: !!nd, data: nd ? { events: nd.events || [] } : null };
+      var recRes = { ok: !!nd && _notifAutopilotOn, data: nd ? { approvals: nd.approvals || [] } : null };
       // Settings audit pass — real preference gating for every severity
       // tier now, not just approvals/publish-success. All of these
       // events share the same intelligence_events table/type

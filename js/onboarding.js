@@ -66,19 +66,31 @@ function _ob3Track(name, props){ if(typeof trackEvent === "function") trackEvent
 function _ob3Plan(){ try { return (typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus) || "free"; } catch(_){ return "free"; } }
 function _ob3Esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]; }); }
 
-// Links from lifecycle emails: /app?start=create|research or /app?plans=1.
+// Links from emails: /app?start=create|research, /app?plans=1, /app?page=
+// performance|autopilot|businessbrain[&tab=connections] (weekly report,
+// automation emails) and /app?settings=subscription|notifications.
 // Read now — sign-in later rewrites the URL to /app.
 var _ob3DeepLink = (function(){
   try {
     var q = new URLSearchParams(window.location.search);
     var start = q.get("start");
-    return { start: (start === "create" || start === "research") ? start : null, plans: q.get("plans") === "1" };
+    var page = q.get("page"), settings = q.get("settings");
+    return { start: (start === "create" || start === "research") ? start : null, plans: q.get("plans") === "1",
+      page: ["performance", "autopilot", "businessbrain"].indexOf(page) >= 0 ? page : null, tab: q.get("tab") === "connections" ? "connections" : null,
+      settings: (settings === "subscription" || settings === "notifications") ? settings : null };
   } catch(_){ return { start: null, plans: false }; }
 })();
 function _ob3ApplyDeepLink(){
   var d = _ob3DeepLink; _ob3DeepLink = { start: null, plans: false }; // once
   if(d.start && typeof _orvNav === "function") _orvNav(d.start, OB3_DEST[d.start][1]);
   if(d.plans && typeof openPaywall === "function") setTimeout(function(){ openPaywall(); }, 300);
+  if(d.page === "businessbrain" && d.tab === "connections" && typeof bizGoTo === "function") setTimeout(function(){ bizGoTo("connections"); }, 300);
+  else if(d.page && typeof _orvNav === "function") setTimeout(function(){ _orvNav(d.page, "page-" + (d.page === "businessbrain" ? "business-brain" : d.page)); }, 300);
+  if(d.settings && typeof window.openSettingsModal === "function") setTimeout(function(){
+    window.openSettingsModal();
+    var ni = document.querySelector('.smd-ni[data-smd="' + d.settings + '"]');
+    if(ni && typeof window.smdNav === "function") window.smdNav(ni);
+  }, 400);
 }
 
 // ── Gate: called by auth.js once the app is visible ───────────────

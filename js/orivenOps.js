@@ -1014,7 +1014,7 @@
   //   • Research / Autopilot (Starter+): the sidebar keeps both steps with a
   //     lock on Free, and the pages show an upgrade state instead of tools.
   //   • Oriven Chat (Creator+): launcher hidden otherwise.
-  //   • Notifications (Professional): bell hidden otherwise.
+  //   • In-app notifications (Creator, Professional): bell hidden otherwise.
   // Plan state lives in _dbSubscriptionStatus (auth.js, from Supabase); while
   // it is still unknown nothing is locked and no premium surface is shown.
   // ════════════════════════════════════════════════════════════════

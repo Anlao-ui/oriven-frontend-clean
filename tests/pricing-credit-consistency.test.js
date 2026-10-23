@@ -170,7 +170,8 @@ async function main() {
     // Free lists it as not included; Starter lists it; Creator/Professional
     // include it through "Full advertising workflow" (whose note names Research).
     const curFeats = await page.locator('.sub-pcard-active .sub-pcard-feats li').evaluateAll((els) => els.map((e) => e.textContent.trim()));
-    const researchOk = plan === 'free' ? curFeats.includes('Not included: Research')
+    // Free: the limited workflow row, whose note leaves Research out.
+    const researchOk = plan === 'free' ? curFeats.some((t) => /^Limited advertising workflow/.test(t) && !/Research/.test(t))
       : !curFeats.some((t) => /^Not included: Research/.test(t)) && (curFeats.includes('Research') || curFeats.some((t) => /^Full advertising workflow.*Research/.test(t)));
     check('B.' + plan + '.4 Research shown correctly for this plan (' + (plan === 'free' ? 'not included' : 'included') + ')', researchOk && (plan !== 'free') === await page.evaluate((p) => orvPlanHas(p, 'research'), plan), JSON.stringify(curFeats));
 

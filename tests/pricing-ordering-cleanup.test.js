@@ -21,7 +21,7 @@ function check(name, cond, detail) {
 
 // The canonical paid-plan taxonomy order (js/plans.js ORIVEN_PLANS features /
 // excludedFeatures, V10): the workflow, then capabilities in the order plans add them.
-const CANONICAL_ORDER = ['Full advertising workflow', 'Research', 'Automations', 'Oriven Chat', 'Notifications', 'Priority Support'];
+const CANONICAL_ORDER = ['Limited advertising workflow', 'Full advertising workflow', 'Oriven Chat', 'In-app notifications', 'Priority Support', 'Weekly AI Performance Report'];
 
 async function gotoPricingView(page) {
   const consoleErrors = [];
@@ -95,32 +95,28 @@ async function main() {
     for (let i = 0; i < 4; i++) {
       const rows = await getCardRows(page, i);
       check(planNames[i] + '.1 Included rows all appear before excluded rows', assertIncludedBeforeExcluded(rows), JSON.stringify(rows.map((r) => (r.excluded ? '✕' : '✓') + r.label)));
-      // Free lists the individual workflow modules instead of "Full
-      // advertising workflow", so the paid-plan canonical order doesn't apply
-      // to it. Its own exact expected order is verified separately (Free.3).
-      if (planNames[i] !== 'Free') {
-        check(planNames[i] + '.2 Canonical taxonomy order preserved within each group', assertCanonicalOrderWithinGroups(rows), JSON.stringify(rows.map((r) => r.label)));
-      }
+      // Every card, Free included, uses the same one-row workflow + the same feature order.
+      check(planNames[i] + '.2 Canonical taxonomy order preserved within each group', assertCanonicalOrderWithinGroups(rows), JSON.stringify(rows.map((r) => r.label)));
     }
 
     // Exact expected sequences per the task's explicit spec (section 3-6)
     const freeRows = await getCardRows(page, 0);
     const tag = (rows) => JSON.stringify(rows.map((r) => (r.excluded ? '✕' : '✓') + r.label));
-    check('Free.3 Exact order: Control Center, Create, Launch, Campaigns, then not included Research, Automations, Oriven Chat',
-      tag(freeRows) === JSON.stringify(['✓Control Center', '✓Create', '✓Launch', '✓Campaigns', '✕Research', '✕Automations', '✕Oriven Chat']), tag(freeRows));
+    check('Free.3 Limited workflow (Control Center, Create, Launch, Campaigns), then not included: Oriven Chat, In-app notifications, Priority Support, Weekly AI Performance Report',
+      tag(freeRows) === JSON.stringify(['✓Limited advertising workflow', '✕Oriven Chat', '✕In-app notifications', '✕Priority Support', '✕Weekly AI Performance Report']) && (freeRows[0] || {}).cost === 'Control Center, Create, Launch and Campaigns', tag(freeRows));
 
     const starterRows = await getCardRows(page, 1);
     // Research and Automations are included through the full workflow (its note lists them), not as separate rows.
     check('Starter.3 Full workflow (incl. Research and Automations) included; Oriven Chat is excluded',
-      tag(starterRows) === JSON.stringify(['✓Full advertising workflow', '✕Oriven Chat', '✕Notifications', '✕Priority Support']) && /Research/.test((starterRows[0] || {}).cost || '') && /Automations/.test((starterRows[0] || {}).cost || ''), tag(starterRows));
-    check('Starter.4 Exactly 1 included then 3 excluded', starterRows.filter((r) => !r.excluded).length === 1 && starterRows.filter((r) => r.excluded).length === 3, tag(starterRows));
+      tag(starterRows) === JSON.stringify(['✓Full advertising workflow', '✕Oriven Chat', '✕In-app notifications', '✕Priority Support', '✕Weekly AI Performance Report']) && /Research/.test((starterRows[0] || {}).cost || '') && /Automations/.test((starterRows[0] || {}).cost || ''), tag(starterRows));
+    check('Starter.4 Exactly 1 included then 4 excluded', starterRows.filter((r) => !r.excluded).length === 1 && starterRows.filter((r) => r.excluded).length === 4, tag(starterRows));
 
     const creatorRows = await getCardRows(page, 2);
-    check('Creator.3 Exactly 2 included then 2 excluded (Notifications, Priority Support)', tag(creatorRows) === JSON.stringify(['✓Full advertising workflow', '✓Oriven Chat', '✕Notifications', '✕Priority Support']), tag(creatorRows));
+    check('Creator.3 Workflow, Oriven Chat, In-app notifications included; Priority Support and the weekly report excluded', tag(creatorRows) === JSON.stringify(['✓Full advertising workflow', '✓Oriven Chat', '✓In-app notifications', '✕Priority Support', '✕Weekly AI Performance Report']), tag(creatorRows));
     check('Creator.4 Research is included (via the full workflow, never listed as excluded)', !creatorRows.some((r) => r.excluded && r.label === 'Research') && /Research/.test((creatorRows.find((r) => r.label === 'Full advertising workflow') || {}).cost || ''));
 
     const proRows = await getCardRows(page, 3);
-    check('Professional.3 All 4 rows included, zero excluded', tag(proRows) === JSON.stringify(['✓Full advertising workflow', '✓Oriven Chat', '✓Notifications', '✓Priority Support']), tag(proRows));
+    check('Professional.3 All 5 rows included, zero excluded', tag(proRows) === JSON.stringify(['✓Full advertising workflow', '✓Oriven Chat', '✓In-app notifications', '✓Priority Support', '✓Weekly AI Performance Report']), tag(proRows));
     check('Professional.4 No excluded group rendered at all', await page.locator('#lpPricingGrid .ov-pc').nth(3).locator('.ov-pc-feat-excluded').count() === 0);
 
     // Credit costs: the pricing view's cost table against the canonical registry.
@@ -148,7 +144,7 @@ async function main() {
 
     // Website Intelligence not forced into the cards
     check('WI.1 Website Intelligence not added as a pricing-card row', !/Website Intelligence/i.test(await page.locator('#lpPricingGrid').textContent()));
-    check('WI.2 Only the workflow row carries a secondary line (no forced per-feature cost sub-labels)', [freeRows, starterRows, creatorRows, proRows].every((rows) => rows.every((r) => r.cost === null || r.label === 'Full advertising workflow')));
+    check('WI.2 Only the workflow rows and the weekly report carry a secondary line (no per-feature cost sub-labels)', [freeRows, starterRows, creatorRows, proRows].every((rows) => rows.every((r) => r.cost === null || /advertising workflow|Weekly AI Performance Report/.test(r.label))) && ![freeRows, starterRows, creatorRows, proRows].some((rows) => rows.some((r) => /credits/.test(r.cost || ''))));
 
     check('Desktop.1 No horizontal overflow at 1440', await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2));
     check('Desktop.2 Console errors clean', consoleErrors.filter((e) => !/401|404|ERR_FAILED|ERR_ABORTED/i.test(e)).length === 0, JSON.stringify(consoleErrors));
