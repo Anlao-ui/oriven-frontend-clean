@@ -203,7 +203,8 @@ var ORIVEN_PLANS = {
       creativeMgmt: true, business: true, research: true, autopilot: true,
       notifications: false, prioritySupport: false
     },
-    features: ["Full advertising workflow", "Research", "Automations"],
+    // Research and Automations are part of the full workflow (its note lists all six steps).
+    features: ["Full advertising workflow"],
     excludedFeatures: ["Oriven Chat", "Notifications", "Priority Support"]
   },
 

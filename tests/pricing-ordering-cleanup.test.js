@@ -110,9 +110,10 @@ async function main() {
       tag(freeRows) === JSON.stringify(['✓Control Center', '✓Create', '✓Launch', '✓Campaigns', '✕Research', '✕Automations', '✕Oriven Chat']), tag(freeRows));
 
     const starterRows = await getCardRows(page, 1);
-    check('Starter.3 Research and Automations are INCLUDED (from Starter); Oriven Chat is excluded',
-      tag(starterRows) === JSON.stringify(['✓Full advertising workflow', '✓Research', '✓Automations', '✕Oriven Chat', '✕Notifications', '✕Priority Support']), tag(starterRows));
-    check('Starter.4 Exactly 3 included then 3 excluded', starterRows.filter((r) => !r.excluded).length === 3 && starterRows.filter((r) => r.excluded).length === 3, tag(starterRows));
+    // Research and Automations are included through the full workflow (its note lists them), not as separate rows.
+    check('Starter.3 Full workflow (incl. Research and Automations) included; Oriven Chat is excluded',
+      tag(starterRows) === JSON.stringify(['✓Full advertising workflow', '✕Oriven Chat', '✕Notifications', '✕Priority Support']) && /Research/.test((starterRows[0] || {}).cost || '') && /Automations/.test((starterRows[0] || {}).cost || ''), tag(starterRows));
+    check('Starter.4 Exactly 1 included then 3 excluded', starterRows.filter((r) => !r.excluded).length === 1 && starterRows.filter((r) => r.excluded).length === 3, tag(starterRows));
 
     const creatorRows = await getCardRows(page, 2);
     check('Creator.3 Exactly 2 included then 2 excluded (Notifications, Priority Support)', tag(creatorRows) === JSON.stringify(['✓Full advertising workflow', '✓Oriven Chat', '✕Notifications', '✕Priority Support']), tag(creatorRows));
