@@ -4143,7 +4143,6 @@ function lpHandleLogin(e){
   else window.location.href = '/login';
 }
 
-if(window._pubView === 'landing'){
 // â”€â”€ Generic count-up â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // One shared mechanism reused by Pricing, Section 04 stats and Section 05
 // KPIs — reads data-count-target/decimals/prefix/suffix off whatever
@@ -4226,20 +4225,27 @@ function ovInitCountUp(container, opts){
     });
   }
 
-  new IntersectionObserver(function(entries){
+  var io = new IntersectionObserver(function(entries){
     if(entries[0].isIntersecting){
       resetToZero();
       runCountUp();
+      if(opts.once) io.disconnect(); // count up once, then the exact values stay
     } else {
       animId++; // invalidate any ticks still in flight from this run
       resetToZero();
     }
-  }, { root: root, threshold: threshold }).observe(container);
+  }, { root: root, threshold: threshold });
+  io.observe(container);
 }
+// /pricing (its own prerendered page): the cards are drawn earlier, before
+// this script; give them the same count-up the landing page uses.
+if(window._pubView === 'pricing') ovInitCountUp(document.getElementById('lpPricingGrid'), { duration: 1100, stagger: 120, threshold: 0.2, once: true });
+
+if(window._pubView === 'landing'){
 
 // â”€â”€ Pricing cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 renderLPPricingCards(document.getElementById('lpPricingGrid'));
-ovInitCountUp(document.getElementById('lpPricingGrid'), { duration: 1100, stagger: 120, threshold: 0.2 });
+ovInitCountUp(document.getElementById('lpPricingGrid'), { duration: 1100, stagger: 120, threshold: 0.2, once: true });
 
 // Final Landing Pricing Cleanup pass — the "How credits work" mini-strip
 // (renderPricingCreditsGrid, formerly here) was removed: the relevant

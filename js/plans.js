@@ -370,7 +370,7 @@ function renderLPPricingCards(containerEl){
       // the site already uses — no GSAP/SPA-view-swap timing fragility.
       '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '" data-observe' + delayAttr + '>',
         '<div class="ov-pc-head">' + badge + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
-        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€0.00</span><span>/mo</span></div>',
+        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€' + plan.price.toFixed(2) + '</span><span>/mo</span></div>',
           // Final Pricing Cleanup pass — credit allowance now shown ONCE,
           // directly under the price (was previously only repeated at the
           // bottom of the card as "Includes N credits / cycle", removed).
