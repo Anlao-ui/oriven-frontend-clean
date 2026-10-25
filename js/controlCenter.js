@@ -16,6 +16,7 @@
 
   var STR = {
     en: {
+      offersTitle: 'Hear about new features and offers?', offersBody: 'Get product updates, new features, tips, and special offers from OrivenAI by email. You can unsubscribe anytime.', offersYes: 'Yes, email me', offersNo: 'No thanks', offersDone: 'Thanks. You’ll get product updates, tips, and special offers by email. You can unsubscribe anytime in Settings.', offersErr: 'Couldn’t save that. Please try again.',
       edClose: 'Close', edDiscardT: 'Discard your changes?', edDiscardB: 'Some changes here aren’t saved yet. If you close now, they’re lost.', edDiscard: 'Discard changes', edKeep: 'Keep editing',
       eyebrow: 'Control Center', morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening',
       createCampaign: 'Create campaign', yourBusiness: 'Your business',
@@ -74,6 +75,7 @@
       plat: { connected: 'connected', notConnected: 'not connected', unknown: 'status unavailable' },
     },
     nl: {
+      offersTitle: 'Op de hoogte blijven van nieuwe functies en aanbiedingen?', offersBody: 'Ontvang productupdates, nieuwe functies, tips en speciale aanbiedingen van OrivenAI per e-mail. Je kunt je altijd afmelden.', offersYes: 'Ja, mail me', offersNo: 'Nee, bedankt', offersDone: 'Bedankt. Je ontvangt productupdates, tips en speciale aanbiedingen per e-mail. Je kunt je altijd afmelden via Instellingen.', offersErr: 'Opslaan is niet gelukt. Probeer het opnieuw.',
       edClose: 'Sluiten', edDiscardT: 'Wijzigingen weggooien?', edDiscardB: 'Sommige wijzigingen zijn nog niet opgeslagen. Als je nu sluit, gaan ze verloren.', edDiscard: 'Wijzigingen weggooien', edKeep: 'Verder bewerken',
       eyebrow: 'Control Center', morning: 'Goedemorgen', afternoon: 'Goedemiddag', evening: 'Goedenavond',
       createCampaign: 'Campagne maken', yourBusiness: 'Je bedrijf',
@@ -125,6 +127,7 @@
       plat: { connected: 'gekoppeld', notConnected: 'niet gekoppeld', unknown: 'status onbekend' },
     },
     de: {
+      offersTitle: 'Über neue Funktionen und Angebote informiert werden?', offersBody: 'Erhalte Produkt-Updates, neue Funktionen, Tipps und Sonderangebote von OrivenAI per E-Mail. Du kannst dich jederzeit abmelden.', offersYes: 'Ja, schick mir E-Mails', offersNo: 'Nein, danke', offersDone: 'Danke. Du bekommst Produkt-Updates, Tipps und Sonderangebote per E-Mail. Abmelden kannst du dich jederzeit in den Einstellungen.', offersErr: 'Das konnte nicht gespeichert werden. Bitte versuch es noch einmal.',
       edClose: 'Schließen', edDiscardT: 'Änderungen verwerfen?', edDiscardB: 'Einige Änderungen sind noch nicht gespeichert. Wenn du jetzt schließt, gehen sie verloren.', edDiscard: 'Änderungen verwerfen', edKeep: 'Weiter bearbeiten',
       eyebrow: 'Control Center', morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend',
       createCampaign: 'Kampagne erstellen', yourBusiness: 'Dein Unternehmen',
@@ -176,6 +179,7 @@
       plat: { connected: 'verbunden', notConnected: 'nicht verbunden', unknown: 'Status unbekannt' },
     },
     fr: {
+      offersTitle: 'Être informé des nouveautés et des offres ?', offersBody: 'Recevez par e-mail les nouveautés produit, les nouvelles fonctionnalités, des conseils et les offres spéciales d’OrivenAI. Vous pouvez vous désabonner à tout moment.', offersYes: 'Oui, envoyez-moi des e-mails', offersNo: 'Non merci', offersDone: 'Merci. Vous recevrez par e-mail les nouveautés produit, des conseils et les offres spéciales. Vous pouvez vous désabonner à tout moment dans les Paramètres.', offersErr: 'Impossible d’enregistrer. Veuillez réessayer.',
       edClose: 'Fermer', edDiscardT: 'Abandonner vos modifications ?', edDiscardB: 'Certaines modifications ne sont pas encore enregistrées. Si vous fermez maintenant, elles seront perdues.', edDiscard: 'Abandonner les modifications', edKeep: 'Continuer la modification',
       eyebrow: 'Control Center', morning: 'Bonjour', afternoon: 'Bon après-midi', evening: 'Bonsoir',
       createCampaign: 'Créer une campagne', yourBusiness: 'Votre entreprise',
@@ -227,6 +231,7 @@
       plat: { connected: 'connecté', notConnected: 'non connecté', unknown: 'statut indisponible' },
     },
     es: {
+      offersTitle: '¿Quieres enterarte de novedades y ofertas?', offersBody: 'Recibe por correo novedades del producto, nuevas funciones, consejos y ofertas especiales de OrivenAI. Puedes darte de baja en cualquier momento.', offersYes: 'Sí, envíame correos', offersNo: 'No, gracias', offersDone: 'Gracias. Recibirás por correo novedades del producto, consejos y ofertas especiales. Puedes darte de baja en cualquier momento en Ajustes.', offersErr: 'No se pudo guardar. Inténtalo de nuevo.',
       edClose: 'Cerrar', edDiscardT: '¿Descartar los cambios?', edDiscardB: 'Algunos cambios aún no se han guardado. Si cierras ahora, se perderán.', edDiscard: 'Descartar cambios', edKeep: 'Seguir editando',
       eyebrow: 'Control Center', morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches',
       createCampaign: 'Crear campaña', yourBusiness: 'Tu negocio',
@@ -278,6 +283,7 @@
       plat: { connected: 'conectada', notConnected: 'sin conectar', unknown: 'estado no disponible' },
     },
     pt: {
+      offersTitle: 'Quer saber de novas funcionalidades e ofertas?', offersBody: 'Receba por email novidades do produto, novas funcionalidades, dicas e ofertas especiais do OrivenAI. Pode cancelar a subscrição a qualquer momento.', offersYes: 'Sim, enviem-me emails', offersNo: 'Não, obrigado', offersDone: 'Obrigado. Vai receber por email novidades do produto, dicas e ofertas especiais. Pode cancelar a subscrição a qualquer momento nas Definições.', offersErr: 'Não foi possível guardar. Tente novamente.',
       edClose: 'Fechar', edDiscardT: 'Descartar as alterações?', edDiscardB: 'Algumas alterações ainda não foram guardadas. Se fechar agora, perdem-se.', edDiscard: 'Descartar alterações', edKeep: 'Continuar a editar',
       eyebrow: 'Control Center', morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite',
       createCampaign: 'Criar campanha', yourBusiness: 'Seu negócio',
@@ -371,6 +377,7 @@
     ];
   }
   function renderSetup() {
+    offersLoad();
     var el = document.getElementById('ccxSetup'); if (!el) return;
     var steps = setupState();
     var known = steps.every(function (s) { return s.done !== null; });
@@ -414,6 +421,53 @@
   function needsToggle() { expanded = !expanded; needsSync(); }
   function needsReset() { expanded = false; }
 
+  // ── Email opt-in card (product updates, tips and special offers) ──
+  // Shown once, only when the server says so (GET /api/email/preferences →
+  // offersInvite: Free plan, address not bounced/complained, consent doesn't
+  // cover offers yet, not dismissed). Nothing is recorded until the person
+  // chooses: "Yes" → PUT {marketing:true, source:'offers_invite'} (consent +
+  // timestamp, server side); "No thanks" → the dismissal is stored in their
+  // own profile preferences (every device), consent untouched.
+  var offers = { state: 'idle', promise: null }; // idle | ask | done | hidden
+  function offersPaint() {
+    var el = document.getElementById('ccxOffers'); if (!el) return;
+    if (offers.state !== 'ask' && offers.state !== 'done') { el.hidden = true; el.innerHTML = ''; return; }
+    el.hidden = false;
+    if (offers.state === 'done') { el.innerHTML = '<p class="ccx-offers-done" role="status">' + esc(T('offersDone')) + '</p>'; return; }
+    el.innerHTML = '<div class="ccx-card-hd"><h2 class="ccx-h" id="ccxOffersH">' + esc(T('offersTitle')) + '</h2></div>' +
+      '<p class="ccx-offers-body">' + esc(T('offersBody')) + '</p>' +
+      '<p class="ccx-offers-err" role="alert" hidden></p>' +
+      '<div class="ccx-offers-acts"><button type="button" class="ccx-btn ccx-btn-primary" data-offers="yes">' + esc(T('offersYes')) + '</button>' +
+      '<button type="button" class="ccx-btn ccx-btn-ghost" data-offers="no">' + esc(T('offersNo')) + '</button></div>';
+    el.querySelectorAll('[data-offers]').forEach(function (b) { b.addEventListener('click', function () { offersChoose(b.getAttribute('data-offers'), el); }); });
+  }
+  function offersLoad() {
+    if (offers.promise || typeof window.apiFetch !== 'function') return offers.promise;
+    if (typeof _apiToken === 'undefined' || !_apiToken) return null; // not signed in yet
+    offers.promise = window.apiFetch('/api/email/preferences').then(function (r) {
+      // Only a real answer is kept; before sign-in (401) or on an error the
+      // next render asks again.
+      if (!r || !r.ok || !r.data) { offers.promise = null; offers.state = 'hidden'; offersPaint(); return; }
+      offers.state = r.data.available !== false && r.data.offersInvite === true ? 'ask' : 'hidden';
+      offersPaint();
+    }).catch(function () { offers.promise = null; offers.state = 'hidden'; offersPaint(); });
+    return offers.promise;
+  }
+  function offersChoose(choice, el) {
+    var btns = el.querySelectorAll('[data-offers]'); btns.forEach(function (b) { b.disabled = true; });
+    var req = choice === 'yes'
+      ? window.apiFetch('/api/email/preferences', { method: 'PUT', body: JSON.stringify({ marketing: true, source: 'offers_invite' }) })
+      : window.apiFetch('/api/email/preferences/offers-invite/dismiss', { method: 'POST', body: '{}' });
+    return Promise.resolve(req).then(function (r) {
+      if (!r || !r.ok) throw new Error('save failed');
+      offers.state = choice === 'yes' ? 'done' : 'hidden';
+      offersPaint();
+    }).catch(function () {
+      btns.forEach(function (b) { b.disabled = false; });
+      var err = el.querySelector('.ccx-offers-err'); if (err) { err.textContent = T('offersErr'); err.hidden = false; }
+    });
+  }
+
   // ── Header status (honest about sources) ─────────────────────────
   // runningOnPlatforms: number from the live platform read (orivenOpsPages)
   // or null when it isn't known — then no "running" claim is made.
@@ -437,12 +491,13 @@
     try { if (typeof window._bicRender === 'function') window._bicRender(); } catch (_) {}
     try { if (typeof window._bizRenderCentralIcon === 'function') window._bizRenderCentralIcon(); } catch (_) {}
     try { if (window.orvWorkspace && orvWorkspace.ops && orvWorkspace.ops.planning && orvWorkspace.ops.planning.paintStrip) orvWorkspace.ops.planning.paintStrip(); } catch (_) {}
-    renderSetup(); needsSync();
+    renderSetup(); needsSync(); offersPaint();
   }
 
   window.orvCC = { T: T, N: N, list: list, rel: rel, esc: esc, greetingKey: greetingKey, renderSetup: renderSetup, setupState: setupState,
     needsSync: needsSync, needsToggle: needsToggle, needsReset: needsReset, setRunning: setRunning, statusLine: statusLine, relabel: relabel,
-    reset: function () { running = null; expanded = false; }, _STR: STR };
+    offersLoad: offersLoad,
+    reset: function () { running = null; expanded = false; offers = { state: 'idle', promise: null }; offersPaint(); }, _STR: STR };
 
   if (typeof window.applyLanguage === 'function' && !window.applyLanguage._cc) {
     var orig = window.applyLanguage;

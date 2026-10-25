@@ -1229,6 +1229,10 @@
                   <!-- Setup — real completion from the business profile, the
                        connection status and OrivenAI's campaign records. Hidden
                        once every step is done. -->
+                  <!-- One-time email opt-in (product updates, tips and special offers):
+                       only when GET /api/email/preferences says offersInvite. Nothing
+                       is recorded until the person chooses (controlCenter.js). -->
+                  <section class="ccx-card ccx-offers" id="ccxOffers" hidden aria-labelledby="ccxOffersH"></section>
                   <section class="ccx-card ccx-setup" id="ccxSetup" hidden aria-label="Get set up"></section>
                   <!-- Planning — filled by orivenPlan.js; full planner: bizGoTo('planning'). -->
                   <section class="ccx-card bic-plan" id="bicPlanStrip" aria-label="Advertising plan"></section>
@@ -6453,6 +6457,12 @@
                 <div class="smd-tgl-sub">Receive product updates, new features, tips, and special offers from OrivenAI. Account, security and billing emails are always sent.</div>
               </div>
               <div class="tgl" id="tglMarketingEmail" onclick="orvToggleMarketingEmail(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();orvToggleMarketingEmail(this);}" role="switch" aria-checked="false" aria-labelledby="tglMarketingEmailLbl" aria-disabled="true" tabindex="0"></div>
+            </div>
+            <!-- Signup consent covers tips and product updates only: offered,
+                 never assumed (orvConfirmOffersConsent, settings.js). -->
+            <div class="smd-field-help" id="emailOffersConfirm" style="display:none;margin-top:10px">
+              <span data-i18n="emailOffersNote">Your current consent covers tips and product updates only. Special offers aren’t included.</span>
+              <div style="margin-top:8px"><button type="button" class="btn btn-sm" id="emailOffersBtn" onclick="orvConfirmOffersConsent(this)" data-i18n="emailOffersBtn">Also send me special offers</button></div>
             </div>
             <div class="smd-field-help" id="emailPrefsHint" role="status" style="display:none"></div>
           </div>

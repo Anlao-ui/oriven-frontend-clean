@@ -315,6 +315,12 @@ button.ccx-step-btn:hover { background: var(--ccx-raise); }
 .ccx-auto { background: transparent; }
 
 /* Get set up — progress-focused. */
+/* One-time email opt-in card (controlCenter.js offersPaint). */
+.ccx-offers { border-color: rgba(182, 255, 59, .18); }
+.ccx-offers-body { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--ccx-ink); }
+.ccx-offers-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.ccx-offers-err { margin: 0; font-size: 12.5px; color: #FF7A6E; }
+.ccx-offers-done { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--ccx-ink); }
 .ccx-setup { border-color: rgba(182, 255, 59, .18); background: linear-gradient(180deg, rgba(182, 255, 59, .045), rgba(182, 255, 59, 0) 70%); }
 
 /* Advertising plan — a planning shortcut, not a data card. */

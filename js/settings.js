@@ -990,6 +990,7 @@ var LANG_STRINGS = {
     smdNotifApFailTitle:"Automation failures", smdNotifApFailSub:"Notify me when an automation action fails.",
     smdNotifDeployTitle:"Launch & Deployment Failures", smdNotifDeploySub:"Notify me when ORIVEN cannot complete a campaign deployment.",
     smdNotifBillTitle:"Credits & Billing", smdNotifBillSub:"Notify me about important credit or billing issues.",
+    emailOffersNote:"Your current consent covers tips and product updates only. Special offers aren’t included.", emailOffersBtn:"Also send me special offers", emailOffersDone:"Done. You’ll also get special offers. You can unsubscribe anytime.",
     smdNotifWeeklyTitle:"Weekly AI Performance Report", smdNotifWeeklySub:"Email me a report on my connected ad accounts every Monday.",
     smdNameLabel:"Name", smdNameHelp:"The name associated with your ORIVEN account.",
     smdSignedInWith:"Signed in with", smdEmailLabel:"Email Address", smdEmailHelp:"The email address used to sign in to ORIVEN.",
@@ -1379,6 +1380,7 @@ var LANG_STRINGS = {
     smdNotifGenTitle:"Génération terminée", smdNotifGenSub:"Vous avertir lorsque l'IA termine de générer du contenu.",
     smdNotifPubTitle:"Publication terminée", smdNotifPubSub:"Vous avertir lorsque le contenu a été publié.",
     smdNotifBillTitle:"Mises à jour de facturation", smdNotifBillSub:"Alertes pour les renouvellements et l'activité de paiement.",
+    emailOffersNote:"Votre consentement actuel couvre uniquement les conseils et les nouveautés produit. Les offres spéciales n’en font pas partie.", emailOffersBtn:"M’envoyer aussi les offres spéciales", emailOffersDone:"C’est fait. Vous recevrez aussi les offres spéciales. Vous pouvez vous désabonner à tout moment.",
     smdNotifWeeklyTitle:"Rapport de performance IA hebdomadaire", smdNotifWeeklySub:"M’envoyer chaque lundi un rapport sur mes comptes publicitaires connectés.", smdNotifChannelNote:"Ces options règlent le centre de notifications dans l’app (Creator et Professional). Les e-mails d’automatisation se règlent dans Automations → Settings.",
     smdNotifUpdTitle:"Mises à jour produit", smdNotifUpdSub:"Annonces in-app sur les nouvelles fonctionnalités.",
     smdNotifApTitle:"Approbations des automatisations", smdNotifApSub:"Me prévenir quand une automatisation a besoin de mon approbation.",
@@ -1730,6 +1732,7 @@ var LANG_STRINGS = {
     smdNotifGenTitle:"Generatie voltooid", smdNotifGenSub:"Waarschuw me wanneer AI klaar is met content genereren.",
     smdNotifPubTitle:"Publicatie voltooid", smdNotifPubSub:"Waarschuw me wanneer content is gepubliceerd.",
     smdNotifBillTitle:"Facturatie-updates", smdNotifBillSub:"Meldingen voor verlengingen en betalingsactiviteit.",
+    emailOffersNote:"Je huidige toestemming geldt alleen voor tips en productupdates. Speciale aanbiedingen vallen er niet onder.", emailOffersBtn:"Stuur me ook speciale aanbiedingen", emailOffersDone:"Gelukt. Je krijgt voortaan ook speciale aanbiedingen. Je kunt je altijd afmelden.",
     smdNotifWeeklyTitle:"Wekelijks AI-prestatierapport", smdNotifWeeklySub:"Stuur me elke maandag een rapport over mijn gekoppelde advertentieaccounts.", smdNotifChannelNote:"Deze instellingen gelden voor het meldingencentrum in de app (Creator en Professional). E-mails van automatiseringen stel je in bij Automations → Settings.",
     smdNotifUpdTitle:"Productupdates", smdNotifUpdSub:"In-app aankondigingen over nieuwe functies.",
     smdNotifApTitle:"Goedkeuringen voor automatiseringen", smdNotifApSub:"Waarschuw me wanneer een automatisering mijn goedkeuring nodig heeft.",
@@ -2037,6 +2040,7 @@ var LANG_STRINGS = {
     smdNotifGenTitle:"Generación completa", smdNotifGenSub:"Avisarme cuando la IA termine de generar contenido.",
     smdNotifPubTitle:"Publicación completa", smdNotifPubSub:"Avisarme cuando el contenido haya sido publicado.",
     smdNotifBillTitle:"Actualizaciones de facturación", smdNotifBillSub:"Alertas de renovaciones y actividad de pago.",
+    emailOffersNote:"Tu consentimiento actual solo cubre consejos y novedades del producto. Las ofertas especiales no están incluidas.", emailOffersBtn:"Enviarme también ofertas especiales", emailOffersDone:"Listo. También recibirás ofertas especiales. Puedes darte de baja en cualquier momento.",
     smdNotifWeeklyTitle:"Informe semanal de rendimiento con IA", smdNotifWeeklySub:"Enviarme cada lunes un informe de mis cuentas publicitarias conectadas.", smdNotifChannelNote:"Estas opciones controlan el centro de notificaciones de la app (Creator y Professional). Los correos de automatizaciones se configuran en Automations → Settings.",
     smdNotifUpdTitle:"Actualizaciones de producto", smdNotifUpdSub:"Anuncios in-app sobre nuevas funciones.",
     smdNotifApTitle:"Aprobaciones de automatizaciones", smdNotifApSub:"Avisarme cuando una automatización necesite mi aprobación.",
@@ -2344,6 +2348,7 @@ var LANG_STRINGS = {
     smdNotifGenTitle:"Geração concluída", smdNotifGenSub:"Avisar quando a IA terminar de gerar conteúdo.",
     smdNotifPubTitle:"Publicação concluída", smdNotifPubSub:"Avisar quando o conteúdo tiver sido publicado.",
     smdNotifBillTitle:"Atualizações de cobrança", smdNotifBillSub:"Alertas de renovações e atividade de pagamento.",
+    emailOffersNote:"O seu consentimento atual abrange apenas dicas e novidades do produto. As ofertas especiais não estão incluídas.", emailOffersBtn:"Enviar-me também ofertas especiais", emailOffersDone:"Feito. Passará a receber também ofertas especiais. Pode cancelar a subscrição a qualquer momento.",
     smdNotifWeeklyTitle:"Relatório semanal de desempenho com IA", smdNotifWeeklySub:"Enviar-me todas as segundas-feiras um relatório das minhas contas de anúncios ligadas.", smdNotifChannelNote:"Estas opções controlam o centro de notificações na app (Creator e Professional). Os emails de automações configuram-se em Automations → Settings.",
     smdNotifUpdTitle:"Atualizações do produto", smdNotifUpdSub:"Anúncios no app sobre novos recursos.",
     smdNotifApTitle:"Aprovações de automações", smdNotifApSub:"Avisar quando uma automação precisar da minha aprovação.",
@@ -2651,6 +2656,7 @@ var LANG_STRINGS = {
     smdNotifGenTitle:"Generierung abgeschlossen", smdNotifGenSub:"Benachrichtige mich, wenn die KI die Inhaltserstellung abgeschlossen hat.",
     smdNotifPubTitle:"Veröffentlichung abgeschlossen", smdNotifPubSub:"Benachrichtige mich, wenn Inhalte veröffentlicht wurden.",
     smdNotifBillTitle:"Abrechnungsaktualisierungen", smdNotifBillSub:"Hinweise zu Verlängerungen und Zahlungsaktivitäten.",
+    emailOffersNote:"Deine aktuelle Einwilligung gilt nur für Tipps und Produkt-Updates. Sonderangebote sind nicht enthalten.", emailOffersBtn:"Schick mir auch Sonderangebote", emailOffersDone:"Erledigt. Du bekommst jetzt auch Sonderangebote. Du kannst dich jederzeit abmelden.",
     smdNotifWeeklyTitle:"Wöchentlicher KI-Leistungsbericht", smdNotifWeeklySub:"Schick mir jeden Montag einen Bericht zu meinen verbundenen Werbekonten.", smdNotifChannelNote:"Diese Optionen steuern das Benachrichtigungscenter in der App (Creator und Professional). Automations-E-Mails stellst du unter Automations → Settings ein.",
     smdNotifUpdTitle:"Produktaktualisierungen", smdNotifUpdSub:"In-App-Ankündigungen zu neuen Funktionen.",
     smdNotifApTitle:"Freigaben für Automatisierungen", smdNotifApSub:"Benachrichtige mich, wenn eine Automatisierung meine Freigabe braucht.",
@@ -2954,6 +2960,9 @@ async function orvLoadEmailPrefs(){
       return;
     }
     _emailPrefsSet(el, r.data.marketing === true);
+    // Signup consent ("tips and product updates") doesn't cover special
+    // offers; it's never upgraded silently — the person can confirm here.
+    _emailOffersShow(r.data.marketing === true && r.data.offers === false && !r.data.suppressed); // only when the server says so (older backends send no "offers")
     if(r.data.suppressed){
       _emailPrefsHint("We can’t send email to your address because earlier emails bounced or were reported. Contact support to fix this.");
       return;
@@ -2981,12 +2990,40 @@ async function orvToggleMarketingEmail(el){
       }
       return;
     }
+    _emailOffersShow(false); // switching on records consent under the wording above (offers included); off removes it
     toast(want ? "Marketing emails turned on. You can turn them off anytime." : "Marketing emails turned off.");
   } catch(_){
     _emailPrefsSet(el, !want);
     toast("Couldn’t save your email preference.", "warn");
   } finally {
     _emailPrefsBusy = false;
+  }
+}
+
+// "Also send me special offers" — for consent given at signup, which only
+// named tips and product updates. Records the person's explicit choice with
+// the existing consent function (server: source 'settings', timestamp now).
+function _emailOffersShow(on){
+  var box = document.getElementById("emailOffersConfirm");
+  if(box) box.style.display = on ? "" : "none";
+}
+async function orvConfirmOffersConsent(btn){
+  if(!btn || _emailPrefsBusy) return;
+  _emailPrefsBusy = true; btn.disabled = true;
+  try {
+    var r = await apiFetch("/api/email/preferences", { method: "PUT", body: JSON.stringify({ marketing: true, source: "settings" }) });
+    if(!r.ok){
+      if(r.data && r.data.code === "EMAIL_SUPPRESSED") _emailPrefsHint("We can’t send email to your address because earlier emails bounced or were reported. Contact support to fix this.");
+      else toast((r.data && r.data.error) || "Couldn’t save your email preference.", "warn");
+      return;
+    }
+    _emailOffersShow(false);
+    var el = document.getElementById("tglMarketingEmail"); if(el) _emailPrefsSet(el, true);
+    toast(t("emailOffersDone"));
+  } catch(_){
+    toast("Couldn’t save your email preference.", "warn");
+  } finally {
+    _emailPrefsBusy = false; btn.disabled = false;
   }
 }
 
