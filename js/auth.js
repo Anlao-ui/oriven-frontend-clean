@@ -12,11 +12,9 @@ var _dbPrimaryGoal        = null;  // null = not yet loaded/not yet chosen | pro
 // â”€â”€ Route helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function _setAppRoute(route){
+  // No manual page_view: visiting /app is not a signup (the Signup conversion
+  // is sent by orvConsent.trackSignupConversion after /api/signup succeeds).
   try { history.replaceState(null, "", route); } catch(_){}
-  // Fire a page_view so Google Ads URL-based conversions trigger on /app
-  if(typeof gtag === "function"){
-    gtag("event", "page_view", { page_path: route, page_title: document.title });
-  }
 }
 
 // â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

@@ -1,8 +1,8 @@
 /* ════════════════════════════════════════════════════════════════
-   Cookie consent + Google Ads tag (js/consent.js, AW-18112493101).
+   Cookie consent + Google Ads tag (js/consent.js, AW-18538836764).
    Checks: Consent Mode v2 defaults are denied; gtag.js is not loaded before
    advertising consent; Accept loads it exactly once with config
-   AW-18112493101; a stored choice is honoured on the next visit; Reject /
+   AW-18538836764; a stored choice is honoured on the next visit; Reject /
    withdrawing denies consent and removes Google cookies; every page offers a
    "Cookie settings" link (the app: Settings → Account); no conversion event
    is sent. Fenced browser (tests/_fence.js); gtag.js is answered with a local
@@ -44,10 +44,10 @@ async function main() {
   await page.click('.orv-cc [data-cc-act="accept"]'); await page.waitForTimeout(400);
   d = await dl(page);
   const scripts = await gtagScripts(page);
-  check('Accept → gtag.js requested once, with id AW-18112493101', scripts.length === 1 && /id=AW-18112493101$/.test(scripts[0]) && gtagLoads.length === 1, JSON.stringify(scripts));
+  check('Accept → gtag.js requested once, with id AW-18538836764', scripts.length === 1 && /id=AW-18538836764$/.test(scripts[0]) && gtagLoads.length === 1, JSON.stringify(scripts));
   const iUpd = d.findIndex((e) => e[0] === 'consent' && e[1] === 'update'), iCfg = d.findIndex((e) => e[0] === 'config');
   check('consent update (granted) comes before config', iUpd > 0 && iCfg > iUpd && d[iUpd][2].ad_storage === 'granted' && d[iUpd][2].ad_user_data === 'granted' && d[iUpd][2].ad_personalization === 'granted');
-  check('config AW-18112493101 sent once', d.filter((e) => e[0] === 'config').length === 1 && d[iCfg][1] === 'AW-18112493101');
+  check('config AW-18538836764 sent once', d.filter((e) => e[0] === 'config').length === 1 && d[iCfg][1] === 'AW-18538836764');
   check('choice stored (orv_consent_v1, ads: true)', await page.evaluate(() => JSON.parse(localStorage.getItem('orv_consent_v1')).ads === true));
   check('banner closed', await page.locator('.orv-cc').count() === 0);
   // Accepting again from the settings must not load a second tag.
@@ -112,7 +112,7 @@ async function main() {
   await page.goto(BASE_URL + DBG, { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(400);
   d = await dl(page);
   check('debug, no choice: banner shown, gtag.js not loaded, default denied first', await page.locator('.orv-cc[data-cc-view="banner"]').count() === 1 && (await gtagScripts(page)).length === 0 && gtagLoads.length === n0 && d[0][1] === 'default' && d[0][2].ad_storage === 'denied');
-  check('debug: console explains the tag waits for consent', logs.some((l) => /AW-18112493101 waits for advertising consent/.test(l)), JSON.stringify(logs));
+  check('debug: console explains the tag waits for consent', logs.some((l) => /AW-18538836764 waits for advertising consent/.test(l)), JSON.stringify(logs));
   await page.click('.orv-cc [data-cc-act="accept"]'); await page.waitForTimeout(400);
   d = await dl(page);
   check('debug, Accept: tag initialised exactly once, update(granted) before config', (await gtagScripts(page)).length === 1 && gtagLoads.length === n0 + 1 && d.filter((e) => e[0] === 'config').length === 1 && d.findIndex((e) => e[0] === 'consent' && e[1] === 'update') < d.findIndex((e) => e[0] === 'config'));
@@ -133,7 +133,7 @@ async function main() {
   await page.addInitScript((s) => { if (!localStorage.getItem('orv_consent_v1')) localStorage.setItem('orv_consent_v1', JSON.stringify(s)); }, stored(false));
   await page.goto(BASE_URL + DBG, { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(400);
   await page.click('.orv-cc [data-cc-act="accept"]'); await page.waitForTimeout(400);
-  check('debug + stored reject → Accept: tag loads once with config AW-18112493101', (await gtagScripts(page)).length === 1 && (await dl(page)).filter((e) => e[0] === 'config' && e[1] === 'AW-18112493101').length === 1);
+  check('debug + stored reject → Accept: tag loads once with config AW-18538836764', (await gtagScripts(page)).length === 1 && (await dl(page)).filter((e) => e[0] === 'config' && e[1] === 'AW-18538836764').length === 1);
   await ctx.close();
   // Stored "accept" + debug: no banner, tag loads once.
   ({ ctx, page, errors } = await newPage());

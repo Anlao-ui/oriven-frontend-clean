@@ -8,7 +8,7 @@
                    No cookies, no IP stored, no third party; on by default
                    (low-impact first-party analytics), can be switched off
                    here. Do Not Track / Global Privacy Control switch it off.
-     advertising — Google Ads (gtag.js, AW-18112493101). OFF until the
+     advertising — Google Ads (gtag.js, AW-18538836764). OFF until the
                    visitor explicitly accepts. Until then gtag.js is not
                    even loaded; Google Consent Mode v2 defaults are all
                    "denied" so nothing can be stored or sent before consent.
@@ -20,7 +20,7 @@
 (function () {
   if (window.orvConsent) return;
   var KEY = 'orv_consent_v1';
-  var AW_ID = 'AW-18112493101';
+  var AW_ID = 'AW-18538836764'; // Google Ads account "OrivenAI" — the only one tracked here
   var VERSION = 1;
   var privacySignal = (navigator.globalPrivacyControl === true) || (navigator.doNotTrack === '1') || (window.doNotTrack === '1');
 
@@ -166,6 +166,8 @@
   // queued), and (3) once per account: a localStorage marker plus Google's own
   // de-duplication via transaction_id. Resolves when Google confirms or after
   // a short timeout, so a redirect right after signup doesn't cut the hit off.
+  // Label of the "Aanmelding" action in AW-18538836764 (Google's tag config
+  // lists it under that account). Explicit send_to: never sent to another account.
   var SIGNUP_SEND_TO = AW_ID + '/gI2OCMrExasdEJzmgIhF';
   var signupInFlight = {};
   function trackSignupConversion(userId) {

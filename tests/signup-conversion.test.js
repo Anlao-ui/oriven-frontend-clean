@@ -1,10 +1,11 @@
 /* ════════════════════════════════════════════════════════════════
    Google Ads "Signup" conversion (js/consent.js trackSignupConversion,
-   send_to AW-18112493101/gI2OCMrExasdEJzmgIhF) on the public signup form
+   send_to AW-18538836764/gI2OCMrExasdEJzmgIhF) on the public signup form
    (index.html auSignup) and the app signup (js/auth.js handleSignUp).
    Checks: fires once after the account is created; never on page load,
    form submit alone, failed signups, reloads or repeated calls; never
-   without advertising consent; no purchase/page-view conversions.
+   without advertising consent; never to the old account AW-18112493101;
+   one gtag.js / one config; visiting /app sends no page_view or conversion.
    Fenced browser (tests/_fence.js); /api/signup, Supabase sign-in and
    gtag.js are answered in the browser, so nothing reaches Google, Supabase
    or the backend. Needs the static server on :8899.
@@ -13,7 +14,9 @@
 const { chromium } = require('playwright');
 const BASE_URL = 'http://localhost:8899';
 const CHROME_PATH = process.env.TEST_CHROME_PATH || 'C:/Users/Aleck/AppData/Local/ms-playwright/chromium-1228/chrome-win64/chrome.exe';
-const SEND_TO = 'AW-18112493101/gI2OCMrExasdEJzmgIhF';
+const AW_ID = 'AW-18538836764';
+const SEND_TO = AW_ID + '/gI2OCMrExasdEJzmgIhF';
+const OLD_AW = 'AW-18112493101';
 let pass = 0, fail = 0;
 function check(name, cond, detail) { if (cond) { pass++; console.log('PASS — ' + name); } else { fail++; console.log('FAIL — ' + name + (detail ? ' | ' + detail : '')); } }
 const UID = (n) => '00000000-0000-4000-8000-00000000c0' + String(n).padStart(2, '0');
@@ -26,10 +29,10 @@ async function main() {
   async function setup(consent, signupReplies) {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } });
     const page = await ctx.newPage();
-    const events = [], signupCalls = [];
+    const events = [], signupCalls = [], gtagLoads = [];
     const errors = []; page.on('pageerror', (e) => errors.push(e.message));
     await page.exposeFunction('__dl', (j) => events.push(JSON.parse(j)));
-    await page.route('https://www.googletagmanager.com/gtag/js**', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: 'window.__gtagStub=1;' }));
+    await page.route('https://www.googletagmanager.com/gtag/js**', (r) => gtagLoads.push(r.request().url()) && r.fulfill({ status: 200, contentType: 'application/javascript', body: 'window.__gtagStub=1;' }));
     await page.route('**/api/signup', async (r) => {
       const reply = signupReplies.shift() || { status: 500, body: { error: 'x' } };
       signupCalls.push({ at: Date.now(), status: reply.status });
@@ -42,7 +45,7 @@ async function main() {
       var hook = function () { if (!window.dataLayer || window.dataLayer.__hooked) return; var orig = window.dataLayer.push.bind(window.dataLayer); window.dataLayer.push = function (a) { try { var arr = Array.from(a).map(function (x) { return x && typeof x === 'object' ? Object.assign({}, x, { event_callback: x.event_callback ? 'fn' : undefined }) : x; }); window.__dl(JSON.stringify(arr)); } catch (_) {} return orig(a); }; window.dataLayer.__hooked = true; };
       var iv = setInterval(hook, 5); setTimeout(function () { clearInterval(iv); }, 15000);
     });
-    return { ctx, page, events, signupCalls, errors };
+    return { ctx, page, events, signupCalls, errors, gtagLoads };
   }
   const conv = (events) => events.filter((e) => e[0] === 'event' && e[1] === 'conversion');
   async function openSignup(page) {
@@ -70,10 +73,12 @@ async function main() {
   const navigated = await navP;
   let c = conv(s.events);
   check('account created → exactly one Signup conversion', c.length === 1, JSON.stringify(c));
-  check('…send_to AW-18112493101/gI2OCMrExasdEJzmgIhF, transaction_id signup-<account id>', c[0] && c[0][2].send_to === SEND_TO && c[0][2].transaction_id === 'signup-' + UID(1), JSON.stringify(c[0]));
+  check('…send_to AW-18538836764/gI2OCMrExasdEJzmgIhF, transaction_id signup-<account id>', c[0] && c[0][2].send_to === SEND_TO && c[0][2].transaction_id === 'signup-' + UID(1), JSON.stringify(c[0]));
   check('…sent only after /api/signup answered (1 call, success)', s.signupCalls.length === 1 && s.signupCalls[0].status === 200);
   check('…then the redirect to /app still happens', navigated);
   check('…no purchase / page-view conversions or other ad events', !s.events.some((e) => e[0] === 'event' && e[1] !== 'conversion') && conv(s.events).every((e) => e[2].send_to === SEND_TO));
+  check('…nothing addressed to the old account ' + OLD_AW, !JSON.stringify(s.events).includes(OLD_AW.slice(3)));
+  check('…one Google tag: gtag.js requested once, config ' + AW_ID + ' once per page', s.gtagLoads.every((u) => u.endsWith('id=' + AW_ID)) && s.events.filter((e) => e[0] === 'config').every((e) => e[1] === AW_ID) && s.events.filter((e) => e[0] === 'config').length <= s.gtagLoads.length && s.gtagLoads.length >= 1, JSON.stringify(s.gtagLoads));
   await s.ctx.close();
 
   // ── B. Failed signup, then success ──
@@ -147,6 +152,28 @@ async function main() {
   await s.page.evaluate(() => handleSignUp()); await s.page.waitForTimeout(600);
   check('app signup failure → no conversion', conv(s.events).length === 0);
   await s.ctx.close();
+
+  // ── F. Visiting the app is not a signup ──
+  console.log('── F. /app visits ──');
+  s = await setup('accept', []);
+  await s.page.goto(BASE_URL + '/app.html', { waitUntil: 'domcontentloaded' }); await s.page.waitForTimeout(500);
+  await s.page.evaluate(() => { _setAppRoute('/app'); _setAppRoute('/app'); });
+  await s.page.waitForTimeout(300);
+  check('returning visitor on /app (route set twice): no conversion and no manual page_view', conv(s.events).length === 0 && !s.events.some((e) => e[0] === 'event' && e[1] === 'page_view'), JSON.stringify(s.events.filter((e) => e[0] === 'event')));
+  check('…one gtag.js and one config ' + AW_ID + ' on the app page', s.gtagLoads.length === 1 && JSON.stringify(await s.page.evaluate(() => window.dataLayer.filter((a) => a[0] === 'config').map((a) => a[1]))) === JSON.stringify([AW_ID]) && (await s.page.locator('script[src*="googletagmanager.com/gtag/js"]').count()) === 1);
+  await s.ctx.close();
+
+  // ── G. Source: no active tracking code uses the old account ──
+  console.log('── G. Source ──');
+  const fs = require('fs'), path = require('path'), root = path.join(__dirname, '..');
+  const consentSrc = fs.readFileSync(path.join(root, 'js/consent.js'), 'utf8');
+  check('js/consent.js: AW_ID is ' + AW_ID + ' and the signup destination is ' + SEND_TO, consentSrc.includes("var AW_ID = '" + AW_ID + "'") && consentSrc.includes("AW_ID + '/gI2OCMrExasdEJzmgIhF'"));
+  const jsFiles = fs.readdirSync(path.join(root, 'js')).filter((f) => f.endsWith('.js')).map((f) => 'js/' + f);
+  const htmlFiles = fs.readdirSync(root).filter((f) => f.endsWith('.html')).concat(fs.readdirSync(path.join(root, 'product')).filter((f) => f.endsWith('.html')).map((f) => 'product/' + f));
+  const oldHits = jsFiles.concat(htmlFiles, ['tools/seo/build.js']).filter((f) => fs.readFileSync(path.join(root, f), 'utf8').includes(OLD_AW.slice(3)));
+  check('no site/app source file references ' + OLD_AW, oldHits.length === 0, oldHits.join(', '));
+  const gtagLoaders = jsFiles.concat(htmlFiles).filter((f) => /googletagmanager\.com\/gtag\/js/.test(fs.readFileSync(path.join(root, f), 'utf8')));
+  check('gtag.js is loaded from one place only (js/consent.js)', gtagLoaders.length === 1 && gtagLoaders[0] === 'js/consent.js', gtagLoaders.join(', '));
 
   await browser.close();
   console.log('\n' + (pass + fail) + ' checks run, ' + pass + ' passed, ' + fail + ' failed.');
