@@ -158,7 +158,11 @@ async function main() {
   await page.waitForTimeout(300);
   await page.click('#smdp-account [data-cookie-settings]'); await page.waitForTimeout(200);
   check('app Settings → Account "Cookie settings" opens the consent settings', await page.locator('.orv-cc[data-cc-view="settings"]').count() === 1);
-  check('app: stored accept honoured (tag loaded once)', (await gtagScripts(page)).length === 1);
+  check('app: stored accept honoured, but the tag is not loaded on an app visit (only for a Signup conversion)', (await gtagScripts(page)).length === 0 && (await page.evaluate(() => orvConsent.get().ads === true && orvConsent.get().tagLoaded === false)));
+  await page.click('.orv-cc [data-cc-act="accept"]'); await page.waitForTimeout(200);
+  check('app: Accept in the app does not load the tag either', (await gtagScripts(page)).length === 0);
+  await page.evaluate(() => { document.cookie = '_gcl_au=1.1.1.1; path=/'; orvConsent.set({ ads: false }); });
+  check('app: withdrawing consent in the app removes Google cookies set elsewhere', await page.evaluate(() => !/_gcl_au/.test(document.cookie)));
   const langs = await page.evaluate(() => ['en', 'nl', 'de', 'fr', 'es', 'pt'].map((l) => !!(LANG_STRINGS[l] && LANG_STRINGS[l].smdCookieTitle && LANG_STRINGS[l].smdCookieSub && LANG_STRINGS[l].smdCookieBtn)));
   check('app strings in all six languages', langs.every(Boolean), JSON.stringify(langs));
   check('no JavaScript errors in the app', errors.length === 0, errors.slice(0, 3).join('; '));

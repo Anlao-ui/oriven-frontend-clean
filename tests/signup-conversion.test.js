@@ -5,7 +5,8 @@
    Checks: fires once after the account is created; never on page load,
    form submit alone, failed signups, reloads or repeated calls; never
    without advertising consent; never to the old account AW-18112493101;
-   one gtag.js / one config; visiting /app sends no page_view or conversion.
+   one gtag.js / one config; visiting /app loads no Google tag at all (Google's
+   URL rule would turn every /app page view into a conversion) and sends nothing.
    Fenced browser (tests/_fence.js); /api/signup, Supabase sign-in and
    gtag.js are answered in the browser, so nothing reaches Google, Supabase
    or the backend. Needs the static server on :8899.
@@ -145,6 +146,7 @@ async function main() {
   await s.page.evaluate(() => handleSignUp()); await s.page.waitForTimeout(800);
   c = conv(s.events);
   check('app signup → one conversion for the new account', c.length === 1 && c[0][2].transaction_id === 'signup-' + UID(6) && c[0][2].send_to === SEND_TO, JSON.stringify(c) + ' calls:' + s.signupCalls.length);
+  check('…the app loads the Google tag once, only to send it', s.gtagLoads.length === 1 && (await s.page.locator('script[src*="googletagmanager.com/gtag/js"]').count()) === 1);
   await s.ctx.close();
   s = await setup('accept', [{ status: 409, body: { error: 'exists' } }]);
   await s.page.goto(BASE_URL + '/app.html', { waitUntil: 'domcontentloaded' }); await s.page.waitForTimeout(500);
@@ -153,6 +155,23 @@ async function main() {
   check('app signup failure → no conversion', conv(s.events).length === 0);
   await s.ctx.close();
 
+  // Guest signup in the app (js/guest.js _ggDoSignup).
+  for (const [consent, reply, n] of [['accept', ok(7), 1], ['accept', { status: 409, body: { error: 'exists' } }, 0], ['reject', ok(8), 0]]) {
+    s = await setup(consent, [reply]);
+    await s.page.goto(BASE_URL + '/app.html', { waitUntil: 'domcontentloaded' }); await s.page.waitForTimeout(500);
+    await s.page.evaluate(() => {
+      SB.auth.signInWithPassword = async () => ({ data: { user: { id: 'guest-x', email: 'h@example.invalid' }, session: {} }, error: null });
+      window._guestOnSignedIn = function () {}; window.trackEvent = function () {};
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+      set('ggFirst', 'Sam'); set('ggLast', 'Test'); set('ggEmail', 'h@example.invalid'); set('ggPass', 'secret123');
+    });
+    await s.page.evaluate(() => _ggDoSignup()); await s.page.waitForTimeout(800);
+    c = conv(s.events);
+    const what = reply.status !== 200 ? 'failed (409)' : consent === 'reject' ? 'without advertising consent' : 'succeeded';
+    check('guest signup ' + what + ' → ' + n + ' conversion' + (n === 1 ? ' (tag loaded once, only to send it)' : ', tag not loaded'), c.length === n && (n === 0 || (c[0][2].send_to === SEND_TO && c[0][2].transaction_id === 'signup-' + UID(7))) && s.gtagLoads.length === n && s.signupCalls.length === 1, JSON.stringify(c) + ' loads:' + s.gtagLoads.length);
+    await s.ctx.close();
+  }
+
   // ── F. Visiting the app is not a signup ──
   console.log('── F. /app visits ──');
   s = await setup('accept', []);
@@ -160,7 +179,7 @@ async function main() {
   await s.page.evaluate(() => { _setAppRoute('/app'); _setAppRoute('/app'); });
   await s.page.waitForTimeout(300);
   check('returning visitor on /app (route set twice): no conversion and no manual page_view', conv(s.events).length === 0 && !s.events.some((e) => e[0] === 'event' && e[1] === 'page_view'), JSON.stringify(s.events.filter((e) => e[0] === 'event')));
-  check('…one gtag.js and one config ' + AW_ID + ' on the app page', s.gtagLoads.length === 1 && JSON.stringify(await s.page.evaluate(() => window.dataLayer.filter((a) => a[0] === 'config').map((a) => a[1]))) === JSON.stringify([AW_ID]) && (await s.page.locator('script[src*="googletagmanager.com/gtag/js"]').count()) === 1);
+  check('…the Google tag is not loaded on an app visit (no gtag.js, no config), even with advertising consent', s.gtagLoads.length === 0 && (await s.page.evaluate(() => window.dataLayer.filter((a) => a[0] === 'config').length)) === 0 && (await s.page.locator('script[src*="googletagmanager.com/gtag/js"]').count()) === 0);
   await s.ctx.close();
 
   // ── G. Source: no active tracking code uses the old account ──

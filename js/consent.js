@@ -55,6 +55,11 @@
   function debugAsked() { try { return sessionStorage.getItem(ASKED_KEY) === '1'; } catch (_) { return false; } }
   function markDebugAsked() { try { sessionStorage.setItem(ASKED_KEY, '1'); } catch (_) {} }
 
+  // The app (/app) loads the tag only to send the Signup conversion below.
+  // Google's tag configuration also counts every page view under /app as an
+  // "Aanmelding" conversion (a URL rule on the same label), so loading it on
+  // every app visit would count log-ins, reloads and returning visits as signups.
+  var tagOnDemand = /^\/app(\.html)?$/.test(location.pathname);
   var adsLoaded = false;
   function loadAds() {
     if (adsLoaded) return;
@@ -67,10 +72,10 @@
     window.gtag('config', AW_ID);
   }
   function applyAds(granted) {
-    if (granted) { loadAds(); return; }
+    if (granted) { if (!tagOnDemand) loadAds(); return; }
     window.gtag('consent', 'update', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
     // Withdrawn after loading: Google cookies set earlier are removed.
-    if (adsLoaded) document.cookie.split(';').forEach(function (c) {
+    if (adsLoaded || tagOnDemand) document.cookie.split(';').forEach(function (c) {
       var n = c.split('=')[0].trim();
       if (/^(_gcl_|_gac_|_ga|IDE|test_cookie)/.test(n)) {
         var host = location.hostname.replace(/^www\./, '');
@@ -200,10 +205,10 @@
     if (!a) return; e.preventDefault(); banner(true);
   });
 
-  if (state && state.ads) loadAds();
+  if (state && state.ads && !tagOnDemand) loadAds();
   function start() {
     if (debugSession) {
-      try { console.info('[OrivenAI consent] Google tag ' + AW_ID + (adsLoaded ? ' loaded (advertising consent granted).' : ' waits for advertising consent — choose "Accept advertising" to load it.')); } catch (_) {}
+      try { console.info('[OrivenAI consent] Google tag ' + AW_ID + (adsLoaded ? ' loaded (advertising consent granted).' : tagOnDemand && adsAllowed() ? ' loads in the app only to send the Signup conversion.' : ' waits for advertising consent — choose "Accept advertising" to load it.')); } catch (_) {}
       if (state && !adsAllowed() && !debugAsked()) { markDebugAsked(); banner(false); return; }
     }
     if (!state) banner(false);
