@@ -42,6 +42,19 @@
   }
   var state = read();
 
+  // Google Tag Assistant / tag debug sessions open the site with ?gtm_debug=…
+  // (remembered for the tab, since links drop the parameter). The tag still
+  // loads only after "Accept advertising" — the cookie policy says "The Google
+  // Ads tag isn't loaded until you accept", so Advanced Consent Mode (loading
+  // gtag.js before a choice) is deliberately not used. Instead, a debug session
+  // without advertising consent asks once, even if "reject" was stored earlier,
+  // rather than showing nothing; nothing is granted without the click.
+  var DEBUG_KEY = 'orv_tag_debug', ASKED_KEY = 'orv_tag_debug_asked';
+  var debugSession = /[?&]gtm_debug=/.test(location.search);
+  try { if (debugSession) sessionStorage.setItem(DEBUG_KEY, '1'); else debugSession = sessionStorage.getItem(DEBUG_KEY) === '1'; } catch (_) {}
+  function debugAsked() { try { return sessionStorage.getItem(ASKED_KEY) === '1'; } catch (_) { return false; } }
+  function markDebugAsked() { try { sessionStorage.setItem(ASKED_KEY, '1'); } catch (_) {} }
+
   var adsLoaded = false;
   function loadAds() {
     if (adsLoaded) return;
@@ -147,7 +160,7 @@
   }
 
   window.orvConsent = {
-    get: function () { return { decided: !!state, ads: adsAllowed(), stats: statsAllowed(), privacySignal: privacySignal }; },
+    get: function () { return { decided: !!state, ads: adsAllowed(), stats: statsAllowed(), privacySignal: privacySignal, debugSession: debugSession, tagLoaded: adsLoaded }; },
     statsAllowed: statsAllowed, adsAllowed: adsAllowed,
     open: function () { banner(true); },
     set: function (c) { save({ ads: !!c.ads, stats: c.stats !== false }); },
@@ -160,6 +173,12 @@
   });
 
   if (state && state.ads) loadAds();
-  function start() { if (!state) banner(false); }
+  function start() {
+    if (debugSession) {
+      try { console.info('[OrivenAI consent] Google tag ' + AW_ID + (adsLoaded ? ' loaded (advertising consent granted).' : ' waits for advertising consent — choose "Accept advertising" to load it.')); } catch (_) {}
+      if (state && !adsAllowed() && !debugAsked()) { markDebugAsked(); banner(false); return; }
+    }
+    if (!state) banner(false);
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

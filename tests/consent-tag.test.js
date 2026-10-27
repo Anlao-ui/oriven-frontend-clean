@@ -101,6 +101,54 @@ async function main() {
     await ctx.close();
   }
 
+  // ── F2. Tag Assistant / debug sessions (?gtm_debug=…) ──
+  console.log('── F2. Tag Assistant debug sessions ──');
+  const DBG = '/pricing.html?gtm_debug=1761580000000';
+  const stored = (ads) => ({ v: 1, ads, stats: true, at: '2026-10-20T00:00:00.000Z' });
+  // Fresh debug visit: same as any first visit — banner, nothing loaded before Accept.
+  ({ ctx, page, errors } = await newPage());
+  const logs = []; page.on('console', (m) => { if (m.type() === 'info') logs.push(m.text()); });
+  let n0 = gtagLoads.length;
+  await page.goto(BASE_URL + DBG, { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(400);
+  d = await dl(page);
+  check('debug, no choice: banner shown, gtag.js not loaded, default denied first', await page.locator('.orv-cc[data-cc-view="banner"]').count() === 1 && (await gtagScripts(page)).length === 0 && gtagLoads.length === n0 && d[0][1] === 'default' && d[0][2].ad_storage === 'denied');
+  check('debug: console explains the tag waits for consent', logs.some((l) => /AW-18112493101 waits for advertising consent/.test(l)), JSON.stringify(logs));
+  await page.click('.orv-cc [data-cc-act="accept"]'); await page.waitForTimeout(400);
+  d = await dl(page);
+  check('debug, Accept: tag initialised exactly once, update(granted) before config', (await gtagScripts(page)).length === 1 && gtagLoads.length === n0 + 1 && d.filter((e) => e[0] === 'config').length === 1 && d.findIndex((e) => e[0] === 'consent' && e[1] === 'update') < d.findIndex((e) => e[0] === 'config'));
+  check('debug: orvConsent.get() reports debugSession + tagLoaded', await page.evaluate(() => { const g = orvConsent.get(); return g.debugSession === true && g.tagLoaded === true && g.ads === true; }));
+  await ctx.close();
+  // Stored "reject" + debug: asks again once (never grants by itself).
+  ({ ctx, page, errors } = await newPage());
+  await page.addInitScript((s) => { if (!localStorage.getItem('orv_consent_v1')) localStorage.setItem('orv_consent_v1', JSON.stringify(s)); }, stored(false));
+  n0 = gtagLoads.length;
+  await page.goto(BASE_URL + DBG, { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(400);
+  check('debug + stored reject: banner shown again, tag NOT loaded, consent still denied', await page.locator('.orv-cc[data-cc-view="banner"]').count() === 1 && (await gtagScripts(page)).length === 0 && gtagLoads.length === n0 && !(await dl(page)).some((e) => e[0] === 'consent' && e[1] === 'update'));
+  await page.click('.orv-cc [data-cc-act="reject"]'); await page.waitForTimeout(300);
+  check('…Reject again: banner closes, nothing loaded, stored ads:false', await page.locator('.orv-cc').count() === 0 && (await gtagScripts(page)).length === 0 && await page.evaluate(() => JSON.parse(localStorage.getItem('orv_consent_v1')).ads === false));
+  await page.goto(BASE_URL + '/faq.html', { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(400);
+  check('…next page in the same debug tab: not asked again, still nothing loaded', await page.locator('.orv-cc').count() === 0 && (await gtagScripts(page)).length === 0 && await page.evaluate(() => orvConsent.get().debugSession === true));
+  await ctx.close();
+  ({ ctx, page, errors } = await newPage());
+  await page.addInitScript((s) => { if (!localStorage.getItem('orv_consent_v1')) localStorage.setItem('orv_consent_v1', JSON.stringify(s)); }, stored(false));
+  await page.goto(BASE_URL + DBG, { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(400);
+  await page.click('.orv-cc [data-cc-act="accept"]'); await page.waitForTimeout(400);
+  check('debug + stored reject → Accept: tag loads once with config AW-18112493101', (await gtagScripts(page)).length === 1 && (await dl(page)).filter((e) => e[0] === 'config' && e[1] === 'AW-18112493101').length === 1);
+  await ctx.close();
+  // Stored "accept" + debug: no banner, tag loads once.
+  ({ ctx, page, errors } = await newPage());
+  await page.addInitScript((s) => localStorage.setItem('orv_consent_v1', JSON.stringify(s)), stored(true));
+  await page.goto(BASE_URL + DBG, { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(400);
+  check('debug + stored accept: no banner, tag loaded once', await page.locator('.orv-cc').count() === 0 && (await gtagScripts(page)).length === 1 && (await dl(page)).filter((e) => e[0] === 'config').length === 1);
+  check('debug: no conversion / signup / purchase events', !(await dl(page)).some((e) => e[0] === 'event'));
+  await ctx.close();
+  // Stored "reject" WITHOUT debug: unchanged — no banner, nothing loaded.
+  ({ ctx, page, errors } = await newPage());
+  await page.addInitScript((s) => localStorage.setItem('orv_consent_v1', JSON.stringify(s)), stored(false));
+  await page.goto(BASE_URL + '/pricing.html', { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(400);
+  check('normal visit + stored reject: unchanged (no banner, no tag, debugSession false)', await page.locator('.orv-cc').count() === 0 && (await gtagScripts(page)).length === 0 && await page.evaluate(() => orvConsent.get().debugSession === false));
+  await ctx.close();
+
   // ── G. App: Settings → Account ──
   console.log('── G. App ──');
   ({ ctx, page, errors } = await newPage());
