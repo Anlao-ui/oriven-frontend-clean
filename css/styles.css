@@ -8960,6 +8960,8 @@ button.lp-cta-btn { cursor:pointer; border:none; }
 .lp-legal-email:hover{color:var(--lp-white)}
 .lp-legal-footer{padding:20px 28px;border-top:1px solid var(--lp-border)}
 .lp-legal-footer-inner{max-width:720px;margin:0 auto;font-size:12px;color:var(--lp-muted2)}
+.lp-legal-footer-inner a,.ov-sub-footer-inner a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.lp-legal-footer-inner a:hover,.ov-sub-footer-inner a:hover{color:var(--lp-text,#F0F0F0)}
 /* Contact page */
 .lp-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
 .lp-contact-card{background:var(--lp-bg2);border:1px solid var(--lp-border);border-radius:14px;padding:22px 24px}
