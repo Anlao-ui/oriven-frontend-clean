@@ -3198,8 +3198,11 @@ async function auSignup(){
         attribution: window.orvSiteAnalytics ? orvSiteAnalytics.attribution() : undefined })
     });
     if(!signupRes.ok) throw new Error(signupRes.data && signupRes.data.error ? signupRes.data.error : 'Signup failed');
+    // The account exists now: Google Ads Signup conversion (consent-gated, once per account; js/consent.js).
+    var signupConv = window.orvConsent && orvConsent.trackSignupConversion ? orvConsent.trackSignupConversion(signupRes.data && signupRes.data.userId) : null;
     var signinRes = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(signinRes.error) throw signinRes.error;
+    if(signupConv) await signupConv; // let the hit leave before the redirect
     window.location.href = '/app';
   } catch(err){
     _auSetError('auErrorSignup', auMapError(err));

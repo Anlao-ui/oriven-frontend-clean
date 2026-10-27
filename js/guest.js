@@ -600,6 +600,8 @@ async function _ggDoSignup(){
         attribution: window.orvSiteAnalytics ? orvSiteAnalytics.attribution() : undefined })
     });
     if(!reg.ok) throw new Error(reg.data.error || "Signup failed");
+    // The account exists now: Google Ads Signup conversion (consent-gated, once per account; js/consent.js).
+    if(window.orvConsent && orvConsent.trackSignupConversion) orvConsent.trackSignupConversion(reg.data && reg.data.userId);
     var result = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(result.error) throw result.error;
     _ggClearErr(["ggFirst","ggEmail","ggPass"]);

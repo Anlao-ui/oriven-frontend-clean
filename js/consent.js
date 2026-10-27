@@ -159,7 +159,33 @@
     }
   }
 
+  // ── Google Ads "Signup" conversion ───────────────────────────────
+  // Sent only (1) after /api/signup has created the account (the callers pass
+  // the new account id — never on page load or form submit), (2) when the
+  // visitor has granted advertising consent (otherwise nothing is sent or
+  // queued), and (3) once per account: a localStorage marker plus Google's own
+  // de-duplication via transaction_id. Resolves when Google confirms or after
+  // a short timeout, so a redirect right after signup doesn't cut the hit off.
+  var SIGNUP_SEND_TO = AW_ID + '/gI2OCMrExasdEJzmgIhF';
+  var signupInFlight = {};
+  function trackSignupConversion(userId) {
+    return new Promise(function (resolve) {
+      var id = String(userId || '');
+      if (!/^[0-9a-f-]{36}$/i.test(id) || !adsAllowed()) return resolve(false);
+      var key = 'orv_signup_conv_' + id;
+      try { if (localStorage.getItem(key)) return resolve(false); } catch (_) {}
+      if (signupInFlight[id]) return resolve(false);
+      signupInFlight[id] = true;
+      try { localStorage.setItem(key, new Date().toISOString()); } catch (_) {}
+      loadAds(); // already loaded once consent was given; never loads twice
+      var done = false; var finish = function () { if (!done) { done = true; resolve(true); } };
+      window.gtag('event', 'conversion', { send_to: SIGNUP_SEND_TO, transaction_id: 'signup-' + id, event_callback: finish });
+      setTimeout(finish, 1500);
+    });
+  }
+
   window.orvConsent = {
+    trackSignupConversion: trackSignupConversion,
     get: function () { return { decided: !!state, ads: adsAllowed(), stats: statsAllowed(), privacySignal: privacySignal, debugSession: debugSession, tagLoaded: adsLoaded }; },
     statsAllowed: statsAllowed, adsAllowed: adsAllowed,
     open: function () { banner(true); },

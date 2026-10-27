@@ -212,6 +212,8 @@ async function handleSignUp(){
                  attribution: window.orvSiteAnalytics ? orvSiteAnalytics.attribution() : undefined })
     });
     if(!signupResult.ok) throw new Error(signupResult.data.error || "Signup failed");
+    // The account exists now: Google Ads Signup conversion (consent-gated, once per account; js/consent.js).
+    if(window.orvConsent && orvConsent.trackSignupConversion) orvConsent.trackSignupConversion(signupResult.data && signupResult.data.userId);
 
     document.activeElement && document.activeElement.blur();
     var result = await SB.auth.signInWithPassword({ email, password: pass });
