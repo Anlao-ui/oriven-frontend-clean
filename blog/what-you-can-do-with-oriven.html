@@ -29,7 +29,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/seo.css">
 <link rel="stylesheet" href="/css/site-nav.css">
+<link rel="stylesheet" href="/css/site-chrome.css">
 <script src="/js/site-nav.js" defer></script>
+<script src="/js/dot-field.js" defer></script>
+<script src="/js/site-top.js" defer></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://orivenai.com/#organization","name":"OrivenAI","alternateName":["Oriven","ORIVEN","Oriven AI"],"url":"https://orivenai.com/","logo":"https://orivenai.com/assets/orivenlogo-192.png","email":"contact@orivenai.com","description":"OrivenAI (orivenai.com) is an AI advertising platform for researching, creating, launching and automating ad campaigns."}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"What you can do with OrivenAI","description":"A walkthrough of OrivenAI today: Control Center, Research, Create, Launch, Campaigns and Automations, the platforms each supports and what each plan includes.","url":"https://orivenai.com/blog/what-you-can-do-with-oriven","mainEntityOfPage":"https://orivenai.com/blog/what-you-can-do-with-oriven","datePublished":"2026-07-13","dateModified":"2026-10-14","inLanguage":"en","author":{"@type":"Organization","name":"OrivenAI","url":"https://orivenai.com/"},"publisher":{"@type":"Organization","name":"OrivenAI","logo":{"@type":"ImageObject","url":"https://orivenai.com/assets/orivenlogo-192.png"}},"image":"https://orivenai.com/assets/og/orivenai-og.png","about":"OrivenAI features"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://orivenai.com/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://orivenai.com/blog"},{"@type":"ListItem","position":3,"name":"What you can do with OrivenAI","item":"https://orivenai.com/blog/what-you-can-do-with-oriven"}]}</script>
@@ -43,8 +46,8 @@
 <a class="sp-skip" href="#main">Skip to content</a>
 <nav class="lp-nav" id="lpNav">
   <div class="lp-nav-inner">
-    <a href="/" class="lp-logo">
-      <img src="/assets/orivenlogo-256.webp" alt="ORIVEN" class="lp-logo-img">
+    <a href="/" class="lp-logo" aria-label="OrivenAI home">
+      <svg class="lp-logo-ring" viewBox="244 197 534 585" aria-hidden="true" focusable="false"><use href="/assets/oriven-ring.svg#ik-p0" class="lp-logo-seg" style="--i:0;--ox:10.6px;--oy:-14.6px"/><use href="/assets/oriven-ring.svg#ik-p1" class="lp-logo-seg" style="--i:1;--ox:17.7px;--oy:3.1px"/><use href="/assets/oriven-ring.svg#ik-p2" class="lp-logo-seg" style="--i:2;--ox:7.3px;--oy:16.4px"/><use href="/assets/oriven-ring.svg#ik-p3" class="lp-logo-seg" style="--i:3;--ox:-8.5px;--oy:15.9px"/><use href="/assets/oriven-ring.svg#ik-p4" class="lp-logo-seg" style="--i:4;--ox:-17.7px;--oy:3.1px"/><use href="/assets/oriven-ring.svg#ik-p5" class="lp-logo-seg" style="--i:5;--ox:-9.5px;--oy:-15.3px"/></svg>
     </a>
     <div class="lp-nav-links">
       <div class="lp-nav-item lp-has-dd" id="lpDdProduct">
@@ -158,20 +161,20 @@
         </button>
         <div class="lp-dropdown lp-dd-simple" role="menu">
           <div class="lp-dd-col">
-            <a href="/launch" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Create better ads</span><span class="lp-dd-item-desc">Build advertising around your brand instead of starting from scratch.</span></span>
+            <a href="/solutions/connected-workflow" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">One connected workflow</span><span class="lp-dd-item-desc">Six sections that build on each other instead of separate tools.</span></span>
             </a>
-            <a href="/campaigns" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Manage every campaign</span><span class="lp-dd-item-desc">See and manage advertising across the platforms you use from one workspace.</span></span>
+            <a href="/solutions/research-before-creation" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Research before you create</span><span class="lp-dd-item-desc">Know your market, competitors and audience before you spend.</span></span>
             </a>
-            <a href="/business" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Stay consistent with your brand</span><span class="lp-dd-item-desc">Give every generated ad the same voice, context and business profile.</span></span>
+            <a href="/solutions/plan-to-content" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">From marketing plan to content</span><span class="lp-dd-item-desc">A plan becomes a brief that prefills Create.</span></span>
             </a>
-            <a href="/autopilot" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Automate the repetitive work</span><span class="lp-dd-item-desc">Use your own rules to automatically act when performance changes.</span></span>
+            <a href="/solutions/advertising-campaigns" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Ads and campaigns</span><span class="lp-dd-item-desc">Create, check and publish ads, then follow every campaign.</span></span>
             </a>
-            <a href="/research" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Understand what works</span><span class="lp-dd-item-desc">Use Research and campaign data to discover stronger creative and messaging patterns.</span></span>
+            <a href="/solutions/structured-automation" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Less repetitive work</span><span class="lp-dd-item-desc">Schedules and rules for published campaigns, within your limits.</span></span>
             </a>
           </div>
         </div>
@@ -204,8 +207,8 @@
       <a href="/pricing" class="lp-nav-link">Pricing</a>
     </div>
     <div class="lp-nav-right">
-      <a href="/login" class="lp-nav-login">Login</a>
-      <a href="/signup" class="lp-cta-btn" data-cta="nav_signup">Start Creating</a>
+      <a href="/login" class="lp-nav-login">Log in</a>
+      <a href="/signup" class="lp-cta-btn" data-cta="nav_signup">Get started</a>
     </div>
     <button class="lp-hamburger" id="lpHamburger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -240,11 +243,11 @@
         Solutions <span class="lp-mm-chev">&#8250;</span>
       </button>
       <div class="lp-mm-dd-items">
-        <a href="/launch" class="lp-mm-dd-link" onclick="lpCloseMm()">Create better ads</a>
-        <a href="/campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Manage every campaign</a>
-        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Stay consistent with your brand</a>
-        <a href="/autopilot" class="lp-mm-dd-link" onclick="lpCloseMm()">Automate the repetitive work</a>
-        <a href="/research" class="lp-mm-dd-link" onclick="lpCloseMm()">Understand what works</a>
+        <a href="/solutions/connected-workflow" class="lp-mm-dd-link" onclick="lpCloseMm()">One connected workflow</a>
+        <a href="/solutions/research-before-creation" class="lp-mm-dd-link" onclick="lpCloseMm()">Research before you create</a>
+        <a href="/solutions/plan-to-content" class="lp-mm-dd-link" onclick="lpCloseMm()">From marketing plan to content</a>
+        <a href="/solutions/advertising-campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Ads and campaigns</a>
+        <a href="/solutions/structured-automation" class="lp-mm-dd-link" onclick="lpCloseMm()">Less repetitive work</a>
       </div>
     </div>
     <div class="lp-mm-item lp-mm-has-dd">
@@ -263,8 +266,8 @@
   </nav>
   <div class="lp-mm-divider"></div>
   <div class="lp-mm-actions">
-    <a href="/login" class="lp-mm-login">Login</a>
-    <a href="/signup" class="lp-mm-cta" data-cta="nav_signup">Start Creating</a>
+    <a href="/login" class="lp-mm-login">Log in</a>
+    <a href="/signup" class="lp-mm-cta" data-cta="nav_signup">Get started</a>
   </div>
   </div>
 </div>
@@ -281,10 +284,10 @@
 <p>Control Center is where OrivenAI learns about your business: what you sell, who you sell to, your brand voice and visual identity, and the context behind your campaigns. It’s also the start page that shows what’s happening, what needs your attention and what’s planned. Every other part of OrivenAI reads from it, which is why ads come out sounding like you rather than like a template.</p>
 
 <h2 id="research-understand-the-market-before-you-spend">Research: understand the market before you spend</h2>
-<p><a href="/research">Research</a> lets you ask questions about your market, competitors, audiences and opportunities, and returns a structured report for the research type you choose: targeted web searches, the pages it reads, your own website and any pages you attach are used as evidence, and a finding is only marked Source-checked when the passage it quotes was found in a page it read. Reports are saved to your Research library. It links to the platforms’ official ad libraries, such as the Meta Ad Library, so you can look at real ads yourself; it doesn’t pull ads from those libraries or show how competitors’ ads perform. Research is included from the Starter plan. See <a href="/learn/how-to-research-competitor-ads/">how to research competitor ads</a> for the method behind it.</p>
+<p><a href="/research">Research</a> lets you ask questions about your market, competitors, audiences and opportunities, and returns a structured report for the research type you choose: targeted web searches, the pages it reads, your own website and any pages you attach are used as evidence, and a finding is only marked Source-checked when the passage it quotes was found in a page it read. Reports are saved to your Research library. It links to the platforms’ official ad libraries, such as the Meta Ad Library, so you can look at real ads yourself; it doesn’t pull ads from those libraries or show how competitors’ ads perform. Research is included in every plan. See <a href="/learn/how-to-research-competitor-ads/">how to research competitor ads</a> for the method behind it.</p>
 
 <h2 id="create-from-a-short-brief-to-a-complete-campaign">Create: from a short brief to a complete campaign</h2>
-<p>In <a href="/create">Create</a>, you describe what you want to advertise, choose a platform and a goal (Sales, Leads, Traffic or Awareness), and choose image or video. You can attach product photos. OrivenAI builds the campaign in that platform’s own structure (for example campaign, ad sets and ads on Meta) with ad copy, targeting and creative. A complete image ad uses 100 credits and a video ad 225.</p>
+<p>In <a href="/create">Create</a>, you describe what you want to advertise, choose a platform and a goal (Sales, Leads, Traffic or Awareness), and choose image or video. You can attach product photos. OrivenAI builds the campaign in that platform’s own structure (for example campaign, ad sets and ads on Meta) with ad copy, targeting and creative. A complete image ad uses 120 credits and a video ad 245.</p>
 
 <h2 id="launch-check-then-publish">Launch: check, then publish</h2>
 <p><a href="/launch">Launch</a> lists your drafts and shows whether each is ready to publish, for example whether the right ad account is connected. When you publish, OrivenAI creates the campaign in your own ad account through the platform’s official API. Campaigns are created paused, so you can review them in the ad platform and switch them on when you’re ready.</p>
@@ -293,7 +296,7 @@
 <p><a href="/campaigns">Campaigns</a> shows spend, delivery, traffic and conversions per platform and campaign, for the date range you choose. Each platform’s numbers are shown as that platform reports them, rather than blended into one total that would double-count.</p>
 
 <h2 id="automations-schedules-and-rules-that-act-within-your-limits">Automations: schedules and rules that act within your limits</h2>
-<p><a href="/autopilot">Automations</a> (from the Starter plan) switch campaigns on and off at times you choose and apply rules you define to your published campaigns, such as pausing a campaign with no conversions, increasing a budget when return on ad spend is above your target, or notifying you when click-through rate drops. You decide the conditions and the limits. Read more about <a href="/ppc-automation-software/">PPC automation with OrivenAI</a>.</p>
+<p><a href="/autopilot">Automations</a> switch campaigns on and off at times you choose and apply rules you define to your published campaigns, such as pausing a campaign with no conversions, increasing a budget when return on ad spend is above your target, or notifying you when click-through rate drops. You decide the conditions and the limits. Read more about <a href="/ppc-automation-software/">PPC automation with OrivenAI</a>.</p>
 
 <h2 id="which-platforms-are-supported">Which platforms are supported</h2>
 <div class="sp-table-wrap"><table class="sp-table">
@@ -307,24 +310,43 @@
 </table></div>
 
 <h2 id="what-s-included-on-each-plan">What’s included on each plan</h2>
-<p>The Free plan includes Control Center, Create, Launch and Campaigns. Upgrade only when you need Research, Automations or more credits. Starter (€9.95 a month) adds Research and Automations, Creator (€19.95) adds Oriven Chat and in-app notifications, and Professional (€34.95) adds Priority Support and a Weekly AI Performance Report by email (coming soon). Full details are on the <a href="/pricing">Pricing</a> page.</p>
+<p>Every plan includes the full product: Research, Create, Launch, Campaigns, Automations and Oriven Chat. Plans run from €17 for 14 days to €245 for a year, paid once, with no automatic renewal. Every plan also includes in-app notifications, Priority Support and a Weekly AI Performance Report by email (coming soon). Full details are on the <a href="/pricing">Pricing</a> page.</p>
 
 <h2 id="where-to-start">Where to start</h2>
 <p>The quickest way to see OrivenAI work is to fill in Control Center, then create one campaign for the platform you already use. If you advertise on several platforms, our guide to <a href="/learn/how-to-manage-multiple-ad-platforms/">managing multiple ad platforms</a> explains how to keep them organized.</p></article></div></section>
 
 <section class="sp-section" aria-labelledby="rel-h"><div class="sp-wrap"><h2 id="rel-h">Read next</h2><div class="sp-related"><a href="/blog/oriven-ai-is-now-live"><strong>OrivenAI is now live</strong><span>What OrivenAI is, what it does today, and how to get started.</span></a><a href="/blog/why-we-built-oriven"><strong>Why we built OrivenAI</strong><span>The problem we saw, and the principles behind the product.</span></a><a href="/learn/how-to-create-facebook-and-instagram-ads-with-ai/"><strong>Create Facebook and Instagram ads with AI</strong><span>From brief to launch: objectives, formats, placements and what to check.</span></a></div></div></section>
-<div class="sp-wrap"><div class="sp-band"><div><h2>See it with your own business</h2><p>Control Center, Create, Launch and Campaigns are included on the Free plan.</p></div><a class="sp-btn sp-btn-primary" href="/signup" data-cta="band_signup">Get Started Free &rarr;</a></div></div>
 </main>
-<footer class="sp-footer"><div class="sp-wrap">
-  <div class="sp-footer-top">
-    <div class="sp-footer-brand"><a class="sp-logo" href="/"><img src="/assets/orivenlogo-256.webp" alt="" width="30" height="30"><span>OrivenAI</span></a><p>The AI advertising platform. Research, create, launch and automate ads from one workspace.</p></div>
-    <div><h2>Product</h2><ul><li><a href="/business">Control Center</a></li><li><a href="/research">Research</a></li><li><a href="/create">Create</a></li><li><a href="/launch">Launch</a></li><li><a href="/campaigns">Campaigns</a></li><li><a href="/autopilot">Automations</a></li></ul></div>
-    <div><h2>Solutions</h2><ul><li><a href="/ppc-automation-software/">PPC automation</a></li><li><a href="/cross-platform-ad-management/">Cross-platform ad management</a></li><li><a href="/product/google-ads">Google Ads</a></li><li><a href="/product/meta-ads">Meta Ads</a></li><li><a href="/product/tiktok-ads">TikTok Ads</a></li><li><a href="/product/pinterest-ads">Pinterest Ads</a></li></ul></div>
-    <div><h2>Resources</h2><ul><li><a href="/learn/">Learn</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/faq">FAQ</a></li><li><a href="/blog">Blog</a></li><li><a href="/about">About</a></li></ul></div>
-    <div><h2>Legal</h2><ul><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms of Service</a></li><li><a href="/cookie-policy">Cookie Policy</a></li><li><a href="#cookie-settings">Cookie settings</a></li><li><a href="mailto:contact@orivenai.com">Contact</a></li></ul></div>
+<section class="site-cta" data-site-cta aria-label="Get started">
+  <div class="site-cta__in">
+    <p class="site-cta__eyebrow">Blog</p>
+    <h2 class="site-cta__h">See it with your own business</h2>
+    <p class="site-cta__p">All six sections are included in every plan.</p>
+    <div class="site-cta__actions">
+      <a class="site-btn site-btn--primary" href="/signup" data-cta="band_signup">Get started <span aria-hidden="true">&rarr;</span></a>
+      <a class="site-btn site-btn--ghost" href="/blog">More from the blog</a>
+    </div>
   </div>
-  <div class="sp-footer-bottom"><span>&copy; 2026 OrivenAI (Oriven) &middot; KVK 42039993 &middot; Netherlands</span><a href="/signup" data-cta="footer_signup">Get started for free &rarr;</a></div>
-</div></footer>
+</section>
+<footer class="site-foot" data-site-footer>
+  <div class="site-foot__in">
+    <div class="site-foot__top">
+      <div class="site-foot__brand">
+        <a href="/" aria-label="OrivenAI home"><img src="/assets/orivenlogo-256.webp" width="48" height="48" alt="OrivenAI" loading="lazy"></a>
+        <p>The connected AI marketing workspace: research, plan, create, launch and improve, in one place.</p>
+      </div>
+      <nav class="site-foot__col" aria-label="Product"><h2>Product</h2><a href="/product">All six sections</a><a href="/business">Control Center</a><a href="/research">Research</a><a href="/create">Create</a><a href="/launch">Launch</a><a href="/campaigns">Campaigns</a><a href="/autopilot">Automations</a></nav>
+      <nav class="site-foot__col" aria-label="Assistants"><h2>Assistants</h2><a href="/#agent-scout" data-ik-goto="scout">Scout</a><a href="/#agent-vector" data-ik-goto="vector">Vector</a><a href="/#agent-nova" data-ik-goto="nova">Nova</a><a href="/#agent-momentum" data-ik-goto="momentum">Momentum</a><a href="/#agent-metric" data-ik-goto="metric">Metric</a><a href="/#agent-flux" data-ik-goto="flux">Flux</a></nav>
+      <nav class="site-foot__col" aria-label="Platforms"><h2>Platforms</h2><a href="/product/google-ads">Google Ads</a><a href="/product/meta-ads">Meta Ads</a><a href="/product/tiktok-ads">TikTok Ads</a><a href="/product/pinterest-ads">Pinterest Ads</a><a href="/cross-platform-ad-management/">Cross-platform ads</a><a href="/ppc-automation-software/">PPC automation</a></nav>
+      <nav class="site-foot__col" aria-label="Resources"><h2>Resources</h2><a href="/solutions">Solutions</a><a href="/learn/">Learn</a><a href="/blog">Blog</a><a href="/faq">FAQ</a><a href="/case-studies">Case Studies</a><a href="/pricing">Pricing</a></nav>
+      <nav class="site-foot__col" aria-label="Company"><h2>Company</h2><a href="/about">About</a><a href="mailto:contact@orivenai.com">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/cookie-policy">Cookie Policy</a><a href="/refund-policy">Refund Policy</a><a href="/security">Security</a><a href="#cookie-settings" data-cookie-settings>Cookie settings</a></nav>
+    </div>
+    <div class="site-foot__bottom">
+      <span>&copy; 2026 Oriven &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</span>
+      <button type="button" class="site-foot__totop" data-scroll-top>Scroll to top <span aria-hidden="true">&uarr;</span></button>
+    </div>
+  </div>
+</footer>
 
 </body>
 </html>

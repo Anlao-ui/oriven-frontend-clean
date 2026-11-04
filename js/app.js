@@ -477,12 +477,12 @@ function navigate(page){
     console.log("[ACCESS] navigate('aichat') | _dbSubscriptionStatus:", _gateSub, "| will block:", _gateSub === "free");
     if(_gateSub === "free"){
       console.warn("[ACCESS] BLOCKING aichat — confirmed free plan from Supabase.");
-      if(typeof toast==="function") toast("Upgrade your plan to access this feature","warn");
+      if(typeof toast==="function") toast("Oriven Chat is part of every plan — choose one to use it","warn");
       if(typeof openPaywall==="function") openPaywall();
       return;
     }
-    // The assistant is Oriven Chat (Creator and Professional; the server
-    // enforces the same: /api/generate-text type 'assistant').
+    // The assistant is Oriven Chat (every paid plan; the server enforces
+    // the same: /api/generate-text type 'assistant').
     if(typeof window.orvEntitled === "function" && window.orvEntitled("orivenChat") === false){
       if(typeof openLimitReached === "function") openLimitReached("chat");
       return;

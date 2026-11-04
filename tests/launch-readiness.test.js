@@ -446,8 +446,8 @@ const server = app.listen(PORT, async () => {
     check('one request carried a stable attempt id', st.publishReqs.length === 1 && /^op_/.test(st.publishReqs[0].opId || ''), st.publishReqs);
     await page.click('button:has-text("Open in Campaigns")');
     await settle(page, 1200);
-    const nav = await page.evaluate(() => ({ page: document.querySelector('.page.active').id, side: (document.querySelector('.orv-sb .orv-ni.orv-active') || {}).getAttribute && document.querySelector('.orv-sb .orv-ni.orv-active').getAttribute('data-orv-page') }));
-    check('"Open in Campaigns" → the current Campaigns page with the sidebar on Campaigns (was the old hub)', nav.page === 'page-performance' && nav.side === 'performance', nav);
+    const nav = await page.evaluate(() => ({ page: document.querySelector('.page.active').id, side: (document.querySelector('.orv-sb .onv-item.is-on') || {}).getAttribute && document.querySelector('.orv-sb .onv-item.is-on').getAttribute('data-onv') }));
+    check('"Open in Campaigns" → the current Campaigns page with the sidebar on Campaigns (was the old hub)', nav.page === 'page-performance' && nav.side === 'overview', nav);
     await goLaunch(page);
     pc = await cards(page, 'pinterest');
     check('after publish the card says PUBLISHED · PAUSED', pc['pin-ok'] === 'PUBLISHED · PAUSED', pc);

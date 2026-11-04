@@ -158,7 +158,7 @@ const server = app.listen(PORT, async () => {
 
     // ── PLATFORMS / CURRENCY / METRICS ─────────────────────────────
     let v = await view(page);
-    check('Campaigns opens on the current page with the sidebar on Campaigns', await page.evaluate(() => document.querySelector('.page.active').id === 'page-performance' && document.querySelector('.orv-sb .orv-ni.orv-active').getAttribute('data-orv-page') === 'performance'));
+    check('Campaigns opens on the current page with the sidebar on Campaigns', await page.evaluate(() => document.querySelector('.page.active').id === 'page-performance' && document.querySelector('.orv-sb .onv-item.is-on').getAttribute('data-onv') === 'overview'));
     check('Google (USD account): money in $, never €', v.tiles.spend === '$1.3K' && v.tiles.cpc.startsWith('$') && !JSON.stringify(v.tiles).includes('€'), v.tiles);
     check('Google: a campaign with no activity in the range is still discovered (include_all)', v.opts.some((o) => o.v === 'google:g2'), v.opts);
     check('Campaigns asks Google/Meta for every campaign (include_all=1)', calls.some((c) => c.p === '/api/ads/overview' && c.q.include_all === '1') && calls.some((c) => c.p === '/api/meta/campaigns' && c.q.include_all === '1'));

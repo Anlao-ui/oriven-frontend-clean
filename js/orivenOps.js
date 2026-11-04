@@ -1011,10 +1011,10 @@
   // table in plans.js (ORIVEN_PLANS[*].entitlements). The server enforces the
   // same table (server/services/planEntitlements.js); this layer only makes
   // the product show it honestly:
-  //   • Research / Autopilot (Starter+): the sidebar keeps both steps with a
-  //     lock on Free, and the pages show an upgrade state instead of tools.
-  //   • Oriven Chat (Creator+): launcher hidden otherwise.
-  //   • In-app notifications (Creator, Professional): bell hidden otherwise.
+  //   • One product: every paid plan includes everything. Without a plan
+  //     (never bought, or the period ended) Research and Automations keep
+  //     their sidebar steps with a lock and the pages show the plans; the
+  //     Oriven Chat launcher and the notification bell are hidden.
   // Plan state lives in _dbSubscriptionStatus (auth.js, from Supabase); while
   // it is still unknown nothing is locked and no premium surface is shown.
   // ════════════════════════════════════════════════════════════════
@@ -1035,6 +1035,7 @@
     return typeof window.orvPlanHas === 'function' ? window.orvPlanHas(p, key) : null;
   };
   window.orvOpenPlans = function () {
+    if (typeof window.openPaywall === 'function') { window.openPaywall(); return; }
     if (typeof window.openSettingsModal !== 'function') return;
     window.openSettingsModal();
     var ni = document.querySelector('.smd-ni[data-smd="subscription"]');
@@ -1042,17 +1043,17 @@
   };
   var LOCK_SVG = '<svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7"/></svg>';
   function gateHtml(g) {
-    var min = typeof window.orvMinPlanFor === 'function' ? window.orvMinPlanFor(g.key) : null;
-    var name = min ? min.name : 'Starter';
-    var price = min ? ('€' + min.price.toFixed(2) + ' / month · ' + (typeof window.orvFormatCredits === 'function' ? window.orvFormatCredits(min.credits) : min.credits) + ' credits / month') : '';
+    var first = (typeof window.ORIVEN_PERIOD_PLANS !== 'undefined' && window.ORIVEN_PERIOD_PLANS[0]) || null;
+    var name = 'Plan';
+    var price = first ? ('from €' + first.price + ' for ' + first.periodLabel + ' · no automatic renewal') : '';
     return '<section class="orv-gate" aria-labelledby="orvGateT_' + g.key + '">' +
       '<div class="orv-gate-card">' +
         '<div class="orv-gate-eyebrow"><span class="orv-gate-step">' + g.step + '</span><span class="orv-gate-lock">' + LOCK_SVG + ' ' + name + '</span></div>' +
         '<h1 class="orv-gate-title" id="orvGateT_' + g.key + '">' + g.title + '</h1>' +
         '<p class="orv-gate-lead">' + g.lead + '</p>' +
-        '<p class="orv-gate-text">' + g.title + ' is part of the complete OrivenAI workflow, available from ' + name + '.</p>' +
+        '<p class="orv-gate-text">' + g.title + ' is part of every OrivenAI plan. Choose how long you want access to use it.</p>' +
         '<div class="orv-gate-actions"><button type="button" class="orv-gate-btn" onclick="orvOpenPlans()">View plans</button>' +
-        (price ? '<span class="orv-gate-price">' + name + ': ' + price + '</span>' : '') + '</div>' +
+        (price ? '<span class="orv-gate-price">' + price + '</span>' : '') + '</div>' +
       '</div></section>';
   }
   var lastApplied = '';
@@ -1074,14 +1075,16 @@
     }
     // workflow steps: locked only when the plan is known and excludes them
     Object.keys(GATES).forEach(function (k) {
-      var g = GATES[k], locked = has(g.key) === false;
+      // Local preview (js/localPreview.js): pages open for inspection; the
+      // server still checks access on every paid action.
+      var g = GATES[k], locked = has(g.key) === false && !window.ORV_LOCAL_PREVIEW;
       document.querySelectorAll('.orv-ni[data-orv-page="' + k + '"]').forEach(function (b) {
         b.classList.toggle('orv-locked', locked);
         var mark = b.querySelector('.orv-lock');
         if (locked && !mark) { mark = document.createElement('span'); mark.className = 'orv-lock'; mark.innerHTML = LOCK_SVG; b.appendChild(mark); }
         if (!locked && mark) mark.remove();
         var base = g.title;
-        if (locked) { b.setAttribute('aria-label', base + ' — available from Starter'); if (b.hasAttribute('data-tip')) b.setAttribute('data-tip', base + ' · Starter'); }
+        if (locked) { b.setAttribute('aria-label', base + ' — choose a plan to use it'); if (b.hasAttribute('data-tip')) b.setAttribute('data-tip', base + ' · needs a plan'); }
         else { b.removeAttribute('aria-label'); if (b.hasAttribute('data-tip')) b.setAttribute('data-tip', base); }
       });
       var page = document.getElementById(g.pageId);

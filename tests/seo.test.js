@@ -26,7 +26,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   check('generated pages, sitemap block and edge function are up to date (build --check)', fresh);
   const { loadPages, outFile } = require(path.join(ROOT, 'tools/seo/build.js'));
   const pages = loadPages();
-  check('21 pages: learn hub, 15 Learn articles, 3 blog posts, 2 commercial pages', pages.length === 21 && pages.filter((p) => p.kind === 'article' && p.path.startsWith('/learn/')).length === 15 && pages.filter((p) => p.path.startsWith('/blog/')).length === 3, pages.map((p) => p.path));
+  check('26 pages: learn hub, 15 Learn articles, 3 blog posts, 2 commercial pages, 5 solution pages', pages.length === 26 && pages.filter((p) => /^\/solutions\/[a-z-]+$/.test(p.path) && p.kind === 'commercial').length === 5 && pages.filter((p) => p.kind === 'article' && p.path.startsWith('/learn/')).length === 15 && pages.filter((p) => p.path.startsWith('/blog/')).length === 3, pages.map((p) => p.path));
   const titles = new Set(), descs = new Set();
   for (const p of pages) {
     const html = read(outFile(p));
@@ -81,7 +81,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   check('no generated page links into the private app (/app)', !pages.some((p) => /href="\/app/.test(read(outFile(p)))));
   const inbound = (target) => pages.some((p) => p.path !== target && read(outFile(p)).includes(`href="${target}"`)) || idx.includes(`href="${target}"`);
   check('no orphan pages: every generated page has an inbound link', pages.every((p) => inbound(p.path)), pages.filter((p) => !inbound(p.path)).map((p) => p.path));
-  check('homepage nav + footer link to /learn/ and both solution pages', idx.includes('href="/learn/" class="lp-dd-item"') && idx.includes('href="/learn/" class="ov-footer-link"') && idx.includes('href="/ppc-automation-software/"') && idx.includes('href="/cross-platform-ad-management/"'));
+  check('homepage nav + footer link to /learn/ and both solution pages', idx.includes('href="/learn/" class="lp-dd-item"') && /<footer class="site-foot"[\s\S]*?href="\/learn\/"/.test(idx) && idx.includes('href="/ppc-automation-software/"') && idx.includes('href="/cross-platform-ad-management/"'));
 
   console.log('\nC. index.html head, structured data, homepage');
   const headTitle = (idx.match(/<title>([^<]*)<\/title>/) || [])[1];
@@ -92,18 +92,20 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   check('index.html JSON-LD parses; Organization "OrivenAI" with alternate names', idxLd.length === 3 && org.name === 'OrivenAI' && org.alternateName.includes('ORIVEN'));
   check('PAGE_SEO titles unique and branded OrivenAI', new Set(Object.values(pageSeo).map((s) => s.title)).size === Object.keys(pageSeo).length && Object.values(pageSeo).every((s) => /OrivenAI/.test(s.title)));
   check('Google/Meta product pages target their commercial intent', /Google Ads Campaign Builder/.test(pageSeo['product-google-ads'].title) && /Facebook & Instagram Ads/.test(pageSeo['product-meta-ads'].title));
-  check('homepage states the category above the brand headline', /<p class="ov-section-eyebrow ov-hero-category">AI advertising platform<\/p>\s*<h1 class="lp-hero-h1 ov-h1">Advertising gets complicated\.<br>ORIVEN puts it in ORDER\.<\/h1>/.test(idx));
+  check('homepage: brand headline unchanged; the category is stated in the title (the hero badge was removed on request)', /<h1 class="ik-h1" id="ik-h1"><span>Your marketing,<\/span> <span>from strategy<\/span> <span>to execution\.<\/span><\/h1>/.test(idx) && !/ik-eyebrow">AI marketing platform/.test(idx) && /<title>OrivenAI: AI Advertising Platform/.test(idx));
   check('login/signup stay noindex', pageSeo.login.noindex === true && pageSeo.signup.noindex === true);
 
   console.log('\nD. Product facts match the product code');
   const ctx = { window: {}, document: { addEventListener() {}, querySelectorAll() { return []; }, getElementById() { return null; } }, console };
   vm.createContext(ctx); vm.runInContext(read('js/plans.js'), ctx);
-  const P = vm.runInContext('typeof ORIVEN_PLANS !== "undefined" ? ORIVEN_PLANS : window.ORIVEN_PLANS', ctx);
+  // The five period plans (Flex … Annual), by id.
+  const P = {}; vm.runInContext('ORIVEN_PERIOD_PLANS', ctx).forEach((p) => { P[p.id] = p; });
   const C = vm.runInContext('typeof CREDIT_COSTS !== "undefined" ? CREDIT_COSTS : window.CREDIT_COSTS', ctx);
   const F = require(path.join(ROOT, 'tools/seo/facts.js'));
   check('plan prices on public pages = plans.js', F.plans.every((p) => P[p.id] && Number(P[p.id].price) === p.price), F.plans.map((p) => [p.id, P[p.id] && P[p.id].price]));
   check('image/video ad credit costs = plans.js', F.costs.imageAd === C.imageAdComplete && (C.videoAdComplete == null || F.costs.videoAd === C.videoAdComplete), [C.imageAdComplete, C.videoAdComplete]);
-  check('SoftwareApplication offers in index.html = plans.js', app.offers.offers.every((o) => P[o.name.toLowerCase()] && Number(P[o.name.toLowerCase()].price) === Number(o.price)));
+  const byName = (n) => Object.values(P).find((p) => 'OrivenAI ' + p.name === n);
+  check('SoftwareApplication offers in index.html = plans.js (all five, VAT-inclusive price)', app.offers.offers.length === Object.keys(P).length && app.offers.offers.every((o) => byName(o.name) && Number(byName(o.name).price) === Number(o.price)), app.offers.offers.map((o) => [o.name, o.price]));
   const allHtml = pages.map((p) => read(outFile(p))).join('\n');
   check('pages never claim Autopilot on TikTok/Pinterest or team/agency features', !/autopilot[^.]{0,60}(tiktok|pinterest)[^.]{0,30}(yes|support)/i.test(text(allHtml)) && !/multi-client|agency dashboard|team seats|invite (your )?team/i.test(text(allHtml)));
 
@@ -165,7 +167,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
       && JSON.stringify(navLabels(h.slice(h.indexOf('<nav class="lp-nav"'), h.indexOf('<div class="lp-mobile-menu"')))) === JSON.stringify(siteLabels));
   }).map((p) => p.path);
   check('every static page uses the site’s main navbar (same items as index.html), not a separate one', navBad.length === 0 && siteLabels.length > 10, navBad);
-  check('main navbar logo leads to the homepage', /<a href="\/" class="lp-logo">/.test(read('learn/index.html')));
+  check('main navbar logo leads to the homepage', /<a href="\/" class="lp-logo"[^>]*>/.test(read('learn/index.html')));
   const navCss = read('css/site-nav.css');
   check('css/site-nav.css carries the navbar rules (#lpNav shown via data-lpnav, dropdowns, mobile menu)', /body\[data-lpnav="1"\] #lpNav\{display: flex !important;\}/.test(navCss) && /\.lp-dropdown\{/.test(navCss) && /\.lp-mobile-menu\{/.test(navCss) && navCss.length < 60000, navCss.length);
   check('js/site-nav.js defines the handlers the copied markup calls', /window\.lpMmToggle\s*=/.test(read('js/site-nav.js')) && /window\.lpCloseMm\s*=/.test(read('js/site-nav.js')));

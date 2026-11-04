@@ -12,6 +12,12 @@ let html = fs.readFileSync(FILE, 'utf8');
 const crlf = html.includes('\r\n');
 html = html.split('\r').join('');
 
+// Shared footer, bottom CTA, "Inside <section>" and Solutions (tools/seo/apply-site-chrome.js).
+html = require('./apply-site-chrome')(html);
+
+// The closing CTA: the shared one (between markers), or the old CTA section.
+function ctaAt(view) { const m = view.lastIndexOf('<!-- site-cta:start -->'); return m >= 0 ? m : view.lastIndexOf('<section class="ov-sp-cta">'); }
+
 for (const [key, data] of Object.entries(D)) {
   const startTag = `<div id="view-${key}" class="pub-view">`;
   const endTag = `<!-- /view-${key} -->`;
@@ -19,7 +25,7 @@ for (const [key, data] of Object.entries(D)) {
   if (a < 0 || b < 0) throw new Error('view not found: ' + key);
   let view = html.slice(a, b);
   view = view.replace(/\n?\s*<!-- depth:start -->[\s\S]*?<!-- depth:end -->/, '');
-  const cta = view.lastIndexOf('<section class="ov-sp-cta">');
+  const cta = ctaAt(view);
   if (cta < 0) throw new Error('no CTA section in ' + key);
   const lineStart = view.lastIndexOf('\n', cta);
   const ctaComment = view.lastIndexOf('<!-- CTA -->', cta);
@@ -29,42 +35,63 @@ for (const [key, data] of Object.entries(D)) {
 }
 
 // Pricing: the plan cards are rendered by JavaScript (plans.js); this static
-// comparison gives every visitor (and crawler) the same facts in plain HTML.
-// Values from tools/seo/facts.js (mirrors js/plans.js) and the backend's
-// planEntitlements.js (Oriven Chat and in-app notifications from Creator;
-// Priority Support and the Weekly AI Performance Report on Professional).
+// section gives every visitor (and crawler) the same facts in plain HTML.
+// Values from tools/seo/facts.js, which reads js/plans.js (the mirror of the
+// backend's services/pricing.js); nothing here is typed by hand.
+// Three parts, each with its own heading: the plans side by side (one row
+// per plan: access, full price, credits; what every plan shares is said once
+// under the table), credits
+// (the rules next to a grouped price list) and good to know.
 {
   const F = require('./facts');
-  const yes = '<span aria-label="Included">✓</span>', no = '<span aria-label="Not included">—</span>';
-  // The workflow is one row (Free: limited; paid plans: all six steps), never
-  // six separate module rows. A string cell is shown as text.
-  const ent = { free: ['Limited',1,0,0,0,0], starter: ['Full',1,0,0,0,0], creator: ['Full',1,1,1,0,0], professional: ['Full',1,1,1,1,1] };
-  const rows = [['Advertising workflow'], ['Google Ads, Meta Ads, TikTok Ads and Pinterest Ads'], ['Oriven Chat'], ['In-app notifications'], ['Priority Support'], [F.weeklyReportLive ? 'Weekly AI Performance Report' : 'Weekly AI Performance Report (coming soon)']];
-  const head = F.plans.map((p) => '<th scope="col">' + p.name + '<br><span>' + (p.price ? '€' + p.price.toFixed(2) + ' / month' : 'Free') + '</span></th>').join('');
-  const body = '<tr><th scope="row">Credits</th>' + F.plans.map((p) => '<td>' + p.credits + '</td>').join('') + '</tr>' +
-    rows.map((r, i) => '<tr><th scope="row">' + r[0] + '</th>' + F.plans.map((p) => '<td>' + (typeof ent[p.id][i] === 'string' ? ent[p.id][i] : ent[p.id][i] ? yes : no) + '</td>').join('') + '</tr>').join('') +
-    '<tr><th scope="row"><span class="ov-sr">Note</span></th><td colspan="4">Limited: Control Center, Create, Launch and Campaigns. Full: all six steps, adding Research and Automations.</td></tr>';
-  const costs = [['Campaign draft (copy and structure)', 25], ['Image (per ad)', 75], ['Video (per ad)', 200], ['Research report', 25], ['Oriven Chat message (Creator and Professional)', 5], ['New automation (once; its checks and changes are free)', 50]];
+  const fmt = (n) => n.toLocaleString('en-US');
+  const C = F.costs;
+  const best = F.plans.reduce((a, p) => (p.months && (!a || p.price / p.months < a.price / a.months) ? p : a), null);
+  const rows = F.plans.map((p) => {
+    const mark = best && p.id === best.id ? ' class="is-best"' : '';
+    return `<tr${mark}><th scope="row">${p.name}</th><td data-label="Access">${p.period}</td><td data-label="Price" class="ov-pd-num">${F.euro(p.price)}</td><td data-label="Credits" class="ov-pd-num">${fmt(p.creditCount)}</td></tr>`;
+  }).join('');
+  const groups = [
+    ['Creating ads', [['Campaign draft (copy and structure)', C.campaignDraft], ['Image (per ad)', C.image], ['Video, 5 seconds', C.video], ['Video, 10 seconds', C.video10s]]],
+    ['Research and analysis', [['Research report', C.researchRun], ['Analyze with AI', C.analysis], ['Website refresh', C.websiteRefresh]]],
+    ['Assistant and automation', [['Oriven Chat message', C.chatMessage, 'Each extra step in the same message, such as using a tool, is ' + C.chatStep + ' more; at most 2.'], ['New automation', C.automationCreate, 'Once; its checks and changes are free.']]],
+  ];
+  const costList = groups.map(([g, items]) => `<div class="ov-pd-group"><h4>${g}</h4><dl>${items.map((i) => `<div><dt>${i[0]}${i[2] ? `<span>${i[2]}</span>` : ''}</dt><dd>${i[1]} credits</dd></div>`).join('')}</dl></div>`).join('');
   const block = `<!-- pricing-detail:start -->
   <section class="ov-sp-section ov-deep ov-price-detail" aria-labelledby="price-detail-h">
     <div class="ov-sp-section-inner">
       <div class="ov-sp-tag">Compare plans</div>
-      <h2 class="ov-sp-h2" id="price-detail-h">What each plan includes</h2>
-      <p class="ov-deep-intro">Every plan uses the same product. Plans differ in how many credits you get and which modules are included. Prices are per month in euros.</p>
-      <div class="ov-price-table-wrap"><table class="ov-price-table"><thead><tr><th scope="col"><span class="ov-sr">Feature</span></th>${head}</tr></thead><tbody>${body}</tbody></table></div>
-      <h3>What things cost in credits</h3>
-      <div class="ov-price-table-wrap"><table class="ov-price-table ov-price-costs"><tbody>${costs.map((c) => '<tr><th scope="row">' + c[0] + '</th><td>' + c[1] + ' credits</td></tr>').join('')}</tbody></table></div>
-      <div class="ov-deep-cols">
-        <div><h3>How credits work</h3><ul><li>The Free plan gets 10 credits a day; paid plans get a monthly allowance.</li><li>An image ad campaign typically uses 100 credits (draft plus one image); a video ad campaign 225.</li><li>If a generation fails, its credits are returned.</li></ul></div>
-        <div><h3>Good to know</h3><ul><li>You can start on Free and upgrade when you need Research, Automations or more credits.</li><li>Your ad spend is paid to the ad platforms directly; OrivenAI never charges ad budgets.</li><li>Campaigns are created paused, so nothing spends until you switch it on.</li></ul></div>
+      <h2 class="ov-sp-h2" id="price-detail-h">The same product, five periods</h2>
+      <p class="ov-deep-intro">Every plan includes every feature. Plans differ only in how long your access runs, what it costs and how many credits it includes. Prices are in euros and include VAT, calculated at checkout for your location. You pay once; nothing renews automatically.</p>
+
+      <div class="ov-pd-part" aria-labelledby="pd-plans-h">
+        <h3 id="pd-plans-h">Plans side by side</h3>
+        <div class="ov-pd-table-wrap"><table class="ov-pd-table"><thead><tr><th scope="col">Plan</th><th scope="col">Access</th><th scope="col" class="ov-pd-num">Price</th><th scope="col" class="ov-pd-num">Credits</th></tr></thead><tbody>${rows}</tbody></table></div>
+        <p class="ov-pd-shared"><span>Every plan</span>Every feature (Research, Create, Launch, Campaigns, Automations, Oriven Chat, Priority Support) · Renews automatically: no</p>
       </div>
-      <p class="ov-deep-links"><span>Questions</span><a href="/faq">Read the FAQ</a><a href="/contact">Contact us</a></p>
+
+      <div class="ov-pd-part ov-pd-credits" aria-labelledby="pd-credits-h">
+        <div class="ov-pd-rules">
+          <h3 id="pd-credits-h">How credits work</h3>
+          <ul><li>An image ad typically uses ${C.imageAd} credits (draft plus one image); a video ad ${C.videoAd} (draft plus a 5-second video).</li><li>Plans of three months or longer add their credits in equal monthly parts, all within your access period.</li><li>Unused credits expire when your access ends. If a generation fails, its credits are returned.</li></ul>
+        </div>
+        <div class="ov-pd-costs">
+          <h3>What things cost in credits</h3>
+          ${costList}
+        </div>
+      </div>
+
+      <div class="ov-pd-part ov-pd-know" aria-labelledby="pd-know-h">
+        <h3 id="pd-know-h">Good to know</h3>
+        <ul><li><b>When your access ends</b>Nothing is charged: buy a new period whenever you want to continue. Your work stays in your account.</li><li><b>Before your access ends</b>Buying again adds the new period after the current one.</li><li><b>Your ad spend</b>Your ad spend is paid to the ad platforms directly; OrivenAI never charges ad budgets. Campaigns are created paused.</li></ul>
+      </div>
+      <p class="ov-deep-links"><span>Questions</span><a href="/faq">Read the FAQ</a><a href="/refund-policy">Refund policy</a><a href="/contact">Contact us</a></p>
     </div>
   </section>
   <!-- pricing-detail:end -->`;
   const a = html.indexOf('<div id="view-pricing" class="pub-view">'), b = html.indexOf('<!-- /view-pricing -->', a);
   let view = html.slice(a, b).replace(/\n?\s*<!-- pricing-detail:start -->[\s\S]*?<!-- pricing-detail:end -->/, '');
-  const cta = view.lastIndexOf('<section class="ov-sp-cta">');
+  const cta = ctaAt(view);
   const at = view.lastIndexOf('\n', cta);
   view = view.slice(0, at) + '\n\n  ' + block + '\n' + view.slice(at);
   html = html.slice(0, a) + view + html.slice(b);

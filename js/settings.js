@@ -74,7 +74,7 @@ var SETTINGS_DEFAULTS = {
   showWorkflowSteps: true
 };
 
-// Plan data lives in plans.js (ORIVEN_PLANS / ORIVEN_PLAN_LIST / ORIVEN_PAID_PLANS).
+// Plan data lives in plans.js (ORIVEN_PERIOD_PLANS, ORIVEN_PLANS for account statuses).
 // settings.js reads from those globals — do not duplicate plan definitions here.
 
 function loadSettings(){
@@ -310,6 +310,7 @@ async function saveAccountName(){
     }
     inp.dataset.saved = name;
     if(btn){ btn.textContent = "Saved"; }
+    if(typeof window.orvAppNavSetFirstName === "function") window.orvAppNavSetFirstName(name); // the sidebar's account row
     toast("Name updated");
     setTimeout(function(){ if(btn){ btn.textContent = "Save"; btn.disabled = true; } }, 1200);
   }catch(_){
@@ -984,7 +985,7 @@ var LANG_STRINGS = {
     smdThemeLabel:"Theme", smdThemeHelp:"Choose how ORIVEN appears on this device.", smdThemeLight:"Light", smdThemeDark:"Dark", smdThemeSystem:"System",
     smdLangLabel:"Language", smdLangHelp:"Choose the language ORIVEN's interface uses.",
     smdLoadingEllipsis:"Loading…",
-    smdNotifChannelNote:"These control the in-app notification center (Creator and Professional). Automation emails are set in Automations → Settings.",
+    smdNotifChannelNote:"These control the in-app notification center (every plan). Automation emails are set in Automations → Settings.",
     smdNotifApTitle:"Automation approvals", smdNotifApSub:"Notify me when an automation needs my approval.",
     smdNotifApActTitle:"Automation actions", smdNotifApActSub:"Notify me when an automation changes a campaign.",
     smdNotifApFailTitle:"Automation failures", smdNotifApFailSub:"Notify me when an automation action fails.",
@@ -3162,125 +3163,16 @@ async function openBillingPortal(btn){
   if(btn){ btn.disabled = false; btn.textContent = "Manage Subscription"; }
 }
 
+// Buying a period plan always goes through Stripe Checkout (selectPlan).
+// There are no plan switches any more: plans differ only in period, price
+// and credits, and a new purchase while access is active adds its credits
+// now and its time after the current end (server: fulfill_purchase).
 async function switchPlan(planId){
-  var cfg = loadSettings();
-  // Bug fix: this used to compare against cfg.currentPlan (the localStorage
-  // cache) only. renderPlanPanel()/initPlan() already established the real
-  // rule elsewhere in this file — _dbSubscriptionStatus (Supabase-authoritative,
-  // set in auth.js) must win when available, because the cache can be stale
-  // relative to the DB (e.g. a plan changed directly in Supabase, as with a
-  // manually-upgraded test account) even though auth.js normally re-syncs it
-  // on profile load. Using the stale cache here made the free/paid branch
-  // below (and the schedule-plan-change call) decide against the wrong
-  // "current" plan.
-  var actualPlan = (typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus !== null)
-    ? _dbSubscriptionStatus
-    : (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : cfg.currentPlan;
-  if(planId === actualPlan){
-    toast("You're already on this plan", "warn");
+  if(typeof orvPeriodPlan === "function" && !orvPeriodPlan(planId)){
+    toast("This plan is no longer offered. Choose one of the current plans.", "warn");
     return;
   }
-  if(cfg.pendingPlan === planId){
-    toast("This change is already scheduled", "warn");
-    return;
-  }
-  // A cancellation is pending in Stripe: don't layer a plan switch on top
-  // of it. The user resumes first ("Keep plan"), then changes plans.
-  if(cfg.pendingPlan === "free" && planId !== "free"){
-    toast("Your cancellation is scheduled. Choose “Keep plan” first, then change plans.", "warn");
-    return;
-  }
-
-  var planData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === planId; });
-  var name = planData ? planData.name : planId;
-
-  // Disable buttons during async call
-  var btns = document.querySelectorAll('[onclick*="switchPlan"]');
-  btns.forEach(function(b){ b.disabled = true; });
-
-  try {
-    var sessionResult = await SB.auth.getSession();
-    var session = sessionResult.data && sessionResult.data.session;
-
-    if(!session){
-      // Not authenticated — no backend call possible, so no real billing
-      // date is known either. Never fabricate one (e.g. "now + 30 days");
-      // the real date only exists once /api/schedule-plan-change actually
-      // runs against Stripe.
-      saveSettings({ pendingPlan: planId, pendingPlanDate: null });
-      renderPlanPanel();
-      toast("Scheduled: " + name + " — sign in to confirm the exact date");
-      return;
-    }
-
-    // No real (Stripe-billed) subscription yet -- Free or an unrecognized
-    // status -- use selectPlan() (Stripe checkout for a paid target,
-    // continueOnFreePlan() for 'free') instead of schedule-plan-change,
-    // which only makes sense against an EXISTING Stripe subscription.
-    // Deliberately checks ORIVEN_PAID_PLANS, not ORIVEN_PLANS -- Free is a
-    // real, first-class entry in ORIVEN_PLANS now, so `!ORIVEN_PLANS[actualPlan]`
-    // would incorrectly stop matching a genuine Free account (which has no
-    // Stripe subscription to schedule a change on) once it was added there.
-    var actualIsPaid = ORIVEN_PAID_PLANS.some(function(p){ return p.id === actualPlan; });
-    if(!actualIsPaid && ORIVEN_PLANS[planId]){
-      if(typeof selectPlan === "function") selectPlan(planId);
-      return;
-    }
-
-    var planResult = await apiFetch("/api/schedule-plan-change", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + session.access_token
-      },
-      body: JSON.stringify({ plan: planId })
-    });
-    var data = planResult.data;
-
-    if(!planResult.ok) throw new Error(data.error || "Server error");
-
-    if(data.requiresCheckout){
-      if(typeof selectPlan === "function") selectPlan(planId);
-      return;
-    }
-
-    // Apply server response to local state
-    if(data.subscription_status){
-      // Plan was applied immediately (no active Stripe sub or fallback path)
-      if(typeof S !== "undefined" && S) S.currentPlan = data.subscription_status;
-      saveSettings({
-        currentPlan:     data.subscription_status,
-        pendingPlan:     null,
-        pendingPlanDate: null
-      });
-      if(typeof invalidatePlanCache === "function") invalidatePlanCache();
-      renderPlanPanel();
-      if(typeof _renderPaywallCards === "function") _renderPaywallCards();
-      toast(name + " plan is now active");
-    } else {
-      // data.pending_plan_date is Stripe's real current_period_end
-      // (server.js /api/schedule-plan-change) -- never fall back to a
-      // frontend-guessed date. If it's ever genuinely absent, say so
-      // honestly rather than inventing one.
-      saveSettings({
-        pendingPlan:     data.pending_plan     || planId,
-        pendingPlanDate: data.pending_plan_date || null
-      });
-      renderPlanPanel();
-      toast(data.pending_plan_date
-        ? name + " goes active from " + _formatPlanDate(data.pending_plan_date)
-        : "Scheduled: " + name + " at your next billing cycle");
-    }
-
-  } catch(err){
-    console.error("[Plan] switchPlan error:", err.message);
-    // Surface the real backend reason (e.g. "Active subscription required",
-    // "Price not configured for plan: X") instead of a generic message that
-    // hides which of several real failure modes actually happened.
-    toast(err.message ? "Could not schedule plan change: " + err.message : "Could not schedule plan change — please try again", "err");
-  } finally {
-    btns.forEach(function(b){ b.disabled = false; });
-  }
+  if(typeof selectPlan === "function") selectPlan(planId);
 }
 
 var _orvResumeBusy = false;
@@ -3341,62 +3233,32 @@ async function renderPlanPanel(){
     currentId = null;
   }
 
-  // Real, backend-authoritative pending-plan-change state — was previously
-  // read only from local cfg.pendingPlan/pendingPlanDate, which goes stale
-  // across devices/reloads and whose date fallback bottomed out at a
-  // frontend-invented "now + 30 days" guess (initPlan()'s planRenewalDate).
-  // Stripe's Subscription Schedule is the real source of truth for WHEN a
-  // scheduled change takes effect; this fetch is what actually reflects it.
+  // The account's access, from the server (/api/get-subscription): period,
+  // end date, how it is billed, purchase history and credit instalments.
+  // Nothing here is guessed in the browser.
   var subInfo = null;
   try {
     var subRes = (typeof apiFetch === "function") ? await apiFetch("/api/get-subscription") : null;
     if(subRes && subRes.ok && subRes.data) subInfo = subRes.data;
   } catch(_){}
-  var pendingId = subInfo ? (subInfo.pending_plan || null)
-    : ((typeof S !== "undefined" && S && S.pendingPlan !== undefined) ? S.pendingPlan : (cfg.pendingPlan || null));
-  var pendingPlanDateReal = subInfo ? (subInfo.pending_plan_date || null) : (cfg.pendingPlanDate || null);
-  // Kept for the cancel modal: the real Stripe period end (server-resolved
-  // from the signed-in user's own subscription) and how the plan is billed.
   window._orvSubInfo = subInfo;
+  var pendingId = subInfo ? (subInfo.pending_plan || null) : (cfg.pendingPlan || null);
+  var pendingPlanDateReal = subInfo ? (subInfo.pending_plan_date || null) : (cfg.pendingPlanDate || null);
   if(subInfo) saveSettings({ pendingPlan: pendingId, pendingPlanDate: pendingPlanDateReal });
   var cancelScheduled = pendingId === "free";
+  var status = subInfo ? subInfo.subscription_status : currentId;
+  var hasAccess = subInfo ? !!subInfo.has_access : (currentId && currentId !== "free");
+  var accessEnd = subInfo ? subInfo.access_expires_at : null;
+  var billing = subInfo ? subInfo.billing : null;          // 'purchase' | 'stripe' (legacy monthly) | 'none'
+  var period = subInfo && subInfo.access_plan && typeof orvPeriodPlan === "function" ? orvPeriodPlan(subInfo.access_plan) : null;
+  var legacy = ORIVEN_PLANS[status] && ORIVEN_PLANS[status].legacy ? ORIVEN_PLANS[status] : null;
+  var legacyRunning = !!(legacy && billing === "stripe" && hasAccess && !cancelScheduled);
+  var purchases = (subInfo && subInfo.purchases) || [];
+  var grants = (subInfo && subInfo.grants) || [];
 
-  // Free is never offered as a selectable plan-card option here -- it's an
-  // in-app exploration state, not a public/selectable pricing tier. It only
-  // ever renders as the CURRENT plan's own card, when the account's actual
-  // plan genuinely is 'free'. A paid user (starter/creator/professional)
-  // only ever sees the 3 real paid plans, matching the paywall's identical
-  // rule (paywall.js _renderPaywallCards).
-  // All four real plans (plans.js ORIVEN_PLAN_LIST: Free, Starter, Creator,
-  // Professional), whatever the current plan — Free is a genuine plan, and
-  // for a paid account it is where a cancellation lands.
-  var plansToShow = ORIVEN_PLAN_LIST;
-  var currentData = plansToShow.find(function(p){ return p.id === currentId; });
-  var currentRank = currentData ? plansToShow.indexOf(currentData) : -1;
+  _updateSidebarPlan(hasAccess ? currentId : "free");
 
-  _updateSidebarPlan(currentId);
-
-  // Real, backend-authoritative credit status — the single source of
-  // truth for everything below (credits_balance / credits_cycle_end on
-  // profiles), not the old client-simulated renewal date / usage counters.
-  // No date-guessing fallback: if the real value isn't available, callers
-  // below show an honest "—"/descriptive fallback rather than a fabricated
-  // date (initPlan()'s planRenewalDate is never used for display here).
   var creditStatus = (typeof _getCreditStatus === "function") ? await _getCreditStatus(true) : null;
-  var renewalStr   = creditStatus && creditStatus.resetDate ? _formatPlanDate(creditStatus.resetDate) : null;
-
-  // Usage stats — Connected Platforms reads the same window._gadsConnected/
-  // _metaConnected/_tiktokConnected flags the navbar, Business Connections
-  // tab, Campaigns page, and Autopilot monitoring all read (single source
-  // of truth, populated by _conFetchStatus() from the real /api/{platform}/
-  // status endpoints). Campaigns Generated / Saved Assets come from the
-  // server-authoritative creditStatus payload below (profiles.campaigns_
-  // generated / creative_assets count) -- NOT from S.campaigns/S.assets,
-  // which are ephemeral in-memory arrays that reset on every login and
-  // don't reflect real persisted data.
-  // All four supported platforms, from the shared status record
-  // (window._orvConnStatus, filled only by real /api/{platform}/status
-  // responses; null = not checked / check failed — never counted).
   var _conn = window._orvConnStatus || {};
   var _connKeys = ['google', 'meta', 'tiktok', 'pinterest'];
   var connCount = _connKeys.filter(function(k){ return _conn[k] === true; }).length;
@@ -3411,239 +3273,145 @@ async function renderPlanPanel(){
       + '</div>'
       + '</div>';
   }
+  var euro = function(cents){ return "€" + (cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2)); };
 
   var html = '';
 
-  // ── Pending plan change / cancellation banner (only when relevant) ──
-  // Current plan stays CURRENT (currentId/currentData, unchanged above)
-  // until the real Stripe billing-period boundary actually arrives and the
-  // webhook flips subscription_status -- this banner only ever ANNOUNCES a
-  // scheduled future change, never implies it already happened. pDate is
-  // either the real backend-sourced date (pendingPlanDateReal, above) or
-  // an honest non-date fallback -- never a guessed date.
-  if(pendingId && currentData){
-    var pData = ORIVEN_PLAN_LIST.find(function(p){ return p.id === pendingId; });
-    var pName = pData ? pData.name : pendingId;
-    var pDate = pendingPlanDateReal ? _formatPlanDate(pendingPlanDateReal) : null;
-    var isCancel = pendingId === "free";
-    html += '<div class="sub-pending-notice" style="margin-bottom:14px">';
-    if(isCancel){
-      html += '<strong>Cancellation scheduled.</strong> ';
-      html += pDate
-        ? 'Your ' + currentData.name + ' plan stays active until <strong>' + pDate + '</strong>. You will not be charged again.'
-        : 'Your ' + currentData.name + ' plan stays active until the end of your current billing period. You will not be charged again.';
-      html += ' <button class="sub-undo-btn" id="planResumeBtn" onclick="cancelPlanChange(this)">Keep plan</button>';
-    } else {
-      html += pDate
-        ? '<strong>' + pName + '</strong> goes active from <strong>' + pDate + '</strong>'
-        : '<strong>' + pName + '</strong> is scheduled to go active at the end of your current billing period';
-      html += ' <button class="sub-undo-btn" onclick="cancelPlanChange()">Cancel</button>';
+  // ── Your access ────────────────────────────────────────────────
+  html += '<div class="sub-usage-card sub-access-card">';
+  html += '<div class="sub-card-eyebrow">Your access</div>';
+  if(hasAccess && legacy){
+    html += '<div class="sub-access-name">' + legacy.name + ' <span class="sub-access-kind">monthly subscription</span></div>';
+    if(cancelScheduled){
+      html += '<div class="sub-pending-notice" style="margin:10px 0 0"><strong>Cancellation scheduled.</strong> '
+        + (pendingPlanDateReal ? 'Your ' + legacy.name + ' subscription stays active until <strong>' + _formatPlanDate(pendingPlanDateReal) + '</strong>.' : 'Your ' + legacy.name + ' subscription stays active until the end of your current billing period.')
+        + ' You will not be charged again. <button class="sub-undo-btn" id="planResumeBtn" onclick="cancelPlanChange(this)">Keep plan</button></div>';
+    } else if(billing === "stripe"){
+      html += '<div class="sub-renewal">' + (subInfo && subInfo.current_period_end ? 'Renews ' + _formatPlanDate(subInfo.current_period_end) : 'Renews monthly') + '</div>';
+    } else if(accessEnd){
+      html += '<div class="sub-renewal">Active until ' + _formatPlanDate(accessEnd) + '</div>';
     }
-    html += '</div>';
+    html += '<p class="sub-access-text">Monthly subscriptions are no longer sold, and yours keeps working as it is. When it ends you can choose one of the plans below; they don’t renew automatically.</p>';
+    if(billing === "stripe" && !cancelScheduled) html += '<button class="sub-cancel-link" id="planCancelBtn" onclick="_showCancelConfirm()">Cancel subscription</button>';
+  } else if(hasAccess){
+    html += '<div class="sub-access-name">' + (period ? period.name : 'OrivenAI') + (period ? ' <span class="sub-access-kind">' + orvPlanT(period.periodLabel) + '</span>' : '') + '</div>';
+    html += '<div class="sub-renewal">Active until ' + _formatPlanDate(accessEnd) + '</div>';
+    html += '<p class="sub-access-text">Your plan doesn’t renew automatically: nothing is charged when it ends. Buy another period below whenever you want to continue; its credits arrive right away and its time starts after ' + _formatPlanDate(accessEnd) + '. Unused credits expire when your access ends.</p>';
+  } else {
+    var ended = ORIVEN_PAID_STATUSES.indexOf(status) !== -1 || purchases.length > 0;
+    html += '<div class="sub-access-name">No active plan</div>';
+    html += '<p class="sub-access-text">' + (ended && accessEnd
+      ? 'Your access ended on ' + _formatPlanDate(accessEnd) + '. Your work, campaigns and connected accounts are still here. Choose a plan to continue creating, researching and launching.'
+      : 'Every plan includes the full product: Research, Create, Launch, Campaigns, Automations and Oriven Chat. Choose how long you want access; you pay once and nothing renews automatically.') + '</p>';
   }
+  html += '</div>';
 
-  // ── Section 1: the three real plans, side by side, current plan state
-  //    baked into each card (isCurrent/isUp below) — this IS the plan
-  //    display now, not a secondary "browse other plans" list underneath
-  //    a separate current-plan card. ─────────────────────────────────
-  html += '<div class="sub-plans-grid">';
-
-  plansToShow.forEach(function(plan, rank){
-    var isCurrent = plan.id === currentId;
-    var isPending = plan.id === pendingId;
-    var isUp      = rank > currentRank;
-
-    html += '<div class="sub-pcard' + (isCurrent ? ' sub-pcard-active' : '') + '">';
-
-    if(isCurrent){
-      html += '<div class="sub-pcard-badge sub-pcard-badge-cur">Current Plan</div>';
-    } else if(plan.popular){
-      html += '<div class="sub-pcard-badge sub-pcard-badge-pop">Most Popular</div>';
-    } else {
-      html += '<div class="sub-pcard-badge-gap"></div>';
-    }
-
-    var isDaily = plan.cycleLabel === 'day';
+  // ── Plans: the five periods ──────────────────────────────────────
+  html += '<div class="sub-card-eyebrow" style="margin:18px 0 10px">' + (hasAccess ? 'Add time and credits' : 'Choose a plan') + '</div>';
+  html += '<div class="sub-plans-grid sub-plans-five">';
+  ORIVEN_PERIOD_PLANS.forEach(function(plan){
+    var f = orvPlanCardFacts(plan);
+    html += '<div class="sub-pcard' + (plan.badge ? ' sub-pcard-active' : '') + '">';
+    html += plan.badge ? '<div class="sub-pcard-badge sub-pcard-badge-pop">' + f.badge + '</div>' : '<div class="sub-pcard-badge-gap"></div>';
     html += '<div class="sub-pcard-name">' + plan.name + '</div>';
-    // Final Pricing Cleanup pass — price suffix always "/mo" (these are
-    // monthly plan cards, Free priced at €0/mo same as the others; only
-    // the CREDIT allowance below has its own real "/day" cadence for
-    // Free) — was previously "/day" for Free here too, contradicting the
-    // landing page's identical fix and confusing price cadence with
-    // credit-reset cadence.
-    html += '<div class="sub-pcard-price">€' + plan.price + '<span class="sub-pcard-per">/mo</span></div>';
-    if(isCurrent){
-      if(isDaily) html += '<div class="sub-renewal" style="margin:-4px 0 0">Resets every 24 hours</div>';
-      else if(cancelScheduled){
-        html += '<div class="sub-renewal" style="margin:-4px 0 0">' + (pendingPlanDateReal ? 'Active until ' + _formatPlanDate(pendingPlanDateReal) : 'Active until the end of this billing period') + '</div>';
-        html += '<div class="sub-cancel-chip">Cancellation scheduled</div>';
-      }
-      else if(renewalStr) html += '<div class="sub-renewal" style="margin:-4px 0 0">Renews ' + renewalStr + '</div>';
-    }
-
-    // Credits, then the plan's own feature list (plans.js ORIVEN_PLANS) — the
-    // same lists the public pricing and the paywall render, so the three can
-    // never disagree. Excluded items are listed too, marked for screen readers.
+    html += '<div class="sub-pcard-price">' + f.price + '<span class="sub-pcard-per"> / ' + f.period + '</span></div>';
     html += '<ul class="sub-pcard-feats">';
-    html += '<li><strong>' + orvFormatCredits(plan.credits) + '</strong> AI Credits / ' + (isDaily ? 'day' : 'month') + '</li>';
-    (plan.features || []).forEach(function(f){
-      var note = (typeof orvPlanFeatureNote === 'function') ? orvPlanFeatureNote(f) : '';
-      html += '<li>' + (typeof orvPlanT === 'function' ? orvPlanT(f) : f) + (note ? '<span class="sub-pcard-note">' + note + '</span>' : '') + '</li>';
-    });
-    (plan.excludedFeatures || []).forEach(function(f){
-      html += '<li class="sub-pcard-feat-off"><span class="ov-sr">' + (typeof orvPlanT === 'function' ? orvPlanT('Not included: ') : 'Not included: ') + '</span>' + (typeof orvPlanT === 'function' ? orvPlanT(f) : f) + '</li>';
-    });
+    html += '<li><strong>' + orvFormatCredits(plan.credits) + '</strong> ' + orvPlanT('credits') + '</li>';
+    if(f.instalmentNote) html += '<li>' + f.instalmentNote + '</li>';
+    if(f.perMonth) html += '<li>' + f.perMonth + '</li>';
+    html += '<li>' + f.renewal + '</li>';
     html += '</ul>';
-
-    if(isCurrent){
-      html += '<button class="sub-pcard-btn sub-pcard-btn-cur" disabled>Current Plan</button>';
-    } else if(isPending){
-      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" disabled>Scheduled</button>';
-    } else if(plan.id === 'free'){
-      // Moving a paid plan to Free is a cancellation: the same confirmation
-      // and Stripe cancel-at-period-end flow as "Cancel plan".
-      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" onclick="_showCancelConfirm()">Switch to Free</button>';
-    } else if(isUp || !currentData){
-      html += '<button class="sub-pcard-btn sub-pcard-btn-up" onclick="switchPlan(\'' + plan.id + '\')">Upgrade</button>';
+    if(legacyRunning){
+      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" disabled title="Available when your monthly subscription ends">After your subscription</button>';
     } else {
-      html += '<button class="sub-pcard-btn sub-pcard-btn-outline" onclick="switchPlan(\'' + plan.id + '\')">Downgrade</button>';
+      html += '<button class="sub-pcard-btn ' + (plan.badge ? 'sub-pcard-btn-up' : 'sub-pcard-btn-outline') + '" onclick="switchPlan(\'' + plan.id + '\')">' + (hasAccess ? 'Add ' : orvPlanT('Choose') + ' ') + plan.name + '</button>';
     }
-
     html += '</div>';
   });
+  html += '</div>';
+  html += '<div class="smd-field-help" style="margin-top:8px">' + orvPlanT('Prices include VAT. Unused credits expire when your access ends.') + ' ' + orvPlanT('Included in every plan') + ': ' + ORIVEN_INCLUDED_FEATURES.map(function(x){ return orvPlanT(x); }).join(', ') + '.</div>';
 
-  html += '</div>'; // end sub-plans-grid
-
-  // Cancel confirm — lives immediately below the "Cancel plan" trigger
-  // (was previously rendered at the very bottom of the panel, after Usage/
-  // AI Credit Usage/Team/Priority Support, requiring a scroll to find once
-  // opened) so the confirmation is visible right where the user clicked,
-  // no hunting required.
-  // Free has nothing to cancel (no Stripe subscription, no billing period) --
-  // "Cancel plan" only makes sense for a genuinely paid current plan.
-  // The confirmation is a real modal (_showCancelConfirm) that names the
-  // plan and the Stripe period end, instead of the old inline block whose
-  // date came from the credit-reset date rather than the billing period.
-  if(currentData && ORIVEN_PAID_PLANS.some(function(p){ return p.id === currentId; }) && !cancelScheduled){
-    html += '<div style="margin-top:10px"><button class="sub-cancel-link" id="planCancelBtn" onclick="_showCancelConfirm()">Cancel plan</button></div>';
-  }
-
-  // ── Section 2: USAGE — real backend-authoritative data only. No
-  //    fabricated numbers: if the status call failed, say so instead of
-  //    rendering zeros (Part 11). ──────────────────────────────────────
+  // ── Credits ──────────────────────────────────────────────────────
   html += '<div class="sub-plans-sep"></div>';
   html += '<div class="sub-usage-card">';
-  html += '<div class="sub-card-eyebrow">Usage</div>';
-
+  html += '<div class="sub-card-eyebrow">Credits</div>';
   if(creditStatus && typeof creditStatus.balance === 'number'){
-    var used = Math.max(0, creditStatus.usedThisMonth || 0);
-    var allowance = Math.max(1, creditStatus.monthlyAllowance || 1);
-    var pct = Math.min(100, Math.round((used / allowance) * 100));
-    html += '<div class="sub-credit-hd-row"><div class="sub-credit-hd-lbl">AI Credits</div><div class="sub-credit-hd-val">' + orvFormatCredits(used) + ' / ' + orvFormatCredits(creditStatus.monthlyAllowance || 0) + ' used</div></div>';
-    html += '<div class="sub-credit-bar-track"><div class="sub-credit-bar-fill" style="width:' + pct + '%"></div></div>';
-    var _isDailyPlan = currentData && currentData.cycleLabel === 'day';
-    html += '<div class="sub-credit-hd-sub">' + orvFormatCredits(Math.max(0, creditStatus.balance)) + ' remaining · ' + (_isDailyPlan ? 'resets every 24 hours' : ('resets ' + (renewalStr || '—'))) + '</div>';
-
-    // Usage list — intentionally exactly 5 rows (Intelligence/Autopilot/
-    // Connected Platforms/Lifetime here, AI Credits as the header block
-    // above): Campaigns Generated / Saved Assets were removed from this
-    // panel entirely (not just hidden) as they provided no useful value to
-    // the user here. Their backend tracking (profiles.campaigns_generated,
-    // creative_assets count) is untouched and still returned by
-    // getCreditStatus() -- this is a display-only removal.
-    html += '<div class="sub-usage-list" style="margin-top:16px">';
-    // (V9) The old 'Intelligence' row is gone: it described the server-side
-    // monthly cap on the 'Analyze with AI' campaign action
-    // (PLAN_INTELLIGENCE_LIMITS, creditManager.js), which no longer has an
-    // entry point in the app. The server cap itself is unchanged.
-    // Autopilot — real server-enforced usage for Creator, "Unlimited" for
-    // Professional, explicit "not included" for Starter -- consistent with
-    // the plan cards above rather than silently omitting the row.
-    // Automations: creating one costs credits once (server FEATURE_COSTS.automation);
-    // checks and campaign changes it makes are free, so there is no per-run usage.
-    if(currentData && currentData.autopilotLimit === null){
-      html += _uRow('Automations', 'Not included', 'upgrade to unlock');
-    } else if(currentData){
-      html += _uRow('Automations', 'Included', ((creditStatus.featureCosts && creditStatus.featureCosts.automation) || 50) + ' credits per new automation');
+    var bal = Math.max(0, creditStatus.balance);
+    html += '<div class="sub-credit-hd-row"><div class="sub-credit-hd-lbl">Available now</div><div class="sub-credit-hd-val">' + orvFormatCredits(hasAccess ? bal : 0) + ' credits</div></div>';
+    var next = creditStatus.nextGrant || null;
+    if(!next){
+      var sched = grants.filter(function(g){ return g.status === 'scheduled'; }).sort(function(a, b){ return new Date(a.grant_at) - new Date(b.grant_at); })[0];
+      if(sched) next = { credits: sched.credits, at: sched.grant_at };
     }
+    var sub = hasAccess
+      ? (legacy && billing === 'stripe' ? 'New credits with each paid month' : 'Expire ' + _formatPlanDate(accessEnd))
+      : 'Choose a plan to get credits';
+    if(hasAccess && next && (next.credits || next.amount)) sub += ' · next ' + orvFormatCredits(next.credits || next.amount) + ' on ' + _formatPlanDate(next.at || next.grant_at || next.grantAt);
+    html += '<div class="sub-credit-hd-sub">' + sub + '</div>';
+    html += '<div class="sub-usage-list" style="margin-top:16px">';
     html += _uRow('Connected Platforms', connKnown ? (connCount + ' / 4') : '—', connKnown ? (connCount === 0 ? 'none connected' : connCount + ' platform' + (connCount === 1 ? '' : 's') + ' connected') : 'status not checked yet');
     html += _uRow('All-time credit use', (creditStatus.lifetimeUsed == null ? '—' : orvFormatCredits(creditStatus.lifetimeUsed)), 'AI credits used since you joined');
     html += '</div>';
   } else {
-    html += '<div class="sub-usage-unavailable">Couldn\'t load your usage right now. <button class="sub-cancel-link" style="text-decoration:underline" onclick="renderPlanPanel()">Try again</button></div>';
+    html += '<div class="sub-usage-unavailable">Couldn\'t load your credits right now. <button class="sub-cancel-link" style="text-decoration:underline" onclick="renderPlanPanel()">Try again</button></div>';
   }
-
   html += '<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">';
   html += '<button class="btn btn-g btn-sm" onclick="if(typeof closeModal===\'function\')closeModal(\'modal-settings\');if(typeof _orvOpenPlatforms===\'function\')_orvOpenPlatforms();else navigate(\'integrations\')">Manage Ad Platforms</button>';
-  // Manage Subscription (Settings audit pass) — real Stripe customer
-  // portal (billing/payment methods/invoices/cancellation all owned by
-  // Stripe itself, never reimplemented here). Only offered to a real
-  // paid customer, since Free has no Stripe customer to open a portal
-  // for; POST /api/create-portal-session (server.js) handles the honest
-  // "not available yet" case if stripe_customer_id is genuinely missing.
-  if(currentId && currentId !== 'free'){
-    html += '<button class="btn btn-g btn-sm" id="manageSubBtn" onclick="openBillingPortal(this)">Manage Subscription</button>';
+  // Stripe's customer portal: payment methods and receipts (and, for a legacy
+  // monthly subscription, its billing). Only for accounts that paid before.
+  if(billing === 'stripe' || purchases.length){
+    html += '<button class="btn btn-g btn-sm" id="manageSubBtn" onclick="openBillingPortal(this)">Billing and receipts</button>';
   }
   html += '</div>';
-  // Official contact for billing/subscription questions.
   html += '<div class="smd-field-help" style="margin-top:12px">Questions about billing or your plan? Email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</div>';
   html += '</div>';
 
-  // ── Credits — a compact, canonical reference (Pricing/Credit Consistency
-  //    pass). Values come straight from creditStatus.featureCosts
-  //    (creditManager.FEATURE_COSTS via /api/credits/status) — never
-  //    duplicated as hardcoded numbers here, so a real backend price
-  //    change never needs a matching frontend edit.
-  //
-  //    Image Ad / Video Ad are shown as ONE combined, user-facing number —
-  //    not "campaign_generation (copy) + image_generation" as two separate
-  //    line items. That split is a real, correct internal implementation
-  //    detail (Create charges the copy/package step once, then each
-  //    generated image/video separately), but it isn't a separate action a
-  //    user ever triggers on its own, so surfacing it as its own priced
-  //    line item ("25 credits for copy") only confused what "an Image Ad"
-  //    actually costs. See ORIVEN_CREDIT_ACTIONS (plans.js) for the same
-  //    canonical six-row structure reused everywhere else (paywall,
-  //    landing pricing) — this reads live featureCosts instead of that
-  //    static map specifically so Settings always reflects the exact
-  //    number the server would charge right now. */
+  // ── Purchase history ───────────────────────────────────────────────
+  if(purchases.length){
+    var statusText = { paid: 'Paid', refunded: 'Refunded', partially_refunded: 'Partly refunded', disputed: 'Disputed', dispute_won: 'Dispute closed' };
+    html += '<div class="sub-usage-card" style="margin-top:16px">';
+    html += '<div class="sub-card-eyebrow">Purchases</div>';
+    html += '<div class="sub-usage-list">';
+    purchases.forEach(function(p){
+      var pp = typeof orvPeriodPlan === 'function' ? orvPeriodPlan(p.plan_id) : null;
+      var when = p.access_start && p.access_end ? _formatPlanDate(p.access_start) + ' – ' + _formatPlanDate(p.access_end) : _formatPlanDate(p.paid_at || p.created_at);
+      html += _uRow((pp ? pp.name : p.plan_id) + ' · ' + euro(p.amount_total_cents || p.price_incl_vat_cents || 0), statusText[p.status] || p.status, when + ' · ' + orvFormatCredits(p.credits_total || 0) + ' credits');
+    });
+    html += '</div></div>';
+  }
+
+  // ── What credits are used for (live server costs) ───────────────────
   if(creditStatus && creditStatus.featureCosts){
     var fc = creditStatus.featureCosts;
     var costRows = [
-      ['Image Ad', (fc.campaign_generation||0) + (fc.image_generation||0)],
-      ['Video Ad', (fc.campaign_generation||0) + (fc.video_generation||0)],
-      ['Research', fc.ai_analysis],
-      ['ORIVEN Chat', fc.ai_chat],
+      ['Image ad (copy + image)', (fc.campaign_generation||0) + (fc.image_generation||0)],
+      ['Video ad (copy + 5 s video)', (fc.campaign_generation||0) + (fc.video_generation||0)],
+      ['Research', fc.research_report],
+      ['Oriven Chat message', fc.ai_chat],
       ['Website Intelligence', fc.website_analysis],
       ['New automation', fc.automation],
     ].filter(function(r){ return typeof r[1] === 'number' && r[1] > 0; });
     html += '<div class="sub-usage-card" style="margin-top:16px">';
-    html += '<div class="sub-card-eyebrow">Credits</div>';
-    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">Used for creating ads, Research, ORIVEN Chat, website analysis and creating automations. Launch and Campaigns don’t consume credits for normal use.</div>';
+    html += '<div class="sub-card-eyebrow">What credits are used for</div>';
+    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">Creating ads, Research, Oriven Chat, website analysis and creating automations. Launch and Campaigns don’t use credits for normal use. A chat message that needs extra steps (such as using a tool) uses ' + (fc.ai_chat_step || fc.ai_chat) + ' credits per extra step, at most two.</div>';
     html += '<div class="sub-usage-list">';
     costRows.forEach(function(r){ html += _uRow(r[0], r[1] + (r[1] === 1 ? ' credit' : ' credits'), ''); });
     html += '</div>';
     html += '</div>';
   }
 
-  // Team management card removed from Settings (Autopilot Redesign + Team
-  // Removal sprint) — Team is no longer a product surface. #page-team/
-  // openInviteModal()/POST /api/send-invite are left completely intact,
-  // just no longer promoted or linked to from anywhere in the UI.
-
-  // Priority Support — only rendered for plans that include it (plans.js
-  // entitlements: Professional). Other plans keep the billing email above.
-  var _hasPrioritySupport = (typeof orvPlanHas === 'function') && orvPlanHas(currentId, 'prioritySupport');
+  // Priority Support — every plan with current access includes it.
+  var _hasPrioritySupport = hasAccess && (typeof orvPlanHas === 'function') && orvPlanHas(currentId, 'prioritySupport');
   if(_hasPrioritySupport){
-  html += '<div id="prioritySupportPanel" class="sub-usage-card" style="margin-top:16px">';
-  html += '<div class="sub-card-eyebrow">Priority Support</div>';
-  html += '<div id="supportThread" style="max-height:260px;overflow-y:auto;margin:12px 0;display:flex;flex-direction:column;gap:8px"></div>';
-  html += '<div style="display:flex;gap:8px">';
-  html += '<textarea id="supportMsgInput" rows="2" placeholder="Message the Oriven team..." style="flex:1;resize:vertical;border-radius:8px;padding:8px 10px;font-family:inherit"></textarea>';
-  html += '<button class="btn btn-p btn-sm" onclick="sendSupportMessage()">Send</button>';
-  html += '</div>';
-  html += '<div class="smd-field-help" style="margin-top:10px">Replies from the OrivenAI team appear here. You can also email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</div>';
-  html += '</div>';
+    html += '<div id="prioritySupportPanel" class="sub-usage-card" style="margin-top:16px">';
+    html += '<div class="sub-card-eyebrow">Priority Support</div>';
+    html += '<div id="supportThread" style="max-height:260px;overflow-y:auto;margin:12px 0;display:flex;flex-direction:column;gap:8px"></div>';
+    html += '<div style="display:flex;gap:8px">';
+    html += '<textarea id="supportMsgInput" rows="2" placeholder="Message the Oriven team..." style="flex:1;resize:vertical;border-radius:8px;padding:8px 10px;font-family:inherit"></textarea>';
+    html += '<button class="btn btn-p btn-sm" onclick="sendSupportMessage()">Send</button>';
+    html += '</div>';
+    html += '<div class="smd-field-help" style="margin-top:10px">Replies from the OrivenAI team appear here. You can also email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</div>';
+    html += '</div>';
   }
   if(_hasPrioritySupport && typeof loadSupportThread === 'function') setTimeout(loadSupportThread, 0);
 
@@ -3675,7 +3443,7 @@ function _showCancelConfirm(){
   if(info.billing === "none"){
     // A plan with no Stripe subscription behind it (e.g. granted manually)
     // has no billing period to run out -- say plainly what happens.
-    text = 'Your ' + name + ' plan isn’t billed through a subscription, so cancelling switches your account to Free right away.';
+    text = 'Your ' + name + ' plan isn’t billed through a subscription, so cancelling ends its access right away.';
   } else {
     var when = info.current_period_end ? _formatPlanDate(info.current_period_end) : null;
     text = when
@@ -3738,7 +3506,7 @@ async function _confirmCancelPlan(){
       if(typeof _dbSubscriptionStatus !== "undefined") _dbSubscriptionStatus = "free";
       saveSettings({ currentPlan: "free", pendingPlan: null, pendingPlanDate: null });
       if(typeof invalidatePlanCache === "function") invalidatePlanCache();
-      toast("Your plan was cancelled. You’re now on Free.");
+      toast("Your plan was cancelled. You can choose one of the current plans anytime.");
     } else {
       saveSettings({ pendingPlan: "free", pendingPlanDate: data.pending_plan_date || null });
       toast(data.pending_plan_date
@@ -3826,11 +3594,14 @@ function _hideCancelConfirm(){
 function _updateSidebarPlan(planId){
   var el = document.getElementById("sbPlanLabel");
   if(!el) return;
+  // A period plan shows its own name (Flex … Annual); a legacy subscription
+  // its old name; no access reads "No plan".
+  var acc = typeof window.orvAccess === "function" ? window.orvAccess() : null;
+  var period = planId === "paid" && acc && acc.plan && typeof orvPeriodPlan === "function" ? orvPeriodPlan(acc.plan) : null;
   var plan = ORIVEN_PLANS[planId];
-  // If planId is a valid string but not in ORIVEN_PLANS (e.g. "agency"), capitalise it.
-  // This way any plan stored in Supabase displays correctly without hardcoding.
-  var name = plan ? plan.name
-    : (planId && planId !== "free" ? planId.charAt(0).toUpperCase() + planId.slice(1) : "Free");
+  var name = period ? period.name
+    : (!planId || planId === "free") ? "No plan"
+    : plan ? plan.name : planId.charAt(0).toUpperCase() + planId.slice(1);
   el.textContent = name;
   el.className = "sb-plan-label sb-plan-" + (planId || "free");
   if(typeof window._orvUpdateTeamNavVisibility === "function") window._orvUpdateTeamNavVisibility();

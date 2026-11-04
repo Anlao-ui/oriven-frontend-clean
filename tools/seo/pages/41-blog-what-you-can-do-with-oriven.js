@@ -27,7 +27,7 @@ module.exports = {
 <p>Control Center is where OrivenAI learns about your business: what you sell, who you sell to, your brand voice and visual identity, and the context behind your campaigns. It’s also the start page that shows what’s happening, what needs your attention and what’s planned. Every other part of OrivenAI reads from it, which is why ads come out sounding like you rather than like a template.</p>
 
 <h2>Research: understand the market before you spend</h2>
-<p><a href="/research">Research</a> lets you ask questions about your market, competitors, audiences and opportunities, and returns a structured report for the research type you choose: targeted web searches, the pages it reads, your own website and any pages you attach are used as evidence, and a finding is only marked Source-checked when the passage it quotes was found in a page it read. Reports are saved to your Research library. It links to the platforms’ official ad libraries, such as the Meta Ad Library, so you can look at real ads yourself; it doesn’t pull ads from those libraries or show how competitors’ ads perform. Research is included from the Starter plan. See <a href="/learn/how-to-research-competitor-ads/">how to research competitor ads</a> for the method behind it.</p>
+<p><a href="/research">Research</a> lets you ask questions about your market, competitors, audiences and opportunities, and returns a structured report for the research type you choose: targeted web searches, the pages it reads, your own website and any pages you attach are used as evidence, and a finding is only marked Source-checked when the passage it quotes was found in a page it read. Reports are saved to your Research library. It links to the platforms’ official ad libraries, such as the Meta Ad Library, so you can look at real ads yourself; it doesn’t pull ads from those libraries or show how competitors’ ads perform. Research is included in every plan. See <a href="/learn/how-to-research-competitor-ads/">how to research competitor ads</a> for the method behind it.</p>
 
 <h2>Create: from a short brief to a complete campaign</h2>
 <p>In <a href="/create">Create</a>, you describe what you want to advertise, choose a platform and a goal (Sales, Leads, Traffic or Awareness), and choose image or video. You can attach product photos. OrivenAI builds the campaign in that platform’s own structure (for example campaign, ad sets and ads on Meta) with ad copy, targeting and creative. A complete image ad uses ${F.costs.imageAd} credits and a video ad ${F.costs.videoAd}.</p>
@@ -39,7 +39,7 @@ module.exports = {
 <p><a href="/campaigns">Campaigns</a> shows spend, delivery, traffic and conversions per platform and campaign, for the date range you choose. Each platform’s numbers are shown as that platform reports them, rather than blended into one total that would double-count.</p>
 
 <h2>Automations: schedules and rules that act within your limits</h2>
-<p><a href="/autopilot">Automations</a> (from the Starter plan) switch campaigns on and off at times you choose and apply rules you define to your published campaigns, such as pausing a campaign with no conversions, increasing a budget when return on ad spend is above your target, or notifying you when click-through rate drops. You decide the conditions and the limits. Read more about <a href="/ppc-automation-software/">PPC automation with OrivenAI</a>.</p>
+<p><a href="/autopilot">Automations</a> switch campaigns on and off at times you choose and apply rules you define to your published campaigns, such as pausing a campaign with no conversions, increasing a budget when return on ad spend is above your target, or notifying you when click-through rate drops. You decide the conditions and the limits. Read more about <a href="/ppc-automation-software/">PPC automation with OrivenAI</a>.</p>
 
 <h2>Which platforms are supported</h2>
 <div class="sp-table-wrap"><table class="sp-table">
@@ -53,12 +53,12 @@ module.exports = {
 </table></div>
 
 <h2>What’s included on each plan</h2>
-<p>${F.freePlanLine} Starter (€${F.plans[1].price.toFixed(2)} a month) adds Research and Automations, Creator (€${F.plans[2].price.toFixed(2)}) adds Oriven Chat and in-app notifications, and Professional (€${F.plans[3].price.toFixed(2)}) adds Priority Support and a Weekly AI Performance Report by email (${F.weeklyReportLive ? 'every Monday' : 'coming soon'}). Full details are on the <a href="/pricing">Pricing</a> page.</p>
+<p>${F.planLine} Every plan also includes in-app notifications, Priority Support and a Weekly AI Performance Report by email (${F.weeklyReportLive ? 'every Monday' : 'coming soon'}). Full details are on the <a href="/pricing">Pricing</a> page.</p>
 
 <h2>Where to start</h2>
 <p>The quickest way to see OrivenAI work is to fill in Control Center, then create one campaign for the platform you already use. If you advertise on several platforms, our guide to <a href="/learn/how-to-manage-multiple-ad-platforms/">managing multiple ad platforms</a> explains how to keep them organized.</p>`,
   faq: [],
   related: ['/blog/oriven-ai-is-now-live', '/blog/why-we-built-oriven', '/learn/how-to-create-facebook-and-instagram-ads-with-ai/'],
   relatedTitle: 'Read next',
-  cta: { title: 'See it with your own business', text: 'Control Center, Create, Launch and Campaigns are included on the Free plan.', label: 'Get Started Free' },
+  cta: { title: 'See it with your own business', text: 'All six sections are included in every plan.', label: 'Get started' },
 };

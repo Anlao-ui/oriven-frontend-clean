@@ -304,7 +304,7 @@
     var c = lastOverview && lastOverview.snap ? OPS.findCampaign(lastOverview.snap, platform, id) : null;
     OW.go({ page: 'campaigns', platform: platform, campaignId: id ? String(id) : null, campaignName: c ? c.name : null });
   };
-  // Automations is included from Starter (plans.js entitlements); unknown plan = not locked.
+  // Automations are included in every paid plan (plans.js entitlements); unknown plan = not locked.
   function hasAutomationPlan() { return typeof window.orvEntitled === 'function' ? window.orvEntitled('autopilot') !== false : true; }
   // Real counts from /api/automations/overview; the last line is the latest
   // real entry in the automation activity ledger.

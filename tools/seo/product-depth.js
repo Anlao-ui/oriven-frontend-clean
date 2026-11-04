@@ -9,6 +9,7 @@
 // Automations engine in services/automations/*, credit costs in js/plans.js).
 // Platform publishing creates campaigns PAUSED; nothing is activated.
 // ════════════════════════════════════════════════════════════════
+const C = require('./facts').costs; // credit costs from js/plans.js, never retyped
 const fig = (name, alt, cap) => `<figure class="ov-deep-fig"><img src="/assets/films/posters/film-${name}-800.webp" srcset="/assets/films/posters/film-${name}-800.webp 800w, /assets/films/posters/film-${name}.webp 1600w" sizes="(max-width: 900px) 100vw, 860px" alt="${alt}" width="800" height="450" loading="lazy" decoding="async"><figcaption>${cap}</figcaption></figure>`;
 
 function block(key, d) {
@@ -49,7 +50,7 @@ const D = {
     ],
     fig: fig('create', 'The OrivenAI Create screen: the brief, platform choice (Google, Meta, TikTok, Pinterest), image or video, campaign goal, campaign type and structure, and the creative stage', 'The Create screen. Screenshot from the product.'),
     who: ['Small businesses and solo marketers who need ads for more than one platform', 'Teams that want a consistent first draft instead of a blank page', 'Anyone who wants to test several angles quickly'],
-    know: ['A campaign draft uses 25 credits; each image 75 and each video 200 (credits are refunded if generation fails)', 'Videos take a few minutes and keep generating if you leave the page', 'TikTok ads need video; the other platforms accept images', 'AI drafts are a starting point: check claims, prices and offers before publishing'],
+    know: ['A campaign draft uses ' + C.campaignDraft + ' credits; each image ' + C.image + ', each 5-second video ' + C.video + ' and each 10-second video ' + C.video10s + ' (credits are refunded if generation fails)', 'Videos take a few minutes and keep generating if you leave the page', 'TikTok ads need video; the other platforms accept images', 'AI drafts are a starting point: check claims, prices and offers before publishing'],
     faq: [
       ['Can I use my own images?', 'Yes. Attach an image or a product photo and Create uses it instead of generating one for that slot, so no image credits are spent on it.'],
       ['Does Create publish my ads?', 'No. Create prepares the campaign; Launch checks it and creates it on the ad platform paused. You switch it on in the platform when you’re ready.'],
@@ -69,7 +70,7 @@ const D = {
     ],
     fig: fig('research-v2', 'The OrivenAI Research screen: a research question, research types and the business profile used as context', 'The Research screen. Screenshot from the product.'),
     who: ['Businesses planning a first campaign in a new market', 'Marketers who want competitor context before writing ads', 'Anyone who needs evidence, not just AI opinions'],
-    know: ['Included from the Starter plan; each report uses 25 credits (refunded if it fails)', 'It has no access to competitors’ ad performance, budgets or results, and never claims an ad “works”', 'It doesn’t pull ads from the Meta Ad Library or Google Ads Transparency Center; it links to them so you can check real ads', 'Set your country in your business profile so findings are specific to your market'],
+    know: ['Included in every plan; each report uses ' + C.researchRun + ' credits (refunded if it fails)', 'It has no access to competitors’ ad performance, budgets or results, and never claims an ad “works”', 'It doesn’t pull ads from the Meta Ad Library or Google Ads Transparency Center; it links to them so you can check real ads', 'Set your country in your business profile so findings are specific to your market'],
     faq: [
       ['Is Research based on real data?', 'It runs live web searches and reads the most relevant pages, your website and any pages you attach. A finding is only marked Source-checked when the passage it quotes was found in a page it read; everything else is marked Cited, Analysis or Idea to test.'],
       ['Can it show how my competitors’ ads perform?', 'No. No tool has access to another advertiser’s results. Research describes what competitors publicly do and say, and suggests what to test.'],
@@ -126,7 +127,7 @@ const D = {
     ],
     fig: fig('autopilot', 'The OrivenAI Automations screen with automation rules', 'The Automations screen. Screenshot from the product.'),
     who: ['Advertisers who check the same numbers every day', 'Small teams that can’t watch campaigns around the clock', 'Anyone who wants automation they can explain'],
-    know: ['Included from the Starter plan; creating an automation costs 50 credits once, its checks and changes are free', 'Works with the campaigns in your connected ad accounts; shared and lifetime budgets are never changed', 'Rules only do what you wrote; no AI decides what happens', 'Approval mode lets you confirm each change before it happens'],
+    know: ['Included in every plan; creating an automation costs ' + C.automationCreate + ' credits once, its checks and changes are free', 'Works with the campaigns in your connected ad accounts; shared and lifetime budgets are never changed', 'Rules only do what you wrote; no AI decides what happens', 'Approval mode lets you confirm each change before it happens'],
     faq: [
       ['Can an automation spend more than I want?', 'A rule can only raise a budget up to the maximum you set, by at most the percentage you allow, and only after you confirm it may act on its own. You can also require approval before any change.'],
       ['How is this different from Google’s automated bidding?', 'Smart Bidding sets bids inside a campaign. Automations act on whole campaigns (switch on, pause, resume, budget) at times or on conditions you choose, across your connected ad accounts.'],

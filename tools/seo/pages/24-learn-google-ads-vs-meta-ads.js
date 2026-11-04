@@ -62,5 +62,5 @@ module.exports = {
     ['Can I compare conversions across Google and Meta directly?', '<p>Only with care. Each platform uses its own attribution, so the same conversion can be counted in both. Compare trends per platform and check against your own sales data.</p>'],
   ],
   related: ['/cross-platform-ad-management/', '/learn/how-to-manage-multiple-ad-platforms/', '/learn/meta-pixel-vs-conversions-api/'],
-  cta: { title: 'Create Google and Meta campaigns from one brief', text: 'Describe your business once and build campaigns for each platform on the Free plan.', label: 'Get Started Free' },
+  cta: { title: 'Create Google and Meta campaigns from one brief', text: 'Describe your business once and build campaigns for each platform.', label: 'Get started' },
 };

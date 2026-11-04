@@ -24,10 +24,11 @@ const marks = [...index.matchAll(/<svg class="ov-brand-ring (ov-[a-z]+-ring)"[\s
 const sandbox = { window: {}, document: {} };
 vm.runInNewContext(ringJs, sandbox);
 const Ring = sandbox.window.OrvRing;
-check('landing has its three O marks (hero, system, closing)', ['ov-hero-ring', 'ov-system-ring', 'ov-closing-ring'].every((n) => marks.some((m) => m.name === n)), marks.map((m) => m.name));
+// The Ink & Signal landing (2026-10-28) no longer draws the O; when it does, the tour's O must match it.
+check('landing O marks: none since the Ink & Signal landing, or all three (hero, system, closing)', marks.length === 0 || ['ov-hero-ring', 'ov-system-ring', 'ov-closing-ring'].every((n) => marks.some((m) => m.name === n)), marks.map((m) => m.name));
 check('js/orivenRing.js exposes OrvRing with six paths', !!Ring && Ring.PATHS.length === 6);
 marks.forEach((m) => check(`same geometry as the landing ${m.name}`, JSON.stringify(m.paths) === JSON.stringify(Ring.PATHS)));
-check('same viewBox as the landing', marks.length && index.includes('viewBox="' + Ring.VIEWBOX + '"'));
+check('same viewBox as the landing (when the landing draws the O)', marks.length ? index.includes('viewBox="' + Ring.VIEWBOX + '"') : /^\d+ \d+ \d+ \d+$/.test(Ring.VIEWBOX), Ring.VIEWBOX);
 const landingScript = index.slice(index.indexOf('id="ov-landing-experience-script"'));
 check('state colours match the landing story (lime / dark / neutral)', Ring.COLOR.active === '#B6FF3B' && Ring.COLOR.past === '#343a2e' && Ring.COLOR.idle === '#d9dfcf' && /'#B6FF3B'/.test(landingScript) && /'#343a2e'/.test(landingScript) && /'#d9dfcf'/.test(landingScript));
 check('intro offsets match the landing story', /varvectors=\[\[\.55,-\.85\],\[1,\.1\],\[\.4,\.9\],\[-\.5,\.85\],\[-1,0\],\[-\.55,-\.85\]\]/.test(landingScript.replace(/\s/g, '')) && JSON.stringify(Ring.VECTORS) === JSON.stringify([[.55, -.85], [1, .1], [.4, .9], [-.5, .85], [-1, 0], [-.55, -.85]]));
@@ -36,9 +37,13 @@ console.log('\nB. Six real pages, in workflow order');
 const tsb = { window: { matchMedia: () => ({ matches: false }), addEventListener() {} }, document: {} };
 vm.runInNewContext(tourJs, tsb);
 const STEPS = tsb.window.orvTour && tsb.window.orvTour.STEPS;
-const nav = [...app.matchAll(/<button class="orv-ni" data-orv-page="([a-z]+)" data-wf="(\d)"[^>]*onclick="_orvNav\('([a-z]+)','([a-z-]+)',this\)"/g)].slice(0, 6).map((m) => [m[3], m[4]]);
+// The sidebar is built by js/appNav.js: the page behind the first link of each of its six sections.
+const navJs = read('js/appNav.js');
+const firstGo = (sec) => { const m = navJs.match(new RegExp("\\{ id: '" + sec + "', n: '\\d+', name: '[^']+', items: \\[\\s*\\{[^\\n]*?go: (.+?) \\},\\n")); return m ? m[1] : ''; };
+const toPage = (g) => { const m = g.match(/page\('([a-z]+)', '([a-z-]+)'/); if (m) return [m[1], m[2]]; if (/^biz\(/.test(g)) return ['businessbrain', 'page-business-brain']; if (/^autoTab\(/.test(g)) return ['autopilot', 'page-autopilot']; return [g]; };
+const nav = ['cc', 'rs', 'cr', 'la', 'ca', 'au'].map((sec) => toPage(firstGo(sec)));
 check('tour has six steps', STEPS && STEPS.length === 6);
-check('each step opens the same page as the sidebar item 01–06', JSON.stringify(STEPS.map((s) => s.nav)) === JSON.stringify(nav), { tour: STEPS.map((s) => s.nav), sidebar: nav });
+check('each step opens the same page as the first sidebar link of sections 01–06', JSON.stringify(STEPS.map((s) => s.nav)) === JSON.stringify(nav), { tour: STEPS.map((s) => s.nav), sidebar: nav });
 check('step names: Control Center, Research, Create, Launch, Campaigns, Automations', STEPS.map((s) => s.name).join() === 'Control Center,Research,Create,Launch,Campaigns,Automations');
 STEPS.forEach((s) => check(`${s.name}: page exists in app.html (#${s.nav[1]})`, app.includes('id="' + s.nav[1] + '"')));
 

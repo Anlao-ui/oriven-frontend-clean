@@ -2,6 +2,7 @@
 // Rewritten at the SAME URL (/blog/why-we-built-oriven): the problem
 // OrivenAI addresses and the principles behind it. Intent: branded /
 // story. Links to the practical guides instead of repeating them.
+const F = require('../facts');
 module.exports = {
   path: '/blog/why-we-built-oriven',
   kind: 'article',
@@ -50,5 +51,5 @@ module.exports = {
   faq: [],
   related: ['/blog/what-you-can-do-with-oriven', '/blog/oriven-ai-is-now-live', '/learn/how-to-manage-multiple-ad-platforms/'],
   relatedTitle: 'Read next',
-  cta: { title: 'One workspace for your advertising', text: 'Try it on the Free plan.', label: 'Get Started Free' },
+  cta: { title: 'One workspace for your advertising', text: 'Try it with any plan, from ' + F.fromPrice + ' for 14 days.', label: 'Get started' },
 };

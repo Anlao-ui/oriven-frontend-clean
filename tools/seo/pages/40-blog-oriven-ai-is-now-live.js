@@ -42,7 +42,7 @@ module.exports = {
 <p>${F.platforms.join(', ').replace(/, ([^,]*)$/, ' and $1')}. Campaigns are created through each platform’s official API in your own ad account, so you keep full ownership and can always see and change them in the platform itself.</p>
 
 <h2>How pricing works</h2>
-<p>OrivenAI has a Free plan and three paid plans. ${F.freePlanLine} Paid plans start at €${F.plans[1].price.toFixed(2)} a month. Actions in OrivenAI use credits (a complete image ad uses ${F.costs.imageAd}); see <a href="/pricing">Pricing</a> for what each plan includes.</p>
+<p>${F.planLine} Actions in OrivenAI use credits (a complete image ad uses ${F.costs.imageAd}); see <a href="/pricing">Pricing</a> for the five plans.</p>
 
 <h2>How to get started</h2>
 <ol>
@@ -58,5 +58,5 @@ module.exports = {
   faq: [],
   related: ['/blog/what-you-can-do-with-oriven', '/blog/why-we-built-oriven', '/learn/what-is-an-ai-advertising-platform/'],
   relatedTitle: 'Read next',
-  cta: { title: 'Try OrivenAI for free', text: 'Create your first campaign on the Free plan.', label: 'Get Started Free' },
+  cta: { title: 'Try OrivenAI', text: 'Create your first campaign with any plan, from ' + F.fromPrice + ' for 14 days.', label: 'Get started' },
 };

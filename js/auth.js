@@ -281,8 +281,10 @@ async function syncSubscriptionFromDB(){
     var data = result.data;
     console.log("[Subscription] Synced from server:", JSON.stringify(data));
     var patch = {};
+    _orvSetAccess({ subscription_status: data.subscription_status, access_expires_at: data.access_expires_at, access_plan: data.access_plan });
     if(data.subscription_status){
-      var _syncStatus = data.subscription_status;
+      // The server's has_access decides (time-based access).
+      var _syncStatus = data.has_access === false ? "free" : data.subscription_status;
       // Never downgrade a Supabase-confirmed paid plan based on a potentially stale backend response
       if(_dbPlanSet && _syncStatus === "free"){
         console.log("[Subscription] Backend returned 'free' but DB already confirmed paid plan — skipping");
@@ -434,6 +436,7 @@ async function _loadUserProfile(user){
     }
 
     var data = result.data;
+    _orvSetAccess(data);
     console.log("[Profile] Query SUCCESS | data:", JSON.stringify(data));
     if(data){ console.log("[Profile] subscription_status:", data.subscription_status); }
     else {
@@ -457,7 +460,7 @@ async function _loadUserProfile(user){
     if(typeof ORIVEN_DEV !== "undefined" && ORIVEN_DEV){
       // Dev mode: always read from DB — never hardcode a plan.
       // Falls back to "free" (not "professional") when the DB has no value.
-      var _devRaw = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
+      var _devRaw = data ? orvEffectiveStatus(data) : "";
       var _devStatus = _devRaw || "free";
       console.log("[PW-CHAIN] _loadUserProfile (dev) | DB subscription_status raw:", JSON.stringify(_devRaw), "←’ _devStatus:", _devStatus, "| source:", _devRaw ? "Supabase profiles.subscription_status" : "fallback default (no DB value)");
       _dbSubscriptionStatus = _devStatus;
@@ -476,7 +479,7 @@ async function _loadUserProfile(user){
     } else if(_postPayment){
       // Post-payment: DB may not reflect the new plan yet (webhook lag).
       // Read DB anyway — if paid already, set status. If still "free", leave null (= pending).
-      var _ppRaw = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
+      var _ppRaw = data ? orvEffectiveStatus(data) : "";
       if(_ppRaw && _ppRaw !== "free"){
         _dbSubscriptionStatus = _ppRaw;
         S.currentPlan = _ppRaw;
@@ -495,7 +498,9 @@ async function _loadUserProfile(user){
       if(typeof orvOnboardingGate === "function") orvOnboardingGate();
     } else {
       _dbPrimaryGoal = data ? (data.primary_goal || null) : null;
-      var _dbPlan = (data && typeof data.subscription_status === "string") ? data.subscription_status.trim() : "";
+      // Time-based access (plans.js orvEffectiveStatus = server hasAccess):
+      // a paying status whose period has ended counts as no plan.
+      var _dbPlan = data ? orvEffectiveStatus(data) : "";
       _dbSubscriptionStatus = _dbPlan || "free"; // authoritative value — ONLY set from Supabase
       var _isPaid = _dbSubscriptionStatus !== "free";
       var _statusSource = _dbPlan ? ("Supabase profiles.subscription_status = '" + _dbPlan + "'") : ("no DB value — defaulting to 'free'");
@@ -517,7 +522,8 @@ async function _loadUserProfile(user){
         // new accounts only, never existing customers.
         if(typeof orvOnboardingGate === "function") orvOnboardingGate();
       } else {
-        // Free (or no plan yet): the app opens normally; Free is a real plan.
+        // No plan (never bought, or the period ended): the app opens so the
+        // account can look around; paid actions open the plans.
         showApp();
         console.log("[PW-CHAIN] _loadUserProfile | sub=free | user:", user.id);
         console.log("[PW-CHAIN] DB profile data.free_campaign_used:", data && data.free_campaign_used);
@@ -567,7 +573,11 @@ async function _loadUserProfile(user){
         // not navigate() — see comment on the dev-mode branch above.
         _orvGoStartPage();
         // Welcome screen: the server decides who sees it (onboarding.js).
-        if(typeof orvOnboardingGate === "function") orvOnboardingGate();
+        // Accounts it doesn't welcome are offered the plans once per session.
+        Promise.resolve(typeof orvOnboardingGate === "function" ? orvOnboardingGate() : null).then(function(){
+          var st = window._orvObState;
+          if(!(st && st.eligible)) _orvOfferPlansOnce();
+        });
       }
     }
   } catch(err){
@@ -984,10 +994,6 @@ function _obSkip(){
   // Critical launch-blocker fix — "Close" after the free generation has
   // already run must hit the same paywall every other post-generation
   // escape route hits, not just quietly end the tour.
-  if(_isFreeUser() && _freeCampaignUsed()){
-    _orvEndOnboardingIntoPaywall();
-    return;
-  }
   markOnboardingComplete();
   try { localStorage.removeItem("oriven_needs_onboarding"); } catch(_){}
   _obContext = "tour";
@@ -1242,7 +1248,7 @@ async function checkSubscriptionStatus(){
 
   try {
     var resp = await SB.from("profiles")
-      .select("subscription_status")
+      .select("subscription_status, access_expires_at, access_plan")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -1280,7 +1286,8 @@ async function checkSubscriptionStatus(){
     }
 
     // We have a real row — read the value directly, do NOT fall back silently
-    var status = resp.data.subscription_status;
+    _orvSetAccess(resp.data);
+    var status = resp.data.subscription_status ? orvEffectiveStatus(resp.data) : "";
     if(!status){
       console.warn("[Paywall] subscription_status is null/empty in DB — checking cached plan");
       var _cachedPlan3 = (typeof S !== "undefined" && S && S.currentPlan) ? S.currentPlan : "free";
@@ -1327,12 +1334,9 @@ function _showHardPaywall(){
   console.log("[Paywall] Hard paywall shown — awaiting plan selection");
 }
 
-// Free-campaign conversion paywall — shown after first campaign is generated.
-// Soft/dismissable: Free is now a real, persistent plan (10 credits/day,
-// 1 Intelligence use/month, no Autopilot), so this is an informative "here
-// are your options" moment, not a payment gate -- closing it is equivalent
-// to implicitly continuing on Free, which is already the account's actual
-// subscription_status by default.
+// The plan modal for an account without a plan that tried a paid action
+// from the older flows (campaign workspace, tour). Soft: closing it leaves
+// the account looking around; nothing was generated or charged.
 function openFreePaywall(){
   console.log("[PW-CHAIN] openFreePaywall() called");
   var modal = document.getElementById("modal-paywall");
@@ -1343,9 +1347,9 @@ function openFreePaywall(){
   var eyeEl   = document.querySelector("#modal-paywall .pw-eyebrow span");
   console.log("[PW-CHAIN] Title element:", titleEl ? "found" : "NOT FOUND");
   console.log("[PW-CHAIN] Sub element:", subEl ? "found" : "NOT FOUND");
-  if(titleEl)  titleEl.innerHTML = _obT("obPaywallTitle", "Start free. Upgrade when you need more.");
-  if(subEl)    subEl.textContent = _obT("obPaywallSub", "You've built your first campaign with Oriven. Stay on the Free plan and come back daily, or upgrade now for more credits, Automations, and higher limits.");
-  if(eyeEl)    eyeEl.textContent = _obT("obPaywallEyebrow", "Your First Campaign Is Ready");
+  if(titleEl)  titleEl.textContent = "Choose your plan to continue.";
+  if(subEl)    subEl.textContent = "Creating, researching and launching are part of every OrivenAI plan. Pay once for the period you choose; nothing renews automatically.";
+  if(eyeEl)    eyeEl.textContent = "Choose your plan";
 
   console.log("[PW-CHAIN] Calling openPaywall() | typeof openPaywall:", typeof openPaywall);
   if(typeof openPaywall === "function"){
@@ -1418,13 +1422,21 @@ function _postPaymentNavigate(){
 
 var _checkoutInFlight = false;
 
-async function selectPlan(plan){
+async function selectPlan(plan, opts){
   console.log("[Paywall] Plan selected:", plan);
   var _pwAct = (typeof _pwAction !== "undefined" && _pwAction && _pwAction.ctx) ? _pwAction.ctx.action : null;
   if(typeof trackEvent === "function") trackEvent("plan_selected", null, { plan: plan, action: _pwAct || undefined });
 
-  // Free never goes through Stripe -- separate, non-payment path.
-  if(plan === "free") return continueOnFreePlan();
+  // There is no free plan; "free" from an old button means "not now".
+  if(plan === "free") return continueWithoutPlan();
+
+  // The customer sees exactly what they're buying and confirms it
+  // (js/planConfirm.js) before Stripe opens. opts.confirmed: already done.
+  if(!(opts && opts.confirmed) && typeof window.orvConfirmPlan === "function"){
+    if(_checkoutInFlight) return;
+    var _ok = await window.orvConfirmPlan(plan);
+    if(!_ok){ if(typeof trackEvent === "function") trackEvent("plan_confirm_cancelled", null, { plan: plan }); return; }
+  }
 
   // One checkout at a time (double clicks, a second plan's button).
   if(_checkoutInFlight) return;
@@ -1462,9 +1474,18 @@ async function selectPlan(plan){
   } catch(err) {
     console.error("[Paywall] Checkout error:", err);
     toast(err && err.serverMessage ? err.serverMessage : "Could not start checkout — please try again");
-    if(btn){ btn.disabled = false; btn.textContent = btn.getAttribute("data-label") || "Get Started"; }
+    if(btn){ btn.disabled = false; btn.textContent = btn.getAttribute("data-label") || "Choose"; }
     _checkoutInFlight = false;
   }
+}
+
+// The confirmation after a paid checkout: which plan, and until when.
+function _orvPaidToast(){
+  var a = typeof window.orvAccess === "function" ? window.orvAccess() : null;
+  var p = a && a.plan && typeof orvPeriodPlan === "function" ? orvPeriodPlan(a.plan) : null;
+  var until = a && a.expiresAt ? new Date(a.expiresAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) : null;
+  if(p && until) return "Payment received — " + p.name + " is active until " + until + ".";
+  return "Payment received — your plan is active.";
 }
 
 // Recorded once the paid plan is confirmed from the database (webhook landed).
@@ -1473,41 +1494,46 @@ function _orvTrackCheckoutCompleted(status){
   if(typeof trackEvent === "function") trackEvent("checkout_completed", null, { plan: status });
 }
 
-// Free plan's equivalent of the Stripe-checkout branch above -- confirms
-// (or sets) subscription_status:'free' server-side, ensures a fresh daily
-// credit cycle, then just closes the paywall. No redirect, no payment
-// details required.
-async function continueOnFreePlan(){
-  var btn = document.getElementById("paywall-btn-free");
-  if(btn){ btn.disabled = true; btn.textContent = "Continuing…"; }
-  try {
-    var result = await apiFetch("/api/select-free-plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }
-    });
-    if(!result.ok) throw new Error((result.data && result.data.error) || "Could not continue on the Free plan");
+// "Explore first" in the plan modal: no plan, no request. Finishes the
+// onboarding plan step ("free" = no plan chosen) and closes the modal; the
+// account keeps looking around and paid actions open the plans again.
+function continueWithoutPlan(){
+  if(typeof orvOnboardingPlanChosen === "function") orvOnboardingPlanChosen("free");
+  if(typeof closeModal === "function") closeModal("modal-paywall");
+  toast("Look around as long as you like. Choose a plan when you want to create, research or launch.");
+}
+window.continueWithoutPlan = continueWithoutPlan;
 
-    _dbSubscriptionStatus = "free";
-    if(typeof S !== "undefined" && S) S.currentPlan = "free";
+// The account's access as last read (profile row or /api/get-subscription):
+// { active, status, expiresAt, plan }. Settings, the plan modal and the
+// sidebar read this; the server enforces the same rule.
+var _orvAccessRow = null;
+function _orvSetAccess(row){
+  if(!row) return;
+  _orvAccessRow = { subscription_status: row.subscription_status || "free", access_expires_at: row.access_expires_at || null, access_plan: row.access_plan || null };
+}
+window.orvAccess = function(){
+  var r = _orvAccessRow;
+  if(!r) return null;
+  var eff = orvEffectiveStatus(r);
+  return { active: eff !== "free", status: r.subscription_status, expiresAt: r.access_expires_at, plan: r.access_plan };
+};
 
-    // Onboarding plan step: finish onboarding and continue to the chosen
-    // goal (before the modal closes, so it doesn't read as "Back").
-    if(typeof orvOnboardingPlanChosen === "function") orvOnboardingPlanChosen("free");
-
-    // Close regardless of any hard-paywall flag -- choosing Free is always
-    // a legitimate way to leave the paywall, not something that should be
-    // blocked by whatever triggered the modal in the first place.
-    if(typeof closeModal === "function") closeModal("modal-paywall");
-    if(typeof _refreshUsageUI === "function") _refreshUsageUI();
-
-    toast("You're on the Free plan — 10 credits refresh every day.");
-  } catch(err){
-    console.error("[Paywall] continueOnFreePlan error:", err);
-    var code = err && err.message;
-    toast((code && code.indexOf("already have an active") !== -1) ? code : "Could not continue — please try again");
-  } finally {
-    if(btn){ btn.disabled = false; btn.textContent = btn.getAttribute("data-label") || "Continue Free"; }
-  }
+// An account without a plan that isn't in the welcome tour sees the plans
+// once per browser session (closable; the app stays explorable).
+function _orvOfferPlansOnce(){
+  try { if(sessionStorage.getItem("oriven_plans_offered")) return; sessionStorage.setItem("oriven_plans_offered", "1"); } catch(_){ return; }
+  setTimeout(function(){
+    if(typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus !== "free") return;
+    var r = _orvAccessRow;
+    var ended = r && ORIVEN_PAID_STATUSES.indexOf(r.subscription_status) !== -1;
+    if(typeof openLimitReached === "function") openLimitReached(ended ? "access" : "research");
+    if(!ended){
+      var t = document.querySelector("#modal-paywall .pw-title"), s2 = document.querySelector("#modal-paywall .pw-sub");
+      if(t) t.textContent = "Choose how long you want OrivenAI.";
+      if(s2) s2.textContent = "Every plan includes the full product; plans differ only in period, price and credits. You pay once, and nothing renews automatically.";
+    }
+  }, 900);
 }
 
 // â”€â”€ Session restore on page load â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1553,7 +1579,7 @@ document.addEventListener("DOMContentLoaded", async function(){
     _loadPath = "/app";
   } else if(_stripeBail){
     history.replaceState(null, "", "/app");
-    toast("Checkout canceled — you can upgrade anytime.");
+    toast("Checkout canceled — nothing was charged.");
   } else if(_tourParam){
     history.replaceState(null, "", "/app");
     _loadPath = "/app";
@@ -1609,7 +1635,7 @@ document.addEventListener("DOMContentLoaded", async function(){
           if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
           if(typeof invalidatePlanCache === "function") invalidatePlanCache();
           if(typeof renderPlanPanel === "function") renderPlanPanel();
-          if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast("Your subscription is now active — welcome to ORIVEN!");
+          if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast(_orvPaidToast());
           setTimeout(_postPaymentNavigate, 600);
         } else {
           // Webhook may not have arrived yet — retry once after a short delay
@@ -1623,10 +1649,10 @@ document.addEventListener("DOMContentLoaded", async function(){
               if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
               if(typeof invalidatePlanCache === "function") invalidatePlanCache();
               if(typeof renderPlanPanel === "function") renderPlanPanel();
-              if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast("Your subscription is now active — welcome to ORIVEN!");
+              if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast(_orvPaidToast());
               setTimeout(_postPaymentNavigate, 400);
             } else {
-              if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast("Subscription pending — please refresh in a moment.");
+              if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast("Payment received. Your access is being activated — refresh in a moment.");
             }
           }, 3000);
         }
@@ -1742,6 +1768,9 @@ function _isFreeUser(){
 // server-side if this local check is ever wrong in the permissive
 // direction.
 function _freeCampaignUsed(){
+  // Paid-only: there is no free generation left to use, so an account
+  // without a plan always gets the plans before a generation starts.
+  if(_isFreeUser()) return true;
   try {
     var _uid = (_currentUser && _currentUser.id) ? _currentUser.id : null;
     if(!_uid){
@@ -1775,7 +1804,9 @@ window._cwsFreeGuard = function(action){
   // gate must only fire once today's generation is actually spent, same as
   // every other free-generation gate (startCampaignGeneration,
   // openNewCampaign).
-  if(!free || !used) return true;
+  // Only regenerating uses AI; deleting, saving, downloading and copying
+  // an account's own work never needs a plan.
+  if(!free || !used || action !== "regenerate") return true;
   openFreePaywall();
   return false;
 };

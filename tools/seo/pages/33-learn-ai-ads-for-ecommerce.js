@@ -65,7 +65,7 @@ module.exports = {
 
 <h2>How OrivenAI fits an online store</h2>
 <figure class="sp-figure"><img src="/assets/films/posters/film-create-800.webp" alt="The OrivenAI Create screen: a brief, the four ad platforms, campaign goals, campaign type and structure, and the creative stage" width="800" height="450" loading="lazy" decoding="async"><figcaption>Create in OrivenAI: one brief, a platform, a goal, and the campaign structure you want. (Screenshot from the product.)</figcaption></figure>
-<p>OrivenAI focuses on the creative campaign side. In <a href="/create">Create</a>, you can attach product photos and describe the product and offer; OrivenAI uses your store’s profile from Control Center to build a campaign with copy and image or video creative for Google Ads, Meta Ads, TikTok Ads or Pinterest Ads, which you publish to your own account through <a href="/launch">Launch</a>. <a href="/research">Research</a> (from the Starter plan) helps you look at your market and competitors first.</p>
+<p>OrivenAI focuses on the creative campaign side. In <a href="/create">Create</a>, you can attach product photos and describe the product and offer; OrivenAI uses your store’s profile from Control Center to build a campaign with copy and image or video creative for Google Ads, Meta Ads, TikTok Ads or Pinterest Ads, which you publish to your own account through <a href="/launch">Launch</a>. <a href="/research">Research</a> helps you look at your market and competitors first.</p>
 <p>To be clear about what it doesn’t do: OrivenAI doesn’t manage product feeds and doesn’t create Google Shopping or Meta catalog campaigns, which need Merchant Center and Commerce Manager. Many stores use both: feed-based campaigns for the catalog, and OrivenAI for creative campaigns around specific products and promotions.</p>`,
   faq: [
     ['Can AI create product photos for ads?', '<p>AI can place your real product in new scenes, extend images to other formats and create variations. Start from real product photos and check that the product looks exactly as it does in reality.</p>'],
@@ -73,5 +73,5 @@ module.exports = {
     ['Which ad platform is best for e-commerce?', '<p>It depends on how people find your products. Google captures people already searching; Meta, TikTok and Pinterest create demand among people who weren’t looking yet. Many stores combine Google with one discovery platform.</p>'],
   ],
   related: ['/learn/how-to-create-facebook-and-instagram-ads-with-ai/', '/learn/how-to-test-ad-creatives/', '/learn/google-ads-vs-meta-ads/'],
-  cta: { title: 'Turn a product photo into a campaign', text: 'Create product ads for Google, Meta, TikTok or Pinterest on the Free plan.', label: 'Get Started Free' },
+  cta: { title: 'Turn a product photo into a campaign', text: 'Create product ads for Google, Meta, TikTok or Pinterest from one brief.', label: 'Get started' },
 };

@@ -116,15 +116,59 @@
         '<button type="button" class="op-btn op-btn-ghost" onclick="orvWorkspace.ops.planning.editBrief()">New brief</button>' +
         '<button type="button" class="op-btn op-btn-text" onclick="orvWorkspace.ops.planning.namingTool()">Naming &amp; UTM</button></div>' +
       '<div class="pl-grid">' +
+        '<section class="pl-b pl-strategy" id="plStrategy" aria-labelledby="plStratH" hidden></section>' +
         '<section class="pl-b pl-plans" aria-labelledby="plPlansH"><div class="pl-bh"><h3 id="plPlansH">Upcoming</h3><span class="op-meta">' + esc(countText()) + '</span></div>' + planBlock() + '</section>' +
         '<section class="pl-b pl-budget" aria-labelledby="bcBudH" id="opPlanBudget">' + budgetSection(null) + '</section>' +
         '<section class="pl-b pl-briefs" aria-labelledby="bcBriefH">' + briefList() + '</section>' +
         '<section class="pl-b pl-res" aria-labelledby="plResH"><div class="pl-bh"><h3 id="plResH">Latest research</h3><button type="button" class="op-link" onclick="orvWorkspace.ops.go(\'research\')">Open Research</button></div>' + researchBlock() + '</section>' +
       '</div>';
+    loadStrategy(t);
     if (plan().budget) OPS.data.load({ key: 'THIS_MONTH' }).then(function (m) { if (t !== planTok) return; var b = document.getElementById('opPlanBudget'); if (b) b.innerHTML = budgetSection(m); })
       .catch(function () { if (t !== planTok) return; var b = document.getElementById('opPlanBudget'); if (b) b.innerHTML = budgetSection('error'); });
   }
   PL.render = renderPlanning;
+
+  // ── Your marketing strategy (from onboarding) ─────────────────────
+  // GET /api/onboarding/plan returns the strategy only while the account has
+  // paid access (checked by the server on every request); otherwise, or for
+  // accounts without one, the section stays hidden. Kept in memory for a
+  // minute so switching tabs doesn't refetch; never stored in the browser.
+  var stratCache = null, stratAt = 0;
+  function loadStrategy(t) {
+    var fresh = stratCache && Date.now() - stratAt < 60000;
+    var p = fresh ? Promise.resolve(stratCache) : (typeof apiFetch === 'function' ? apiFetch('/api/onboarding/plan').then(function (r) { return r && r.ok ? r.data : null; }) : Promise.resolve(null));
+    p.then(function (d) {
+      stratCache = d; stratAt = Date.now();
+      if (t !== planTok) return;
+      var el = document.getElementById('plStrategy'); if (!el) return;
+      if (!d || d.locked !== false || !d.plan) { el.hidden = true; el.innerHTML = ''; return; }
+      el.innerHTML = strategyHtml(d); el.hidden = false;
+    }).catch(function () {});
+  }
+  var ASSISTANT_NAMES = { scout: 'Scout', vector: 'Vector', nova: 'Nova', momentum: 'Momentum', metric: 'Metric', flux: 'Flux' };
+  function strategyHtml(d) {
+    var P = d.plan, li = function (a) { return (a || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join(''); };
+    var who = ASSISTANT_NAMES[d.assistant] ? ' · prepared with ' + ASSISTANT_NAMES[d.assistant] : '';
+    var when = d.generatedAt ? new Date(d.generatedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    var sec = function (title, body) { return body ? '<details class="pl-st-d"><summary>' + esc(title) + '</summary><div class="pl-st-body">' + body + '</div></details>' : ''; };
+    var p = function (x) { return x ? '<p>' + esc(x) + '</p>' : ''; };
+    return '<div class="pl-bh"><h3 id="plStratH">Your marketing strategy</h3><span class="op-meta">' + esc((d.businessName || '') + who + (when ? ' · ' + when : '')) + '</span></div>' +
+      '<p class="pl-st-sum">' + esc(P.summary) + '</p>' +
+      '<div class="pl-st-top">' +
+        '<div><h4>Priorities</h4><ol class="pl-st-pri">' + li(P.priorities) + '</ol></div>' +
+        '<div><h4>Next 90 days</h4><ol class="pl-st-road">' + (P.roadmap || []).map(function (r) { return '<li><b>' + esc(r.phase) + '</b><span>' + esc(r.focus) + '</span><ul>' + li(r.actions) + '</ul></li>'; }).join('') + '</ol></div>' +
+      '</div>' +
+      '<div class="pl-st-more">' +
+        sec('Business overview', p(P.overview && P.overview.text)) +
+        sec('Audience analysis', p(P.audience && P.audience.text) + ((P.audience && P.audience.segments || []).length ? '<ul>' + P.audience.segments.map(function (s) { return '<li><b>' + esc(s.name) + '</b> — ' + esc(s.needs) + '</li>'; }).join('') + '</ul>' : '')) +
+        sec('Positioning', p(P.positioning && P.positioning.statement) + ((P.positioning && P.positioning.proof_points || []).length ? '<ul>' + li(P.positioning.proof_points) + '</ul>' : '')) +
+        sec('Marketing objectives', (P.objectives || []).length ? '<ul>' + P.objectives.map(function (o) { return '<li><b>' + esc(o.objective) + '</b>' + (o.measure ? ' — measured by ' + esc(o.measure) : '') + '</li>'; }).join('') + '</ul>' : '') +
+        sec('Recommended channels', (P.channels || []).length ? '<ul>' + P.channels.map(function (c) { return '<li><b>' + esc(c.channel) + '</b> · ' + esc(c.role) + ' <span class="op-meta">(' + esc(c.effort) + ' effort)</span><br>' + esc(c.why) + '</li>'; }).join('') + '</ul>' : '') +
+        sec('Content strategy', ((P.content && P.content.pillars) || []).map(function (pl) { return '<p><b>' + esc(pl.name) + '</b></p><ul>' + li(pl.ideas) + '</ul>'; }).join('') + p(P.content && P.content.cadence)) +
+        sec('Campaign opportunities', (P.campaigns || []).length ? '<ul>' + P.campaigns.map(function (c) { return '<li><b>' + esc(c.name) + '</b> — ' + esc(c.goal) + '<br>' + esc(c.idea) + '</li>'; }).join('') + '</ul>' : '') +
+      '</div>' +
+      '<p class="pl-st-note">A starting strategy based on your onboarding answers. Expected results are targets, not guarantees.</p>';
+  }
   function countText() {
     var rows = plan().plans || [], open = rows.filter(function (r) { return r.status !== 'done'; }).length;
     return rows.length ? open + ' open' + (rows.length > open ? ' · ' + (rows.length - open) + ' completed' : '') : '';

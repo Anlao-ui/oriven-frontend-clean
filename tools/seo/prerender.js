@@ -69,6 +69,16 @@ function serve() {
 // Strip animation leftovers (inline opacity/transform/visibility set by
 // scroll or entrance animations) so content is visible without JavaScript.
 const CLEAN_STYLE = `(root) => {
+  // The header and CTA dot fields (js/dot-field.js) are added at runtime; the
+  // static HTML ships without them, or a page would get a second one on load.
+  // Same for the motion state of "Inside <section>" (js/section-pages.js).
+  root.querySelectorAll('[data-pp]').forEach((s) => s.classList.remove('pp-js'));
+  root.querySelectorAll('[data-pp-page]').forEach((s) => s.classList.remove('is-in', 'pp-above'));
+  root.querySelectorAll('[data-pp-link]').forEach((a) => { a.classList.remove('is-active'); a.removeAttribute('aria-current'); });
+  root.querySelectorAll('canvas.ik-field--header, canvas.ik-field--cta').forEach((c) => {
+    const h = c.parentNode; c.remove(); h.classList.remove('ik-live');
+    h.style.removeProperty('isolation'); if (h.hasAttribute('data-ik-pos')) { h.style.removeProperty('position'); h.removeAttribute('data-ik-pos'); }
+  });
   root.querySelectorAll('[style]').forEach((el) => {
     const st = el.style;
     ['opacity', 'transform', 'visibility', 'filter', 'translate', 'will-change', 'clip-path'].forEach((p) => st.removeProperty(p));
@@ -155,8 +165,11 @@ function compose(raw, cap, opts) {
 // Homepage: index.html exactly as authored (its own head, structured data and
 // live landing animations), minus every other view. Links to other pages fall
 // back to normal page loads (lpNavigate checks the view exists).
+// The landing view ships visible (no "pub-view" class), so the homepage's
+// content shows without JavaScript; the router's remove('pub-view') is then
+// a no-op.
 function composeHome(raw) {
-  return raw.replace(/<div id="view-([a-z0-9-]+)" class="pub-view"[^>]*>[\s\S]*?<!-- \/view-\1 -->/g, (m, key) => (key === 'landing' ? m : ''));
+  return raw.replace(/<div id="view-([a-z0-9-]+)" class="pub-view"[^>]*>[\s\S]*?<!-- \/view-\1 -->/g, (m, key) => (key === 'landing' ? m.replace('<div id="view-landing" class="pub-view">', '<div id="view-landing">') : ''));
 }
 
 function redirectsFile() {

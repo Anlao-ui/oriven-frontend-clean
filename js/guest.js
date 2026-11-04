@@ -130,8 +130,8 @@ function _guestShowEntry(){
 }
 
 // AI generation needs an account (the server refuses it without a session),
-// so "Try for free" goes to signup; a new Free account then gets its free
-// first ad. The guest generation steps below are kept but no longer reached.
+// so "Get started" goes to signup; the account then chooses a plan (there is
+// no free plan). The guest generation steps below are kept but no longer reached.
 function _guestGoSignup(){
   window.location.href = '/signup';
 }
@@ -494,7 +494,7 @@ function _showGuestLockScreen(page){
   var titleEl = document.getElementById("glsTitle");
   var descEl  = document.getElementById("glsDesc");
   if(titleEl) titleEl.textContent = titles[page] || page;
-  if(descEl)  descEl.textContent  = "Create a free account to continue.";
+  if(descEl)  descEl.textContent  = "Create an account to continue.";
   var screen = document.getElementById("guestLockScreen");
   if(!screen) return;
   screen.style.display    = "flex";
@@ -610,7 +610,7 @@ async function _ggDoSignup(){
   } catch(err){
     showErr(_ggMapError(err));
     _ggMarkErr(["ggEmail","ggPass"]);
-    if(btn){ btn.disabled = false; btn.textContent = "Create free account"; }
+    if(btn){ btn.disabled = false; btn.textContent = "Create account"; }
   }
 }
 

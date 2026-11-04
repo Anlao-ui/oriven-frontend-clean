@@ -1,5 +1,6 @@
 // Article — intent: "what is PPC automation" + "AI vs rule-based PPC
 // automation" (informational; supports /ppc-automation-software/).
+const F = require('../facts');
 module.exports = {
   path: '/learn/what-is-ppc-automation/',
   kind: 'article',
@@ -66,5 +67,5 @@ module.exports = {
     ['What is the difference between automated rules and smart bidding?', '<p>Smart bidding is Google’s auction-time bid optimization toward a goal. Automated rules are explicit conditions you write, such as pausing a campaign, that act on a schedule rather than in each auction.</p>'],
   ],
   related: ['/ppc-automation-software/', '/learn/how-to-automate-google-ads-safely/', '/learn/what-is-an-ai-advertising-platform/'],
-  cta: { title: 'Automate with rules you can read', text: 'Start free, then add Automations from the Starter plan when you’re ready.', label: 'Get Started Free' },
+  cta: { title: 'Automate with rules you can read', text: 'Automations are included in every plan, from ' + F.fromPrice + ' for 14 days.', label: 'Get started' },
 };

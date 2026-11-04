@@ -1,159 +1,128 @@
 // ════════════════════════════════════════════════════════════════
 // ORIVEN — Central Plan Configuration
 //
-// SINGLE SOURCE OF TRUTH for all plan data.
-// Load this before settings.js, paywall.js, and studio.js.
+// SINGLE SOURCE OF TRUTH (frontend) for plans, prices, credits and the
+// credit cost of every action. Load this before settings.js, paywall.js,
+// and studio.js. The public pages, the in-app paywall, onboarding and
+// Settings all render from it; the backend enforces the same numbers
+// (server/services/pricing.js) and tests/pricing.test.js in the backend
+// fails when the two disagree. Also loadable in Node (module.exports at the
+// bottom) for tools/seo and the tests.
+//
+// Business model (2026-10-30): one product, the same functionality for every
+// paying customer. Five access periods are bought once and renewed manually;
+// nothing renews automatically. They differ only in price, duration and
+// credits. Unused credits expire when access ends. There is no free plan.
 // ════════════════════════════════════════════════════════════════
 
 // ── Canonical number formatter — the ONE place credit/plan quantities
 // get their thousands separator. Dutch-style dot separator (12000 ->
-// "12.000"), never a comma and never raw digits, applied consistently
-// everywhere a credit/plan number reaches the UI (Subscription, paywall,
-// Settings usage rows) instead of some call sites using .toLocaleString()
-// and others concatenating raw numbers. This is presentation only -- it
-// never touches the underlying numeric value used for math/comparisons.
+// "12.000"), applied consistently everywhere a credit/plan number reaches
+// the UI. Presentation only.
 function orvFormatCredits(n){
   if(typeof n !== "number" || isNaN(n)) return String(n);
   return n.toLocaleString("nl-NL");
 }
 
-// ── Credit cost per generation type ───────────────────────────
-// Values mirror the backend's authoritative FEATURE_COSTS
-// (server/services/creditManager.js) — the server is the real source of
-// truth and enforces these amounts regardless of what the client sends;
-// this copy exists only so the client can show an accurate pre-flight
-// credit check before firing the request. Keep the two in sync.
-var CREDIT_COSTS = {
-  ideas:          1,   // ai_chat tier — lightweight brainstorm text
-  text:           10,  // campaign_improvement tier — ad copy / text generation
-  copy:           10,
-  email:          10,
-  poster:         10,
-  infographic:    10,
-  presentation:   10,
-  deck:           10,
-  campaign:       25,  // campaign_generation
-  website:        25,  // closest bucket to campaign_generation for full-page generation
-  web:            25,
-  visual:         75,  // image_generation ("Image Ad")
-  image:          75,
-  productshoots:  75,
-  ads:            75,  // /api/generate-ad ("Ad Creative") — the literal Image Ad generator
-  video:          200, // video_generation ("Video Ad")
-  ugc:            200,
-  videoads:       200,
-  motiongraphics: 200,
-
-  // ── Canonical spec-named keys — the five standard costs surfaced
-  // directly in the product (Image Ad / Video Ad / Intelligence /
-  // Autopilot / AI Chat cost labels, paywalls, Settings). Additive: the
-  // legacy keys above stay in place for existing call sites (runBuilder's
-  // per-format gateUsage), these are what new UI should read from.
-  imageAd:      75,  // == image_generation
-  videoAd:      200, // == video_generation
-  intelligence: 25,  // == ai_analysis
-  automation:   50,  // == FEATURE_COSTS.automation: once per new automation;
-                      // its checks and campaign changes are free
-  autopilot:    50,  // legacy alias of automation (older call sites)
-  chat:         5,   // == ai_chat
-  research:     25,  // == ai_analysis (Research shares the same server-side
-                      // rate as Campaign Insights — confirmed against
-                      // server.js POST /api/research/query, 2026-08 audit)
-  business:     30,  // == website_analysis (the one AI-metered Business
-                      // action — server.js POST /api/business/website/refresh)
-
-  // ── Combined, customer-facing totals (Marketing/Pricing Redesign) —
-  // NOT new server charges. A complete image ad, start to finish, is two
-  // real steps in the product (generate concept/copy, campaign_generation
-  // 25cr, then render the actual image, image_generation 75cr) that
-  // together cost 100cr; a complete video ad is the same concept step
-  // (25cr) plus video_generation (200cr) = 225cr. Verified exactly against
-  // server.js (2026-08 audit) — these are what pricing copy shows as "1
-  // image ad"/"1 video ad" so the customer sees one clear number instead
-  // of two internal line items; the backend keeps charging the two real
-  // steps separately, unchanged.
-  imageAdComplete: 100,
-  videoAdComplete: 225
+// ── Pricing (mirrors server/services/pricing.js) ─────────────────────────
+// Prices include VAT (Stripe Tax calculates it at checkout). credits = the period's total allowance; plans with
+// more than one instalment grant it in equal monthly parts, all within the
+// access period.
+var ORIVEN_PRICING = {
+  vatRate: 0.21,
+  currency: "EUR",
+  renewal: "manual",
+  creditsExpireWithAccess: true,
+  plans: [
+    { id: "flex",       name: "Flex",        priceInclVat: 17,  days: 14, months: 0,  credits: 1050,  instalments: 1,
+      description: "Get full access to OrivenAI for 14 days. Explore AI-powered research, content creation, advertising and marketing automation." },
+    { id: "monthly",    name: "Monthly",     priceInclVat: 29,  days: 0,  months: 1,  credits: 1750,  instalments: 1,
+      description: "Get full access to OrivenAI for one month. Plan, research, create and manage your marketing from one workspace." },
+    { id: "quarterly",  name: "Quarterly",   priceInclVat: 78,  days: 0,  months: 3,  credits: 4800,  instalments: 3,
+      description: "Get full access to OrivenAI for three months. Build and improve your marketing strategy with AI-powered research, content creation and campaign tools." },
+    { id: "semiannual", name: "Semi-Annual", priceInclVat: 143, days: 0,  months: 6,  credits: 8850,  instalments: 6,
+      description: "Get full access to OrivenAI for six months. Manage and improve your marketing with AI-powered tools for research, content creation, campaigns and automation." },
+    { id: "annual",     name: "Annual",      priceInclVat: 245, days: 0,  months: 12, credits: 15000, instalments: 12,
+      description: "Get full access to OrivenAI for twelve months. Get a complete year of AI-powered marketing tools to research, plan, create and manage your campaigns." }
+  ],
+  // Credit cost of every paid action (server: pricing.FEATURE_COSTS).
+  featureCosts: {
+    ai_chat: 30, ai_chat_step: 30, research_report: 90, ai_analysis: 45,
+    campaign_generation: 65, campaign_improvement: 25, audience_generation: 25,
+    product_analysis: 25, competitor_analysis: 30, brand_voice: 35,
+    website_analysis: 35, web_generation: 20, image_generation: 55,
+    video_generation: 180, video_generation_10s: 350, automation: 20
+  }
 };
 
-// ── Canonical, user-facing credit action list (Pricing/Credit Consistency
-// pass) — the ONE source every surface (Settings AI Credit Usage, paywall,
-// landing pricing "Credits" explainer, onboarding) renders its "what costs
-// credits" list from, so this can never drift into three hand-typed copies.
-// Deliberately only the six REAL, user-triggered billable actions — no
-// internal-only buckets (campaign_generation alone, competitor_analysis,
-// brand_voice, etc. exist server-side but are never a standalone thing a
-// user consciously "buys" — they're folded into Image Ad/Video Ad or not
-// user-facing at all) and no 0-cost actions (Launch/Campaigns are called
-// out as free in prose instead, not padded in here as "0 credits" rows).
-// Where a live creditStatus.featureCosts is available (Settings, which
-// reads real-time server data), prefer that over these static numbers —
-// this array exists for surfaces with no authenticated credit-status call
-// to make (paywall entitlement copy, the public landing page).
+// ── Credit cost per generation type ───────────────────────────
+// Client-side names for the server's FEATURE_COSTS, used for the pre-flight
+// credit check before a request. The server charges the real amount
+// regardless of what the client shows.
+var CREDIT_COSTS = (function(fc){
+  return {
+    ideas:          fc.ai_chat,
+    text:           fc.campaign_improvement,
+    copy:           fc.campaign_improvement,
+    email:          fc.campaign_improvement,
+    poster:         fc.campaign_improvement,
+    infographic:    fc.campaign_improvement,
+    presentation:   fc.campaign_improvement,
+    deck:           fc.campaign_improvement,
+    campaign:       fc.campaign_generation,
+    website:        fc.web_generation,
+    web:            fc.web_generation,
+    visual:         fc.image_generation,
+    image:          fc.image_generation,
+    productshoots:  fc.image_generation,
+    ads:            fc.image_generation,
+    video:          fc.video_generation,          // one 5-second video
+    ugc:            fc.video_generation,
+    videoads:       fc.video_generation,
+    motiongraphics: fc.video_generation,
+    video10s:       fc.video_generation_10s,      // one 10-second video
+
+    imageAd:      fc.image_generation,
+    videoAd:      fc.video_generation,
+    videoAd10s:   fc.video_generation_10s,
+    intelligence: fc.ai_analysis,
+    automation:   fc.automation,  // once per new automation; its checks and campaign changes are free
+    autopilot:    fc.automation,  // legacy alias of automation
+    chat:         fc.ai_chat,     // per message; a message that needs more steps (tools) uses up to 2 more
+    chatStep:     fc.ai_chat_step,
+    research:     fc.research_report,
+    business:     fc.website_analysis,
+
+    // Customer-facing totals: a complete image ad is the concept/copy step
+    // (campaign_generation) plus the image (image_generation); a complete
+    // video ad is the concept step plus a 5-second video. The server charges
+    // the two real steps separately.
+    imageAdComplete: fc.campaign_generation + fc.image_generation,
+    videoAdComplete: fc.campaign_generation + fc.video_generation
+  };
+})(ORIVEN_PRICING.featureCosts);
+
+// ── Canonical, user-facing credit action list — the ONE source every
+// surface (Settings, paywall, pricing page, onboarding) renders its "what
+// costs credits" list from.
 var ORIVEN_CREDIT_ACTIONS = [
-  { key: "imageAd",     label: "Image Ad",             cost: CREDIT_COSTS.imageAdComplete },
-  { key: "videoAd",     label: "Video Ad",             cost: CREDIT_COSTS.videoAdComplete },
-  { key: "research",    label: "Research",             cost: CREDIT_COSTS.research },
-  { key: "chat",        label: "ORIVEN Chat",          cost: CREDIT_COSTS.chat },
-  { key: "business",    label: "Website Intelligence", cost: CREDIT_COSTS.business },
-  { key: "automation",  label: "New automation",       cost: CREDIT_COSTS.automation }
+  { key: "imageAd",     label: "Image ad (copy + image)",  cost: CREDIT_COSTS.imageAdComplete },
+  { key: "videoAd",     label: "Video ad (copy + 5 s video)", cost: CREDIT_COSTS.videoAdComplete },
+  { key: "research",    label: "Research",                 cost: CREDIT_COSTS.research },
+  { key: "chat",        label: "Oriven Chat message",      cost: CREDIT_COSTS.chat },
+  { key: "business",    label: "Website Intelligence",     cost: CREDIT_COSTS.business },
+  { key: "automation",  label: "New automation",           cost: CREDIT_COSTS.automation }
 ];
 
-// ── Homepage + Pricing Polish Pass — shared feature-comparison categories.
-// ALL THREE landing-page pricing cards render this exact same ordered list
-// (spec: "Iedere kaart toont dezelfde categorieën... Geen 'Everything in
-// Starter' / 'Everything in Creator'") so a viewer can compare plans
-// row-by-row without re-reading each card's own prose. Each plan below
-// carries a `featureFlags` map keyed by these categories' `key`.
-// Final Marketing Website Polish pass — order reverted to Business
-// directly above Research (spec: "IMPORTANT: Business must be ABOVE
-// Research" — the previous pass had flipped these two, this pass flips
-// them back). Order is the single thing that makes the three pricing
-// cards row-by-row comparable, so it's centralized here rather than
-// hand-typed per card.
-// Final Pricing Cleanup pass — "Campaign management"/"Campaign performance
-// insights" renamed to Launch/Campaigns (ORIVEN's own real product names,
-// same featureFlags keys underneath, no entitlement change); ORIVEN Chat
-// added as its own row (was previously not represented in this comparison
-// at all). costKey/costUnit are optional: when present, the render
-// functions below look up CREDIT_COSTS[costKey] live and append "N
-// credits / costUnit" as a small secondary line under the label — never a
-// second hardcoded number, so this can never drift from the canonical
-// registry (plans.js CREDIT_COSTS, itself mirroring creditManager.js).
-var ORIVEN_FEATURE_CATEGORIES = [
-  { key: "imageAds",         label: "Create Image Ads",  costKey: "imageAdComplete", costUnit: "ad" },
-  { key: "videoAds",         label: "Create Video Ads",  costKey: "videoAdComplete", costUnit: "ad" },
-  { key: "chat",             label: "ORIVEN Chat",       costKey: "chat",            costUnit: "message" },
-  { key: "research",         label: "Research",          costKey: "research",        costUnit: "investigation" },
-  { key: "campaignMgmt",     label: "Launch" },
-  { key: "performance",      label: "Campaigns" },
-  { key: "creativeMgmt",     label: "Creative management" },
-  { key: "business",         label: "Business" },
-  { key: "autopilot",        label: "Automations",       costKey: "automation",      costUnit: "automation" },
-  { key: "prioritySupport",  label: "Priority Support" }
-];
-
-// ── Plans and entitlements (V10) ─────────────────────────────────────────
-// One table for price, credits and what each plan can use. Settings,
-// the in-app paywall and the public landing pricing all render from it, and
-// the backend enforces the same capabilities (server/services/planEntitlements.js).
-//
-//   Free         limited workflow: Control Center, Create, Launch, Campaigns
-//   Starter      the full 01–06 workflow (adds Research and Automations)
-//   Creator      full workflow + Oriven Chat + in-app notifications
-//   Professional full workflow + Oriven Chat + in-app notifications +
-//                Priority Support + Weekly AI Performance Report
-//
-// "In-app notifications" is the notification center (the bell). Automation
-// emails are part of Automations and work on every plan that has them.
-//
-// Access is not usage: entitled plans still pay the normal credit cost of
-// metered actions (CREDIT_COSTS above, unchanged). Prices and credit
-// allowances are unchanged too.
-//
-// autopilotLimit: null = Autopilot not included (Free); Infinity = no separate
-// monthly execution cap beyond credits (creditManager.PLAN_AUTOPILOT_LIMITS).
+// What every plan includes (one product: no per-plan feature differences).
 var ORIVEN_WORKFLOW_STEPS = ["Control Center", "Research", "Create", "Launch", "Campaigns", "Automations"];
+var ORIVEN_INCLUDED_FEATURES = [
+  "Full advertising workflow",
+  "Oriven Chat",
+  "In-app notifications",
+  "Priority Support",
+  "Weekly AI Performance Report"
+];
 var ORIVEN_ENTITLEMENT_LABELS = {
   research: "Research",
   autopilot: "Automations",
@@ -162,181 +131,108 @@ var ORIVEN_ENTITLEMENT_LABELS = {
   prioritySupport: "Priority Support",
   weeklyReport: "Weekly AI Performance Report"
 };
+
+// ── Period plans (what can be bought) ──────────────────────────────────
+function _orvPeriodLabel(p){
+  if(p.days) return p.days + " days";
+  return p.months === 1 ? "1 month" : p.months + " months";
+}
+var ORIVEN_PERIOD_PLANS = ORIVEN_PRICING.plans.map(function(p){
+  var perMonth = p.months ? Math.round(p.priceInclVat / p.months * 100) / 100 : null;
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    price: p.priceInclVat,
+    priceExVat: Math.round(p.priceInclVat / (1 + ORIVEN_PRICING.vatRate) * 100) / 100,
+    days: p.days,
+    months: p.months,
+    periodLabel: _orvPeriodLabel(p),
+    perMonth: perMonth,
+    credits: p.credits,
+    instalments: p.instalments,
+    creditsPerInstalment: p.credits / p.instalments,
+    usageExample: {
+      imageAds: Math.floor(p.credits / CREDIT_COSTS.imageAdComplete),
+      videoAds: Math.floor(p.credits / CREDIT_COSTS.videoAdComplete)
+    },
+    // The lowest monthly price is a fact, not a popularity claim.
+    badge: p.id === "annual" ? "Lowest monthly price" : ""
+  };
+});
+// The plan chosen on the public pricing page, kept for the plans step of
+// onboarding (7 days). Only one of the five plan ids is ever stored; the
+// server decides price, duration and credits from the id.
+var ORV_PLAN_CHOICE_KEY = "oriven_selected_plan";
+function orvRememberPlanChoice(id){
+  if(!orvPeriodPlan(id)) return;
+  try { localStorage.setItem(ORV_PLAN_CHOICE_KEY, JSON.stringify({ id: id, at: Date.now() })); } catch(_){}
+}
+function orvRememberedPlanChoice(){
+  try {
+    var v = JSON.parse(localStorage.getItem(ORV_PLAN_CHOICE_KEY) || "null");
+    if(v && orvPeriodPlan(v.id) && Date.now() - (v.at || 0) < 7 * 864e5) return v.id;
+  } catch(_){}
+  return null;
+}
+function orvForgetPlanChoice(){ try { localStorage.removeItem(ORV_PLAN_CHOICE_KEY); } catch(_){} }
+function orvPeriodPlan(id){
+  for(var i = 0; i < ORIVEN_PERIOD_PLANS.length; i++){ if(ORIVEN_PERIOD_PLANS[i].id === id) return ORIVEN_PERIOD_PLANS[i]; }
+  return null;
+}
+
+// ── Account statuses and entitlements ────────────────────────────────────
+// Keyed by profiles.subscription_status. 'paid' = a period plan; the
+// legacy monthly subscriptions (starter/creator/professional) are honoured
+// until they end and get the same functionality. 'free' = no access (never
+// bought, or access ended). Access itself is time-based (the server's
+// access_expires_at); these entries only say what an account with access
+// gets. Server: services/planEntitlements.js.
+var _ORV_ALL = { research: true, autopilot: true, orivenChat: true, notifications: true, prioritySupport: true, weeklyReport: true };
+var _ORV_NONE = { research: false, autopilot: false, orivenChat: false, notifications: false, prioritySupport: false, weeklyReport: false };
+function _orvStatus(id, name, entitlements, extra){
+  var o = { id: id, name: name, entitlements: entitlements, features: entitlements === _ORV_ALL ? ORIVEN_INCLUDED_FEATURES.slice() : [], excludedFeatures: [], teamMembers: 1 };
+  for(var k in (extra || {})) o[k] = extra[k];
+  return o;
+}
 var ORIVEN_PLANS = {
-  free: {
-    id:          "free",
-    name:        "Free",
-    price:       0,
-    credits:     10,
-    limit:       10,
-    // Free's allowance resets every 24 hours (server: PLAN_ALLOWANCES.free,
-    // ensure_free_daily_cycle); every other plan's is monthly.
-    creditsCycle: "day",
-    cycleLabel:   "day",
-    teamMembers: 1,
-    explore:     false,
-    desc:        "An introduction to OrivenAI: your business context, Create, Launch and Campaigns.",
-    intelligence:   "1 use / month", // legacy server cap, not shown in pricing
-    autopilotLimit: null,
-    entitlements: { research: false, autopilot: false, orivenChat: false, notifications: false, prioritySupport: false, weeklyReport: false },
-    featureFlags: {
-      imageAds: true, videoAds: true, chat: false, campaignMgmt: true, performance: true,
-      creativeMgmt: true, business: true, research: false, autopilot: false,
-      notifications: false, prioritySupport: false, weeklyReport: false
-    },
-    // The workflow is one line on every card; its note names Free's steps.
-    features: ["Limited advertising workflow"],
-    allFeatures: ["Limited advertising workflow"],
-    excludedFeatures: ["Oriven Chat", "In-app notifications", "Priority Support", "Weekly AI Performance Report"]
-  },
-
-  starter: {
-    id:          "starter",
-    name:        "Starter",
-    price:       9.95,
-    // Stripe price IDs live in server env vars only (STRIPE_PRICE_STARTER).
-    credits:     1000,
-    limit:       1000,
-    teamMembers: 1,
-    explore:     false,
-    desc:        "The complete OrivenAI advertising workflow.",
-    intelligence:   "40 insights / month", // legacy server cap, not shown in pricing
-    autopilotLimit: Infinity,
-    entitlements: { research: true, autopilot: true, orivenChat: false, notifications: false, prioritySupport: false, weeklyReport: false },
-    featureFlags: {
-      imageAds: true, videoAds: true, chat: false, campaignMgmt: true, performance: true,
-      creativeMgmt: true, business: true, research: true, autopilot: true,
-      notifications: false, prioritySupport: false, weeklyReport: false
-    },
-    // Research and Automations are part of the full workflow (its note lists all six steps).
-    features: ["Full advertising workflow"],
-    excludedFeatures: ["Oriven Chat", "In-app notifications", "Priority Support", "Weekly AI Performance Report"]
-  },
-
-  creator: {
-    id:          "creator",
-    name:        "Creator",
-    price:       19.95,
-    popular:     true,
-    // STRIPE_PRICE_CREATOR
-    credits:     2500,
-    limit:       2500,
-    teamMembers: 1,
-    explore:     false,
-    desc:        "The full workflow, with Oriven Chat and in-app notifications.",
-    intelligence:   "100 insights / month", // legacy server cap, not shown in pricing
-    autopilotLimit: Infinity,
-    entitlements: { research: true, autopilot: true, orivenChat: true, notifications: true, prioritySupport: false, weeklyReport: false },
-    featureFlags: {
-      imageAds: true, videoAds: true, chat: true, campaignMgmt: true, performance: true,
-      creativeMgmt: true, business: true, research: true, autopilot: true,
-      notifications: true, prioritySupport: false, weeklyReport: false
-    },
-    features: ["Full advertising workflow", "Oriven Chat", "In-app notifications"],
-    excludedFeatures: ["Priority Support", "Weekly AI Performance Report"]
-  },
-
-  professional: {
-    id:          "professional",
-    name:        "Professional",
-    price:       34.95,
-    // STRIPE_PRICE_PROFESSIONAL
-    credits:     4000,
-    limit:       4000,
-    teamMembers: 10,
-    explore:     false,
-    desc:        "Everything in OrivenAI, with Priority Support and a weekly AI performance report.",
-    intelligence:   "Unlimited insights", // legacy server cap, not shown in pricing
-    autopilotLimit: Infinity,
-    entitlements: { research: true, autopilot: true, orivenChat: true, notifications: true, prioritySupport: true, weeklyReport: true },
-    featureFlags: {
-      imageAds: true, videoAds: true, chat: true, campaignMgmt: true, performance: true,
-      creativeMgmt: true, business: true, research: true, autopilot: true,
-      notifications: true, prioritySupport: true, weeklyReport: true
-    },
-    features: ["Full advertising workflow", "Oriven Chat", "In-app notifications", "Priority Support", "Weekly AI Performance Report"],
-    excludedFeatures: []
-  }
+  free:         _orvStatus("free", "No active plan", _ORV_NONE, { credits: 0, desc: "Choose a plan to use OrivenAI." }),
+  paid:         _orvStatus("paid", "OrivenAI", _ORV_ALL, { desc: "The full OrivenAI advertising workflow." }),
+  starter:      _orvStatus("starter", "Starter", _ORV_ALL, { legacy: true, credits: 1000, desc: "Your monthly subscription, honoured until it ends." }),
+  creator:      _orvStatus("creator", "Creator", _ORV_ALL, { legacy: true, credits: 2500, desc: "Your monthly subscription, honoured until it ends." }),
+  professional: _orvStatus("professional", "Professional", _ORV_ALL, { legacy: true, credits: 4000, teamMembers: 10, desc: "Your monthly subscription, honoured until it ends." })
 };
+var ORIVEN_PAID_STATUSES = ["paid", "starter", "creator", "professional"];
 
-// Does a plan include a capability? (research | autopilot | orivenChat |
-// notifications | prioritySupport | weeklyReport). Unknown plans include nothing.
+// Does a status include a capability? Unknown statuses include nothing.
 function orvPlanHas(planId, key){
   var p = ORIVEN_PLANS[planId];
   return !!(p && p.entitlements && p.entitlements[key]);
 }
-// Lowest plan that includes a capability, for honest upgrade copy.
+// The plan a capability needs: every paid capability needs a paid plan.
 function orvMinPlanFor(key){
-  var order = ["free", "starter", "creator", "professional"];
-  for(var i = 0; i < order.length; i++){ if(orvPlanHas(order[i], key)) return ORIVEN_PLANS[order[i]]; }
-  return null;
+  return orvPlanHas("paid", key) ? ORIVEN_PLANS.paid : null;
+}
+// Access is time-based, as on the server (services/pricing.js hasAccess): a
+// paying status AND an access end in the future. Returns the status the UI
+// should act on: the account's status, or 'free' when it has no access now
+// (never bought, or the period ended before the expiry job ran).
+function orvEffectiveStatus(row, now){
+  if(!row) return "free";
+  var s = row.subscription_status || "free";
+  if(ORIVEN_PAID_STATUSES.indexOf(s) === -1) return "free";
+  var exp = row.access_expires_at ? new Date(row.access_expires_at).getTime() : NaN;
+  if(!isFinite(exp) || exp <= (now || Date.now())) return "free";
+  return s;
 }
 
-
-// ── Usage examples — computed, never hand-typed, so they can never drift
-// from the real credit economics above (Marketing/Pricing Redesign: "Do
-// not invent... use sensible thresholds and existing available data").
-["starter", "creator", "professional"].forEach(function(key){
-  var p = ORIVEN_PLANS[key];
-  p.usageExample = {
-    imageAds: Math.floor(p.credits / CREDIT_COSTS.imageAdComplete),
-    videoAds: Math.floor(p.credits / CREDIT_COSTS.videoAdComplete)
-  };
-});
-
-// Official display order everywhere plans are shown: Free, Starter,
-// Creator, Professional. Single source of truth for the in-app paywall
-// (renderPWPricingCards) and Settings/Subscription (renderPlanPanel,
-// settings.js) -- both read this same array so Free is represented
-// consistently there instead of being hard-coded independently in each
-// place. Free is a real internal plan, not a public pricing tier: it must
-// only ever be shown as an authenticated user's CURRENT state (their actual
-// subscription_status genuinely is 'free'), never as a selectable option
-// offered to a paid user, and never on the public landing page -- callers
-// choose ORIVEN_PLAN_LIST vs ORIVEN_PAID_PLANS accordingly (see paywall.js
-// _renderPaywallCards and settings.js renderPlanPanel for the exact
-// current-plan-aware selection logic).
-var ORIVEN_PLAN_LIST  = ["free","starter","creator","professional"].map(function(k){ return ORIVEN_PLANS[k]; });
-
-// Paid-only subset. Two uses:
-// 1. Anywhere logic specifically means "does this account have an actual
-//    (Stripe-billed) subscription", e.g. settings.js switchPlan() deciding
-//    between the Stripe-checkout path and the schedule-plan-change path.
-// 2. Every PUBLIC-facing plan display: the landing page (renderLPPricingCards)
-//    always uses this list so Free never appears as a public pricing tier,
-//    and it's what a paid user's Settings/paywall plan grid renders from too
-//    (Free must never be offered as one of THEIR selectable options).
-var ORIVEN_PAID_PLANS = ["starter","creator","professional"].map(function(k){ return ORIVEN_PLANS[k]; });
+// Lists rendered by the paywall, onboarding and Settings: the five periods.
+// (Kept under the old names for existing callers.)
+var ORIVEN_PLAN_LIST  = ORIVEN_PERIOD_PLANS;
+var ORIVEN_PAID_PLANS = ORIVEN_PERIOD_PLANS;
 
 // ── SVG check mark (shared across all card styles) ─────────────
 var _PLAN_CHK_SVG = '<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg>';
-
-// ── Render: Landing page pricing ────────────────────────────────
-// Outputs the .ov-pc* card markup used by the live landing page's Pricing
-// section (index.html #pricing) — the .ov-pc* classes are what's actually
-// styled/animated there today.
-//
-// Pricing/Credit Consistency pass — Free now renders here too (this task's
-// explicit brief: "Free should visually belong to the pricing system... but
-// do not make it appear as feature-rich as paid plans"). Free deliberately
-// does NOT render through the same row-by-row ORIVEN_FEATURE_CATEGORIES
-// matrix the three paid plans use to stay directly comparable to each
-// other — applying that same 9-row technical checklist to Free (which
-// genuinely lacks 5 of those 9 things, see its featureFlags above) would
-// read as a mostly-crossed-out, broken-looking card. Free instead renders
-// its own short, honest features/excludedFeatures prose list — the exact
-// same one the paywall (renderPWPricingCards below) already uses for it.
-// Final Pricing Cleanup pass — a category row's cost sub-label, shared by
-// every render function below so it's built the exact same way everywhere
-// (never a hand-typed "100 credits / ad" string). Always reads CREDIT_COSTS
-// live -- if a category has no costKey (Launch, Campaigns, Business,
-// Creative management, Priority Support), returns ''.
-function _ovFeatCostLabel(cat){
-  if(!cat.costKey || typeof CREDIT_COSTS === 'undefined') return '';
-  var n = CREDIT_COSTS[cat.costKey];
-  if(typeof n !== 'number') return '';
-  return orvFormatCredits(n) + ' credits / ' + cat.costUnit;
-}
 
 // The Weekly AI Performance Report is shown as "Coming soon" until weekly
 // delivery is switched on in production (backend WEEKLY_REPORTS_ENABLED and
@@ -347,122 +243,116 @@ var ORIVEN_WEEKLY_REPORT_LIVE = false;
 // wherever plans are shown).
 function orvPlanFeatureNote(feature){
   if(feature === "Full advertising workflow") return orvPlanT("All six steps: ") + ORIVEN_WORKFLOW_STEPS.join(", ");
-  if(feature === "Limited advertising workflow") return orvPlanT("Control Center, Create, Launch and Campaigns");
   if(feature === "Weekly AI Performance Report") return orvPlanT(ORIVEN_WEEKLY_REPORT_LIVE ? "By email every Monday, from your connected ad accounts" : "Coming soon: by email every Monday, from your connected ad accounts");
   return "";
 }
 
-// Plan-card wording in the app's six languages (Settings and the paywall
-// use CURRENT_LANG from settings.js). The public website is English, so
-// without CURRENT_LANG every string stays as written.
+// Plan wording in the app's six languages (Settings and the paywall use
+// CURRENT_LANG from settings.js). The public website is English, so without
+// CURRENT_LANG every string stays as written.
 var ORIVEN_PLAN_I18N = {
-  "Limited advertising workflow": { nl: "Beperkte advertentieworkflow", de: "Eingeschränkter Werbe-Workflow", fr: "Workflow publicitaire limité", es: "Flujo publicitario limitado", pt: "Fluxo de publicidade limitado" },
   "Full advertising workflow": { nl: "Volledige advertentieworkflow", de: "Kompletter Werbe-Workflow", fr: "Workflow publicitaire complet", es: "Flujo publicitario completo", pt: "Fluxo de publicidade completo" },
   "In-app notifications": { nl: "Meldingen in de app", de: "In-App-Benachrichtigungen", fr: "Notifications dans l’app", es: "Notificaciones en la app", pt: "Notificações na app" },
   "Weekly AI Performance Report": { nl: "Wekelijks AI-prestatierapport", de: "Wöchentlicher KI-Leistungsbericht", fr: "Rapport de performance IA hebdomadaire", es: "Informe semanal de rendimiento con IA", pt: "Relatório semanal de desempenho com IA" },
   "All six steps: ": { nl: "Alle zes stappen: ", de: "Alle sechs Schritte: ", fr: "Les six étapes : ", es: "Los seis pasos: ", pt: "Os seis passos: " },
-  "Control Center, Create, Launch and Campaigns": { nl: "Control Center, Create, Launch en Campaigns", de: "Control Center, Create, Launch und Campaigns", fr: "Control Center, Create, Launch et Campaigns", es: "Control Center, Create, Launch y Campaigns", pt: "Control Center, Create, Launch e Campaigns" },
   "Coming soon: by email every Monday, from your connected ad accounts": { nl: "Binnenkort: elke maandag per e-mail, uit je gekoppelde advertentieaccounts", de: "Demnächst: jeden Montag per E-Mail, aus deinen verbundenen Werbekonten", fr: "Bientôt : chaque lundi par e-mail, à partir de vos comptes publicitaires connectés", es: "Próximamente: cada lunes por correo, de tus cuentas publicitarias conectadas", pt: "Em breve: todas as segundas-feiras por email, das suas contas de anúncios ligadas" },
   "By email every Monday, from your connected ad accounts": { nl: "Elke maandag per e-mail, uit je gekoppelde advertentieaccounts", de: "Jeden Montag per E-Mail, aus deinen verbundenen Werbekonten", fr: "Chaque lundi par e-mail, à partir de vos comptes publicitaires connectés", es: "Cada lunes por correo, de tus cuentas publicitarias conectadas", pt: "Todas as segundas-feiras por email, das suas contas de anúncios ligadas" },
   "Coming soon": { nl: "Binnenkort beschikbaar", de: "Demnächst verfügbar", fr: "Bientôt disponible", es: "Próximamente", pt: "Em breve" },
-  "Not included: ": { nl: "Niet inbegrepen: ", de: "Nicht enthalten: ", fr: "Non inclus : ", es: "No incluido: ", pt: "Não incluído: " },
-  "An introduction to OrivenAI: your business context, Create, Launch and Campaigns.": { nl: "Een kennismaking met OrivenAI: je bedrijfscontext, Create, Launch en Campaigns.", de: "Ein Einstieg in OrivenAI: dein Unternehmenskontext, Create, Launch und Campaigns.", fr: "Une introduction à OrivenAI : le contexte de votre entreprise, Create, Launch et Campaigns.", es: "Una introducción a OrivenAI: el contexto de tu negocio, Create, Launch y Campaigns.", pt: "Uma introdução ao OrivenAI: o contexto do seu negócio, Create, Launch e Campaigns." },
-  "The complete OrivenAI advertising workflow.": { nl: "De complete OrivenAI-advertentieworkflow.", de: "Der komplette OrivenAI-Werbe-Workflow.", fr: "Le workflow publicitaire OrivenAI complet.", es: "El flujo publicitario completo de OrivenAI.", pt: "O fluxo de publicidade completo do OrivenAI." },
-  "The full workflow, with Oriven Chat and in-app notifications.": { nl: "De volledige workflow, met Oriven Chat en meldingen in de app.", de: "Der komplette Workflow, mit Oriven Chat und In-App-Benachrichtigungen.", fr: "Le workflow complet, avec Oriven Chat et les notifications dans l’app.", es: "El flujo completo, con Oriven Chat y notificaciones en la app.", pt: "O fluxo completo, com Oriven Chat e notificações na app." },
-  "Everything in OrivenAI, with Priority Support and a weekly AI performance report.": { nl: "Alles in OrivenAI, met Priority Support en een wekelijks AI-prestatierapport.", de: "Alles in OrivenAI, mit Priority Support und einem wöchentlichen KI-Leistungsbericht.", fr: "Tout OrivenAI, avec Priority Support et un rapport de performance IA hebdomadaire.", es: "Todo OrivenAI, con Priority Support y un informe semanal de rendimiento con IA.", pt: "Tudo no OrivenAI, com Priority Support e um relatório semanal de desempenho com IA." }
+  "14 days": { nl: "14 dagen", de: "14 Tage", fr: "14 jours", es: "14 días", pt: "14 dias" },
+  "1 month": { nl: "1 maand", de: "1 Monat", fr: "1 mois", es: "1 mes", pt: "1 mês" },
+  "3 months": { nl: "3 maanden", de: "3 Monate", fr: "3 mois", es: "3 meses", pt: "3 meses" },
+  "6 months": { nl: "6 maanden", de: "6 Monate", fr: "6 mois", es: "6 meses", pt: "6 meses" },
+  "12 months": { nl: "12 maanden", de: "12 Monate", fr: "12 mois", es: "12 meses", pt: "12 meses" },
+  "credits": { nl: "credits", de: "Credits", fr: "crédits", es: "créditos", pt: "créditos" },
+  "per month": { nl: "per maand", de: "pro Monat", fr: "par mois", es: "al mes", pt: "por mês" },
+  "credits a month, added monthly": { nl: "credits per maand, maandelijks toegevoegd", de: "Credits pro Monat, monatlich gutgeschrieben", fr: "crédits par mois, ajoutés chaque mois", es: "créditos al mes, añadidos cada mes", pt: "créditos por mês, adicionados mensalmente" },
+  "One payment. No automatic renewal.": { nl: "Eén betaling. Geen automatische verlenging.", de: "Eine Zahlung. Keine automatische Verlängerung.", fr: "Un seul paiement. Pas de renouvellement automatique.", es: "Un solo pago. Sin renovación automática.", pt: "Um pagamento. Sem renovação automática." },
+  "Lowest monthly price": { nl: "Laagste prijs per maand", de: "Niedrigster Monatspreis", fr: "Prix mensuel le plus bas", es: "Precio mensual más bajo", pt: "Preço mensal mais baixo" },
+  "Choose": { nl: "Kies", de: "Wählen", fr: "Choisir", es: "Elegir", pt: "Escolher" },
+  "Included in every plan": { nl: "In elk abonnement inbegrepen", de: "In jedem Plan enthalten", fr: "Inclus dans chaque formule", es: "Incluido en todos los planes", pt: "Incluído em todos os planos" },
+  "Prices include VAT. Unused credits expire when your access ends.": { nl: "Prijzen inclusief btw. Ongebruikte credits vervallen wanneer je toegang eindigt.", de: "Preise inkl. MwSt. Ungenutzte Credits verfallen, wenn dein Zugang endet.", fr: "Prix TTC. Les crédits non utilisés expirent à la fin de votre accès.", es: "Precios con IVA incluido. Los créditos no usados caducan cuando termina tu acceso.", pt: "Preços com IVA incluído. Os créditos não usados expiram quando o seu acesso termina." },
+  "Lowest monthly price ": { nl: "Laagste prijs per maand ", de: "Niedrigster Monatspreis ", fr: "Prix mensuel le plus bas ", es: "Precio mensual más bajo ", pt: "Preço mensal mais baixo " }
 };
 function orvPlanT(str){
   var lang = (typeof CURRENT_LANG === "string") ? CURRENT_LANG : "en";
   var row = ORIVEN_PLAN_I18N[str];
   return (row && row[lang]) || str;
 }
+
+// Shared card facts, so the three card styles can't drift.
+function _orvEuro(n){ return "€" + (Math.round(n) === n ? String(n) : n.toFixed(2)); }
+function orvPlanCardFacts(plan){
+  return {
+    price: _orvEuro(plan.price),
+    period: orvPlanT(plan.periodLabel),
+    perMonth: plan.perMonth && plan.months > 1 ? _orvEuro(plan.perMonth) + " " + orvPlanT("per month") : "",
+    credits: orvFormatCredits(plan.credits) + " " + orvPlanT("credits"),
+    instalmentNote: plan.instalments > 1 ? orvFormatCredits(plan.creditsPerInstalment) + " " + orvPlanT("credits a month, added monthly") : "",
+    renewal: orvPlanT("One payment. No automatic renewal."),
+    badge: plan.badge ? orvPlanT(plan.badge) : ""
+  };
+}
+function orvIncludedFeaturesHtml(liClass){
+  return ORIVEN_INCLUDED_FEATURES.map(function(f){
+    var note = orvPlanFeatureNote(f);
+    return '<li' + (liClass ? ' class="' + liClass + '"' : '') + '>' + orvPlanT(f) + (note ? '<span class="ov-pc-feat-cost">' + note + '</span>' : '') + '</li>';
+  }).join('');
+}
+
+// ── Render: public pricing page (.ov-pc cards) ─────────────────────
+// Every card has the same rhythm: plan name, price, access duration, credit
+// allowance, the VAT line, the three benefits, the button. The facts come
+// from ORIVEN_PERIOD_PLANS; the benefits are the same for every plan (one
+// product), so they are three short statements, never a list of sections.
+var ORIVEN_CARD_BENEFITS = ["Full OrivenAI workflow", "Use credits across all AI features", "No automatic renewal"];
+var ORIVEN_VAT_LINE = "Price includes VAT.";
 function renderLPPricingCards(containerEl){
   if(!containerEl) return;
-  containerEl.innerHTML = ORIVEN_PLAN_LIST.map(function(plan, i){
-    var isFree  = plan.id === 'free';
-    var isPro   = !!plan.popular;
-    var delay   = i === 0 ? '' : (i * 0.08).toFixed(2).replace(/^0/, '');
+  containerEl.classList.add('ov-pc-five');
+  containerEl.innerHTML = ORIVEN_PERIOD_PLANS.map(function(plan, i){
+    var f = orvPlanCardFacts(plan);
+    var hi = !!plan.badge;
+    var delay = i === 0 ? '' : (i * 0.06).toFixed(2).replace(/^0/, '');
     var delayAttr = delay ? ' style="transition-delay:' + delay + 's"' : '';
-    var badge   = isPro ? '<div class="ov-pc-badge">Most Popular</div>' : '';
-    // Same feature lists as the in-app paywall and Settings (ORIVEN_PLANS).
-    var feats = (plan.features || []).map(function(f){
-        var note = orvPlanFeatureNote(f);
-        return '<li>' + f + (note ? '<span class="ov-pc-feat-cost">' + note + '</span>' : '') + '</li>';
-      }).join('')
-      + (plan.excludedFeatures || []).map(function(f){ return '<li class="ov-pc-feat-excluded"><span class="ov-sr">Not included: </span>' + f + '</li>'; }).join('');
-    var creditsCycle = plan.cycleLabel === 'day' ? 'day' : 'month';
-    var btnLabel = isFree ? 'Start Free' : 'Get Started';
-
+    var duration = f.period + ' of access' + (f.perMonth ? '<span class="ov-pc-sub"> · ' + f.perMonth + '</span>' : '');
+    var credits = f.credits + (plan.instalments > 1 ? '<span class="ov-pc-sub"> · ' + orvFormatCredits(plan.creditsPerInstalment) + ' a month</span>' : '');
     return [
-      // Marketing Website Product-Story Redesign pass — data-observe is
-      // back. The GSAP ScrollTrigger reveal this was deliberately left
-      // out for (index.html, "09 PRICING") was gated behind
-      // document.getElementById('pricing'), an element that no longer
-      // exists since Pricing moved to its own /pricing route — so that
-      // GSAP block has been dead code since that move, and .ov-pc has
-      // been stuck at its base opacity:0 with nothing left to reveal it
-      // (a real bug: cards were invisible on page load, only exposed now
-      // that /pricing needs its cards visible immediately above the
-      // fold). Restoring data-observe uses the same reliable
-      // IntersectionObserver/.ov-vis mechanism every other section on
-      // the site already uses — no GSAP/SPA-view-swap timing fragility.
-      '<div class="ov-pc' + (isPro ? ' ov-pc-pro' : '') + '" data-observe' + delayAttr + '>',
-        '<div class="ov-pc-head">' + badge + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
-        '<div class="ov-pc-price-block"><div class="ov-pc-price"><span class="ov-pc-price-num" data-count-target="' + plan.price.toFixed(2) + '" data-count-decimals="2" data-count-prefix="€">€' + plan.price.toFixed(2) + '</span><span>/mo</span></div>',
-          // Final Pricing Cleanup pass — credit allowance now shown ONCE,
-          // directly under the price (was previously only repeated at the
-          // bottom of the card as "Includes N credits / cycle", removed).
-          // .ov-pc-credits already existed in styles.css, defined for
-          // exactly this spot ("Fixed-height price block: price + credits
-          // line") but orphaned once an earlier pass moved this text to
-          // the bottom instead -- reused here, not a new class.
-          '<div class="ov-pc-credits">' + orvFormatCredits(plan.credits) + ' credits / ' + creditsCycle + '</div>',
+      '<div class="ov-pc ov-pc--period' + (hi ? ' ov-pc-pro' : '') + '" data-observe data-plan="' + plan.id + '"' + delayAttr + '>',
+        '<div class="ov-pc-head">' + (hi ? '<div class="ov-pc-badge">' + f.badge + '</div>' : '') + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
+        '<div class="ov-pc-price"><span class="ov-pc-price-num">' + f.price + '</span></div>',
+        '<div class="ov-pc-facts">',
+          '<p class="ov-pc-duration">' + duration + '</p>',
+          '<p class="ov-pc-credits">' + credits + '</p>',
+          '<p class="ov-pc-vat">' + ORIVEN_VAT_LINE + '</p>',
         '</div>',
-        '<div class="ov-pc-desc">' + plan.desc + '</div>',
-        '<ul class="ov-pc-list">' + feats + '</ul>',
-        '<a href="#" class="ov-pc-btn' + (isPro ? ' ov-pc-btn-pro' : '') + '" onclick="lpGetStarted(event)">' + btnLabel + '</a>',
+        '<ul class="ov-pc-list ov-pc-benefits">' + ORIVEN_CARD_BENEFITS.map(function(b){ return '<li>' + b + '</li>'; }).join('') + '</ul>',
+        '<a href="/app?plan=' + plan.id + '" class="ov-pc-btn' + (hi ? ' ov-pc-btn-pro' : '') + '" data-plan="' + plan.id + '" onclick="orvRememberPlanChoice(\'' + plan.id + '\');if(typeof lpGetStarted===\'function\'){lpGetStarted(event)}">Choose ' + plan.name + '</a>',
       '</div>'
     ].join('');
   }).join('');
 }
 
 // ── Render: Paywall modal (pw-card) ────────────────────────────
-// plansArr lets the caller (paywall.js _renderPaywallCards) decide which
-// plans are actually eligible to show: ORIVEN_PLAN_LIST (includes Free)
-// only when the signed-in user's real plan IS free, so Free renders as
-// their current-state card, never as a selectable option offered to a
-// paid user -- defaults to ORIVEN_PLAN_LIST for backward compatibility
-// with any caller that doesn't pass one.
+// plansArr is accepted for older callers; the five periods are always shown.
 function renderPWPricingCards(containerEl, plansArr){
   if(!containerEl) return;
-  var list = plansArr || ORIVEN_PLAN_LIST;
+  var list = (plansArr && plansArr.length && plansArr[0].credits != null && plansArr[0].periodLabel) ? plansArr : ORIVEN_PERIOD_PLANS;
   containerEl.innerHTML = list.map(function(plan){
-    var isFree = plan.id === "free";
-    var feats = (plan.features || plan.allFeatures || []).map(function(f){
-      var note = orvPlanFeatureNote(f);
-      return '<li class="pw-feat">' + orvPlanT(f) + (note ? '<span class="pw-feat-note">' + note + '</span>' : '') + '</li>';
-    }).join("");
-    var excludedFeats = (plan.excludedFeatures || []).map(function(f){
-      return '<li class="pw-feat pw-feat-excluded"><span class="ov-sr">' + orvPlanT('Not included: ') + '</span>' + orvPlanT(f) + '</li>';
-    }).join("");
-    var btnLabel = isFree ? "Continue Free" : "Get Started";
-    // Final Pricing Cleanup pass — price suffix always "/mo" (same reasoning
-    // as renderLPPricingCards above); credit allowance shown once, right
-    // under the price, using its own real cadence (creditsCycle).
-    var creditsCycle = plan.cycleLabel === 'day' ? 'day' : 'month';
+    var f = orvPlanCardFacts(plan);
+    var hi = !!plan.badge;
+    var btnLabel = orvPlanT("Choose") + " " + plan.name;
     return [
-      '<div class="pw-card' + (plan.popular ? ' pw-card-featured' : '') + (isFree ? ' pw-card-free' : '') + '">',
-        plan.popular ? '<div class="pw-featured-badge">Most Popular</div>' : '',
-        '<div class="pw-card-name"' + (plan.popular ? ' style="color:#B7FF2A"' : '') + '>' + plan.name + '</div>',
+      '<div class="pw-card' + (hi ? ' pw-card-featured' : '') + '" data-plan="' + plan.id + '">',
+        hi ? '<div class="pw-featured-badge">' + f.badge + '</div>' : '',
+        '<div class="pw-card-name">' + plan.name + '</div>',
         '<div class="pw-price-row">',
-          '<span class="pw-price">€' + plan.price + '</span>',
-          '<span class="pw-period">/mo</span>',
+          '<span class="pw-price">' + f.price + '</span>',
+          '<span class="pw-period">/ ' + f.period + '</span>',
         '</div>',
-        '<div class="pw-credits-inline">' + orvFormatCredits(plan.credits) + ' credits / ' + creditsCycle + '</div>',
-        plan.desc ? '<div class="pw-card-desc">' + orvPlanT(plan.desc) + '</div>' : '',
-        '<div class="pw-card-divider"></div>',
-        '<ul class="pw-feats-list">' + feats + excludedFeats + '</ul>',
-        '<button id="paywall-btn-' + plan.id + '" class="pw-btn ' + (plan.popular ? 'pw-btn-primary' : 'pw-btn-outline') + '" onclick="selectPlan(\'' + plan.id + '\')" data-label="' + btnLabel + '">' + btnLabel + '</button>',
+        '<div class="pw-credits-inline">' + f.credits + '</div>',
+        f.perMonth ? '<div class="pw-card-desc">' + f.perMonth + '</div>' : '',
+        f.instalmentNote ? '<div class="pw-card-desc">' + f.instalmentNote + '</div>' : '',
+        '<button id="paywall-btn-' + plan.id + '" class="pw-btn ' + (hi ? 'pw-btn-primary' : 'pw-btn-outline') + '" onclick="selectPlan(\'' + plan.id + '\')" data-label="' + btnLabel + '">' + btnLabel + '</button>',
       '</div>'
     ].join('');
   }).join('');
@@ -471,22 +361,31 @@ function renderPWPricingCards(containerEl, plansArr){
 // ── Render: Plan selection / onboarding (pl-card) ──────────────
 function renderPLPricingCards(containerEl){
   if(!containerEl) return;
-  containerEl.innerHTML = ORIVEN_PAID_PLANS.map(function(plan){
-    var feats = (plan.features || plan.allFeatures || []).map(function(f){
-      return '<li class="pl-feat"><div class="pl-feat-chk">' + _PLAN_CHK_SVG + '</div><span>' + orvPlanT(f) + '</span></li>';
+  containerEl.innerHTML = ORIVEN_PERIOD_PLANS.map(function(plan){
+    var f = orvPlanCardFacts(plan);
+    var hi = !!plan.badge;
+    var lines = [f.credits + ' · ' + f.period, f.instalmentNote, f.perMonth, f.renewal].filter(Boolean).map(function(t){
+      return '<li class="pl-feat"><div class="pl-feat-chk">' + _PLAN_CHK_SVG + '</div><span>' + t + '</span></li>';
     }).join("");
-    var priceHtml = '<div class="pl-price"><span class="pl-price-num">€' + plan.price + '</span><span class="pl-price-period">/month</span></div>';
-    var btnHtml = '<button class="pl-btn ' + (plan.popular ? 'pl-btn-primary' : 'pl-btn-outline') + '" onclick="selectPlan(\'' + plan.id + '\',this)">Choose ' + plan.name + '</button>';
-
     return [
-      '<div class="pl-card' + (plan.popular ? ' pl-popular' : '') + '">',
-        plan.popular ? '<div class="pl-tag">Most Popular</div>' : '',
+      '<div class="pl-card' + (hi ? ' pl-popular' : '') + '" data-plan="' + plan.id + '">',
+        hi ? '<div class="pl-tag">' + f.badge + '</div>' : '',
         '<div class="pl-card-name">' + plan.name + '</div>',
-        priceHtml,
+        '<div class="pl-price"><span class="pl-price-num">' + f.price + '</span><span class="pl-price-period">/ ' + f.period + '</span></div>',
         '<div class="pl-divider"></div>',
-        '<ul class="pl-feats">' + feats + '</ul>',
-        btnHtml,
+        '<ul class="pl-feats">' + lines + '</ul>',
+        '<button class="pl-btn ' + (hi ? 'pl-btn-primary' : 'pl-btn-outline') + '" onclick="selectPlan(\'' + plan.id + '\',this)">' + orvPlanT("Choose") + ' ' + plan.name + '</button>',
       '</div>'
     ].join('');
   }).join('');
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    ORIVEN_PRICING: ORIVEN_PRICING, CREDIT_COSTS: CREDIT_COSTS, ORIVEN_CREDIT_ACTIONS: ORIVEN_CREDIT_ACTIONS,
+    ORIVEN_PERIOD_PLANS: ORIVEN_PERIOD_PLANS, ORIVEN_PLANS: ORIVEN_PLANS, ORIVEN_PAID_STATUSES: ORIVEN_PAID_STATUSES,
+    ORIVEN_INCLUDED_FEATURES: ORIVEN_INCLUDED_FEATURES, ORIVEN_WORKFLOW_STEPS: ORIVEN_WORKFLOW_STEPS,
+    ORIVEN_WEEKLY_REPORT_LIVE: ORIVEN_WEEKLY_REPORT_LIVE, orvPlanHas: orvPlanHas, orvMinPlanFor: orvMinPlanFor, orvEffectiveStatus: orvEffectiveStatus,
+    orvPeriodPlan: orvPeriodPlan, orvPlanCardFacts: orvPlanCardFacts, ORIVEN_CARD_BENEFITS: ORIVEN_CARD_BENEFITS, ORIVEN_VAT_LINE: ORIVEN_VAT_LINE, orvFormatCredits: orvFormatCredits
+  };
 }

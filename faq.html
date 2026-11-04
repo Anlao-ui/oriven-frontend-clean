@@ -7,6 +7,10 @@
        cookieless page statistics + first-touch signup source. -->
   <script src="/js/consent.js"></script>
   <script src="/js/site-analytics.js" defer></script>
+  <!-- js/dot-field.js: the one dot-grid engine (landing page fields, assistant creatures, public page headers). -->
+  <script src="/js/dot-field.js" defer></script>
+  <script src="/js/site-top.js" defer></script>
+  <script src="/js/section-pages.js" defer></script>
   <meta charset="UTF-8">
   <meta name="google-site-verification" content="WRvFU4ubESxQDgW_GpxGTCpyVtSrBs53NsIyICfVx9I" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -22,7 +26,7 @@
        canonical/OG is applied by JS per-route (see PAGE_SEO / applyPageSeo
        further down this file) since this is a single static HTML
        document serving every URL (see vercel.json / _redirects). -->
-  <meta name="description" content="Answers about OrivenAI credits, plans, supported ad platforms, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations.">
+  <meta name="description" content="Answers about OrivenAI: the six sections, choosing an assistant, credits and plans, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations.">
   <title>FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI</title>
   <link rel="canonical" href="https://orivenai.com/faq" id="ovCanonical">
   <meta name="robots" content="index, follow" id="ovRobotsMeta">
@@ -34,7 +38,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="OrivenAI">
   <meta property="og:title" content="FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI" id="ovOgTitle">
-  <meta property="og:description" content="Answers about OrivenAI credits, plans, supported ad platforms, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations." id="ovOgDesc">
+  <meta property="og:description" content="Answers about OrivenAI: the six sections, choosing an assistant, credits and plans, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations." id="ovOgDesc">
   <meta property="og:url" content="https://orivenai.com/faq" id="ovOgUrl">
   <meta property="og:image" content="https://orivenai.com/assets/og/orivenai-og.png">
   <meta property="og:image:width" content="1200">
@@ -42,7 +46,7 @@
   <meta property="og:image:alt" content="OrivenAI, the AI advertising platform">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI" id="ovTwTitle">
-  <meta name="twitter:description" content="Answers about OrivenAI credits, plans, supported ad platforms, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations." id="ovTwDesc">
+  <meta name="twitter:description" content="Answers about OrivenAI: the six sections, choosing an assistant, credits and plans, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations." id="ovTwDesc">
   <meta name="twitter:image" content="https://orivenai.com/assets/og/orivenai-og.png">
 
   <!-- Structured data — only real, currently-true facts (no ratings,
@@ -70,8 +74,10 @@
        that silently falls back to Unbounded until the user supplies the
        real font files — same "drop the real asset in later" convention
        used everywhere else on this page for videos/images. -->
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
+  <!-- css/site-chrome.css: the shared public navbar look, footer, closing CTA and "Inside <section>" (never loaded by the app). -->
+  <link rel="stylesheet" href="/css/site-chrome.css">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
@@ -650,16 +656,16 @@
 </style>
 <style>.orv-optin{display:flex;gap:9px;align-items:flex-start;margin:4px 0 14px;font-size:12.5px;line-height:1.45;cursor:pointer}.orv-optin input{margin-top:2px;accent-color:#B7FF2A;flex:0 0 auto}.orv-optin-dark{color:rgba(240,240,240,.7)}</style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://orivenai.com/#organization","name":"OrivenAI","alternateName":["Oriven","ORIVEN","Oriven AI"],"url":"https://orivenai.com/","logo":"https://orivenai.com/assets/orivenlogo-192.png","email":"contact@orivenai.com","description":"OrivenAI (orivenai.com) is an AI advertising platform for researching, creating, launching and automating ad campaigns."}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI","description":"Answers about OrivenAI credits, plans, supported ad platforms, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations.","url":"https://orivenai.com/faq","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"OrivenAI","url":"https://orivenai.com/"},"publisher":{"@id":"https://orivenai.com/#organization"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI","description":"Answers about OrivenAI: the six sections, choosing an assistant, credits and plans, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations.","url":"https://orivenai.com/faq","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"OrivenAI","url":"https://orivenai.com/"},"publisher":{"@id":"https://orivenai.com/#organization"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://orivenai.com/"},{"@type":"ListItem","position":2,"name":"Questions,answered.","item":"https://orivenai.com/faq"}]}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What does Oriven do?","acceptedAnswer":{"@type":"Answer","text":"Oriven is one workspace for advertising, in six steps: Control Center for what is happening, what needs you and what is planned, with your business context; Research to investigate a market; Create to build platform-ready ads; Launch to review and publish them; Campaigns to follow performance; and Automations for schedules and rules that act within your limits."}},{"@type":"Question","name":"What are credits?","acceptedAnswer":{"@type":"Answer","text":"Credits are Oriven's shared monthly usage balance. A complete image ad costs 100 credits, a video ad 225, a chat message 5. They're spent from one pool across every usage-based feature, not a separate allowance per feature."}},{"@type":"Question","name":"How many ads can I create?","acceptedAnswer":{"@type":"Answer","text":"It depends on your plan and how you split your credits. Starter's 1.000 credits/month is enough for roughly 10 image ads or 4 video ads if used entirely on one type. Fewer if you also spend credits on Research or other usage. There's no separate ad limit beyond your credit balance."}},{"@type":"Question","name":"What's the difference between the plans?","acceptedAnswer":{"@type":"Answer","text":"Free covers a limited workflow: Control Center, Create, Launch and Campaigns. Starter adds Research and Automations for the full advertising workflow. Creator adds Oriven Chat and in-app notifications. Professional adds Priority Support and a Weekly AI Performance Report by email (coming soon). See the full breakdown on Pricing →"}},{"@type":"Question","name":"Which advertising platforms does Oriven support?","acceptedAnswer":{"@type":"Answer","text":"Google Ads, Meta Ads (Facebook & Instagram), TikTok Ads, and Pinterest Ads. Every integration uses OAuth. You never share your passwords with Oriven, and we never store your credentials."}},{"@type":"Question","name":"Can I connect my existing ad accounts?","acceptedAnswer":{"@type":"Answer","text":"Yes. Connect your existing Google Ads, Meta Ads, TikTok Ads or Pinterest Ads accounts and manage the campaigns already running on them from Oriven. You don't need to start from scratch."}},{"@type":"Question","name":"How does Research work?","acceptedAnswer":{"@type":"Answer","text":"Research helps you understand your market, competitors and customers before you advertise: market, competitor, audience or opportunity research, each with its own report. It reads real pages and shows which findings were checked against a source, so you always know what's established versus an idea to test. Included from Starter."}},{"@type":"Question","name":"What are Automations?","acceptedAnswer":{"@type":"Answer","text":"Automations let you schedule your published campaigns, like switching them on during business hours, and set rules like \"if CPA is above €25 over 7 days, lower the budget by 15%\". Each rule either notifies you, asks for your approval or acts within the limits you set. Included from Starter. Every automated action runs within a schedule or rule you explicitly turned on: nothing acts without one in place."}},{"@type":"Question","name":"What is Control Center?","acceptedAnswer":{"@type":"Answer","text":"Control Center is where you start: what is happening in your advertising, what needs you, what is planned next, and your business profile and Brand Identity (voice, positioning and product context), so every campaign, ad and piece of copy sounds like your brand."}},{"@type":"Question","name":"What does connecting an ad account do?","acceptedAnswer":{"@type":"Answer","text":"Connecting an account (via OAuth, so Oriven never sees your password) lets Oriven pull real campaign, spend and performance data from that platform and publish campaigns you create back to it, all from one workspace instead of switching platforms."}},{"@type":"Question","name":"Is Oriven replacing Google, Meta, TikTok or Pinterest?","acceptedAnswer":{"@type":"Answer","text":"No. Your campaigns still run on each platform's own ad system. Oriven connects to your existing accounts and brings the research, creative, launch, campaign management and optimization work into one workspace on top of them."}},{"@type":"Question","name":"What happens if something needs manual setup on the platform's side?","acceptedAnswer":{"@type":"Answer","text":"Some platform-side steps (like a platform's own account verification or ad-account creation flow) happen on that platform, outside Oriven. Oriven will guide you to what's needed rather than claim to complete it for you automatically."}},{"@type":"Question","name":"How does signup work?","acceptedAnswer":{"@type":"Answer","text":"You can start creating without a credit card, and your first full campaign generation is free before you need to choose a plan. Cancel anytime once you're subscribed."}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is OrivenAI?","acceptedAnswer":{"@type":"Answer","text":"OrivenAI is one connected workspace for your marketing, in six sections: Control Center for your dashboard, marketing plan and business context; Research to investigate a market; Create to build platform-ready ads; Launch to review and publish them; Campaigns to follow performance; and Automations for schedules and rules that act within your limits."}},{"@type":"Question","name":"What is an OrivenAI assistant?","acceptedAnswer":{"@type":"Answer","text":"An assistant is the AI personality you work with in OrivenAI. There are six, each with its own specialisation, tone and character. Whichever one you choose can help you across the whole platform, not just in its specialist area. Choosing your assistant is being introduced in stages."}},{"@type":"Question","name":"Do I use all six assistants at once?","acceptedAnswer":{"@type":"Answer","text":"No. You choose one assistant, and it stays with you as you move between research, planning, creating, launching and following results. The other five are simply different styles you could pick instead."}},{"@type":"Question","name":"Can I switch assistants?","acceptedAnswer":{"@type":"Answer","text":"Choosing an assistant is being introduced in stages, so there is nothing to switch yet. Until then, meet all six to see which style fits you best: each one can help with the whole platform, and they differ in where they are strongest and how they talk to you."}},{"@type":"Question","name":"Do I need marketing experience?","acceptedAnswer":{"@type":"Answer","text":"No. You start from your business profile in Control Center, and each section takes you through its step: research, create, launch and follow the results. Experienced advertisers keep full manual control over every campaign."}},{"@type":"Question","name":"Which advertising platforms are supported?","acceptedAnswer":{"@type":"Answer","text":"Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads and Pinterest Ads. Every integration uses OAuth: you never share your passwords with OrivenAI, and we never store your credentials."}},{"@type":"Question","name":"Can OrivenAI launch campaigns automatically?","acceptedAnswer":{"@type":"Answer","text":"Only the way you set it up. Campaigns you publish from Launch are created paused, so you decide when they start. Automations act only on schedules and rules you explicitly switch on, and each rule either notifies you, asks for your approval or acts within the limits you set."}},{"@type":"Question","name":"Is there a free plan?","acceptedAnswer":{"@type":"Answer","text":"No. OrivenAI is paid-only, so there is no free plan and no free credits. You can explore every public page, the product pages and the pricing without an account. The shortest plan, Flex, gives you 14 days of full access with 1,050 credits for €17, paid once. Nothing renews automatically. See the plans."}},{"@type":"Question","name":"What are credits?","acceptedAnswer":{"@type":"Answer","text":"Credits are the usage balance that comes with your plan. A complete image ad uses 120 credits (draft plus image), a video ad 245, a Research report 90 and an Oriven Chat message 30. They’re spent from one pool across every usage-based feature, and unused credits expire when your access ends."}},{"@type":"Question","name":"How does OrivenAI handle my business data?","acceptedAnswer":{"@type":"Answer","text":"Your business profile, research and campaigns are stored in your account and used to fit your ads and recommendations to your business. Ad platforms connect over OAuth, so OrivenAI never sees your passwords. Advertising cookies load only with your consent. Read the Privacy Policy for details."}},{"@type":"Question","name":"What’s the difference between the plans?","acceptedAnswer":{"@type":"Answer","text":"Only how long your access runs, what it costs and how many credits it includes. Every plan includes every feature: Research, Create, Launch, Campaigns, Automations, Oriven Chat, in-app notifications and Priority Support. Flex runs 14 days, Monthly one month, Quarterly three, Semi-Annual six and Annual twelve; the longer the plan, the lower the price per month. Compare the plans."}},{"@type":"Question","name":"Does my plan renew automatically?","acceptedAnswer":{"@type":"Answer","text":"No. You pay once for the period you choose, and nothing is charged when it ends: buy a new period whenever you want to continue, and your work stays in your account. If you buy again before your access ends, the new period starts when the current one ends. Plans of three months or longer add their credits in equal monthly parts."}},{"@type":"Question","name":"How many ads can I create?","acceptedAnswer":{"@type":"Answer","text":"It depends on your plan and how you split your credits. Monthly’s 1,750 credits are enough for roughly 14 image ads or 7 video ads if used entirely on one type, fewer if you also use Research or Oriven Chat. There’s no separate ad limit beyond your credit balance."}},{"@type":"Question","name":"What is Control Center?","acceptedAnswer":{"@type":"Answer","text":"Control Center is the first of the six sections and where you start. Its Dashboard shows what is happening in your advertising, what needs you and what is next, and its Marketing Plan holds what you plan to advertise, when, where and with what budget. A Progress page is in development. Your business profile and Brand Identity live here too, so every campaign, ad and piece of copy starts from the same context."}},{"@type":"Question","name":"How does Research work?","acceptedAnswer":{"@type":"Answer","text":"Research helps you understand your market, competitors and customers before you advertise: market, competitor, audience or opportunity research, each with its own report. It reads real pages and shows which findings were checked against a source, so you know what’s established and what’s an idea to test. Reports are saved to your library. Included in every plan."}},{"@type":"Question","name":"What are Automations?","acceptedAnswer":{"@type":"Answer","text":"Automations let you schedule your published campaigns, like switching them on during business hours, and set rules like “if CPA is above €25 over 7 days, lower the budget by 15%”. Each rule either notifies you, asks for your approval or acts within the limits you set, and Activity shows what each one did. Nothing acts without a schedule or rule you switched on. Included in every plan."}},{"@type":"Question","name":"Can I connect my existing ad accounts?","acceptedAnswer":{"@type":"Answer","text":"Yes. Connect your existing Google Ads, Meta Ads, TikTok Ads or Pinterest Ads accounts and see the campaigns already running on them in Campaigns. You don’t need to start from scratch."}},{"@type":"Question","name":"What does connecting an ad account do?","acceptedAnswer":{"@type":"Answer","text":"Connecting an account (over OAuth, so OrivenAI never sees your password) lets OrivenAI read campaign, spend and performance data from that platform and publish the campaigns you create back to it, from one workspace instead of switching between platforms."}},{"@type":"Question","name":"Is OrivenAI replacing Google, Meta, TikTok or Pinterest?","acceptedAnswer":{"@type":"Answer","text":"No. Your campaigns still run on each platform’s own ad system. OrivenAI connects to your existing accounts and brings research, creative, launch, campaign follow-up and automation into one workspace on top of them."}},{"@type":"Question","name":"What happens if something needs manual setup on the platform’s side?","acceptedAnswer":{"@type":"Answer","text":"Some platform-side steps, like a platform’s own account verification or ad-account creation, happen on that platform. OrivenAI shows you what’s needed rather than claiming to do it for you."}}]}</script>
 </head>
 <body data-prerendered="/faq" class="public-page">
 
 <nav class="lp-nav" id="lpNav">
   <div class="lp-nav-inner">
-    <a href="/" class="lp-logo">
-      <img src="/assets/orivenlogo-256.webp" alt="ORIVEN" class="lp-logo-img">
+    <a href="/" class="lp-logo" aria-label="OrivenAI home">
+      <svg class="lp-logo-ring" viewBox="244 197 534 585" aria-hidden="true" focusable="false"><use href="/assets/oriven-ring.svg#ik-p0" class="lp-logo-seg" style="--i:0;--ox:10.6px;--oy:-14.6px"/><use href="/assets/oriven-ring.svg#ik-p1" class="lp-logo-seg" style="--i:1;--ox:17.7px;--oy:3.1px"/><use href="/assets/oriven-ring.svg#ik-p2" class="lp-logo-seg" style="--i:2;--ox:7.3px;--oy:16.4px"/><use href="/assets/oriven-ring.svg#ik-p3" class="lp-logo-seg" style="--i:3;--ox:-8.5px;--oy:15.9px"/><use href="/assets/oriven-ring.svg#ik-p4" class="lp-logo-seg" style="--i:4;--ox:-17.7px;--oy:3.1px"/><use href="/assets/oriven-ring.svg#ik-p5" class="lp-logo-seg" style="--i:5;--ox:-9.5px;--oy:-15.3px"/></svg>
     </a>
     <div class="lp-nav-links">
 
@@ -805,20 +811,20 @@
         </button>
         <div class="lp-dropdown lp-dd-simple" role="menu">
           <div class="lp-dd-col">
-            <a href="/launch" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Create better ads</span><span class="lp-dd-item-desc">Build advertising around your brand instead of starting from scratch.</span></span>
+            <a href="/solutions/connected-workflow" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">One connected workflow</span><span class="lp-dd-item-desc">Six sections that build on each other instead of separate tools.</span></span>
             </a>
-            <a href="/campaigns" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Manage every campaign</span><span class="lp-dd-item-desc">See and manage advertising across the platforms you use from one workspace.</span></span>
+            <a href="/solutions/research-before-creation" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Research before you create</span><span class="lp-dd-item-desc">Know your market, competitors and audience before you spend.</span></span>
             </a>
-            <a href="/business" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Stay consistent with your brand</span><span class="lp-dd-item-desc">Give every generated ad the same voice, context and business profile.</span></span>
+            <a href="/solutions/plan-to-content" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">From marketing plan to content</span><span class="lp-dd-item-desc">A plan becomes a brief that prefills Create.</span></span>
             </a>
-            <a href="/autopilot" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Automate the repetitive work</span><span class="lp-dd-item-desc">Use your own rules to automatically act when performance changes.</span></span>
+            <a href="/solutions/advertising-campaigns" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Ads and campaigns</span><span class="lp-dd-item-desc">Create, check and publish ads, then follow every campaign.</span></span>
             </a>
-            <a href="/research" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Understand what works</span><span class="lp-dd-item-desc">Use Research and campaign data to discover stronger creative and messaging patterns.</span></span>
+            <a href="/solutions/structured-automation" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Less repetitive work</span><span class="lp-dd-item-desc">Schedules and rules for published campaigns, within your limits.</span></span>
             </a>
           </div>
         </div>
@@ -868,8 +874,8 @@
       <a href="/pricing" class="lp-nav-link">Pricing</a>
     </div>
     <div class="lp-nav-right">
-      <a href="#" class="lp-nav-login" onclick="lpHandleLogin(event)">Login</a>
-      <a href="#" class="lp-cta-btn" onclick="lpGetStarted(event)">Start Creating</a>
+      <a href="/login" class="lp-nav-login" onclick="lpHandleLogin(event)">Log in</a>
+      <a href="/signup" class="lp-cta-btn" onclick="lpGetStarted(event)">Get started</a>
     </div>
     <button class="lp-hamburger" id="lpHamburger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -916,11 +922,11 @@
         Solutions <span class="lp-mm-chev">&#8250;</span>
       </button>
       <div class="lp-mm-dd-items">
-        <a href="/launch" class="lp-mm-dd-link" onclick="lpCloseMm()">Create better ads</a>
-        <a href="/campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Manage every campaign</a>
-        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Stay consistent with your brand</a>
-        <a href="/autopilot" class="lp-mm-dd-link" onclick="lpCloseMm()">Automate the repetitive work</a>
-        <a href="/research" class="lp-mm-dd-link" onclick="lpCloseMm()">Understand what works</a>
+        <a href="/solutions/connected-workflow" class="lp-mm-dd-link" onclick="lpCloseMm()">One connected workflow</a>
+        <a href="/solutions/research-before-creation" class="lp-mm-dd-link" onclick="lpCloseMm()">Research before you create</a>
+        <a href="/solutions/plan-to-content" class="lp-mm-dd-link" onclick="lpCloseMm()">From marketing plan to content</a>
+        <a href="/solutions/advertising-campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Ads and campaigns</a>
+        <a href="/solutions/structured-automation" class="lp-mm-dd-link" onclick="lpCloseMm()">Less repetitive work</a>
       </div>
     </div>
 
@@ -943,8 +949,8 @@
   </nav>
   <div class="lp-mm-divider"></div>
   <div class="lp-mm-actions">
-    <a href="#" class="lp-mm-login" onclick="lpHandleLogin(event)">Login</a>
-    <a class="lp-mm-cta" onclick="lpGetStarted(event)">Start Creating</a>
+    <a href="/login" class="lp-mm-login" onclick="lpHandleLogin(event)">Log in</a>
+    <a href="/signup" class="lp-mm-cta" onclick="lpGetStarted(event)">Get started</a>
   </div>
   </div>
 </div>
@@ -1176,31 +1182,64 @@
   <section class="ov-faq-section" style="border-bottom:none;padding-top:0;">
     <div class="ov-faq-inner" style="max-width:840px;">
       <div class="ov-faq-list" style="width:100%;">
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What does Oriven do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Oriven is one workspace for advertising, in six steps: Control Center for what is happening, what needs you and what is planned, with your business context; Research to investigate a market; Create to build platform-ready ads; Launch to review and publish them; Campaigns to follow performance; and Automations for schedules and rules that act within your limits.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What are credits?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Credits are Oriven's shared monthly usage balance. A complete image ad costs 100 credits, a video ad 225, a chat message 5. They're spent from one pool across every usage-based feature, not a separate allowance per feature.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How many ads can I create?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">It depends on your plan and how you split your credits. Starter's 1.000 credits/month is enough for roughly 10 image ads or 4 video ads if used entirely on one type. Fewer if you also spend credits on Research or other usage. There's no separate ad limit beyond your credit balance.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What's the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Free covers a limited workflow: Control Center, Create, Launch and Campaigns. Starter adds Research and Automations for the full advertising workflow. Creator adds Oriven Chat and in-app notifications. Professional adds Priority Support and a Weekly AI Performance Report by email (coming soon). <a href="/pricing" style="color:var(--green)">See the full breakdown on Pricing →</a></div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which advertising platforms does Oriven support?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Google Ads, Meta Ads (Facebook &amp; Instagram), TikTok Ads, and Pinterest Ads. Every integration uses OAuth. You never share your passwords with Oriven, and we never store your credentials.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I connect my existing ad accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Connect your existing Google Ads, Meta Ads, TikTok Ads or Pinterest Ads accounts and manage the campaigns already running on them from Oriven. You don't need to start from scratch.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does Research work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Research helps you understand your market, competitors and customers before you advertise: market, competitor, audience or opportunity research, each with its own report. It reads real pages and shows which findings were checked against a source, so you always know what's established versus an idea to test. Included from Starter.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What are Automations?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Automations let you schedule your published campaigns, like switching them on during business hours, and set rules like "if CPA is above €25 over 7 days, lower the budget by 15%". Each rule either notifies you, asks for your approval or acts within the limits you set. Included from Starter. Every automated action runs within a schedule or rule you explicitly turned on: nothing acts without one in place.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Control Center?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Control Center is where you start: what is happening in your advertising, what needs you, what is planned next, and your business profile and Brand Identity (voice, positioning and product context), so every campaign, ad and piece of copy sounds like your brand.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What does connecting an ad account do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Connecting an account (via OAuth, so Oriven never sees your password) lets Oriven pull real campaign, spend and performance data from that platform and publish campaigns you create back to it, all from one workspace instead of switching platforms.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Is Oriven replacing Google, Meta, TikTok or Pinterest?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. Your campaigns still run on each platform's own ad system. Oriven connects to your existing accounts and brings the research, creative, launch, campaign management and optimization work into one workspace on top of them.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What happens if something needs manual setup on the platform's side?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Some platform-side steps (like a platform's own account verification or ad-account creation flow) happen on that platform, outside Oriven. Oriven will guide you to what's needed rather than claim to complete it for you automatically.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does signup work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">You can start creating without a credit card, and your first full campaign generation is free before you need to choose a plan. Cancel anytime once you're subscribed.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is OrivenAI?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">OrivenAI is one connected workspace for your marketing, in six sections: Control Center for your dashboard, marketing plan and business context; Research to investigate a market; Create to build platform-ready ads; Launch to review and publish them; Campaigns to follow performance; and Automations for schedules and rules that act within your limits.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is an OrivenAI assistant?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">An assistant is the AI personality you work with in OrivenAI. There are six, each with its own specialisation, tone and character. Whichever one you choose can help you across the whole platform, not just in its specialist area. Choosing your assistant is being introduced in stages.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Do I use all six assistants at once?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. You choose one assistant, and it stays with you as you move between research, planning, creating, launching and following results. The other five are simply different styles you could pick instead.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I switch assistants?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Choosing an assistant is being introduced in stages, so there is nothing to switch yet. Until then, <a href="/#agents">meet all six</a> to see which style fits you best: each one can help with the whole platform, and they differ in where they are strongest and how they talk to you.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Do I need marketing experience?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. You start from your business profile in Control Center, and each section takes you through its step: research, create, launch and follow the results. Experienced advertisers keep full manual control over every campaign.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which advertising platforms are supported?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads and Pinterest Ads. Every integration uses OAuth: you never share your passwords with OrivenAI, and we never store your credentials.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can OrivenAI launch campaigns automatically?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Only the way you set it up. Campaigns you publish from Launch are created paused, so you decide when they start. Automations act only on schedules and rules you explicitly switch on, and each rule either notifies you, asks for your approval or acts within the limits you set.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Is there a free plan?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. OrivenAI is paid-only, so there is no free plan and no free credits. You can explore every public page, the product pages and the pricing without an account. The shortest plan, Flex, gives you 14 days of full access with 1,050 credits for €17, paid once. Nothing renews automatically. <a href="/pricing">See the plans</a>.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What are credits?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Credits are the usage balance that comes with your plan. A complete image ad uses 120 credits (draft plus image), a video ad 245, a Research report 90 and an Oriven Chat message 30. They’re spent from one pool across every usage-based feature, and unused credits expire when your access ends.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does OrivenAI handle my business data?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Your business profile, research and campaigns are stored in your account and used to fit your ads and recommendations to your business. Ad platforms connect over OAuth, so OrivenAI never sees your passwords. Advertising cookies load only with your consent. Read the <a href="/privacy">Privacy Policy</a> for details.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What’s the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Only how long your access runs, what it costs and how many credits it includes. Every plan includes every feature: Research, Create, Launch, Campaigns, Automations, Oriven Chat, in-app notifications and Priority Support. Flex runs 14 days, Monthly one month, Quarterly three, Semi-Annual six and Annual twelve; the longer the plan, the lower the price per month. <a href="/pricing">Compare the plans</a>.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Does my plan renew automatically?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. You pay once for the period you choose, and nothing is charged when it ends: buy a new period whenever you want to continue, and your work stays in your account. If you buy again before your access ends, the new period starts when the current one ends. Plans of three months or longer add their credits in equal monthly parts.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How many ads can I create?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">It depends on your plan and how you split your credits. Monthly’s 1,750 credits are enough for roughly 14 image ads or 7 video ads if used entirely on one type, fewer if you also use Research or Oriven Chat. There’s no separate ad limit beyond your credit balance.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What is Control Center?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Control Center is the first of the six sections and where you start. Its Dashboard shows what is happening in your advertising, what needs you and what is next, and its Marketing Plan holds what you plan to advertise, when, where and with what budget. A Progress page is in development. Your business profile and Brand Identity live here too, so every campaign, ad and piece of copy starts from the same context.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does Research work?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Research helps you understand your market, competitors and customers before you advertise: market, competitor, audience or opportunity research, each with its own report. It reads real pages and shows which findings were checked against a source, so you know what’s established and what’s an idea to test. Reports are saved to your library. Included in every plan.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What are Automations?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Automations let you schedule your published campaigns, like switching them on during business hours, and set rules like “if CPA is above €25 over 7 days, lower the budget by 15%”. Each rule either notifies you, asks for your approval or acts within the limits you set, and Activity shows what each one did. Nothing acts without a schedule or rule you switched on. Included in every plan.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can I connect my existing ad accounts?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Yes. Connect your existing Google Ads, Meta Ads, TikTok Ads or Pinterest Ads accounts and see the campaigns already running on them in Campaigns. You don’t need to start from scratch.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What does connecting an ad account do?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Connecting an account (over OAuth, so OrivenAI never sees your password) lets OrivenAI read campaign, spend and performance data from that platform and publish the campaigns you create back to it, from one workspace instead of switching between platforms.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Is OrivenAI replacing Google, Meta, TikTok or Pinterest?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. Your campaigns still run on each platform’s own ad system. OrivenAI connects to your existing accounts and brings research, creative, launch, campaign follow-up and automation into one workspace on top of them.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What happens if something needs manual setup on the platform’s side?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Some platform-side steps, like a platform’s own account verification or ad-account creation, happen on that platform. OrivenAI shows you what’s needed rather than claiming to do it for you.</div></div>
       </div>
     </div>
   </section>
 
-  <section class="ov-sp-cta">
-    <div class="ov-sp-cta-inner">
-      <h2 class="ov-sp-cta-h">Still have questions?</h2>
-      <p class="ov-sp-cta-sub">Reach out and we'll help you get started.</p>
-      <a href="mailto:contact@orivenai.com" class="ov-btn-primary">Contact Us</a>
+  <!-- site-cta:start -->
+  <section class="site-cta" data-site-cta="" aria-label="Get started">
+  <div class="site-cta__in">
+    <p class="site-cta__eyebrow">FAQ</p>
+    <h2 class="site-cta__h">Still have questions?</h2>
+    <p class="site-cta__p">Reach out and we'll help you get started.</p>
+    <div class="site-cta__actions">
+      <a class="site-btn site-btn--primary" href="mailto:contact@orivenai.com">Contact us <span aria-hidden="true">→</span></a>
+      <a class="site-btn site-btn--ghost" href="/learn/">Read the guides</a>
     </div>
-  </section>
-  <footer class="ov-sub-footer"><div class="ov-sub-footer-inner">© 2026 ORIVEN · KVK: 42039993 · Netherlands · All rights reserved. · <a href="#cookie-settings" data-cookie-settings="">Cookie settings</a></div></footer>
+  </div>
+</section>
+  <!-- site-cta:end -->
+  <!-- site-footer:start -->
+  <footer class="site-foot" data-site-footer="">
+  <div class="site-foot__in">
+    <div class="site-foot__top">
+      <div class="site-foot__brand">
+        <a href="/" aria-label="OrivenAI home"><img src="/assets/orivenlogo-256.webp" width="48" height="48" alt="OrivenAI" loading="lazy"></a>
+        <p>The connected AI marketing workspace: research, plan, create, launch and improve, in one place.</p>
+      </div>
+      <nav class="site-foot__col" aria-label="Product"><h2>Product</h2><a href="/product">All six sections</a><a href="/business">Control Center</a><a href="/research">Research</a><a href="/create">Create</a><a href="/launch">Launch</a><a href="/campaigns">Campaigns</a><a href="/autopilot">Automations</a></nav>
+      <nav class="site-foot__col" aria-label="Assistants"><h2>Assistants</h2><a href="/#agent-scout" data-ik-goto="scout">Scout</a><a href="/#agent-vector" data-ik-goto="vector">Vector</a><a href="/#agent-nova" data-ik-goto="nova">Nova</a><a href="/#agent-momentum" data-ik-goto="momentum">Momentum</a><a href="/#agent-metric" data-ik-goto="metric">Metric</a><a href="/#agent-flux" data-ik-goto="flux">Flux</a></nav>
+      <nav class="site-foot__col" aria-label="Platforms"><h2>Platforms</h2><a href="/product/google-ads">Google Ads</a><a href="/product/meta-ads">Meta Ads</a><a href="/product/tiktok-ads">TikTok Ads</a><a href="/product/pinterest-ads">Pinterest Ads</a><a href="/cross-platform-ad-management/">Cross-platform ads</a><a href="/ppc-automation-software/">PPC automation</a></nav>
+      <nav class="site-foot__col" aria-label="Resources"><h2>Resources</h2><a href="/solutions">Solutions</a><a href="/learn/">Learn</a><a href="/blog">Blog</a><a href="/faq">FAQ</a><a href="/case-studies">Case Studies</a><a href="/pricing">Pricing</a></nav>
+      <nav class="site-foot__col" aria-label="Company"><h2>Company</h2><a href="/about">About</a><a href="mailto:contact@orivenai.com">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/cookie-policy">Cookie Policy</a><a href="/refund-policy">Refund Policy</a><a href="/security">Security</a><a href="#cookie-settings" data-cookie-settings="">Cookie settings</a></nav>
+    </div>
+    <div class="site-foot__bottom">
+      <span>© 2026 Oriven · KVK: 42039993 · Netherlands · All rights reserved.</span>
+      <button type="button" class="site-foot__totop" data-scroll-top="">Scroll to top <span aria-hidden="true">↑</span></button>
+    </div>
+  </div>
+</footer>
+  <!-- site-footer:end -->
 </div>
 </div><!-- /view-faq -->
 
@@ -1303,13 +1342,13 @@
     'cookie-policy': { title: 'Cookie Policy | OrivenAI', desc: 'Which cookies and similar technologies OrivenAI uses on this website, why, and how to change your consent choices.', path: '/cookie-policy' },
     security: { title: 'Security | OrivenAI', desc: 'How OrivenAI protects your account and connected Google, Meta, TikTok and Pinterest ad accounts: OAuth, encryption and access.', path: '/security' },
     contact: { title: 'Contact | OrivenAI', desc: 'Contact the OrivenAI team with questions about the product, your account, billing or partnerships. We reply by email.', path: '/contact' },
-    about: { title: 'About OrivenAI | AI Advertising Platform', desc: 'Marketing data is scattered across platforms. Oriven brings it together so you can spend less time in dashboards and more time making better decisions.', path: '/about' },
+    about: { title: 'About OrivenAI | AI Advertising Platform', desc: 'Marketing data is scattered across platforms. Oriven brings it together in one connected workspace, from research and planning to launching ads and following results.', path: '/about' },
     blog: { title: 'OrivenAI Blog: Product Updates and Company News | OrivenAI', desc: 'News from OrivenAI: what we launched, why we built it, and how the product works today.', path: '/blog' },
     product: { title: 'Google, Meta, TikTok & Pinterest Ads Integrations | OrivenAI', desc: 'OrivenAI connects to Google Ads, Meta Ads, TikTok Ads and Pinterest Ads through each platform’s official API: research, create, launch, track and automate in one workspace.', path: '/product' },
-    solutions: { title: 'Advertising Solutions by Problem | OrivenAI', desc: 'Common advertising problems for small teams, from blank-page ad writing to juggling four ad platforms, and the OrivenAI module that solves each one.', path: '/solutions' },
+    solutions: { title: 'Solutions: Five Ways OrivenAI Helps | OrivenAI', desc: 'Five reasons to use OrivenAI: one connected workflow, research before you create, plan to content, ads and campaigns, and less repetitive work.', path: '/solutions' },
     'case-studies': { title: 'Case Studies | OrivenAI', desc: 'Illustrative examples of how Oriven changes a real advertising workflow.', path: '/case-studies' },
-    pricing: { title: 'Pricing: Free, Starter, Creator & Professional Plans | OrivenAI', desc: 'OrivenAI plans from free to €34.95 a month. Compare credits, what each plan includes, and what an image ad, video ad or research report costs.', path: '/pricing' },
-    faq: { title: 'FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI', desc: 'Answers about OrivenAI credits, plans, supported ad platforms, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations.', path: '/faq' },
+    pricing: { title: 'Pricing: Flex, Monthly, Quarterly, Semi-Annual & Annual | OrivenAI', desc: 'OrivenAI plans from €17 for 14 days to €245 for a year: the same product in every plan, paid once, no automatic renewal. Compare credits and costs per ad.', path: '/pricing' },
+    faq: { title: 'FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI', desc: 'Answers about OrivenAI: the six sections, choosing an assistant, credits and plans, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations.', path: '/faq' },
     'product-google-ads': { title: 'AI Google Ads Campaign Builder for Search & Performance Max | OrivenAI', desc: 'Build Google Ads Search, Performance Max and Demand Gen campaigns from a brief: keywords, responsive search ads, extensions and assets, created paused through Google’s API.', path: '/product/google-ads' },
     'product-meta-ads': { title: 'AI Facebook & Instagram Ads: Create and Launch Meta Campaigns | OrivenAI', desc: 'Create Facebook and Instagram campaigns from a brief: ad sets with countries, ages and placements, image ads, and your Meta Pixel, created paused through Meta’s API.', path: '/product/meta-ads' },
     'product-tiktok-ads': { title: 'TikTok Ads Tool: Create Video Ad Campaigns with AI | OrivenAI', desc: 'Prepare TikTok video ads with AI: hook, ad text, vertical video, countries and budget, created on TikTok paused for traffic and awareness campaigns.', path: '/product/tiktok-ads' },
@@ -1319,7 +1358,7 @@
     'product-campaigns': { title: 'Ad Campaign Dashboard for Google, Meta, TikTok & Pinterest | OrivenAI', desc: 'Follow performance from every connected ad platform in one place, by campaign and date range, and pause or resume Google, Meta and Pinterest campaigns.', path: '/campaigns' },
     'product-research': { title: 'AI Market & Competitor Research for Advertising | OrivenAI', desc: 'Research your market, competitors and customers before you spend. Targeted web searches, pages it reads and your website, with findings checked against their sources.', path: '/research' },
     'product-autopilot': { title: 'Ad Automations: Schedules and Rules for Your Campaigns | OrivenAI', desc: 'Schedule campaigns, monitor performance and pause, resume or adjust budgets with rules you write, within limits you set. Approval mode and a full activity log.', path: '/autopilot' },
-    'product-business': { title: 'Business Profile & Brand Context for AI Ads | OrivenAI', desc: 'Control Center keeps your business profile, brand identity and ad account connections in one place, so research, copy and creative use the same facts.', path: '/business' },
+    'product-business': { title: 'Control Center: Dashboard, Plan & Brand Context | OrivenAI', desc: 'Where you start in OrivenAI: your dashboard, marketing plan, business profile and brand identity, so research, copy and creative use the same facts.', path: '/business' },
     '404': { title: 'Page Not Found | OrivenAI', desc: 'The page you are looking for does not exist or has been moved.', path: null, noindex: true }
   };
   window.PAGE_SEO = PAGE_SEO;
@@ -4416,7 +4455,8 @@ window.addEventListener('pageshow', function(e){
 (function () {
  'use strict';
  var root = document.getElementById('view-landing');
- if (!root) return;
+ // Previous landing page only: the Ink & Signal landing (js/landing.js) has no #ov-system.
+ if (!root || !document.getElementById('ov-system')) return;
  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
  var system = document.getElementById('ov-system');
   var pieces = Array.from(system.querySelectorAll('.ov-ring-piece'));
@@ -4601,7 +4641,8 @@ window.addEventListener('pageshow', function(e){
 (function () {
  'use strict';
  var root = document.getElementById('view-landing');
- if (!root || !window.gsap || !window.ScrollTrigger) return;
+ // Previous landing page only: its scroll stories animate #ov-pillars and friends.
+ if (!root || !window.gsap || !window.ScrollTrigger || !document.getElementById('ov-pillars')) return;
  gsap.registerPlugin(ScrollTrigger);
  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
  var finePointer = window.matchMedia('(hover:hover) and (pointer:fine)');

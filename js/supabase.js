@@ -139,7 +139,18 @@ async function apiFetch(path, options) {
     throw new Error("Server returned an unexpected response (HTTP " + resp.status + "). The service may be starting — please try again in a moment.");
   }
 
+  // The account is still in the mandatory onboarding (server-side gate,
+  // server.js): whatever opened this request, bring the onboarding back.
+  if (resp.status === 403 && data && data.code === "ONBOARDING_REQUIRED") _orvReopenOnboarding();
+
   return { ok: resp.ok, status: resp.status, data: data };
+}
+var _orvReopenAt = 0;
+function _orvReopenOnboarding(){
+  if (window.orvOnboardingFlow && window.orvOnboardingFlow.isOpen()) return;
+  if (Date.now() - _orvReopenAt < 3000 || typeof window.orvOnboardingGate !== "function") return;
+  _orvReopenAt = Date.now();
+  window.orvOnboardingGate();
 }
 
 // ── Global fetch interceptor ──────────────────────────────────

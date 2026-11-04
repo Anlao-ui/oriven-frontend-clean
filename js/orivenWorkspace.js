@@ -79,8 +79,8 @@
     return window.apiFetch(path, opts).catch(function () { return { ok: false, status: 0, data: null }; });
   }
   function hasAutopilotPlan() {
-    // Autopilot is included from Starter (plans.js entitlements). An unknown
-    // plan (still loading) is not treated as locked.
+    // Automations are included in every paid plan (plans.js entitlements). An
+    // unknown plan (still loading) is not treated as locked.
     if (typeof window.orvEntitled === 'function') return window.orvEntitled('autopilot') !== false;
     return true;
   }
@@ -735,7 +735,7 @@
     // Automations
     var ap;
     if (!hasAutopilotPlan()) {
-      ap = { tone: 'locked', state: 'Starter', summary: 'Available from the Starter plan' };
+      ap = { tone: 'locked', state: 'No plan', summary: 'Included in every plan' };
     } else {
       var rules = apRules();
       var recs = apRecs() || [];
@@ -900,7 +900,7 @@
     if (!h || !Array.isArray(h.findings) || !h.findings.length) { R.clearHandoff(true); return null; }
     var clean = {
       question: trunc(h.question || '', 500), summary: trunc(h.summary || '', 600), title: trunc(h.title || '', 120),
-      researchType: ['market', 'competitor', 'audience', 'opportunity'].indexOf(h.researchType) !== -1 ? h.researchType : null,
+      researchType: ['market', 'competitor', 'audience', 'opportunity', 'product', 'advertising', 'trends'].indexOf(h.researchType) !== -1 ? h.researchType : null,
       reportId: h.reportId ? String(h.reportId).slice(0, 64) : null, savedAt: new Date().toISOString(),
       findings: h.findings.slice(0, HANDOFF_MAX).map(function (f) {
         return { id: String(f.id || '').slice(0, 80), group: trunc(f.group || '', 40), text: trunc(f.text || '', 280), basis: f.basis || null,
@@ -958,7 +958,7 @@
     if (n.warning) draftParts.push(n.warning + ' with warnings');
     if (n.blocked) draftParts.push(n.blocked + ' blocked');
     var ap;
-    if (!hasAutopilotPlan()) ap = { value: '—', sub: 'Available from Starter', tone: 'muted' };
+    if (!hasAutopilotPlan()) ap = { value: '—', sub: 'Included in every plan', tone: 'muted' };
     else {
       var rules = apRules(), recs = apRecs() || [];
       if (rules === null) ap = { value: '…', sub: 'Checking automations', tone: 'muted' };

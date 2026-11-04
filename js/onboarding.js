@@ -10,7 +10,7 @@
    (orvOnboardingTourDone / orvOnboardingTourSkipped).
 
    The plan step is the shared plan modal (paywall.js openOnboardingPlans):
-   Free is always selectable, paid plans go through the normal Stripe
+   "Explore first" finishes it without a plan; the five plans go through the normal Stripe
    checkout. Closing it without a choice returns to the tour's last card.
    Accounts already on a paid plan skip it. No forced payment, and nothing
    here ever starts a paid action.
@@ -108,7 +108,16 @@ window.orvOnboardingGate = async function(){
     if(intent === "first_ad") setTimeout(function(){ if(!_ob3OpenFirstAdCampaign()) _ob3Go("create", 0); }, 300);
     else if(OB3_DEST[intent]) _ob3Go(intent, 300);
   }
+  // Just activated (onboardingFlow.js → /app): open Control Center →
+  // Marketing Plan, where the plan for the purchased period is being written.
+  var openPlanning = false;
+  try { openPlanning = sessionStorage.getItem("oriven_open_planning") === "1"; sessionStorage.removeItem("oriven_open_planning"); } catch(_){}
+  if(openPlanning && !st.eligible && window.orvPlanPages) setTimeout(function(){ window.orvPlanPages.open("plan"); }, 400);
   if(!st.eligible){ if(pending) _ob3Set("ob_pending", null); _ob3ApplyDeepLink(); return; }
+  // The guided onboarding (js/onboardingFlow.js) when the server offers it:
+  // questions → assistant → strategy → plans. It completes onboarding
+  // server-side once the strategy is unlocked after payment.
+  if(st.flow && st.flow.enabled && window.orvOnboardingFlow){ window.orvOnboardingFlow.open(st.flow.session || null); return; }
   if(!pending && st.stage === "first_ad"){ _ob3EnterFirstAd({ resume: true }); return; }
   if(!pending && st.stage === "choose_plan"){ _ob3FirstAdReady({ resume: true }); return; }
   // Chosen here before; the save didn't land yet. ("skip" comes from before
@@ -263,19 +272,15 @@ function _ob3PlanNote(kind){
   var C = typeof CREDIT_COSTS !== "undefined" ? CREDIT_COSTS : null;
   var P = typeof ORIVEN_PLANS !== "undefined" ? ORIVEN_PLANS : null;
   if(!C || !P) return "";
-  var planId = _ob3Plan(), plan = P[planId] || P.free;
+  var planId = _ob3Plan();
+  var first = typeof ORIVEN_PERIOD_PLANS !== "undefined" ? ORIVEN_PERIOD_PLANS[0] : null;
+  var choose = first ? " Plans start at €" + first.price + " for " + first.periodLabel + ", with no automatic renewal." : "";
   if(kind === "create"){
-    var st = window._orvObState;
-    if(planId === "free" && st && st.freeFirstAd && st.freeFirstAd.available){
-      return "Your first complete ad is free: the campaign plus its ad image. After that, Free includes one campaign build a day; ad images use " + C.imageAd + " credits each, included from " + P.starter.name + ".";
-    }
-    if(planId === "free") return "On Free you can build one complete campaign a day: copy, targeting and visual concepts. Rendering ad images uses " + C.imageAd + " credits each, included from " + P.starter.name + ".";
-    return "A complete image ad uses " + C.imageAdComplete + " credits (" + C.campaign + " for the campaign, " + C.imageAd + " for the image). " + plan.name + " includes " + orvFormatCredits(plan.credits) + " credits a month.";
+    if(planId === "free") return "A complete image ad uses " + C.imageAdComplete + " credits (" + C.campaign + " for the campaign, " + C.imageAd + " for the image). Creating ads is part of every plan." + choose;
+    return "A complete image ad uses " + C.imageAdComplete + " credits (" + C.campaign + " for the campaign, " + C.imageAd + " for the image).";
   }
-  if(!(plan.entitlements && plan.entitlements.research)){
-    return "Research is included from " + P.starter.name + " (€" + P.starter.price + "/month); each investigation uses " + C.research + " credits.";
-  }
-  return "Each investigation uses " + C.research + " credits. " + plan.name + " includes " + orvFormatCredits(plan.credits) + " credits a month.";
+  if(planId === "free") return "Each investigation uses " + C.research + " credits. Research is part of every plan." + choose;
+  return "Each investigation uses " + C.research + " credits.";
 }
 
 function _ob3Examples(kind){

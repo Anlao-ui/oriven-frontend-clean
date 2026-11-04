@@ -20,7 +20,7 @@
   'use strict';
 
   var MAX_PICKS = 8, Q_MAX = 500, URL_MAX = 5;
-  var TYPES = ['market', 'competitor', 'audience', 'opportunity'];
+  var TYPES = ['market', 'competitor', 'audience', 'product', 'advertising', 'trends', 'opportunity'];
 
   // ── Texts ─────────────────────────────────────────────────────────
   var STR = {
@@ -33,8 +33,16 @@
         competitor: ['Competitor research', 'How competitors position, price, message and advertise.', 'Competitor cards · comparison · ad patterns · gaps'],
         audience: ['Audience research', 'Needs, pain points, motivations and objections.', 'Segments · needs & pains · motivations · messaging'],
         opportunity: ['Opportunity research', 'Gaps and angles worth testing, with the reasons why.', 'Opportunities · evidence · angles · tests · risks'],
+        product: ['Product & niche', 'What buyers in a category want, how it’s offered and where the gaps are.', 'Category overview · buyer signals · players · opportunities · risks'],
+        advertising: ['Advertising & campaigns', 'How comparable brands advertise — formats, messages, offers — and what to test.', 'Ad patterns · advertisers · angles · tests · risks'],
+        trends: ['Trends', 'Recent developments in your market and among your customers.', 'Trends · customer signals · opportunities · implications · risks'],
       },
       youGet: 'You get: {list}',
+      stepDir: 'Choose a direction', stepAsk: 'Ask your question', stepCtx: 'Add context', startersLbl: 'Start from',
+      howTitle: 'How OrivenAI marks what it found', howIntro: 'Every finding carries one of these labels, so you can tell what a source says from what OrivenAI concluded.',
+      recentTitle: 'Recent research', recentEmpty: 'Your completed research is saved to your account and collected in Insights.', allInsights: 'All research in Insights',
+      ePreview: 'Local preview: this account has no confirmed paid access in the database this server uses — Stripe products and access periods aren’t set up yet. Nothing was sent to the AI and no credits were used.',
+      nextNote: 'Recommendations from OrivenAI, based on the findings above — not facts.', sec2: { productOverview: 'Category overview', buyers: 'What buyers say', players: 'Who offers it', adObserved: 'What advertisers do', advertisers: 'Advertisers', trendList: 'Trends', impl: 'What it means for you', nextActions: 'Recommended next actions' },
       ctxLabel: 'Business context', ctxUsed: 'Research uses your business profile:', ctxNone: 'No business profile yet — research works without one, but is more specific with it.', ctxSetup: 'Set up your business', ctxEdit: 'Edit',
       ctxWebsite: 'Read my website ({site}) as a source', ctxCountry: 'Market: {c}', ctxNoCountry: 'No country set — findings stay market-neutral',
       sitesLabel: 'Extra websites to read (optional)', sitesAdd: '+ Add a website', sitesPh: 'https://example.com/page', sitesAddBtn: 'Add', sitesRemove: 'Remove {u}', sitesMax: 'Up to {n} websites.', sitesBad: 'Enter a full web address, like https://example.com.',
@@ -375,6 +383,34 @@
   function link(u, label, cls) { var h = safeUrl(u); return h ? '<a' + (cls ? ' class="' + cls + '"' : '') + ' href="' + esc(h) + '" target="_blank" rel="noopener noreferrer">' + esc(label) + '</a>' : '<span' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(label) + '</span>'; }
   function host(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (_) { return String(u || ''); } }
   function newKey() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('k' + Date.now() + Math.random().toString(36).slice(2)); }
+  // One line icon per research direction (24 grid, 1.6 stroke, like the nav).
+  var DIR_ICON = {
+    market: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    competitor: '<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c.6-3 2.6-5 5-5s4.4 2 5 5M11 20c.6-3 2.6-5 5-5s4.4 2 5 5"/>',
+    audience: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-3.6 3.8-6 7-6s6 2.4 7 6"/>',
+    product: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
+    advertising: '<path d="M4 10v4h3l6 4V6L7 10z"/><path d="M17 9a4 4 0 0 1 0 6M19.5 6.5a7.5 7.5 0 0 1 0 11"/>',
+    trends: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    opportunity: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8"/>',
+  };
+  function dirIcon(t) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + (DIR_ICON[t] || '') + '</svg>'; }
+  // Ready-made questions per direction, filled with the business profile
+  // when there is one ({biz}, {ind}, {where}); the user edits them freely.
+  var STARTERS = {
+    market: ['How is the {ind} market{where} changing this year?', 'What drives demand for {ind}{where}?', 'What challenges do {ind} businesses{where} face right now?'],
+    competitor: ['Who are {biz}’s main competitors{where}, and how do they position themselves?', 'How do {ind} competitors{where} price and message their offers?', 'Where could {biz} stand apart from competitors?'],
+    audience: ['Who buys {ind}{where}, and what do they care about most?', 'What frustrates customers of {ind} businesses?', 'What objections stop people from buying {ind}?'],
+    product: ['What do buyers look for in {ind} products?', 'Which {ind} products are customers asking for that few businesses offer?', 'How is {ind} usually presented and sold online{where}?'],
+    advertising: ['How do {ind} brands{where} advertise on social media?', 'Which offers and messages do {ind} advertisers use?', 'What ad formats do comparable {ind} businesses use?'],
+    trends: ['Which trends will matter most for {ind}{where} in the next months?', 'How are customer habits around {ind} changing?', 'What new developments affect how {ind} is marketed?'],
+    opportunity: ['Where are the untapped opportunities for {biz}{where}?', 'Which customer needs in {ind} are not being met?', 'Which advertising angles could {biz} test first?'],
+  };
+  function starters(t) {
+    var b = S.biz || {}, ind = (b.industry || '').trim(), biz = (b.name || '').trim();
+    return (STARTERS[t] || []).map(function (q) {
+      return q.split('{biz}').join(biz || 'my business').split('{ind}').join(ind ? ind.toLowerCase() : 'my industry').split('{where}').join(b.country ? ' in ' + b.country : '');
+    });
+  }
   function cost() { return (typeof CREDIT_COSTS !== 'undefined' && CREDIT_COSTS.research) || 25; }
 
   // ── State ─────────────────────────────────────────────────────────
@@ -414,8 +450,8 @@
   function typeCards() {
     return '<div class="rx-types" role="radiogroup" aria-label="' + esc(T('typeLabel')) + '">' + TYPES.map(function (t) {
       var d = pick('types.' + t), on = S.type === t;
-      return '<label class="rx-type' + (on ? ' is-on' : '') + '"><input type="radio" name="rxType" value="' + t + '"' + (on ? ' checked' : '') + ' data-rx="type">' +
-        '<span class="rx-type-t">' + esc(d[0]) + '</span><span class="rx-type-d">' + esc(d[1]) + '</span></label>';
+      return '<label class="rx-type rx-dir' + (on ? ' is-on' : '') + '" data-dir="' + t + '"><input type="radio" name="rxType" value="' + t + '"' + (on ? ' checked' : '') + ' data-rx="type">' +
+        '<span class="rx-dir-ic">' + dirIcon(t) + '</span><span class="rx-type-t">' + esc(d[0]) + '</span><span class="rx-type-d">' + esc(d[1]) + '</span></label>';
     }).join('') + '</div><p class="rx-hint rx-youget">' + esc(T('youGet', { list: pick('types.' + S.type)[2] })) + '</p>';
   }
   function bizBlock() {
@@ -434,39 +470,44 @@
         : '<button type="button" class="rx-link" data-rx="url-open">' + esc(T('sitesAdd')) + '</button>';
     return '<div class="rx-sites"><span class="rx-lbl">' + esc(T('sitesLabel')) + '</span>' + (chips ? '<div class="rx-chips">' + chips + '</div>' : '') + add + (S.urlErr ? '<p class="rx-err" role="alert">' + esc(S.urlErr) + '</p>' : '') + '</div>';
   }
-  function libraryBlock() {
-    var list = S.reports;
-    var html = '<section class="rx-lib" aria-labelledby="rxLibH"><h2 class="rx-h2" id="rxLibH">' + esc(T('libTitle')) + '</h2>';
-    if (list === null) return html + '<p class="rx-muted">' + esc(T('loading')) + '</p></section>';
+  // Recent research on Research Home: the newest few; the whole library,
+  // search and what was learned live in Insights (js/insights.js).
+  function recentBlock() {
+    var list = (S.reports || []).slice(0, 4);
+    var html = '<section class="rx-card rx-recent" aria-labelledby="rxRecentH"><h2 class="rx-h2" id="rxRecentH">' + esc(T('recentTitle')) + '</h2>';
+    if (S.reports === null) return html + '<p class="rx-muted">' + esc(T('loading')) + '</p></section>';
     if (S.listErr && !list.length) return html + '<p class="rx-muted">' + esc(T('libErr')) + ' <button type="button" class="rx-link" data-rx="lib-retry">' + esc(T('retry')) + '</button></p></section>';
-    if (!list.length) return html + '<p class="rx-muted">' + esc(T('libEmpty')) + '</p></section>';
-    var lastId = lsGet('last', null), last = list.filter(function (r) { return r.id === lastId && r.status === 'ready'; })[0];
-    if (last) html += '<button type="button" class="rx-continue" data-rx="open" data-id="' + esc(last.id) + '">' + esc(T('cont', { t: last.title })) + ' →</button>';
-    html += '<ul class="rx-lib-list">' + list.map(function (r) {
-      var tl = r.type && pick('types.' + r.type) ? pick('types.' + r.type)[0] : null;
+    if (!list.length) return html + '<p class="rx-muted">' + esc(T('recentEmpty')) + '</p></section>';
+    html += '<ul class="rx-recent-list">' + list.map(function (r) {
+      var tl = r.type && pick('types.' + r.type) ? pick('types.' + r.type)[0] : '';
       var st = r.status === 'running' ? '<span class="rx-st is-run">' + esc(T('stRunning')) + '</span>' : r.status === 'failed' ? '<span class="rx-st is-fail">' + esc(T('stFailed')) + '</span>' : '';
-      var meta = [tl, rel(r.createdAt), r.status === 'ready' && r.sourceCount ? T('sourcesShort', { n: r.sourceCount }) : null].filter(Boolean).join(' · ');
-      if (S.renaming === r.id) return '<li class="rx-lib-item is-edit"><input type="text" id="rxRename" class="rx-input" maxlength="120" value="' + esc(r.title) + '" aria-label="' + esc(T('renamePh')) + '"><div class="rx-row"><button type="button" class="rx-btn rx-btn-primary" data-rx="rename-save" data-id="' + esc(r.id) + '">' + esc(T('save')) + '</button><button type="button" class="rx-btn rx-btn-ghost" data-rx="rename-cancel">' + esc(T('cancel')) + '</button></div></li>';
-      return '<li class="rx-lib-item"><button type="button" class="rx-lib-main" data-rx="' + (r.status === 'running' ? 'progress' : r.status === 'ready' ? 'open' : 'noop') + '" data-id="' + esc(r.id) + '"' + (r.status === 'failed' ? ' disabled' : '') + '><span class="rx-lib-t">' + esc(r.title) + '</span><span class="rx-lib-m">' + esc(meta) + (st ? ' ' : '') + '</span>' + st + (r.status === 'failed' && r.error ? '<span class="rx-lib-e">' + esc(r.error) + '</span>' : '') + '</button>' +
-        (r.status === 'running' ? '' : '<span class="rx-lib-acts">' + (r.status === 'failed' ? '' : '<button type="button" class="rx-link" data-rx="rename" data-id="' + esc(r.id) + '">' + esc(T('rename')) + '</button>') + '<button type="button" class="rx-link rx-danger" data-rx="delete" data-id="' + esc(r.id) + '">' + esc(T('del')) + '</button></span>') + '</li>';
-    }).join('') + '</ul></section>';
+      return '<li><button type="button" class="rx-recent-i" data-rx="' + (r.status === 'running' ? 'progress' : r.status === 'ready' ? 'open' : 'noop') + '" data-id="' + esc(r.id) + '"' + (r.status === 'failed' ? ' disabled' : '') + '>' +
+        '<span class="rx-recent-ic" aria-hidden="true">' + dirIcon(r.type || 'market') + '</span><span class="rx-recent-b"><span class="rx-lib-t">' + esc(r.title) + '</span><span class="rx-lib-m">' + esc([tl, rel(r.createdAt)].filter(Boolean).join(' · ')) + '</span></span>' + st + '</button></li>';
+    }).join('') + '</ul><button type="button" class="rx-link rx-recent-all" data-rx="insights">' + esc(T('allInsights')) + ' →</button></section>';
     return html;
+  }
+  // The evidence labels, explained once beside the form.
+  function howBlock() {
+    return '<section class="rx-card rx-how" aria-labelledby="rxHowH"><h2 class="rx-h2" id="rxHowH">' + esc(T('howTitle')) + '</h2><p class="rx-hint">' + esc(T('howIntro')) + '</p><dl class="rx-legend">' +
+      ['source_checked', 'source_cited', 'analysis', 'idea'].map(function (k) { return '<div><dt><span class="rx-ev rx-ev-' + k + '">' + esc(T('ev.' + k)) + '</span></dt><dd>' + esc(T('evTip.' + k)) + '</dd></div>'; }).join('') + '</dl></section>';
   }
   function homeView() {
     var running = (S.reports || []).filter(function (r) { return r.status === 'running'; })[0];
     var n = S.question.length;
+    var st = function (n2, label, forId) { return '<div class="rx-stepl"><span class="rx-stepn" aria-hidden="true">' + n2 + '</span>' + (forId ? '<label class="rx-lbl" for="' + forId + '">' + esc(label) + '</label>' : '<span class="rx-lbl">' + esc(label) + '</span>') + '</div>'; };
     return '<header class="rx-head"><h1 class="rx-title">' + esc(T('title')) + '</h1><p class="rx-sub">' + esc(T('subtitle')) + '</p></header>' +
       (running ? '<div class="rx-banner" role="status"><span class="rx-pulse" aria-hidden="true"></span><span>' + esc(T('runningBanner', { t: running.title })) + '</span><button type="button" class="rx-btn rx-btn-ghost" data-rx="progress" data-id="' + esc(running.id) + '">' + esc(T('viewProgress')) + '</button></div>' : '') +
-      '<div class="rx-home"><form class="rx-card rx-form" data-rx-form="1" novalidate>' +
-        '<label class="rx-lbl" for="researchQueryInput">' + esc(T('qLabel')) + '</label>' +
+      '<div class="rx-home rx-ws"><form class="rx-card rx-form rx-composer" data-rx-form="1" novalidate>' +
+        '<fieldset class="rx-fs">' + '<legend class="rx-sr">' + esc(T('typeLabel')) + '</legend>' + st(1, T('stepDir')) + typeCards() + '</fieldset>' +
+        '<div class="rx-ask">' + st(2, T('stepAsk'), 'researchQueryInput') +
         '<textarea id="researchQueryInput" class="rx-input rx-q" rows="3" maxlength="' + Q_MAX + '" placeholder="' + esc(T('qPh')) + '" aria-describedby="rxQCount' + (S.formErr ? ' rxFormErr' : '') + '">' + esc(S.question) + '</textarea>' +
-        '<div class="rx-row rx-row-between"><span class="rx-hint" id="rxQCount" aria-live="polite">' + esc(T('qCount', { n: n, max: Q_MAX })) + '</span></div>' +
-        '<fieldset class="rx-fs"><legend class="rx-lbl">' + esc(T('typeLabel')) + '</legend>' + typeCards() + '</fieldset>' +
-        '<div class="rx-ctx"><div class="rx-ctx-biz"><span class="rx-lbl">' + esc(T('ctxLabel')) + '</span>' + bizBlock() + '</div>' + sitesBlock() + '</div>' +
+        '<div class="rx-starters"><span class="rx-lbl-sm">' + esc(T('startersLbl')) + '</span>' + starters(S.type).map(function (q, i) { return '<button type="button" class="rx-starter" data-rx="starter" data-i="' + i + '">' + esc(q) + '</button>'; }).join('') + '</div>' +
+        '<div class="rx-row rx-row-between"><span class="rx-hint" id="rxQCount" aria-live="polite">' + esc(T('qCount', { n: n, max: Q_MAX })) + '</span></div></div>' +
+        '<div class="rx-ctx">' + st(3, T('stepCtx')) + '<div class="rx-ctx-biz">' + bizBlock() + '</div>' + sitesBlock() + '</div>' +
         (S.formErr ? '<p class="rx-err" id="rxFormErr" role="alert">' + S.formErr + '</p>' : '') +
         '<div class="rx-start"><div class="rx-cost"><b>' + esc(T('cost', { n: cost() })) + '</b><span>' + esc(T('costWhat')) + '</span></div>' +
           '<button type="submit" class="rx-btn rx-btn-primary rx-btn-lg" id="researchSubmitBtn"' + (S.starting || running ? ' disabled' : '') + '>' + esc(S.starting ? T('starting') : T('start')) + '</button></div>' +
-      '</form>' + libraryBlock() + '</div>';
+      '</form><aside class="rx-aside">' + recentBlock() + howBlock() + '</aside></div>';
   }
 
   function progressView() {
@@ -608,6 +649,25 @@
       out.push(['angles', T('sec.angles'), angleCards(r.angles), T('ideasNote')]);
       out.push(['tests', T('sec.tests'), testCards(r.tests), T('ideasNote')]);
       out.push(['risks', T('sec.risks'), riskList(r.risks)]);
+    } else if (t === 'product') {
+      var po = r.marketOverview;
+      out.push(['productOverview', T('sec2.productOverview'), po ? ((po.name ? '<h3 class="rx-h3">' + esc(po.name) + '</h3>' : '') + (po.description ? '<p>' + esc(po.description) + '</p>' : '') + listItems(po.characteristics, function (c) { return '<p>' + esc(c.text) + '</p>'; }, null)) : '']);
+      out.push(['buyers', T('sec2.buyers'), signalsBy(r.signals, ['need', 'painPoint', 'motivation', 'objection', 'consideration'])]);
+      out.push(['players', T('sec2.players'), compBrief()]);
+      out.push(['opportunities', T('sec.opportunities'), opps(), T('ideasNote')]);
+      out.push(['risks', T('sec.risks'), riskList(r.risks)]);
+    } else if (t === 'advertising') {
+      out.push(['adObserved', T('sec2.adObserved'), listItems(r.adPatterns, function (p) { return '<p><b>' + esc(p.pattern) + '</b></p>' + (p.description ? '<p class="rx-muted">' + esc(p.description) + '</p>' : ''); }, 'Ad pattern', function (p) { return p.pattern + (p.description ? ' — ' + p.description : ''); }), T('noPerf')]);
+      out.push(['advertisers', T('sec2.advertisers'), r.competitors && r.competitors.length ? '<div class="rx-grid">' + r.competitors.map(function (c) { return competitorCard(c, true); }).join('') + '</div>' : '']);
+      out.push(['angles', T('sec.angles'), angleCards(r.angles), T('ideasNote')]);
+      out.push(['tests', T('sec.tests'), testCards(r.tests), T('ideasNote')]);
+      out.push(['risks', T('sec.risks'), riskList(r.risks)]);
+    } else if (t === 'trends') {
+      out.push(['trendList', T('sec2.trendList'), listItems(r.trends, function (x) { return '<p><b>' + esc(x.trend) + '</b></p>' + (x.why ? '<p class="rx-muted">' + esc(x.why) + '</p>' : ''); }, 'Trend', function (x) { return x.trend + (x.why ? ' — ' + x.why : ''); })]);
+      out.push(['demand', T('sec.demand'), listItems(r.signals, function (s2) { return '<p>' + esc(s2.text) + '</p>'; }, 'Customer signal', function (s2) { return s2.text; })]);
+      out.push(['opportunities', T('sec.opportunities'), opps(), T('ideasNote')]);
+      out.push(['impl', T('sec2.impl'), listItems(r.implications, function (x) { return '<p>' + esc(x.text) + '</p>'; }, 'Implication', function (x) { return x.text; })]);
+      out.push(['risks', T('sec.risks'), riskList(r.risks)]);
     } else { // older reports (version 1)
       var m1 = r.marketOverview;
       out.push(['overview', T('sec.overview'), m1 ? '<h3 class="rx-h3">' + esc(m1.name || '') + '</h3>' + listItems(m1.characteristics, function (c) { return '<p>' + esc(c.text) + '</p>'; }, null) : '']);
@@ -621,6 +681,10 @@
       out.push(['concepts', T('sec.concepts'), r.concepts && r.concepts.length ? listItems(r.concepts, function (k) { return '<p><b>' + esc(k.concept) + '</b>' + (k.format ? ' · ' + esc(k.format) : '') + '</p>' + (k.hook ? '<p class="rx-muted">' + esc(T('f.hook')) + ': ' + esc(k.hook) + '</p>' : ''); }, 'Creative concept', function (k) { return k.concept + (k.hook ? ' — ' + k.hook : ''); }) : '', T('ideasNote')]);
       out.push(['risks', T('sec.risks'), riskList(r.risks)]);
       out.push(['nextSteps', T('sec.nextSteps'), r.nextSteps && r.nextSteps.length ? '<ul class="rx-bul">' + r.nextSteps.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '']);
+    }
+    // Version 2: OrivenAI's recommended next actions (analysis, not facts).
+    if (r.reportVersion === 2 && r.nextSteps && r.nextSteps.length) {
+      out.push(['nextActions', T('sec2.nextActions'), listItems(r.nextSteps, function (x) { return '<p><b>' + esc(x.action) + '</b></p>' + (x.why ? '<p class="rx-muted">' + esc(x.why) + '</p>' : ''); }, 'Next action', function (x) { return x.action; }), T('nextNote')]);
     }
     return out.filter(function (s) { return s[2]; });
   }
@@ -652,7 +716,7 @@
     var rt = r.retrieval || {}, read = (r.sources || []).filter(function (s) { return s.fetched; }).length;
     var sections = [['summary', T('sec.summary'), summarySection(r)]].concat(sectionsFor(r).map(function (s) { return [s[0], s[1], sec(s[0], s[1], s[2], s[3])]; })).concat([['sources', T('sec.sources'), sourcesSection(r)]]).filter(function (s) { return s[2]; });
     var meta = [T('created', { d: dateLong(r.savedAt || r.completedAt || r.createdAt) }), (r.sources || []).length ? T('readN', { n: read, m: (r.sources || []).length }) : null, rt.searches ? T('searchesN', { n: rt.searches }) : null, r.confidence ? T('confidence.' + r.confidence) : null].filter(Boolean).join(' · ');
-    var bar = '<div class="rx-topbar"><button type="button" class="rx-back" data-rx="home">← ' + esc(T('back')) + '</button><div class="rx-row"><button type="button" class="rx-link" data-rx="rename-report">' + esc(T('rename')) + '</button><button type="button" class="rx-link rx-danger" data-rx="delete" data-id="' + esc(r.reportId) + '">' + esc(T('del')) + '</button><button type="button" class="rx-btn rx-btn-ghost" data-rx="home-new">' + esc(T('newResearch')) + '</button></div></div>';
+    var bar = '<div class="rx-topbar"><button type="button" class="rx-back" data-rx="home">← ' + esc(S.from === 'insights' ? 'Insights' : T('back')) + '</button><div class="rx-row"><button type="button" class="rx-link" data-rx="rename-report">' + esc(T('rename')) + '</button><button type="button" class="rx-link rx-danger" data-rx="delete" data-id="' + esc(r.reportId) + '">' + esc(T('del')) + '</button><button type="button" class="rx-btn rx-btn-ghost" data-rx="home-new">' + esc(T('newResearch')) + '</button></div></div>';
     var titleBlock = S.renaming === 'report' ? '<div class="rx-row rx-rename"><input type="text" id="rxRename" class="rx-input" maxlength="120" value="' + esc(r.title || '') + '" aria-label="' + esc(T('renamePh')) + '"><button type="button" class="rx-btn rx-btn-primary" data-rx="rename-save" data-id="' + esc(r.reportId) + '">' + esc(T('save')) + '</button><button type="button" class="rx-btn rx-btn-ghost" data-rx="rename-cancel">' + esc(T('cancel')) + '</button></div>'
       : '<h1 class="rx-title">' + esc(r.title || r.question) + '</h1>';
     var head = '<header class="rx-rhead">' + (tl ? '<p class="rx-eyebrow">' + esc(tl) + '</p>' : '') + titleBlock + (r.title && r.question && r.title !== r.question ? '<p class="rx-q-recap">“' + esc(r.question) + '”</p>' : '') + '<p class="rx-meta">' + esc(meta) + '</p>' +
@@ -689,7 +753,8 @@
       }
       var d = r.data || {};
       if (r.status === 409 && d.code === 'RESEARCH_RUNNING' && d.reportId) { toast(T('eRunning'), 'warn'); openProgress(d.reportId); return; }
-      if (r.status === 402) { S.formErr = esc(T('eCredits', { n: cost() })) + ' <button type="button" class="rx-link" data-rx="plans">' + esc(T('ePlans')) + '</button>'; if (window.orvActionEvent) window.orvActionEvent('blocked', 'research', { status: 402, code: d.code, balance: d.balance }); }
+      if ((r.status === 402 || r.status === 403) && window.ORV_LOCAL_PREVIEW) { S.formErr = esc(T('ePreview')); }
+      else if (r.status === 402) { S.formErr = esc(T('eCredits', { n: cost() })) + ' <button type="button" class="rx-link" data-rx="plans">' + esc(T('ePlans')) + '</button>'; if (window.orvActionEvent) window.orvActionEvent('blocked', 'research', { status: 402, code: d.code, balance: d.balance }); }
       else if (r.status === 403) { S.formErr = esc(d.error || T('eGeneric')); if (window.orvActionEvent) window.orvActionEvent('blocked', 'research', { status: 403, code: d.code }); }
       else if (r.status === 0) S.formErr = esc(T('eNetwork'));
       else S.formErr = esc(d.error || T('eGeneric')) + (d.requestId ? ' <span class="rx-ref">' + esc(T('ref', { id: String(d.requestId).slice(0, 8) })) + '</span>' : '');
@@ -785,8 +850,9 @@
   function goHome(clear) {
     clearTimeout(pollTimer);
     S.view = 'home'; S.renaming = null;
-    if (clear) { S.question = ''; S.urls = []; S.formErr = null; S.type = 'market'; }
+    if (clear) { S.question = ''; S.urls = []; S.formErr = null; S.type = 'market'; S.mode = 'home'; } // new research: the form (also from Insights)
     render(); loadLibrary(); window.scrollTo(0, 0);
+    if (typeof window.orvAppNavSync === 'function') window.orvAppNavSync();
     if (clear) { var i = $('researchQueryInput'); if (i) i.focus(); }
   }
   function addUrl() {
@@ -807,7 +873,9 @@
     if (a === 'type') return; // change handler
     if (a === 'open') return openReport(id);
     if (a === 'progress') return openProgress(id);
-    if (a === 'home') return goHome(false);
+    if (a === 'home') { if (S.from === 'insights' && S.view === 'report' && window.orvInsights) { S.from = null; return window.orvInsights.open(); } return goHome(false); }
+    if (a === 'insights') { if (window.orvInsights) window.orvInsights.open(); return; }
+    if (a === 'starter') { var q2 = starters(S.type)[+t.getAttribute('data-i')]; if (q2) { S.question = q2.slice(0, Q_MAX); S.formErr = null; render(); var qi = $('researchQueryInput'); if (qi) { qi.focus(); qi.setSelectionRange(qi.value.length, qi.value.length); } } return; }
     if (a === 'home-new') return goHome(true);
     if (a === 'lib-retry') return loadLibrary();
     if (a === 'retry-job') { var req = S.job && S.job.request; if (req) { S.question = req.question; S.type = req.type; S.urls = req.urls || []; } goHome(false); return; }
@@ -857,14 +925,29 @@
   function enter() {
     if (!$('rsRoot')) return;
     bind();
+    if (S.keepReport) { S.keepReport = false; return; } // a report just opened from Insights
     clearTimeout(pollTimer);
-    S.view = 'home'; S.renaming = null;
+    S.view = 'home'; S.renaming = null; S.mode = 'home'; S.from = null;
     render(); loadLibrary(); loadBiz();
   }
+  // Opens a saved report from Insights (its back button returns there).
+  function openFrom(id, from) {
+    if (!$('rsRoot')) return;
+    bind();
+    clearTimeout(pollTimer);
+    S.from = from || null; S.mode = 'home';
+    S.keepReport = true; // _orvNav schedules enter(); it must not return to Research Home
+    if (typeof window._orvNav === 'function') window._orvNav('research', 'page-research');
+    openReport(id);
+    if (typeof window.orvAppNavSync === 'function') window.orvAppNavSync();
+  }
+  // The library is Insights now (js/insights.js); kept for older callers.
+  function library() { if (window.orvInsights) window.orvInsights.open(); }
   function reset() { clearTimeout(pollTimer); S.view = 'home'; S.report = null; S.job = null; S.reports = null; S.biz = undefined; S.picks = {}; S.question = ''; S.urls = []; window._researchLastResult = null; render(); }
 
   window.orvResearch = {
-    enter: enter, reset: reset, open: openReport,
+    enter: enter, reset: reset, open: openReport, openFrom: openFrom, library: library, types: function () { return TYPES.slice(); }, typeLabel: function (t) { var d = pick('types.' + t); return d ? d[0] : null; }, dirIcon: dirIcon,
+    mode: function () { return S.from === 'insights' && S.view === 'report' ? 'insights' : (S.mode || 'home'); },
     getDraft: function () { return { question: S.question, type: S.type, urls: S.urls.slice() }; },
     setDraft: function (d) { if (!d) return; if (typeof d.question === 'string') S.question = d.question.slice(0, Q_MAX); if (TYPES.indexOf(d.type) !== -1) S.type = d.type; if (Array.isArray(d.urls)) S.urls = d.urls.slice(0, URL_MAX); render(); },
     _state: function () { return S; }, _T: T, _STR: STR, _adaptLegacy: adaptLegacy,

@@ -590,6 +590,26 @@ body {
 .pl-b { border-radius: 16px; background: var(--ow-card); padding: 16px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
 body:not(.dark-mode) .pl-b { box-shadow: 0 0 0 1px var(--ow-line); }
 .pl-plans { grid-column: 1 / -1; }
+/* The marketing strategy from onboarding (shown only once it's unlocked). */
+.pl-strategy { grid-column: 1 / -1; }
+.pl-strategy[hidden] { display: none; }
+.pl-st-sum { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ow-ink); max-width: 72ch; }
+.pl-st-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 14px; }
+.pl-st-top > div { border-radius: 12px; background: var(--ow-raise-2); padding: 12px 14px; min-width: 0; }
+.pl-st-top h4 { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ow-sub); }
+.pl-st-pri, .pl-st-road { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13px; line-height: 1.45; }
+.pl-st-road > li > b { display: block; font-size: 13px; }
+.pl-st-road > li > span { display: block; color: var(--ow-sub); margin-bottom: 2px; }
+.pl-st-road ul { margin: 2px 0 0; padding-left: 16px; display: grid; gap: 2px; }
+.pl-st-more { display: grid; gap: 4px; }
+.pl-st-d { border-top: 1px solid var(--ow-line); }
+.pl-st-d > summary { cursor: pointer; padding: 10px 0; font-size: 13.5px; font-weight: 600; color: var(--ow-ink); }
+.pl-st-d > summary:focus-visible { outline: 2px solid var(--ow-ink); outline-offset: 2px; border-radius: 4px; }
+.pl-st-body { padding: 0 0 12px; font-size: 13px; line-height: 1.55; color: var(--ow-ink); max-width: 80ch; }
+.pl-st-body p { margin: 0 0 6px; }
+.pl-st-body ul { margin: 0 0 8px; padding-left: 18px; display: grid; gap: 4px; }
+.pl-st-note { margin: 0; font-size: 12px; color: var(--ow-sub); }
+@media (max-width: 760px) { .pl-st-top { grid-template-columns: minmax(0, 1fr); } }
 .pl-budget { grid-column: 1 / 8; grid-row: span 2; }
 .pl-briefs { grid-column: 8 / 13; }
 .pl-res { grid-column: 8 / 13; }

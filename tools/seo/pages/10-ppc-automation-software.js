@@ -1,9 +1,10 @@
 // Commercial page — intent: "PPC automation software" (rule-based automation
 // for paid search/social, with human control). Facts: Automations engine
 // (server services/automations/*: metrics.js, budget.js, platforms.js,
-// limits.js), Starter+, 50 credits once per new automation; checks and
+// limits.js), every paid plan, credits once per new automation; checks and
 // changes are free. Platform support is implemented for all four networks
 // (mock-tested; see the Automations report for live-verification status).
+const F = require('../facts');
 module.exports = {
   path: '/ppc-automation-software/',
   kind: 'commercial',
@@ -17,7 +18,7 @@ module.exports = {
   h1: 'PPC automation software that keeps you in control',
   lede: 'OrivenAI Automations schedule your campaigns and watch their performance, then act on the rules you write: pause what’s wasting budget, resume what recovers, adjust budget within limits, or simply tell you and wait for your approval.',
   secondary: { href: '/autopilot', label: 'See how Automations work' },
-  heroNote: 'Automations are included from the Starter plan (€9.95/month). The Free plan covers creating, launching and tracking campaigns.',
+  heroNote: 'Automations are included in every plan, from ' + F.fromPrice + ' for 14 days.',
   body: `
 <section class="sp-section" aria-labelledby="why-h"><div class="sp-wrap">
   <h2 id="why-h">Why teams automate PPC, and where it goes wrong</h2>
@@ -31,7 +32,7 @@ module.exports = {
     <div class="sp-card"><span class="sp-tag">Conditions</span><h3>Rules on real campaign metrics</h3><p>Build conditions on spend, impressions, clicks, CTR, CPC, conversions, CPA, ROAS or campaign status, for example “CPA above €40 over the last 7 days”. Missing data is never treated as zero, and rules wait for enough data before acting.</p></div>
     <div class="sp-card"><span class="sp-tag">Actions</span><h3>Pause, resume and adjust budgets</h3><p>When a rule matches, an automation can pause or resume a campaign, or increase or decrease its daily budget. Schedules switch campaigns on, pause, resume or stop them at the times you choose.</p></div>
     <div class="sp-card"><span class="sp-tag">Approval</span><h3>Notify or ask first</h3><p>Prefer to decide yourself? A rule can notify you or request approval instead of acting, so automation never outruns your judgment.</p></div>
-    <div class="sp-card"><span class="sp-tag">Limits</span><h3>Built-in guardrails</h3><p>Budget rules need a maximum budget and are limited per change, per day and over several days. Creating an automation costs 50 credits once; its checks and changes don’t use credits.</p></div>
+    <div class="sp-card"><span class="sp-tag">Limits</span><h3>Built-in guardrails</h3><p>Budget rules need a maximum budget and are limited per change, per day and over several days. Creating an automation costs ${F.costs.automationCreate} credits once; its checks and changes don’t use credits.</p></div>
     <div class="sp-card"><span class="sp-tag">Visibility</span><h3>An activity log</h3><p>Automations show what each rule or schedule did and when, with the values before and after, so you can see why a campaign changed instead of guessing.</p></div>
     <div class="sp-card"><span class="sp-tag">Beyond rules</span><h3>Automated campaign building</h3><p>Before anything runs, Create turns a short brief into a platform-ready campaign: structure, ad copy, targeting and image or video creative.</p></div>
   </div>
@@ -68,10 +69,10 @@ module.exports = {
     ['What is PPC automation software?', '<p>PPC automation software applies changes to pay-per-click campaigns automatically, based on rules or models, so that routine decisions such as pausing poor performers or reallocating budget happen without someone checking every dashboard. Good automation keeps a human in charge of the limits.</p>'],
     ['Which platforms do OrivenAI Automations support?', '<p>Automations are built for campaigns in connected Google Ads, Meta Ads, TikTok Ads and Pinterest Ads accounts. What can change depends on how each campaign is set up: shared Google Ads budgets and lifetime budgets are never changed, and TikTok doesn’t report return on ad spend, so ROAS rules aren’t offered there.</p>'],
     ['Can an automation spend more than I want?', '<p>Only through a budget rule you wrote yourself, never above the maximum budget you set, and only automatically after you confirm it may act on its own. Rules can also notify you or request approval instead of changing anything.</p>'],
-    ['Are Automations included in the Free plan?', '<p>No. Automations are included from the Starter plan (€9.95/month, 1,000 credits a month). Creating an automation costs 50 credits once; its checks and changes don’t use credits. The Free plan covers creating, launching and tracking campaigns.</p>'],
+    ['Are Automations included in every plan?', '<p>Yes. OrivenAI has no free plan, and every paid plan includes Automations. Creating an automation costs ' + F.costs.automationCreate + ' credits once; its checks and changes don’t use credits.</p>'],
     ['Does OrivenAI replace Google’s or Meta’s own optimization?', '<p>No. Bidding and delivery still run on each platform’s systems, such as smart bidding on Google Ads. OrivenAI automates the decisions around them: which campaigns run, how budgets move, and when you get involved.</p>'],
   ],
   related: ['/learn/what-is-ppc-automation/', '/learn/how-to-automate-google-ads-safely/', '/cross-platform-ad-management/', '/autopilot', '/pricing', '/learn/what-is-an-ai-advertising-platform/'],
   relatedTitle: 'Related',
-  cta: { title: 'Create your first campaign for free', text: 'Build and launch on the Free plan; add Automations when you’re ready to automate.', label: 'Get Started Free' },
+  cta: { title: 'Automate the routine, keep the decisions', text: 'Every plan includes Automations, from ' + F.fromPrice + ' for 14 days.', label: 'Get started' },
 };

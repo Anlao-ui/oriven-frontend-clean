@@ -373,3 +373,23 @@ button.ccx-step-btn:hover { background: var(--ccx-raise); }
   #bizPanelOverview .ccx-perf .ccx-figs .op-fig { padding: 8px 12px; }
   #bizPanelOverview .ccx-perf .ccx-figs .op-fig-v { font-size: 24px; }
 }
+
+/* Desktop and laptop: the Dashboard is exactly one screen tall, so the page
+   itself never scrolls. The two columns share the height; if a column's
+   content is taller than the screen it scrolls inside its own column
+   (nothing is clipped or hidden), and the business context list scrolls
+   inside its card. Tablets and phones keep the normal page scroll — the
+   stacked cards can't fit one screen without hiding information. */
+@media (min-width: 1100px) and (min-height: 560px) {
+  #page-business-brain.biz-canvas-active .orv-page-wrap-biz { height: 100vh; height: 100dvh; min-height: 0; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
+  #page-business-brain.biz-canvas-active #bizPanelOverview,
+  #page-business-brain.biz-canvas-active #bizCanvas,
+  #page-business-brain.biz-canvas-active .cc-root { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  #page-business-brain.biz-canvas-active .ccx-hd { flex: none; }
+  #page-business-brain.biz-canvas-active .ccx-layout { flex: 1 1 auto; min-height: 0; align-items: stretch; grid-template-rows: minmax(0, 1fr); }
+  #page-business-brain.biz-canvas-active .ccx-main,
+  #page-business-brain.biz-canvas-active .ccx-rail { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  #page-business-brain.biz-canvas-active .ccx-rail > .ccx-card { flex: none; }
+  #page-business-brain.biz-canvas-active .ccx-rail > .cc-ctx { flex: 1 1 auto; min-height: 220px; display: flex; flex-direction: column; overflow: hidden; }
+  #page-business-brain.biz-canvas-active .cc-ctx .ccx-mods { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+}

@@ -2,6 +2,7 @@
 // Competitors are described only at the level of their own public
 // positioning; no prices, ratings or feature claims that can't be checked
 // on the vendor's site. OrivenAI's own limits are stated plainly.
+const F = require('../facts');
 module.exports = {
   path: '/learn/adcreative-ai-alternatives/',
   kind: 'article',
@@ -81,10 +82,10 @@ module.exports = {
 </ol>
 <p>Still deciding which kind of tool you need at all? Our overview of <a href="/learn/best-ai-advertising-tools-for-small-business/">AI advertising tools for small businesses</a> covers the wider landscape.</p>`,
   faq: [
-    ['Is there a free alternative to AdCreative.ai?', '<p>Meta Ads Manager and Google Ads include generative features at no extra cost for their own platforms. Several other tools, including OrivenAI, have free plans; check each vendor for current limits.</p>'],
+    ['Is there a free alternative to AdCreative.ai?', '<p>Meta Ads Manager and Google Ads include generative features at no extra cost for their own platforms. Other tools price differently; OrivenAI is paid-only, from ' + F.fromPrice + ' for 14 days, so check each vendor for current terms.</p>'],
     ['What is the difference between an AI creative tool and an AI advertising platform?', '<p>A creative tool produces ad images, videos or copy. An AI advertising platform also helps set up the campaign, publish it to the ad networks and follow results. See <a href="/learn/what-is-an-ai-advertising-platform/">What is an AI advertising platform?</a></p>'],
     ['Can I use AI-generated ad creatives on every ad platform?', '<p>Generally yes, provided the ads follow each platform’s advertising policies. Some platforms label AI-generated content, and sensitive categories have extra rules.</p>'],
   ],
   related: ['/learn/best-ai-advertising-tools-for-small-business/', '/learn/what-is-an-ai-advertising-platform/', '/learn/how-to-test-ad-creatives/'],
-  cta: { title: 'Go from brief to live campaign', text: 'Try OrivenAI’s Create and Launch on the Free plan.', label: 'Get Started Free' },
+  cta: { title: 'Go from brief to live campaign', text: 'Try OrivenAI’s Create and Launch, from ' + F.fromPrice + ' for 14 days.', label: 'Get started' },
 };

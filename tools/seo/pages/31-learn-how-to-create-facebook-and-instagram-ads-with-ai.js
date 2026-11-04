@@ -2,6 +2,7 @@
 // with AI" (informational how-to). OrivenAI steps match the product: goals
 // Sales/Leads/Traffic/Awareness, placements Facebook + Instagram or
 // Instagram only, publish through Meta's API, created paused.
+const F = require('../facts');
 module.exports = {
   path: '/learn/how-to-create-facebook-and-instagram-ads-with-ai/',
   kind: 'article',
@@ -97,10 +98,10 @@ module.exports = {
 </ol>
 <p>See <a href="/product/meta-ads">OrivenAI for Meta Ads</a> for details.</p>`,
   faq: [
-    ['Can AI create Facebook ads for free?', '<p>Meta includes some generative features in Ads Manager at no extra cost. Separate tools vary; OrivenAI’s Free plan includes creating and launching campaigns with a daily credit allowance.</p>'],
+    ['Can AI create Facebook ads for free?', '<p>Meta includes some generative features in Ads Manager at no extra cost. Separate tools vary; OrivenAI is paid-only, from ' + F.fromPrice + ' for 14 days with ' + F.plans[0].credits + '.</p>'],
     ['Do Facebook and Instagram need separate ads?', '<p>No. One Meta campaign can run on both. You do need creative in the right shapes: square or 4:5 for feeds, 9:16 for Stories and Reels.</p>'],
     ['Is it allowed to use AI-generated images in Meta ads?', '<p>Yes, as long as the ad follows Meta’s advertising standards. Meta may label some AI-generated or AI-edited content, and ads about social issues, elections or politics have additional disclosure rules.</p>'],
   ],
   related: ['/learn/meta-pixel-vs-conversions-api/', '/learn/how-to-test-ad-creatives/', '/learn/ai-ads-for-ecommerce/'],
-  cta: { title: 'Build a Facebook and Instagram campaign from one brief', text: 'Create it on the Free plan and publish to your own Meta ad account when you’re ready.', label: 'Get Started Free' },
+  cta: { title: 'Build a Facebook and Instagram campaign from one brief', text: 'Create it in OrivenAI and publish to your own Meta ad account when you’re ready.', label: 'Get started' },
 };

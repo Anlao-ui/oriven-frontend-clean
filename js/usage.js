@@ -91,13 +91,14 @@ async function checkUsageLimit(creditCost){
   var remaining = Math.max(0, status.balance || 0);
   if(remaining >= cost) return { allowed: true, message: "", balance: remaining, required: cost };
 
-  var planName = (ORIVEN_PLANS[status.plan] && ORIVEN_PLANS[status.plan].name) || status.plan;
   var msg;
-  if(remaining === 0){
-    msg = "You've used all " + (status.monthlyAllowance || 0) + " credits on your " + planName + " plan this month. Upgrade to keep creating.";
+  if(status.hasAccess === false){
+    msg = "Creating needs an OrivenAI plan. Every plan includes the full product; nothing renews automatically.";
+  } else if(remaining === 0){
+    msg = "You've used all your credits. Another plan adds its credits right away.";
   } else {
-    msg = "This generation costs " + cost + " credit" + (cost !== 1 ? "s" : "") +
-          ", but you only have " + remaining + " remaining. Upgrade to continue.";
+    msg = "This costs " + cost + " credit" + (cost !== 1 ? "s" : "") +
+          ", and you have " + remaining + ". Another plan adds its credits right away.";
   }
   return { allowed: false, message: msg, balance: remaining, required: cost };
 }
@@ -111,13 +112,6 @@ function consumeUsage(amount){
   _refreshUsageUI();
 }
 
-// ── True when the user is out of credits ───────────────────────
-async function isLastFreeCreditUsed(){
-  var status = await _getCreditStatus();
-  if(!status || status.plan === "professional") return false;
-  return (status.balance || 0) <= 0;
-}
-
 // ── Combined gate — check then consume ───────────────────────
 // creditCost: credits required for this generation (default 1)
 // Returns true if generation is allowed (credits deducted), false if blocked.
@@ -129,17 +123,10 @@ async function gateUsage(creditCost){
   var cost = creditCost || 1;
   var plan = await _getCachedPlan();
 
-  if(!ORIVEN_PLANS[plan]){
-    var _fCampUsed = false;
-    try { _fCampUsed = localStorage.getItem("oriven_free_campaign_used") === "1"; } catch(_){}
-    if(_fCampUsed){
-      if(typeof openPaywall === "function") openPaywall();
-      return false;
-    }
-    // Allow the one free generation — mark campaign as used and refresh UI
-    try { localStorage.setItem("oriven_free_campaign_used", "1"); } catch(_){}
-    setTimeout(_refreshUsageUI, 0);
-    return true;
+  // No plan (never bought, or the period ended): nothing to spend; show the plans.
+  if(plan === "free" || !ORIVEN_PLANS[plan]){
+    if(typeof openPaywall === "function") openPaywall();
+    return false;
   }
 
   var result = await checkUsageLimit(cost);
@@ -149,18 +136,13 @@ async function gateUsage(creditCost){
     return false;
   }
   consumeUsage(cost);
-
-  isLastFreeCreditUsed().then(function(isLast){
-    if(isLast && typeof showSoftPaywall === "function") setTimeout(showSoftPaywall, 450);
-  });
-
   return true;
 }
 
 // ── In-feed limit message ─────────────────────────────────────
 function _showLimitMessage(msg){
   var feed = document.getElementById("cwsFeed");
-  if(!feed){ if(typeof toast === "function") toast("Credit limit reached — upgrade to continue", "warn"); return; }
+  if(!feed){ if(typeof toast === "function") toast(msg || "Not enough credits", "warn"); return; }
 
   var prev = feed.querySelector(".usage-limit-msg");
   if(prev) prev.remove();
@@ -173,10 +155,10 @@ function _showLimitMessage(msg){
         '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="8.5"/><path d="M10 6v5" stroke-linecap="round"/><circle cx="10" cy="14" r=".6" fill="currentColor"/></svg>' +
       '</div>' +
       '<div class="usage-limit-text">' +
-        '<div class="usage-limit-title">Monthly credit limit reached</div>' +
+        '<div class="usage-limit-title">Not enough credits</div>' +
         '<div class="usage-limit-sub">' + msg + '</div>' +
       '</div>' +
-      '<button class="btn btn-p btn-sm usage-limit-cta" onclick="openPaywall()">Upgrade</button>' +
+      '<button class="btn btn-p btn-sm usage-limit-cta" onclick="openPaywall()">See plans</button>' +
     '</div>';
   feed.appendChild(el);
   feed.scrollTop = feed.scrollHeight;
@@ -191,24 +173,22 @@ async function _refreshUsageUI(){
   var plan = await _getCachedPlan();
   var cfg  = ORIVEN_PLANS[plan];
 
-  if(!cfg){
-    var _freeUsed = false;
-    try { _freeUsed = localStorage.getItem("oriven_free_campaign_used") === "1"; } catch(_){}
-    var _freeCred = _freeUsed ? 0 : 1;
-    badge.textContent = _freeCred + (_freeCred === 1 ? " campaign left" : " campaigns left");
-    badge.className   = "usage-badge " + (_freeCred === 0 ? "usage-badge-empty" : "usage-badge-ok");
-    if(planLabel){ planLabel.textContent = "Free"; planLabel.className = "sb-plan-label sb-plan-free"; }
+  if(!cfg || plan === "free"){
+    badge.textContent = "No plan";
+    badge.className   = "usage-badge usage-badge-empty";
+    if(typeof _updateSidebarPlan === "function") _updateSidebarPlan("free");
     return;
   }
 
   var status = await _getCreditStatus();
-  var total  = (status && status.monthlyAllowance) || cfg.credits || cfg.limit;
+  var total  = (status && status.monthlyAllowance) || cfg.credits || 1;
   var rem    = status ? Math.max(0, status.balance || 0) : total;
   var cls    = rem === 0 ? "usage-badge-empty" : rem <= Math.ceil(total * 0.1) ? "usage-badge-low" : "usage-badge-ok";
 
   badge.textContent = rem + " credits left";
   badge.className   = "usage-badge " + cls;
-  if(planLabel){ planLabel.textContent = cfg.name; planLabel.className = "sb-plan-label sb-plan-" + plan; }
+  if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(plan);
+  else if(planLabel){ planLabel.textContent = cfg.name; planLabel.className = "sb-plan-label sb-plan-" + plan; }
 }
 
 // ── Team nav — Professional only ──────────────────────────────
@@ -222,13 +202,13 @@ async function updateTeamNavVisibility(){
   if(teamNav) teamNav.style.display = (typeof ORIVEN_PLANS !== "undefined" && ORIVEN_PLANS[plan]) ? "" : "none";
 }
 
-// ── Priority Support nav/panel visibility — Professional only ─
+// ── Priority Support nav/panel visibility — every paid plan ─
 async function updatePrioritySupportVisibility(){
   var plan = await _getCachedPlan();
   var el   = document.getElementById("prioritySupportPanel");
-  if(el) el.style.display = plan === "professional" ? "" : "none";
+  if(el) el.style.display = (typeof orvPlanHas === "function" && orvPlanHas(plan, "prioritySupport")) ? "" : "none";
   // Settings → Notifications: the Weekly AI Performance Report toggle
-  // (plans.js entitlement weeklyReport, Professional).
+  // (plans.js entitlement weeklyReport, every paid plan).
   var wr = document.getElementById("smdWeeklyReportRow");
   if(wr) wr.style.display = (typeof orvPlanHas === "function" && orvPlanHas(plan, "weeklyReport")) ? "" : "none";
 }

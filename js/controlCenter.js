@@ -54,7 +54,7 @@
       unavailable: 'Unavailable', notConnected: 'Not connected', campsNone: 'No campaigns yet.', createOne: 'Create a campaign', more: '+{n} more',
       stage: { draft: 'Draft', unconfirmed: 'Not confirmed', ready: 'Ready', warning: 'Check warnings', blocked: 'Blocked', failed: 'Failed', publishing: 'Publishing', live: 'Live', paused: 'Paused', deployed: 'Published' },
       // Automations
-      autoTitle: 'Automations', viewAutomations: 'View automations', autoFree: 'Not included on Free', autoFreeSub: 'Automations are available from Starter.', autoErr: 'Automations couldn’t be loaded right now.',
+      autoTitle: 'Automations', viewAutomations: 'View automations', autoFree: 'Needs a plan', autoFreeSub: 'Automations are included in every plan.', autoErr: 'Automations couldn’t be loaded right now.',
       autoPaused: 'All automations paused', autoActive1: '1 automation active', autoActiveN: '{n} automations active', autoNone: 'No automations yet',
       autoManaging: 'Managing campaigns on {list}', autoConnected: '{list} connected', autoNoAccounts: 'Automations work with your connected ad accounts.',
       autoNext: 'Next run {when}', autoWaiting1: '1 waiting for approval', autoWaitingN: '{n} waiting for approval', autoLast: 'Last: {what} · {when}',

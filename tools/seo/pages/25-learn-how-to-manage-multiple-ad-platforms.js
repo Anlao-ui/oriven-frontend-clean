@@ -61,5 +61,5 @@ module.exports = {
     ['What is a good UTM naming convention?', '<p>One that’s consistent and lower-case, for example utm_source=google or meta, utm_medium=cpc or paid_social, and utm_campaign matching your campaign naming pattern.</p>'],
   ],
   related: ['/cross-platform-ad-management/', '/learn/google-ads-vs-meta-ads/', '/learn/what-is-an-ai-advertising-platform/'],
-  cta: { title: 'Put every platform in one workspace', text: 'Create, launch and track Google, Meta, TikTok and Pinterest campaigns on the Free plan.', label: 'Get Started Free' },
+  cta: { title: 'Put every platform in one workspace', text: 'Create, launch and track Google, Meta, TikTok and Pinterest campaigns from one workspace.', label: 'Get started' },
 };

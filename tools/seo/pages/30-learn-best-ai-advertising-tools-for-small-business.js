@@ -57,10 +57,10 @@ module.exports = {
 <p>OrivenAI is in this group. Concretely, it does the following today:</p>
 <ul>
   <li><strong>Control Center</strong> holds your business, brand and audience context, which every other step uses.</li>
-  <li><strong><a href="/research">Research</a></strong> investigates a market, competitors and audiences and shows its sources (from the Starter plan).</li>
+  <li><strong><a href="/research">Research</a></strong> investigates a market, competitors and audiences and shows its sources.</li>
   <li><strong><a href="/create">Create</a></strong> turns a short brief into a campaign in the chosen platform’s structure, with ad copy, targeting and image or video creative.</li>
   <li><strong><a href="/launch">Launch</a></strong> checks each draft’s readiness and publishes it to your own ad account through the platform’s official API.</li>
-  <li><strong><a href="/campaigns">Campaigns</a></strong> shows results per platform, and <strong><a href="/autopilot">Automations</a></strong> schedule campaigns and apply rules you set (from Starter).</li>
+  <li><strong><a href="/campaigns">Campaigns</a></strong> shows results per platform, and <strong><a href="/autopilot">Automations</a></strong> schedule campaigns and apply rules you set.</li>
 </ul>
 <p>It supports ${F.platforms.join(', ').replace(/, ([^,]*)$/, ' and $1')}. It doesn’t replace your analytics tool.</p>
 
@@ -81,17 +81,17 @@ module.exports = {
   <li><strong>Does it publish, or only produce files?</strong> If you’ll still upload everything by hand, count that time.</li>
   <li><strong>Does it use your business context?</strong> Ads built from your offer, audience and brand voice need less editing.</li>
   <li><strong>Can you control automation?</strong> Look for limits, approvals and a record of what changed.</li>
-  <li><strong>Can you start small?</strong> A free plan or trial lets you test on one real campaign before committing.</li>
+  <li><strong>Can you start small?</strong> A short plan or trial lets you test on one real campaign before committing to a long one.</li>
 </ol>
 <p>Whatever you choose, judge it by one real campaign over a few weeks, compared with your own sales data rather than the tool’s own dashboard.</p>
 
 <h2>A sensible starting stack for a small business</h2>
-<p>For most small businesses, a lean setup looks like this: the platform’s own bidding and placements for delivery, one tool for creating ads, and a fixed weekly routine for checking results. Add automation once you have campaigns worth protecting, and a second platform once the first is working. If you’d rather have the creative, setup and publishing steps in one place, OrivenAI’s <a href="/pricing">Free plan</a> includes Control Center, Create, Launch and Campaigns.</p>`,
+<p>For most small businesses, a lean setup looks like this: the platform’s own bidding and placements for delivery, one tool for creating ads, and a fixed weekly routine for checking results. Add automation once you have campaigns worth protecting, and a second platform once the first is working. If you’d rather have the creative, setup and publishing steps in one place, OrivenAI’s shortest <a href="/pricing">plan</a> gives 14 days of the full product for ${F.fromPrice}, with no automatic renewal.</p>`,
   faq: [
-    ['What is the best free AI advertising tool for a small business?', '<p>The AI built into Google Ads and Meta Ads, such as smart bidding and Advantage+ options, comes with your ad account at no extra cost. Beyond that, several tools offer free plans; OrivenAI’s Free plan includes creating, launching and tracking campaigns.</p>'],
+    ['What is the best free AI advertising tool for a small business?', '<p>The AI built into Google Ads and Meta Ads, such as smart bidding and Advantage+ options, comes with your ad account at no extra cost. Beyond that, tools vary; OrivenAI is paid-only, from ' + F.fromPrice + ' for 14 days of the full product, paid once.</p>'],
     ['Do I need an AI advertising tool if Google and Meta already use AI?', '<p>Not always. Platform AI handles delivery well. Separate tools earn their place when producing creative, setting up campaigns correctly or working across several platforms is what costs you time.</p>'],
     ['Can AI run my ads without me?', '<p>It shouldn’t. AI is good at producing drafts and applying rules, but you should approve what gets published, set budget limits and review results against your own sales data.</p>'],
   ],
   related: ['/learn/what-is-an-ai-advertising-platform/', '/learn/adcreative-ai-alternatives/', '/learn/how-to-create-facebook-and-instagram-ads-with-ai/'],
-  cta: { title: 'See what an all-in-one workflow feels like', text: 'Create and launch your first campaign on the Free plan.', label: 'Get Started Free' },
+  cta: { title: 'See what an all-in-one workflow feels like', text: 'Create and launch your first campaign, with any plan from ' + F.fromPrice + ' for 14 days.', label: 'Get started' },
 };

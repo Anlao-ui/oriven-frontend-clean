@@ -20,6 +20,8 @@
     en: {
       title: 'Automations', subtitle: 'Schedule campaigns, watch their performance and let OrivenAI act within limits you set.',
       tabOverview: 'Overview', tabScheduler: 'Scheduler', tabRules: 'Rules', tabActivity: 'Activity',
+      subOverview: 'What runs on its own, what’s coming up and what needs your approval.', subScheduler: 'Plan when campaigns start, pause and change.',
+      subRules: 'Rules that watch your campaigns and notify you, ask first or act within your limits.', subActivity: 'Everything your automations did, with the reason and the result.',
       newRule: 'New rule', newSchedule: 'Schedule campaign', pauseAll: 'Pause all automations', resumeAll: 'Resume all automations', settings: 'Settings',
       stRunning: 'Running', stPausedAll: 'All automations paused', stKilled: 'Paused by OrivenAI', stNoJobs: 'Not running on this server', stChecks: 'rules checked every {h}',
       hours: '{n} h', minutes: '{n} min',
@@ -110,6 +112,8 @@
     nl: {
       title: 'Automatiseringen', subtitle: 'Plan campagnes, volg hun resultaten en laat OrivenAI handelen binnen grenzen die jij instelt.',
       tabOverview: 'Overzicht', tabScheduler: 'Planner', tabRules: 'Regels', tabActivity: 'Activiteit',
+      subOverview: 'Wat vanzelf loopt, wat eraan komt en wat jouw goedkeuring nodig heeft.', subScheduler: 'Plan wanneer campagnes starten, pauzeren en veranderen.',
+      subRules: 'Regels die je campagnes volgen en je waarschuwen, eerst vragen of binnen jouw grenzen handelen.', subActivity: 'Alles wat je automatiseringen deden, met de reden en het resultaat.',
       newRule: 'Nieuwe regel', newSchedule: 'Campagne plannen', pauseAll: 'Alle automatiseringen pauzeren', resumeAll: 'Alle automatiseringen hervatten', settings: 'Instellingen',
       stRunning: 'Actief', stPausedAll: 'Alle automatiseringen gepauzeerd', stKilled: 'Gepauzeerd door OrivenAI', stNoJobs: 'Draait niet op deze server', stChecks: 'regels elke {h} gecontroleerd',
       hours: '{n} u', minutes: '{n} min',
@@ -659,24 +663,31 @@
     else { var h = s.rulesEveryMinutes ? (s.rulesEveryMinutes >= 60 ? T('hours', { n: s.rulesEveryMinutes / 60 }) : T('minutes', { n: s.rulesEveryMinutes })) : ''; txt = T('stRunning') + (h ? ' · ' + T('stChecks', { h: h }) : ''); }
     return '<span class="atm-pill ' + cls + '" role="status"><i aria-hidden="true"></i>' + esc(txt) + '</span>';
   }
+  // The four pages (Overview, Scheduler, Rules, Activity) are separate
+  // destinations in the app sidebar (js/appNav.js); each has its own heading
+  // and only the actions that belong to it.
+  var PAGES = { overview: ['tabOverview', 'subOverview'], scheduler: ['tabScheduler', 'subScheduler'], rules: ['tabRules', 'subRules'], activity: ['tabActivity', 'subActivity'] };
   function header() {
     var paused = A.overview && A.overview.pausedAll;
     if (A.locked) return '<header class="atm-head"><div class="atm-head-text"><h1 class="atm-title">' + esc(T('title')) + '</h1><p class="atm-sub">' + esc(T('subtitle')) + '</p></div></header>';
-    return '<header class="atm-head"><div class="atm-head-text"><h1 class="atm-title">' + esc(T('title')) + '</h1><p class="atm-sub">' + esc(T('subtitle')) + '</p>' + (A.overview ? statusPill() : '') + '</div>' +
-      '<div class="atm-head-actions">' +
-      '<button type="button" class="atm-btn atm-btn-ghost" data-au="pauseall" aria-pressed="' + !!paused + '">' + esc(paused ? T('resumeAll') : T('pauseAll')) + '</button>' +
-      '<button type="button" class="atm-btn atm-btn-ghost atm-icon-btn" data-au="settings" aria-label="' + esc(T('setH')) + '" title="' + esc(T('setH')) + '"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></button>' +
-      '<button type="button" class="atm-btn atm-btn-ghost" data-au="new-schedule">' + esc(T('newSchedule')) + '</button>' +
-      '<button type="button" class="atm-btn atm-btn-primary" data-au="new-rule">+ ' + esc(T('newRule')) + '</button>' +
-      '</div></header>';
+    var pg = PAGES[A.tab] || PAGES.overview, acts = '';
+    if (A.tab === 'overview' || !PAGES[A.tab]) {
+      acts = '<button type="button" class="atm-btn atm-btn-ghost" data-au="pauseall" aria-pressed="' + !!paused + '">' + esc(paused ? T('resumeAll') : T('pauseAll')) + '</button>' +
+'<button type="button" class="atm-btn atm-btn-ghost atm-icon-btn" data-au="settings" aria-label="' + esc(T('setH')) + '" title="' + esc(T('setH')) + '"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></button>' +
+        '<button type="button" class="atm-btn atm-btn-ghost" data-au="new-schedule">' + esc(T('newSchedule')) + '</button>' +
+        '<button type="button" class="atm-btn atm-btn-primary" data-au="new-rule">+ ' + esc(T('newRule')) + '</button>';
+    } else if (A.tab === 'scheduler') acts = '<button type="button" class="atm-btn atm-btn-primary" data-au="new-schedule">+ ' + esc(T('newSchedule')) + '</button>';
+    else if (A.tab === 'rules') acts = '<button type="button" class="atm-btn atm-btn-primary" data-au="new-rule">+ ' + esc(T('newRule')) + '</button>';
+    return '<header class="atm-head"><div class="atm-head-text"><h1 class="atm-title" id="auPageH">' + esc(T(pg[0])) + '</h1><p class="atm-sub">' + esc(T(pg[1])) + '</p>' + (A.overview && A.tab === 'overview' ? statusPill() : '') + '</div>' +
+      (acts ? '<div class="atm-head-actions">' + acts + '</div>' : '') + '</header>';
   }
-  function tabs() {
-    var c = (A.overview && A.overview.counts) || {};
-    var list = [['overview', T('tabOverview'), c.pendingApprovals], ['scheduler', T('tabScheduler'), c.schedules], ['rules', T('tabRules'), c.rules], ['activity', T('tabActivity'), null]];
-    return '<div class="atm-tabs" role="tablist" aria-label="' + esc(T('title')) + '">' + list.map(function (t) {
-      var on = A.tab === t[0];
-      return '<button type="button" role="tab" id="auTab-' + t[0] + '" aria-controls="auPanel" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) + '" class="atm-tab' + (on ? ' is-on' : '') + '" data-tab="' + t[0] + '">' + esc(t[1]) + (t[2] ? '<span class="atm-count">' + t[2] + '</span>' : '') + '</button>';
-    }).join('') + '</div>';
+  // Shows one of the four pages (the sidebar's Automations links).
+  function show(tab) {
+    if (!PAGES[tab]) tab = 'overview';
+    A.tab = tab;
+    try { sessionStorage.setItem('orv_auto_tab', tab); } catch (_) {}
+    render();
+    if (typeof window.orvAppNavSync === 'function') window.orvAppNavSync();
   }
   function render() {
     var root = $('auRoot'); if (!root || render._busy) return;
@@ -686,7 +697,7 @@
     else if (!A.overview) body = '<div class="atm-card atm-loading" aria-busy="true"><span class="atm-spin" aria-hidden="true"></span></div>';
     else body = A.tab === 'scheduler' ? scheduler() : A.tab === 'rules' ? rules() : A.tab === 'activity' ? activity() : overview();
     render._busy = true;
-    try { root.innerHTML = header() + (A.locked ? '' : tabs()) + '<section class="atm-panel" id="auPanel" role="tabpanel" aria-labelledby="auTab-' + A.tab + '">' + body + '</section>'; } finally { render._busy = false; }
+    try { root.innerHTML = header() + '<section class="atm-panel" id="auPanel" data-page="' + esc(A.tab) + '"' + (A.locked ? '' : ' aria-labelledby="auPageH"') + '>' + body + '</section>'; } finally { render._busy = false; }
   }
 
   function tile(label, value, tone) { return '<div class="atm-tile' + (tone ? ' is-' + tone : '') + '"><span class="atm-tile-v">' + esc(value) + '</span><span class="atm-tile-l">' + esc(label) + '</span></div>'; }
@@ -1138,7 +1149,7 @@
       var t = ev.target.closest ? ev.target.closest('[data-au], [data-tab]') : null;
       if (t && root && root.contains(t)) {
         var tab = t.getAttribute('data-tab');
-        if (tab && !t.getAttribute('data-au')) { A.tab = tab; try { sessionStorage.setItem('orv_auto_tab', tab); } catch (_) {} render(); var nt = $('auTab-' + tab); if (nt) nt.focus(); return; }
+        if (tab && !t.getAttribute('data-au')) { show(tab); var h = $('auPageH'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } return; }
         if (t.getAttribute('data-au') === 'toggle') return; // handled on change
         act(t.getAttribute('data-au'), t);
         return;
@@ -1164,12 +1175,6 @@
     document.addEventListener('keydown', function (ev) {
       var m = $('auModal');
       if (ev.key === 'Escape' && m && m.style.display === 'flex') { closeModal(); return; }
-      var tab = ev.target && ev.target.closest && ev.target.closest('.atm-tab');
-      if (tab && (ev.key === 'ArrowRight' || ev.key === 'ArrowLeft')) {
-        var tabs = Array.prototype.slice.call(document.querySelectorAll('#auRoot .atm-tab'));
-        var i = tabs.indexOf(tab), j = (i + (ev.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
-        tabs[j].click();
-      }
     });
   }
 
@@ -1180,7 +1185,7 @@
     if (q) { if (q[1] === 'settings') setTimeout(openSettings, 600); else A.tab = q[1]; }
     load();
   }
-  window.orvAutomations = { init: init, reload: load, compatRules: compatRules, compatApprovals: compatApprovals, _T: T, _STR: STR, _state: function () { return A; }, _builder: function () { return B; } };
+  window.orvAutomations = { init: init, reload: load, show: show, tab: function () { return A.tab; }, compatRules: compatRules, compatApprovals: compatApprovals, _T: T, _STR: STR, _state: function () { return A; }, _builder: function () { return B; } };
   window.apInit = init; // existing navigation hook (app.html _orvNav)
 
   if (typeof window.applyLanguage === 'function' && !window.applyLanguage._au) {

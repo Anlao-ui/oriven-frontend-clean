@@ -182,7 +182,7 @@ async function run() {
     page = await ctx.newPage();
     for (const p of ['/create', '/pricing', '/product/tiktok-ads']) {
       await page.goto(BASE + p, { waitUntil: 'load' });
-      const vis = await page.evaluate(() => { const h = document.querySelector('h1'); const r = h && h.getBoundingClientRect(); return { h1: h && h.textContent.trim().slice(0, 50), visible: !!(r && r.width && r.height), steps: document.querySelectorAll('.ov-deep-steps li, .ov-price-table tr').length }; });
+      const vis = await page.evaluate(() => { const h = document.querySelector('h1'); const r = h && h.getBoundingClientRect(); return { h1: h && h.textContent.trim().slice(0, 50), visible: !!(r && r.width && r.height), steps: document.querySelectorAll('.ov-deep-steps li, .ov-price-table tr, .ov-pd-table tbody tr').length }; });
       check(`no JavaScript: ${p} shows its H1 and in-depth content`, vis.visible && vis.steps >= 3, vis);
     }
     await ctx.close();

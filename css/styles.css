@@ -24515,7 +24515,7 @@ h1.ov-sp-h1 { font-family: 'Geist', 'Geist Fallback', system-ui, sans-serif !imp
    Much smaller top padding than the standard .ov-sp-hero + .ov-sp-section
    combo (which together pushed pricing cards below the fold) — just
    enough to clear the fixed nav, then straight into the eyebrow + cards. */
-.ov-pricing-fold { padding: 128px 24px 96px; }
+.ov-pricing-fold { padding: 80px 24px 56px; }
 .ov-pricing-fold-eyebrow { text-align: center; margin-bottom: 20px; }
 /* The homepage's data-observe/.ov-vis IntersectionObserver is rooted at
    #view-landing specifically (index.html) — elements inside #view-pricing
@@ -24524,7 +24524,7 @@ h1.ov-sp-h1 { font-family: 'Geist', 'Geist Fallback', system-ui, sans-serif !imp
    anyway (spec: no scroll-triggered delay above the fold), so force it. */
 #view-pricing .ov-pc { opacity: 1; transform: none; }
 @media (max-width: 768px) {
-  .ov-pricing-fold { padding: 96px 20px 60px; }
+  .ov-pricing-fold { padding: 72px 20px 44px; }
 }
 
 /* Hide the old ov-sub-nav (all instances, in case any remain) */
@@ -24793,6 +24793,16 @@ h1.ov-sp-h1 { font-family: 'Geist', 'Geist Fallback', system-ui, sans-serif !imp
   line-height: 1.7;
   color: rgba(255,255,255,.46);
 }
+
+/* Products: the six sections, each with its number and the pages inside it */
+.ov-section-card { display: flex; flex-direction: column; }
+.ov-section-num { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: .08em; color: color-mix(in srgb, var(--green) 70%, transparent); margin-bottom: 14px; }
+.ov-section-pages { list-style: none; margin: auto 0 0; padding: 18px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.ov-section-pages li { font-size: 12.5px; line-height: 1; padding: 7px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); color: rgba(255,255,255,.78); }
+.ov-section-pages li.is-dev { border-style: dashed; color: rgba(255,255,255,.5); }
+.ov-section-pages li span { font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+.ov-hero-pages { justify-content: center; margin: -18px auto 34px; padding: 0; max-width: 640px; }
+.ov-sections-note { margin: 28px auto 0; max-width: 640px; font-size: 13.5px; line-height: 1.6; color: rgba(255,255,255,.45); }
 
 /* Responsive */
 @media (max-width: 900px) {
@@ -41582,8 +41592,14 @@ body.dark-mode .smd-danger-btn-del:hover{background:rgba(239,68,68,.1) !importan
 body.dark-mode .sub-pcard-btn:hover:not(:disabled){background:rgba(255,255,255,.06) !important}
 body.dark-mode .sub-pcard-btn-up:hover:not(:disabled){background:var(--green) !important;opacity:.88}
 
-@media(max-width:760px){.sub-plans-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:520px){.sub-plans-grid{grid-template-columns:1fr}}
+/* Settings → Plan: the access card and the five period plans (plans.js). */
+.sub-plans-grid.sub-plans-five{grid-template-columns:repeat(5,minmax(0,1fr))}
+.sub-access-name{font-size:16px;font-weight:700;color:var(--charcoal);letter-spacing:-.02em;margin-top:6px}
+.sub-access-kind{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:4px}
+.sub-access-text{font-size:12.5px;line-height:1.55;color:var(--muted);margin:8px 0 10px;max-width:640px}
+@media(max-width:960px){.sub-plans-grid.sub-plans-five{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.sub-plans-grid{grid-template-columns:1fr 1fr}.sub-plans-grid.sub-plans-five{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.sub-plans-grid,.sub-plans-grid.sub-plans-five{grid-template-columns:1fr}}
 
 /* ── Ads Manager – Live Campaigns Section ──────────────────────────── */
 .adm-live-loading { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,.4); padding: 12px 0; }
@@ -49244,3 +49260,99 @@ body.dark-mode .ob2-overlay{background:rgba(0,0,0,.5)}
 .ov-price-table td span[aria-label="Included"] { color: var(--green); font-weight: 700; }
 .ov-price-costs { min-width: 0; }
 .ov-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ── Five access periods (Flex … Annual): one product, the plans differ
+   only in period, price and credits (js/plans.js). Public cards and the
+   in-app plan modal hold five cards; the features are listed once, not per
+   card. ── */
+.ov-pricing-grid-4.ov-pc-five { grid-template-columns: repeat(5, minmax(0, 1fr)); column-gap: 14px; row-gap: 0; }
+/* One rhythm for every card: the five rows (name, price, facts, benefits,
+   button) are shared across the cards in a row via subgrid, so they stay
+   aligned when a line wraps. */
+.ov-pc--period { display: grid; grid-row: span 5; grid-template-rows: subgrid; row-gap: 0; margin-bottom: 14px; padding: 26px 22px 22px; }
+@supports not (grid-template-rows: subgrid) { .ov-pc--period { display: flex; } .ov-pc--period .ov-pc-facts { min-height: 92px; } }
+.ov-pc--period .ov-pc-head { height: auto; min-height: 44px; margin-bottom: 10px; justify-content: flex-end; }
+.ov-pc--period .ov-pc-price { font-size: clamp(34px, 3vw, 42px); margin-bottom: 14px; font-variant-numeric: tabular-nums; }
+.ov-pc-facts { display: grid; gap: 4px; align-content: start; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.ov-pc-facts p { margin: 0; line-height: 1.45; font-variant-numeric: tabular-nums; }
+.ov-pc-duration { font-size: 14px; font-weight: 600; color: #fff; }
+.ov-pc--period .ov-pc-credits { font-size: 14px; font-weight: 600; color: rgba(255,255,255,.82); }
+.ov-pc-sub { font-weight: 400; color: rgba(255,255,255,.45); white-space: nowrap; }
+.ov-pc-vat { margin-top: 6px !important; font-size: 12px; color: rgba(255,255,255,.42); }
+.ov-pc-benefits { margin: 0 0 20px; }
+.ov-pc-benefits li { font-size: 13px; color: rgba(255,255,255,.7); }
+.ov-pc--period .ov-pc-btn { align-self: end; }
+/* The pricing fold's dot field runs behind the cards: a near-opaque base
+   under each card's own tint keeps the same surface and lets the dots show
+   only faintly through it, so prices and text stay clear. */
+.ov-pc--period { background-color: rgba(11, 12, 10, .86); background-image: linear-gradient(rgba(255,255,255,.03), rgba(255,255,255,.03)); }
+.ov-pc--period.ov-pc-pro { background-image: linear-gradient(color-mix(in srgb, var(--green) 4%, transparent), color-mix(in srgb, var(--green) 4%, transparent)); }
+/* Pricing header: the shared dot field (js/dot-field.js mounts it here)
+   behind a short title, above the cards. */
+.ov-pricing-head { position: relative; isolation: isolate; text-align: center; padding: clamp(40px, 5vw, 72px) 24px clamp(36px, 4vw, 56px); margin: 0 auto clamp(20px, 3vw, 36px); max-width: 1100px; }
+.ov-pricing-head .ov-pricing-fold-eyebrow { margin-bottom: 14px; }
+.ov-pricing-title { margin: 0; font-size: clamp(32px, 4.4vw, 56px); font-weight: 600; letter-spacing: -.035em; line-height: 1.05; color: #fff; text-wrap: balance; }
+@media (max-width: 1180px) and (min-width: 861px) { .ov-pricing-grid-4.ov-pc-five { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 860px) and (min-width: 701px) { .ov-pricing-grid-4.ov-pc-five { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .ov-pricing-grid-4.ov-pc-five { grid-template-columns: 1fr; } .ov-pc--period .ov-pc-head { min-height: 0; } }
+
+.pw-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.pw-card .pw-btn { margin-top: auto; }
+.pw-card .pw-card-desc { margin-bottom: 8px; }
+.pw-card .pw-period { white-space: nowrap; }
+.pw-access-note { margin: 16px auto 0; padding: 0 24px; max-width: 640px; text-align: center; font-size: 12.5px; line-height: 1.55; color: rgba(240,240,240,.5); }
+.pw-explore-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--green); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.pw-explore-btn:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; border-radius: 3px; }
+@media (max-width: 1024px) and (min-width: 769px) { .pw-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 768px) and (min-width: 581px) { .pw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 480px; } }
+@media (max-width: 580px) { .pw-grid { grid-template-columns: 1fr; } }
+
+/* ── Pricing explanation (tools/seo/apply-product-depth.js) ──────────
+   Three parts under one heading, each with its own title and separated by
+   a hairline: plans side by side (one row per plan), credits (rules next to
+   a grouped price list) and good to know. Hairlines only, no boxed panels. */
+.ov-price-detail .ov-sp-section-inner { max-width: 1040px; }
+.ov-price-detail .ov-deep-intro { margin-bottom: 8px; }
+.ov-pd-part { margin-top: clamp(36px, 4.5vw, 56px); }
+.ov-pd-part + .ov-pd-part { padding-top: clamp(32px, 4vw, 48px); border-top: 1px solid rgba(255,255,255,.08); }
+.ov-price-detail .ov-pd-part h3 { font-size: 17px; font-weight: 650; letter-spacing: -.015em; color: #fff; margin: 0 0 16px; }
+.ov-pd-table-wrap { overflow-x: auto; }
+.ov-pd-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ov-pd-table th, .ov-pd-table td { padding: 13px 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.07); white-space: nowrap; }
+.ov-pd-table thead th { padding-top: 0; font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.42); }
+.ov-pd-table tbody th { font-size: 15px; font-weight: 650; color: #fff; }
+.ov-pd-table td { font-size: 14.5px; color: rgba(255,255,255,.72); }
+.ov-pd-table .ov-pd-num { text-align: right; }
+.ov-pd-table th:first-child, .ov-pd-table td:first-child { padding-left: 0; }
+.ov-pd-table tr.is-best th { color: var(--green); }
+.ov-pd-table tr.is-best td { color: rgba(255,255,255,.9); }
+.ov-pd-shared { margin: 14px 0 0; font-size: 13.5px; line-height: 1.6; color: rgba(255,255,255,.55); }
+.ov-pd-shared span { display: inline-block; margin-right: 10px; font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.42); }
+.ov-pd-credits { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+.ov-pd-rules ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.ov-pd-rules li { position: relative; padding-left: 18px; font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,.66); }
+.ov-pd-rules li::before { content: ''; position: absolute; left: 0; top: .62em; width: 6px; height: 6px; border-radius: 50%; background: var(--green); opacity: .8; }
+.ov-pd-costs { display: grid; gap: 22px; }
+.ov-price-detail .ov-pd-costs h3 { margin-bottom: 0; }
+.ov-pd-group h4 { margin: 0 0 4px; font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.42); }
+.ov-pd-group dl { margin: 0; }
+.ov-pd-group dl > div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+.ov-pd-group dt { font-size: 14.5px; color: rgba(255,255,255,.82); }
+.ov-pd-group dt span { display: block; margin-top: 2px; font-size: 12.5px; color: rgba(255,255,255,.45); }
+.ov-pd-group dd { margin: 0; font-size: 14.5px; font-weight: 600; color: #fff; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ov-pd-know ul { margin: 0 0 clamp(32px, 4vw, 48px); padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px clamp(20px, 3vw, 40px); }
+.ov-pd-know li { font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,.62); }
+.ov-pd-know li b { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 650; color: #fff; }
+@media (max-width: 860px) {
+  .ov-pd-credits { grid-template-columns: 1fr; }
+  .ov-pd-know ul { grid-template-columns: 1fr; }
+}
+/* Phones: each plan becomes a small labelled block instead of a wide table. */
+@media (max-width: 640px) {
+  .ov-pd-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .ov-pd-table, .ov-pd-table tbody, .ov-pd-table tr, .ov-pd-table th, .ov-pd-table td { display: block; }
+  .ov-pd-table tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 14px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .ov-pd-table tr th { grid-column: 1 / -1; padding: 0; border: 0; }
+  .ov-pd-table td { padding: 0; border: 0; white-space: normal; text-align: left !important; font-size: 14px; }
+  .ov-pd-table td::before { content: attr(data-label); display: block; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.42); }
+}

@@ -36,8 +36,8 @@ const strip = (html) => String(html).replace(/<[^>]+>/g, '').replace(/\s+/g, ' '
 const ld = (obj) => `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, '\\u003c')}</script>`;
 
 // Page paths: directory pages end in "/" (written to <path>/index.html).
-// Blog posts keep their original extension-less URLs (/blog/<slug>), written
-// to blog/<slug>.html — Netlify serves /blog/<slug> from that file with a 200
+// Blog posts and solution pages use extension-less URLs (/blog/<slug>,
+// /solutions/<slug>), written to <folder>/<slug>.html — Netlify serves /blog/<slug> from that file with a 200
 // (a directory would answer /blog/<slug> with a 301 to /blog/<slug>/).
 function outFile(p) { return p.path.endsWith('/') ? p.path.slice(1) + 'index.html' : p.path.slice(1) + '.html'; }
 
@@ -46,7 +46,7 @@ function loadPages() {
   return fs.readdirSync(dir).filter((f) => f.endsWith('.js')).sort().map((f) => {
     const p = require(path.join(dir, f));
     for (const k of ['path', 'title', 'description', 'h1', 'kind']) if (!p[k]) throw new Error(`${f}: missing ${k}`);
-    if (!/^\/[a-z0-9/-]*\/$/.test(p.path) && !/^\/blog\/[a-z0-9-]+$/.test(p.path)) throw new Error(`${f}: path must end with "/" (or be /blog/<slug>) (${p.path})`);
+    if (!/^\/[a-z0-9/-]*\/$/.test(p.path) && !/^\/(blog|solutions)\/[a-z0-9-]+$/.test(p.path)) throw new Error(`${f}: path must end with "/" (or be /blog/<slug> or /solutions/<slug>) (${p.path})`);
     return Object.assign({ file: f }, p);
   });
 }
@@ -54,8 +54,8 @@ function loadPages() {
 // ── Main site navbar ──
 // The static pages carry the SAME navbar as the rest of the site: its markup
 // is copied from index.html (#lpNav + #lpMobileMenu) at build time, so the
-// two can't drift apart. Only the app-only handlers change: Login and
-// "Start Creating" become plain links to /login and /signup. Behaviour
+// two can't drift apart. Only the app-only handlers change: "Log in" and
+// "Start free" become plain links to /login and /signup. Behaviour
 // (dropdowns, hamburger, mobile accordions) comes from js/site-nav.js, the
 // styles from css/site-nav.css (generated below from the site's own CSS).
 let _siteNav = null;
@@ -71,11 +71,11 @@ function siteNavHtml() {
   let mm = cut('<div class="lp-mobile-menu" id="lpMobileMenu">', '\n<!-- ═');
   const clean = (s) => s.replace(/<!--[\s\S]*?-->/g, '').replace(/\n\s*\n+/g, '\n').trim();
   nav = clean(nav)
-    .replace(/<a href="#" class="lp-nav-login" onclick="lpHandleLogin\(event\)">/, '<a href="/login" class="lp-nav-login">')
-    .replace(/<a href="#" class="lp-cta-btn" onclick="lpGetStarted\(event\)">/, '<a href="/signup" class="lp-cta-btn" data-cta="nav_signup">');
+    .replace(/<a href="(?:#|\/login)" class="lp-nav-login" onclick="lpHandleLogin\(event\)">/, '<a href="/login" class="lp-nav-login">')
+    .replace(/<a href="(?:#|\/signup)" class="lp-cta-btn" onclick="lpGetStarted\(event\)">/, '<a href="/signup" class="lp-cta-btn" data-cta="nav_signup">');
   mm = clean(mm)
-    .replace(/<a href="#" class="lp-mm-login" onclick="lpHandleLogin\(event\)">/, '<a href="/login" class="lp-mm-login">')
-    .replace(/<a class="lp-mm-cta" onclick="lpGetStarted\(event\)">/, '<a href="/signup" class="lp-mm-cta" data-cta="nav_signup">');
+    .replace(/<a href="(?:#|\/login)" class="lp-mm-login" onclick="lpHandleLogin\(event\)">/, '<a href="/login" class="lp-mm-login">')
+    .replace(/<a (?:href="\/signup" )?class="lp-mm-cta" onclick="lpGetStarted\(event\)">/, '<a href="/signup" class="lp-mm-cta" data-cta="nav_signup">');
   if (/lpHandleLogin|lpGetStarted|href="#"/.test(nav + mm)) throw new Error('navbar: an app-only handler was not replaced');
   _siteNav = nav + '\n' + mm;
   return _siteNav;
@@ -153,19 +153,10 @@ function withToc(body) {
   return { html, toc };
 }
 
-function footer() {
-  const col = (h, items) => `<div><h2>${h}</h2><ul>${items.map(([href, label]) => `<li><a href="${href}">${label}</a></li>`).join('')}</ul></div>`;
-  return `<footer class="sp-footer"><div class="sp-wrap">
-  <div class="sp-footer-top">
-    <div class="sp-footer-brand"><a class="sp-logo" href="/"><img src="/assets/orivenlogo-256.webp" alt="" width="30" height="30"><span>OrivenAI</span></a><p>${esc(F.tagline)}</p></div>
-    ${col('Product', [['/business', 'Control Center'], ['/research', 'Research'], ['/create', 'Create'], ['/launch', 'Launch'], ['/campaigns', 'Campaigns'], ['/autopilot', 'Automations']])}
-    ${col('Solutions', [['/ppc-automation-software/', 'PPC automation'], ['/cross-platform-ad-management/', 'Cross-platform ad management'], ['/product/google-ads', 'Google Ads'], ['/product/meta-ads', 'Meta Ads'], ['/product/tiktok-ads', 'TikTok Ads'], ['/product/pinterest-ads', 'Pinterest Ads']])}
-    ${col('Resources', [['/learn/', 'Learn'], ['/pricing', 'Pricing'], ['/faq', 'FAQ'], ['/blog', 'Blog'], ['/about', 'About']])}
-    ${col('Legal', [['/privacy', 'Privacy Policy'], ['/terms', 'Terms of Service'], ['/cookie-policy', 'Cookie Policy'], ['#cookie-settings', 'Cookie settings'], ['mailto:contact@orivenai.com', 'Contact']])}
-  </div>
-  <div class="sp-footer-bottom"><span>&copy; 2026 OrivenAI (Oriven) &middot; KVK 42039993 &middot; Netherlands</span><a href="/signup" data-cta="footer_signup">Get started for free &rarr;</a></div>
-</div></footer>`;
-}
+// The one public footer and closing CTA, shared with every other public page
+// (tools/seo/site-chrome.js; styles in css/site-chrome.css).
+const SC = require('./site-chrome');
+function footer() { return SC.footer(); }
 
 function crumbs(page) {
   const items = [{ name: 'Home', path: '/' }].concat(page.breadcrumbs || []).concat([{ name: page.crumb || page.h1, path: page.path }]);
@@ -194,9 +185,12 @@ function related(page, all) {
   return `<section class="sp-section" aria-labelledby="rel-h"><div class="sp-wrap"><h2 id="rel-h">${esc(page.relatedTitle || 'Keep reading')}</h2><div class="sp-related">${list.join('')}</div></div></section>`;
 }
 
+// Closing section of a generated page: the shared CTA over the dot field,
+// with the page's own wording (page.cta) and a link to keep reading.
 function band(page) {
-  const b = Object.assign({ title: 'Start with a free OrivenAI account', text: F.freePlanLine, label: 'Get Started Free' }, page.cta || {});
-  return `<div class="sp-wrap"><div class="sp-band"><div><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p></div><a class="sp-btn sp-btn-primary" href="/signup" data-cta="band_signup">${esc(b.label)} &rarr;</a></div></div>`;
+  const b = Object.assign({ title: 'Choose your OrivenAI plan', text: F.planLine, label: 'Get started' }, page.cta || {});
+  const more = page.ctaSecondary || (page.path === '/learn/' ? ['/product', 'Explore the six sections'] : page.path.startsWith('/blog/') ? ['/blog', 'More from the blog'] : page.path.startsWith('/learn/') ? ['/learn/', 'More guides'] : ['/product', 'Explore the product']);
+  return SC.cta({ eyebrow: page.ctaEyebrow || (page.path.startsWith('/blog/') ? 'Blog' : page.path.startsWith('/learn/') ? 'Learn' : 'OrivenAI'), title: esc(b.title), text: esc(b.text), primary: ['/signup', b.label, ' data-cta="band_signup"'], secondary: more });
 }
 
 function render(page, all) {
@@ -223,7 +217,7 @@ function render(page, all) {
     ? `<header class="sp-hero sp-wrap"><p class="sp-eyebrow">${esc(page.eyebrow || 'Learn')}</p><h1>${esc(page.h1)}</h1>
        <p class="sp-meta"><span>By the OrivenAI team</span><span>Published <time datetime="${page.datePublished}">${F.fmtDate(page.datePublished)}</time></span>${updated}${page.readMinutes ? `<span>${page.readMinutes} min read</span>` : ''}</p></header>`
     : `<header class="sp-hero sp-wrap"><p class="sp-eyebrow">${esc(page.eyebrow)}</p><h1>${esc(page.h1)}</h1><p class="sp-lede">${page.lede}</p>
-       <div class="sp-cta-row"><a class="sp-btn sp-btn-primary" href="/signup" data-cta="hero_signup">${esc((page.cta && page.cta.label) || 'Get Started Free')} &rarr;</a>${page.secondary ? `<a class="sp-btn sp-btn-ghost" href="${page.secondary.href}">${esc(page.secondary.label)}</a>` : ''}</div>
+       <div class="sp-cta-row"><a class="sp-btn sp-btn-primary" href="/signup" data-cta="hero_signup">${esc((page.cta && page.cta.label) || 'Get started')} &rarr;</a>${page.secondary ? `<a class="sp-btn sp-btn-ghost" href="${page.secondary.href}">${esc(page.secondary.label)}</a>` : ''}</div>
        ${page.heroNote ? `<p class="sp-note">${page.heroNote}</p>` : ''}</header>`;
 
   let body = page.body;
@@ -268,7 +262,10 @@ ${page.kind === 'article' ? `<meta property="article:published_time" content="${
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/seo.css">
 <link rel="stylesheet" href="/css/site-nav.css">
+<link rel="stylesheet" href="/css/site-chrome.css">
 <script src="/js/site-nav.js" defer></script>
+<script src="/js/dot-field.js" defer></script>
+<script src="/js/site-top.js" defer></script>
 ${lds.map(ld).join('\n')}
 <!-- Consent first (js/consent.js): the Google Ads tag loads only after the visitor
      accepts advertising. js/site-analytics.js: OrivenAI's own cookieless statistics. -->
@@ -285,8 +282,8 @@ ${hero}
 ${body}
 ${fq.html}
 ${related(page, all)}
-${band(page)}
 </main>
+${band(page)}
 ${footer()}
 ${page.script ? `<script>${page.script}</script>` : ''}
 </body>

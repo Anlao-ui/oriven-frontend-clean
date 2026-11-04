@@ -1,9 +1,11 @@
 /* ════════════════════════════════════════════════════════════════
    Plan model consistency — frontend vs backend, offline.
 
-   The frontend plan table (js/plans.js) and the backend's definitions
-   (services/planEntitlements.js, creditManager FEATURE_COSTS /
-   PLAN_ALLOWANCES, email PLAN_INTRO, the public facts in tools/seo/facts.js)
+   One product since 2026-10-30: five access periods (Flex, Monthly,
+   Quarterly, Semi-Annual, Annual), bought once, no automatic renewal, the
+   same features for every paying account. The frontend table (js/plans.js)
+   and the backend (services/pricing.js, planEntitlements.js, creditManager
+   FEATURE_COSTS, email PLAN_INTRO) and the public facts (tools/seo/facts.js)
    must describe the same plans. No browser, no network, no Supabase, no
    Stripe: modules are only loaded and compared.
    ════════════════════════════════════════════════════════════════ */
@@ -15,74 +17,64 @@ function check(name, cond, detail) {
   if (cond) { pass++; console.log('PASS — ' + name); }
   else { fail++; console.log('FAIL — ' + name + (detail !== undefined ? ' | ' + JSON.stringify(detail) : '')); }
 }
-if (!fs.existsSync(path.join(BACKEND, 'services', 'planEntitlements.js'))) {
+if (!fs.existsSync(path.join(BACKEND, 'services', 'pricing.js'))) {
   console.log('SKIP — backend not found at ' + BACKEND + ' (set ORIVEN_BACKEND_DIR)');
   process.exit(0);
 }
 
-// Frontend: js/plans.js in a sandbox (it only defines globals).
+// Frontend: js/plans.js in a sandbox, exactly as the browser loads it.
 const sandbox = { window: {}, document: { addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }, getElementById() { return null; } }, console };
 sandbox.window = sandbox;
 vm.createContext(sandbox);
-vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'plans.js'), 'utf8') + '\n;this.__P = { ORIVEN_PLANS, CREDIT_COSTS, ORIVEN_PLAN_LIST };', sandbox);
-const { ORIVEN_PLANS, CREDIT_COSTS, ORIVEN_PLAN_LIST } = sandbox.__P;
+vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'plans.js'), 'utf8') + '\n;this.__P = { ORIVEN_PRICING, ORIVEN_PERIOD_PLANS, ORIVEN_PLANS, CREDIT_COSTS, ORIVEN_PAID_STATUSES, orvPlanHas, orvEffectiveStatus };', sandbox);
+const F = sandbox.__P;
 
-// Backend modules (pure data at require time).
+const pricing = require(path.join(BACKEND, 'services', 'pricing.js'));
 const ent = require(path.join(BACKEND, 'services', 'planEntitlements.js'));
 const cm = require(path.join(BACKEND, 'services', 'creditManager.js'));
 const tpl = require(path.join(BACKEND, 'services', 'email', 'templates.js'));
 const facts = require(path.join(__dirname, '..', 'tools', 'seo', 'facts.js'));
 
-const ORDER = ['free', 'starter', 'creator', 'professional'];
+// A. The same five plans everywhere.
+check('A1. Five plans in the same order: browser, backend, emails, public facts',
+  JSON.stringify(F.ORIVEN_PERIOD_PLANS.map((p) => p.id)) === JSON.stringify(pricing.PLAN_ORDER) &&
+  JSON.stringify(facts.plans.map((p) => p.id)) === JSON.stringify(pricing.PLAN_ORDER) &&
+  pricing.PLAN_ORDER.every((id) => tpl.PLAN_INTRO[id]));
+for (const id of pricing.PLAN_ORDER) {
+  const be = pricing.PLANS[id], fe = F.ORIVEN_PERIOD_PLANS.find((p) => p.id === id), fa = facts.plans.find((p) => p.id === id), em = tpl.PLAN_INTRO[id];
+  check(`A2.${id} price €${be.priceInclVat}, ${pricing.periodLabel(be)}, ${be.credits} credits identical in plans.js, emails and public facts`,
+    fe.price === be.priceInclVat && fa.price === be.priceInclVat && em.price === pricing.priceLabel(be) &&
+    fe.credits === be.credits && fa.creditCount === be.credits && em.credits === be.credits &&
+    fe.periodLabel === pricing.periodLabel(be) && em.period === pricing.periodLabel(be) && fe.instalments === be.instalments,
+    { fe, fa, em: { price: em.price, credits: em.credits, period: em.period } });
+}
 
-// A. Same plans, same order.
-check('A1. Frontend plan order is Free, Starter, Creator, Professional (= backend PLAN_ORDER)', JSON.stringify(ORIVEN_PLAN_LIST.map((p) => p.id)) === JSON.stringify(ORDER) && JSON.stringify(ent.PLAN_ORDER) === JSON.stringify(ORDER), ent.PLAN_ORDER);
+// B. One product: entitlements.
+const KEYS = ['research', 'autopilot', 'orivenChat', 'notifications', 'prioritySupport', 'weeklyReport'];
+check('B1. Every paying status gets every entitlement (browser = backend)', JSON.stringify(F.ORIVEN_PAID_STATUSES) === JSON.stringify(pricing.PAID_STATUSES) &&
+  pricing.PAID_STATUSES.every((s) => KEYS.every((k) => F.orvPlanHas(s, k) === true && ent.hasEntitlement(s, k) === true)));
+check('B2. No access (free) gets nothing (browser = backend)', KEYS.every((k) => F.orvPlanHas('free', k) === false && ent.hasEntitlement('free', k) === false));
 
-// B. Entitlements: frontend table == server enforcement.
-ORDER.forEach((id) => {
-  check('B.' + id + ' entitlements identical to backend planEntitlements.js', JSON.stringify(ORIVEN_PLANS[id].entitlements) === JSON.stringify(ent.PLAN_ENTITLEMENTS[id]), { fe: ORIVEN_PLANS[id].entitlements, be: ent.PLAN_ENTITLEMENTS[id] });
-});
-check('B.min Lowest plan per capability: Research/Automations Starter, Oriven Chat + in-app notifications Creator, Priority Support + weekly report Professional',
-  ent.minPlanFor('research') === 'starter' && ent.minPlanFor('autopilot') === 'starter' && ent.minPlanFor('orivenChat') === 'creator' && ent.minPlanFor('notifications') === 'creator' && ent.minPlanFor('prioritySupport') === 'professional' && ent.minPlanFor('weeklyReport') === 'professional');
+// C. Credit costs.
+check('C1. plans.js featureCosts = backend FEATURE_COSTS = what creditManager charges', JSON.stringify(F.ORIVEN_PRICING.featureCosts) === JSON.stringify(pricing.FEATURE_COSTS) && JSON.stringify(cm.FEATURE_COSTS) === JSON.stringify(pricing.FEATURE_COSTS));
+check('C2. client pre-flight costs map to the server keys', F.CREDIT_COSTS.research === pricing.FEATURE_COSTS.research_report && F.CREDIT_COSTS.chat === pricing.FEATURE_COSTS.ai_chat && F.CREDIT_COSTS.campaign === pricing.FEATURE_COSTS.campaign_generation && F.CREDIT_COSTS.imageAd === pricing.FEATURE_COSTS.image_generation && F.CREDIT_COSTS.videoAd === pricing.FEATURE_COSTS.video_generation && F.CREDIT_COSTS.automation === pricing.FEATURE_COSTS.automation && F.CREDIT_COSTS.intelligence === pricing.FEATURE_COSTS.ai_analysis && F.CREDIT_COSTS.business === pricing.FEATURE_COSTS.website_analysis);
+check('C3. public facts quote the same costs', facts.costs.imageAd === F.CREDIT_COSTS.imageAdComplete && facts.costs.videoAd === F.CREDIT_COSTS.videoAdComplete && facts.costs.researchRun === pricing.FEATURE_COSTS.research_report && facts.costs.automationCreate === pricing.FEATURE_COSTS.automation);
+check('C4. no free allowance anywhere', !cm.PLAN_ALLOWANCES.free && F.ORIVEN_PLANS.free.credits === 0);
 
-// C. Card lists never claim more (or less) than the entitlements.
-const LABEL = { research: 'Research', autopilot: 'Automations', orivenChat: 'Oriven Chat', notifications: 'In-app notifications', prioritySupport: 'Priority Support', weeklyReport: 'Weekly AI Performance Report' };
-ORDER.forEach((id) => {
-  const p = ORIVEN_PLANS[id], bad = [];
-  Object.keys(LABEL).forEach((k) => {
-    const inc = (p.features || []).includes(LABEL[k]) || ((p.features || []).includes('Full advertising workflow') && (k === 'research' || k === 'autopilot'));
-    // "Limited advertising workflow" (Free) states Research/Automations are not part of it (its note).
-    const exc = (p.excludedFeatures || []).includes(LABEL[k]) || ((p.features || []).includes('Limited advertising workflow') && (k === 'research' || k === 'autopilot'));
-    if (inc && !p.entitlements[k]) bad.push('claims ' + k);
-    if (exc && p.entitlements[k]) bad.push('denies ' + k);
-    if (!inc && !exc && (id === 'free' || id === 'starter') && (k === 'research' || k === 'autopilot' || k === 'orivenChat')) bad.push('silent on ' + k);
-  });
-  check('C.' + id + ' card features / exclusions match entitlements', bad.length === 0, bad);
-});
+// D. Access is time-based in the browser exactly as on the server.
+const now = Date.parse('2026-11-15T12:00:00Z');
+const rows = [
+  { subscription_status: 'paid', access_expires_at: '2026-12-01T00:00:00Z' },
+  { subscription_status: 'paid', access_expires_at: '2026-11-01T00:00:00Z' },
+  { subscription_status: 'creator', access_expires_at: '2026-11-20T00:00:00Z' },
+  { subscription_status: 'free', access_expires_at: '2026-12-01T00:00:00Z' },
+  { subscription_status: 'paid', access_expires_at: null },
+  { subscription_status: 'professional' },
+];
+check('D1. orvEffectiveStatus (browser) agrees with pricing.hasAccess (server) on every case', rows.every((r) => (F.orvEffectiveStatus(r, now) !== 'free') === pricing.hasAccess(r, now)), rows.map((r) => [F.orvEffectiveStatus(r, now), pricing.hasAccess(r, now)]));
 
-// D. Credit allowances.
-ORDER.forEach((id) => {
-  check('D.' + id + ' credits ' + ORIVEN_PLANS[id].credits + ' = backend PLAN_ALLOWANCES', ORIVEN_PLANS[id].credits === cm.PLAN_ALLOWANCES[id], { fe: ORIVEN_PLANS[id].credits, be: cm.PLAN_ALLOWANCES[id] });
-});
-check('D.cycle Free resets daily (FREE_PLAN_CYCLE_DAYS = 1), paid plans monthly', cm.FREE_PLAN_CYCLE_DAYS === 1 && ORIVEN_PLANS.free.creditsCycle === 'day');
+// E. Renewal and VAT are stated the same way.
+check('E1. manual renewal, credits expire with access, 21% VAT', F.ORIVEN_PRICING.renewal === 'manual' && F.ORIVEN_PRICING.creditsExpireWithAccess === true && F.ORIVEN_PRICING.vatRate === pricing.VAT_RATE);
 
-// E. Metered costs: CREDIT_COSTS mirrors FEATURE_COSTS.
-const F = cm.FEATURE_COSTS;
-[['imageAd', 'image_generation'], ['videoAd', 'video_generation'], ['campaign', 'campaign_generation'], ['research', 'ai_analysis'], ['intelligence', 'ai_analysis'], ['chat', 'ai_chat'], ['business', 'website_analysis'], ['automation', 'automation']].forEach(([fe, be]) => {
-  check('E.' + fe + ' ' + CREDIT_COSTS[fe] + ' = FEATURE_COSTS.' + be, CREDIT_COSTS[fe] === F[be], { fe: CREDIT_COSTS[fe], be: F[be] });
-});
-check('E.image complete image ad = draft + image (' + CREDIT_COSTS.imageAdComplete + ')', CREDIT_COSTS.imageAdComplete === F.campaign_generation + F.image_generation);
-check('E.video complete video ad = draft + video (' + CREDIT_COSTS.videoAdComplete + ')', CREDIT_COSTS.videoAdComplete === F.campaign_generation + F.video_generation);
-
-// F. Prices: plans.js == email facts == public facts.
-['starter', 'creator', 'professional'].forEach((id) => {
-  const fe = ORIVEN_PLANS[id].price, em = Number(tpl.PLAN_INTRO[id].price), pub = (facts.plans.find((p) => p.id === id) || {}).price;
-  check('F.' + id + ' price €' + fe + ' identical in plans.js, emails and public facts', fe === em && fe === pub && tpl.PLAN_INTRO[id].credits === ORIVEN_PLANS[id].credits, { fe, em, pub });
-});
-check('F.free Free is €0 everywhere', ORIVEN_PLANS.free.price === 0 && facts.plans[0].price === 0);
-
-// G. Public facts' costs match the registry.
-check('G. tools/seo/facts.js costs match CREDIT_COSTS', facts.costs.imageAd === CREDIT_COSTS.imageAdComplete && facts.costs.videoAd === CREDIT_COSTS.videoAdComplete && facts.costs.researchRun === CREDIT_COSTS.research && facts.costs.automationCreate === CREDIT_COSTS.automation && facts.costs.chatMessage === CREDIT_COSTS.chat, facts.costs);
-
-console.log('\n' + (pass + fail) + ' checks run, ' + pass + ' passed, ' + fail + ' failed.');
-if (fail > 0) process.exit(1);
+console.log(`\n${pass + fail} checks run, ${pass} passed, ${fail} failed.`);
+process.exit(fail ? 1 : 0);

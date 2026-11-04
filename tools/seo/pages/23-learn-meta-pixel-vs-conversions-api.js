@@ -63,5 +63,5 @@ module.exports = {
     ['Does the Conversions API replace consent banners?', '<p>No. Consent and data-protection requirements apply to server events as well as browser events.</p>'],
   ],
   related: ['/learn/how-to-create-facebook-and-instagram-ads-with-ai/', '/learn/google-ads-vs-meta-ads/', '/product/meta-ads'],
-  cta: { title: 'Plan, create and launch Meta campaigns', text: 'Connect your Meta ad account and build Facebook and Instagram campaigns from a brief.', label: 'Get Started Free' },
+  cta: { title: 'Plan, create and launch Meta campaigns', text: 'Connect your Meta ad account and build Facebook and Instagram campaigns from a brief.', label: 'Get started' },
 };

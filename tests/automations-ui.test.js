@@ -121,7 +121,8 @@ async function go(page) {
 const reload = (page) => page.evaluate(() => orvAutomations.reload()).then(() => page.waitForTimeout(150));
 const text = (page, sel) => page.$eval(sel, (e) => e.innerText).catch(() => null);
 async function confirmDialog(page) { await page.waitForSelector('.ofd-backdrop .ofd-foot button', { timeout: 3000 }); const btns = await page.$$('.ofd-backdrop .ofd-foot button'); await btns[btns.length - 1].click(); await page.waitForTimeout(250); }
-async function tab(page, name) { await page.click('#auTab-' + name); await page.waitForTimeout(120); }
+// The sidebar link where it is on screen (desktop); on a phone the same page via the drawer's handler.
+async function tab(page, name) { const link = await page.$('.orv-sb .onv-item[data-onv="auto-' + name + '"]'); if (link && await link.isVisible()) await link.click(); else await page.evaluate((n) => orvAutomations.show(n), name); await page.waitForTimeout(150); }
 const lastCall = (S, m, p) => S.calls.filter((c) => c.m === m && (p instanceof RegExp ? p.test(c.p) : c.p === p)).pop();
 async function noSideScroll(page) { return page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1 && Array.from(document.querySelectorAll('#auRoot *, #auModal *')).filter((e) => { const r = e.getBoundingClientRect(); return r.width && r.right > window.innerWidth + 1; }).map((e) => e.className).slice(0, 5)); }
 
@@ -136,13 +137,13 @@ async function noSideScroll(page) { return page.evaluate(() => document.document
     const errors = await enter(page, S);
 
     check('Automations page is the active page', await page.evaluate(() => document.querySelector('.page.active').id === 'page-autopilot'));
-    check('page title says Automations', (await text(page, '.atm-title')) === 'Automations');
-    const lay = await page.evaluate(() => { const b = document.querySelector('[data-au="settings"]'); const w = document.querySelector('.atm-wrap').getBoundingClientRect(); const head = document.querySelector('.atm-head-actions').getBoundingClientRect(), title = document.querySelector('.atm-title').getBoundingClientRect(); return { label: b && b.getAttribute('aria-label'), title: b && b.getAttribute('title'), svg: b ? b.querySelector('svg').innerHTML : '', w: Math.round(w.width), actionsBesideTitle: head.top < title.bottom + 40 && head.left > title.right, rail: !!document.querySelector('.atm-ovgrid .atm-ovrail'), railLeft: document.querySelector('.atm-ovrail') ? Math.round(document.querySelector('.atm-ovrail').getBoundingClientRect().left) : 0, mainRight: document.querySelector('.atm-ovmain') ? Math.round(document.querySelector('.atm-ovmain').getBoundingClientRect().right) : 0 }; });
+    check('page title names the open Automations page (Overview)', (await text(page, '.atm-title')) === 'Overview');
+    const lay = await page.evaluate(() => { const b = document.querySelector('[data-au="settings"]'); const w = document.querySelector('.atm-wrap').getBoundingClientRect(); const head = document.querySelector('.atm-head-actions').getBoundingClientRect(), title = document.querySelector('.atm-title').getBoundingClientRect(); return { label: b && b.getAttribute('aria-label'), title: b && b.getAttribute('title'), svg: b ? b.querySelector('svg').innerHTML : '', w: Math.round(w.width), actionsBesideTitle: head.top < title.bottom + 40 && head.left > title.right, rail: !!document.querySelector('.atm-ovgrid .atm-ovrail'), railLeft: document.querySelector('.atm-ovrail') ? Math.round(document.querySelector('.atm-ovrail').getBoundingClientRect().left) : 0, mainRight: document.querySelector('.atm-ovmain') ? Math.round(document.querySelector('.atm-ovmain').getBoundingClientRect().right) : 0, area: (() => { const m = document.querySelector('#page-autopilot'); const cs = getComputedStyle(m); return Math.round(m.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)); })() }; });
     check('settings button: sliders icon (not the sun-like one), labelled "Automation settings"', lay.label === 'Automation settings' && lay.title === 'Automation settings' && (lay.svg.match(/<circle/g) || []).length === 3 && !/M8 1.5v2/.test(lay.svg), lay);
-    check('wider operations layout at 1366: content uses the page width, actions beside the title, rail beside the main column', lay.w >= 1200 && lay.actionsBesideTitle && lay.rail && lay.railLeft > lay.mainRight, lay);
-    check('sidebar label renamed', await page.evaluate(() => Array.from(document.querySelectorAll('.orv-ni[data-orv-page="autopilot"] .orv-ni-label')).every((e) => e.textContent.trim() === 'Automations')));
+    check('wider operations layout at 1366: content uses the page width, actions beside the title, rail beside the main column', lay.w >= lay.area - 80 && lay.actionsBesideTitle && lay.rail && lay.railLeft > lay.mainRight, lay);
+    check('sidebar section is named Automations', await page.evaluate(() => { const h = Array.from(document.querySelectorAll('.orv-sb .onv-sec[data-sec="au"] .onv-sec__t')); return h.length > 0 && h.every((e) => e.textContent.trim() === 'Automations'); }));
     check('old Autopilot script no longer loaded', await page.evaluate(() => typeof window.apWizStart === 'undefined' && typeof window.orvAutomations === 'object'));
-    check('four tabs with roles', await page.evaluate(() => document.querySelectorAll('#auRoot [role="tab"]').length === 4 && document.querySelector('#auRoot [role="tabpanel"]') !== null));
+    check('no in-page tab bar; the four pages open from the sidebar', await page.evaluate(() => !document.querySelector('#auRoot [role="tab"]') && ['overview', 'scheduler', 'rules', 'activity'].every((t) => !!document.querySelector('.orv-sb .onv-item[data-onv="auto-' + t + '"]'))));
     const empty = await text(page, '.atm-empty');
     check('empty state explains what can be automated', /Nothing is automated yet/.test(empty || '') && /business hours/.test(empty || ''), empty);
     check('status shows check interval', /Running · rules checked every 4 h/.test((await text(page, '.atm-pill')) || ''), await text(page, '.atm-pill'));
@@ -232,6 +233,7 @@ async function noSideScroll(page) { return page.evaluate(() => document.document
     check('Escape closes the dialog', await page.evaluate(() => document.getElementById('auModal').style.display === 'none'));
 
     // ── 5. Schedule (business hours) ───────────────────────────────────
+    await tab(page, 'scheduler'); // "New schedule" sits on the Scheduler (and Overview) page
     await page.click('#auRoot [data-au="new-schedule"]');
     await page.waitForSelector('#auModal .atm-builder');
     await page.click('#auModal input[data-bf="platform"][value="meta"]', { force: true });
@@ -278,7 +280,7 @@ async function noSideScroll(page) { return page.evaluate(() => document.document
     await tab(page, 'overview');
     const ov = await text(page, '#auPanel');
     check('approval shows campaign, reason and expiry', /Pause · Spring Sale/.test(ov) && /Because Cost per conversion \(CPA\) was 41\.5/.test(ov) && /expires in 40 h/.test(ov), ov);
-    check('overview tab shows approval count', /Overview\s*2/.test((await text(page, '#auTab-overview')) || ''));
+    check('overview shows the approval count', await page.evaluate(() => Array.from(document.querySelectorAll('#auRoot .atm-tile')).some((t) => /Awaiting approval/.test(t.textContent) && t.querySelector('.atm-tile-v').textContent.trim() === '2')));
     await page.click('#auRoot [data-au="approve"][data-id="ap-1"]');
     await confirmDialog(page);
     await page.waitForTimeout(300);
@@ -323,17 +325,18 @@ async function noSideScroll(page) { return page.evaluate(() => document.document
     await page.waitForTimeout(300);
     const partRows = await page.$$eval('#auPanel .atm-act', (els) => els.map((el) => ({ t: el.textContent, badge: (el.querySelector('.atm-badge') || {}).className })));
     check('partial activation: own filter, warn badge "Partly done", reason + counts shown', /status=partial/.test((lastCall(S, 'GET', '/api/automations/activity') || {}).q || '') && partRows.length === 1 && /is-warn/.test(partRows[0].badge) && /Partly done/.test(partRows[0].t) && /some ad sets or ads are still paused/.test(partRows[0].t) && /2 of its ad sets and ads/.test(partRows[0].t) && !/Completed/.test(partRows[0].t), partRows);
-    // keyboard: arrow keys move between tabs
-    await page.focus('#auTab-activity');
-    await page.keyboard.press('ArrowLeft');
-    await page.waitForTimeout(100);
-    check('arrow keys switch tabs', await page.evaluate(() => document.activeElement.id === 'auTab-rules' && document.getElementById('auTab-rules').getAttribute('aria-selected') === 'true'));
+    // keyboard: the pages open from the sidebar links (the in-page tab bar was removed)
+    await page.focus('.orv-sb .onv-item[data-onv="auto-rules"]');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(400);
+    check('keyboard: Enter on the sidebar Rules link opens Rules', await page.evaluate(() => window.orvAutomations.tab() === 'rules' && document.getElementById('auPageH').textContent === 'Rules'));
     await page.click('#auRoot [data-au="history"][data-id="auto-2"]');
     await page.waitForTimeout(350);
     check('history opens with that automation’s activity', /€40\.00 → €46\.00/.test((await text(page, '#auModalBody')) || '') && /automation_id=auto-2/.test((lastCall(S, 'GET', '/api/automations/activity') || {}).q));
     await page.keyboard.press('Escape');
 
     // ── 10. Pause all + settings ───────────────────────────────────────
+    await tab(page, 'overview'); // both sit in the Overview page header
     await page.click('#auRoot [data-au="pauseall"]');
     await confirmDialog(page);
     await page.waitForTimeout(350);
@@ -361,9 +364,10 @@ async function noSideScroll(page) { return page.evaluate(() => document.document
       await page.waitForTimeout(120);
       await tab(page, 'overview');
       const t = await text(page, '.atm-title');
-      const nav = await page.$eval('.orv-ni[data-orv-page="autopilot"] .orv-ni-label', (e) => e.textContent.trim());
+      const nav = await page.$eval('.orv-sb .onv-sec[data-sec="au"] .onv-sec__t', (e) => e.textContent.trim());
+      const ovName = await page.evaluate((lng) => (orvAutomations._STR[lng] || orvAutomations._STR.en).tabOverview, l);
       const raw = await page.evaluate(() => /\b(rs|act|ev|metric|op|rel|plat)\.[a-z_]+\b|\{[a-z]+\}/.test(document.getElementById('auRoot').innerText));
-      check(l + ': title + nav translated, no raw keys', t === TITLES[l] && nav === TITLES[l] && !raw, { t, nav, raw });
+      check(l + ': page title (Overview) + sidebar section translated, no raw keys', t === ovName && (l === 'en' || t !== 'Overview') && nav === TITLES[l] && !raw, { t, nav, raw });
       await page.click('#auRoot [data-au="new-rule"]');
       await page.waitForSelector('#auModal .atm-builder');
       await page.click('#auModal input[data-bf="platform"][value="meta"]', { force: true });
@@ -411,6 +415,7 @@ async function noSideScroll(page) { return page.evaluate(() => document.document
     await tab(mp, 'rules');
     check('mobile: last-check result and skips shown', /3 campaign\(s\), 1 matched/.test((await text(mp, '#auPanel')) || '') && /not enough data yet \(2\)/.test((await text(mp, '#auPanel')) || ''));
     await mp.screenshot({ path: path.join(SHOT_DIR, 'rules-mobile-light.png'), fullPage: true });
+    await tab(mp, 'scheduler');
     await mp.click('#auRoot [data-au="new-schedule"]');
     await mp.waitForSelector('#auModal .atm-builder');
     await mp.click('#auModal input[data-bf="platform"][value="meta"]', { force: true });

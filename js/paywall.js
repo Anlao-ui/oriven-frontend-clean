@@ -24,53 +24,38 @@ function openPaywall(actionCtx){
 }
 
 function _renderPaywallCards(){
-  // _dbSubscriptionStatus is the Supabase-authoritative value (set by _loadUserProfile).
-  // Only fall back to S.currentPlan or localStorage when DB hasn't loaded yet.
-  var plan = "free";
-  try {
-    if(typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus !== null){
-      plan = _dbSubscriptionStatus;
-    } else if(typeof S !== "undefined" && S && S.currentPlan){
-      plan = S.currentPlan;
-    } else if(typeof loadSettings === "function"){
-      var cfg = loadSettings();
-      if(cfg && cfg.currentPlan) plan = cfg.currentPlan;
-    }
-  } catch(_){}
-
-  // Free is never a selectable option here -- it only ever appears as the
-  // user's own current-state card, shown alongside Starter/Creator/
-  // Professional as the primary upgrade choices, and only when the
-  // signed-in user's actual plan genuinely IS free. A paid user (starter/
-  // creator/professional) sees only the 3 paid plans, exactly like Settings
-  // → Subscription (settings.js renderPlanPanel uses the same rule).
-  var plansForCards = (plan === "free") ? ORIVEN_PLAN_LIST : ORIVEN_PAID_PLANS;
-
-  // Render all cards fresh from the central plan config
+  // The five access periods, the same for everyone (plans.js). An account
+  // that already has access can buy another period: its credits arrive now
+  // and its time is added after the current access ends.
   var grid = document.getElementById("pwPlanGrid");
-  if(grid && typeof renderPWPricingCards === "function") renderPWPricingCards(grid, plansForCards);
+  if(grid && typeof renderPWPricingCards === "function") renderPWPricingCards(grid, ORIVEN_PERIOD_PLANS);
+  _pwRenderAccessNote();
+}
 
-  // Mark the user's current plan button as inactive/labeled "Current Plan"
-  // (Free included when it's genuinely current) rather than presenting it
-  // as another selectable tier.
-
-  // Onboarding plan step (openOnboardingPlans): a new Free account picks how
-  // to start, so Free stays selectable ("Continue with Free") instead of
-  // showing as the disabled current plan.
+// One line under the title: when the current access ends (account with
+// access), or the "explore first" way out (onboarding: no plan needed to
+// look around). Rebuilt on every open.
+function _pwRenderAccessNote(){
+  var modal = document.getElementById("modal-paywall");
+  var grid = document.getElementById("pwPlanGrid");
+  if(!modal || !grid) return;
+  var old = modal.querySelector(".pw-access-note"); if(old && old.parentNode) old.parentNode.removeChild(old);
+  var acc = (typeof window.orvAccess === "function") ? window.orvAccess() : null;
   var onboarding = !!(_pwAction && _pwAction.ctx && _pwAction.ctx.onboarding);
-  plansForCards.forEach(function(p){
-    if(plan !== p.id) return;
-    if(onboarding && p.id === "free"){
-      var fb = document.getElementById("paywall-btn-free");
-      if(fb){ fb.textContent = "Continue with Free"; fb.setAttribute("data-label", "Continue with Free"); }
-      return;
-    }
-    var btn = document.getElementById("paywall-btn-" + p.id);
-    if(!btn) return;
-    btn.textContent = "Current Plan";
-    btn.disabled    = true;
-    btn.className   = "pw-btn";
-  });
+  var html = "";
+  if(acc && acc.active && acc.expiresAt){
+    html = "Your access runs until " + _pwDate(acc.expiresAt) + ". A new plan adds its credits right away and its time after that date.";
+  } else if(onboarding){
+    html = 'Not ready to choose? <button type="button" class="pw-explore-btn" onclick="continueWithoutPlan()">Explore first</button> and pick a plan when you want to create, research or launch.';
+  }
+  if(!html) return;
+  var p = document.createElement("p");
+  p.className = "pw-access-note";
+  p.innerHTML = html;
+  grid.parentNode.insertBefore(p, grid);
+}
+function _pwDate(iso){
+  try { return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }); } catch(_){ return String(iso).slice(0, 10); }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -93,66 +78,52 @@ function _pwActionCopy(ctx){
   var C = CREDIT_COSTS;
   var bal = (ctx.balance != null && isFinite(Number(ctx.balance))) ? Number(ctx.balance) : null;
   var have = bal != null ? ", and you have " + orvFormatCredits(bal) : "";
+  var noAccess = ctx.code === "SUBSCRIPTION_REQUIRED" || ctx.code === "PLAN_REQUIRED" || _pwCurrentPlan() === "free";
   if(ctx.action === "research"){
-    var p = ORIVEN_PLANS[_pwCurrentPlan()];
-    var notIncluded = ctx.code === "PLAN_REQUIRED" || !(p && p.entitlements && p.entitlements.research);
     return {
       title: "You’re ready to research your market.",
-      sub: notIncluded
-        ? "Research is included from " + ORIVEN_PLANS.starter.name + ". Each investigation uses " + C.research + " credits. Your question is saved."
+      sub: noAccess
+        ? "Research is part of every OrivenAI plan. Each investigation uses " + C.research + " credits. Your question is saved."
         : "Each investigation uses " + C.research + " credits" + have + ". Your question is saved."
     };
   }
   if(ctx.action === "image"){
     return { title: "You’re ready to create your ad.",
-      sub: "Rendering an ad image uses " + C.imageAd + " credits" + have + ". Your campaign and brief are saved." };
+      sub: noAccess
+        ? "Ad images are part of every OrivenAI plan; each uses " + C.imageAd + " credits. Your campaign and brief are saved."
+        : "Rendering an ad image uses " + C.imageAd + " credits" + have + ". Your campaign and brief are saved." };
   }
-  if(ctx.code === "SUBSCRIPTION_REQUIRED"){
+  if(noAccess){
     return { title: "You’re ready to create your ad.",
-      sub: "Free includes one campaign build a day, and today’s is used. Choose a plan to build this one now. Your brief is saved." };
+      sub: "Creating ads is part of every OrivenAI plan. Choose how long you want access; nothing renews automatically. Your brief is saved." };
   }
   return { title: "You’re ready to create your ad.",
     sub: "Building a campaign uses " + C.campaign + " credits" + have + ". Your brief is saved." };
 }
 
-// Whether a plan covers the action, with the honest reason.
+// What a plan's credits cover for the action (every plan includes every feature).
 function _pwPlanFit(plan, ctx){
   var C = CREDIT_COSTS;
-  if(!plan) return null;
-  var perCycle = plan.cycleLabel === "day" ? "day" : "month";
-  if(ctx.action === "research"){
-    if(!(plan.entitlements && plan.entitlements.research)) return { ok: false, text: "Research isn’t included" };
-    return { ok: true, text: "Research included · up to " + orvFormatCredits(Math.floor(plan.credits / C.research)) + " investigations / " + perCycle };
-  }
-  if(plan.id === "free"){
-    if(ctx.action === "image") return { ok: false, text: "Ad images need " + C.imageAd + " credits. Free has " + plan.credits + " a day" };
-    return { ok: false, text: "One campaign build a day · no ad images" };
-  }
-  return { ok: true, text: "Up to " + orvFormatCredits(Math.floor(plan.credits / C.imageAdComplete)) + " complete image ads / " + perCycle };
+  if(!plan || !plan.credits) return null;
+  if(ctx.action === "research") return { ok: true, text: "Up to " + orvFormatCredits(Math.floor(plan.credits / C.research)) + " investigations" };
+  return { ok: true, text: "Up to " + orvFormatCredits(Math.floor(plan.credits / C.imageAdComplete)) + " complete image ads" };
 }
 
 function _pwRenderActionFit(ctx){
   var grid = document.getElementById("pwPlanGrid");
-  if(!grid || typeof ORIVEN_PLANS === "undefined") return;
-  var firstFit = null;
-  (typeof ORIVEN_PLAN_LIST !== "undefined" ? ORIVEN_PLAN_LIST : []).forEach(function(p){
+  if(!grid || typeof ORIVEN_PERIOD_PLANS === "undefined") return;
+  ORIVEN_PERIOD_PLANS.forEach(function(p){
     var btn = document.getElementById("paywall-btn-" + p.id);
     var card = btn && btn.closest ? btn.closest(".pw-card") : null;
     if(!card) return;
     var fit = _pwPlanFit(p, ctx);
     if(!fit) return;
-    if(fit.ok && !firstFit) firstFit = card;
     var el = document.createElement("div");
     el.className = "pw-fit " + (fit.ok ? "pw-fit-yes" : "pw-fit-no");
     el.innerHTML = '<span class="pw-fit-ic" aria-hidden="true">' + (fit.ok ? "✓" : "–") + '</span><span>' + fit.text + '</span>';
     var anchor = card.querySelector(".pw-credits-inline");
     if(anchor && anchor.nextSibling) card.insertBefore(el, anchor.nextSibling); else card.appendChild(el);
-    if(p.id === "free" && btn && !btn.disabled && !ctx.onboarding){ btn.textContent = "Stay on Free"; btn.setAttribute("data-label", "Stay on Free"); }
   });
-  if(firstFit){
-    var line = firstFit.querySelector(".pw-fit-yes");
-    if(line) line.insertAdjacentHTML("beforeend", '<span class="pw-fit-tag">Lowest plan for this</span>');
-  }
 }
 
 function openActionPaywall(ctx){
@@ -178,29 +149,20 @@ function openActionPaywall(ctx){
 window.openActionPaywall = openActionPaywall;
 
 // ════════════════════════════════════════════════════════════════
-// ONBOARDING PLAN STEP — the same modal, opened from the welcome modal
-// (onboarding.js) after a new Free account picks what to do first. Free is
-// selectable; paid plans use the normal Stripe checkout (selectPlan). For
-// Create/Research each card also says whether it covers that action, from
-// the same plan config as the action paywall. "Back" returns to the welcome.
-//   goal: 'create' | 'explore' — before anything is made ("Back" returns to
-//         the welcome); 'first_ad' — right after the free first ad: no Back,
-//         no close, the user picks a plan (Free is one of them).
+// ONBOARDING PLAN STEP — the same modal, opened from the welcome tour
+// (onboarding.js) when a new account without a plan picks what to do first.
+// The five plans use the normal Stripe checkout (selectPlan); "Explore
+// first" (continueWithoutPlan) finishes onboarding without a plan. For
+// Create each card also says what its credits cover. "Back" returns to the
+// welcome.
+//   goal: 'create' | 'explore'. ('first_ad' belonged to the retired free
+//   first ad; it is kept so an old saved stage still opens the plans.)
 // ════════════════════════════════════════════════════════════════
 var _PW_ONBOARDING_COPY = {
-  create:   { eyebrow: "Your first ad",   title: "Choose how you’d like to start.", sub: "Start on Free or pick a plan for more credits and ad images. You can change your plan anytime in Settings." },
-  explore:  { eyebrow: "Your workspace",  title: "Choose how you’d like to start.", sub: "Start on Free and look around, or pick a plan now. You can change your plan anytime in Settings." },
-  first_ad: { eyebrow: "Your first ad is ready", title: "Your first ad is ready!", sub: "You’ve created your first campaign with OrivenAI. Choose how you’d like to continue." }
+  create:   { eyebrow: "Your first ad",   title: "Choose how long you want OrivenAI.", sub: "Every plan includes the full product; plans differ only in period, price and credits. You pay once, and nothing renews automatically." },
+  explore:  { eyebrow: "Your workspace",  title: "Choose how long you want OrivenAI.", sub: "Every plan includes the full product; plans differ only in period, price and credits. You pay once, and nothing renews automatically." },
+  first_ad: { eyebrow: "Your first ad",   title: "Choose how long you want OrivenAI.", sub: "Every plan includes the full product; plans differ only in period, price and credits. You pay once, and nothing renews automatically." }
 };
-
-// The honest Free line under the cards after the first ad: Free credits
-// reset every day (ensure_free_daily_cycle sets the balance, it never adds),
-// so they never add up to another image ad. Numbers from plans.js.
-function _pwFreeNote(){
-  if(typeof ORIVEN_PLANS === "undefined" || typeof CREDIT_COSTS === "undefined") return "";
-  return "Free includes " + ORIVEN_PLANS.free.credits + " credits a day. They reset daily rather than add up, so another image ad (" +
-    CREDIT_COSTS.imageAdComplete + " credits) needs a paid plan. Research and Automations are included from " + ORIVEN_PLANS.starter.name + ". Your first ad stays in your workspace either way.";
-}
 
 function openOnboardingPlans(goal){
   var modal = document.getElementById("modal-paywall");
@@ -220,16 +182,6 @@ function openOnboardingPlans(goal){
   if(skipEl)  skipEl.textContent = "Back";
   _pwAction.setTitle = titleEl && titleEl.innerHTML;
   modal.classList.add("pw-onboarding");
-  if(goal === "first_ad"){
-    modal.classList.add("pw-choose");
-    var grid = document.getElementById("pwPlanGrid");
-    if(grid && !modal.querySelector(".pw-ob-note")){
-      var note = document.createElement("p");
-      note.className = "pw-ob-note";
-      note.textContent = _pwFreeNote();
-      grid.parentNode.insertBefore(note, grid);
-    }
-  }
   _renderPaywallCards();
   if(_pwAction.ctx.action) _pwRenderActionFit(_pwAction.ctx);
   // No paywall_shown event here: lifecycle emails read it as a blocked
@@ -322,113 +274,33 @@ function _pwEndAction(){
 // CONTEXTUAL UPGRADE PROMPTS — shown when a specific limit is hit
 // ════════════════════════════════════════════════════════════════
 
+// One product: every plan includes every feature, so a limit message never
+// names a "higher" plan. Running out of credits or access means buying
+// another period (its credits arrive at once).
 var _LIMIT_MSGS = {
-  brand: {
-    title:   "Brand limit reached.",
-    sub:     "Upgrade to manage more brands from one Brand Identity system.",
-    upgrade: "creator"
-  },
-  competitor: {
-    title:   "Competitor limit reached.",
-    sub:     "Upgrade to track more competitors and stay ahead of the market.",
-    upgrade: "creator"
-  },
-  website: {
-    title:   "Website limit reached.",
-    sub:     "Upgrade to monitor multiple websites and catch brand drift everywhere.",
-    upgrade: "creator"
-  },
-  credits: {
-    title:   "Create credits used.",
-    sub:     "Upgrade for more credits and keep generating on-brand content.",
-    upgrade: "creator"
-  },
-  credits_free: {
-    title:   "Today's free credits used.",
-    sub:     "Your 10 free credits refresh in 24 hours — or upgrade now for more credits and higher limits today.",
-    upgrade: "creator"
-  },
-  brief: {
-    title:   "Daily Brief requires Creator.",
-    sub:     "Upgrade to receive your Brand Brief every morning instead of weekly.",
-    upgrade: "creator"
-  },
-  history: {
-    title:   "Extended history requires Professional.",
-    sub:     "Upgrade to access up to 365 days of brand intelligence history.",
-    upgrade: "professional"
-  },
-  // V10 entitlements (plans.js / server planEntitlements.js): Research and
-  // Autopilot are included from Starter, Oriven Chat from Creator.
-  autopilot: {
-    title:   "Automations are available from Starter.",
-    sub:     "Starter includes the complete OrivenAI workflow, from Control Center to Automations.",
-    upgrade: "starter"
-  },
-  research: {
-    title:   "Research is available from Starter.",
-    sub:     "Starter includes the complete OrivenAI workflow, from Control Center to Automations.",
-    upgrade: "starter"
-  },
-  chat: {
-    title:   "Oriven Chat is available from Creator.",
-    sub:     "Creator adds Oriven Chat to the complete advertising workflow.",
-    upgrade: "creator"
-  },
-  autopilot_creator: {
-    title:   "Automation limit reached.",
-    sub:     "Upgrade for more active automations.",
-    upgrade: "professional"
-  },
-  intelligence: {
-    title:   "Intelligence limit reached.",
-    sub:     "Upgrade to run more AI analyses on your ad accounts.",
-    upgrade: "creator"
-  },
-  intelligence_free: {
-    title:   "This month's Intelligence use is used.",
-    sub:     "Your free Intelligence analysis resets next month — or upgrade now for more analyses today.",
-    upgrade: "creator"
-  },
-  intelligence_creator: {
-    title:   "Intelligence limit reached.",
-    sub:     "Upgrade to Professional for unlimited Intelligence analyses.",
-    upgrade: "professional"
-  }
-  // 'team' upgrade message removed (Autopilot Redesign + Team Removal
-  // sprint) — Team is no longer a product surface, so no upgrade path to
-  // it exists anymore; openLimitReached('team') has no remaining callers.
+  brand:      { title: "Brand limit reached.",      sub: "This is the most brands one workspace can manage right now." },
+  competitor: { title: "Competitor limit reached.", sub: "Remove a competitor you no longer follow to add another." },
+  website:    { title: "Website limit reached.",    sub: "Remove a website you no longer monitor to add another." },
+  credits:    { title: "Your credits are used.",    sub: "Another plan adds its credits right away; its time starts when your current access ends." },
+  access:     { title: "Your access has ended.",    sub: "Choose a plan to continue. Your work is still in your account." },
+  autopilot:  { title: "Automations are part of every plan.", sub: "Choose how long you want access; nothing renews automatically." },
+  research:   { title: "Research is part of every plan.",     sub: "Choose how long you want access; nothing renews automatically." },
+  chat:       { title: "Oriven Chat is part of every plan.",  sub: "Choose how long you want access; nothing renews automatically." },
+  autopilot_creator: { title: "Automation limit reached.", sub: "Pause or delete an automation you no longer need to add another." },
+  intelligence: { title: "AI analysis is part of every plan.", sub: "Choose how long you want access; each analysis uses credits from your plan." }
 };
 
 function openLimitReached(type){
-  // Free's daily reset means "you've used it up" reads very differently
-  // than a paid plan's monthly cap ("come back tomorrow" vs "upgrade") --
-  // swap in the free-specific copy for the two limit types Free actually
-  // has (credits, intelligence) without requiring every call site to know
-  // the current plan itself.
+  // Without access every limit is really "choose a plan".
   try {
-    if((type === "credits" || type === "intelligence") && typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus === "free" && _LIMIT_MSGS[type + "_free"]){
-      type = type + "_free";
-    }
+    if(typeof _dbSubscriptionStatus !== "undefined" && _dbSubscriptionStatus === "free" && ["credits", "intelligence"].indexOf(type) !== -1) type = "access";
   } catch(_){}
-
-  var m = _LIMIT_MSGS[type] || {
-    title:   "Plan limit reached.",
-    sub:     "Upgrade to get more intelligence, monitoring and scale.",
-    upgrade: "creator"
-  };
-
+  var m = _LIMIT_MSGS[type] || { title: "Plan limit reached.", sub: "Choose a plan to continue." };
   var titleEl = document.querySelector("#modal-paywall .pw-title");
   var subEl   = document.querySelector("#modal-paywall .pw-sub");
-  if(titleEl) titleEl.innerHTML = m.title + ' <em>Upgrade to ' + (_upLabel(m.upgrade)) + '.</em>';
+  if(titleEl) titleEl.textContent = m.title;
   if(subEl)   subEl.textContent = m.sub;
-
   openPaywall();
-}
-
-function _upLabel(planId){
-  var p = typeof ORIVEN_PLANS !== "undefined" && ORIVEN_PLANS[planId];
-  return p ? p.name : (planId ? planId.charAt(0).toUpperCase() + planId.slice(1) : "a higher plan");
 }
 
 // ════════════════════════════════════════════════════════════════

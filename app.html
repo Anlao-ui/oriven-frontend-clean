@@ -17,7 +17,7 @@
 <link rel="icon" href="assets/favicon-48.png" type="image/png" sizes="48x48">
 <link rel="shortcut icon" href="assets/favicon-48.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/orivenWorkspace.css">
 <link rel="stylesheet" href="css/orivenFlow.css">
@@ -32,6 +32,12 @@
 <link rel="stylesheet" href="css/launch.css">
 <link rel="stylesheet" href="css/campaigns.css">
 <link rel="stylesheet" href="css/tour.css">
+<link rel="stylesheet" href="css/onboarding-flow.css">
+<link rel="stylesheet" href="css/app-nav.css">
+<link rel="stylesheet" href="css/plan-pages.css">
+<link rel="stylesheet" href="css/insights.css">
+<link rel="stylesheet" href="css/my-content.css">
+<link rel="stylesheet" href="css/plan-confirm.css">
 
 
 
@@ -203,113 +209,15 @@
   <aside class="orv-sb" id="orvSidebar">
 
     <div class="orv-sb-logo">
-      <img src="assets/orivenlogo-256.webp" alt="ORIVEN" class="orv-sb-logo-img">
-      <span class="orv-sb-logo-name">ORIVEN</span>
+      <img src="assets/orivenlogo-256.webp" alt="OrivenAI" class="orv-sb-logo-img">
     </div>
 
-    <nav class="orv-sb-nav">
-      <!-- The six pages, in workflow order: Control Center (the start
-           page: business context, advertising overview and Planning) →
-           Research → Create → Launch → Campaigns → Autopilot. The step
-           numbers and the line beside them are orientation only (Settings
-           → General → "Show workflow steps"); every page stays open in any
-           order. Control Center keeps the internal key 'businessbrain'. -->
-      <button class="orv-ni" data-orv-page="businessbrain" data-wf="1" data-tip="Control Center" onclick="_orvNav('businessbrain','page-business-brain',this)">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle class="orv-ni-bulb-glow" cx="8" cy="8" r="5.2" fill="var(--green)" stroke="none" opacity="0"/><g class="orv-ni-bulb-body"><rect x="2.25" y="2.25" width="5" height="6" rx="1.2"/><rect x="8.75" y="2.25" width="5" height="3.5" rx="1.2"/><rect x="8.75" y="7.25" width="5" height="6.5" rx="1.2"/><rect x="2.25" y="9.75" width="5" height="4" rx="1.2"/></g></svg>
-        <span class="orv-ni-label">Control Center</span>
-        <span class="orv-wf" aria-hidden="true">01</span>
-      </button>
-
-      <!-- Research — replaces the former top-level Intelligence nav item.
-           Intelligence's real functionality (brief/monitoring/opportunities)
-           was NOT deleted — it now lives as the "Insights" tab inside the
-           Campaigns hub (see orvHubTabsCampaigns above), since it answers
-           "what's happening with MY campaigns," which belongs to Campaigns.
-           Research is a genuinely different concept: "what's working in
-           advertising outside my campaigns" — see #page-research. -->
-      <button class="orv-ni" data-orv-page="research" data-wf="2" data-tip="Research" onclick="_orvNav('research','page-research',this)">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.3 10.3L14 14"/></svg>
-        <span class="orv-ni-label">Research</span>
-        <span class="orv-wf" aria-hidden="true">02</span>
-      </button>
-
-      <button class="orv-ni" data-orv-page="create" data-wf="3" data-tip="Create" onclick="_orvNav('create','page-create',this)">
-        <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path class="orv-ni-spk orv-ni-spk-a" d="M6.75 2.25l1.15 3.35 3.35 1.15-3.35 1.15-1.15 3.35-1.15-3.35-3.35-1.15 3.35-1.15z"/><path class="orv-ni-spk orv-ni-spk-b" d="M12.25 9.75v3.5M10.5 11.5H14"/><path class="orv-ni-spk orv-ni-spk-c" d="M12 2.5v1.5M11.25 3.25h1.5"/></svg></span>
-        <span class="orv-ni-label">Create</span>
-        <span class="orv-wf" aria-hidden="true">03</span>
-      </button>
-
-      <!-- Launch — deploy/publish only. Real, dedicated page (see #page-launch)
-           that lists campaigns not yet live and reopens them via the
-           existing openCampaignWorkspace()/_cgrRenderPackage() flow, which
-           already carries the real readiness-gate + publish infrastructure
-           (_orvCheckSetupReadyBeforePublish, per-platform Publish buttons).
-           No new platform-integration code — this page is a selection/entry
-           point into that existing, working flow. -->
-      <button class="orv-ni" data-orv-page="launch" data-wf="4" data-tip="Launch" onclick="_orvNav('launch','page-launch',this)">
-        <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.5V3M8 3L4.2 6.8M8 3l3.8 3.8"/><path d="M3 13.5h10"/></svg></span>
-        <span class="orv-ni-label">Launch</span>
-        <span class="orv-wf" aria-hidden="true">04</span>
-      </button>
-
-      <!-- Campaigns hub (Oriven 1.0 nav redesign — absorbs the former separate
-           Campaigns / Ads Manager / Analytics sidebar items as tabs; see
-           orvHubTabsCampaigns above) -->
-      <button class="orv-ni" data-orv-page="performance" data-wf="5" data-orv-hub="campaigns" data-tip="Campaigns" onclick="_orvNav('performance','page-performance',this)">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="10" height="11" rx="1.5"/><path d="M6 7h4M6 9.5h4M6 12h2.5"/><rect class="orv-ni-clip" x="6" y="1.6" width="4" height="2.6" rx="1"/></svg>
-        <span class="orv-ni-label">Campaigns</span>
-        <span class="orv-wf" aria-hidden="true">05</span>
-        <span class="orv-ni-badge" id="orvIntelBadge" style="display:none"></span>
-      </button>
-
-      <!-- Autopilot (V9 — restored to primary nav; previously reachable only
-           via the notification bell's approval dropdown) -->
-      <button class="orv-ni" data-orv-page="autopilot" data-wf="6" data-wf-last data-tip="Automations" onclick="_orvNav('autopilot','page-autopilot',this)">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><g class="orv-ni-wf"><rect class="orv-ni-wf-n orv-ni-wf-n1" x="1.75" y="2" width="4" height="4" rx="1.1"/><rect class="orv-ni-wf-n orv-ni-wf-n2" x="1.75" y="10" width="4" height="4" rx="1.1"/><rect class="orv-ni-wf-n orv-ni-wf-n3" x="10.25" y="6" width="4" height="4" rx="1.1"/><path class="orv-ni-wf-l orv-ni-wf-l1" pathLength="1" d="M5.75 4h1.5a1.5 1.5 0 0 1 1.5 1.5V8h1.5"/><path class="orv-ni-wf-l orv-ni-wf-l2" pathLength="1" d="M5.75 12h1.5a1.5 1.5 0 0 0 1.5-1.5V8"/></g></svg>
-        <span class="orv-ni-label">Automations</span>
-        <span class="orv-wf" aria-hidden="true">06</span>
-      </button>
-
-      <!-- Team removed from primary navigation (Autopilot Redesign + Team
-           Removal sprint) — ORIVEN's six primary products are Create,
-           Research, Launch, Campaigns, Autopilot, Business; Team never
-           justified a seventh. #page-team / openInviteModal() /
-           /api/send-invite are left completely intact server-side (no
-           destructive removal), just no longer reachable from primary
-           nav — see _orvNav's team-handling and _orvUpdateTeamNavVisibility
-           (now a safe no-op, both kept for reference) for the rest of the
-           removal. -->
+    <nav class="orv-sb-nav" aria-label="OrivenAI">
+      <!-- Six sections, fifteen pages: rendered by js/appNav.js (css/app-nav.css). -->
     </nav>
 
-    <!-- Settings + Account — moved back from the retired header (Oriven
-         1.0 V11); same ids/handlers as when they briefly lived there. -->
-    <div class="orv-sb-bottom">
-      <!-- App Launcher (Sidebar Refinement) — replaces the old always-
-           visible inline platform shortcuts above. Same underlying data/
-           handlers (_orvPlatShortcutRow, _orvPlatOpen, the existing
-           /api/{platform}/status calls) -- only the container changes,
-           from "always rendered in the rail" to "rendered on demand in a
-           small popover", per _orvToggleLauncher() below. -->
-      <button type="button" class="orv-ni orv-launcher-btn" id="orvLauncherBtn" data-orv-page="platforms" data-tip="Ad Platforms" aria-label="Ad Platforms" onclick="_orvOpenPlatforms()">
-        <span class="orv-launcher-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-      </button>
-      <div class="orv-sb-sep" aria-hidden="true"></div>
-      <button class="orv-ni" id="orvNavSettingsBtn" data-tip="Settings" onclick="openSettingsModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span class="orv-ni-label">Settings</span>
-      </button>
-      <!-- Workspace/account button (Sidebar Refinement) — visually just
-           another .orv-ni icon button now (same size/radius/hover as
-           Settings); the name/plan text that used to sit permanently
-           below the avatar moved into the hover tooltip (data-tip, set by
-           _syncOrvUser() below) instead of being dropped. Reuses
-           openSettingsModal() -- the same modal the Settings button opens
-           already has the Workspace Name/Account/Plan panels, i.e. this
-           *is* the existing workspace/account surface, not a new one. -->
-      <button type="button" class="orv-ni" id="orvSbWorkspace" data-tip="Account" onclick="if(typeof openSettingsModal === 'function') openSettingsModal();">
-        <span class="orv-sb-avatar" id="orvSbAvatar">A</span>
-      </button>
-    </div>
+    <!-- Ad Platforms + account/Settings: rendered by js/appNav.js (footHtml). -->
+    <div class="orv-sb-bottom"></div>
 
   </aside>
 
@@ -331,50 +239,11 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
       </button>
     </div>
-    <nav class="orv-mob-drawer-nav">
-      <button class="orv-ni" data-orv-page="businessbrain" data-wf="1" onclick="_orvNav('businessbrain','page-business-brain',this);_orvDrawerClose()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle class="orv-ni-bulb-glow" cx="8" cy="8" r="5.2" fill="var(--green)" stroke="none" opacity="0"/><g class="orv-ni-bulb-body"><rect x="2.25" y="2.25" width="5" height="6" rx="1.2"/><rect x="8.75" y="2.25" width="5" height="3.5" rx="1.2"/><rect x="8.75" y="7.25" width="5" height="6.5" rx="1.2"/><rect x="2.25" y="9.75" width="5" height="4" rx="1.2"/></g></svg>
-        <span class="orv-ni-label">Control Center</span>
-        <span class="orv-wf" aria-hidden="true">01</span>
-      </button>
-      <button class="orv-ni" data-orv-page="research" data-wf="2" onclick="_orvNav('research','page-research',this);_orvDrawerClose()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.3 10.3L14 14"/></svg>
-        <span class="orv-ni-label">Research</span>
-        <span class="orv-wf" aria-hidden="true">02</span>
-      </button>
-      <button class="orv-ni" data-orv-page="create" data-wf="3" onclick="_orvNav('create','page-create',this);_orvDrawerClose()">
-        <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path class="orv-ni-spk orv-ni-spk-a" d="M6.75 2.25l1.15 3.35 3.35 1.15-3.35 1.15-1.15 3.35-1.15-3.35-3.35-1.15 3.35-1.15z"/><path class="orv-ni-spk orv-ni-spk-b" d="M12.25 9.75v3.5M10.5 11.5H14"/><path class="orv-ni-spk orv-ni-spk-c" d="M12 2.5v1.5M11.25 3.25h1.5"/></svg></span>
-        <span class="orv-ni-label">Create</span>
-        <span class="orv-wf" aria-hidden="true">03</span>
-      </button>
-      <button class="orv-ni" data-orv-page="launch" data-wf="4" onclick="_orvNav('launch','page-launch',this);_orvDrawerClose()">
-        <span class="orv-ni-ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.5V3M8 3L4.2 6.8M8 3l3.8 3.8"/><path d="M3 13.5h10"/></svg></span>
-        <span class="orv-ni-label">Launch</span>
-        <span class="orv-wf" aria-hidden="true">04</span>
-      </button>
-      <button class="orv-ni" data-orv-page="performance" data-wf="5" data-orv-hub="campaigns" onclick="_orvNav('performance','page-performance',this);_orvDrawerClose()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3.5" width="10" height="11" rx="1.5"/><path d="M6 7h4M6 9.5h4M6 12h2.5"/><rect class="orv-ni-clip" x="6" y="1.6" width="4" height="2.6" rx="1"/></svg>
-        <span class="orv-ni-label">Campaigns</span>
-        <span class="orv-wf" aria-hidden="true">05</span>
-      </button>
-      <button class="orv-ni" data-orv-page="autopilot" data-wf="6" data-wf-last onclick="_orvNav('autopilot','page-autopilot',this);_orvDrawerClose()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><g class="orv-ni-wf"><rect class="orv-ni-wf-n orv-ni-wf-n1" x="1.75" y="2" width="4" height="4" rx="1.1"/><rect class="orv-ni-wf-n orv-ni-wf-n2" x="1.75" y="10" width="4" height="4" rx="1.1"/><rect class="orv-ni-wf-n orv-ni-wf-n3" x="10.25" y="6" width="4" height="4" rx="1.1"/><path class="orv-ni-wf-l orv-ni-wf-l1" pathLength="1" d="M5.75 4h1.5a1.5 1.5 0 0 1 1.5 1.5V8h1.5"/><path class="orv-ni-wf-l orv-ni-wf-l2" pathLength="1" d="M5.75 12h1.5a1.5 1.5 0 0 0 1.5-1.5V8"/></g></svg>
-        <span class="orv-ni-label">Automations</span>
-        <span class="orv-wf" aria-hidden="true">06</span>
-      </button>
-      <!-- Team removed from primary navigation — see the matching comment
-           on the desktop sidebar's nav list above. -->
+    <nav class="orv-mob-drawer-nav" aria-label="OrivenAI">
+      <!-- Rendered by js/appNav.js (same list as the sidebar). -->
     </nav>
-    <div class="orv-mob-drawer-bottom">
-      <button class="orv-ni" data-orv-page="platforms" onclick="_orvOpenPlatforms();_orvDrawerClose()">
-        <span class="orv-launcher-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-        <span class="orv-ni-label">Ad Platforms</span>
-      </button>
-      <button class="orv-ni" onclick="openSettingsModal();_orvDrawerClose()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span class="orv-ni-label">Settings</span>
-      </button>
-    </div>
+    <!-- Same footer as the sidebar: js/appNav.js. -->
+    <div class="orv-mob-drawer-bottom"></div>
   </aside>
 
   <!-- Legacy sidebar kept for JS compatibility (auth.js writes to its IDs) -->
@@ -1286,10 +1155,6 @@
              company/goals/website cards, so nothing was removed. -->
         <div class="intel-tab-panel" id="bizPanelBusiness" style="display:none">
           <div class="biz-module-hd">
-            <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span>Back to Control Center</span>
-            </button>
             <h2 class="biz-module-title" data-i18n="bizModYourBrandTitle">Tell Oriven about your brand.</h2>
           </div>
           <div id="bizProfileBody"></div>
@@ -1306,10 +1171,6 @@
              just no longer sharing a panel with Competitors. -->
         <div class="intel-tab-panel" id="bizPanelMarket" style="display:none">
           <div class="biz-module-hd">
-            <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span>Back to Control Center</span>
-            </button>
             <h2 class="biz-module-title" data-i18n="bizModMarketTitle">Help Oriven understand your market.</h2>
           </div>
           <div id="bizAudiencesBody"></div>
@@ -1320,10 +1181,6 @@
              existing competitor data model, just its own module now. -->
         <div class="intel-tab-panel" id="bizPanelCompetitors" style="display:none">
           <div class="biz-module-hd">
-            <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span>Back to Control Center</span>
-            </button>
             <h2 class="biz-module-title" data-i18n="bizModCompetitorsTitle">Who are you competing against?</h2>
           </div>
           <div id="bizCompetitorsBody"></div>
@@ -1337,10 +1194,6 @@
              was added above it. -->
         <div class="intel-tab-panel" id="bizPanelBrand" style="display:none">
           <div class="biz-module-hd">
-            <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span>Back to Control Center</span>
-            </button>
             <h2 class="biz-module-title" data-i18n="bizModBrandIdentityTitle">Shape how Oriven sees your brand.</h2>
           </div>
           <div class="biz-ai-feedback" id="bizFeedbackBrand" style="display:none;margin-bottom:16px"></div>
@@ -1674,10 +1527,6 @@
              keeps a plain back-link rather than an orbit-style heading. -->
         <div class="intel-tab-panel" id="bizPanelConnections" style="display:none">
           <div class="biz-module-hd">
-            <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span>Back to Control Center</span>
-            </button>
           </div>
           <h1 class="biz-conn-title">Ad Platforms</h1>
           <p class="ov3-ph-sub" style="margin-bottom:16px" data-i18n="bizConnectionsIntro">Your advertising platforms. Connect an account and Oriven can read and manage campaigns on it directly.</p>
@@ -1835,10 +1684,6 @@
              by orivenPlan.js; hands off to Create / Launch / Campaigns. -->
         <div class="intel-tab-panel" id="bizPanelPlanning" style="display:none">
           <div class="biz-module-hd">
-            <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span>Back to Control Center</span>
-            </button>
             <h2 class="biz-module-title">Plan your advertising.</h2>
           </div>
           <div id="bizPlanningBody" class="pl-body"></div>
@@ -1848,10 +1693,6 @@
              plain back-link treatment as Connections. -->
         <div class="intel-tab-panel" id="bizPanelMemory" style="display:none">
           <div class="biz-module-hd">
-            <button type="button" class="biz-back-btn" onclick="bizGoTo('overview')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M10 4L6 8l4 4"/></svg>
-              <span>Back to Control Center</span>
-            </button>
           </div>
           <div class="biz-market-hd" style="margin-bottom:6px">
             <span class="ov3-sh-label" data-i18n="bizMemoryHeading">Oriven Memory</span>
@@ -6449,7 +6290,7 @@
                backend is the source of truth — GET/PUT /api/email/preferences). -->
           <div class="smd-section" id="emailPrefsSection">
             <div class="smd-field-lbl">Email preferences</div>
-            <!-- Lives here, not under Notifications: that panel is Creator and Professional only
+            <!-- Lives here, not under Notifications: that panel needs a paid plan
                  (body.orv-no-notif), and every plan must be able to change this. -->
             <div class="smd-tgl-row">
               <div>
@@ -6944,10 +6785,10 @@
     <div class="pw-header">
       <div class="pw-eyebrow">
         <div class="pw-eyebrow-dot"></div>
-        <span>Choose Your Plan</span>
+        <span>Choose your plan</span>
       </div>
-      <h2 class="pw-title" id="pwTitle">Unlock <em>ORIVEN.</em></h2>
-      <p class="pw-sub">Everything your brand needs, powered by AI. Cancel anytime.</p>
+      <h2 class="pw-title" id="pwTitle">Choose how long you want <em>OrivenAI.</em></h2>
+      <p class="pw-sub">Every plan includes the full product; plans differ only in period, price and credits. You pay once, and nothing renews automatically.</p>
     </div>
 
     <!-- Plans — rendered by plans.js / paywall.js -->
@@ -6956,7 +6797,7 @@
     <!-- Footer -->
     <div class="pw-footer">
       <button onclick="closePaywall()" class="pw-skip-btn">Maybe later</button>
-      <span class="pw-footer-note">Secure payment via Stripe &middot; Cancel anytime</span>
+      <span class="pw-footer-note">Secure payment via Stripe &middot; Prices include VAT &middot; No automatic renewal</span>
     </div>
   </div>
 </div>
@@ -7011,9 +6852,12 @@
   </div>
 </div>
 
-<!-- ONBOARDING — the first-run "Discover OrivenAI" tour is built by
-     js/tour.js (css/tour.css) over the real app; js/onboarding.js decides
-     who sees it and saves the outcome. -->
+<!-- ONBOARDING — new accounts get the guided onboarding (js/onboardingFlow.js,
+     css/onboarding-flow.css: questions → assistant → strategy → plans), which
+     reuses the public site's dot field and assistant creatures (js/dot-field.js,
+     js/landing-creatures.js). Without its table the first-run "Discover
+     OrivenAI" tour (js/tour.js, css/tour.css) is shown instead. js/onboarding.js
+     decides who sees which and saves the outcome. -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="js/supabase.js"></script>
@@ -7036,6 +6880,9 @@
 <script src="js/paywall.js"></script>
 <script src="js/orivenRing.js"></script>
 <script src="js/tour.js"></script>
+<script src="js/dot-field.js"></script>
+<script src="js/landing-creatures.js"></script>
+<script src="js/onboardingFlow.js"></script>
 <script src="js/onboarding.js"></script>
 <script src="js/videoads.js"></script>
 <script src="js/productshoots.js"></script>
@@ -7055,6 +6902,12 @@
 <script src="js/orivenOps.js"></script>
 <script src="js/orivenOpsPages.js"></script>
 <script src="js/orivenPlan.js"></script>
+<script src="js/planConfirm.js"></script>
+<script src="js/localPreview.js"></script>
+<script src="js/planPages.js"></script>
+<script src="js/insights.js"></script>
+<script src="js/myContent.js"></script>
+<script src="js/appNav.js"></script>
 <script src="js/createCompat.js"></script>
 <script src="js/createFlow.js"></script>
 
@@ -7377,12 +7230,12 @@
     <p class="gob-sub">Create, manage and scale your brand from one place.</p>
     <div class="gob-ctas">
       <button class="gob-try" onclick="_guestOnboardTryFree()">
-        Try for free
+        Get started
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
       </button>
       <button class="gob-login" onclick="_guestOnboardLogin()">Log in</button>
     </div>
-    <p class="gob-note">Free plan &middot; No credit card needed</p>
+    <p class="gob-note">From €17 for 14 days &middot; No automatic renewal</p>
   </div>
 </div>
 
@@ -7532,7 +7385,7 @@
         <p class="gcm-gate-title">Nice, this is what we created.</p>
         <p class="gcm-gate-sub">Create a free account to save it and unlock everything.</p>
         <div class="gcm-gate-actions">
-          <button class="gcm-gate-primary" onclick="_gcGateCreate()">Create free account</button>
+          <button class="gcm-gate-primary" onclick="_gcGateCreate()">Create account</button>
           <button class="gcm-gate-ghost" onclick="_gcGateLogin()">Sign in</button>
         </div>
       </div>
@@ -7596,7 +7449,7 @@
       </div>
       <label class="orv-optin orv-optin-gg"><input type="checkbox" id="ggOptIn"> <span>Send me tips and product updates by email. You can unsubscribe anytime.</span></label>
       <div class="gg-err" id="ggErr"></div>
-      <button class="gg-submit-btn" id="ggSignupBtn" onclick="_ggDoSignup()">Create free account</button>
+      <button class="gg-submit-btn" id="ggSignupBtn" onclick="_ggDoSignup()">Create account</button>
     </div>
 
     <!-- Login form -->
@@ -13094,7 +12947,7 @@ window._launchRepaint = function(){
   function _loadNotifications(){
     if (typeof window.orvEntitled === 'function' && window.orvEntitled('notifications') !== true) {
       var _b = document.getElementById('orvNotifBell'); if (_b) _b.style.display = 'none';
-      return; // Creator and Professional (plans.js entitlements; the server enforces the same on /api/notifications)
+      return; // every paid plan (plans.js entitlements; the server enforces the same on /api/notifications)
     }
     var bell = document.getElementById('orvNotifBell');
     var count = document.getElementById('orvNotifCount');
@@ -14491,7 +14344,7 @@ window._orvNav = function(page, explicitPageId) {
      helpers, which now check a rolling 24h window instead of "ever used" --
      but browsing the rest of the app (Settings, existing campaigns, Studio,
      etc.) should never be blocked by that on its own. */
-  /* V10: Autopilot is included from Starter. Free reaches the page and sees
+  /* Automations are included in every paid plan. Without a plan the page shows
      its in-page upgrade state (orivenOps.js applyEntitlements), so there is
      no redirect here any more. */
   /* Team removed as a product surface entirely (Autopilot Redesign + Team

@@ -7,6 +7,10 @@
        cookieless page statistics + first-touch signup source. -->
   <script src="/js/consent.js"></script>
   <script src="/js/site-analytics.js" defer></script>
+  <!-- js/dot-field.js: the one dot-grid engine (landing page fields, assistant creatures, public page headers). -->
+  <script src="/js/dot-field.js" defer></script>
+  <script src="/js/site-top.js" defer></script>
+  <script src="/js/section-pages.js" defer></script>
   <meta charset="UTF-8">
   <meta name="google-site-verification" content="WRvFU4ubESxQDgW_GpxGTCpyVtSrBs53NsIyICfVx9I" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -70,8 +74,10 @@
        that silently falls back to Unbounded until the user supplies the
        real font files — same "drop the real asset in later" convention
        used everywhere else on this page for videos/images. -->
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
+  <!-- css/site-chrome.css: the shared public navbar look, footer, closing CTA and "Inside <section>" (never loaded by the app). -->
+  <link rel="stylesheet" href="/css/site-chrome.css">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
@@ -657,8 +663,8 @@
 
 <nav class="lp-nav" id="lpNav">
   <div class="lp-nav-inner">
-    <a href="/" class="lp-logo">
-      <img src="/assets/orivenlogo-256.webp" alt="ORIVEN" class="lp-logo-img">
+    <a href="/" class="lp-logo" aria-label="OrivenAI home">
+      <svg class="lp-logo-ring" viewBox="244 197 534 585" aria-hidden="true" focusable="false"><use href="/assets/oriven-ring.svg#ik-p0" class="lp-logo-seg" style="--i:0;--ox:10.6px;--oy:-14.6px"/><use href="/assets/oriven-ring.svg#ik-p1" class="lp-logo-seg" style="--i:1;--ox:17.7px;--oy:3.1px"/><use href="/assets/oriven-ring.svg#ik-p2" class="lp-logo-seg" style="--i:2;--ox:7.3px;--oy:16.4px"/><use href="/assets/oriven-ring.svg#ik-p3" class="lp-logo-seg" style="--i:3;--ox:-8.5px;--oy:15.9px"/><use href="/assets/oriven-ring.svg#ik-p4" class="lp-logo-seg" style="--i:4;--ox:-17.7px;--oy:3.1px"/><use href="/assets/oriven-ring.svg#ik-p5" class="lp-logo-seg" style="--i:5;--ox:-9.5px;--oy:-15.3px"/></svg>
     </a>
     <div class="lp-nav-links">
 
@@ -804,20 +810,20 @@
         </button>
         <div class="lp-dropdown lp-dd-simple" role="menu">
           <div class="lp-dd-col">
-            <a href="/launch" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Create better ads</span><span class="lp-dd-item-desc">Build advertising around your brand instead of starting from scratch.</span></span>
+            <a href="/solutions/connected-workflow" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">One connected workflow</span><span class="lp-dd-item-desc">Six sections that build on each other instead of separate tools.</span></span>
             </a>
-            <a href="/campaigns" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Manage every campaign</span><span class="lp-dd-item-desc">See and manage advertising across the platforms you use from one workspace.</span></span>
+            <a href="/solutions/research-before-creation" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Research before you create</span><span class="lp-dd-item-desc">Know your market, competitors and audience before you spend.</span></span>
             </a>
-            <a href="/business" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Stay consistent with your brand</span><span class="lp-dd-item-desc">Give every generated ad the same voice, context and business profile.</span></span>
+            <a href="/solutions/plan-to-content" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">From marketing plan to content</span><span class="lp-dd-item-desc">A plan becomes a brief that prefills Create.</span></span>
             </a>
-            <a href="/autopilot" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Automate the repetitive work</span><span class="lp-dd-item-desc">Use your own rules to automatically act when performance changes.</span></span>
+            <a href="/solutions/advertising-campaigns" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Ads and campaigns</span><span class="lp-dd-item-desc">Create, check and publish ads, then follow every campaign.</span></span>
             </a>
-            <a href="/research" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">Understand what works</span><span class="lp-dd-item-desc">Use Research and campaign data to discover stronger creative and messaging patterns.</span></span>
+            <a href="/solutions/structured-automation" class="lp-dd-item" role="menuitem">
+              <span><span class="lp-dd-item-name">Less repetitive work</span><span class="lp-dd-item-desc">Schedules and rules for published campaigns, within your limits.</span></span>
             </a>
           </div>
         </div>
@@ -867,8 +873,8 @@
       <a href="/pricing" class="lp-nav-link">Pricing</a>
     </div>
     <div class="lp-nav-right">
-      <a href="#" class="lp-nav-login" onclick="lpHandleLogin(event)">Login</a>
-      <a href="#" class="lp-cta-btn" onclick="lpGetStarted(event)">Start Creating</a>
+      <a href="/login" class="lp-nav-login" onclick="lpHandleLogin(event)">Log in</a>
+      <a href="/signup" class="lp-cta-btn" onclick="lpGetStarted(event)">Get started</a>
     </div>
     <button class="lp-hamburger" id="lpHamburger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -915,11 +921,11 @@
         Solutions <span class="lp-mm-chev">&#8250;</span>
       </button>
       <div class="lp-mm-dd-items">
-        <a href="/launch" class="lp-mm-dd-link" onclick="lpCloseMm()">Create better ads</a>
-        <a href="/campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Manage every campaign</a>
-        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Stay consistent with your brand</a>
-        <a href="/autopilot" class="lp-mm-dd-link" onclick="lpCloseMm()">Automate the repetitive work</a>
-        <a href="/research" class="lp-mm-dd-link" onclick="lpCloseMm()">Understand what works</a>
+        <a href="/solutions/connected-workflow" class="lp-mm-dd-link" onclick="lpCloseMm()">One connected workflow</a>
+        <a href="/solutions/research-before-creation" class="lp-mm-dd-link" onclick="lpCloseMm()">Research before you create</a>
+        <a href="/solutions/plan-to-content" class="lp-mm-dd-link" onclick="lpCloseMm()">From marketing plan to content</a>
+        <a href="/solutions/advertising-campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Ads and campaigns</a>
+        <a href="/solutions/structured-automation" class="lp-mm-dd-link" onclick="lpCloseMm()">Less repetitive work</a>
       </div>
     </div>
 
@@ -942,8 +948,8 @@
   </nav>
   <div class="lp-mm-divider"></div>
   <div class="lp-mm-actions">
-    <a href="#" class="lp-mm-login" onclick="lpHandleLogin(event)">Login</a>
-    <a class="lp-mm-cta" onclick="lpGetStarted(event)">Start Creating</a>
+    <a href="/login" class="lp-mm-login" onclick="lpHandleLogin(event)">Log in</a>
+    <a href="/signup" class="lp-mm-cta" onclick="lpGetStarted(event)">Get started</a>
   </div>
   </div>
 </div>
@@ -1038,9 +1044,27 @@
       </div>
     </div>
   </div>
-  <footer class="lp-legal-footer">
-    <div class="lp-legal-footer-inner">© 2026 ORIVEN · KVK: 42039993 · Netherlands · All rights reserved. · <a href="#cookie-settings" data-cookie-settings="">Cookie settings</a></div>
-  </footer>
+  <!-- site-footer:start -->
+  <footer class="site-foot" data-site-footer="">
+  <div class="site-foot__in">
+    <div class="site-foot__top">
+      <div class="site-foot__brand">
+        <a href="/" aria-label="OrivenAI home"><img src="/assets/orivenlogo-256.webp" width="48" height="48" alt="OrivenAI" loading="lazy"></a>
+        <p>The connected AI marketing workspace: research, plan, create, launch and improve, in one place.</p>
+      </div>
+      <nav class="site-foot__col" aria-label="Product"><h2>Product</h2><a href="/product">All six sections</a><a href="/business">Control Center</a><a href="/research">Research</a><a href="/create">Create</a><a href="/launch">Launch</a><a href="/campaigns">Campaigns</a><a href="/autopilot">Automations</a></nav>
+      <nav class="site-foot__col" aria-label="Assistants"><h2>Assistants</h2><a href="/#agent-scout" data-ik-goto="scout">Scout</a><a href="/#agent-vector" data-ik-goto="vector">Vector</a><a href="/#agent-nova" data-ik-goto="nova">Nova</a><a href="/#agent-momentum" data-ik-goto="momentum">Momentum</a><a href="/#agent-metric" data-ik-goto="metric">Metric</a><a href="/#agent-flux" data-ik-goto="flux">Flux</a></nav>
+      <nav class="site-foot__col" aria-label="Platforms"><h2>Platforms</h2><a href="/product/google-ads">Google Ads</a><a href="/product/meta-ads">Meta Ads</a><a href="/product/tiktok-ads">TikTok Ads</a><a href="/product/pinterest-ads">Pinterest Ads</a><a href="/cross-platform-ad-management/">Cross-platform ads</a><a href="/ppc-automation-software/">PPC automation</a></nav>
+      <nav class="site-foot__col" aria-label="Resources"><h2>Resources</h2><a href="/solutions">Solutions</a><a href="/learn/">Learn</a><a href="/blog">Blog</a><a href="/faq">FAQ</a><a href="/case-studies">Case Studies</a><a href="/pricing">Pricing</a></nav>
+      <nav class="site-foot__col" aria-label="Company"><h2>Company</h2><a href="/about">About</a><a href="mailto:contact@orivenai.com">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/cookie-policy">Cookie Policy</a><a href="/refund-policy">Refund Policy</a><a href="/security">Security</a><a href="#cookie-settings" data-cookie-settings="">Cookie settings</a></nav>
+    </div>
+    <div class="site-foot__bottom">
+      <span>© 2026 Oriven · KVK: 42039993 · Netherlands · All rights reserved.</span>
+      <button type="button" class="site-foot__totop" data-scroll-top="">Scroll to top <span aria-hidden="true">↑</span></button>
+    </div>
+  </div>
+</footer>
+  <!-- site-footer:end -->
 </div>
 </div><!-- /view-refund-policy -->
 
@@ -1311,13 +1335,13 @@
     'cookie-policy': { title: 'Cookie Policy | OrivenAI', desc: 'Which cookies and similar technologies OrivenAI uses on this website, why, and how to change your consent choices.', path: '/cookie-policy' },
     security: { title: 'Security | OrivenAI', desc: 'How OrivenAI protects your account and connected Google, Meta, TikTok and Pinterest ad accounts: OAuth, encryption and access.', path: '/security' },
     contact: { title: 'Contact | OrivenAI', desc: 'Contact the OrivenAI team with questions about the product, your account, billing or partnerships. We reply by email.', path: '/contact' },
-    about: { title: 'About OrivenAI | AI Advertising Platform', desc: 'Marketing data is scattered across platforms. Oriven brings it together so you can spend less time in dashboards and more time making better decisions.', path: '/about' },
+    about: { title: 'About OrivenAI | AI Advertising Platform', desc: 'Marketing data is scattered across platforms. Oriven brings it together in one connected workspace, from research and planning to launching ads and following results.', path: '/about' },
     blog: { title: 'OrivenAI Blog: Product Updates and Company News | OrivenAI', desc: 'News from OrivenAI: what we launched, why we built it, and how the product works today.', path: '/blog' },
     product: { title: 'Google, Meta, TikTok & Pinterest Ads Integrations | OrivenAI', desc: 'OrivenAI connects to Google Ads, Meta Ads, TikTok Ads and Pinterest Ads through each platform’s official API: research, create, launch, track and automate in one workspace.', path: '/product' },
-    solutions: { title: 'Advertising Solutions by Problem | OrivenAI', desc: 'Common advertising problems for small teams, from blank-page ad writing to juggling four ad platforms, and the OrivenAI module that solves each one.', path: '/solutions' },
+    solutions: { title: 'Solutions: Five Ways OrivenAI Helps | OrivenAI', desc: 'Five reasons to use OrivenAI: one connected workflow, research before you create, plan to content, ads and campaigns, and less repetitive work.', path: '/solutions' },
     'case-studies': { title: 'Case Studies | OrivenAI', desc: 'Illustrative examples of how Oriven changes a real advertising workflow.', path: '/case-studies' },
-    pricing: { title: 'Pricing: Free, Starter, Creator & Professional Plans | OrivenAI', desc: 'OrivenAI plans from free to €34.95 a month. Compare credits, what each plan includes, and what an image ad, video ad or research report costs.', path: '/pricing' },
-    faq: { title: 'FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI', desc: 'Answers about OrivenAI credits, plans, supported ad platforms, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations.', path: '/faq' },
+    pricing: { title: 'Pricing: Flex, Monthly, Quarterly, Semi-Annual & Annual | OrivenAI', desc: 'OrivenAI plans from €17 for 14 days to €245 for a year: the same product in every plan, paid once, no automatic renewal. Compare credits and costs per ad.', path: '/pricing' },
+    faq: { title: 'FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI', desc: 'Answers about OrivenAI: the six sections, choosing an assistant, credits and plans, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations.', path: '/faq' },
     'product-google-ads': { title: 'AI Google Ads Campaign Builder for Search & Performance Max | OrivenAI', desc: 'Build Google Ads Search, Performance Max and Demand Gen campaigns from a brief: keywords, responsive search ads, extensions and assets, created paused through Google’s API.', path: '/product/google-ads' },
     'product-meta-ads': { title: 'AI Facebook & Instagram Ads: Create and Launch Meta Campaigns | OrivenAI', desc: 'Create Facebook and Instagram campaigns from a brief: ad sets with countries, ages and placements, image ads, and your Meta Pixel, created paused through Meta’s API.', path: '/product/meta-ads' },
     'product-tiktok-ads': { title: 'TikTok Ads Tool: Create Video Ad Campaigns with AI | OrivenAI', desc: 'Prepare TikTok video ads with AI: hook, ad text, vertical video, countries and budget, created on TikTok paused for traffic and awareness campaigns.', path: '/product/tiktok-ads' },
@@ -1327,7 +1351,7 @@
     'product-campaigns': { title: 'Ad Campaign Dashboard for Google, Meta, TikTok & Pinterest | OrivenAI', desc: 'Follow performance from every connected ad platform in one place, by campaign and date range, and pause or resume Google, Meta and Pinterest campaigns.', path: '/campaigns' },
     'product-research': { title: 'AI Market & Competitor Research for Advertising | OrivenAI', desc: 'Research your market, competitors and customers before you spend. Targeted web searches, pages it reads and your website, with findings checked against their sources.', path: '/research' },
     'product-autopilot': { title: 'Ad Automations: Schedules and Rules for Your Campaigns | OrivenAI', desc: 'Schedule campaigns, monitor performance and pause, resume or adjust budgets with rules you write, within limits you set. Approval mode and a full activity log.', path: '/autopilot' },
-    'product-business': { title: 'Business Profile & Brand Context for AI Ads | OrivenAI', desc: 'Control Center keeps your business profile, brand identity and ad account connections in one place, so research, copy and creative use the same facts.', path: '/business' },
+    'product-business': { title: 'Control Center: Dashboard, Plan & Brand Context | OrivenAI', desc: 'Where you start in OrivenAI: your dashboard, marketing plan, business profile and brand identity, so research, copy and creative use the same facts.', path: '/business' },
     '404': { title: 'Page Not Found | OrivenAI', desc: 'The page you are looking for does not exist or has been moved.', path: null, noindex: true }
   };
   window.PAGE_SEO = PAGE_SEO;
@@ -4424,7 +4448,8 @@ window.addEventListener('pageshow', function(e){
 (function () {
  'use strict';
  var root = document.getElementById('view-landing');
- if (!root) return;
+ // Previous landing page only: the Ink & Signal landing (js/landing.js) has no #ov-system.
+ if (!root || !document.getElementById('ov-system')) return;
  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
  var system = document.getElementById('ov-system');
   var pieces = Array.from(system.querySelectorAll('.ov-ring-piece'));
@@ -4609,7 +4634,8 @@ window.addEventListener('pageshow', function(e){
 (function () {
  'use strict';
  var root = document.getElementById('view-landing');
- if (!root || !window.gsap || !window.ScrollTrigger) return;
+ // Previous landing page only: its scroll stories animate #ov-pillars and friends.
+ if (!root || !window.gsap || !window.ScrollTrigger || !document.getElementById('ov-pillars')) return;
  gsap.registerPlugin(ScrollTrigger);
  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
  var finePointer = window.matchMedia('(hover:hover) and (pointer:fine)');

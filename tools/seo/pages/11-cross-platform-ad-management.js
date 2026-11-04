@@ -4,6 +4,7 @@
 // readiness per platform, Campaigns performance by platform, Control Center
 // attention items (incl. unverified conversion tracking), Planning naming/
 // UTM templates (js/orivenPlan.js), Automations on all four (mock-tested).
+const F = require('../facts');
 module.exports = {
   path: '/cross-platform-ad-management/',
   kind: 'commercial',
@@ -17,7 +18,7 @@ module.exports = {
   h1: 'Manage Google, Meta, TikTok and Pinterest ads from one workspace',
   lede: 'Write one brief and OrivenAI adapts it to each platform’s formats and campaign structures. Launch when each draft is ready, then follow every campaign’s results side by side.',
   secondary: { href: '/product', label: 'See supported platforms' },
-  heroNote: 'Creating, launching and tracking campaigns are included in the Free plan.',
+  heroNote: 'Creating, launching and tracking campaigns are included in every plan.',
   body: `
 <section class="sp-section" aria-labelledby="problem-h"><div class="sp-wrap">
   <h2 id="problem-h">The problem with running ads on four platforms</h2>
@@ -63,9 +64,9 @@ module.exports = {
     ['Does OrivenAI combine conversions from different platforms into one number?', '<p>No. Google, Meta, TikTok and Pinterest each attribute conversions in their own way, so adding them up would double-count. OrivenAI shows each platform’s reported results side by side instead.</p>'],
     ['Do I need an existing ad account on each platform?', '<p>You connect your own ad accounts through each platform’s sign-in. Campaigns are published to, and billed by, those accounts. OrivenAI charges only for its own plan and credits.</p>'],
     ['Does OrivenAI publish campaigns automatically?', '<p>No. Launching is always a manual step. Each draft shows its readiness, and you choose when to publish.</p>'],
-    ['Is cross-platform management included in the Free plan?', '<p>Yes. Control Center, Create, Launch and Campaigns are included in the Free plan. Research and Automations are included from Starter.</p>'],
+    ['Is cross-platform management included in every plan?', '<p>Yes. Every plan includes Control Center, Research, Create, Launch, Campaigns and Automations; plans differ only in period, price and credits.</p>'],
   ],
   related: ['/learn/how-to-manage-multiple-ad-platforms/', '/learn/google-ads-vs-meta-ads/', '/ppc-automation-software/', '/product/google-ads', '/product/meta-ads', '/pricing'],
   relatedTitle: 'Related',
-  cta: { title: 'Run every platform from one workspace', text: 'Create, launch and track campaigns on the Free plan. No credit card needed to start.', label: 'Get Started Free' },
+  cta: { title: 'Run every platform from one workspace', text: 'Create, launch and track campaigns on every platform with any plan, from ' + F.fromPrice + ' for 14 days.', label: 'Get started' },
 };

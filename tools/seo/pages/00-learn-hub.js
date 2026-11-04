@@ -1,6 +1,6 @@
 // Hub — /learn/: every guide grouped by topic, links to the commercial
 // pages, and the canonical "About OrivenAI" answers (what it is, who it's
-// for, what it can do, free plan) in plain HTML for answer engines.
+// for, what it can do, plans) in plain HTML for answer engines.
 const F = require('../facts');
 module.exports = {
   path: '/learn/',
@@ -48,7 +48,7 @@ module.exports = {
   <div class="sp-hub-group"><h2 id="g5">OrivenAI solutions</h2><div class="sp-related">
     <a href="/ppc-automation-software/"><strong>PPC automation software</strong><span>Rules that pause, resume, adjust budgets or ask first, on Google Ads and Meta Ads.</span></a>
     <a href="/cross-platform-ad-management/"><strong>Cross-platform ad management</strong><span>One brief, adapted per platform, launched and followed from one workspace.</span></a>
-    <a href="/pricing"><strong>Pricing</strong><span>Free, Starter, Creator and Professional plans.</span></a>
+    <a href="/pricing"><strong>Pricing</strong><span>Five plans from 14 days to a year, the same product in each.</span></a>
   </div></div>
   <div class="sp-hub-group"><h2 id="g7">From the OrivenAI blog</h2><div class="sp-related">
     <a href="/blog/what-you-can-do-with-oriven"><strong>What you can do with OrivenAI</strong><span>A walkthrough of Control Center, Research, Create, Launch, Campaigns and Automations.</span></a>
@@ -63,9 +63,9 @@ module.exports = {
     ['Who is OrivenAI designed for?', '<p>Small businesses, founders and marketers who run ads on Google, Meta, TikTok or Pinterest and want to research, create, launch and follow campaigns in one place, without stitching together separate tools.</p>'],
     ['Can OrivenAI create image and video ads?', `<p>Yes. Create generates image ads and video ads in each platform’s formats. A complete image ad uses ${F.costs.imageAd} credits and a video ad ${F.costs.videoAd} credits.</p>`],
     ['Which ad platforms does OrivenAI support?', '<p>Google Ads (Search, Performance Max and Demand Gen), Meta Ads (Facebook and Instagram), TikTok Ads and Pinterest Ads. Campaigns are created and published through each platform’s official API. Automations work with campaigns in your connected ad accounts; what they can change depends on the platform and how the campaign is set up.</p>'],
-    ['Does OrivenAI have a free plan?', '<p>Yes. The Free plan includes Control Center, Create, Launch and Campaigns, with 10 credits a day that reset daily and one campaign build a day. Starter (€9.95/month) adds Research and Automations with 1,000 credits a month; Creator (€19.95) adds Oriven Chat and in-app notifications; Professional (€34.95) adds Priority Support and a Weekly AI Performance Report by email (coming soon).</p>'],
+    ['Does OrivenAI have a free plan?', '<p>No. OrivenAI is paid-only. ' + F.planLine.replace('Every plan includes the full product: ', 'Every plan includes the full product (') .replace('Oriven Chat. ', 'Oriven Chat). ') + ' The shortest plan, Flex, is ' + F.fromPrice + ' for 14 days with ' + F.plans[0].credits + '.</p>'],
     ['Is OrivenAI related to other companies named “Oriven”?', '<p>OrivenAI is the AI advertising platform at orivenai.com, operated from the Netherlands (KVK 42039993). It isn’t affiliated with other businesses that use the name Oriven.</p>'],
   ],
   related: [],
-  cta: { title: 'Try what you’ve read about', text: 'Build your first campaign on the Free plan.', label: 'Get Started Free' },
+  cta: { title: 'Try what you’ve read about', text: 'Build your first campaign with any plan, from ' + F.fromPrice + ' for 14 days.', label: 'Get started' },
 };

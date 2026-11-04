@@ -245,3 +245,64 @@ body.dark-mode .rx-wrap { --rx-ok: #5fd68f; --rx-warn: #f0b04a; --rx-bad: #ff7b6
 }
 /* Same left edge as Control Center, Launch and Campaigns on desktop. */
 @media (min-width: 1025px) { .rx-wrap { padding-left: 40px; padding-right: 40px; } }
+
+/* ── Research workspace (refined Home) ──────────────────────────────
+   One composer in three numbered steps (direction → question → context),
+   with recent research and the evidence legend beside it. */
+.rx-ws { grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); }
+.rx-composer { gap: 22px; padding: 24px 26px; }
+.rx-stepl { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.rx-stepl .rx-lbl { margin: 0; }
+.rx-stepn { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--border); font: 600 11.5px/1 'Geist Mono', ui-monospace, monospace; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rx-composer .rx-types { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.rx-home .rx-composer .rx-types { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.rx-dir { padding: 12px 12px 12px; gap: 4px; transition: border-color .16s, background .16s, transform .16s; }
+.rx-dir:hover { transform: translateY(-1px); }
+.rx-dir-ic { width: 30px; height: 30px; display: grid; place-items: center; margin-bottom: 4px; border-radius: 9px; background: var(--rx-soft); color: var(--muted); transition: color .16s, background .16s; }
+.rx-dir-ic svg { width: 18px; height: 18px; }
+.rx-dir .rx-type-t { font-size: 13.5px; }
+.rx-dir .rx-type-d { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.rx-dir.is-on { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); background: color-mix(in srgb, var(--green) 7%, var(--surface)); }
+.rx-dir.is-on .rx-dir-ic { color: #0a0a0a; background: var(--green); }
+body.dark-mode .rx-dir.is-on .rx-type-t { color: #fff; }
+.rx-ask .rx-q { min-height: 92px; font-size: 15px; line-height: 1.5; }
+.rx-starters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+.rx-starters .rx-lbl-sm { margin-right: 2px; }
+.rx-starter { all: unset; box-sizing: border-box; max-width: 100%; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--border); font-size: 12.5px; line-height: 1.35; color: var(--charcoal); cursor: pointer; transition: border-color .15s, background .15s; }
+.rx-starter:hover { background: var(--rx-soft); border-color: color-mix(in srgb, var(--charcoal) 25%, transparent); }
+.rx-starter:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.rx-composer .rx-ctx { padding-top: 18px; border-top: 1px solid var(--border); }
+.rx-composer .rx-start { padding-top: 16px; border-top: 1px solid var(--border); }
+.rx-aside { display: flex; flex-direction: column; gap: 16px; min-width: 0; position: sticky; top: 20px; }
+.rx-aside .rx-card { padding: 18px 18px; gap: 10px; }
+.rx-aside .rx-h2 { font-size: 15px; margin: 0; }
+.rx-recent-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.rx-recent-i { all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; cursor: pointer; transition: background .15s; }
+.rx-recent-i:hover:not(:disabled) { background: var(--rx-soft); }
+.rx-recent-i:disabled { cursor: default; opacity: .75; }
+.rx-recent-i:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.rx-recent-ic { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--border); color: var(--muted); }
+.rx-recent-ic svg { width: 15px; height: 15px; }
+.rx-recent-b { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.rx-recent-b .rx-lib-t { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rx-recent-b .rx-lib-m { font-size: 12px; }
+.rx-recent-all { align-self: flex-start; }
+.rx-legend { margin: 4px 0 0; display: grid; gap: 10px; }
+.rx-legend dt { margin: 0 0 2px; font-size: 12.5px; }
+.rx-legend dd { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+/* Views enter softly; nothing moves for reduced motion. */
+#rsRoot[data-view] > * { animation: rx-in .28s cubic-bezier(.22, .61, .36, 1) both; }
+@keyframes rx-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (max-width: 1100px) {
+  .rx-ws { grid-template-columns: minmax(0, 1fr); }
+  .rx-aside { position: static; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .rx-aside { grid-template-columns: minmax(0, 1fr); }
+  .rx-composer { padding: 18px 16px; }
+  .rx-composer .rx-types { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #rsRoot[data-view] > * { animation: none; }
+  .rx-dir, .rx-dir:hover { transition: none; transform: none; }
+}

@@ -288,7 +288,7 @@ function _apRenderSystemStatus() {
     pillEl.classList.add('ap-sys-off');
     lblEl.textContent = 'OFF';
     var unmonitoredOn = rules.some(function(r) { return r.enabled && !AP_MONITORED_PLATFORMS[r.platform]; });
-    subEl.textContent = window._apNotOnPlan ? 'Autopilot is included from Starter — nothing is being evaluated on this plan.'
+    subEl.textContent = window._apNotOnPlan ? 'Automations need an active OrivenAI plan — nothing is being evaluated right now.'
       : unmonitoredOn ?'Your active rules are on a platform Autopilot doesn’t monitor yet (only Google Ads and Meta Ads) — nothing is being evaluated.'
       : (rules.length ? 'All automations are disabled — ORIVEN is not evaluating anything.' : 'No automations exist yet — nothing is being evaluated.');
   } else if (hasAuto) {
@@ -1022,7 +1022,7 @@ function apShowRuleDetail(id) {
     row('OBSERVATION WINDOW', 'Last 7 days of real campaign performance') +
     row('THEN', _apOpEsc(thenText)) +
     row('MODE', '<span class="ap-modebadge ' + modeBadge.cls + '">' + modeBadge.label + '</span>') +
-    row('LIMITS', 'At most once per day · Starter plan and up · ' + (typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.autopilot : 25) + ' credits per execution') +
+    row('LIMITS', 'At most once per day · included in every plan · ' + (typeof CREDIT_COSTS !== 'undefined' ? CREDIT_COSTS.automation : 20) + ' credits once when created; its checks are free') +
     lastEventBlock +
     '<div class="ap-rd-actions">' +
       '<button class="oi-card-btn" onclick="apCloseRuleDetail();apActiveEdit(\'' + r.id + '\')">' + _apT('apEditAutomationBtn', 'Edit automation') + '</button>' +
