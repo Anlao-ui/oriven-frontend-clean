@@ -49,7 +49,7 @@ for (const [key, data] of Object.entries(D)) {
   const best = F.plans.reduce((a, p) => (p.months && (!a || p.price / p.months < a.price / a.months) ? p : a), null);
   const rows = F.plans.map((p) => {
     const mark = best && p.id === best.id ? ' class="is-best"' : '';
-    return `<tr${mark}><th scope="row">${p.name}</th><td data-label="Access">${p.period}</td><td data-label="Price" class="ov-pd-num">${F.euro(p.price)}</td><td data-label="Credits" class="ov-pd-num">${fmt(p.creditCount)}</td></tr>`;
+    return `<tr${mark}><th scope="row">${p.name}</th><td data-label="Access">${p.period}</td><td data-label="Price" class="ov-pd-num" data-eur="${p.price}">${F.euro(p.price)}</td><td data-label="Credits" class="ov-pd-num">${fmt(p.creditCount)}</td></tr>`;
   }).join('');
   const groups = [
     ['Creating ads', [['Campaign draft (copy and structure)', C.campaignDraft], ['Image (per ad)', C.image], ['Video, 5 seconds', C.video], ['Video, 10 seconds', C.video10s]]],

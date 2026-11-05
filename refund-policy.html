@@ -78,6 +78,7 @@
   <link rel="stylesheet" href="/css/styles.css">
   <!-- css/site-chrome.css: the shared public navbar look, footer, closing CTA and "Inside <section>" (never loaded by the app). -->
   <link rel="stylesheet" href="/css/site-chrome.css">
+  <link rel="stylesheet" href="/css/pricing-planner.css">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
@@ -1000,17 +1001,17 @@
     <div class="lp-legal-inner">
       <div class="lp-legal-header">
         <h1>Refund Policy</h1>
-        <div class="lp-legal-date">Last updated: June 2026</div>
+        <div class="lp-legal-date">Last updated: November 2026</div>
       </div>
 
       <div class="lp-legal-section">
         <h2>1. Overview</h2>
-        <p>ORIVEN offers subscription-based access to its advertising platform. This policy explains when and how refunds are granted. We want every customer to be satisfied with the Service.</p>
+        <p>ORIVEN sells access to its advertising platform for a fixed period, paid once. This policy explains when and how refunds are granted. We want every customer to be satisfied with the Service.</p>
       </div>
 
       <div class="lp-legal-section">
-        <h2>2. Subscription Cancellation</h2>
-        <p>You may cancel your subscription at any time from your account settings. Cancellation takes effect at the end of the current billing period. You will continue to have full access to the Service until the billing period ends, and no credits are lost upon cancellation.</p>
+        <h2>2. No Automatic Renewal</h2>
+        <p>An access plan ends on its own at the end of its period: there is nothing to cancel and you are not charged again. Customers who still have a monthly subscription from before these plans can cancel it at any time in Settings; cancelling takes effect at the end of the paid month, and access continues until then.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1019,23 +1020,24 @@
         <ul>
           <li>You were charged in error (duplicate charge, incorrect amount)</li>
           <li>The Service was unavailable for more than 48 consecutive hours due to our fault</li>
-          <li>You request a refund within 7 days of your first subscription payment and have not used more than 10% of your monthly credits</li>
+          <li>You request a refund within 7 days of your first purchase and have not used more than 10% of the credits that purchase has given you so far</li>
         </ul>
+        <p>When a purchase is refunded in full, the remaining access and credits from that purchase end.</p>
       </div>
 
       <div class="lp-legal-section">
         <h2>4. Non-Refundable Items</h2>
         <ul>
           <li>Credits already consumed in generating content</li>
-          <li>Renewal charges after the initial subscription period</li>
-          <li>Partial month refunds (outside the 7-day new subscriber window)</li>
-          <li>Upgrades or plan changes mid-cycle</li>
+          <li>Partial-period refunds (outside the 7-day window for a first purchase)</li>
+          <li>Unused credits or time when an access period ends</li>
+          <li>Monthly charges of a legacy subscription that was not cancelled before it renewed</li>
         </ul>
       </div>
 
       <div class="lp-legal-section">
         <h2>5. How to Request a Refund</h2>
-        <p>Email <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a> with your account email, subscription details, and reason for the refund request. We review all requests within 5 business days.</p>
+        <p>Email <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a> with your account email, the plan you bought, and the reason for the refund request. We review all requests within 5 business days.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1250,6 +1252,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase.js"></script>
 <script src="/js/plans.js"></script>
+<script src="/js/pricingPlanner.js" defer></script>
 
 <!-- ═══════════════════════════════════════════════════════════
      ROUTER — shows the correct view based on the current URL path
@@ -1328,7 +1331,7 @@
   var PAGE_SEO = {
     landing: { title: 'OrivenAI: AI Advertising Platform for Google, Meta, TikTok & Pinterest Ads', desc: 'AI advertising platform for small businesses: research your market, create image and video ads, and launch campaigns on Google, Meta, TikTok and Pinterest.', path: '/' },
     login: { title: 'Login | OrivenAI', desc: 'Log in to your OrivenAI account to manage your advertising campaigns.', path: '/login', noindex: true },
-    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create a free OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
+    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create your OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
     terms: { title: 'Terms of Service | OrivenAI', desc: 'The terms that apply when you use OrivenAI, including accounts, plans and credits, connected ad accounts and acceptable use.', path: '/terms' },
     privacy: { title: 'Privacy Policy | OrivenAI', desc: 'How OrivenAI collects, uses, stores and protects your data and your connected ad account data, and the rights you have over it.', path: '/privacy' },
     'refund-policy': { title: 'Refund Policy | OrivenAI', desc: 'When OrivenAI subscriptions and credits can be refunded, how cancellations work, and how to request a refund.', path: '/refund-policy' },

@@ -78,6 +78,7 @@
   <link rel="stylesheet" href="/css/styles.css">
   <!-- css/site-chrome.css: the shared public navbar look, footer, closing CTA and "Inside <section>" (never loaded by the app). -->
   <link rel="stylesheet" href="/css/site-chrome.css">
+  <link rel="stylesheet" href="/css/pricing-planner.css">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
@@ -995,7 +996,7 @@
     <div class="lp-legal-inner">
       <div class="lp-legal-header">
         <h1>Privacy Policy</h1>
-        <div class="lp-legal-date">Last updated: October 2026</div>
+        <div class="lp-legal-date">Last updated: November 2026</div>
       </div>
 
       <div class="lp-legal-section">
@@ -1015,6 +1016,8 @@
         <ul>
           <li>Account data: name, email address, hashed password</li>
           <li>Usage data: features used, credits consumed, generation history</li>
+          <li>Content you add: your business details, website address, products, audiences, uploaded images, chat messages, and the campaigns, images and videos you create</li>
+          <li>Connected ad accounts: if you connect Google Ads, Meta, TikTok or Pinterest, the access tokens for that connection and the account, campaign and performance data we read from it</li>
           <li>Payment data: processed via Stripe. We do not store card details.</li>
           <li>Technical data: IP address, browser type, device information, session tokens</li>
           <li>Acquisition data: how you first found OrivenAI, recorded once when you create an account (a traffic channel such as “Google search” or “LinkedIn”, campaign tags in the link you used, the referring website’s domain and the first page you visited). Only if statistics are on.</li>
@@ -1031,7 +1034,7 @@
         <h2>4. How We Use Your Information</h2>
         <ul>
           <li>To provide and operate the Service</li>
-          <li>To process payments and manage your subscription</li>
+          <li>To process payments and manage your access plan</li>
           <li>To send transactional communications (account confirmations, billing)</li>
           <li>To improve and develop the platform</li>
           <li>To comply with legal obligations</li>
@@ -1043,24 +1046,24 @@
         <p>We do not sell your personal data. We share data only with trusted service providers that are necessary to operate ORIVEN. Each provider receives only the data required to deliver their specific functionality:</p>
         <ul>
           <li><strong style="color:rgba(240,240,240,.75)">Supabase</strong>: platform infrastructure, user authentication, and database storage</li>
-          <li><strong style="color:rgba(240,240,240,.75)">Stripe</strong>: secure payment processing and subscription management</li>
-          <li><strong style="color:rgba(240,240,240,.75)">OpenAI</strong>: AI content generation (campaigns, copy, visuals, websites, and other generators)</li>
-          <li><strong style="color:rgba(240,240,240,.75)">Anthropic</strong>: AI content generation (brand analysis, Brand Identity intelligence, and strategic outputs)</li>
-          <li><strong style="color:rgba(240,240,240,.75)">HeyGen</strong>: AI video generation (UGC Creator video production)</li>
+          <li><strong style="color:rgba(240,240,240,.75)">Stripe</strong>: payment processing, access purchases and existing subscriptions</li>
+          <li><strong style="color:rgba(240,240,240,.75)">AI/ML API (aimlapi.com)</strong>: the gateway through which every AI request is sent. It passes the request to the model provider that runs it: Anthropic (text, analysis, research and chat), OpenAI (images), Kling AI (video) and Perplexity (web search for research)</li>
+          <li><strong style="color:rgba(240,240,240,.75)">Render</strong> and <strong style="color:rgba(240,240,240,.75)">Netlify</strong>: hosting of our server and of this website</li>
           <li><strong style="color:rgba(240,240,240,.75)">Resend</strong>: sending account and, if you opted in, marketing emails</li>
           <li><strong style="color:rgba(240,240,240,.75)">Google</strong>: advertising measurement (Google Ads), only after you accept advertising cookies</li>
         </ul>
-        <p>No personally identifiable information is included in AI generation prompts sent to OpenAI, Anthropic, or HeyGen. Prompts contain only brand-related content you choose to provide within the platform.</p>
+        <p>AI requests contain the content needed for the task: what you type or upload and the business details you saved in OrivenAI. We do not add your name, email address or payment details to them. Avoid entering personal data about other people in prompts or chat.</p>
+        <p>If you connect an ad account, we exchange data with that platform (Google, Meta, TikTok or Pinterest) on your instruction: we read your account and campaign data and send the campaigns you choose to publish. Their own privacy policies apply to the data they hold.</p>
       </div>
 
       <div class="lp-legal-section">
         <h2>6. Data Retention</h2>
-        <p>We retain your account data for as long as your account is active, plus 30 days after deletion. Billing records are retained for 7 years as required by Dutch tax law.</p>
+        <p>We keep your account data while your account exists. You can delete your account at any time in Settings. Deletion is immediate: your business details, brand, campaigns, uploaded and generated files, automations, ad-account connections and other workspace data are removed, your sign-in is disabled and your profile is anonymised. Records of purchases and credit use are kept, without your name or email address, for 7 years as required by Dutch tax law. Website statistics are kept without a link to your account. Server logs and backups held by our providers expire on their own schedules.</p>
       </div>
 
       <div class="lp-legal-section">
         <h2>7. Your Rights Under GDPR</h2>
-        <p>As a data subject, you have the right to: access your personal data, correct inaccurate data, request deletion ("right to be forgotten"), restrict or object to processing, and data portability. To exercise any of these rights, email us at <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a>. We will respond within 30 days.</p>
+        <p>As a data subject, you have the right to: access your personal data, correct inaccurate data, request deletion ("right to be forgotten"), restrict or object to processing, and data portability. You can delete your account yourself in Settings. To exercise any of the other rights, email us at <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a>. We will respond within 30 days.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1290,6 +1293,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase.js"></script>
 <script src="/js/plans.js"></script>
+<script src="/js/pricingPlanner.js" defer></script>
 
 <!-- ═══════════════════════════════════════════════════════════
      ROUTER — shows the correct view based on the current URL path
@@ -1368,7 +1372,7 @@
   var PAGE_SEO = {
     landing: { title: 'OrivenAI: AI Advertising Platform for Google, Meta, TikTok & Pinterest Ads', desc: 'AI advertising platform for small businesses: research your market, create image and video ads, and launch campaigns on Google, Meta, TikTok and Pinterest.', path: '/' },
     login: { title: 'Login | OrivenAI', desc: 'Log in to your OrivenAI account to manage your advertising campaigns.', path: '/login', noindex: true },
-    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create a free OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
+    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create your OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
     terms: { title: 'Terms of Service | OrivenAI', desc: 'The terms that apply when you use OrivenAI, including accounts, plans and credits, connected ad accounts and acceptable use.', path: '/terms' },
     privacy: { title: 'Privacy Policy | OrivenAI', desc: 'How OrivenAI collects, uses, stores and protects your data and your connected ad account data, and the rights you have over it.', path: '/privacy' },
     'refund-policy': { title: 'Refund Policy | OrivenAI', desc: 'When OrivenAI subscriptions and credits can be refunded, how cancellations work, and how to request a refund.', path: '/refund-policy' },

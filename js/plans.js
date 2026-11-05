@@ -314,12 +314,14 @@ function renderLPPricingCards(containerEl){
     var hi = !!plan.badge;
     var delay = i === 0 ? '' : (i * 0.06).toFixed(2).replace(/^0/, '');
     var delayAttr = delay ? ' style="transition-delay:' + delay + 's"' : '';
-    var duration = f.period + ' of access' + (f.perMonth ? '<span class="ov-pc-sub"> · ' + f.perMonth + '</span>' : '');
+    // data-eur: the EUR amount, so the pricing page's currency selector can
+    // show an approximate conversion (display only; checkout stays in EUR).
+    var duration = f.period + ' of access' + (f.perMonth ? '<span class="ov-pc-sub"> · <span data-eur="' + plan.perMonth + '">' + _orvEuro(plan.perMonth) + '</span> ' + orvPlanT("per month") + '</span>' : '');
     var credits = f.credits + (plan.instalments > 1 ? '<span class="ov-pc-sub"> · ' + orvFormatCredits(plan.creditsPerInstalment) + ' a month</span>' : '');
     return [
       '<div class="ov-pc ov-pc--period' + (hi ? ' ov-pc-pro' : '') + '" data-observe data-plan="' + plan.id + '"' + delayAttr + '>',
         '<div class="ov-pc-head">' + (hi ? '<div class="ov-pc-badge">' + f.badge + '</div>' : '') + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
-        '<div class="ov-pc-price"><span class="ov-pc-price-num">' + f.price + '</span></div>',
+        '<div class="ov-pc-price"><span class="ov-pc-price-num" data-eur="' + plan.price + '">' + f.price + '</span></div>',
         '<div class="ov-pc-facts">',
           '<p class="ov-pc-duration">' + duration + '</p>',
           '<p class="ov-pc-credits">' + credits + '</p>',

@@ -2188,6 +2188,8 @@ function sendChat(){
     _showError(msg);
   });
 }
+// Text from users, the server or AI is inserted as text, never as markup.
+function _appEsc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 function renderChatHistory(){
   var feed=document.getElementById("chatFeed");
   if(!feed) return;
@@ -2199,7 +2201,7 @@ function renderChatHistory(){
     if(msg.role==="user"){
       var div=document.createElement("div");
       div.className="chat-msg user";
-      div.innerHTML='<div class="chat-bubble user-bubble">'+msg.text+"</div>";
+      div.innerHTML='<div class="chat-bubble user-bubble">'+_appEsc(msg.text)+"</div>";
       feed.appendChild(div);
     } else if(msg.role==="ai"&&msg.response){
       appendAIMessage(msg.response,feed);
@@ -2330,11 +2332,12 @@ function updateStudioBCPanel(){
     return;
   }
   var swatches=bc.colors.slice(0,4).map(function(col){
-    return '<div class="si-swatch" style="background:'+col.hex+'" title="'+col.name+'"></div>';
+    var hex=/^#[0-9a-fA-F]{3,8}$/.test(String(col.hex||""))?col.hex:"transparent";
+    return '<div class="si-swatch" style="background:'+hex+'" title="'+_appEsc(col.name)+'"></div>';
   }).join("");
   var persArr=Array.isArray(bc.personality)?bc.personality:(bc.tone||[]);
   var meta=persArr.slice(0,2).join(" · ")||bc.visualDirection||bc.styleDirection||"";
-  el.innerHTML='<div class="si-bc-block"><div class="si-bc-name">'+bc.name+'</div><div class="si-bc-meta">'+meta+'</div><div class="si-colors">'+swatches+"</div></div>";
+  el.innerHTML='<div class="si-bc-block"><div class="si-bc-name">'+_appEsc(bc.name)+'</div><div class="si-bc-meta">'+_appEsc(meta)+'</div><div class="si-colors">'+swatches+"</div></div>";
 }
 function renderColors(containerId){
   var el=document.getElementById(containerId);

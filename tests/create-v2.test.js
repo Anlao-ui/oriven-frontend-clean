@@ -76,7 +76,9 @@ async function arm(page, o) {
     const u = r.request().url();
     const json = (status, obj) => r.fulfill({ status, contentType: 'application/json', body: JSON.stringify(obj) });
     let body = {}; try { body = JSON.parse(r.request().postData() || '{}'); } catch (_) {}
-    if (/\/api\/credits\/status/.test(u)) return json(200, { balance: o.balance == null ? 1000 : o.balance, plan: 'starter', monthlyAllowance: 1000, featureCosts: { campaign_generation: 25, image_generation: 75, video_generation: 200 } });
+    // Default balance is large: the app subtracts each build optimistically (usage.js consumeUsage)
+    // until it re-reads this status, so a small default made later builds flaky. Low-balance cases set o.balance.
+    if (/\/api\/credits\/status/.test(u)) return json(200, { balance: o.balance == null ? 100000 : o.balance, plan: 'starter', monthlyAllowance: 1000, featureCosts: { campaign_generation: 25, image_generation: 75, video_generation: 200 } });
     if (/\/api\/business\/profile/.test(u)) return json(200, { profile: o.profile === undefined ? { company_name: 'Leather Co', country: 'Netherlands' } : o.profile });
     if (/\/api\/business\/audiences/.test(u)) return json(200, { items: [{ name: 'Gift buyers 25–45' }] });
     if (/\/api\/create\/analyze-url/.test(u)) { o.analyzeCalls.push(body); if (o.analyzeFail) return json(200, { ok: false, url: body.url, reason: o.analyzeFail === 'dns_failure' ? 'Could not resolve that domain.' : 'Fetch failed.', code: o.analyzeFail }); return json(200, { ok: true, url: body.url, domain: 'leathershop.example', title: 'Leather Shop', description: 'Wallets', text: 'Handmade leather wallets.' }); }

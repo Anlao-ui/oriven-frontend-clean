@@ -1,3 +1,7 @@
+// SUPERSEDED (2026-11-05 audit): it checks the earlier Research form (four types, 25 credits); Research now has seven directions at the research_report cost.
+// The current screens are covered by tests/research-insights.test.js. Kept for history;
+// set RUN_SUPERSEDED=1 to run it anyway.
+if (!process.env.RUN_SUPERSEDED) { console.log("SKIP: superseded by tests/research-insights.test.js (" + "it checks the earlier Research form (four types, 25 credits); Research now has seven directions at the research_report cost" + ")"); process.exit(0); }
 /* ════════════════════════════════════════════════════════════════
    Research 2.0 — Home, progress, report, library and Research → Create,
    end to end in a real browser.

@@ -12,7 +12,7 @@ export const ROUTES = {
   },
   "/signup": {
     "title": "Create Your Account | OrivenAI",
-    "desc": "Create a free OrivenAI account to start creating, launching and managing advertising campaigns.",
+    "desc": "Create your OrivenAI account to start creating, launching and managing advertising campaigns.",
     "noindex": true
   }
 };

@@ -1,0 +1,105 @@
+/* ════════════════════════════════════════════════════════════════
+   Pricing page: currency selector (.orv-cur-*) and Create Your Own Plan
+   (.orv-pp-*). js/pricingPlanner.js renders both. Dark site surface, the
+   site's lime accent (--green) with a faint violet glow; no new fonts.
+   ════════════════════════════════════════════════════════════════ */
+:root {
+  --orv-pp-violet: 139, 124, 255;          /* glow only, never text */
+  --orv-pp-line: rgba(255, 255, 255, .09);
+  --orv-pp-muted: rgba(255, 255, 255, .55);
+  --orv-pp-faint: rgba(255, 255, 255, .38);
+}
+
+/* ── Currency selector ─────────────────────────────────────────── */
+.orv-cur { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px 10px; margin: 0 0 18px; }
+.orv-cur-label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--orv-pp-faint); }
+.orv-cur-select-wrap { position: relative; display: inline-flex; }
+.orv-cur-select-wrap::after { content: ''; position: absolute; right: 12px; top: 50%; width: 7px; height: 7px; margin-top: -5px; border-right: 1.5px solid var(--orv-pp-muted); border-bottom: 1.5px solid var(--orv-pp-muted); transform: rotate(45deg); pointer-events: none; }
+.orv-cur-select { appearance: none; -webkit-appearance: none; max-width: 15.5rem; padding: 7px 32px 7px 12px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, .14); background: rgba(255, 255, 255, .04); color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color .15s, background .15s; }
+.orv-cur-select:hover { border-color: rgba(255, 255, 255, .26); }
+.orv-cur-select:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.orv-cur-select option { background: #111311; color: #fff; }
+.orv-cur-note, .orv-cur-msg { flex-basis: 100%; margin: 0; text-align: right; font-size: 12px; line-height: 1.5; color: var(--orv-pp-faint); }
+.orv-cur-msg:empty { display: none; }
+.orv-cur-msg { color: #ffcf6e; }
+
+/* ── Create Your Own Plan ──────────────────────────────────────── */
+.orv-pp-section { padding-top: clamp(24px, 4vw, 48px); }
+.orv-pp-head { text-align: center; max-width: 640px; margin: 0 auto clamp(24px, 3vw, 40px); }
+.orv-pp-head .ov-sp-h2 { text-wrap: balance; }
+.orv-pp-sub { margin: 12px 0 0; font-size: 16px; line-height: 1.6; color: var(--orv-pp-muted); text-wrap: pretty; }
+
+#orvPlanner {
+  position: relative; isolation: isolate;
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); align-items: start;
+  padding: clamp(20px, 3vw, 40px); border-radius: 24px; border: 1px solid var(--orv-pp-line);
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(var(--orv-pp-violet), .08), transparent 60%),
+    radial-gradient(90% 80% at 0% 100%, color-mix(in srgb, var(--green) 5%, transparent), transparent 60%),
+    rgba(11, 12, 10, .9);
+}
+
+.orv-pp-sliders { display: grid; gap: clamp(22px, 2.6vw, 32px); }
+.orv-pp-field-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 12px; }
+.orv-pp-label { display: grid; gap: 4px; font-size: 15px; font-weight: 700; color: #fff; }
+.orv-pp-question { font-size: 13px; font-weight: 400; color: var(--orv-pp-muted); }
+.orv-pp-value { flex-shrink: 0; padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.orv-pp-ends { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--orv-pp-faint); }
+
+/* Range: a rounded track with a lime fill up to the handle (--orv-pp-fill). */
+.orv-pp-range { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; margin: 0; background: transparent; cursor: pointer; --orv-pp-fill: 50%; }
+.orv-pp-range:focus { outline: none; }
+.orv-pp-range::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--green) 0 var(--orv-pp-fill), rgba(255, 255, 255, .12) var(--orv-pp-fill) 100%); }
+.orv-pp-range::-moz-range-track { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .12); }
+.orv-pp-range::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--green); }
+.orv-pp-range::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -7px; border-radius: 50%; background: #fff; border: 3px solid var(--green); box-shadow: 0 0 0 6px color-mix(in srgb, var(--green) 14%, transparent), 0 2px 8px rgba(0, 0, 0, .4); transition: transform .12s ease, box-shadow .12s ease; }
+.orv-pp-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid var(--green); box-shadow: 0 0 0 6px color-mix(in srgb, var(--green) 14%, transparent); }
+.orv-pp-range:hover::-webkit-slider-thumb { transform: scale(1.08); }
+.orv-pp-range:active::-webkit-slider-thumb { transform: scale(1.14); }
+.orv-pp-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px #0b0c0a, 0 0 0 6px var(--green); }
+.orv-pp-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px #0b0c0a, 0 0 0 6px var(--green); }
+
+/* Recommendation: a lit panel, not another plan card. */
+.orv-pp-result {
+  position: sticky; top: 96px;
+  padding: clamp(22px, 2.6vw, 30px); border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--green) 32%, transparent);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--green) 9%, transparent), rgba(var(--orv-pp-violet), .07) 70%, transparent),
+    rgba(14, 16, 13, .96);
+  box-shadow: 0 0 0 1px rgba(var(--orv-pp-violet), .06) inset, 0 18px 60px rgba(0, 0, 0, .35), 0 0 80px color-mix(in srgb, var(--green) 6%, transparent);
+}
+.orv-pp-eyebrow { margin: 0 0 10px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--green); }
+.orv-pp-plan { margin: 0; font-size: clamp(28px, 3vw, 36px); font-weight: 700; letter-spacing: -.03em; line-height: 1.1; color: #fff; }
+.orv-pp-price { margin: 10px 0 0; font-size: 22px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+.orv-pp-per { font-size: 15px; font-weight: 500; color: var(--orv-pp-muted); }
+.orv-pp-times { margin: 6px 0 0; font-size: 13px; font-weight: 600; color: var(--green); font-variant-numeric: tabular-nums; }
+.orv-pp-credits { margin: 8px 0 0; font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, .82); font-variant-numeric: tabular-nums; }
+
+.orv-pp-meter { margin: 18px 0 0; padding: 14px 0 0; border-top: 1px solid var(--orv-pp-line); }
+.orv-pp-meter-head { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--orv-pp-muted); font-variant-numeric: tabular-nums; }
+.orv-pp-meter-head span:last-child { color: #fff; font-weight: 600; }
+.orv-pp-meter-bar { height: 6px; margin-top: 8px; border-radius: 999px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.orv-pp-meter-bar span { display: block; height: 100%; border-radius: inherit; background: var(--green); transition: width .25s ease; }
+.orv-pp-meter-bar.is-over span { background: #ffcf6e; }
+.orv-pp-breakdown { margin: 8px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--orv-pp-faint); }
+
+.orv-pp-why { margin: 14px 0 0; font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, .78); text-wrap: pretty; }
+.orv-pp-cta { display: block; margin-top: 18px; padding: 13px 16px; border-radius: 11px; background: var(--green); color: #0a0a0a; font-size: 14px; font-weight: 700; text-align: center; text-decoration: none; transition: background .15s, transform .15s; }
+.orv-pp-cta:hover { background: var(--gm); }
+.orv-pp-cta:active { transform: translateY(1px); }
+.orv-pp-cta:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.orv-pp-fine { margin: 12px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--orv-pp-faint); }
+
+@media (max-width: 900px) {
+  #orvPlanner { grid-template-columns: 1fr; }
+  .orv-pp-result { position: static; }
+}
+@media (max-width: 700px) {
+  .orv-cur { justify-content: center; }
+  .orv-cur-note, .orv-cur-msg { text-align: center; }
+  .orv-pp-field-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orv-pp-meter-bar span, .orv-pp-range::-webkit-slider-thumb, .orv-pp-cta { transition: none; }
+}

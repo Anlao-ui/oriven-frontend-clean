@@ -4524,6 +4524,22 @@ function smdNav(btn){
   if(panel) panel.classList.add("active");
 }
 
+// After the account is deleted, nothing of it stays in this browser: cached
+// workspace data, drafts, chat history and preferences go. Only device
+// choices that belong to no account stay (cookie choice, display currency).
+var ORV_KEEP_AFTER_DELETE = { orv_consent_v1: 1, orv_display_currency: 1, orv_fx_rates_v1: 1 };
+function _orvClearLocalAccountData(){
+  [window.localStorage, window.sessionStorage].forEach(function(store){
+    try {
+      var keys = [];
+      for(var i = 0; i < store.length; i++) keys.push(store.key(i));
+      keys.forEach(function(k){
+        if(k && /^(_?orv|oriven|_prf|sb-)/i.test(k) && !ORV_KEEP_AFTER_DELETE[k]) store.removeItem(k);
+      });
+    } catch(_){}
+  });
+}
+
 async function confirmDeleteAccount(btn){
   if(!confirm("Permanently delete your ORIVEN account and all data? This cannot be undone.")) return;
   if(!confirm("Final confirmation: your campaigns, saved assets, and account will be permanently deleted. Continue?")) return;
@@ -4540,6 +4556,7 @@ async function confirmDeleteAccount(btn){
     }
     toast("Account deleted.");
     try { await SB.auth.signOut(); } catch(_){}
+    _orvClearLocalAccountData();
     window.location.href = "/";
   } catch(err){
     toast("Could not delete your account — try again.", "err");

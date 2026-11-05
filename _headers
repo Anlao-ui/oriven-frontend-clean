@@ -8,3 +8,13 @@
 # replaced, give it a new file name so visitors get it at once.
 /assets/films/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Every page: no framing by other sites (clickjacking), no MIME sniffing,
+# referrer limited to the origin on other sites, no device APIs. No CSP here:
+# the pages use inline scripts and third-party tags (Supabase, Stripe,
+# consented Google Ads) that a CSP would have to list first.
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(self "https://checkout.stripe.com")

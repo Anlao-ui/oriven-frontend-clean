@@ -1,3 +1,7 @@
+// SUPERSEDED (2026-11-05 audit): the onboarding overlay it drives (#ob2Overlay) was removed when the guided onboarding (js/onboardingFlow.js) replaced it.
+// The current screens are covered by tests/onboarding-flow-ui.test.js. Kept for history;
+// set RUN_SUPERSEDED=1 to run it anyway.
+if (!process.env.RUN_SUPERSEDED) { console.log("SKIP: superseded by tests/onboarding-flow-ui.test.js (" + "the onboarding overlay it drives (#ob2Overlay) was removed when the guided onboarding (js/onboardingFlow.js) replaced it" + ")"); process.exit(0); }
 /* ════════════════════════════════════════════════════════════════
    Onboarding rebuild — deterministic, non-mutating test suite.
 

@@ -14153,7 +14153,8 @@ window._launchRepaint = function(){
         if(!res.ok && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
           el.innerHTML='You&rsquo;re out of AI credits for this billing period. <a href="#" onclick="event.preventDefault();if(typeof openLimitReached===\'function\')openLimitReached(\'credits\');">Upgrade &rarr;</a>';
         } else {
-          el.innerHTML=(res.ok&&res.data&&res.data.reply)?res.data.reply:'I\'m having trouble connecting. Try again.';
+          // AI text can echo web content: shown as escaped text, line breaks kept.
+          el.innerHTML=(res.ok&&res.data&&res.data.reply)?_escHtml(res.data.reply).replace(/\n/g,'<br>'):'I\'m having trouble connecting. Try again.';
         }
         feed.scrollTop=feed.scrollHeight;
       }).catch(function(){

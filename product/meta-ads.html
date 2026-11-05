@@ -78,6 +78,7 @@
   <link rel="stylesheet" href="/css/styles.css">
   <!-- css/site-chrome.css: the shared public navbar look, footer, closing CTA and "Inside <section>" (never loaded by the app). -->
   <link rel="stylesheet" href="/css/site-chrome.css">
+  <link rel="stylesheet" href="/css/pricing-planner.css">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
@@ -1300,6 +1301,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase.js"></script>
 <script src="/js/plans.js"></script>
+<script src="/js/pricingPlanner.js" defer></script>
 
 <!-- ═══════════════════════════════════════════════════════════
      ROUTER — shows the correct view based on the current URL path
@@ -1378,7 +1380,7 @@
   var PAGE_SEO = {
     landing: { title: 'OrivenAI: AI Advertising Platform for Google, Meta, TikTok & Pinterest Ads', desc: 'AI advertising platform for small businesses: research your market, create image and video ads, and launch campaigns on Google, Meta, TikTok and Pinterest.', path: '/' },
     login: { title: 'Login | OrivenAI', desc: 'Log in to your OrivenAI account to manage your advertising campaigns.', path: '/login', noindex: true },
-    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create a free OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
+    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create your OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
     terms: { title: 'Terms of Service | OrivenAI', desc: 'The terms that apply when you use OrivenAI, including accounts, plans and credits, connected ad accounts and acceptable use.', path: '/terms' },
     privacy: { title: 'Privacy Policy | OrivenAI', desc: 'How OrivenAI collects, uses, stores and protects your data and your connected ad account data, and the rights you have over it.', path: '/privacy' },
     'refund-policy': { title: 'Refund Policy | OrivenAI', desc: 'When OrivenAI subscriptions and credits can be refunded, how cancellations work, and how to request a refund.', path: '/refund-policy' },

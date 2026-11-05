@@ -124,6 +124,7 @@
   <link rel="stylesheet" href="/css/styles.css">
   <!-- css/site-chrome.css: the shared public navbar look, footer, closing CTA and "Inside <section>" (never loaded by the app). -->
   <link rel="stylesheet" href="/css/site-chrome.css">
+  <link rel="stylesheet" href="/css/pricing-planner.css">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
@@ -1522,17 +1523,17 @@
     <div class="lp-legal-inner">
       <div class="lp-legal-header">
         <h1>Terms of Service</h1>
-        <div class="lp-legal-date">Last updated: June 2026</div>
+        <div class="lp-legal-date">Last updated: November 2026</div>
       </div>
 
       <div class="lp-legal-section">
         <h2>1. Agreement to Terms</h2>
-        <p>By accessing or using ORIVEN ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service. These terms apply to all users, including visitors, registered users, and subscribers.</p>
+        <p>By accessing or using ORIVEN ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service. These terms apply to all users, including visitors, registered users, and paying customers.</p>
       </div>
 
       <div class="lp-legal-section">
         <h2>2. Description of Services</h2>
-        <p>ORIVEN is an advertising platform that helps users research advertising approaches, create campaign assets, launch and manage campaigns across supported advertising platforms, and automate optimization, informed by a persistent Business and Brand profile. Access to the Service is provided on a subscription basis.</p>
+        <p>ORIVEN is an advertising platform that helps users research advertising approaches, create campaign assets, launch and manage campaigns across supported advertising platforms, and automate optimization, informed by a persistent Business and Brand profile. Access to the Service is provided for a paid access period that you buy once.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1541,8 +1542,9 @@
       </div>
 
       <div class="lp-legal-section">
-        <h2>4. Subscription Plans and Credits</h2>
-        <p>ORIVEN offers paid subscription plans. Each plan includes a monthly allocation of Creative Credits used to generate assets. Credits reset monthly and do not carry over. Prices are listed in euros (€) and may be subject to applicable taxes. By subscribing, you authorize recurring charges to your payment method.</p>
+        <h2>4. Plans, Payment and Credits</h2>
+        <p>ORIVEN offers paid access plans for a fixed period: 14 days, 1, 3, 6 or 12 months. You pay once per plan; a plan does not renew automatically and you are not charged again unless you buy another plan. If you buy a plan while you still have access, the new period starts when your current one ends. Every plan includes all features and a number of credits used for AI work such as research, generation and chat. Plans of 3 months or longer add their credits in monthly instalments. Credits that are not used expire when your access period ends. Prices are charged in euros (€) and include VAT; amounts shown in other currencies on our pricing page are estimates only.</p>
+        <p>Customers who still have a monthly subscription from before these plans keep it until it is cancelled. That subscription renews monthly until you cancel it in Settings; cancelling takes effect at the end of the paid month.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1618,7 +1620,7 @@
     <div class="lp-legal-inner">
       <div class="lp-legal-header">
         <h1>Privacy Policy</h1>
-        <div class="lp-legal-date">Last updated: October 2026</div>
+        <div class="lp-legal-date">Last updated: November 2026</div>
       </div>
 
       <div class="lp-legal-section">
@@ -1638,6 +1640,8 @@
         <ul>
           <li>Account data: name, email address, hashed password</li>
           <li>Usage data: features used, credits consumed, generation history</li>
+          <li>Content you add: your business details, website address, products, audiences, uploaded images, chat messages, and the campaigns, images and videos you create</li>
+          <li>Connected ad accounts: if you connect Google Ads, Meta, TikTok or Pinterest, the access tokens for that connection and the account, campaign and performance data we read from it</li>
           <li>Payment data: processed via Stripe. We do not store card details.</li>
           <li>Technical data: IP address, browser type, device information, session tokens</li>
           <li>Acquisition data: how you first found OrivenAI, recorded once when you create an account (a traffic channel such as “Google search” or “LinkedIn”, campaign tags in the link you used, the referring website’s domain and the first page you visited). Only if statistics are on.</li>
@@ -1654,7 +1658,7 @@
         <h2>4. How We Use Your Information</h2>
         <ul>
           <li>To provide and operate the Service</li>
-          <li>To process payments and manage your subscription</li>
+          <li>To process payments and manage your access plan</li>
           <li>To send transactional communications (account confirmations, billing)</li>
           <li>To improve and develop the platform</li>
           <li>To comply with legal obligations</li>
@@ -1666,24 +1670,24 @@
         <p>We do not sell your personal data. We share data only with trusted service providers that are necessary to operate ORIVEN. Each provider receives only the data required to deliver their specific functionality:</p>
         <ul>
           <li><strong style="color:rgba(240,240,240,.75)">Supabase</strong>: platform infrastructure, user authentication, and database storage</li>
-          <li><strong style="color:rgba(240,240,240,.75)">Stripe</strong>: secure payment processing and subscription management</li>
-          <li><strong style="color:rgba(240,240,240,.75)">OpenAI</strong>: AI content generation (campaigns, copy, visuals, websites, and other generators)</li>
-          <li><strong style="color:rgba(240,240,240,.75)">Anthropic</strong>: AI content generation (brand analysis, Brand Identity intelligence, and strategic outputs)</li>
-          <li><strong style="color:rgba(240,240,240,.75)">HeyGen</strong>: AI video generation (UGC Creator video production)</li>
+          <li><strong style="color:rgba(240,240,240,.75)">Stripe</strong>: payment processing, access purchases and existing subscriptions</li>
+          <li><strong style="color:rgba(240,240,240,.75)">AI/ML API (aimlapi.com)</strong>: the gateway through which every AI request is sent. It passes the request to the model provider that runs it: Anthropic (text, analysis, research and chat), OpenAI (images), Kling AI (video) and Perplexity (web search for research)</li>
+          <li><strong style="color:rgba(240,240,240,.75)">Render</strong> and <strong style="color:rgba(240,240,240,.75)">Netlify</strong>: hosting of our server and of this website</li>
           <li><strong style="color:rgba(240,240,240,.75)">Resend</strong>: sending account and, if you opted in, marketing emails</li>
           <li><strong style="color:rgba(240,240,240,.75)">Google</strong>: advertising measurement (Google Ads), only after you accept advertising cookies</li>
         </ul>
-        <p>No personally identifiable information is included in AI generation prompts sent to OpenAI, Anthropic, or HeyGen. Prompts contain only brand-related content you choose to provide within the platform.</p>
+        <p>AI requests contain the content needed for the task: what you type or upload and the business details you saved in OrivenAI. We do not add your name, email address or payment details to them. Avoid entering personal data about other people in prompts or chat.</p>
+        <p>If you connect an ad account, we exchange data with that platform (Google, Meta, TikTok or Pinterest) on your instruction: we read your account and campaign data and send the campaigns you choose to publish. Their own privacy policies apply to the data they hold.</p>
       </div>
 
       <div class="lp-legal-section">
         <h2>6. Data Retention</h2>
-        <p>We retain your account data for as long as your account is active, plus 30 days after deletion. Billing records are retained for 7 years as required by Dutch tax law.</p>
+        <p>We keep your account data while your account exists. You can delete your account at any time in Settings. Deletion is immediate: your business details, brand, campaigns, uploaded and generated files, automations, ad-account connections and other workspace data are removed, your sign-in is disabled and your profile is anonymised. Records of purchases and credit use are kept, without your name or email address, for 7 years as required by Dutch tax law. Website statistics are kept without a link to your account. Server logs and backups held by our providers expire on their own schedules.</p>
       </div>
 
       <div class="lp-legal-section">
         <h2>7. Your Rights Under GDPR</h2>
-        <p>As a data subject, you have the right to: access your personal data, correct inaccurate data, request deletion ("right to be forgotten"), restrict or object to processing, and data portability. To exercise any of these rights, email us at <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a>. We will respond within 30 days.</p>
+        <p>As a data subject, you have the right to: access your personal data, correct inaccurate data, request deletion ("right to be forgotten"), restrict or object to processing, and data portability. You can delete your account yourself in Settings. To exercise any of the other rights, email us at <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a>. We will respond within 30 days.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1741,17 +1745,17 @@
     <div class="lp-legal-inner">
       <div class="lp-legal-header">
         <h1>Refund Policy</h1>
-        <div class="lp-legal-date">Last updated: June 2026</div>
+        <div class="lp-legal-date">Last updated: November 2026</div>
       </div>
 
       <div class="lp-legal-section">
         <h2>1. Overview</h2>
-        <p>ORIVEN offers subscription-based access to its advertising platform. This policy explains when and how refunds are granted. We want every customer to be satisfied with the Service.</p>
+        <p>ORIVEN sells access to its advertising platform for a fixed period, paid once. This policy explains when and how refunds are granted. We want every customer to be satisfied with the Service.</p>
       </div>
 
       <div class="lp-legal-section">
-        <h2>2. Subscription Cancellation</h2>
-        <p>You may cancel your subscription at any time from your account settings. Cancellation takes effect at the end of the current billing period. You will continue to have full access to the Service until the billing period ends, and no credits are lost upon cancellation.</p>
+        <h2>2. No Automatic Renewal</h2>
+        <p>An access plan ends on its own at the end of its period: there is nothing to cancel and you are not charged again. Customers who still have a monthly subscription from before these plans can cancel it at any time in Settings; cancelling takes effect at the end of the paid month, and access continues until then.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1760,23 +1764,24 @@
         <ul>
           <li>You were charged in error (duplicate charge, incorrect amount)</li>
           <li>The Service was unavailable for more than 48 consecutive hours due to our fault</li>
-          <li>You request a refund within 7 days of your first subscription payment and have not used more than 10% of your monthly credits</li>
+          <li>You request a refund within 7 days of your first purchase and have not used more than 10% of the credits that purchase has given you so far</li>
         </ul>
+        <p>When a purchase is refunded in full, the remaining access and credits from that purchase end.</p>
       </div>
 
       <div class="lp-legal-section">
         <h2>4. Non-Refundable Items</h2>
         <ul>
           <li>Credits already consumed in generating content</li>
-          <li>Renewal charges after the initial subscription period</li>
-          <li>Partial month refunds (outside the 7-day new subscriber window)</li>
-          <li>Upgrades or plan changes mid-cycle</li>
+          <li>Partial-period refunds (outside the 7-day window for a first purchase)</li>
+          <li>Unused credits or time when an access period ends</li>
+          <li>Monthly charges of a legacy subscription that was not cancelled before it renewed</li>
         </ul>
       </div>
 
       <div class="lp-legal-section">
         <h2>5. How to Request a Refund</h2>
-        <p>Email <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a> with your account email, subscription details, and reason for the refund request. We review all requests within 5 business days.</p>
+        <p>Email <a href="mailto:contact@orivenai.com" class="lp-legal-email">contact@orivenai.com</a> with your account email, the plan you bought, and the reason for the refund request. We review all requests within 5 business days.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1824,7 +1829,7 @@
     <div class="lp-legal-inner">
       <div class="lp-legal-header">
         <h1>Cookie Policy</h1>
-        <div class="lp-legal-date">Last updated: October 2026</div>
+        <div class="lp-legal-date">Last updated: November 2026</div>
       </div>
 
       <div class="lp-legal-section">
@@ -1840,7 +1845,7 @@
       <div class="lp-legal-section">
         <h2>3. Categories</h2>
         <ul>
-          <li><strong>Essential (always on)</strong>: your sign-in session (stored by our authentication provider, Supabase), your workspace preferences, and your cookie choice itself (<em>orv_consent_v1</em>, kept until you change it). Without these the service doesn’t work.</li>
+          <li><strong>Essential (always on)</strong>: your sign-in session (stored by our authentication provider, Supabase), your workspace preferences, the display currency you pick on the pricing page (<em>orv_display_currency</em>) with the exchange rates used for it (<em>orv_fx_rates_v1</em>, refreshed after 12 hours), and your cookie choice itself (<em>orv_consent_v1</em>, kept until you change it). Without these the service doesn’t work.</li>
           <li><strong>Statistics (on, you can switch it off)</strong>: OrivenAI’s own page statistics. No cookies are set and no IP address is stored; a visitor code that changes every day is calculated on our server. To remember how you first arrived until you sign up, the first page, referring domain and campaign tags are kept in your browser tab (<em>sessionStorage</em>: <em>orv_first_touch_v1</em>), which is cleared when you close the tab. A Do Not Track or Global Privacy Control signal switches statistics off.</li>
           <li><strong>Advertising (off unless you accept)</strong>: Google Ads cookies (for example <em>_gcl_au</em>) to measure the results of our ads. The Google Ads tag isn’t loaded until you accept. Withdrawing consent stops it and removes these cookies from orivenai.com.</li>
         </ul>
@@ -4051,7 +4056,22 @@
         <h1 class="ov-eyebrow ov-pricing-fold-eyebrow">OrivenAI pricing</h1>
         <p class="ov-pricing-title">One product. Choose how long.</p>
       </header>
+      <!-- Currency selector (js/pricingPlanner.js): approximate prices only;
+           checkout always charges the EUR price. -->
+      <div class="orv-cur" id="orvCurrency"></div>
       <div class="ov-pricing-grid-4" id="lpPricingGrid"></div>
+    </div>
+  </section>
+
+  <!-- Create Your Own Plan (js/pricingPlanner.js): recommends one of the five
+       plans from the credit costs in js/plans.js, computed in the browser. -->
+  <section class="ov-sp-section orv-pp-section" id="create-your-plan" aria-labelledby="orv-pp-h">
+    <div class="ov-sp-section-inner ov-pricing-fold-wide">
+      <header class="orv-pp-head">
+        <h2 class="ov-sp-h2" id="orv-pp-h">Create Your Own Plan</h2>
+        <p class="orv-pp-sub">Tell us how you plan to use OrivenAI. We'll find the perfect plan for you.</p>
+      </header>
+      <div id="orvPlanner"></div>
     </div>
   </section>
 
@@ -4065,7 +4085,7 @@
 
       <div class="ov-pd-part" aria-labelledby="pd-plans-h">
         <h3 id="pd-plans-h">Plans side by side</h3>
-        <div class="ov-pd-table-wrap"><table class="ov-pd-table"><thead><tr><th scope="col">Plan</th><th scope="col">Access</th><th scope="col" class="ov-pd-num">Price</th><th scope="col" class="ov-pd-num">Credits</th></tr></thead><tbody><tr><th scope="row">Flex</th><td data-label="Access">14 days</td><td data-label="Price" class="ov-pd-num">€17</td><td data-label="Credits" class="ov-pd-num">1,050</td></tr><tr><th scope="row">Monthly</th><td data-label="Access">1 month</td><td data-label="Price" class="ov-pd-num">€29</td><td data-label="Credits" class="ov-pd-num">1,750</td></tr><tr><th scope="row">Quarterly</th><td data-label="Access">3 months</td><td data-label="Price" class="ov-pd-num">€78</td><td data-label="Credits" class="ov-pd-num">4,800</td></tr><tr><th scope="row">Semi-Annual</th><td data-label="Access">6 months</td><td data-label="Price" class="ov-pd-num">€143</td><td data-label="Credits" class="ov-pd-num">8,850</td></tr><tr class="is-best"><th scope="row">Annual</th><td data-label="Access">12 months</td><td data-label="Price" class="ov-pd-num">€245</td><td data-label="Credits" class="ov-pd-num">15,000</td></tr></tbody></table></div>
+        <div class="ov-pd-table-wrap"><table class="ov-pd-table"><thead><tr><th scope="col">Plan</th><th scope="col">Access</th><th scope="col" class="ov-pd-num">Price</th><th scope="col" class="ov-pd-num">Credits</th></tr></thead><tbody><tr><th scope="row">Flex</th><td data-label="Access">14 days</td><td data-label="Price" class="ov-pd-num" data-eur="17">€17</td><td data-label="Credits" class="ov-pd-num">1,050</td></tr><tr><th scope="row">Monthly</th><td data-label="Access">1 month</td><td data-label="Price" class="ov-pd-num" data-eur="29">€29</td><td data-label="Credits" class="ov-pd-num">1,750</td></tr><tr><th scope="row">Quarterly</th><td data-label="Access">3 months</td><td data-label="Price" class="ov-pd-num" data-eur="78">€78</td><td data-label="Credits" class="ov-pd-num">4,800</td></tr><tr><th scope="row">Semi-Annual</th><td data-label="Access">6 months</td><td data-label="Price" class="ov-pd-num" data-eur="143">€143</td><td data-label="Credits" class="ov-pd-num">8,850</td></tr><tr class="is-best"><th scope="row">Annual</th><td data-label="Access">12 months</td><td data-label="Price" class="ov-pd-num" data-eur="245">€245</td><td data-label="Credits" class="ov-pd-num">15,000</td></tr></tbody></table></div>
         <p class="ov-pd-shared"><span>Every plan</span>Every feature (Research, Create, Launch, Campaigns, Automations, Oriven Chat, Priority Support) · Renews automatically: no</p>
       </div>
 
@@ -4163,6 +4183,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase.js"></script>
 <script src="/js/plans.js"></script>
+<script src="/js/pricingPlanner.js" defer></script>
 
 <!-- ═══════════════════════════════════════════════════════════
      ROUTER — shows the correct view based on the current URL path
@@ -4241,7 +4262,7 @@
   var PAGE_SEO = {
     landing: { title: 'OrivenAI: AI Advertising Platform for Google, Meta, TikTok & Pinterest Ads', desc: 'AI advertising platform for small businesses: research your market, create image and video ads, and launch campaigns on Google, Meta, TikTok and Pinterest.', path: '/' },
     login: { title: 'Login | OrivenAI', desc: 'Log in to your OrivenAI account to manage your advertising campaigns.', path: '/login', noindex: true },
-    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create a free OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
+    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create your OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
     terms: { title: 'Terms of Service | OrivenAI', desc: 'The terms that apply when you use OrivenAI, including accounts, plans and credits, connected ad accounts and acceptable use.', path: '/terms' },
     privacy: { title: 'Privacy Policy | OrivenAI', desc: 'How OrivenAI collects, uses, stores and protects your data and your connected ad account data, and the rights you have over it.', path: '/privacy' },
     'refund-policy': { title: 'Refund Policy | OrivenAI', desc: 'When OrivenAI subscriptions and credits can be refunded, how cancellations work, and how to request a refund.', path: '/refund-policy' },

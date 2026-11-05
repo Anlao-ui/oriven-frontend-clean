@@ -78,6 +78,7 @@
   <link rel="stylesheet" href="/css/styles.css">
   <!-- css/site-chrome.css: the shared public navbar look, footer, closing CTA and "Inside <section>" (never loaded by the app). -->
   <link rel="stylesheet" href="/css/site-chrome.css">
+  <link rel="stylesheet" href="/css/pricing-planner.css">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
@@ -1005,7 +1006,7 @@
     <div class="lp-legal-inner">
       <div class="lp-legal-header">
         <h1>Cookie Policy</h1>
-        <div class="lp-legal-date">Last updated: October 2026</div>
+        <div class="lp-legal-date">Last updated: November 2026</div>
       </div>
 
       <div class="lp-legal-section">
@@ -1021,7 +1022,7 @@
       <div class="lp-legal-section">
         <h2>3. Categories</h2>
         <ul>
-          <li><strong>Essential (always on)</strong>: your sign-in session (stored by our authentication provider, Supabase), your workspace preferences, and your cookie choice itself (<em>orv_consent_v1</em>, kept until you change it). Without these the service doesn’t work.</li>
+          <li><strong>Essential (always on)</strong>: your sign-in session (stored by our authentication provider, Supabase), your workspace preferences, the display currency you pick on the pricing page (<em>orv_display_currency</em>) with the exchange rates used for it (<em>orv_fx_rates_v1</em>, refreshed after 12 hours), and your cookie choice itself (<em>orv_consent_v1</em>, kept until you change it). Without these the service doesn’t work.</li>
           <li><strong>Statistics (on, you can switch it off)</strong>: OrivenAI’s own page statistics. No cookies are set and no IP address is stored; a visitor code that changes every day is calculated on our server. To remember how you first arrived until you sign up, the first page, referring domain and campaign tags are kept in your browser tab (<em>sessionStorage</em>: <em>orv_first_touch_v1</em>), which is cleared when you close the tab. A Do Not Track or Global Privacy Control signal switches statistics off.</li>
           <li><strong>Advertising (off unless you accept)</strong>: Google Ads cookies (for example <em>_gcl_au</em>) to measure the results of our ads. The Google Ads tag isn’t loaded until you accept. Withdrawing consent stops it and removes these cookies from orivenai.com.</li>
         </ul>
@@ -1239,6 +1240,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase.js"></script>
 <script src="/js/plans.js"></script>
+<script src="/js/pricingPlanner.js" defer></script>
 
 <!-- ═══════════════════════════════════════════════════════════
      ROUTER — shows the correct view based on the current URL path
@@ -1317,7 +1319,7 @@
   var PAGE_SEO = {
     landing: { title: 'OrivenAI: AI Advertising Platform for Google, Meta, TikTok & Pinterest Ads', desc: 'AI advertising platform for small businesses: research your market, create image and video ads, and launch campaigns on Google, Meta, TikTok and Pinterest.', path: '/' },
     login: { title: 'Login | OrivenAI', desc: 'Log in to your OrivenAI account to manage your advertising campaigns.', path: '/login', noindex: true },
-    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create a free OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
+    signup: { title: 'Create Your Account | OrivenAI', desc: 'Create your OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
     terms: { title: 'Terms of Service | OrivenAI', desc: 'The terms that apply when you use OrivenAI, including accounts, plans and credits, connected ad accounts and acceptable use.', path: '/terms' },
     privacy: { title: 'Privacy Policy | OrivenAI', desc: 'How OrivenAI collects, uses, stores and protects your data and your connected ad account data, and the rights you have over it.', path: '/privacy' },
     'refund-policy': { title: 'Refund Policy | OrivenAI', desc: 'When OrivenAI subscriptions and credits can be refunded, how cancellations work, and how to request a refund.', path: '/refund-policy' },
