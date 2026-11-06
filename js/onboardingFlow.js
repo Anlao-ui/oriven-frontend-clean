@@ -751,19 +751,13 @@
   function buy(btn) {
     var id = btn.getAttribute('data-buy');
     if (typeof selectPlan !== 'function') return;
-    // Confirm the exact plan first (js/planConfirm.js); nothing changes on "Choose a different plan".
-    if (typeof window.orvConfirmPlan === 'function' && !btn._confirmed) {
-      window.orvConfirmPlan(id).then(function (ok) { if (ok && S.step === 'paywall') { btn._confirmed = true; buy(btn); } });
-      return;
-    }
-    btn._confirmed = false;
-    $$('[data-buy]').forEach(function (b) { b.disabled = true; });
-    btn.textContent = 'Opening secure checkout…';
     track('plan_selected', { plan: id, source: 'onboarding_flow' });
-    flush({ step: 'paywall' }).then(function () { return selectPlan(id, { confirmed: true }); }).then(function () {
-      // Still here: checkout didn't open (selectPlan showed the reason).
-      setTimeout(function () { if (S.step !== 'paywall') return; $$('[data-buy]').forEach(function (b) { b.disabled = false; b.textContent = 'Choose ' + (b.closest('.onx-plan').querySelector('.onx-plan__n') || {}).textContent; }); }, 1500);
-    });
+    // selectPlan (js/auth.js) shows the plan confirmation; it stays open
+    // while the Stripe Checkout session is created, with a spinner in its
+    // button and the reason + "Try again" if it can't open. The answers are
+    // saved (step: paywall) just before the request, so a return from
+    // Stripe — paid or canceled — resumes at the plans.
+    selectPlan(id, { source: 'onboarding', button: btn, beforeCheckout: function () { return flush({ step: 'paywall' }); } });
   }
   // The server decides: the plan endpoint answers with content only when
   // payment is confirmed. After Stripe, the webhook can take a few seconds.

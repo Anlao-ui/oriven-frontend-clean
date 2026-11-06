@@ -13,17 +13,37 @@ html.onx-lock .pcf { --pcf-acc: #EAFD13; }
 .pcf__price { margin: 10px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
 .pcf__price b { font-size: 30px; font-weight: 650; color: #fff; font-variant-numeric: tabular-nums; }
 .pcf__price span { font-size: 13px; color: rgba(255, 255, 255, .55); }
+.pcf__vat { margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: rgba(255, 255, 255, .62); }
+.pcf__vat b { color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
 .pcf__desc { margin: 14px 0 0; font-size: 14px; line-height: 1.55; }
 .pcf__facts { list-style: none; margin: 16px 0 0; padding: 14px 0 0; border-top: 1px solid rgba(255, 255, 255, .08); display: grid; gap: 9px; font-size: 14px; color: rgba(255, 255, 255, .86); }
 .pcf__facts li { position: relative; padding-left: 22px; line-height: 1.45; }
 .pcf__facts li::before { content: ''; position: absolute; left: 2px; top: .38em; width: 10px; height: 6px; border-left: 2px solid var(--pcf-acc); border-bottom: 2px solid var(--pcf-acc); transform: rotate(-45deg); }
 .pcf__acts { margin-top: 22px; display: grid; gap: 8px; }
 .pcf__go, .pcf__back { all: unset; box-sizing: border-box; display: flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 18px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; text-align: center; }
-.pcf__go { background: var(--pcf-acc); color: #0B0C0A; }
-.pcf__go:hover { filter: brightness(1.05); }
+.pcf__go { background: var(--pcf-acc); color: #0B0C0A; gap: 10px; width: 100%; min-width: 0; }
+.pcf__go:hover:not(:disabled) { filter: brightness(1.05); }
+.pcf__lbl { min-width: 0; overflow-wrap: anywhere; line-height: 1.25; padding: 6px 0; }
+/* The spinner sits inside the button; the button keeps its size. */
+.pcf__spin { display: none; flex: none; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(11, 12, 10, .25); border-top-color: #0B0C0A; animation: pcf-spin .8s linear infinite; }
+.pcf__go.is-busy { cursor: progress; }
+.pcf__go.is-busy .pcf__spin { display: block; }
+.pcf__go:disabled, .pcf__back:disabled { cursor: default; }
+.pcf__back:disabled { opacity: .5; }
+@keyframes pcf-spin { to { transform: rotate(360deg); } }
+.pcf__err { margin: 18px 0 0; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255, 120, 100, .35); background: rgba(255, 90, 70, .08); color: #FFC9BF; font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.pcf__err[hidden] { display: none; }
+.pcf__link { color: var(--pcf-acc); text-decoration: underline; text-underline-offset: 2px; }
 .pcf__back { color: rgba(255, 255, 255, .78); border: 1px solid rgba(255, 255, 255, .14); }
 .pcf__back:hover { border-color: rgba(255, 255, 255, .3); color: #fff; }
 .pcf__go:focus-visible, .pcf__back:focus-visible { outline: 2px solid var(--pcf-acc); outline-offset: 3px; }
 .pcf__fine { margin: 14px 0 0; font-size: 12px; line-height: 1.5; color: rgba(255, 255, 255, .45); text-align: center; }
 @media (max-width: 480px) { .pcf__card { padding: 22px 18px 18px; } .pcf__name { font-size: 24px; } .pcf__price b { font-size: 26px; } }
-@media (prefers-reduced-motion: reduce) { .pcf__card { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .pcf__card { animation: none; } .pcf__spin { animation-duration: 2.4s; } }
+
+/* A plan button while its checkout opens without the dialog (js/auth.js
+   _orvCheckoutBtn): it keeps its width; spinner and label stay inside. */
+.orv-ck-busy { display: inline-flex !important; align-items: center; justify-content: center; gap: 8px; max-width: 100%; white-space: normal !important; cursor: progress !important; }
+.orv-ck-lbl { min-width: 0; overflow-wrap: anywhere; line-height: 1.2; text-align: center; }
+.orv-ck-spin { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; opacity: .8; animation: pcf-spin .8s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .orv-ck-spin { animation-duration: 2.4s; } }

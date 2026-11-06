@@ -1430,54 +1430,134 @@ async function selectPlan(plan, opts){
   // There is no free plan; "free" from an old button means "not now".
   if(plan === "free") return continueWithoutPlan();
 
-  // The customer sees exactly what they're buying and confirms it
-  // (js/planConfirm.js) before Stripe opens. opts.confirmed: already done.
-  if(!(opts && opts.confirmed) && typeof window.orvConfirmPlan === "function"){
-    if(_checkoutInFlight) return;
-    var _ok = await window.orvConfirmPlan(plan);
-    if(!_ok){ if(typeof trackEvent === "function") trackEvent("plan_confirm_cancelled", null, { plan: plan }); return; }
-  }
+  // Old callers pass the clicked button as the second argument.
+  if(opts && opts.nodeType === 1) opts = { button: opts };
+  opts = opts || {};
+  opts.action = _pwAct;
 
   // One checkout at a time (double clicks, a second plan's button).
   if(_checkoutInFlight) return;
-  _checkoutInFlight = true;
 
-  var btn = document.querySelector('[onclick="selectPlan(\'' + plan + '\')"]');
-  if(btn){ btn.disabled = true; btn.textContent = "Redirecting…"; }
+  // The customer sees exactly what they're buying (js/planConfirm.js). The
+  // dialog stays open while the server creates the Stripe Checkout session:
+  // spinner in its button, the reason and "Try again" if it fails.
+  if(!opts.confirmed && typeof window.orvConfirmPlan === "function"){
+    var _ok = await window.orvConfirmPlan(plan, { onContinue: function(){ return orvStartCheckout(plan, opts); } });
+    if(!_ok && !_checkoutInFlight){ if(typeof trackEvent === "function") trackEvent("plan_confirm_cancelled", null, { plan: plan }); }
+    return;
+  }
 
-  // Save return destination — if free user is converting from campaign-workspace, send them back there
-  try {
-    var _cwrPg = document.getElementById("page-campaign-workspace");
-    if(_cwrPg && _cwrPg.classList.contains("active")){
-      localStorage.setItem("oriven_post_payment_return", "campaign-workspace");
-    }
-  } catch(_){}
-
-  try {
-    // Identity is taken server-side from the signed-in session (the bearer
-    // token apiFetch attaches) — never from the request body.
-    var result = await apiFetch("/api/create-checkout-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan, source: 'app' })
-    });
-    if(!result.ok || !result.data.url){
-      var _ckErr = new Error((result.data && result.data.error) || "No checkout URL returned");
-      _ckErr.serverMessage = result.data && result.data.error;
-      throw _ckErr;
-    }
-    try { localStorage.setItem("oriven_checkout_plan", plan); } catch(_){}
-    if(typeof trackEvent === "function") trackEvent("checkout_started", null, { plan: plan, action: _pwAct || undefined });
-    // Onboarding plan step: keep the chosen goal for the return from Stripe.
-    if(typeof orvOnboardingPlanChosen === "function") orvOnboardingPlanChosen(plan);
-    window.location.href = result.data.url;
-  } catch(err) {
-    console.error("[Paywall] Checkout error:", err);
-    toast(err && err.serverMessage ? err.serverMessage : "Could not start checkout — please try again");
-    if(btn){ btn.disabled = false; btn.textContent = btn.getAttribute("data-label") || "Choose"; }
-    _checkoutInFlight = false;
+  // No dialog: the clicked button carries the state.
+  var btn = opts.button || document.querySelector('[onclick="selectPlan(\'' + plan + '\')"]');
+  _orvCheckoutBtn(btn, true);
+  var r = await orvStartCheckout(plan, opts);
+  if(!r.ok && !r.busy){
+    toast(r.message, "warn");
+    _orvCheckoutBtn(btn, false);
   }
 }
+
+// ── Stripe Checkout ──────────────────────────────────────────────
+// Asks the server for a Checkout Session for the plan and sends the browser
+// to the URL Stripe gave it (never built here). Resolves
+//   { ok: true, url }          the browser is on its way to Stripe
+//   { ok: false, message }     nothing opened; message says why
+//   { ok: false, busy: true }  another checkout from this page is opening
+// Returning from Stripe is not proof of payment: access opens only when the
+// server has the confirmed payment (webhook / sync-checkout).
+var ORV_CHECKOUT_TIMEOUT_MS = 45000; // a cold API start can take ~30 s
+var ORV_CHECKOUT_FAILED = "Secure checkout couldn’t be opened. Nothing was charged — please try again.";
+function orvIsStripeCheckoutUrl(u){
+  try {
+    var x = new URL(String(u || ""));
+    return x.protocol === "https:" && (x.hostname === "checkout.stripe.com" || /\.stripe\.com$/.test(x.hostname));
+  } catch(_){ return false; }
+}
+async function orvStartCheckout(plan, opts){
+  opts = opts || {};
+  if(_checkoutInFlight) return { ok: false, busy: true };
+  _checkoutInFlight = true;
+  var navigating = false;
+  try {
+    // Save return destination — converting from campaign-workspace returns there
+    try {
+      var _cwrPg = document.getElementById("page-campaign-workspace");
+      if(_cwrPg && _cwrPg.classList.contains("active")) localStorage.setItem("oriven_post_payment_return", "campaign-workspace");
+    } catch(_){}
+    // e.g. the onboarding saves its answers first; a failed save doesn't block paying.
+    if(typeof opts.beforeCheckout === "function"){ try { await opts.beforeCheckout(); } catch(_){} }
+
+    var ctl = typeof AbortController === "function" ? new AbortController() : null;
+    var timedOut = false, timer;
+    var timeout = new Promise(function(res){ timer = setTimeout(function(){ timedOut = true; if(ctl) ctl.abort(); res(null); }, ORV_CHECKOUT_TIMEOUT_MS); });
+    var result;
+    try {
+      // Identity is taken server-side from the signed-in session (the bearer
+      // token apiFetch attaches) — never from the request body.
+      result = await Promise.race([apiFetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: plan, source: opts.source || "app" }),
+        signal: ctl ? ctl.signal : undefined
+      }), timeout]);
+    } catch(netErr){
+      console.error("[Checkout] request failed:", netErr && netErr.message);
+      return { ok: false, message: timedOut
+        ? "Secure checkout is taking longer than usual to respond. Nothing was charged — please try again."
+        : "We couldn’t reach OrivenAI. Check your connection and try again — nothing was charged." };
+    } finally { clearTimeout(timer); }
+
+    if(timedOut || !result) return { ok: false, message: "Secure checkout is taking longer than usual to respond. Nothing was charged — please try again." };
+    var data = result.data || {};
+    if(!result.ok){
+      console.warn("[Checkout] refused:", result.status, data.code || "");
+      if(result.status === 401) return { ok: false, message: "Your session has ended. Sign in again, then choose your plan — nothing was charged." };
+      return { ok: false, message: data.error || ORV_CHECKOUT_FAILED, code: data.code };
+    }
+    if(!orvIsStripeCheckoutUrl(data.url)){
+      console.error("[Checkout] the server answered without a Stripe Checkout URL");
+      return { ok: false, message: ORV_CHECKOUT_FAILED };
+    }
+
+    try { localStorage.setItem("oriven_checkout_plan", plan); } catch(_){}
+    try {
+      if(typeof trackEvent === "function") trackEvent("checkout_started", null, { plan: plan, action: opts.action || undefined });
+      // Onboarding plan step: keep the chosen goal for the return from Stripe.
+      if(typeof orvOnboardingPlanChosen === "function") orvOnboardingPlanChosen(plan);
+    } catch(_){}
+    navigating = true;
+    window.location.assign(data.url);
+    return { ok: true, url: data.url };
+  } catch(err){
+    console.error("[Checkout] error:", err);
+    return { ok: false, message: ORV_CHECKOUT_FAILED };
+  } finally {
+    // Still here after a failure: another attempt may start. While the
+    // browser goes to Stripe it stays locked (reset on a bfcache return).
+    if(!navigating) _checkoutInFlight = false;
+  }
+}
+// A plan button while its checkout opens: same size, spinner + label inside.
+function _orvCheckoutBtn(btn, busy){
+  if(!btn) return;
+  if(busy){
+    if(!btn.hasAttribute("data-label")) btn.setAttribute("data-label", btn.textContent.trim());
+    btn.style.minWidth = btn.offsetWidth ? btn.offsetWidth + "px" : "";
+    btn.disabled = true; btn.setAttribute("aria-busy", "true"); btn.classList.add("orv-ck-busy");
+    btn.innerHTML = '<span class="orv-ck-spin" aria-hidden="true"></span><span class="orv-ck-lbl">Opening secure checkout…</span>';
+  } else {
+    btn.disabled = false; btn.removeAttribute("aria-busy"); btn.classList.remove("orv-ck-busy");
+    btn.textContent = btn.getAttribute("data-label") || "Choose";
+    btn.style.minWidth = "";
+  }
+}
+// Back from Stripe with the browser's Back button (back-forward cache):
+// nothing is opening any more.
+window.addEventListener("pageshow", function(e){
+  if(!e.persisted) return;
+  _checkoutInFlight = false;
+  document.querySelectorAll(".orv-ck-busy").forEach(function(b){ _orvCheckoutBtn(b, false); });
+});
 
 // The confirmation after a paid checkout: which plan, and until when.
 function _orvPaidToast(){

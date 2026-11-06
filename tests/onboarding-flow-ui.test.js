@@ -109,7 +109,7 @@ app.get('/api/onboarding/plan', (q, r) => {
   if (++M.paidReads <= 2) return send(r, 200, Object.assign(meta, { status: 'generating', locked: false, period: M.period, horizon, attemptsLeft: 3, missing: [], plan: null }));
   send(r, 200, Object.assign(meta, { status: 'ready', locked: false, period: M.period, horizon, generatedAt: new Date().toISOString(), plan: Object.assign({ horizon }, PLAN), sections: [] }));
 });
-app.post('/api/create-checkout-session', (q, r) => { M.pending = true; M.period = (q.body || {}).plan || M.period; send(r, 200, { url: BASE + '/__mock_stripe_checkout?plan=' + encodeURIComponent((q.body || {}).plan || '') }); });
+app.post('/api/create-checkout-session', (q, r) => { M.pending = true; M.period = (q.body || {}).plan || M.period; send(r, 200, { url: 'https://checkout.stripe.com/c/pay/cs_test_mock?plan=' + encodeURIComponent((q.body || {}).plan || '') }); });
 app.get('/app', (q, r) => r.sendFile(path.join(ROOT, 'app.html')));
 app.get('/__mock_stripe_checkout', (q, r) => r.send('<!doctype html><title>mock checkout</title><p>mock checkout</p>'));
 app.all(/^\/api\//, (q, r) => r.json({}));
@@ -121,6 +121,8 @@ async function fence(page) {
     const u = r.request().url();
     if (u.startsWith(BASE + '/')) return r.continue();
     if (u.startsWith(DEV_API + '/')) return r.continue({ url: BASE + u.slice(DEV_API.length) });
+    // The Checkout URL the mock returns: answered here, never reaches Stripe.
+    if (u.startsWith('https://checkout.stripe.com/c/pay/cs_test_mock')) return r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>mock checkout</title><p>mock checkout</p>' });
     if (/^(data|blob):/.test(u)) return r.continue();
     if (r.request().method() === 'GET' && /^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//.test(u)) return r.continue();
     blocked.push(u.split('?')[0]); return r.abort('blockedbyclient');
@@ -355,7 +357,7 @@ const server = app.listen(PORT, async () => {
     await page.click('#orvPlanConfirm .pcf__back'); await page.waitForTimeout(200);
     check('7.5b "Choose a different plan": back at the plans, every button usable, nothing sent', !(await page.$('#orvPlanConfirm')) && await page.isEnabled('#onx [data-buy="monthly"]') && !M.calls.some((c) => c.p === '/api/create-checkout-session'));
     await page.click('#onx [data-buy="quarterly"]'); await page.waitForTimeout(250);
-    const [nav] = await Promise.all([page.waitForNavigation({ url: /__mock_stripe_checkout/, timeout: 8000 }).catch(() => null), page.click('#orvPlanConfirm [data-pcf="go"]')]);
+    const [nav] = await Promise.all([page.waitForNavigation({ url: /checkout\.stripe\.com\/c\/pay\/cs_test_mock/, timeout: 8000 }).catch(() => null), page.click('#orvPlanConfirm [data-pcf="go"]')]);
     const ck = M.calls.find((c) => c.p === '/api/create-checkout-session');
     check('7.5 confirming → the existing checkout endpoint with only the plan id ("quarterly") → redirect to Stripe', !!nav && ck && ck.body.plan === 'quarterly' && Object.keys(ck.body).every((k) => ['plan', 'source'].includes(k)), ck && ck.body);
 

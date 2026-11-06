@@ -45,7 +45,7 @@ async function stubApi(page, sub, credits) {
     window.apiFetch = async function (p, opts) {
       window.__calls.push({ path: p, body: opts && opts.body ? JSON.parse(opts.body) : null });
       if (p === '/api/get-subscription') return { ok: true, status: 200, data: sub };
-      if (p === '/api/create-checkout-session') return { ok: true, status: 200, data: { url: location.origin + '/404.html?checkout-stub=1' } };
+      if (p === '/api/create-checkout-session') return { ok: true, status: 200, data: { url: 'https://checkout.stripe.com/c/pay/cs_test_stub?checkout-stub=1' } };
       return { ok: true, status: 200, data: {} };
     };
     window._getCreditStatus = async function () { return credits; };
@@ -152,6 +152,8 @@ const creditsMock = (bal, extra) => Object.assign({ balance: bal, monthlyAllowan
   check('D0b. "Choose a different plan" closes it and sends nothing', !(await page.$('#orvPlanConfirm')) && !(await page.evaluate(() => window.__calls.some((c) => /checkout/.test(c.path)))));
   await page.evaluate(() => { window.__calls = []; selectPlan('quarterly'); });
   await page.waitForTimeout(300);
+  // Stripe's own page, answered inside the fenced browser (never reached).
+  await page.route('https://checkout.stripe.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>stub checkout</title>' }));
   await page.click('#orvPlanConfirm [data-pcf="go"]');
   await page.waitForTimeout(600);
   const ck = await page.evaluate(() => (window.__calls || []).find((c) => c.path === '/api/create-checkout-session')).catch(() => null);
