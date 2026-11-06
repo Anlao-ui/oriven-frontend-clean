@@ -40,8 +40,8 @@
 }
 
 .orv-pp-sliders { display: grid; gap: clamp(22px, 2.6vw, 32px); }
-.orv-pp-field-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 12px; }
-.orv-pp-label { display: grid; gap: 4px; font-size: 15px; font-weight: 700; color: #fff; }
+.orv-pp-field-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px 16px; margin-bottom: 12px; }
+.orv-pp-label { flex: 1 1 15rem; display: grid; gap: 4px; font-size: 15px; font-weight: 700; color: #fff; }
 .orv-pp-question { font-size: 13px; font-weight: 400; color: var(--orv-pp-muted); }
 .orv-pp-value { flex-shrink: 0; padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .orv-pp-ends { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--orv-pp-faint); }
@@ -99,6 +99,7 @@
   .orv-cur { justify-content: center; }
   .orv-cur-note, .orv-cur-msg { text-align: center; }
   .orv-pp-field-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .orv-pp-label { flex: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .orv-pp-meter-bar span, .orv-pp-range::-webkit-slider-thumb, .orv-pp-cta { transition: none; }

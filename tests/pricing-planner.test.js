@@ -29,41 +29,62 @@ sb.window = sb; vm.createContext(sb);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'plans.js'), 'utf8') + '\n;this.__P = { ORIVEN_PERIOD_PLANS, ORIVEN_PRICING };', sb);
 const PLANS = sb.__P.ORIVEN_PERIOD_PLANS, FC = sb.__P.ORIVEN_PRICING.featureCosts;
 const PP = require('../js/pricingPlanner.js');
-const rec = (campaigns, images, videos, days) => PP.recommendPlan({ campaigns, images, videos, days }, PLANS, FC);
+const rec = (campaigns, automations, research, days) => PP.recommendPlan({ campaigns, automations, research, days }, PLANS, FC);
+const S = PP.ORV_PLANNER_SLIDERS;
+const at = (ci, ai, ri, di) => rec(S[0].values[ci], S[1].values[ai], S[2].values[ri], S[3].values[di]);
+const LAST = S.map((s) => s.values.length - 1);
+const label = (x) => x.plan.id + '×' + x.purchases + (x.extra ? '+' + x.extra.plan.id + '×' + x.extra.purchases : '') + ' €' + x.cost;
 
 const RATES = { EUR: 1, USD: 1.0812, GBP: 0.8412, CHF: 0.9381, CAD: 1.5034, AUD: 1.6521, INR: 90.115, JPY: 163.42, SEK: 11.452, NOK: 11.873, DKK: 7.4589, PLN: 4.2655 };
 
 (async () => {
   console.log('\nA. Recommendation (local, from js/plans.js)');
-  const usage = (c, i, v) => c * FC.campaign_generation + i * FC.image_generation + v * FC.video_generation;
-  let r = rec(3, 10, 2, 90);
-  check('the estimate uses the real credit costs (campaign draft 65, image 55, 5 s video 180)', r.monthly === usage(3, 10, 2) && r.monthly === 1105, r.monthly);
-  check('default sliders (3 campaigns, 10 images, 2 videos, 3 months) → Quarterly, one purchase, €78', r.plan.id === 'quarterly' && r.purchases === 1 && r.cost === 78 && r.covered, r);
-  r = rec(1, 2, 1, 14);
-  check('light use for 2 weeks → Flex (€17)', r.plan.id === 'flex' && r.cost === 17, r);
-  r = rec(3, 10, 2, 30);
-  check('1 month → Monthly (€29)', r.plan.id === 'monthly' && r.cost === 29, r);
-  r = rec(3, 10, 2, 180);
-  check('6 months, ≤ 1.475 credits a month → Semi-Annual (€143), cheaper than 2× Quarterly or 6× Monthly', r.plan.id === 'semiannual' && r.cost === 143, r);
-  r = rec(3, 10, 2, 360);
-  check('12 months, ≤ 1.250 credits a month → Annual (€245)', r.plan.id === 'annual' && r.cost === 245 && r.purchases === 1, r);
-  const reachable = new Set();
-  const S = PP.ORV_PLANNER_SLIDERS;
-  for (const c of S[0].values) for (const i of S[1].values) for (const v of S[2].values) for (const d of S[3].values) reachable.add(rec(c, i, v, d).plan.id);
-  check('every one of the five plans is recommended for some slider position', ['flex', 'monthly', 'quarterly', 'semiannual', 'annual'].every((id) => reachable.has(id)), [...reachable]);
-
-  r = rec(5, 15, 2, 360);   // 325 + 825 + 360 = 1510 a month: more than Annual (1.250) or Semi-Annual (1.475) add a month
-  check('12 months but 1.510 credits a month: Annual is not recommended (its 1.250 a month fall short); Quarterly ×4 is', r.plan.id === 'quarterly' && r.purchases === 4 && r.cost === 312 && r.covered, r);
-  check('…and the explanation names the cheaper plan that falls short', r.cheaperShort && r.cheaperShort.plan.id === 'annual', r.cheaperShort && r.cheaperShort.plan.id);
-  r = rec(20, 40, 12, 90);  // 1300 + 2200 + 2160 = 5660 a month
-  check('use beyond any plan: flagged as not covered, a one-payment plan bought often enough to cover the credits', !r.covered && r.plan.instalments === 1 && r.purchases * r.plan.credits >= r.monthly * 3, r);
-  for (const d of S[3].values) for (const c of [1, 8, 20]) {
-    const x = rec(c, 10, 2, d);
-    const len = x.plan.days || x.plan.months * 30;
-    if (x.covered && !(x.purchases * len >= d && x.monthly <= x.perMonth)) { check('every covered recommendation covers the duration and the monthly use', false, x); break; }
+  check('exactly four sliders: campaigns, automation, research, duration', S.map((s) => s.key).join(',') === 'campaigns,automations,research,days');
+  check('no image or video sliders any more', !S.some((s) => /image|video/i.test(s.key + s.label)));
+  check('duration runs from 2 weeks to 12 months', S[3].values[0] === 14 && S[3].values[LAST[3]] === 360);
+  const parts = PP.usageParts({ campaigns: 3, automations: 2, research: 4 }, FC);
+  check('the estimate uses the real credit costs: campaign = ad text + image (65 + 55), research report 90, new automation 20',
+    parts.campaigns === 3 * (FC.campaign_generation + FC.image_generation) && parts.campaigns === 360 && parts.research === 4 * FC.research_report && parts.research === 360 && parts.automations === 2 * FC.automation && parts.automations === 40, parts);
+  let r = at(1, 1, 1, 3);
+  check('default sliders (2 campaigns, regular automation and research, 3 months) → Quarterly €78', r.plan.id === 'quarterly' && r.purchases === 1 && r.cost === 78 && r.monthly === 460, label(r));
+  r = at(0, 0, 0, 0);
+  check('all sliders at minimum → Flex (€17)', r.plan.id === 'flex' && r.cost === 17 && r.purchases === 1 && r.covered, label(r));
+  r = at(LAST[0], LAST[1], LAST[2], LAST[3]);
+  check('all sliders at maximum (1.570 credits a month for 12 months) → not Annual: its 1.250 a month fall short; Quarterly ×4 (€312) adds 1.600 a month', r.plan.id === 'quarterly' && r.purchases === 4 && r.cost === 312 && r.monthly === 1570 && r.covered, label(r));
+  check('…and the explanation names Annual as the cheaper plan that falls short', r.cheaperShort && r.cheaperShort.plan.id === 'annual', r.cheaperShort && r.cheaperShort.plan.id);
+  r = at(0, 0, 0, LAST[3]);
+  check('light use for 12 months → Annual (€245)', r.plan.id === 'annual' && r.cost === 245 && !r.extra, label(r));
+  // Duration
+  const durs = [[0, 'flex'], [1, 'monthly'], [3, 'quarterly'], [6, 'semiannual'], [12, 'annual']].map(([d, id]) => [id, at(0, 0, 0, d).plan.id]);
+  check('increasing duration moves light use Flex → Monthly → Quarterly → Semi-Annual → Annual', durs.every(([want, got]) => want === got), durs);
+  // Usage moves the answer once a plan's monthly credits run short.
+  const c4 = rec(4, 8, 5, 360), c6 = rec(6, 8, 5, 360);
+  check('increasing campaigns (4 → 6, 12 months) changes Annual → Semi-Annual ×2', c4.plan.id === 'annual' && c6.plan.id === 'semiannual' && c6.purchases === 2, [label(c4), label(c6)]);
+  const a1 = rec(6, 1, 5, 360), a5 = rec(6, 5, 5, 360);
+  check('increasing automation (1 → 5 new a month, 12 months) changes Annual → Semi-Annual ×2', a1.plan.id === 'annual' && a5.plan.id === 'semiannual', [label(a1), label(a5), a1.monthly, a5.monthly]);
+  const r2 = rec(8, 1, 2, 360), r5 = rec(8, 1, 5, 360);
+  check('increasing research (2 → 5 reports a month, 12 months) changes Annual → Semi-Annual ×2', r2.plan.id === 'annual' && r5.plan.id === 'semiannual', [label(r2), label(r5)]);
+  const s6lo = at(0, 0, 0, 6), s6hi = at(LAST[0], LAST[1], LAST[2], 6);
+  check('6 months: light use → Semi-Annual (€143); heavy use → Quarterly ×2 (€156), whose 1.600 a month cover it', s6lo.plan.id === 'semiannual' && s6lo.cost === 143 && s6hi.plan.id === 'quarterly' && s6hi.purchases === 2 && s6hi.cost === 156, [label(s6lo), label(s6hi)]);
+  // Value for money: a main plan plus a shorter one for the remaining time.
+  r = at(0, 0, 0, 7);
+  check('7 months, light use → Semi-Annual + Monthly (€172), cheaper than Monthly ×7 (€203)', r.plan.id === 'semiannual' && r.extra && r.extra.plan.id === 'monthly' && r.extra.purchases === 1 && r.cost === 172, label(r));
+  // Every slider combination.
+  const reachable = new Set(); let worst = null, n = 0;
+  for (let ci = 0; ci <= LAST[0]; ci++) for (let ai = 0; ai <= LAST[1]; ai++) for (let ri = 0; ri <= LAST[2]; ri++) for (let di = 0; di <= LAST[3]; di++) {
+    const x = at(ci, ai, ri, di); n++;
+    reachable.add(x.plan.id);
+    const len = (p) => p.days || p.months * 30;
+    const timeOk = x.purchases * len(x.plan) + (x.extra ? x.extra.purchases * len(x.extra.plan) : 0) >= x.days;
+    const creditsOk = x.covered && x.monthly <= x.perMonth && (!x.extra || x.monthly <= x.extra.perMonth);
+    const cheapest = PLANS.every((p) => { const k = Math.max(1, Math.ceil(x.days / len(p) - 1e-9)); const per = p.credits / len(p) * 30; return per < x.monthly || k * p.price >= x.cost; });
+    if (!(timeOk && creditsOk && cheapest)) { worst = { at: [ci, ai, ri, di], rec: label(x), timeOk, creditsOk, cheapest }; break; }
   }
-  check('every covered recommendation covers both the duration and the monthly use (all durations checked)', true);
-  check('deterministic: the same input gives the same answer', JSON.stringify(rec(8, 25, 5, 150)) === JSON.stringify(rec(8, 25, 5, 150)));
+  check('every one of the five plans is recommended for some slider position', ['flex', 'monthly', 'quarterly', 'semiannual', 'annual'].every((id) => reachable.has(id)), [...reachable]);
+  check('all ' + n + ' slider combinations: never above a plan\'s monthly credits, the whole duration covered, never dearer than buying one sufficient plan', !worst, worst);
+  r = rec(30, 8, 5, 90);  // 3.600 + 160 + 450 a month: more than any plan adds
+  check('use beyond any plan (direct call): flagged as not covered, a one-payment plan bought often enough', !r.covered && r.plan.instalments === 1 && r.purchases * r.plan.credits >= r.monthly * 3, label(r));
+  check('deterministic: the same input gives the same answer', JSON.stringify(at(2, 2, 2, 8)) === JSON.stringify(at(2, 2, 2, 8)));
   check('prices and credits come from js/plans.js unchanged', PLANS.map((p) => p.id + ':' + p.price + ':' + p.credits).join(',') === 'flex:17:1050,monthly:29:1750,quarterly:78:4800,semiannual:143:8850,annual:245:15000');
 
   console.log('\nA2. Currency formatting (display only)');
@@ -114,25 +135,35 @@ const RATES = { EUR: 1, USD: 1.0812, GBP: 0.8412, CHF: 0.9381, CAD: 1.5034, AUD:
     return { plan: b.querySelector('.orv-pp-plan').textContent, price: b.querySelector('.orv-pp-price').textContent, credits: b.querySelector('.orv-pp-credits').textContent, href: b.querySelector('.orv-pp-cta').getAttribute('href'), cta: b.querySelector('.orv-pp-cta').textContent, why: b.querySelector('.orv-pp-why').textContent };
   });
   const setSlider = (key, idx) => page.evaluate(({ key, idx }) => { const el = document.getElementById('orvPp-' + key); el.value = String(idx); el.dispatchEvent(new Event('input', { bubbles: true })); return document.getElementById('orvPp-' + key + '-out').textContent; }, { key, idx });
-  check('section heading and subtitle', await page.evaluate(() => document.getElementById('orv-pp-h').textContent === 'Create Your Own Plan' && /We'll find the perfect plan for you/.test(document.querySelector('.orv-pp-sub').textContent)));
-  check('four sliders with their questions and end labels', await page.evaluate(() => document.querySelectorAll('#orvPlanner .orv-pp-range').length === 4 && /How long do you plan to use OrivenAI\?/.test(document.getElementById('orvPlanner').textContent) && /Very few/.test(document.getElementById('orvPlanner').textContent)));
+  check('section heading and subtitle', await page.evaluate(() => document.getElementById('orv-pp-h').textContent === 'Create Your Own Plan' && /costs the least while giving you enough credits/.test(document.querySelector('.orv-pp-sub').textContent)));
+  const sliders = await page.evaluate(() => Array.from(document.querySelectorAll('#orvPlanner .orv-pp-label')).map((l) => l.firstChild.textContent.trim()));
+  check('four sliders: Campaigns, Automation, Research, Duration — no image or video sliders', JSON.stringify(sliders) === JSON.stringify(['Campaigns', 'Automation', 'Research', 'Duration']), sliders);
+  check('plain questions and end labels', await page.evaluate(() => { const t = document.getElementById('orvPlanner').textContent; return /How many ad campaigns will you create each month\?/.test(t) && /How long do you plan to use OrivenAI\?/.test(t) && /Occasionally/.test(t) && /Intensively/.test(t) && /2 weeks/.test(t) && /12 months/.test(t); }));
   let r0 = await result();
   check('default recommendation: Quarterly, €78 / 3 months, 4.800 credits, "Choose This Plan"', r0.plan === 'Quarterly' && r0.price === '€78 / 3 months' && /4\.800 credits/.test(r0.credits) && r0.cta === 'Choose This Plan' && r0.href === '/app?plan=quarterly', r0);
+  check('level names shown with what they mean', (await setSlider('automations', 3)) === 'Intensive · 8 new automations a month' && (await setSlider('research', 0)) === 'Occasional · 1 report a month' && (await setSlider('automations', 1)) === 'Regular · 2 new automations a month' && (await setSlider('research', 1)) === 'Regular · 2 reports a month');
   const callsBefore = apiCalls.length;
   check('slider value text updates immediately', (await setSlider('days', 12)) === '12 months' && (await setSlider('campaigns', 0)) === '1 campaign a month');
   r0 = await result();
-  check('…and the recommendation follows: 12 months → Annual', r0.plan === 'Annual' && r0.href === '/app?plan=annual', r0);
-  await setSlider('days', 0); await setSlider('images', 0); await setSlider('videos', 0);
-  check('2 weeks, light use → Flex', (await result()).plan === 'Flex');
-  await setSlider('days', 6); await setSlider('images', 2); await setSlider('videos', 1); await setSlider('campaigns', 2);
+  check('…and the recommendation follows: 12 months, light use → Annual, with its price and the reason', r0.plan === 'Annual' && r0.href === '/app?plan=annual' && r0.price === '€245 / 12 months' && /lowest price for 12 months/.test(r0.why), r0);
+  for (const k of ['campaigns', 'automations', 'research', 'days']) await setSlider(k, 0);
+  check('all sliders at minimum → Flex (€17 / 14 days)', (await result()).plan === 'Flex' && /€17/.test((await result()).price));
+  for (const [k, i] of [['campaigns', 4], ['automations', 3], ['research', 3], ['days', 12]]) await setSlider(k, i);
+  r0 = await result();
+  check('all sliders at maximum → Quarterly ×4 (€312 in total); the reason says Annual\'s credits fall short', r0.plan === 'Quarterly' && /4 purchases/.test(await page.textContent('#orvPpResult .orv-pp-times')) && /Annual would cost less, but its 1\.250 credits a month aren't enough/.test(r0.why), r0);
+  check('…the usage breakdown uses the real costs (8 campaigns 960 · 8 new automations 160 · 5 research reports 450)', /8 campaigns 960 · 8 new automations 160 · 5 research reports 450/.test(await page.textContent('#orvPpResult .orv-pp-breakdown')));
+  for (const [k, i] of [['campaigns', 0], ['automations', 0], ['research', 0], ['days', 7]]) await setSlider(k, i);
+  r0 = await result();
+  check('7 months → Semi-Annual first, then Monthly (€172 in total); the CTA buys Semi-Annual', r0.plan === 'Semi-Annual' && r0.href === '/app?plan=semiannual' && /\+ Monthly later · €172 in total/.test(await page.textContent('#orvPpResult .orv-pp-times')) && /Start with Semi-Annual, then add Monthly/.test(r0.why), r0);
+  await setSlider('days', 6); await setSlider('campaigns', 2);
   check('6 months → Semi-Annual', (await result()).plan === 'Semi-Annual');
   await setSlider('days', 1);
   check('1 month → Monthly', (await result()).plan === 'Monthly');
-  for (let i = 0; i < 20; i++) await setSlider('images', i % 6);
+  for (let i = 0; i < 20; i++) await setSlider(['campaigns', 'automations', 'research'][i % 3], i % 4);
   check('moving sliders makes no network request at all', apiCalls.length === callsBefore && rateCalls === 0, apiCalls.slice(callsBefore));
 
   // CTA: the same path as the plan's own card.
-  await setSlider('days', 3); await setSlider('images', 2); await setSlider('videos', 1); await setSlider('campaigns', 2);
+  await setSlider('days', 3); await setSlider('campaigns', 1); await setSlider('automations', 1); await setSlider('research', 1);
   await page.click('#orvPpResult .orv-pp-cta');
   await page.waitForTimeout(500);
   const afterCta = await page.evaluate(() => ({ path: location.pathname, choice: JSON.parse(localStorage.getItem('oriven_selected_plan') || 'null') }));

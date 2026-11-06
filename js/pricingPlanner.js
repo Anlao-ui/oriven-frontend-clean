@@ -5,17 +5,24 @@
 // ORIVEN_PRICING.featureCosts); nothing here defines a price, a credit
 // allowance or a cost.
 //
-// Create Your Own Plan — a local estimate, no network:
-//   credits a month = campaigns × campaign_generation
-//                   + images    × image_generation
-//                   + videos    × video_generation (5 s)
+// Create Your Own Plan — a local estimate, no network. Four sliders:
+//   campaigns a month, automation use, research use and duration. Each
+//   usage level is a real amount of work priced with the app's own credit
+//   costs (ORIVEN_PRICING.featureCosts):
+//     campaign   = campaign_generation + image_generation (ad text + its
+//                  image: the default Create campaign, one ad)
+//     automation = automation per new rule or schedule (runs are free)
+//     research   = research_report per report
 //   For each plan: the purchases needed to cover the chosen duration, and
 //   whether its credits per month (per 14 days for Flex) cover the
 //   estimate. The cheapest plan that covers it wins (ties: fewer purchases,
-//   then the longer plan). If no plan includes that many credits per month,
-//   a one-payment plan (Flex/Monthly) bought more often is suggested: each
-//   purchase adds its credits right away. "Choose This Plan" is the same
-//   link as the plan's own card (the server picks the price from the id).
+//   then the longer plan). So duration picks the plan length (longer =
+//   cheaper per month) and usage moves the answer once a plan's credits run
+//   short: longer plans add fewer credits a month (Annual 1,250 … Flex
+//   ≈2,250). If no plan includes that many credits per month, a one-payment
+//   plan (Flex/Monthly) bought more often is suggested: each purchase adds
+//   its credits right away. "Choose This Plan" is the same link as the
+//   plan's own card (the server picks the price from the id).
 //
 // Currency selector — display only. Prices are converted from EUR with the
 // ECB rates from GET /api/exchange-rates (cached by the server for 12 h and
@@ -69,27 +76,42 @@
 
   // ── Recommendation (pure; also loaded by the tests in Node) ─────────
   var DAYS_PER_MONTH = 30;
+  // Usage levels are counts a month; `level` names what a first-time visitor
+  // picks. The top of each range is real heavy use (together ≈1,570 credits
+  // a month), so usage can outgrow the longer plans' monthly credits.
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  var LEVELS = ['Occasional', 'Regular', 'Frequent', 'Intensive'];
   var ORV_PLANNER_SLIDERS = [
-    { key: 'campaigns', label: 'Campaigns', question: 'How many campaigns do you plan to create?',
-      values: [1, 2, 3, 5, 8, 12, 20], start: 2, min: 'Very few', max: 'Many campaigns',
-      text: function (v) { return v + (v === 1 ? ' campaign' : ' campaigns') + ' a month'; } },
-    { key: 'images', label: 'Image Generation', question: 'How often will you generate images?',
-      values: [2, 5, 10, 15, 25, 40], start: 2, min: 'Occasionally', max: 'Very frequently',
-      text: function (v) { return v + ' images a month'; } },
-    { key: 'videos', label: 'Video Generation', question: 'How often will you generate videos?',
-      values: [1, 2, 3, 5, 8, 12], start: 1, min: 'Occasionally', max: 'Very frequently',
-      text: function (v) { return v + (v === 1 ? ' video' : ' videos') + ' a month'; } },
+    { key: 'campaigns', label: 'Campaigns', question: 'How many ad campaigns will you create each month?',
+      values: [1, 2, 4, 6, 8], start: 1, min: '1 a month', max: '8 a month',
+      text: function (v) { return plural(v, 'campaign', 'campaigns') + ' a month'; } },
+    { key: 'automations', label: 'Automation', question: 'How much should OrivenAI run your campaigns for you?',
+      values: [1, 2, 5, 8], start: 1, min: 'Occasionally', max: 'Intensively',
+      text: function (v, i) { return LEVELS[i] + ' · ' + plural(v, 'new automation', 'new automations') + ' a month'; } },
+    { key: 'research', label: 'Research', question: 'How often will you research your market, competitors or audience?',
+      values: [1, 2, 3, 5], start: 1, min: 'Occasionally', max: 'Intensively',
+      text: function (v, i) { return LEVELS[i] + ' · ' + plural(v, 'report', 'reports') + ' a month'; } },
     // The first stop matches Flex (14 days), so every plan can be the answer.
-    { key: 'days', label: 'Subscription Duration', question: 'How long do you plan to use OrivenAI?',
+    { key: 'days', label: 'Duration', question: 'How long do you plan to use OrivenAI?',
       values: [14, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360], start: 3, min: '2 weeks', max: '12 months',
       text: function (v) { return v === 14 ? '2 weeks' : (v === 30 ? '1 month' : (v / DAYS_PER_MONTH) + ' months'); } }
   ];
 
   function planDays(p) { return p.days || p.months * DAYS_PER_MONTH; }
 
-  // sel: { campaigns, images, videos } a month, days: the duration.
+  // Credits a month for each part of the estimate (real feature costs).
+  function usageParts(sel, costs) {
+    return {
+      campaigns: sel.campaigns * (costs.campaign_generation + costs.image_generation),
+      automations: sel.automations * costs.automation,
+      research: sel.research * costs.research_report
+    };
+  }
+
+  // sel: { campaigns, automations, research } a month, days: the duration.
   function recommendPlan(sel, plans, costs) {
-    var monthly = sel.campaigns * costs.campaign_generation + sel.images * costs.image_generation + sel.videos * costs.video_generation;
+    var parts = usageParts(sel, costs);
+    var monthly = parts.campaigns + parts.automations + parts.research;
     var needPerDay = monthly / DAYS_PER_MONTH;
     var days = sel.days;
     var options = plans.map(function (p) {
@@ -101,7 +123,24 @@
     function cheapest(list) {
       return list.slice().sort(function (a, b) { return (a.cost - b.cost) || (a.purchases - b.purchases) || (b.days - a.days); })[0] || null;
     }
-    var best = cheapest(options.filter(function (o) { return o.covers; }));
+    var covering = options.filter(function (o) { return o.covers; });
+    // A main plan for most of the time, then a shorter plan for what's left
+    // (e.g. 7 months = Semi-Annual + Monthly), when that costs less than
+    // buying one plan again. Both must add enough credits a month.
+    var candidates = covering.slice();
+    covering.forEach(function (a) {
+      var k = Math.floor(days / a.days + 1e-9);
+      var rest = days - k * a.days;
+      if (k < 1 || rest <= 0) return;
+      covering.forEach(function (b) {
+        if (b.days >= a.days) return;
+        var m = Math.max(1, Math.ceil(rest / b.days - 1e-9));
+        candidates.push(Object.assign({}, a, { purchases: k, cost: k * a.plan.price + m * b.plan.price, extra: { plan: b.plan, purchases: m, cost: m * b.plan.price, perMonth: b.perMonth }, totalPurchases: k + m }));
+      });
+    });
+    var best = candidates.slice().sort(function (x, y) {
+      return (x.cost - y.cost) || ((x.totalPurchases || x.purchases) - (y.totalPurchases || y.purchases)) || (y.days - x.days);
+    })[0] || null;
     var covered = true;
     if (!best) {
       // No plan includes this many credits per month. A one-payment plan can
@@ -115,11 +154,11 @@
     }
     // A cheaper plan that was passed over because its credits fall short.
     var cheaperShort = covered ? cheapest(options.filter(function (o) { return !o.covers && o.cost < best.cost; })) : null;
-    return { plan: best.plan, purchases: best.purchases, cost: best.cost, perMonth: best.perMonth, monthly: monthly, days: days, covered: covered, cheaperShort: cheaperShort };
+    return { plan: best.plan, purchases: best.purchases, cost: best.cost, perMonth: best.perMonth, extra: best.extra || null, monthly: monthly, parts: parts, days: days, covered: covered, cheaperShort: cheaperShort };
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { recommendPlan: recommendPlan, formatApprox: formatApprox, formatEur: formatEur, ORV_CURRENCIES: ORV_CURRENCIES, ORV_PLANNER_SLIDERS: ORV_PLANNER_SLIDERS, FX_TTL_MS: FX_TTL_MS };
+    module.exports = { recommendPlan: recommendPlan, usageParts: usageParts, formatApprox: formatApprox, formatEur: formatEur, ORV_CURRENCIES: ORV_CURRENCIES, ORV_PLANNER_SLIDERS: ORV_PLANNER_SLIDERS, FX_TTL_MS: FX_TTL_MS };
     return;
   }
   if (!root.document) return;
@@ -237,9 +276,10 @@
     function update() {
       ORV_PLANNER_SLIDERS.forEach(function (s) {
         var input = doc.getElementById('orvPp-' + s.key);
-        var v = s.values[Number(input.value)];
+        var idx = Number(input.value);
+        var v = s.values[idx];
         sel[s.key] = v;
-        var t = s.text(v);
+        var t = s.text(v, idx);
         doc.getElementById('orvPp-' + s.key + '-out').textContent = t;
         input.setAttribute('aria-valuetext', t);
         sliderFill(input);
@@ -253,24 +293,30 @@
       var durationText = ORV_PLANNER_SLIDERS[3].text(r.days);
       var credits = fmtCredits(p.credits) + ' credits' + (p.instalments > 1 ? ' · ' + fmtCredits(p.creditsPerInstalment) + ' a month' : '');
       var why;
+      var need = fmtCredits(r.monthly);
       if (!r.covered) {
-        why = 'No single plan includes ' + fmtCredits(r.monthly) + ' credits a month. Buying ' + p.name + ' again before it runs out adds its ' + fmtCredits(p.credits) + ' credits right away and extends your access, so ' + r.purchases + ' purchases cover your ' + durationText + '.';
+        why = 'No single plan includes ' + need + ' credits a month. Buying ' + p.name + ' again before it runs out adds its ' + fmtCredits(p.credits) + ' credits right away and extends your access, so ' + r.purchases + ' purchases cover your ' + durationText + '.';
+      } else if (r.extra) {
+        var x = r.extra;
+        why = 'Start with ' + p.name + (r.purchases > 1 ? ' (' + r.purchases + '×)' : '') + ', then add ' + (x.purchases > 1 ? x.purchases + '× ' : '') + x.plan.name + ' for the rest of your ' + durationText + '. That\'s the lowest total price, and both add enough credits for the about ' + need + ' a month you\'d use.';
+      } else if (p.days && r.purchases === 1) {
+        why = p.name + ' covers your ' + durationText + ' for the lowest price, with ' + fmtCredits(p.credits) + ' credits: enough for the about ' + fmtCredits(Math.round(r.monthly * p.days / DAYS_PER_MONTH)) + ' you\'d use in that time.';
       } else if (r.purchases > 1) {
-        why = p.name + ' bought ' + r.purchases + ' times covers your ' + durationText + ' with enough credits, at the lowest total cost.';
-      } else if (p.days) {
-        why = p.name + ' includes ' + fmtCredits(p.credits) + ' credits for ' + p.days + ' days, enough for your estimate (about ' + fmtCredits(Math.round(r.monthly * p.days / DAYS_PER_MONTH)) + '), at the lowest cost.';
+        why = p.name + ', bought ' + r.purchases + ' times, is the lowest price for your ' + durationText + ' that still adds enough credits: ' + fmtCredits(r.perMonth) + ' a month for the about ' + need + ' you\'d use.';
       } else {
-        why = p.name + ' adds ' + fmtCredits(r.perMonth) + ' credits a month, enough for your estimate, at the lowest cost for ' + durationText + '.';
+        why = p.name + ' is the lowest price for ' + durationText + ' and adds ' + fmtCredits(r.perMonth) + ' credits a month: enough for the about ' + need + ' you\'d use.';
       }
-      if (r.cheaperShort) why += ' ' + r.cheaperShort.plan.name + ' would cost less, but its credits (about ' + fmtCredits(r.cheaperShort.perMonth) + ' a month) fall short.';
+      if (r.cheaperShort) why += ' ' + r.cheaperShort.plan.name + ' would cost less, but its ' + fmtCredits(r.cheaperShort.perMonth) + ' credits a month aren\'t enough for your use.';
       var use = Math.min(100, Math.round(r.monthly / Math.max(1, r.perMonth) * 100));
-      var breakdown = sel.campaigns + ' × ' + fc.campaign_generation + ' (campaign drafts) + ' + sel.images + ' × ' + fc.image_generation + ' (images) + ' + sel.videos + ' × ' + fc.video_generation + ' (5-second videos)';
+      var pt = r.parts;
+      var breakdown = plural(sel.campaigns, 'campaign', 'campaigns') + ' ' + fmtCredits(pt.campaigns) + ' · ' + plural(sel.automations, 'new automation', 'new automations') + ' ' + fmtCredits(pt.automations) + ' · ' + plural(sel.research, 'research report', 'research reports') + ' ' + fmtCredits(pt.research);
       var box = doc.getElementById('orvPpResult');
       box.innerHTML =
         '<p class="orv-pp-eyebrow">Your recommended plan</p>' +
         '<h3 class="orv-pp-plan">' + esc(p.name) + '</h3>' +
         '<p class="orv-pp-price"><span data-eur="' + p.price + '">' + formatEur(p.price) + '</span><span class="orv-pp-per"> / ' + esc(period) + '</span></p>' +
-        (r.purchases > 1 ? '<p class="orv-pp-times">' + r.purchases + ' purchases · <span data-eur="' + r.cost + '">' + formatEur(r.cost) + '</span> in total</p>' : '') +
+        (r.extra ? '<p class="orv-pp-times">+ ' + (r.extra.purchases > 1 ? r.extra.purchases + '× ' : '') + esc(r.extra.plan.name) + ' later · <span data-eur="' + r.cost + '">' + formatEur(r.cost) + '</span> in total</p>'
+          : (r.purchases > 1 ? '<p class="orv-pp-times">' + r.purchases + ' purchases · <span data-eur="' + r.cost + '">' + formatEur(r.cost) + '</span> in total</p>' : '')) +
         '<p class="orv-pp-credits">' + credits + '</p>' +
         '<div class="orv-pp-meter" role="img" aria-label="Estimated use: ' + fmtCredits(r.monthly) + ' credits a month">' +
           '<div class="orv-pp-meter-head"><span>Estimated use</span><span>' + fmtCredits(r.monthly) + ' credits a month</span></div>' +
@@ -279,7 +325,7 @@
         '</div>' +
         '<p class="orv-pp-why">' + esc(why) + '</p>' +
         '<a class="orv-pp-cta" href="/app?plan=' + p.id + '" data-plan="' + p.id + '">Choose This Plan</a>' +
-        '<p class="orv-pp-fine">An estimate from OrivenAI\'s credit costs. Research, Oriven Chat and other AI features also use credits. Price includes VAT.</p>';
+        '<p class="orv-pp-fine">An estimate from OrivenAI\'s real credit costs: a campaign (ad text and image) ' + fmtCredits(fc.campaign_generation + fc.image_generation) + ', a research report ' + fmtCredits(fc.research_report) + ', a new automation ' + fmtCredits(fc.automation) + '; automations then run for free. Oriven Chat, videos and other tools also use credits. Prices include VAT.</p>';
       box.querySelector('.orv-pp-cta').addEventListener('click', function (e) {
         // The same path as the plan's own card: remember the id, then sign up.
         if (typeof orvRememberPlanChoice === 'function') orvRememberPlanChoice(p.id);
