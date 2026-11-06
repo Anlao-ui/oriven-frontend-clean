@@ -205,7 +205,9 @@
     if (STEPS.indexOf(step) < 0) step = 'welcome';
     // The plans come after every answer and the assistant; "done" only after
     // the server confirmed the payment (unlocked()).
-    if (step === 'paywall' && !readyToBuy()) step = 'assistant';
+    // (A renewal goes straight to the plans: the account already finished
+    // the questions, or is an older customer without them.)
+    if (step === 'paywall' && !S.renewal && !readyToBuy()) step = 'assistant';
     stopPolls();
     S.step = step;
     S.el.setAttribute('data-step', step);
@@ -436,11 +438,15 @@
     paywall: function () {
       var plans = typeof ORIVEN_PERIOD_PLANS !== 'undefined' ? ORIVEN_PERIOD_PLANS : [];
       var chosen = typeof orvRememberedPlanChoice === 'function' ? orvRememberedPlanChoice() : null;
-      var chosenName = chosen && typeof orvPeriodPlan === 'function' && orvPeriodPlan(chosen) ? orvPeriodPlan(chosen).name : '';
+      // Renewal (access ended): the same plans, a short heading; the account's
+      // work and settings are kept.
+      var heading = S.renewal
+        ? head('Your access has ended', 'Choose a plan to continue with OrivenAI.', 'Your campaigns, content and settings are kept. Every plan includes every feature. You pay once; nothing renews automatically.')
+        : head('Choose your plan', 'Pick how long you want OrivenAI. Your marketing plan is written for exactly that period.', 'Every plan includes every feature. Right after payment we write your marketing plan from your answers — for 14 days, 1, 3, 6 or 12 months, matching the plan you choose. You pay once; nothing renews automatically.');
       return '<section class="onx-pay">' +
-        '<div class="onx-pay__head">' + head('Choose your plan', 'Pick how long you want OrivenAI. Your marketing plan is written for exactly that period.', 'Every plan includes every feature. Right after payment we write your marketing plan from your answers — for 14 days, 1, 3, 6 or 12 months, matching the plan you choose. You pay once; nothing renews automatically.') + '</div>' +
-        '<div class="onx-pay__confirm" role="status" aria-live="polite" hidden></div>' +
-        (chosenName ? '<p class="onx-pay__chosen">You picked <b>' + esc(chosenName) + '</b> on our pricing page — it’s marked below. Confirm it, or choose another plan.</p>' : '') +
+        '<div class="onx-pay__head">' + heading + '</div>' +
+        // Only shown when a payment is still being processed after the silent check (no green banners).
+        '<p class="onx-pay__note" role="status" aria-live="polite" hidden></p>' +
         '<div class="onx-plans">' + plans.map(function (p) {
           var f = typeof orvPlanCardFacts === 'function' ? orvPlanCardFacts(p) : { price: '€' + p.price, period: p.periodLabel, credits: p.credits + ' credits' };
           var badge = PLAN_BADGES[p.id] || '', featured = p.id === FEATURED_PLAN;
@@ -455,7 +461,7 @@
             '<p class="onx-plan__m">' + esc(f.instalmentNote || '') + '</p>' +
             '<button type="button" class="onx-btn ' + (featured ? 'onx-btn--primary' : 'onx-btn--outline') + '" data-buy="' + esc(p.id) + '">Choose ' + esc(p.name) + '</button></div>';
         }).join('') + '</div>' +
-        '<p class="onx-pay__fine">' + esc(typeof ORIVEN_VAT_LINE !== 'undefined' ? ORIVEN_VAT_LINE : 'Price includes VAT.') + ' Secure payment by Stripe. ' +
+        '<p class="onx-pay__fine">' + esc(typeof ORIVEN_VAT_LINE !== 'undefined' ? ORIVEN_VAT_LINE : 'Excl. VAT — the VAT for your location is added at checkout.') + ' Secure payment by Stripe. ' +
           '<a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a> · <a href="/terms" target="_blank" rel="noopener">Terms</a></p>' +
         '<p class="onx-pay__out"><button type="button" class="onx-btn onx-btn--text" data-go="assistant">Back</button><button type="button" class="onx-btn onx-btn--text" data-signout>Sign out</button></p>' +
       '</section>';
@@ -757,43 +763,47 @@
     // button and the reason + "Try again" if it can't open. The answers are
     // saved (step: paywall) just before the request, so a return from
     // Stripe — paid or canceled — resumes at the plans.
-    selectPlan(id, { source: 'onboarding', button: btn, beforeCheckout: function () { return flush({ step: 'paywall' }); } });
+    selectPlan(id, { source: S.renewal ? 'renewal' : 'onboarding', button: btn, beforeCheckout: function () {
+      // After a first purchase the app opens on the Marketing Plan written
+      // for it; a renewal just opens the app.
+      try { if (S.renewal) sessionStorage.removeItem('oriven_open_planning'); else sessionStorage.setItem('oriven_open_planning', '1'); } catch (_) {}
+      return S.renewal ? Promise.resolve(true) : flush({ step: 'paywall' });
+    } });
   }
-  // The server decides: the plan endpoint answers with content only when
-  // payment is confirmed. After Stripe, the webhook can take a few seconds.
-  // confirming: 'checkout' (back from Stripe: up to ~30 s), 'resume' (the
-  // plans were left for checkout earlier, e.g. the tab closed after paying:
-  // a short check first, so a payment on its way isn't made twice), or false.
+  // Is the account's paid access active yet? Asked silently (no banners):
+  // the server (GET /api/entitlement) decides, from the verified payment.
+  // confirming: 'checkout' (back from Stripe, or a checkout still open:
+  // up to ~30 s), 'resume' (the plans were left for checkout earlier: a short
+  // check, so a payment on its way isn't made twice), or false (one check).
+  // Active → straight into the app.
   function checkAccess(confirming) {
-    var box = $('.onx-pay__confirm'), tries = 0, max = confirming === 'resume' ? 4 : 15;
+    var note = $('.onx-pay__note'), tries = 0, max = confirming === 'resume' ? 4 : 15;
     function once() {
-      api('/api/onboarding/plan').then(function (r) {
+      api('/api/entitlement').then(function (r) {
         if (S.step !== 'paywall') return;
-        if (r.ok && r.data && r.data.locked === false) { returningFromCheckout = false; S.horizon = r.data.horizon && r.data.horizon.label; unlocked(); return; }
+        if (r.ok && r.data && r.data.active) { returningFromCheckout = false; unlocked(); return; }
         if (!confirming) return;
         if (++tries < max) { S.payPoll = setTimeout(once, 2000); return; }
-        if (confirming === 'resume') { box.hidden = true; box.innerHTML = ''; return; } // no recent payment: just the plans
         returningFromCheckout = false;
-        box.innerHTML = 'We haven’t received the payment confirmation yet. If you completed the payment, refresh this page in a minute — your account opens as soon as it arrives.';
+        // A payment Stripe is still processing (e.g. a bank method): say so
+        // once, plainly, so it isn't paid twice. Otherwise: just the plans.
+        if (confirming === 'checkout' && note) { note.hidden = false; note.textContent = 'Your payment is still being processed. You don’t need to pay again — OrivenAI opens as soon as Stripe confirms it.'; }
       });
     }
-    if (confirming && box) { box.hidden = false; box.innerHTML = '<span class="onx-spin" aria-hidden="true"></span> ' + (confirming === 'resume' ? 'Checking for a recent payment…' : 'Confirming your payment…'); }
     once();
   }
   function unlocked() {
     if (typeof orvForgetPlanChoice === 'function') orvForgetPlanChoice();
-    var st = window._orvObState; if (st) { st.eligible = false; st.stage = 'done'; st.completed = true; st.flow = { enabled: false }; }
-    track('next_step_clicked', { action: 'onboarding_unlocked' });
-    go('done', { noSave: true });
-    clearTimeout(S.finishTimer);
-    S.finishTimer = setTimeout(finish, 2500);
+    var st = window._orvObState; if (st) { st.eligible = false; st.stage = 'done'; st.completed = true; st.flow = { enabled: false }; st.access = { active: true, route: 'app' }; }
+    track('next_step_clicked', { action: S.renewal ? 'access_renewed' : 'onboarding_unlocked' });
+    finish();
   }
 
   function finish() {
     clearTimeout(S.finishTimer);
     if (S.finishing) return;
     S.finishing = true;
-    try { sessionStorage.setItem('oriven_open_planning', '1'); } catch (_) {} // land on Marketing Plan
+    try { if (!S.renewal) sessionStorage.setItem('oriven_open_planning', '1'); } catch (_) {} // first purchase: land on Marketing Plan
     close();
     window.location.replace('/app');
   }
@@ -809,9 +819,11 @@
 
   // ── Entry ───────────────────────────────────────────────────────
   // session: GET /api/onboarding/state → flow.session (null before the first save).
-  function open(session) {
+  // opts.renewal: the account's paid access ended → straight to the plans.
+  function open(session, opts) {
     if (S.open) return;
     S.open = true;
+    S.renewal = !!(opts && opts.renewal);
     S.session = session || null;
     S.answers = JSON.parse(JSON.stringify((session && session.answers) || {}));
     S.suggested = (S.answers.suggested || []).slice();
@@ -824,7 +836,7 @@
     // Back at the plans (or paid and the tab closed after payment): the plans
     // screen asks the server, which unlocks and finishes onboarding. go()
     // sends an unfinished questionnaire back to the assistant screen.
-    if (step === 'analyzing' || step === 'ready' || step === 'paywall' || step === 'done') step = 'paywall';
+    if (S.renewal || step === 'analyzing' || step === 'ready' || step === 'paywall' || step === 'done') step = 'paywall';
     else if (STEPS.indexOf(step) < 0) step = 'welcome';
     S.resumedAtPaywall = step === 'paywall' && !returningFromCheckout;
     S.pendingCheckout = !!(session && session.checkoutPending);

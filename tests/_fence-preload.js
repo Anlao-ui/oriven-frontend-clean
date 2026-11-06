@@ -21,6 +21,10 @@ function allowed(url, method) {
   if (/^(data|blob|about):/.test(url)) return true;
   const m = /^https?:\/\/(localhost|127\.0\.0\.1)(?::(\d+))?\//.exec(url);
   if (m) return (m[2] || '80') !== '5500';
+  // A reserved .test host (RFC 2606, never resolvable on the internet) that a
+  // suite maps to 127.0.0.1 itself (--host-resolver-rules) to run the app in
+  // production mode, e.g. tests/entry-routing.test.js.
+  if (/^http:\/\/[a-z0-9-]+(\.[a-z0-9-]+)*\.test(?::\d+)?\//.test(url)) return true;
   return method === 'GET' && ALLOW_CDN.test(url);
 }
 async function fenceContext(ctx) {

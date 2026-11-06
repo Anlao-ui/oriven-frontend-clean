@@ -252,8 +252,9 @@ html.onx-lock, html.onx-lock body { overflow: hidden; }
 /* ── Paywall ─────────────────────────────────────────────────────── */
 .onx-pay { max-width: 1180px; }
 .onx-pay__head { max-width: 720px; margin: 0 auto; text-align: center; }
-.onx-pay__confirm { max-width: 640px; margin: 20px auto 0; justify-content: center; padding: 14px 16px; border-radius: var(--r-m); border: 1px solid var(--volt-line); background: var(--volt-soft); display: flex; gap: 10px; align-items: center; }
-.onx-pay__confirm[hidden] { display: none; }
+/* A payment still being processed after the silent check (js/onboardingFlow.js checkAccess): plain text, no banner. */
+.onx-pay__note { max-width: 640px; margin: 16px auto 0; text-align: center; font-size: 14px; line-height: 1.5; color: var(--text-2, rgba(255,255,255,.7)); }
+.onx-pay__note[hidden] { display: none; }
 .onx-plans { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); column-gap: 12px; row-gap: 0; margin-top: 32px; }
 .onx-plan { display: grid; grid-row: span 7; grid-template-rows: subgrid; row-gap: 0; align-items: start; margin-bottom: 12px;
   padding: 16px 18px 18px; border-radius: var(--r-l); border: 1px solid var(--line); background: var(--surface); text-align: left; }
@@ -322,6 +323,12 @@ html.onx-lock, html.onx-lock body { overflow: hidden; }
 }
 
 /* The plan chosen on the public pricing page (js/plans.js orvRememberPlanChoice). */
-.onx-pay__chosen { margin: 0 auto 14px; max-width: 640px; text-align: center; font-size: 14px; color: var(--text-2, rgba(255,255,255,.7)); }
-.onx-pay__chosen b { color: var(--text, #fff); }
 .onx-plan.is-chosen { box-shadow: 0 0 0 2px #EAFD13; }
+
+/* Signed in, the server is deciding where this account goes (js/auth.js
+   _orvEntryState): the sign-in screen shows a spinner instead of its form —
+   never the app, never the form of a session that already exists. */
+html.orv-routing #authOverlay > :not(:first-child) { visibility: hidden; }
+html.orv-routing #authOverlay::after { content: ''; position: absolute; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .18); border-top-color: #EAFD13; animation: orv-routing-spin .8s linear infinite; }
+@keyframes orv-routing-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { html.orv-routing #authOverlay::after { animation-duration: 2.4s; } }

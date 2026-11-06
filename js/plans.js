@@ -25,7 +25,8 @@ function orvFormatCredits(n){
 }
 
 // ── Pricing (mirrors server/services/pricing.js) ─────────────────────────
-// Prices include VAT (Stripe Tax calculates it at checkout). credits = the period's total allowance; plans with
+// Prices are BEFORE VAT: Stripe Tax calculates the VAT for the customer's
+// location at checkout and adds it on top (e.g. 21 % in the Netherlands). credits = the period's total allowance; plans with
 // more than one instalment grant it in equal monthly parts, all within the
 // access period.
 var ORIVEN_PRICING = {
@@ -144,7 +145,7 @@ var ORIVEN_PERIOD_PLANS = ORIVEN_PRICING.plans.map(function(p){
     name: p.name,
     description: p.description,
     price: p.priceInclVat,
-    priceExVat: Math.round(p.priceInclVat / (1 + ORIVEN_PRICING.vatRate) * 100) / 100,
+    priceExVat: p.priceInclVat, // the plan price is before VAT (field name kept from the server's priceInclVat)
     days: p.days,
     months: p.months,
     periodLabel: _orvPeriodLabel(p),
@@ -213,17 +214,25 @@ function orvPlanHas(planId, key){
 function orvMinPlanFor(key){
   return orvPlanHas("paid", key) ? ORIVEN_PLANS.paid : null;
 }
-// Access is time-based, as on the server (services/pricing.js hasAccess): a
-// paying status AND an access end in the future. Returns the status the UI
-// should act on: the account's status, or 'free' when it has no access now
-// (never bought, or the period ended before the expiry job ran).
+// Access is time-based, as on the server (services/pricing.js hasAccess): an
+// access end in the future AND either a paying status or one of the five
+// plans in access_plan (a plan an operator assigned in Supabase). Returns the
+// status the UI should act on: the account's status ('paid' for an assigned
+// plan), or 'free' when it has no access now (never bought, or the period
+// ended before the expiry job ran).
+function orvPlanIdFrom(v){
+  if(v == null) return null;
+  var k = String(v).toLowerCase().replace(/[^a-z]/g, "");
+  return orvPeriodPlan(k) ? k : null;
+}
 function orvEffectiveStatus(row, now){
   if(!row) return "free";
   var s = row.subscription_status || "free";
-  if(ORIVEN_PAID_STATUSES.indexOf(s) === -1) return "free";
+  var paidLabel = ORIVEN_PAID_STATUSES.indexOf(s) !== -1;
+  if(!paidLabel && !orvPlanIdFrom(row.access_plan)) return "free";
   var exp = row.access_expires_at ? new Date(row.access_expires_at).getTime() : NaN;
   if(!isFinite(exp) || exp <= (now || Date.now())) return "free";
-  return s;
+  return paidLabel ? s : "paid";
 }
 
 // Lists rendered by the paywall, onboarding and Settings: the five periods.
@@ -270,7 +279,8 @@ var ORIVEN_PLAN_I18N = {
   "Lowest monthly price": { nl: "Laagste prijs per maand", de: "Niedrigster Monatspreis", fr: "Prix mensuel le plus bas", es: "Precio mensual más bajo", pt: "Preço mensal mais baixo" },
   "Choose": { nl: "Kies", de: "Wählen", fr: "Choisir", es: "Elegir", pt: "Escolher" },
   "Included in every plan": { nl: "In elk abonnement inbegrepen", de: "In jedem Plan enthalten", fr: "Inclus dans chaque formule", es: "Incluido en todos los planes", pt: "Incluído em todos os planos" },
-  "Prices include VAT. Unused credits expire when your access ends.": { nl: "Prijzen inclusief btw. Ongebruikte credits vervallen wanneer je toegang eindigt.", de: "Preise inkl. MwSt. Ungenutzte Credits verfallen, wenn dein Zugang endet.", fr: "Prix TTC. Les crédits non utilisés expirent à la fin de votre accès.", es: "Precios con IVA incluido. Los créditos no usados caducan cuando termina tu acceso.", pt: "Preços com IVA incluído. Os créditos não usados expiram quando o seu acesso termina." },
+  "Prices exclude VAT; the VAT for your location is added at checkout. Unused credits expire when your access ends.": { nl: "Prijzen exclusief btw; de btw voor jouw locatie wordt bij het afrekenen toegevoegd. Ongebruikte credits vervallen wanneer je toegang eindigt.", de: "Preise zzgl. MwSt.; die MwSt. für deinen Standort wird beim Bezahlen hinzugefügt. Ungenutzte Credits verfallen, wenn dein Zugang endet.", fr: "Prix HT ; la TVA applicable à votre pays est ajoutée lors du paiement. Les crédits non utilisés expirent à la fin de votre accès.", es: "Precios sin IVA; el IVA de tu ubicación se añade al pagar. Los créditos no usados caducan cuando termina tu acceso.", pt: "Preços sem IVA; o IVA da sua localização é adicionado no pagamento. Os créditos não usados expiram quando o seu acesso termina." },
+  "Excl. VAT — the VAT for your location is added at checkout.": { nl: "Excl. btw — de btw voor jouw locatie wordt bij het afrekenen toegevoegd.", de: "Zzgl. MwSt. — die MwSt. für deinen Standort wird beim Bezahlen hinzugefügt.", fr: "HT — la TVA de votre pays est ajoutée lors du paiement.", es: "Sin IVA — el IVA de tu ubicación se añade al pagar.", pt: "Sem IVA — o IVA da sua localização é adicionado no pagamento." },
   "Lowest monthly price ": { nl: "Laagste prijs per maand ", de: "Niedrigster Monatspreis ", fr: "Prix mensuel le plus bas ", es: "Precio mensual más bajo ", pt: "Preço mensal mais baixo " }
 };
 function orvPlanT(str){
@@ -305,7 +315,7 @@ function orvIncludedFeaturesHtml(liClass){
 // from ORIVEN_PERIOD_PLANS; the benefits are the same for every plan (one
 // product), so they are three short statements, never a list of sections.
 var ORIVEN_CARD_BENEFITS = ["Full OrivenAI workflow", "Use credits across all AI features", "No automatic renewal"];
-var ORIVEN_VAT_LINE = "Price includes VAT.";
+var ORIVEN_VAT_LINE = "Excl. VAT — the VAT for your location is added at checkout.";
 function renderLPPricingCards(containerEl){
   if(!containerEl) return;
   containerEl.classList.add('ov-pc-five');

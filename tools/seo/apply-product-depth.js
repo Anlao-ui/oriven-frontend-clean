@@ -62,7 +62,7 @@ for (const [key, data] of Object.entries(D)) {
     <div class="ov-sp-section-inner">
       <div class="ov-sp-tag">Compare plans</div>
       <h2 class="ov-sp-h2" id="price-detail-h">The same product, five periods</h2>
-      <p class="ov-deep-intro">Every plan includes every feature. Plans differ only in how long your access runs, what it costs and how many credits it includes. Prices are in euros and include VAT, calculated at checkout for your location. You pay once; nothing renews automatically.</p>
+      <p class="ov-deep-intro">Every plan includes every feature. Plans differ only in how long your access runs, what it costs and how many credits it includes. Prices are in euros and exclude VAT; the VAT for your location is calculated and added at checkout, before you pay. You pay once; nothing renews automatically.</p>
 
       <div class="ov-pd-part" aria-labelledby="pd-plans-h">
         <h3 id="pd-plans-h">Plans side by side</h3>

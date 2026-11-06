@@ -69,7 +69,8 @@ app.use('/api', (q, r, n) => {
   n();
 });
 // M.state: override for the integration checks (table missing, existing account).
-app.get('/api/onboarding/state', (q, r) => send(r, 200, M.state || (M.completed ? { eligible: false, reason: 'completed', completed: true, stage: 'done', flow: { enabled: false } }
+// Like the server: a paying account is never in the onboarding (it completes in the background).
+app.get('/api/onboarding/state', (q, r) => send(r, 200, M.state || ((M.completed || M.paid) ? { eligible: false, reason: 'completed', completed: true, stage: 'done', flow: { enabled: false } }
   : { eligible: true, reason: 'new_account', newAccount: true, completed: false, stage: 'welcome', flow: { enabled: true, session: Object.assign({}, M.session, { checkoutPending: M.pending }) } })));
 app.get('/api/onboarding/session', (q, r) => {
   if (M.session.plan.status === 'generating' && ++M.polls >= 2) {
@@ -110,6 +111,7 @@ app.get('/api/onboarding/plan', (q, r) => {
   send(r, 200, Object.assign(meta, { status: 'ready', locked: false, period: M.period, horizon, generatedAt: new Date().toISOString(), plan: Object.assign({ horizon }, PLAN), sections: [] }));
 });
 app.post('/api/create-checkout-session', (q, r) => { M.pending = true; M.period = (q.body || {}).plan || M.period; send(r, 200, { url: 'https://checkout.stripe.com/c/pay/cs_test_mock?plan=' + encodeURIComponent((q.body || {}).plan || '') }); });
+app.get('/api/entitlement', (q, r) => { M.calls.push({ m: 'GET', p: '/api/entitlement' }); send(r, 200, { active: !!M.paid, state: M.paid ? 'active' : 'none', route: M.paid ? 'app' : 'onboarding', plan: M.paid ? M.period : null }); });
 app.get('/app', (q, r) => r.sendFile(path.join(ROOT, 'app.html')));
 app.get('/__mock_stripe_checkout', (q, r) => r.send('<!doctype html><title>mock checkout</title><p>mock checkout</p>'));
 app.all(/^\/api\//, (q, r) => r.json({}));
@@ -349,7 +351,8 @@ const server = app.listen(PORT, async () => {
     await page.evaluate((sess) => window.orvOnboardingFlow.open(sess), Object.assign({}, M.session, { step: 'paywall' }));
     await page.waitForSelector('#onx .onx-plans');
     const chosen = await page.evaluate(() => ({ marked: Array.from(document.querySelectorAll('#onx .onx-plan.is-chosen')).map((c) => c.dataset.plan), note: (document.querySelector('#onx .onx-pay__chosen') || {}).textContent }));
-    check('7.4b the plan picked on the public pricing page (Semi-Annual) is marked at the plans — nothing is bought automatically', JSON.stringify(chosen.marked) === '["semiannual"]' && /Semi-Annual/.test(chosen.note || '') && !M.calls.some((c) => c.p === '/api/create-checkout-session'), chosen);
+    chosen.text = await page.textContent('#onx .onx-pay');
+    check('7.4b the plan picked on the public pricing page (Semi-Annual) is marked at the plans, without an explanatory sentence — nothing is bought automatically', JSON.stringify(chosen.marked) === '["semiannual"]' && chosen.note === undefined && !/You picked|it’s marked below/.test(chosen.text) && !M.calls.some((c) => c.p === '/api/create-checkout-session'), chosen);
     // Choosing a plan shows exactly that plan before Stripe (js/planConfirm.js).
     await page.click('#onx [data-buy="quarterly"]'); await page.waitForTimeout(250);
     const cf = await page.evaluate(() => { const d = document.getElementById('orvPlanConfirm'); return d ? { name: d.querySelector('.pcf__name').textContent, price: d.querySelector('.pcf__price b').textContent, period: d.querySelector('[data-fact="period"]').textContent, credits: d.querySelector('[data-fact="credits"]').textContent, top: getComputedStyle(d).zIndex } : null; });
@@ -372,14 +375,14 @@ const server = app.listen(PORT, async () => {
     M.session.step = 'paywall';
     page = await ctx.newPage(); await fence(page); page.on('pageerror', (e) => errors.push(e.message));
     await boot(page, '?success=true&session_id=cs_test_mock');
-    check('8.1 back from checkout: the paywall confirms the payment (server not yet confirmed)', (await step(page)) === 'paywall' && /Confirming your payment/.test(await page.textContent('#onx .onx-pay__confirm')));
-    M.paid = true; // the webhook / sync-checkout confirmed it on the server
-    await page.waitForFunction(() => document.getElementById('onx').getAttribute('data-step') === 'done', null, { timeout: 10000 });
-    const dn = await page.textContent('#onx .onx-ready');
-    check('8.2 once the server confirms: "You’re in." — the plan is being written for the purchased period (Quarterly: the next 3 months)', /You’re in\./.test(dn) && /writing your marketing plan for the next 3 months/.test(dn) && /Control Center → Marketing Plan/.test(dn), dn);
+    await page.waitForTimeout(400);
+    check('8.1 back from checkout before the server confirmed: the plans, checked silently — no green "Confirming your payment" banner', (await step(page)) === 'paywall' && !(await page.$('#onx .onx-pay__confirm')) && !/Confirming your payment|Checking for a recent payment|Checking your payment/.test(await page.textContent('#onx')) && M.calls.some((c) => c.p === '/api/entitlement'));
     const navs8 = []; page.on('request', (rq) => { if (rq.isNavigationRequest() && rq.frame() === page.mainFrame()) navs8.push(rq.url()); });
-    await shot(page, 'done-1440');
-    for (let i = 0; i < 60 && !navs8.includes(BASE + '/app'); i++) await page.waitForTimeout(100);
+    const steps8 = []; await page.exposeFunction('__step8', (x) => steps8.push(x)).catch(() => {});
+    await page.evaluate(() => { const o = document.getElementById('onx'); new MutationObserver(() => window.__step8 && window.__step8(o.getAttribute('data-step'))).observe(o, { attributes: true, attributeFilter: ['data-step'] }); });
+    M.paid = true; // the webhook / sync-checkout confirmed it on the server
+    for (let i = 0; i < 80 && !navs8.includes(BASE + '/app'); i++) await page.waitForTimeout(100);
+    check('8.2 once the server confirms: no "You’re in" screen in between — straight on', !steps8.includes('done'), steps8);
     // (Without a real Supabase session in this test, the app's guest mode then rewrites the address; in real use the signed-in app stays on /app.)
     check('8.3 automatically on to /app: a real page load of /app, no click needed, the Stripe return URL left behind', navs8.includes(BASE + '/app'), navs8);
     await boot(page, '', { noFlow: true, keepUrl: true });
@@ -441,17 +444,18 @@ const server = app.listen(PORT, async () => {
     page = await ctx.newPage(); await fence(page); page.on('pageerror', (e) => errors.push(e.message));
     reset({ step: 'paywall', answers: JSON.parse(JSON.stringify(ANSWERS)), assistant: 'nova', plan: { status: 'ready', attemptsLeft: 2 } });
     await boot(page);
-    const resumeMsg = await page.textContent('#onx .onx-pay__confirm');
+    const quiet115 = !(await page.$('#onx .onx-pay__confirm')) && !/Confirming your payment|Checking for a recent payment|Checking your payment/.test(await page.textContent('#onx'));
+    const navs115 = []; page.on('request', (rq) => { if (rq.isNavigationRequest() && rq.frame() === page.mainFrame()) navs115.push(rq.url()); });
     M.paid = true; // the webhook lands while they look at the screen
-    await page.waitForFunction(() => document.getElementById('onx').getAttribute('data-step') === 'done', null, { timeout: 10000 });
-    check('11.5 back after closing the tab: "Checking for a recent payment…", then unlocked without paying again', /Checking for a recent payment/.test(resumeMsg) && !M.calls.some((c) => c.p === '/api/create-checkout-session'));
+    for (let i = 0; i < 80 && !navs115.includes(BASE + '/app'); i++) await page.waitForTimeout(100);
+    check('11.5 back after closing the tab: checked silently (no banner), then straight into the app without paying again', quiet115 && navs115.includes(BASE + '/app') && !M.calls.some((c) => c.p === '/api/create-checkout-session'), navs115);
     await page.close();
     // No payment on its way: the short check ends and the plans stay usable.
     page = await ctx.newPage(); await fence(page); page.on('pageerror', (e) => errors.push(e.message));
     reset({ step: 'paywall', answers: JSON.parse(JSON.stringify(ANSWERS)), assistant: 'nova', plan: { status: 'ready', attemptsLeft: 2 } });
     await boot(page);
     await page.waitForTimeout(8500);
-    check('11.6 no recent payment: after a short check the message goes away and the plans can be chosen', (await step(page)) === 'paywall' && await page.isHidden('#onx .onx-pay__confirm') && await page.isEnabled('#onx [data-buy="monthly"]'));
+    check('11.6 no recent payment: after the short silent check the plans can be chosen, nothing shown', (await step(page)) === 'paywall' && !(await page.$('#onx .onx-pay__confirm')) && !/Confirming your payment|Checking for a recent payment|Checking your payment/.test(await page.textContent('#onx')) && await page.isHidden('#onx .onx-pay__note') && await page.isEnabled('#onx [data-buy="monthly"]'));
     await page.close();
     // Refresh during the confirmation, then the webhook arrives.
     page = await ctx.newPage(); await fence(page); page.on('pageerror', (e) => errors.push(e.message));
@@ -460,11 +464,12 @@ const server = app.listen(PORT, async () => {
     await page.waitForTimeout(1500);
     await page.goto('about:blank');
     await boot(page, '?success=true&session_id=cs_test_mock');
-    const confirming = await page.textContent('#onx .onx-pay__confirm');
+    const quiet117 = !(await page.$('#onx .onx-pay__confirm')) && !/Confirming your payment|Checking for a recent payment|Checking your payment/.test(await page.textContent('#onx'));
+    const navs117 = []; page.on('request', (rq) => { if (rq.isNavigationRequest() && rq.frame() === page.mainFrame()) navs117.push(rq.url()); });
     M.paid = true;
-    await page.waitForFunction(() => document.getElementById('onx').getAttribute('data-step') === 'done', null, { timeout: 10000 });
-    const unlockReads = M.calls.filter((c) => c.m === 'GET' && c.p === '/api/onboarding/plan').length;
-    check('11.7 refresh during confirmation: confirmation resumes and unlocks; only status reads, no new checkout', /Confirming your payment/.test(confirming) && !M.calls.some((c) => c.p === '/api/create-checkout-session') && unlockReads >= 2);
+    for (let i = 0; i < 80 && !navs117.includes(BASE + '/app'); i++) await page.waitForTimeout(100);
+    const unlockReads = M.calls.filter((c) => c.m === 'GET' && c.p === '/api/entitlement').length;
+    check('11.7 refresh during confirmation: the silent check resumes and opens the app; only status reads, no new checkout', quiet117 && navs117.includes(BASE + '/app') && !M.calls.some((c) => c.p === '/api/create-checkout-session') && unlockReads >= 2, { unlockReads, navs117 });
     await page.close();
 
     // ── 12. Activation: no way around the paywall, resume, never stuck ──
@@ -479,12 +484,15 @@ const server = app.listen(PORT, async () => {
     check('12.1 closing the onboarding with a script: the next app request is refused by the server (403 ONBOARDING_REQUIRED) and the onboarding comes back', shown.status === 403 && shown.code === 'ONBOARDING_REQUIRED' && (await step(page)) === 'paywall', shown);
     await page.evaluate(() => { document.querySelectorAll('#onx [data-buy]').forEach((b) => { b.disabled = true; b.textContent = 'Opening secure checkout…'; }); window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })); });
     await page.waitForTimeout(300);
-    check('12.2 back from Stripe with the browser’s Back button (page from the back-forward cache): the plan buttons work again and the payment is re-checked', await page.isEnabled('#onx [data-buy="monthly"]') && /Choose Monthly/.test(await page.textContent('#onx [data-buy="monthly"]')) && /Confirming your payment/.test(await page.textContent('#onx .onx-pay__confirm')));
+    const reads122 = M.calls.filter((c) => c.p === '/api/entitlement').length;
+    await page.waitForTimeout(2300);
+    check('12.2 back from Stripe with the browser’s Back button (page from the back-forward cache): the plan buttons work again and the payment is re-checked silently', await page.isEnabled('#onx [data-buy="monthly"]') && /Choose Monthly/.test(await page.textContent('#onx [data-buy="monthly"]')) && M.calls.filter((c) => c.p === '/api/entitlement').length > reads122 - 1 && !(await page.$('#onx .onx-pay__confirm')) && !/Confirming your payment|Checking for a recent payment|Checking your payment/.test(await page.textContent('#onx')));
     await page.close();
     page = await ctx.newPage(); await fence(page); page.on('pageerror', (e) => errors.push(e.message));
     reset({ step: 'paywall', answers: JSON.parse(JSON.stringify(ANSWERS)), assistant: 'nova', plan: { status: 'ready', attemptsLeft: 2 } }, { pending: true });
     await boot(page);
-    check('12.3 signing in again with a checkout started but not confirmed: the payment status is shown and checked with the server', (await step(page)) === 'paywall' && /Confirming your payment/.test(await page.textContent('#onx .onx-pay__confirm')));
+    await page.waitForTimeout(2500);
+    check('12.3 signing in again with a checkout started but not confirmed: checked with the server repeatedly, without a banner', (await step(page)) === 'paywall' && M.calls.filter((c) => c.p === '/api/entitlement').length >= 2 && !(await page.$('#onx .onx-pay__confirm')) && !/Confirming your payment|Checking for a recent payment|Checking your payment/.test(await page.textContent('#onx')));
     await page.close();
     page = await ctx.newPage(); await fence(page); page.on('pageerror', (e) => errors.push(e.message));
     reset({ step: 'paywall', answers: JSON.parse(JSON.stringify(ANSWERS)), assistant: 'nova' });
@@ -494,8 +502,8 @@ const server = app.listen(PORT, async () => {
     M.paid = true; M.period = 'flex';
     const navs12 = []; page.on('request', (rq) => { if (rq.isNavigationRequest() && rq.frame() === page.mainFrame()) navs12.push(rq.url()); });
     await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
-    await page.waitForFunction(() => document.getElementById('onx') && document.getElementById('onx').getAttribute('data-step') === 'done', null, { timeout: 10000 });
-    check('12.5 after payment: active at once, the plan is being written for the purchased Flex period (14 days)', /You’re in\./.test(await page.textContent('#onx h1')) && /for the next 14 days/.test(await page.textContent('#onx .onx-ready')));
+    for (let i = 0; i < 80 && !navs12.includes(BASE + '/app'); i++) await page.waitForTimeout(100);
+    check('12.5 after payment: active at once — no in-between screen', navs12.includes(BASE + '/app'), navs12);
     for (let i = 0; i < 60 && !navs12.includes(BASE + '/app'); i++) await page.waitForTimeout(100);
     check('12.6 …and continues to /app', navs12.includes(BASE + '/app'), navs12);
     check('12.7 the browser never asked for a plan to be generated (the server starts it after payment)', !M.calls.some((c) => c.m === 'POST' && c.p === '/api/onboarding/plan'));

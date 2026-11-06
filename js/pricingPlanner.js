@@ -325,7 +325,7 @@
         '</div>' +
         '<p class="orv-pp-why">' + esc(why) + '</p>' +
         '<a class="orv-pp-cta" href="/app?plan=' + p.id + '" data-plan="' + p.id + '">Choose This Plan</a>' +
-        '<p class="orv-pp-fine">An estimate from OrivenAI\'s real credit costs: a campaign (ad text and image) ' + fmtCredits(fc.campaign_generation + fc.image_generation) + ', a research report ' + fmtCredits(fc.research_report) + ', a new automation ' + fmtCredits(fc.automation) + '; automations then run for free. Oriven Chat, videos and other tools also use credits. Prices include VAT.</p>';
+        '<p class="orv-pp-fine">An estimate from OrivenAI\'s real credit costs: a campaign (ad text and image) ' + fmtCredits(fc.campaign_generation + fc.image_generation) + ', a research report ' + fmtCredits(fc.research_report) + ', a new automation ' + fmtCredits(fc.automation) + '; automations then run for free. Oriven Chat, videos and other tools also use credits. Prices exclude VAT; the VAT for your location is added at checkout.</p>';
       box.querySelector('.orv-pp-cta').addEventListener('click', function (e) {
         // The same path as the plan's own card: remember the id, then sign up.
         if (typeof orvRememberPlanChoice === 'function') orvRememberPlanChoice(p.id);

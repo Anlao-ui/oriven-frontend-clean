@@ -55,7 +55,7 @@ module.exports = {
     url: ORIGIN + '/',
     description: 'AI advertising platform for researching markets, creating image and video ads, launching campaigns on Google Ads, Meta Ads, TikTok Ads and Pinterest Ads, and automating campaign rules.',
     offers: { '@type': 'AggregateOffer', priceCurrency: 'EUR', lowPrice: plans[0].price.toFixed(2), highPrice: plans[plans.length - 1].price.toFixed(2), offerCount: plans.length,
-      offers: plans.map((p) => ({ '@type': 'Offer', name: 'OrivenAI ' + p.name, price: p.price.toFixed(2), priceCurrency: 'EUR', description: p.period + ' of access, ' + p.credits + ', one payment (VAT included)', url: ORIGIN + '/pricing' })) },
+      offers: plans.map((p) => ({ '@type': 'Offer', name: 'OrivenAI ' + p.name, price: p.price.toFixed(2), priceCurrency: 'EUR', description: p.period + ' of access, ' + p.credits + ', one payment (excl. VAT)', url: ORIGIN + '/pricing' })) },
     publisher: { '@id': ORIGIN + '/#organization' },
   },
 

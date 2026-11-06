@@ -325,6 +325,10 @@ async function onUserSignedIn(user){
     return;
   }
   _currentUser = user;
+  // Until _loadUserProfile has routed this account (app / onboarding /
+  // plans), a background request refused with 403 ONBOARDING_REQUIRED must
+  // not open the onboarding by itself (js/supabase.js).
+  window._orvRoutingPending = true;
   window._orvNavSinceSignIn = false; // set by _orvNav when another page is opened (app.html)
   linkSessionToUser(user.id);
   console.log("[Auth] User signed in:", user.id);
@@ -348,7 +352,8 @@ async function onUserSignedIn(user){
   // Subscription check determines whether to show app, onboarding, or redirect.
   // showApp() and navigate() are called inside _loadUserProfile() to prevent
   // the app from briefly flashing for unpaid users.
-  await _loadUserProfile(user);
+  try { await _loadUserProfile(user); }
+  finally { window._orvRoutingPending = false; }
 }
 
 // â”€â”€ Profile: single consolidated query â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -392,6 +397,55 @@ function _detectPendingOAuthReturn(){
       }
     } catch(_){}
   }
+}
+
+// ── Entry routing: the server decides, before anything is shown ──────
+// GET /api/onboarding/state → { access: { route: app|onboarding|plans,
+// active, state, plan, expiresAt }, flow: { enabled, session, renewal } }.
+// Back from Stripe (?success=true&session_id=…) the checkout is confirmed
+// with the server first: it reads the session from Stripe and activates the
+// plan if — and only if — it is paid (the success URL itself proves nothing).
+// null when the server can't be asked (the server's own gate still applies).
+var _postPaymentSessionId = null;
+var ORV_ENTRY_TIMEOUT_MS = 20000;
+function _orvWithin(ms, p){ return Promise.race([p, new Promise(function(res){ setTimeout(function(){ res(null); }, ms); })]); }
+async function _orvEntryState(){
+  if(_postPaymentSessionId && /^cs_(test|live)_[A-Za-z0-9]+$/.test(_postPaymentSessionId)){
+    var sid = _postPaymentSessionId; _postPaymentSessionId = null;
+    try { await _orvWithin(15000, apiFetch("/api/billing/sync-checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: sid }) })); } catch(_){}
+  }
+  try {
+    var r = await _orvWithin(ORV_ENTRY_TIMEOUT_MS, apiFetch("/api/onboarding/state"));
+    if(r && r.ok && r.data && r.data.access && r.data.access.route) return r.data;
+  } catch(_){}
+  return null;
+}
+// Shows the onboarding or the plan selection instead of the app. true when
+// one of them is on screen (the app stays hidden behind it).
+function _orvOpenPlanScreen(st){
+  window._orvObState = st;
+  var route = st.access.route;
+  if(st.flow && st.flow.enabled && window.orvOnboardingFlow){
+    window.orvOnboardingFlow.open(st.flow.session || null, { renewal: !!st.flow.renewal });
+    return true;
+  }
+  if(route === "plans"){
+    // No guided flow available: the plans as a hard modal over the app.
+    showApp();
+    if(typeof _showHardPaywall === "function") _showHardPaywall();
+    return true;
+  }
+  return false;
+}
+
+// A tab left open when paid access ends: ask the server again at that
+// moment, which then shows the plans (paid requests are refused anyway).
+var _orvAccessEndTimer = 0;
+function _orvWatchAccessEnd(expiresAt){
+  clearTimeout(_orvAccessEndTimer);
+  var ms = expiresAt ? new Date(expiresAt).getTime() - Date.now() : NaN;
+  if(!(ms > 0) || ms > 2147000000) return; // none, already past, or beyond a timer's range (~24 days; a reload re-arms it)
+  _orvAccessEndTimer = setTimeout(function(){ if(typeof orvOnboardingGate === "function") orvOnboardingGate(); }, ms + 1000);
 }
 
 async function _loadUserProfile(user){
@@ -476,31 +530,35 @@ async function _loadUserProfile(user){
       _orvGoStartPage();
       // Welcome screen: the server decides who sees it (onboarding.js).
       if(typeof orvOnboardingGate === "function") orvOnboardingGate();
-    } else if(_postPayment){
-      // Post-payment: DB may not reflect the new plan yet (webhook lag).
-      // Read DB anyway — if paid already, set status. If still "free", leave null (= pending).
-      var _ppRaw = data ? orvEffectiveStatus(data) : "";
-      if(_ppRaw && _ppRaw !== "free"){
-        _dbSubscriptionStatus = _ppRaw;
-        S.currentPlan = _ppRaw;
-        if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(_ppRaw);
-        console.log("[ACCESS] _postPayment | DB already shows paid plan:", _ppRaw);
-      } else {
-        _dbSubscriptionStatus = null; // webhook pending — gates will not block (null !== "free")
-        console.log("[ACCESS] _postPayment | DB still shows free/null — webhook pending. Waiting for syncSubscriptionFromDB().");
-      }
-      showApp();
-      // Default Dashboard Routing pass — was "create". Uses _orvNav, not
-      // navigate() — see comment on the dev-mode branch above.
-      _orvGoStartPage();
-      // Loads the onboarding state too (first-result suggestion); shows the
-      // welcome screen only if this account is still eligible.
-      if(typeof orvOnboardingGate === "function") orvOnboardingGate();
     } else {
+      // ── Where this account goes, decided by the server BEFORE anything is
+      // shown (services/entitlement.js via GET /api/onboarding/state):
+      //   app        → the application (paid, or an older free account)
+      //   onboarding → the guided onboarding (new account, no plan)
+      //   plans      → the plan selection (paid access ended)
+      // The app stays hidden until then, so nobody sees the dashboard first.
+      // Back from Stripe, the checkout is confirmed with the server first.
+      document.documentElement.classList.add("orv-routing"); // sign-in screen: a spinner instead of the form meanwhile
+      var _entry;
+      try { _entry = await _orvEntryState(); } finally { document.documentElement.classList.remove("orv-routing"); }
+      console.log("[ACCESS] entry route:", _entry && _entry.access ? _entry.access.route + " (" + _entry.access.state + ")" : "unknown — server not reached");
+      if(_entry && _entry.access && _entry.access.active && (!data || orvEffectiveStatus(data) === "free")){
+        // Just activated (checkout confirmed above, or a plan assigned in
+        // Supabase that the server just recorded): read the fresh row.
+        try { var _fresh = await SB.from("profiles").select("*").eq("id", user.id).maybeSingle(); if(_fresh && _fresh.data){ data = _fresh.data; _orvSetAccess(data); } } catch(_){}
+      }
+      if(_entry && _entry.access && _entry.access.route !== "app" && _orvOpenPlanScreen(_entry)){
+        _dbSubscriptionStatus = "free";
+        S.currentPlan = "free";
+        console.log("[ACCESS] route:", _entry.access.route, "| state:", _entry.access.state, "— the app is not shown");
+        return;
+      }
       _dbPrimaryGoal = data ? (data.primary_goal || null) : null;
       // Time-based access (plans.js orvEffectiveStatus = server hasAccess):
-      // a paying status whose period has ended counts as no plan.
+      // a paying status whose period has ended counts as no plan. The
+      // server's answer wins when there is one.
       var _dbPlan = data ? orvEffectiveStatus(data) : "";
+      if(_entry && _entry.access){ if(!_entry.access.active) _dbPlan = ""; else if(!_dbPlan || _dbPlan === "free") _dbPlan = "paid"; }
       _dbSubscriptionStatus = _dbPlan || "free"; // authoritative value — ONLY set from Supabase
       var _isPaid = _dbSubscriptionStatus !== "free";
       var _statusSource = _dbPlan ? ("Supabase profiles.subscription_status = '" + _dbPlan + "'") : ("no DB value — defaulting to 'free'");
@@ -520,7 +578,8 @@ async function _loadUserProfile(user){
         _orvGoStartPage();
         // Welcome screen: the server decides who sees it (onboarding.js) —
         // new accounts only, never existing customers.
-        if(typeof orvOnboardingGate === "function") orvOnboardingGate();
+        if(typeof orvOnboardingGate === "function") orvOnboardingGate(_entry);
+        _orvWatchAccessEnd(_entry && _entry.access ? _entry.access.expiresAt : (data && data.access_expires_at));
       } else {
         // No plan (never bought, or the period ended): the app opens so the
         // account can look around; paid actions open the plans.
@@ -574,7 +633,7 @@ async function _loadUserProfile(user){
         _orvGoStartPage();
         // Welcome screen: the server decides who sees it (onboarding.js).
         // Accounts it doesn't welcome are offered the plans once per session.
-        Promise.resolve(typeof orvOnboardingGate === "function" ? orvOnboardingGate() : null).then(function(){
+        Promise.resolve(typeof orvOnboardingGate === "function" ? orvOnboardingGate(_entry) : null).then(function(){
           var st = window._orvObState;
           if(!(st && st.eligible)) _orvOfferPlansOnce();
         });
@@ -1559,15 +1618,6 @@ window.addEventListener("pageshow", function(e){
   document.querySelectorAll(".orv-ck-busy").forEach(function(b){ _orvCheckoutBtn(b, false); });
 });
 
-// The confirmation after a paid checkout: which plan, and until when.
-function _orvPaidToast(){
-  var a = typeof window.orvAccess === "function" ? window.orvAccess() : null;
-  var p = a && a.plan && typeof orvPeriodPlan === "function" ? orvPeriodPlan(a.plan) : null;
-  var until = a && a.expiresAt ? new Date(a.expiresAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }) : null;
-  if(p && until) return "Payment received — " + p.name + " is active until " + until + ".";
-  return "Payment received — your plan is active.";
-}
-
 // Recorded once the paid plan is confirmed from the database (webhook landed).
 function _orvTrackCheckoutCompleted(status){
   try { localStorage.removeItem("oriven_checkout_plan"); } catch(_){}
@@ -1655,6 +1705,7 @@ document.addEventListener("DOMContentLoaded", async function(){
 
   if(_stripeOk){
     _postPayment = true;
+    _postPaymentSessionId = _stripeSessionId; // confirmed with the server before routing (_orvEntryState)
     history.replaceState(null, "", "/app");
     _loadPath = "/app";
   } else if(_stripeBail){
@@ -1700,43 +1751,21 @@ document.addEventListener("DOMContentLoaded", async function(){
     // Use checkSubscriptionStatus() (direct Supabase query) rather than
     // syncSubscriptionFromDB() (backend API) — Supabase is the single source of truth.
     if(_stripeOk){
+      // The checkout was confirmed with the server before routing
+      // (_orvEntryState): a paid account is already in the app, an unpaid
+      // one is at the plans (which keep checking silently). No banners here.
       setTimeout(async function(){
-        // Confirm this checkout with the server straight away: it reads the
-        // session from Stripe and activates the plan if paid (idempotent with
-        // the webhook). Fail-soft: the polling below still runs.
-        if(_stripeSessionId && /^cs_(test|live)_/.test(_stripeSessionId)){
-          try { await apiFetch("/api/billing/sync-checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: _stripeSessionId }) }); } catch(_){}
+        // Local development skips the entry routing: confirm it here instead.
+        if(_postPaymentSessionId && /^cs_(test|live)_[A-Za-z0-9]+$/.test(_postPaymentSessionId)){
+          var _sid = _postPaymentSessionId; _postPaymentSessionId = null;
+          try { await apiFetch("/api/billing/sync-checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: _sid }) }); } catch(_){}
         }
-        var status = await checkSubscriptionStatus();
-        if(status && status !== "free"){
-          _orvTrackCheckoutCompleted(status);
-          _dbSubscriptionStatus = status;
-          S.currentPlan = status;
-          if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
-          if(typeof invalidatePlanCache === "function") invalidatePlanCache();
-          if(typeof renderPlanPanel === "function") renderPlanPanel();
-          if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast(_orvPaidToast());
-          setTimeout(_postPaymentNavigate, 600);
-        } else {
-          // Webhook may not have arrived yet — retry once after a short delay
-          if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast("Payment received — activating your account...");
-          setTimeout(async function(){
-            status = await checkSubscriptionStatus();
-            _dbSubscriptionStatus = status;
-            if(status && status !== "free"){
-              _orvTrackCheckoutCompleted(status);
-              S.currentPlan = status;
-              if(typeof _updateSidebarPlan === "function") _updateSidebarPlan(status);
-              if(typeof invalidatePlanCache === "function") invalidatePlanCache();
-              if(typeof renderPlanPanel === "function") renderPlanPanel();
-              if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast(_orvPaidToast());
-              setTimeout(_postPaymentNavigate, 400);
-            } else {
-              if(typeof window.notifAllowed !== "function" || window.notifAllowed("notifBilling")) toast("Payment received. Your access is being activated — refresh in a moment.");
-            }
-          }, 3000);
+        var a = typeof window.orvAccess === "function" ? window.orvAccess() : null;
+        if(a && a.active){
+          _orvTrackCheckoutCompleted(a.status);
+          setTimeout(_postPaymentNavigate, 300); // back to the work waiting on the plan, if any
         }
-      }, 800);
+      }, 300);
     } else if(_tourParam){
       // Dev-only re-trigger of onboarding for an already-paid subscriber
       // (?tour=1) -- retired spotlight tour replaced with the real

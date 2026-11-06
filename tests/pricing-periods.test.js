@@ -101,7 +101,7 @@ const creditsMock = (bal, extra) => Object.assign({ balance: bal, monthlyAllowan
   check('A5. comparison table: the five plans, one row each, with price, period and credits from plans.js', pub.head.length === 5 && PLANS.every((p, i) => pub.head[i].name === p.name && pub.head[i].price === euro(p.price) && pub.head[i].access === p.periodLabel && pub.head[i].credits.replace(/,/g, '') === String(p.credits)), pub.head);
   const cost = (label) => (pub.costs.find((r) => r[0].startsWith(label)) || [])[1];
   check('A6. cost table from plans.js: draft, image, 5 s and 10 s video, research, chat, automation', cost('Campaign draft') === C.campaign + ' credits' && cost('Image') === C.imageAd + ' credits' && cost('Video, 5') === C.videoAd + ' credits' && cost('Video, 10') === C.videoAd10s + ' credits' && cost('Research report') === C.research + ' credits' && cost('Oriven Chat message') === C.chat + ' credits' && cost('New automation') === C.automation + ' credits', pub.costs);
-  check('A7. says VAT included, paid once, no automatic renewal, credits expire with access', /include VAT/i.test(pub.text) && !/21s?%/.test(pub.text) && /nothing renews automatically/i.test(pub.text) && /expire when your access ends/i.test(pub.text));
+  check('A7. says prices exclude VAT (added at checkout for your location), paid once, no automatic renewal, credits expire with access', /exclude VAT/i.test(pub.text) && /added at checkout/i.test(pub.text) && !/include VAT|VAT included/i.test(pub.text) && !/21s?%/.test(pub.text) && /nothing renews automatically/i.test(pub.text) && /expire when your access ends/i.test(pub.text));
   check('A8. no free plan, no retired plan names or prices, no "/mo"', !/Free plan|Start free|Starter|Creator plan|Professional plan|€9\.95|€19\.95|€34\.95|\/mo\b|Cancel anytime/.test(pub.text));
   check('A9. structured data offers the five plans (no €0 offer)', /"offerCount": ?5/.test(pub.ld) && PLANS.every((p) => pub.ld.includes('OrivenAI ' + p.name)) && !/"price": ?"0(\.00)?"/.test(pub.ld));
   await page.setViewportSize({ width: 390, height: 844 });
@@ -126,7 +126,7 @@ const creditsMock = (bal, extra) => Object.assign({ balance: bal, monthlyAllowan
   }));
   check('B1. modal open with the five plans, prices and periods from plans.js', pw.open && pw.cards.length === 5 && PLANS.every((p, i) => pw.cards[i].id === p.id && pw.cards[i].price === euro(p.price) && pw.cards[i].period.includes(p.periodLabel) && pw.cards[i].credits.replace(/\./g, '').includes(String(p.credits))), pw.cards);
   check('B2. no Free card, no "Continue Free", no "Cancel anytime"', !/Continue Free|Stay on Free|Cancel anytime|Starter|Creator|Professional/.test(pw.text), pw.text.slice(0, 300));
-  check('B3. footer: VAT included, no automatic renewal', /Prices include VAT/.test(pw.text) && /No automatic renewal/.test(pw.text));
+  check('B3. footer: prices excl. VAT, added at checkout, no automatic renewal', /Prices excl\. VAT, added at checkout/.test(pw.text) && !/include VAT/.test(pw.text) && /No automatic renewal/.test(pw.text));
 
   await page.evaluate(() => { closePaywall(); if (typeof openActionPaywall === 'function') openActionPaywall({ action: 'research', code: 'SUBSCRIPTION_REQUIRED' }); });
   await page.waitForTimeout(300);

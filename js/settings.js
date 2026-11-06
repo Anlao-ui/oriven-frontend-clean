@@ -3329,7 +3329,7 @@ async function renderPlanPanel(){
     html += '</div>';
   });
   html += '</div>';
-  html += '<div class="smd-field-help" style="margin-top:8px">' + orvPlanT('Prices include VAT. Unused credits expire when your access ends.') + ' ' + orvPlanT('Included in every plan') + ': ' + ORIVEN_INCLUDED_FEATURES.map(function(x){ return orvPlanT(x); }).join(', ') + '.</div>';
+  html += '<div class="smd-field-help" style="margin-top:8px">' + orvPlanT('Prices exclude VAT; the VAT for your location is added at checkout. Unused credits expire when your access ends.') + ' ' + orvPlanT('Included in every plan') + ': ' + ORIVEN_INCLUDED_FEATURES.map(function(x){ return orvPlanT(x); }).join(', ') + '.</div>';
 
   // ── Credits ──────────────────────────────────────────────────────
   html += '<div class="sub-plans-sep"></div>';

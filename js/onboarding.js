@@ -94,12 +94,24 @@ function _ob3ApplyDeepLink(){
 }
 
 // ── Gate: called by auth.js once the app is visible ───────────────
-window.orvOnboardingGate = async function(){
-  var res;
-  try { res = await apiFetch("/api/onboarding/state"); } catch(_){ _ob3ApplyDeepLink(); return; } // offline: show nothing, try next load
-  if(!res || !res.ok || !res.data){ _ob3ApplyDeepLink(); return; }
-  var st = res.data;
+// pre: the state auth.js already loaded for the entry routing (no second
+// request). Without it (e.g. a server 403 ONBOARDING_REQUIRED later in the
+// session — js/supabase.js) the state is loaded here.
+window.orvOnboardingGate = async function(pre){
+  var st = pre && pre.access ? pre : null;
+  if(!st){
+    var res;
+    try { res = await apiFetch("/api/onboarding/state"); } catch(_){ _ob3ApplyDeepLink(); return; } // offline: show nothing, try next load
+    if(!res || !res.ok || !res.data){ _ob3ApplyDeepLink(); return; }
+    st = res.data;
+  }
   window._orvObState = st;
+  // No plan (new account) or paid access ended: the onboarding / plan
+  // selection — the server decides (services/entitlement.js).
+  if(st.access && st.access.route && st.access.route !== "app" && typeof _orvOpenPlanScreen === "function"){
+    if(!(window.orvOnboardingFlow && window.orvOnboardingFlow.isOpen())) _orvOpenPlanScreen(st);
+    return;
+  }
   var pending = _ob3Get("ob_pending");
   // Back from Stripe after the onboarding plan step: open the chosen goal.
   var intent = _ob3Get("ob_intent");

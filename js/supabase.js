@@ -148,6 +148,9 @@ async function apiFetch(path, options) {
 var _orvReopenAt = 0;
 function _orvReopenOnboarding(){
   if (window.orvOnboardingFlow && window.orvOnboardingFlow.isOpen()) return;
+  // Signing in: the entry routing (js/auth.js) is deciding right now — a
+  // background request refused meanwhile must not open anything before it.
+  if (window._orvRoutingPending) return;
   if (Date.now() - _orvReopenAt < 3000 || typeof window.orvOnboardingGate !== "function") return;
   _orvReopenAt = Date.now();
   window.orvOnboardingGate();
