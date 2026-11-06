@@ -26,6 +26,14 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const ORIGIN = 'https://orivenai.com';
 const OG_IMAGE = ORIGIN + '/assets/og/orivenai-og.png';
 const CHECK = process.argv.includes('--check');
+// HeyCatch visitor analytics: the one snippet lives in index.html's <head>
+// (comment + module script); these pages get the identical copy.
+const HEYCATCH_SNIPPET = (() => {
+  const idx = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const m = idx.match(/[ \t]*<!-- HeyCatch visitor analytics[\s\S]*?<script type="module">[\s\S]*?<\/script>/);
+  if (!m) throw new Error('index.html: HeyCatch snippet not found in <head>');
+  return m[0].replace(/\r\n/g, '\n').split('\n').map((l) => l.replace(/^ {2}/, '')).join('\n');
+})();
 // Line endings don't count as a change: a Windows checkout (core.autocrlf)
 // holds CRLF copies of the LF files this build writes, which made --check
 // report every page as stale and a build rewrite them all.
@@ -271,6 +279,7 @@ ${lds.map(ld).join('\n')}
      accepts advertising. js/site-analytics.js: OrivenAI's own cookieless statistics. -->
 <script src="/js/consent.js"></script>
 <script src="/js/site-analytics.js" defer></script>
+${HEYCATCH_SNIPPET}
 <script>document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[data-cta]');if(a&&window.orvConsent&&orvConsent.adsAllowed())gtag('event','cta_click',{cta:a.getAttribute('data-cta'),page_path:location.pathname});});</script>
 </head>
 <body data-lpnav="1">

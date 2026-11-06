@@ -8,6 +8,13 @@
                    No cookies, no IP stored, no third party; on by default
                    (low-impact first-party analytics), can be switched off
                    here. Do Not Track / Global Privacy Control switch it off.
+     analytics   — HeyCatch visitor analytics on the public website (the
+                   module script in each page's <head>). OFF until the
+                   visitor opts in: HeyCatch keeps a visitor id in
+                   localStorage and a cookie, so it needs consent. The SDK
+                   starts gated (optOutCapturingByDefault: no capture, no
+                   storage) and is released by optInCapturing() only here.
+                   Do Not Track / Global Privacy Control keep it off.
      advertising — Google Ads (gtag.js, AW-18538836764). OFF until the
                    visitor explicitly accepts. Until then gtag.js is not
                    even loaded; Google Consent Mode v2 defaults are all
@@ -36,7 +43,7 @@
     try { var v = JSON.parse(localStorage.getItem(KEY) || 'null'); return v && v.v === VERSION ? v : null; } catch (_) { return null; }
   }
   function write(c) {
-    var v = { v: VERSION, ads: !!c.ads, stats: !!c.stats, at: new Date().toISOString() };
+    var v = { v: VERSION, ads: !!c.ads, stats: !!c.stats, hc: !!c.hc, at: new Date().toISOString() };
     try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (_) {}
     return v;
   }
@@ -89,8 +96,10 @@
     return state ? state.stats !== false : true;
   }
   function adsAllowed() { return !!(state && state.ads); }
+  // HeyCatch visitor analytics: only after an explicit opt-in (missing = no).
+  function analyticsAllowed() { return !privacySignal && !!(state && state.hc); }
 
-  function emit() { try { document.dispatchEvent(new CustomEvent('orv:consent', { detail: { ads: adsAllowed(), stats: statsAllowed() } })); } catch (_) {} }
+  function emit() { try { document.dispatchEvent(new CustomEvent('orv:consent', { detail: { ads: adsAllowed(), stats: statsAllowed(), analytics: analyticsAllowed() } })); } catch (_) {} }
 
   // ── UI ────────────────────────────────────────────────────────────
   var CSS = '' +
@@ -106,12 +115,12 @@
   // Words in the app's language (window.CURRENT_LANG, js/settings.js);
   // the public site has no language setting and stays English.
   var TXT = {
-    en: { title: 'Your privacy choices', body: 'OrivenAI uses essential storage to run the site and its own cookieless statistics to see which pages help people. With your permission, we also use Google Ads cookies to measure our advertising.', policy: 'Cookie policy', reject: 'Reject advertising', accept: 'Accept advertising', settings: 'Settings', sTitle: 'Cookie settings', ess: 'Essential', essD: 'Sign-in and this choice. Always on.', stats: 'Statistics', statsD: 'OrivenAI’s own page statistics and where a signup came from. No cookies, no IP address stored.', gpc: 'Off because your browser sends a privacy signal.', ads: 'Advertising', adsD: 'Google Ads cookies to measure our ads. Off unless you turn it on.', save: 'Save choices' },
-    nl: { title: 'Jouw privacykeuzes', body: 'OrivenAI gebruikt noodzakelijke opslag om de site te laten werken en eigen statistieken zonder cookies om te zien welke pagina’s mensen helpen. Met jouw toestemming gebruiken we ook Google Ads-cookies om onze advertenties te meten.', policy: 'Cookiebeleid', reject: 'Advertenties weigeren', accept: 'Advertenties accepteren', settings: 'Instellingen', sTitle: 'Cookie-instellingen', ess: 'Noodzakelijk', essD: 'Inloggen en deze keuze. Altijd aan.', stats: 'Statistieken', statsD: 'De eigen paginastatistieken van OrivenAI en waar een aanmelding vandaan kwam. Geen cookies, geen IP-adres opgeslagen.', gpc: 'Uit omdat je browser een privacysignaal stuurt.', ads: 'Advertenties', adsD: 'Google Ads-cookies om onze advertenties te meten. Uit, tenzij je ze aanzet.', save: 'Keuzes opslaan' },
-    de: { title: 'Deine Datenschutzeinstellungen', body: 'OrivenAI nutzt notwendige Speicherung für den Betrieb der Website und eigene Statistiken ohne Cookies, um zu sehen, welche Seiten helfen. Mit deiner Erlaubnis verwenden wir außerdem Google-Ads-Cookies, um unsere Werbung zu messen.', policy: 'Cookie-Richtlinie', reject: 'Werbung ablehnen', accept: 'Werbung akzeptieren', settings: 'Einstellungen', sTitle: 'Cookie-Einstellungen', ess: 'Notwendig', essD: 'Anmeldung und diese Auswahl. Immer an.', stats: 'Statistik', statsD: 'Die eigenen Seitenstatistiken von OrivenAI und woher eine Registrierung kam. Keine Cookies, keine IP-Adresse gespeichert.', gpc: 'Aus, weil dein Browser ein Datenschutzsignal sendet.', ads: 'Werbung', adsD: 'Google-Ads-Cookies, um unsere Anzeigen zu messen. Aus, bis du sie einschaltest.', save: 'Auswahl speichern' },
-    fr: { title: 'Vos choix de confidentialité', body: 'OrivenAI utilise un stockage essentiel au fonctionnement du site et ses propres statistiques sans cookies pour voir quelles pages aident les visiteurs. Avec votre accord, nous utilisons aussi des cookies Google Ads pour mesurer nos publicités.', policy: 'Politique relative aux cookies', reject: 'Refuser la publicité', accept: 'Accepter la publicité', settings: 'Paramètres', sTitle: 'Paramètres des cookies', ess: 'Essentiels', essD: 'Connexion et ce choix. Toujours activés.', stats: 'Statistiques', statsD: 'Les statistiques de pages d’OrivenAI et l’origine d’une inscription. Pas de cookies, aucune adresse IP enregistrée.', gpc: 'Désactivées car votre navigateur envoie un signal de confidentialité.', ads: 'Publicité', adsD: 'Cookies Google Ads pour mesurer nos annonces. Désactivés sauf si vous les activez.', save: 'Enregistrer mes choix' },
-    es: { title: 'Tus opciones de privacidad', body: 'OrivenAI usa almacenamiento esencial para que el sitio funcione y sus propias estadísticas sin cookies para ver qué páginas ayudan. Con tu permiso, también usamos cookies de Google Ads para medir nuestra publicidad.', policy: 'Política de cookies', reject: 'Rechazar publicidad', accept: 'Aceptar publicidad', settings: 'Ajustes', sTitle: 'Ajustes de cookies', ess: 'Esenciales', essD: 'Inicio de sesión y esta elección. Siempre activas.', stats: 'Estadísticas', statsD: 'Las estadísticas de páginas propias de OrivenAI y de dónde vino un registro. Sin cookies, sin guardar la dirección IP.', gpc: 'Desactivadas porque tu navegador envía una señal de privacidad.', ads: 'Publicidad', adsD: 'Cookies de Google Ads para medir nuestros anuncios. Desactivadas salvo que las actives.', save: 'Guardar opciones' },
-    pt: { title: 'As suas escolhas de privacidade', body: 'A OrivenAI usa armazenamento essencial para o site funcionar e estatísticas próprias sem cookies para ver que páginas ajudam as pessoas. Com a sua autorização, usamos também cookies do Google Ads para medir a nossa publicidade.', policy: 'Política de cookies', reject: 'Recusar publicidade', accept: 'Aceitar publicidade', settings: 'Definições', sTitle: 'Definições de cookies', ess: 'Essenciais', essD: 'Sessão e esta escolha. Sempre ativos.', stats: 'Estatísticas', statsD: 'As estatísticas de páginas da própria OrivenAI e a origem de um registo. Sem cookies, sem endereço IP guardado.', gpc: 'Desligadas porque o seu navegador envia um sinal de privacidade.', ads: 'Publicidade', adsD: 'Cookies do Google Ads para medir os nossos anúncios. Desligados, a menos que os ative.', save: 'Guardar escolhas' }
+    en: { title: 'Your privacy choices', body: 'OrivenAI uses essential storage to run the site and its own cookieless statistics to see which pages help people. With your permission, we also use HeyCatch to understand how visitors use our website, and Google Ads cookies to measure our advertising.', policy: 'Cookie policy', reject: 'Reject all', accept: 'Accept all', settings: 'Settings', sTitle: 'Cookie settings', ess: 'Essential', essD: 'Sign-in and this choice. Always on.', stats: 'Statistics', statsD: 'OrivenAI’s own page statistics and where a signup came from. No cookies, no IP address stored.', gpc: 'Off because your browser sends a privacy signal.', ads: 'Advertising', adsD: 'Google Ads cookies to measure our ads. Off unless you turn it on.', hc: 'Visitor analytics', hcD: 'HeyCatch: how visitors use our website (pages, clicks, device, country). Keeps a visitor ID in a cookie and browser storage for up to a year. Off unless you turn it on.', save: 'Save choices' },
+    nl: { title: 'Jouw privacykeuzes', body: 'OrivenAI gebruikt noodzakelijke opslag om de site te laten werken en eigen statistieken zonder cookies om te zien welke pagina’s mensen helpen. Met jouw toestemming gebruiken we ook HeyCatch om te begrijpen hoe bezoekers onze website gebruiken, en Google Ads-cookies om onze advertenties te meten.', policy: 'Cookiebeleid', reject: 'Alles weigeren', accept: 'Alles accepteren', settings: 'Instellingen', sTitle: 'Cookie-instellingen', ess: 'Noodzakelijk', essD: 'Inloggen en deze keuze. Altijd aan.', stats: 'Statistieken', statsD: 'De eigen paginastatistieken van OrivenAI en waar een aanmelding vandaan kwam. Geen cookies, geen IP-adres opgeslagen.', gpc: 'Uit omdat je browser een privacysignaal stuurt.', ads: 'Advertenties', adsD: 'Google Ads-cookies om onze advertenties te meten. Uit, tenzij je ze aanzet.', hc: 'Bezoekersanalyse', hcD: 'HeyCatch: hoe bezoekers onze website gebruiken (pagina’s, klikken, apparaat, land). Bewaart een bezoekers-ID in een cookie en browseropslag, maximaal een jaar. Uit, tenzij je het aanzet.', save: 'Keuzes opslaan' },
+    de: { title: 'Deine Datenschutzeinstellungen', body: 'OrivenAI nutzt notwendige Speicherung für den Betrieb der Website und eigene Statistiken ohne Cookies, um zu sehen, welche Seiten helfen. Mit deiner Erlaubnis verwenden wir außerdem HeyCatch, um zu verstehen, wie Besucher unsere Website nutzen, und Google-Ads-Cookies, um unsere Werbung zu messen.', policy: 'Cookie-Richtlinie', reject: 'Alle ablehnen', accept: 'Alle akzeptieren', settings: 'Einstellungen', sTitle: 'Cookie-Einstellungen', ess: 'Notwendig', essD: 'Anmeldung und diese Auswahl. Immer an.', stats: 'Statistik', statsD: 'Die eigenen Seitenstatistiken von OrivenAI und woher eine Registrierung kam. Keine Cookies, keine IP-Adresse gespeichert.', gpc: 'Aus, weil dein Browser ein Datenschutzsignal sendet.', ads: 'Werbung', adsD: 'Google-Ads-Cookies, um unsere Anzeigen zu messen. Aus, bis du sie einschaltest.', hc: 'Besucheranalyse', hcD: 'HeyCatch: wie Besucher unsere Website nutzen (Seiten, Klicks, Gerät, Land). Speichert eine Besucher-ID in einem Cookie und im Browser, bis zu einem Jahr. Aus, bis du sie einschaltest.', save: 'Auswahl speichern' },
+    fr: { title: 'Vos choix de confidentialité', body: 'OrivenAI utilise un stockage essentiel au fonctionnement du site et ses propres statistiques sans cookies pour voir quelles pages aident les visiteurs. Avec votre accord, nous utilisons aussi HeyCatch pour comprendre comment les visiteurs utilisent notre site, et des cookies Google Ads pour mesurer nos publicités.', policy: 'Politique relative aux cookies', reject: 'Tout refuser', accept: 'Tout accepter', settings: 'Paramètres', sTitle: 'Paramètres des cookies', ess: 'Essentiels', essD: 'Connexion et ce choix. Toujours activés.', stats: 'Statistiques', statsD: 'Les statistiques de pages d’OrivenAI et l’origine d’une inscription. Pas de cookies, aucune adresse IP enregistrée.', gpc: 'Désactivées car votre navigateur envoie un signal de confidentialité.', ads: 'Publicité', adsD: 'Cookies Google Ads pour mesurer nos annonces. Désactivés sauf si vous les activez.', hc: 'Analyse des visites', hcD: 'HeyCatch : comment les visiteurs utilisent notre site (pages, clics, appareil, pays). Conserve un identifiant de visiteur dans un cookie et le stockage du navigateur, jusqu’à un an. Désactivée sauf si vous l’activez.', save: 'Enregistrer mes choix' },
+    es: { title: 'Tus opciones de privacidad', body: 'OrivenAI usa almacenamiento esencial para que el sitio funcione y sus propias estadísticas sin cookies para ver qué páginas ayudan. Con tu permiso, también usamos HeyCatch para entender cómo los visitantes usan nuestro sitio, y cookies de Google Ads para medir nuestra publicidad.', policy: 'Política de cookies', reject: 'Rechazar todo', accept: 'Aceptar todo', settings: 'Ajustes', sTitle: 'Ajustes de cookies', ess: 'Esenciales', essD: 'Inicio de sesión y esta elección. Siempre activas.', stats: 'Estadísticas', statsD: 'Las estadísticas de páginas propias de OrivenAI y de dónde vino un registro. Sin cookies, sin guardar la dirección IP.', gpc: 'Desactivadas porque tu navegador envía una señal de privacidad.', ads: 'Publicidad', adsD: 'Cookies de Google Ads para medir nuestros anuncios. Desactivadas salvo que las actives.', hc: 'Análisis de visitas', hcD: 'HeyCatch: cómo los visitantes usan nuestro sitio (páginas, clics, dispositivo, país). Guarda un ID de visitante en una cookie y en el navegador, hasta un año. Desactivado salvo que lo actives.', save: 'Guardar opciones' },
+    pt: { title: 'As suas escolhas de privacidade', body: 'A OrivenAI usa armazenamento essencial para o site funcionar e estatísticas próprias sem cookies para ver que páginas ajudam as pessoas. Com a sua autorização, usamos também o HeyCatch para perceber como os visitantes usam o nosso site, e cookies do Google Ads para medir a nossa publicidade.', policy: 'Política de cookies', reject: 'Recusar tudo', accept: 'Aceitar tudo', settings: 'Definições', sTitle: 'Definições de cookies', ess: 'Essenciais', essD: 'Sessão e esta escolha. Sempre ativos.', stats: 'Estatísticas', statsD: 'As estatísticas de páginas da própria OrivenAI e a origem de um registo. Sem cookies, sem endereço IP guardado.', gpc: 'Desligadas porque o seu navegador envia um sinal de privacidade.', ads: 'Publicidade', adsD: 'Cookies do Google Ads para medir os nossos anúncios. Desligados, a menos que os ative.', hc: 'Análise de visitas', hcD: 'HeyCatch: como os visitantes usam o nosso site (páginas, cliques, dispositivo, país). Guarda um ID de visitante num cookie e no armazenamento do navegador, até um ano. Desligada, a menos que a ative.', save: 'Guardar escolhas' }
   };
   function L() { var l = window.CURRENT_LANG; return TXT[l] || TXT.en; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -130,7 +139,7 @@
     ensureStyle(); close();
     root = document.createElement('div');
     root.className = 'orv-cc'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'false'); root.setAttribute('aria-labelledby', 'orvCcTitle');
-    var statsOn = statsAllowed(), adsOn = adsAllowed(), t = L();
+    var statsOn = statsAllowed(), adsOn = adsAllowed(), hcOn = analyticsAllowed(), t = L();
     root.setAttribute('data-cc-view', settings ? 'settings' : 'banner');
     if (!settings) {
       root.innerHTML = '<h2 id="orvCcTitle">' + esc(t.title) + '</h2>' +
@@ -140,6 +149,7 @@
       root.innerHTML = '<h2 id="orvCcTitle">' + esc(t.sTitle) + '</h2>' +
         '<div class="orv-cc-cat"><input type="checkbox" checked disabled id="orvCcEss"><label for="orvCcEss"><strong>' + esc(t.ess) + '</strong><span>' + esc(t.essD) + '</span></label></div>' +
         '<div class="orv-cc-cat"><input type="checkbox" id="orvCcStats"' + (statsOn ? ' checked' : '') + (privacySignal ? ' disabled' : '') + '><label for="orvCcStats"><strong>' + esc(t.stats) + '</strong><span>' + esc(t.statsD + (privacySignal ? ' ' + t.gpc : '')) + '</span></label></div>' +
+        '<div class="orv-cc-cat"><input type="checkbox" id="orvCcHc"' + (hcOn ? ' checked' : '') + (privacySignal ? ' disabled' : '') + '><label for="orvCcHc"><strong>' + esc(t.hc) + '</strong><span>' + esc(t.hcD + (privacySignal ? ' ' + t.gpc : '')) + '</span></label></div>' +
         '<div class="orv-cc-cat"><input type="checkbox" id="orvCcAds"' + (adsOn ? ' checked' : '') + '><label for="orvCcAds"><strong>' + esc(t.ads) + '</strong><span>' + esc(t.adsD) + '</span></label></div>' +
         '<div class="orv-cc-row"><button type="button" data-cc-act="reject">' + esc(t.reject) + '</button><button type="button" class="orv-cc-strong" data-cc-act="save">' + esc(t.save) + '</button><button type="button" data-cc-act="accept">' + esc(t.accept) + '</button></div>';
     }
@@ -148,9 +158,9 @@
       var a = b.getAttribute('data-cc-act');
       var statsBox = root.querySelector('#orvCcStats');
       var stats = statsBox ? statsBox.checked : statsAllowed();
-      if (a === 'accept') save({ ads: true, stats: stats });
-      else if (a === 'reject') save({ ads: false, stats: stats });
-      else if (a === 'save') save({ ads: !!root.querySelector('#orvCcAds').checked, stats: stats });
+      if (a === 'accept') save({ ads: true, stats: stats, hc: !privacySignal });
+      else if (a === 'reject') save({ ads: false, stats: stats, hc: false });
+      else if (a === 'save') save({ ads: !!root.querySelector('#orvCcAds').checked, stats: stats, hc: !!root.querySelector('#orvCcHc').checked && !privacySignal });
       else if (a === 'settings') banner(true);
     });
     root.addEventListener('keydown', function (e) { if (e.key === 'Escape' && state) close(); });
@@ -193,10 +203,10 @@
 
   window.orvConsent = {
     trackSignupConversion: trackSignupConversion,
-    get: function () { return { decided: !!state, ads: adsAllowed(), stats: statsAllowed(), privacySignal: privacySignal, debugSession: debugSession, tagLoaded: adsLoaded }; },
-    statsAllowed: statsAllowed, adsAllowed: adsAllowed,
+    get: function () { return { decided: !!state, ads: adsAllowed(), stats: statsAllowed(), analytics: analyticsAllowed(), privacySignal: privacySignal, debugSession: debugSession, tagLoaded: adsLoaded }; },
+    statsAllowed: statsAllowed, adsAllowed: adsAllowed, analyticsAllowed: analyticsAllowed,
     open: function () { banner(true); },
-    set: function (c) { save({ ads: !!c.ads, stats: c.stats !== false }); },
+    set: function (c) { save({ ads: !!c.ads, stats: c.stats !== false, hc: !!c.analytics }); },
   };
 
   // Footer/legal links: <a data-cookie-settings> or href="#cookie-settings".

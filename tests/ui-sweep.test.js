@@ -142,10 +142,10 @@ const server = app.listen(PORT, async () => {
     // Consent banner: its own labels in the app language (Control Center's
     // relabel used to overwrite them with "reject" / "accept" / "settings").
     const ccDe = await page.evaluate(() => { var r = document.querySelector('.orv-cc'); return r ? r.innerText : null; });
-    check('consent banner in German, buttons labelled (not raw action names)', !!ccDe && /Werbung ablehnen/.test(ccDe) && /Datenschutz/.test(ccDe) && !/^\s*(reject|accept|settings)\s*$/im.test(ccDe), ccDe && ccDe.slice(0, 200));
+    check('consent banner in German, buttons labelled (not raw action names)', !!ccDe && /Alle ablehnen/.test(ccDe) && /Alle akzeptieren/.test(ccDe) && /Datenschutz/.test(ccDe) && !/^\s*(reject|accept|settings)\s*$/im.test(ccDe), ccDe && ccDe.slice(0, 200));
     await page.evaluate(() => { CURRENT_LANG = 'en'; applyLanguage(); });
     const ccEn = await page.evaluate(() => { var r = document.querySelector('.orv-cc'); return r ? r.innerText : null; });
-    check('consent banner back in English: "Reject advertising" / "Accept advertising" / "Settings"', !!ccEn && /Reject advertising/.test(ccEn) && /Accept advertising/.test(ccEn) && /Settings/.test(ccEn), ccEn && ccEn.slice(0, 200));
+    check('consent banner back in English: "Reject all" / "Accept all" / "Settings"', !!ccEn && /Reject all/.test(ccEn) && /Accept all/.test(ccEn) && /Settings/.test(ccEn), ccEn && ccEn.slice(0, 200));
     check('no page errors across the sweep', !errors.length, errors.slice(0, 5));
     check('network fence held: no request completed against any other host (' + blocked.length + ' aborted before leaving the browser)', !leaked.length, Array.from(new Set(leaked)).slice(0, 6));
     await ctx.close();

@@ -7,6 +7,36 @@
        cookieless page statistics + first-touch signup source. -->
   <script src="/js/consent.js"></script>
   <script src="/js/site-analytics.js" defer></script>
+  <!-- HeyCatch visitor analytics (public website only; heycatch.ai/agents.md).
+       Starts gated: optOutCapturingByDefault means nothing is captured or
+       stored until the visitor opts in to "Visitor analytics" in the
+       consent banner (js/consent.js, orv:consent event). Pinned to the
+       stable npm "latest" version. -->
+  <script type="module">
+    import { analytics } from 'https://esm.sh/@heycatch/sdk@0.8.5';
+
+    analytics.init({
+      projectKey: 'hck_pk_IEZgiLVsbd8l93pkxgTKjo2IGJgXQ2Fl',
+      site: 'landing',
+      requestBatching: false,
+      optOutCapturingByDefault: true,
+      install: { framework: 'web', agent: 'claude-code' },
+    });
+
+    // The SDK remembers an earlier opt-in itself (__ph_opt_in_out_*); keep it
+    // in line with the visitor's current choice on every load.
+    function hcSdkOptedIn() {
+      try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (/^__ph_opt_in_out_/.test(k) && /^(1|true)$/.test(String(localStorage.getItem(k)))) return true; } } catch (_) {}
+      return /(^|;\s*)__ph_opt_in_out_[^=]*=(1|true)(;|$)/.test(document.cookie);
+    }
+    var hcOn = hcSdkOptedIn();
+    function hcConsent(allowed) {
+      if (allowed && !hcOn) { hcOn = true; analytics.optInCapturing(); }
+      else if (!allowed && hcOn) { hcOn = false; analytics.optOutCapturing(); }
+    }
+    hcConsent(!!(window.orvConsent && window.orvConsent.analyticsAllowed && window.orvConsent.analyticsAllowed()));
+    document.addEventListener('orv:consent', function (e) { hcConsent(!!(e.detail && e.detail.analytics)); });
+  </script>
   <!-- js/dot-field.js: the one dot-grid engine (landing page fields, assistant creatures, public page headers). -->
   <script src="/js/dot-field.js" defer></script>
   <script src="/js/site-top.js" defer></script>
@@ -1016,7 +1046,7 @@
 
       <div class="lp-legal-section">
         <h2>2. How OrivenAI uses cookies and similar storage</h2>
-        <p>OrivenAI uses three categories. You choose the optional ones in <a href="#cookie-settings" class="lp-legal-email" data-cookie-settings="">Cookie settings</a>, which you can open again at any time from the footer.</p>
+        <p>OrivenAI uses four categories. You choose the optional ones in <a href="#cookie-settings" class="lp-legal-email" data-cookie-settings="">Cookie settings</a>, which you can open again at any time from the footer.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1024,6 +1054,7 @@
         <ul>
           <li><strong>Essential (always on)</strong>: your sign-in session (stored by our authentication provider, Supabase), your workspace preferences, the display currency you pick on the pricing page (<em>orv_display_currency</em>) with the exchange rates used for it (<em>orv_fx_rates_v1</em>, refreshed after 12 hours), and your cookie choice itself (<em>orv_consent_v1</em>, kept until you change it). Without these the service doesn’t work.</li>
           <li><strong>Statistics (on, you can switch it off)</strong>: OrivenAI’s own page statistics. No cookies are set and no IP address is stored; a visitor code that changes every day is calculated on our server. To remember how you first arrived until you sign up, the first page, referring domain and campaign tags are kept in your browser tab (<em>sessionStorage</em>: <em>orv_first_touch_v1</em>), which is cleared when you close the tab. A Do Not Track or Global Privacy Control signal switches statistics off.</li>
+          <li><strong>Visitor analytics (off unless you accept)</strong>: HeyCatch, to understand how visitors use our public website (pages, clicks, device, the site that sent you, country). It keeps a random visitor ID in a cookie and browser storage (names starting with <em>ph_</em>, for up to 12 months) and remembers your choice (<em>__ph_opt_in_out_</em>). Nothing is collected or stored until you turn it on; withdrawing consent stops it. Not used inside the OrivenAI app. A Do Not Track or Global Privacy Control signal keeps it off.</li>
           <li><strong>Advertising (off unless you accept)</strong>: Google Ads cookies (for example <em>_gcl_au</em>) to measure the results of our ads. The Google Ads tag isn’t loaded until you accept. Withdrawing consent stops it and removes these cookies from orivenai.com.</li>
         </ul>
       </div>

@@ -208,7 +208,7 @@ const RATES = { EUR: 1, USD: 1.0812, GBP: 0.8412, CHF: 0.9381, CAD: 1.5034, AUD:
   check('exchange rates unavailable → stays in EUR, says why, prices untouched', failed.sel === 'EUR' && /unavailable right now, so prices are shown in EUR/.test(failed.msg) && failed.price === '€17', failed);
   check('no page errors', errors.length === 0, errors);
   // /api/t is the site's existing page-view beacon (js/site-analytics.js), blocked by the fence.
-  check('nothing left the browser (the existing page-view beacon was blocked; rates were answered in the test)', fence.blocked.filter((u) => !/\/api\/t$/.test(u)).length === 0, fence.blocked);
+  check('nothing left the browser (the existing page-view beacon and the consent-gated HeyCatch import were blocked; rates were answered in the test)', fence.blocked.filter((u) => !/\/api\/t$|esm\.sh\/@heycatch\/sdk@/.test(u)).length === 0, fence.blocked);
   await browser.close();
   done();
 

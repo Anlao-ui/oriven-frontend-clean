@@ -7,6 +7,36 @@
        cookieless page statistics + first-touch signup source. -->
   <script src="/js/consent.js"></script>
   <script src="/js/site-analytics.js" defer></script>
+  <!-- HeyCatch visitor analytics (public website only; heycatch.ai/agents.md).
+       Starts gated: optOutCapturingByDefault means nothing is captured or
+       stored until the visitor opts in to "Visitor analytics" in the
+       consent banner (js/consent.js, orv:consent event). Pinned to the
+       stable npm "latest" version. -->
+  <script type="module">
+    import { analytics } from 'https://esm.sh/@heycatch/sdk@0.8.5';
+
+    analytics.init({
+      projectKey: 'hck_pk_IEZgiLVsbd8l93pkxgTKjo2IGJgXQ2Fl',
+      site: 'landing',
+      requestBatching: false,
+      optOutCapturingByDefault: true,
+      install: { framework: 'web', agent: 'claude-code' },
+    });
+
+    // The SDK remembers an earlier opt-in itself (__ph_opt_in_out_*); keep it
+    // in line with the visitor's current choice on every load.
+    function hcSdkOptedIn() {
+      try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (/^__ph_opt_in_out_/.test(k) && /^(1|true)$/.test(String(localStorage.getItem(k)))) return true; } } catch (_) {}
+      return /(^|;\s*)__ph_opt_in_out_[^=]*=(1|true)(;|$)/.test(document.cookie);
+    }
+    var hcOn = hcSdkOptedIn();
+    function hcConsent(allowed) {
+      if (allowed && !hcOn) { hcOn = true; analytics.optInCapturing(); }
+      else if (!allowed && hcOn) { hcOn = false; analytics.optOutCapturing(); }
+    }
+    hcConsent(!!(window.orvConsent && window.orvConsent.analyticsAllowed && window.orvConsent.analyticsAllowed()));
+    document.addEventListener('orv:consent', function (e) { hcConsent(!!(e.detail && e.detail.analytics)); });
+  </script>
   <!-- js/dot-field.js: the one dot-grid engine (landing page fields, assistant creatures, public page headers). -->
   <script src="/js/dot-field.js" defer></script>
   <script src="/js/site-top.js" defer></script>
