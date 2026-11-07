@@ -1141,3 +1141,35 @@ body.orv-tour-preview .page.orv-gated.active { display: block; }
 .sub-pcard-note { display: block; font-size: 10.5px; line-height: 1.35; opacity: .75; margin-top: 1px; }
 .sub-pcard-feats li.sub-pcard-feat-off { opacity: .62; text-decoration: line-through; text-decoration-thickness: 1px; }
 .ov-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Settings → Plan: the account's current period plan, "Extend with …" for the
+   others, and the "Cancel plan" action in Your access (js/settings.js). */
+.sub-pcard-current { box-shadow: inset 0 0 0 1px var(--green); }
+.sub-pcard-badge-current { color: var(--green-deep, #2F6B00); }
+body.dark-mode .sub-pcard-badge-current { color: var(--green); }
+.sub-pcard-btn.sub-pcard-btn-current, .sub-pcard-btn.sub-pcard-btn-current:disabled { opacity: 1; background: transparent; border-color: var(--green); color: var(--charcoal); font-weight: 600; cursor: default; }
+body.dark-mode .sub-pcard-btn.sub-pcard-btn-current { color: #fff; }
+.sub-plans-lead { margin: 0 0 10px; font-size: 12.5px; line-height: 1.5; color: var(--muted); max-width: 640px; }
+.sub-access-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.sub-cancel-btn { border-color: color-mix(in srgb, #D92D20 45%, var(--border)) !important; color: #B42318 !important; }
+.sub-cancel-btn:hover { background: color-mix(in srgb, #D92D20 8%, transparent) !important; }
+body.dark-mode .sub-cancel-btn { color: #FF8A80 !important; }
+.orv-cancel-modal-text p { margin: 0 0 10px; }
+.orv-cancel-modal-text p:last-child { margin-bottom: 0; }
+.orv-cancel-modal-text a { color: inherit; text-decoration: underline; }
+.orv-cancel-modal-btns a.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+
+/* Launch empty state: readable in dark mode (the title resolved to 50% white
+   and read as disabled). */
+body.dark-mode .camp-hub-empty-title { color: rgba(255, 255, 255, .94) !important; }
+body.dark-mode .camp-hub-empty-sub { color: rgba(255, 255, 255, .62) !important; }
+
+/* Modals above the app chrome. .mbk was z-index 900 while the sidebar is
+   9200, so Settings and the other modals opened UNDER the sidebar (their left
+   edge hidden, the sidebar not dimmed). Same layer as the plan modal; the
+   plan modal stays on top of Settings when opened from it, and the
+   cancellation dialog opens above both. Toasts (10200) and the plan
+   confirmation (.pcf, 10100) remain above all of these. */
+.mbk { z-index: 9400; }
+#modal-paywall { z-index: 9420; }
+.orv-cancel-modal { z-index: 9450; }

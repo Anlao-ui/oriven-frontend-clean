@@ -181,7 +181,8 @@ function _applySettingsToUI(cfg){
   var nw  = document.getElementById("tglWeeklyReport");
   if(nw){ nw.classList.toggle("on", cfg.weeklyReportEmail !== false); nw.setAttribute("aria-checked", cfg.weeklyReportEmail !== false ? "true" : "false"); }
   var nwr = document.getElementById("smdWeeklyReportRow");
-  if(nwr) nwr.style.display = (typeof window.orvEntitled === "function" && window.orvEntitled("weeklyReport") === true) ? "" : "none";
+  var weeklyLive = typeof ORIVEN_WEEKLY_REPORT_LIVE === "undefined" || !!ORIVEN_WEEKLY_REPORT_LIVE;
+  if(nwr) nwr.style.display = (weeklyLive && typeof window.orvEntitled === "function" && window.orvEntitled("weeklyReport") === true) ? "" : "none";
   // Until weekly delivery is live (plans.js ORIVEN_WEEKLY_REPORT_LIVE) the row says so.
   var nws = document.getElementById("smdWeeklyReportSoon");
   if(nws){ nws.style.display = (typeof ORIVEN_WEEKLY_REPORT_LIVE !== "undefined" && !ORIVEN_WEEKLY_REPORT_LIVE) ? "" : "none"; nws.textContent = typeof orvPlanT === "function" ? orvPlanT("Coming soon") : "Coming soon"; }
@@ -981,15 +982,15 @@ var LANG_STRINGS = {
     // Settings modal — full audit pass
     smdHdTitle:"Settings", smdNavGeneral:"General", smdNavSubscription:"Subscription", smdNavNotifications:"Notifications",
     smdNavAccount:"Account", smdNavSecurity:"Security",
-    smdWsNameLabel:"Workspace Name", smdWsNameHelp:"The name used to identify your ORIVEN workspace, shown in the sidebar.",
+    smdWsNameLabel:"Workspace Name", smdWsNameHelp:"The name of your OrivenAI workspace.",
     smdThemeLabel:"Theme", smdThemeHelp:"Choose how ORIVEN appears on this device.", smdThemeLight:"Light", smdThemeDark:"Dark", smdThemeSystem:"System",
-    smdLangLabel:"Language", smdLangHelp:"Choose the language ORIVEN's interface uses.",
+    smdLangLabel:"Language", smdLangHelp:"The language OrivenAI uses for menus, buttons and messages.",
     smdLoadingEllipsis:"Loading…",
     smdNotifChannelNote:"These control the in-app notification center (every plan). Automation emails are set in Automations → Settings.",
     smdNotifApTitle:"Automation approvals", smdNotifApSub:"Notify me when an automation needs my approval.",
     smdNotifApActTitle:"Automation actions", smdNotifApActSub:"Notify me when an automation changes a campaign.",
     smdNotifApFailTitle:"Automation failures", smdNotifApFailSub:"Notify me when an automation action fails.",
-    smdNotifDeployTitle:"Launch & Deployment Failures", smdNotifDeploySub:"Notify me when ORIVEN cannot complete a campaign deployment.",
+    smdNotifDeployTitle:"Launch & Deployment Failures", smdNotifDeploySub:"Notify me when OrivenAI can’t complete a campaign launch.",
     smdNotifBillTitle:"Credits & Billing", smdNotifBillSub:"Notify me about important credit or billing issues.",
     smdCookieTitle:"Cookies and advertising", smdCookieSub:"Choose whether OrivenAI may use Google Ads cookies to measure its advertising.", smdCookieBtn:"Cookie settings",
     emailOffersNote:"Your current consent covers tips and product updates only. Special offers aren’t included.", emailOffersBtn:"Also send me special offers", emailOffersDone:"Done. You’ll also get special offers. You can unsubscribe anytime.",
@@ -1004,8 +1005,8 @@ var LANG_STRINGS = {
     smdDangerZoneTitle:"Danger Zone", smdSignOutTitle:"Sign Out", smdSignOutSub:"Sign out of ORIVEN on this device.", smdSignOutBtn:"Sign Out",
     smdDeleteAcctTitle:"Delete Account", smdDeleteAcctSub:"Permanently remove your account and all data. This cannot be undone.", smdDeleteAcctBtn:"Delete Account",
     smdVersionLabel:"Version", smdVersionHelp:"The ORIVEN version currently running.",
-    smdHelpGeneralHelp:"Your workspace name and interface language. Language applies immediately; Workspace Name needs Save.",
-    smdHelpSubHelp:"Your current plan, credit balance, and billing management. Upgrade or manage payment details from here.",
+    smdHelpGeneralHelp:"Workflow steps in the sidebar and the interface language. Both apply immediately.",
+    smdHelpSubHelp:"Your current plan and when it ends, your credits, extending your access, cancelling, and your receipts.",
     smdHelpNotifHelp:"Control which events appear in your OrivenAI notification bell — automation activity, deployment failures and billing. Automation emails are set in Automations → Settings.",
     smdHelpAcctHelp:"Your name, sign-in method, and email address, plus sign out and account deletion. Email changes require confirming the new address before they take effect.",
     smdHelpSecHelp:"Change your password directly (current password required), send yourself a password-reset link by email, or sign out of every other device.",
@@ -1039,12 +1040,12 @@ var LANG_STRINGS = {
     obBizTabBrandDesc:"Your voice, identity, and visual direction.",
     obBizTabConnectionsDesc:"Your connected advertising accounts.",
     obBizTabMemoryDesc:"Everything Oriven has learned about your business over time.",
-    obBizPlanningTitle:"Planning",
+    obBizPlanningTitle:"Your marketing plan",
     obCcOverviewTitle:"What is happening.", obCcOverviewDesc:"Performance across your platforms, what needs you, and your campaigns and automations at a glance.",
     obCcContextTitle:"The business behind it.", obCcContextDesc:"Business, brand, audience, competition, advertising and knowledge: the context every plan, ad and recommendation uses.",
     obResearchSection:"Research", obResearchTitle:"Know the market first.", obResearchDesc:"Investigate a market, competitors or an audience. Oriven maps what it finds, with sources.",
     obLaunchPageSection:"Launch", obLaunchPageTitle:"Review, then launch.", obLaunchPageDesc:"Drafts from Create wait here with their readiness. Fix what blocks them and launch when you're ready.",
-    obBizPlanningDesc:"Plan what you advertise next: dates, platforms, budget and briefs. A plan carries straight into Create.",
+    obBizPlanningDesc:"Where your marketing plan stands and the next task to do in OrivenAI. The campaign calendar for dates and budget is linked underneath.",
     obSettingsSection:"Settings", obSettingsTitle:"Make it yours.",
     obSettingsDesc:"Personalise your workspace — language and account.",
     obYourTurnSection:"Your turn",
@@ -3292,27 +3293,32 @@ async function renderPlanPanel(){
       html += '<div class="sub-renewal">Active until ' + _formatPlanDate(accessEnd) + '</div>';
     }
     html += '<p class="sub-access-text">Monthly subscriptions are no longer sold, and yours keeps working as it is. When it ends you can choose one of the plans below; they don’t renew automatically.</p>';
-    if(billing === "stripe" && !cancelScheduled) html += '<button class="sub-cancel-link" id="planCancelBtn" onclick="_showCancelConfirm()">Cancel subscription</button>';
+    if(billing === "stripe" && !cancelScheduled) html += '<div class="sub-access-actions"><button type="button" class="btn btn-g btn-sm sub-cancel-btn" id="planCancelBtn" onclick="_showCancelConfirm()">Cancel plan</button></div>';
   } else if(hasAccess){
     html += '<div class="sub-access-name">' + (period ? period.name : 'OrivenAI') + (period ? ' <span class="sub-access-kind">' + orvPlanT(period.periodLabel) + '</span>' : '') + '</div>';
     html += '<div class="sub-renewal">Active until ' + _formatPlanDate(accessEnd) + '</div>';
     html += '<p class="sub-access-text">Your plan doesn’t renew automatically: nothing is charged when it ends. Buy another period below whenever you want to continue; its credits arrive right away and its time starts after ' + _formatPlanDate(accessEnd) + '. Unused credits expire when your access ends.</p>';
+    html += '<div class="sub-access-actions"><button type="button" class="btn btn-g btn-sm sub-cancel-btn" id="planCancelBtn" onclick="_showPeriodCancelInfo()">Cancel plan</button></div>';
   } else {
     var ended = ORIVEN_PAID_STATUSES.indexOf(status) !== -1 || purchases.length > 0;
     html += '<div class="sub-access-name">No active plan</div>';
     html += '<p class="sub-access-text">' + (ended && accessEnd
       ? 'Your access ended on ' + _formatPlanDate(accessEnd) + '. Your work, campaigns and connected accounts are still here. Choose a plan to continue creating, researching and launching.'
-      : 'Every plan includes the full product: Research, Create, Launch, Campaigns, Automations and Oriven Chat. Choose how long you want access; you pay once and nothing renews automatically.') + '</p>';
+      : 'Every plan includes the full product: Research, Create, Launch, Campaigns, Automations and your personal AI assistant. Choose how long you want access; you pay once and nothing renews automatically.') + '</p>';
   }
   html += '</div>';
 
   // ── Plans: the five periods ──────────────────────────────────────
-  html += '<div class="sub-card-eyebrow" style="margin:18px 0 10px">' + (hasAccess ? 'Add time and credits' : 'Choose a plan') + '</div>';
+  // The plan the account has now (a period plan with current access).
+  var currentPeriod = hasAccess && !legacy && subInfo && subInfo.access_plan ? subInfo.access_plan : null;
+  html += '<div class="sub-card-eyebrow" style="margin:18px 0 4px">' + (hasAccess ? 'Extend your access' : 'Choose a plan') + '</div>';
+  if(hasAccess && !legacyRunning) html += '<p class="sub-plans-lead">Buying another period adds its time after ' + _formatPlanDate(accessEnd) + ' and its credits right away. Your current plan isn’t replaced or charged again.</p>';
   html += '<div class="sub-plans-grid sub-plans-five">';
   ORIVEN_PERIOD_PLANS.forEach(function(plan){
     var f = orvPlanCardFacts(plan);
-    html += '<div class="sub-pcard' + (plan.badge ? ' sub-pcard-active' : '') + '">';
-    html += plan.badge ? '<div class="sub-pcard-badge sub-pcard-badge-pop">' + f.badge + '</div>' : '<div class="sub-pcard-badge-gap"></div>';
+    var isCurrent = plan.id === currentPeriod;
+    html += '<div class="sub-pcard' + (isCurrent ? ' sub-pcard-active sub-pcard-current' : '') + '"' + (isCurrent ? ' aria-current="true"' : '') + '>';
+    html += isCurrent ? '<div class="sub-pcard-badge sub-pcard-badge-current">Your plan</div>' : (plan.badge ? '<div class="sub-pcard-badge sub-pcard-badge-pop">' + f.badge + '</div>' : '<div class="sub-pcard-badge-gap"></div>');
     html += '<div class="sub-pcard-name">' + plan.name + '</div>';
     html += '<div class="sub-pcard-price">' + f.price + '<span class="sub-pcard-per"> / ' + f.period + '</span></div>';
     html += '<ul class="sub-pcard-feats">';
@@ -3324,7 +3330,11 @@ async function renderPlanPanel(){
     if(legacyRunning){
       html += '<button class="sub-pcard-btn sub-pcard-btn-outline" disabled title="Available when your monthly subscription ends">After your subscription</button>';
     } else {
-      html += '<button class="sub-pcard-btn ' + (plan.badge ? 'sub-pcard-btn-up' : 'sub-pcard-btn-outline') + '" onclick="switchPlan(\'' + plan.id + '\')">' + (hasAccess ? 'Add ' : orvPlanT('Choose') + ' ') + plan.name + '</button>';
+      if(isCurrent){
+        html += '<button type="button" class="sub-pcard-btn sub-pcard-btn-current" disabled aria-disabled="true" title="This is your current plan">Current</button>';
+      } else {
+        html += '<button type="button" class="sub-pcard-btn ' + (!hasAccess && plan.badge ? 'sub-pcard-btn-up' : 'sub-pcard-btn-outline') + '" onclick="switchPlan(\'' + plan.id + '\')"' + (hasAccess ? ' title="Adds ' + plan.name + ' after ' + _formatPlanDate(accessEnd) + '"' : '') + '>' + (hasAccess ? 'Extend with ' : orvPlanT('Choose') + ' ') + plan.name + '</button>';
+      }
     }
     html += '</div>';
   });
@@ -3387,13 +3397,14 @@ async function renderPlanPanel(){
       ['Image ad (copy + image)', (fc.campaign_generation||0) + (fc.image_generation||0)],
       ['Video ad (copy + 5 s video)', (fc.campaign_generation||0) + (fc.video_generation||0)],
       ['Research', fc.research_report],
-      ['Oriven Chat message', fc.ai_chat],
+      ['Assistant message', fc.ai_chat],
+      ['New Marketing Plan', fc.plan_generation],
       ['Website Intelligence', fc.website_analysis],
       ['New automation', fc.automation],
     ].filter(function(r){ return typeof r[1] === 'number' && r[1] > 0; });
     html += '<div class="sub-usage-card" style="margin-top:16px">';
     html += '<div class="sub-card-eyebrow">What credits are used for</div>';
-    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">Creating ads, Research, Oriven Chat, website analysis and creating automations. Launch and Campaigns don’t use credits for normal use. A chat message that needs extra steps (such as using a tool) uses ' + (fc.ai_chat_step || fc.ai_chat) + ' credits per extra step, at most two.</div>';
+    html += '<div class="sub-usage-sub" style="margin:2px 0 12px">Creating ads, Research, your assistant, website analysis, a new Marketing Plan and creating automations. Launch and Campaigns don’t use credits for normal use. A chat message that needs extra steps (such as using a tool) uses ' + (fc.ai_chat_step || fc.ai_chat) + ' credits per extra step, at most two.</div>';
     html += '<div class="sub-usage-list">';
     costRows.forEach(function(r){ html += _uRow(r[0], r[1] + (r[1] === 1 ? ' credit' : ' credits'), ''); });
     html += '</div>';
@@ -3432,6 +3443,46 @@ function _cancelModalPlanName(){
     : (window._orvSubInfo && window._orvSubInfo.subscription_status) || (typeof S !== "undefined" && S && S.currentPlan) || "";
   var p = ORIVEN_PLANS[id];
   return p ? p.name : (id ? id.charAt(0).toUpperCase() + id.slice(1) : "current");
+}
+
+function _showPeriodCancelInfo(){
+  if(document.getElementById("planCancelConfirm")) return;
+  var info = window._orvSubInfo || {};
+  var period = info.access_plan && typeof orvPeriodPlan === "function" ? orvPeriodPlan(info.access_plan) : null;
+  var name = period ? period.name : "OrivenAI";
+  var end = info.access_expires_at ? _formatPlanDate(info.access_expires_at) : null;
+  var email = (typeof _currentUser !== "undefined" && _currentUser && _currentUser.email) || "";
+  var mail = "mailto:contact@orivenai.com?subject=" + encodeURIComponent("Refund request — " + name + " plan") + "&body=" + encodeURIComponent("Account email: " + email + "\nPlan: " + name + "\nReason: ");
+  _orvCancelReturnFocus = document.activeElement;
+  var wrap = document.createElement("div");
+  wrap.className = "orv-cancel-modal";
+  wrap.id = "planCancelConfirm";
+  wrap.innerHTML =
+    '<div class="orv-cancel-modal-card" role="dialog" aria-modal="true" aria-labelledby="planCancelTitle" aria-describedby="planCancelText">'
+    + '<h2 class="orv-cancel-modal-title" id="planCancelTitle">Cancel your ' + name + ' plan?</h2>'
+    + '<div class="orv-cancel-modal-text" id="planCancelText">'
+    + '<p>Your ' + name + ' plan was a one-time payment. It doesn’t renew, so <strong>you won’t be charged again</strong> — there is no subscription to stop.</p>'
+    + '<p>Your access and credits continue ' + (end ? 'until <strong>' + end + '</strong>' : 'until the end of the period you bought') + ', then your plan ends by itself. Nothing in your account is removed.</p>'
+    + '<p>Want your money back instead? Our <a href="/refund-policy" target="_blank" rel="noopener">refund policy</a> explains when a refund is possible. When a purchase is refunded, its remaining access and credits end.</p>'
+    + '</div>'
+    + '<div class="orv-cancel-modal-btns">'
+    + '<button type="button" class="btn btn-g btn-sm" id="planCancelKeep" onclick="_hideCancelConfirm()">Keep my plan</button>'
+    + '<a class="btn btn-danger btn-sm" id="planRefundReq" href="' + mail + '">Request a refund</a>'
+    + '</div></div>';
+  wrap.addEventListener("mousedown", function(e){ if(e.target === wrap) _hideCancelConfirm(); });
+  wrap.addEventListener("keydown", function(e){
+    if(e.key === "Escape"){ e.stopPropagation(); _hideCancelConfirm(); return; }
+    if(e.key === "Tab"){
+      var f = wrap.querySelectorAll("button:not([disabled]), a[href]");
+      if(!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+  });
+  document.body.appendChild(wrap);
+  var keep = document.getElementById("planCancelKeep");
+  if(keep) keep.focus();
 }
 
 function _showCancelConfirm(){

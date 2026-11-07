@@ -1303,6 +1303,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase.js"></script>
+<!-- js/accountForms.js: the signup rules and messages shared with the app (and the server). -->
+<script src="/js/accountForms.js"></script>
 <script src="/js/plans.js"></script>
 <script src="/js/pricingPlanner.js" defer></script>
 
@@ -3195,7 +3197,7 @@ function auMapError(err){
   var msg = (err && err.message) ? err.message : String(err || '');
   if(/invalid.*credentials|wrong.*password|invalid login|email.*not.*confirmed/i.test(msg))
     return 'Incorrect email or password. Please try again.';
-  if(/already registered|already in use/i.test(msg)) return 'An account with this email already exists. Try logging in instead.';
+  if(/already registered|already in use|already exists/i.test(msg)) return 'An account with this email address already exists. Please sign in or reset your password.';
   if(/invalid.*email/i.test(msg)) return 'Please enter a valid email address.';
   if(/password.*at least/i.test(msg)) return 'Password must be at least 6 characters.';
   if(/too many requests|rate.?limit/i.test(msg)) return 'Too many attempts. Please wait a moment and try again.';
@@ -3299,31 +3301,38 @@ if(window._pubView === 'signup'){
   });
 }
 
+// Field → input on this page (js/accountForms.js reports the field).
+var AU_SIGNUP_IDS = { firstName: 'auFirstNameSignup', lastName: 'auLastNameSignup', email: 'auEmailSignup', password: 'auPassSignup', passwordConfirm: 'auPassConfirmSignup' };
+function _auSignupFieldError(field, message){
+  _auSetError('auErrorSignup', message);
+  var el = field && document.getElementById(AU_SIGNUP_IDS[field]);
+  if(el){ el.classList.add('au-err'); el.focus(); }
+}
 async function auSignup(){
-  var firstName   = (document.getElementById('auFirstNameSignup').value  || '').trim();
-  var lastName    = (document.getElementById('auLastNameSignup').value   || '').trim();
-  var email       = (document.getElementById('auEmailSignup').value       || '').trim();
-  var pass        = document.getElementById('auPassSignup').value         || '';
-  var passConfirm = document.getElementById('auPassConfirmSignup').value  || '';
-  var btn         = document.getElementById('auSubmitSignup');
+  var F = window.orvAccountForms;
+  var r = {}; Object.keys(AU_SIGNUP_IDS).forEach(function(k){ r[k] = F.read(AU_SIGNUP_IDS[k]); });
+  var btn = document.getElementById('auSubmitSignup');
   _auSetError('auErrorSignup', '');
-  ['auFirstNameSignup','auLastNameSignup','auEmailSignup','auPassSignup','auPassConfirmSignup'].forEach(function(id){
-    var el = document.getElementById(id); if(el) el.classList.remove('au-err');
-  });
-  if(!firstName){ _auSetError('auErrorSignup', 'Please enter your first name.'); document.getElementById('auFirstNameSignup').classList.add('au-err'); document.getElementById('auFirstNameSignup').focus(); return; }
-  if(!lastName){ _auSetError('auErrorSignup', 'Please enter your last name.'); document.getElementById('auLastNameSignup').classList.add('au-err'); document.getElementById('auLastNameSignup').focus(); return; }
-  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ _auSetError('auErrorSignup', 'Please enter a valid email address.'); document.getElementById('auEmailSignup').classList.add('au-err'); document.getElementById('auEmailSignup').focus(); return; }
-  if(!pass || pass.length < 6){ _auSetError('auErrorSignup', 'Password must be at least 6 characters.'); document.getElementById('auPassSignup').classList.add('au-err'); document.getElementById('auPassSignup').focus(); return; }
-  if(passConfirm !== pass){ _auSetError('auErrorSignup', 'Passwords do not match.'); document.getElementById('auPassConfirmSignup').classList.add('au-err'); document.getElementById('auPassConfirmSignup').focus(); return; }
+  Object.keys(AU_SIGNUP_IDS).forEach(function(k){ var el = document.getElementById(AU_SIGNUP_IDS[k]); if(el) el.classList.remove('au-err'); });
+  // The same rules and messages as the server: one specific reason per field.
+  var v = F.validate({ firstName: r.firstName.value, lastName: r.lastName.value, email: r.email.value, password: r.password.value, passwordConfirm: r.passwordConfirm.value },
+    { requireLastName: true, confirm: true, hidden: { firstName: r.firstName.autofillHidden, lastName: r.lastName.autofillHidden, email: r.email.autofillHidden, password: r.password.autofillHidden } });
+  if(!v.ok){ _auSignupFieldError(v.field, v.message); return; }
+  var email = v.value.email, pass = v.value.password;
   btn.disabled = true; btn.textContent = 'Creating account…';
   try {
     if(window.orvSiteAnalytics) orvSiteAnalytics.signupStarted();
     var signupRes = await apiFetch('/api/signup', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: pass, marketingOptIn: !!(document.getElementById('auOptInSignup') || {}).checked,
+      body: JSON.stringify({ firstName: v.value.firstName, lastName: v.value.lastName, email: email, password: pass, marketingOptIn: !!(document.getElementById('auOptInSignup') || {}).checked,
         attribution: window.orvSiteAnalytics ? orvSiteAnalytics.attribution() : undefined })
     });
-    if(!signupRes.ok) throw new Error(signupRes.data && signupRes.data.error ? signupRes.data.error : 'Signup failed');
+    if(!signupRes.ok){
+      var se = F.signupError(signupRes);
+      _auSignupFieldError(se.field, se.message);
+      btn.disabled = false; btn.textContent = 'Create Account';
+      return;
+    }
     // The account exists now: Google Ads Signup conversion (consent-gated, once per account; js/consent.js).
     var signupConv = window.orvConsent && orvConsent.trackSignupConversion ? orvConsent.trackSignupConversion(signupRes.data && signupRes.data.userId) : null;
     var signinRes = await SB.auth.signInWithPassword({ email: email, password: pass });

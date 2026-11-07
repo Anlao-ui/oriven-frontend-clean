@@ -109,8 +109,8 @@ function _authMapError(err){
     return "Incorrect email or password. Please try again.";
   if(/email not confirmed/i.test(msg))
     return "Please verify your email address before signing in.";
-  if(/user already registered|already registered|already in use/i.test(msg))
-    return "An account with this email already exists. Try signing in instead.";
+  if(/user already registered|already registered|already in use|already exists/i.test(msg))
+    return "An account with this email address already exists. Please sign in or reset your password.";
   if(/unable to validate email|invalid.*email/i.test(msg))
     return "Please enter a valid email address.";
   if(/password.*at least/i.test(msg))
@@ -180,23 +180,22 @@ async function handleSignIn(){
 
 // â”€â”€ Sign Up â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+var SU_IDS = { firstName: "suFirst", lastName: "suLast", email: "suEmail", password: "suPass" };
 async function handleSignUp(){
-  var firstName = (document.getElementById("suFirst").value||"").trim();
-  var lastName  = (document.getElementById("suLast").value||"").trim();
-  var email     = (document.getElementById("suEmail").value||"").trim();
-  var pass      = document.getElementById("suPass").value||"";
-  var phone     = (document.getElementById("suPhone").value||"").trim();
-  _authClearInputErr(["suFirst","suEmail","suPass"]);
-  if(!firstName || !email || !pass){
-    showAuthError("signup","First name, email and password are required.");
-    _authMarkInputErr([!firstName?"suFirst":null, !email?"suEmail":null, !pass?"suPass":null].filter(Boolean));
+  var F = window.orvAccountForms;
+  var r = {}; Object.keys(SU_IDS).forEach(function(k){ r[k] = F.read(SU_IDS[k]); });
+  var phone = (document.getElementById("suPhone").value||"").trim();
+  _authClearInputErr(["suFirst","suLast","suEmail","suPass"]);
+  // The same rules and messages as the server (js/accountForms.js): one
+  // specific reason per field, never "required" for a field that's filled in.
+  var v = F.validate({ firstName: r.firstName.value, lastName: r.lastName.value, email: r.email.value, password: r.password.value },
+    { hidden: { firstName: r.firstName.autofillHidden, email: r.email.autofillHidden, password: r.password.autofillHidden } });
+  if(!v.ok){
+    showAuthError("signup", v.message);
+    _authMarkInputErr([SU_IDS[v.field]].filter(Boolean));
     return;
   }
-  if(pass.length < 6){
-    showAuthError("signup","Password must be at least 6 characters.");
-    _authMarkInputErr(["suPass"]);
-    return;
-  }
+  var firstName = v.value.firstName, lastName = v.value.lastName, email = v.value.email, pass = v.value.password;
   var errEl = document.getElementById("authErrorSu");
   if(errEl){ errEl.style.display="none"; }
   var btn = document.getElementById("authSignupBtn");
@@ -209,7 +208,13 @@ async function handleSignUp(){
       body:    JSON.stringify({ firstName, lastName, email, password: pass, phone: phone||null, marketingOptIn: !!(document.getElementById("suOptIn") || {}).checked,
                  attribution: window.orvSiteAnalytics ? orvSiteAnalytics.attribution() : undefined })
     });
-    if(!signupResult.ok) throw new Error(signupResult.data.error || "Signup failed");
+    if(!signupResult.ok){
+      var se = F.signupError(signupResult);
+      showAuthError("signup", se.message);
+      _authMarkInputErr([SU_IDS[se.field]].filter(Boolean));
+      if(btn){ btn.disabled=false; btn.textContent="Create Account"; }
+      return;
+    }
     // The account exists now: Google Ads Signup conversion (consent-gated, once per account; js/consent.js).
     if(window.orvConsent && orvConsent.trackSignupConversion) orvConsent.trackSignupConversion(signupResult.data && signupResult.data.userId);
 
@@ -236,6 +241,9 @@ async function authSignOut(){
   // Unfinished Create/Research work saved for a plan upgrade (onboarding.js)
   // stays on a shared computer otherwise.
   try { if(_currentUser) localStorage.removeItem("oriven_draft_" + _currentUser.id); } catch(_){}
+  // The personal assistant's saved conversation (js/orivenAgent.js) doesn't
+  // stay on a shared computer either.
+  try { if(window.orvAgent) window.orvAgent.forgetAll(); } catch(_){}
   _currentUser          = null;
   _onboardingShown      = false;
   _dbSubscriptionStatus = null;
@@ -330,6 +338,9 @@ async function onUserSignedIn(user){
   // not open the onboarding by itself (js/supabase.js).
   window._orvRoutingPending = true;
   window._orvNavSinceSignIn = false; // set by _orvNav when another page is opened (app.html)
+  // The personal assistant for this account (GET /api/agent): its name, logo
+  // and colour on the launcher from the start.
+  try { if(window.orvAgent) setTimeout(function(){ window.orvAgent.load(true); }, 0); } catch(_){}
   linkSessionToUser(user.id);
   console.log("[Auth] User signed in:", user.id);
   updateSidebarUser(user);

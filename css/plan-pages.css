@@ -5,7 +5,7 @@
    body.dark-mode. The pages scroll with the app's main area; nothing sits
    in a fixed-height box.
    ════════════════════════════════════════════════════════════════ */
-.mpl, .prg { padding: 40px 32px 96px; }
+.mpl, .prg { padding: var(--orv-page-top, 28px) 40px 96px; } /* the app's page frame (as .rx-wrap / .onv-panel) */
 .mpl-loading { margin: 12vh auto 0; text-align: center; color: var(--onv-muted); font-size: 14px; }
 
 /* ── Empty, waiting and error states ─────────────────────────────── */
@@ -21,7 +21,7 @@
 
 /* ── The plan: a document with a section index beside it ─────────── */
 .mpl-doc {
-  max-width: 1040px; margin: 0 auto;
+  max-width: 1120px; margin: 0; /* left-aligned like every other page */
   display: grid; grid-template-columns: minmax(0, 1fr) 200px; column-gap: 56px; align-items: start;
 }
 .mpl-doc > * { grid-column: 1; min-width: 0; }
@@ -31,11 +31,6 @@
 .mpl-meta { margin: 8px 0 0; font-size: 13px; color: var(--onv-muted); }
 .mpl-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
 .mpl-tools .onv-btn { min-height: 36px; font-size: 13.5px; }
-.mpl-tools .onv-dev { margin-left: 4px; }
-.mpl-update { margin-top: 14px; padding: 14px 16px; border-radius: 10px; border: 1px dashed var(--onv-faint); font-size: 13.5px; line-height: 1.6; max-width: 68ch; }
-.mpl-update p { margin: 0; }
-.mpl-update p + p { margin-top: 8px; color: var(--onv-muted); }
-.mpl-update b { color: var(--onv-strong); }
 .mpl-summary { margin: 24px 0 8px; max-width: 64ch; font-size: 17px; line-height: 1.6; color: var(--onv-strong); }
 
 .mpl-toc { grid-column: 2; grid-row: 1 / span 40; position: sticky; top: 24px; padding-top: 6px; }
@@ -70,7 +65,7 @@
 .mpl-quote { margin: 0 0 12px; padding: 2px 0 2px 16px; border-left: 3px solid var(--onv-acc); font-size: 17px; line-height: 1.55; color: var(--onv-strong); max-width: 64ch; }
 
 /* ── Progress ────────────────────────────────────────────────────── */
-.prg-doc { max-width: 760px; margin: 0 auto; }
+.prg-doc { max-width: 880px; margin: 0; } /* left-aligned like every other page */
 .prg-head { border-bottom: 0; padding-bottom: 8px; }
 .prg-count { margin: 10px 0 10px; font-size: 14px; color: var(--onv-text); font-variant-numeric: tabular-nums; }
 .prg-count b { color: var(--onv-strong); }
@@ -171,3 +166,61 @@
 .mpl-formerr { margin: 8px 0 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, #e5484d 12%, transparent); color: var(--onv-strong); font-size: 13.5px; }
 .mpl-rec__go { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 18px 0 8px; }
 .mpl-rec__go .mpl-fine { margin: 0 !important; }
+
+/* ── Action plan tasks (format 2: each task names an OrivenAI page) ── */
+.mpl-road > li[data-state="now"] { border-color: color-mix(in srgb, var(--onv-acc) 55%, transparent); }
+.mpl-road__h em { font: 500 11.5px/1.4 var(--onv-mono); font-style: normal; color: var(--onv-muted); }
+.mpl-road__h span:last-child { flex-basis: 100%; }
+.mpl-tasks { list-style: none; margin: 4px 0 0; padding: 0; display: grid; }
+.mpl-task { margin: 0; border-top: 1px solid var(--onv-line); }
+.mpl-task > details > summary { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 2px; cursor: pointer; list-style: none; }
+.mpl-task > details > summary::-webkit-details-marker { display: none; }
+.mpl-task > details > summary:focus-visible { outline: 2px solid var(--onv-acc); outline-offset: 2px; border-radius: 6px; }
+.mpl-task__t { font-size: 14.5px; line-height: 1.45; color: var(--onv-strong); font-weight: 550; }
+.mpl-task__p { flex: none; font: 500 11px/1.4 var(--onv-mono); letter-spacing: .04em; color: var(--onv-muted); }
+.mpl-task__b { padding: 0 2px 14px; display: flex; flex-direction: column; gap: 8px; }
+.mpl-task__b p { margin: 0; font-size: 14px; line-height: 1.55; max-width: 68ch; }
+.mpl-task__a { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 4px; }
+
+/* ── Progress overview ── */
+.prg-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 16px 0 12px; }
+.prg-stat { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border: 1px solid var(--onv-line); border-radius: 10px; min-width: 0; }
+.prg-stat b { font-size: 18px; font-weight: 600; color: var(--onv-strong); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prg-stat span { font: 500 11px/1.3 var(--onv-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--onv-muted); }
+.prg-next { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 12px 14px; margin-bottom: 12px; border-radius: 10px; background: var(--onv-acc-bg); }
+.prg-next span { font: 500 11px/1.3 var(--onv-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--onv-muted); }
+.prg-next b { flex: 1 1 220px; font-size: 14.5px; font-weight: 600; color: var(--onv-strong); }
+.prg-months { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+.prg-months li { display: grid; grid-template-columns: minmax(80px, 120px) 1fr 44px; align-items: center; gap: 10px; font-size: 12.5px; color: var(--onv-muted); }
+.prg-months li[data-state="now"] { color: var(--onv-strong); font-weight: 600; }
+.prg-months i { display: block; height: 5px; border-radius: 999px; background: var(--onv-line); overflow: hidden; }
+.prg-months em { display: block; height: 100%; border-radius: inherit; background: var(--onv-acc); }
+.prg-months__n { text-align: right; font-family: var(--onv-mono); font-variant-numeric: tabular-nums; }
+.prg-what { margin-top: 2px !important; font-size: 13px !important; color: var(--onv-muted) !important; }
+.prg-check--auto { cursor: default; border-style: dashed; }
+.prg-check--auto:hover { border-color: var(--onv-faint); }
+.prg-check--auto[aria-checked="true"] { border-style: solid; }
+@media (max-width: 600px) {
+  .prg-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.mpl-task > details > summary::after { content: ''; flex: none; align-self: center; width: 7px; height: 7px; border-right: 1.5px solid var(--onv-muted); border-bottom: 1.5px solid var(--onv-muted); transform: rotate(45deg) translateY(-2px); transition: transform .15s var(--onv-ease); }
+.mpl-task > details[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
+.mpl-task__p { margin-left: auto; }
+
+/* ── A new plan on request ── */
+.mpl-update { margin-top: 16px; }
+.mpl-regen { display: flex; flex-direction: column; gap: 10px; max-width: 720px; padding: 18px 20px; border-radius: 12px; border: 1px solid var(--onv-line); background: var(--onv-surface); }
+.mpl-regen__t { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em; color: var(--onv-strong); }
+.mpl-regen__l { font-size: 13px; font-weight: 600; color: var(--onv-strong); margin-top: 4px; }
+.mpl-regen__ideas { display: flex; flex-wrap: wrap; gap: 6px; }
+.mpl-chip--btn { all: unset; box-sizing: border-box; cursor: pointer; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--onv-line); font-size: 12.5px; color: var(--onv-text); transition: border-color .15s, color .15s; }
+.mpl-chip--btn:hover { border-color: var(--onv-faint); color: var(--onv-strong); }
+.mpl-chip--btn:focus-visible { outline: 2px solid var(--onv-acc); outline-offset: 2px; }
+.mpl-regen__facts { margin: 2px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; line-height: 1.5; color: var(--onv-muted); }
+.mpl-regen__go { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.mpl-regen-state { display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: var(--onv-acc-bg); max-width: 720px; }
+.mpl-regen-state[data-state="failed"] { background: color-mix(in srgb, #E5484D 10%, transparent); }
+.mpl-regen-state b { color: var(--onv-strong); font-size: 14.5px; }
+.mpl-regen-state p { margin: 2px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--onv-text); }
+.mpl-asked { margin: 12px 0 0; max-width: 68ch; font-size: 14px; line-height: 1.5; color: var(--onv-text); }
+.mpl-asked span { display: block; font: 500 11px/1.4 var(--onv-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--onv-muted); margin-bottom: 2px; }

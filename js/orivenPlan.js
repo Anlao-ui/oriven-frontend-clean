@@ -308,6 +308,12 @@
     var rows = current().slice(0, 3);
     // Words from js/controlCenter.js (Control Center rail card).
     var W = function (k, fb) { return window.orvCC ? window.orvCC.T(k) : fb; };
+    // The Marketing Plan leads this slot (progress and the next task,
+    // js/planPages.js); the campaign calendar is a secondary link under it.
+    if (window.orvPlanPages && window.orvPlanPages.paintCard) {
+      window.orvPlanPages.paintCard(el, '<div class="mpc-cal"><button type="button" class="ccx-link" onclick="bizGoTo(\'planning\')">' + esc(rows.length ? 'Campaign calendar · ' + rows.length + ' planned' : 'Campaign calendar and budget') + ' →</button></div>');
+      return;
+    }
     el.innerHTML = '<div class="ccx-card-hd bps-hd"><h2 class="ccx-h bps-t">' + esc(W('planTitle', 'Advertising plan')) + '</h2><button type="button" class="ccx-link bps-open" onclick="bizGoTo(\'planning\')">' + esc(rows.length ? W('planOpen', 'Open planning') : W('planStart', 'Plan advertising')) + ' <span aria-hidden="true">→</span></button></div>' +
       (rows.length ? '<ul class="bps-list">' + rows.map(function (r) {
         return '<li><button type="button" onclick="bizGoTo(\'planning\')"><span class="bps-d">' + esc(r.start ? shortDate(r.start) : W('noDate', 'No date')) + '</span><span class="bps-n">' + esc(r.campaign) + '</span><span class="bps-m">' + esc([PL.platformsText(r), PL.statusLabel(r.status)].filter(Boolean).join(' · ')) + '</span></button></li>';

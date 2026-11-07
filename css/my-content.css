@@ -95,3 +95,6 @@ body:not(.dark-mode) .mcl-dialog { background: #fff; }
   .mcl-card:hover { transform: none; }
   .mcl-dialog { animation: none; }
 }
+
+/* One page-title style across the app (matches .rx-title). */
+.mcl-head h1 { font-size: 28px; font-weight: 700; line-height: 1.2; }

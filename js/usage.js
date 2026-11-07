@@ -210,7 +210,8 @@ async function updatePrioritySupportVisibility(){
   // Settings → Notifications: the Weekly AI Performance Report toggle
   // (plans.js entitlement weeklyReport, every paid plan).
   var wr = document.getElementById("smdWeeklyReportRow");
-  if(wr) wr.style.display = (typeof orvPlanHas === "function" && orvPlanHas(plan, "weeklyReport")) ? "" : "none";
+  var weeklyLive = typeof ORIVEN_WEEKLY_REPORT_LIVE === "undefined" || !!ORIVEN_WEEKLY_REPORT_LIVE;
+  if(wr) wr.style.display = (weeklyLive && typeof orvPlanHas === "function" && orvPlanHas(plan, "weeklyReport")) ? "" : "none";
 }
 
 // ── Browser timezone sync — feeds the once-per-local-day daily

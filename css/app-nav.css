@@ -167,7 +167,8 @@ html body .orv-mob-drawer .orv-mob-drawer-bottom.onv-foot-host { padding: 8px 12
 .orv-mob-drawer .onv-route { left: 24px; top: 40px; bottom: 22px; }
 
 /* ── Panel: in development, Campaign Builder chooser ────────────── */
-.onv-panel { font-family: var(--onv-font); color: var(--onv-text); padding: 48px 28px 72px; }
+/* Same page frame as the Research-style pages (.rx-wrap): top offset and side gutter. */
+.onv-panel { font-family: var(--onv-font); color: var(--onv-text); padding: var(--orv-page-top, 28px) 40px 96px; box-sizing: border-box; }
 .onv-btn {
   all: unset; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 16px;
   border-radius: 9px; border: 1px solid var(--onv-line); color: var(--onv-strong); font: 500 14px/1 var(--onv-font); cursor: pointer;
@@ -185,7 +186,7 @@ html body .orv-mob-drawer .orv-mob-drawer-bottom.onv-foot-host { padding: 8px 12
 .onv-dev-page__body { margin: 0 auto 24px; max-width: 46ch; font-size: 15px; line-height: 1.55; }
 .onv-dev-page__alt { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 
-.onv-cb { max-width: 820px; margin: 0 auto; }
+.onv-cb { max-width: 960px; margin: 0; } /* left-aligned like every other page */
 .onv-cb__head h1 { margin: 0 0 8px; font-size: clamp(26px, 3vw, 32px); line-height: 1.15; font-weight: 600; letter-spacing: -.02em; color: var(--onv-strong); }
 .onv-cb__head p { margin: 0 0 24px; max-width: 60ch; font-size: 14.5px; line-height: 1.55; }
 .onv-cb__resume { all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; width: 100%; margin: 0 0 16px; padding: 14px 16px; border-radius: 12px; cursor: pointer; background: var(--onv-acc-bg); }
@@ -196,6 +197,9 @@ html body .orv-mob-drawer .orv-mob-drawer-bottom.onv-foot-host { padding: 8px 12
 .onv-cb__c { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .onv-cb__c b { color: var(--onv-strong); font-weight: 600; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .onv-cb__c span { font-size: 12.5px; color: var(--onv-muted); }
+.onv-cb__list li .onv-cb__c { flex: 1; }
+.onv-cb__note { font-size: 12px; color: var(--onv-muted); max-width: 22ch; text-align: right; }
+.onv-cb__aud { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 16px; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--onv-line); background: var(--onv-acc-bg); font-size: 14px; color: var(--onv-strong); }
 .onv-cb__empty { padding: 32px 0; text-align: center; }
 .onv-cb__empty p { margin: 0 0 16px; }
 
@@ -211,3 +215,9 @@ html body .orv-mob-drawer .orv-mob-drawer-bottom.onv-foot-host { padding: 8px 12
 @media (forced-colors: active) {
   .onv-item.is-on { outline: 2px solid Highlight; }
 }
+.onv-cb__head h1 { font-size: 28px; font-weight: 700; line-height: 1.2; }
+
+/* Settings → General → "Show workflow steps" off (body.orv-wf-off,
+   js/settings.js): the section numbers and the route line beside the pages
+   go. The rules for this lived only on the old sidebar (.orv-ni). */
+body.orv-wf-off .onv-sec__n, body.orv-wf-off .onv-route { display: none !important; }

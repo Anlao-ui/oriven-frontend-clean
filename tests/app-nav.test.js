@@ -38,8 +38,10 @@ app.get('/api/automations', (q, r) => r.json({ automations: [], activity: [], ap
 // M.mode: 'existing' (a paying account without onboarding: no plan),
 // 'generating', 'failed', 'ready' (plan for M.period, steps stored in M.done).
 const FLOW = require(path.join(BE, 'services', 'onboardingFlow'));
-const M = { mode: 'existing', period: 'monthly', done: {}, perPhase: 2, polls: 0 };
+const CATALOG = require(path.join(BE, 'services', 'planCatalog'));
+const M = { mode: 'existing', period: 'monthly', done: {}, perPhase: 3, polls: 0, version: 1, regen: null, regenFail: false, regenPolls: 0, request: null, newAt: null, regenBodies: [] };
 const STARTED = new Date(Date.now() - 9 * 864e5).toISOString();
+const TASK_ACTIONS = [['review_campaigns', 'review the campaign results'], ['create_ad_copy', 'write the workshop ad'], ['build_audience', 'save the gift-shopper audience'], ['review_insights', 'read the new insights'], ['test_creatives', 'test two headlines']];
 function planFor(period, perPhase) {
   const h = FLOW.HORIZONS[period];
   const raw = {
@@ -52,21 +54,39 @@ function planFor(period, perPhase) {
     content: { pillars: [{ name: 'In the studio', ideas: ['How one candle is poured'] }], cadence: 'Three posts a week' },
     campaigns: [{ name: 'Saturday workshops', goal: 'Bookings', idea: 'Invite past buyers first' }],
     priorities: ['Start an email list', 'Post three times a week'],
-    roadmap: h.phases.map((n, i) => ({ phase: n, focus: 'Focus for ' + n, actions: Array.from({ length: perPhase }, (_, j) => ({ step: 'Step ' + (j + 1) + ' of ' + n + (j === 0 ? ': write the workshop ad' : ': check last week’s orders'), area: j === 0 ? 'create' : 'outside' })) })),
+    // In-app tasks (services/planCatalog.js actions): the 1st is confirmed by
+    // hand (review_campaigns), the 2nd completes by itself (create_ad_copy).
+    roadmap: h.phases.map((n, i) => ({ phase: n, focus: 'Focus for ' + n, tasks: Array.from({ length: perPhase }, (_, j) => {
+      const a = TASK_ACTIONS[j % TASK_ACTIONS.length];
+      return { title: 'Task ' + (j + 1) + ' of ' + n + ': ' + a[1], why: 'Why ' + n + ' task ' + (j + 1) + ' matters', what: 'What to do for ' + n + ' task ' + (j + 1), action: a[0] };
+    }) })),
   };
   const plan = FLOW.sanitizePlan(raw, 2, h);
   plan.generated_at = STARTED; plan.assistant = 'nova';
+  if (M.version > 1) { plan.version = M.version; plan.request = M.request; plan.startsAt = M.newAt; plan.generated_at = M.newAt; plan.summary = 'Your new plan puts gift boxes first, on Meta, as you asked.'; }
   return plan;
 }
 app.get('/api/onboarding/plan', (q, r) => {
   M.polls++;
   if (M.mode === 'existing') return r.json({ status: 'none', locked: false, onboarding: false, plan: null });
   const h = FLOW.HORIZONS[M.period];
-  const base = { onboarding: true, locked: false, businessName: 'Bloom & Wick', assistant: 'nova', period: M.period, horizon: { period: M.period, label: h.label, days: h.days }, attemptsLeft: 2, missing: [], sections: [] };
+  const base = { onboarding: true, locked: false, businessName: 'Bloom & Wick', assistant: 'nova', period: M.period, horizon: { period: M.period, label: h.label, days: h.days }, attemptsLeft: 2, missing: [], sections: [], catalog: CATALOG.clientCatalog() };
   if (M.mode === 'generating') return r.json(Object.assign(base, { status: 'generating', plan: null }));
   if (M.mode === 'failed') return r.json(Object.assign(base, { status: 'failed', error: 'provider_error', plan: null }));
+  // A new plan being written: ready after two polls (or failed)
+  if (M.regen && M.regen.status === 'generating' && ++M.regenPolls >= 2) {
+    if (M.regenFail) M.regen = { status: 'failed', error: 'provider_error', instructions: M.regen.instructions };
+    else { M.version += 1; M.request = M.regen.instructions; M.newAt = new Date().toISOString(); M.regen = null; M.done = {}; }
+  }
   const plan = planFor(M.period, M.perPhase);
-  r.json(Object.assign(base, { status: 'ready', generatedAt: STARTED, plan, horizon: plan.horizon, sections: FLOW.PLAN_SECTIONS.map(([id, title]) => ({ id, title })) }));
+  r.json(Object.assign(base, { status: 'ready', generatedAt: M.version > 1 ? M.newAt : STARTED, unlockedAt: STARTED, plan, horizon: plan.horizon, regen: M.regen, previous: M.version > 1 ? { replacedAt: M.newAt } : null, sections: FLOW.PLAN_SECTIONS.map(([id, title]) => ({ id, title })) }));
+});
+app.post('/api/onboarding/plan/regenerate', (q, r) => {
+  M.regenBodies.push(q.body || {});
+  if (M.regen && M.regen.status === 'generating') return r.status(409).json({ error: 'Your new marketing plan is already being written.', code: 'PLAN_REGENERATING' });
+  M.regen = { status: 'generating', instructions: (q.body && q.body.instructions) || '', startedAt: new Date().toISOString() }; M.regenPolls = 0;
+  const h = FLOW.HORIZONS[M.period], plan = planFor(M.period, M.perPhase);
+  r.status(202).json({ onboarding: true, locked: false, businessName: 'Bloom & Wick', assistant: 'nova', period: M.period, horizon: plan.horizon, status: 'ready', generatedAt: STARTED, unlockedAt: STARTED, plan, regen: M.regen, catalog: CATALOG.clientCatalog(), sections: [], missing: [] });
 });
 app.post('/api/onboarding/plan', (q, r) => { M.mode = 'generating'; r.status(202).json({ status: 'generating', locked: false, onboarding: true, horizon: { label: '1 month' } }); });
 app.get('/api/onboarding/progress', (q, r) => {
@@ -76,6 +96,9 @@ app.get('/api/onboarding/progress', (q, r) => {
 });
 app.post('/api/onboarding/progress', (q, r) => {
   const b = q.body || {};
+  // As the server: a task OrivenAI verifies can't be ticked by hand.
+  const st = FLOW.planSteps(planFor(M.period, M.perPhase), STARTED, {}).phases.reduce((h, p) => h || p.steps.find((x) => x.id === b.stepId), null);
+  if (st && st.verify === 'auto') return r.status(409).json({ code: 'VERIFIED_AUTOMATICALLY', error: 'This task completes by itself once you’ve done it in Create.' });
   if (b.done) M.done[b.stepId] = M.done[b.stepId] || new Date().toISOString(); else delete M.done[b.stepId];
   r.json(Object.assign({ locked: false, status: 'ready', onboarding: true }, FLOW.planSteps(planFor(M.period, M.perPhase), STARTED, M.done)));
 });
@@ -138,9 +161,9 @@ const server = app.listen(PORT, async () => {
         icons: Array.from(root.querySelectorAll('.onv-item')).map((b) => b.querySelector('.onv-ic svg') && b.querySelector('.onv-ic svg').children.length) };
     });
     check('1.1 exactly six sections in order: Control Center, Research, Create, Launch, Campaigns, Automations', JSON.stringify(st.secs.map((s) => s.h)) === '["Control Center","Research","Create","Launch","Campaigns","Automations"]', st.secs.map((s) => s.h));
-    check('1.2 the pages under each heading match the agreed structure', JSON.stringify(st.secs.map((s) => s.items)) === JSON.stringify([['Dashboard', 'Marketing Plan', 'Progress'], ['Research', 'Insights'], ['Create', 'My Content'], ['Ad Studio'], ['Campaign Overview', 'Campaign Builder'], ['Overview', 'Scheduler', 'Rules', 'Activity']]), st.secs.map((s) => s.items));
+    check('1.2 the pages under each heading match the agreed structure', JSON.stringify(st.secs.map((s) => s.items)) === JSON.stringify([['Dashboard', 'Marketing Plan', 'Progress'], ['Research', 'Insights', 'Competitor Analysis'], ['Create', 'My Content', 'Creative Testing'], ['Ad Studio', 'Audience Builder'], ['Campaign Overview', 'Campaign Builder', 'Campaign Comparison'], ['Overview', 'Scheduler', 'Rules', 'Activity']]), st.secs.map((s) => s.items));
     check('1.3 section names are headings (h2), not links or buttons, with no pointer cursor', st.secs.every((s) => s.tag === 'H2') && !st.headClickable && st.cursor === 'default' && st.pe === 'none');
-    check('1.4 every page has its own icon', st.icons.length === 14 && st.icons.every((n) => n >= 1), st.icons);
+    check('1.4 every page has its own icon', st.icons.length === 18 && st.icons.every((n) => n >= 1), st.icons);
     check('1.5 no Analytics or Tasks entry, no seventh section', !(await page.evaluate(() => /Analytics|Tasks/.test(document.querySelector('.orv-sb .onv').textContent))) && st.secs.length === 6);
     check('1.6 the existing account is not sent into any onboarding (no overlay, no tour)', !(await page.$('#onx')) && !(await page.evaluate(() => window.__tourOpened)));
     const sb = await page.evaluate(() => ({ btn: !!document.querySelector('.onv-collapse, [aria-label*="ollapse"]'), cls: document.querySelector('.orv-sb').classList.contains('onv-collapsed'), w: Math.round(document.querySelector('.orv-sb').getBoundingClientRect().width) }));
@@ -204,7 +227,7 @@ const server = app.listen(PORT, async () => {
       if (['dashboard', 'insights', 'progress', 'builder', 'auto-rules', 'adstudio'].includes(id)) await page.screenshot({ path: path.join(SHOTS, id + '-1440.png') });
     }
     const badHl = res.filter((r) => r.on.length !== 1 || r.on[0] !== r.id || r.page !== r.pid || r.secOn[0] !== r.sec || r.aria !== 'page');
-    check('2.1 all 14 links open their page; exactly one item highlighted, aria-current set, its section marked active', !badHl.length, badHl);
+    check('2.1 all 18 links open their page; exactly one item highlighted, aria-current set, its section marked active', !badHl.length, badHl);
     check('2.2 no top context bar on any page (no section/page line, description, divider or "Next" buttons): pages start with their own content', res.every((r) => !r.bar && !/onv-ctx/.test(String(r.first))), res.filter((r) => r.bar).map((r) => r.id));
     check('2.3 each Automations link opens its own page (Overview, Scheduler, Rules, Activity), headed by its own name, with no tab strip repeating the sidebar', ['overview', 'scheduler', 'rules', 'activity'].every((t) => { const r = res.find((x) => x.id === 'auto-' + t) || {}; return r.atmTab === t && r.atmTabs === 0 && r.atmH1 === t.charAt(0).toUpperCase() + t.slice(1); }), res.filter((r) => r.id.startsWith('auto')).map((r) => [r.id, r.atmTab, r.atmH1, r.atmTabs]));
     await page.click('.orv-sb .onv-item[data-onv="plan"]'); await page.waitForTimeout(600);
@@ -286,7 +309,7 @@ const server = app.listen(PORT, async () => {
         await p2.screenshot({ path: path.join(SHOTS, 'drawer-' + w + '.png') });
         await p2.click('.orv-mob-drawer .onv-item[data-onv="auto-activity"]'); await p2.waitForTimeout(900);
         const after = await p2.evaluate(() => ({ open: document.getElementById('orvMobDrawer').classList.contains('open') || document.getElementById('orvMobDrawer').getAttribute('aria-hidden') === 'false', on: (document.querySelector('.orv-mob-drawer .onv-item.is-on') || {}).dataset, page: document.querySelector('.page.active').id, ov: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
-        check(`6.${w} mobile drawer: six sections, 14 pages, 44px touch targets; picking a page closes it and opens the page; no horizontal overflow`, d.secs === 6 && d.items === 14 && d.small === 0 && d.foot && !after.open && after.on && after.on.onv === 'auto-activity' && after.page === 'page-autopilot' && after.ov <= 1, { d, after });
+        check(`6.${w} mobile drawer: six sections, 18 pages, 44px touch targets; picking a page closes it and opens the page; no horizontal overflow`, d.secs === 6 && d.items === 18 && d.small === 0 && d.foot && !after.open && after.on && after.on.onv === 'auto-activity' && after.page === 'page-autopilot' && after.ov <= 1, { d, after });
         await p2.screenshot({ path: path.join(SHOTS, 'activity-' + w + '.png') });
       } else {
         const d = await p2.evaluate(() => ({ w: Math.round(document.querySelector('.orv-sb').getBoundingClientRect().width), ov: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
@@ -333,7 +356,7 @@ const server = app.listen(PORT, async () => {
 
     // ── 8. Marketing Plan for a paid account with a generated plan ──
     console.log('\n8. Marketing Plan (paid account, plan generated after onboarding)');
-    M.mode = 'ready'; M.period = 'monthly'; M.perPhase = 2; M.done = {};
+    M.mode = 'ready'; M.period = 'monthly'; M.perPhase = 3; M.done = {};
     const c6 = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const p6 = await c6.newPage(); await fence(p6); p6.on('pageerror', (e) => errors.push('plan: ' + e.message));
     await signIn(p6);
@@ -351,34 +374,47 @@ const server = app.listen(PORT, async () => {
     await p6.screenshot({ path: path.join(SHOTS, 'plan-1440.png') });
     await p6.click('[data-mpl-update]'); await p6.waitForTimeout(200);
     const up = await p6.evaluate(() => ({ open: !document.getElementById('mplUpdate').hidden, t: document.getElementById('mplUpdate').innerText }));
-    check('8.4 "Update plan" is visible and honest: targeted updates (audience, budget, product focus, objective) are coming, cost confirmed first, full rewrite separate, nothing charged', up.open && /coming soon/i.test(up.t) && /audience/.test(up.t) && /budget/.test(up.t) && /confirm/.test(up.t) && /Nothing is charged/.test(up.t), up);
-    check('8.5 opening the plan and the update note made no write or AI request', !calls.slice(calls0).some((c) => c.m !== 'GET'), calls.slice(calls0).filter((c) => c.m !== 'GET').map((c) => c.p));
+    check('8.4 "Write a new plan" opens a real form: what should change, ideas, what happens (current plan stays, Progress restarts, nothing else touched), the cost — no "coming soon"', up.open && /What should change\?/.test(up.t) && !!(await p6.$('#mplRegenText')) && /current plan stays until the new one is ready/i.test(up.t) && /Progress starts again/.test(up.t) && /research, content, audiences and campaigns aren’t touched/.test(up.t) && /Write new plan · 90 credits/.test(up.t) && !/soon/i.test(up.t), up.t.slice(0, 300));
+    check('8.5 opening the plan and the form made no write or AI request', !calls.slice(calls0).some((c) => c.m !== 'GET'), calls.slice(calls0).filter((c) => c.m !== 'GET').map((c) => c.p));
     await p6.click('[data-mpl-jump="positioning"]'); await p6.waitForTimeout(700);
     const jump = await p6.evaluate(() => ({ top: Math.round(document.getElementById('mpl-positioning').getBoundingClientRect().top), st: document.querySelector('.mc').scrollTop }));
     check('8.6 the section index jumps to a section', jump.top < 200 && jump.top > -50, jump);
     await p6.screenshot({ path: path.join(SHOTS, 'plan-scrolled-1440.png') });
+    const tk = await p6.evaluate(() => { const pg = document.getElementById('page-marketing-plan'); const first = pg.querySelector('.mpl-task details'); if (first) first.open = true;
+      return { tasks: pg.querySelectorAll('.mpl-task').length, btns: Array.from(pg.querySelectorAll('.mpl-task [data-orv-page]')).map((b) => b.getAttribute('data-orv-page')), known: Array.from(pg.querySelectorAll('.mpl-task [data-orv-page]')).every((b) => window.orvPages.has(b.getAttribute('data-orv-page'))), first: first ? first.innerText : '', now: !!pg.querySelector('.mpl-road > li[data-state="now"]') }; });
+    check('8.7 every task: title, why, what to do, its OrivenAI page and a direct button (4 weeks × 3 tasks); the current week marked', tk.tasks === 12 && tk.btns.length === 12 && tk.known && /Why:/.test(tk.first) && /What to do:/.test(tk.first) && /Campaign Overview/.test(tk.first) && tk.now, tk);
+    await p6.click('.mpl-road > li:first-child .mpl-task:nth-child(3) details summary'); await p6.waitForTimeout(150);
+    await p6.click('.mpl-road > li:first-child .mpl-task:nth-child(3) [data-orv-page]'); await p6.waitForTimeout(700);
+    check('8.8 a task’s button opens its page directly (Audience Builder)', await p6.evaluate(() => document.querySelector('.page.active').id === 'page-audience-builder'));
+    await p6.click('.orv-sb .onv-item[data-onv="plan"]'); await p6.waitForTimeout(400);
 
     // ── 9. Progress for that account ───────────────────────────────
     console.log('\n9. Progress');
     await p6.click('.orv-sb .onv-item[data-onv="progress"]'); await p6.waitForTimeout(700);
-    const pr = await p6.evaluate(() => { const pg = document.getElementById('page-progress'); return { phases: pg.querySelectorAll('.prg-phase').length, steps: pg.querySelectorAll('.prg-step').length, count: (pg.querySelector('.prg-count') || {}).textContent, eyebrow: (pg.querySelector('.mpl-eyebrow') || {}).textContent, now: (pg.querySelector('.prg-phase[data-state="now"] summary b') || {}).textContent, text: pg.innerText }; });
-    check('9.1 the steps load from the plan: 4 weekly phases, 8 steps, 0 of 8 done, the current week marked', pr.phases === 4 && pr.steps === 8 && /0 of 8 steps done/.test(pr.count) && /Progress · 1 month/.test(pr.eyebrow) && pr.now === 'Week 2', pr);
-    check('9.2 only actionable steps: no dashboard cards, plan preview, business info or statistics', !/Needs you|Business context|Performance|Priorities|Positioning|Audience/i.test(pr.text));
+    const pr = await p6.evaluate(() => { const pg = document.getElementById('page-progress'); return { phases: pg.querySelectorAll('.prg-phase').length, steps: pg.querySelectorAll('.prg-step').length, count: (pg.querySelector('.prg-count') || {}).textContent, eyebrow: (pg.querySelector('.mpl-eyebrow') || {}).textContent, now: (pg.querySelector('.prg-phase[data-state="now"] summary b') || {}).textContent, text: pg.innerText, secs: !!pg.querySelector('.mpl-sec') }; });
+    check('9.1 the tasks load from the plan: 4 weekly phases, 12 tasks, 0 of 12 done, the current week marked', pr.phases === 4 && pr.steps === 12 && /0 of 12 tasks done/.test(pr.count) && /Progress · 1 month/.test(pr.eyebrow) && pr.now === 'Week 2', pr);
+    check('9.2 only actionable steps: no dashboard cards, plan preview, business info or statistics', !/Needs you|Business context|Performance|Priorities|Positioning/i.test(pr.text) && !pr.secs);
     await p6.screenshot({ path: path.join(SHOTS, 'progress-1440.png') });
     await p6.click('[data-prg-toggle="p1-a1"]'); await p6.waitForTimeout(500);
     const t1 = await p6.evaluate(() => ({ aria: document.querySelector('[data-prg-toggle="p1-a1"]').getAttribute('aria-checked'), count: document.querySelector('.prg-count').textContent, done: document.querySelector('.prg-step[data-step="p1-a1"]').classList.contains('is-done') }));
-    check('9.3 ticking a step marks it done and stores it (POST to the server)', t1.aria === 'true' && t1.done && /1 of 8/.test(t1.count) && !!M.done['p1-a1'] && calls.some((c) => c.m === 'POST' && c.p === '/api/onboarding/progress' && c.body.stepId === 'p1-a1' && c.body.done === true), t1);
+    check('9.3 ticking a step marks it done and stores it (POST to the server)', t1.aria === 'true' && t1.done && /1 of 12/.test(t1.count) && !!M.done['p1-a1'] && calls.some((c) => c.m === 'POST' && c.p === '/api/onboarding/progress' && c.body.stepId === 'p1-a1' && c.body.done === true), t1);
     await p6.close();
     const p7 = await c6.newPage(); await fence(p7);
     await signIn(p7);
     await p7.click('.orv-sb .onv-item[data-onv="progress"]'); await p7.waitForTimeout(700);
     const t2 = await p7.evaluate(() => ({ aria: (document.querySelector('[data-prg-toggle="p1-a1"]') || {}).getAttribute && document.querySelector('[data-prg-toggle="p1-a1"]').getAttribute('aria-checked'), count: (document.querySelector('.prg-count') || {}).textContent }));
-    check('9.4 the completed step is still done when the page is opened again (new session)', t2.aria === 'true' && /1 of 8/.test(t2.count), t2);
-    await p7.click('.prg-step[data-step="p2-a1"] .prg-go'); await p7.waitForTimeout(700);
+    check('9.4 the completed step is still done when the page is opened again (new session)', t2.aria === 'true' && /1 of 12/.test(t2.count), t2);
+    await p7.click('.prg-step[data-step="p2-a2"] .prg-go'); await p7.waitForTimeout(700);
     check('9.5 a step’s "Open Create" button takes you to Create', await p7.evaluate(() => document.querySelector('.page.active').id === 'page-create' && document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'create'));
     await p7.click('.orv-sb .onv-item[data-onv="progress"]'); await p7.waitForTimeout(600);
     await p7.click('[data-prg-toggle="p1-a1"]'); await p7.waitForTimeout(500);
-    check('9.6 a step can be unticked again', !M.done['p1-a1'] && /0 of 8/.test(await p7.textContent('.prg-count')));
+    check('9.6 a step can be unticked again', !M.done['p1-a1'] && /0 of 12/.test(await p7.textContent('.prg-count')));
+    const au = await p7.evaluate(() => { const li = document.querySelector('.prg-step[data-step="p1-a2"]'); const pg = document.getElementById('page-progress');
+      return { toggle: !!li.querySelector('[data-prg-toggle]'), mark: !!li.querySelector('.prg-check--auto'), t: li.innerText, stats: Array.from(pg.querySelectorAll('.prg-stat')).map((x) => x.innerText.replace(/\s+/g, ' ').toLowerCase()), months: pg.querySelectorAll('.prg-months li').length, next: (pg.querySelector('.prg-next') || {}).innerText || '' }; });
+    check('9.7 a task OrivenAI verifies has no tick box (opening a page or clicking never completes it) and says it ticks off by itself', !au.toggle && au.mark && /ticks off by itself/.test(au.t), au);
+    check('9.8 the overview: current phase, done this phase, completed, remaining, progress per week and the next task with its button', au.stats.length === 4 && /week 2 current phase/.test(au.stats[0]) && /^0 completed/.test(au.stats[2]) && /^12 remaining/.test(au.stats[3]) && au.months === 4 && /Next up/i.test(au.next), au);
+    const posts0 = calls.filter((c) => c.m === 'POST' && c.p === '/api/onboarding/progress').length;
+    await p7.evaluate(() => apiFetch('/api/onboarding/progress', { method: 'POST', body: JSON.stringify({ stepId: 'p1-a2', done: true }) }).then((r) => r && r.status)).then((st) => check('9.9 …and a hand-made request to tick it is refused (409, as the server does)', st === 409 && !M.done['p1-a2'], { st, posts0 }));
     await p7.close();
 
     // ── 10. Duration decides the plan and the steps ────────────────
@@ -398,7 +434,7 @@ const server = app.listen(PORT, async () => {
 
     // ── 11. Generating and failed plans ────────────────────────────
     console.log('\n11. Plan being written, failed plan');
-    M.mode = 'generating'; M.period = 'monthly'; M.perPhase = 2;
+    M.mode = 'generating'; M.period = 'monthly'; M.perPhase = 3;
     const p9 = await c6.newPage(); await fence(p9);
     await signIn(p9);
     await p9.click('.orv-sb .onv-item[data-onv="plan"]'); await p9.waitForTimeout(600);
@@ -416,6 +452,37 @@ const server = app.listen(PORT, async () => {
     await p9.click('[data-mpl-retry]'); await p9.waitForTimeout(500);
     check('11.4 "Try again" asks the server once (POST) and shows the plan being written', calls.filter((c) => c.m === 'POST' && c.p === '/api/onboarding/plan').length === 1 && /Preparing your marketing plan/.test(await p9.textContent('#page-marketing-plan')));
     await p9.close();
+    // ── 11b. A new plan on request ───────────────────────────────────
+    console.log('\n11b. A new plan on request');
+    M.mode = 'ready'; M.period = 'monthly'; M.perPhase = 3; M.done = {};
+    const p12 = await c6.newPage(); await fence(p12);
+    await signIn(p12);
+    await p12.click('.orv-sb .onv-item[data-onv="plan"]'); await p12.waitForTimeout(700);
+    await p12.click('[data-mpl-update]'); await p12.waitForTimeout(200);
+    await p12.fill('#mplRegenText', 'We now sell gift boxes');
+    await p12.click('[data-mpl-idea="Focus on Meta and Instagram only"]'); await p12.waitForTimeout(100);
+    const txt12 = await p12.inputValue('#mplRegenText');
+    check('11b.1 an idea is added to what the owner wrote', txt12 === 'We now sell gift boxes. Focus on Meta and Instagram only', txt12);
+    await p12.click('.mpl-regen [type="submit"]'); await p12.waitForTimeout(600);
+    const g12 = await p12.evaluate(() => { const pg = document.getElementById('page-marketing-plan'); return { banner: (pg.querySelector('.mpl-regen-state') || {}).innerText || '', h1: pg.querySelector('h1').textContent, summary: (pg.querySelector('.mpl-summary') || {}).textContent, newBtn: !!pg.querySelector('[data-mpl-update]') }; });
+    check('11b.2 submitting sends the instructions; "Writing your new plan…" shows while the current plan stays readable; no second request button meanwhile', M.regenBodies.length === 1 && M.regenBodies[0].instructions === 'We now sell gift boxes. Focus on Meta and Instagram only' && /Writing your new plan/.test(g12.banner) && /current plan below stays/.test(g12.banner) && g12.h1 === 'Bloom & Wick' && !/gift boxes first/.test(g12.summary || '') && !g12.newBtn, g12);
+    await p12.screenshot({ path: path.join(SHOTS, 'plan-regenerating-1440.png') });
+    await p12.waitForTimeout(11000);
+    const d12 = await p12.evaluate(() => { const pg = document.getElementById('page-marketing-plan'); return { summary: (pg.querySelector('.mpl-summary') || {}).textContent, meta: (pg.querySelector('.mpl-meta') || {}).textContent, asked: (pg.querySelector('.mpl-asked') || {}).innerText || '', banner: !!pg.querySelector('.mpl-regen-state') }; });
+    check('11b.3 the new plan appears by itself: new summary, "Version 2", what was asked; the banner is gone', /gift boxes first/.test(d12.summary) && /Version 2/.test(d12.meta) && /We now sell gift boxes/.test(d12.asked) && !d12.banner, d12);
+    await p12.screenshot({ path: path.join(SHOTS, 'plan-regenerated-1440.png') });
+    await p12.click('.orv-sb .onv-item[data-onv="progress"]'); await p12.waitForTimeout(700);
+    const pr12 = await p12.evaluate(() => { const pg = document.getElementById('page-progress'); return { now: (pg.querySelector('.prg-phase[data-state="now"] summary b') || {}).textContent, count: (pg.querySelector('.prg-count') || {}).textContent }; });
+    check('11b.4 Progress follows the new plan: it starts today (Week 1 is now) with nothing ticked yet', pr12.now === 'Week 1' && /^0 of 12/.test(pr12.count), pr12);
+    M.regenFail = true;
+    await p12.click('.orv-sb .onv-item[data-onv="plan"]'); await p12.waitForTimeout(500);
+    await p12.click('[data-mpl-update]'); await p12.waitForTimeout(150);
+    await p12.fill('#mplRegenText', 'More video ads');
+    await p12.click('.mpl-regen [type="submit"]'); await p12.waitForTimeout(11000);
+    const f12 = await p12.evaluate(() => { const pg = document.getElementById('page-marketing-plan'); return { banner: (pg.querySelector('.mpl-regen-state[data-state="failed"]') || {}).innerText || '', summary: (pg.querySelector('.mpl-summary') || {}).textContent, prefill: (document.getElementById('mplRegenText') || {}).value }; });
+    check('11b.5 a failed attempt says so (plan unchanged, credits returned), keeps the plan and the instructions for a retry', /couldn’t be written/.test(f12.banner) && /credits were returned/.test(f12.banner) && /gift boxes first/.test(f12.summary) && f12.prefill === 'More video ads', f12);
+    M.regenFail = false; M.regen = null; M.version = 1;
+    await p12.close();
     await c6.close();
     M.mode = 'existing';
 

@@ -672,7 +672,7 @@
     if (A.locked) return '<header class="atm-head"><div class="atm-head-text"><h1 class="atm-title">' + esc(T('title')) + '</h1><p class="atm-sub">' + esc(T('subtitle')) + '</p></div></header>';
     var pg = PAGES[A.tab] || PAGES.overview, acts = '';
     if (A.tab === 'overview' || !PAGES[A.tab]) {
-      acts = '<button type="button" class="atm-btn atm-btn-ghost" data-au="pauseall" aria-pressed="' + !!paused + '">' + esc(paused ? T('resumeAll') : T('pauseAll')) + '</button>' +
+      acts = (paused || A.automations.length ? '<button type="button" class="atm-btn atm-btn-ghost" data-au="pauseall" aria-pressed="' + !!paused + '">' + esc(paused ? T('resumeAll') : T('pauseAll')) + '</button>' : '') +
 '<button type="button" class="atm-btn atm-btn-ghost atm-icon-btn" data-au="settings" aria-label="' + esc(T('setH')) + '" title="' + esc(T('setH')) + '"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></button>' +
         '<button type="button" class="atm-btn atm-btn-ghost" data-au="new-schedule">' + esc(T('newSchedule')) + '</button>' +
         '<button type="button" class="atm-btn atm-btn-primary" data-au="new-rule">+ ' + esc(T('newRule')) + '</button>';
@@ -726,7 +726,7 @@
       '<div><dt>' + esc(T('nextRunH')) + '</dt><dd>' + (nx ? esc(T('act.' + nx.action)) + ' · ' + esc(nx.campaign_name || '') + '<br><span class="atm-muted">' + esc(localWhen(nx.local_time, nx.timezone)) + ' · ' + esc(rel(nx.run_at)) + '</span>' : esc(T('nextRunNone'))) + '</dd></div>' +
       '<div><dt>' + esc(T('lastCheckH')) + '</dt><dd>' + (o.lastCheckAt ? esc(rel(o.lastCheckAt)) : esc(T('lastCheckNever'))) + '</dd></div>' +
       '<div><dt>' + esc(T('managingH')) + '</dt><dd>' + esc(managing) + '</dd></div></dl></div>';
-    rail += '<div class="atm-card"><h2 class="atm-h2">' + esc(T('accountsH')) + '</h2><ul class="atm-accts">' + (o.accounts || []).map(function (a) {
+    if ((o.accounts || []).length) rail += '<div class="atm-card"><h2 class="atm-h2">' + esc(T('accountsH')) + '</h2><ul class="atm-accts">' + (o.accounts || []).map(function (a) {
         return '<li><span class="atm-dot' + (a.connected ? ' is-on' : '') + '" aria-hidden="true"></span>' + esc(platName(a.platform)) + '<span class="atm-muted">' + esc(a.connected ? T('connected') : T('notConnected')) + '</span></li>';
       }).join('') + '</ul>' + ((o.accounts || []).some(function (a) { return !a.connected; }) ? '<button type="button" class="atm-link" data-au="connect">' + esc(T('connect')) + '</button>' : '') + '</div>';
     main += '<div class="atm-card"><div class="atm-card-head"><h2 class="atm-h2">' + esc(T('recentH')) + '</h2>' + (A.activity.length ? '<button type="button" class="atm-link" data-tab="activity">' + esc(T('viewAll')) + '</button>' : '') + '</div>' +
