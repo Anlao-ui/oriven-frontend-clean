@@ -285,7 +285,7 @@ var _LIMIT_MSGS = {
   access:     { title: "Your access has ended.",    sub: "Choose a plan to continue. Your work is still in your account." },
   autopilot:  { title: "Automations are part of every plan.", sub: "Choose how long you want access; nothing renews automatically." },
   research:   { title: "Research is part of every plan.",     sub: "Choose how long you want access; nothing renews automatically." },
-  chat:       { title: "Oriven Chat is part of every plan.",  sub: "Choose how long you want access; nothing renews automatically." },
+  chat:       { title: "Your personal assistant is part of every plan.",  sub: "Choose how long you want access; nothing renews automatically." },
   autopilot_creator: { title: "Automation limit reached.", sub: "Pause or delete an automation you no longer need to add another." },
   intelligence: { title: "AI analysis is part of every plan.", sub: "Choose how long you want access; each analysis uses credits from your plan." }
 };

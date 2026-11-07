@@ -45,6 +45,11 @@
     rules: '<circle cx="5.5" cy="12" r="2"/><circle cx="18.5" cy="6" r="2"/><circle cx="18.5" cy="18" r="2"/><path class="i-draw" pathLength="1" d="M7.5 12h3.5c2 0 2.5-6 5.5-6M11 12c2 0 2.5 6 5.5 6"/>',
     activity: '<path class="i-draw" pathLength="1" d="M3 12h4l2.2-5 4.4 10L15.8 12H21"/>',
   };
+  // The four working pages added inside the existing sections.
+  IC.competitors = '<circle cx="8" cy="9" r="3"/><path d="M3 19c.6-3 2.6-4.5 5-4.5s4.4 1.5 5 4.5"/><circle class="i-a" cx="17" cy="8" r="2.4"/><path class="i-b" d="M14.5 13.6c.8-.4 1.6-.6 2.5-.6 2.2 0 3.8 1.3 4.4 3.8"/>';
+  IC.testing = '<rect x="3.5" y="5" width="7" height="14" rx="1.6"/><rect class="i-lift" x="13.5" y="5" width="7" height="14" rx="1.6"/><path class="i-tick" pathLength="1" d="M15.4 12.2l1.4 1.4 2.4-2.6"/>';
+  IC.audience = '<circle class="i-ring i-c" cx="12" cy="12" r="8.5"/><circle cx="12" cy="10" r="2.6"/><path d="M7.6 17.4c.9-2 2.5-3 4.4-3s3.5 1 4.4 3"/>';
+  IC.compare = '<path d="M4 20h16"/><rect class="i-a" x="5.5" y="11" width="3.5" height="9" rx="1"/><rect class="i-b" x="10.25" y="6" width="3.5" height="14" rx="1"/><rect class="i-c" x="15" y="9" width="3.5" height="11" rx="1"/>';
   IC.platforms = '<path class="i-a" d="M9 3.5v4"/><path class="i-b" d="M15 3.5v4"/><path d="M6.5 7.5h11v3.5a5.5 5.5 0 0 1-11 0z"/><path class="i-draw" pathLength="1" d="M12 16.5v2.5a2.5 2.5 0 0 0 2.5 2.5H18"/>';
   IC.gear = '<g class="i-gear"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></g>';
   function svg(name) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + IC[name] + '</svg>'; }
@@ -71,17 +76,21 @@
     { id: 'rs', n: '02', name: 'Research', items: [
       { id: 'research', label: 'Research', icon: 'research', go: page('research', 'page-research') },
       { id: 'insights', label: 'Insights', icon: 'insights', go: function () { if (window.orvInsights) window.orvInsights.open(); } },
+      { id: 'competitors', label: 'Competitor Analysis', icon: 'competitors', go: function () { if (window.orvCompetitors) window.orvCompetitors.open(); } },
     ] },
     { id: 'cr', n: '03', name: 'Create', items: [
       { id: 'create', label: 'Create', icon: 'create', go: page('create', 'page-create') },
       { id: 'content', label: 'My Content', icon: 'content', go: function () { if (window.orvMyContent) window.orvMyContent.open(); } },
+      { id: 'testing', label: 'Creative Testing', icon: 'testing', go: function () { if (window.orvCreativeTesting) window.orvCreativeTesting.open(); } },
     ] },
     { id: 'la', n: '04', name: 'Launch', items: [
       { id: 'adstudio', label: 'Ad Studio', icon: 'studio', go: page('launch', 'page-launch') },
+      { id: 'audiences', label: 'Audience Builder', icon: 'audience', go: function () { if (window.orvAudienceBuilder) window.orvAudienceBuilder.open(); } },
     ] },
     { id: 'ca', n: '05', name: 'Campaigns', items: [
       { id: 'overview', label: 'Campaign Overview', icon: 'overview', go: page('performance', 'page-performance') },
       { id: 'builder', label: 'Campaign Builder', icon: 'builder', go: function () { openPanel('builder'); } },
+      { id: 'compare', label: 'Campaign Comparison', icon: 'compare', go: function () { if (window.orvCampaignComparison) window.orvCampaignComparison.open(); } },
     ] },
     { id: 'au', n: '06', name: 'Automations', items: [
       { id: 'auto-overview', label: 'Overview', icon: 'nodes', go: autoTab('overview') },
@@ -264,7 +273,30 @@
     pg.addEventListener('click', function (e) {
       var g = e.target.closest('[data-onv-go]'); if (g) { go(g.getAttribute('data-onv-go')); return; }
       var o = e.target.closest('[data-onv-open]'); if (o && typeof window.openCampaignWorkspace === 'function') window.openCampaignWorkspace(o.getAttribute('data-onv-open'));
+      var a = e.target.closest('[data-onv-aud]'); if (a) { applyAudience(a.getAttribute('data-onv-aud')); return; }
+      if (e.target.closest('[data-onv-aud-clear]')) { try { sessionStorage.removeItem('orv_pending_audience'); } catch (_) {} openPanel('builder'); }
     });
+  }
+  // An audience chosen in Audience Builder (js/audienceBuilder.js "Use in
+  // Campaign Builder"), waiting to be applied to a campaign.
+  function pendingAudience() { try { var v = JSON.parse(sessionStorage.getItem('orv_pending_audience') || 'null'); return v && v.text ? v : null; } catch (_) { return null; } }
+  // A published campaign's audience lives in the ad platform now; changing
+  // OrivenAI's copy wouldn't change it there, so it isn't offered.
+  function isPublished(c) { var s = String((c && c.status) || '').toLowerCase(); return !!(c && (c.publishedAt || c.platformCampaignId)) || s === 'published' || s === 'active' || s === 'live'; }
+  function applyAudience(campId) {
+    var aud = pendingAudience(); if (!aud) return;
+    var C = window.orvWorkspace && window.orvWorkspace.campaigns;
+    var c = C && C.local ? C.local().filter(function (x) { return x && x.id === campId; })[0] : null;
+    if (!c || !c.pkg || isPublished(c) || typeof window._orvUpdateCampPkg !== 'function') return;
+    // The same fields the campaign editor's audience change writes.
+    var pkg = JSON.parse(JSON.stringify(c.pkg));
+    pkg.strategy = pkg.strategy || {}; pkg.strategy.targetAudience = aud.text;
+    if (pkg.metaAds) pkg.metaAds.targetAudience = aud.text;
+    if (pkg.tiktokAds) pkg.tiktokAds.targetAudience = aud.text;
+    var ok = window._orvUpdateCampPkg(campId, pkg);
+    if (ok !== false) { try { sessionStorage.removeItem('orv_pending_audience'); } catch (_) {} }
+    if (typeof window.orvToast === 'function') window.orvToast(ok !== false ? '“' + aud.name + '” is now the audience of ' + (c.name || 'this campaign') : 'The audience couldn’t be saved. Please try again.', ok !== false ? 'ok' : 'warn');
+    openPanel('builder');
   }
   function showPanelPage() {
     document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
@@ -290,14 +322,18 @@
     var stage = function (c) { try { return window.orvWorkspace && window.orvWorkspace.campaigns && window.orvWorkspace.campaigns.stage ? window.orvWorkspace.campaigns.stage(c).label : ''; } catch (_) { return ''; } };
     var curId = window._cgrCurrentCampId || null;
     var cur = curId && list.filter(function (c) { return c.id === curId; })[0];
+    var aud = pendingAudience();
     var rows = list.slice(0, 50).map(function (c) {
       var plat = c.platform ? String(c.platform).charAt(0).toUpperCase() + String(c.platform).slice(1) : '';
       var meta = [plat, stage(c)].filter(Boolean).join(' · ');
-      return '<li><div class="onv-cb__c"><b>' + esc(c.name || 'Untitled campaign') + '</b>' + (meta ? '<span>' + esc(meta) + '</span>' : '') + '</div>' +
+      var useAud = aud ? (isPublished(c) ? '<span class="onv-cb__note">Published — change its audience in the ad platform</span>' : !c.pkg ? '<span class="onv-cb__note">No ads yet — open it in the builder first</span>' : '<button type="button" class="onv-btn onv-btn--primary" data-onv-aud="' + esc(c.id) + '">Use this audience</button>') : '';
+      return '<li><div class="onv-cb__c"><b>' + esc(c.name || 'Untitled campaign') + '</b>' + (meta ? '<span>' + esc(meta) + '</span>' : '') + '</div>' + useAud +
         '<button type="button" class="onv-btn" data-onv-open="' + esc(c.id) + '">Open in builder</button></li>';
     }).join('');
+    var audBanner = aud ? '<div class="onv-cb__aud" role="status"><span>Audience ready to use: <b>' + esc(aud.name) + '</b> — choose a campaign that isn’t published yet.</span><button type="button" class="onv-btn" data-onv-aud-clear>Cancel</button></div>' : '';
     return '<section class="onv-cb" aria-labelledby="onvCbH">' +
       '<header class="onv-cb__head"><h1 id="onvCbH">Campaign Builder</h1><p>Choose a campaign to edit its ads, audiences and settings. Campaigns come from Create; when one is ready, publish it from Ad Studio.</p></header>' +
+      audBanner +
       (cur ? '<button type="button" class="onv-cb__resume" data-onv-open="' + esc(cur.id) + '"><span>Continue where you left off</span><b>' + esc(cur.name || 'Untitled campaign') + '</b></button>' : '') +
       (list.length ? '<ul class="onv-cb__list">' + rows + '</ul>'
         : '<div class="onv-cb__empty"><p>You don’t have any campaigns yet. Create your first ads and the campaign opens here.</p><button type="button" class="onv-btn onv-btn--primary" data-onv-go="create">Go to Create</button></div>') +
@@ -332,6 +368,10 @@
     if (pid === 'page-dashboard' || pid === 'page-overview') return 'dashboard';
     if (pid === 'page-insights') return 'insights';
     if (pid === 'page-my-content') return 'content';
+    if (pid === 'page-competitor-analysis') return 'competitors';
+    if (pid === 'page-creative-testing') return 'testing';
+    if (pid === 'page-audience-builder') return 'audiences';
+    if (pid === 'page-campaign-comparison') return 'compare';
     if (pid === 'page-research') return window.orvResearch && window.orvResearch.mode && window.orvResearch.mode() === 'insights' ? 'insights' : 'research'; // a report opened from Insights
     if (pid === 'page-create' || pid === 'page-create-workspace' || pid === 'page-creative-workspace') return 'create';
     if (pid === 'page-launch') return 'adstudio';

@@ -27,12 +27,20 @@
     return d.toLocaleDateString(undefined, withYear ? { day: 'numeric', month: 'long', year: 'numeric' } : { day: 'numeric', month: 'short' });
   }
   var ASSISTANT_NAMES = { scout: 'Scout', vector: 'Vector', nova: 'Nova', momentum: 'Momentum', metric: 'Metric', flux: 'Flux' };
-  // Where a step is done → the page that opens it (js/appNav.js item ids).
-  var AREA = {
-    research: ['research', 'Open Research'], create: ['create', 'Open Create'], launch: ['adstudio', 'Open Ad Studio'],
-    campaigns: ['overview', 'Open Campaigns'], automations: ['auto-overview', 'Open Automations'],
-  };
-  var AREA_LABEL = { research: 'Research', create: 'Create', launch: 'Launch', campaigns: 'Campaigns', automations: 'Automations', outside: 'In your business' };
+  // Every task names an OrivenAI page (shared keys: server services/pageKeys.js,
+  // client js/pageRegistry.js). Older plans' steps name an area instead.
+  var AREA_PAGE = { research: 'research', create: 'create', launch: 'launch', campaigns: 'campaigns', automations: 'automations' };
+  function pageLabel(page) { return window.orvPages && window.orvPages.has(page) ? window.orvPages.label(page) : ''; }
+  function pageBtn(page, text, primary) {
+    if (!page || !(window.orvPages && window.orvPages.has(page))) return '';
+    return '<button type="button" class="' + (primary ? 'onv-btn onv-btn--primary mpl-task__go' : 'prg-go') + '" data-orv-page="' + esc(page) + '">' + esc(text || ('Open ' + pageLabel(page))) + '</button>';
+  }
+  // The phase the calendar is in now (phases spread evenly over the period).
+  function phaseNow(count, startIso, days) {
+    var start = Date.parse(startIso || ''); if (!start || !count || !days) return -1;
+    var i = Math.floor((Date.now() - start) / (days * 86400000 / count));
+    return i < 0 ? 0 : Math.min(count - 1, i);
+  }
 
   var PAGES = { plan: 'page-marketing-plan', progress: 'page-progress' };
   var S = { tok: 0, poll: 0, plan: null, planAt: 0, progress: null, open: null, uid: null };
@@ -46,7 +54,10 @@
       pg.innerHTML = '<div class="onv-panel ' + (k === 'plan' ? 'mpl' : 'prg') + '" id="' + (k === 'plan' ? 'mplRoot' : 'prgRoot') + '" aria-live="polite"></div>';
       mc.appendChild(pg);
       pg.addEventListener('click', onClick);
-      pg.addEventListener('submit', function (e) { if (e.target.matches('[data-mpl-form]')) { e.preventDefault(); submitRecovery(e.target); } });
+      pg.addEventListener('submit', function (e) {
+        if (e.target.matches('[data-mpl-form]')) { e.preventDefault(); submitRecovery(e.target); }
+        if (e.target.matches('[data-mpl-regen]')) { e.preventDefault(); submitRegen(e.target); }
+      });
     });
   }
 
@@ -109,7 +120,11 @@
     if (d.locked === false && d.recovery) { root.innerHTML = recoveryOffer(); return; }
     if (d.locked !== false || d.onboarding === false) { root.innerHTML = noPlanState(); return; }
     var h = d.horizon && d.horizon.label ? d.horizon.label : '';
-    if (d.status === 'ready' && d.plan) { S.plan = d; S.planAt = Date.now(); root.innerHTML = planHtml(d); return; }
+    if (d.status === 'ready' && d.plan) {
+      S.plan = d; S.planAt = Date.now(); root.innerHTML = planHtml(d);
+      if (d.regen && d.regen.status === 'generating') S.poll = setTimeout(function () { if (isOpen('plan')) loadPlan(true); }, 5000);
+      return;
+    }
     if (d.status === 'generating' || (d.status === 'none' && !(d.missing || []).length && d.period)) {
       root.innerHTML = working('Preparing your marketing plan', 'We’re writing your plan' + (h ? ' for the next ' + h : '') + ' from your onboarding answers. This usually takes under a minute — you can leave this page and come back.');
       S.poll = setTimeout(function () { if (isOpen('plan')) loadPlan(true); }, 4000);
@@ -187,7 +202,7 @@
         '<p class="mpl-meta">It covers the next ' + esc(h.label) + ' — the length of your current plan. No extra charge and no credits used.</p></header>' +
       (d.missing.length ? '<section class="mpl-rec__sec"><h2>' + (d.known.length ? 'A few questions' : 'About your business') + '</h2><p class="mpl-fine">' + (d.known.length ? 'Only what OrivenAI doesn’t know yet.' : 'OrivenAI doesn’t have saved answers for this account yet, so these are the questions the plan is built from.') + '</p>' +
         d.missing.map(function (f) { return fieldHtml(f, null, 'mplM-'); }).join('') + '</section>' : '') +
-      (!d.assistant ? '<section class="mpl-rec__sec"><h2>Choose your assistant</h2><p class="mpl-fine">The plan is written in its voice; Oriven Chat uses it too.</p><fieldset class="mpl-f" data-path="assistant"><legend class="rx-sr">Assistant</legend><div class="mpl-chips">' +
+      (!d.assistant ? '<section class="mpl-rec__sec"><h2>Choose your assistant</h2><p class="mpl-fine">The plan is written in its voice, and it’s the assistant you talk to in OrivenAI.</p><fieldset class="mpl-f" data-path="assistant"><legend class="rx-sr">Assistant</legend><div class="mpl-chips">' +
         d.assistants.map(function (a) { return '<label class="mpl-chip mpl-chip--a"><input type="radio" name="mplAssistant" value="' + esc(a.id) + '"><span><b>' + esc(a.name) + '</b> ' + esc(a.role) + '</span></label>'; }).join('') + '</div><p class="mpl-ferr" hidden></p></fieldset></section>' : '') +
       (d.known.length ? '<section class="mpl-rec__sec"><h2>What OrivenAI already knows</h2><p class="mpl-fine">Check it, and change anything that’s out of date.</p><ul class="mpl-known">' + d.known.map(function (k) {
         return '<li data-path="' + esc(k.path) + '"><div class="mpl-known__b"><span class="mpl-known__l">' + esc(k.label) + '</span><span class="mpl-known__v">' + esc(k.display) + '</span><span class="mpl-known__s">' + esc(SOURCE[k.source] || '') + '</span></div>' +
@@ -244,14 +259,12 @@
   function planHtml(d) {
     var P = d.plan, h = P.horizon || d.horizon || null;
     var li = function (a) { return (a || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join(''); };
-    var who = ASSISTANT_NAMES[d.assistant] ? 'Prepared with ' + ASSISTANT_NAMES[d.assistant] : '';
-    var meta = [who, d.generatedAt ? day(d.generatedAt, true) : ''].filter(Boolean).join(' · ');
+    // The assistant that wrote this plan (stored with it), not necessarily today's.
+    var by = P.assistant || d.assistant, who = ASSISTANT_NAMES[by] ? 'Prepared with ' + ASSISTANT_NAMES[by] : '';
+    var meta = [who, P.version > 1 ? 'Version ' + P.version : '', d.generatedAt ? (P.version > 1 ? 'written ' : '') + day(d.generatedAt, true) : ''].filter(Boolean).join(' · ');
     var body = {
       priorities: (P.priorities || []).length ? '<ol class="mpl-pri">' + li(P.priorities) + '</ol>' : '',
-      roadmap: (P.roadmap || []).length ? '<ol class="mpl-road">' + P.roadmap.map(function (r) {
-        return '<li><div class="mpl-road__h"><b>' + esc(r.phase) + '</b>' + (r.focus ? '<span>' + esc(r.focus) + '</span>' : '') + '</div><ul>' +
-          (r.actions || []).map(function (a) { return '<li>' + esc(typeof a === 'string' ? a : a.step) + '</li>'; }).join('') + '</ul></li>';
-      }).join('') + '</ol><p class="mpl-more"><button type="button" class="onv-btn" data-mpl-go="progress">Track these steps in Progress</button></p>' : '',
+      roadmap: roadmapHtml(P, d, h),
       overview: P.overview && P.overview.text ? '<p>' + esc(P.overview.text) + '</p>' : '',
       audience: (P.audience && P.audience.text ? '<p>' + esc(P.audience.text) + '</p>' : '') +
         ((P.audience && P.audience.segments || []).length ? '<dl class="mpl-dl">' + P.audience.segments.map(function (s) { return '<dt>' + esc(s.name) + '</dt><dd>' + esc(s.needs) + '</dd>'; }).join('') + '</dl>' : ''),
@@ -263,13 +276,16 @@
       campaigns: (P.campaigns || []).length ? '<dl class="mpl-dl">' + P.campaigns.map(function (c) { return '<dt>' + esc(c.name) + '</dt><dd>' + (c.goal ? '<b>' + esc(c.goal) + '.</b> ' : '') + esc(c.idea) + '</dd>'; }).join('') + '</dl>' : '',
     };
     var present = SECTIONS.filter(function (s) { return body[s[0]]; });
+    var busy = d.regen && d.regen.status === 'generating';
     return '<article class="mpl-doc" aria-labelledby="mplTitle">' +
       '<header class="mpl-head">' +
         '<p class="mpl-eyebrow">Marketing plan' + (h && h.label ? ' · ' + esc(h.label) : '') + '</p>' +
         '<h1 id="mplTitle">' + esc(d.businessName ? d.businessName : 'Your marketing plan') + '</h1>' +
         (meta ? '<p class="mpl-meta">' + esc(meta) + '</p>' : '') +
-        '<div class="mpl-tools"><button type="button" class="onv-btn" data-mpl-update aria-expanded="false" aria-controls="mplUpdate">Update plan<span class="onv-dev">Soon</span></button></div>' +
-        '<div class="mpl-update" id="mplUpdate" hidden>' + updateHtml() + '</div>' +
+        regenBanner(d) +
+        (P.request ? '<p class="mpl-asked"><span>You asked</span>“' + esc(P.request) + '”</p>' : '') +
+        (busy ? '' : '<div class="mpl-tools"><button type="button" class="onv-btn" data-mpl-update aria-expanded="false" aria-controls="mplUpdate">Write a new plan</button></div>' +
+        '<div class="mpl-update" id="mplUpdate" hidden>' + updateHtml(d) + '</div>') +
       '</header>' +
       (P.summary ? '<p class="mpl-summary">' + esc(P.summary) + '</p>' : '') +
       '<nav class="mpl-toc" aria-label="Sections of your plan"><ol>' + present.map(function (s) { return '<li><a href="#mpl-' + s[0] + '" data-mpl-jump="' + s[0] + '">' + esc(s[0] === 'roadmap' && h && h.label ? 'Action plan · ' + h.label : s[1]) + '</a></li>'; }).join('') + '</ol></nav>' +
@@ -278,12 +294,87 @@
       }).join('') +
     '</article>';
   }
-  // Targeted updates need a backend that rewrites only the affected parts of
-  // a stored plan, with a credit cost confirmed first. It doesn't exist yet,
-  // so this says so instead of offering a full regeneration.
-  function updateHtml() {
-    return '<p><b>Plan updates are coming soon.</b> You’ll be able to change one thing — your target audience, advertising budget, product focus or marketing objective — and only the parts of the plan it affects will be rewritten. The rest stays as it is.</p>' +
-      '<p>Each update will show its credit cost and ask you to confirm before anything is charged. Writing a completely new plan will be a separate choice. Nothing is charged today.</p>';
+  // The action plan: per period phase, the tasks to do in OrivenAI, each
+  // with why it matters, what to do and a button to the page it's done on.
+  // Older plans (steps without a catalogue action) still show as a list.
+  function roadmapHtml(P, d, h) {
+    var road = P.roadmap || []; if (!road.length) return '';
+    var cat = d.catalog || {};
+    var now = phaseNow(road.length, P.startsAt || d.unlockedAt || d.generatedAt, h && h.days);
+    var anyTask = road.some(function (r) { return Array.isArray(r.tasks); });
+    var html = '<ol class="mpl-road">' + road.map(function (r, i) {
+      var tag = i === now ? '<span class="prg-now">Now</span>' : '';
+      if (!Array.isArray(r.tasks)) {
+        return '<li><div class="mpl-road__h"><b>' + esc(r.phase) + '</b>' + tag + (r.focus ? '<span>' + esc(r.focus) + '</span>' : '') + '</div><ul>' +
+          (r.actions || []).map(function (a) { return '<li>' + esc(typeof a === 'string' ? a : a.step) + '</li>'; }).join('') + '</ul></li>';
+      }
+      return '<li' + (i === now ? ' data-state="now"' : '') + '><div class="mpl-road__h"><b>' + esc(r.phase) + '</b>' + tag + '<em>' + r.tasks.length + ' task' + (r.tasks.length === 1 ? '' : 's') + '</em>' + (r.focus ? '<span>' + esc(r.focus) + '</span>' : '') + '</div>' +
+        '<ol class="mpl-tasks">' + r.tasks.map(function (t) {
+          var c = cat[t.action] || {};
+          var where = pageLabel(c.page);
+          return '<li class="mpl-task"><details><summary><span class="mpl-task__t">' + esc(t.title || c.label || '') + '</span>' + (where ? '<span class="mpl-task__p">' + esc(where) + '</span>' : '') + '</summary>' +
+            '<div class="mpl-task__b">' +
+              (t.why ? '<p><b>Why:</b> ' + esc(t.why) + '</p>' : '') +
+              (t.what ? '<p><b>What to do:</b> ' + esc(t.what) + '</p>' : '') +
+              '<div class="mpl-task__a">' + pageBtn(c.page, c.button, true) +
+                '<span class="mpl-fine">' + (c.verify === 'auto' ? 'Ticks off in Progress by itself once it’s done.' : 'You confirm this one in Progress.') + '</span></div>' +
+            '</div></details></li>';
+        }).join('') + '</ol></li>';
+    }).join('') + '</ol>';
+    return html + (anyTask ? '' : '<p class="mpl-fine">This plan was written in an earlier format. Its steps are shown as written.</p>') +
+      '<p class="mpl-more"><button type="button" class="onv-btn" data-mpl-go="progress">Track these tasks in Progress</button></p>';
+  }
+
+  // ── A new plan on request (POST /api/onboarding/plan/regenerate) ──
+  // The owner says what should change; the server writes a new plan from
+  // their onboarding answers, business details, what they saved in OrivenAI
+  // and these instructions. The current plan stays until the new one is
+  // ready; credits are returned when it can't be written.
+  var IDEAS = ['Focus on Meta and Instagram only', 'My budget is lower now — keep it lean', 'I’m launching a new product', 'Target a new audience', 'More video ads, fewer images'];
+  function planCost() { try { return (typeof CREDIT_COSTS !== 'undefined' && CREDIT_COSTS.plan) || 90; } catch (_) { return 90; } }
+  function updateHtml(d) {
+    var left = (d && d.regen && d.regen.status === 'failed' && d.regen.instructions) || '';
+    return '<form class="mpl-regen" data-mpl-regen novalidate>' +
+      '<h2 class="mpl-regen__t">Write a new version of your plan</h2>' +
+      '<p class="mpl-fine">Tell ' + esc(ASSISTANT_NAMES[(d.plan && d.plan.assistant) || d.assistant] || 'your assistant') + ' what has changed or what you want differently. The new plan uses your onboarding answers, business details and what you’ve saved in OrivenAI — research, audiences, competitors and campaigns.</p>' +
+      '<label class="mpl-regen__l" for="mplRegenText">What should change?</label>' +
+      '<textarea id="mplRegenText" class="mpl-in" rows="3" maxlength="600" placeholder="e.g. We now sell gift boxes too, our budget is €500 a month and we want to focus on Meta.">' + esc(left) + '</textarea>' +
+      '<div class="mpl-chips mpl-regen__ideas" aria-label="Ideas">' + IDEAS.map(function (x) { return '<button type="button" class="mpl-chip mpl-chip--btn" data-mpl-idea="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>' +
+      '<ul class="mpl-regen__facts">' +
+        '<li>Your current plan stays until the new one is ready. The plan it replaces is kept.</li>' +
+        '<li>Progress starts again with the new plan’s tasks. Your research, content, audiences and campaigns aren’t touched.</li>' +
+        '<li>It covers the rest of your access and uses ' + planCost() + ' credits — returned if it can’t be written.</li>' +
+      '</ul>' +
+      '<p class="mpl-formerr" role="alert" hidden></p>' +
+      '<div class="mpl-regen__go"><button type="submit" class="onv-btn onv-btn--primary">Write new plan · ' + planCost() + ' credits</button><button type="button" class="onv-btn" data-mpl-update-close>Cancel</button></div>' +
+    '</form>';
+  }
+  function regenBanner(d) {
+    var r = d.regen; if (!r) return '';
+    if (r.status === 'generating') return '<div class="mpl-regen-state" role="status" data-state="generating"><span class="mpl-spin" aria-hidden="true"></span><div><b>Writing your new plan…</b><p>This takes a minute or two. Your current plan below stays until the new one is ready — you can keep working.</p></div></div>';
+    if (r.status === 'failed') {
+      var why = r.error === 'busy' ? 'OrivenAI was very busy.' : r.error === 'timeout' ? 'It took too long.' : 'Something went wrong while writing it.';
+      return '<div class="mpl-regen-state" role="alert" data-state="failed"><div><b>Your new plan couldn’t be written.</b><p>' + why + ' Your current plan hasn’t changed and the credits were returned. You can try again below.</p></div></div>';
+    }
+    return '';
+  }
+  function submitRegen(form) {
+    var text = (form.querySelector('#mplRegenText').value || '').trim();
+    var btn = form.querySelector('[type="submit"]'), err = form.querySelector('.mpl-formerr');
+    err.hidden = true; btn.disabled = true; btn.textContent = 'Starting…';
+    api('/api/onboarding/plan/regenerate', 'POST', { instructions: text }).then(function (r) {
+      if (!isOpen('plan')) return;
+      if (r.ok && r.data) {
+        if (typeof window.consumeUsage === 'function') window.consumeUsage(planCost());
+        S.plan = null; renderPlan(r); return;
+      }
+      btn.disabled = false; btn.textContent = 'Write new plan · ' + planCost() + ' credits';
+      var dd = r.data || {};
+      if ((r.status === 402) && typeof window.orvOpenActionPaywall === 'function') window.orvOpenActionPaywall('create', { status: 402, code: dd.code, balance: dd.balance });
+      err.textContent = dd.error || (r.status === 0 ? 'We couldn’t reach OrivenAI. Check your connection and try again.' : 'Your new plan couldn’t be started. Please try again.');
+      err.hidden = false;
+      if (dd.code === 'PLAN_REGENERATING') loadPlan(true);
+    });
   }
 
   // ── Progress ────────────────────────────────────────────────────
@@ -323,12 +414,30 @@
   function progressHtml(d) {
     var cur = currentPhase(d), pct = d.total ? Math.round(d.completed / d.total * 100) : 0;
     var h = d.horizon || {};
+    var curP = d.phases[cur] || null;
+    var curDone = curP ? curP.steps.filter(function (x) { return x.done; }).length : 0;
+    // Next up: the first open task from the current phase on, else an earlier one left open.
+    var open1 = function (from, to) { for (var i = from; i < to; i++) { var s = d.phases[i].steps.filter(function (x) { return !x.done; })[0]; if (s) return s; } return null; };
+    var next = open1(Math.max(0, cur), d.phases.length) || open1(0, Math.max(0, cur));
+    var stat = function (n, l) { return '<div class="prg-stat"><b>' + n + '</b><span>' + esc(l) + '</span></div>'; };
     return '<article class="prg-doc" aria-labelledby="prgTitle">' +
       '<header class="mpl-head prg-head">' +
         '<p class="mpl-eyebrow">Progress' + (h.label ? ' · ' + esc(h.label) : '') + '</p>' +
         '<h1 id="prgTitle">Your next steps</h1>' +
-        '<p class="prg-count" aria-live="polite"><b class="prg-done-n">' + d.completed + '</b> of ' + d.total + ' steps done</p>' +
-        '<div class="prg-bar" role="progressbar" aria-label="Steps done" aria-valuemin="0" aria-valuemax="' + d.total + '" aria-valuenow="' + d.completed + '"><i style="width:' + pct + '%"></i></div>' +
+        '<p class="prg-count" aria-live="polite"><b class="prg-done-n">' + d.completed + '</b> of ' + d.total + ' tasks done · ' + pct + '%</p>' +
+        '<div class="prg-bar" role="progressbar" aria-label="Tasks done" aria-valuemin="0" aria-valuemax="' + d.total + '" aria-valuenow="' + d.completed + '"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="prg-stats">' +
+          stat(curP ? esc(curP.phase) : '—', 'Current phase') +
+          stat(curP ? curDone + '/' + curP.steps.length : '—', 'Done this phase') +
+          stat(d.completed, 'Completed') +
+          stat(d.total - d.completed, 'Remaining') +
+        '</div>' +
+        (next ? '<div class="prg-next"><span>Next up</span><b>' + esc(next.step) + '</b>' + (next.page ? pageBtn(next.page, next.button, true) : '') + '</div>' : '') +
+        '<ol class="prg-months" aria-label="Progress per phase">' + d.phases.map(function (p, i) {
+          var n = p.steps.filter(function (x) { return x.done; }).length, w = p.steps.length ? Math.round(n / p.steps.length * 100) : 0;
+          return '<li' + (i === cur ? ' data-state="now"' : '') + ' title="' + esc(p.phase + ': ' + n + ' of ' + p.steps.length + ' done') + '"><span>' + esc(p.phase) + '</span><i><em style="width:' + w + '%"></em></i><span class="prg-months__n">' + n + '/' + p.steps.length + '</span></li>';
+        }).join('') + '</ol>' +
+        '<p class="mpl-fine">Tasks OrivenAI can see — research, audiences, creatives, campaigns, automations, connected platforms — tick off by themselves once they’re really done. Opening a page doesn’t count. Only tasks OrivenAI can’t check have a box to tick yourself.</p>' +
       '</header>' +
       d.phases.map(function (p, i) {
         var done = p.steps.filter(function (x) { return x.done; }).length;
@@ -342,13 +451,21 @@
       }).join('') +
     '</article>';
   }
+  var TICK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function stepHtml(x) {
-    var a = AREA[x.area];
-    return '<li class="prg-step' + (x.done ? ' is-done' : '') + '" data-step="' + esc(x.id) + '">' +
-      '<button type="button" class="prg-check" role="checkbox" aria-checked="' + (x.done ? 'true' : 'false') + '" data-prg-toggle="' + esc(x.id) + '" aria-label="' + esc((x.done ? 'Done: ' : 'Mark as done: ') + x.step) + '">' +
-        '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
-      '<div class="prg-step__b"><p>' + esc(x.step) + '</p><span class="prg-area">' + esc(AREA_LABEL[x.area] || 'In your business') + (x.done && x.doneAt ? ' · done ' + esc(day(x.doneAt)) : '') + '</span></div>' +
-      (a && !x.done ? '<button type="button" class="prg-go" data-mpl-go="' + a[0] + '">' + esc(a[1]) + '</button>' : '') + '</li>';
+    var page = x.page || AREA_PAGE[x.area] || null;
+    var where = pageLabel(page) || (x.legacy ? 'In your business' : '');
+    var auto = x.verify === 'auto';
+    // A verified task shows its state; only the user can't change it.
+    var mark = auto
+      ? '<span class="prg-check prg-check--auto" role="img" aria-checked="' + (x.done ? 'true' : 'false') + '" aria-label="' + esc((x.done ? 'Done: ' : 'Not done yet: ') + x.step) + '">' + TICK + '</span>'
+      : '<button type="button" class="prg-check" role="checkbox" aria-checked="' + (x.done ? 'true' : 'false') + '" data-prg-toggle="' + esc(x.id) + '" aria-label="' + esc((x.done ? 'Done: ' : 'Mark as done: ') + x.step) + '">' + TICK + '</button>';
+    var info = [where, auto ? (x.done ? 'done — checked by OrivenAI' : 'ticks off by itself') : (x.done ? 'confirmed by you' + (x.doneAt ? ' ' + day(x.doneAt) : '') : 'confirm it yourself')].filter(Boolean).join(' · ');
+    return '<li class="prg-step' + (x.done ? ' is-done' : '') + '" data-step="' + esc(x.id) + '">' + mark +
+      '<div class="prg-step__b"><p>' + esc(x.step) + '</p>' +
+        (!x.done && x.what ? '<p class="prg-what">' + esc(x.what) + '</p>' : '') +
+        '<span class="prg-area">' + esc(info) + '</span></div>' +
+      (!x.done ? pageBtn(page, x.button) : '') + '</li>';
   }
   function toggleStep(btn) {
     var id = btn.getAttribute('data-prg-toggle'), want = btn.getAttribute('aria-checked') !== 'true';
@@ -360,6 +477,7 @@
       btn.disabled = false;
       if (!(r.ok && r.data && r.data.phases)) {
         paintStep(li, !want);
+        if (r.data && r.data.code === 'VERIFIED_AUTOMATICALLY') { if (window.orvToast) window.orvToast(r.data.error, 'info'); loadProgress(); return; }
         if (window.orvToast) window.orvToast((r.data && r.data.error) || 'Couldn’t save that step. Please try again.', 'warn');
         return;
       }
@@ -380,13 +498,16 @@
   function onClick(e) {
     var b = e.target.closest('button, a'); if (!b) return;
     if (b.hasAttribute('data-prg-toggle')) { toggleStep(b); return; }
+    if (b.hasAttribute('data-orv-page')) { if (window.orvPages) window.orvPages.open(b.getAttribute('data-orv-page')); return; }
     if (b.hasAttribute('data-mpl-go')) { var to = b.getAttribute('data-mpl-go'); if (to === 'plan' || to === 'progress') open(to); else if (window.orvAppNav) window.orvAppNav.go(to); return; }
     if (b.hasAttribute('data-mpl-retry')) { retryPlan(b); return; }
     if (b.hasAttribute('data-mpl-recover')) { loadRecovery(b); return; }
     if (b.hasAttribute('data-mpl-edit')) { var li = b.closest('li'), ed = li && li.querySelector('.mpl-known__edit'); if (ed) { ed.hidden = false; b.hidden = true; var fi = ed.querySelector('input, textarea'); if (fi) fi.focus(); } return; }
     if (b.hasAttribute('data-mpl-reload')) { loadPlan(true); return; }
     if (b.hasAttribute('data-prg-reload')) { loadProgress(); return; }
-    if (b.hasAttribute('data-mpl-update')) { var u = document.getElementById('mplUpdate'); u.hidden = !u.hidden; b.setAttribute('aria-expanded', String(!u.hidden)); return; }
+    if (b.hasAttribute('data-mpl-update')) { var u = document.getElementById('mplUpdate'); u.hidden = !u.hidden; b.setAttribute('aria-expanded', String(!u.hidden)); if (!u.hidden) { var ta = u.querySelector('textarea'); if (ta) ta.focus(); } return; }
+    if (b.hasAttribute('data-mpl-update-close')) { var u2 = document.getElementById('mplUpdate'); if (u2) u2.hidden = true; var ob = document.querySelector('[data-mpl-update]'); if (ob) { ob.setAttribute('aria-expanded', 'false'); ob.focus(); } return; }
+    if (b.hasAttribute('data-mpl-idea')) { var t2 = document.getElementById('mplRegenText'); if (t2) { var add = b.getAttribute('data-mpl-idea'); t2.value = t2.value.trim() ? t2.value.trim().replace(/[.]?$/, '. ') + add : add; t2.focus(); } return; }
     if (b.hasAttribute('data-mpl-jump')) {
       e.preventDefault();
       var t = document.getElementById('mpl-' + b.getAttribute('data-mpl-jump'));
@@ -394,6 +515,51 @@
     }
   }
 
+  // ── Control Center card: where the plan stands and the next task ────
+  // Rendered into the dashboard's plan slot (js/orivenPlan.js paintStrip).
+  // extra: a secondary link the caller adds (the campaign calendar).
+  var CARD = { at: 0, data: null, uid: null, busy: null };
+  function paintCard(el, extra) {
+    if (!el) return;
+    var uid = typeof _currentUser !== 'undefined' && _currentUser ? _currentUser.id : null;
+    var fresh = CARD.uid === uid && CARD.data && Date.now() - CARD.at < 60000;
+    var draw = function (d) {
+      var head = '<div class="ccx-card-hd bps-hd"><h2 class="ccx-h bps-t">Marketing plan</h2><button type="button" class="ccx-link bps-open" data-mpc-open="plan">Open plan →</button></div>';
+      var body;
+      if (!d || d.status !== 'ready' || !d.total) {
+        body = '<p class="bps-empty">' + (d && d.status === 'generating' ? 'Your marketing plan is being written — it appears here when it’s ready.' : 'Your marketing plan turns your goals into tasks you do in OrivenAI, month by month.') + '</p>';
+      } else {
+        var cur = currentPhase(d), p = d.phases[cur], pct = Math.round(d.completed / d.total * 100);
+        var pDone = p ? p.steps.filter(function (x) { return x.done; }).length : 0;
+        var next = null;
+        for (var i = Math.max(0, cur); i < d.phases.length && !next; i++) next = d.phases[i].steps.filter(function (x) { return !x.done; })[0] || null;
+        body = '<p class="mpc-line"><b>' + esc(p ? p.phase : '') + '</b><span>' + pDone + ' of ' + (p ? p.steps.length : 0) + ' done this phase · ' + pct + '% overall</span></p>' +
+          '<div class="prg-bar mpc-bar" role="progressbar" aria-label="Plan progress" aria-valuemin="0" aria-valuemax="' + d.total + '" aria-valuenow="' + d.completed + '"><i style="width:' + pct + '%"></i></div>' +
+          (next ? '<div class="mpc-next"><span>Next up</span><b>' + esc(next.step) + '</b>' + (next.page && window.orvPages && window.orvPages.has(next.page) ? '<button type="button" class="ccx-link" data-orv-page="' + esc(next.page) + '">' + esc(next.button || 'Open') + ' →</button>' : '') + '</div>' : '<p class="bps-empty">Every task in this plan is done.</p>') +
+          '<button type="button" class="ccx-link mpc-all" data-mpc-open="progress">See all tasks in Progress</button>';
+      }
+      el.innerHTML = head + body + (extra || '');
+      if (!el._mpcBound) {
+        el._mpcBound = true;
+        el.addEventListener('click', function (e) {
+          var b = e.target.closest('button'); if (!b) return;
+          if (b.hasAttribute('data-mpc-open')) open(b.getAttribute('data-mpc-open'));
+          else if (b.hasAttribute('data-orv-page') && window.orvPages) window.orvPages.open(b.getAttribute('data-orv-page'));
+        });
+      }
+    };
+    if (fresh) { draw(CARD.data); return; }
+    if (!CARD.data || CARD.uid !== uid) draw(null);
+    if (CARD.busy) return;
+    CARD.busy = api('/api/onboarding/progress').then(function (r) {
+      CARD.busy = null;
+      var now = typeof _currentUser !== 'undefined' && _currentUser ? _currentUser.id : null;
+      if (now !== uid) return;
+      CARD.uid = uid; CARD.at = Date.now(); CARD.data = r.ok && r.data ? r.data : null;
+      if (document.contains(el)) draw(CARD.data);
+    });
+  }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
-  window.orvPlanPages = { open: open, reload: function () { S.plan = null; if (isOpen('plan')) loadPlan(true); if (isOpen('progress')) loadProgress(); } };
+  window.orvPlanPages = { open: open, paintCard: paintCard, reload: function () { S.plan = null; CARD.at = 0; if (isOpen('plan')) loadPlan(true); if (isOpen('progress')) loadProgress(); } };
 })();

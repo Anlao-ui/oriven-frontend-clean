@@ -52,7 +52,7 @@ var ORIVEN_PRICING = {
     campaign_generation: 65, campaign_improvement: 25, audience_generation: 25,
     product_analysis: 25, competitor_analysis: 30, brand_voice: 35,
     website_analysis: 35, web_generation: 20, image_generation: 55,
-    video_generation: 180, video_generation_10s: 350, automation: 20
+    video_generation: 180, video_generation_10s: 350, automation: 20, plan_generation: 90
   }
 };
 
@@ -82,6 +82,7 @@ var CREDIT_COSTS = (function(fc){
     videoads:       fc.video_generation,
     motiongraphics: fc.video_generation,
     video10s:       fc.video_generation_10s,      // one 10-second video
+    plan:           fc.plan_generation,           // a new Marketing Plan on request
 
     imageAd:      fc.image_generation,
     videoAd:      fc.video_generation,
@@ -92,6 +93,7 @@ var CREDIT_COSTS = (function(fc){
     chat:         fc.ai_chat,     // per message; a message that needs more steps (tools) uses up to 2 more
     chatStep:     fc.ai_chat_step,
     research:     fc.research_report,
+    audience:     fc.audience_generation,   // Audience Builder: one set of audience suggestions
     business:     fc.website_analysis,
 
     // Customer-facing totals: a complete image ad is the concept/copy step

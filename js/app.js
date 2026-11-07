@@ -477,7 +477,7 @@ function navigate(page){
     console.log("[ACCESS] navigate('aichat') | _dbSubscriptionStatus:", _gateSub, "| will block:", _gateSub === "free");
     if(_gateSub === "free"){
       console.warn("[ACCESS] BLOCKING aichat — confirmed free plan from Supabase.");
-      if(typeof toast==="function") toast("Oriven Chat is part of every plan — choose one to use it","warn");
+      if(typeof toast==="function") toast("Your personal assistant is part of every plan — choose one to use it","warn");
       if(typeof openPaywall==="function") openPaywall();
       return;
     }
@@ -487,6 +487,10 @@ function navigate(page){
       if(typeof openLimitReached === "function") openLimitReached("chat");
       return;
     }
+    // One assistant: "Ask Oriven" buttons and the mobile nav item open the
+    // user's personal assistant (app.html #orvAiPanel) instead of the old
+    // separate chat page.
+    if(typeof window.orvOpenAi === "function"){ window.orvOpenAi(); return; }
     // null (loading) or an entitled plan → allow
   }
   document.querySelectorAll(".ni").forEach(function(e){e.classList.remove("active");});

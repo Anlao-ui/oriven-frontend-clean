@@ -34,8 +34,11 @@
 <link rel="stylesheet" href="css/tour.css">
 <link rel="stylesheet" href="css/onboarding-flow.css">
 <link rel="stylesheet" href="css/app-nav.css">
+<!-- The personal assistant's look (js/orivenAgent.js): the user's agent colour on the launcher and popup. -->
+<link rel="stylesheet" href="css/oriven-agent.css">
 <link rel="stylesheet" href="css/plan-pages.css">
 <link rel="stylesheet" href="css/insights.css">
+<link rel="stylesheet" href="css/growth-pages.css">
 <link rel="stylesheet" href="css/my-content.css">
 <link rel="stylesheet" href="css/plan-confirm.css">
 
@@ -1104,7 +1107,7 @@
                   <section class="ccx-card ccx-offers" id="ccxOffers" hidden aria-labelledby="ccxOffersH"></section>
                   <section class="ccx-card ccx-setup" id="ccxSetup" hidden aria-label="Get set up"></section>
                   <!-- Planning — filled by orivenPlan.js; full planner: bizGoTo('planning'). -->
-                  <section class="ccx-card bic-plan" id="bicPlanStrip" aria-label="Advertising plan"></section>
+                  <section class="ccx-card bic-plan" id="bicPlanStrip" aria-label="Marketing plan"></section>
                   <!-- Business context — the six modules; each row opens its real
                        details overlay / module (_bicRender, _bicFocusNode). -->
                   <section class="ccx-card cc-ctx" aria-labelledby="ccCtxH">
@@ -5844,10 +5847,10 @@
 </div><!-- /mc -->
 
   <!-- ══ AI ASSISTANT PANEL ════════════════════════════════════ -->
-  <aside class="orv-ai-panel" id="orvAiPanel" aria-label="Oriven AI" aria-hidden="true">
+  <aside class="orv-ai-panel" id="orvAiPanel" aria-label="Your OrivenAI assistant" aria-hidden="true">
     <div class="orv-ai-panel-head">
       <div class="orv-ai-panel-head-left">
-        <div class="orv-ai-panel-name">Oriven Chat</div>
+        <div class="orv-ai-panel-name">Your assistant</div>
         <div class="orv-ai-panel-status"><span class="orv-ai-online-dot"></span>AI help for your advertising</div>
       </div>
       <div class="orv-ai-panel-head-right">
@@ -5867,7 +5870,15 @@
           </button>
           <div class="orv-ai-ctx-popover" id="orvAiCtxPopover" style="display:none" role="dialog" aria-label="What ORIVEN knows right now"></div>
         </div>
-        <button class="orv-ai-panel-close" onclick="orvCloseAi()" aria-label="Close">
+        <!-- New conversation (clears it on this device); minimise and close
+             both keep the conversation — reopen from the launcher. -->
+        <button type="button" class="orv-ai-panel-close orv-agent-hbtn" id="orvAgentNew" onclick="orvAiNewConversation()" aria-label="New conversation" title="New conversation">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M8 3v10M3 8h10"/></svg>
+        </button>
+        <button type="button" class="orv-ai-panel-close orv-agent-hbtn" id="orvAgentMin" onclick="orvCloseAi()" aria-label="Minimise (your conversation is kept)" title="Minimise">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="14" height="14"><path d="M4 8h8"/></svg>
+        </button>
+        <button class="orv-ai-panel-close" onclick="orvCloseAi()" aria-label="Close (your conversation is kept)" title="Close">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="14" height="14"><path d="M4 4l8 8M12 4l-8 8"/></svg>
         </button>
       </div>
@@ -5895,7 +5906,7 @@
     </div>
 
     <div class="orv-ai-input-wrap">
-      <textarea class="orv-ai-input" id="orvAiInput" placeholder="Ask Oriven anything…" rows="1" onkeydown="orvAiKeydown(event)"></textarea>
+      <textarea class="orv-ai-input" id="orvAiInput" placeholder="Ask your assistant anything…" rows="1" onkeydown="orvAiKeydown(event)"></textarea>
       <button class="orv-ai-send" id="orvAiSendBtn" onclick="orvAiSend()">
         <svg viewBox="0 0 16 16" fill="currentColor" width="13" height="13"><path d="M14.5 7.5L1.5 1 4 8l-2.5 7 13-7.5z"/></svg>
       </button>
@@ -5921,9 +5932,9 @@
 </div>
 
 <!-- AI Floating Action Button -->
-<button class="orv-ai-fab" id="orvAiFab" onclick="orvToggleAi()" aria-label="Open Oriven Chat">
+<button class="orv-ai-fab" id="orvAiFab" onclick="orvToggleAi()" aria-label="Open your assistant">
   <span class="orv-ai-fab-dot"></span>
-  <span class="orv-ai-fab-label">Oriven Chat</span>
+  <span class="orv-ai-fab-label">Your assistant</span>
 </button>
 
 <!-- Campaign Type Selection Overlay -->
@@ -6161,7 +6172,11 @@
              same handlers, one tab instead of three) ─────────────────── -->
         <div class="smd-panel active" id="smdp-general">
           <div class="smd-panel-hd"><div class="smd-panel-title" data-i18n="smdNavGeneral">General</div></div>
-          <div class="smd-section">
+          <!-- Workspace Name: no longer shown anywhere (the sidebar shows the
+               person's first name, js/appNav.js), so it isn't offered as a
+               setting. Kept hidden: settings.js still reads these ids and the
+               saved value stays untouched. -->
+          <div class="smd-section" hidden style="display:none">
             <div class="smd-field-lbl" data-i18n="smdWsNameLabel">Workspace Name</div>
             <div class="smd-field-help" data-i18n="smdWsNameHelp">The name used to identify your ORIVEN workspace, shown in the sidebar.</div>
             <div class="smd-input-row">
@@ -6184,7 +6199,7 @@
           </div>
           <div class="smd-section">
             <div class="smd-field-lbl" data-i18n="smdLangLabel">Language</div>
-            <div class="smd-field-help" data-i18n="smdLangHelp">Choose the language ORIVEN's interface uses.</div>
+            <div class="smd-field-help" data-i18n="smdLangHelp">The language OrivenAI uses for menus, buttons and messages.</div>
             <select class="sel" id="langSelect" style="margin-top:12px;max-width:260px" onchange="setLanguage(this.value)">
               <option value="en">English (US)</option>
               <option value="nl">Dutch</option>
@@ -6238,11 +6253,14 @@
             <div class="smd-tgl-row">
               <div>
                 <div class="smd-tgl-lbl" data-i18n="smdNotifDeployTitle">Launch &amp; Deployment Failures</div>
-                <div class="smd-tgl-sub" data-i18n="smdNotifDeploySub">Notify me when ORIVEN cannot complete a campaign deployment.</div>
+                <div class="smd-tgl-sub" data-i18n="smdNotifDeploySub">Notify me when OrivenAI can’t complete a campaign launch.</div>
               </div>
               <div class="tgl on" id="tglNotifDeployFailures" onclick="toggleNotif(this,'notifDeployFailures')" role="switch" aria-checked="true"></div>
             </div>
-            <div class="smd-tgl-row">
+            <!-- Credits & Billing: no notification of this kind exists in the
+                 bell yet, so the switch would control nothing. Hidden until
+                 one does (the saved preference is kept). -->
+            <div class="smd-tgl-row" hidden style="display:none">
               <div>
                 <div class="smd-tgl-lbl" data-i18n="smdNotifBillTitle">Credits &amp; Billing</div>
                 <div class="smd-tgl-sub" data-i18n="smdNotifBillSub">Notify me about important credit or billing issues.</div>
@@ -6381,11 +6399,11 @@
           <div class="smd-field-help" style="margin-bottom:20px" data-i18n="helpSub">What each Settings section does.</div>
           <div class="smd-section">
             <div class="smd-field-lbl" data-i18n="smdNavGeneral">General</div>
-            <div class="smd-field-help" data-i18n="smdHelpGeneralHelp">Your workspace name, theme (light/dark/system), and interface language. Theme and language apply immediately; Workspace Name needs Save.</div>
+            <div class="smd-field-help" data-i18n="smdHelpGeneralHelp">Workflow steps in the sidebar and the interface language. Both apply immediately.</div>
           </div>
           <div class="smd-section">
             <div class="smd-field-lbl" data-i18n="smdNavSubscription">Subscription</div>
-            <div class="smd-field-help" data-i18n="smdHelpSubHelp">Your current plan, credit balance, and billing management. Upgrade or manage payment details from here.</div>
+            <div class="smd-field-help" data-i18n="smdHelpSubHelp">Your current plan and when it ends, your credits, extending your access, cancelling, and your receipts.</div>
           </div>
           <div class="smd-section">
             <div class="smd-field-lbl" data-i18n="smdNavNotifications">Notifications</div>
@@ -6864,6 +6882,7 @@
 <script src="js/plans.js"></script>
 <script src="js/metrics.js"></script>
 <script src="js/tracking.js"></script>
+<script src="js/accountForms.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/guest.js"></script>
 <script src="js/app.js"></script>
@@ -6883,6 +6902,9 @@
 <script src="js/dot-field.js"></script>
 <script src="js/landing-creatures.js"></script>
 <script src="js/onboardingFlow.js"></script>
+<!-- The user's personal assistant (agent identity, result cards, saved conversation) on top of Oriven Chat. -->
+<script src="js/pageRegistry.js"></script>
+<script src="js/orivenAgent.js"></script>
 <script src="js/onboarding.js"></script>
 <script src="js/videoads.js"></script>
 <script src="js/productshoots.js"></script>
@@ -6906,6 +6928,11 @@
 <script src="js/localPreview.js"></script>
 <script src="js/planPages.js"></script>
 <script src="js/insights.js"></script>
+<script src="js/growthKit.js"></script>
+<script src="js/competitorAnalysis.js"></script>
+<script src="js/creativeTesting.js"></script>
+<script src="js/audienceBuilder.js"></script>
+<script src="js/campaignComparison.js"></script>
 <script src="js/myContent.js"></script>
 <script src="js/appNav.js"></script>
 <script src="js/createCompat.js"></script>
@@ -7432,7 +7459,7 @@
         <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2L4 6l4 4"/></svg>
         Back
       </button>
-      <div class="gg-form-title">Create your free account</div>
+      <div class="gg-form-title">Create your account</div>
       <div class="gg-field-row">
         <div class="gg-field">
           <input type="text" id="ggFirst" class="gg-input" placeholder="First name" autocomplete="given-name">
@@ -12878,7 +12905,7 @@ window._launchRepaint = function(){
         confidence: f.confidence, confidenceBasis: f.confidenceBasis,
         whyNow: f.reasoning, platformReason: (f.keyAssumptions||[]).join(' '),
         message: 'What should I do about my ' + label + ' forecast for next week?'
-      }, { primaryLabel: 'Ask Oriven →' });
+      }, { primaryLabel: 'Ask your assistant →' });
     }).catch(function(){ section.style.display = 'none'; });
   }
 
@@ -13005,6 +13032,8 @@ window._launchRepaint = function(){
       });
       var events = highEvents.concat(campaignEvents).sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
       var pendingApprovals = (recRes.ok && recRes.data && recRes.data.approvals) || [];
+      // Settings → Notifications → Automation approvals (it was never read).
+      if (typeof window.notifAllowed === 'function' && !window.notifAllowed('notifAutopilot')) pendingApprovals = [];
       if (window.orvAutomations && window.orvAutomations.compatApprovals) pendingApprovals = window.orvAutomations.compatApprovals(pendingApprovals);
 
       if (!highRes.ok) { if(bell) bell.style.display = 'none'; return; }
@@ -13573,6 +13602,9 @@ window._launchRepaint = function(){
     _orvAiLoadRecs();
     _orvAiRenderCtxBadge();
     _orvAiRenderSuggestedPrompts();
+    /* The user's personal assistant (js/orivenAgent.js): its identity from
+       GET /api/agent, and this account's saved conversation on this device. */
+    if(window.orvAgent){ orvAgent.load(); orvAgent.restore(document.getElementById('orvAiFeed'), _orvAiHistory); }
     var inp = document.getElementById('orvAiInput');
     if(inp) setTimeout(function(){ inp.focus(); }, 260);
     /* Oriven 1.0 (V9) — real, confirmed-via-testing bug fix: Escape never
@@ -13599,11 +13631,24 @@ window._launchRepaint = function(){
   function _orvAiOutsideClick(e){
     var panel = document.getElementById('orvAiPanel');
     var fab = document.getElementById('orvAiFab');
+    /* A button inside the panel that replaced itself on click (Apply, Try
+       again, a card button) is no longer in the document when the click
+       reaches here: that is not a click outside. */
+    if(!e.target || !document.documentElement.contains(e.target)) return;
     if(panel && !panel.contains(e.target) && fab && !fab.contains(e.target)) window.orvCloseAi();
   }
 
   window.orvAiKeydown = function(e){
     if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); orvAiSend(); }
+  };
+  /* Starts a fresh conversation: clears the feed, the model's history and
+     the copy saved on this device. Nothing on the server changes. */
+  window.orvAiNewConversation = function(){
+    if(_orvAiLoading) return;
+    if(window.orvAgent) orvAgent.clear(document.getElementById('orvAiFeed'), _orvAiHistory);
+    else _orvAiHistory.length = 0;
+    _orvAiRenderSuggestedPrompts();
+    var inp = document.getElementById('orvAiInput'); if(inp) inp.focus();
   };
 
   window.orvAiSend = async function(prefill){
@@ -13734,6 +13779,30 @@ window._launchRepaint = function(){
 
     var historyToSend = _orvAiHistory.slice(-20);
     _orvAiHistory.push({ role: 'user', content: msg });
+    if(window.orvAgent) orvAgent.record('user', msg);
+    var _agentName = (window.orvAgent && orvAgent.current()) ? orvAgent.current().name : 'Oriven';
+    /* A failed send offers the same message again (nothing is charged for a
+       failed answer: the server refunds it). */
+    var _retryRow = function(text){
+      var errDiv = document.createElement('div');
+      errDiv.className = 'orv-ai-msg orv-ai-msg-ai';
+      errDiv.innerHTML = '<div class="orv-ai-msg-bubble orv-agent-error">' + _escHtml(text) + ' <button type="button" class="orv-agent-retry">Try again</button></div>';
+      errDiv.querySelector('.orv-agent-retry').addEventListener('click', function(){
+        errDiv.remove();
+        /* the failed turn leaves the model's history and is sent again */
+        for(var i = _orvAiHistory.length - 1; i >= 0; i--){ if(_orvAiHistory[i].role === 'user' && _orvAiHistory[i].content === msg){ _orvAiHistory.splice(i, 1); break; } }
+        orvAiSend(msg);
+      });
+      return errDiv;
+    };
+    /* Result cards for what the assistant actually did (server toolResults). */
+    var _renderToolResults = function(res){
+      var tr = res && res.data && Array.isArray(res.data.toolResults) ? res.data.toolResults : null;
+      if(!tr || !tr.length || !window.orvAgent) return [];
+      var out = orvAgent.renderResults(tr, true);
+      if(out.node) feed.appendChild(out.node);
+      return out.cards;
+    };
 
     apiFetch('/api/ai/chat', {
       method: 'POST',
@@ -13751,6 +13820,7 @@ window._launchRepaint = function(){
          cached pre-flight check, e.g. two tabs open) — show an upgrade CTA
          instead of falling through to the generic "couldn't process" text. */
       if(!res.ok && res.data && res.data.code === 'CREDITS_EXHAUSTED'){
+        _renderToolResults(res);
         var ceDiv = document.createElement('div');
         ceDiv.className = 'orv-ai-msg orv-ai-msg-ai';
         ceDiv.innerHTML = '<div class="orv-ai-msg-bubble">You&rsquo;re out of AI credits for this billing period. <a href="#" onclick="event.preventDefault();if(typeof openLimitReached===\'function\')openLimitReached(\'credits\');">Upgrade to keep chatting &rarr;</a></div>';
@@ -13760,38 +13830,45 @@ window._launchRepaint = function(){
       }
 
       if(res.ok && res.data && res.data.pendingAction){
+        /* Anything already done in this message is shown first; then the
+           action that waits for the user's confirmation. */
+        var preCards = _renderToolResults(res);
         feed.appendChild(_orvAiRenderActionCard(res.data.pendingAction));
         feed.scrollTop = feed.scrollHeight;
-        /* Pending actions aren't added to the plain-text history — the action card
-           itself is the record; a later "yes publish it" style follow-up re-derives
-           intent from the user's next message, same as any other tool call. */
+        if(window.orvAgent) orvAgent.record('assistant', 'Waiting for your confirmation: ' + (res.data.pendingAction.summary || ''), preCards);
+        return;
+      }
+
+      /* Not answered (server or network error): say so, offer a retry. */
+      if(!res.ok){
+        _renderToolResults(res);
+        var why = (res.data && res.data.error) || 'I couldn’t answer that just now.';
+        feed.appendChild(_retryRow(why + (res.data && res.data.creditsRefunded ? ' Nothing was charged.' : '')));
+        feed.scrollTop = feed.scrollHeight;
         return;
       }
 
       var aiDiv = document.createElement('div');
       aiDiv.className = 'orv-ai-msg orv-ai-msg-ai';
-      var text = (res.ok && res.data && (res.data.reply || res.data.message)) || 'I couldn\'t process that. Please try again.';
-      var usedContext = (res.ok && res.data && Array.isArray(res.data.usedContext)) ? res.data.usedContext : null;
+      var text = (res.data && (res.data.reply || res.data.message)) || 'I couldn\'t process that. Please try again.';
+      var usedContext = (res.data && Array.isArray(res.data.usedContext)) ? res.data.usedContext : null;
       var usedChip = (usedContext && usedContext.length)
         ? '<div class="orv-ai-used-context">Using: ' + usedContext.map(_escHtml).join(' · ') + '</div>'
         : '';
-      var objLinks = (res.ok && window.orvWorkspace && orvWorkspace.chat) ? orvWorkspace.chat.links(text) : '';
-      // The official contact address (and only that exact string) becomes a
-      // mailto link after escaping.
-      var bubble = _escHtml(text).replace(/contact@orivenai\.com/g, '<a href="mailto:contact@orivenai.com">contact@orivenai.com</a>');
-      aiDiv.innerHTML = '<div class="orv-ai-msg-bubble">' + bubble + '</div>' + usedChip + objLinks;
+      var objLinks = (window.orvWorkspace && orvWorkspace.chat) ? orvWorkspace.chat.links(text) : '';
+      // Escaped text with light structure (paragraphs, lists, bold); the
+      // official contact address becomes a mailto link after escaping.
+      var bubble = window.orvAgent ? orvAgent.formatReply(text) : _escHtml(text).replace(/contact@orivenai\.com/g, '<a href="mailto:contact@orivenai.com">contact@orivenai.com</a>');
+      aiDiv.innerHTML = '<div class="orv-ai-msg-bubble' + (window.orvAgent ? ' orv-agent-fmt' : '') + '">' + bubble + '</div>' + usedChip + objLinks;
       feed.appendChild(aiDiv);
+      var cards = _renderToolResults(res);
       feed.scrollTop = feed.scrollHeight;
-      if(res.ok){
-        _orvAiHistory.push({ role: 'assistant', content: text });
-        if(_orvAiHistory.length > 40) _orvAiHistory.splice(0, _orvAiHistory.length - 40);
-      }
+      _orvAiHistory.push({ role: 'assistant', content: window.orvAgent ? orvAgent.historyText(text, cards) : text });
+      if(_orvAiHistory.length > 40) _orvAiHistory.splice(0, _orvAiHistory.length - 40);
+      if(window.orvAgent) orvAgent.record('assistant', text, cards);
     }).catch(function(){
       typingDiv.remove();
-      var errDiv = document.createElement('div');
-      errDiv.className = 'orv-ai-msg orv-ai-msg-ai';
-      errDiv.innerHTML = '<div class="orv-ai-msg-bubble" style="color:var(--muted)">Something went wrong. Please try again.</div>';
-      feed.appendChild(errDiv);
+      feed.appendChild(_retryRow(_agentName + ' couldn’t be reached. Check your connection.'));
     }).finally(function(){
       _orvAiLoading = false;
       if(sendBtn) sendBtn.disabled = false;
@@ -13845,6 +13922,12 @@ window._launchRepaint = function(){
     }).then(function(res){
       if(res.ok && res.data && res.data.message){
         _orvAiSetCardBody(cardEl, _escHtml(res.data.message), 'orv-ai-action-success');
+        /* What the confirmed action produced (server card), and a note so
+           the conversation knows it was done. */
+        var done = (window.orvAgent && res.data.card) ? orvAgent.renderResults([{ ok: true, card: res.data.card }], true) : null;
+        if(done && done.node) cardEl.parentNode.insertBefore(done.node, cardEl.nextSibling);
+        _orvAiHistory.push({ role: 'assistant', content: 'Done (confirmed by the user): ' + res.data.message });
+        if(window.orvAgent) orvAgent.record('assistant', 'Done: ' + res.data.message, done ? done.cards : null);
       } else {
         var errText = (res.data && res.data.error) || 'That action could not be completed. Please try again.';
         _orvAiSetCardBody(cardEl, _escHtml(errText), 'orv-ai-action-error');
@@ -16096,11 +16179,39 @@ var _PRF_PARSE = {
     return { rows: rows, kpi: kpi, currency: (d.account && d.account.currency) || null, accountLevel: true };
   }
 };
+var _PRF_BASE = {
+  google: '/api/ads/overview?include_all=1&',
+  meta: '/api/meta/campaigns?include_all=1&',
+  tiktok: '/api/tiktok/overview?',
+  pinterest: '/api/pinterest/overview?'
+};
 var _PRF_URL = {
-  google: function() { return '/api/ads/overview?include_all=1&' + _prfRangeParams(); },
-  meta: function() { return '/api/meta/campaigns?include_all=1&' + _prfRangeParams(); },
-  tiktok: function() { return '/api/tiktok/overview?' + _prfRangeParams(); },
-  pinterest: function() { return '/api/pinterest/overview?' + _prfRangeParams(); }
+  google: function() { return _PRF_BASE.google + _prfRangeParams(); },
+  meta: function() { return _PRF_BASE.meta + _prfRangeParams(); },
+  tiktok: function() { return _PRF_BASE.tiktok + _prfRangeParams(); },
+  pinterest: function() { return _PRF_BASE.pinterest + _prfRangeParams(); }
+};
+// Campaign Comparison (js/campaignComparison.js) reads exactly this page's
+// data — same endpoints, same parsing (null = not reported), same
+// connection check — for its own period. Read-only; nothing here writes.
+window.orvCampaignSources = {
+  platforms: PRF_PLATFORMS.slice(),
+  status: function(p) {
+    return apiFetch('/api/' + p + '/status').then(function(r) {
+      var a = (r && r.ok && r.data && r.data.active_ad_account) || null;
+      return { conn: _prfClassifyStatus(r), currency: (a && a.currency) || null };
+    }, function() { return { conn: 'unavailable', currency: null }; });
+  },
+  load: function(p, range, acctCur) {
+    var key = (range && range.key) || 'LAST_30_DAYS';
+    var qs = 'date_range=' + encodeURIComponent(key) + (key === 'CUSTOM' && range.since && range.until ? '&date_since=' + encodeURIComponent(range.since) + '&date_until=' + encodeURIComponent(range.until) : '');
+    return apiFetch(_PRF_BASE[p] + qs).then(function(r) {
+      if (!r || !r.ok || !r.data) return Promise.reject({ kind: _prfErrorKind(r, false), status: r && r.status });
+      var parsed = _PRF_PARSE[p](r.data, acctCur || null);
+      parsed.rows.forEach(function(row) { row.key = p + ':' + row.id; row.currency = parsed.currency || acctCur || null; });
+      return parsed;
+    }, function() { return Promise.reject({ kind: 'unavailable' }); });
+  }
 };
 // Aggregate KPIs from campaign rows (null-aware; partial flags kept).
 function _prfAggregate(rows, opts) {
@@ -18480,7 +18591,7 @@ function _intelRenderForecastCard(platform, f){
     platformReason: (f.keyAssumptions||[]).join(' ')
   };
   item.message = 'What should I do about my ' + label + ' forecast for the next ' + f.horizonDays + ' days?';
-  return window._renderInsightCard(item, { primaryLabel: 'Ask Oriven →' });
+  return window._renderInsightCard(item, { primaryLabel: 'Ask your assistant →' });
 }
 
 /* ── Intelligence Timeline (Epic 7) ─────────────────────────────────── */

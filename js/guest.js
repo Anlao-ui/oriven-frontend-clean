@@ -557,7 +557,7 @@ function _ggMapError(err){
   var msg = (err && err.message) ? err.message : String(err || "");
   if(/invalid login credentials|invalid_credentials/i.test(msg))  return "Incorrect email or password. Please try again.";
   if(/email not confirmed/i.test(msg))                             return "Please verify your email address before signing in.";
-  if(/user already registered|already registered|already in use/i.test(msg)) return "An account with this email already exists. Try signing in instead.";
+  if(/user already registered|already registered|already in use|already exists/i.test(msg)) return "An account with this email address already exists. Please sign in or reset your password.";
   if(/unable to validate email|invalid.*email/i.test(msg))        return "Please enter a valid email address.";
   if(/password.*at least/i.test(msg))                             return "Password must be at least 6 characters.";
   if(/too many requests|rate.?limit/i.test(msg))                  return "Too many attempts — please wait a moment and try again.";
@@ -575,20 +575,19 @@ function _ggClearErr(ids){
 
 // ── Signup ────────────────────────────────────────────────────
 
+var GG_IDS = { firstName: "ggFirst", lastName: "ggLast", email: "ggEmail", password: "ggPass" };
 async function _ggDoSignup(){
-  var first = (document.getElementById("ggFirst").value  || "").trim();
-  var last  = (document.getElementById("ggLast").value   || "").trim();
-  var email = (document.getElementById("ggEmail").value  || "").trim();
-  var pass  =  document.getElementById("ggPass").value   || "";
+  var F = window.orvAccountForms;
+  var r = {}; Object.keys(GG_IDS).forEach(function(k){ r[k] = F.read(GG_IDS[k]); });
   var errEl = document.getElementById("ggErr");
   function showErr(msg){ if(errEl){ errEl.textContent = msg; errEl.style.display = ""; } }
-  _ggClearErr(["ggFirst","ggEmail","ggPass"]);
-  if(!first || !email || !pass){
-    showErr("First name, email and password are required.");
-    _ggMarkErr([!first?"ggFirst":null, !email?"ggEmail":null, !pass?"ggPass":null].filter(Boolean));
-    return;
-  }
-  if(pass.length < 6){ showErr("Password must be at least 6 characters."); _ggMarkErr(["ggPass"]); return; }
+  _ggClearErr(["ggFirst","ggLast","ggEmail","ggPass"]);
+  // The same rules and messages as the server (js/accountForms.js): one
+  // specific reason per field, never "required" for a field that's filled in.
+  var v = F.validate({ firstName: r.firstName.value, lastName: r.lastName.value, email: r.email.value, password: r.password.value },
+    { hidden: { firstName: r.firstName.autofillHidden, email: r.email.autofillHidden, password: r.password.autofillHidden } });
+  if(!v.ok){ showErr(v.message); _ggMarkErr([GG_IDS[v.field]].filter(Boolean)); return; }
+  var first = v.value.firstName, last = v.value.lastName, email = v.value.email, pass = v.value.password;
   if(errEl) errEl.style.display = "none";
   var btn = document.getElementById("ggSignupBtn");
   if(btn){ btn.disabled = true; btn.textContent = "Creating account…"; }
@@ -599,7 +598,12 @@ async function _ggDoSignup(){
       body: JSON.stringify({ firstName: first, lastName: last, email: email, password: pass, marketingOptIn: !!(document.getElementById('ggOptIn') || {}).checked,
         attribution: window.orvSiteAnalytics ? orvSiteAnalytics.attribution() : undefined })
     });
-    if(!reg.ok) throw new Error(reg.data.error || "Signup failed");
+    if(!reg.ok){
+      var se = F.signupError(reg);
+      showErr(se.message); _ggMarkErr([GG_IDS[se.field]].filter(Boolean));
+      if(btn){ btn.disabled = false; btn.textContent = "Create account"; }
+      return;
+    }
     // The account exists now: Google Ads Signup conversion (consent-gated, once per account; js/consent.js).
     if(window.orvConsent && orvConsent.trackSignupConversion) orvConsent.trackSignupConversion(reg.data && reg.data.userId);
     var result = await SB.auth.signInWithPassword({ email: email, password: pass });

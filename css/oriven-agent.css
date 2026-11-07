@@ -1,0 +1,152 @@
+/* ════════════════════════════════════════════════════════════════
+   The personal assistant's look (js/orivenAgent.js).
+   The user's agent colour arrives as --orv-agent / --orv-agent-rgb on the
+   launcher (#orvAiFab) and popup (#orvAiPanel), both marked .orv-agent-on.
+   The app's own dark/light surfaces stay; the agent colour is an accent:
+   launcher border and mark, the popup's identity, your messages, the send
+   button, focus rings and result cards. Everything here is scoped to
+   .orv-agent-on, so without an agent the existing Oriven Chat look is kept.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Launcher: [mark] Name ─────────────────────────────────────── */
+.orv-ai-fab.orv-agent-on {
+  gap: 9px; padding: 8px 16px 8px 10px;
+  background: #121311; color: rgba(255, 255, 255, .92);
+  border: 1px solid rgba(var(--orv-agent-rgb), .42);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .35), 0 0 0 1px rgba(255, 255, 255, .03) inset;
+  font-weight: 700; letter-spacing: -.01em;
+  transition: transform .18s cubic-bezier(.22, .61, .36, 1), border-color .18s, box-shadow .18s;
+}
+.orv-ai-fab.orv-agent-on:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--orv-agent-rgb), .75);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .4), 0 0 22px rgba(var(--orv-agent-rgb), .18);
+}
+.orv-ai-fab.orv-agent-on:focus-visible { outline: 2px solid var(--orv-agent); outline-offset: 3px; }
+body:not(.dark-mode) .orv-ai-fab.orv-agent-on { background: #fff; color: #18181A; box-shadow: 0 6px 22px rgba(0, 0, 0, .12); }
+body.dark-mode .orv-ai-fab.orv-agent-on { background: #121311; color: rgba(255, 255, 255, .92); }
+.orv-agent-fab-glyph {
+  width: 22px; height: 22px; flex-shrink: 0; color: var(--orv-agent);
+  padding: 2px; border-radius: 50%; background: rgba(var(--orv-agent-rgb), .12);
+}
+
+/* ── Popup ─────────────────────────────────────────────────────── */
+.orv-ai-panel.orv-agent-on {
+  border-color: rgba(var(--orv-agent-rgb), .22);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, .45), 0 0 0 1px rgba(var(--orv-agent-rgb), .06) inset, 0 0 60px rgba(var(--orv-agent-rgb), .07);
+}
+/* Header: the agent's mark centred, name and specialisation under it; the
+   controls sit in the top-right corner. */
+.orv-agent-on .orv-ai-panel-head {
+  position: relative; flex-direction: column; justify-content: center;
+  padding: 16px 16px 12px;
+  background: linear-gradient(180deg, rgba(var(--orv-agent-rgb), .09), transparent 85%);
+}
+.orv-agent-on .orv-ai-panel-head-left { align-items: center; }
+.orv-agent-on .orv-ai-panel-head-right { position: absolute; top: 8px; right: 8px; gap: 2px; }
+/* The Context indicator moves to the top-left corner (js/orivenAgent.js),
+   so the centred mark never sits under the controls. */
+.orv-agent-on .orv-ai-ctx-wrap.orv-agent-ctx { position: absolute; top: 8px; left: 10px; }
+.orv-agent-on .orv-agent-ctx .orv-ai-ctx-popover { left: 0; right: auto; }
+.orv-agent-id { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.orv-agent-head-glyph {
+  width: 38px; height: 38px; padding: 6px; border-radius: 50%; color: var(--orv-agent);
+  background: rgba(var(--orv-agent-rgb), .12); border: 1px solid rgba(var(--orv-agent-rgb), .3);
+}
+.orv-agent-id-text { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.orv-agent-on .orv-ai-panel-name { font-size: 15px; }
+.orv-agent-role { font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--orv-agent); }
+.orv-agent-hbtn { opacity: .75; }
+.orv-agent-hbtn:hover { opacity: 1; }
+.orv-agent-on .orv-ai-panel-close:focus-visible { outline: 2px solid var(--orv-agent); outline-offset: 1px; }
+
+/* Your messages and the composer take the agent's colour. */
+.orv-agent-on .orv-ai-msg-user .orv-ai-msg-bubble,
+body.dark-mode .orv-agent-on .orv-ai-msg-user .orv-ai-msg-bubble { background: rgba(var(--orv-agent-rgb), .14); border: 1px solid rgba(var(--orv-agent-rgb), .22); }
+.orv-agent-on .orv-ai-send { background: var(--orv-agent); color: #0a0a0a; }
+.orv-agent-on .orv-ai-input:focus,
+body.dark-mode .orv-agent-on .orv-ai-input:focus,
+body .orv-ai-panel.orv-agent-on .orv-ai-input:focus { border-color: rgba(var(--orv-agent-rgb), .55) !important; box-shadow: 0 0 0 3px rgba(var(--orv-agent-rgb), .1) !important; outline: none; }
+/* (!important: a generic lime focus rule elsewhere in the app otherwise wins
+   inside this popup; scoped to the agent popup only.) */
+.orv-agent-on .orv-ai-action-apply { background: var(--orv-agent); border-color: var(--orv-agent); color: #0a0a0a; }
+.orv-agent-intro { margin: -8px 0 0; font-size: 13px; line-height: 1.55; color: rgba(255, 255, 255, .78); text-wrap: pretty; }
+body:not(.dark-mode) .orv-agent-intro { color: var(--charcoal, #18181A); }
+body.dark-mode .orv-agent-intro { color: rgba(255, 255, 255, .78); }
+
+/* Formatted replies (paragraphs and lists, not pre-wrapped text). */
+.orv-ai-msg-bubble.orv-agent-fmt { white-space: normal; }
+.orv-agent-fmt p { margin: 0; }
+.orv-agent-fmt p + p, .orv-agent-fmt p + ul, .orv-agent-fmt p + ol, .orv-agent-fmt ul + p, .orv-agent-fmt ol + p { margin-top: 8px; }
+.orv-agent-fmt ul, .orv-agent-fmt ol { margin: 4px 0 0; padding-left: 18px; }
+.orv-agent-fmt li + li { margin-top: 3px; }
+.orv-agent-fmt strong { font-weight: 700; }
+
+.orv-agent-error { color: var(--muted); }
+.orv-agent-retry {
+  margin-left: 6px; padding: 3px 10px; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+  background: transparent; color: var(--orv-agent, var(--green)); border: 1px solid rgba(var(--orv-agent-rgb, 183, 255, 42), .45);
+}
+.orv-agent-retry:hover { background: rgba(var(--orv-agent-rgb, 183, 255, 42), .1); }
+.orv-agent-earlier { align-self: center; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 2px 0; }
+
+/* ── Result cards ──────────────────────────────────────────────── */
+.orv-agent-results { gap: 8px; }
+.orv-agent-card {
+  align-self: stretch; padding: 11px 13px; border-radius: 12px;
+  border: 1px solid rgba(var(--orv-agent-rgb, 183, 255, 42), .28);
+  background: rgba(var(--orv-agent-rgb, 183, 255, 42), .06);
+  display: flex; flex-direction: column; gap: 6px; font-size: 13px;
+}
+.orv-agent-card-k { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--orv-agent, var(--green)); }
+.orv-agent-card-t { font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
+.orv-agent-card-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.orv-agent-card-list { margin: 0; padding-left: 16px; font-size: 12.5px; }
+.orv-agent-card-list li span { color: var(--muted); font-size: 11.5px; }
+.orv-agent-card-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.orv-agent-card-btn {
+  align-self: flex-start; padding: 6px 12px; border-radius: 8px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  background: transparent; color: inherit; border: 1px solid rgba(var(--orv-agent-rgb, 183, 255, 42), .4);
+  transition: background .15s, border-color .15s;
+}
+.orv-agent-card-btn:hover { background: rgba(var(--orv-agent-rgb, 183, 255, 42), .12); border-color: rgba(var(--orv-agent-rgb, 183, 255, 42), .7); }
+.orv-agent-card-btn:focus-visible { outline: 2px solid var(--orv-agent, var(--green)); outline-offset: 2px; }
+.orv-agent-card-btn--primary { background: var(--orv-agent, var(--green)); border-color: var(--orv-agent, var(--green)); color: #0a0a0a; }
+.orv-agent-card-btn--primary:hover { background: var(--orv-agent, var(--green)); opacity: .9; }
+.orv-agent-card--link { padding: 0; border: 0; background: none; }
+.orv-agent-spin { width: 10px; height: 10px; border-radius: 50%; border: 2px solid rgba(var(--orv-agent-rgb, 183, 255, 42), .3); border-top-color: var(--orv-agent, var(--green)); animation: orvAgentSpin .9s linear infinite; flex-shrink: 0; }
+@keyframes orvAgentSpin { to { transform: rotate(360deg); } }
+
+/* ── Choosing an assistant (accounts that never chose) ─────────── */
+.orv-agent-picker { display: flex; flex-direction: column; gap: 8px; }
+.orv-agent-picker-q { margin: 0; font-size: 12.5px; color: var(--muted); }
+.orv-agent-picker-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.orv-agent-pick {
+  display: flex; align-items: center; gap: 8px; padding: 8px 9px; border-radius: 10px; cursor: pointer; text-align: left;
+  font: inherit; color: inherit; background: transparent; border: 1px solid rgba(255, 255, 255, .1);
+  transition: border-color .15s, background .15s;
+}
+body:not(.dark-mode) .orv-agent-pick { border-color: var(--border); }
+.orv-agent-pick:hover, .orv-agent-pick.is-current { border-color: var(--orv-agent); background: color-mix(in srgb, var(--orv-agent) 8%, transparent); }
+.orv-agent-pick:focus-visible { outline: 2px solid var(--orv-agent); outline-offset: 2px; }
+.orv-agent-pick span { display: flex; flex-direction: column; min-width: 0; }
+.orv-agent-pick b { font-size: 12.5px; }
+.orv-agent-pick small { font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.orv-agent-pick-glyph { width: 20px; height: 20px; flex-shrink: 0; color: var(--orv-agent); }
+.orv-agent-glyph--empty { display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--orv-agent, var(--green)); opacity: .6; }
+
+@media (max-width: 768px) {
+  .orv-ai-fab.orv-agent-on { padding: 7px 13px 7px 8px; gap: 7px; }
+  .orv-agent-fab-glyph { width: 20px; height: 20px; }
+  .orv-agent-on .orv-ai-panel-head { padding-top: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orv-ai-fab.orv-agent-on, .orv-agent-card-btn, .orv-agent-pick { transition: none; }
+  .orv-ai-fab.orv-agent-on:hover { transform: none; }
+  .orv-agent-spin { animation: none; }
+}
+
+/* Chat waits for the choice: a send before choosing points at the picker. */
+.orv-agent-picker.is-asking .orv-agent-picker-q { color: var(--charcoal, currentColor); font-weight: 600; }
+.orv-agent-picker.is-asking .orv-agent-picker-list { outline: 2px solid var(--green, #B7FF2A); outline-offset: 4px; border-radius: 10px; }
+.orv-ai-input:disabled { cursor: not-allowed; opacity: .7; }

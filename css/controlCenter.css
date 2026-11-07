@@ -324,7 +324,7 @@ button.ccx-step-btn:hover { background: var(--ccx-raise); }
 .ccx-setup { border-color: rgba(182, 255, 59, .18); background: linear-gradient(180deg, rgba(182, 255, 59, .045), rgba(182, 255, 59, 0) 70%); }
 
 /* Advertising plan — a planning shortcut, not a data card. */
-#bizPanelOverview #bicPlanStrip.bic-plan { background: transparent; border-style: dashed; border-color: var(--ccx-line-2); }
+#bizPanelOverview #bicPlanStrip.bic-plan { background: var(--ccx-surface); border-style: solid; border-color: var(--ccx-line); } /* the Marketing plan card: a real card like its neighbours */
 
 /* Business context — led by the business itself (logo + name). */
 .cc-ctx { gap: 10px; }
@@ -393,3 +393,19 @@ button.ccx-step-btn:hover { background: var(--ccx-raise); }
   #page-business-brain.biz-canvas-active .ccx-rail > .cc-ctx { flex: 1 1 auto; min-height: 220px; display: flex; flex-direction: column; overflow: hidden; }
   #page-business-brain.biz-canvas-active .cc-ctx .ccx-mods { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
 }
+
+/* Marketing plan card on the overview (js/planPages.js paintCard): where the
+   plan stands, the next task, and the campaign calendar as a secondary link. */
+#bizPanelOverview .bic-plan { border-style: solid; }
+#bizPanelOverview .bic-plan .mpc-line { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+#bizPanelOverview .bic-plan .mpc-line b { font-size: 15px; font-weight: 600; color: var(--ccx-ink); }
+#bizPanelOverview .bic-plan .mpc-line span { font-size: 12.5px; color: var(--ccx-sub); font-variant-numeric: tabular-nums; }
+#bizPanelOverview .bic-plan .mpc-bar { height: 5px; border-radius: 999px; background: var(--ccx-line); overflow: hidden; }
+#bizPanelOverview .bic-plan .mpc-bar i { display: block; height: 100%; border-radius: inherit; background: var(--ccx-lime); }
+#bizPanelOverview .bic-plan .mpc-next { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: var(--ccx-r-sm); background: var(--ccx-raise); }
+#bizPanelOverview .bic-plan .mpc-next span { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ccx-sub); }
+#bizPanelOverview .bic-plan .mpc-next b { font-size: 13.5px; font-weight: 500; color: var(--ccx-ink); line-height: 1.4; }
+#bizPanelOverview .bic-plan .mpc-next .ccx-link { align-self: flex-start; margin-top: 2px; }
+#bizPanelOverview .bic-plan .mpc-all { align-self: flex-start; }
+#bizPanelOverview .bic-plan .mpc-cal { padding-top: 10px; border-top: 1px solid var(--ccx-line); }
+#bizPanelOverview .bic-plan .mpc-cal .ccx-link { color: var(--ccx-sub); font-size: 12.5px; }

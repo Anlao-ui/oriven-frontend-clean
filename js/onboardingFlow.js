@@ -417,9 +417,19 @@
     },
 
     assistant: function () {
+      // Already chosen (saved on the account): shown as theirs, not re-offered.
+      if (S.locked && assistant(S.assistant)) {
+        var mine = assistant(S.assistant);
+        return '<section class="onx-asst onx-asst--locked">' +
+          '<div class="onx-asst__intro">' + head('Your assistant', esc(mine.name) + ' is your personal assistant.', esc(mine.name) + ' writes your strategy and works with you everywhere in OrivenAI. Your assistant stays the same from now on.') + '</div>' +
+          '<div class="onx-asst__grid"><article class="onx-asst__card" style="--ac:' + mine.color + '">' + previewCard(mine) + '</article></div>' +
+          '<div class="onx-nav"><button type="button" class="onx-btn onx-btn--ghost" data-go="quote2">Back</button>' +
+            '<button type="button" class="onx-btn onx-btn--primary" data-confirm-agent>Continue with ' + esc(mine.name) + '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button></div>' +
+        '</section>';
+      }
       var cur = S.preview || S.assistant || 'vector', a = assistant(cur);
       return '<section class="onx-asst">' +
-        '<div class="onx-asst__intro">' + head('Your assistant', 'Choose the assistant you’ll work with.', 'All six can do everything in OrivenAI. Your choice sets the voice of your strategy and of Oriven Chat. You can change it later in Settings.') + '</div>' +
+        '<div class="onx-asst__intro">' + head('Your assistant', 'Choose the assistant you’ll work with.', 'All six can do everything in OrivenAI. Your choice sets the voice of your strategy and becomes your personal assistant in the app — it stays yours, so choose the one that suits you.') + '</div>' +
         '<div class="onx-asst__grid">' +
           '<div class="onx-asst__list" role="radiogroup" aria-label="Assistants">' + ASSISTANTS.map(function (x) {
             var on = x.id === S.assistant;
@@ -713,6 +723,7 @@
   }
 
   function previewAgent(id, fromUser) {
+    if (S.locked) return;
     S.preview = id;
     var a = assistant(id), card = $('.onx-asst__card');
     $$('.onx-agent').forEach(function (x) { var on = x.getAttribute('data-agent') === id; x.classList.toggle('is-preview', on); x.tabIndex = on ? 0 : -1; x.setAttribute('aria-checked', on); });
@@ -725,18 +736,28 @@
   }
 
   function confirmAgent(btn) {
-    var id = S.assistant || S.preview || 'vector';
+    var id = S.locked ? S.assistant : (S.assistant || S.preview || 'vector');
     btn.disabled = true;
-    api('/api/onboarding/session', 'PUT', { assistant: id, step: 'paywall' }).then(function (r) {
+    // Chosen once: an assistant already saved is never sent again.
+    api('/api/onboarding/session', 'PUT', S.locked ? { step: 'paywall' } : { assistant: id, step: 'paywall' }).then(function (r) {
       btn.disabled = false;
+      if (r.data && r.data.code === 'ASSISTANT_ALREADY_CHOSEN') { loadLockedAssistant(); return; }
       if (r.ok && r.data && r.data.session) {
-        S.session = r.data.session; S.assistant = id;
+        S.session = r.data.session; S.assistant = r.data.session.assistant || id; S.locked = true;
         track('next_step_clicked', { action: 'onboarding_assistant', kind: id });
         if ((S.session.missing || []).length) { missingAnswers(S.session.missing); return; }
         go('paywall', { noSave: true }); return;
       }
       if (r.data && r.data.code === 'ANSWERS_LOCKED') { go('paywall', { noSave: true }); return; }
       if (typeof toast === 'function') toast((r.data && r.data.error) || 'Couldn’t save your choice. Please try again.', 'warn');
+    });
+  }
+
+  // The account already has an assistant (another tab, or the app's picker):
+  // show that one as theirs.
+  function loadLockedAssistant() {
+    api('/api/onboarding/session').then(function (r) {
+      if (r.ok && r.data && r.data.session && r.data.session.assistant) { S.session = r.data.session; S.assistant = r.data.session.assistant; S.preview = S.assistant; S.locked = true; go('assistant', { noSave: true }); }
     });
   }
 
@@ -830,6 +851,7 @@
     delete S.answers.suggested;
     S.assistant = (session && session.assistant) || null;
     S.preview = S.assistant;
+    S.locked = !!S.assistant; // the server sends the account's saved assistant
     mount();
     track('onboarding_shown', { source: 'guided_flow' });
     var step = (session && session.step) || 'welcome';

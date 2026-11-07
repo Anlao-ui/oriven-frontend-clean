@@ -178,13 +178,13 @@ const creditsMock = (bal, extra) => Object.assign({ balance: bal, monthlyAllowan
   st = await openPlanSettings(page);
   check('E3. period plan: name, "Active until", no automatic renewal', /Quarterly/.test(st.text) && /Active until/.test(st.text) && /doesn’t renew automatically/.test(st.text), st.text.slice(0, 400));
   check('E4. credits: balance, expiry and the next instalment', /2\.100 credits/.test(st.text) && /next 1\.600 on/.test(st.text), st.text.match(/Available now[\s\S]{0,160}/));
-  check('E5. buying more: "Add <plan>" on all five', st.cards.length === 5 && st.cards.every((c, i) => c.btn === 'Add ' + PLANS[i].name));
+  check('E5. buying more: the plan you have says "Current" (disabled); the other four say "Extend with <plan>"', st.cards.length === 5 && st.cards.every((c, i) => PLANS[i].id === 'quarterly' ? c.btn === 'Current' && c.disabled : c.btn === 'Extend with ' + PLANS[i].name && !c.disabled), st.cards);
   check('E6. purchase history row and Priority Support shown', /Purchases/i.test(st.text) && /Quarterly · €78/.test(st.text) && /Priority Support/i.test(st.text), st.text.match(/Purchases[sS]{0,160}/i));
-  check('E7. cost list uses the live server costs (Research, chat)', st.text.includes('Research\n' + C.research + ' credits') && st.text.includes('Oriven Chat message\n' + C.chat + ' credits'), st.text.match(/What credits are used for[\s\S]{0,400}/));
+  check('E7. cost list uses the live server costs (Research, chat)', st.text.includes('Research\n' + C.research + ' credits') && st.text.includes('Assistant message\n' + C.chat + ' credits'), st.text.match(/What credits are used for[\s\S]{0,400}/));
 
   await stubApi(page, { subscription_status: 'creator', has_access: true, access_expires_at: until, access_plan: 'creator', billing: 'stripe', current_period_end: until, purchases: [], grants: [], pending_plan: null }, creditsMock(1800));
   st = await openPlanSettings(page);
-  check('E8. legacy monthly subscription: named, renews, can be cancelled; new plans wait until it ends', /Creator/.test(st.text) && /monthly subscription/.test(st.text) && /Renews/.test(st.text) && /Cancel subscription/.test(st.text) && st.cards.every((c) => c.disabled), st.cards.map((c) => c.btn));
+  check('E8. legacy monthly subscription: named, renews, can be cancelled; new plans wait until it ends', /Creator/.test(st.text) && /monthly subscription/.test(st.text) && /Renews/.test(st.text) && /Cancel plan/.test(st.text) && st.cards.every((c) => c.disabled), st.cards.map((c) => c.btn));
 
   console.log('\nF. Access rule and gates');
   const eff = await page.evaluate(() => [
