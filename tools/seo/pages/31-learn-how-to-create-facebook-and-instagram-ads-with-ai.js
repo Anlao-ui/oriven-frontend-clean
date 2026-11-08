@@ -10,7 +10,7 @@ module.exports = {
   dateModified: '2026-10-15',
   reviewed: '2026-10-15',
   readMinutes: 9,
-  title: 'How to Create Facebook and Instagram Ads With AI: Step by Step | OrivenAI',
+  title: 'How to Create Facebook & Instagram Ads With AI | OrivenAI',
   ogTitle: 'How to create Facebook and Instagram ads with AI',
   description: 'How to create Facebook and Instagram ads with AI, step by step: a useful brief, the right objective, formats and placements, and a safe launch.',
   crumb: 'Create Facebook and Instagram ads with AI',
@@ -19,7 +19,7 @@ module.exports = {
   eyebrow: 'Meta Ads',
   h1: 'How to create Facebook and Instagram ads with AI',
   about: 'Creating Meta ads with artificial intelligence',
-  sources: [{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"Meta Pixel — Meta for Developers","url":"https://developers.facebook.com/docs/meta-pixel/"}],
+  sources: [{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"Meta Pixel — Meta for Developers","url":"https://developers.facebook.com/documentation/meta-pixel"},{"title":"Conversions API — Meta for Developers","url":"https://developers.facebook.com/documentation/ads-commerce/conversions-api"},{"title":"Advertising FAQ’s: A Guide for Small Business — Federal Trade Commission","url":"https://www.ftc.gov/business-guidance/resources/advertising-faqs-guide-small-business"},{"title":"About Advantage+ creative — Meta Business Help Center","url":"https://www.facebook.com/business/help/297506218282224"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Give the AI a specific brief (offer, audience, proof and one action), choose the Meta objective that matches your goal, generate a few variations in the right formats for feed, Stories and Reels, edit them for accuracy and brand voice, and launch with a modest budget and working conversion tracking. AI speeds up the drafting; the decisions stay yours.</p></div>
 
@@ -28,7 +28,7 @@ module.exports = {
 <h2>What you need before you start</h2>
 <ul>
   <li><strong>A Meta business setup:</strong> a Facebook Page, an ad account with a payment method and, for Instagram placements, a connected Instagram account.</li>
-  <li><strong>Conversion tracking</strong> if you want sales or leads: the Meta Pixel on your site, ideally with the Conversions API as well. See <a href="/learn/meta-pixel-vs-conversions-api/">Meta Pixel vs Conversions API</a>.</li>
+  <li><strong>Conversion tracking</strong> if you want sales or leads: <a href="https://developers.facebook.com/documentation/meta-pixel" rel="noopener">the Meta Pixel on your site</a>, ideally with the <a href="https://developers.facebook.com/documentation/ads-commerce/conversions-api" rel="noopener">Conversions API as well</a>. See <a href="/learn/meta-pixel-vs-conversions-api/">Meta Pixel vs Conversions API</a>.</li>
   <li><strong>A landing page</strong> that matches the ad: the same offer, price and wording the ad promises.</li>
   <li><strong>Your raw material:</strong> product photos, logo, brand colors and a few facts customers care about.</li>
 </ul>
@@ -61,7 +61,7 @@ module.exports = {
   <li><strong>Headline:</strong> a short line next to the call-to-action button, usually the offer.</li>
   <li><strong>Call to action:</strong> a button such as Shop now, Sign up or Learn more.</li>
 </ul>
-<p>Ask the AI for several angles rather than one polished version: one focused on the problem, one on the product’s proof, one on the offer. Different angles teach you more than near-identical rewrites. Then edit: remove claims you can’t back up, check prices and dates, and make sure it sounds like your business.</p>
+<p>Ask the AI for several angles rather than one polished version: one focused on the problem, one on the product’s proof, one on the offer. Different angles teach you more than near-identical rewrites. Then edit: <a href="https://www.ftc.gov/business-guidance/resources/advertising-faqs-guide-small-business" rel="noopener">remove claims you can’t back up</a>, check prices and dates, and make sure it sounds like your business.</p>
 
 <h2>Step 4: Create visuals in the right formats</h2>
 <p>Facebook and Instagram show ads in different shapes depending on placement:</p>
@@ -69,7 +69,7 @@ module.exports = {
   <li><strong>Feed:</strong> square (1:1) or portrait (4:5) images and videos work best.</li>
   <li><strong>Stories and Reels:</strong> full-screen vertical (9:16), with key text away from the top and bottom edges where the interface covers it.</li>
 </ul>
-<p>AI image and video generation is useful here: you can produce on-brand scenes around your product, variations for each format and short videos without a shoot. Start from real product photos where you can, so the product looks exactly like what customers receive. Check every generated image for errors in the product, text and hands before using it.</p>
+<p><a href="https://www.facebook.com/business/help/297506218282224" rel="noopener">AI image and video generation is useful here</a>: you can produce on-brand scenes around your product, variations for each format and short videos without a shoot. Start from real product photos where you can, so the product looks exactly like what customers receive. Check every generated image for errors in the product, text and hands before using it.</p>
 
 <h2>Step 5: Decide on audience and placements</h2>
 <p>Meta’s audience tools are increasingly automated. For most small businesses, a broad audience defined by location, age and language, combined with good creative, works better than narrow interest stacking, because the delivery system finds buyers from the people who respond. Placements can be automatic (Advantage+ placements) or chosen manually; if your creative only exists in one shape, choose placements that fit it, or create the missing formats.</p>

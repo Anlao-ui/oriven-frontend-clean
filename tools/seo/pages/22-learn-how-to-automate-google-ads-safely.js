@@ -8,7 +8,7 @@ module.exports = {
   dateModified: '2026-10-15',
   reviewed: '2026-10-15',
   readMinutes: 8,
-  title: 'How to Automate Google Ads Safely: A Practical Checklist | OrivenAI',
+  title: 'How to Automate Google Ads Safely | OrivenAI',
   ogTitle: 'How to automate Google Ads safely',
   description: 'A checklist for automating Google Ads without losing control: tracking first, clear limits, approval steps and no conflicting automations.',
   crumb: 'How to automate Google Ads safely',
@@ -17,7 +17,7 @@ module.exports = {
   eyebrow: 'Google Ads',
   h1: 'How to automate Google Ads safely',
   about: 'Google Ads automation',
-  sources: [{"title":"Set up automated rules — Google Ads Help","url":"https://support.google.com/google-ads/answer/2472779"},{"title":"About Smart Bidding — Google Ads Help","url":"https://support.google.com/google-ads/answer/7065882"},{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"Add keywords — Google Ads Help","url":"https://support.google.com/google-ads/answer/2453980"}],
+  sources: [{"title":"Set up automated rules — Google Ads Help","url":"https://support.google.com/google-ads/answer/2472779"},{"title":"About Smart Bidding — Google Ads Help","url":"https://support.google.com/google-ads/answer/7065882"},{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"Add keywords — Google Ads Help","url":"https://support.google.com/google-ads/answer/2453980"},{"title":"Google Ads scripts — Google for Developers","url":"https://developers.google.com/google-ads/scripts/docs/start"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Automate Google Ads in this order: verify conversion tracking, decide your limits, start with alerts and approvals, then let rules act on small, capped changes with enough data behind them. And never let two automations control the same setting.</p></div>
 
@@ -25,8 +25,8 @@ module.exports = {
 <p>Google Ads offers several layers of automation before any third-party tool is involved:</p>
 <ul>
   <li><strong>Smart bidding</strong> (such as Maximize conversions, target CPA or target ROAS) sets a bid for every auction.</li>
-  <li><strong>Automated rules</strong> change statuses, budgets or bids on a schedule when conditions are met.</li>
-  <li><strong>Scripts</strong> run your own JavaScript against the account for custom automation.</li>
+  <li><strong>Automated rules</strong> <a href="https://support.google.com/google-ads/answer/2472779" rel="noopener">change statuses, budgets or bids on a schedule</a> when conditions are met.</li>
+  <li><strong>Scripts</strong> <a href="https://developers.google.com/google-ads/scripts/docs/start" rel="noopener">run your own JavaScript against the account</a> for custom automation.</li>
   <li><strong>Recommendations</strong>, some of which can be set to apply automatically.</li>
   <li><strong>Performance Max</strong>, which automates placements and much of the targeting across Google’s inventory.</li>
 </ul>
@@ -42,7 +42,7 @@ module.exports = {
 <h3>4. Use enough data</h3>
 <p>Judging a campaign on a single day or a handful of clicks produces random decisions. Use look-back periods and minimum thresholds (for example, “at least 50 clicks” or “spend above 2× target CPA”) before a rule pauses anything.</p>
 <h3>5. Cap every change</h3>
-<p>Prefer several small budget changes over one large one. Large, frequent edits can restart smart bidding’s learning period and make performance swing.</p>
+<p>Prefer several small budget changes over one large one. Large, frequent edits can <a href="https://support.google.com/google-ads/answer/7065882" rel="noopener">restart smart bidding’s learning period</a> and make performance swing.</p>
 <h3>6. Give each setting one owner</h3>
 <p>If smart bidding manages bids, don’t also run bid rules. If a rule manages a campaign’s budget, turn off auto-applied budget recommendations for that campaign. One owner per setting keeps results explainable.</p>
 <h3>7. Exclude what must not change</h3>

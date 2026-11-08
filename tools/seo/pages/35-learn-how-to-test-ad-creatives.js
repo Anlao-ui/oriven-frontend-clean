@@ -19,7 +19,7 @@ module.exports = {
   eyebrow: 'Creative strategy',
   h1: 'How to test ad creatives (even on a small budget)',
   about: 'Ad creative testing',
-  sources: [{"title":"About responsive search ads — Google Ads Help","url":"https://support.google.com/google-ads/answer/7684791"},{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"TikTok Auction In-Feed Ads specifications — TikTok Ads Manager help","url":"https://ads.tiktok.com/help/article/video-ads-specifications"}],
+  sources: [{"title":"About responsive search ads — Google Ads Help","url":"https://support.google.com/google-ads/answer/7684791"},{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"TikTok Auction In-Feed Ads specifications — TikTok Ads Manager help","url":"https://ads.tiktok.com/help/article/video-ads-specifications"},{"title":"About A/B testing — Meta Business Help Center","url":"https://www.facebook.com/business/help/1738164643098669"},{"title":"Set up a custom experiment — Google Ads Help","url":"https://support.google.com/google-ads/answer/6261395"},{"title":"Creative best practices for performance ads — TikTok Ads Manager help","url":"https://ads.tiktok.com/help/article/creative-best-practices"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Test big differences before small ones: the concept or angle first, then the format, then details like headlines and colors. Change one thing at a time, give each version enough spend to reach a meaningful number of results, judge by cost per result rather than clicks alone, and keep a simple log so every test teaches you something.</p></div>
 
@@ -40,14 +40,14 @@ module.exports = {
 
 <h2>How to structure a test on each platform</h2>
 <h3>Meta (Facebook and Instagram)</h3>
-<p>Ads Manager has a built-in A/B test feature that splits the audience so each version is shown to different people, which gives the cleanest comparison. A simpler, common approach is to put a few ads in the same ad set and let delivery favor the stronger ones. It’s quicker, but the system may stop showing a version before it has had a fair chance. Use the A/B test feature when the decision really matters.</p>
+<p>Ads Manager has a <a href="https://www.facebook.com/business/help/1738164643098669" rel="noopener">built-in A/B test feature</a> that splits the audience so each version is shown to different people, which gives the cleanest comparison. A simpler, common approach is to put a few ads in the same ad set and let delivery favor the stronger ones. It’s quicker, but the system may stop showing a version before it has had a fair chance. Use the A/B test feature when the decision really matters.</p>
 <h3>Google Ads</h3>
-<p>Responsive search ads mix the headlines and descriptions you provide, and Google Ads reports how individual assets perform. Google Ads experiments let you test changes to a campaign against the original with a split of traffic. For Performance Max, asset reporting shows which images, videos and texts are used and how they rate.</p>
+<p><a href="https://support.google.com/google-ads/answer/7684791" rel="noopener">Responsive search ads mix</a> the headlines and descriptions you provide, and Google Ads reports how individual assets perform. <a href="https://support.google.com/google-ads/answer/6261395" rel="noopener">Google Ads experiments</a> let you test changes to a campaign against the original with a split of traffic. For Performance Max, asset reporting shows which images, videos and texts are used and how they rate.</p>
 
 <h2>Which metrics to read</h2>
 <p>Read metrics in the order of the customer journey, and judge on the one closest to revenue that has enough data:</p>
 <ul>
-  <li><strong>Stopping power:</strong> for video, how many people watch the first seconds; for images, click-through rate.</li>
+  <li><strong>Stopping power:</strong> for video, <a href="https://ads.tiktok.com/help/article/creative-best-practices" rel="noopener">how many people watch the first seconds</a>; for images, click-through rate.</li>
   <li><strong>Click-through rate (CTR):</strong> whether the message is relevant enough to click.</li>
   <li><strong>Conversion rate:</strong> whether the ad attracts people who actually buy or sign up, and whether the landing page delivers on the promise.</li>
   <li><strong>Cost per result and return on ad spend:</strong> the final judgment.</li>

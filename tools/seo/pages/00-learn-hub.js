@@ -6,7 +6,7 @@ module.exports = {
   path: '/learn/',
   kind: 'hub',
   lastmod: '2026-10-14',
-  title: 'Learn: Guides to AI Advertising, PPC Automation and Ad Platforms | OrivenAI',
+  title: 'Learn AI Advertising: Guides and How-Tos | OrivenAI',
   ogTitle: 'OrivenAI Learn: practical advertising guides',
   description: 'Practical guides to AI advertising: creating and testing ads, competitor research, PPC automation, and Google, Meta, TikTok and Pinterest ads.',
   crumb: 'Learn',

@@ -9,7 +9,7 @@ module.exports = {
   datePublished: '2026-10-15',
   reviewed: '2026-10-15',
   readMinutes: 9,
-  title: 'Pinterest Ads for Small Business: A First Campaign Guide | OrivenAI',
+  title: 'Pinterest Ads for Small Business: First Campaign | OrivenAI',
   ogTitle: 'Pinterest ads for small business: a practical first campaign',
   description: 'When Pinterest ads make sense for a small business, what to set up first, which objective to choose, creative specs, budgets and measurement.',
   crumb: 'Pinterest ads for small business',
@@ -24,6 +24,7 @@ module.exports = {
     { title: 'Review ad specs — Pinterest Business help', url: 'https://help.pinterest.com/en/business/article/pinterest-product-specs' },
     { title: 'Install the Pinterest tag — Pinterest Business help', url: 'https://help.pinterest.com/en/business/article/install-the-pinterest-tag' },
     { title: 'Pinterest Trends', url: 'https://trends.pinterest.com/' },
+    { title: 'Americans’ use of social media (fact sheet) — Pew Research Center', url: 'https://www.pewresearch.org/internet/fact-sheet/social-media/' },
   ],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Pinterest ads suit businesses whose customers plan ahead: home, fashion, food, beauty, weddings, gifts and DIY. You need a Pinterest business account in a country where ads are available, a website, and the Pinterest tag if you want to measure sales or sign-ups. Start with one campaign, one clear objective and three to five vertical (2:3) images built around what people search for.</p></div>
@@ -37,12 +38,13 @@ module.exports = {
   <li><strong>People plan the purchase.</strong> Seasonal and project-based buying (holidays, home projects, events) is where Pinterest is strongest.</li>
   <li><strong>You can send people to a page that matches the Pin.</strong> A product or collection page, not a generic homepage.</li>
 </ul>
+<p>Before you commit a budget, check who actually uses Pinterest: <a href="https://www.pewresearch.org/internet/fact-sheet/social-media/" rel="noopener">Pew Research Center’s survey data</a> breaks platform use down by age and gender, and you can compare it with who buys from you.</p>
 <p>It fits less well for urgent needs (an emergency plumber), complex B2B purchases, or products that are hard to show in a picture. If that’s you, search ads on Google are usually a better first channel; see <a href="/learn/google-ads-vs-meta-ads/">Google Ads vs Meta Ads</a>.</p>
 
 <h2>What you need before you start</h2>
 <ol>
   <li><strong>A Pinterest business account.</strong> Ads require one, and the country you pick when you first open Ads Manager sets your billing currency for good.</li>
-  <li><strong>A country where Pinterest ads are available.</strong> Pinterest lists about 40 countries where you can set up an ad account directly, and further markets served through partners. Check the ads overview page before you plan a campaign.</li>
+  <li><strong>A country where Pinterest ads are available.</strong> Pinterest lists about 40 countries where you can set up an ad account directly, and further markets served through partners. <a href="https://help.pinterest.com/en/business/article/promoted-pins-overview" rel="noopener">Check the ads overview page</a> before you plan a campaign.</li>
   <li><strong>The Pinterest tag on your website</strong> if you want to optimise for or measure purchases, sign-ups or other on-site actions. Without it, you can still run awareness and traffic campaigns, but you can’t see which Pins led to sales.</li>
   <li><strong>Three to five images</strong> in 2:3 format (1000 × 1500 px is Pinterest’s recommendation).</li>
 </ol>

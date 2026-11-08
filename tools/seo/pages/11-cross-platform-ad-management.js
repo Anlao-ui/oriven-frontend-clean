@@ -9,7 +9,7 @@ module.exports = {
   path: '/cross-platform-ad-management/',
   kind: 'commercial',
   lastmod: '2026-10-09',
-  title: 'Cross-Platform Ad Management for Google, Meta, TikTok & Pinterest | OrivenAI',
+  title: 'Cross-Platform Ad Management Software | OrivenAI',
   ogTitle: 'Manage Google, Meta, TikTok and Pinterest ads in one workspace',
   description: 'Plan, create, launch and follow ads on Google Ads, Meta Ads, TikTok Ads and Pinterest Ads from one OrivenAI workspace, with one brief adapted to each platform.',
   crumb: 'Cross-platform ad management',

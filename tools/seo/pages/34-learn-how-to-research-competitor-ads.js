@@ -11,7 +11,7 @@ module.exports = {
   dateModified: '2026-10-15',
   reviewed: '2026-10-15',
   readMinutes: 8,
-  title: 'How to Research Competitor Ads: Free Ad Libraries to Use | OrivenAI',
+  title: 'How to Research Competitor Ads for Free | OrivenAI',
   ogTitle: 'How to research your competitors’ ads',
   description: 'Research competitor ads with free official tools like the Meta Ad Library and Google Ads Transparency Center: what to look for, without copying.',
   crumb: 'How to research competitor ads',
@@ -20,7 +20,7 @@ module.exports = {
   eyebrow: 'Research',
   h1: 'How to research your competitors’ ads',
   about: 'Competitor advertising research',
-  sources: [{"title":"Meta Ad Library","url":"https://www.facebook.com/ads/library/"},{"title":"Google Ads Transparency Center","url":"https://adstransparency.google.com/"},{"title":"TikTok One Creative Suite (formerly TikTok Creative Center)","url":"https://ads.tiktok.com/business/creativecenter"}],
+  sources: [{"title":"Meta Ad Library","url":"https://www.facebook.com/ads/library/"},{"title":"Google Ads Transparency Center","url":"https://adstransparency.google.com/"},{"title":"TikTok One Creative Suite (formerly TikTok Creative Center)","url":"https://ads.tiktok.com/business/creativecenter"},{"title":"Regulation (EU) 2022/2065, the Digital Services Act (Article 39: online advertising repositories) — EUR-Lex","url":"https://eur-lex.europa.eu/eli/reg/2022/2065/oj"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Use the platforms’ free transparency tools (the Meta Ad Library, the Google Ads Transparency Center and the TikTok Creative Center) to see which ads your competitors run. Look for patterns in offers, angles, formats and landing pages rather than individual ads, write down what you observe, and use it to sharpen your own brief, not to copy.</p></div>
 
@@ -28,7 +28,7 @@ module.exports = {
 
 <h2>The free, official tools</h2>
 <h3>Meta Ad Library</h3>
-<p>The <a href="https://www.facebook.com/ads/library/" rel="noopener">Meta Ad Library</a> lists ads currently running across Facebook, Instagram and Meta’s other apps. You can search by advertiser name or keyword and filter by country, platform and media type. For ads shown in the European Union it can show additional detail, and ads about social issues, elections or politics are kept in the library with spending information.</p>
+<p>The <a href="https://www.facebook.com/ads/library/" rel="noopener">Meta Ad Library</a> lists ads currently running across Facebook, Instagram and Meta’s other apps. You can search by advertiser name or keyword and filter by country, platform and media type. <a href="https://eur-lex.europa.eu/eli/reg/2022/2065/oj" rel="noopener">For ads shown in the European Union it can show additional detail</a>, and ads about social issues, elections or politics are kept in the library with spending information.</p>
 <h3>Google Ads Transparency Center</h3>
 <p>The <a href="https://adstransparency.google.com/" rel="noopener">Google Ads Transparency Center</a> shows ads from verified advertisers across Google’s surfaces, such as Search, YouTube and the Display Network. You can search by advertiser or website and filter by region, format and date.</p>
 <h3>TikTok Creative Center (now TikTok One)</h3>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Why We Built OrivenAI: Advertising Without the Tool Sprawl | OrivenAI Blog</title>
+<title>Why We Built OrivenAI: No More Tool Sprawl | OrivenAI Blog</title>
 <meta name="description" content="Why we built OrivenAI: small teams juggle separate tools to research, create, launch and watch ads. The problem we saw and the principles we follow.">
 <link rel="canonical" href="https://orivenai.com/blog/why-we-built-oriven">
 <meta name="robots" content="index, follow">
@@ -21,7 +21,7 @@
 <meta name="twitter:description" content="Why we built OrivenAI: small teams juggle separate tools to research, create, launch and watch ads. The problem we saw and the principles we follow.">
 <meta name="twitter:image" content="https://orivenai.com/assets/og/orivenai-og.png">
 <meta property="article:published_time" content="2026-07-13">
-<meta property="article:modified_time" content="2026-10-14">
+<meta property="article:modified_time" content="2026-11-08">
 <link rel="icon" href="/assets/favicon-48.png" type="image/png" sizes="48x48">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,7 +34,7 @@
 <script src="/js/dot-field.js" defer></script>
 <script src="/js/site-top.js" defer></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://orivenai.com/#organization","name":"OrivenAI","alternateName":["Oriven","ORIVEN","Oriven AI"],"url":"https://orivenai.com/","logo":"https://orivenai.com/assets/orivenlogo-192.png","email":"contact@orivenai.com","description":"OrivenAI (orivenai.com) is an AI advertising platform for researching, creating, launching and automating ad campaigns."}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Why we built OrivenAI","description":"Why we built OrivenAI: small teams juggle separate tools to research, create, launch and watch ads. The problem we saw and the principles we follow.","url":"https://orivenai.com/blog/why-we-built-oriven","mainEntityOfPage":"https://orivenai.com/blog/why-we-built-oriven","datePublished":"2026-07-13","dateModified":"2026-10-14","inLanguage":"en","author":{"@type":"Organization","name":"OrivenAI","url":"https://orivenai.com/"},"publisher":{"@type":"Organization","name":"OrivenAI","logo":{"@type":"ImageObject","url":"https://orivenai.com/assets/orivenlogo-192.png"}},"image":"https://orivenai.com/assets/og/orivenai-og.png","about":"The story behind OrivenAI"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Why we built OrivenAI","description":"Why we built OrivenAI: small teams juggle separate tools to research, create, launch and watch ads. The problem we saw and the principles we follow.","url":"https://orivenai.com/blog/why-we-built-oriven","mainEntityOfPage":"https://orivenai.com/blog/why-we-built-oriven","datePublished":"2026-07-13","dateModified":"2026-11-08","inLanguage":"en","author":{"@type":"Organization","name":"OrivenAI","url":"https://orivenai.com/"},"publisher":{"@type":"Organization","name":"OrivenAI","logo":{"@type":"ImageObject","url":"https://orivenai.com/assets/orivenlogo-192.png"}},"image":"https://orivenai.com/assets/og/orivenai-og.png","about":"The story behind OrivenAI"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://orivenai.com/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://orivenai.com/blog"},{"@type":"ListItem","position":3,"name":"Why we built OrivenAI","item":"https://orivenai.com/blog/why-we-built-oriven"}]}</script>
 <!-- Consent first (js/consent.js): the Google Ads tag loads only after the visitor
      accepts advertising. js/site-analytics.js: OrivenAI's own cookieless statistics. -->
@@ -304,9 +304,9 @@
 <main id="main">
 <nav class="sp-crumbs sp-wrap" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/blog">Blog</a></li><li aria-current="page">Why we built OrivenAI</li></ol></nav>
 <header class="sp-hero sp-wrap"><p class="sp-eyebrow">Blog · Company</p><h1>Why we built OrivenAI</h1>
-       <p class="sp-meta"><span>By the OrivenAI team</span><span>Published <time datetime="2026-07-13">13 July 2026</time></span><span>Updated <time datetime="2026-10-14">14 October 2026</time></span><span>5 min read</span></p></header>
-<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article"><nav class="sp-toc" aria-labelledby="toc-h"><p id="toc-h">On this page</p><ol><li><a href="#the-problems-we-kept-seeing">The problems we kept seeing</a></li><li><a href="#the-principles-behind-orivenai">The principles behind OrivenAI</a></li><li><a href="#who-it-s-for">Who it’s for</a></li><li><a href="#where-we-are-now">Where we are now</a></li></ol></nav>
-<p class="sp-note">Updated in October 2026.</p>
+       <p class="sp-meta"><span>By the OrivenAI team</span><span>Published <time datetime="2026-07-13">13 July 2026</time></span><span>Updated <time datetime="2026-11-08">8 November 2026</time></span><span>8 min read</span></p></header>
+<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article"><nav class="sp-toc" aria-labelledby="toc-h"><p id="toc-h">On this page</p><ol><li><a href="#the-problems-we-kept-seeing">The problems we kept seeing</a></li><li><a href="#what-one-campaign-really-involves">What one campaign really involves</a></li><li><a href="#the-principles-behind-orivenai">The principles behind OrivenAI</a></li><li><a href="#the-trade-offs-we-chose">The trade-offs we chose</a></li><li><a href="#who-it-s-for">Who it’s for</a></li><li><a href="#how-to-judge-whether-we-re-keeping-to-this">How to judge whether we’re keeping to this</a></li><li><a href="#where-we-are-now">Where we are now</a></li></ol></nav>
+<p class="sp-note">Updated in November 2026.</p>
 
 <p>Running ads as a small team means doing a specialist’s job in between everything else. You research the market in one place, write copy in another, design creative in a third, set up campaigns in each ad platform’s own manager, and check results in yet another set of dashboards. Every switch costs time, and every tool knows only a slice of your business.</p>
 <p>We built OrivenAI because we kept seeing the same problems in that setup, and believed they could be solved in one workspace.</p>
@@ -321,6 +321,19 @@
 <h3>Automation without limits is scary</h3>
 <p>Automated changes can save time, but many people don’t trust them, for good reason: an automated rule that changes budgets or pauses campaigns at the wrong moment costs real money.</p>
 
+<h2 id="what-one-campaign-really-involves">What one campaign really involves</h2>
+<p>Take a simple job: advertise one offer on all four platforms. The idea is the same everywhere, yet almost nothing else carries over:</p>
+<div class="sp-table-wrap"><table class="sp-table">
+  <thead><tr><th scope="col">Platform</th><th scope="col">How a campaign is organized</th><th scope="col">What you have to produce</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Google Ads</th><td>Campaigns and ad groups, with keywords in Search</td><td>Up to 15 headlines of 30 characters and 4 descriptions of 90 for a responsive search ad</td></tr>
+    <tr><th scope="row">Meta Ads</th><td>Campaigns and ad sets with an audience, budget and placements</td><td>Images or video, with a recommended 27-character headline and 50–150 characters of primary text</td></tr>
+    <tr><th scope="row">TikTok Ads</th><td>Campaigns and ad groups</td><td>Vertical video, with 9:16 recommended</td></tr>
+    <tr><th scope="row">Pinterest Ads</th><td>Campaigns organized around Pins</td><td>Vertical images, with 2:3 recommended, and titles of up to 100 characters</td></tr>
+  </tbody>
+</table></div>
+<p>Platforms change these rules, so check the current numbers in our <a href="/learn/ad-character-limits/">ad character limits guide</a> before relying on them. That’s four setups, four sets of creative and four dashboards for one idea, before anyone has looked at whether it worked. A specialist can do that. Someone who also runs the business usually picks one platform and leaves the rest, or copies one version everywhere and gets weaker ads. That was the gap we wanted to close.</p>
+
 <h2 id="the-principles-behind-orivenai">The principles behind OrivenAI</h2>
 <ul>
   <li><strong>One business profile, used everywhere.</strong> You describe your business once in Control Center, and Research, Create and every other step build on it.</li>
@@ -330,8 +343,30 @@
   <li><strong>No invented numbers.</strong> Performance comes from the ad platforms themselves, predictions are labeled as predictions, and Research shows its sources.</li>
 </ul>
 
+<h2 id="the-trade-offs-we-chose">The trade-offs we chose</h2>
+<p>Principles only mean something if they cost you something. These are the places where we gave up a simpler or more impressive-looking product:</p>
+<ul>
+  <li><strong>Publishing takes one more step.</strong> Because campaigns are created paused, you have to switch them on in the ad platform. That’s slower than one button, and it means nothing spends money before someone has looked at it.</li>
+  <li><strong>There is no single blended number.</strong> Campaigns shows each platform’s figures as that platform reports them. A combined total would look tidier, but platforms count conversions by their own rules, so the same sale can appear twice.</li>
+  <li><strong>Missing data stays missing.</strong> If a platform doesn’t report a metric, Campaign Comparison says “Not reported” instead of filling the gap, and AI explanations use only the figures on the page. Some tables look emptier as a result.</li>
+  <li><strong>Research won’t show competitors’ results.</strong> That data isn’t public, so we don’t pretend to have it. Findings are labelled by where they came from, which makes some reports read less confidently than a tool that states everything as fact.</li>
+  <li><strong>Plans don’t renew on their own.</strong> You pay once for a period and nothing is charged when it ends. That’s easier to trust, though you have to remember to extend if you want to carry on.</li>
+  <li><strong>A finished task has to be finished.</strong> Progress ticks a task off only when the real result exists. Opening a page earns nothing, so the numbers can look slower than a checklist you tick yourself.</li>
+</ul>
+
 <h2 id="who-it-s-for">Who it’s for</h2>
 <p>OrivenAI is for small businesses, founders and marketers who run their own ads and want one workspace for the whole process: research, creative, launch, results and routine decisions. It isn’t trying to replace your analytics tool or every specialist tool an agency might use; it’s trying to make the core loop of advertising faster and calmer for small teams.</p>
+<p>It’s probably not the right fit if you have a dedicated media buyer who needs every advanced setting, if you need reporting that merges all your platforms into one attribution model, or if you want software that runs your ads with nobody checking them.</p>
+
+<h2 id="how-to-judge-whether-we-re-keeping-to-this">How to judge whether we’re keeping to this</h2>
+<p>You don’t have to take our word for any of it. A few things you can check yourself:</p>
+<ol>
+  <li>Publish a campaign and open it in the ad platform: it should be there, in your own account, paused.</li>
+  <li>Open a research report and follow a Source-checked finding to its source: the quoted passage should be on that page.</li>
+  <li>Compare a figure in Campaigns with the same campaign and period in the ad platform: they should match what the platform reports.</li>
+  <li>Open your task list in Progress before and after doing a task: only a real result should tick it off.</li>
+</ol>
+<p>If any of these doesn’t hold, we want to know.</p>
 
 <h2 id="where-we-are-now">Where we are now</h2>
 <p>OrivenAI supports Google Ads, Meta Ads, TikTok Ads and Pinterest Ads today. You can read what each part does in <a href="/blog/what-you-can-do-with-oriven">What you can do with OrivenAI</a>, or learn more about the category in <a href="/learn/what-is-an-ai-advertising-platform/">What is an AI advertising platform?</a> If you have feedback, we’d like to hear it at <a href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</p></article></div></section>

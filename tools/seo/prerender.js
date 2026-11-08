@@ -214,6 +214,10 @@ async function main() {
       const cap = await capture(browser, route);
       if (cap.errors.length) { console.error('page errors on', route, cap.errors); failed = true; }
       if (!cap.h1) { console.error('no H1 in', route); failed = true; }
+      // Indexed pages: a 30–60 character title (as rendered, suffix included).
+      // Flagged, never cut: fix the PAGE_SEO entry in index.html.
+      const tl = [...(cap.title || '')].length;
+      if (!NOINDEX.has(route) && (tl < 30 || tl > 60)) { console.error('title is ' + tl + ' characters on', route, '(needs 30–60):', cap.title); failed = true; }
       outputs[outFile(route)] = compose(raw, cap, {});
       console.log('rendered', route.padEnd(24), '|', cap.title, '|', cap.faqs.length, 'FAQ');
     }
