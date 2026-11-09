@@ -9,7 +9,7 @@ module.exports = {
   datePublished: '2026-10-15',
   reviewed: '2026-10-15',
   readMinutes: 9,
-  title: 'TikTok Ads for Small Business: Budgets, Specs, First Campaign | OrivenAI',
+  title: 'TikTok Ads for Small Business: First Campaign | OrivenAI',
   ogTitle: 'TikTok ads for small business: what you need and how to start',
   description: 'What a small business needs to run TikTok ads: minimum budgets, video specs, the TikTok Pixel, Spark Ads, how to plan a first campaign and how to judge results.',
   crumb: 'TikTok ads for small business',
@@ -24,15 +24,16 @@ module.exports = {
     { title: 'About TikTok Pixel — TikTok Ads Manager help', url: 'https://ads.tiktok.com/help/article/tiktok-pixel' },
     { title: 'About Spark Ads — TikTok Ads Manager help', url: 'https://ads.tiktok.com/help/article/spark-ads' },
     { title: 'TikTok One Creative Suite (formerly Creative Center)', url: 'https://ads.tiktok.com/business/creativecenter' },
+    { title: 'Americans’ use of social media (fact sheet) — Pew Research Center', url: 'https://www.pewresearch.org/internet/fact-sheet/social-media/' },
   ],
   body: `
-<div class="sp-tldr"><strong>Short answer</strong><p>TikTok ads are video ads. To start you need a TikTok Ads Manager account, vertical video (9:16 is recommended), and a daily budget that exceeds $20 per ad group and $50 per campaign, the minimums in TikTok’s help. Install the TikTok Pixel if you want to optimise for purchases or sign-ups. Start with one ad group, three short videos and a traffic or reach goal, and judge it on watch time and clicks before sales.</p></div>
+<div class="sp-tldr"><strong>Short answer</strong><p>TikTok ads are video ads. To start you need a TikTok Ads Manager account, vertical video (9:16 is recommended), and a daily budget that exceeds $20 per ad group and $50 per campaign, <a href="https://ads.tiktok.com/help/article/budget" rel="noopener">the minimums in TikTok’s help</a>. <a href="https://ads.tiktok.com/help/article/tiktok-pixel" rel="noopener">Install the TikTok Pixel</a> if you want to optimise for purchases or sign-ups. Start with one ad group, three short videos and a traffic or reach goal, and judge it on watch time and clicks before sales.</p></div>
 
 <p>TikTok rewards a different kind of advertising than Google or Meta. People don’t come to TikTok to shop or search; they come to watch. Ads that look like ads get skipped in a second, while ads that look like TikTok videos (a person, a hook, something happening) get watched. For a small business that can film on a phone, that’s an advantage: polish matters less than being interesting in the first two seconds.</p>
 
 <h2>Is TikTok right for your business?</h2>
 <ul>
-  <li><strong>Good fit:</strong> products you can demonstrate or that look satisfying on camera (food, beauty, fashion, gadgets, home), audiences under about 45, impulse or low-consideration purchases, and businesses that can make several short videos a month.</li>
+  <li><strong>Good fit:</strong> products you can demonstrate or that look satisfying on camera (food, beauty, fashion, gadgets, home), <a href="https://www.pewresearch.org/internet/fact-sheet/social-media/" rel="noopener">audiences under about 45</a>, impulse or low-consideration purchases, and businesses that can make several short videos a month.</li>
   <li><strong>Harder fit:</strong> products you can’t show, long B2B sales cycles, and businesses that can only produce one polished video a quarter. TikTok creative wears out quickly, so you need a steady supply.</li>
 </ul>
 
@@ -40,7 +41,7 @@ module.exports = {
 <ol>
   <li><strong>A TikTok Ads Manager account</strong> and a payment method.</li>
   <li><strong>Budget above the minimums.</strong> TikTok’s help lists daily budgets that must exceed $20 at ad group level and $50 at campaign level (in your account currency).</li>
-  <li><strong>Vertical video.</strong> TikTok recommends 9:16 and at least 540 × 960 pixels for In-Feed ads; files can be up to 500 MB.</li>
+  <li><strong>Vertical video.</strong> <a href="https://ads.tiktok.com/help/article/video-ads-specifications" rel="noopener">TikTok recommends 9:16</a> and at least 540 × 960 pixels for In-Feed ads; files can be up to 500 MB.</li>
   <li><strong>An identity</strong> (the name and profile picture shown on the ad). Display names show up to 20 characters.</li>
   <li><strong>The TikTok Pixel</strong> on your website if you want to measure or optimise for actions like add-to-cart or purchases. It reports the website events you configure back to TikTok.</li>
 </ol>

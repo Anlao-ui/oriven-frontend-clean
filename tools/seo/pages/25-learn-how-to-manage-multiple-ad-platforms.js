@@ -8,7 +8,7 @@ module.exports = {
   dateModified: '2026-10-15',
   reviewed: '2026-10-15',
   readMinutes: 7,
-  title: 'How to Manage Multiple Ad Platforms Without Losing Track | OrivenAI',
+  title: 'How to Manage Multiple Ad Platforms | OrivenAI',
   ogTitle: 'How to manage multiple ad platforms',
   description: 'Running Google, Meta, TikTok and Pinterest ads? A system for shared briefs, consistent naming and UTMs, honest reporting and budget decisions.',
   crumb: 'How to manage multiple ad platforms',
@@ -17,18 +17,18 @@ module.exports = {
   eyebrow: 'Cross-platform advertising',
   h1: 'How to manage multiple ad platforms without losing track',
   about: 'Multi-channel advertising management',
-  sources: [{"title":"Set up automated rules — Google Ads Help","url":"https://support.google.com/google-ads/answer/2472779"},{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"TikTok Auction In-Feed Ads specifications — TikTok Ads Manager help","url":"https://ads.tiktok.com/help/article/video-ads-specifications"},{"title":"Review ad specs — Pinterest Business help","url":"https://help.pinterest.com/en/business/article/pinterest-product-specs"}],
+  sources: [{"title":"Set up automated rules — Google Ads Help","url":"https://support.google.com/google-ads/answer/2472779"},{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"TikTok Auction In-Feed Ads specifications — TikTok Ads Manager help","url":"https://ads.tiktok.com/help/article/video-ads-specifications"},{"title":"Review ad specs — Pinterest Business help","url":"https://help.pinterest.com/en/business/article/pinterest-product-specs"},{"title":"URL builders: collect campaign data with custom URLs — Google Analytics Help","url":"https://support.google.com/analytics/answer/10917952"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>Keep one shared foundation (offer, audience, brand and naming rules), let each platform keep its own structure and creative formats, report each platform against its own history instead of summing conversions, and move budget based on your real sales.</p></div>
 
 <h2>1. Write one brief, then adapt it</h2>
-<p>Start every campaign from a single brief: what you sell, who it’s for, why they should care, and what action you want. That brief stays the same everywhere. What changes per platform is the execution: keyword-focused text on Google Search, thumb-stopping visuals on Meta, vertical video on TikTok, inspirational imagery on Pinterest.</p>
+<p>Start every campaign from a single brief: what you sell, who it’s for, why they should care, and what action you want. That brief stays the same everywhere. What changes per platform is the execution: keyword-focused text on Google Search, <a href="https://www.facebook.com/business/ads-guide/update/image/facebook-feed" rel="noopener">thumb-stopping visuals on Meta</a>, <a href="https://ads.tiktok.com/help/article/video-ads-specifications" rel="noopener">vertical video on TikTok</a>, <a href="https://help.pinterest.com/en/business/article/pinterest-product-specs" rel="noopener">inspirational imagery on Pinterest</a>.</p>
 
 <h2>2. Respect each platform’s structure</h2>
 <p>Forcing one structure on every network causes problems. Google Search campaigns are organized around keywords and ad groups; Meta campaigns around ad sets with an audience, budget and placements; TikTok uses ad groups; Pinterest organizes campaigns around Pins. Build each campaign the way its platform expects, so its delivery systems can do their job.</p>
 
 <h2>3. Standardize naming and UTMs</h2>
-<p>Consistent names are what make multi-platform reporting possible. Choose one pattern, for example <em>market_objective_product_date</em>, and use it everywhere. Do the same for UTM parameters (utm_source, utm_medium, utm_campaign) so your analytics tool can group traffic correctly regardless of which platform sent it.</p>
+<p>Consistent names are what make multi-platform reporting possible. Choose one pattern, for example <em>market_objective_product_date</em>, and use it everywhere. Do the same for <a href="https://support.google.com/analytics/answer/10917952" rel="noopener">UTM parameters</a> (utm_source, utm_medium, utm_campaign) so your analytics tool can group traffic correctly regardless of which platform sent it.</p>
 
 <h2>4. Report honestly across platforms</h2>
 <p>Each platform attributes conversions with its own rules and windows, and they often overlap: the same purchase can appear in Google’s and Meta’s reports. So:</p>

@@ -6,7 +6,7 @@
 // Netlify serves the unmodified page (onError: 'bypass').
 export const ROUTES = {
   "/login": {
-    "title": "Login | OrivenAI",
+    "title": "Log In to Your Ad Workspace | OrivenAI",
     "desc": "Log in to your OrivenAI account to manage your advertising campaigns.",
     "noindex": true
   },

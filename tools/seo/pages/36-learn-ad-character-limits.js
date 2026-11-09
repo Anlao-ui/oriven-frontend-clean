@@ -39,7 +39,7 @@ module.exports = {
   datePublished: '2026-10-15',
   reviewed: '2026-10-15',
   readMinutes: 6,
-  title: 'Ad Character Limits: Google, Meta, TikTok & Pinterest | OrivenAI',
+  title: 'Ad Character Limits for Every Ad Platform | OrivenAI',
   ogTitle: 'Ad character limits for Google, Meta, TikTok and Pinterest',
   description: 'Character limits for Google Ads, Meta, TikTok and Pinterest ads, checked against each platform’s documentation, with a free counter for your copy.',
   crumb: 'Ad character limits',
@@ -51,7 +51,7 @@ module.exports = {
   script,
   sources: [S.rsa, S.callout, S.sitelink, S.meta, S.tiktok, S.pin],
   body: `
-<div class="sp-tldr"><strong>Short answer</strong><p>Google Ads responsive search ads allow 30 characters per headline and 90 per description. Callouts and sitelink text allow 25. Meta recommends a 27-character headline and 50–150 characters of primary text for Feed image ads. Pinterest allows a 100-character title and an 800-character description. TikTok’s spec page doesn’t state a hard caption limit, but shows captions in at most four lines and display names in up to 20 characters.</p></div>
+<div class="sp-tldr"><strong>Short answer</strong><p>Google Ads responsive search ads <a href="https://support.google.com/google-ads/answer/7684791" rel="noopener">allow 30 characters per headline</a> and 90 per description. <a href="https://support.google.com/google-ads/answer/6079510" rel="noopener">Callouts and sitelink text allow 25</a>. <a href="https://www.facebook.com/business/ads-guide/update/image/facebook-feed" rel="noopener">Meta recommends a 27-character headline</a> and 50–150 characters of primary text for Feed image ads. <a href="https://help.pinterest.com/en/business/article/pinterest-product-specs" rel="noopener">Pinterest allows a 100-character title</a> and an 800-character description. <a href="https://ads.tiktok.com/help/article/video-ads-specifications" rel="noopener">TikTok’s spec page</a> doesn’t state a hard caption limit, but shows captions in at most four lines and display names in up to 20 characters.</p></div>
 
 <p>Character limits decide whether your message survives. Some are hard limits: the ad platform won’t accept longer text. Others are recommendations: longer text is accepted but gets cut off behind “See more”, so the part people actually read is shorter than what you wrote. This page separates the two, and every number links to the platform’s own documentation.</p>
 

@@ -8,7 +8,7 @@ module.exports = {
   dateModified: '2026-10-15',
   reviewed: '2026-10-15',
   readMinutes: 7,
-  title: 'Meta Pixel vs Conversions API: Differences and When to Use Both | OrivenAI',
+  title: 'Meta Pixel vs Conversions API: Which to Use | OrivenAI',
   ogTitle: 'Meta Pixel vs Conversions API: what’s the difference?',
   description: 'The Meta Pixel tracks events in the browser; the Conversions API sends them from your server. How they differ, and how deduplication works.',
   crumb: 'Meta Pixel vs Conversions API',
@@ -17,16 +17,16 @@ module.exports = {
   eyebrow: 'Meta Ads',
   h1: 'Meta Pixel vs Conversions API: what’s the difference?',
   about: 'Meta Ads conversion tracking',
-  sources: [{"title":"Meta Pixel — Meta for Developers","url":"https://developers.facebook.com/docs/meta-pixel/"},{"title":"Conversions API — Meta for Developers","url":"https://developers.facebook.com/docs/marketing-api/conversions-api/"},{"title":"Handling duplicate Pixel and Conversions API events — Meta for Developers","url":"https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events/"}],
+  sources: [{"title":"Meta Pixel — Meta for Developers","url":"https://developers.facebook.com/documentation/meta-pixel"},{"title":"Conversions API — Meta for Developers","url":"https://developers.facebook.com/documentation/ads-commerce/conversions-api"},{"title":"Handling duplicate Pixel and Conversions API events — Meta for Developers","url":"https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events/"},{"title":"Regulation (EU) 2016/679, the General Data Protection Regulation — EUR-Lex","url":"https://eur-lex.europa.eu/eli/reg/2016/679/oj"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>The Meta Pixel is JavaScript that reports events from the visitor’s browser. The Conversions API (CAPI) reports the same kinds of events directly from your server. The browser misses events when scripts are blocked or restricted; the server path doesn’t depend on the browser. Meta recommends running both, with deduplication so each conversion is counted once.</p></div>
 
 <h2>The Meta Pixel: browser-side tracking</h2>
-<p>The Pixel is a snippet of JavaScript on your website. When a visitor views a page, adds to cart or purchases, the browser sends that event to Meta. It’s quick to install and captures browser signals Meta uses for matching and optimization.</p>
+<p><a href="https://developers.facebook.com/documentation/meta-pixel" rel="noopener">The Pixel is a snippet of JavaScript</a> on your website. When a visitor views a page, adds to cart or purchases, the browser sends that event to Meta. It’s quick to install and captures browser signals Meta uses for matching and optimization.</p>
 <p>Its weakness is that it depends on the browser. Ad blockers, browser tracking protections, cookie restrictions and pages that close before the script fires all lead to missed events.</p>
 
 <h2>The Conversions API: server-side tracking</h2>
-<p>The Conversions API is a server-to-server connection: your website backend, e-commerce platform or CRM sends events to Meta directly. Because it doesn’t rely on a script running in the visitor’s browser, it’s more resilient to blocking, and it can report events that never happen in a browser at all, such as a sale confirmed later in your CRM.</p>
+<p><a href="https://developers.facebook.com/documentation/ads-commerce/conversions-api" rel="noopener">The Conversions API is a server-to-server connection</a>: your website backend, e-commerce platform or CRM sends events to Meta directly. Because it doesn’t rely on a script running in the visitor’s browser, it’s more resilient to blocking, and it can report events that never happen in a browser at all, such as a sale confirmed later in your CRM.</p>
 <p>The trade-off is setup. CAPI needs a server-side integration, and to match events to people it uses customer information parameters such as email or phone number, which must be normalized and hashed (SHA-256) before sending.</p>
 
 <h2>Side by side</h2>
@@ -53,7 +53,7 @@ module.exports = {
 </ol>
 
 <h2>Privacy and consent still apply</h2>
-<p>Server-side tracking isn’t a way around consent. Data-protection rules and Meta’s own terms apply to events sent through either path, so send server events in line with the consent your visitors gave.</p>
+<p>Server-side tracking isn’t a way around consent. <a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj" rel="noopener">Data-protection rules</a> and Meta’s own terms apply to events sent through either path, so send server events in line with the consent your visitors gave.</p>
 
 <h2>Why this matters before you automate</h2>
 <p>Any automation that uses conversions, such as pausing campaigns above a target CPA, depends on these events being right. In OrivenAI, Control Center flags connected ad accounts where conversion tracking can’t be verified, so you can fix tracking before relying on rules. Read more about <a href="/product/meta-ads">OrivenAI for Meta Ads</a> and <a href="/learn/how-to-automate-google-ads-safely/">automating campaigns safely</a>.</p>`,

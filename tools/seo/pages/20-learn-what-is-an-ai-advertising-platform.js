@@ -18,7 +18,7 @@ module.exports = {
   eyebrow: 'AI advertising',
   h1: 'What is an AI advertising platform?',
   about: 'AI advertising software',
-  sources: [{"title":"About Smart Bidding — Google Ads Help","url":"https://support.google.com/google-ads/answer/7065882"},{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"About Demand Gen campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/13695777"}],
+  sources: [{"title":"About Smart Bidding — Google Ads Help","url":"https://support.google.com/google-ads/answer/7065882"},{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"About Demand Gen campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/13695777"},{"title":"AI Risk Management Framework — NIST","url":"https://www.nist.gov/itl/ai-risk-management-framework"},{"title":"About Advantage+ creative — Meta Business Help Center","url":"https://www.facebook.com/business/help/297506218282224"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>An AI advertising platform is software that uses AI models to help with the work around paid ads: researching a market, writing and designing ads, structuring campaigns for each ad network, publishing them, and watching results. The ad networks still run the auctions and deliver the ads; the platform speeds up and organizes everything around them.</p></div>
 
@@ -48,9 +48,9 @@ module.exports = {
 <p>Expectations matter more here than in most software categories:</p>
 <ul>
   <li><strong>It can’t guarantee results.</strong> Auctions, competition, your offer and your landing page decide performance. AI changes how quickly you can test, not what the market wants.</li>
-  <li><strong>It doesn’t replace the ad networks’ own optimization.</strong> Bidding and delivery still happen inside Google, Meta, TikTok and Pinterest.</li>
+  <li><strong>It doesn’t replace the ad networks’ own optimization.</strong> <a href="https://support.google.com/google-ads/answer/7065882" rel="noopener">Bidding and delivery still happen inside Google</a>, Meta, TikTok and Pinterest.</li>
   <li><strong>It needs good inputs.</strong> A vague brief produces generic ads, and missing conversion tracking makes any automation work blind.</li>
-  <li><strong>It shouldn’t act without limits.</strong> Automation that can change budgets without clear rules or approval is a risk, not a feature.</li>
+  <li><strong>It shouldn’t act without limits.</strong> <a href="https://www.nist.gov/itl/ai-risk-management-framework" rel="noopener">Automation that can change budgets without clear rules or approval is a risk</a>, not a feature.</li>
 </ul>
 
 <h2>How to evaluate an AI advertising platform</h2>

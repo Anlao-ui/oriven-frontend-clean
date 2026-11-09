@@ -8,7 +8,7 @@ module.exports = {
   dateModified: '2026-10-15',
   reviewed: '2026-10-15',
   readMinutes: 8,
-  title: 'What Is PPC Automation? Rule-Based vs AI Automation Explained | OrivenAI',
+  title: 'What Is PPC Automation? Rule-Based vs AI | OrivenAI',
   ogTitle: 'What is PPC automation? Rule-based vs AI, explained',
   description: 'PPC automation applies routine changes to pay-per-click campaigns. The types, how rule-based and AI automation differ, and the risks to manage.',
   crumb: 'What is PPC automation?',
@@ -17,18 +17,18 @@ module.exports = {
   eyebrow: 'PPC automation',
   h1: 'What is PPC automation?',
   about: 'PPC automation',
-  sources: [{"title":"Set up automated rules — Google Ads Help","url":"https://support.google.com/google-ads/answer/2472779"},{"title":"About Smart Bidding — Google Ads Help","url":"https://support.google.com/google-ads/answer/7065882"}],
+  sources: [{"title":"Set up automated rules — Google Ads Help","url":"https://support.google.com/google-ads/answer/2472779"},{"title":"About Smart Bidding — Google Ads Help","url":"https://support.google.com/google-ads/answer/7065882"},{"title":"Google Ads scripts — Google for Developers","url":"https://developers.google.com/google-ads/scripts/docs/start"},{"title":"About the learning phase — Meta Business Help Center","url":"https://www.facebook.com/business/help/112167992830700"}],
   body: `
 <div class="sp-tldr"><strong>Short answer</strong><p>PPC automation means letting software make routine changes to pay-per-click campaigns, such as bids, budgets, pausing and alerts, based on rules or models instead of manual checks. The goal is faster, more consistent decisions, while people keep control over the limits.</p></div>
 
 <h2>The four kinds of PPC automation</h2>
 <p>“Automation” in paid media usually means one of four things, and most accounts use several at once:</p>
 <h3>1. Platform-native optimization</h3>
-<p>The ad networks automate a great deal themselves. Google Ads smart bidding sets bids per auction toward a goal such as target CPA or target ROAS; Performance Max chooses placements across Google’s inventory; Meta’s Advantage+ options automate audiences and placements. This automation is powerful but works inside one network and toward the goal you give it.</p>
+<p>The ad networks automate a great deal themselves. <a href="https://support.google.com/google-ads/answer/7065882" rel="noopener">Google Ads smart bidding</a> sets bids per auction toward a goal such as target CPA or target ROAS; Performance Max chooses placements across Google’s inventory; Meta’s Advantage+ options automate audiences and placements. This automation is powerful but works inside one network and toward the goal you give it.</p>
 <h3>2. Rule-based automation</h3>
-<p>Rules are explicit “if this, then that” statements: <em>if a campaign’s CPA is above €40 for the period, pause it</em>. Google Ads has built-in automated rules, and third-party tools add rules that work across accounts. Rules are predictable and easy to audit, but only as good as the thresholds you choose.</p>
+<p>Rules are explicit “if this, then that” statements: <em>if a campaign’s CPA is above €40 for the period, pause it</em>. <a href="https://support.google.com/google-ads/answer/2472779" rel="noopener">Google Ads has built-in automated rules</a>, and third-party tools add rules that work across accounts. Rules are predictable and easy to audit, but only as good as the thresholds you choose.</p>
 <h3>3. Scripts</h3>
-<p>Google Ads scripts let you write JavaScript that runs on a schedule against your account. They can do almost anything a rule can and more, but they need someone who can write and maintain code.</p>
+<p><a href="https://developers.google.com/google-ads/scripts/docs/start" rel="noopener">Google Ads scripts</a> let you write JavaScript that runs on a schedule against your account. They can do almost anything a rule can and more, but they need someone who can write and maintain code.</p>
 <h3>4. AI-assisted workflow automation</h3>
 <p>Newer tools use AI for the work around campaigns: drafting ad copy and creative, building campaign structures from a brief, summarizing performance, or suggesting changes. This speeds up the slowest parts of the workflow rather than the bidding itself.</p>
 
@@ -53,7 +53,7 @@ module.exports = {
   <li><strong>Automating on bad data.</strong> If conversion tracking is broken, every rule that uses conversions or CPA is wrong. Verify tracking first.</li>
   <li><strong>Reacting to noise.</strong> Judging a campaign on one day or a handful of clicks leads to pausing winners. Use enough data and sensible look-back periods.</li>
   <li><strong>Conflicting automations.</strong> A budget rule fighting the network’s own budget optimization, or two tools changing the same campaign, makes results impossible to read.</li>
-  <li><strong>Learning-phase resets.</strong> Frequent, large changes can reset the ad networks’ learning and make performance less stable.</li>
+  <li><strong>Learning-phase resets.</strong> Frequent, large changes can <a href="https://www.facebook.com/business/help/112167992830700" rel="noopener">reset the ad networks’ learning</a> and make performance less stable.</li>
   <li><strong>No audit trail.</strong> If you can’t see what changed and why, you can’t improve the rules.</li>
 </ul>
 <div class="sp-callout"><p>Automation should save you time without taking away your ability to explain what happened in your account.</p></div>

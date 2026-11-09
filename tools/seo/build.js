@@ -394,6 +394,11 @@ function main() {
   for (const p of pages) {
     if (paths.has(p.path)) throw new Error('duplicate path ' + p.path);
     if (titles.has(p.title)) throw new Error('duplicate title ' + p.title);
+    // Search results show about 60 characters and a short title says nothing:
+    // every page's own title (as rendered, suffix included) is 30–60
+    // characters. Out of range fails the build — rewrite it, never cut it.
+    const tl = [...p.title].length;
+    if (tl < 30 || tl > 60) throw new Error(p.file + ': title is ' + tl + ' characters (needs 30–60): ' + p.title);
     if (descs.has(p.description)) throw new Error('duplicate description ' + p.path);
     paths.add(p.path); titles.add(p.title); descs.add(p.description);
     if (!(p.dateModified || p.datePublished || p.lastmod)) throw new Error(p.file + ': needs a real date (datePublished / lastmod)');

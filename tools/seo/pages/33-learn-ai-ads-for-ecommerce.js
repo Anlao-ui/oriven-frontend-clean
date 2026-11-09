@@ -8,7 +8,7 @@ module.exports = {
   dateModified: '2026-10-15',
   reviewed: '2026-10-15',
   readMinutes: 9,
-  title: 'AI Ads for E-commerce: How to Create Better Product Ads With AI | OrivenAI',
+  title: 'AI Ads for E-commerce: Better Product Ads | OrivenAI',
   ogTitle: 'How AI helps e-commerce brands create better ads',
   description: 'How online stores can use AI for better product ads: imagery and video, copy that sells, catalog and Shopping campaigns, and what to keep human.',
   crumb: 'AI ads for e-commerce',
@@ -19,13 +19,13 @@ module.exports = {
   about: 'AI advertising for online stores',
   sources: [{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"Facebook Feed image ad specifications — Meta Ads Guide","url":"https://www.facebook.com/business/ads-guide/update/image/facebook-feed"},{"title":"Review ad specs — Pinterest Business help","url":"https://help.pinterest.com/en/business/article/pinterest-product-specs"},{"title":"Install the Pinterest tag — Pinterest Business help","url":"https://help.pinterest.com/en/business/article/install-the-pinterest-tag"}],
   body: `
-<div class="sp-tldr"><strong>Short answer</strong><p>AI helps online stores most with the work that scales with the size of the catalog: product imagery and short video, copy variations for each product and audience, and keeping seasonal campaigns fresh. Feed-based formats such as Google Shopping and Meta catalog ads remain essential for large catalogs. Pricing, claims, margins and which products to push stay human decisions.</p></div>
+<div class="sp-tldr"><strong>Short answer</strong><p>AI helps online stores most with the work that scales with the size of the catalog: product imagery and short video, copy variations for each product and audience, and keeping seasonal campaigns fresh. <a href="https://support.google.com/google-ads/answer/10724817" rel="noopener">Feed-based formats such as Google Shopping</a> and Meta catalog ads remain essential for large catalogs. Pricing, claims, margins and which products to push stay human decisions.</p></div>
 
 <p>An online store has a problem most other advertisers don’t: dozens or thousands of products, each needing images, copy and placement in campaigns, often changing with the seasons. That’s exactly the kind of repetitive, high-volume work AI is good at. This guide covers where AI genuinely helps e-commerce advertising, where the platforms’ own feed-based formats are better, and what to check before anything goes live.</p>
 
 <h2>Where AI helps an online store most</h2>
 <h3>1. Product imagery beyond the white background</h3>
-<p>Most stores have clean packshots. Ads usually need more: the product in use, in a setting that matches the audience, in square, portrait and vertical formats. AI image generation can place your real product in different scenes, extend images to new aspect ratios and produce variations for testing, without a photo shoot for every product. Always start from real product photos, and check that colors, proportions, labels and details match exactly what the customer will receive.</p>
+<p>Most stores have clean packshots. Ads usually need more: the product in use, in a setting that matches the audience, in square, portrait and vertical formats. AI image generation can place your real product in different scenes, <a href="https://www.facebook.com/business/ads-guide/update/image/facebook-feed" rel="noopener">extend images to new aspect ratios</a> and produce variations for testing, without a photo shoot for every product. Always start from real product photos, and check that colors, proportions, labels and details match exactly what the customer will receive.</p>
 <h3>2. Short product videos</h3>
 <p>Video tends to suit placements such as Reels, Stories and TikTok, but filming every product is expensive. AI can turn product images and a short script into simple product videos, which makes it realistic to test video for more of your catalog.</p>
 <h3>3. Copy for every product and audience</h3>
