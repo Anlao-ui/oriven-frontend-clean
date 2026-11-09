@@ -30,35 +30,7 @@ body.dark-mode .orv-ai-fab.orv-agent-on { background: #121311; color: rgba(255, 
   padding: 2px; border-radius: 50%; background: rgba(var(--orv-agent-rgb), .12);
 }
 
-/* ── Popup ─────────────────────────────────────────────────────── */
-.orv-ai-panel.orv-agent-on {
-  border-color: rgba(var(--orv-agent-rgb), .22);
-  box-shadow: 0 24px 56px rgba(0, 0, 0, .45), 0 0 0 1px rgba(var(--orv-agent-rgb), .06) inset, 0 0 60px rgba(var(--orv-agent-rgb), .07);
-}
-/* Header: the agent's mark centred, name and specialisation under it; the
-   controls sit in the top-right corner. */
-.orv-agent-on .orv-ai-panel-head {
-  position: relative; flex-direction: column; justify-content: center;
-  padding: 16px 16px 12px;
-  background: linear-gradient(180deg, rgba(var(--orv-agent-rgb), .09), transparent 85%);
-}
-.orv-agent-on .orv-ai-panel-head-left { align-items: center; }
-.orv-agent-on .orv-ai-panel-head-right { position: absolute; top: 8px; right: 8px; gap: 2px; }
-/* The Context indicator moves to the top-left corner (js/orivenAgent.js),
-   so the centred mark never sits under the controls. */
-.orv-agent-on .orv-ai-ctx-wrap.orv-agent-ctx { position: absolute; top: 8px; left: 10px; }
-.orv-agent-on .orv-agent-ctx .orv-ai-ctx-popover { left: 0; right: auto; }
-.orv-agent-id { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
-.orv-agent-head-glyph {
-  width: 38px; height: 38px; padding: 6px; border-radius: 50%; color: var(--orv-agent);
-  background: rgba(var(--orv-agent-rgb), .12); border: 1px solid rgba(var(--orv-agent-rgb), .3);
-}
-.orv-agent-id-text { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.orv-agent-on .orv-ai-panel-name { font-size: 15px; }
-.orv-agent-role { font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--orv-agent); }
-.orv-agent-hbtn { opacity: .75; }
-.orv-agent-hbtn:hover { opacity: 1; }
-.orv-agent-on .orv-ai-panel-close:focus-visible { outline: 2px solid var(--orv-agent); outline-offset: 1px; }
+/* ── Popup: css/assistant-panel.css (loaded after this file). ── */
 
 /* Your messages and the composer take the agent's colour. */
 .orv-agent-on .orv-ai-msg-user .orv-ai-msg-bubble,
@@ -70,9 +42,6 @@ body .orv-ai-panel.orv-agent-on .orv-ai-input:focus { border-color: rgba(var(--o
 /* (!important: a generic lime focus rule elsewhere in the app otherwise wins
    inside this popup; scoped to the agent popup only.) */
 .orv-agent-on .orv-ai-action-apply { background: var(--orv-agent); border-color: var(--orv-agent); color: #0a0a0a; }
-.orv-agent-intro { margin: -8px 0 0; font-size: 13px; line-height: 1.55; color: rgba(255, 255, 255, .78); text-wrap: pretty; }
-body:not(.dark-mode) .orv-agent-intro { color: var(--charcoal, #18181A); }
-body.dark-mode .orv-agent-intro { color: rgba(255, 255, 255, .78); }
 
 /* Formatted replies (paragraphs and lists, not pre-wrapped text). */
 .orv-ai-msg-bubble.orv-agent-fmt { white-space: normal; }
@@ -138,7 +107,6 @@ body:not(.dark-mode) .orv-agent-pick { border-color: var(--border); }
 @media (max-width: 768px) {
   .orv-ai-fab.orv-agent-on { padding: 7px 13px 7px 8px; gap: 7px; }
   .orv-agent-fab-glyph { width: 20px; height: 20px; }
-  .orv-agent-on .orv-ai-panel-head { padding-top: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .orv-ai-fab.orv-agent-on, .orv-agent-card-btn, .orv-agent-pick { transition: none; }

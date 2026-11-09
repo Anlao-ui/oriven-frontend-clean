@@ -72,11 +72,120 @@
     var panel = document.getElementById('orvAiPanel');
     if (panel) {
       panel.classList.remove('orv-agent-on'); panel.removeAttribute('data-agent');
+      panel.style.removeProperty('--orv-agent'); panel.style.removeProperty('--orv-agent-rgb');
+      panel.setAttribute('aria-label', 'Your OrivenAI assistant');
       var left = panel.querySelector('.orv-ai-panel-head-left');
       if (left) left.innerHTML = '<div class="orv-agent-id"><div class="orv-agent-id-text"><div class="orv-ai-panel-name">Your assistant</div></div></div>';
       var intro = document.getElementById('orvAgentIntro'); if (intro) intro.textContent = '';
+      var eb = document.getElementById('orvAgentEyebrow'); if (eb) eb.textContent = '';
+      var inp = document.getElementById('orvAiInput'); if (inp) inp.placeholder = 'Ask your assistant anything…';
     }
     var old = document.getElementById('orvAgentPicker'); if (old) old.remove();
+    renderStarters();
+  }
+
+  // ── Header: [mark + status dot] Name · status / tagline ─────────────
+  // Status is what the widget actually knows: the assistant is loaded
+  // (Ready), an answer is being written (Thinking), the last request
+  // couldn't reach the server (Offline).
+  var STATUS = { ready: 'Ready', thinking: 'Thinking…', offline: 'Offline' };
+  var status = 'ready';
+  function setStatus(st) {
+    status = STATUS[st] ? st : 'ready';
+    var panel = document.getElementById('orvAiPanel'); if (!panel) return;
+    panel.setAttribute('data-status', status);
+    var el = panel.querySelector('.orv-agent-status-t'); if (el) el.textContent = STATUS[status];
+  }
+  function headHtml(a) {
+    return '<div class="orv-agent-id">' +
+      '<span class="orv-agent-avatar">' + glyph(a.id, 'orv-agent-head-glyph') + '<span class="orv-agent-status-dot" aria-hidden="true"></span></span>' +
+      '<div class="orv-agent-id-text">' +
+        '<div class="orv-agent-nameline"><span class="orv-ai-panel-name">' + esc(a.name) + '</span><span class="orv-agent-status" role="status"><span class="orv-agent-status-t">' + STATUS[status] + '</span></span></div>' +
+        '<div class="orv-agent-tagline">' + esc(a.tone || a.role) + '</div>' +
+      '</div></div>';
+  }
+
+  // ── Four starting points (empty conversation) ───────────────────────
+  // Each sends a plain question through the normal chat (orvAiSend → POST
+  // /api/ai/chat): answered by the user's own assistant, charged like any
+  // message, shown in the conversation. The questions ask the assistant to
+  // say so when it has no data, so nothing is invented.
+  var STARTERS = [
+    { k: 'analyze', t: 'Analyze my campaigns', d: 'What’s working, what isn’t, what to change',
+      q: 'Analyze my campaigns: what’s working, what isn’t, and what should I change? Use only the data you actually have, and tell me if something is missing.',
+      ic: '<path d="M4 19V11M10 19V5M16 19v-6M20 19H3"/>' },
+    { k: 'improve', t: 'Improve my advertising', d: 'The most useful changes for my business',
+      q: 'How can I improve my advertising? Give me the three most useful changes for my business, based on what you know about it.',
+      ic: '<path d="M5 16 10 11l3 3 6-7"/><path d="M15 7h4v4"/>' },
+    { k: 'create', t: 'Create something new', d: 'An ad, a campaign or a fresh idea',
+      q: 'Help me create something new for my business: suggest a campaign or ad idea, then help me build it.',
+      ic: '<path d="M12 4.5v15M4.5 12h15"/>' },
+    { k: 'explain', t: 'Explain my performance', d: 'The numbers in plain language',
+      q: 'Explain my advertising performance in plain language: what the main numbers mean and how they are trending. If there is no performance data yet, say so and tell me how to get it.',
+      ic: '<circle cx="12" cy="12" r="8"/><path d="M12 11v5"/><path d="M12 8h.01"/>' },
+  ];
+  function renderStarters() {
+    var box = document.getElementById('orvAgentStarters'); if (!box) return;
+    var on = !!(S.agent && S.assigned);
+    box.hidden = !on;
+    if (!on) { box.innerHTML = ''; return; }
+    if (box.getAttribute('data-for') === S.agent.id && box.children.length) return;
+    box.setAttribute('data-for', S.agent.id);
+    box.innerHTML = '<div class="orv-agent-starters-h">Start with</div><div class="orv-agent-starters-grid">' + STARTERS.map(function (x) {
+      return '<button type="button" class="orv-agent-starter" data-starter="' + x.k + '">' +
+        '<span class="orv-agent-starter-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + x.ic + '</svg></span>' +
+        '<span class="orv-agent-starter-t">' + esc(x.t) + '</span><span class="orv-agent-starter-d">' + esc(x.d) + '</span></button>';
+    }).join('') + '</div>';
+    if (!box._bound) {
+      box._bound = true;
+      box.addEventListener('click', function (e) {
+        var b = e.target.closest && e.target.closest('[data-starter]'); if (!b || typeof window.orvAiSend !== 'function') return;
+        var x = STARTERS.filter(function (s) { return s.k === b.getAttribute('data-starter'); })[0];
+        if (x) window.orvAiSend(x.q);
+      });
+    }
+  }
+
+  // ── Composer: grows with the text; Send only when there is something to
+  // send, the assistant is chosen and no answer is on its way. ─────────
+  var busyNow = false;
+  function syncSend() {
+    var inp = document.getElementById('orvAiInput'), btn = document.getElementById('orvAiSendBtn'); if (!inp || !btn) return;
+    var locked = !!inp.disabled;
+    btn.disabled = locked || busyNow || !inp.value.trim();
+    btn.classList.toggle('is-loading', busyNow);
+    btn.setAttribute('aria-label', busyNow ? 'Sending…' : 'Send message');
+  }
+  function grow() {
+    var inp = document.getElementById('orvAiInput'); if (!inp) return;
+    inp.style.height = 'auto';
+    inp.style.height = Math.min(inp.scrollHeight + 2, 168) + 'px';
+  }
+  function bindComposer() {
+    var inp = document.getElementById('orvAiInput'); if (!inp || inp._orvAgentBound) return;
+    inp._orvAgentBound = true;
+    inp.addEventListener('input', function () { grow(); syncSend(); });
+    // A send (Enter, the button, a starter) clears the box from script:
+    // follow it on the next frame.
+    inp.addEventListener('keydown', function () { setTimeout(function () { grow(); syncSend(); }, 0); });
+    syncSend();
+  }
+  function busy(on, st) {
+    busyNow = !!on;
+    if (on) { setStatus('thinking'); where(); }
+    else if (st) setStatus(st);
+    else if (status === 'thinking') setStatus('ready');
+    setTimeout(function () { grow(); syncSend(); }, 0);
+  }
+
+  // ── The page the assistant knows you're on (sent as context.view) ───
+  function where() {
+    var el = document.getElementById('orvAgentWhere'); if (!el) return;
+    var v = window.orvAppNav && typeof window.orvAppNav.view === 'function' ? window.orvAppNav.view() : null;
+    var label = v && window.orvAppNav.viewLabel ? window.orvAppNav.viewLabel(v) : '';
+    el.hidden = !label;
+    el.innerHTML = label ? '<span class="orv-agent-where-dot" aria-hidden="true"></span>On ' + esc(label) : '';
+    el.title = label ? 'Your assistant knows which page you have open' : '';
   }
 
   // No assistant chosen yet: the widget doesn't wear the server's default
@@ -92,19 +201,23 @@
     var panel = document.getElementById('orvAiPanel');
     if (panel) {
       panel.classList.remove('orv-agent-on'); panel.removeAttribute('data-agent');
+      panel.style.removeProperty('--orv-agent'); panel.style.removeProperty('--orv-agent-rgb');
       panel.setAttribute('aria-label', 'Choose your OrivenAI assistant');
       var left = panel.querySelector('.orv-ai-panel-head-left');
       if (left) left.innerHTML = '<div class="orv-agent-id"><div class="orv-agent-id-text"><div class="orv-ai-panel-name">Your assistant</div><div class="orv-agent-role">Choose one to start</div></div></div>';
       var intro = document.getElementById('orvAgentIntro'); if (intro) intro.textContent = '';
+      var eb = document.getElementById('orvAgentEyebrow'); if (eb) eb.textContent = '';
       var div = panel.querySelector('.orv-ai-section-divider span'); if (div) div.textContent = 'Choose your assistant first';
       lockInput(true);
       renderPicker();
+      renderStarters();
     }
   }
   function lockInput(on) {
     var inp = document.getElementById('orvAiInput'), btn = document.getElementById('orvAiSendBtn');
     if (inp) { inp.disabled = on; if (on) inp.placeholder = 'Choose your assistant above to start chatting'; }
     if (btn) btn.disabled = on;
+    if (!on) syncSend();
   }
   // Sends (typed, or prefilled by "Ask" buttons) wait for the choice too.
   function guardSend() {
@@ -139,21 +252,26 @@
     if (panel) {
       vars(panel);
       panel.setAttribute('aria-label', a.name + ', your OrivenAI assistant');
-      var head = panel.querySelector('.orv-ai-panel-head'), cw = panel.querySelector('.orv-ai-ctx-wrap');
-      if (head && cw && !cw.classList.contains('orv-agent-ctx')) { cw.classList.add('orv-agent-ctx'); head.insertBefore(cw, head.firstChild); }
       var left = panel.querySelector('.orv-ai-panel-head-left');
-      if (left) left.innerHTML = '<div class="orv-agent-id">' + glyph(a.id, 'orv-agent-head-glyph') + '<div class="orv-agent-id-text"><div class="orv-ai-panel-name">' + esc(a.name) + '</div><div class="orv-agent-role">' + esc(a.role) + '</div></div></div>';
-      // The agent's short introduction, under the greeting (the line below it
-      // stays the recommendations' status).
+      if (left) left.innerHTML = headHtml(a);
+      setStatus(status);
+      // Welcome: the specialisation as an eyebrow, the time-of-day greeting
+      // (app.html), then the assistant's own opening line in its voice
+      // (server: agents.js hello; an older server's intro otherwise). It
+      // claims nothing about the user's data.
+      var eb = document.getElementById('orvAgentEyebrow'); if (eb) eb.textContent = a.role || '';
       var gt = document.getElementById('orvAiGreetingText');
       var intro = document.getElementById('orvAgentIntro');
       if (gt && !intro) { intro = document.createElement('p'); intro.id = 'orvAgentIntro'; intro.className = 'orv-agent-intro'; gt.parentNode.insertBefore(intro, gt.nextSibling); }
-      if (intro) intro.textContent = a.intro || '';
+      if (intro) intro.textContent = a.hello || a.intro || '';
       var div = panel.querySelector('.orv-ai-section-divider span');
       if (div) div.textContent = 'Ask ' + a.name;
       var inp = document.getElementById('orvAiInput');
-      if (inp) inp.placeholder = 'Ask ' + a.name + ' anything, or what to do…';
+      if (inp) inp.placeholder = 'Message ' + a.name + '…';
       renderPicker();
+      renderStarters();
+      where();
+      bindComposer();
     }
   }
 
@@ -191,16 +309,27 @@
   }
 
   // ── Replies: escaped text with light structure (paragraphs, lists, bold) ──
+  // Within a block, runs of bullet / numbered lines become lists, "#" lines
+  // short headings, other lines a paragraph. Everything is escaped first;
+  // only **bold**, `code` and the contact address get markup.
   function formatReply(text) {
     var blocks = String(text == null ? '' : text).replace(/\r/g, '').split(/\n{2,}/);
+    var bullet = /^\s*(?:[-•*])\s+/, num = /^\s*\d+[.)]\s+/, head = /^\s{0,3}#{1,4}\s+/;
+    var inline = function (s) { return esc(s).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/`([^`\n]+)`/g, '<code>$1</code>').replace(/contact@orivenai\.com/g, '<a href="mailto:contact@orivenai.com">contact@orivenai.com</a>'); };
     return blocks.map(function (b) {
       var lines = b.split('\n').filter(function (l) { return l.trim().length; });
-      if (!lines.length) return '';
-      var bullet = /^\s*(?:[-•*])\s+/, num = /^\s*\d+[.)]\s+/;
-      var inline = function (s) { return esc(s).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/contact@orivenai\.com/g, '<a href="mailto:contact@orivenai.com">contact@orivenai.com</a>'); };
-      if (lines.every(function (l) { return bullet.test(l); })) return '<ul>' + lines.map(function (l) { return '<li>' + inline(l.replace(bullet, '')) + '</li>'; }).join('') + '</ul>';
-      if (lines.every(function (l) { return num.test(l); })) return '<ol>' + lines.map(function (l) { return '<li>' + inline(l.replace(num, '')) + '</li>'; }).join('') + '</ol>';
-      return '<p>' + lines.map(inline).join('<br>') + '</p>';
+      var out = '', run = null, items = [], para = [];
+      var flushPara = function () { if (para.length) { out += '<p>' + para.map(inline).join('<br>') + '</p>'; para = []; } };
+      var flushList = function () { if (run) { out += '<' + run + '>' + items.map(function (x) { return '<li>' + inline(x) + '</li>'; }).join('') + '</' + run + '>'; run = null; items = []; } };
+      lines.forEach(function (l) {
+        var kind = bullet.test(l) ? 'ul' : num.test(l) ? 'ol' : head.test(l) ? 'h' : 'p';
+        if (kind === 'ul' || kind === 'ol') { flushPara(); if (run && run !== kind) flushList(); run = kind; items.push(l.replace(kind === 'ul' ? bullet : num, '')); return; }
+        flushList();
+        if (kind === 'h') { flushPara(); out += '<h4>' + inline(l.replace(head, '').replace(/\*\*/g, '')) + '</h4>'; return; }
+        para.push(l);
+      });
+      flushPara(); flushList();
+      return out;
     }).join('');
   }
 
@@ -350,12 +479,13 @@
   function forgetAll() {
     try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf(CHAT_KEY) === 0) localStorage.removeItem(k); }); } catch (_) {}
     S.restored = false; S.agent = null; S.loading = null; S.assigned = true; S.agents = []; S.forUid = null;
+    busyNow = false; status = 'ready';
     S.seq++; // an answer still on its way belongs to the account that signed out
     resetLook();
   }
 
-  window.orvAgent = { load: load, apply: apply, current: function () { return S.agent; }, choose: choose, formatReply: formatReply, renderResults: renderResults, historyText: historyText, record: record, restore: restore, clear: clear, forgetAll: forgetAll, openPage: openPage, glyph: glyph, hasPage: hasPage };
+  window.orvAgent = { load: load, apply: apply, current: function () { return S.agent; }, isChosen: function () { return !!(S.agent && S.assigned); }, choose: choose, formatReply: formatReply, renderResults: renderResults, historyText: historyText, record: record, restore: restore, clear: clear, forgetAll: forgetAll, openPage: openPage, glyph: glyph, hasPage: hasPage, busy: busy, where: where, status: function () { return status; } };
 
-  function start() { if (typeof apiFetch === 'function') load(); }
+  function start() { bindComposer(); if (typeof apiFetch === 'function') load(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(start, 400); }); else setTimeout(start, 400);
 })();

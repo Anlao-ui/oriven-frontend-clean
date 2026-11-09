@@ -495,7 +495,9 @@
     var running = (S.reports || []).filter(function (r) { return r.status === 'running'; })[0];
     var n = S.question.length;
     var st = function (n2, label, forId) { return '<div class="rx-stepl"><span class="rx-stepn" aria-hidden="true">' + n2 + '</span>' + (forId ? '<label class="rx-lbl" for="' + forId + '">' + esc(label) + '</label>' : '<span class="rx-lbl">' + esc(label) + '</span>') + '</div>'; };
-    return '<header class="rx-head"><h1 class="rx-title">' + esc(T('title')) + '</h1><p class="rx-sub">' + esc(T('subtitle')) + '</p></header>' +
+    return '<header class="rx-head"><h1 class="rx-title">' + esc(T('title')) + '</h1><p class="rx-sub">' + esc(T('subtitle')) + '</p>' +
+      // Competitor Analysis lives under Research (not in the sidebar).
+      '<a class="orv-related" href="/app?view=competitors" data-orv-go="competitor-analysis"><span class="orv-related__l">Your competitors</span><b>Competitor Analysis</b><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></header>' +
       (running ? '<div class="rx-banner" role="status"><span class="rx-pulse" aria-hidden="true"></span><span>' + esc(T('runningBanner', { t: running.title })) + '</span><button type="button" class="rx-btn rx-btn-ghost" data-rx="progress" data-id="' + esc(running.id) + '">' + esc(T('viewProgress')) + '</button></div>' : '') +
       '<div class="rx-home rx-ws"><form class="rx-card rx-form rx-composer" data-rx-form="1" novalidate>' +
         '<fieldset class="rx-fs">' + '<legend class="rx-sr">' + esc(T('typeLabel')) + '</legend>' + st(1, T('stepDir')) + typeCards() + '</fieldset>' +

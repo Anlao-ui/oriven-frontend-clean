@@ -14,9 +14,11 @@
 <meta name="color-scheme" content="dark">
 <style>html{background:#0A0A0A;color-scheme:dark}</style>
 <title>ORIVEN AI</title>
-<link rel="icon" href="assets/favicon-48.png" type="image/png" sizes="48x48">
-<link rel="shortcut icon" href="assets/favicon-48.png">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/assets/favicon-48.png" type="image/png" sizes="48x48">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/orivenWorkspace.css">
@@ -36,6 +38,7 @@
 <link rel="stylesheet" href="css/app-nav.css">
 <!-- The personal assistant's look (js/orivenAgent.js): the user's agent colour on the launcher and popup. -->
 <link rel="stylesheet" href="css/oriven-agent.css">
+<link rel="stylesheet" href="css/assistant-panel.css">
 <link rel="stylesheet" href="css/plan-pages.css">
 <link rel="stylesheet" href="css/insights.css">
 <link rel="stylesheet" href="css/growth-pages.css">
@@ -404,6 +407,8 @@
       <div class="camp-shell-hdr">
         <h1 class="camp-shell-title">Campaigns</h1>
         <p class="orv-page-sub" data-i18n="cmp_pageSub">Monitor campaign performance, track key metrics and manage your advertising across platforms.</p>
+        <!-- Campaign Builder lives under Campaigns (not in the sidebar). -->
+        <a class="orv-related" href="/app?view=builder" data-orv-go="campaign-builder"><span class="orv-related__l">Edit a campaign</span><b>Campaign Builder</b><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       </div>
       <!-- Campaigns UX/UI Simplification & Consolidation sprint — Overview,
            Live Campaigns and Insights are no longer three destinations the
@@ -482,6 +487,8 @@
         <div class="cr2-hero cf-hero">
           <h1 class="cr2-h1" id="cfTitle">Create an ad</h1>
           <p class="cf-hero-sub" id="cfSubtitle">Answer a few simple questions. We’ll write the ad for you.</p>
+          <!-- My Content lives under Create (not in the sidebar). -->
+          <a class="orv-related" href="/app?view=content" data-orv-go="my-content"><span class="orv-related__l">Everything you’ve made</span><b>My Content</b><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         </div>
 
         <div class="cr2-biz-row" id="orvLaunchBizRow" style="display:none"></div>
@@ -5847,11 +5854,15 @@
 </div><!-- /mc -->
 
   <!-- ══ AI ASSISTANT PANEL ════════════════════════════════════ -->
+  <!-- The personal assistant (js/orivenAgent.js fills in who it is, from the
+       server's GET /api/agent): header with its mark, name, status and
+       tagline; the conversation; a welcome with four starting points while
+       the conversation is empty; the composer at the bottom. Sending always
+       goes through orvAiSend() → POST /api/ai/chat (credits checked there). -->
   <aside class="orv-ai-panel" id="orvAiPanel" aria-label="Your OrivenAI assistant" aria-hidden="true">
     <div class="orv-ai-panel-head">
       <div class="orv-ai-panel-head-left">
-        <div class="orv-ai-panel-name">Your assistant</div>
-        <div class="orv-ai-panel-status"><span class="orv-ai-online-dot"></span>AI help for your advertising</div>
+        <div class="orv-agent-id"><div class="orv-agent-id-text"><div class="orv-ai-panel-name">Your assistant</div></div></div>
       </div>
       <div class="orv-ai-panel-head-right">
         <!-- Context indicator (Continuity discoverability pass) — a real,
@@ -5864,7 +5875,7 @@
              called from orvOpenAi() alongside the existing greeting/recs
              calls, synchronously (no network wait). -->
         <div class="orv-ai-ctx-wrap">
-          <button type="button" class="orv-ai-ctx-badge" id="orvAiCtxBadge" aria-haspopup="true" aria-expanded="false" onclick="_orvAiToggleCtxPopover()">
+          <button type="button" class="orv-ai-ctx-badge" id="orvAiCtxBadge" aria-label="Context: what your assistant knows" aria-haspopup="true" aria-expanded="false" onclick="_orvAiToggleCtxPopover()">
             <span class="orv-ai-ctx-dot" aria-hidden="true"></span>
             <span>Context</span>
           </button>
@@ -5884,32 +5895,37 @@
       </div>
     </div>
 
-    <div class="orv-ai-feed" id="orvAiFeed">
+    <div class="orv-ai-feed" id="orvAiFeed" role="log" aria-live="polite" aria-relevant="additions">
       <div class="orv-ai-greeting" id="orvAiGreeting">
-        <div class="orv-ai-greeting-text" id="orvAiGreetingText">Good morning.</div>
-        <div class="orv-ai-greeting-sub" id="orvAiGreetingSub">Here's what I found today.</div>
+        <div class="orv-agent-eyebrow" id="orvAgentEyebrow"></div>
+        <div class="orv-ai-greeting-text" id="orvAiGreetingText">Hello.</div>
+        <!-- Status line for the real recommendations below; empty until
+             they have actually been checked (never claims a finding first). -->
+        <div class="orv-ai-greeting-sub" id="orvAiGreetingSub"></div>
         <!-- Populated only from real data (/api/intelligence/home) by
              _orvAiLoadRecs() — see script below. Never any hardcoded
              recommendation content here; empty/hidden when there's
              genuinely nothing to report. -->
         <div class="orv-ai-rec-list" id="orvAiRecList" style="display:none"></div>
-        <!-- Per-page suggested prompts (Floating Assistant pass) — static,
-             honest example questions matched to whichever page is open
-             (window.orvContext.page, the same real page-tracking the chat
-             request payload already sends), never presented as a
-             personalized finding the way the real recs above are. Clicking
-             one just sends that text via orvAiSend(), the same as typing
-             it — no separate action pipeline. -->
+        <!-- Four starting points (js/orivenAgent.js renderStarters): each
+             sends its question through orvAiSend(), like typing it. -->
+        <div class="orv-agent-starters" id="orvAgentStarters" hidden></div>
+        <!-- Questions for the page that is open (ORV_AI_SUGGESTED_PROMPTS,
+             keyed by the sidebar page): plain examples, never a finding. -->
         <div class="orv-ai-suggest-list" id="orvAiSuggestList" style="display:none"></div>
-        <div class="orv-ai-section-divider"><span>Ask Oriven</span></div>
       </div>
     </div>
 
     <div class="orv-ai-input-wrap">
-      <textarea class="orv-ai-input" id="orvAiInput" placeholder="Ask your assistant anything…" rows="1" onkeydown="orvAiKeydown(event)"></textarea>
-      <button class="orv-ai-send" id="orvAiSendBtn" onclick="orvAiSend()">
-        <svg viewBox="0 0 16 16" fill="currentColor" width="13" height="13"><path d="M14.5 7.5L1.5 1 4 8l-2.5 7 13-7.5z"/></svg>
-      </button>
+      <div class="orv-agent-composer">
+        <label class="orv-sr-only" for="orvAiInput">Message your assistant</label>
+        <textarea class="orv-ai-input" id="orvAiInput" placeholder="Ask your assistant anything…" rows="1" onkeydown="orvAiKeydown(event)"></textarea>
+        <button class="orv-ai-send" id="orvAiSendBtn" onclick="orvAiSend()" aria-label="Send message" title="Send (Enter)">
+          <svg class="orv-agent-send-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="M8 13V3.5M3.8 7.6 8 3.4l4.2 4.2"/></svg>
+          <span class="orv-agent-send-spin" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="orv-agent-meta"><span class="orv-agent-where" id="orvAgentWhere" hidden></span><span class="orv-agent-hint" id="orvAgentHint">Enter to send · Shift + Enter for a new line</span></div>
     </div>
   </aside>
 
@@ -13359,7 +13375,13 @@ window._launchRepaint = function(){
 
   function _orvAiRefreshGreeting(){
     var gt = document.getElementById('orvAiGreetingText');
-    if (gt) gt.textContent = _orvAiTimeGreeting();
+    if (!gt) return;
+    // "Good evening, Alexandra." — the first name the sidebar shows (never
+    // the surname, the email or the workspace name).
+    var first = '';
+    try { first = (typeof window.orvAppNavFirstName === 'function' ? window.orvAppNavFirstName() : '') || ''; } catch (_) { first = ''; }
+    var base = _orvAiTimeGreeting();
+    gt.textContent = (first && !/@|oriven/i.test(first)) ? base.replace(/\.$/, ', ' + first + '.') : base;
   }
 
   /* ── Context indicator (Continuity discoverability pass) ────────────────
@@ -13449,7 +13471,8 @@ window._launchRepaint = function(){
       if(sub) sub.textContent = 'Nothing to flag right now.';
       return;
     }
-    if(sub) sub.textContent = cards._fromWorkspace ? 'Here’s what needs you right now.' : "Here's what I found today.";
+    // A neutral heading: a card can also be "nothing to analyse yet".
+    if(sub) sub.textContent = cards._fromWorkspace ? 'Needs you now' : 'Worth a look';
     list.style.display = '';
     list.innerHTML = cards.map(function(c, i){
       return '<div class="orv-ai-rec-card orv-ai-rec-stagger" style="--i:' + i + '">' +
@@ -13473,7 +13496,24 @@ window._launchRepaint = function(){
     performance:  ['Explain this CTR', 'What does this metric mean?', 'Summarize this campaign'],
     autopilot:    ['Help me create an automation', 'Explain this rule', 'What does approval mode mean?'],
     businessbrain:['Help me define my audience', 'Improve my brand context', 'What information is missing?'],
-    dashboard:    ['What needs my attention?', 'Explain what I am seeing']
+    dashboard:    ['What needs my attention?', 'Explain what I am seeing'],
+    /* Sidebar pages (window.orvAppNav.view()): checked first, so each page
+       gets its own questions even where several share one product key. */
+    plan:         ['What should I focus on this week?', 'Explain the priorities in my plan', 'Help me with my next task'],
+    progress:     ['Which task should I do next?', 'Help me finish my current task'],
+    insights:     ['Which finding should I act on first?', 'Turn an insight into an ad idea'],
+    competitors:  ['How can I stand out from my competitors?', 'What should I research about my competitors?'],
+    content:      ['How can I reuse what I made?', 'Which content should I make next?'],
+    testing:      ['What should I test first?', 'How do I read a creative test?'],
+    adstudio:     ['What should I check before launching?', 'Why can a campaign be blocked?'],
+    audiences:    ['Help me define my best audience', 'Which audience should I target first?'],
+    overview:     ['Which campaign needs attention?', 'What do CTR and CPA tell me?'],
+    builder:      ['What should I change in this campaign?', 'How do I improve my ad text?'],
+    compare:      ['How do I compare two campaigns fairly?', 'Which result matters most?'],
+    'auto-overview':  ['What could I automate?', 'How do automations work here?'],
+    'auto-scheduler': ['When should my campaigns run?', 'Help me plan a schedule'],
+    'auto-rules':     ['Help me create a safe rule', 'What does approval mode mean?'],
+    'auto-activity':  ['Explain what my automations did']
   };
   function _orvAiRenderSuggestedPrompts(){
     var wrap = document.getElementById('orvAiSuggestList');
@@ -13486,10 +13526,16 @@ window._launchRepaint = function(){
     // Real-state prompts first (a named campaign, an actual blocker, a
     // pending approval), then this page's generic examples.
     var dynamic = (window.orvWorkspace && orvWorkspace.chat) ? orvWorkspace.chat.prompts(currentPage) : [];
-    var prompts = dynamic.concat(ORV_AI_SUGGESTED_PROMPTS[currentPage] || []).slice(0, 3);
+    // The exact sidebar page first (Marketing Plan, Audience Builder, …),
+    // then the product-level list.
+    var view = (window.orvAppNav && typeof orvAppNav.view === 'function') ? orvAppNav.view() : null;
+    var own = (view && Object.prototype.hasOwnProperty.call(ORV_AI_SUGGESTED_PROMPTS, view)) ? ORV_AI_SUGGESTED_PROMPTS[view] : (Object.prototype.hasOwnProperty.call(ORV_AI_SUGGESTED_PROMPTS, currentPage) ? ORV_AI_SUGGESTED_PROMPTS[currentPage] : []);
+    var prompts = dynamic.concat(own).slice(0, 3);
+    if(window.orvAgent && orvAgent.where) orvAgent.where();
     if(!prompts || !prompts.length){ wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+    var viewName = (view && window.orvAppNav && orvAppNav.viewLabel) ? orvAppNav.viewLabel(view) : '';
     wrap.style.display = '';
-    wrap.innerHTML = '<div class="orv-ai-suggest-hd">Try asking</div>' +
+    wrap.innerHTML = '<div class="orv-ai-suggest-hd">' + (viewName ? 'On ' + _prfEsc(viewName) : 'Try asking') + '</div>' +
       prompts.map(function(p){
         // Single-quoted JS string literal inside the double-quoted onclick
         // attribute (this file's established pattern, e.g. _cr2Plat(this,
@@ -13711,9 +13757,11 @@ window._launchRepaint = function(){
 
     /* Add typing indicator — Oriven 1.0 (V4): contextual instead of a bare
        "…", using whatever orvContext already has, never invented. */
-    var _typingMsg = oc.review ? 'Reviewing your campaign…' : (oc.campaign && oc.campaign.campaignName) ? ('Analysing ' + _escHtml(oc.campaign.campaignName) + '…') : 'Thinking…';
+    var _thinker = (window.orvAgent && orvAgent.current() && orvAgent.isChosen()) ? orvAgent.current().name : '';
+    var _typingMsg = oc.review ? 'Reviewing your campaign…' : (oc.campaign && oc.campaign.campaignName) ? ('Analysing ' + _escHtml(oc.campaign.campaignName) + '…') : (_thinker ? _escHtml(_thinker) + ' is thinking…' : 'Thinking…');
     var typingDiv = document.createElement('div');
-    typingDiv.className = 'orv-ai-msg orv-ai-msg-ai';
+    typingDiv.className = 'orv-ai-msg orv-ai-msg-ai orv-agent-typing';
+    typingDiv.setAttribute('role', 'status');
     typingDiv.innerHTML = '<div class="orv-ai-msg-bubble"><div class="orv-ai-thinking-dots"><span></span><span></span><span></span></div> ' + _typingMsg + '</div>';
     feed.appendChild(typingDiv);
     feed.scrollTop = feed.scrollHeight;
@@ -13721,6 +13769,7 @@ window._launchRepaint = function(){
     _orvAiLoading = true;
     var sendBtn = document.getElementById('orvAiSendBtn');
     if(sendBtn) sendBtn.disabled = true;
+    if(window.orvAgent && orvAgent.busy) orvAgent.busy(true);
 
     /* Pre-flight credit check — AI Chat costs CREDIT_COSTS.chat (5) per
        message. gateUsage() both checks the cached balance and (if allowed)
@@ -13738,12 +13787,20 @@ window._launchRepaint = function(){
         if(inp) inp.value = msg;
         _orvAiLoading = false;
         if(sendBtn) sendBtn.disabled = false;
+        if(window.orvAgent && orvAgent.busy) orvAgent.busy(false);
+        /* Nothing was sent: if the conversation is still empty, bring the
+           welcome back (it was faded out optimistically above). */
+        if(greeting && !feed.querySelector('.orv-ai-msg')){ setTimeout(function(){ greeting.style.display = ''; greeting.style.opacity = '1'; }, 220); }
         return;
       }
     }
 
     var ctx = {
       page: oc.page || _orvAiCurrentPage,
+      /* The exact page open (a sidebar page id, e.g. 'plan', 'audiences').
+         Only where the user is — no data. The server uses it only if it is
+         on its own list (services/chatViews.js); it never picks the assistant. */
+      view: (window.orvAppNav && typeof orvAppNav.view === 'function') ? orvAppNav.view() : null,
       googleAccount: window._activeAdAccount ? window._activeAdAccount.account_name : null,
       metaAccount: window._activeMetaAccount ? window._activeMetaAccount.account_name : null,
       /* Set by admOpenCampPanel/admCloseCampPanel/_renderAiReview via
@@ -13869,9 +13926,11 @@ window._launchRepaint = function(){
     }).catch(function(){
       typingDiv.remove();
       feed.appendChild(_retryRow(_agentName + ' couldn’t be reached. Check your connection.'));
+      if(window.orvAgent && orvAgent.busy) orvAgent.busy(false, 'offline');
     }).finally(function(){
       _orvAiLoading = false;
       if(sendBtn) sendBtn.disabled = false;
+      if(window.orvAgent && orvAgent.busy) orvAgent.busy(false);
       feed.scrollTop = feed.scrollHeight;
     });
   };

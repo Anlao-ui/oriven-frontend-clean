@@ -76,11 +76,13 @@
     { id: 'rs', n: '02', name: 'Research', items: [
       { id: 'research', label: 'Research', icon: 'research', go: page('research', 'page-research') },
       { id: 'insights', label: 'Insights', icon: 'insights', go: function () { if (window.orvInsights) window.orvInsights.open(); } },
-      { id: 'competitors', label: 'Competitor Analysis', icon: 'competitors', go: function () { if (window.orvCompetitors) window.orvCompetitors.open(); } },
+      // Not in the sidebar (kept short): opened from Research, plan tasks, the assistant and /app?view=competitors.
+      { id: 'competitors', label: 'Competitor Analysis', icon: 'competitors', hidden: true, parent: 'research', go: function () { if (window.orvCompetitors) window.orvCompetitors.open(); } },
     ] },
     { id: 'cr', n: '03', name: 'Create', items: [
       { id: 'create', label: 'Create', icon: 'create', go: page('create', 'page-create') },
-      { id: 'content', label: 'My Content', icon: 'content', go: function () { if (window.orvMyContent) window.orvMyContent.open(); } },
+      // Not in the sidebar: opened from Create, Creative Testing and the assistant.
+      { id: 'content', label: 'My Content', icon: 'content', hidden: true, parent: 'create', go: function () { if (window.orvMyContent) window.orvMyContent.open(); } },
       { id: 'testing', label: 'Creative Testing', icon: 'testing', go: function () { if (window.orvCreativeTesting) window.orvCreativeTesting.open(); } },
     ] },
     { id: 'la', n: '04', name: 'Launch', items: [
@@ -89,7 +91,8 @@
     ] },
     { id: 'ca', n: '05', name: 'Campaigns', items: [
       { id: 'overview', label: 'Campaign Overview', icon: 'overview', go: page('performance', 'page-performance') },
-      { id: 'builder', label: 'Campaign Builder', icon: 'builder', go: function () { openPanel('builder'); } },
+      // Not in the sidebar: opened from Campaign Overview, Audience Builder and the assistant.
+      { id: 'builder', label: 'Campaign Builder', icon: 'builder', hidden: true, parent: 'overview', go: function () { openPanel('builder'); } },
       { id: 'compare', label: 'Campaign Comparison', icon: 'compare', go: function () { if (window.orvCampaignComparison) window.orvCampaignComparison.open(); } },
     ] },
     { id: 'au', n: '06', name: 'Automations', items: [
@@ -100,7 +103,10 @@
     ] },
   ];
   var ITEMS = {}, SECTION_OF = {};
-  SECTIONS.forEach(function (s) { s.items.forEach(function (it, i) { ITEMS[it.id] = it; SECTION_OF[it.id] = s; it.index = i; }); });
+  // Every page keeps its id (orvPages, /app?view=, the assistant open them);
+  // hidden ones aren't drawn, and their parent item is marked while they're open.
+  SECTIONS.forEach(function (s) { var v = 0; s.shown = s.items.filter(function (it) { return !it.hidden; }); s.items.forEach(function (it) { ITEMS[it.id] = it; SECTION_OF[it.id] = s; it.index = it.hidden ? -1 : v++; }); });
+  function navTarget(id) { var it = id && ITEMS[id]; return it && it.hidden && it.parent ? it.parent : id; }
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
@@ -134,7 +140,7 @@
         // A heading, not a control: no link, no button, no hover.
         '<h2 class="onv-sec__h" id="onvH-' + where + '-' + s.id + '"><span class="onv-sec__n" aria-hidden="true">' + s.n + '</span><span class="onv-sec__t" data-onv-t="' + esc(s.name) + '">' + esc(tr(s.name)) + '</span></h2>' +
         '<div class="onv-route" aria-hidden="true"><i></i></div>' +
-        '<ul class="onv-list">' + s.items.map(function (it) {
+        '<ul class="onv-list">' + s.shown.map(function (it) {
           return '<li><button type="button" class="onv-item' + (it.dev ? ' is-dev' : '') + '" data-onv="' + it.id + '" title="' + esc(tr(it.label)) + '">' +
             '<span class="onv-ic">' + svg(it.icon) + '</span><span class="onv-lbl" data-onv-t="' + esc(it.label) + '">' + esc(tr(it.label)) + '</span>' +
             (it.dev ? '<span class="onv-dev" aria-label="in development">Soon</span>' : '') + '</button></li>';
@@ -248,6 +254,9 @@
   }
   // Settings → Account saved a new name.
   window.orvAppNavSetFirstName = function (n) { NAME.first = String(n || ''); paintAccount(); };
+  // The signed-in person's first name, or '' when unknown (never the
+  // "Your account" placeholder): the assistant's greeting uses it.
+  window.orvAppNavFirstName = function () { var u = typeof window._getCurrentUser === 'function' ? window._getCurrentUser() : null; return firstName(u); };
   function paintAccount() {
     var planEl = document.getElementById('sbPlanLabel');
     var u = typeof window._getCurrentUser === 'function' ? window._getCurrentUser() : null;
@@ -472,8 +481,9 @@
     var onPlatforms = !!(pgAct && pgAct.id === 'page-business-brain' && (typeof window._bizActiveTab === 'string' ? window._bizActiveTab : (typeof _bizActiveTab !== 'undefined' ? _bizActiveTab : '')) === 'connections');
     document.querySelectorAll('.onv-foot [data-onv-foot="platforms"]').forEach(function (b) { b.classList.toggle('is-on', onPlatforms); if (onPlatforms) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     S.roots.forEach(function (root) {
+      var shownId = navTarget(id);
       root.querySelectorAll('.onv-item').forEach(function (b) {
-        var on = b.getAttribute('data-onv') === id;
+        var on = b.getAttribute('data-onv') === shownId;
         b.classList.toggle('is-on', on);
         if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
       });
@@ -481,7 +491,7 @@
         var active = !!sec && s.getAttribute('data-sec') === sec.id;
         s.classList.toggle('is-active', active);
         // the route line fills down to the open page
-        var fill = active ? (ITEMS[id].index + 0.5) / sec.items.length : 0;
+        var fill = active ? (ITEMS[navTarget(id)].index + 0.5) / sec.shown.length : 0;
         var bar = s.querySelector('.onv-route i'); if (bar) bar.style.setProperty('--fill', fill.toFixed(3));
       });
     });
@@ -491,7 +501,7 @@
       S.roots.forEach(function (root) { var b = root.querySelector('.onv-item.is-on'); if (b && b.scrollIntoView && root.closest('.orv-sb')) { try { b.scrollIntoView({ block: 'nearest' }); } catch (_) {} } });
       if (id) {
         // one-shot icon motion on the newly opened page (the page itself enters with the app's own orvPageIn)
-        S.roots.forEach(function (root) { var b = root.querySelector('.onv-item[data-onv="' + id + '"]'); if (b) { b.classList.remove('is-just'); void b.offsetWidth; b.classList.add('is-just'); } });
+        S.roots.forEach(function (root) { var b = root.querySelector('.onv-item[data-onv="' + navTarget(id) + '"]'); if (b) { b.classList.remove('is-just'); void b.offsetWidth; b.classList.add('is-just'); } });
         clearTimeout(S.justTimer);
         S.justTimer = setTimeout(function () { document.querySelectorAll('.onv-item.is-just').forEach(function (b) { b.classList.remove('is-just'); }); }, 900);
       }
@@ -530,7 +540,17 @@
     watch();
     sync();
   }
-  window.orvAppNav = { go: go, sync: sync, sections: SECTIONS, _detect: detect, _history: H };
+  // The page open now, as a sidebar id ('plan', 'audiences', … or 'platforms'),
+  // and its label: the assistant sends the id as context.view (the server
+  // checks it against its own list) and shows the label.
+  function view() {
+    var id = detect(); if (id) return id;
+    var pg = document.querySelector('.page.active');
+    var tab = typeof window._bizActiveTab === 'string' ? window._bizActiveTab : (typeof _bizActiveTab !== 'undefined' ? _bizActiveTab : '');
+    return pg && pg.id === 'page-business-brain' && tab === 'connections' ? 'platforms' : null;
+  }
+  function viewLabel(id) { return id === 'platforms' ? tr('Ad Platforms') : (ITEMS[id] ? tr(ITEMS[id].label) : ''); }
+  window.orvAppNav = { go: go, sync: sync, sections: SECTIONS, view: view, viewLabel: viewLabel, _detect: detect, _history: H };
   window.orvAppNavSync = schedule;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

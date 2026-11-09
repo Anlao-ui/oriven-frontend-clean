@@ -136,9 +136,9 @@ async function signIn(page, url) {
 const PAGES = [
   ['dashboard', 'Control Center', 'page-business-brain'], ['plan', 'Control Center', 'page-marketing-plan'], ['progress', 'Control Center', 'page-progress'],
   ['research', 'Research', 'page-research'], ['insights', 'Research', 'page-insights'],
-  ['create', 'Create', 'page-create'], ['content', 'Create', 'page-my-content'],
+  ['create', 'Create', 'page-create'],
   ['adstudio', 'Launch', 'page-launch'],
-  ['overview', 'Campaigns', 'page-performance'], ['builder', 'Campaigns', 'page-orv-panel'],
+  ['overview', 'Campaigns', 'page-performance'],
   ['auto-overview', 'Automations', 'page-autopilot'], ['auto-scheduler', 'Automations', 'page-autopilot'], ['auto-rules', 'Automations', 'page-autopilot'], ['auto-activity', 'Automations', 'page-autopilot'],
 ];
 
@@ -161,9 +161,10 @@ const server = app.listen(PORT, async () => {
         icons: Array.from(root.querySelectorAll('.onv-item')).map((b) => b.querySelector('.onv-ic svg') && b.querySelector('.onv-ic svg').children.length) };
     });
     check('1.1 exactly six sections in order: Control Center, Research, Create, Launch, Campaigns, Automations', JSON.stringify(st.secs.map((s) => s.h)) === '["Control Center","Research","Create","Launch","Campaigns","Automations"]', st.secs.map((s) => s.h));
-    check('1.2 the pages under each heading match the agreed structure', JSON.stringify(st.secs.map((s) => s.items)) === JSON.stringify([['Dashboard', 'Marketing Plan', 'Progress'], ['Research', 'Insights', 'Competitor Analysis'], ['Create', 'My Content', 'Creative Testing'], ['Ad Studio', 'Audience Builder'], ['Campaign Overview', 'Campaign Builder', 'Campaign Comparison'], ['Overview', 'Scheduler', 'Rules', 'Activity']]), st.secs.map((s) => s.items));
+    check('1.2 the pages under each heading match the agreed structure', JSON.stringify(st.secs.map((s) => s.items)) === JSON.stringify([['Dashboard', 'Marketing Plan', 'Progress'], ['Research', 'Insights'], ['Create', 'Creative Testing'], ['Ad Studio', 'Audience Builder'], ['Campaign Overview', 'Campaign Comparison'], ['Overview', 'Scheduler', 'Rules', 'Activity']]), st.secs.map((s) => s.items));
     check('1.3 section names are headings (h2), not links or buttons, with no pointer cursor', st.secs.every((s) => s.tag === 'H2') && !st.headClickable && st.cursor === 'default' && st.pe === 'none');
-    check('1.4 every page has its own icon', st.icons.length === 18 && st.icons.every((n) => n >= 1), st.icons);
+    check('1.4 every page has its own icon', st.icons.length === 15 && st.icons.every((n) => n >= 1), st.icons);
+    check('1.4b Competitor Analysis, My Content and Campaign Builder are no longer sidebar entries', !(await page.evaluate(() => /Competitor Analysis|My Content|Campaign Builder/.test(document.querySelector('.orv-sb .onv').textContent) || !!document.querySelector('.onv-item[data-onv="competitors"], .onv-item[data-onv="content"], .onv-item[data-onv="builder"]'))));
     check('1.5 no Analytics or Tasks entry, no seventh section', !(await page.evaluate(() => /Analytics|Tasks/.test(document.querySelector('.orv-sb .onv').textContent))) && st.secs.length === 6);
     check('1.6 the existing account is not sent into any onboarding (no overlay, no tour)', !(await page.$('#onx')) && !(await page.evaluate(() => window.__tourOpened)));
     const sb = await page.evaluate(() => ({ btn: !!document.querySelector('.onv-collapse, [aria-label*="ollapse"]'), cls: document.querySelector('.orv-sb').classList.contains('onv-collapsed'), w: Math.round(document.querySelector('.orv-sb').getBoundingClientRect().width) }));
@@ -227,7 +228,7 @@ const server = app.listen(PORT, async () => {
       if (['dashboard', 'insights', 'progress', 'builder', 'auto-rules', 'adstudio'].includes(id)) await page.screenshot({ path: path.join(SHOTS, id + '-1440.png') });
     }
     const badHl = res.filter((r) => r.on.length !== 1 || r.on[0] !== r.id || r.page !== r.pid || r.secOn[0] !== r.sec || r.aria !== 'page');
-    check('2.1 all 18 links open their page; exactly one item highlighted, aria-current set, its section marked active', !badHl.length, badHl);
+    check('2.1 all 15 links open their page; exactly one item highlighted, aria-current set, its section marked active', !badHl.length, badHl);
     check('2.2 no top context bar on any page (no section/page line, description, divider or "Next" buttons): pages start with their own content', res.every((r) => !r.bar && !/onv-ctx/.test(String(r.first))), res.filter((r) => r.bar).map((r) => r.id));
     check('2.3 each Automations link opens its own page (Overview, Scheduler, Rules, Activity), headed by its own name, with no tab strip repeating the sidebar', ['overview', 'scheduler', 'rules', 'activity'].every((t) => { const r = res.find((x) => x.id === 'auto-' + t) || {}; return r.atmTab === t && r.atmTabs === 0 && r.atmH1 === t.charAt(0).toUpperCase() + t.slice(1); }), res.filter((r) => r.id.startsWith('auto')).map((r) => [r.id, r.atmTab, r.atmH1, r.atmTabs]));
     await page.click('.orv-sb .onv-item[data-onv="plan"]'); await page.waitForTimeout(600);
@@ -244,14 +245,28 @@ const server = app.listen(PORT, async () => {
     check('2.5 Insights is its own page with the saved research (real reports, no research form)', ins.h === 'Insights' && ins.lib && !ins.form, ins);
     await page.click('#insRoot [data-ins="new"]'); await page.waitForTimeout(500);
     check('2.6 "New research" from Insights goes to the Research form and the highlight follows', await page.isVisible('#researchQueryInput') && await page.evaluate(() => document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'research'));
-    await page.click('.orv-sb .onv-item[data-onv="content"]'); await page.waitForTimeout(600);
-    const mcx = await page.evaluate(() => ({ soon: /Soon/i.test(document.querySelector('.orv-sb .onv-item[data-onv="content"]').textContent), page: document.querySelector('.page.active').id, h1: (document.querySelector('#mclRoot h1') || {}).textContent, empty: !!document.querySelector('#mclRoot .mcl-empty[data-state="empty"]') }));
-    check('2.7 My Content is a real page (no "Soon" badge); this account has nothing saved: an empty state, no sample content', !mcx.soon && mcx.page === 'page-my-content' && mcx.h1 === 'My Content' && mcx.empty, mcx);
-    await page.click('.orv-sb .onv-item[data-onv="builder"]'); await page.waitForTimeout(400);
-    const cb = await page.evaluate(() => ({ rows: Array.from(document.querySelectorAll('.onv-cb__list li b')).map((b) => b.textContent) }));
-    check('2.8 Campaign Builder lists the account’s real campaigns to open', JSON.stringify(cb.rows) === '["Spring candles — Meta"]', cb);
+    // The three pages that left the sidebar are still reachable from their parent page.
+    await page.click('.orv-sb .onv-item[data-onv="research"]'); await page.waitForTimeout(500);
+    await page.screenshot({ path: path.join(SHOTS, 'related-research-1440.png'), clip: { x: 264, y: 0, width: 1176, height: 300 } });
+    check('2.6b Research links to Competitor Analysis', await page.isVisible('#page-research a.orv-related[data-orv-go="competitor-analysis"]'));
+    await page.click('#page-research a.orv-related[data-orv-go="competitor-analysis"]'); await page.waitForTimeout(600);
+    const cax = await page.evaluate(() => ({ page: document.querySelector('.page.active').id, on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv, url: location.pathname + location.search }));
+    check('2.6c …which opens Competitor Analysis in the app (own address); Research stays highlighted', cax.page === 'page-competitor-analysis' && cax.on === 'research' && cax.url === '/app?view=competitors', cax);
+    await page.click('.orv-sb .onv-item[data-onv="create"]'); await page.waitForTimeout(700);
+    await page.screenshot({ path: path.join(SHOTS, 'related-create-1440.png'), clip: { x: 264, y: 0, width: 1176, height: 300 } });
+    check('2.7a Create links to My Content', await page.isVisible('#page-create a.orv-related[data-orv-go="my-content"]'));
+    await page.click('#page-create a.orv-related[data-orv-go="my-content"]'); await page.waitForTimeout(600);
+    const mcx = await page.evaluate(() => ({ on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv, page: document.querySelector('.page.active').id, h1: (document.querySelector('#mclRoot h1') || {}).textContent, empty: !!document.querySelector('#mclRoot .mcl-empty[data-state="empty"]') }));
+    check('2.7 My Content is still a real page; this account has nothing saved: an empty state, no sample content; Create stays highlighted', mcx.page === 'page-my-content' && mcx.h1 === 'My Content' && mcx.empty && mcx.on === 'create', mcx);
+    await page.click('.orv-sb .onv-item[data-onv="overview"]'); await page.waitForTimeout(600);
+    check('2.8a Campaign Overview links to Campaign Builder', await page.isVisible('#orvHubTabsCampaigns a.orv-related[data-orv-go="campaign-builder"]'));
+    await page.click('#orvHubTabsCampaigns a.orv-related[data-orv-go="campaign-builder"]'); await page.waitForTimeout(500);
+    const cb = await page.evaluate(() => ({ rows: Array.from(document.querySelectorAll('.onv-cb__list li b')).map((b) => b.textContent), on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv }));
+    check('2.8 Campaign Builder lists the account’s real campaigns to open; Campaign Overview stays highlighted', JSON.stringify(cb.rows) === '["Spring candles — Meta"]' && cb.on === 'overview', cb);
     await page.click('.onv-cb__list [data-onv-open="c-draft"]'); await page.waitForTimeout(800);
-    check('2.9 "Open in builder" opens the existing campaign editor, and Campaign Builder stays highlighted', await page.evaluate(() => ['page-campaign-results', 'page-ad-workspace'].includes(document.querySelector('.page.active').id) && document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'builder'));
+    check('2.9 "Open in builder" opens the existing campaign editor', await page.evaluate(() => ['page-campaign-results', 'page-ad-workspace'].includes(document.querySelector('.page.active').id) && document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'overview'));
+    const reg = await page.evaluate(() => ['competitor-analysis', 'my-content', 'campaign-builder'].map((k) => window.orvPages.has(k)));
+    check('2.9b the three pages are still registered (plan tasks and links can open them)', reg.every(Boolean), reg);
     await page.click('.orv-sb .onv-item[data-onv="dashboard"]'); await page.waitForTimeout(500);
     await page.evaluate(() => window.bizGoTo('planning')); await page.waitForTimeout(500);
     check('2.10 the older advertising Planning tab (reached from the Dashboard) still opens, inside Control Center (Dashboard highlighted)', await page.evaluate(() => !!(document.getElementById('bizPanelPlanning') || {}).offsetParent && document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'dashboard'));
@@ -309,7 +324,7 @@ const server = app.listen(PORT, async () => {
         await p2.screenshot({ path: path.join(SHOTS, 'drawer-' + w + '.png') });
         await p2.click('.orv-mob-drawer .onv-item[data-onv="auto-activity"]'); await p2.waitForTimeout(900);
         const after = await p2.evaluate(() => ({ open: document.getElementById('orvMobDrawer').classList.contains('open') || document.getElementById('orvMobDrawer').getAttribute('aria-hidden') === 'false', on: (document.querySelector('.orv-mob-drawer .onv-item.is-on') || {}).dataset, page: document.querySelector('.page.active').id, ov: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
-        check(`6.${w} mobile drawer: six sections, 18 pages, 44px touch targets; picking a page closes it and opens the page; no horizontal overflow`, d.secs === 6 && d.items === 18 && d.small === 0 && d.foot && !after.open && after.on && after.on.onv === 'auto-activity' && after.page === 'page-autopilot' && after.ov <= 1, { d, after });
+        check(`6.${w} mobile drawer: six sections, 15 pages, 44px touch targets; picking a page closes it and opens the page; no horizontal overflow`, d.secs === 6 && d.items === 15 && d.small === 0 && d.foot && !after.open && after.on && after.on.onv === 'auto-activity' && after.page === 'page-autopilot' && after.ov <= 1, { d, after });
         await p2.screenshot({ path: path.join(SHOTS, 'activity-' + w + '.png') });
       } else {
         const d = await p2.evaluate(() => ({ w: Math.round(document.querySelector('.orv-sb').getBoundingClientRect().width), ov: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
@@ -495,9 +510,9 @@ const server = app.listen(PORT, async () => {
       const at = async () => p7.evaluate(() => ({ url: location.pathname + location.search, on: (document.querySelector('.orv-sb .onv-item.is-on, .orv-sb [data-onv-foot].is-on') || {}).dataset || {}, page: (document.querySelector('.page.active') || {}).id }));
       const start = await at();
       check('12.1 after sign-in the address names the start page (/app?view=dashboard)', start.url === '/app?view=dashboard' && start.on.onv === 'dashboard', start);
-      for (const id of ['research', 'insights', 'auto-rules', 'content']) { await p7.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p7.waitForTimeout(id.startsWith('auto') ? 900 : 500); }
+      for (const id of ['research', 'insights', 'auto-rules', 'create']) { await p7.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p7.waitForTimeout(id.startsWith('auto') ? 900 : 500); }
       const after = await at();
-      check('12.2 each page opened gets its own address', after.url === '/app?view=content' && after.page === 'page-my-content', after);
+      check('12.2 each page opened gets its own address', after.url === '/app?view=create' && after.page === 'page-create', after);
       await p7.goBack(); await p7.waitForTimeout(900);
       const b1 = await at();
       check('12.3 Back returns to the previous page inside the app (Rules), highlighted', b1.url === '/app?view=auto-rules' && b1.on.onv === 'auto-rules' && b1.page === 'page-autopilot' && (await p7.evaluate(() => window.orvAutomations.tab())) === 'rules', b1);
@@ -518,6 +533,11 @@ const server = app.listen(PORT, async () => {
       p7 = await c7.newPage(); await fence(p7);
       await signIn(p7, '/app?view=bogus');
       check('12.8 an unknown view falls back to the normal start page', (await at()).page === 'page-business-brain');
+      await p7.close();
+      p7 = await c7.newPage(); await fence(p7);
+      await signIn(p7, '/app?view=content');
+      const d2 = await at();
+      check('12.8b an old link to a page that left the sidebar (/app?view=content) still opens it, with its parent highlighted', d2.page === 'page-my-content' && d2.on.onv === 'create' && d2.url === '/app?view=content', d2);
       await p7.close();
       p7 = await c7.newPage(); await fence(p7);
       await signIn(p7, '/app?view=research&success=true&session_id=cs_test_abcdefghijkl');

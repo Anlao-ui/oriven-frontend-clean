@@ -33,13 +33,13 @@ const AGENTS = [
   { id: 'metric', name: 'Metric', role: 'Performance & Optimisation', color: '#2FB0E8', tone: 'Precise, direct and evidence-oriented.' },
   { id: 'flux', name: 'Flux', role: 'Automation & Systems', color: '#8F5CFF', tone: 'Systematic, efficient and calm under load.' },
 ];
-const pub = (id) => { const a = AGENTS.find((x) => x.id === id); return Object.assign({}, a, { intro: 'I’m ' + a.name + ', your ' + a.role + ' assistant in OrivenAI.', strengths: ['a', 'b', 'c'], alsoHelps: ['Create'] }); };
+const pub = (id) => { const a = AGENTS.find((x) => x.id === id); return Object.assign({}, a, { intro: 'I’m ' + a.name + ', your ' + a.role + ' assistant in OrivenAI.', hello: a.name + ' says hello: tell me what you want to work on.', strengths: ['a', 'b', 'c'], alsoHelps: ['Create'] }); };
 const M = { agent: 'scout', assigned: true, chat: [], chatBodies: [], puts: [], executes: [], research: 'running' };
 const app = express();
 app.use((q, r, n) => { r.set({ 'Access-Control-Allow-Origin': q.headers.origin || '*', 'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Idempotency-Key', 'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS' }); if (q.method === 'OPTIONS') return r.sendStatus(204); n(); });
 app.use(express.json({ limit: '2mb' }));
 app.get('/api/onboarding/state', (q, r) => r.json({ eligible: false, reason: 'existing_account', completed: true, stage: 'done', flow: { enabled: false } }));
-app.get('/api/credits/status', (q, r) => r.json({ balance: 1000, plan: 'paid', hasAccess: true, accessExpiresAt: new Date(Date.now() + 20 * 864e5).toISOString() }));
+app.get('/api/credits/status', (q, r) => r.json({ balance: M.balance == null ? 1000 : M.balance, plan: 'paid', hasAccess: true, accessExpiresAt: new Date(Date.now() + 20 * 864e5).toISOString() }));
 // Section H: per-account choices keyed by the bearer token ("tok-<user>"), like the server's profiles.preferences.assistant.
 const ACC = { store: {}, delay: {}, puts: [] };
 const tokOf = (q) => String(q.headers.authorization || '').replace(/^Bearer\s+/, '');
@@ -57,7 +57,7 @@ app.put('/api/agent', (q, r) => {
     if (ACC.store[t] && ACC.store[t] !== q.body.agentId) return r.status(409).json({ error: pub(ACC.store[t]).name + ' is already your personal assistant.', code: 'ASSISTANT_ALREADY_CHOSEN', agent: pub(ACC.store[t]), assigned: true });
     ACC.store[t] = q.body.agentId; return r.json({ agent: pub(q.body.agentId), assigned: true });
   } M.puts.push(q.body); if (!AGENTS.some((a) => a.id === q.body.agentId)) return r.status(400).json({ error: 'Choose one of the six assistants.' }); M.agent = q.body.agentId; M.assigned = true; r.json({ agent: pub(M.agent), assigned: true }); });
-app.post('/api/ai/chat', (q, r) => { M.chatBodies.push(q.body); const next = M.chat.shift() || { status: 200, body: { reply: 'Here is a short answer.' } }; r.status(next.status).json(next.body); });
+app.post('/api/ai/chat', (q, r) => { M.chatBodies.push(q.body); const next = M.chat.shift() || { status: 200, body: { reply: 'Here is a short answer.' } }; const go = () => r.status(next.status).json(next.body); next.delay ? setTimeout(go, next.delay) : go(); });
 app.post('/api/ai/execute', (q, r) => { M.executes.push(q.body); r.json({ message: 'Automation "Tell me when CPA is high" is active (20 credits used).', card: { type: 'done', title: 'Automation created', text: 'Tell me when CPA is high', page: 'automations' } }); });
 app.get('/api/research/reports/:id', (q, r) => r.json(M.research === 'ready' ? { report: { title: 'Candle competitors in Amsterdam' }, summary: { status: 'ready', title: 'Candle competitors in Amsterdam' } } : { report: null, summary: { status: 'running' } }));
 app.all(/^\/api\//, (q, r) => r.json({}));
@@ -137,12 +137,17 @@ const server = app.listen(PORT, async () => {
 
     console.log('\nB. Popup');
     await page.click('#orvAiFab'); await page.waitForTimeout(400);
-    const head = await page.evaluate(() => { const p = document.getElementById('orvAiPanel'); const g = p.querySelector('.orv-agent-head-glyph'); const gr = g && g.getBoundingClientRect(), pr = p.getBoundingClientRect(); return { name: p.querySelector('.orv-ai-panel-name').textContent, role: p.querySelector('.orv-agent-role').textContent, centred: gr ? Math.abs((gr.left + gr.width / 2) - (pr.left + pr.width / 2)) < 3 : false, intro: (document.getElementById('orvAgentIntro') || {}).textContent || '', ph: document.getElementById('orvAiInput').placeholder, fabHidden: document.getElementById('orvAiFab').classList.contains('orv-ai-fab-hidden'), w: pr.width, h: pr.height }; });
-    check('click → popup with Scout’s mark centred, name, specialisation and intro', (await panelOpen(page)) && head.name === 'Scout' && head.role === 'Research & Insights' && head.centred && /I’m Scout/.test(head.intro), head);
-    check('…the input asks for Scout, the launcher steps aside, the popup is a panel (not full screen)', /^Ask Scout/.test(head.ph) && head.fabHidden && head.w < 500 && head.h < 900, head);
+    const head = await page.evaluate(() => { const p = document.getElementById('orvAiPanel'); const pr = p.getBoundingClientRect(), sb = document.querySelector('.orv-sb').getBoundingClientRect();
+      return { name: p.querySelector('.orv-ai-panel-name').textContent, mark: !!p.querySelector('.orv-agent-avatar svg.orv-agent-head-glyph circle'), status: (p.querySelector('.orv-agent-status') || {}).textContent, dataStatus: p.getAttribute('data-status'), tagline: (p.querySelector('.orv-agent-tagline') || {}).textContent, eyebrow: (document.getElementById('orvAgentEyebrow') || {}).textContent,
+        greeting: document.getElementById('orvAiGreetingText').textContent, intro: (document.getElementById('orvAgentIntro') || {}).textContent || '', sub: document.getElementById('orvAiGreetingSub').textContent, ph: document.getElementById('orvAiInput').placeholder, fabHidden: document.getElementById('orvAiFab').classList.contains('orv-ai-fab-hidden'),
+        w: Math.round(pr.width), h: Math.round(pr.height), right: Math.round(innerWidth - pr.right), bottom: Math.round(innerHeight - pr.bottom), clearOfSidebar: pr.left > sb.right + 100, top: Math.round(pr.top) }; });
+    check('click → the header shows Scout’s mark, real name, a status (Ready) and Scout’s own tagline (its tone)', (await panelOpen(page)) && head.mark && head.name === 'Scout' && head.status === 'Ready' && head.dataStatus === 'ready' && head.tagline === 'Curious, thorough and evidence-first.', head);
+    check('…the welcome: the specialisation, a time-of-day greeting, and Scout’s own opening line (from the server), with no claim about data', head.eyebrow === 'Research & Insights' && /^Good (morning|afternoon|evening)/.test(head.greeting) && head.intro === 'Scout says hello: tell me what you want to work on.' && !/found|Here’s what I/.test(head.sub), head);
+    check('…the input asks for Scout, the launcher steps aside', /^Message Scout/.test(head.ph) && head.fabHidden, head);
+    check('the panel is larger than before (was 380 × ≤600) and anchored bottom-right, clear of the sidebar and the top bar', head.w >= 440 && head.w < 520 && head.h >= 700 && head.right <= 26 && head.bottom <= 26 && head.clearOfSidebar && head.top >= 70, head);
     await page.screenshot({ path: path.join(SHOTS, 'desktop-open.png') });
-    const focusColor = await page.evaluate(() => { const i = document.getElementById('orvAiInput'); i.focus(); return getComputedStyle(i).borderTopColor; });
-    check('the input’s focus ring uses the agent’s colour (Scout 124, 240, 204), not the app’s lime', /124,\s*240,\s*204/.test(focusColor), focusColor);
+    const focusColor = await page.evaluate(() => { const i = document.getElementById('orvAiInput'); i.focus(); return getComputedStyle(document.querySelector('#orvAiPanel .orv-agent-composer')).borderTopColor; });
+    check('the composer’s focus ring uses the agent’s colour (Scout 124, 240, 204), not the app’s lime', /124,\s*240,\s*204/.test(focusColor), focusColor);
 
     console.log('\nC. Conversation, cards, history');
     M.chat.push({ status: 200, body: { reply: 'I made a first Meta campaign for your candles:\n\n- Headline: Hand-poured in Utrecht\n- Goal: **Sales**\n\nReview it in Launch.', toolResults: [{ tool: 'create_campaign_package', ok: true, message: 'Campaign package ready', card: { type: 'campaign', title: 'Spring candles', platform: 'meta', goal: 'Sales', product: 'Soy candles', pkg: { campaignName: 'Spring candles', headlines: ['Hand-poured in Utrecht', 'Natural soy wax'] }, page: 'launch' } }], agent: { id: 'scout', name: 'Scout' } } });
@@ -261,6 +266,107 @@ const server = app.listen(PORT, async () => {
     delete ACC.delay['tok-ann'];
     await hp.close(); await hc2.close();
 
+    console.log('\nI. The chat: starting points, page context, states');
+    {
+      const ic = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      const ip = await ic.newPage(); await fence(ip); ip.on('pageerror', (e) => errors.push('I: ' + e.message));
+      M.agent = 'metric'; M.assigned = true; M.balance = 1000;
+      const puts0 = M.puts.length + ACC.puts.length;
+      await signIn(ip);
+      await ip.evaluate(() => window.orvAppNav.go('overview')); await ip.waitForTimeout(500);
+      await ip.click('#orvAiFab'); await ip.waitForTimeout(400);
+      const st = await ip.evaluate(() => ({ titles: [...document.querySelectorAll('#orvAgentStarters .orv-agent-starter-t')].map((e) => e.textContent), shown: !document.getElementById('orvAgentStarters').hidden, where: (document.getElementById('orvAgentWhere') || {}).textContent, sugg: (document.querySelector('#orvAiSuggestList .orv-ai-suggest-hd') || {}).textContent, intro: document.getElementById('orvAgentIntro').textContent, tagline: document.querySelector('#orvAiPanel .orv-agent-tagline').textContent, sendDisabled: document.getElementById('orvAiSendBtn').disabled }));
+      check('I1 empty conversation: Metric’s greeting and tagline, and four starting points (Analyze my campaigns, Improve my advertising, Create something new, Explain my performance)', st.shown && JSON.stringify(st.titles) === JSON.stringify(['Analyze my campaigns', 'Improve my advertising', 'Create something new', 'Explain my performance']) && /^Metric says hello/.test(st.intro) && st.tagline === 'Precise, direct and evidence-oriented.', st);
+      check('I2 the panel shows the page it knows you are on (Campaign Overview), with that page’s own questions', st.where === 'On Campaign Overview' && st.sugg === 'On Campaign Overview', st);
+      check('I3 an empty message can’t be sent (Send is disabled)', st.sendDisabled);
+      await ip.screenshot({ path: path.join(SHOTS, 'chat-welcome-1440.png') });
+      const n0 = M.chatBodies.length;
+      M.chat.push({ delay: 900, status: 200, body: { reply: '## What I can see\nYou have no live campaigns yet, so there is nothing to analyse.\n\n- Connect an ad account in **Ad Platforms**\n- Then launch a draft from `Launch`\n\n1. Connect\n2. Launch\n\n<img src=x onerror=alert(1)>', agent: { id: 'metric', name: 'Metric' } } });
+      await ip.hover('#orvAgentStarters [data-starter="analyze"]');
+      await ip.click('#orvAgentStarters [data-starter="analyze"]'); await ip.waitForTimeout(250);
+      const mid = await ip.evaluate(() => ({ status: document.querySelector('#orvAiPanel .orv-agent-status').textContent, data: document.getElementById('orvAiPanel').getAttribute('data-status'), loading: document.getElementById('orvAiSendBtn').classList.contains('is-loading'), disabled: document.getElementById('orvAiSendBtn').disabled, typing: (document.querySelector('#orvAiFeed .orv-agent-typing') || {}).textContent || '', greet: getComputedStyle(document.getElementById('orvAiGreeting')).display, user: ([...document.querySelectorAll('#orvAiFeed .orv-ai-msg-user .orv-ai-msg-bubble')].pop() || {}).textContent }));
+      check('I4 a starting point sends its question through the normal chat: shown as your message, Metric "is thinking…", status Thinking, Send shows a spinner and is disabled', /^Analyze my campaigns: what’s working/.test(mid.user) && /Metric is thinking/.test(mid.typing) && mid.status === 'Thinking…' && mid.data === 'thinking' && mid.loading && mid.disabled, mid);
+      await ip.waitForTimeout(1100);
+      const body = M.chatBodies[n0] || {};
+      check('I5 …one POST /api/ai/chat with that message, the page as context.view ("overview"), and no assistant id (the server decides who answers)', M.chatBodies.length === n0 + 1 && /^Analyze my campaigns:/.test(body.message) && body.context && body.context.view === 'overview' && !/"(agent|agentId|assistant|persona)"\s*:/.test(JSON.stringify(body)), { n: M.chatBodies.length - n0, view: body.context && body.context.view, keys: Object.keys(body) });
+      check('I5b …the question asks the assistant to use only real data and say what is missing (no invented numbers)', /Use only the data you actually have/.test(body.message));
+      const done = await ip.evaluate(() => { const b = [...document.querySelectorAll('#orvAiFeed .orv-ai-msg-ai .orv-ai-msg-bubble')].pop(); return { h4: b && b.querySelectorAll('h4').length, ul: b && b.querySelectorAll('ul li').length, ol: b && b.querySelectorAll('ol li').length, code: b && b.querySelectorAll('code').length, strong: b && b.querySelectorAll('strong').length, img: b && b.querySelectorAll('img').length, raw: b && /<img/.test(b.textContent), status: document.querySelector('#orvAiPanel .orv-agent-status').textContent, loading: document.getElementById('orvAiSendBtn').classList.contains('is-loading') }; });
+      check('I6 the answer renders with structure (heading, bullet and numbered lists, bold, code) and stays escaped (no injected HTML)', done.h4 === 1 && done.ul === 2 && done.ol === 2 && done.code === 1 && done.strong === 1 && done.img === 0 && done.raw, done);
+      check('I7 after the answer: status back to Ready, no spinner', done.status === 'Ready' && !done.loading, done);
+      await ip.screenshot({ path: path.join(SHOTS, 'chat-answer-1440.png') });
+      await ip.fill('#orvAiInput', 'hello');
+      check('I8 typing enables Send', !(await ip.evaluate(() => document.getElementById('orvAiSendBtn').disabled)));
+      await ip.fill('#orvAiInput', 'line one'); await ip.press('#orvAiInput', 'Shift+Enter'); await ip.type('#orvAiInput', 'line two');
+      check('I9 Shift+Enter adds a line (nothing sent) and the box grows', (await ip.inputValue('#orvAiInput')) === 'line one\nline two' && M.chatBodies.length === n0 + 1 && (await ip.evaluate(() => document.getElementById('orvAiInput').offsetHeight)) > 30);
+      await ip.press('#orvAiInput', 'Enter'); await ip.waitForTimeout(700);
+      check('I10 Enter sends; the box empties and shrinks back', M.chatBodies.length === n0 + 2 && (await ip.inputValue('#orvAiInput')) === '' && (await ip.evaluate(() => document.getElementById('orvAiInput').offsetHeight)) < 34);
+      await ip.evaluate(() => window.orvCloseAi());
+
+      // Context per page: each page goes as its own view; the panel says which.
+      const seen = [];
+      for (const [id, label] of [['plan', 'Marketing Plan'], ['research', 'Research'], ['create', 'Create'], ['audiences', 'Audience Builder'], ['competitors', 'Competitor Analysis']]) {
+        await ip.evaluate((v) => window.orvAppNav.go(v), id); await ip.waitForTimeout(600);
+        await ip.click('#orvAiFab'); await ip.waitForTimeout(300);
+        const w = await ip.evaluate(() => (document.getElementById('orvAgentWhere') || {}).textContent);
+        const k = M.chatBodies.length;
+        await send(ip, 'What should I do here?');
+        seen.push({ id, w, view: (M.chatBodies[k] && M.chatBodies[k].context || {}).view, ok: w === 'On ' + label });
+        await ip.evaluate(() => window.orvCloseAi()); await ip.waitForTimeout(150);
+      }
+      check('I11 context follows the page: Marketing Plan, Research, Create, Audience Builder and Competitor Analysis each go as their own view and are named in the panel', seen.every((x) => x.ok && x.view === x.id), seen);
+      check('I12 page context never changes the assistant: still Metric everywhere', (await fabText(ip)) === 'Metric' && (await ip.evaluate(() => window.orvAgent.current().id)) === 'metric' && M.puts.length + ACC.puts.length === puts0, { puts: M.puts.length + ACC.puts.length - puts0 });
+
+      // Errors: an unreachable server says so (Offline), Try again recovers.
+      await ip.click('#orvAiFab'); await ip.waitForTimeout(300);
+      await ip.route('**/api/ai/chat', (r) => r.abort('connectionfailed'));
+      await send(ip, 'Are you there?'); await ip.waitForTimeout(400);
+      const off = await ip.evaluate(() => ({ status: document.querySelector('#orvAiPanel .orv-agent-status').textContent, err: ([...document.querySelectorAll('#orvAiFeed .orv-agent-error')].pop() || {}).textContent || '' }));
+      check('I13 a request that can’t reach the server: status Offline, a clear error and Try again', off.status === 'Offline' && /couldn’t be reached/.test(off.err) && /Try again/.test(off.err), off);
+      await ip.unroute('**/api/ai/chat');
+      await ip.click('#orvAiFeed .orv-agent-error .orv-agent-retry'); await ip.waitForTimeout(900);
+      check('I14 …Try again succeeds and the status is Ready again', (await ip.evaluate(() => document.querySelector('#orvAiPanel .orv-agent-status').textContent)) === 'Ready');
+
+      // Credits: an empty balance stops a starting point before any chat request.
+      await ip.evaluate(() => window.orvAiNewConversation()); await ip.waitForTimeout(200);
+      // The production path: js/supabase.js switches the credit gate off on
+      // localhost (ORIVEN_DEV), so it is switched back on for this check.
+      M.balance = 0; await ip.evaluate(() => { ORIVEN_DEV = false; _cachedPlan = Object.keys(ORIVEN_PLANS).find((k) => k !== 'free'); _planCachedAt = Date.now(); _cachedCreditStatus = null; _creditStatusCachedAt = 0; });
+      const k2 = M.chatBodies.length;
+      await ip.click('#orvAgentStarters [data-starter="improve"]'); await ip.waitForTimeout(900);
+      const cr = await ip.evaluate(() => ({ users: document.querySelectorAll('#orvAiFeed .orv-ai-msg-user').length, starters: !document.getElementById('orvAgentStarters').hidden && getComputedStyle(document.getElementById('orvAiGreeting')).display !== 'none' }));
+      check('I15 no credits: a starting point is stopped by the existing credit check — no chat request, nothing charged, the message isn’t left in the feed, the welcome comes back', M.chatBodies.length === k2 && cr.users === 0 && cr.starters, { sent: M.chatBodies.length - k2, cr });
+      const pw = await ip.evaluate(() => { const m = document.getElementById('modal-paywall'); return !!m && getComputedStyle(m).display !== 'none'; });
+      check('I15b …and the existing paywall opens, as for any action without credits', pw);
+      M.balance = 1000; await ip.evaluate(() => { ORIVEN_DEV = true; _cachedCreditStatus = null; _creditStatusCachedAt = 0; if (typeof closeModal === 'function') closeModal('modal-paywall'); });
+      await ip.waitForTimeout(300);
+      if (!(await panelOpen(ip))) { await ip.evaluate(() => window.orvOpenAi()); await ip.waitForTimeout(300); }
+      M.chat.push({ status: 402, body: { error: 'Not enough credits', code: 'CREDITS_EXHAUSTED' } });
+      const k3 = M.chatBodies.length;
+      await ip.click('#orvAgentStarters [data-starter="explain"]'); await ip.waitForTimeout(900);
+      check('I16 …and when the server refuses (402, e.g. another tab spent them) the chat says so with the upgrade link', M.chatBodies.length === k3 + 1 && /out of AI credits/.test(await ip.textContent('#orvAiFeed')));
+      await ip.evaluate(() => window.orvCloseAi());
+
+      // Tablet width: still a floating panel, inside the screen.
+      await ip.setViewportSize({ width: 1024, height: 768 }); await ip.waitForTimeout(300);
+      await ip.click('#orvAiFab'); await ip.waitForTimeout(400);
+      const tb = await ip.evaluate(() => { const r = document.getElementById('orvAiPanel').getBoundingClientRect(); return { w: Math.round(r.width), left: Math.round(r.left), top: Math.round(r.top), right: Math.round(innerWidth - r.right), ov: document.documentElement.scrollWidth - innerWidth }; });
+      check('I17 tablet (1024×768): a large floating panel inside the screen, below the menu button, no overflow', tb.w >= 420 && tb.left > 0 && tb.top >= 60 && tb.right <= 26 && tb.ov <= 0, tb);
+      await ip.screenshot({ path: path.join(SHOTS, 'chat-tablet-1024.png') });
+      await ic.close();
+    }
+    {
+      // Never chosen: no starting points (the choice comes first).
+      const uc = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      const up = await uc.newPage(); await fence(up);
+      M.agent = 'vector'; M.assigned = false;
+      await signIn(up);
+      await up.click('#orvAiFab'); await up.waitForTimeout(400);
+      const un = await up.evaluate(() => ({ starters: document.getElementById('orvAgentStarters').hidden, picker: !!document.getElementById('orvAgentPicker'), name: document.querySelector('#orvAiPanel .orv-ai-panel-name').textContent }));
+      check('I18 an account that never chose sees the choice, not the starting points or a default assistant', un.starters && un.picker && un.name === 'Your assistant', un);
+      M.assigned = true; M.agent = 'scout';
+      await uc.close();
+    }
+
     console.log('\nG. Phone');
     const ph = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     const mp = await ph.newPage(); await fence(mp); mp.on('pageerror', (e) => errors.push(e.message));
@@ -269,8 +375,10 @@ const server = app.listen(PORT, async () => {
     f = await fab(mp);
     check('phone: launcher [Flux mark] Flux inside the screen', f.visible && f.text === 'Flux' && f.right <= f.w && f.bottom <= f.h, f);
     await mp.click('#orvAiFab'); await mp.waitForTimeout(400);
-    const pm = await mp.evaluate(() => { const r = document.getElementById('orvAiPanel').getBoundingClientRect(); const inp = document.getElementById('orvAiInput').getBoundingClientRect(); return { w: r.width, h: r.height, vw: innerWidth, vh: innerHeight, inputVisible: inp.bottom <= innerHeight && inp.top > 0, overflow: document.documentElement.scrollWidth > innerWidth + 1 }; });
-    check('phone: the popup fills the screen, the input stays reachable, nothing overflows', pm.w >= pm.vw - 1 && pm.h >= pm.vh - 1 && pm.inputVisible && !pm.overflow, pm);
+    const pm = await mp.evaluate(() => { const r = document.getElementById('orvAiPanel').getBoundingClientRect(); const inp = document.getElementById('orvAiInput').getBoundingClientRect(); const m = document.getElementById('orvMobToggle').getBoundingClientRect();
+      const hit = document.elementFromPoint(m.left + m.width / 2, m.top + m.height / 2);
+      return { w: r.width, top: Math.round(r.top), bottom: Math.round(r.bottom), vw: innerWidth, vh: innerHeight, inputVisible: inp.bottom <= innerHeight && inp.top > 0, overflow: document.documentElement.scrollWidth > innerWidth + 1, menuClear: m.bottom <= r.top, menuHit: !!(hit && hit.closest('#orvMobToggle')), starters: document.querySelectorAll('#orvAgentStarters .orv-agent-starter').length }; });
+    check('phone: a full-width sheet up to the bottom, the input reachable, nothing overflows — and the menu button stays visible and clickable above it', pm.w >= pm.vw - 1 && pm.bottom >= pm.vh - 1 && pm.inputVisible && !pm.overflow && pm.menuClear && pm.menuHit && pm.starters === 4, pm);
     await mp.screenshot({ path: path.join(SHOTS, 'phone-open.png') });
 
     check('no page errors', errors.length === 0, errors.slice(0, 5));
