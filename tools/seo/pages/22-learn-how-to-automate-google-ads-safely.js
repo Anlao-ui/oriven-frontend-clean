@@ -19,7 +19,7 @@ module.exports = {
   about: 'Google Ads automation',
   sources: [{"title":"Set up automated rules — Google Ads Help","url":"https://support.google.com/google-ads/answer/2472779"},{"title":"About Smart Bidding — Google Ads Help","url":"https://support.google.com/google-ads/answer/7065882"},{"title":"About Performance Max campaigns — Google Ads Help","url":"https://support.google.com/google-ads/answer/10724817"},{"title":"Add keywords — Google Ads Help","url":"https://support.google.com/google-ads/answer/2453980"},{"title":"Google Ads scripts — Google for Developers","url":"https://developers.google.com/google-ads/scripts/docs/start"}],
   body: `
-<div class="sp-tldr"><strong>Short answer</strong><p>Automate Google Ads in this order: verify conversion tracking, decide your limits, start with alerts and approvals, then let rules act on small, capped changes with enough data behind them. And never let two automations control the same setting.</p></div>
+<div class="sp-tldr"><strong>Short answer</strong><p>To automate Google Ads safely, set it up in this order: verify conversion tracking, write down your spending and cost limits, start with alerts and approvals, then let rules make small, capped changes only when enough data backs them. Never let two automations control the same setting, and keep campaigns that must not change out of your rules.</p></div>
 
 <h2>The automation tools you already have</h2>
 <p>Google Ads offers several layers of automation before any third-party tool is involved:</p>

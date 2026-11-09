@@ -148,18 +148,25 @@ function all(re, s) { const out = []; let m; const r = new RegExp(re.source, re.
 
 // ── Article contents ("On this page"): ids on every <h2>, list when ≥ 4 ──
 const slugify = (s) => strip(s).toLowerCase().replace(/&[a-z]+;/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
-function withToc(body) {
+// answerFirst: the page opens with a "Short answer" box (the Learn articles).
+// Its TOC label is then not a paragraph (the answer is the first paragraph
+// after the title), and the TOC is placed after the answer, not before it.
+function withToc(body, answerFirst) {
   const seen = new Set(), items = [];
   const html = body.replace(/<h2>([\s\S]*?)<\/h2>/g, (m, inner) => {
     let id = slugify(inner) || 'section'; while (seen.has(id)) id += '-2'; seen.add(id);
     items.push([id, strip(inner)]);
     return `<h2 id="${id}">${inner}</h2>`;
   });
+  const label = answerFirst ? '<div class="sp-toc-h" id="toc-h">On this page</div>' : '<p id="toc-h">On this page</p>';
   const toc = items.length >= 4
-    ? `<nav class="sp-toc" aria-labelledby="toc-h"><p id="toc-h">On this page</p><ol>${items.map(([id, t]) => `<li><a href="#${id}">${esc(t)}</a></li>`).join('')}</ol></nav>`
+    ? `<nav class="sp-toc" aria-labelledby="toc-h">${label}<ol>${items.map(([id, t]) => `<li><a href="#${id}">${esc(t)}</a></li>`).join('')}</ol></nav>`
     : '';
   return { html, toc };
 }
+// Pages whose body opens with the "Short answer" box.
+const ANSWER_BOX = /^\s*<div class="sp-tldr">[\s\S]*?<\/div>/;
+const isAnswerFirst = (page) => page.kind === 'article' && ANSWER_BOX.test(page.body || '');
 
 // The one public footer and closing CTA, shared with every other public page
 // (tools/seo/site-chrome.js; styles in css/site-chrome.css).
@@ -221,9 +228,13 @@ function render(page, all) {
 
   const updated = page.dateModified && page.dateModified !== page.datePublished
     ? `<span>Updated <time datetime="${page.dateModified}">${F.fmtDate(page.dateModified)}</time></span>` : '';
+  // Answer first: on pages with a "Short answer" box, the byline is not a
+  // paragraph, so the first paragraph after the title is the answer itself.
+  const answerFirst = isAnswerFirst(page);
+  const metaTag = answerFirst ? 'div' : 'p';
   const hero = page.kind === 'article'
     ? `<header class="sp-hero sp-wrap"><p class="sp-eyebrow">${esc(page.eyebrow || 'Learn')}</p><h1>${esc(page.h1)}</h1>
-       <p class="sp-meta"><span>By the OrivenAI team</span><span>Published <time datetime="${page.datePublished}">${F.fmtDate(page.datePublished)}</time></span>${updated}${page.readMinutes ? `<span>${page.readMinutes} min read</span>` : ''}</p></header>`
+       <${metaTag} class="sp-meta"><span>By the OrivenAI team</span><span>Published <time datetime="${page.datePublished}">${F.fmtDate(page.datePublished)}</time></span>${updated}${page.readMinutes ? `<span>${page.readMinutes} min read</span>` : ''}</${metaTag}></header>`
     : `<header class="sp-hero sp-wrap"><p class="sp-eyebrow">${esc(page.eyebrow)}</p><h1>${esc(page.h1)}</h1><p class="sp-lede">${page.lede}</p>
        <div class="sp-cta-row"><a class="sp-btn sp-btn-primary" href="/signup" data-cta="hero_signup">${esc((page.cta && page.cta.label) || 'Get started')} &rarr;</a>${page.secondary ? `<a class="sp-btn sp-btn-ghost" href="${page.secondary.href}">${esc(page.secondary.label)}</a>` : ''}</div>
        ${page.heroNote ? `<p class="sp-note">${page.heroNote}</p>` : ''}</header>`;
@@ -235,8 +246,10 @@ function render(page, all) {
     ? `<h2 id="sources">Sources</h2><p class="sp-sources-note">Official documentation this guide relies on${page.reviewed ? `, last checked <time datetime="${page.reviewed}">${F.fmtDate(page.reviewed)}</time>` : ''}. Platforms change their rules often; check the source before you rely on a number.</p><ul class="sp-sources">${page.sources.map((x) => `<li><a href="${esc(x.url)}" rel="noopener">${esc(x.title)}</a>${x.note ? ` <span>${esc(x.note)}</span>` : ''}</li>`).join('')}</ul>`
     : '';
   if (page.kind === 'article') {
-    const t = withToc(page.body + sources);
-    body = `<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article">${t.toc}${t.html}</article></div></section>`;
+    const t = withToc(page.body + sources, answerFirst);
+    // The answer comes first: the TOC follows the "Short answer" box.
+    const content = answerFirst ? t.html.replace(ANSWER_BOX, (box) => box + t.toc) : t.toc + t.html;
+    body = `<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article">${content}</article></div></section>`;
   } else if (sources) {
     body += `<section class="sp-section"><div class="sp-wrap"><div class="sp-article">${sources}</div></div></section>`;
   }
