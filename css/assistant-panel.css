@@ -1,0 +1,247 @@
+/* ════════════════════════════════════════════════════════════════
+   The assistant panel (#orvAiPanel) — dark in both app themes.
+   Loaded after css/oriven-agent.css (the launcher, cards and picker).
+
+   A quiet near-black surface; the assistant's colour is used sparingly
+   (its mark, the starting points' icons, your messages' tint, focus).
+   Status uses its own semantic colours, never the assistant's.
+   Desktop: a large panel anchored bottom-right, clear of the sidebar and
+   the top bar. Phone: a sheet under the menu button, which stays usable.
+   ════════════════════════════════════════════════════════════════ */
+#orvAiPanel {
+  --oa-bg: #0E0F0E; --oa-head: #121312; --oa-raise: #171817; --oa-raise-2: #1D1E1C;
+  --oa-line: rgba(255, 255, 255, .07); --oa-line-2: rgba(255, 255, 255, .12);
+  --oa-text: #ECEDE9; --oa-soft: rgba(236, 237, 233, .8); --oa-muted: rgba(236, 237, 233, .58); --oa-faint: rgba(236, 237, 233, .42);
+  --oa-ok: #6FD49A; --oa-wait: #E3C066; --oa-bad: #E8806F;
+  --oa-acc: var(--orv-agent, #B7FF2A); --oa-acc-rgb: var(--orv-agent-rgb, 183, 255, 42);
+  color-scheme: dark;
+}
+html body #orvAiPanel.orv-ai-panel {
+  right: 24px; bottom: 24px; width: min(468px, calc(100vw - 48px)); max-width: none;
+  height: min(780px, calc(100vh - 96px)); max-height: none;
+  background: var(--oa-bg); color: var(--oa-text);
+  border: 1px solid var(--oa-line-2); border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .55), 0 2px 10px rgba(0, 0, 0, .35), 0 0 0 1px rgba(var(--oa-acc-rgb), .05);
+}
+html body #orvAiPanel.orv-ai-panel.orv-agent-on { border-color: rgba(var(--oa-acc-rgb), .16); }
+
+/* ── Header ─────────────────────────────────────────────────────── */
+html body #orvAiPanel .orv-ai-panel-head {
+  position: relative; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 12px 14px 16px; background: var(--oa-head); border-bottom: 1px solid var(--oa-line);
+}
+html body #orvAiPanel .orv-ai-panel-head-left { min-width: 0; flex: 1; align-items: stretch; }
+html body #orvAiPanel .orv-ai-panel-head-right { position: static; display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+#orvAiPanel .orv-agent-id { display: flex; flex-direction: row; align-items: center; gap: 12px; text-align: left; min-width: 0; }
+#orvAiPanel .orv-agent-avatar { position: relative; flex-shrink: 0; width: 42px; height: 42px; }
+#orvAiPanel .orv-agent-head-glyph {
+  display: block; width: 42px; height: 42px; padding: 8px; border-radius: 13px; box-sizing: border-box; color: var(--oa-acc);
+  background: rgba(var(--oa-acc-rgb), .1); border: 1px solid rgba(var(--oa-acc-rgb), .26);
+}
+#orvAiPanel .orv-agent-status-dot {
+  position: absolute; right: -3px; bottom: -3px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--oa-ok); border: 3px solid var(--oa-head); transition: background .2s;
+}
+#orvAiPanel[data-status="thinking"] .orv-agent-status-dot { background: var(--oa-wait); animation: orvAgentPulse 1.4s ease-in-out infinite; }
+#orvAiPanel[data-status="offline"] .orv-agent-status-dot { background: var(--oa-bad); }
+@keyframes orvAgentPulse { 50% { opacity: .45; } }
+#orvAiPanel .orv-agent-id-text { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+#orvAiPanel .orv-agent-nameline { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+html body #orvAiPanel .orv-ai-panel-name { font-size: 16px; font-weight: 700; letter-spacing: -.015em; color: var(--oa-text); white-space: nowrap; }
+#orvAiPanel .orv-agent-status { font-size: 11.5px; font-weight: 600; color: var(--oa-ok); white-space: nowrap; }
+#orvAiPanel[data-status="thinking"] .orv-agent-status { color: var(--oa-wait); }
+#orvAiPanel[data-status="offline"] .orv-agent-status { color: var(--oa-bad); }
+#orvAiPanel .orv-agent-tagline, #orvAiPanel .orv-agent-role {
+  font-size: 12.5px; line-height: 1.35; color: var(--oa-muted); font-weight: 500; letter-spacing: 0;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+html body #orvAiPanel .orv-ai-panel-close {
+  width: 32px; height: 32px; border-radius: 9px; color: var(--oa-muted); background: transparent; border: 0; opacity: 1;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s, color .15s;
+}
+html body #orvAiPanel .orv-ai-panel-close:hover { background: rgba(255, 255, 255, .07); color: var(--oa-text); }
+html body #orvAiPanel .orv-ai-panel-close:focus-visible { outline: 2px solid var(--oa-acc); outline-offset: 1px; }
+html body #orvAiPanel .orv-ai-ctx-wrap { position: relative; margin-right: 4px; }
+html body #orvAiPanel .orv-ai-ctx-badge {
+  height: 28px; padding: 0 10px; border-radius: 999px; font-size: 11.5px; color: var(--oa-muted);
+  background: transparent; border: 1px solid var(--oa-line-2);
+}
+html body #orvAiPanel .orv-ai-ctx-badge:hover { color: var(--oa-text); border-color: rgba(255, 255, 255, .22); }
+html body #orvAiPanel .orv-ai-ctx-badge-active { color: var(--oa-soft); }
+html body #orvAiPanel .orv-ai-ctx-badge-active .orv-ai-ctx-dot { background: var(--oa-ok); }
+html body #orvAiPanel .orv-ai-ctx-popover { right: 0; left: auto; background: var(--oa-raise-2); border: 1px solid var(--oa-line-2); color: var(--oa-soft); box-shadow: 0 16px 40px rgba(0, 0, 0, .5); }
+html body #orvAiPanel .orv-ai-ctx-popover-hd { color: var(--oa-faint); }
+html body #orvAiPanel .orv-ai-ctx-popover-item { color: var(--oa-soft); }
+html body #orvAiPanel .orv-ai-ctx-popover-item::before { background: var(--oa-ok); }
+html body #orvAiPanel .orv-ai-ctx-popover-empty { color: var(--oa-muted); }
+
+/* ── Conversation ───────────────────────────────────────────────── */
+html body #orvAiPanel .orv-ai-feed {
+  padding: 22px 20px 18px; gap: 16px; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .14) transparent;
+}
+html body #orvAiPanel .orv-ai-msg { gap: 6px; }
+html body #orvAiPanel .orv-ai-msg-bubble { font-size: 14px; line-height: 1.62; overflow-wrap: anywhere; }
+html body #orvAiPanel .orv-ai-msg-user { align-items: flex-end; }
+html body #orvAiPanel .orv-ai-msg-user .orv-ai-msg-bubble {
+  max-width: 82%; padding: 10px 14px; border-radius: 16px 16px 5px 16px; color: var(--oa-text);
+  background: rgba(var(--oa-acc-rgb), .1); border: 1px solid rgba(var(--oa-acc-rgb), .2);
+}
+/* The assistant writes on the panel itself (no bubble), with a hairline
+   marking its turn: long answers and lists read like a document. */
+html body #orvAiPanel .orv-ai-msg-ai .orv-ai-msg-bubble {
+  padding: 2px 0 2px 14px; background: none; border: 0; border-left: 2px solid rgba(var(--oa-acc-rgb), .32); border-radius: 0;
+  color: var(--oa-soft); max-width: 100%;
+}
+html body #orvAiPanel .orv-agent-fmt p + p, html body #orvAiPanel .orv-agent-fmt p + ul, html body #orvAiPanel .orv-agent-fmt p + ol,
+html body #orvAiPanel .orv-agent-fmt ul + p, html body #orvAiPanel .orv-agent-fmt ol + p, html body #orvAiPanel .orv-agent-fmt h4 + p,
+html body #orvAiPanel .orv-agent-fmt ul + ul, html body #orvAiPanel .orv-agent-fmt ol + ol { margin-top: 10px; }
+html body #orvAiPanel .orv-agent-fmt ul, html body #orvAiPanel .orv-agent-fmt ol { margin: 6px 0 0; padding-left: 20px; }
+html body #orvAiPanel .orv-agent-fmt li { padding-left: 2px; }
+html body #orvAiPanel .orv-agent-fmt li + li { margin-top: 5px; }
+html body #orvAiPanel .orv-agent-fmt li::marker { color: var(--oa-faint); }
+html body #orvAiPanel .orv-agent-fmt strong { color: var(--oa-text); font-weight: 650; }
+html body #orvAiPanel .orv-agent-fmt h4 { margin: 14px 0 0; font-size: 13px; font-weight: 700; letter-spacing: .01em; color: var(--oa-text); }
+html body #orvAiPanel .orv-agent-fmt h4:first-child { margin-top: 0; }
+html body #orvAiPanel .orv-agent-fmt code { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12.5px; padding: 1px 5px; border-radius: 5px; background: rgba(255, 255, 255, .07); color: var(--oa-text); }
+html body #orvAiPanel .orv-ai-msg-bubble a { color: var(--oa-text); text-decoration: underline; text-decoration-color: rgba(var(--oa-acc-rgb), .6); text-underline-offset: 2px; }
+html body #orvAiPanel .orv-agent-typing .orv-ai-msg-bubble { display: inline-flex; align-items: center; gap: 8px; color: var(--oa-muted); font-size: 13px; }
+html body #orvAiPanel .orv-ai-thinking-dots span { background: rgba(var(--oa-acc-rgb), .75); }
+html body #orvAiPanel .orv-ai-msg-ai .orv-ai-msg-bubble.orv-agent-error { color: var(--oa-soft); border-left-color: rgba(232, 128, 111, .6); }
+html body #orvAiPanel .orv-agent-earlier { color: var(--oa-faint); }
+html body #orvAiPanel .orv-ai-used-context { color: var(--oa-faint); padding-left: 16px; }
+html body #orvAiPanel .orv-agent-card { color: var(--oa-soft); }
+html body #orvAiPanel .orv-agent-card-t { color: var(--oa-text); }
+html body #orvAiPanel .orv-ai-msg-ai .orv-ai-msg-bubble.orv-ai-action-card { padding: 12px 14px; border: 1px solid var(--oa-line-2); border-radius: 12px; background: var(--oa-raise); }
+
+/* ── Welcome (empty conversation) ───────────────────────────────── */
+html body #orvAiPanel .orv-ai-greeting { gap: 0; padding-top: 4px; }
+#orvAiPanel .orv-agent-eyebrow { font-size: 11px; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; color: var(--oa-acc); }
+#orvAiPanel .orv-agent-eyebrow:empty { display: none; }
+html body #orvAiPanel .orv-ai-greeting-text { margin-top: 8px; font-size: 24px; font-weight: 700; letter-spacing: -.03em; line-height: 1.15; color: var(--oa-text); text-wrap: balance; }
+#orvAiPanel .orv-agent-intro { margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: var(--oa-soft); text-wrap: pretty; max-width: 42ch; }
+#orvAiPanel .orv-agent-intro:empty { display: none; }
+html body #orvAiPanel .orv-ai-greeting-sub { margin-top: 20px; font-size: 11px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--oa-faint); }
+html body #orvAiPanel .orv-ai-greeting-sub:empty { display: none; }
+html body #orvAiPanel .orv-ai-rec-list { margin-top: 8px; }
+html body #orvAiPanel .orv-ai-rec-card { background: var(--oa-raise); border-color: var(--oa-line); }
+html body #orvAiPanel .orv-ai-rec-label { color: var(--oa-text); }
+html body #orvAiPanel .orv-ai-rec-desc { color: var(--oa-muted); }
+#orvAiPanel .orv-agent-picker { margin-top: 18px; }
+#orvAiPanel .orv-agent-picker-q { color: var(--oa-soft); }
+#orvAiPanel .orv-agent-pick { border-color: var(--oa-line-2); color: var(--oa-text); }
+#orvAiPanel .orv-agent-pick small { color: var(--oa-muted); }
+
+#orvAiPanel .orv-agent-starters { margin-top: 24px; }
+#orvAiPanel .orv-agent-starters[hidden] { display: none; }
+#orvAiPanel .orv-agent-starters-h, html body #orvAiPanel .orv-ai-suggest-hd { font-size: 11px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--oa-faint); margin: 0 0 10px; }
+#orvAiPanel .orv-agent-starters-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#orvAiPanel .orv-agent-starter {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 104px; padding: 14px; text-align: left;
+  font: inherit; color: var(--oa-text); cursor: pointer; border-radius: 14px;
+  background: var(--oa-raise); border: 1px solid var(--oa-line);
+  transition: background .18s, border-color .18s, transform .18s cubic-bezier(.22, .61, .36, 1);
+}
+#orvAiPanel .orv-agent-starter:hover { background: var(--oa-raise-2); border-color: rgba(var(--oa-acc-rgb), .32); transform: translateY(-1px); }
+#orvAiPanel .orv-agent-starter:active { transform: translateY(0); }
+#orvAiPanel .orv-agent-starter:focus-visible { outline: 2px solid var(--oa-acc); outline-offset: 2px; }
+#orvAiPanel .orv-agent-starter-ic {
+  width: 30px; height: 30px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 6px;
+  color: var(--oa-acc); background: rgba(var(--oa-acc-rgb), .09); transition: background .18s;
+}
+#orvAiPanel .orv-agent-starter:hover .orv-agent-starter-ic { background: rgba(var(--oa-acc-rgb), .16); }
+#orvAiPanel .orv-agent-starter-ic svg { width: 17px; height: 17px; }
+#orvAiPanel .orv-agent-starter-t { font-size: 13.5px; font-weight: 650; letter-spacing: -.01em; line-height: 1.3; }
+#orvAiPanel .orv-agent-starter-d { font-size: 12px; line-height: 1.4; color: var(--oa-muted); }
+
+html body #orvAiPanel .orv-ai-suggest-list { margin-top: 22px; gap: 6px; }
+html body #orvAiPanel .orv-ai-suggest-btn {
+  text-align: left; padding: 9px 12px; border-radius: 10px; font-size: 13px; line-height: 1.4; color: var(--oa-soft);
+  background: transparent; border: 1px solid var(--oa-line); cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+}
+html body #orvAiPanel .orv-ai-suggest-btn:hover { color: var(--oa-text); border-color: var(--oa-line-2); background: rgba(255, 255, 255, .03); }
+html body #orvAiPanel .orv-ai-suggest-btn:focus-visible { outline: 2px solid var(--oa-acc); outline-offset: 1px; }
+
+/* ── Composer ───────────────────────────────────────────────────── */
+html body #orvAiPanel .orv-ai-input-wrap {
+  display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+  padding: 12px 14px; border-top: 1px solid var(--oa-line); background: var(--oa-bg);
+}
+#orvAiPanel .orv-agent-composer {
+  display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 16px;
+  background: var(--oa-raise); border: 1px solid var(--oa-line-2); transition: border-color .15s, box-shadow .15s;
+}
+#orvAiPanel .orv-agent-composer:focus-within { border-color: rgba(var(--oa-acc-rgb), .45); box-shadow: 0 0 0 3px rgba(var(--oa-acc-rgb), .08); }
+html body #orvAiPanel .orv-ai-input,
+html body #orvAiPanel.orv-agent-on .orv-ai-input,
+html body #orvAiPanel .orv-ai-input:focus,
+html body #orvAiPanel.orv-agent-on .orv-ai-input:focus {
+  flex: 1; min-height: 24px; max-height: 168px; margin: 6px 0; padding: 0; border: 0 !important; border-radius: 0; box-shadow: none !important; outline: none;
+  background: transparent; color: var(--oa-text); font-size: 14px; line-height: 1.5; resize: none;
+}
+html body #orvAiPanel .orv-ai-input::placeholder { color: var(--oa-faint); }
+html body #orvAiPanel .orv-ai-input:disabled { cursor: not-allowed; opacity: .75; }
+html body #orvAiPanel .orv-ai-send,
+html body #orvAiPanel.orv-agent-on .orv-ai-send {
+  position: relative; width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--oa-text); color: #0E0F0E; border: 0; opacity: 1; cursor: pointer; transition: background .15s, transform .15s;
+}
+html body #orvAiPanel .orv-ai-send:hover:not(:disabled) { background: #fff; transform: translateY(-1px); }
+html body #orvAiPanel .orv-ai-send:focus-visible { outline: 2px solid var(--oa-acc); outline-offset: 2px; }
+html body #orvAiPanel .orv-ai-send:disabled { background: rgba(255, 255, 255, .1); color: var(--oa-faint); opacity: 1; cursor: default; transform: none; }
+#orvAiPanel .orv-agent-send-spin { display: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(236, 237, 233, .25); border-top-color: var(--oa-text); animation: orvAgentSpin .8s linear infinite; }
+html body #orvAiPanel .orv-ai-send.is-loading .orv-agent-send-ic { display: none; }
+html body #orvAiPanel .orv-ai-send.is-loading .orv-agent-send-spin { display: block; }
+#orvAiPanel .orv-agent-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 16px; padding: 0 4px; font-size: 11.5px; color: var(--oa-faint); }
+#orvAiPanel .orv-agent-where { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--oa-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#orvAiPanel .orv-agent-where[hidden] { display: none; }
+#orvAiPanel .orv-agent-where-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--oa-ok); flex-shrink: 0; }
+#orvAiPanel .orv-agent-hint { margin-left: auto; white-space: nowrap; }
+.orv-sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ── Sizes ──────────────────────────────────────────────────────── */
+@media (min-width: 769px) and (max-width: 1100px) {
+  html body #orvAiPanel.orv-ai-panel { width: min(440px, calc(100vw - 48px)); }
+}
+@media (min-width: 769px) and (max-height: 720px) {
+  html body #orvAiPanel.orv-ai-panel { height: calc(100vh - 48px); }
+  #orvAiPanel .orv-agent-starter { min-height: 88px; padding: 12px; }
+}
+/* Phone: a sheet below the menu button (top 68px), full width. The menu
+   button and the notification bell above it stay visible and usable. */
+@media (max-width: 768px) {
+  html body #orvAiPanel.orv-ai-panel {
+    top: 68px; left: 0; right: 0; bottom: 0; width: 100%; height: auto; max-height: none;
+    border-radius: 20px 20px 0 0; border: 0; border-top: 1px solid var(--oa-line-2); box-shadow: 0 -18px 50px rgba(0, 0, 0, .5);
+  }
+  html body #orvAiPanel .orv-ai-feed { padding: 18px 16px 14px; }
+  html body #orvAiPanel .orv-ai-input-wrap { padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); }
+  html body #orvAiPanel .orv-ai-input, html body #orvAiPanel .orv-ai-input:focus { font-size: 16px; } /* no zoom on focus (iOS) */
+  #orvAiPanel .orv-agent-hint { display: none; }
+  html body #orvAiPanel .orv-ai-greeting-text { font-size: 22px; }
+}
+@media (max-width: 380px) {
+  #orvAiPanel .orv-agent-starters-grid { grid-template-columns: 1fr; }
+  #orvAiPanel .orv-agent-starter { min-height: 0; flex-direction: row; align-items: center; gap: 10px; }
+  #orvAiPanel .orv-agent-starter-ic { margin: 0; }
+  #orvAiPanel .orv-agent-starter-d { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #orvAiPanel .orv-agent-starter, html body #orvAiPanel .orv-ai-send { transition: none; }
+  #orvAiPanel .orv-agent-starter:hover, html body #orvAiPanel .orv-ai-send:hover:not(:disabled) { transform: none; }
+  #orvAiPanel[data-status="thinking"] .orv-agent-status-dot, #orvAiPanel .orv-agent-send-spin { animation: none; }
+}
+
+/* Recommendation buttons: the panel's quiet outline, not the app's lime. */
+html body #orvAiPanel .orv-ai-rec-action {
+  background: transparent; color: var(--oa-text); border: 1px solid var(--oa-line-2); border-radius: 9px;
+  padding: 6px 11px; font-size: 12px; font-weight: 600; box-shadow: none; transition: border-color .15s, background .15s;
+}
+html body #orvAiPanel .orv-ai-rec-action:hover { border-color: rgba(var(--oa-acc-rgb), .5); background: rgba(var(--oa-acc-rgb), .08); color: var(--oa-text); }
+html body #orvAiPanel .orv-ai-rec-action:focus-visible { outline: 2px solid var(--oa-acc); outline-offset: 2px; }
+/* Phones: the Context control shrinks to its dot so the name and tagline keep the room. */
+@media (max-width: 480px) {
+  html body #orvAiPanel .orv-ai-ctx-badge { width: 32px; padding: 0; justify-content: center; font-size: 0; gap: 0; }
+  html body #orvAiPanel .orv-ai-ctx-badge > span:not(.orv-ai-ctx-dot) { display: none; }
+}

@@ -43,4 +43,12 @@
     label: function (key) { return has(key) ? PAGES[key].label : ''; },
     open: function (key) { if (!has(key)) return false; try { return PAGES[key].open() !== false; } catch (_) { return false; } },
   };
+  // In-page links to a related page (Research → Competitor Analysis, Create →
+  // My Content, Campaigns → Campaign Builder): <a href="/app?view=…"
+  // data-orv-go="page-key">. Opened in place; the href still works without JS.
+  if (typeof document !== 'undefined' && document.addEventListener) document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[data-orv-go]');
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (window.orvPages.open(a.getAttribute('data-orv-go'))) e.preventDefault();
+  });
 })();

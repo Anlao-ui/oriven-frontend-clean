@@ -27,7 +27,7 @@ module.exports = {
     { title: 'Americans’ use of social media (fact sheet) — Pew Research Center', url: 'https://www.pewresearch.org/internet/fact-sheet/social-media/' },
   ],
   body: `
-<div class="sp-tldr"><strong>Short answer</strong><p>Pinterest ads suit businesses whose customers plan ahead: home, fashion, food, beauty, weddings, gifts and DIY. You need a Pinterest business account in a country where ads are available, a website, and the Pinterest tag if you want to measure sales or sign-ups. Start with one campaign, one clear objective and three to five vertical (2:3) images built around what people search for.</p></div>
+<div class="sp-tldr"><strong>Short answer</strong><p>Pinterest ads suit small businesses whose customers plan purchases ahead, such as home, fashion, food, beauty, weddings, gifts and DIY. To start, you need a Pinterest business account in a country where ads are available, a website, and the Pinterest tag if you want to measure sales or sign-ups.</p><p>Start with one campaign, one clear objective and three to five vertical (2:3) images built around what people search for.</p></div>
 
 <p>Pinterest behaves more like a search engine than a social feed. People come to plan: a kitchen, an outfit, a birthday, a garden. That makes it unusual among ad platforms, because your ad can meet someone while they’re still deciding what to buy, often weeks before they buy it. For a small business with visual products, that early moment is cheaper to reach than the last click on Google.</p>
 

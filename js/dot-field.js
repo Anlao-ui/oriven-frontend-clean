@@ -10,6 +10,7 @@
    • ONE requestAnimationFrame loop for every registered canvas: ~30 fps
      cap, DPR ≤ 2, nothing drawn off-screen or in a hidden tab, one still
      frame under prefers-reduced-motion.
+   • Login and Sign Up get the hero field behind the form card.
    • Page headers (.ov-sp-hero on the prerendered pages, .sp-hero on the
      Learn and Blog pages, the whole .ov-pricing-fold on Pricing) and closing sections
      (.site-cta) get a field automatically after load.
@@ -139,6 +140,12 @@
     // faded at every edge so no rectangle shows; it ends just under the cards.
     { sel: '.ov-pricing-fold', cls: 'ik-field--header', mask: 'linear-gradient(to bottom, transparent 0, #000 48px, #000 calc(100% - 72px), transparent 100%), linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%)', composite: true, fy: 0.16, fr: 0.5 },
     { sel: '.site-cta', cls: 'ik-field--cta', mask: 'radial-gradient(ellipse 85% 90% at 50% 50%, #000 30%, transparent 82%)', fy: 0.5 },
+    // Login and Sign Up: the landing hero's field (same waves, same pointer
+    // push) behind the whole screen, its glow centred on the form card. The
+    // card stays opaque, so the dots never sit under the text. Each view is
+    // mounted once; while a view is hidden its field is off-screen and the
+    // shared loop skips it (and stops when nothing is visible).
+    { sel: '#view-login .au-view-wrap, #view-signup .au-view-wrap', cls: 'ik-field--auth', mask: 'radial-gradient(ellipse 95% 85% at 50% 50%, #000 40%, transparent 88%)', amp: 0.8, around: '.au-card', fr: 0.85 },
   ];
   function mountFields() {
     if (!window.HTMLCanvasElement) return;
@@ -156,7 +163,8 @@
         c.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:0;transition:opacity 1.2s ease;-webkit-mask-image:' + m.mask + ';mask-image:' + m.mask + (m.composite ? ';-webkit-mask-composite:source-in;mask-composite:intersect' : '');
         h.insertBefore(c, h.firstChild);
         if (!c.getContext) return;
-        h._ikField = add(new Field(c, { tint: VOLT, amp: 0.5, focus: function (fl) { return { x: fl.w / 2, y: fl.h * m.fy, r: Math.min(fl.w, 900) * (m.fr || 0.42) }; } }));
+        var near = m.around && h.querySelector(m.around);
+        h._ikField = add(new Field(c, { tint: VOLT, amp: m.amp == null ? 0.5 : m.amp, focus: near ? function (fl) { var p = rel(near, fl); return p.w ? { x: p.x, y: p.y, r: Math.max(300, p.w * m.fr) } : { x: fl.w / 2, y: fl.h / 2, r: Math.min(fl.w, 900) * 0.42 }; } : function (fl) { return { x: fl.w / 2, y: fl.h * m.fy, r: Math.min(fl.w, 900) * (m.fr || 0.42) }; } }));
       });
     });
   }

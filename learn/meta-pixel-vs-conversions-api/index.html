@@ -22,8 +22,11 @@
 <meta name="twitter:image" content="https://orivenai.com/assets/og/orivenai-og.png">
 <meta property="article:published_time" content="2026-10-09">
 <meta property="article:modified_time" content="2026-10-15">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="/assets/favicon-48.png" type="image/png" sizes="48x48">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -305,9 +308,9 @@
 <main id="main">
 <nav class="sp-crumbs sp-wrap" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/learn/">Learn</a></li><li aria-current="page">Meta Pixel vs Conversions API</li></ol></nav>
 <header class="sp-hero sp-wrap"><p class="sp-eyebrow">Meta Ads</p><h1>Meta Pixel vs Conversions API: what’s the difference?</h1>
-       <p class="sp-meta"><span>By the OrivenAI team</span><span>Published <time datetime="2026-10-09">9 October 2026</time></span><span>Updated <time datetime="2026-10-15">15 October 2026</time></span><span>7 min read</span></p></header>
-<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article"><nav class="sp-toc" aria-labelledby="toc-h"><p id="toc-h">On this page</p><ol><li><a href="#the-meta-pixel-browser-side-tracking">The Meta Pixel: browser-side tracking</a></li><li><a href="#the-conversions-api-server-side-tracking">The Conversions API: server-side tracking</a></li><li><a href="#side-by-side">Side by side</a></li><li><a href="#why-use-both-and-how-deduplication-works">Why use both, and how deduplication works</a></li><li><a href="#common-setup-paths">Common setup paths</a></li><li><a href="#privacy-and-consent-still-apply">Privacy and consent still apply</a></li><li><a href="#why-this-matters-before-you-automate">Why this matters before you automate</a></li></ol></nav>
-<div class="sp-tldr"><strong>Short answer</strong><p>The Meta Pixel is JavaScript that reports events from the visitor’s browser. The Conversions API (CAPI) reports the same kinds of events directly from your server. The browser misses events when scripts are blocked or restricted; the server path doesn’t depend on the browser. Meta recommends running both, with deduplication so each conversion is counted once.</p></div>
+       <div class="sp-meta"><span>By the OrivenAI team</span><span>Published <time datetime="2026-10-09">9 October 2026</time></span><span>Updated <time datetime="2026-10-15">15 October 2026</time></span><span>7 min read</span></div></header>
+<section class="sp-section" style="border-top:0;padding-top:8px"><div class="sp-wrap"><article class="sp-article">
+<div class="sp-tldr"><strong>Short answer</strong><p>The Meta Pixel is JavaScript that reports events from the visitor’s browser. The Conversions API (CAPI) reports the same kinds of events directly from your server. The browser misses events when scripts are blocked or restricted; the server path doesn’t depend on the browser. Meta recommends running both, with deduplication so each conversion is counted once.</p></div><nav class="sp-toc" aria-labelledby="toc-h"><div class="sp-toc-h" id="toc-h">On this page</div><ol><li><a href="#the-meta-pixel-browser-side-tracking">The Meta Pixel: browser-side tracking</a></li><li><a href="#the-conversions-api-server-side-tracking">The Conversions API: server-side tracking</a></li><li><a href="#side-by-side">Side by side</a></li><li><a href="#why-use-both-and-how-deduplication-works">Why use both, and how deduplication works</a></li><li><a href="#common-setup-paths">Common setup paths</a></li><li><a href="#privacy-and-consent-still-apply">Privacy and consent still apply</a></li><li><a href="#why-this-matters-before-you-automate">Why this matters before you automate</a></li></ol></nav>
 
 <h2 id="the-meta-pixel-browser-side-tracking">The Meta Pixel: browser-side tracking</h2>
 <p><a href="https://developers.facebook.com/documentation/meta-pixel" rel="noopener">The Pixel is a snippet of JavaScript</a> on your website. When a visitor views a page, adds to cart or purchases, the browser sends that event to Meta. It’s quick to install and captures browser signals Meta uses for matching and optimization.</p>
