@@ -75,6 +75,9 @@ check('favicon.ico is a valid icon with 16, 32 and 48 px images', ico.readUInt16
 let man = null; try { man = JSON.parse(fs.readFileSync(path.join(ROOT, 'site.webmanifest'), 'utf8')); } catch (_) { /* reported below */ }
 check('site.webmanifest is valid JSON named OrivenAI, with 192 and 512 px icons that exist', !!man && man.name === 'OrivenAI' && Array.isArray(man.icons) && ['192x192', '512x512'].every((s) => man.icons.some((i) => i.sizes === s && fs.existsSync(path.join(ROOT, i.src)))), man);
 
+const hdr = fs.readFileSync(path.join(ROOT, '_headers'), 'utf8').replace(/\r\n/g, '\n');
+check('_headers serves site.webmanifest as application/manifest+json (Netlify’s default is octet-stream, and pages send nosniff)', /^\/site\.webmanifest\n\s+Content-Type: application\/manifest\+json/m.test(hdr));
+
 console.log('\n3. Regeneration keeps the block');
 const build = fs.readFileSync(path.join(ROOT, 'tools/seo/build.js'), 'utf8').replace(/\r\n/g, '\n');
 const idx = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/\r\n/g, '\n');
