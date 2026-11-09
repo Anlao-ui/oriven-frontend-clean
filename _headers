@@ -9,6 +9,12 @@
 /assets/films/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
+# The web manifest (favicon block on every page): its own MIME type. Netlify
+# serves .webmanifest as application/octet-stream by default, and every
+# response carries X-Content-Type-Options: nosniff (below).
+/site.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
+
 # Every page: no framing by other sites (clickjacking), no MIME sniffing,
 # referrer limited to the origin on other sites, no device APIs. No CSP here:
 # the pages use inline scripts and third-party tags (Supabase, Stripe,
