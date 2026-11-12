@@ -38,7 +38,7 @@
   }
   function card(t) {
     return '<li class="ccx-tut__item"><button type="button" class="ccx-tut" ' + attrs(t) + ' aria-label="' + esc('Play the ' + t.name + ' tutorial' + (t.seconds ? ', ' + spoken(t.seconds) : '') + ': ' + t.pages.join(', ')) + '">' +
-      '<span class="ccx-tut__media"><img src="' + BASE + t.key + '-thumb.webp" alt="" width="640" height="360" loading="lazy" decoding="async" onerror="this.hidden=true">' +
+      '<span class="ccx-tut__media"><img src="' + BASE + t.key + '-thumb.webp" alt="" width="960" height="540" loading="lazy" decoding="async" onerror="this.hidden=true">' +
       '<span class="ccx-tut__play" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M5 3.2v9.6L12.6 8z"/></svg></span>' +
       (t.seconds ? '<span class="ccx-tut__dur" aria-hidden="true">' + dur(t.seconds) + '</span>' : '') + '</span>' +
       '<span class="ccx-tut__body"><span class="ccx-tut__n" aria-hidden="true">' + t.n + '</span><span class="ccx-tut__t">' + esc(t.name) + '</span>' +
