@@ -39,6 +39,9 @@
 <!-- The personal assistant's look (js/orivenAgent.js): the user's agent colour on the launcher and popup. -->
 <link rel="stylesheet" href="css/oriven-agent.css">
 <link rel="stylesheet" href="css/assistant-panel.css">
+<link rel="stylesheet" href="css/ow-system.css">
+<script src="js/ow-ui.js" defer></script>
+<script src="js/section-films.js" defer></script>
 <link rel="stylesheet" href="css/plan-pages.css">
 <link rel="stylesheet" href="css/insights.css">
 <link rel="stylesheet" href="css/growth-pages.css">
@@ -13681,6 +13684,8 @@ window._launchRepaint = function(){
        again, a card button) is no longer in the document when the click
        reaches here: that is not a click outside. */
     if(!e.target || !document.documentElement.contains(e.target)) return;
+    /* A drawer or the video player opened from the panel (css/ow-system.css) sits above it: not outside. */
+    if(e.target.closest && e.target.closest('.ow-drawer, .ow-player')) return;
     if(panel && !panel.contains(e.target) && fab && !fab.contains(e.target)) window.orvCloseAi();
   }
 

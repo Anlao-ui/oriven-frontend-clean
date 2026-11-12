@@ -124,13 +124,13 @@ const server = app.listen(PORT, async () => {
     // ── 1. In the sidebar, under the existing sections ─────────────
     console.log('\n1. Navigation');
     const nav = await page.evaluate(() => Array.from(document.querySelectorAll('.orv-sb .onv-item')).map((b) => b.dataset.onv));
-    check('1.1 the four pages are in the sidebar (no new section)', ['competitors', 'testing', 'audiences', 'compare'].every((k) => nav.includes(k)), nav);
+    check('1.1 Creative Testing, Audience Builder and Campaign Comparison are in the sidebar; Competitor Analysis opens from the Research header (no new section)', ['testing', 'audiences', 'compare'].every((k) => nav.includes(k)) && !nav.includes('competitors'), nav);
     const keys = await page.evaluate(() => ['competitor-analysis', 'creative-testing', 'audience-builder', 'campaign-comparison'].map((k) => window.orvPages.has(k)));
     check('1.2 the shared page keys know the four pages (plan tasks and the assistant open them)', keys.every(Boolean), keys);
 
     // ── 2. Competitor Analysis ──────────────────────────────────────
     console.log('\n2. Competitor Analysis');
-    await page.click('.orv-sb .onv-item[data-onv="competitors"]'); await page.waitForTimeout(500);
+    await page.evaluate(() => window.orvAppNav.go('competitors')); await page.waitForTimeout(500);
     let t = await txt(page, '#cpaRoot');
     check('2.1 opens empty and honest: no invented competitors, says it reads only public information', (await activePage(page)) === 'page-competitor-analysis' && /No competitors yet/.test(t) && /no access to anyone’s private advertising data/.test(t) && /Your competitor analyses appear here/.test(t), t.slice(0, 400));
     await page.click('[data-cpa-new]'); await page.fill('[data-cpa-form] [name="company"]', 'Wax & Wick'); await page.fill('[data-cpa-form] [name="website"]', 'waxwick.example');

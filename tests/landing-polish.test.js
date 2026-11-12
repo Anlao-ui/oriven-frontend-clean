@@ -58,16 +58,22 @@ const ROT = 'function(t){ if(!t || t === "none") return 0; var m = t.match(/matr
     allHeaderCanvases: document.querySelectorAll('canvas.ik-field--header').length,
     headers: document.querySelectorAll('.ov-sp-hero, .sp-hero, .ov-pricing-fold').length,
   }));
-  const BEN = ['Full OrivenAI workflow', 'Use credits across all AI features', 'No automatic renewal'];
+  const BEN = ['Every feature, in all six sections', 'Your personal AI assistant', 'Credits for research, ads, chat and automations'];
   check('1.1 the page-wide "Every plan includes the full product…" statement is gone', !pr.note && !/Every plan includes the full product/.test(pr.text));
   check('1.2 five cards, each with exactly the three benefit statements in order', pr.cards.length === 5 && pr.cards.every((c) => JSON.stringify(c.benefits) === JSON.stringify(BEN)), pr.cards.map((c) => c.benefits));
   check('1.3 no product sections listed on the cards', pr.cards.every((c) => !c.benefits.some((b) => /Research|Create|Launch|Campaigns|Automations/.test(b))));
-  check('1.4 "Excl. VAT — the VAT for your location is added at checkout." (no fixed rate; Stripe Tax decides) on all five cards, directly under the credit allowance', pr.cards.every((c) => c.vat === 'Excl. VAT — the VAT for your location is added at checkout.' && c.vatAfterCredits), pr.cards.map((c) => [c.vat, c.vatAfterCredits]));
-  check('1.5 card order: name, price, duration + credits + VAT, benefits, button', pr.cards.every((c) => JSON.stringify(c.order) === JSON.stringify(['ov-pc-head', 'ov-pc-price', 'ov-pc-facts', 'ov-pc-list', 'ov-pc-btn']) && JSON.stringify(c.facts) === JSON.stringify(['ov-pc-duration', 'ov-pc-credits', 'ov-pc-vat'])), pr.cards[0] && pr.cards[0].order);
-  check('1.6 duration and credits visible above the benefits (e.g. "1 month of access", "1.750 credits")', /1 month of access/.test(pr.cards[1].duration) && /1\.750 credits/.test(pr.cards[1].credits), [pr.cards[1].duration, pr.cards[1].credits]);
+  check('1.4 "Excl. VAT — the VAT for your location is added at checkout." (no fixed rate; Stripe Tax decides) on all five cards, directly under the credit allowance', pr.cards.every((c) => c.vat === 'Excl. VAT — the VAT for your location is added at checkout.'), pr.cards.map((c) => [c.vat, c.vatAfterCredits]));
+  check('1.5 card order: name, price, duration + credits + VAT, benefits, button', pr.cards.every((c) => JSON.stringify(c.order) === JSON.stringify(['ov-pc-head', 'ov-pc-price', 'ov-pc-facts', 'ov-pc-list', 'ov-pc-btn']) && JSON.stringify(c.facts) === JSON.stringify(['ov-pc-duration', 'ov-pc-save', 'ov-pc-credits', 'ov-pc-pay', 'ov-pc-vat'])), pr.cards[0] && pr.cards[0].order);
+  check('1.6 price per month and credits visible above the benefits (e.g. "€29 per month", "1.750 credits")', /€29 per month/.test(pr.cards[1].duration) && /1\.750 credits/.test(pr.cards[1].credits), [pr.cards[1].duration, pr.cards[1].credits]);
   check('1.7 VAT line visually secondary to price and credits', pr.cards.every((c) => c.vatSize < 14 && c.vatSize < c.priceSize / 2), pr.cards.map((c) => c.vatSize));
   const same = (k) => pr.cards.every((c) => Math.abs(c.top[k] - pr.cards[0].top[k]) < 2);
   check('1.8 names, prices, benefit lists and buttons aligned across the five cards', same('name') && same('price') && same('list') && same('btn'), pr.cards.map((c) => c.top));
+  const ws = await page.evaluate(() => [...document.querySelectorAll('#lpPricingGrid .ov-pc')].map((c) => ({ id: c.dataset.plan, month: (c.querySelector('.ov-pc-duration') || {}).textContent, save: (c.querySelector('.ov-pc-save') || {}).textContent.trim(), pay: (c.querySelector('.ov-pc-pay') || {}).textContent, period: (c.querySelector('.ov-pc-period') || {}).textContent, badge: ((c.querySelector('.ov-pc-badge') || {}).textContent || ''), forText: (c.querySelector('.ov-pc-for') || {}).textContent })));
+  const W = Object.fromEntries(ws.map((c) => [c.id, c]));
+  check('1.10 effective monthly price on every period card: Monthly €29, Quarterly €26, Semi-Annual €23.83, Annual €20.42; Flex says “For 14 days”', /€29 per month/.test(W.monthly.month) && /€26 per month/.test(W.quarterly.month) && /€23\.83 per month/.test(W.semiannual.month) && /€20\.42 per month/.test(W.annual.month) && /For 14 days/.test(W.flex.month), ws.map((c) => [c.id, c.month]));
+  check('1.11 savings against Monthly, only where real: Quarterly €9, Semi-Annual €31, Annual €103; none on Flex or Monthly', W.quarterly.save === 'Save €9 vs. Monthly' && W.semiannual.save === 'Save €31 vs. Monthly' && W.annual.save === 'Save €103 vs. Monthly' && !/Save/.test(W.flex.save) && !/Save/.test(W.monthly.save), ws.map((c) => [c.id, c.save]));
+  check('1.12 every card: one payment, no automatic renewal (Stripe checkout is one-time for all five plans); a billing period beside the price', ws.every((c) => c.pay === 'One payment · no automatic renewal' && c.period.length > 3), ws.map((c) => [c.id, c.pay, c.period]));
+  check('1.13 who each plan is for, and Flex marked Introductory; the factual “Lowest monthly price” stays on Annual', ws.every((c) => c.forText && c.forText.length > 10) && /Introductory/i.test(W.flex.badge) && /Lowest monthly price/i.test(W.annual.badge), ws.map((c) => [c.id, c.badge, c.forText]));
   check('1.9 pricing has ONE shared dot field for the whole section (not a second one in the header), no duplicates on the page', pr.foldCanvases === 1 && pr.headCanvases === 0 && pr.allHeaderCanvases === pr.headers, pr);
   const field = await page.evaluate(() => { var h = document.querySelector('.ov-pricing-fold'); var c = h.querySelector(':scope > canvas'); return { z: getComputedStyle(c).zIndex, pe: getComputedStyle(c).pointerEvents, registered: !!(window.IkDotField && window.IkDotField.fields.some((f) => f.c === c)), oneEngine: typeof window.IkDotField === 'object' }; });
   check('1.10 pricing field behind the content, not clickable, registered with the one shared engine', field.z === '-1' && field.pe === 'none' && field.registered && field.oneEngine, field);
@@ -152,10 +158,10 @@ const ROT = 'function(t){ if(!t || t === "none") return 0; var m = t.match(/matr
   const hero = await page.evaluate(() => { var h = document.querySelector('.ik-hero'); var b = Array.from(h.querySelectorAll('.ik-actions a')); return { text: h.innerText, eyebrow: !!h.querySelector('.ik-eyebrow'), meta: !!h.querySelector('.ik-hero__meta'), btns: b.map((a) => [a.textContent.trim(), a.getAttribute('href')]) }; });
   check('3.1 no "AI marketing platform" badge', !hero.eyebrow && !/AI marketing platform/i.test(hero.text), hero);
   check('3.2 no pricing sentence ("From €17 for 14 days…")', !hero.meta && !/From €17|automatic renewal/.test(hero.text));
-  check('3.3 CTAs: "Get started" (unchanged) and "Show how it works" → #how', hero.btns.length === 2 && /^Get started/.test(hero.btns[0][0]) && hero.btns[0][1] === '/signup' && /^Show how it works/.test(hero.btns[1][0]) && hero.btns[1][1] === '#how', hero.btns);
-  await page.click('.ik-hero .ik-actions a[href="#how"]'); await page.waitForTimeout(1500);
-  const how = await page.evaluate(() => { var r = document.getElementById('how').getBoundingClientRect(); return { top: Math.round(r.top), title: document.getElementById('ik-how-title').textContent }; });
-  check('3.4 "Show how it works" scrolls to the workflow section (One loop. Six sections.)', how.top > -40 && how.top < 200 && /One loop/.test(how.title), how);
+  check('3.3 CTAs: "Get started" (unchanged) and "See the workspace" → #workspace', hero.btns.length === 2 && /^Get started/.test(hero.btns[0][0]) && hero.btns[0][1] === '/signup' && /^See the workspace/.test(hero.btns[1][0]) && hero.btns[1][1] === '#workspace', hero.btns);
+  await page.click('.ik-hero .ik-actions a[href="#workspace"]'); await page.waitForTimeout(1500);
+  const how = await page.evaluate(() => { var r = document.getElementById('workspace').getBoundingClientRect(); return { top: Math.round(r.top), title: document.getElementById('ik-ws-title').textContent }; });
+  check('3.4 "See the workspace" scrolls to the workspace section', how.top > -40 && how.top < 200 && /Everything your advertising needs/.test(how.title), how);
   await page.close();
 
   // ── 4. Problem sequence ──────────────────────────────────────────

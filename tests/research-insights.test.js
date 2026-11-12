@@ -95,7 +95,8 @@ async function signIn(page, plan) {
   await page.evaluate((p) => { window._dbSubscriptionStatus = p; }, plan || 'paid');
   await page.waitForTimeout(600);
 }
-const nav = (page, id) => page.click('.orv-sb .onv-item[data-onv="' + id + '"]');
+// Pages that left the sidebar (Competitor Analysis, My Content, Campaign Builder) open through the app's own router.
+const nav = (page, id) => ['competitors', 'content', 'builder'].includes(id) ? page.evaluate((v) => window.orvAppNav.go(v), id) : page.click('.orv-sb .onv-item[data-onv="' + id + '"]');
 const onItem = (page) => page.evaluate(() => (document.querySelector('.orv-sb .onv-item.is-on') || {}).dataset ? document.querySelector('.orv-sb .onv-item.is-on').dataset.onv : null);
 
 const server = app.listen(PORT, async () => {
@@ -120,7 +121,7 @@ const server = app.listen(PORT, async () => {
         await nav(page, id); await page.waitForTimeout(id.startsWith('auto') ? 800 : 450);
         res.push(await page.evaluate((id) => { const a = document.querySelector('.page.active'); return { id, page: a && a.id, gated: !!(a && a.querySelector(':scope > .orv-gate')), text: a ? a.innerText.length : 0, on: (document.querySelector('.orv-sb .onv-item.is-on') || {}).dataset }; }, id));
       }
-      check('1.2 local preview: every section opens with its real page (no plan gate) — Control Center, Research, Insights, Create, Launch, Campaigns, Automations', res.every((x) => !x.gated && x.text > 40 && x.on && x.on.onv === x.id), res.filter((x) => x.gated || x.text <= 40));
+      check('1.2 local preview: every section opens with its real page (no plan gate) — Control Center, Research, Insights, Create, Launch, Campaigns, Automations', res.every((x) => !x.gated && x.text > 40 && x.on && x.on.onv === ({ builder: 'overview' }[x.id] || x.id)), res.filter((x) => x.gated || x.text <= 40));
       check('1.3 no visible "Local preview" label anywhere (the preview itself is on)', await page.evaluate(() => window.ORV_LOCAL_PREVIEW === true && !document.getElementById('orvPreviewPill') && !document.querySelector('.orv-preview-pill') && !/Local preview/i.test(document.body.innerText)));
       await page.screenshot({ path: path.join(SHOTS, 'preview-automations.png') });
       await nav(page, 'research'); await page.waitForTimeout(500);

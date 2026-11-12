@@ -316,8 +316,25 @@ function orvIncludedFeaturesHtml(liClass){
 // allowance, the VAT line, the three benefits, the button. The facts come
 // from ORIVEN_PERIOD_PLANS; the benefits are the same for every plan (one
 // product), so they are three short statements, never a list of sections.
-var ORIVEN_CARD_BENEFITS = ["Full OrivenAI workflow", "Use credits across all AI features", "No automatic renewal"];
+var ORIVEN_CARD_BENEFITS = ["Every feature, in all six sections", "Your personal AI assistant", "Credits for research, ads, chat and automations"];
 var ORIVEN_VAT_LINE = "Excl. VAT — the VAT for your location is added at checkout.";
+// Who each period is for (shown on the public cards). Same product in every
+// plan: only the period, the price and the credits differ.
+var ORIVEN_PLAN_FOR = {
+  flex:       "Try OrivenAI on a first campaign",
+  monthly:    "Work month by month; buy again when you need it",
+  quarterly:  "Plan, launch and improve over a quarter",
+  semiannual: "A longer-term advertising strategy",
+  annual:     "A year of advertising in one workspace"
+};
+// Saving against buying Monthly for the same number of months (whole euros).
+// Only periods of more than one month; never shown when it isn't a saving.
+function orvPlanSaving(plan){
+  var monthly = ORIVEN_PERIOD_PLANS.filter(function(p){ return p.id === "monthly"; })[0];
+  if(!monthly || !(plan.months > 1)) return 0;
+  var s = Math.round((monthly.price * plan.months - plan.price) * 100) / 100;
+  return s > 0 ? s : 0;
+}
 function renderLPPricingCards(containerEl){
   if(!containerEl) return;
   containerEl.classList.add('ov-pc-five');
@@ -326,17 +343,23 @@ function renderLPPricingCards(containerEl){
     var hi = !!plan.badge;
     var delay = i === 0 ? '' : (i * 0.06).toFixed(2).replace(/^0/, '');
     var delayAttr = delay ? ' style="transition-delay:' + delay + 's"' : '';
+    var saving = orvPlanSaving(plan);
+    var badge = hi ? f.badge : (plan.id === 'flex' ? 'Introductory' : '');
     // data-eur: the EUR amount, so the pricing page's currency selector can
     // show an approximate conversion (display only; checkout stays in EUR).
-    var duration = f.period + ' of access' + (f.perMonth ? '<span class="ov-pc-sub"> · <span data-eur="' + plan.perMonth + '">' + _orvEuro(plan.perMonth) + '</span> ' + orvPlanT("per month") + '</span>' : '');
+    var monthLine = plan.months >= 1
+      ? '<span data-eur="' + (plan.perMonth || plan.price) + '">' + _orvEuro(Math.round((plan.perMonth || plan.price) * 100) / 100) + '</span> ' + orvPlanT("per month")
+      : 'For 14 days';
     var credits = f.credits + (plan.instalments > 1 ? '<span class="ov-pc-sub"> · ' + orvFormatCredits(plan.creditsPerInstalment) + ' a month</span>' : '');
     return [
-      '<div class="ov-pc ov-pc--period' + (hi ? ' ov-pc-pro' : '') + '" data-observe data-plan="' + plan.id + '"' + delayAttr + '>',
-        '<div class="ov-pc-head">' + (hi ? '<div class="ov-pc-badge">' + f.badge + '</div>' : '') + '<div class="ov-pc-tier">' + plan.name + '</div></div>',
-        '<div class="ov-pc-price"><span class="ov-pc-price-num" data-eur="' + plan.price + '">' + f.price + '</span></div>',
+      '<div class="ov-pc ov-pc--period ov-pc--ws' + (hi ? ' ov-pc-pro' : '') + '" data-observe data-plan="' + plan.id + '"' + delayAttr + '>',
+        '<div class="ov-pc-head">' + '<div class="ov-pc-badge-slot">' + (badge ? '<div class="ov-pc-badge' + (hi ? '' : ' ov-pc-badge--quiet') + '">' + badge + '</div>' : '') + '</div>' + '<div class="ov-pc-tier">' + plan.name + '</div><p class="ov-pc-for">' + ORIVEN_PLAN_FOR[plan.id] + '</p></div>',
+        '<div class="ov-pc-price"><span class="ov-pc-price-num" data-eur="' + plan.price + '">' + f.price + '</span><span class="ov-pc-period">' + f.period + '</span></div>',
         '<div class="ov-pc-facts">',
-          '<p class="ov-pc-duration">' + duration + '</p>',
+          '<p class="ov-pc-duration">' + monthLine + '</p>',
+          '<p class="ov-pc-save">' + (saving ? 'Save <span data-eur="' + saving + '">' + _orvEuro(saving) + '</span> vs. Monthly' : '&nbsp;') + '</p>',
           '<p class="ov-pc-credits">' + credits + '</p>',
+          '<p class="ov-pc-pay">One payment · no automatic renewal</p>',
           '<p class="ov-pc-vat">' + ORIVEN_VAT_LINE + '</p>',
         '</div>',
         '<ul class="ov-pc-list ov-pc-benefits">' + ORIVEN_CARD_BENEFITS.map(function(b){ return '<li>' + b + '</li>'; }).join('') + '</ul>',

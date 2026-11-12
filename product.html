@@ -111,6 +111,8 @@
   <!-- css/site-chrome.css: the shared public navbar look, footer, closing CTA and "Inside <section>" (never loaded by the app). -->
   <link rel="stylesheet" href="/css/site-chrome.css">
   <link rel="stylesheet" href="/css/pricing-planner.css">
+  <link rel="stylesheet" href="/css/ow-system.css">
+  <script src="/js/ow-ui.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
@@ -1106,7 +1108,7 @@
 
   <!-- One Connected Workflow: the six sections of OrivenAI, in workflow order, with
        the pages inside each one (same structure as the homepage's "One loop. Six
-       sections."). Pages marked "In development" are not available in the app yet. -->
+       sections."). Every page listed is in the app (js/appNav.js). -->
   <section class="ov-sp-section ov-sp-alt">
     <div class="ov-sp-section-inner ov-plat-centered">
       <div class="ov-sp-tag">One Connected Workflow</div>
@@ -1117,37 +1119,37 @@
           <div class="ov-section-num">01</div>
           <div class="ov-plat-feat-title">Control Center</div>
           <div class="ov-plat-feat-desc">The start of every session: what is happening, what needs you and what is next, with your marketing plan and business context.</div>
-          <ul class="ov-section-pages" aria-label="Pages in Control Center"><li>Dashboard</li><li>Marketing Plan</li><li class="is-dev">Progress <span>In development</span></li></ul>
+          <ul class="ov-section-pages" aria-label="Pages in Control Center"><li>Dashboard</li><li>Marketing Plan</li><li>Progress</li></ul>
         </a>
         <a class="ov-plat-feat-card ov-section-card" href="/research" style="text-decoration:none">
           <div class="ov-section-num">02</div>
           <div class="ov-plat-feat-title">Research</div>
           <div class="ov-plat-feat-desc">Investigate markets, competitors, audiences and opportunities, with each finding marked by how well it is supported. Included in every plan.</div>
-          <ul class="ov-section-pages" aria-label="Pages in Research"><li>Research</li><li>Insights</li></ul>
+          <ul class="ov-section-pages" aria-label="Pages in Research"><li>Research</li><li>Insights</li><li>Competitor Analysis</li></ul>
         </a>
         <a class="ov-plat-feat-card ov-section-card" href="/create" style="text-decoration:none">
           <div class="ov-section-num">03</div>
           <div class="ov-plat-feat-title">Create</div>
           <div class="ov-plat-feat-desc">Turn a product and a goal into platform-ready image and video ads, with copy in your brand voice.</div>
-          <ul class="ov-section-pages" aria-label="Pages in Create"><li>Create</li><li class="is-dev">My Content <span>In development</span></li></ul>
+          <ul class="ov-section-pages" aria-label="Pages in Create"><li>Create</li><li>Creative Testing</li><li>My Content</li></ul>
         </a>
         <a class="ov-plat-feat-card ov-section-card" href="/launch" style="text-decoration:none">
           <div class="ov-section-num">04</div>
           <div class="ov-plat-feat-title">Launch</div>
           <div class="ov-plat-feat-desc">Check each ad’s readiness and publish to Google, Meta, TikTok or Pinterest. Campaigns are created paused.</div>
-          <ul class="ov-section-pages" aria-label="Pages in Launch"><li>Ad Studio</li></ul>
+          <ul class="ov-section-pages" aria-label="Pages in Launch"><li>Ad Studio</li><li>Audience Builder</li></ul>
         </a>
         <a class="ov-plat-feat-card ov-section-card" href="/campaigns" style="text-decoration:none">
           <div class="ov-section-num">05</div>
           <div class="ov-plat-feat-title">Campaigns</div>
           <div class="ov-plat-feat-desc">Follow spend, clicks, CTR, CPA and ROAS per campaign and platform, and open a campaign to review its setup.</div>
-          <ul class="ov-section-pages" aria-label="Pages in Campaigns"><li>Campaign Overview</li><li>Campaign Builder</li></ul>
+          <ul class="ov-section-pages" aria-label="Pages in Campaigns"><li>Campaign Overview</li><li>Campaign Comparison</li><li>Campaign Builder</li></ul>
         </a>
         <a class="ov-plat-feat-card ov-section-card" href="/autopilot" style="text-decoration:none">
           <div class="ov-section-num">06</div>
           <div class="ov-plat-feat-title">Automations</div>
           <div class="ov-plat-feat-desc">Schedules and rules for published campaigns that notify you, ask first or act within limits you set. Included in every plan.</div>
-          <ul class="ov-section-pages" aria-label="Pages in Automations"><li>Automations</li><li>Activity History</li></ul>
+          <ul class="ov-section-pages" aria-label="Pages in Automations"><li>Overview</li><li>Scheduler</li><li>Rules</li><li>Activity</li></ul>
         </a>
       </div>
       <p class="ov-sections-note">Every plan includes all six sections.</p>

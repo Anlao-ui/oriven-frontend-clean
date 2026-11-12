@@ -224,3 +224,33 @@
 .mpl-regen-state p { margin: 2px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--onv-text); }
 .mpl-asked { margin: 12px 0 0; max-width: 68ch; font-size: 14px; line-height: 1.5; color: var(--onv-text); }
 .mpl-asked span { display: block; font: 500 11px/1.4 var(--onv-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--onv-muted); margin-bottom: 2px; }
+
+/* ── Roadmap overview and richer tasks (2026-11 workspace pass) ──────
+   "Where you are": the current phase, tasks done (Progress's own states),
+   the plan by workflow stage, and the next task with its tool. */
+.mpl-promise { margin: 10px 0 0; max-width: 64ch; font-size: 15px; line-height: 1.55; color: var(--onv-muted); }
+.mpl-where { display: grid; gap: 14px; margin: 0 0 18px; padding: 18px; border-radius: 14px; border: 1px solid var(--onv-line); background: color-mix(in srgb, var(--onv-acc) 3%, transparent); }
+.mpl-where__top { display: grid; gap: 8px; }
+.mpl-where__top p { margin: 0; font-size: 14px; color: var(--onv-muted); }
+.mpl-where__top b { color: var(--onv-strong); }
+.mpl-where__bar { display: block; height: 6px; border-radius: 6px; background: var(--onv-line); overflow: hidden; }
+.mpl-where__bar i { display: block; height: 100%; background: var(--onv-acc); border-radius: inherit; }
+.mpl-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; }
+.mpl-flow__s { display: grid; gap: 2px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--onv-line); }
+.mpl-flow__s b { font-size: 13px; font-weight: 600; color: var(--onv-strong); }
+.mpl-flow__s span { font: 500 11.5px/1.3 var(--onv-mono); color: var(--onv-muted); }
+.mpl-flow__s.is-part { border-color: color-mix(in srgb, var(--onv-acc) 40%, var(--onv-line)); }
+.mpl-flow__s.is-done { border-color: color-mix(in srgb, #57D38C 45%, var(--onv-line)); }
+.mpl-flow__s.is-done span { color: #57D38C; }
+.mpl-next { display: grid; gap: 4px; padding-top: 14px; border-top: 1px solid var(--onv-line); }
+.mpl-next__k { margin: 0; font: 600 11px/1.2 var(--onv-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--onv-acc); }
+.mpl-next__t { margin: 0; font-size: 16px; font-weight: 600; color: var(--onv-strong); }
+.mpl-next__r { margin: 0; font-size: 13.5px; color: var(--onv-muted); }
+.mpl-next__a { margin-top: 8px; }
+.mpl-next__done { margin: 0; font-size: 14px; color: #57D38C; }
+.mpl-task__s { flex: none; width: 14px; height: 14px; margin-right: 8px; border-radius: 50%; border: 1.5px solid var(--onv-line); display: inline-block; vertical-align: -2px; }
+.mpl-task.is-done .mpl-task__s { background: #57D38C; border-color: #57D38C; box-shadow: inset 0 0 0 3px var(--onv-bg, #0a0a0a); }
+.mpl-task.is-done .mpl-task__t { color: var(--onv-muted); }
+.mpl-task__done { margin-left: 8px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; color: #57D38C; border: 1px solid color-mix(in srgb, #57D38C 50%, transparent); }
+.mpl-task__how { margin: 0 0 4px !important; }
+.mpl-task__next { color: var(--onv-muted); }
