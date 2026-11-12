@@ -21,6 +21,8 @@ module.exports = {
     <a href="/learn/what-is-an-ai-advertising-platform/"><strong>What is an AI advertising platform?</strong><span>What the category covers, what AI does well in advertising, and its limits.</span></a>
     <a href="/learn/best-ai-advertising-tools-for-small-business/"><strong>The best AI advertising tools for small businesses</strong><span>Which kinds of AI ad tools exist, what they’re good at, and how to choose.</span></a>
     <a href="/learn/adcreative-ai-alternatives/"><strong>AdCreative.ai alternatives</strong><span>Six alternatives, sorted by the job you need done.</span></a>
+    <a href="/learn/madgicx-alternatives/"><strong>Madgicx alternatives</strong><span>Five options, from Meta’s own tools to platforms that also cover Google and TikTok.</span></a>
+    <a href="/learn/smartly-io-alternatives/"><strong>Smartly.io alternatives for small teams</strong><span>Self-serve options for smaller budgets, compared by channel.</span></a>
   </div></div>
   <div class="sp-hub-group"><h2 id="g6">Creating ads</h2><div class="sp-related">
     <a href="/learn/how-to-create-facebook-and-instagram-ads-with-ai/"><strong>How to create Facebook and Instagram ads with AI</strong><span>From brief to launch: objectives, formats, placements and what to check.</span></a>

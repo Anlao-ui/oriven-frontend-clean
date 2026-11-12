@@ -159,8 +159,13 @@ function withToc(body, answerFirst) {
     return `<h2 id="${id}">${inner}</h2>`;
   });
   const label = answerFirst ? '<div class="sp-toc-h" id="toc-h">On this page</div>' : '<p id="toc-h">On this page</p>';
+  // Comparison guides number their own headings ("1. Canva: …") between
+  // unnumbered ones ("Side-by-side"). An <ol> would add a second, different
+  // number ("2. 1. Canva"), so those pages get an unnumbered list and keep
+  // the headings' own numbers.
+  const tag = items.some(([, t]) => /^\d+\.\s/.test(t)) ? 'ul' : 'ol';
   const toc = items.length >= 4
-    ? `<nav class="sp-toc" aria-labelledby="toc-h">${label}<ol>${items.map(([id, t]) => `<li><a href="#${id}">${esc(t)}</a></li>`).join('')}</ol></nav>`
+    ? `<nav class="sp-toc" aria-labelledby="toc-h">${label}<${tag}>${items.map(([id, t]) => `<li><a href="#${id}">${esc(t)}</a></li>`).join('')}</${tag}></nav>`
     : '';
   return { html, toc };
 }

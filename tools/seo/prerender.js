@@ -149,7 +149,8 @@ function compose(raw, cap, opts) {
     lds.push({ '@context': 'https://schema.org', '@type': 'WebPage', name: title, description: desc, url, inLanguage: 'en', isPartOf: { '@type': 'WebSite', name: 'OrivenAI', url: ORIGIN + '/' }, publisher: { '@id': ORIGIN + '/#organization' } });
     const crumbs = [{ name: 'Home', item: ORIGIN + '/' }];
     if (CRUMB_PARENT[route]) crumbs.push({ name: 'Platforms', item: ORIGIN + CRUMB_PARENT[route] });
-    crumbs.push({ name: (cap.h1 || title).replace(/\s+/g, ' ').trim().slice(0, 80), item: url });
+    // "Create · AI ad generator" → "Create": the section name, not the topic line.
+    crumbs.push({ name: (cap.h1 || title).replace(/\s+/g, ' ').trim().split(' · ')[0].slice(0, 80), item: url });
     lds.push({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: crumbs.map((c, i) => Object.assign({ '@type': 'ListItem', position: i + 1 }, c)) });
     if (PRODUCT.has(route)) lds.push(F.softwareLd);
     if (cap.faqs.length) lds.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: cap.faqs.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) });

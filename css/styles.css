@@ -22795,6 +22795,8 @@ body {
 @font-face { font-family: 'Geist Fallback'; font-weight: 700; src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'), local('Arimo Bold'); size-adjust: 104%; }
 .ov-sp-h1, .ov-sp-hero-sub, .ov-sp-hero .ov-hero-btns { font-family: 'Geist', 'Geist Fallback', system-ui, sans-serif; }
 h1.ov-sp-h1 { font-family: 'Geist', 'Geist Fallback', system-ui, sans-serif !important; } /* beats the global h1 !important stack */
+/* Section heroes: the eyebrow is the H1 (it names the topic), the slogan below is a <p class="ov-sp-h1">. Same look as before. */
+h1.ov-sp-topic { margin-top: 0; line-height: 1.5; text-wrap: balance; }
 .ov-sp-h1 {
   font-size: clamp(36px, 5.5vw, 68px);
   font-weight: 700; line-height: 1.08;

@@ -26,7 +26,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   check('generated pages, sitemap block and edge function are up to date (build --check)', fresh);
   const { loadPages, outFile } = require(path.join(ROOT, 'tools/seo/build.js'));
   const pages = loadPages();
-  check('26 pages: learn hub, 15 Learn articles, 3 blog posts, 2 commercial pages, 5 solution pages', pages.length === 26 && pages.filter((p) => /^\/solutions\/[a-z-]+$/.test(p.path) && p.kind === 'commercial').length === 5 && pages.filter((p) => p.kind === 'article' && p.path.startsWith('/learn/')).length === 15 && pages.filter((p) => p.path.startsWith('/blog/')).length === 3, pages.map((p) => p.path));
+  check('28 pages: learn hub, 17 Learn articles (Madgicx and Smartly.io comparisons added 2026-11), 3 blog posts, 2 commercial pages, 5 solution pages', pages.length === 28 && pages.filter((p) => /^\/solutions\/[a-z-]+$/.test(p.path) && p.kind === 'commercial').length === 5 && pages.filter((p) => p.kind === 'article' && p.path.startsWith('/learn/')).length === 17 && pages.filter((p) => p.path.startsWith('/blog/')).length === 3, pages.map((p) => p.path));
   const titles = new Set(), descs = new Set();
   for (const p of pages) {
     const html = read(outFile(p));

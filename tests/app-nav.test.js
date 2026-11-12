@@ -391,7 +391,11 @@ const server = app.listen(PORT, async () => {
     const up = await p6.evaluate(() => ({ open: !document.getElementById('mplUpdate').hidden, t: document.getElementById('mplUpdate').innerText }));
     check('8.4 "Write a new plan" opens a real form: what should change, ideas, what happens (current plan stays, Progress restarts, nothing else touched), the cost — no "coming soon"', up.open && /What should change\?/.test(up.t) && !!(await p6.$('#mplRegenText')) && /current plan stays until the new one is ready/i.test(up.t) && /Progress starts again/.test(up.t) && /research, content, audiences and campaigns aren’t touched/.test(up.t) && /Write new plan · 90 credits/.test(up.t) && !/soon/i.test(up.t), up.t.slice(0, 300));
     check('8.5 opening the plan and the form made no write or AI request', !calls.slice(calls0).some((c) => c.m !== 'GET'), calls.slice(calls0).filter((c) => c.m !== 'GET').map((c) => c.p));
-    await p6.click('[data-mpl-jump="positioning"]'); await p6.waitForTimeout(700);
+    // The jump is a smooth scroll of ~2,800 px, which takes 0.8–0.9 s (longer on
+    // a busy machine). A fixed 700 ms wait measured it mid-flight now and then;
+    // instead, wait until the scroll position has stopped changing (max 4 s).
+    await p6.click('[data-mpl-jump="positioning"]');
+    await p6.waitForFunction(() => { const mc = document.querySelector('.mc'); const w = window; if (w.__mplLast === mc.scrollTop) { w.__mplSame = (w.__mplSame || 0) + 1; } else { w.__mplSame = 0; w.__mplLast = mc.scrollTop; } return w.__mplSame >= 6 && mc.scrollTop > 0; }, null, { polling: 50, timeout: 4000 }).catch(() => {});
     const jump = await p6.evaluate(() => { const mc = document.querySelector('.mc'); return { top: Math.round(document.getElementById('mpl-positioning').getBoundingClientRect().top), st: mc.scrollTop, atEnd: mc.scrollTop >= mc.scrollHeight - mc.clientHeight - 2, vh: innerHeight }; });
     check('8.6 the section index jumps to a section (to the top, or as far as the page scrolls when it is near the end)', jump.top > -50 && (jump.top < 200 || (jump.atEnd && jump.top < jump.vh - 120)), jump);
     await p6.screenshot({ path: path.join(SHOTS, 'plan-scrolled-1440.png') });

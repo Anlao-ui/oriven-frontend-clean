@@ -52,7 +52,8 @@ html{scroll-padding-top:84px}
 /* ── Article contents ("On this page") ── */
 .sp-toc{margin:0 0 36px;padding:18px 22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
 .sp-toc p,.sp-toc-h{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
-.sp-toc ol{margin:0;padding-left:20px;display:grid;gap:4px;font-size:15px;line-height:1.5}
+.sp-toc ol,.sp-toc ul{margin:0;padding-left:20px;display:grid;gap:4px;font-size:15px;line-height:1.5}
+.sp-toc ul{list-style:none;padding-left:0}
 .sp-toc a{text-decoration:none;color:var(--ink-2)}
 .sp-toc a:hover{color:var(--lime)}
 
