@@ -6,7 +6,7 @@
 // and <!-- pages:end --> (and <!-- solutions:start/end -->). Behaviour:
 // js/section-pages.js. Styles: css/site-chrome.css (.pp, .pm).
 //
-// Accuracy (checked against the app, 2026-10-29):
+// Accuracy (checked against the app, 2026-11-10: js/appNav.js and each page's module):
 //   status 'live' = a page or tab that exists today
 //   status 'part' = exists, but inside another page (where says which)
 //   status 'dev'  = not in the app yet; the copy says what exists instead
@@ -40,7 +40,10 @@ const MOCK = {
     row(txt('Weekend menu · Meta') + chip('Briefed', 'volt'), 2) +
     row(txt('Autumn launch · TikTok') + chip('Planned'), 3) +
     row(txt('Brief → prefills Create', 'm'), 4)),
-  progress: devBox('A view of your progress over time', ['Today: the Get set up checklist on the Dashboard', 'Today: results over time in Campaigns']),
+  progress: win('Control Center · Progress',
+    row(txt('Week 1', 'k') + bar(100) + txt('3 of 3 done', 'm'), 0) +
+    row(txt('Week 2', 'k') + bar(40) + txt('2 of 5 done', 'm'), 1) +
+    row(txt('Week 3', 'k') + bar(0) + txt('Upcoming', 'm'), 2)),
   research: win('Research',
     row(txt('How do premium coffee roasters advertise in Amsterdam?', 'q'), 0) +
     row(chip('Market') + chip('Competitor', 'volt') + chip('Audience') + chip('Opportunity'), 1) +
@@ -56,7 +59,25 @@ const MOCK = {
     row(txt('Format', 'k'), 1) +
     row(chip('Image ad', 'volt') + chip('Video ad') + chip('Unsupported: shown disabled', 'off'), 2) +
     row(txt('Copy in your brand voice · then to Launch as a draft', 'm'), 3)),
-  content: devBox('All your created content in one place', ['Today: drafts are listed in Launch', 'Today: published campaigns in Campaigns']),
+  content: win('Create · My Content',
+    row(chip('Images') + chip('Videos') + chip('Ad text'), 0) +
+    row(dot('ok') + txt('Autumn candles · image') + txt('Saved', 'm'), 1) +
+    row(dot('ok') + txt('Spring offer · 5-second video') + txt('Saved', 'm'), 2)),
+  competitors: win('Research · Competitor Analysis',
+    row(txt('Your competitors', 'k') + txt('3', 'm'), 0) +
+    row(dot('ok') + txt('Positioning: handmade, local') + chip('Public source'), 1) +
+    row(dot() + txt('Offer: free shipping over €40') + chip('AI analysis'), 2)),
+  testing: win('Create · Creative Testing',
+    row(chip('Hook A') + chip('Hook B') + chip('Hook C'), 0) +
+    row(txt('Side by side', 'k') + bar(66) + txt('3 versions', 'm'), 1) +
+    row(dot('ok') + txt('Kept: “Slow evenings”') + txt('Saved', 'm'), 2)),
+  audiences: win('Launch · Audience Builder',
+    row(txt('Remote workers within 3 km') + chip('Saved'), 0) +
+    row(txt('Meta', 'k') + txt('Age 24–40 · interests: coffee, coworking', 'm'), 1) +
+    row(txt('Google', 'k') + txt('Keywords: coffee near me', 'm'), 2)),
+  compare: win('Campaigns · Comparison',
+    kpis([['CTR A', '1.9%'], ['CTR B', '1.2%'], ['CPA A', '€8.40']], 0) +
+    row(txt('Same period · same currency', 'm'), 1)),
   adstudio: win('Launch',
     row(txt('Spring menu · Meta') + chip('Ready', 'ok'), 0) +
     row(txt('Morning offer · Google') + chip('Check warnings', 'warn'), 1) +
@@ -98,73 +119,89 @@ const D = {
         can: ['A status line: campaigns running on your ad platforms, drafts in OrivenAI and what needs your attention', 'Needs you: failed or unconfirmed publishes, automation changes waiting for approval, drafts that can’t launch yet or are ready to launch, and tracking that isn’t verified', 'The last 7 days of spend, conversions, CPA and ROAS from your connected accounts', 'A Get set up checklist, and your campaigns, automations, plan and business context a click away'],
         where: 'Control Center’s overview. There is no separate Tasks page: your to-dos are Needs you and the Get set up checklist, both on the Dashboard.' },
       { id: 'plan', name: 'Marketing Plan', status: 'live', mock: 'plan',
-        lead: 'Plan what you’ll advertise next: when, where, with what budget and for which goal and audience.',
-        can: ['Plans that move from planned to briefed, in progress, live and completed', 'A monthly budget plan', 'A plan becomes a brief that prefills Create', 'Naming and UTM templates, so campaigns stay consistent'],
-        where: 'The Planning page in Control Center. Nothing is generated or published from here.' },
-      { id: 'progress', name: 'Progress', status: 'dev', mock: 'progress',
-        lead: 'A dedicated view of how your marketing is progressing over time.',
-        can: ['Today, the Get set up checklist on the Dashboard tracks your first steps', 'Today, results over time are in Campaigns'],
-        where: 'Not in the app yet.' },
+        lead: 'Your marketing plan for the period you bought: phases, tasks, and the OrivenAI tool for each task.',
+        can: ['Written from your answers and business details', 'Each task says why it matters, what to do and what you’ll have when it’s done', 'Each task opens the tool it’s done in', 'Ask for a new plan when your business changes; the current plan stays until the new one is ready'],
+        where: 'Control Center → Marketing Plan. Dated advertising plans, budgets and UTM templates stay on the Dashboard’s Planning tab.' },
+      { id: 'progress', name: 'Progress', status: 'live', mock: 'progress',
+        lead: 'Every task from your plan, and which ones are done.',
+        can: ['Done, current and upcoming tasks for each phase', 'Tasks OrivenAI can check complete only when the result exists, such as a finished research report', 'Other tasks you tick off yourself', 'Each task opens its tool'],
+        where: 'Control Center → Progress.' },
     ],
-    flow: 'Your plan prefills Create, and every item in Needs you opens the place to act on it: Launch, Campaigns or Automations.',
+    flow: 'Your plan sends each task to its tool, Progress shows what’s done, and every item in Needs you opens the place to act on it: Launch, Campaigns or Automations.',
   },
   'product-research': {
     name: 'Research', num: '02', prev: ['/business', 'Control Center'], next: ['/create', 'Create'],
     title: 'Ask a question. Keep what you learn.',
-    intro: 'Research investigates a market before you spend: one page to run research, and a library with every report you’ve run. Included in every plan.',
+    intro: 'Research investigates a market before you spend: run research, review what you learned in Insights, and keep track of your competitors. Included in every plan.',
     pages: [
       { id: 'research', name: 'Research', status: 'live', mock: 'research',
         lead: 'Ask a marketing question and get a structured report back.',
         can: ['Market, competitor, audience or opportunity research', 'Context from your business profile, your website and anything you attach', 'The job’s real stages while it runs; you can leave the page and it keeps going', C.researchRun + ' credits a report'],
         where: 'The Research page.' },
-      { id: 'insights', name: 'Insights', status: 'part', mock: 'insights',
-        lead: 'Your research library: every report you ran, saved and ready to reopen.',
-        can: ['Reopen, rename or delete reports', 'Findings marked by confidence, with the sources read, limits and assumptions', 'What is supported kept apart from ideas to test'],
-        where: 'Today Insights is the saved-research library on the Research page, not a page of its own.' },
+      { id: 'insights', name: 'Insights', status: 'live', mock: 'insights',
+        lead: 'Review and use what your research found.',
+        can: ['Key conclusions, opportunities and recommended next actions from your saved research', 'Competitors named in more than one report', 'Each finding links to its report and the sources it cites', 'Save the insights you want to keep'],
+        where: 'Research → Insights. Nothing is generated or charged on this page.' },
+      { id: 'competitors', name: 'Competitor Analysis', status: 'live', mock: 'competitors',
+        lead: 'Your competitors, and what their public websites and sources say.',
+        can: ['Your competitor list (the same one Control Center shows)', 'Analyses written by Research from web search and the competitors’ own websites', 'Every finding says where it comes from: verified, public source, AI analysis or AI suggestion', 'No access to anyone’s private advertising data, and no claims of it'],
+        where: 'Research → Competitor Analysis (linked from the Research header).' },
     ],
     flow: 'What you learn shapes your plan in Control Center and the ads you make in Create. Findings are marked by how well they are supported; none is presented as guaranteed.',
   },
   'product-create': {
     name: 'Create', num: '03', prev: ['/research', 'Research'], next: ['/launch', 'Launch'],
     title: 'Make it. Then find it again.',
-    intro: 'Create is where ads are made, step by step, from your business context. Finding everything you made in one place is the second page, still in development.',
+    intro: 'Create is where ads are made, step by step, from your business context. Creative Testing compares versions; My Content keeps everything you made.',
     pages: [
       { id: 'create', name: 'Create', status: 'live', mock: 'create',
         lead: 'Platform-ready ads in six short steps.',
         can: ['Product, platform, goal, format, optional details, then a review before anything is generated', 'Image ads (' + C.imageAd + ' credits) and video ads (' + C.videoAd + ' credits) for Google, Meta, TikTok and Pinterest', 'Options a platform doesn’t support are shown disabled, with the reason', 'Headlines and copy from your business profile and brand'],
         where: 'The Create page. What you create goes to Launch as a draft.' },
-      { id: 'content', name: 'My Content', status: 'dev', mock: 'content',
-        lead: 'One place to find and reuse everything you’ve created.',
-        can: ['Today, drafts are listed in Launch until they’re published', 'Today, published campaigns are in Campaigns'],
-        where: 'Not in the app yet.' },
+      { id: 'testing', name: 'Creative Testing', status: 'live', mock: 'testing',
+        lead: 'Several genuinely different versions of an ad idea, side by side.',
+        can: ['Headlines, hooks, descriptions, CTAs, tone variants, image ideas and video angles', 'Compare them side by side and keep the strongest', 'A kept version is saved to My Content, ready for Campaign Builder', 'No version is called a winner: results per creative come only from an ad platform, after publishing'],
+        where: 'Create → Creative Testing.' },
+      { id: 'content', name: 'My Content', status: 'live', mock: 'content',
+        lead: 'Everything you’ve made in Create, in one library.',
+        can: ['The images, videos and ad text you created', 'Open, download, copy text, favourite or delete', 'Videos appear once they finish rendering'],
+        where: 'Create → My Content (linked from the Create header).' },
     ],
     flow: 'Your plan and business profile shape what you make; finished drafts move to Launch to be checked and published.',
   },
   'product-launch': {
     name: 'Launch', num: '04', prev: ['/create', 'Create'], next: ['/campaigns', 'Campaigns'],
     title: 'One studio between a draft and a live campaign.',
-    intro: 'Launch is about getting ads out: check every draft against what the platform needs, fix what blocks it, and publish. What happens after publishing is followed in Campaigns.',
+    intro: 'Launch is about getting ads out: prepare the audience, check every draft against what the platform needs, fix what blocks it, and publish. What happens after publishing is followed in Campaigns.',
     pages: [
       { id: 'adstudio', name: 'Ad Studio', status: 'live', mock: 'adstudio',
         lead: 'Every draft, its readiness and the way to publish it.',
         can: ['Each draft marked ready, check warnings, blocked or failed', 'Checks for what the platform needs (account, budget, targeting, tracking, creative), with what blocks a draft', 'Publish to Google Ads, Meta Ads, TikTok Ads or Pinterest Ads through each platform’s official API', 'Campaigns are created paused: you decide when they start'],
         where: 'In the app this page is called Launch. Publishing needs a connected ad account.' },
+      { id: 'audiences', name: 'Audience Builder', status: 'live', mock: 'audiences',
+        lead: 'Audiences from what OrivenAI knows about your business, with targeting suggestions per platform.',
+        can: ['Suggestions from your answers, business details and saved research', 'Saved audiences you can edit (the same list Control Center shows)', 'Targeting suggestions for Meta, Google, TikTok and Pinterest', 'Use an audience in Campaign Builder'],
+        where: 'Launch → Audience Builder. Prepared in OrivenAI: nothing is created in your ad accounts from this page.' },
     ],
     flow: 'Launch publishes; Campaigns follows what’s running. Some platform-side steps, like account verification, still happen on the platform.',
   },
   'product-campaigns': {
     name: 'Campaigns', num: '05', prev: ['/launch', 'Launch'], next: ['/autopilot', 'Automations'],
     title: 'See what’s running. Open how it’s built.',
-    intro: 'Campaigns follows your campaigns once they exist: their results across your connected platforms, and each campaign’s setup.',
+    intro: 'Campaigns follows your campaigns once they exist: their results across your connected platforms, comparisons, and each campaign’s setup.',
     pages: [
       { id: 'overview', name: 'Campaign Overview', status: 'live', mock: 'overview',
         lead: 'Results from every connected ad platform in one view.',
         can: ['Spend, clicks, CTR, CPA and ROAS by platform and campaign', 'Date ranges, and trends over time where the platform reports them', 'Pause or resume campaigns on Google Ads, Meta Ads and Pinterest Ads', 'Campaign Replay, to look back at how a campaign developed'],
         where: 'The Campaigns page. Figures are what each platform reports.' },
-      { id: 'builder', name: 'Campaign Builder', status: 'part', mock: 'builder',
+      { id: 'compare', name: 'Campaign Comparison', status: 'live', mock: 'compare',
+        lead: 'Campaigns side by side, on the figures the ad platforms report.',
+        can: ['Pick the campaigns and the period', 'CTR, CPC, CPM, conversion rate, CPA and ROAS computed only from reported figures', 'Anything not reported shows as “Not reported”, never as 0 or an estimate', 'An optional AI explanation that uses exactly the figures shown'],
+        where: 'Campaigns → Campaign Comparison.' },
+      { id: 'builder', name: 'Campaign Builder', status: 'live', mock: 'builder',
         lead: 'A campaign’s setup in one place: structure, targeting, budget and ads.',
-        can: ['Review and adjust a campaign before it goes live', 'The same checks Launch uses decide whether it can be published'],
-        where: 'Today this is the campaign workspace you open from Launch; a Campaign Builder page inside Campaigns is in development.' },
+        can: ['Open a campaign that isn’t published yet and adjust it', 'Use a saved audience or a kept creative from My Content', 'The same checks Launch uses decide whether it can be published'],
+        where: 'Campaigns → Campaign Builder (linked from the Campaigns header).' },
     ],
     flow: 'Results here appear on the Dashboard in Control Center and are what Automations rules watch.',
   },
@@ -176,11 +213,11 @@ const D = {
       { id: 'automations', name: 'Automations', status: 'live', mock: 'automations',
         lead: 'Decide what OrivenAI may do for your published campaigns.',
         can: ['Overview: what’s running, scheduled runs, approvals waiting, and what was done or failed in the last 7 days', 'Scheduler: switch campaigns on or off at set times, also when you’re offline', 'Rules: watch spend, cost per result or ROAS and react when a condition is met', 'Every rule notifies you, asks first or acts within limits you set; one switch pauses everything'],
-        where: 'The Overview, Scheduler and Rules tabs. ' + C.automationCreate + ' credits once per new automation; its checks and changes are free.' },
-      { id: 'activity', name: 'Activity History', status: 'live', mock: 'activity',
+        where: 'The Overview, Scheduler and Rules pages. ' + C.automationCreate + ' credits once per new automation; its checks and changes are free.' },
+      { id: 'activity', name: 'Activity', status: 'live', mock: 'activity',
         lead: 'What each automation did, and the result.',
         can: ['Every run: completed, partly done, failed, skipped, cancelled or pending approval', 'Filter by result', 'History stays after an automation is deleted'],
-        where: 'The Activity tab in Automations.' },
+        where: 'Automations → Activity.' },
     ],
     flow: 'Nothing acts without a schedule or rule you switched on. To build or publish a campaign, use Launch.',
   },

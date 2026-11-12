@@ -82,6 +82,8 @@
     }
     var old = document.getElementById('orvAgentPicker'); if (old) old.remove();
     renderStarters();
+    ensureAboutUI();
+    var ab = document.getElementById('orvAgentAbout'); if (ab && window.owUI) window.owUI.close(ab);
   }
 
   // ── Header: [mark + status dot] Name · status / tagline ─────────────
@@ -178,6 +180,55 @@
     setTimeout(function () { grow(); syncSend(); }, 0);
   }
 
+  // ── About your assistant (drawer, css/ow-system.css + js/ow-ui.js) ──
+  // Everything shown is real: the profile from GET /api/agent, what the
+  // assistant can and can't do (the server's own list, services/agents.js
+  // platformGuide), and this device's conversation. Per-assistant usage is
+  // not recorded anywhere, so no usage statistics are shown.
+  var CAN = ['Create a campaign draft', 'Write headlines, calls to action, emails and landing pages', 'Start research and read your reports', 'List your campaigns and automations', 'Refresh a campaign’s numbers', 'Pause, resume, rename or change the budget of a live campaign, after you confirm', 'Create an automation, after you confirm', 'Remember a fact about your business', 'Check your credit balance', 'Open any page in OrivenAI'];
+  var CANT = [['Connect an ad account', 'Ad Platforms (you sign in with the platform)'], ['Publish a draft', 'Ad Studio'], ['Generate a video', 'Create'], ['Buy a plan or change billing', 'Settings'], ['Delete your account', 'Settings']];
+  function aboutHtml(a) {
+    var mine = read().msgs.filter(function (m) { return m.r === 'u'; }).length;
+    var li = function (xs) { return xs.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join(''); };
+    return '<div class="orv-about__id" style="--orv-agent:' + esc(a.color) + ';--orv-agent-rgb:' + rgb(a.color) + '">' + glyph(a.id, 'orv-agent-head-glyph') +
+        '<div><h2 class="orv-about__name" id="orvAboutTitle">' + esc(a.name) + '</h2><p class="orv-about__role">' + esc(a.role) + '</p></div></div>' +
+      '<p class="orv-about__tone">' + esc(a.tone || '') + '</p>' +
+      (a.hello || a.intro ? '<p class="orv-about__lead">' + esc(a.hello || a.intro) + '</p>' : '') +
+      '<dl class="orv-about__facts">' +
+        '<div><dt>Status</dt><dd><span class="ow-tag ow-tag--done">Your personal assistant</span> chosen once; it stays with you in every section.</dd></div>' +
+        '<div><dt>This device</dt><dd>' + (mine ? mine + ' message' + (mine === 1 ? '' : 's') + ' in your saved conversation' : 'No messages in your saved conversation yet') + '</dd></div>' +
+      '</dl>' +
+      ((a.strengths || []).length ? '<h3 class="orv-about__h">Strongest at</h3><ul class="orv-about__list">' + li(a.strengths) + '</ul>' : '') +
+      '<h3 class="orv-about__h">What ' + esc(a.name) + ' can do for you</h3><ul class="orv-about__list">' + li(CAN) + '</ul>' +
+      '<h3 class="orv-about__h">Done by you, elsewhere in OrivenAI</h3><ul class="orv-about__list orv-about__list--out">' + CANT.map(function (x) { return '<li>' + esc(x[0]) + ' <span>' + esc(x[1]) + '</span></li>'; }).join('') + '</ul>' +
+      ((a.alsoHelps || []).length ? '<p class="orv-about__note">Strongest in its specialisation, and helps across OrivenAI, including ' + esc(a.alsoHelps.join(', ')) + '. Each chat message costs credits; nothing is done without the tools above, and actions on live campaigns wait for your confirmation.</p>' : '') +
+      '<p class="orv-about__note">OrivenAI doesn’t record usage statistics per assistant, so none are shown here.</p>';
+  }
+  function ensureAboutUI() {
+    var panel = document.getElementById('orvAiPanel'); if (!panel) return;
+    var right = panel.querySelector('.orv-ai-panel-head-right');
+    if (right && !document.getElementById('orvAgentAboutBtn')) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.id = 'orvAgentAboutBtn'; b.className = 'orv-ai-panel-close orv-agent-hbtn';
+      b.setAttribute('aria-label', 'About your assistant'); b.setAttribute('aria-haspopup', 'dialog'); b.setAttribute('aria-controls', 'orvAgentAbout'); b.title = 'About your assistant';
+      b.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.2v3.8"/><path d="M8 5h.01"/></svg>';
+      b.addEventListener('click', function () {
+        if (!S.agent || !S.assigned) return;
+        var d = document.getElementById('orvAgentAbout');
+        if (!d) {
+          d = document.createElement('div'); d.id = 'orvAgentAbout'; d.className = 'ow-drawer orv-about'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'orvAboutTitle'); d.setAttribute('aria-hidden', 'true'); d.hidden = true;
+          d.innerHTML = '<div class="ow-drawer__scrim"></div><div class="ow-drawer__panel"><button type="button" class="ow-drawer__close" data-ow-close aria-label="Close"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button><div data-orv-about-body></div></div>';
+          document.body.appendChild(d);
+        }
+        d.querySelector('[data-orv-about-body]').innerHTML = aboutHtml(S.agent);
+        if (window.owUI) window.owUI.open(d, b);
+      });
+      right.insertBefore(b, right.firstChild);
+    }
+    var btn = document.getElementById('orvAgentAboutBtn');
+    if (btn) btn.hidden = !(S.agent && S.assigned);
+  }
+
   // ── The page the assistant knows you're on (sent as context.view) ───
   function where() {
     var el = document.getElementById('orvAgentWhere'); if (!el) return;
@@ -211,6 +262,7 @@
       lockInput(true);
       renderPicker();
       renderStarters();
+      ensureAboutUI();
     }
   }
   function lockInput(on) {
@@ -272,6 +324,7 @@
       renderStarters();
       where();
       bindComposer();
+      ensureAboutUI();
     }
   }
 

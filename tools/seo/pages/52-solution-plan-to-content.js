@@ -5,7 +5,7 @@
 // Create; nothing is generated or published from Planning, no AI call on
 // page open), js/createFlow.js (six steps, structured brief).
 // Honest scope: no automatic conversion of a plan into finished ads; the
-// Progress page is in development.
+// Progress page is live (2026-11).
 const path = (items) => `<p class="sol__path" aria-label="Where it happens: ${items.join(', ')}">${items.map((x) => `<span>${x}</span>`).join('<i aria-hidden="true">&rarr;</i>')}</p>`;
 module.exports = {
   path: '/solutions/plan-to-content',
@@ -60,12 +60,12 @@ module.exports = {
 
 <section class="sp-section" aria-labelledby="scope-h"><div class="sp-wrap">
   <h2 id="scope-h">What it doesn’t do</h2>
-  <p>A plan doesn’t turn itself into finished ads: the brief prefills Create, and you review every step before anything is generated. Planning never publishes anything. A Progress page that tracks your marketing over time is still in development; today, results over time are in Campaigns and the Dashboard shows what needs you.</p>
+  <p>A plan doesn’t turn itself into finished ads: the brief prefills Create, and you review every step before anything is generated. Planning never publishes anything. The tasks of your Marketing Plan are tracked in Progress; campaign results over time are in Campaigns, and the Dashboard shows what needs you.</p>
 </div></section>`,
   faq: [
     ['Does a plan create ads automatically?', '<p>No. A plan becomes a brief that prefills Create. You review the steps and choose to create the ad; credits are only used when something is generated.</p>'],
     ['Where is the Marketing Plan?', '<p>In Control Center, next to the Dashboard. It’s included in every plan.</p>'],
-    ['Can I track progress against the plan?', '<p>Each plan has a status from planned to completed. A dedicated Progress page is in development; today, campaign results are in Campaigns.</p>'],
+    ['Can I track progress against the plan?', '<p>Yes. Progress lists every task of your Marketing Plan and which are done; tasks OrivenAI can check tick off only when the result exists. Dated plans on the Planning tab also have a status from planned to completed, and campaign results are in Campaigns.</p>'],
   ],
   related: ['/solutions/research-before-creation', '/solutions/advertising-campaigns', '/solutions/connected-workflow', '/solutions/structured-automation', '/business', '/create'],
   relatedTitle: 'Other solutions and sections',

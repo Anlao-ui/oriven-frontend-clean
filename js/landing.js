@@ -166,16 +166,47 @@
       if (to === null) return;
       e.preventDefault(); setAgent(to, 'key'); tabs[cur].focus();
     });
-    figs.forEach(function (f, j) { f.addEventListener('click', function () { if (j !== cur) setAgent(j, 'figure'); }); });
+    // A click that ends a swipe is part of the swipe, not a choice of figure.
+    var swipedAt = 0;
+    figs.forEach(function (f, j) { f.addEventListener('click', function () { if (Date.now() - swipedAt < 400) return; if (j !== cur) setAgent(j, 'figure'); }); });
     var stage = $('.ik-stage', sel), sx = null, sy = 0;
     stage.style.touchAction = 'pan-y';
     stage.addEventListener('pointerdown', function (e) { sx = e.clientX; sy = e.clientY; });
     stage.addEventListener('pointerup', function (e) {
       if (sx === null) return; var dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) setAgent(cur + (dx < 0 ? 1 : -1), 'swipe');
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) { swipedAt = Date.now(); setAgent(cur + (dx < 0 ? 1 : -1), 'swipe'); }
     });
     stage.addEventListener('pointercancel', function () { sx = null; });
     setAgent(0, 'init');
+  }
+  // ── Full profile: backstory, strengths and the example conversation in a
+  // side drawer (css/ow-system.css, js/ow-ui.js), filled from the agent's
+  // own article so nothing is written twice.
+  var profile = document.getElementById('ikProfile');
+  if (profile && panels.length) {
+    panels.forEach(function (p) {
+      var b = p.querySelector('[data-ik-profile]'); if (!b) return;
+      var nm = p.querySelector('.ik-agent__name').textContent;
+      b.setAttribute('aria-label', 'View ' + nm + '’s full profile'); b.setAttribute('aria-haspopup', 'dialog'); b.setAttribute('aria-controls', 'ikProfile');
+      b.addEventListener('click', function () {
+        var body = profile.querySelector('[data-ik-profile-body]');
+        var main = p.querySelector('.ik-agent__main').cloneNode(true), chat = p.querySelector('.ik-chat');
+        var more = main.querySelector('[data-ik-profile]'); if (more) more.remove();
+        Array.prototype.forEach.call(main.querySelectorAll('[id]'), function (el) { el.removeAttribute('id'); });
+        var h = main.querySelector('.ik-agent__name'); if (h) h.id = 'ikProfileTitle';
+        body.innerHTML = '';
+        body.appendChild(main);
+        if (chat) { var c = chat.cloneNode(true); c.removeAttribute('id'); body.appendChild(c); }
+        var cta = document.createElement('div'); cta.className = 'ik-profile__cta';
+        cta.innerHTML = '<a class="ik-btn ik-btn--primary" href="/signup">Get started</a>';
+        var note = document.createElement('p'); note.className = 'ik-profile__note';
+        note.textContent = 'You choose one assistant during setup; it stays with you everywhere in OrivenAI. The backstory and conversation are illustrative.';
+        body.appendChild(cta); body.appendChild(note);
+        profile.querySelector('.ow-drawer__panel').setAttribute('data-agent', p.getAttribute('data-agent'));
+        profile.querySelector('.ow-drawer__panel').style.setProperty('--ac', getComputedStyle(p).getPropertyValue('--ac'));
+        if (window.owUI) window.owUI.open(profile, b);
+      });
+    });
   }
   function gotoAgent(k) {
     var j = panels.map(function (p) { return p.getAttribute('data-agent'); }).indexOf(k);
@@ -236,6 +267,9 @@
           v.muted = true; v.loop = true; v.playsInline = true; v.controls = true; v.preload = 'auto';
           v.setAttribute('aria-label', btn.getAttribute('aria-label').replace('Play the ', ''));
           v.src = shot.getAttribute('data-film');
+          // Captions for the section films (assets/films/sections/<key>.vtt).
+          var cap = shot.getAttribute('data-captions');
+          if (cap) { var tr = document.createElement('track'); tr.kind = 'captions'; tr.srclang = 'en'; tr.label = 'English'; tr.src = cap; tr.default = true; v.appendChild(tr); }
           media.appendChild(v);
         }
         shot.classList.add('is-playing');

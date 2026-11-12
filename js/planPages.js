@@ -109,6 +109,17 @@
       renderPlan(r);
     });
   }
+  // The roadmap's done states: Progress's own read (no write, no credits).
+  // Only the roadmap block is redrawn, so an open form is left alone.
+  function planProgress() {
+    var t = S.tok;
+    api('/api/onboarding/progress').then(function (r) {
+      if (t !== S.tok || !isOpen('plan') || !S.plan || !r || !r.ok || !r.data || !Array.isArray(r.data.phases)) return;
+      S.progress = r.data;
+      var box = document.getElementById('mplRoadBody'); var P = S.plan.plan;
+      if (box && P) box.innerHTML = roadmapHtml(P, S.plan, P.horizon || S.plan.horizon || null);
+    });
+  }
   function renderPlan(r) {
     var root = document.getElementById('mplRoot'); if (!root) return;
     var d = r && r.data;
@@ -122,6 +133,7 @@
     var h = d.horizon && d.horizon.label ? d.horizon.label : '';
     if (d.status === 'ready' && d.plan) {
       S.plan = d; S.planAt = Date.now(); root.innerHTML = planHtml(d);
+      planProgress();
       if (d.regen && d.regen.status === 'generating') S.poll = setTimeout(function () { if (isOpen('plan')) loadPlan(true); }, 5000);
       return;
     }
@@ -253,7 +265,7 @@
   }
 
   var SECTIONS = [
-    ['priorities', 'Priorities'], ['roadmap', 'Action plan'], ['overview', 'Business overview'], ['audience', 'Audience'],
+    ['roadmap', 'Action plan'], ['priorities', 'Priorities'], ['overview', 'Business overview'], ['audience', 'Audience'],
     ['positioning', 'Positioning'], ['objectives', 'Objectives'], ['channels', 'Channels'], ['content', 'Content'], ['campaigns', 'Campaign ideas'],
   ];
   function planHtml(d) {
@@ -264,7 +276,7 @@
     var meta = [who, P.version > 1 ? 'Version ' + P.version : '', d.generatedAt ? (P.version > 1 ? 'written ' : '') + day(d.generatedAt, true) : ''].filter(Boolean).join(' · ');
     var body = {
       priorities: (P.priorities || []).length ? '<ol class="mpl-pri">' + li(P.priorities) + '</ol>' : '',
-      roadmap: roadmapHtml(P, d, h),
+      roadmap: (function () { var x = roadmapHtml(P, d, h); return x ? '<div id="mplRoadBody">' + x + '</div>' : ''; })(),
       overview: P.overview && P.overview.text ? '<p>' + esc(P.overview.text) + '</p>' : '',
       audience: (P.audience && P.audience.text ? '<p>' + esc(P.audience.text) + '</p>' : '') +
         ((P.audience && P.audience.segments || []).length ? '<dl class="mpl-dl">' + P.audience.segments.map(function (s) { return '<dt>' + esc(s.name) + '</dt><dd>' + esc(s.needs) + '</dd>'; }).join('') + '</dl>' : ''),
@@ -281,6 +293,7 @@
       '<header class="mpl-head">' +
         '<p class="mpl-eyebrow">Marketing plan' + (h && h.label ? ' · ' + esc(h.label) : '') + '</p>' +
         '<h1 id="mplTitle">' + esc(d.businessName ? d.businessName : 'Your marketing plan') + '</h1>' +
+        '<p class="mpl-promise">A plan built around your business: a personalised advertising strategy, organised into clear phases and tasks you can act on.</p>' +
         (meta ? '<p class="mpl-meta">' + esc(meta) + '</p>' : '') +
         regenBanner(d) +
         (P.request ? '<p class="mpl-asked"><span>You asked</span>“' + esc(P.request) + '”</p>' : '') +
@@ -297,25 +310,67 @@
   // The action plan: per period phase, the tasks to do in OrivenAI, each
   // with why it matters, what to do and a button to the page it's done on.
   // Older plans (steps without a catalogue action) still show as a list.
+  // How each task happens (services/planCatalog.js mode) — the same three
+  // words as the website, so the user always knows what OrivenAI does itself.
+  var MODE = { done: ['done', 'In OrivenAI'], prepared: ['prepared', 'Prepared for you'], platform: ['platform', 'Through your ad account'] };
+  // The workflow stages the catalogue's stages roll up into.
+  var FLOW = [['Understand', ['setup']], ['Research', ['research']], ['Strategy', ['audience', 'strategy']], ['Create', ['creative']], ['Launch', ['build', 'launch']], ['Measure & improve', ['analyse', 'optimise']]];
+  // Done states come from Progress (GET /api/onboarding/progress: verified
+  // tasks are done only when the result exists). Step ids are p<phase>-a<task>.
+  function doneMap() {
+    var m = {}, pr = S.progress;
+    if (pr && Array.isArray(pr.phases)) pr.phases.forEach(function (p) { (p.steps || []).forEach(function (x) { if (x.done) m[x.id] = true; }); });
+    return m;
+  }
+  function roadmapOverview(road, cat, now, done, known) {
+    var all = [], next = null;
+    road.forEach(function (r, i) { (r.tasks || []).forEach(function (t, j) { var id = 'p' + (i + 1) + '-a' + (j + 1); all.push({ t: t, id: id, i: i, c: cat[t.action] || {} }); }); });
+    if (!all.length) return '';
+    var n = all.filter(function (x) { return done[x.id]; }).length;
+    for (var k = 0; k < all.length; k++) { if (!done[all[k].id] && all[k].i <= Math.max(now, 0)) { next = all[k]; break; } }
+    if (!next) for (var k2 = 0; k2 < all.length; k2++) if (!done[all[k2].id]) { next = all[k2]; break; }
+    var stages = FLOW.map(function (f) {
+      var xs = all.filter(function (x) { return f[1].indexOf(x.c.stage) !== -1; });
+      var d = xs.filter(function (x) { return done[x.id]; }).length;
+      return xs.length ? '<li class="mpl-flow__s' + (d === xs.length ? ' is-done' : d ? ' is-part' : '') + '"><b>' + esc(f[0]) + '</b><span>' + (known ? d + ' of ' + xs.length : xs.length + ' task' + (xs.length === 1 ? '' : 's')) + '</span></li>' : '';
+    }).join('');
+    return '<div class="mpl-where" aria-label="Where you are">' +
+      '<div class="mpl-where__top"><p><b>' + esc(now >= 0 && road[now] ? road[now].phase : road[0].phase) + '</b>' + (known ? ' · ' + n + ' of ' + all.length + ' tasks done' : ' · ' + all.length + ' tasks in this plan') + '</p>' +
+        (known ? '<span class="mpl-where__bar" role="img" aria-label="' + n + ' of ' + all.length + ' tasks done"><i style="width:' + Math.round(n / all.length * 100) + '%"></i></span>' : '') + '</div>' +
+      '<ol class="mpl-flow" aria-label="Your plan by workflow stage">' + stages + '</ol>' +
+      (next ? '<div class="mpl-next"><p class="mpl-next__k">Next task</p><p class="mpl-next__t">' + esc(next.t.title || next.c.label || '') + '</p>' +
+        (next.c.result ? '<p class="mpl-next__r">You’ll have: ' + esc(next.c.result) + '</p>' : '') + '<div class="mpl-next__a">' + pageBtn(next.c.page, next.c.button, true) + '</div></div>'
+        : (known ? '<p class="mpl-next__done">Every task in this plan is done.</p>' : '')) +
+    '</div>';
+  }
   function roadmapHtml(P, d, h) {
     var road = P.roadmap || []; if (!road.length) return '';
     var cat = d.catalog || {};
     var now = phaseNow(road.length, P.startsAt || d.unlockedAt || d.generatedAt, h && h.days);
     var anyTask = road.some(function (r) { return Array.isArray(r.tasks); });
-    var html = '<ol class="mpl-road">' + road.map(function (r, i) {
+    var done = doneMap(), known = !!(S.progress && Array.isArray(S.progress.phases));
+    var flat = []; road.forEach(function (r) { (Array.isArray(r.tasks) ? r.tasks : []).forEach(function (t) { flat.push(t); }); });
+    var html = (anyTask ? roadmapOverview(road, cat, now, done, known) : '') + '<ol class="mpl-road">' + road.map(function (r, i) {
       var tag = i === now ? '<span class="prg-now">Now</span>' : '';
       if (!Array.isArray(r.tasks)) {
         return '<li><div class="mpl-road__h"><b>' + esc(r.phase) + '</b>' + tag + (r.focus ? '<span>' + esc(r.focus) + '</span>' : '') + '</div><ul>' +
           (r.actions || []).map(function (a) { return '<li>' + esc(typeof a === 'string' ? a : a.step) + '</li>'; }).join('') + '</ul></li>';
       }
       return '<li' + (i === now ? ' data-state="now"' : '') + '><div class="mpl-road__h"><b>' + esc(r.phase) + '</b>' + tag + '<em>' + r.tasks.length + ' task' + (r.tasks.length === 1 ? '' : 's') + '</em>' + (r.focus ? '<span>' + esc(r.focus) + '</span>' : '') + '</div>' +
-        '<ol class="mpl-tasks">' + r.tasks.map(function (t) {
+        '<ol class="mpl-tasks">' + r.tasks.map(function (t, j) {
           var c = cat[t.action] || {};
           var where = pageLabel(c.page);
-          return '<li class="mpl-task"><details><summary><span class="mpl-task__t">' + esc(t.title || c.label || '') + '</span>' + (where ? '<span class="mpl-task__p">' + esc(where) + '</span>' : '') + '</summary>' +
+          var id = 'p' + (i + 1) + '-a' + (j + 1), isDone = !!done[id];
+          var mode = MODE[c.mode];
+          var after = flat[flat.indexOf(t) + 1];
+          return '<li class="mpl-task' + (isDone ? ' is-done' : '') + '" data-step="' + id + '"><details><summary>' + (known ? '<span class="mpl-task__s" aria-hidden="true"></span>' : '') + '<span class="mpl-task__t">' + esc(t.title || c.label || '') + (isDone ? '<span class="mpl-task__done">Done</span>' : '') + '</span>' + (where ? '<span class="mpl-task__p">' + esc(where) + '</span>' : '') + '</summary>' +
             '<div class="mpl-task__b">' +
+              (mode ? '<p class="mpl-task__how"><span class="ow-tag ow-tag--' + mode[0] + '">' + mode[1] + '</span></p>' : '') +
               (t.why ? '<p><b>Why:</b> ' + esc(t.why) + '</p>' : '') +
               (t.what ? '<p><b>What to do:</b> ' + esc(t.what) + '</p>' : '') +
+              (c.needs ? '<p><b>You’ll need:</b> ' + esc(c.needs) + '</p>' : '') +
+              (c.result ? '<p><b>Result:</b> ' + esc(c.result) + '</p>' : '') +
+              (after ? '<p class="mpl-task__next"><b>Then:</b> ' + esc(after.title || ((cat[after.action] || {}).label) || '') + '</p>' : '') +
               '<div class="mpl-task__a">' + pageBtn(c.page, c.button, true) +
                 '<span class="mpl-fine">' + (c.verify === 'auto' ? 'Ticks off in Progress by itself once it’s done.' : 'You confirm this one in Progress.') + '</span></div>' +
             '</div></details></li>';

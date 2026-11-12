@@ -280,6 +280,12 @@ const server = app.listen(PORT, async () => {
       check('I2 the panel shows the page it knows you are on (Campaign Overview), with that page’s own questions', st.where === 'On Campaign Overview' && st.sugg === 'On Campaign Overview', st);
       check('I3 an empty message can’t be sent (Send is disabled)', st.sendDisabled);
       await ip.screenshot({ path: path.join(SHOTS, 'chat-welcome-1440.png') });
+      await ip.click('#orvAgentAboutBtn'); await ip.waitForTimeout(400);
+      const ab = await ip.evaluate(() => { const d = document.getElementById('orvAgentAbout'); return { open: !!d && d.classList.contains('is-open'), modal: d && d.getAttribute('aria-modal'), name: (document.getElementById('orvAboutTitle') || {}).textContent, text: d ? d.innerText : '', heads: d ? [...d.querySelectorAll('.orv-about__h')].map((h) => h.textContent) : [], focusIn: !!d && d.contains(document.activeElement) }; });
+      check('I3b “About your assistant” opens a dialog from the panel header: Metric’s name, role, tone, strengths, what it can do and what you do elsewhere', ab.open && ab.modal === 'true' && ab.name === 'Metric' && /Performance & Optimisation/i.test(ab.text) && /Precise, direct and evidence-oriented/.test(ab.text) && ab.heads.length === 3 && /Create a campaign draft/.test(ab.text) && /Publish a draft/.test(ab.text) && ab.focusIn, ab);
+      check('I3c no invented statistics: it says usage per assistant isn’t recorded; the only number is this device’s saved conversation', /doesn’t record usage statistics per assistant/.test(ab.text) && !/%|success rate|tasks completed|score/i.test(ab.text), ab.text.slice(0, 300));
+      await ip.keyboard.press('Escape'); await ip.waitForTimeout(200);
+      check('I3d Esc closes it and focus returns to the About button (the panel stays open)', await ip.evaluate(() => !document.getElementById('orvAgentAbout').classList.contains('is-open') && document.activeElement && document.activeElement.id === 'orvAgentAboutBtn' && document.getElementById('orvAiPanel').classList.contains('orv-ai-open')));
       const n0 = M.chatBodies.length;
       M.chat.push({ delay: 900, status: 200, body: { reply: '## What I can see\nYou have no live campaigns yet, so there is nothing to analyse.\n\n- Connect an ad account in **Ad Platforms**\n- Then launch a draft from `Launch`\n\n1. Connect\n2. Launch\n\n<img src=x onerror=alert(1)>', agent: { id: 'metric', name: 'Metric' } } });
       await ip.hover('#orvAgentStarters [data-starter="analyze"]');
@@ -361,8 +367,8 @@ const server = app.listen(PORT, async () => {
       M.agent = 'vector'; M.assigned = false;
       await signIn(up);
       await up.click('#orvAiFab'); await up.waitForTimeout(400);
-      const un = await up.evaluate(() => ({ starters: document.getElementById('orvAgentStarters').hidden, picker: !!document.getElementById('orvAgentPicker'), name: document.querySelector('#orvAiPanel .orv-ai-panel-name').textContent }));
-      check('I18 an account that never chose sees the choice, not the starting points or a default assistant', un.starters && un.picker && un.name === 'Your assistant', un);
+      const un = await up.evaluate(() => ({ about: !document.getElementById('orvAgentAboutBtn') || document.getElementById('orvAgentAboutBtn').hidden, starters: document.getElementById('orvAgentStarters').hidden, picker: !!document.getElementById('orvAgentPicker'), name: document.querySelector('#orvAiPanel .orv-ai-panel-name').textContent }));
+      check('I18 an account that never chose sees the choice, not the starting points or a default assistant', un.starters && un.picker && un.name === 'Your assistant' && un.about, un);
       M.assigned = true; M.agent = 'scout';
       await uc.close();
     }

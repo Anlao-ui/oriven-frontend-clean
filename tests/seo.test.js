@@ -94,7 +94,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
   check('index.html JSON-LD parses; Organization "OrivenAI" with alternate names', idxLd.length === 3 && org.name === 'OrivenAI' && org.alternateName.includes('ORIVEN'));
   check('PAGE_SEO titles unique and branded OrivenAI', new Set(Object.values(pageSeo).map((s) => s.title)).size === Object.keys(pageSeo).length && Object.values(pageSeo).every((s) => /OrivenAI/.test(s.title)));
   check('Google/Meta product pages target their commercial intent', /Google Ads Campaign Builder/.test(pageSeo['product-google-ads'].title) && /Facebook & Instagram Ads/.test(pageSeo['product-meta-ads'].title));
-  check('homepage: brand headline unchanged; the category is stated in the title (the hero badge was removed on request)', /<h1 class="ik-h1" id="ik-h1"><span>Your marketing,<\/span> <span>from strategy<\/span> <span>to execution\.<\/span><\/h1>/.test(idx) && !/ik-eyebrow">AI marketing platform/.test(idx) && /<title>AI Advertising Platform for Small Businesses \| OrivenAI<\/title>/.test(idx));
+  check('homepage: the workspace headline (2026-11); the category is stated in the title (the hero badge was removed on request)', /<h1 class="ik-h1" id="ik-h1"><span>Your new<\/span> <span>ad workspace\.<\/span><\/h1>/.test(idx) && !/ik-eyebrow">AI marketing platform/.test(idx) && /<title>AI Advertising Platform for Small Businesses \| OrivenAI<\/title>/.test(idx));
   // c_title: every indexed page's title, as rendered (suffix included), is 30–60
   // characters — long enough to say what the page is, short enough not to be cut.
   const tLen = (t) => [...String(t).replace(/&amp;/g, '&')].length;

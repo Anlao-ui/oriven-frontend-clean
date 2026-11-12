@@ -157,6 +157,8 @@
   <!-- css/site-chrome.css: the shared public navbar look, footer, closing CTA and "Inside <section>" (never loaded by the app). -->
   <link rel="stylesheet" href="/css/site-chrome.css">
   <link rel="stylesheet" href="/css/pricing-planner.css">
+  <link rel="stylesheet" href="/css/ow-system.css">
+  <script src="/js/ow-ui.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <style>
@@ -1055,11 +1057,11 @@
   <canvas class="ik-field" data-field="hero" aria-hidden="true"></canvas>
   <div class="ik-wrap ik-hero__in">
     <div class="ik-hero__copy">
-      <h1 class="ik-h1" id="ik-h1"><span>Your marketing,</span> <span>from strategy</span> <span>to execution.</span></h1>
-      <p class="ik-hero__sub">Research your market, plan what to do, create ads, launch them on Google, Meta, TikTok and Pinterest and improve your results in one connected workspace, with an AI assistant that fits the way you work.</p>
+      <h1 class="ik-h1" id="ik-h1"><span>Your new</span> <span>ad workspace.</span></h1>
+      <p class="ik-hero__sub">Plan, create, launch and improve your advertising on Google, Meta, TikTok and Pinterest from one place. Your research, plan, ads and results stay connected, so every step builds on the last.</p>
       <div class="ik-actions">
         <a class="ik-btn ik-btn--primary" href="/signup" data-ik-cta="hero">Get started <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
-        <a class="ik-btn ik-btn--ghost" href="#how" data-ik-cta="how">Show how it works <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"/></svg></a>
+        <a class="ik-btn ik-btn--ghost" href="#workspace" data-ik-cta="workspace">See the workspace <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"/></svg></a>
       </div>
     </div>
     <div class="ik-hero__mark" data-ik-ring><svg class="ik-ring ik-ring--hero" viewBox="244 197 534 585" aria-hidden="true" focusable="false"><use href="#ik-p0" class="ik-seg" data-i="0" style="--i:0;--ox:10.6px;--oy:-14.6px"/><use href="#ik-p1" class="ik-seg" data-i="1" style="--i:1;--ox:17.7px;--oy:3.1px"/><use href="#ik-p2" class="ik-seg" data-i="2" style="--i:2;--ox:7.3px;--oy:16.4px"/><use href="#ik-p3" class="ik-seg" data-i="3" style="--i:3;--ox:-8.5px;--oy:15.9px"/><use href="#ik-p4" class="ik-seg" data-i="4" style="--i:4;--ox:-17.7px;--oy:3.1px"/><use href="#ik-p5" class="ik-seg" data-i="5" style="--i:5;--ox:-9.5px;--oy:-15.3px"/></svg></div>
@@ -1073,14 +1075,253 @@
     <p class="ik-lead ik-problem__answer" data-reveal="fade" style="--d:3">OrivenAI connects it all: research, planning, content, campaigns and results in one workspace, so every step builds on the one before.</p>
   </div>
 </section>
+<section class="ik-sec ik-ws" id="workspace" aria-labelledby="ik-ws-title">
+  <div class="ik-wrap">
+    <div class="ow-section-head" data-reveal="stagger">
+      <p class="ow-eyebrow">The workspace</p>
+      <h2 class="ow-h2" id="ik-ws-title">Everything your advertising needs, in one place.</h2>
+      <p class="ow-lead">Seven steps in one workspace. Each step uses what the step before it produced, and each says plainly where the work happens.</p>
+    </div>
+    <ul class="ik-ws__legend" aria-label="Where the work happens">
+      <li><span class="ow-tag ow-tag--done">In OrivenAI</span> made and kept in your workspace</li>
+      <li><span class="ow-tag ow-tag--prepared">Prepared for you</span> ready in OrivenAI; you set it up or publish it</li>
+      <li><span class="ow-tag ow-tag--platform">Through your ad account</span> runs on Google, Meta, TikTok or Pinterest once you connect it</li>
+    </ul>
+    <div class="ik-ws__frame">
+      <div class="ik-ws__bar" aria-hidden="true"><span></span><span></span><span></span><p class="ik-mono">orivenai.com/app</p></div>
+      <ol class="ik-ws__flow" data-reveal="stagger">
+      <li class="ik-ws__step" style="--d:0">
+        <article class="ow-card ik-ws__card">
+          <p class="ik-ws__n"><span class="ik-mono">01</span><span class="ow-tag ow-tag--done">In OrivenAI</span></p>
+          <h3>Understand your business</h3>
+          <p>Your business details, brand, audiences and competitors in one profile that every tool reads.</p>
+          <p class="ik-ws__pages"><a href="/business">Dashboard</a></p>
+        </article>
+      </li>
+      <li class="ik-ws__step" style="--d:1">
+        <article class="ow-card ik-ws__card">
+          <p class="ik-ws__n"><span class="ik-mono">02</span><span class="ow-tag ow-tag--done">In OrivenAI</span></p>
+          <h3>Plan your strategy</h3>
+          <p>A marketing plan for the period you bought: phases, tasks, and the tool for each task.</p>
+          <p class="ik-ws__pages"><a href="/business">Marketing Plan</a><a href="/business">Progress</a></p>
+        </article>
+      </li>
+      <li class="ik-ws__step" style="--d:2">
+        <article class="ow-card ik-ws__card">
+          <p class="ik-ws__n"><span class="ik-mono">03</span><span class="ow-tag ow-tag--done">In OrivenAI</span></p>
+          <h3>Research the market</h3>
+          <p>Market, competitor and audience research from public sources, each finding marked by how well it is supported.</p>
+          <p class="ik-ws__pages"><a href="/research">Research</a><a href="/research">Insights</a><a href="/research">Competitor Analysis</a></p>
+        </article>
+      </li>
+      <li class="ik-ws__step" style="--d:3">
+        <article class="ow-card ik-ws__card">
+          <p class="ik-ws__n"><span class="ik-mono">04</span><span class="ow-tag ow-tag--done">In OrivenAI</span></p>
+          <h3>Create the ads</h3>
+          <p>Ad copy, images and short videos in your brand voice, with variations to test against each other.</p>
+          <p class="ik-ws__pages"><a href="/create">Create</a><a href="/create">Creative Testing</a><a href="/create">My Content</a></p>
+        </article>
+      </li>
+      <li class="ik-ws__step" style="--d:4">
+        <article class="ow-card ik-ws__card">
+          <p class="ik-ws__n"><span class="ik-mono">05</span><span class="ow-tag ow-tag--prepared">Prepared for you</span></p>
+          <h3>Prepare the campaign</h3>
+          <p>Audiences and a campaign structure for each platform, with a readiness check before anything goes live.</p>
+          <p class="ik-ws__pages"><a href="/launch">Audience Builder</a><a href="/launch">Ad Studio</a></p>
+        </article>
+      </li>
+      <li class="ik-ws__step" style="--d:5">
+        <article class="ow-card ik-ws__card">
+          <p class="ik-ws__n"><span class="ik-mono">06</span><span class="ow-tag ow-tag--platform">Through your ad account</span></p>
+          <h3>Launch and follow results</h3>
+          <p>Publish to your connected account (campaigns start paused), then follow spend, clicks and conversions.</p>
+          <p class="ik-ws__pages"><a href="/launch">Ad Studio</a><a href="/campaigns">Campaign Overview</a><a href="/campaigns">Campaign Comparison</a></p>
+        </article>
+      </li>
+      <li class="ik-ws__step" style="--d:6">
+        <article class="ow-card ik-ws__card">
+          <p class="ik-ws__n"><span class="ik-mono">07</span><span class="ow-tag ow-tag--platform">Through your ad account</span></p>
+          <h3>Optimise and scale</h3>
+          <p>Rules and schedules that notify you, ask first, or adjust budgets within the limits you set.</p>
+          <p class="ik-ws__pages"><a href="/autopilot">Automations</a></p>
+        </article>
+      </li>
+      </ol>
+    </div>
+    <p class="ik-ws__honest">Not done for you: audiences you build are targeting suggestions that you set up in each platform. OrivenAI doesn’t create custom audiences in your ad account, and nothing is published until you choose to.</p>
+  </div>
+</section>
+<section class="ik-sec ik-how" id="how" aria-labelledby="ik-how-title">
+  <div class="ik-wrap">
+    <div class="ik-head" data-reveal="stagger">
+      <p class="ik-eyebrow">The workflow</p>
+      <h2 class="ik-h2" id="ik-how-title">One loop. Six sections.</h2>
+      <p class="ik-lead">Everything you do builds on what came before. Research shapes the plan, the plan shapes the ads, and results shape what comes next.</p>
+    </div>
+    <dl class="ik-legend" data-reveal="stagger">
+      <div><dt>Six sections</dt><dd>Where the work happens: Control Center, Research, Create, Launch, Campaigns and Automations, each with its own pages.</dd></div>
+      <div><dt>Your assistant</dt><dd>The one you choose. It can guide you through every section, in its own style.</dd></div>
+      <div><dt>Shared context</dt><dd>Your business profile, brand and results, used where relevant and only inside your account.</dd></div>
+    </dl>
+    <div class="ik-loop" data-ik-loop>
+      <div class="ik-loop__visual">
+        <div class="ik-loop__ringbox">
+          <svg class="ik-ring ik-ring--loop" viewBox="244 197 534 585" aria-hidden="true" focusable="false"><use href="#ik-p0" class="ik-seg" data-i="0" style="--i:0;--ox:10.6px;--oy:-14.6px"/><use href="#ik-p1" class="ik-seg" data-i="1" style="--i:1;--ox:17.7px;--oy:3.1px"/><use href="#ik-p2" class="ik-seg" data-i="2" style="--i:2;--ox:7.3px;--oy:16.4px"/><use href="#ik-p3" class="ik-seg" data-i="3" style="--i:3;--ox:-8.5px;--oy:15.9px"/><use href="#ik-p4" class="ik-seg" data-i="4" style="--i:4;--ox:-17.7px;--oy:3.1px"/><use href="#ik-p5" class="ik-seg" data-i="5" style="--i:5;--ox:-9.5px;--oy:-15.3px"/></svg>
+          <span class="ik-loop__tag" data-i="0" style="left:74.1%;top:16.8%" aria-hidden="true">Control Center</span><span class="ik-loop__tag" data-i="1" style="left:90.4%;top:57.1%" aria-hidden="true">Research</span><span class="ik-loop__tag" data-i="2" style="left:66.7%;top:87.5%" aria-hidden="true">Create</span><span class="ik-loop__tag" data-i="3" style="left:30.8%;top:86.2%" aria-hidden="true">Launch</span><span class="ik-loop__tag" data-i="4" style="left:9.6%;top:57.1%" aria-hidden="true">Campaigns</span><span class="ik-loop__tag" data-i="5" style="left:28.3%;top:15.2%" aria-hidden="true">Automations</span>
+          <span class="ik-loop__center" aria-hidden="true" data-ik-loop-count>01 / 06</span>
+        </div>
+      </div>
+      <ol class="ik-steps">
+        <li class="ik-step" data-i="0">
+          <p class="ik-step__num"><i aria-hidden="true"></i>01 · Control Center</p>
+          <h3>Know where you stand</h3>
+          <p>Your dashboard and your marketing plan in one place: what is happening, what needs you and what is next.</p>
+          <p class="ik-step__out"><span>Leads to</span>Priorities</p>
+          <ul class="ik-step__pages" aria-label="Pages in Control Center"><li>Dashboard</li><li>Marketing Plan</li><li>Progress</li></ul>
+        </li>
+        <li class="ik-step" data-i="1">
+          <p class="ik-step__num"><i aria-hidden="true"></i>02 · Research</p>
+          <h3>Understand the market</h3>
+          <p>Market, competitor, audience and opportunity research, with every finding marked by how well it is supported.</p>
+          <p class="ik-step__out"><span>Leads to</span>Findings</p>
+          <ul class="ik-step__pages" aria-label="Pages in Research"><li>Research</li><li>Insights</li><li>Competitor Analysis</li></ul>
+        </li>
+        <li class="ik-step" data-i="2">
+          <p class="ik-step__num"><i aria-hidden="true"></i>03 · Create</p>
+          <h3>Make the ads</h3>
+          <p>Platform-ready image and video ads, with headlines and copy in your brand voice.</p>
+          <p class="ik-step__out"><span>Leads to</span>Creative</p>
+          <ul class="ik-step__pages" aria-label="Pages in Create"><li>Create</li><li>Creative Testing</li><li>My Content</li></ul>
+        </li>
+        <li class="ik-step" data-i="3">
+          <p class="ik-step__num"><i aria-hidden="true"></i>04 · Launch</p>
+          <h3>Go live on your terms</h3>
+          <p>Readiness checks, then publishing to your connected platforms. Campaigns start paused until you switch them on.</p>
+          <p class="ik-step__out"><span>Leads to</span>Live campaigns</p>
+          <ul class="ik-step__pages" aria-label="Pages in Launch"><li>Ad Studio</li><li>Audience Builder</li></ul>
+        </li>
+        <li class="ik-step" data-i="4">
+          <p class="ik-step__num"><i aria-hidden="true"></i>05 · Campaigns</p>
+          <h3>See what is working</h3>
+          <p>Spend, clicks, CTR, CPA and ROAS across every connected platform, and each campaign’s setup a click away.</p>
+          <p class="ik-step__out"><span>Leads to</span>Results</p>
+          <ul class="ik-step__pages" aria-label="Pages in Campaigns"><li>Campaign Overview</li><li>Campaign Comparison</li><li>Campaign Builder</li></ul>
+        </li>
+        <li class="ik-step" data-i="5">
+          <p class="ik-step__num"><i aria-hidden="true"></i>06 · Automations</p>
+          <h3>Keep it running</h3>
+          <p>Schedules and rules that act within the limits you set, and notify you or ask first when you want them to.</p>
+          <p class="ik-step__out"><span>Leads to</span>Back into research</p>
+          <ul class="ik-step__pages" aria-label="Pages in Automations"><li>Overview</li><li>Scheduler</li><li>Rules</li><li>Activity</li></ul>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+<section class="ik-sec ik-inside" id="inside" aria-labelledby="ik-inside-title">
+  <div class="ik-wrap ik-wrap--wide">
+    <div class="ik-head ik-head--center" data-reveal="stagger">
+      <p class="ik-eyebrow">Inside OrivenAI</p>
+      <h2 class="ik-h2" id="ik-inside-title">The real product, not a mock-up.</h2>
+      <p class="ik-lead">Recorded in a sample workspace. Pick a section to see it at work.</p>
+    </div>
+    <div class="ik-inside__stage" data-ik-inside data-reveal="scale">
+      <div class="ik-frame">
+        <div class="ik-frame__bar"><span class="ik-frame__path">orivenai.com/app · <b data-ik-shot-name>Control Center</b></span><span class="ik-mono">Sample workspace</span></div>
+        <div class="ik-shot is-active" id="shot-business" data-film="/assets/films/sections/control-center.mp4" data-captions="/assets/films/sections/control-center.vtt" role="tabpanel" aria-labelledby="ik-shot-tab-business">
+          <div class="ik-shot__media">
+            <img src="/assets/films/sections/control-center-800.webp" srcset="/assets/films/sections/control-center-800.webp 800w, /assets/films/sections/control-center.webp 1280w" sizes="(max-width: 1260px) 100vw, 1180px" width="1280" height="720" alt="Control Center in OrivenAI: a short tour recorded in the real app with a sample business" loading="lazy" decoding="async">
+            <button type="button" class="ik-play" data-ik-play aria-label="Play the Control Center demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
+          </div>
+        </div>
+        <div class="ik-shot" id="shot-research" data-film="/assets/films/sections/research.mp4" data-captions="/assets/films/sections/research.vtt" role="tabpanel" aria-labelledby="ik-shot-tab-research">
+          <div class="ik-shot__media">
+            <img src="/assets/films/sections/research-800.webp" srcset="/assets/films/sections/research-800.webp 800w, /assets/films/sections/research.webp 1280w" sizes="(max-width: 1260px) 100vw, 1180px" width="1280" height="720" alt="Research in OrivenAI: a short tour recorded in the real app with a sample business" loading="lazy" decoding="async">
+            <button type="button" class="ik-play" data-ik-play aria-label="Play the Research demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
+          </div>
+        </div>
+        <div class="ik-shot" id="shot-create" data-film="/assets/films/sections/create.mp4" data-captions="/assets/films/sections/create.vtt" role="tabpanel" aria-labelledby="ik-shot-tab-create">
+          <div class="ik-shot__media">
+            <img src="/assets/films/sections/create-800.webp" srcset="/assets/films/sections/create-800.webp 800w, /assets/films/sections/create.webp 1280w" sizes="(max-width: 1260px) 100vw, 1180px" width="1280" height="720" alt="Create in OrivenAI: a short tour recorded in the real app with a sample business" loading="lazy" decoding="async">
+            <button type="button" class="ik-play" data-ik-play aria-label="Play the Create demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
+          </div>
+        </div>
+        <div class="ik-shot" id="shot-launch" data-film="/assets/films/sections/launch.mp4" data-captions="/assets/films/sections/launch.vtt" role="tabpanel" aria-labelledby="ik-shot-tab-launch">
+          <div class="ik-shot__media">
+            <img src="/assets/films/sections/launch-800.webp" srcset="/assets/films/sections/launch-800.webp 800w, /assets/films/sections/launch.webp 1280w" sizes="(max-width: 1260px) 100vw, 1180px" width="1280" height="720" alt="Launch in OrivenAI: a short tour recorded in the real app with a sample business" loading="lazy" decoding="async">
+            <button type="button" class="ik-play" data-ik-play aria-label="Play the Launch demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
+          </div>
+        </div>
+        <div class="ik-shot" id="shot-campaigns" data-film="/assets/films/sections/campaigns.mp4" data-captions="/assets/films/sections/campaigns.vtt" role="tabpanel" aria-labelledby="ik-shot-tab-campaigns">
+          <div class="ik-shot__media">
+            <img src="/assets/films/sections/campaigns-800.webp" srcset="/assets/films/sections/campaigns-800.webp 800w, /assets/films/sections/campaigns.webp 1280w" sizes="(max-width: 1260px) 100vw, 1180px" width="1280" height="720" alt="Campaigns in OrivenAI: a short tour recorded in the real app with a sample business" loading="lazy" decoding="async">
+            <button type="button" class="ik-play" data-ik-play aria-label="Play the Campaigns demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
+          </div>
+        </div>
+        <div class="ik-shot" id="shot-autopilot" data-film="/assets/films/sections/automations.mp4" data-captions="/assets/films/sections/automations.vtt" role="tabpanel" aria-labelledby="ik-shot-tab-autopilot">
+          <div class="ik-shot__media">
+            <img src="/assets/films/sections/automations-800.webp" srcset="/assets/films/sections/automations-800.webp 800w, /assets/films/sections/automations.webp 1280w" sizes="(max-width: 1260px) 100vw, 1180px" width="1280" height="720" alt="Automations in OrivenAI: a short tour recorded in the real app with a sample business" loading="lazy" decoding="async">
+            <button type="button" class="ik-play" data-ik-play aria-label="Play the Automations demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
+          </div>
+        </div>
+      </div>
+      <div class="ik-inside__bar">
+        <div class="ik-tabs" role="tablist" aria-label="Product sections"><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-business" aria-controls="shot-business" aria-selected="true" tabindex="0" data-shot="business"><span>01</span>Control Center</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-research" aria-controls="shot-research" aria-selected="false" tabindex="-1" data-shot="research"><span>02</span>Research</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-create" aria-controls="shot-create" aria-selected="false" tabindex="-1" data-shot="create"><span>03</span>Create</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-launch" aria-controls="shot-launch" aria-selected="false" tabindex="-1" data-shot="launch"><span>04</span>Launch</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-campaigns" aria-controls="shot-campaigns" aria-selected="false" tabindex="-1" data-shot="campaigns"><span>05</span>Campaigns</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-autopilot" aria-controls="shot-autopilot" aria-selected="false" tabindex="-1" data-shot="autopilot"><span>06</span>Automations</button></div>
+        <div class="ik-caps"><a class="ik-shot__cap ik-link is-active" data-cap="business" href="/business">Explore Control Center <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="research" href="/research">Explore Research <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="create" href="/create">Explore Create <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="launch" href="/launch">Explore Launch <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="campaigns" href="/campaigns">Explore Campaigns <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="autopilot" href="/autopilot">Explore Automations <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="ik-sec ik-plan" id="plan" aria-labelledby="ik-plan-title">
+  <div class="ik-wrap ik-plan__in">
+    <div class="ik-plan__copy" data-reveal="stagger">
+      <p class="ik-eyebrow">Your marketing plan</p>
+      <h2 class="ik-h2" id="ik-plan-title">A plan built around your business.</h2>
+      <p class="ik-lead">A personalised advertising strategy, organised into clear phases and tasks you can act on.</p>
+      <ul class="ik-plan__points">
+        <li>Written from your answers and business details, for the period you bought</li>
+        <li>Every task says why it matters, what to do and what you’ll have when it’s done</li>
+        <li>One click opens the tool the task is done in</li>
+        <li>Tasks OrivenAI can check tick off by themselves, only when the result exists</li>
+      </ul>
+      <p class="ik-note">Your plan is written after you buy access. The roadmap shown here is an illustrative example.</p>
+    </div>
+    <article class="ik-doc ik-road" aria-labelledby="ik-doc-title" data-ik-doc data-reveal="right">
+      <header class="ik-doc__head"><h3 class="ik-doc__title" id="ik-doc-title">Marketing plan · neighbourhood coffee roaster</h3><span class="ik-mono">Illustrative example</span></header>
+      <div class="ik-road__progress"><p><b>Week 2 of 4</b> · 3 of 12 tasks done</p><span class="ik-road__bar" aria-hidden="true"><i style="--w:25%"></i></span></div>
+      <ol class="ik-road__phases" aria-label="Phases">
+        <li class="is-done">Week 1<span>Done</span></li><li class="is-now" aria-current="step">Week 2<span>Now</span></li><li>Week 3</li><li>Week 4</li>
+      </ol>
+      <ol class="ik-road__tasks" aria-label="Week 2 tasks">
+        <li class="ik-road__task is-done">
+          <div class="ik-road__task-hd"><span class="ik-road__check" aria-hidden="true"></span><h4>Research your competitors</h4><span class="ow-tag ow-tag--done">In OrivenAI</span></div>
+          <p class="ik-road__meta">Done · competitor report saved</p>
+        </li>
+        <li class="ik-road__task is-now">
+          <div class="ik-road__task-hd"><span class="ik-road__check" aria-hidden="true"></span><h4>Build an audience: remote workers within 3 km</h4><span class="ow-tag ow-tag--prepared">Prepared for you</span></div>
+          <dl class="ik-road__dl">
+            <div><dt>Why</dt><dd>Your offer is for weekday mornings; this audience is nearby on those mornings.</dd></div>
+            <div><dt>Do</dt><dd>Describe the audience, check the suggested targeting per platform and save it.</dd></div>
+            <div><dt>Result</dt><dd>A saved audience with targeting suggestions for Google and Meta.</dd></div>
+          </dl>
+          <a class="ik-road__tool" href="/launch">Open Audience Builder <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+        </li>
+        <li class="ik-road__task is-next">
+          <div class="ik-road__task-hd"><span class="ik-road__check" aria-hidden="true"></span><h4>Create three image ads for a morning offer</h4><span class="ow-tag ow-tag--done">In OrivenAI</span></div>
+          <p class="ik-road__meta">Next · in Create</p>
+        </li>
+      </ol>
+    </article>
+  </div>
+</section>
 <section class="ik-sec ik-agents" id="agents" aria-labelledby="ik-agents-title">
   <div class="ik-wrap">
     <div class="ik-head" data-reveal="stagger">
-      <p class="ik-eyebrow">Your AI assistant</p>
-      <h2 class="ik-h2" id="ik-agents-title">Six specialists. Choose the one that helps you best.</h2>
+      <p class="ik-eyebrow">Your assistant</p>
+      <h2 class="ik-h2" id="ik-agents-title">An assistant inside your workspace.</h2>
       <div class="ik-head__aside">
         <p class="ik-lead">Every assistant can guide you through all of OrivenAI, from research to results. What differs is where each one is strongest and how it talks to you.</p>
-        <p class="ik-note">Choosing your assistant is being introduced in stages. Explore all six here; their stories and example conversations are illustrative.</p>
+        <p class="ik-note">You choose one of the six during setup, and it stays with you everywhere in OrivenAI. Their backstories and example conversations are illustrative.</p>
       </div>
     </div>
     <div class="ik-sel" data-ik-sel role="region" aria-roledescription="carousel" aria-label="The six OrivenAI assistants">
@@ -1116,6 +1357,7 @@
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Market, competitor, audience and opportunity research</li><li>Separating what is established from ideas to test</li><li>Turning findings into a clear next step</li></ul>
           <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Control Center</a><a class="ik-chip" href="/create">Create</a><a class="ik-chip" href="/campaigns">Campaigns</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Scout">
           <div class="ik-chat__head"><span class="ik-mono">Illustrative example</span><span class="ik-mono">Not a live conversation</span></div>
@@ -1133,6 +1375,7 @@
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Turning goals into clear priorities</li><li>Choosing channels and budgets you can defend</li><li>Keeping your brand and audience behind every decision</li></ul>
           <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/research">Research</a><a class="ik-chip" href="/create">Create</a><a class="ik-chip" href="/launch">Launch</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Vector">
           <div class="ik-chat__head"><span class="ik-mono">Illustrative example</span><span class="ik-mono">Not a live conversation</span></div>
@@ -1150,6 +1393,7 @@
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Ad concepts, headlines and copy in your brand voice</li><li>Image and video ads from a short brief</li><li>Variations for each platform’s formats</li></ul>
           <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/research">Research</a><a class="ik-chip" href="/launch">Launch</a><a class="ik-chip" href="/campaigns">Campaigns</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Nova">
           <div class="ik-chat__head"><span class="ik-mono">Illustrative example</span><span class="ik-mono">Not a live conversation</span></div>
@@ -1167,6 +1411,7 @@
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Turning plans into the next concrete step</li><li>Checking launch readiness and clearing blockers</li><li>Keeping campaigns moving week to week</li></ul>
           <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Control Center</a><a class="ik-chip" href="/create">Create</a><a class="ik-chip" href="/campaigns">Campaigns</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Momentum">
           <div class="ik-chat__head"><span class="ik-mono">Illustrative example</span><span class="ik-mono">Not a live conversation</span></div>
@@ -1184,6 +1429,7 @@
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Reading spend, clicks, CTR, CPA and ROAS</li><li>Comparing campaigns and platforms side by side</li><li>Spotting what needs your attention</li></ul>
           <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Control Center</a><a class="ik-chip" href="/create">Create</a><a class="ik-chip" href="/autopilot">Automations</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Metric">
           <div class="ik-chat__head"><span class="ik-mono">Illustrative example</span><span class="ik-mono">Not a live conversation</span></div>
@@ -1201,6 +1447,7 @@
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Schedules and rules for published campaigns</li><li>Rules that notify you, ask first or act within your limits</li><li>Spotting repetitive work worth automating</li></ul>
           <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Control Center</a><a class="ik-chip" href="/launch">Launch</a><a class="ik-chip" href="/campaigns">Campaigns</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Flux">
           <div class="ik-chat__head"><span class="ik-mono">Illustrative example</span><span class="ik-mono">Not a live conversation</span></div>
@@ -1214,155 +1461,6 @@
           <a class="ik-btn ik-btn--primary" href="/signup" data-ik-start>Start with <span data-ik-name>Scout</span> <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
           <a class="ik-btn ik-btn--ghost" href="#how">See the workflow <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"/></svg></a>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="ik-sec ik-how" id="how" aria-labelledby="ik-how-title">
-  <div class="ik-wrap">
-    <div class="ik-head" data-reveal="stagger">
-      <p class="ik-eyebrow">The workflow</p>
-      <h2 class="ik-h2" id="ik-how-title">One loop. Six sections.</h2>
-      <p class="ik-lead">Everything you do builds on what came before. Research shapes the plan, the plan shapes the ads, and results shape what comes next.</p>
-    </div>
-    <dl class="ik-legend" data-reveal="stagger">
-      <div><dt>Six sections</dt><dd>Where the work happens: Control Center, Research, Create, Launch, Campaigns and Automations, each with its own pages.</dd></div>
-      <div><dt>Your assistant</dt><dd>The one you choose. It can guide you through every section, in its own style.</dd></div>
-      <div><dt>Shared context</dt><dd>Your business profile, brand and results, used where relevant and only inside your account.</dd></div>
-    </dl>
-    <div class="ik-loop" data-ik-loop>
-      <div class="ik-loop__visual">
-        <div class="ik-loop__ringbox">
-          <svg class="ik-ring ik-ring--loop" viewBox="244 197 534 585" aria-hidden="true" focusable="false"><use href="#ik-p0" class="ik-seg" data-i="0" style="--i:0;--ox:10.6px;--oy:-14.6px"/><use href="#ik-p1" class="ik-seg" data-i="1" style="--i:1;--ox:17.7px;--oy:3.1px"/><use href="#ik-p2" class="ik-seg" data-i="2" style="--i:2;--ox:7.3px;--oy:16.4px"/><use href="#ik-p3" class="ik-seg" data-i="3" style="--i:3;--ox:-8.5px;--oy:15.9px"/><use href="#ik-p4" class="ik-seg" data-i="4" style="--i:4;--ox:-17.7px;--oy:3.1px"/><use href="#ik-p5" class="ik-seg" data-i="5" style="--i:5;--ox:-9.5px;--oy:-15.3px"/></svg>
-          <span class="ik-loop__tag" data-i="0" style="left:74.1%;top:16.8%" aria-hidden="true">Control Center</span><span class="ik-loop__tag" data-i="1" style="left:90.4%;top:57.1%" aria-hidden="true">Research</span><span class="ik-loop__tag" data-i="2" style="left:66.7%;top:87.5%" aria-hidden="true">Create</span><span class="ik-loop__tag" data-i="3" style="left:30.8%;top:86.2%" aria-hidden="true">Launch</span><span class="ik-loop__tag" data-i="4" style="left:9.6%;top:57.1%" aria-hidden="true">Campaigns</span><span class="ik-loop__tag" data-i="5" style="left:28.3%;top:15.2%" aria-hidden="true">Automations</span>
-          <span class="ik-loop__center" aria-hidden="true" data-ik-loop-count>01 / 06</span>
-        </div>
-      </div>
-      <ol class="ik-steps">
-        <li class="ik-step" data-i="0">
-          <p class="ik-step__num"><i aria-hidden="true"></i>01 · Control Center</p>
-          <h3>Know where you stand</h3>
-          <p>Your dashboard and your marketing plan in one place: what is happening, what needs you and what is next.</p>
-          <p class="ik-step__out"><span>Leads to</span>Priorities</p>
-          <ul class="ik-step__pages" aria-label="Pages in Control Center"><li>Dashboard</li><li>Marketing Plan</li><li class="is-dev">Progress<span>In development</span></li></ul>
-        </li>
-        <li class="ik-step" data-i="1">
-          <p class="ik-step__num"><i aria-hidden="true"></i>02 · Research</p>
-          <h3>Understand the market</h3>
-          <p>Market, competitor, audience and opportunity research, with every finding marked by how well it is supported.</p>
-          <p class="ik-step__out"><span>Leads to</span>Findings</p>
-          <ul class="ik-step__pages" aria-label="Pages in Research"><li>Research</li><li>Insights</li></ul>
-        </li>
-        <li class="ik-step" data-i="2">
-          <p class="ik-step__num"><i aria-hidden="true"></i>03 · Create</p>
-          <h3>Make the ads</h3>
-          <p>Platform-ready image and video ads, with headlines and copy in your brand voice.</p>
-          <p class="ik-step__out"><span>Leads to</span>Creative</p>
-          <ul class="ik-step__pages" aria-label="Pages in Create"><li>Create</li><li class="is-dev">My Content<span>In development</span></li></ul>
-        </li>
-        <li class="ik-step" data-i="3">
-          <p class="ik-step__num"><i aria-hidden="true"></i>04 · Launch</p>
-          <h3>Go live on your terms</h3>
-          <p>Readiness checks, then publishing to your connected platforms. Campaigns start paused until you switch them on.</p>
-          <p class="ik-step__out"><span>Leads to</span>Live campaigns</p>
-          <ul class="ik-step__pages" aria-label="Pages in Launch"><li>Ad Studio</li></ul>
-        </li>
-        <li class="ik-step" data-i="4">
-          <p class="ik-step__num"><i aria-hidden="true"></i>05 · Campaigns</p>
-          <h3>See what is working</h3>
-          <p>Spend, clicks, CTR, CPA and ROAS across every connected platform, and each campaign’s setup a click away.</p>
-          <p class="ik-step__out"><span>Leads to</span>Results</p>
-          <ul class="ik-step__pages" aria-label="Pages in Campaigns"><li>Campaign Overview</li><li>Campaign Builder</li></ul>
-        </li>
-        <li class="ik-step" data-i="5">
-          <p class="ik-step__num"><i aria-hidden="true"></i>06 · Automations</p>
-          <h3>Keep it running</h3>
-          <p>Schedules and rules that act within the limits you set, and notify you or ask first when you want them to.</p>
-          <p class="ik-step__out"><span>Leads to</span>Back into research</p>
-          <ul class="ik-step__pages" aria-label="Pages in Automations"><li>Automations</li><li>Activity History</li></ul>
-        </li>
-      </ol>
-    </div>
-  </div>
-</section>
-<section class="ik-sec ik-plan" id="plan" aria-labelledby="ik-plan-title">
-  <div class="ik-wrap ik-plan__in">
-    <div class="ik-plan__copy" data-reveal="stagger">
-      <p class="ik-eyebrow">Your marketing plan</p>
-      <span class="ik-status ik-status--soon">In development</span>
-      <h2 class="ik-h2" id="ik-plan-title">A plan built around your business.</h2>
-      <p class="ik-lead">Built from your answers. Updated with your results. Clear about what is confirmed.</p>
-      <div class="ik-keys" aria-label="How the plan labels information">
-        <span class="ik-key"><i class="ik-mark ik-mark--confirmed" aria-hidden="true"></i>Confirmed</span>
-        <span class="ik-key"><i class="ik-mark ik-mark--assumption" aria-hidden="true"></i>Assumption</span>
-        <span class="ik-key"><i class="ik-mark ik-mark--suggestion" aria-hidden="true"></i>Suggestion</span>
-      </div>
-      <p class="ik-note">Available today: the advertising plan in Control Center (what you’ll advertise, when, where and with what budget). The plan shown here is an illustrative example.</p>
-    </div>
-    <article class="ik-doc" aria-labelledby="ik-doc-title" data-ik-doc data-reveal="right">
-      <header class="ik-doc__head"><h3 class="ik-doc__title" id="ik-doc-title">Marketing plan · neighbourhood coffee roaster</h3><span class="ik-mono">Illustrative example</span></header>
-      <div class="ik-doc__meter" aria-hidden="true"><span style="--n:2" class="is-confirmed"></span><span style="--n:1" class="is-assumption"></span><span style="--n:3" class="is-suggestion"></span></div>
-      <dl>
-        <div class="ik-doc__row" style="--d:0"><dt>Goal</dt><dd>More weekday visits from people working nearby</dd><span class="ik-doc__tag"><i class="ik-mark ik-mark--confirmed" aria-hidden="true"></i>Confirmed</span></div>
-        <div class="ik-doc__row" style="--d:1"><dt>Audience</dt><dd>Remote workers and students within 3 km</dd><span class="ik-doc__tag"><i class="ik-mark ik-mark--confirmed" aria-hidden="true"></i>Confirmed</span></div>
-        <div class="ik-doc__row" style="--d:2"><dt>Budget</dt><dd>€400 a month, split 60/40 to start</dd><span class="ik-doc__tag"><i class="ik-mark ik-mark--assumption" aria-hidden="true"></i>Assumption</span></div>
-        <div class="ik-doc__row" style="--d:3"><dt>Channels</dt><dd>Google Search and Meta first; TikTok once an offer works</dd><span class="ik-doc__tag"><i class="ik-mark ik-mark--suggestion" aria-hidden="true"></i>Suggestion</span></div>
-        <div class="ik-doc__row" style="--d:4"><dt>This week</dt><dd>Competitor research, then three image ads for a morning offer</dd><span class="ik-doc__tag"><i class="ik-mark ik-mark--suggestion" aria-hidden="true"></i>Suggestion</span></div>
-        <div class="ik-doc__row" style="--d:5"><dt>Measure</dt><dd>Cost per offer sign-up and weekday visits</dd><span class="ik-doc__tag"><i class="ik-mark ik-mark--suggestion" aria-hidden="true"></i>Suggestion</span></div>
-      </dl>
-    </article>
-  </div>
-</section>
-<section class="ik-sec ik-inside" id="inside" aria-labelledby="ik-inside-title">
-  <div class="ik-wrap ik-wrap--wide">
-    <div class="ik-head ik-head--center" data-reveal="stagger">
-      <p class="ik-eyebrow">Inside OrivenAI</p>
-      <h2 class="ik-h2" id="ik-inside-title">The real product, not a mock-up.</h2>
-      <p class="ik-lead">Recorded in a sample workspace. Pick a section to see it at work.</p>
-    </div>
-    <div class="ik-inside__stage" data-ik-inside data-reveal="scale">
-      <div class="ik-frame">
-        <div class="ik-frame__bar"><span class="ik-frame__path">orivenai.com/app · <b data-ik-shot-name>Control Center</b></span><span class="ik-mono">Sample workspace</span></div>
-        <div class="ik-shot is-active" id="shot-business" data-film="/assets/films/film-control-center-v2.mp4" role="tabpanel" aria-labelledby="ik-shot-tab-business">
-          <div class="ik-shot__media">
-            <img src="/assets/films/posters/film-control-center-v2-800.webp" srcset="/assets/films/posters/film-control-center-v2-800.webp 800w, /assets/films/posters/film-control-center-v2.webp 1600w" sizes="(max-width: 1260px) 100vw, 1180px" width="1600" height="900" alt="Control Center in OrivenAI, recorded in a sample workspace" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play aria-label="Play the Control Center demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
-          </div>
-        </div>
-        <div class="ik-shot" id="shot-research" data-film="/assets/films/film-research-v2.mp4" role="tabpanel" aria-labelledby="ik-shot-tab-research">
-          <div class="ik-shot__media">
-            <img src="/assets/films/posters/film-research-v2-800.webp" srcset="/assets/films/posters/film-research-v2-800.webp 800w, /assets/films/posters/film-research-v2.webp 1600w" sizes="(max-width: 1260px) 100vw, 1180px" width="1600" height="900" alt="Research in OrivenAI, recorded in a sample workspace" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play aria-label="Play the Research demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
-          </div>
-        </div>
-        <div class="ik-shot" id="shot-create" data-film="/assets/films/film-create.mp4" role="tabpanel" aria-labelledby="ik-shot-tab-create">
-          <div class="ik-shot__media">
-            <img src="/assets/films/posters/film-create-800.webp" srcset="/assets/films/posters/film-create-800.webp 800w, /assets/films/posters/film-create.webp 1600w" sizes="(max-width: 1260px) 100vw, 1180px" width="1600" height="900" alt="Create in OrivenAI, recorded in a sample workspace" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play aria-label="Play the Create demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
-          </div>
-        </div>
-        <div class="ik-shot" id="shot-launch" data-film="/assets/films/film-launch.mp4" role="tabpanel" aria-labelledby="ik-shot-tab-launch">
-          <div class="ik-shot__media">
-            <img src="/assets/films/posters/film-launch-800.webp" srcset="/assets/films/posters/film-launch-800.webp 800w, /assets/films/posters/film-launch.webp 1600w" sizes="(max-width: 1260px) 100vw, 1180px" width="1600" height="900" alt="Launch in OrivenAI, recorded in a sample workspace" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play aria-label="Play the Launch demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
-          </div>
-        </div>
-        <div class="ik-shot" id="shot-campaigns" data-film="/assets/films/film-campaigns.mp4" role="tabpanel" aria-labelledby="ik-shot-tab-campaigns">
-          <div class="ik-shot__media">
-            <img src="/assets/films/posters/film-campaigns-800.webp" srcset="/assets/films/posters/film-campaigns-800.webp 800w, /assets/films/posters/film-campaigns.webp 1600w" sizes="(max-width: 1260px) 100vw, 1180px" width="1600" height="900" alt="Campaigns in OrivenAI, recorded in a sample workspace" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play aria-label="Play the Campaigns demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
-          </div>
-        </div>
-        <div class="ik-shot" id="shot-autopilot" data-film="/assets/films/film-autopilot.mp4" role="tabpanel" aria-labelledby="ik-shot-tab-autopilot">
-          <div class="ik-shot__media">
-            <img src="/assets/films/posters/film-autopilot-800.webp" srcset="/assets/films/posters/film-autopilot-800.webp 800w, /assets/films/posters/film-autopilot.webp 1600w" sizes="(max-width: 1260px) 100vw, 1180px" width="1600" height="900" alt="Automations in OrivenAI, recorded in a sample workspace" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play aria-label="Play the Automations demo"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Play demo</button>
-          </div>
-        </div>
-      </div>
-      <div class="ik-inside__bar">
-        <div class="ik-tabs" role="tablist" aria-label="Product sections"><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-business" aria-controls="shot-business" aria-selected="true" tabindex="0" data-shot="business"><span>01</span>Control Center</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-research" aria-controls="shot-research" aria-selected="false" tabindex="-1" data-shot="research"><span>02</span>Research</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-create" aria-controls="shot-create" aria-selected="false" tabindex="-1" data-shot="create"><span>03</span>Create</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-launch" aria-controls="shot-launch" aria-selected="false" tabindex="-1" data-shot="launch"><span>04</span>Launch</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-campaigns" aria-controls="shot-campaigns" aria-selected="false" tabindex="-1" data-shot="campaigns"><span>05</span>Campaigns</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-autopilot" aria-controls="shot-autopilot" aria-selected="false" tabindex="-1" data-shot="autopilot"><span>06</span>Automations</button></div>
-        <div class="ik-caps"><a class="ik-shot__cap ik-link is-active" data-cap="business" href="/business">Explore Control Center <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="research" href="/research">Explore Research <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="create" href="/create">Explore Create <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="launch" href="/launch">Explore Launch <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="campaigns" href="/campaigns">Explore Campaigns <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="autopilot" href="/autopilot">Explore Automations <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
       </div>
     </div>
   </div>
@@ -1403,7 +1501,7 @@
       <div class="ik-rule" data-reveal="pop" style="--d:2"><dt>Accounts</dt><dd><b>Your ad accounts stay yours.</b> Platforms connect over OAuth, so OrivenAI never sees your passwords.</dd></div>
       <div class="ik-rule" data-reveal="pop" style="--d:1"><dt>Data</dt><dd><b>Your business data stays in your account.</b> It is used to fit your ads and recommendations to your business. <a href="/privacy">Privacy Policy</a></dd></div>
       <div class="ik-rule" data-reveal="pop" style="--d:2"><dt>Tracking</dt><dd><b>Advertising cookies only with consent.</b> The Google Ads tag loads only after you accept. <a href="#cookie-settings" data-cookie-settings>Cookie settings</a></dd></div>
-      <div class="ik-rule" data-reveal="pop" style="--d:3"><dt>Honesty</dt><dd><b>Live means live.</b> On this page, what you can use today is marked Live; what is still being built is marked In development.</dd></div>
+      <div class="ik-rule" data-reveal="pop" style="--d:3"><dt>Honesty</dt><dd><b>Live means live.</b> This page only describes what you can use today, and says when something runs through your ad account rather than in OrivenAI.</dd></div>
     </dl>
   </div>
 </section>
@@ -1432,15 +1530,18 @@
   <canvas class="ik-field" data-field="final" aria-hidden="true"></canvas>
   <div class="ik-wrap" data-reveal="stagger">
     <div class="ik-final__ring"><svg class="ik-ring ik-ring--final" viewBox="244 197 534 585" aria-hidden="true" focusable="false"><use href="#ik-p0" class="ik-seg" data-i="0" style="--i:0;--ox:10.6px;--oy:-14.6px"/><use href="#ik-p1" class="ik-seg" data-i="1" style="--i:1;--ox:17.7px;--oy:3.1px"/><use href="#ik-p2" class="ik-seg" data-i="2" style="--i:2;--ox:7.3px;--oy:16.4px"/><use href="#ik-p3" class="ik-seg" data-i="3" style="--i:3;--ox:-8.5px;--oy:15.9px"/><use href="#ik-p4" class="ik-seg" data-i="4" style="--i:4;--ox:-17.7px;--oy:3.1px"/><use href="#ik-p5" class="ik-seg" data-i="5" style="--i:5;--ox:-9.5px;--oy:-15.3px"/></svg></div>
-    <h2 class="ik-h2" id="ik-final-title">Pick your first agent.<br>Find your way of working.</h2>
-    <p class="ik-lead">Plans from €17 for 14 days, paid once. Choose the assistant that suits you and use it across all of OrivenAI.</p>
+    <h2 class="ik-h2" id="ik-final-title">Start your ad workspace.</h2>
+    <p class="ik-lead">Plans from €17 for 14 days, paid once. You choose your assistant during setup.</p>
     <div class="ik-actions">
       <a class="ik-btn ik-btn--primary" href="/signup" data-ik-cta="final">Get started <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
       <a class="ik-btn ik-btn--ghost" href="/login">Log in</a>
     </div>
-    <ul class="ik-team" aria-label="Start with one assistant"><li style="--d:0"><a class="ik-chip" href="/signup" data-agent="scout" aria-label="Get started with Scout, Research &amp; Insights"><svg class="ik-glyph" aria-hidden="true" focusable="false"><use href="#ik-g-scout"/></svg>Scout</a></li><li style="--d:1"><a class="ik-chip" href="/signup" data-agent="vector" aria-label="Get started with Vector, Strategy &amp; Direction"><svg class="ik-glyph" aria-hidden="true" focusable="false"><use href="#ik-g-vector"/></svg>Vector</a></li><li style="--d:2"><a class="ik-chip" href="/signup" data-agent="nova" aria-label="Get started with Nova, Creative &amp; Content"><svg class="ik-glyph" aria-hidden="true" focusable="false"><use href="#ik-g-nova"/></svg>Nova</a></li><li style="--d:3"><a class="ik-chip" href="/signup" data-agent="momentum" aria-label="Get started with Momentum, Growth &amp; Execution"><svg class="ik-glyph" aria-hidden="true" focusable="false"><use href="#ik-g-momentum"/></svg>Momentum</a></li><li style="--d:4"><a class="ik-chip" href="/signup" data-agent="metric" aria-label="Get started with Metric, Performance &amp; Optimisation"><svg class="ik-glyph" aria-hidden="true" focusable="false"><use href="#ik-g-metric"/></svg>Metric</a></li><li style="--d:5"><a class="ik-chip" href="/signup" data-agent="flux" aria-label="Get started with Flux, Automation &amp; Systems"><svg class="ik-glyph" aria-hidden="true" focusable="false"><use href="#ik-g-flux"/></svg>Flux</a></li></ul>
   </div>
 </section>
+<div class="ow-drawer ik-profile" id="ikProfile" role="dialog" aria-modal="true" aria-labelledby="ikProfileTitle" aria-hidden="true" hidden>
+  <div class="ow-drawer__scrim"></div>
+  <div class="ow-drawer__panel"><button type="button" class="ow-drawer__close" data-ow-close aria-label="Close profile"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button><div data-ik-profile-body></div></div>
+</div>
 </main><footer class="site-foot" data-site-footer>
   <div class="site-foot__in">
     <div class="site-foot__top">

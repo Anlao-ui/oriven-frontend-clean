@@ -17,7 +17,7 @@
    ════════════════════════════════════════════════════════════════ */
 const fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..');
-const BE = path.resolve(ROOT, '..', 'oriven-backend', 'server');
+const BE = process.env.ORIVEN_BACKEND_DIR || path.resolve(ROOT, '..', 'oriven-backend', 'server');
 const express = require(require.resolve('express', { paths: [BE, ROOT] }));
 const { chromium } = require('playwright');
 const PORT = 8957, BASE = 'http://127.0.0.1:' + PORT, DEV_API = 'http://localhost:5500';
@@ -392,12 +392,18 @@ const server = app.listen(PORT, async () => {
     check('8.4 "Write a new plan" opens a real form: what should change, ideas, what happens (current plan stays, Progress restarts, nothing else touched), the cost — no "coming soon"', up.open && /What should change\?/.test(up.t) && !!(await p6.$('#mplRegenText')) && /current plan stays until the new one is ready/i.test(up.t) && /Progress starts again/.test(up.t) && /research, content, audiences and campaigns aren’t touched/.test(up.t) && /Write new plan · 90 credits/.test(up.t) && !/soon/i.test(up.t), up.t.slice(0, 300));
     check('8.5 opening the plan and the form made no write or AI request', !calls.slice(calls0).some((c) => c.m !== 'GET'), calls.slice(calls0).filter((c) => c.m !== 'GET').map((c) => c.p));
     await p6.click('[data-mpl-jump="positioning"]'); await p6.waitForTimeout(700);
-    const jump = await p6.evaluate(() => ({ top: Math.round(document.getElementById('mpl-positioning').getBoundingClientRect().top), st: document.querySelector('.mc').scrollTop }));
-    check('8.6 the section index jumps to a section', jump.top < 200 && jump.top > -50, jump);
+    const jump = await p6.evaluate(() => { const mc = document.querySelector('.mc'); return { top: Math.round(document.getElementById('mpl-positioning').getBoundingClientRect().top), st: mc.scrollTop, atEnd: mc.scrollTop >= mc.scrollHeight - mc.clientHeight - 2, vh: innerHeight }; });
+    check('8.6 the section index jumps to a section (to the top, or as far as the page scrolls when it is near the end)', jump.top > -50 && (jump.top < 200 || (jump.atEnd && jump.top < jump.vh - 120)), jump);
     await p6.screenshot({ path: path.join(SHOTS, 'plan-scrolled-1440.png') });
     const tk = await p6.evaluate(() => { const pg = document.getElementById('page-marketing-plan'); const first = pg.querySelector('.mpl-task details'); if (first) first.open = true;
       return { tasks: pg.querySelectorAll('.mpl-task').length, btns: Array.from(pg.querySelectorAll('.mpl-task [data-orv-page]')).map((b) => b.getAttribute('data-orv-page')), known: Array.from(pg.querySelectorAll('.mpl-task [data-orv-page]')).every((b) => window.orvPages.has(b.getAttribute('data-orv-page'))), first: first ? first.innerText : '', now: !!pg.querySelector('.mpl-road > li[data-state="now"]') }; });
     check('8.7 every task: title, why, what to do, its OrivenAI page and a direct button (4 weeks × 3 tasks); the current week marked', tk.tasks === 12 && tk.btns.length === 12 && tk.known && /Why:/.test(tk.first) && /What to do:/.test(tk.first) && /Campaign Overview/.test(tk.first) && tk.now, tk);
+    await p6.waitForTimeout(600); // the roadmap's done states (GET /api/onboarding/progress)
+    const rm = await p6.evaluate(() => { const pg = document.getElementById('page-marketing-plan'); const w = pg.querySelector('.mpl-where'); const first = pg.querySelector('.mpl-road > li:first-child .mpl-task'); const d = first && first.querySelector('details'); if (d) d.open = true;
+      return { where: !!w, top: w ? w.querySelector('.mpl-where__top').innerText : '', stages: w ? [...w.querySelectorAll('.mpl-flow__s b')].map((b) => b.textContent) : [], next: w ? (w.querySelector('.mpl-next__t') || {}).textContent : '', nextBtn: !!(w && w.querySelector('.mpl-next [data-orv-page]')), firstSec: (pg.querySelector('.mpl-sec h2') || {}).textContent, promise: (pg.querySelector('.mpl-promise') || {}).textContent || '',
+        tag: first ? (first.querySelector('.mpl-task__how .ow-tag') || {}).textContent : '', body: first ? first.innerText : '', allTags: [...pg.querySelectorAll('.mpl-task__how .ow-tag')].every((t) => /^(In OrivenAI|Prepared for you|Through your ad account)$/.test(t.textContent)) }; });
+    check('8.7b the plan opens with its roadmap and promise; “Where you are”: the current phase, tasks done from Progress, the plan by workflow stage, the next task with its tool', /A plan built around your business/.test(rm.promise) && /^Action plan/.test(rm.firstSec) && rm.where && /Week 2/.test(rm.top) && /0 of 12 tasks done/.test(rm.top) && rm.stages.length >= 2 && rm.next.length > 5 && rm.nextBtn, rm);
+    check('8.7c every task says how it happens (In OrivenAI / Prepared for you / Through your ad account), what you’ll need, the result and what comes next', rm.allTags && /You’ll need:/.test(rm.body) && /Result:/.test(rm.body) && /Then:/.test(rm.body), rm.body.slice(0, 400));
     await p6.click('.mpl-road > li:first-child .mpl-task:nth-child(3) details summary'); await p6.waitForTimeout(150);
     await p6.click('.mpl-road > li:first-child .mpl-task:nth-child(3) [data-orv-page]'); await p6.waitForTimeout(700);
     check('8.8 a task’s button opens its page directly (Audience Builder)', await p6.evaluate(() => document.querySelector('.page.active').id === 'page-audience-builder'));
@@ -568,6 +574,26 @@ const server = app.listen(PORT, async () => {
       const en = await labels();
       check('13.3 back to English', en.sec[1] === 'Research' && en.ins === 'Insights' && en.plat === 'Ad Platforms' && en.gear === 'Settings', en);
       await c8.close();
+    }
+
+    // ── 14. Section films in the app ────────────────────────────────
+    console.log('\n14. Watch overview');
+    {
+      const c9 = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      const p9 = await c9.newPage(); await fence(p9);
+      await signIn(p9);
+      const films = [];
+      for (const [id, key] of [['dashboard', 'control-center'], ['research', 'research'], ['create', 'create'], ['adstudio', 'launch'], ['overview', 'campaigns'], ['auto-overview', 'automations'], ['insights', null]]) {
+        await p9.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p9.waitForTimeout(id.startsWith('auto') ? 1100 : 800);
+        films.push([id, key, await p9.evaluate(() => { const b = [...document.querySelectorAll('.page.active .orv-film-btn, #orvHubTabsCampaigns .orv-film-btn')].find((x) => x.offsetParent !== null); return b ? b.getAttribute('data-ow-video') : null; })]);
+      }
+      check('14.1 the first page of each section has “Watch overview” with its own film; other pages don’t', films.every(([, key, v]) => key ? v === 'assets/films/sections/' + key + '.mp4' : v === null), films);
+      await p9.click('.orv-sb .onv-item[data-onv="research"]'); await p9.waitForTimeout(800);
+      await p9.click('.page.active .orv-film-btn'); await p9.waitForTimeout(500);
+      const pl = await p9.evaluate(() => { const x = document.querySelector('.ow-player'); return { open: !!x && x.classList.contains('is-open'), src: x && x.querySelector('video').getAttribute('src') }; });
+      await p9.keyboard.press('Escape'); await p9.waitForTimeout(200);
+      check('14.2 it opens the shared player with that film; Esc closes it', pl.open && pl.src === 'assets/films/sections/research.mp4' && !(await p9.evaluate(() => document.querySelector('.ow-player').classList.contains('is-open'))), pl);
+      await c9.close();
     }
 
     check('Z. no JavaScript errors from the navigation', errors.filter((e) => /onv|appNav|orvAppNav|planPages|orvPlanPages|mpl|prg/.test(e)).length === 0, errors);

@@ -80,12 +80,12 @@ async function main() {
       landingCss: !!document.querySelector('#view-landing link[href="/css/landing.css"]'), oldLanding: !!document.getElementById('ov-system') || !!document.getElementById('ov-pillars'),
     };
   });
-  check('sections in the approved order: hero, problem, agents, how, plan, inside, integrations, trust, FAQ, final CTA (+ header, footer)', JSON.stringify(st.order) === JSON.stringify(['top', 'problem', 'agents', 'how', 'plan', 'inside', 'integrations', 'trust', 'faq', 'start']) && st.footer && st.header, st.order);
+  check('sections in the approved order (2026-11 workspace): hero, problem, workspace, how, inside, plan, assistant, integrations, trust, FAQ, final CTA (+ header, footer)', JSON.stringify(st.order) === JSON.stringify(['top', 'problem', 'workspace', 'how', 'inside', 'plan', 'agents', 'integrations', 'trust', 'faq', 'start']) && st.footer && st.header, st.order);
   check('no pricing section on the landing page (no plan grid, no pricing block, no prices); /pricing still linked', !st.pricing.grid && st.pricing.sections === 0 && !st.pricing.perMonth && st.pricing.link, st.pricing);
   check('FAQ present (10 questions)', st.faq === 10, st.faq);
-  check('exactly one H1: "Your marketing, from strategy to execution."', st.h1.length === 1 && st.h1[0].replace(/\s+/g, ' ') === 'Your marketing, from strategy to execution.', st.h1);
+  check('exactly one H1: "Your new ad workspace."', st.h1.length === 1 && st.h1[0].replace(/\s+/g, ' ') === 'Your new ad workspace.', st.h1);
   check('six assistants with their specialisations', st.agents.join('|') === 'Scout:Research & Insights|Vector:Strategy & Direction|Nova:Creative & Content|Momentum:Growth & Execution|Metric:Performance & Optimisation|Flux:Automation & Systems', st.agents);
-  check('every Start CTA goes to /signup; Log in goes to /login', st.signup.length >= 9 && st.signup.every((h) => h === '/signup') && st.login.length >= 1 && st.login.every((h) => h === '/login'), st);
+  check('every Start CTA goes to /signup; Log in goes to /login', st.signup.length >= 3 && st.signup.every((h) => h === '/signup') && st.login.length >= 1 && st.login.every((h) => h === '/login'), st);
   check('header: no Agents link (desktop or mobile); logo, Pricing, Log in and Get started kept (paid-only: no "Start free")', st.navAgents === 0 && st.navLogo && st.navPricing && /Log in/.test(st.navLogin) && /Get started/.test(st.navCta) && !/free/i.test(st.navCta), [st.navAgents, st.navCta, st.navLogin]);
 
   // Product positioning: one platform, ONE chosen assistant, no team.
@@ -106,7 +106,7 @@ async function main() {
     };
   });
   check('no team / collaboration / section-ownership wording anywhere on the page', pos.banned.length === 0, pos.banned);
-  check('selector heading: "Six specialists. Choose the one that helps you best."', pos.selectorH2 === 'Six specialists. Choose the one that helps you best.', pos.selectorH2);
+  check('assistant heading: "An assistant inside your workspace." (the assistant supports the workspace; it is not the product)', pos.selectorH2 === 'An assistant inside your workspace.', pos.selectorH2);
   check('the page says one assistant stays with you everywhere and can guide you through all of OrivenAI', pos.one && pos.faqOne);
   check('each assistant: tone + character (an illustrative "An imagined backstory:…"), 3 strengths, section links it also helps with, a labelled illustrative multi-turn example', pos.perAgent.length === 6 && pos.perAgent.every((p) => p.facts === 'Tone,Character' && p.character && p.strong === 3 && p.helps.length === 3 && p.helps.every((h) => /^\/(business|research|create|launch|campaigns|autopilot)$/.test(h)) && p.chatLabel && p.turns === 4), pos.perAgent);
   check('workflow and hero ring carry no per-assistant colours (Volt only)', pos.stepsAgent === 0 && pos.heroRingAgent === 0, pos);
@@ -187,7 +187,7 @@ async function main() {
   const pin = await offs();
   await page.mouse.move(20, 880, { steps: 3 }); await page.waitForTimeout(1800);
   const pout = await offs();
-  check('creature: particles move away from the pointer (px) and return to their shape after it leaves', pin > 4 && pout < 0.5, { pin, pout });
+  check('creature: particles move away from the pointer (more than 1% of the creature’s width) and return to their shape after it leaves', pin > Math.max(2.5, cbox.width * 0.01) && pout < 0.5, { pin, pout, w: cbox.width });
   const ruleState = () => page.evaluate(() => document.querySelector('.ik-rule').classList.contains('is-in'));
   const toRules = () => page.evaluate(() => { const v = document.getElementById('view-landing'); v.scrollTop += document.querySelector('.ik-rules').getBoundingClientRect().top - 200; });
   await toRules(); await page.waitForTimeout(1000); const rv1 = await ruleState();
@@ -211,10 +211,10 @@ async function main() {
   check('product tabs switch the film, caption and frame label (Campaigns)', shot.active === 'shot-campaigns' && shot.cap.cap === 'campaigns' && shot.name === 'Campaigns' && shot.sel === 'true', shot);
   await page.click('#shot-campaigns [data-ik-play]'); await page.waitForTimeout(800);
   const vid = await page.evaluate(() => { const v = document.querySelector('#shot-campaigns video'); return v && { src: v.getAttribute('src'), controls: v.controls, muted: v.muted }; });
-  check('Play loads the real film on demand (local asset, controls, muted)', vid && vid.src === '/assets/films/film-campaigns.mp4' && vid.controls && vid.muted && served.includes('/assets/films/film-campaigns.mp4'), vid);
+  check('Play loads the real film on demand (local asset, controls, muted)', vid && vid.src === '/assets/films/sections/campaigns.mp4' && vid.controls && vid.muted && served.includes('/assets/films/sections/campaigns.mp4'), vid);
   const films = await page.evaluate(() => [...document.querySelectorAll('.ik-shot')].map((s) => { const img = s.querySelector('img'); const r = s.querySelector('.ik-shot__media').getBoundingClientRect(); return s.id + '=' + s.dataset.film + '|' + img.getAttribute('src') + '|' + (r.height ? (r.width / r.height).toFixed(2) : 'hidden'); }));
-  const FILM = { business: 'film-control-center-v2', research: 'film-research-v2', create: 'film-create', launch: 'film-launch', campaigns: 'film-campaigns', autopilot: 'film-autopilot' };
-  check('each section shows its own real film and poster (tracked assets), 16:9', films.length === 6 && films.every((f) => { const [k, film, poster, ar] = f.replace('shot-', '').split(/[=|]/); return film === '/assets/films/' + FILM[k] + '.mp4' && poster === '/assets/films/posters/' + FILM[k] + '-800.webp' && (ar === 'hidden' || ar === '1.78') && fs.existsSync(path.join(ROOT, film)) && fs.existsSync(path.join(ROOT, poster)); }), films);
+  const FILM = { business: 'control-center', research: 'research', create: 'create', launch: 'launch', campaigns: 'campaigns', autopilot: 'automations' }; // the 2026-11 section films (assets/films/sections)
+  check('each section shows its own real film and poster (tracked assets), 16:9', films.length === 6 && films.every((f) => { const [k, film, poster, ar] = f.replace('shot-', '').split(/[=|]/); return film === '/assets/films/sections/' + FILM[k] + '.mp4' && poster === '/assets/films/sections/' + FILM[k] + '-800.webp' && (ar === 'hidden' || ar === '1.78') && fs.existsSync(path.join(ROOT, film)) && fs.existsSync(path.join(ROOT, poster)); }), films);
   check('no film was downloaded before Play was pressed', served.filter((p) => /\.mp4$/.test(p)).length === 1, served.filter((p) => /\.mp4$/.test(p)));
   await scrollTo(page, 'faq'); await page.waitForTimeout(200);
   await page.locator('#faq summary', { hasText: 'Which advertising platforms are supported?' }).click();
@@ -226,9 +226,9 @@ async function main() {
   // ── D. Header link, dot field ──
   console.log('── D. Header + dot field ──');
   await page.evaluate(() => { document.getElementById('view-landing').scrollTop = 0; }); await page.waitForTimeout(300);
-  await page.click('.ik-hero a[href="#how"]'); await page.waitForTimeout(1800); // #how is further down than #agents was: a longer smooth scroll
-  const nav = await page.evaluate(() => ({ url: location.pathname, top: Math.round(document.getElementById('how').getBoundingClientRect().top - document.getElementById('view-landing').getBoundingClientRect().top) }));
-  check('hero "Show how it works" scrolls to the workflow section (One loop. Six sections.) without leaving the page', nav.url === '/' && Math.abs(nav.top) < 4, nav);
+  await page.click('.ik-hero a[href="#workspace"]'); await page.waitForTimeout(1800);
+  const nav = await page.evaluate(() => ({ url: location.pathname, top: Math.round(document.getElementById('workspace').getBoundingClientRect().top - document.getElementById('view-landing').getBoundingClientRect().top) }));
+  check('hero "See the workspace" scrolls to the workspace section without leaving the page', nav.url === '/' && Math.abs(nav.top) < 4, nav);
   // Pointer displacement, measured on the problem band (no waves, so it is deterministic once
   // the dots have settled into the grid): the lattice dot under the pointer moves away, then returns.
   await page.evaluate(() => { const v = document.getElementById('view-landing'), b = document.querySelector('.ik-band').getBoundingClientRect(); v.scrollTop += b.top + b.height / 2 - innerHeight * 0.4; });

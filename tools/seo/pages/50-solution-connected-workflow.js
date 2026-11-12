@@ -3,7 +3,7 @@
 // Research, Create, Launch, Campaigns, Automations), what each one does
 // (tools/seo/product-pages.js), the plans (facts.js): one product in every plan.
 // Honest scope: nothing runs the whole chain for you; Progress and
-// My Content are in development; there is no separate Tasks page.
+// My Content are live (2026-11); there is no separate Tasks page.
 const path = (items) => `<p class="sol__path" aria-label="Where it happens: ${items.join(', ')}">${items.map((x) => `<span>${x}</span>`).join('<i aria-hidden="true">&rarr;</i>')}</p>`;
 const F = require('../facts');
 module.exports = {
@@ -61,7 +61,7 @@ module.exports = {
 
 <section class="sp-section" aria-labelledby="scope-h"><div class="sp-wrap">
   <h2 id="scope-h">What it doesn’t do</h2>
-  <p>Connected doesn’t mean automatic. You move between the sections yourself: nothing researches, plans, creates and publishes on your behalf in one go, and every campaign is created paused. Two pages in the structure are still in development: Progress in Control Center and My Content in Create. Today your to-dos live on the Dashboard (Needs you and the Get set up checklist), not on a separate Tasks page.</p>
+  <p>Connected doesn’t mean automatic. You move between the sections yourself: nothing researches, plans, creates and publishes on your behalf in one go, and every campaign is created paused. Your to-dos are on the Dashboard (Needs you and the Get set up checklist) and in your Marketing Plan, and Progress shows which tasks are done; there is no separate Tasks page.</p>
 </div></section>`,
   faq: [
     ['Do I have to use all six sections?', '<p>No. Each section works on its own, and every plan includes all six, so you use what you need.</p>'],

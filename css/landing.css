@@ -698,3 +698,110 @@ a.ik-chip:hover .ik-glyph { color: var(--ac, var(--silver)); }
   #view-landing { height: calc(100dvh - var(--lp-nav-h, 64px)) !important; }
 }
 /* The header (Geist, Volt CTA, logo turn) is styled for every public page in css/site-chrome.css. */
+
+/* ════════════════════════════════════════════════════════════════
+   2026-11 workspace pass (docs/design/2026-11-ad-workspace-research.md)
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── The workspace: seven connected steps in one app frame ─────── */
+.ik-ws { background: linear-gradient(var(--ink), #0E100C 50%, var(--ink)); }
+.ik-ws .ow-section-head { margin-bottom: 28px; }
+.ik-ws__legend { display: flex; flex-wrap: wrap; gap: 10px 24px; margin: 0 0 28px; padding: 0; list-style: none; color: var(--text-2); font-size: 14px; }
+.ik-ws__legend li { display: inline-flex; align-items: center; gap: 10px; }
+.ik-ws__frame { border: 1px solid var(--line); border-radius: 22px; background: rgba(20, 22, 18, .72); overflow: hidden; box-shadow: 0 30px 80px rgba(0, 0, 0, .35); }
+.ik-ws__bar { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: rgba(11, 12, 10, .6); }
+.ik-ws__bar span { width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); }
+.ik-ws__bar .ik-mono { margin: 0 0 0 10px; font-size: 12px; color: var(--text-3); }
+.ik-ws__flow { list-style: none; margin: 0; padding: clamp(16px, 2.2vw, 28px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; counter-reset: none; }
+.ik-ws__step { position: relative; display: flex; }
+/* The connection between steps: a short line into the next card (same row). */
+.ik-ws__step:not(:nth-child(4n)):not(:last-child)::after { content: ''; position: absolute; top: 34px; right: -14px; width: 14px; height: 1px; background: linear-gradient(90deg, var(--line-strong), rgba(234, 253, 19, .5)); }
+.ik-ws__card { width: 100%; padding: 20px; gap: 10px; background: var(--surface); box-shadow: none; }
+.ik-ws__card h3 { font-size: 17px; }
+.ik-ws__card p { font-size: 14.5px; }
+.ik-ws__n { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ik-ws__n .ik-mono { font-size: 12px; color: var(--volt); letter-spacing: .08em; }
+.ik-ws__pages { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto !important; padding-top: 6px; }
+.ik-ws__pages a { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--text); font-size: 12.5px; text-decoration: none; transition: border-color var(--t) var(--ease); }
+.ik-ws__pages a:hover { border-color: var(--volt); }
+.ik-ws__pages a:focus-visible { outline: 2px solid var(--volt); outline-offset: 2px; }
+/* Seven steps on four columns: the last row (5–7) is centred so it doesn't hang. */
+.ik-ws__step:nth-child(5) { grid-column: 1 / span 1; }
+@media (min-width: 1101px) { .ik-ws__flow { grid-template-columns: repeat(8, minmax(0, 1fr)); } .ik-ws__step { grid-column: span 2; } .ik-ws__step:nth-child(5) { grid-column: 2 / span 2; } }
+.ik-ws__honest { margin: 22px 0 0; max-width: 78ch; color: var(--text-3); font-size: 14px; line-height: 1.6; }
+@media (max-width: 1100px) { .ik-ws__flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ik-ws__step:nth-child(5) { grid-column: auto; } .ik-ws__step::after { display: none; } }
+@media (max-width: 640px) { .ik-ws__flow { grid-template-columns: 1fr; } }
+
+/* ── Assistant: facts in the first screen, depth in a drawer ───── */
+.ik-agent__more { margin-top: 24px; justify-self: start; }
+@media (min-width: 981px) {
+  .ik-js .ik-sel { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); column-gap: clamp(32px, 4vw, 64px); align-items: start; }
+  .ik-js .ik-stage { grid-column: 1; grid-row: 1; overflow: hidden; }
+  .ik-js .ik-sel__nav { grid-column: 1; grid-row: 2; }
+  .ik-js .ik-panels { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
+  .ik-js .ik-sel__cta { grid-column: 1 / -1; grid-row: 3; }
+  .ik-js .ik-figs { height: clamp(300px, 28vw, 400px); }
+  .ik-js .ik-fig { width: clamp(200px, 20vw, 300px); transform: translate(-50%, -54%) translateX(calc(var(--x) * clamp(170px, 16vw, 250px))) scale(var(--s)); }
+  .ik-js .ik-agent { border-top: 0; padding-top: 8px; }
+}
+.ik-js .ik-agent { grid-template-columns: 1fr; }
+.ik-js .ik-agent > .ik-chat { display: none; }               /* in the profile drawer */
+.ik-js .ik-agent .ik-agent__facts > div:nth-child(2) { display: none; } /* the backstory: in the drawer */
+.ik-js .ik-agent__name { font-size: clamp(36px, 3.6vw, 52px); }
+
+/* The profile drawer (filled from the agent's own article) */
+.ik-profile .ow-drawer__panel { background: var(--surface); }
+.ik-profile .ik-agent__name { font-size: 40px; }
+.ik-profile .ik-chat { margin-top: 28px; }
+.ik-profile .ik-profile__cta { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px; }
+.ik-profile .ik-profile__note { margin-top: 14px; font-size: 13px; color: var(--text-3); }
+
+/* ── Final call to action: shorter section ──────────────────────── */
+.ik-final { padding-block: clamp(80px, 9vw, 128px); }
+.ik-final__ring { width: 112px; margin-bottom: 28px; }
+.ik-final .ik-h2 { font-size: clamp(36px, 4.4vw, 60px); }
+.ik-final .ik-lead { margin-top: 16px; }
+.ik-final .ik-actions { margin-top: 28px; }
+
+/* ── Plan section: the roadmap (illustrative) ─────────────────── */
+.ik-plan__points { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.ik-plan__points li { position: relative; padding-left: 22px; color: var(--text-2); font-size: 15.5px; line-height: 1.5; }
+.ik-plan__points li::before { content: ''; position: absolute; left: 2px; top: .6em; width: 7px; height: 7px; border-radius: 50%; background: var(--volt); }
+.ik-road__progress { display: grid; gap: 10px; padding: 0 26px 18px; }
+.ik-road__progress p { margin: 0; font-size: 14px; color: var(--text-2); }
+.ik-road__progress b { color: var(--text); font-weight: 600; }
+.ik-road__bar { display: block; height: 6px; border-radius: 6px; background: var(--line-strong); overflow: hidden; }
+.ik-road__bar i { display: block; height: 100%; width: var(--w); background: var(--volt); border-radius: inherit; }
+.ik-road__phases { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 0 26px 18px; list-style: none; gap: 8px; border-bottom: 1px solid var(--line); }
+.ik-road__phases li { display: grid; gap: 2px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); font-size: 13.5px; font-weight: 600; color: var(--text-2); }
+.ik-road__phases li span { font: 500 11px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
+.ik-road__phases .is-done { color: var(--text); }
+.ik-road__phases .is-done span { color: var(--ok); }
+.ik-road__phases .is-now { border-color: rgba(234, 253, 19, .5); color: var(--text); background: rgba(234, 253, 19, .05); }
+.ik-road__phases .is-now span { color: var(--volt); }
+.ik-road__tasks { margin: 0; padding: 18px 26px 26px; list-style: none; display: grid; gap: 10px; }
+.ik-road__task { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 10px; background: rgba(11, 12, 10, .35); }
+.ik-road__task.is-now { border-color: var(--line-strong); background: var(--raised); }
+.ik-road__task-hd { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.ik-road__task-hd h4 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--text); }
+.ik-road__task.is-done h4 { color: var(--text-2); }
+.ik-road__check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line-input); }
+.ik-road__task.is-done .ik-road__check { background: var(--ok); border-color: var(--ok); box-shadow: inset 0 0 0 4px var(--raised); }
+.ik-road__task.is-now .ik-road__check { border-color: var(--volt); }
+.ik-road__meta { margin: 0 0 0 30px; font-size: 13px; color: var(--text-3); }
+.ik-road__dl { display: grid; gap: 8px; margin: 0 0 0 30px; }
+.ik-road__dl > div { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; }
+.ik-road__dl dt { font: 500 11px/1.6 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+.ik-road__dl dd { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-2); }
+.ik-road__tool { margin-left: 30px; justify-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 14px; border-radius: 999px; background: var(--volt); color: var(--on-volt); font-size: 13px; font-weight: 600; text-decoration: none; }
+.ik-road__tool svg { width: 14px; height: 14px; }
+.ik-road__tool:focus-visible { outline: 2px solid var(--volt); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .ik-road__phases { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-inline: 18px; }
+  .ik-road__progress, .ik-road__tasks { padding-inline: 18px; }
+  .ik-road__task-hd { grid-template-columns: auto minmax(0, 1fr); }
+  .ik-road__task-hd .ow-tag { grid-column: 2; justify-self: start; }
+  .ik-road__dl, .ik-road__meta { margin-left: 0; }
+  .ik-road__dl > div { grid-template-columns: 1fr; gap: 2px; }
+  .ik-road__tool { margin-left: 0; }
+}

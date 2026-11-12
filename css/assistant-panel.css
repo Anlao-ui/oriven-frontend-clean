@@ -245,3 +245,25 @@ html body #orvAiPanel .orv-ai-rec-action:focus-visible { outline: 2px solid var(
   html body #orvAiPanel .orv-ai-ctx-badge { width: 32px; padding: 0; justify-content: center; font-size: 0; gap: 0; }
   html body #orvAiPanel .orv-ai-ctx-badge > span:not(.orv-ai-ctx-dot) { display: none; }
 }
+
+/* ── About your assistant (drawer; js/orivenAgent.js aboutHtml) ─── */
+.orv-about .ow-drawer__panel { z-index: 1; }
+.orv-about { z-index: 9600; }
+.orv-about__id { display: flex; align-items: center; gap: 14px; margin: 4px 48px 0 0; }
+.orv-about__id .orv-agent-head-glyph { width: 52px; height: 52px; padding: 10px; border-radius: 15px; box-sizing: border-box; color: var(--orv-agent); background: rgba(var(--orv-agent-rgb), .1); border: 1px solid rgba(var(--orv-agent-rgb), .3); }
+.orv-about__name { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -.02em; color: var(--ow-text); }
+.orv-about__role { margin: 2px 0 0; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--orv-agent); }
+.orv-about__tone { margin: 18px 0 0; font-size: 15px; color: var(--ow-text); }
+.orv-about__lead { margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: var(--ow-soft); }
+.orv-about__facts { margin: 22px 0 0; display: grid; gap: 10px; padding: 16px; border: 1px solid var(--ow-line); border-radius: 14px; background: var(--ow-raised); }
+.orv-about__facts > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.orv-about__facts dt { font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ow-muted); }
+.orv-about__facts dd { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ow-soft); }
+.orv-about__h { margin: 26px 0 10px; font-size: 13px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ow-muted); }
+.orv-about__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.orv-about__list li { position: relative; padding-left: 20px; font-size: 14.5px; line-height: 1.5; color: var(--ow-text); }
+.orv-about__list li::before { content: ''; position: absolute; left: 3px; top: .62em; width: 6px; height: 6px; border-radius: 50%; background: var(--ow-done); }
+.orv-about__list--out li::before { background: var(--ow-soon); }
+.orv-about__list--out li span { color: var(--ow-muted); }
+.orv-about__note { margin: 22px 0 0; font-size: 13px; line-height: 1.55; color: var(--ow-muted); }
+@media (max-width: 480px) { .orv-about__facts > div { grid-template-columns: 1fr; gap: 2px; } }
