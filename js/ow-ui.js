@@ -54,14 +54,29 @@
     player.className = 'ow-player'; player.setAttribute('role', 'dialog'); player.setAttribute('aria-modal', 'true'); player.setAttribute('aria-hidden', 'true'); player.setAttribute('aria-labelledby', 'owPlayerTitle');
     player.innerHTML = '<div class="ow-player__box"><div class="ow-player__bar"><p class="ow-player__title" id="owPlayerTitle"></p>' +
       '<button type="button" class="ow-drawer__close ow-player__close" data-ow-close aria-label="Close video"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>' +
-      '<video controls playsinline preload="metadata"></video><p class="ow-player__note">Recorded in the real OrivenAI app with a sample business. Captions are on; use the video controls to turn them off.</p></div>';
+      '<div class="ow-player__stage"><video controls playsinline preload="metadata"></video>' +
+      '<div class="ow-player__status" role="status" aria-live="polite" hidden><span class="ow-player__spin" aria-hidden="true"></span><span class="ow-player__msg">Loading video…</span><button type="button" class="ow-btn ow-player__retry" hidden>Try again</button></div></div>' +
+      '<p class="ow-player__note">Recorded in the real OrivenAI app with a sample business. Captions are on; use the video controls to turn them off.</p></div>';
     document.body.appendChild(player);
+    // Loading and error states: a quiet "Loading video…" while the film is
+    // fetched or buffering, and a clear message with a retry if it can't load.
+    var v0 = player.querySelector('video'), st = player.querySelector('.ow-player__status'), msg = player.querySelector('.ow-player__msg'), retry = player.querySelector('.ow-player__retry');
+    var state = function (s) {
+      st.hidden = s === 'ok'; st.classList.toggle('is-error', s === 'error'); retry.hidden = s !== 'error';
+      msg.textContent = s === 'error' ? 'This video couldn’t load. Check your connection and try again.' : 'Loading video…';
+    };
+    ['loadstart', 'waiting'].forEach(function (ev) { v0.addEventListener(ev, function () { if (v0.getAttribute('src')) state('loading'); }); });
+    ['canplay', 'playing'].forEach(function (ev) { v0.addEventListener(ev, function () { state('ok'); }); });
+    v0.addEventListener('error', function () { if (v0.getAttribute('src')) state('error'); });
+    retry.addEventListener('click', function () { state('loading'); v0.load(); var pr = v0.play(); if (pr && pr.catch) pr.catch(function () {}); });
+    player._owState = state;
     player.addEventListener('click', function (e) { if (e.target === player || (e.target.closest && e.target.closest('[data-ow-close]'))) close(player); });
     player.addEventListener('ow:close', function () { var v = player.querySelector('video'); v.pause(); v.removeAttribute('src'); Array.prototype.slice.call(v.querySelectorAll('track')).forEach(function (t) { t.remove(); }); v.load(); });
     return player;
   }
   function playVideo(btn) {
     var p = ensurePlayer(), v = p.querySelector('video');
+    p._owState('loading');
     p.querySelector('.ow-player__title').textContent = btn.getAttribute('data-ow-title') || 'OrivenAI';
     v.setAttribute('poster', btn.getAttribute('data-ow-poster') || '');
     v.src = btn.getAttribute('data-ow-video');

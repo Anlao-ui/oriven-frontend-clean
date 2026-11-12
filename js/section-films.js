@@ -1,7 +1,9 @@
 /* ════════════════════════════════════════════════════════════════
-   "Watch overview" on the first page of each of the six sections, opening
-   that section's short film (assets/films/sections/<key>.mp4, recorded in
-   the real app with a sample business) in the shared player (js/ow-ui.js).
+   "Watch tutorial" on the first page of each of the six sections, opening
+   that section's full tutorial (assets/films/tutorials/<key>.mp4, every
+   page of the section, recorded in the real app with a sample business)
+   in the shared player (js/ow-ui.js). The same films as the Dashboard's
+   "Learn OrivenAI" (js/tutorial-library.js, loaded before this file).
    A small button under the page title: never autoplays, never in the way.
    The pages render their own headers, so the button is (re)attached when a
    page becomes active.
@@ -26,11 +28,13 @@
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'ow-watch orv-film-btn';
     b.setAttribute('data-orv-film', f[0]);
-    b.setAttribute('data-ow-video', 'assets/films/sections/' + f[0] + '.mp4');
-    b.setAttribute('data-ow-poster', 'assets/films/sections/' + f[0] + '.jpg');
-    b.setAttribute('data-ow-captions', 'assets/films/sections/' + f[0] + '.vtt');
-    b.setAttribute('data-ow-title', f[1] + ': a short tour');
-    b.innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 3v10l8-5z"/></svg>Watch overview';
+    // The full tutorial for this section (js/tutorial-library.js: one list for the Dashboard and here).
+    var base = window.orvTutorials ? window.orvTutorials.base : '/assets/films/tutorials/';
+    b.setAttribute('data-ow-video', base + f[0] + '.mp4');
+    b.setAttribute('data-ow-poster', base + f[0] + '.jpg');
+    b.setAttribute('data-ow-captions', base + f[0] + '.vtt');
+    b.setAttribute('data-ow-title', f[1] + ' tutorial');
+    b.innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 3v10l8-5z"/></svg>Watch tutorial';
     h1.insertAdjacentElement('afterend', b);
   }
   var raf = 0;

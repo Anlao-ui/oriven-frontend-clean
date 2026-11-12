@@ -41,6 +41,7 @@
 <link rel="stylesheet" href="css/assistant-panel.css">
 <link rel="stylesheet" href="css/ow-system.css">
 <script src="js/ow-ui.js" defer></script>
+<script src="js/tutorial-library.js" defer></script>
 <script src="js/section-films.js" defer></script>
 <link rel="stylesheet" href="css/plan-pages.css">
 <link rel="stylesheet" href="css/insights.css">
@@ -1137,6 +1138,10 @@
                   </section>
                 </aside>
               </div>
+              <!-- Learn OrivenAI — six tutorials, one per section, each covering
+                   every page in it (assets/films/tutorials). Cards rendered by
+                   js/tutorial-library.js; they open the shared player (ow-ui.js). -->
+              <section class="ccx-card ccx-learn" id="ccxTutorials" aria-labelledby="ccxTutH"></section>
             </div>
 
             <!-- Card details — a dismissible overlay, NOT a permanent
