@@ -80,7 +80,7 @@ async function main() {
       landingCss: !!document.querySelector('#view-landing link[href="/css/landing.css"]'), oldLanding: !!document.getElementById('ov-system') || !!document.getElementById('ov-pillars'),
     };
   });
-  check('sections in the approved order (2026-11 workspace): hero, problem, workspace, how, inside, plan, assistant, integrations, trust, FAQ, final CTA (+ header, footer)', JSON.stringify(st.order) === JSON.stringify(['top', 'problem', 'workspace', 'how', 'inside', 'plan', 'agents', 'integrations', 'trust', 'faq', 'start']) && st.footer && st.header, st.order);
+  check('sections in the approved order (2026-11 tutorials): hero, problem, workspace, assistant (directly under the workspace section), how, inside, plan, integrations, trust, FAQ, final CTA (+ header, footer)', JSON.stringify(st.order) === JSON.stringify(['top', 'problem', 'workspace', 'agents', 'how', 'inside', 'plan', 'integrations', 'trust', 'faq', 'start']) && st.footer && st.header, st.order);
   check('no pricing section on the landing page (no plan grid, no pricing block, no prices); /pricing still linked', !st.pricing.grid && st.pricing.sections === 0 && !st.pricing.perMonth && st.pricing.link, st.pricing);
   check('FAQ present (10 questions)', st.faq === 10, st.faq);
   check('exactly one H1: "Your new ad workspace."', st.h1.length === 1 && st.h1[0].replace(/\s+/g, ' ') === 'Your new ad workspace.', st.h1);

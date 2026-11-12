@@ -581,7 +581,7 @@ const server = app.listen(PORT, async () => {
     }
 
     // ── 14. Section films in the app ────────────────────────────────
-    console.log('\n14. Watch overview');
+    console.log('\n14. Watch tutorial');
     {
       const c9 = await browser.newContext({ viewport: { width: 1440, height: 900 } });
       const p9 = await c9.newPage(); await fence(p9);
@@ -591,12 +591,12 @@ const server = app.listen(PORT, async () => {
         await p9.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p9.waitForTimeout(id.startsWith('auto') ? 1100 : 800);
         films.push([id, key, await p9.evaluate(() => { const b = [...document.querySelectorAll('.page.active .orv-film-btn, #orvHubTabsCampaigns .orv-film-btn')].find((x) => x.offsetParent !== null); return b ? b.getAttribute('data-ow-video') : null; })]);
       }
-      check('14.1 the first page of each section has “Watch overview” with its own film; other pages don’t', films.every(([, key, v]) => key ? v === 'assets/films/sections/' + key + '.mp4' : v === null), films);
+      check('14.1 the first page of each section has “Watch tutorial” with its own section tutorial; other pages don’t', films.every(([, key, v]) => key ? v === '/assets/films/tutorials/' + key + '.mp4' : v === null), films);
       await p9.click('.orv-sb .onv-item[data-onv="research"]'); await p9.waitForTimeout(800);
       await p9.click('.page.active .orv-film-btn'); await p9.waitForTimeout(500);
       const pl = await p9.evaluate(() => { const x = document.querySelector('.ow-player'); return { open: !!x && x.classList.contains('is-open'), src: x && x.querySelector('video').getAttribute('src') }; });
       await p9.keyboard.press('Escape'); await p9.waitForTimeout(200);
-      check('14.2 it opens the shared player with that film; Esc closes it', pl.open && pl.src === 'assets/films/sections/research.mp4' && !(await p9.evaluate(() => document.querySelector('.ow-player').classList.contains('is-open'))), pl);
+      check('14.2 it opens the shared player with that film; Esc closes it', pl.open && pl.src === '/assets/films/tutorials/research.mp4' && !(await p9.evaluate(() => document.querySelector('.ow-player').classList.contains('is-open'))), pl);
       await c9.close();
     }
 

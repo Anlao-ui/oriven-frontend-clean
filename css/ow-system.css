@@ -105,13 +105,23 @@
 .ow-player__box { position: relative; width: min(1180px, 100%); max-height: 100%; display: grid; gap: 12px; }
 .ow-player__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--ow-text); }
 .ow-player__title { margin: 0; font: 650 16px/1.3 var(--font, system-ui); }
+/* The close button sits in the title bar (it reuses the drawer close style, which is absolutely positioned). */
+.ow-player__close { position: static; flex: none; }
 .ow-player video { width: 100%; max-height: calc(100vh - 140px); border-radius: var(--ow-r-md); background: #000; display: block; }
 .ow-player__note { margin: 0; font-size: 12.5px; color: var(--ow-muted); }
+/* Loading and error states over the video (ow-ui.js); the controls stay usable below. */
+.ow-player__stage { position: relative; }
+.ow-player__status { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px; background: rgba(11, 12, 10, .86); border: 1px solid rgba(255, 255, 255, .12); color: var(--ow-text); font-size: 13.5px; pointer-events: none; }
+.ow-player__status[hidden] { display: none; }
+.ow-player__status.is-error { border-radius: var(--ow-r-md); pointer-events: auto; text-align: center; }
+.ow-player__status.is-error .ow-player__spin { display: none; }
+.ow-player__spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .22); border-top-color: var(--ow-lime, #B6FF3B); animation: owSpin .8s linear infinite; }
+@keyframes owSpin { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
   .ow-card--interactive, .ow-video-btn img, .ow-btn { transition: none; }
   .ow-card--interactive:hover, .ow-video-btn:hover img { transform: none; }
-  .ow-drawer__scrim, .ow-drawer__panel { animation: none; }
+  .ow-drawer__scrim, .ow-drawer__panel, .ow-player__spin { animation: none; }
 }
 
 /* ── Pricing cards (js/plans.js renderLPPricingCards, .ov-pc--ws) ───
