@@ -11,7 +11,10 @@ module.exports = {
   lastmod: '2026-10-09',
   title: 'PPC Automation Software with Rules You Control | OrivenAI',
   ogTitle: 'PPC automation software with rules you control',
-  description: 'Automate routine PPC decisions on Google Ads and Meta Ads with rules that pause, resume or adjust budgets, notify you, or ask for approval first.',
+  // Keyword map 2026-11: primary "PPC automation software"; secondary "PPC
+  // management software", "automated rules for Google Ads and Meta Ads". The
+  // broader "ad management software" cluster belongs to /cross-platform-ad-management/.
+  description: 'PPC automation software for small teams: rules that pause, resume or adjust budgets on Google Ads and Meta Ads, notify you, or ask for approval first.',
   crumb: 'PPC automation software',
   teaser: 'Rules that pause, resume, adjust budgets or ask first, on Google Ads and Meta Ads.',
   eyebrow: 'PPC automation',
@@ -47,6 +50,12 @@ module.exports = {
     <li><div><h3>Start cautiously</h3><p>Begin with notify or approval rules. Once you trust a rule’s judgment, let it act on its own.</p></div></li>
     <li><div><h3>Review the activity</h3><p>Check the Automations activity and Campaigns’ performance view to see what changed and whether it helped.</p></div></li>
   </ol>
+</div></section>
+
+<section class="sp-section" aria-labelledby="mgmt-h"><div class="sp-wrap">
+  <h2 id="mgmt-h">PPC automation or PPC management software?</h2>
+  <p>The two terms overlap. PPC management software usually means the whole job: building campaigns, publishing them, reporting and optimizing. PPC automation is the part that applies routine decisions for you, on a schedule or when a condition is met. Many teams need both, and OrivenAI covers both: campaigns are created in <a href="/create">Create</a>, published from <a href="/launch">Launch</a> and followed in <a href="/campaigns">Campaigns</a>, while Automations handle the routine checks described on this page.</p>
+  <p>If you are comparing tools for managing several ad platforms at once, see <a href="/cross-platform-ad-management/">cross-platform ad management</a>. One thing OrivenAI doesn’t do is keyword-level bid management; on Google Ads, bidding is left to the campaign’s own bid strategy.</p>
 </div></section>
 
 <section class="sp-section" aria-labelledby="scope-h"><div class="sp-wrap">

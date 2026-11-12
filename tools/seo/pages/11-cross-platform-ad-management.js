@@ -11,7 +11,11 @@ module.exports = {
   lastmod: '2026-10-09',
   title: 'Cross-Platform Ad Management Software | OrivenAI',
   ogTitle: 'Manage Google, Meta, TikTok and Pinterest ads in one workspace',
-  description: 'Plan, create, launch and follow ads on Google Ads, Meta Ads, TikTok Ads and Pinterest Ads from one OrivenAI workspace, with one brief adapted to each platform.',
+  // Keyword map 2026-11: primary "cross-platform ad management software";
+  // secondary "advertising management software", "ad management software for
+  // small business", "multi-channel advertising software", "manage Google and
+  // Meta ads in one place". The one page for that cluster (no other page targets it).
+  description: 'Ad management software for small teams: plan, create, launch and follow Google, Meta, TikTok and Pinterest ads from one workspace, with one brief per campaign.',
   crumb: 'Cross-platform ad management',
   teaser: 'One brief, adapted per platform, launched and followed from one workspace.',
   eyebrow: 'Cross-platform advertising',
@@ -52,6 +56,22 @@ module.exports = {
   <p>Performance tracking shows what each platform’s API reports; the available metrics and history differ by platform.</p>
 </div></section>
 
+<section class="sp-section" aria-labelledby="choose-h"><div class="sp-wrap">
+  <h2 id="choose-h">What to look for in advertising management software</h2>
+  <p>“Advertising management software” covers very different products. Before comparing features, check these five things, and be wary of any tool that can’t answer them plainly:</p>
+  <h3>Does it act on your campaigns, or only report on them?</h3>
+  <p>Reporting tools pull data from your ad accounts into one dashboard. Management tools also create, publish or change campaigns through each platform’s API. OrivenAI does both for the four platforms above: it creates and publishes campaigns, shows their results in <a href="/campaigns">one ads dashboard</a>, and can pause, resume or adjust them with <a href="/ppc-automation-software/">rules you control</a>.</p>
+  <h3>Which ad platforms does it cover?</h3>
+  <p>Coverage differs a lot between tools. OrivenAI covers Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads and Pinterest Ads. It doesn’t manage Microsoft Advertising, LinkedIn Ads or Amazon Ads; if those are central to your mix, choose a tool that does.</p>
+  <h3>Who is it built for?</h3>
+  <p>Enterprise platforms are usually sold through a sales call and priced for large budgets. Tools for small teams should let you start on your own, explain what they’ll change and show their price. OrivenAI is self-serve, with <a href="/pricing">plans from ${F.fromPrice}</a> paid once, without automatic renewal.</p>
+  <h3>How does it handle measurement?</h3>
+  <p>Each platform attributes conversions its own way. Be careful with a tool that adds them up into one “true” number without explaining how. OrivenAI shows each platform’s own figures side by side and flags tracking that isn’t verified; it doesn’t merge attribution across platforms.</p>
+  <h3>How much control do you keep?</h3>
+  <p>Look for clear limits on what software may change, a record of what it did, and the option to approve changes first. In OrivenAI, launching is always your decision, and automations can ask before they act.</p>
+  <p>If you are still deciding which platforms to run at all, our guide on <a href="/learn/how-to-manage-multiple-ad-platforms/">managing multiple ad platforms</a> covers briefs, naming, tracking and budgets.</p>
+</div></section>
+
 <section class="sp-section" aria-labelledby="who-h"><div class="sp-wrap">
   <h2 id="who-h">Who it’s for</h2>
   <div class="sp-grid sp-grid-2">
@@ -66,7 +86,7 @@ module.exports = {
     ['Does OrivenAI publish campaigns automatically?', '<p>No. Launching is always a manual step. Each draft shows its readiness, and you choose when to publish.</p>'],
     ['Is cross-platform management included in every plan?', '<p>Yes. Every plan includes Control Center, Research, Create, Launch, Campaigns and Automations; plans differ only in period, price and credits.</p>'],
   ],
-  related: ['/learn/how-to-manage-multiple-ad-platforms/', '/learn/google-ads-vs-meta-ads/', '/ppc-automation-software/', '/product/google-ads', '/product/meta-ads', '/pricing'],
+  related: ['/learn/how-to-manage-multiple-ad-platforms/', '/campaigns', '/ppc-automation-software/', '/learn/smartly-io-alternatives/', '/product/google-ads', '/pricing'],
   relatedTitle: 'Related',
   cta: { title: 'Run every platform from one workspace', text: 'Create, launch and track campaigns on every platform with any plan, from ' + F.fromPrice + ' for 14 days.', label: 'Get started' },
 };

@@ -14,7 +14,7 @@ module.exports = {
   path: '/solutions/structured-automation',
   kind: 'commercial',
   lastmod: '2026-10-29',
-  title: 'Automate Repetitive Ad Work With Rules | OrivenAI Solutions',
+  title: 'Automate Repetitive Advertising Tasks With Rules | OrivenAI',
   ogTitle: 'More structure, less repetitive work',
   description: 'Schedules and rules for your published campaigns that notify you, ask first or act within limits you set, with a record of everything they did.',
   breadcrumbs: [{ name: 'Solutions', path: '/solutions' }],
