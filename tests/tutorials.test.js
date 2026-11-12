@@ -71,8 +71,9 @@ const HOST = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta n
 <body><main><div id="bizPanelOverview"><div class="bic-composition cc-root"><section class="ccx-card ccx-learn" id="ccxTutorials" aria-labelledby="ccxTutH"></section></div></div></main>
 <script src="/js/ow-ui.js"></script><script src="/js/tutorial-library.js"></script></body></html>`;
 const srv = http.createServer((q, r) => {
-  const p = q.url.split('?')[0];
+  let p = q.url.split('?')[0];
   if (p === '/host.html') { r.writeHead(200, { 'Content-Type': 'text/html' }); return r.end(HOST); }
+  if (p === '/') p = '/index.html';
   const f = path.join(ROOT, p);
   if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); return r.end(); }
   const st = fs.statSync(f), type = TYPES[path.extname(f)] || 'application/octet-stream', range = q.headers.range;
@@ -81,7 +82,7 @@ const srv = http.createServer((q, r) => {
 }).listen(0, '127.0.0.1', async () => {
   const BASE = 'http://127.0.0.1:' + srv.address().port;
   const browser = await chromium.launch({ executablePath: CHROME_PATH, headless: true });
-  require('./_fence').fenceBrowser(browser, BASE);
+  require('./_fence').fenceBrowser(browser, BASE, { backend401: true });
   const errors = [];
   try {
     console.log('\n2. The Dashboard library');
@@ -125,6 +126,35 @@ const srv = http.createServer((q, r) => {
     check('4.1 "Watch tutorial" on each section uses the tutorial films (via js/tutorial-library.js)', /orvTutorials/.test(sf) && /Watch tutorial/.test(sf) && !/assets\/films\/sections/.test(sf));
     const app = fs.readFileSync(path.join(ROOT, 'app.html'), 'utf8');
     check('4.2 app.html: the library container on the Dashboard, the script loaded before section-films.js', /id="ccxTutorials"/.test(app) && app.indexOf('js/tutorial-library.js') > 0 && app.indexOf('js/tutorial-library.js') < app.indexOf('js/section-films.js'));
+
+    console.log('\n5. The public homepage');
+    const gen = require('child_process').spawnSync(process.execPath, [path.join(ROOT, 'tools/tutorials-section.js'), '--check'], { encoding: 'utf8' });
+    const homeHtml = fs.readFileSync(path.join(ROOT, 'home.html'), 'utf8');
+    check('5.1 the homepage section is generated from the same list (up to date) and prerendered into home.html with six cards', gen.status === 0 && (homeHtml.match(/class="ik-tut"/g) || []).length === 6 && KEYS.every((k) => homeHtml.includes('data-ow-video="/assets/films/tutorials/' + k + '.mp4"')), { gen: gen.stdout + gen.stderr });
+    const homeShots = {};
+    for (const [w, want] of [[1440, 3], [800, 2], [390, 1]]) {
+      const hp = await browser.newPage({ viewport: { width: w, height: 900 } }); hp.on('pageerror', (e) => errors.push('home ' + w + ': ' + e.message));
+      await hp.goto(BASE + '/', { waitUntil: 'load' }); await hp.addStyleTag({ content: '.orv-cc,#orvConsentBanner{display:none!important}' }); await hp.waitForTimeout(800);
+      await hp.evaluate(() => document.getElementById('tutorials').scrollIntoView({ block: 'start' })); await hp.waitForTimeout(1200);
+      homeShots[w] = await hp.evaluate(() => {
+        const ids = [...document.querySelectorAll('#view-landing > section[id], #view-landing section.ik-sec[id], section.ik-hero[id]')].map((s) => s.id).filter((v, i, a) => a.indexOf(v) === i);
+        const cards = [...document.querySelectorAll('#tutorials .ik-tut')];
+        return { after: ids[ids.indexOf('tutorials') - 1], before: ids[ids.indexOf('tutorials') + 1], n: cards.length, videos: cards.map((c) => c.getAttribute('data-ow-video')), thumbs: cards.filter((c) => c.querySelector('img').naturalWidth > 0).length, cols: getComputedStyle(document.querySelector('.ik-tut__grid')).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - innerWidth, h: (document.getElementById('ik-tut-title') || {}).textContent };
+      });
+      homeShots[w].want = want;
+      await hp.screenshot({ path: path.join(__dirname, '_shots', 'tutorials-home-' + w + '.png') }).catch(() => {});
+      if (w === 1440) {
+        await hp.click('#tutorials .ik-tut >> nth=2'); await hp.waitForTimeout(1800);
+        homeShots.play = await hp.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), src: v.currentSrc.replace(location.origin, ''), t: +v.currentTime.toFixed(2), track: !!v.querySelector('track[default]') }; });
+        await hp.keyboard.press('Escape'); await hp.waitForTimeout(300);
+        homeShots.closed = await hp.evaluate(() => !document.querySelector('.ow-player').classList.contains('is-open'));
+      }
+      await hp.close();
+    }
+    const d = homeShots[1440];
+    check('5.2 “Learn OrivenAI in six short videos.” sits directly after the assistant section, six cards in section order, thumbnails load', d.after === 'agents' && d.before === 'how' && d.n === 6 && d.videos.every((v, i) => v === '/assets/films/tutorials/' + KEYS[i] + '.mp4') && d.thumbs === 6 && /six short videos/.test(d.h), d);
+    check('5.3 a card plays its tutorial with captions in the shared player; Esc closes it', homeShots.play && homeShots.play.open && homeShots.play.src === '/assets/films/tutorials/create.mp4' && homeShots.play.t > 0.3 && homeShots.play.track && homeShots.closed, homeShots.play);
+    check('5.4 three columns on desktop, two on tablet, one on a phone; no sideways scrolling', [1440, 800, 390].every((w) => homeShots[w].cols === homeShots[w].want && homeShots[w].overflow <= 0), [1440, 800, 390].map((w) => homeShots[w]));
     check('Z. no page errors', errors.length === 0, errors);
   } catch (e) { console.error(e); fail++; }
   finally { await browser.close(); srv.close(); console.log(`\n${pass + fail} checks run, ${pass} passed, ${fail} failed.`); process.exit(fail ? 1 : 0); }
