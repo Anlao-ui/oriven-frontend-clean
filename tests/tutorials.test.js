@@ -155,6 +155,19 @@ const srv = http.createServer((q, r) => {
     check('5.2 “Learn OrivenAI in six short videos.” sits directly after the assistant section, six cards in section order, thumbnails load', d.after === 'agents' && d.before === 'how' && d.n === 6 && d.videos.every((v, i) => v === '/assets/films/tutorials/' + KEYS[i] + '.mp4') && d.thumbs === 6 && /six short videos/.test(d.h), d);
     check('5.3 a card plays its tutorial with captions in the shared player; Esc closes it', homeShots.play && homeShots.play.open && homeShots.play.src === '/assets/films/tutorials/create.mp4' && homeShots.play.t > 0.3 && homeShots.play.track && homeShots.closed, homeShots.play);
     check('5.4 three columns on desktop, two on tablet, one on a phone; no sideways scrolling', [1440, 800, 390].every((w) => homeShots[w].cols === homeShots[w].want && homeShots[w].overflow <= 0), [1440, 800, 390].map((w) => homeShots[w]));
+    // First visit on a phone: the cookie banner is showing. An open video must sit above it.
+    {
+      const mp = await browser.newPage({ viewport: { width: 390, height: 844 } }); mp.on('pageerror', (e) => errors.push('home banner: ' + e.message));
+      await mp.goto(BASE + '/', { waitUntil: 'load' }); await mp.waitForTimeout(1500);
+      await mp.evaluate(() => document.querySelector('#tutorials .ik-tut').scrollIntoView({ block: 'center' })); await mp.waitForTimeout(600);
+      const bannerShown = await mp.evaluate(() => { const c = document.querySelector('.orv-cc'); return !!c && c.getClientRects().length > 0; });
+      await mp.evaluate(() => document.querySelector('#tutorials .ik-tut').click()); await mp.waitForTimeout(1200);
+      // The video, its controls AND the spot where the banner sits all belong to the player: the
+      // banner is underneath while a video is open (on short screens it would otherwise cover the controls).
+      const top = await mp.evaluate(() => { const v = document.querySelector('.ow-player video'); const r = v.getBoundingClientRect(); const c = document.querySelector('.orv-cc').getBoundingClientRect(); const pts = [[r.left + r.width / 2, r.bottom - 12], [r.left + r.width / 2, r.top + r.height / 2], [c.left + c.width / 2, c.top + c.height / 2]]; return pts.map(([x, y]) => { const e = document.elementFromPoint(x, y); return !!(e && e.closest('.ow-player')); }); });
+      check('5.5 with the cookie banner showing on a phone, the open video is on top of it (video, controls and the banner area belong to the player)', bannerShown && top.every(Boolean), { bannerShown, top });
+      await mp.close();
+    }
     check('Z. no page errors', errors.length === 0, errors);
   } catch (e) { console.error(e); fail++; }
   finally { await browser.close(); srv.close(); console.log(`\n${pass + fail} checks run, ${pass} passed, ${fail} failed.`); process.exit(fail ? 1 : 0); }
