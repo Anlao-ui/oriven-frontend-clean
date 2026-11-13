@@ -158,8 +158,6 @@
 .ov-pc.ov-pc--ws .ov-pc-benefits li { flex-wrap: nowrap; align-items: flex-start; gap: 8px; line-height: 1.45; }
 .ov-pc.ov-pc--ws .ov-pc-benefits li::before { margin-top: 1px; }
 
-/* "Watch overview" buttons: public section heroes (.ov-watch) and the
-   first page of each app section (.orv-film-btn, js/section-films.js). */
+/* "Watch the overview" buttons in the public section heroes (.ov-watch). */
 .ov-watch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font: inherit; }
 .ov-watch svg { color: var(--ow-accent); }
-.orv-film-btn { margin: 10px 0 2px; }

@@ -581,22 +581,22 @@ const server = app.listen(PORT, async () => {
     }
 
     // ── 14. Section films in the app ────────────────────────────────
-    console.log('\n14. Watch tutorial');
+    // 2026-11-13: the tutorials belong on the public homepage only. No app page has a
+    // "Watch tutorial" button, and the Dashboard has no tutorial gallery.
+    console.log('\n14. No tutorial UI inside the app');
     {
       const c9 = await browser.newContext({ viewport: { width: 1440, height: 900 } });
       const p9 = await c9.newPage(); await fence(p9);
       await signIn(p9);
-      const films = [];
-      for (const [id, key] of [['dashboard', 'control-center'], ['research', 'research'], ['create', 'create'], ['adstudio', 'launch'], ['overview', 'campaigns'], ['auto-overview', 'automations'], ['insights', null]]) {
+      const found = [];
+      for (const id of ['dashboard', 'plan', 'progress', 'research', 'insights', 'create', 'testing', 'adstudio', 'audiences', 'overview', 'compare', 'auto-overview', 'auto-scheduler', 'auto-rules', 'auto-activity']) {
         await p9.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p9.waitForTimeout(id.startsWith('auto') ? 1100 : 800);
-        films.push([id, key, await p9.evaluate(() => { const b = [...document.querySelectorAll('.page.active .orv-film-btn, #orvHubTabsCampaigns .orv-film-btn')].find((x) => x.offsetParent !== null); return b ? b.getAttribute('data-ow-video') : null; })]);
+        const f = await p9.evaluate(() => { const vis = (e) => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden'; const btns = [...document.querySelectorAll('.orv-film-btn, [data-orv-film], [data-ow-video], #ccxTutorials, .ccx-tut')].filter(vis).length; const text = [...document.querySelectorAll('.page.active, #orvHubTabsCampaigns')].some((p) => vis(p) && /Watch (tutorial|overview)|Learn OrivenAI/.test(p.innerText)); return { btns, text }; });
+        if (f.btns || f.text) found.push(Object.assign({ id }, f));
       }
-      check('14.1 the first page of each section has “Watch tutorial” with its own section tutorial; other pages don’t', films.every(([, key, v]) => key ? v === '/assets/films/tutorials/' + key + '.mp4' : v === null), films);
-      await p9.click('.orv-sb .onv-item[data-onv="research"]'); await p9.waitForTimeout(800);
-      await p9.click('.page.active .orv-film-btn'); await p9.waitForTimeout(500);
-      const pl = await p9.evaluate(() => { const x = document.querySelector('.ow-player'); return { open: !!x && x.classList.contains('is-open'), src: x && x.querySelector('video').getAttribute('src') }; });
-      await p9.keyboard.press('Escape'); await p9.waitForTimeout(200);
-      check('14.2 it opens the shared player with that film; Esc closes it', pl.open && pl.src === '/assets/films/tutorials/research.mp4' && !(await p9.evaluate(() => document.querySelector('.ow-player').classList.contains('is-open'))), pl);
+      check('14.1 no app page (Dashboard … Activity) shows a "Watch tutorial" button, a tutorial video or a tutorial gallery', found.length === 0, found);
+      const dash = await p9.evaluate(() => ({ gallery: !!document.getElementById('ccxTutorials'), scripts: [...document.scripts].map((s) => s.src).filter((s) => /section-films|tutorial-library/.test(s)) }));
+      check('14.2 the Dashboard has its own cards only: no tutorial container, no tutorial scripts loaded', !dash.gallery && dash.scripts.length === 0, dash);
       await c9.close();
     }
 

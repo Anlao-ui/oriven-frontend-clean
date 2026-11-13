@@ -99,3 +99,9 @@
 @media (min-width: 641px) and (max-width: 1024px) {
   #page-create .cr2-wrap { padding-top: 68px; }
 }
+
+/* Wide screens: the same 40px page frame as the other app pages (Research,
+   Ad Studio, the plan pages), so Create lines up with them. */
+@media (min-width: 1181px) {
+  #page-create .cr2-wrap { padding-left: 40px; padding-right: 40px; }
+}

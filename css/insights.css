@@ -86,3 +86,17 @@
   .ins-body { animation: none; }
   .ins-card, .ins-tab, .ins-chip { transition: none; }
 }
+
+/* ── Cards for every block (2026-11-13) ──────────────────────────────
+   Next actions and "Named in more than one report" use the same card as
+   findings and opportunities (.ins-card: 14px radius, 1px line, surface,
+   16–18px padding) instead of plain rows between rules. The "from" line
+   wraps instead of being cut off mid-date. */
+.ins-actions { border-top: 0; display: grid; gap: 12px; }
+.ins-action { padding: 16px 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); min-width: 0; transition: border-color .16s; }
+.ins-action:hover { border-color: color-mix(in srgb, var(--charcoal) 22%, transparent); }
+.ins-rec { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; align-items: stretch; }
+.ins-rec li { padding: 16px 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); min-width: 0; align-content: flex-start; }
+.ins-from { white-space: normal; text-align: left; line-height: 1.4; }
+@media (max-width: 720px) { .ins-rec { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .ins-action { transition: none; } }

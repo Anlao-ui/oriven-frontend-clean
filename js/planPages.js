@@ -302,9 +302,13 @@
       '</header>' +
       (P.summary ? '<p class="mpl-summary">' + esc(P.summary) + '</p>' : '') +
       '<nav class="mpl-toc" aria-label="Sections of your plan"><ol>' + present.map(function (s) { return '<li><a href="#mpl-' + s[0] + '" data-mpl-jump="' + s[0] + '">' + esc(s[0] === 'roadmap' && h && h.label ? 'Action plan · ' + h.label : s[1]) + '</a></li>'; }).join('') + '</ol></nav>' +
-      present.map(function (s) {
-        return '<section class="mpl-sec" id="mpl-' + s[0] + '" aria-labelledby="mpl-' + s[0] + '-h"><h2 id="mpl-' + s[0] + '-h">' + esc(s[0] === 'roadmap' && h && h.label ? 'Action plan · ' + h.label : s[1]) + '</h2>' + body[s[0]] + '</section>';
-      }).join('') +
+      (function () {
+        var sec = function (s, cls) { return '<section class="mpl-sec' + (cls ? ' ' + cls : '') + '" id="mpl-' + s[0] + '" aria-labelledby="mpl-' + s[0] + '-h"><h2 id="mpl-' + s[0] + '-h">' + esc(s[0] === 'roadmap' && h && h.label ? 'Action plan · ' + h.label : s[1]) + '</h2>' + body[s[0]] + '</section>'; };
+        // The action plan keeps its own cards; the strategy sections (priorities,
+        // audience, positioning…) are cards in a grid, equal height per row.
+        var road = present.filter(function (s) { return s[0] === 'roadmap'; }), rest = present.filter(function (s) { return s[0] !== 'roadmap'; });
+        return road.map(function (s) { return sec(s); }).join('') + (rest.length ? '<div class="mpl-cards">' + rest.map(function (s) { return sec(s, 'mpl-card'); }).join('') + '</div>' : '');
+      })() +
     '</article>';
   }
   // The action plan: per period phase, the tasks to do in OrivenAI, each
@@ -481,6 +485,9 @@
         '<h1 id="prgTitle">Your next steps</h1>' +
         '<p class="prg-count" aria-live="polite"><b class="prg-done-n">' + d.completed + '</b> of ' + d.total + ' tasks done · ' + pct + '%</p>' +
         '<div class="prg-bar" role="progressbar" aria-label="Tasks done" aria-valuemin="0" aria-valuemax="' + d.total + '" aria-valuenow="' + d.completed + '"><i style="width:' + pct + '%"></i></div>' +
+      '</header>' +
+      // Summary in a rail of cards (beside the phases on wide screens, above them on narrow ones).
+      '<div class="prg-layout"><aside class="prg-rail" aria-label="Progress summary">' +
         '<div class="prg-stats">' +
           stat(curP ? esc(curP.phase) : '—', 'Current phase') +
           stat(curP ? curDone + '/' + curP.steps.length : '—', 'Done this phase') +
@@ -488,12 +495,14 @@
           stat(d.total - d.completed, 'Remaining') +
         '</div>' +
         (next ? '<div class="prg-next"><span>Next up</span><b>' + esc(next.step) + '</b>' + (next.page ? pageBtn(next.page, next.button, true) : '') + '</div>' : '') +
+        '<section class="prg-card" aria-labelledby="prgPhasesH"><h2 class="prg-card__h" id="prgPhasesH">Per phase</h2>' +
         '<ol class="prg-months" aria-label="Progress per phase">' + d.phases.map(function (p, i) {
           var n = p.steps.filter(function (x) { return x.done; }).length, w = p.steps.length ? Math.round(n / p.steps.length * 100) : 0;
           return '<li' + (i === cur ? ' data-state="now"' : '') + ' title="' + esc(p.phase + ': ' + n + ' of ' + p.steps.length + ' done') + '"><span>' + esc(p.phase) + '</span><i><em style="width:' + w + '%"></em></i><span class="prg-months__n">' + n + '/' + p.steps.length + '</span></li>';
         }).join('') + '</ol>' +
         '<p class="mpl-fine">Tasks OrivenAI can see — research, audiences, creatives, campaigns, automations, connected platforms — tick off by themselves once they’re really done. Opening a page doesn’t count. Only tasks OrivenAI can’t check have a box to tick yourself.</p>' +
-      '</header>' +
+        '</section>' +
+      '</aside><div class="prg-main">' +
       d.phases.map(function (p, i) {
         var done = p.steps.filter(function (x) { return x.done; }).length;
         var state = i < cur ? 'past' : i === cur ? 'now' : 'next';
@@ -504,6 +513,7 @@
           (p.focus ? '<p class="prg-focus">' + esc(p.focus) + '</p>' : '') +
           '<ul class="prg-steps">' + p.steps.map(stepHtml).join('') + '</ul></details>';
       }).join('') +
+      '</div></div>' +
     '</article>';
   }
   var TICK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
