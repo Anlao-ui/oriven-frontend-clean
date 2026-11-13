@@ -1,0 +1,162 @@
+/* ════════════════════════════════════════════════════════════════
+   App card shell (2026-11-13) — one look for every signed-in page:
+   • the page title block (title, subtitle, page actions) is a card;
+   • content sits in cards, sections with a heading are cards too;
+   • a narrow page frame (24px) and no maximum width, so the space on
+     the left and right is used.
+   Loaded after every page stylesheet. Uses the app's own theme tokens
+   (--surface / --border follow light and dark mode).
+   ════════════════════════════════════════════════════════════════ */
+:root { --app-gutter: 24px; --app-card-r: 16px; --app-card-pad: 20px 24px; }
+
+/* ── 1. Page title cards ─────────────────────────────────────────── */
+#bizPanelOverview .ccx-hd,
+#page-marketing-plan .mpl-head,
+#page-progress .prg-head,
+.rx-wrap > .rx-head,
+#page-create .cr2-hero,
+#page-my-content .mcl-head,
+#page-launch .lq-hdr,
+#orvHubTabsCampaigns .camp-shell-hdr,
+.onv-cb > .onv-cb__head,
+.atm-wrap > .atm-head {
+  box-sizing: border-box;
+  margin: 0;
+  padding: var(--app-card-pad);
+  border: 1px solid var(--app-card-line, var(--border));
+  border-radius: var(--app-card-r);
+  background: var(--app-card-bg, var(--surface));
+}
+/* Each area keeps its own card colours (the Dashboard's and the plan pages' tokens). */
+#bizPanelOverview { --app-card-bg: var(--ccx-surface); --app-card-line: var(--ccx-line); }
+.onv-panel { --app-card-bg: var(--onv-surface); --app-card-line: var(--onv-line); }
+/* Campaigns: its own --border is nearly invisible in dark mode, so its title card uses the Dashboard's card values. */
+body.dark-mode #orvHubTabsCampaigns { --app-card-bg: rgba(255, 255, 255, .028); --app-card-line: rgba(255, 255, 255, .08); }
+/* The notification bell sits in the top-right corner of the page (OW.placeBell):
+   inside the title card, so the card's content keeps clear of it. */
+@media (min-width: 1025px) {
+  #bizPanelOverview .ccx-hd, #page-marketing-plan .mpl-head, #page-progress .prg-head, .rx-wrap > .rx-head,
+  #page-create .cr2-hero, #page-my-content .mcl-head, #page-launch .lq-hdr, #orvHubTabsCampaigns .camp-shell-hdr,
+  .onv-cb > .onv-cb__head, .atm-wrap > .atm-head { padding-right: 76px; }
+  .orv-notif-bell.ow-in-page { top: calc(var(--app-gutter) + 14px); right: calc(var(--app-gutter) + 18px); }
+}
+/* Title blocks that were separated by a rule now are a card: no rule, normal spacing after. */
+#page-marketing-plan .mpl-head, #page-progress .prg-head { border-bottom: 1px solid var(--app-card-line, var(--border)); }
+#page-create .cr2-hero { border-bottom: 1px solid var(--app-card-line, var(--border)); text-align: left; }
+.atm-wrap > .atm-head { align-items: center; }
+#page-progress .prg-head .prg-bar { margin-top: 2px; }
+
+/* ── 2. Page frame: narrow gutter, full width ─────────────────────── */
+@media (min-width: 1025px) {
+  .rx-wrap, .onv-panel, .atm-wrap, .camp-hub, #page-create .cr2-wrap,
+  #page-business-brain .orv-page-wrap-biz, #orvHubTabsCampaigns, #page-performance > .camp-hub, .mcl {
+    padding-left: var(--app-gutter) !important; padding-right: var(--app-gutter) !important;
+  }
+  .rx-wrap, .atm-wrap, .camp-hub, #page-create .cr2-wrap, .mcl,
+  .mpl-doc, .prg-doc, .onv-cb, #bizPanelOverview .cc-root, .bic-composition,
+  #page-business-brain .orv-page-wrap-biz, .onv-panel { max-width: none !important; }
+  #page-business-brain .orv-page-wrap-biz { margin-left: 0 !important; margin-right: 0 !important; }
+  /* Campaigns (hub strip + Overview) and Launch: the same frame, full width. */
+  #orvHubTabsCampaigns, #page-performance .prf-wrap { max-width: none !important; margin-left: 0 !important; margin-right: 0 !important; }
+  #page-performance .prf-wrap, body .camp-hub.lq-hub, body.dark-mode .camp-hub.lq-hub { padding-left: var(--app-gutter) !important; padding-right: var(--app-gutter) !important; }
+  /* The cards' own right padding already clears the bell: the page header no longer reserves it. */
+  #bizPanelOverview .ccx-hd { margin-right: 0; }
+}
+
+/* ── 3. Sections with a heading are cards ─────────────────────────── */
+.ins-sec, .gx-sec {
+  box-sizing: border-box;
+  padding: var(--app-card-pad);
+  border: 1px solid var(--border);
+  border-radius: var(--app-card-r);
+  background: var(--surface);
+  min-width: 0;
+}
+.ins-sec + .ins-sec { margin-top: 16px; }
+/* Cards inside a section card: a quieter fill, so the two levels read apart. */
+.ins-sec .ins-card, .ins-sec .ins-action, .ins-sec .ins-rec li,
+.gx-sec .gx-card, .gx-sec .gx-aud, .gx-sec .gx-saved__i, .gx-sec .gx-set {
+  background: color-mix(in srgb, var(--charcoal, #F2F2EE) 3%, transparent);
+}
+
+@media (max-width: 1024px) {
+  :root { --app-card-pad: 16px 18px; --app-card-r: 14px; }
+}
+
+/* ── 4. Dashboard: one screen, nothing scrolls inside a card ───────────
+   The campaign list moves out (the counts stay; "View campaigns" opens
+   them all); "Needs you" shows two rows (controlCenter.js MAX). The two
+   columns end level: the last card of each column takes the rest. */
+#bizPanelOverview .ccx-camps .ccx-clist { display: none; }
+@media (min-width: 1100px) and (min-height: 860px) {
+  #page-business-brain.biz-canvas-active .ccx-main, #page-business-brain.biz-canvas-active .ccx-rail { overflow: visible; }
+  #page-business-brain.biz-canvas-active #owHome, #page-business-brain.biz-canvas-active #owDashGrid { flex: 1 1 auto; min-height: 0; }
+  #page-business-brain.biz-canvas-active .ccx-main { display: flex; flex-direction: column; }
+  #page-business-brain.biz-canvas-active #owHome { display: flex; flex-direction: column; }
+}
+/* A compact greeting card (title + status line), so the cards below get the height. */
+#bizPanelOverview .ccx-hd { padding-top: 16px; padding-bottom: 16px; }
+#bizPanelOverview .ccx-hd .cc-greet { font-size: clamp(22px, 1.9vw, 27px); }
+#bizPanelOverview .cc-root { gap: 14px; }
+/* Business context: tighter rows and header, so all six fit without scrolling. */
+@media (min-width: 1100px) and (min-height: 860px) {
+  #bizPanelOverview .cc-ctx { gap: 8px; }
+  #bizPanelOverview .cc-ctx .ccx-ctx-hd .bic-identity-icon-wrap { width: 40px; }
+  #bizPanelOverview .cc-ctx .ccx-mod { padding-top: 5px; padding-bottom: 5px; }
+  #bizPanelOverview .cc-ctx .ccx-mods { gap: 0; }
+  #bizPanelOverview .cc-ctx > .ccx-sub { display: none; } /* the title says it; frees the height */
+}
+
+/* ── 5. Two-column pages end level: the main column's last card takes the rest ── */
+@media (min-width: 1001px) {
+  .atm-ovgrid { align-items: stretch; }
+  .atm-ovmain { display: flex; flex-direction: column; }
+  .atm-ovmain > .atm-card:last-child { flex: 1 1 auto; }
+}
+
+/* ── 6. Loose blocks into cards ─────────────────────────────────────── */
+/* Marketing Plan: the summary sits in the title card; the action plan is one card
+   (heading included); the section index beside it is a card. */
+#page-marketing-plan .mpl-head .mpl-summary { margin: 14px 0 0; max-width: 72ch; font-size: 16px; line-height: 1.55; }
+#page-marketing-plan #mpl-roadmap { margin-top: 16px; padding: var(--app-card-pad); border: 1px solid var(--app-card-line, var(--border)); border-radius: var(--app-card-r); background: var(--app-card-bg, var(--surface)); }
+#page-marketing-plan #mpl-roadmap + .mpl-cards { margin-top: 16px; }
+#page-marketing-plan .mpl-toc { padding: 16px 18px; border: 1px solid var(--app-card-line, var(--border)); border-radius: var(--app-card-r); background: var(--app-card-bg, var(--surface)); }
+#page-marketing-plan .mpl-toc ol { border-left: 0; padding-left: 0; }
+@media (min-width: 1181px) { #page-marketing-plan .mpl-toc { top: var(--app-gutter); } }
+/* Progress: "Next up" has the same border as the other summary cards. */
+#page-progress .prg-next { border: 1px solid color-mix(in srgb, var(--onv-acc, #B6FF3B) 30%, transparent); border-radius: 12px; }
+/* Insights: the counts line inside the title card. */
+.ins-head .ins-facts { margin: 8px 0 0; }
+/* Audience Builder: the "Prepared in OrivenAI" note is a card. */
+.gx .gx-status-note { padding: 14px 18px; border: 1px solid var(--border); border-radius: var(--app-card-r); background: var(--surface); }
+/* Marketing Plan: the section index card sits one card-gap from the plan, not 56px away. */
+@media (min-width: 1181px) { #page-marketing-plan .mpl-doc { column-gap: 16px; grid-template-columns: minmax(0, 1fr) 230px; } }
+
+/* ── 7. Dashboard: at least one screen, never a scrollbar inside a card ─────
+   The page area is at least the screen's height (not exactly), so when the
+   cards fit nothing scrolls and both columns end level at the bottom; when
+   they don't fit, the page scrolls as a whole. No column or card scrolls on
+   its own. (Overrides controlCenter.css's one-screen-with-inner-scroll mode.) */
+@media (min-width: 1100px) and (min-height: 560px) {
+  #page-business-brain.biz-canvas-active .orv-page-wrap-biz { height: auto !important; min-height: 100vh; min-height: 100dvh; overflow: visible !important; }
+  #page-business-brain.biz-canvas-active .ccx-main, #page-business-brain.biz-canvas-active .ccx-rail,
+  #page-business-brain.biz-canvas-active .cc-ctx, #page-business-brain.biz-canvas-active .cc-ctx .ccx-mods { overflow: visible !important; min-height: 0; }
+  #page-business-brain.biz-canvas-active .ccx-layout { grid-template-rows: auto; flex: 1 1 auto; }
+}
+/* Dashboard cards sit 12px apart (the same rhythm as the cards inside them), so a little more fits one screen. */
+@media (min-width: 1100px) { #bizPanelOverview { --ccx-gap: 12px; } #bizPanelOverview .cc-root { gap: 12px; } }
+/* Shorter laptop screens (e.g. 1366×768): the same cards with their secondary
+   lines left out, so the Dashboard still fits one screen. */
+@media (min-width: 1100px) and (max-height: 859px) {
+  #bizPanelOverview .ccx-hd { padding-top: 12px; padding-bottom: 12px; }
+  #bizPanelOverview .ccx-hd .cc-greet { font-size: 22px; }
+  #bizPanelOverview .ccx-perf .ccx-bb > .ccx-meta, #bizPanelOverview .ccx-perf .ccx-split { display: none; }
+  #bizPanelOverview .cc-ctx > .ccx-sub, #bizPanelOverview .cc-ctx .ccx-mod-line { display: none; }
+  #bizPanelOverview .cc-ctx .ccx-mod { padding-top: 4px; padding-bottom: 4px; }
+  #bizPanelOverview .bic-plan .mpc-cal, #bizPanelOverview .bic-plan .mpc-all { display: none; }
+  #bizPanelOverview .ccx-card { padding-top: 12px; padding-bottom: 12px; }
+  #bizPanelOverview { --ccx-gap: 10px; } #bizPanelOverview .cc-root { gap: 10px; }
+  #bizPanelOverview .cc-ctx .ccx-mod { padding-top: 3px; padding-bottom: 3px; }
+}
+/* Empty plan pages ("No marketing plan yet", "No progress steps yet") are a card too: full width, text centred inside. */
+.mpl-empty { max-width: none; margin: 0; text-align: center; box-sizing: border-box; padding: 56px 32px; border: 1px solid var(--app-card-line, var(--border)); border-radius: var(--app-card-r); background: var(--app-card-bg, var(--surface)); }

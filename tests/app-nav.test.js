@@ -353,9 +353,14 @@ const server = app.listen(PORT, async () => {
         const ids = ['owNeeds', 'ovPerf', 'ovCamps', 'ovAuto', 'bicGrid'];
         const vis = ids.map((id) => { const e = document.getElementById(id); const r = e && e.getBoundingClientRect(); return { id, shown: !!(e && e.offsetParent !== null && r.height > 0) }; });
         const mods = document.getElementById('bicGrid');
-        return { over: mc.scrollHeight - mc.clientHeight, vis: vis.filter((v) => !v.shown).map((v) => v.id), modsScroll: mods ? mods.scrollHeight > mods.clientHeight + 1 : null, modsOverflow: mods ? getComputedStyle(mods).overflowY : null, ov: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+        const pg = document.querySelector('.page.active');
+        // 2026-11-13: nothing may scroll inside a card or a column (no inner scrollbars).
+        const inner = [...pg.querySelectorAll('*')].filter((e) => e.clientHeight > 0 && e.scrollHeight > e.clientHeight + 2 && /(auto|scroll)/.test(getComputedStyle(e).overflowY)).map((e) => e.id || e.className);
+        return { over: mc.scrollHeight - mc.clientHeight + Math.max(0, pg.scrollHeight - pg.clientHeight), vis: vis.filter((v) => !v.shown).map((v) => v.id), inner, modsScroll: mods ? mods.scrollHeight > mods.clientHeight + 1 : null, ov: document.documentElement.scrollWidth - document.documentElement.clientWidth };
       });
-      check(`7.${w}x${h} Dashboard: the page doesn't scroll vertically, every block is shown, nothing wider than the screen` + (d.modsScroll ? ' (the business context list scrolls inside its card)' : ''), d.over <= 1 && !d.vis.length && d.ov <= 1 && (!d.modsScroll || d.modsOverflow === 'auto'), d);
+      // One screen from 760px tall (1366×768 and up); shorter windows may scroll the page, never a card.
+      const oneScreen = h >= 760;
+      check(`7.${w}x${h} Dashboard: ${oneScreen ? 'one screen (no page scroll), ' : ''}nothing scrolls inside a card or column, every block is shown, nothing wider than the screen`, (!oneScreen || d.over <= 1) && !d.inner.length && !d.modsScroll && !d.vis.length && d.ov <= 1, d);
       if (w === 1280) await p4.screenshot({ path: path.join(SHOTS, 'dashboard-1280x720.png') });
       await c4.close();
     }
@@ -598,6 +603,40 @@ const server = app.listen(PORT, async () => {
       const dash = await p9.evaluate(() => ({ gallery: !!document.getElementById('ccxTutorials'), scripts: [...document.scripts].map((s) => s.src).filter((s) => /section-films|tutorial-library/.test(s)) }));
       check('14.2 the Dashboard has its own cards only: no tutorial container, no tutorial scripts loaded', !dash.gallery && dash.scripts.length === 0, dash);
       await c9.close();
+    }
+
+    // 2026-11-13: one card look. Every page title is a card; the Dashboard fits one
+    // screen with nothing scrolling inside a card; no page scrolls sideways.
+    console.log('\n15. Cards everywhere');
+    {
+      const c10 = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      const p10 = await c10.newPage(); await fence(p10);
+      await signIn(p10);
+      await p10.click('.orv-sb .onv-item[data-onv="dashboard"]'); await p10.waitForTimeout(1500);
+      const dash = await p10.evaluate(() => {
+        const pg = document.querySelector('.page.active');
+        const inner = [...pg.querySelectorAll('*')].filter((e) => e.clientHeight > 0 && e.scrollHeight > e.clientHeight + 2 && /(auto|scroll)/.test(getComputedStyle(e).overflowY)).map((e) => e.id || e.className);
+        const mc = document.querySelector('.mc');
+        const hd = document.querySelector('#bizPanelOverview .ccx-hd'); const hs = getComputedStyle(hd);
+        return { inner, pageScroll: (mc ? mc.scrollHeight - mc.clientHeight : 0) + (pg.scrollHeight - pg.clientHeight), greetingCard: parseFloat(hs.borderTopWidth) > 0 && parseFloat(hs.borderRadius) >= 8 && hd.contains(document.getElementById('owHomeGreeting')) };
+      });
+      check('15.1 Dashboard at 1440×900: one screen (no page scroll), nothing scrolls inside a card, the greeting and status line are a card', dash.inner.length === 0 && dash.pageScroll <= 1 && dash.greetingCard, dash);
+      const notCard = [], wide = [];
+      for (const id of ['plan', 'progress', 'research', 'insights', 'create', 'testing', 'adstudio', 'audiences', 'overview', 'compare', 'auto-overview', 'auto-scheduler', 'auto-rules', 'auto-activity']) {
+        await p10.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p10.waitForTimeout(id.startsWith('auto') ? 1100 : 900);
+        const r = await p10.evaluate(() => {
+          const vis = (e) => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden';
+          const h = [...document.querySelectorAll('h1')].filter(vis).filter((x) => x.getBoundingClientRect().left > 200)[0];
+          let e = h, card = false; while (e && e !== document.body) { const s = getComputedStyle(e); if (parseFloat(s.borderTopWidth) > 0 && parseFloat(s.borderRadius) >= 8) { card = true; break; } e = e.parentElement; }
+          const pr = e && e.getBoundingClientRect();
+          return { title: h && h.textContent.trim(), card, left: pr && Math.round(pr.left), right: pr && Math.round(innerWidth - pr.right), overflow: document.documentElement.scrollWidth - innerWidth };
+        });
+        if (!r.card) notCard.push(id + ': ' + r.title);
+        if (r.overflow > 0 || (r.card && (r.right > 40))) wide.push(Object.assign({ id }, r));
+      }
+      check('15.2 every app page shows its title in a card', notCard.length === 0, notCard);
+      check('15.3 title cards reach the right side of the page (narrow frame, no wide empty margin); no page scrolls sideways', wide.length === 0, wide);
+      await c10.close();
     }
 
     check('Z. no JavaScript errors from the navigation', errors.filter((e) => /onv|appNav|orvAppNav|planPages|orvPlanPages|mpl|prg/.test(e)).length === 0, errors);
