@@ -2,7 +2,7 @@
    The six tutorials on the public homepage live in "The real product, not
    a mock-up." (#inside): one tab per section, each tab's poster and Play
    button opening that section's tutorial in the shared player
-   (js/ow-ui.js: captions on, Esc closes and stops it). This script writes
+   (js/ow-ui.js: subtitles in the picture, Esc closes and stops it). This script writes
    the films, captions, thumbnails and labels of those six tabs from the
    ONE tutorial list in js/tutorial-library.js (also used by the in-app
    Dashboard), so the two can't drift apart. It also removes the old

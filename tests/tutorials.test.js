@@ -96,10 +96,10 @@ const srv = http.createServer((q, r) => {
     const played = [];
     for (let i = 0; i < 6; i++) {
       await page.click('#ccxTutorials .ccx-tut >> nth=' + i); await page.waitForTimeout(1700);
-      played.push(await page.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), src: v.currentSrc.replace(location.origin, ''), t: +v.currentTime.toFixed(2), track: !!v.querySelector('track[kind="captions"][default]'), controls: v.controls, title: document.getElementById('owPlayerTitle').textContent, focusIn: pl.contains(document.activeElement), status: (pl.querySelector('.ow-player__status') || {}).hidden }; }));
+      played.push(await page.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), src: v.currentSrc.replace(location.origin, ''), t: +v.currentTime.toFixed(2), track: (() => { const ts = [...v.querySelectorAll('track')]; return ts.length === 1 && ts[0].kind === 'metadata' && /\.vtt$/.test(ts[0].getAttribute('src')) && [...v.textTracks].length === 1 && [...v.textTracks].every((x) => x.mode !== 'showing'); })(), controls: v.controls, title: document.getElementById('owPlayerTitle').textContent, focusIn: pl.contains(document.activeElement), status: (pl.querySelector('.ow-player__status') || {}).hidden }; }));
       await page.keyboard.press('Escape'); await page.waitForTimeout(250);
     }
-    check('2.3 each card plays its own film in the player: it advances, has controls and captions, focus moves in, the loading note is gone', played.every((x, i) => x.open && x.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && x.t > 0.3 && x.track && x.controls && /tutorial$/.test(x.title) && x.focusIn && x.status === true), played);
+    check('2.3 each card plays its own film in the player: it advances, has controls, exactly one subtitle layer (in the picture; the .vtt is metadata, never shown), focus moves in, the loading note is gone', played.every((x, i) => x.open && x.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && x.t > 0.3 && x.track && x.controls && /tutorial$/.test(x.title) && x.focusIn && x.status === true), played);
     const closed = await page.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), stopped: !v.getAttribute('src') && v.paused, focus: document.activeElement && document.activeElement.classList.contains('ccx-tut') }; });
     check('2.4 Esc closes the player, stops the film and returns focus to the card', !closed.open && closed.stopped && closed.focus, closed);
     // A film that can't load: a clear message and a way to retry.
@@ -107,7 +107,19 @@ const srv = http.createServer((q, r) => {
     await page.click('#ccxTutorials .ccx-tut >> nth=0'); await page.waitForTimeout(1500);
     const err = await page.evaluate(() => { const s = document.querySelector('.ow-player__status'); return { shown: s && !s.hidden, text: s && s.textContent, retry: !!document.querySelector('.ow-player__status button') }; });
     check('2.5 a film that can’t load shows a clear message with a retry button', err.shown && /couldn’t load/i.test(err.text) && err.retry, err);
-    await page.keyboard.press('Escape'); await page.close();
+    await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+    // Regression guard (2026-11-13): the films have their subtitles in the picture; the browser
+    // must never draw the .vtt as a second, larger layer, however often the player opens and closes.
+    await page.evaluate(() => { const b = document.querySelector('#ccxTutorials .ccx-tut'); b.setAttribute('data-ow-video', '/assets/films/tutorials/control-center.mp4'); });
+    const layers = [];
+    for (const i of [0, 0, 3, 5, 0]) {
+      await page.click('#ccxTutorials .ccx-tut >> nth=' + i); await page.waitForTimeout(900);
+      layers.push(await page.evaluate(() => { const v = document.querySelector('.ow-player video'); return { src: v.getAttribute('src').split('/').pop(), trackEls: v.querySelectorAll('track').length, kinds: [...v.querySelectorAll('track')].map((t) => t.kind).join(), showing: [...v.textTracks].filter((t) => t.mode === 'showing').length, textTracks: v.textTracks.length }; }));
+      await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+    }
+    const src = fs.readFileSync(path.join(ROOT, 'js/ow-ui.js'), 'utf8');
+    check('2.6 exactly one subtitle layer every time: opening, closing, reopening and switching films never adds a browser-drawn captions track (one metadata track, none showing)', layers.every((l) => l.trackEls === 1 && l.kinds === 'metadata' && l.showing === 0 && l.textTracks === 1) && !/kind\s*=\s*'captions'|\.default\s*=\s*true/.test(src), layers);
+    await page.close();
 
     console.log('\n3. Layout');
     const cols = {};
@@ -136,17 +148,19 @@ const srv = http.createServer((q, r) => {
     await hp.goto(BASE + '/', { waitUntil: 'load' }); await hp.addStyleTag({ content: '.orv-cc,#orvConsentBanner{display:none!important}' }); await hp.waitForTimeout(800);
     await hp.evaluate(() => document.getElementById('inside').scrollIntoView({ block: 'start' })); await hp.waitForTimeout(1000);
     const tabs = await hp.evaluate(() => ({ h2: document.getElementById('ik-inside-title').textContent, tabs: [...document.querySelectorAll('#inside .ik-tab')].map((t) => t.textContent.replace(/^\d+/, '').trim()), plays: [...document.querySelectorAll('#inside .ik-shot [data-ik-play]')].map((b) => ({ v: b.getAttribute('data-ow-video'), c: b.getAttribute('data-ow-captions'), label: b.getAttribute('aria-label'), dur: (b.querySelector('.ik-play__dur') || {}).textContent })), standalone: !!document.getElementById('tutorials') }));
+    const inlineRisk = await hp.evaluate(() => [...document.querySelectorAll('#inside [data-ik-play]')].filter((b) => !b.hasAttribute('data-ow-video')).length);
+    check('5.2b every homepage tab opens the shared player (none can fall back to the inline player, which draws captions)', inlineRisk === 0, inlineRisk);
     check('5.2 "The real product, not a mock-up." has one tab per section (Control Center … Automations), each with its tutorial, captions, length and a label naming the section', tabs.h2 === 'The real product, not a mock-up.' && !tabs.standalone && tabs.tabs.join() === 'Control Center,Research,Create,Launch,Campaigns,Automations' && tabs.plays.length === 6 && tabs.plays.every((p, i) => p.v === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && p.c === '/assets/films/tutorials/' + KEYS[i] + '.vtt' && /^\d:\d\d$/.test(p.dur) && p.label.startsWith('Play the ' + tabs.tabs[i] + ' tutorial')), tabs);
     const opened = [];
     for (let i = 0; i < 6; i++) {
       await hp.click('#inside .ik-tab >> nth=' + i); await hp.waitForTimeout(250);
       const thumb = await hp.evaluate(() => { const img = document.querySelector('#inside .ik-shot.is-active img'); return img && img.complete && img.naturalWidth; });
       await hp.click('#inside .ik-shot.is-active [data-ik-play]'); await hp.waitForTimeout(1500);
-      opened.push(Object.assign({ thumb }, await hp.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), src: v.currentSrc.replace(location.origin, ''), t: +v.currentTime.toFixed(2), track: !!v.querySelector('track[default]') }; })));
+      opened.push(Object.assign({ thumb }, await hp.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), src: v.currentSrc.replace(location.origin, ''), t: +v.currentTime.toFixed(2), track: (() => { const ts = [...v.querySelectorAll('track')]; return ts.length === 1 && ts[0].kind === 'metadata' && /\.vtt$/.test(ts[0].getAttribute('src')) && [...v.textTracks].length === 1 && [...v.textTracks].every((x) => x.mode !== 'showing'); })() }; })));
       await hp.keyboard.press('Escape'); await hp.waitForTimeout(300);
       opened[i].closed = await hp.evaluate(() => { const v = document.querySelector('.ow-player video'); return !document.querySelector('.ow-player').classList.contains('is-open') && v.paused && !v.getAttribute('src'); });
     }
-    check('5.3 each tab shows its thumbnail and plays its own tutorial with captions in the shared player; Esc closes it and stops playback', opened.every((o, i) => o.thumb > 0 && o.open && o.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && o.t > 0.3 && o.track && o.closed), opened);
+    check('5.3 each tab shows its thumbnail and plays its own tutorial in the shared player with exactly one subtitle layer; Esc closes it and stops playback', opened.every((o, i) => o.thumb > 0 && o.open && o.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && o.t > 0.3 && o.track && o.closed), opened);
     await hp.close();
     const lay = {};
     for (const w of [1440, 800, 390]) {

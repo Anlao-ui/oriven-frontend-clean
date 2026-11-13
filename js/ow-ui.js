@@ -8,7 +8,8 @@
    • Videos: any [data-ow-video="/path.mp4"] (with data-ow-title,
      data-ow-poster, data-ow-captions) opens one shared player. Playback
      starts only from that click, with sound the user can control; nothing
-     autoplays. Closing stops the video.
+     autoplays. Closing stops the video. Subtitles are in the picture; the
+     .vtt (data-ow-captions) is attached as a metadata track, never shown.
    No network requests of its own.
    ════════════════════════════════════════════════════════════════ */
 (function () {
@@ -56,7 +57,7 @@
       '<button type="button" class="ow-drawer__close ow-player__close" data-ow-close aria-label="Close video"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>' +
       '<div class="ow-player__stage"><video controls playsinline preload="metadata"></video>' +
       '<div class="ow-player__status" role="status" aria-live="polite" hidden><span class="ow-player__spin" aria-hidden="true"></span><span class="ow-player__msg">Loading video…</span><button type="button" class="ow-btn ow-player__retry" hidden>Try again</button></div></div>' +
-      '<p class="ow-player__note">Recorded in the real OrivenAI app with a sample business. Captions are on; use the video controls to turn them off.</p></div>';
+      '<p class="ow-player__note">Recorded in the real OrivenAI app with a sample business. Subtitles are shown in the video.</p></div>';
     document.body.appendChild(player);
     // Loading and error states: a quiet "Loading video…" while the film is
     // fetched or buffering, and a clear message with a retry if it can't load.
@@ -81,7 +82,11 @@
     v.setAttribute('poster', btn.getAttribute('data-ow-poster') || '');
     v.src = btn.getAttribute('data-ow-video');
     var cap = btn.getAttribute('data-ow-captions');
-    if (cap) { var t = document.createElement('track'); t.kind = 'captions'; t.srclang = 'en'; t.label = 'English'; t.src = cap; t.default = true; v.appendChild(t); }
+    // The OrivenAI films carry their subtitles in the picture (the caption band
+    // with the green section label). Their .vtt file is attached as metadata
+    // only: the timing stays available, but the browser never draws it as a
+    // second, larger subtitle layer (and doesn't offer it in the CC menu).
+    if (cap) { var t = document.createElement('track'); t.kind = 'metadata'; t.srclang = 'en'; t.label = 'English'; t.src = cap; v.appendChild(t); }
     open(p, btn);
     // Started by the user's click; plays with sound the user controls (never autoplay on load).
     var pr = v.play(); if (pr && pr.catch) pr.catch(function () { /* the controls are there to start it */ });

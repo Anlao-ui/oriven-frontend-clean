@@ -2,7 +2,7 @@
    "Learn OrivenAI" on the Dashboard (Control Center): six tutorials, one
    per main section, each covering every page of that section. Recorded in
    the real app with a labelled sample business (assets/films/tutorials).
-   Cards open the shared player (js/ow-ui.js: captions on, no autoplay on
+   Cards open the shared player (js/ow-ui.js: subtitles in the picture, no autoplay on
    load, focus trap, Esc closes). One list here, also used by
    js/section-films.js for the "Watch tutorial" button on each section.
    ════════════════════════════════════════════════════════════════ */
@@ -48,7 +48,7 @@
   function render() {
     var el = document.getElementById('ccxTutorials'); if (!el || el.getAttribute('data-ready')) return;
     el.innerHTML = '<div class="ccx-card-hd"><h2 class="ccx-h" id="ccxTutH">Learn OrivenAI</h2><span class="ccx-meta">6 tutorials · recorded in the real app</span></div>' +
-      '<p class="ccx-sub">One short tutorial per section, covering every page in it. Captions are on; nothing plays until you choose.</p>' +
+      '<p class="ccx-sub">One short tutorial per section, covering every page in it, with subtitles. Nothing plays until you choose.</p>' +
       '<ul class="ccx-tut__grid" role="list">' + LIST.map(card).join('') + '</ul>';
     el.setAttribute('data-ready', '1');
   }
