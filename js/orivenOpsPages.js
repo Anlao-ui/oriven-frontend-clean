@@ -41,7 +41,7 @@
   function plats() { return VIEW.platform === 'all' ? OPS.PLATFORMS : [VIEW.platform]; }
   function noConnections(snap) { return !snap || !snap.connected.length; }
   function connectEmpty(what) {
-    return UI.empty('Connect an ad account to ' + what, 'OrivenAI reads your campaigns and performance directly from Meta, Google, TikTok and Pinterest. Nothing is shown until real data is available.',
+    return UI.empty('Connect an ad account to ' + what, 'OrivenAI reads your campaigns and performance directly from Meta, Google, TikTok, Pinterest and Snapchat. Nothing is shown until real data is available.',
       '<button type="button" class="op-btn op-btn-primary" onclick="bizGoTo(\'connections\')">Connect a platform</button>');
   }
   function errorsBlock(snap) {
@@ -157,7 +157,7 @@
     if (f && f.imageUrl) return { url: f.imageUrl, ads: list.length || null, alt: '' };
     return { url: null, ads: list.length || null };
   }
-  var PLAT_MARK = { meta: 'M', google: 'G', tiktok: 'T', pinterest: 'P' };
+  var PLAT_MARK = { meta: 'M', google: 'G', tiktok: 'T', pinterest: 'P', snapchat: 'S' };
 
   // ════════════════════════════════════════════════════════════════
   // HOME — summary blocks

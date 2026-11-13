@@ -35773,6 +35773,15 @@ body.dark-mode .con-logo-google { background: rgba(255,255,255,.07); border-colo
 .con-logo-meta   { background: #1877F2; }
 .con-logo-tiktok { background: #000; border: 1px solid rgba(255,255,255,.12); }
 .con-logo-pinterest { background: #E60023; }
+.con-logo-snapchat { background: #FFFC00; }
+/* Snapchat card: optional Public Profile ID for the selected ad account. */
+.con-snap-profile { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.con-snap-profile-lbl { font-size: 12px; font-weight: 600; color: var(--charcoal); }
+.con-snap-profile-lbl span { font-weight: 400; color: var(--muted); }
+.con-snap-profile-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.con-snap-profile-hint { margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--muted); }
+body.dark-mode .con-snap-profile { border-top-color: rgba(255,255,255,.08); }
+body.dark-mode .con-snap-profile-lbl { color: rgba(255,255,255,.88); }
 
 .con-card-status {
   display: flex;
@@ -47983,6 +47992,9 @@ body.dark-mode .lw-adp-g-hl { color: #8ab4f8; }
 /* TikTok — vertical video-card composition. */
 .lw-adp-tiktok { position: relative; aspect-ratio: 9/14; max-width: 220px; margin: 0 auto; display: flex; flex-direction: column; }
 .lw-adp-tiktok .lw-adp-img { flex: 1; height: auto; }
+/* Snap Ad preview: brand name on top, swipe-up CTA pill at the bottom. */
+.lw-adp-snap .lw-adp-snap-top { position: absolute; top: 10px; left: 12px; right: 12px; font-size: 12px; font-weight: 700; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lw-adp-snap .lw-adp-snap-cta { margin-top: 10px; width: 100%; border: 0; border-radius: 999px; padding: 7px 10px; background: #FFFC00; color: #111; font: 700 12px/1 inherit; font-family: inherit; }
 .lw-adp-tt-overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 14px; background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,.72) 100%); }
 .lw-adp-tt-hook { font-size: 13.5px; font-weight: 700; color: #fff; line-height: 1.32; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
 .lw-adp-tt-caption { font-size: 11.5px; color: rgba(255,255,255,.75); margin-top: 6px; line-height: 1.4; }

@@ -98,7 +98,7 @@
         auth: 'connection expired — reconnect the account', not_connected: 'account not connected', rate_limited: 'platform busy, retried later', transient: 'platform didn’t respond', platform: 'the platform refused the change', permission: 'no permission for this account',
         legacy_action: 'this old action no longer exists — choose a new one', choose_platform: 'choose a platform', metric_unavailable: 'this measure isn’t reported for this platform', stopped: 'schedule ended', rescheduled: 'replaced by a new time', deleted: 'automation deleted', paused: 'automation turned off', not_eligible: 'not eligible',
       },
-      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' },
+      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' },
       metric: {
         spend: ['Spend', 'Amount spent in the period.'], impressions: ['Impressions', 'How often your ads were shown.'], clicks: ['Clicks', 'How often people clicked your ads.'],
         conversions: ['Conversions', 'Purchases, leads or sign-ups the platform recorded.'], ctr: ['Click-through rate (CTR)', 'Share of people who clicked after seeing the ad, in %.'],
@@ -185,7 +185,7 @@
         auth: 'koppeling verlopen — koppel het account opnieuw', not_connected: 'account niet gekoppeld', rate_limited: 'platform druk, later opnieuw geprobeerd', transient: 'platform reageerde niet', platform: 'het platform weigerde de wijziging', permission: 'geen toegang tot dit account',
         legacy_action: 'deze oude actie bestaat niet meer — kies een nieuwe', choose_platform: 'kies een platform', metric_unavailable: 'deze meting wordt niet gerapporteerd voor dit platform', stopped: 'planning beëindigd', rescheduled: 'vervangen door een nieuw tijdstip', deleted: 'automatisering verwijderd', paused: 'automatisering staat uit', not_eligible: 'niet geschikt',
       },
-      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' },
+      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' },
       metric: {
         spend: ['Uitgaven', 'Bedrag dat in de periode is uitgegeven.'], impressions: ['Vertoningen', 'Hoe vaak je advertenties zijn getoond.'], clicks: ['Klikken', 'Hoe vaak mensen op je advertenties klikten.'],
         conversions: ['Conversies', 'Aankopen, leads of aanmeldingen die het platform registreerde.'], ctr: ['Klikfrequentie (CTR)', 'Aandeel mensen dat klikte na het zien van de advertentie, in %.'],
@@ -270,7 +270,7 @@
         auth: 'Verbindung abgelaufen — Konto neu verbinden', not_connected: 'Konto nicht verbunden', rate_limited: 'Plattform ausgelastet, später erneut versucht', transient: 'Plattform hat nicht geantwortet', platform: 'die Plattform hat die Änderung abgelehnt', permission: 'keine Berechtigung für dieses Konto',
         legacy_action: 'diese alte Aktion gibt es nicht mehr — wähle eine neue', choose_platform: 'wähle eine Plattform', metric_unavailable: 'dieser Wert wird für diese Plattform nicht gemeldet', stopped: 'Zeitplan beendet', rescheduled: 'durch eine neue Zeit ersetzt', deleted: 'Automatisierung gelöscht', paused: 'Automatisierung ausgeschaltet', not_eligible: 'nicht geeignet',
       },
-      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' },
+      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' },
       metric: {
         spend: ['Ausgaben', 'Im Zeitraum ausgegebener Betrag.'], impressions: ['Impressionen', 'Wie oft deine Anzeigen gezeigt wurden.'], clicks: ['Klicks', 'Wie oft Leute auf deine Anzeigen geklickt haben.'],
         conversions: ['Conversions', 'Käufe, Leads oder Anmeldungen, die die Plattform erfasst hat.'], ctr: ['Klickrate (CTR)', 'Anteil der Leute, die nach dem Sehen geklickt haben, in %.'],
@@ -355,7 +355,7 @@
         auth: 'connexion expirée — reconnectez le compte', not_connected: 'compte non connecté', rate_limited: 'plateforme occupée, nouvel essai plus tard', transient: 'la plateforme n’a pas répondu', platform: 'la plateforme a refusé le changement', permission: 'pas d’autorisation pour ce compte',
         legacy_action: 'cette ancienne action n’existe plus — choisissez-en une nouvelle', choose_platform: 'choisissez une plateforme', metric_unavailable: 'cette mesure n’est pas fournie pour cette plateforme', stopped: 'planification terminée', rescheduled: 'remplacée par une nouvelle heure', deleted: 'automatisation supprimée', paused: 'automatisation désactivée', not_eligible: 'non éligible',
       },
-      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' },
+      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' },
       metric: {
         spend: ['Dépenses', 'Montant dépensé sur la période.'], impressions: ['Impressions', 'Nombre d’affichages de vos annonces.'], clicks: ['Clics', 'Nombre de clics sur vos annonces.'],
         conversions: ['Conversions', 'Achats, prospects ou inscriptions enregistrés par la plateforme.'], ctr: ['Taux de clic (CTR)', 'Part des personnes qui ont cliqué après avoir vu l’annonce, en %.'],
@@ -440,7 +440,7 @@
         auth: 'conexión caducada — vuelve a conectar la cuenta', not_connected: 'cuenta no conectada', rate_limited: 'plataforma ocupada, se reintentó más tarde', transient: 'la plataforma no respondió', platform: 'la plataforma rechazó el cambio', permission: 'sin permiso para esta cuenta',
         legacy_action: 'esta acción antigua ya no existe — elige una nueva', choose_platform: 'elige una plataforma', metric_unavailable: 'esta medida no está disponible en esta plataforma', stopped: 'programación terminada', rescheduled: 'sustituida por una nueva hora', deleted: 'automatización eliminada', paused: 'automatización desactivada', not_eligible: 'no apta',
       },
-      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' },
+      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' },
       metric: {
         spend: ['Gasto', 'Importe gastado en el periodo.'], impressions: ['Impresiones', 'Cuántas veces se mostraron tus anuncios.'], clicks: ['Clics', 'Cuántas veces hicieron clic en tus anuncios.'],
         conversions: ['Conversiones', 'Compras, contactos o registros que registró la plataforma.'], ctr: ['Porcentaje de clics (CTR)', 'Parte de las personas que hicieron clic tras ver el anuncio, en %.'],
@@ -525,7 +525,7 @@
         auth: 'conexão expirada — reconecte a conta', not_connected: 'conta não conectada', rate_limited: 'plataforma ocupada, tentou de novo depois', transient: 'a plataforma não respondeu', platform: 'a plataforma recusou a mudança', permission: 'sem permissão para esta conta',
         legacy_action: 'esta ação antiga não existe mais — escolha uma nova', choose_platform: 'escolha uma plataforma', metric_unavailable: 'esta medida não é informada para esta plataforma', stopped: 'agendamento encerrado', rescheduled: 'substituída por um novo horário', deleted: 'automação excluída', paused: 'automação desligada', not_eligible: 'não elegível',
       },
-      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' },
+      plat: { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' },
       metric: {
         spend: ['Gasto', 'Valor gasto no período.'], impressions: ['Impressões', 'Quantas vezes seus anúncios apareceram.'], clicks: ['Cliques', 'Quantas vezes clicaram nos seus anúncios.'],
         conversions: ['Conversões', 'Compras, leads ou cadastros registrados pela plataforma.'], ctr: ['Taxa de cliques (CTR)', 'Parte das pessoas que clicaram após ver o anúncio, em %.'],
@@ -539,7 +539,7 @@
   };
 
   // ── Helpers ───────────────────────────────────────────────────────
-  var PLATS = ['google', 'meta', 'tiktok', 'pinterest'];
+  var PLATS = ['google', 'meta', 'tiktok', 'pinterest', 'snapchat'];
   function lang() { var l = (typeof CURRENT_LANG !== 'undefined' && CURRENT_LANG) || 'en'; return STR[l] ? l : 'en'; }
   function pick(path) {
     var get = function (o) { return path.split('.').reduce(function (a, k) { return a == null ? a : a[k]; }, o); };

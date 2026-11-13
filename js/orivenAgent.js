@@ -403,7 +403,7 @@
   function saveCampaignDraft(c) {
     if (!c.pkg || typeof window._orvStoreCampaign !== 'function') return null;
     var p = c.platform || 'google';
-    var modKey = p === 'meta' ? 'meta-ads' : p === 'tiktok' ? 'tiktok-ads' : p === 'pinterest' ? 'pinterest-ads' : 'google-ads';
+    var modKey = p === 'meta' ? 'meta-ads' : p === 'tiktok' ? 'tiktok-ads' : p === 'pinterest' ? 'pinterest-ads' : p === 'snapchat' ? 'snapchat-ads' : 'google-ads';
     var gen = {}; gen[modKey] = { ready: true, data: c.pkg };
     var id = 'agent_' + Date.now();
     window._orvStoreCampaign({ id: id, name: c.pkg.campaignName || c.title || 'Campaign', goal: c.goal || 'Sales', platform: p, status: 'generated', progress: 100, created: new Date().toISOString(), modules: [modKey], generated: gen, pkg: c.pkg, prompt: c.product || '', createdBy: 'assistant' });
@@ -412,7 +412,7 @@
   function cardHtml(c) {
     var t = c.type, h = '<div class="orv-agent-card orv-agent-card--' + esc(t) + '">';
     if (t === 'campaign') {
-      h += '<div class="orv-agent-card-k">Campaign draft · ' + esc(({ google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest' })[c.platform] || c.platform || '') + '</div><div class="orv-agent-card-t">' + esc(c.title) + '</div>';
+      h += '<div class="orv-agent-card-k">Campaign draft · ' + esc(({ google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest', snapchat: 'Snapchat' })[c.platform] || c.platform || '') + '</div><div class="orv-agent-card-t">' + esc(c.title) + '</div>';
       var pk = c.pkg || {};
       var heads = (pk.headlines || (pk.ads && pk.ads[0] && pk.ads[0].headlines) || []).slice(0, 2).map(function (x) { return typeof x === 'string' ? x : (x && (x.text || x.headline)) || ''; }).filter(Boolean);
       if (heads.length) h += '<ul class="orv-agent-card-list">' + heads.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';

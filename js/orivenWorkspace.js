@@ -96,7 +96,7 @@
   (function () {
     var orig = window.apiFetch;
     if (typeof orig !== 'function' || orig._owDedupe) return;
-    var ALLOW = /^\/api\/((google|meta|tiktok|pinterest)\/status|business\/profile|business\/health)(\?|$)/;
+    var ALLOW = /^\/api\/((google|meta|tiktok|pinterest|snapchat)\/status|business\/profile|business\/health)(\?|$)/;
     var TTL = 15000, cache = {};
     var wrapped = function (path, options) {
       var method = ((options && options.method) || 'GET').toUpperCase();
@@ -118,12 +118,13 @@
     google: { label: 'Google Ads', short: 'Google' },
     meta: { label: 'Meta Ads', short: 'Meta' },
     tiktok: { label: 'TikTok Ads', short: 'TikTok' },
-    pinterest: { label: 'Pinterest Ads', short: 'Pinterest' }
+    pinterest: { label: 'Pinterest Ads', short: 'Pinterest' },
+    snapchat: { label: 'Snapchat Ads', short: 'Snapchat' }
   };
   OW.PLAT = PLAT;
   // Platforms the Automations engine reads and acts on (server
   // services/automations/platforms.js — the rules cron evaluates all four).
-  var AUTOPILOT_MONITORED = { google: true, meta: true, tiktok: true, pinterest: true };
+  var AUTOPILOT_MONITORED = { google: true, meta: true, tiktok: true, pinterest: true, snapchat: true };
   OW.AUTOPILOT_MONITORED = AUTOPILOT_MONITORED;
 
   function platDot(p) { return '<i class="ow-pdot ow-pdot-' + esc(p || 'none') + '" aria-hidden="true"></i>'; }

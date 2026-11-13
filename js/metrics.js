@@ -103,7 +103,7 @@ var ORIVEN_METRICS = {
   // currency was intentionally left out rather than risk showing a
   // wrong number confidently — see server.js PINTEREST ADS OAUTH
   // section and the integration's final report for detail.
-  impressions: { id:'impressions', label:'Impressions', category:'delivery', platforms:['google','meta','tiktok','pinterest'], format:'number', trend:true,
+  impressions: { id:'impressions', label:'Impressions', category:'delivery', platforms:['google','meta','tiktok','pinterest','snapchat'], format:'number', trend:true,
     tooltip:'The total number of times your ads were shown.',
     get:function(k){ return k.impr; }, seriesGet:function(d){ return d.impressions; } },
   // reach/frequency seriesGet (Performance Workspace Refinement): Meta and
@@ -121,24 +121,24 @@ var ORIVEN_METRICS = {
     tooltip:'The average number of times each person saw your ad.',
     get:function(k){ return k.frequency; },
     seriesGet:function(d){ return (d.hasReach && d.reach > 0) ? d.impressions / d.reach : null; } },
-  spend: { id:'spend', label:'Spend', category:'delivery', platforms:['google','meta','tiktok','pinterest'], format:'currency', trend:true,
+  spend: { id:'spend', label:'Spend', category:'delivery', platforms:['google','meta','tiktok','pinterest','snapchat'], format:'currency', trend:true,
     tooltip:'The total amount spent on advertising during the selected period.',
     get:function(k){ return k.spend; }, seriesGet:function(d){ return d.spend; } },
   // CPM = Spend / Impressions x 1000 -- both real fields already present in
   // every platform's daily series, so this is a pure derived ratio of
   // already-real numbers (same convention as CTR/CPC below), not a new
   // fetch.
-  cpm: { id:'cpm', label:'CPM', category:'delivery', platforms:['google','meta','tiktok','pinterest'], format:'currency', trend:true,
+  cpm: { id:'cpm', label:'CPM', category:'delivery', platforms:['google','meta','tiktok','pinterest','snapchat'], format:'currency', trend:true,
     tooltip:'Cost per 1,000 impressions.',
     get:function(k){ return k.cpm; },
     seriesGet:function(d){ return d.impressions > 0 ? (d.spend / d.impressions) * 1000 : null; } },
-  deliveryStatus: { id:'deliveryStatus', label:'Delivery Status', category:'delivery', platforms:['google','meta','tiktok','pinterest'], format:'text', trend:false,
+  deliveryStatus: { id:'deliveryStatus', label:'Delivery Status', category:'delivery', platforms:['google','meta','tiktok','pinterest','snapchat'], format:'text', trend:false,
     tooltip:'Whether the campaign is currently active, paused, or otherwise not delivering.',
     get:function(k){ return k.status || null; } },
   // Daily and lifetime budgets are different things and are never added
   // together. "All campaigns" sums only campaigns that aren't paused or
   // archived; a campaign without that budget type contributes nothing.
-  budget: { id:'budget', label:'Daily budget', category:'delivery', platforms:['meta','tiktok'], format:'currency', trend:false,
+  budget: { id:'budget', label:'Daily budget', category:'delivery', platforms:['meta','tiktok','snapchat'], format:'currency', trend:false,
     tooltip:'The daily budget. For all campaigns: the sum of daily budgets of campaigns that are not paused.',
     get:function(k){ return k.budget; } },
   lifetimeBudget: { id:'lifetimeBudget', label:'Lifetime budget', category:'delivery', platforms:['meta','tiktok'], format:'currency', trend:false,
@@ -155,17 +155,17 @@ var ORIVEN_METRICS = {
   // OUTBOUND_CLICK_1 exist, not a TOTAL_OUTBOUND_CLICK) — TOTAL_CLICKTHROUGH
   // (Pinterest's real "clicks" metric) already covers what Pinterest can
   // honestly report here.
-  clicks: { id:'clicks', label:'Clicks', category:'traffic', platforms:['google','meta','tiktok','pinterest'], format:'number', trend:true,
+  clicks: { id:'clicks', label:'Clicks', category:'traffic', platforms:['google','meta','tiktok','pinterest','snapchat'], format:'number', trend:true,
     tooltip:'The total number of clicks your ads received.',
     get:function(k){ return k.clicks; }, seriesGet:function(d){ return d.clicks; } },
   linkClicks: { id:'linkClicks', label:'Link Clicks', category:'traffic', platforms:['meta'], format:'number', trend:false,
     tooltip:'Clicks specifically on the link in your ad, distinct from all clicks (which also include likes, comments, and other interactions with the post).',
     get:function(k){ return k.linkClicks; } },
-  ctr: { id:'ctr', label:'CTR', category:'traffic', platforms:['google','meta','tiktok','pinterest'], format:'percent', trend:true,
+  ctr: { id:'ctr', label:'CTR', category:'traffic', platforms:['google','meta','tiktok','pinterest','snapchat'], format:'percent', trend:true,
     tooltip:'Click-through rate: clicks divided by impressions.',
     get:function(k){ return (k.impr > 0 && k.clicks != null) ? (k.clicks / k.impr) * 100 : null; },
     seriesGet:function(d){ return d.impressions > 0 ? (d.clicks / d.impressions) * 100 : null; } },
-  cpc: { id:'cpc', label:'CPC', category:'traffic', platforms:['google','meta','tiktok','pinterest'], format:'currency', trend:true,
+  cpc: { id:'cpc', label:'CPC', category:'traffic', platforms:['google','meta','tiktok','pinterest','snapchat'], format:'currency', trend:true,
     tooltip:'Average cost per click.',
     get:function(k){ return (k.clicks > 0 && k.spend != null) ? k.spend / k.clicks : (k.cpc != null ? k.cpc : null); },
     seriesGet:function(d){ return d.clicks > 0 ? d.spend / d.clicks : null; } },

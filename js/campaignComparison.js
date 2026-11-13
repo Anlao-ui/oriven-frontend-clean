@@ -17,7 +17,7 @@
   var esc = K.esc, api = K.api;
   var PAGE = 'page-campaign-comparison', ROOT = 'ccmRoot';
   var RANGES = [['LAST_30_DAYS', 'Last 30 days'], ['LAST_90_DAYS', 'Last 90 days'], ['LAST_12_MONTHS', 'Last 12 months'], ['LIFETIME', 'Lifetime'], ['CUSTOM', 'Custom period']];
-  var PLAT = { google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest' };
+  var PLAT = { google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest', snapchat: 'Snapchat' };
   // [key, label, kind ('n' number, '%', 'm' money, 'x' ratio), better ('hi'|'lo')]
   var METRICS = [['impressions', 'Impressions', 'n', 'hi'], ['reach', 'Reach', 'n', 'hi'], ['clicks', 'Clicks', 'n', 'hi'], ['ctr', 'CTR', '%', 'hi'], ['cpc', 'CPC', 'm', 'lo'], ['cpm', 'CPM', 'm', 'lo'],
     ['conversions', 'Conversions', 'n', 'hi'], ['conversionRate', 'Conversion rate', '%', 'hi'], ['cpa', 'CPA', 'm', 'lo'], ['roas', 'ROAS', 'x', 'hi'], ['spend', 'Ad spend', 'm', null]];

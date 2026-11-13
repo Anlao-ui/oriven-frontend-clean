@@ -139,9 +139,17 @@
       pause: true, resume: true, budgetEdit: false, budgetNote: 'OrivenAI can’t change Pinterest budgets yet — change them in Pinterest Ads.',
       rename: false, providerDelete: false, create: true, targeting: false, schedule: false,
       native: 'https://ads.pinterest.com/'
+    },
+    snapchat: {
+      name: 'Snapchat Ads', provider: 'Snapchat', short: 'Snapchat',
+      campaignMetrics: true, accountMetrics: true, conversions: false, conversionValue: false, reach: false, frequency: false,
+      structure: ['Campaign', 'Ad squad', 'Ad'], readStructure: false, adMetrics: false, series: false,
+      pause: true, resume: true, budgetEdit: false, budgetNote: 'Snapchat budgets are on the ad squads — change them in Snapchat Ads Manager, or with an Automations rule.',
+      rename: false, providerDelete: false, create: true, targeting: false, schedule: false,
+      native: 'https://ads.snapchat.com/'
     }
   };
-  OPS.PLATFORMS = ['meta', 'google', 'tiktok', 'pinterest'];
+  OPS.PLATFORMS = ['meta', 'google', 'tiktok', 'pinterest', 'snapchat'];
 
   // ════════════════════════════════════════════════════════════════
   // 3. DATA
@@ -300,6 +308,24 @@
               status: normStatus(c.summary_status || c.status), objective: c.objective_type || '', budget: null, budgetType: null,
               spend: null, impressions: null, clicks: null, conversions: null, convValue: null });
           })
+        };
+      });
+    },
+    // Snapchat: per-campaign totals; clicks are swipe-ups; conversions aren't
+    // reported (no Snap Pixel in OrivenAI yet) — null, never 0.
+    snapchat: function (r) {
+      return api('/api/snapchat/overview?' + D.qs(r)).then(function (res) {
+        if (!res.ok || !res.data || !Array.isArray(res.data.campaigns)) return { error: errorFor('snapchat', res) };
+        var hasMetrics = !!res.data.overview;
+        return {
+          currency: (res.data.account && res.data.account.currency) || null,
+          campaigns: res.data.campaigns.map(function (c) {
+            var m = c.metrics || null;
+            return finish({ platform: 'snapchat', id: String(c.campaign_id), name: c.campaign_name || 'Unnamed', statusRaw: c.status, status: normStatus(c.status),
+              objective: c.objective || '', budget: n(c.daily_budget), budgetType: c.daily_budget ? 'daily' : (c.lifetime_spend_cap ? 'lifetime' : null),
+              spend: m ? n(m.spend) : null, impressions: m ? n(m.impressions) : null, clicks: m ? n(m.clicks) : null, conversions: null, convValue: null });
+          }),
+          metricsMissing: !hasMetrics
         };
       });
     }

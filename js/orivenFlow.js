@@ -42,15 +42,16 @@
   F.esc = esc;
   // Text in the user's language (js/flowI18n.js).
   function TX(k, v) { return window.orvTx ? window.orvTx(k, v) : k; }
-  var PLAT = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
-  var PROVIDER = { google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest' };
-  var PK = { google: 'googleAds', meta: 'metaAds', tiktok: 'tiktokAds', pinterest: 'pinterestAds' };
+  var PLAT = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' };
+  var PROVIDER = { google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest', snapchat: 'Snapchat' };
+  var PK = { google: 'googleAds', meta: 'metaAds', tiktok: 'tiktokAds', pinterest: 'pinterestAds', snapchat: 'snapchatAds' };
   F.PLAT = PLAT;
   var HIER = {
     google: ['ofl_hCampaign', 'ofl_hAdGroup', 'ofl_hRsa'],
     meta: ['ofl_hCampaign', 'ofl_hAdSet', 'ofl_hAd'],
     tiktok: ['ofl_hCampaign', 'ofl_hAdGroup', 'ofl_hAd'],
-    pinterest: ['ofl_hCampaign', 'ofl_hAdGroup', 'ofl_hPin']
+    pinterest: ['ofl_hCampaign', 'ofl_hAdGroup', 'ofl_hPin'],
+    snapchat: ['ofl_hCampaign', 'ofl_hAdSquad', 'ofl_hAd']
   };
 
   function costs() { return (typeof window.CREDIT_COSTS === 'object' && window.CREDIT_COSTS) || {}; }
@@ -77,7 +78,10 @@
   // {platform}.budget. The AI's recommendation is only shown as a
   // suggestion. TikTok needs more than 20 per day per ad group.
   var BUDGET_RULE = {
-    meta: { min: 1 }, tiktok: { min: 20.01, label: 'ofl_moreThan20' }, pinterest: { min: 1 }
+    meta: { min: 1 }, tiktok: { min: 20.01, label: 'ofl_moreThan20' }, pinterest: { min: 1 },
+    // Snapchat: at least 5 per ad squad per day (Snap Ads API); the campaign
+    // budget is split over its ad squads, so the spec checks the split too.
+    snapchat: { min: 5 }
   };
   function looseNumber(v) {
     if (v == null || v === '') return null;
@@ -140,7 +144,7 @@
   // platform field, then pkg.websiteUrl / strategy.websiteUrl. Google
   // rejects a missing URL; Meta/TikTok/Pinterest would fall back to a
   // placeholder domain, so OrivenAI treats a missing URL as a blocker.
-  var URL_FIELD = { google: 'finalUrl', meta: 'finalUrl', tiktok: 'finalUrl', pinterest: 'destinationUrl' };
+  var URL_FIELD = { google: 'finalUrl', meta: 'finalUrl', tiktok: 'finalUrl', pinterest: 'destinationUrl', snapchat: 'finalUrl' };
   P.url = function (pkg, p) {
     pkg = pkg || {};
     var s = strat(pkg), o = platObj(pkg, p);
@@ -174,6 +178,10 @@
     // TikTok ads are videos; without a cover image the publish route uses a
     // frame of the video (services/campaignSpec.js tiktok_cover_auto).
     if (p === 'tiktok' && hasVideo(pkg || {}, p)) return false;
+    if (p === 'snapchat') {
+      var sn = platObj(pkg, 'snapchat');
+      if ((sn.creativeType === 'video' || pkg.creativeFormat === 'video') && hasVideo(pkg || {}, p)) return false;
+    }
     if (p === 'pinterest') {
       var pin = platObj(pkg, 'pinterest');
       if (pin.creativeType === 'video' && ((pkg.videoAssets && pkg.videoAssets[0] && pkg.videoAssets[0].videoUrl) || pin.videoUrl)) return false;
@@ -230,6 +238,18 @@
       }
       return out;
     }
+    if (p === 'snapchat') {
+      // Snap Ads show one headline (34 characters) over the full-screen image or video.
+      if (concepts.length) {
+        concepts.forEach(function (c, i) {
+          field(TX('ofl_variantN', { n: i + 1 }), 'headline' + i, TX('ofl_headline'), function () { return conceptCopy(c).headline || o.headline; }, function (v) { conceptCopy(c).headline = v; }, { max: 34, note: TX('ofl_snapHeadlineNote') });
+        });
+      } else {
+        var snp = platObj(pkg, 'snapchat', true);
+        field(TX('ofl_hAd'), 'headline', TX('ofl_headline'), function () { return snp.headline; }, function (v) { snp.headline = v; }, { max: 34, note: TX('ofl_snapHeadlineNote') });
+      }
+      return out;
+    }
     // meta
     if (concepts.length) {
       concepts.forEach(function (c, i) {
@@ -277,7 +297,7 @@
     var ov = (pkg.spec && pkg.spec.overrides) || {};
     var parts = [];
     parts.push(ov.countries && ov.countries.length ? ov.countries.join(', ') : TX('ofl_countryFromProfile'));
-    if (p === 'meta' || p === 'tiktok') parts.push(TX('ofl_ages', { from: ov.ageMin || 18, to: (ov.ageMax || 65) + ((ov.ageMax || 65) === 65 ? '+' : '') }));
+    if (p === 'meta' || p === 'tiktok' || p === 'snapchat') parts.push(TX('ofl_ages', { from: ov.ageMin || 18, to: (ov.ageMax || 65) + ((ov.ageMax || 65) === 65 ? '+' : '') }));
     if (p === 'meta') { var pl = platObj(pkg, 'meta').placement; parts.push(TX(pl === 'instagram_only' ? 'ofl_igOnly' : pl === 'facebook_only' ? 'ofl_fbOnly' : 'ofl_fbIg')); }
     if (p === 'google' && googleType(pkg) === 'SEARCH') { var kw = ((pkg.googleAds || {}).keywords || []).filter(Boolean); parts.push(kw.length === 1 ? TX('ofl_nKeyword1') : TX('ofl_nKeywords', { n: kw.length })); }
     return { sent: parts.join(' · '), note: TX('ofl_targetingNote') };
@@ -823,6 +843,7 @@
   function budgetHint(p, b) {
     var sug = b && b.suggestion ? ' ' + TX('ofl_budgetSuggested', { amount: b.suggestion }) : '';
     if (p === 'tiktok') return TX('ofl_budgetHintTt') + sug;
+    if (p === 'snapchat') return TX('ofl_budgetHintSnap') + sug;
     return TX('ofl_budgetHint') + sug;
   }
 
