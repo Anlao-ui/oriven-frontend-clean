@@ -260,6 +260,9 @@
       if (to === null) return; e.preventDefault(); showShot((to + shotTabs.length) % shotTabs.length, true);
     });
     $$('[data-ik-play]', inside).forEach(function (btn) {
+      // A tab's tutorial (data-ow-video, written by tools/tutorials-section.js)
+      // opens in the shared player (js/ow-ui.js), not inline in the frame.
+      if (btn.hasAttribute('data-ow-video')) return;
       btn.addEventListener('click', function () {
         var shot = btn.closest('.ik-shot'), media = btn.parentNode, v = media.querySelector('video');
         if (!v) {

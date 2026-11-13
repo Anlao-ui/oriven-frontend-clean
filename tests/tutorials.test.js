@@ -127,45 +127,46 @@ const srv = http.createServer((q, r) => {
     const app = fs.readFileSync(path.join(ROOT, 'app.html'), 'utf8');
     check('4.2 app.html: the library container on the Dashboard, the script loaded before section-films.js', /id="ccxTutorials"/.test(app) && app.indexOf('js/tutorial-library.js') > 0 && app.indexOf('js/tutorial-library.js') < app.indexOf('js/section-films.js'));
 
-    console.log('\n5. The public homepage');
+    console.log('\n5. The public homepage: the six tutorials in "The real product, not a mock-up."');
     const gen = require('child_process').spawnSync(process.execPath, [path.join(ROOT, 'tools/tutorials-section.js'), '--check'], { encoding: 'utf8' });
     const homeHtml = fs.readFileSync(path.join(ROOT, 'home.html'), 'utf8');
-    check('5.1 the homepage section is generated from the same list (up to date) and prerendered into home.html with six cards', gen.status === 0 && (homeHtml.match(/class="ik-tut"/g) || []).length === 6 && KEYS.every((k) => homeHtml.includes('data-ow-video="/assets/films/tutorials/' + k + '.mp4"')), { gen: gen.stdout + gen.stderr });
-    const homeShots = {};
-    for (const [w, want] of [[1440, 3], [800, 2], [390, 1]]) {
-      const hp = await browser.newPage({ viewport: { width: w, height: 900 } }); hp.on('pageerror', (e) => errors.push('home ' + w + ': ' + e.message));
-      await hp.goto(BASE + '/', { waitUntil: 'load' }); await hp.addStyleTag({ content: '.orv-cc,#orvConsentBanner{display:none!important}' }); await hp.waitForTimeout(800);
-      await hp.evaluate(() => document.getElementById('tutorials').scrollIntoView({ block: 'start' })); await hp.waitForTimeout(1200);
-      homeShots[w] = await hp.evaluate(() => {
-        const ids = [...document.querySelectorAll('#view-landing > section[id], #view-landing section.ik-sec[id], section.ik-hero[id]')].map((s) => s.id).filter((v, i, a) => a.indexOf(v) === i);
-        const cards = [...document.querySelectorAll('#tutorials .ik-tut')];
-        return { after: ids[ids.indexOf('tutorials') - 1], before: ids[ids.indexOf('tutorials') + 1], n: cards.length, videos: cards.map((c) => c.getAttribute('data-ow-video')), thumbs: cards.filter((c) => c.querySelector('img').naturalWidth > 0).length, cols: getComputedStyle(document.querySelector('.ik-tut__grid')).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - innerWidth, h: (document.getElementById('ik-tut-title') || {}).textContent };
-      });
-      homeShots[w].want = want;
-      await hp.screenshot({ path: path.join(__dirname, '_shots', 'tutorials-home-' + w + '.png') }).catch(() => {});
-      if (w === 1440) {
-        await hp.click('#tutorials .ik-tut >> nth=2'); await hp.waitForTimeout(1800);
-        homeShots.play = await hp.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), src: v.currentSrc.replace(location.origin, ''), t: +v.currentTime.toFixed(2), track: !!v.querySelector('track[default]') }; });
-        await hp.keyboard.press('Escape'); await hp.waitForTimeout(300);
-        homeShots.closed = await hp.evaluate(() => !document.querySelector('.ow-player').classList.contains('is-open'));
-      }
-      await hp.close();
+    const insideHtml = homeHtml.slice(homeHtml.indexOf('id="inside"'), homeHtml.indexOf('</section>', homeHtml.indexOf('id="inside"')));
+    check('5.1 written from the same list (up to date), prerendered into home.html inside #inside; no standalone tutorials section', gen.status === 0 && !/id="tutorials"/.test(homeHtml) && !/class="ik-tut"/.test(homeHtml) && KEYS.every((k) => insideHtml.includes('data-ow-video="/assets/films/tutorials/' + k + '.mp4"') && insideHtml.includes('/assets/films/tutorials/' + k + '-thumb.webp')), { gen: gen.stdout + gen.stderr });
+    const hp = await browser.newPage({ viewport: { width: 1440, height: 900 } }); hp.on('pageerror', (e) => errors.push('home: ' + e.message));
+    await hp.goto(BASE + '/', { waitUntil: 'load' }); await hp.addStyleTag({ content: '.orv-cc,#orvConsentBanner{display:none!important}' }); await hp.waitForTimeout(800);
+    await hp.evaluate(() => document.getElementById('inside').scrollIntoView({ block: 'start' })); await hp.waitForTimeout(1000);
+    const tabs = await hp.evaluate(() => ({ h2: document.getElementById('ik-inside-title').textContent, tabs: [...document.querySelectorAll('#inside .ik-tab')].map((t) => t.textContent.replace(/^\d+/, '').trim()), plays: [...document.querySelectorAll('#inside .ik-shot [data-ik-play]')].map((b) => ({ v: b.getAttribute('data-ow-video'), c: b.getAttribute('data-ow-captions'), label: b.getAttribute('aria-label'), dur: (b.querySelector('.ik-play__dur') || {}).textContent })), standalone: !!document.getElementById('tutorials') }));
+    check('5.2 "The real product, not a mock-up." has one tab per section (Control Center … Automations), each with its tutorial, captions, length and a label naming the section', tabs.h2 === 'The real product, not a mock-up.' && !tabs.standalone && tabs.tabs.join() === 'Control Center,Research,Create,Launch,Campaigns,Automations' && tabs.plays.length === 6 && tabs.plays.every((p, i) => p.v === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && p.c === '/assets/films/tutorials/' + KEYS[i] + '.vtt' && /^\d:\d\d$/.test(p.dur) && p.label.startsWith('Play the ' + tabs.tabs[i] + ' tutorial')), tabs);
+    const opened = [];
+    for (let i = 0; i < 6; i++) {
+      await hp.click('#inside .ik-tab >> nth=' + i); await hp.waitForTimeout(250);
+      const thumb = await hp.evaluate(() => { const img = document.querySelector('#inside .ik-shot.is-active img'); return img && img.complete && img.naturalWidth; });
+      await hp.click('#inside .ik-shot.is-active [data-ik-play]'); await hp.waitForTimeout(1500);
+      opened.push(Object.assign({ thumb }, await hp.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), src: v.currentSrc.replace(location.origin, ''), t: +v.currentTime.toFixed(2), track: !!v.querySelector('track[default]') }; })));
+      await hp.keyboard.press('Escape'); await hp.waitForTimeout(300);
+      opened[i].closed = await hp.evaluate(() => { const v = document.querySelector('.ow-player video'); return !document.querySelector('.ow-player').classList.contains('is-open') && v.paused && !v.getAttribute('src'); });
     }
-    const d = homeShots[1440];
-    check('5.2 “Learn OrivenAI in six short videos.” sits directly after the assistant section, six cards in section order, thumbnails load', d.after === 'agents' && d.before === 'how' && d.n === 6 && d.videos.every((v, i) => v === '/assets/films/tutorials/' + KEYS[i] + '.mp4') && d.thumbs === 6 && /six short videos/.test(d.h), d);
-    check('5.3 a card plays its tutorial with captions in the shared player; Esc closes it', homeShots.play && homeShots.play.open && homeShots.play.src === '/assets/films/tutorials/create.mp4' && homeShots.play.t > 0.3 && homeShots.play.track && homeShots.closed, homeShots.play);
-    check('5.4 three columns on desktop, two on tablet, one on a phone; no sideways scrolling', [1440, 800, 390].every((w) => homeShots[w].cols === homeShots[w].want && homeShots[w].overflow <= 0), [1440, 800, 390].map((w) => homeShots[w]));
-    // First visit on a phone: the cookie banner is showing. An open video must sit above it.
+    check('5.3 each tab shows its thumbnail and plays its own tutorial with captions in the shared player; Esc closes it and stops playback', opened.every((o, i) => o.thumb > 0 && o.open && o.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && o.t > 0.3 && o.track && o.closed), opened);
+    await hp.close();
+    const lay = {};
+    for (const w of [1440, 800, 390]) {
+      const lp = await browser.newPage({ viewport: { width: w, height: 900 } }); lp.on('pageerror', (e) => errors.push('home ' + w + ': ' + e.message));
+      await lp.goto(BASE + '/', { waitUntil: 'load' }); await lp.waitForTimeout(700);
+      await lp.evaluate(() => document.getElementById('inside').scrollIntoView({ block: 'start' })); await lp.waitForTimeout(800);
+      lay[w] = await lp.evaluate(() => { const st = document.querySelector('#inside .ik-shot.is-active .ik-shot__media').getBoundingClientRect(); const p = document.querySelector('#inside .ik-shot.is-active .ik-play').getBoundingClientRect(); return { overflow: document.documentElement.scrollWidth - innerWidth, playInside: p.left >= st.left && p.right <= st.right && p.top >= st.top && p.bottom <= st.bottom }; });
+      await lp.screenshot({ path: path.join(__dirname, '_shots', 'tutorials-inside-' + w + '.png') }).catch(() => {});
+      await lp.close();
+    }
+    check('5.4 desktop, tablet and phone: the Play button sits inside the frame; no sideways scrolling', Object.values(lay).every((l) => l.overflow <= 0 && l.playInside), lay);
+    // First visit on a phone: the cookie banner is showing. An open tutorial must sit above it.
     {
       const mp = await browser.newPage({ viewport: { width: 390, height: 844 } }); mp.on('pageerror', (e) => errors.push('home banner: ' + e.message));
       await mp.goto(BASE + '/', { waitUntil: 'load' }); await mp.waitForTimeout(1500);
-      await mp.evaluate(() => document.querySelector('#tutorials .ik-tut').scrollIntoView({ block: 'center' })); await mp.waitForTimeout(600);
+      await mp.evaluate(() => document.getElementById('inside').scrollIntoView({ block: 'start' })); await mp.waitForTimeout(600);
       const bannerShown = await mp.evaluate(() => { const c = document.querySelector('.orv-cc'); return !!c && c.getClientRects().length > 0; });
-      await mp.evaluate(() => document.querySelector('#tutorials .ik-tut').click()); await mp.waitForTimeout(1200);
-      // The video, its controls AND the spot where the banner sits all belong to the player: the
-      // banner is underneath while a video is open (on short screens it would otherwise cover the controls).
+      await mp.evaluate(() => document.querySelector('#inside .ik-shot.is-active [data-ik-play]').click()); await mp.waitForTimeout(1200);
       const top = await mp.evaluate(() => { const v = document.querySelector('.ow-player video'); const r = v.getBoundingClientRect(); const c = document.querySelector('.orv-cc').getBoundingClientRect(); const pts = [[r.left + r.width / 2, r.bottom - 12], [r.left + r.width / 2, r.top + r.height / 2], [c.left + c.width / 2, c.top + c.height / 2]]; return pts.map(([x, y]) => { const e = document.elementFromPoint(x, y); return !!(e && e.closest('.ow-player')); }); });
-      check('5.5 with the cookie banner showing on a phone, the open video is on top of it (video, controls and the banner area belong to the player)', bannerShown && top.every(Boolean), { bannerShown, top });
+      check('5.5 with the cookie banner showing on a phone, the open tutorial is on top of it (video, controls and the banner area belong to the player)', bannerShown && top.every(Boolean), { bannerShown, top });
       await mp.close();
     }
     check('Z. no page errors', errors.length === 0, errors);
