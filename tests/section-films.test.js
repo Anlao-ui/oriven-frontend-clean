@@ -65,10 +65,10 @@ const srv = http.createServer((q, r) => {
     for (let i = 0; i < 6; i++) {
       await page.click('#inside .ik-tab >> nth=' + i); await page.waitForTimeout(200);
       await page.click('#inside .ik-shot.is-active [data-ik-play]'); await page.waitForTimeout(1600);
-      played.push(await page.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl && pl.querySelector('video'); return v ? { open: pl.classList.contains('is-open'), t: +v.currentTime.toFixed(2), src: v.currentSrc.replace(location.origin, ''), track: !!v.querySelector('track[kind="captions"][default]'), controls: v.controls, err: v.error && v.error.code, inline: document.querySelectorAll('#inside video').length } : null; }));
+      played.push(await page.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl && pl.querySelector('video'); return v ? { open: pl.classList.contains('is-open'), t: +v.currentTime.toFixed(2), src: v.currentSrc.replace(location.origin, ''), track: (() => { const ts = [...v.querySelectorAll('track')]; return ts.length === 1 && ts[0].kind === 'metadata' && /\.vtt$/.test(ts[0].getAttribute('src')) && [...v.textTracks].length === 1 && [...v.textTracks].every((x) => x.mode !== 'showing'); })(), controls: v.controls, err: v.error && v.error.code, inline: document.querySelectorAll('#inside video').length } : null; }));
       await page.keyboard.press('Escape'); await page.waitForTimeout(250);
     }
-    check('2.2 each tab’s Play opens that section’s tutorial in the shared player: it advances, has controls and a default captions track; no inline copy in the frame', played.every((x, i) => x && x.open && x.t > 0.3 && x.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && x.track && x.controls && !x.err && x.inline === 0), played);
+    check('2.2 each tab’s Play opens that section’s tutorial in the shared player: it advances, has controls, exactly one subtitle layer (no browser-drawn captions); no inline copy in the frame', played.every((x, i) => x && x.open && x.t > 0.3 && x.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && x.track && x.controls && !x.err && x.inline === 0), played);
     await page.close();
 
     console.log('\n3. Public section pages: "Watch the overview"');
@@ -80,13 +80,13 @@ const srv = http.createServer((q, r) => {
       const btn = await pg.$('.ov-sp-hero [data-ow-video]');
       if (!btn) { res.push({ p, btn: false }); await pg.close(); continue; }
       await btn.click(); await pg.waitForTimeout(1600);
-      const o = await pg.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl && pl.querySelector('video'); return { open: !!pl && pl.classList.contains('is-open'), modal: pl && pl.getAttribute('aria-modal'), title: (document.getElementById('owPlayerTitle') || {}).textContent, src: v && v.currentSrc.replace(location.origin, ''), t: v ? +v.currentTime.toFixed(2) : 0, track: !!(v && v.querySelector('track[default]')), focusIn: !!pl && pl.contains(document.activeElement) }; });
+      const o = await pg.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl && pl.querySelector('video'); return { open: !!pl && pl.classList.contains('is-open'), modal: pl && pl.getAttribute('aria-modal'), title: (document.getElementById('owPlayerTitle') || {}).textContent, src: v && v.currentSrc.replace(location.origin, ''), t: v ? +v.currentTime.toFixed(2) : 0, track: !!v && (() => { const ts = [...v.querySelectorAll('track')]; return ts.length === 1 && ts[0].kind === 'metadata' && /\.vtt$/.test(ts[0].getAttribute('src')) && [...v.textTracks].length === 1 && [...v.textTracks].every((x) => x.mode !== 'showing'); })(), focusIn: !!pl && pl.contains(document.activeElement) }; });
       await pg.keyboard.press('Escape'); await pg.waitForTimeout(300);
       const c = await pg.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), stopped: !v.getAttribute('src') && v.paused, focus: document.activeElement && document.activeElement.hasAttribute('data-ow-video') }; });
       res.push({ p, k, o, c }); await pg.close();
     }
     check('3.1 every section page has "Watch the overview" in its hero', res.every((r) => r.o), res.filter((r) => !r.o).map((r) => r.p));
-    check('3.2 it opens a dialog that plays that section’s film with captions; focus moves into it', res.every((r) => r.o && r.o.open && r.o.modal === 'true' && r.o.src === '/assets/films/sections/' + r.k + '.mp4' && r.o.t > 0.3 && r.o.track && r.o.focusIn && /a short tour/.test(r.o.title)), res.map((r) => r.o));
+    check('3.2 it opens a dialog that plays that section’s film with exactly one subtitle layer; focus moves into it', res.every((r) => r.o && r.o.open && r.o.modal === 'true' && r.o.src === '/assets/films/sections/' + r.k + '.mp4' && r.o.t > 0.3 && r.o.track && r.o.focusIn && /a short tour/.test(r.o.title)), res.map((r) => r.o));
     check('3.3 Esc closes it, stops the video and returns focus to the button', res.every((r) => r.c && !r.c.open && r.c.stopped && r.c.focus), res.map((r) => r.c));
     check('Z. no page errors', errors.length === 0, errors);
   } catch (e) { console.error(e); fail++; }
