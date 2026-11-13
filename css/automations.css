@@ -220,3 +220,5 @@ body.dark-mode .atm-wrap, body.dark-mode .atm-overlay { --au-ok: #5fd68f; --au-w
 }
 /* Same left edge as Control Center, Launch and Campaigns on desktop. */
 @media (min-width: 1025px) { .atm-wrap { padding-left: 40px; padding-right: 40px; } }
+/* The Launch note inside the accounts card, set off by a line. */
+.atm-ovrail .atm-card .atm-note { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }

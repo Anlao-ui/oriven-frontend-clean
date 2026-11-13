@@ -1,17 +1,20 @@
 /* ════════════════════════════════════════════════════════════════
-   The six product tutorials (assets/films/tutorials) and the "Learn
-   OrivenAI" library on the Dashboard (js/tutorial-library.js).
+   The six product tutorials (assets/films/tutorials).
 
    1. Files: one H.264 film per section, video track only (nothing can play
       with sound), faststart, poster, thumbnail and captions; each film has
-      a chapter for EVERY page of its section (js/appNav.js is the source
-      of truth for which pages belong to which section).
-   2. Library: six cards with title, what you learn, pages and thumbnail;
-      each plays its own film with captions in the shared player; nothing
-      loads or plays before a click; Esc closes and stops; a missing file
-      shows a clear message; 3 / 2 / 1 columns without sideways scrolling.
-   3. The section buttons ("Watch tutorial", js/section-films.js) use the
-      same films.
+      a chapter for EVERY page of its section (js/appNav.js is the source of
+      truth for which pages belong to which section). tools/tutorials-list.js
+      names the same pages and the real length of each file.
+   2. Not inside the signed-in app (2026-11-13): no tutorial gallery on the
+      Dashboard, no "Watch tutorial" button on any app page, the scripts that
+      added them are gone. (tests/app-nav.test.js 14.x checks the running app.)
+   3. The public homepage: one tab per section in "The real product, not a
+      mock-up." (#inside), each opening its tutorial in the shared player
+      with exactly one subtitle layer (in the picture). The Watch tutorial
+      button never moves (hover, press) and ONE click opens the player; no
+      length label. A film that can't load says so; the cookie banner never
+      covers an open video on a phone.
 
    SAFE: this test's own static server; tests/_fence.js aborts every other
    request. RUN: node tests/tutorials.test.js
@@ -24,6 +27,7 @@ let pass = 0, fail = 0;
 function check(name, ok, info) { ok ? pass++ : fail++; console.log((ok ? 'PASS — ' : 'FAIL — ') + name + (ok || info === undefined ? '' : ' | ' + JSON.stringify(info).slice(0, 700))); }
 const DIR = path.join(ROOT, 'assets/films/tutorials');
 const KEYS = ['control-center', 'research', 'create', 'launch', 'campaigns', 'automations'];
+const LIST = require(path.join(ROOT, 'tools/tutorials-list.js'));
 
 function mp4Info(buf) {
   const s = buf.toString('latin1');
@@ -32,48 +36,45 @@ function mp4Info(buf) {
   const handlers = []; let i = -1; while ((i = s.indexOf('hdlr', i + 1)) > 0) handlers.push(s.substr(i + 12, 4));
   return { dur, handlers, avc: s.includes('avc1'), faststart: s.indexOf('moov') < s.indexOf('mdat') };
 }
-
 // The section → pages map, read from the real navigation (js/appNav.js).
 function appSections() {
   const src = fs.readFileSync(path.join(ROOT, 'js/appNav.js'), 'utf8');
   const start = src.indexOf('var SECTIONS = ['), end = src.indexOf('];', start);
-  const body = src.slice(start + 'var SECTIONS = '.length, end + 1);
   const stub = new Proxy({}, { get: () => () => () => {} });
-  return vm.runInNewContext('(' + body + ')', { biz: () => 0, planPage: () => 0, page: () => 0, autoTab: () => 0, openPanel: () => 0, window: stub });
+  return vm.runInNewContext('(' + src.slice(start + 'var SECTIONS = '.length, end + 1) + ')', { biz: () => 0, planPage: () => 0, page: () => 0, autoTab: () => 0, openPanel: () => 0, window: stub });
 }
 
 console.log('\n1. The six films');
 const SECTIONS = appSections();
 const KEY_OF = { cc: 'control-center', rs: 'research', cr: 'create', la: 'launch', ca: 'campaigns', au: 'automations' };
-const lib = fs.readFileSync(path.join(ROOT, 'js/tutorial-library.js'), 'utf8');
-const LIST = vm.runInNewContext(lib.slice(lib.indexOf('var LIST = ['), lib.indexOf('];', lib.indexOf('var LIST = [')) + 2) + ' LIST');
 for (const k of KEYS) {
   const files = [k + '.mp4', k + '.jpg', k + '.vtt', k + '-thumb.webp'].map((f) => path.join(DIR, f));
   const ok = files.every((f) => fs.existsSync(f));
   const m = ok ? mp4Info(fs.readFileSync(files[0])) : {};
   const size = ok ? fs.statSync(files[0]).size : 0;
   check(`1.${k} film, poster, thumbnail and captions; H.264, video only, faststart, ${m.dur ? m.dur.toFixed(1) : '?'} s, ${(size / 1e6).toFixed(2)} MB`, ok && m.avc && m.handlers.includes('vide') && !m.handlers.includes('soun') && m.faststart && m.dur > 40 && m.dur < 150 && size < 4e6, { m, size });
-  const sec = SECTIONS.find((s) => KEY_OF[s.id] === k);
-  const pages = sec.items.map((it) => it.label);
+  const pages = SECTIONS.find((s) => KEY_OF[s.id] === k).items.map((it) => it.label);
   const vtt = ok ? fs.readFileSync(files[2], 'utf8') : '';
   const chapters = [...vtt.matchAll(/Page (\d+) of (\d+): ([^.\n]+)\./g)].map((x) => x[3]);
   check(`1.${k} a chapter for every page of the section (${pages.join(', ')})`, /^WEBVTT/.test(vtt) && pages.length === chapters.length && pages.every((p) => chapters.includes(p)), { pages, chapters });
   const t = LIST.find((x) => x.key === k);
-  check(`1.${k} the library card lists the same pages, and its length matches the file (${t && t.seconds} s)`, t && JSON.stringify([...t.pages].sort()) === JSON.stringify([...pages].sort()) && Math.abs(t.seconds - m.dur) < 1.5, { card: t, dur: m.dur });
+  check(`1.${k} tools/tutorials-list.js names the same pages and the file’s real length (${t && t.seconds} s)`, t && JSON.stringify([...t.pages].sort()) === JSON.stringify([...pages].sort()) && Math.abs(t.seconds - m.dur) < 1.5, { list: t, dur: m.dur });
 }
 check('1.7 exactly six tutorials', fs.readdirSync(DIR).filter((f) => f.endsWith('.mp4')).length === 6);
 
-const TYPES = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.mp4': 'video/mp4', '.vtt': 'text/vtt' };
-// A small host page: the Dashboard's real container ids and stylesheets, the real scripts.
-const HOST = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="/css/ow-system.css"><link rel="stylesheet" href="/css/controlCenter.css">
-<style>body{margin:0;background:#070707;color:#F2F2EE;font-family:system-ui,sans-serif}main{padding:16px;max-width:1200px;margin:0 auto}</style></head>
-<body><main><div id="bizPanelOverview"><div class="bic-composition cc-root"><section class="ccx-card ccx-learn" id="ccxTutorials" aria-labelledby="ccxTutH"></section></div></div></main>
-<script src="/js/ow-ui.js"></script><script src="/js/tutorial-library.js"></script></body></html>`;
+console.log('\n2. Not inside the signed-in app');
+const app = fs.readFileSync(path.join(ROOT, 'app.html'), 'utf8');
+const appJs = fs.readdirSync(path.join(ROOT, 'js')).filter((f) => f.endsWith('.js')).map((f) => [f, fs.readFileSync(path.join(ROOT, 'js', f), 'utf8')]);
+check('2.1 app.html: no tutorial gallery container, no tutorial or section-film scripts', !/ccxTutorials|ccx-learn|tutorial-library\.js|section-films\.js/.test(app), (app.match(/ccxTutorials|ccx-learn|tutorial-library\.js|section-films\.js/g) || []));
+check('2.2 the scripts that added the Dashboard gallery and the in-app "Watch tutorial" buttons are gone', !fs.existsSync(path.join(ROOT, 'js/section-films.js')) && !fs.existsSync(path.join(ROOT, 'js/tutorial-library.js')));
+const leftovers = appJs.filter(([, s]) => /orv-film-btn|data-orv-film|Watch tutorial|assets\/films\/tutorials/.test(s)).map(([f]) => f);
+check('2.3 no app script makes a tutorial button or points at the tutorial films', leftovers.length === 0, leftovers);
+const cc = fs.readFileSync(path.join(ROOT, 'css/controlCenter.css'), 'utf8');
+check('2.4 the Dashboard styles have no tutorial gallery rules left', !/ccx-learn|ccx-tut/.test(cc));
+
+const TYPES = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.vtt': 'text/vtt', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 const srv = http.createServer((q, r) => {
-  let p = q.url.split('?')[0];
-  if (p === '/host.html') { r.writeHead(200, { 'Content-Type': 'text/html' }); return r.end(HOST); }
-  if (p === '/') p = '/index.html';
+  let p = q.url.split('?')[0]; if (p === '/') p = '/index.html';
   const f = path.join(ROOT, p);
   if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); return r.end(); }
   const st = fs.statSync(f), type = TYPES[path.extname(f)] || 'application/octet-stream', range = q.headers.range;
@@ -84,95 +85,73 @@ const srv = http.createServer((q, r) => {
   const browser = await chromium.launch({ executablePath: CHROME_PATH, headless: true });
   require('./_fence').fenceBrowser(browser, BASE, { backend401: true });
   const errors = [];
+  const ONE = (v) => { const ts = [...v.querySelectorAll('track')]; return ts.length === 1 && ts[0].kind === 'metadata' && [...v.textTracks].length === 1 && [...v.textTracks].every((x) => x.mode !== 'showing'); };
   try {
-    console.log('\n2. The Dashboard library');
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } }); page.on('pageerror', (e) => errors.push(e.message));
-    const mp4 = []; page.on('request', (rq) => { if (/\.mp4/.test(rq.url())) mp4.push(rq.url()); });
-    await page.goto(BASE + '/host.html', { waitUntil: 'load' }); await page.waitForTimeout(600);
-    const cards = await page.evaluate(() => [...document.querySelectorAll('#ccxTutorials .ccx-tut')].map((b) => ({ video: b.getAttribute('data-ow-video'), caps: b.getAttribute('data-ow-captions'), poster: b.getAttribute('data-ow-poster'), title: b.querySelector('.ccx-tut__t').textContent, learn: b.querySelector('.ccx-tut__learn').textContent, pages: b.querySelector('.ccx-tut__pages').textContent, label: b.getAttribute('aria-label'), thumb: b.querySelector('img') && b.querySelector('img').naturalWidth, type: b.type, dur: (b.querySelector('.ccx-tut__dur') || {}).textContent })));
-    const head = await page.evaluate(() => ({ h: (document.getElementById('ccxTutH') || {}).textContent, videos: document.querySelectorAll('video').length }));
-    check('2.1 heading and six cards in section order, each a button with title, what you learn, pages, duration and a loaded thumbnail', head.h === 'Learn OrivenAI' && cards.length === 6 && cards.every((c, i) => c.type === 'button' && c.video === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && c.caps === '/assets/films/tutorials/' + KEYS[i] + '.vtt' && c.title && c.learn.length > 30 && c.pages && /^\d:\d\d$/.test(c.dur) && c.thumb > 0 && /^Play the .+ tutorial, /.test(c.label)), cards);
-    check('2.2 nothing loads or plays before a click (no video element, no film request)', head.videos === 0 && mp4.length === 0, { head, mp4 });
-    const played = [];
-    for (let i = 0; i < 6; i++) {
-      await page.click('#ccxTutorials .ccx-tut >> nth=' + i); await page.waitForTimeout(1700);
-      played.push(await page.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), src: v.currentSrc.replace(location.origin, ''), t: +v.currentTime.toFixed(2), track: (() => { const ts = [...v.querySelectorAll('track')]; return ts.length === 1 && ts[0].kind === 'metadata' && /\.vtt$/.test(ts[0].getAttribute('src')) && [...v.textTracks].length === 1 && [...v.textTracks].every((x) => x.mode !== 'showing'); })(), controls: v.controls, title: document.getElementById('owPlayerTitle').textContent, focusIn: pl.contains(document.activeElement), status: (pl.querySelector('.ow-player__status') || {}).hidden }; }));
-      await page.keyboard.press('Escape'); await page.waitForTimeout(250);
-    }
-    check('2.3 each card plays its own film in the player: it advances, has controls, exactly one subtitle layer (in the picture; the .vtt is metadata, never shown), focus moves in, the loading note is gone', played.every((x, i) => x.open && x.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && x.t > 0.3 && x.track && x.controls && /tutorial$/.test(x.title) && x.focusIn && x.status === true), played);
-    const closed = await page.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), stopped: !v.getAttribute('src') && v.paused, focus: document.activeElement && document.activeElement.classList.contains('ccx-tut') }; });
-    check('2.4 Esc closes the player, stops the film and returns focus to the card', !closed.open && closed.stopped && closed.focus, closed);
-    // A film that can't load: a clear message and a way to retry.
-    await page.evaluate(() => { const b = document.querySelector('#ccxTutorials .ccx-tut'); b.setAttribute('data-ow-video', '/assets/films/tutorials/missing.mp4'); });
-    await page.click('#ccxTutorials .ccx-tut >> nth=0'); await page.waitForTimeout(1500);
-    const err = await page.evaluate(() => { const s = document.querySelector('.ow-player__status'); return { shown: s && !s.hidden, text: s && s.textContent, retry: !!document.querySelector('.ow-player__status button') }; });
-    check('2.5 a film that can’t load shows a clear message with a retry button', err.shown && /couldn’t load/i.test(err.text) && err.retry, err);
-    await page.keyboard.press('Escape'); await page.waitForTimeout(300);
-    // Regression guard (2026-11-13): the films have their subtitles in the picture; the browser
-    // must never draw the .vtt as a second, larger layer, however often the player opens and closes.
-    await page.evaluate(() => { const b = document.querySelector('#ccxTutorials .ccx-tut'); b.setAttribute('data-ow-video', '/assets/films/tutorials/control-center.mp4'); });
-    const layers = [];
-    for (const i of [0, 0, 3, 5, 0]) {
-      await page.click('#ccxTutorials .ccx-tut >> nth=' + i); await page.waitForTimeout(900);
-      layers.push(await page.evaluate(() => { const v = document.querySelector('.ow-player video'); return { src: v.getAttribute('src').split('/').pop(), trackEls: v.querySelectorAll('track').length, kinds: [...v.querySelectorAll('track')].map((t) => t.kind).join(), showing: [...v.textTracks].filter((t) => t.mode === 'showing').length, textTracks: v.textTracks.length }; }));
-      await page.keyboard.press('Escape'); await page.waitForTimeout(300);
-    }
-    const src = fs.readFileSync(path.join(ROOT, 'js/ow-ui.js'), 'utf8');
-    check('2.6 exactly one subtitle layer every time: opening, closing, reopening and switching films never adds a browser-drawn captions track (one metadata track, none showing)', layers.every((l) => l.trackEls === 1 && l.kinds === 'metadata' && l.showing === 0 && l.textTracks === 1) && !/kind\s*=\s*'captions'|\.default\s*=\s*true/.test(src), layers);
-    await page.close();
-
-    console.log('\n3. Layout');
-    const cols = {};
-    for (const [w, want] of [[1440, 3], [900, 2], [390, 1]]) {
-      const pg = await browser.newPage({ viewport: { width: w, height: 900 } }); pg.on('pageerror', (e) => errors.push(e.message));
-      await pg.goto(BASE + '/host.html', { waitUntil: 'load' }); await pg.waitForTimeout(400);
-      cols[w] = await pg.evaluate(() => ({ cols: getComputedStyle(document.querySelector('.ccx-tut__grid')).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - innerWidth, h: Math.round(document.querySelector('.ccx-tut').getBoundingClientRect().height) }));
-      cols[w].ok = cols[w].cols === want && cols[w].overflow <= 0;
-      await pg.screenshot({ path: path.join(__dirname, '_shots', 'tutorials-' + w + '.png'), fullPage: true }).catch(() => {});
-      await pg.close();
-    }
-    check('3.1 three columns on desktop, two on tablet, one on a phone; no sideways scrolling', Object.values(cols).every((c) => c.ok), cols);
-
-    console.log('\n4. The section buttons');
-    const sf = fs.readFileSync(path.join(ROOT, 'js/section-films.js'), 'utf8');
-    check('4.1 "Watch tutorial" on each section uses the tutorial films (via js/tutorial-library.js)', /orvTutorials/.test(sf) && /Watch tutorial/.test(sf) && !/assets\/films\/sections/.test(sf));
-    const app = fs.readFileSync(path.join(ROOT, 'app.html'), 'utf8');
-    check('4.2 app.html: the library container on the Dashboard, the script loaded before section-films.js', /id="ccxTutorials"/.test(app) && app.indexOf('js/tutorial-library.js') > 0 && app.indexOf('js/tutorial-library.js') < app.indexOf('js/section-films.js'));
-
-    console.log('\n5. The public homepage: the six tutorials in "The real product, not a mock-up."');
+    console.log('\n3. The public homepage: the six tutorials in "The real product, not a mock-up."');
     const gen = require('child_process').spawnSync(process.execPath, [path.join(ROOT, 'tools/tutorials-section.js'), '--check'], { encoding: 'utf8' });
     const homeHtml = fs.readFileSync(path.join(ROOT, 'home.html'), 'utf8');
     const insideHtml = homeHtml.slice(homeHtml.indexOf('id="inside"'), homeHtml.indexOf('</section>', homeHtml.indexOf('id="inside"')));
-    check('5.1 written from the same list (up to date), prerendered into home.html inside #inside; no standalone tutorials section', gen.status === 0 && !/id="tutorials"/.test(homeHtml) && !/class="ik-tut"/.test(homeHtml) && KEYS.every((k) => insideHtml.includes('data-ow-video="/assets/films/tutorials/' + k + '.mp4"') && insideHtml.includes('/assets/films/tutorials/' + k + '-thumb.webp')), { gen: gen.stdout + gen.stderr });
+    check('3.1 written from tools/tutorials-list.js (up to date), prerendered into home.html inside #inside; no standalone tutorials section; no length label', gen.status === 0 && !/id="tutorials"/.test(homeHtml) && !/ik-play__dur/.test(homeHtml) && KEYS.every((k) => insideHtml.includes('data-ow-video="/assets/films/tutorials/' + k + '.mp4"') && insideHtml.includes('/assets/films/tutorials/' + k + '-thumb.webp')), { gen: gen.stdout + gen.stderr });
     const hp = await browser.newPage({ viewport: { width: 1440, height: 900 } }); hp.on('pageerror', (e) => errors.push('home: ' + e.message));
+    const mp4 = []; hp.on('request', (rq) => { if (/\.mp4/.test(rq.url())) mp4.push(rq.url()); });
     await hp.goto(BASE + '/', { waitUntil: 'load' }); await hp.addStyleTag({ content: '.orv-cc,#orvConsentBanner{display:none!important}' }); await hp.waitForTimeout(800);
-    await hp.evaluate(() => document.getElementById('inside').scrollIntoView({ block: 'start' })); await hp.waitForTimeout(1000);
-    const tabs = await hp.evaluate(() => ({ h2: document.getElementById('ik-inside-title').textContent, tabs: [...document.querySelectorAll('#inside .ik-tab')].map((t) => t.textContent.replace(/^\d+/, '').trim()), plays: [...document.querySelectorAll('#inside .ik-shot [data-ik-play]')].map((b) => ({ v: b.getAttribute('data-ow-video'), c: b.getAttribute('data-ow-captions'), label: b.getAttribute('aria-label'), dur: (b.querySelector('.ik-play__dur') || {}).textContent })), standalone: !!document.getElementById('tutorials') }));
-    const inlineRisk = await hp.evaluate(() => [...document.querySelectorAll('#inside [data-ik-play]')].filter((b) => !b.hasAttribute('data-ow-video')).length);
-    check('5.2b every homepage tab opens the shared player (none can fall back to the inline player, which draws captions)', inlineRisk === 0, inlineRisk);
-    check('5.2 "The real product, not a mock-up." has one tab per section (Control Center … Automations), each with its tutorial, captions, length and a label naming the section', tabs.h2 === 'The real product, not a mock-up.' && !tabs.standalone && tabs.tabs.join() === 'Control Center,Research,Create,Launch,Campaigns,Automations' && tabs.plays.length === 6 && tabs.plays.every((p, i) => p.v === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && p.c === '/assets/films/tutorials/' + KEYS[i] + '.vtt' && /^\d:\d\d$/.test(p.dur) && p.label.startsWith('Play the ' + tabs.tabs[i] + ' tutorial')), tabs);
+    await hp.evaluate(() => document.getElementById('inside').scrollIntoView({ block: 'start' })); await hp.waitForTimeout(1600);
+    const tabs = await hp.evaluate(() => ({ h2: document.getElementById('ik-inside-title').textContent, tabs: [...document.querySelectorAll('#inside .ik-tab')].map((t) => t.textContent.replace(/^\d+/, '').trim()), plays: [...document.querySelectorAll('#inside .ik-shot [data-ik-play]')].map((b) => ({ v: b.getAttribute('data-ow-video'), c: b.getAttribute('data-ow-captions'), label: b.getAttribute('aria-label'), text: b.textContent.trim() })), videos: document.querySelectorAll('video').length }));
+    check('3.2 one tab per section (Control Center … Automations), each with its tutorial and captions file, labelled "Watch tutorial" and nothing else (no length); nothing loaded before a click', tabs.h2 === 'The real product, not a mock-up.' && tabs.tabs.join() === 'Control Center,Research,Create,Launch,Campaigns,Automations' && tabs.plays.length === 6 && tabs.plays.every((p, i) => p.v === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && p.c === '/assets/films/tutorials/' + KEYS[i] + '.vtt' && p.text === 'Watch tutorial' && p.label.startsWith('Play the ' + tabs.tabs[i] + ' tutorial')) && tabs.videos === 0 && mp4.length === 0, tabs);
+    // The button bug (2026-11-13): the global button:active style replaced the centring transform,
+    // so the button jumped half its size under the pointer and the click never fired.
+    const stable = [];
+    for (let i = 0; i < 6; i++) {
+      await hp.click('#inside .ik-tab >> nth=' + i); await hp.waitForTimeout(350);
+      const btn = hp.locator('#inside .ik-shot.is-active .ik-play');
+      const r0 = await btn.boundingBox();
+      await hp.mouse.move(r0.x + r0.width / 2, r0.y + r0.height / 2); await hp.waitForTimeout(300);
+      const rH = await btn.boundingBox();
+      await hp.mouse.down(); await hp.waitForTimeout(250);
+      const rD = await btn.boundingBox();
+      await hp.mouse.up(); await hp.waitForTimeout(1400);
+      const st = await hp.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl && pl.querySelector('video'); return { open: !!pl && pl.classList.contains('is-open'), src: v && v.currentSrc.replace(location.origin, ''), t: v ? +v.currentTime.toFixed(2) : 0 }; });
+      const same = (a, b) => Math.abs(a.x - b.x) < 0.6 && Math.abs(a.y - b.y) < 0.6 && Math.abs(a.width - b.width) < 0.6;
+      stable.push({ tab: i + 1, stillOnHover: same(r0, rH), stillOnPress: same(r0, rD), oneClickOpens: st.open && st.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && st.t > 0.2, r0: [Math.round(r0.x), Math.round(r0.y)], rD: [Math.round(rD.x), Math.round(rD.y)] });
+      await hp.keyboard.press('Escape'); await hp.waitForTimeout(350);
+    }
+    check('3.3 on every tab the Watch tutorial button stays exactly in place on hover and while pressed, and ONE click (real mouse down/up) opens that tutorial in the enlarged player', stable.every((s) => s.stillOnHover && s.stillOnPress && s.oneClickOpens), stable);
     const opened = [];
     for (let i = 0; i < 6; i++) {
       await hp.click('#inside .ik-tab >> nth=' + i); await hp.waitForTimeout(250);
       const thumb = await hp.evaluate(() => { const img = document.querySelector('#inside .ik-shot.is-active img'); return img && img.complete && img.naturalWidth; });
-      await hp.click('#inside .ik-shot.is-active [data-ik-play]'); await hp.waitForTimeout(1500);
-      opened.push(Object.assign({ thumb }, await hp.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), src: v.currentSrc.replace(location.origin, ''), t: +v.currentTime.toFixed(2), track: (() => { const ts = [...v.querySelectorAll('track')]; return ts.length === 1 && ts[0].kind === 'metadata' && /\.vtt$/.test(ts[0].getAttribute('src')) && [...v.textTracks].length === 1 && [...v.textTracks].every((x) => x.mode !== 'showing'); })() }; })));
+      await hp.click('#inside .ik-shot.is-active [data-ik-play]'); await hp.waitForTimeout(1400);
+      opened.push(Object.assign({ thumb }, await hp.evaluate((ONE) => { const pl = document.querySelector('.ow-player'); const v = pl.querySelector('video'); return { open: pl.classList.contains('is-open'), modal: pl.getAttribute('aria-modal'), focusIn: pl.contains(document.activeElement), src: v.currentSrc.replace(location.origin, ''), t: +v.currentTime.toFixed(2), controls: v.controls, oneLayer: new Function('v', 'return (' + ONE + ')(v)')(v) }; }, ONE.toString())));
       await hp.keyboard.press('Escape'); await hp.waitForTimeout(300);
       opened[i].closed = await hp.evaluate(() => { const v = document.querySelector('.ow-player video'); return !document.querySelector('.ow-player').classList.contains('is-open') && v.paused && !v.getAttribute('src'); });
     }
-    check('5.3 each tab shows its thumbnail and plays its own tutorial in the shared player with exactly one subtitle layer; Esc closes it and stops playback', opened.every((o, i) => o.thumb > 0 && o.open && o.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && o.t > 0.3 && o.track && o.closed), opened);
-    await hp.close();
+    check('3.4 each tab shows its thumbnail and plays its own tutorial in the enlarged player (dialog, focus moves in, controls) with exactly one subtitle layer; Esc closes it and stops playback', opened.every((o, i) => o.thumb > 0 && o.open && o.modal === 'true' && o.focusIn && o.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && o.t > 0.3 && o.controls && o.oneLayer && o.closed), opened);
+    // Opening, closing, reopening and switching never adds a second (browser-drawn) subtitle layer.
+    const layers = [];
+    for (const i of [0, 0, 3, 5, 0]) {
+      await hp.click('#inside .ik-tab >> nth=' + i); await hp.waitForTimeout(200);
+      await hp.click('#inside .ik-shot.is-active [data-ik-play]'); await hp.waitForTimeout(800);
+      layers.push(await hp.evaluate(() => { const v = document.querySelector('.ow-player video'); return { trackEls: v.querySelectorAll('track').length, kinds: [...v.querySelectorAll('track')].map((t) => t.kind).join(), showing: [...v.textTracks].filter((t) => t.mode === 'showing').length }; }));
+      await hp.keyboard.press('Escape'); await hp.waitForTimeout(300);
+    }
+    const playerSrc = fs.readFileSync(path.join(ROOT, 'js/ow-ui.js'), 'utf8');
+    check('3.5 exactly one subtitle layer every time: opening, closing, reopening and switching tutorials (one metadata track, none drawn by the browser)', layers.every((l) => l.trackEls === 1 && l.kinds === 'metadata' && l.showing === 0) && !/kind\s*=\s*'captions'|\.default\s*=\s*true/.test(playerSrc), layers);
+    // A film that can't load: a clear message and a way to retry.
+    await hp.evaluate(() => document.querySelector('#inside .ik-shot.is-active [data-ik-play]').setAttribute('data-ow-video', '/assets/films/tutorials/missing.mp4'));
+    await hp.click('#inside .ik-shot.is-active [data-ik-play]'); await hp.waitForTimeout(1500);
+    const err = await hp.evaluate(() => { const s = document.querySelector('.ow-player__status'); return { shown: s && !s.hidden, text: s && s.textContent, retry: !!document.querySelector('.ow-player__status button') }; });
+    check('3.6 a film that can’t load shows a clear message with a retry button', err.shown && /couldn’t load/i.test(err.text) && err.retry, err);
+    await hp.keyboard.press('Escape'); await hp.close();
     const lay = {};
     for (const w of [1440, 800, 390]) {
       const lp = await browser.newPage({ viewport: { width: w, height: 900 } }); lp.on('pageerror', (e) => errors.push('home ' + w + ': ' + e.message));
       await lp.goto(BASE + '/', { waitUntil: 'load' }); await lp.waitForTimeout(700);
-      await lp.evaluate(() => document.getElementById('inside').scrollIntoView({ block: 'start' })); await lp.waitForTimeout(800);
-      lay[w] = await lp.evaluate(() => { const st = document.querySelector('#inside .ik-shot.is-active .ik-shot__media').getBoundingClientRect(); const p = document.querySelector('#inside .ik-shot.is-active .ik-play').getBoundingClientRect(); return { overflow: document.documentElement.scrollWidth - innerWidth, playInside: p.left >= st.left && p.right <= st.right && p.top >= st.top && p.bottom <= st.bottom }; });
+      await lp.evaluate(() => document.getElementById('inside').scrollIntoView({ block: 'start' })); await lp.waitForTimeout(1200);
+      lay[w] = await lp.evaluate(() => { const st = document.querySelector('#inside .ik-shot.is-active .ik-shot__media').getBoundingClientRect(); const p = document.querySelector('#inside .ik-shot.is-active .ik-play').getBoundingClientRect(); return { overflow: document.documentElement.scrollWidth - innerWidth, playInside: p.left >= st.left && p.right <= st.right && p.top >= st.top && p.bottom <= st.bottom, centred: Math.abs((p.left + p.right) / 2 - (st.left + st.right) / 2) < 2 }; });
       await lp.screenshot({ path: path.join(__dirname, '_shots', 'tutorials-inside-' + w + '.png') }).catch(() => {});
       await lp.close();
     }
-    check('5.4 desktop, tablet and phone: the Play button sits inside the frame; no sideways scrolling', Object.values(lay).every((l) => l.overflow <= 0 && l.playInside), lay);
-    // First visit on a phone: the cookie banner is showing. An open tutorial must sit above it.
+    check('3.7 desktop, tablet and phone: the Play button sits centred inside the frame; no sideways scrolling', Object.values(lay).every((l) => l.overflow <= 0 && l.playInside && l.centred), lay);
     {
       const mp = await browser.newPage({ viewport: { width: 390, height: 844 } }); mp.on('pageerror', (e) => errors.push('home banner: ' + e.message));
       await mp.goto(BASE + '/', { waitUntil: 'load' }); await mp.waitForTimeout(1500);
@@ -180,7 +159,7 @@ const srv = http.createServer((q, r) => {
       const bannerShown = await mp.evaluate(() => { const c = document.querySelector('.orv-cc'); return !!c && c.getClientRects().length > 0; });
       await mp.evaluate(() => document.querySelector('#inside .ik-shot.is-active [data-ik-play]').click()); await mp.waitForTimeout(1200);
       const top = await mp.evaluate(() => { const v = document.querySelector('.ow-player video'); const r = v.getBoundingClientRect(); const c = document.querySelector('.orv-cc').getBoundingClientRect(); const pts = [[r.left + r.width / 2, r.bottom - 12], [r.left + r.width / 2, r.top + r.height / 2], [c.left + c.width / 2, c.top + c.height / 2]]; return pts.map(([x, y]) => { const e = document.elementFromPoint(x, y); return !!(e && e.closest('.ow-player')); }); });
-      check('5.5 with the cookie banner showing on a phone, the open tutorial is on top of it (video, controls and the banner area belong to the player)', bannerShown && top.every(Boolean), { bannerShown, top });
+      check('3.8 with the cookie banner showing on a phone, the open tutorial is on top of it (video, controls and the banner area belong to the player)', bannerShown && top.every(Boolean), { bannerShown, top });
       await mp.close();
     }
     check('Z. no page errors', errors.length === 0, errors);

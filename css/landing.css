@@ -524,7 +524,13 @@ a.ik-chip:hover .ik-glyph { color: var(--ac, var(--silver)); }
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   transition: background-color var(--t) var(--ease), border-color var(--t) var(--ease), transform var(--t) var(--ease);
 }
-.ik-play:hover { background: rgba(11, 12, 10, .92); border-color: var(--silver); transform: translate(-50%, -50%) scale(1.03); }
+.ik-play:hover { background: rgba(11, 12, 10, .92); border-color: var(--silver); }
+/* The button stays exactly where it is in every state. The global press style
+   (styles.css: button:active { transform: scale(.97) }) would replace the
+   centring translate, so the button jumped half its size right and down
+   under the pointer mid-press, the release missed it and no click fired
+   (a second click was needed). Hover and press change colour only. */
+.ik-play, .ik-play:hover, .ik-play:focus, .ik-play:focus-visible, .ik-play:active, .ik-play:active:not(:disabled) { transform: translate(-50%, -50%); }
 .ik-play svg { width: 18px; height: 18px; color: var(--volt); }
 .ik-shot.is-playing .ik-play { display: none; }
 
@@ -806,9 +812,8 @@ a.ik-chip:hover .ik-glyph { color: var(--ac, var(--silver)); }
 @media (max-width: 459px) { .ik-ws__flow { grid-template-columns: minmax(0, 1fr); } .ik-ws__block { min-height: 0; flex-direction: row; align-items: center; gap: 14px; padding: 16px; } .ik-ws__top { flex-direction: row-reverse; gap: 12px; } .ik-ws__title { margin: 0; } }
 @media (prefers-reduced-motion: reduce) { .ik-ws__block, .ik-ws__ico, .ik-ws__block::after { transition: none; } .ik-ws__block:hover, .ik-ws__block:focus-visible { transform: none; } }
 
-/* #inside tabs hold the six tutorials (tools/tutorials-section.js): length on the
-   Play button, the pages the tutorial covers along the bottom of the frame. */
-.ik-play__dur { font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: .04em; color: var(--text-2); padding-left: 10px; border-left: 1px solid var(--line-strong); }
+/* #inside tabs hold the six tutorials (tools/tutorials-section.js): the pages
+   each tutorial covers along the bottom of the frame. */
 .ik-shot__pages { position: absolute; left: 16px; right: 16px; bottom: 14px; margin: 0; text-align: center; font-size: 13px; color: var(--text-2); text-shadow: 0 1px 8px rgba(0, 0, 0, .9); pointer-events: none; }
 .ik-shot .ik-play { white-space: nowrap; }
-@media (max-width: 559px) { .ik-shot__pages { display: none; } .ik-shot .ik-play { min-height: 40px; padding: 0 14px 0 12px; gap: 8px; font-size: 13px; } .ik-shot .ik-play svg { width: 15px; height: 15px; } .ik-play__dur { padding-left: 8px; font-size: 11.5px; } }
+@media (max-width: 559px) { .ik-shot__pages { display: none; } .ik-shot .ik-play { min-height: 40px; padding: 0 14px 0 12px; gap: 8px; font-size: 13px; } .ik-shot .ik-play svg { width: 15px; height: 15px; } }

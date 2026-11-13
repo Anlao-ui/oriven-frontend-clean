@@ -726,12 +726,14 @@
       '<div><dt>' + esc(T('nextRunH')) + '</dt><dd>' + (nx ? esc(T('act.' + nx.action)) + ' · ' + esc(nx.campaign_name || '') + '<br><span class="atm-muted">' + esc(localWhen(nx.local_time, nx.timezone)) + ' · ' + esc(rel(nx.run_at)) + '</span>' : esc(T('nextRunNone'))) + '</dd></div>' +
       '<div><dt>' + esc(T('lastCheckH')) + '</dt><dd>' + (o.lastCheckAt ? esc(rel(o.lastCheckAt)) : esc(T('lastCheckNever'))) + '</dd></div>' +
       '<div><dt>' + esc(T('managingH')) + '</dt><dd>' + esc(managing) + '</dd></div></dl></div>';
+    // The Launch note belongs to the accounts card (inside a card, not loose under the rail).
+    var launchNote = '<p class="atm-note">' + esc(T('launchNote')) + ' <button type="button" class="atm-link" data-au="launch">' + esc(T('openLaunch')) + '</button></p>';
     if ((o.accounts || []).length) rail += '<div class="atm-card"><h2 class="atm-h2">' + esc(T('accountsH')) + '</h2><ul class="atm-accts">' + (o.accounts || []).map(function (a) {
         return '<li><span class="atm-dot' + (a.connected ? ' is-on' : '') + '" aria-hidden="true"></span>' + esc(platName(a.platform)) + '<span class="atm-muted">' + esc(a.connected ? T('connected') : T('notConnected')) + '</span></li>';
-      }).join('') + '</ul>' + ((o.accounts || []).some(function (a) { return !a.connected; }) ? '<button type="button" class="atm-link" data-au="connect">' + esc(T('connect')) + '</button>' : '') + '</div>';
+      }).join('') + '</ul>' + ((o.accounts || []).some(function (a) { return !a.connected; }) ? '<button type="button" class="atm-link" data-au="connect">' + esc(T('connect')) + '</button>' : '') + launchNote + '</div>';
+    else rail += '<div class="atm-card">' + launchNote + '</div>';
     main += '<div class="atm-card"><div class="atm-card-head"><h2 class="atm-h2">' + esc(T('recentH')) + '</h2>' + (A.activity.length ? '<button type="button" class="atm-link" data-tab="activity">' + esc(T('viewAll')) + '</button>' : '') + '</div>' +
       (A.activity.length ? '<ul class="atm-acts">' + A.activity.slice(0, 5).map(actRow).join('') + '</ul>' : '<p class="atm-muted">' + esc(T('noActivity')) + '</p>') + '</div>';
-    rail += '<p class="atm-note">' + esc(T('launchNote')) + ' <button type="button" class="atm-link" data-au="launch">' + esc(T('openLaunch')) + '</button></p>';
     return html + '<div class="atm-ovgrid"><div class="atm-ovmain">' + main + '</div><aside class="atm-ovrail" aria-label="' + esc(T('accountsH')) + '">' + rail + '</aside></div>';
   }
 

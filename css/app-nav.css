@@ -186,13 +186,14 @@ html body .orv-mob-drawer .orv-mob-drawer-bottom.onv-foot-host { padding: 8px 12
 .onv-dev-page__body { margin: 0 auto 24px; max-width: 46ch; font-size: 15px; line-height: 1.55; }
 .onv-dev-page__alt { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 
-.onv-cb { max-width: 960px; margin: 0; } /* left-aligned like every other page */
+.onv-cb { max-width: 1440px; margin: 0; } /* left-aligned like every other page; same width */
 .onv-cb__head h1 { margin: 0 0 8px; font-size: clamp(26px, 3vw, 32px); line-height: 1.15; font-weight: 600; letter-spacing: -.02em; color: var(--onv-strong); }
 .onv-cb__head p { margin: 0 0 24px; max-width: 60ch; font-size: 14.5px; line-height: 1.55; }
 .onv-cb__resume { all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; width: 100%; margin: 0 0 16px; padding: 14px 16px; border-radius: 12px; cursor: pointer; background: var(--onv-acc-bg); }
 .onv-cb__resume span { font: 500 11px/1.2 var(--onv-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--onv-muted); }
 .onv-cb__resume b { font-size: 15px; color: var(--onv-strong); }
-.onv-cb__list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--onv-line); }
+.onv-cb__list { list-style: none; margin: 0; padding: 4px 20px; border: 1px solid var(--onv-line); border-radius: 12px; background: var(--onv-surface); } /* the list is one card */
+.onv-cb__list li:last-child { border-bottom: 0; }
 .onv-cb__list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 2px; border-bottom: 1px solid var(--onv-line); }
 .onv-cb__c { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .onv-cb__c b { color: var(--onv-strong); font-weight: 600; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

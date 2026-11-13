@@ -9,7 +9,7 @@
 .gx-head { flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .gx-head > div { display: flex; flex-direction: column; gap: 6px; max-width: 70ch; }
 .gx-sec { display: flex; flex-direction: column; gap: 12px; }
-.gx-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.gx-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: stretch; } /* cards in a row: one height */
 .gx-cols--cmp { grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); }
 .gx-card { gap: 12px; }
 .gx-card__h, .gx-comp__h, .gx-set__h { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
@@ -86,7 +86,7 @@
 
 /* Creative Testing: versions side by side */
 .gx-set { gap: 12px; }
-.gx-compare { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.gx-compare { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; } /* auto-fit: the versions share the full row (no empty tracks) */
 .gx-var { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 12px; border: 1px solid var(--border); border-radius: 12px; min-width: 0; }
 .gx-var.is-picked { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
 .gx-var__n { font: 600 11px/1 'Geist Mono', ui-monospace, monospace; color: var(--muted); }
@@ -97,7 +97,7 @@
 .gx-ok { font-size: 12.5px; font-weight: 650; color: var(--rx-ok); align-self: center; }
 
 /* Campaign Comparison */
-.gx-cmp { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.gx-cmp { display: flex; flex-direction: column; gap: 12px; min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px; } /* a card, like the campaigns list beside it (.rx-card) */
 .gx-cmp > .rx-h2 { margin: 0; }
 .gx-table { min-width: 0; }
 .gx-th { display: block; font-size: 11px; text-transform: none; letter-spacing: 0; font-weight: 500; }
