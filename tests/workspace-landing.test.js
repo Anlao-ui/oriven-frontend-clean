@@ -33,19 +33,31 @@ const srv = http.createServer((q, r) => {
     let page = await open(1440, 900);
     const ws = await page.evaluate(() => {
       const s = document.getElementById('workspace');
-      return { h2: s.querySelector('h2').textContent, steps: [...s.querySelectorAll('.ik-ws__step')].map((li) => ({ t: li.querySelector('h3').textContent, tag: li.querySelector('.ow-tag').textContent, links: [...li.querySelectorAll('.ik-ws__pages a')].map((a) => a.getAttribute('href')) })),
-        legend: [...s.querySelectorAll('.ik-ws__legend .ow-tag')].map((t) => t.textContent), honest: (s.querySelector('.ik-ws__honest') || {}).textContent || '', ow: !!document.querySelector('link[href="/css/ow-system.css"]'), owJs: !!window.owUI,
+      return { h2: s.querySelector('h2').textContent, steps: [...s.querySelectorAll('.ik-ws__step')].map((li) => { const a = li.querySelector('a.ik-ws__block'); return { t: li.querySelector('h3').textContent, href: a && a.getAttribute('href'), num: (li.querySelector('.ik-ws__num') || {}).textContent, icon: !!li.querySelector('.ik-ws__ico svg'), paras: li.querySelectorAll('p').length }; }),
+        // Everything in the section besides the eyebrow, the heading and the seven blocks.
+        extra: [...s.querySelectorAll('p, ul, .ow-lead, .ik-ws__legend, .ik-ws__honest')].filter((e) => !e.classList.contains('ow-eyebrow') && !e.closest('.ik-ws__flow')).map((e) => e.className || e.tagName),
+        ow: !!document.querySelector('link[href="/css/ow-system.css"]'), owJs: !!window.owUI,
         heroCta: [...document.querySelectorAll('.ik-hero .ik-btn')].map((a) => a.getAttribute('href')) };
     });
-    check('1.1 seven connected steps from business to scaling, in order', ws.steps.map((x) => x.t).join('|') === 'Understand your business|Plan your strategy|Research the market|Create the ads|Prepare the campaign|Launch and follow results|Optimise and scale', ws.steps.map((x) => x.t));
-    check('1.2 every step says where the work happens (In OrivenAI / Prepared for you / Through your ad account), with a legend', ws.steps.every((x) => ['In OrivenAI', 'Prepared for you', 'Through your ad account'].includes(x.tag)) && ws.legend.length === 3 && ws.steps[4].tag === 'Prepared for you' && ws.steps[5].tag === 'Through your ad account', ws.steps.map((x) => x.tag));
+    check('1.1 exactly seven workflow blocks, in order: Understand your business … Optimize and scale', ws.steps.map((x) => x.t).join('|') === 'Understand your business|Plan your strategy|Research the market|Create the ads|Prepare the campaign|Launch and follow results|Optimize and scale', ws.steps.map((x) => x.t));
+    check('1.2 the section is only its heading and the seven blocks: no intro, legend, notes or paragraphs; each block is a number, an icon and a title', ws.h2 === 'Everything your advertising needs, in one place.' && ws.extra.length === 0 && ws.steps.every((x, i) => x.num === String(i + 1).padStart(2, '0') && x.icon && x.paras === 0), { extra: ws.extra, steps: ws.steps });
     const known = ['/business', '/research', '/create', '/launch', '/campaigns', '/autopilot'];
-    check('1.3 each step links to the real section pages it uses', ws.steps.every((x) => x.links.length && x.links.every((l) => known.includes(l))) && known.every((k) => fs.existsSync(path.join(ROOT, k.slice(1) + '.html'))), ws.steps.map((x) => x.links));
-    check('1.4 states what is NOT done for you (no custom audiences in the ad account; nothing published unless chosen)', /doesn’t create custom audiences/.test(ws.honest) && /nothing is published until you choose/.test(ws.honest), ws.honest);
+    check('1.3 each block opens the real section page for that step', ws.steps.map((x) => x.href).join() === '/business,/business,/research,/create,/launch,/campaigns,/autopilot' && known.every((k) => fs.existsSync(path.join(ROOT, k.slice(1) + '.html'))), ws.steps.map((x) => x.href));
     check('1.5 the hero leads to the workspace; the shared design layer (css/ow-system.css, js/ow-ui.js) is loaded', ws.heroCta.join() === '/signup,#workspace' && ws.ow && ws.owJs, ws);
-    await scrollTo(page, 'workspace'); await page.waitForTimeout(800);
-    const lay = await page.evaluate(() => { const c = [...document.querySelectorAll('.ik-ws__card')].map((x) => x.getBoundingClientRect()); const rows = {}; c.forEach((r) => { const k = Math.round(r.top); (rows[k] = rows[k] || []).push(Math.round(r.height)); }); return { rows: Object.values(rows), widths: [...new Set(c.map((r) => Math.round(r.width)))] }; });
-    check('1.6 cards in a row share one height and every card one width (4 + 3, the last row centred)', lay.rows.length === 2 && lay.rows.every((r) => new Set(r).size === 1) && lay.widths.length === 1 && lay.rows[0].length === 4 && lay.rows[1].length === 3, lay);
+    await scrollTo(page, 'workspace'); await page.waitForTimeout(900);
+    const lay = await page.evaluate(() => { const c = [...document.querySelectorAll('.ik-ws__block')].map((x) => x.getBoundingClientRect()); const head = document.querySelector('#workspace h2').getBoundingClientRect(); return { tops: [...new Set(c.map((r) => Math.round(r.top)))], heights: [...new Set(c.map((r) => Math.round(r.height)))], widths: [...new Set(c.map((r) => Math.round(r.width)))], left: Math.round(c[0].left), right: Math.round(c[6].right), headLeft: Math.round(head.left), vw: innerWidth }; });
+    check('1.6 at 1440 px all seven blocks sit in one row, one width and one height each, aligned with the heading and spanning the content width', lay.tops.length === 1 && lay.heights.length === 1 && lay.widths.length === 1 && lay.left === lay.headLeft && lay.right - lay.left > lay.vw * 0.85, lay);
+    // Hover with the real mouse, then keyboard focus: the block lifts, gains a shadow; focus also shows an outline.
+    const b4 = await page.locator('#workspace .ik-ws__block').nth(3).boundingBox();
+    await page.mouse.move(b4.x + b4.width / 2, b4.y + b4.height / 2); await page.waitForTimeout(450);
+    const hov = await page.evaluate(() => { const s = getComputedStyle(document.querySelectorAll('#workspace .ik-ws__block')[3]); return { y: new DOMMatrix(s.transform).m42, shadow: s.boxShadow !== 'none', transition: /transform/.test(s.transitionProperty) }; });
+    await page.mouse.move(5, 5); await page.waitForTimeout(400);
+    await page.focus('#workspace .ik-ws__block >> nth=5'); await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Tab'); await page.waitForTimeout(450);
+    const foc = await page.evaluate(() => { const a = document.activeElement; const s = getComputedStyle(a); return { isBlock: a.classList.contains('ik-ws__block'), y: new DOMMatrix(s.transform).m42, outline: s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0 }; });
+    check('1.4 hover lifts a block with a soft shadow (animated); keyboard focus gives the same lift plus an outline', hov.y < 0 && hov.y >= -6 && hov.shadow && hov.transition && foc.isBlock && foc.y < 0 && foc.outline, { hov, foc });
+    { const big = await open(1920, 1080); await scrollTo(big, 'workspace'); await big.waitForTimeout(700);
+      const l2 = await big.evaluate(() => { const c = [...document.querySelectorAll('.ik-ws__block')].map((x) => x.getBoundingClientRect()); return { tops: [...new Set(c.map((r) => Math.round(r.top)))], span: Math.round(c[6].right - c[0].left), vw: innerWidth }; });
+      check('1.7 at 1920 px still one row, using most of the screen width', l2.tops.length === 1 && l2.span > 1400, l2); await big.close(); }
 
     console.log('\n2. The plan roadmap');
     const plan = await page.evaluate(() => { const s = document.getElementById('plan'); return { h2: s.querySelector('h2').textContent, phases: s.querySelectorAll('.ik-road__phases li').length, now: (s.querySelector('.ik-road__phases [aria-current="step"]') || {}).textContent, tasks: [...s.querySelectorAll('.ik-road__task')].map((t) => t.className.replace('ik-road__task ', '')), dl: [...s.querySelectorAll('.ik-road__task.is-now dt')].map((d) => d.textContent), tool: (s.querySelector('.ik-road__tool') || {}).getAttribute && s.querySelector('.ik-road__tool').getAttribute('href'), label: /Illustrative example/.test(s.textContent), text: s.textContent }; });
@@ -75,10 +87,10 @@ const srv = http.createServer((q, r) => {
     const html = ['index.html', 'home.html', 'product.html', 'business.html', 'create.html', 'research.html', 'campaigns.html', 'faq.html', 'solutions/connected-workflow.html', 'solutions/plan-to-content.html', 'solutions/advertising-campaigns.html'].map((f) => [f, fs.readFileSync(path.join(ROOT, f), 'utf8')]);
     const dev = html.filter(([, s]) => /In development|Not in the app yet|still in development|is in development/.test(s)).map(([f]) => f);
     check('5.1 no page claims that Progress, My Content, Insights or Campaign Builder are "in development" (they are in the app)', dev.length === 0, dev);
-    for (const [w, h] of [[1024, 768], [390, 844]]) {
+    for (const [w, h, want] of [[1024, 768, 4], [800, 1000, 2], [390, 844, 1]]) {
       const p2 = await open(w, h);
-      const m = await p2.evaluate(() => ({ ov: document.documentElement.scrollWidth - innerWidth, inner: (() => { const v = document.getElementById('view-landing'); return v.scrollWidth - v.clientWidth; })(), cols: getComputedStyle(document.querySelector('.ik-ws__flow')).gridTemplateColumns.split(' ').length }));
-      check(`5.${w} ${w}px: no horizontal overflow; the workspace steps reflow (${m.cols} column${m.cols === 1 ? '' : 's'})`, m.ov <= 0 && m.inner <= 0 && (w > 640 ? m.cols === 2 : m.cols === 1), m);
+      const m = await p2.evaluate(() => ({ ov: document.documentElement.scrollWidth - innerWidth, inner: (() => { const v = document.getElementById('view-landing'); return v.scrollWidth - v.clientWidth; })(), cols: getComputedStyle(document.querySelector('.ik-ws__flow')).gridTemplateColumns.split(' ').length, minW: Math.min(...[...document.querySelectorAll('.ik-ws__block')].map((b) => b.getBoundingClientRect().width)) }));
+      check(`5.${w} ${w}px: no horizontal overflow; the seven blocks reflow to ${want} column${want === 1 ? '' : 's'} (never narrower than 160 px)`, m.ov <= 0 && m.inner <= 0 && m.cols === want && m.minW >= 160, m);
       await p2.close();
     }
     check('Z. no page errors', errors.length === 0, errors);

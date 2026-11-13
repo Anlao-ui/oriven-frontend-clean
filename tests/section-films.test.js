@@ -56,16 +56,19 @@ const srv = http.createServer((q, r) => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } }); page.on('pageerror', (e) => errors.push(e.message));
     const mp4Requests = []; page.on('request', (rq) => { if (/\.mp4/.test(rq.url())) mp4Requests.push(rq.url()); });
     await page.goto(BASE + '/', { waitUntil: 'load' }); await page.addStyleTag({ content: '.orv-cc{display:none!important}' }); await page.waitForTimeout(900);
-    const pre = await page.evaluate(() => ({ films: [...document.querySelectorAll('#inside .ik-shot')].map((s) => s.getAttribute('data-film')), caps: [...document.querySelectorAll('#inside .ik-shot')].map((s) => s.getAttribute('data-captions')), videos: document.querySelectorAll('#inside video').length, tabs: [...document.querySelectorAll('#inside .ik-tab')].map((t) => t.textContent.replace(/^\d+/, '').trim()) }));
-    check('2.1 six tabs (Control Center … Automations), each with its new film and captions; no video element and no film download before a click', pre.films.length === 6 && pre.films.every((f, i) => f === '/assets/films/sections/' + KEYS[i] + '.mp4') && pre.caps.every((c, i) => c === '/assets/films/sections/' + KEYS[i] + '.vtt') && pre.videos === 0 && mp4Requests.length === 0, pre);
+    // Since 2026-11 the homepage tabs hold the six full tutorials (assets/films/tutorials);
+    // the short section films stay on the public section pages (part 3 below).
+    const pre = await page.evaluate(() => ({ films: [...document.querySelectorAll('#inside .ik-shot [data-ik-play]')].map((s) => s.getAttribute('data-ow-video')), caps: [...document.querySelectorAll('#inside .ik-shot [data-ik-play]')].map((s) => s.getAttribute('data-ow-captions')), videos: document.querySelectorAll('#inside video').length, tabs: [...document.querySelectorAll('#inside .ik-tab')].map((t) => t.textContent.replace(/^\d+/, '').trim()) }));
+    check('2.1 six tabs (Control Center … Automations), each with its section’s tutorial and captions; no video element and no film download before a click', pre.films.length === 6 && pre.tabs.join() === 'Control Center,Research,Create,Launch,Campaigns,Automations' && pre.films.every((f, i) => f === '/assets/films/tutorials/' + KEYS[i] + '.mp4') && pre.caps.every((c, i) => c === '/assets/films/tutorials/' + KEYS[i] + '.vtt') && pre.videos === 0 && mp4Requests.length === 0, pre);
     await page.evaluate(() => { const v = document.getElementById('view-landing'); v.scrollTop += document.getElementById('inside').getBoundingClientRect().top - 80; }); await page.waitForTimeout(900);
     const played = [];
     for (let i = 0; i < 6; i++) {
       await page.click('#inside .ik-tab >> nth=' + i); await page.waitForTimeout(200);
       await page.click('#inside .ik-shot.is-active [data-ik-play]'); await page.waitForTimeout(1600);
-      played.push(await page.evaluate(() => { const v = document.querySelector('#inside .ik-shot.is-active video'); return v ? { t: +v.currentTime.toFixed(2), src: v.currentSrc.replace(location.origin, ''), track: !!v.querySelector('track[kind="captions"][default]'), muted: v.muted, controls: v.controls, err: v.error && v.error.code } : null; }));
+      played.push(await page.evaluate(() => { const pl = document.querySelector('.ow-player'); const v = pl && pl.querySelector('video'); return v ? { open: pl.classList.contains('is-open'), t: +v.currentTime.toFixed(2), src: v.currentSrc.replace(location.origin, ''), track: !!v.querySelector('track[kind="captions"][default]'), controls: v.controls, err: v.error && v.error.code, inline: document.querySelectorAll('#inside video').length } : null; }));
+      await page.keyboard.press('Escape'); await page.waitForTimeout(250);
     }
-    check('2.2 each tab’s Play starts that film: it advances, has controls and a default captions track, and plays without sound (the files have no audio)', played.every((x, i) => x && x.t > 0.3 && x.src === '/assets/films/sections/' + KEYS[i] + '.mp4' && x.track && x.muted && x.controls && !x.err), played);
+    check('2.2 each tab’s Play opens that section’s tutorial in the shared player: it advances, has controls and a default captions track; no inline copy in the frame', played.every((x, i) => x && x.open && x.t > 0.3 && x.src === '/assets/films/tutorials/' + KEYS[i] + '.mp4' && x.track && x.controls && !x.err && x.inline === 0), played);
     await page.close();
 
     console.log('\n3. Public section pages: "Watch the overview"');
