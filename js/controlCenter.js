@@ -399,7 +399,7 @@
   // (#owNeedsList, orivenWorkspace.js) render rows with data-rank
   // (0 = problem, 1 = needs attention, 2 = ready). This orders them as one
   // list (CSS order), shows the first three, and sets the card's state.
-  var expanded = false, MAX = 3;
+  var expanded = false, MAX = 2; // two rows fit the one-screen Dashboard; "View all" shows the rest
   function needsSync() {
     var card = document.getElementById('owNeeds'); if (!card) return;
     var rows = Array.prototype.slice.call(card.querySelectorAll('[data-rank]'));

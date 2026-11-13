@@ -295,12 +295,13 @@
         '<h1 id="mplTitle">' + esc(d.businessName ? d.businessName : 'Your marketing plan') + '</h1>' +
         '<p class="mpl-promise">A plan built around your business: a personalised advertising strategy, organised into clear phases and tasks you can act on.</p>' +
         (meta ? '<p class="mpl-meta">' + esc(meta) + '</p>' : '') +
+        // The plan's one-line summary belongs to the title card.
+        (P.summary ? '<p class="mpl-summary">' + esc(P.summary) + '</p>' : '') +
         regenBanner(d) +
         (P.request ? '<p class="mpl-asked"><span>You asked</span>“' + esc(P.request) + '”</p>' : '') +
         (busy ? '' : '<div class="mpl-tools"><button type="button" class="onv-btn" data-mpl-update aria-expanded="false" aria-controls="mplUpdate">Write a new plan</button></div>' +
         '<div class="mpl-update" id="mplUpdate" hidden>' + updateHtml(d) + '</div>') +
       '</header>' +
-      (P.summary ? '<p class="mpl-summary">' + esc(P.summary) + '</p>' : '') +
       '<nav class="mpl-toc" aria-label="Sections of your plan"><ol>' + present.map(function (s) { return '<li><a href="#mpl-' + s[0] + '" data-mpl-jump="' + s[0] + '">' + esc(s[0] === 'roadmap' && h && h.label ? 'Action plan · ' + h.label : s[1]) + '</a></li>'; }).join('') + '</ol></nav>' +
       (function () {
         var sec = function (s, cls) { return '<section class="mpl-sec' + (cls ? ' ' + cls : '') + '" id="mpl-' + s[0] + '" aria-labelledby="mpl-' + s[0] + '-h"><h2 id="mpl-' + s[0] + '-h">' + esc(s[0] === 'roadmap' && h && h.label ? 'Action plan · ' + h.label : s[1]) + '</h2>' + body[s[0]] + '</section>'; };

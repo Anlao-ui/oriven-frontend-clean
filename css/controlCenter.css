@@ -380,7 +380,7 @@ button.ccx-step-btn:hover { background: var(--ccx-raise); }
    (nothing is clipped or hidden), and the business context list scrolls
    inside its card. Tablets and phones keep the normal page scroll — the
    stacked cards can't fit one screen without hiding information. */
-@media (min-width: 1100px) and (min-height: 560px) {
+@media (min-width: 1100px) and (min-height: 860px) {
   #page-business-brain.biz-canvas-active .orv-page-wrap-biz { height: 100vh; height: 100dvh; min-height: 0; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
   #page-business-brain.biz-canvas-active #bizPanelOverview,
   #page-business-brain.biz-canvas-active #bizCanvas,

@@ -75,8 +75,10 @@
   // ── Rendering ───────────────────────────────────────────────────
   function render() {
     var root = document.getElementById('insRoot'); if (!root) return;
-    var head = '<header class="rx-head ins-head"><div><h1 class="rx-title">Insights</h1><p class="rx-sub">What your research has found, in one place — findings, opportunities and next actions, each linked to the report it came from.</p></div>' +
-      '<button type="button" class="rx-btn rx-btn-ghost" data-ins="new">New research</button></header>';
+    // The title card; the counts line (reports · findings · opportunities) sits inside it.
+    var headWith = function (facts) { return '<header class="rx-head ins-head"><div><h1 class="rx-title">Insights</h1><p class="rx-sub">What your research has found, in one place — findings, opportunities and next actions, each linked to the report it came from.</p>' + (facts || '') + '</div>' +
+      '<button type="button" class="rx-btn rx-btn-ghost" data-ins="new">New research</button></header>'; };
+    var head = headWith('');
     if (!S.data && !S.err) { root.innerHTML = head + '<p class="rx-muted">Loading your insights…</p>'; return; }
     if (S.err && !S.data) { root.innerHTML = head + '<div class="rx-card ins-empty" data-state="error"><p>Your insights couldn’t load.</p><button type="button" class="rx-btn rx-btn-ghost" data-ins="retry">Try again</button></div>'; return; }
     var reps = readyReports(), all = S.data.reports || [];
@@ -91,8 +93,7 @@
     var d = S.data, saved = savedSet();
     var types = []; reps.forEach(function (r) { if (r.type && types.indexOf(r.type) === -1) types.push(r.type); });
     var counts = { overview: d.findings.length + d.opportunities.length + d.actions.length, library: all.length, saved: Object.keys(saved).length };
-    root.innerHTML = head +
-      '<p class="ins-facts">' + esc(reps.length + ' report' + (reps.length === 1 ? '' : 's') + ' · ' + d.findings.length + ' key finding' + (d.findings.length === 1 ? '' : 's') + ' · ' + d.opportunities.length + ' opportunit' + (d.opportunities.length === 1 ? 'y' : 'ies')) + '</p>' +
+    root.innerHTML = headWith('<p class="ins-facts">' + esc(reps.length + ' report' + (reps.length === 1 ? '' : 's') + ' · ' + d.findings.length + ' key finding' + (d.findings.length === 1 ? '' : 's') + ' · ' + d.opportunities.length + ' opportunit' + (d.opportunities.length === 1 ? 'y' : 'ies')) + '</p>') +
       '<div class="ins-bar">' +
         '<div class="ins-tabs" role="tablist" aria-label="Insights views">' + [['overview', 'Overview'], ['library', 'Library'], ['saved', 'Saved']].map(function (t) {
           return '<button type="button" role="tab" class="ins-tab' + (S.tab === t[0] ? ' is-on' : '') + '" aria-selected="' + (S.tab === t[0]) + '" data-ins="tab" data-tab="' + t[0] + '">' + t[1] + '<span class="ins-n">' + counts[t[0]] + '</span></button>';
