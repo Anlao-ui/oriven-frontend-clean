@@ -31,7 +31,7 @@ function _setAppRoute(route){
 // runs first regardless of which page the user lands on), reusing the
 // same per-provider names/messages every other Connections surface
 // uses — no more drifted duplicate copies.
-var _OAUTH_RETURN_PLATFORM_NAMES = { google: "Google Ads", meta: "Meta Ads", tiktok: "TikTok Ads", pinterest: "Pinterest Ads" };
+var _OAUTH_RETURN_PLATFORM_NAMES = { google: "Google Ads", meta: "Meta Ads", tiktok: "TikTok Ads", pinterest: "Pinterest Ads", snapchat: "Snapchat Ads" };
 var _OAUTH_RETURN_ERROR_MAP = {
   access_denied:  "sign-in was cancelled.",
   token_exchange: "connection failed — please try again.",
@@ -389,7 +389,8 @@ function _detectPendingOAuthReturn(){
     ["google", "google_connected", "google_error"],
     ["tiktok", "tiktok_connected", "tiktok_error"],
     ["meta", "meta_connected", "meta_error"],
-    ["pinterest", "pinterest_connected", "pinterest_error"]
+    ["pinterest", "pinterest_connected", "pinterest_error"],
+    ["snapchat", "snapchat_connected", "snapchat_error"]
   ];
   for(var i = 0; i < _platformParams.length; i++){
     var provider = _platformParams[i][0], connectedKey = _platformParams[i][1], errorKey = _platformParams[i][2];

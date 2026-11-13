@@ -12,6 +12,9 @@
     // ── Structure names ────────────────────────────────────────────
     ofl_hCampaign: ['Campaign', 'Campagne', 'Kampagne', 'Campagne', 'Campaña', 'Campanha'],
     ofl_hAdGroup: ['Ad group', 'Advertentiegroep', 'Anzeigengruppe', 'Groupe d’annonces', 'Grupo de anuncios', 'Grupo de anúncios'],
+    ofl_hAdSquad: ['Ad squad', 'Ad squad', 'Ad Squad', 'Ad squad', 'Ad squad', 'Ad squad'],
+    ofl_snapHeadlineNote: ['Snapchat shows at most 34 characters.', 'Snapchat toont maximaal 34 tekens.', 'Snapchat zeigt höchstens 34 Zeichen.', 'Snapchat affiche 34 caractères au maximum.', 'Snapchat muestra como máximo 34 caracteres.', 'O Snapchat mostra no máximo 34 caracteres.'],
+    ofl_budgetHintSnap: ['Snapchat needs at least 5 per day for each ad squad; OrivenAI splits this budget evenly over the ad squads.', 'Snapchat vraagt minimaal 5 per dag per ad squad; OrivenAI verdeelt dit budget gelijk over de ad squads.', 'Snapchat verlangt mindestens 5 pro Tag je Ad Squad; OrivenAI verteilt dieses Budget gleichmäßig auf die Ad Squads.', 'Snapchat exige au moins 5 par jour par ad squad ; OrivenAI répartit ce budget équitablement entre les ad squads.', 'Snapchat pide al menos 5 al día por ad squad; OrivenAI reparte este presupuesto a partes iguales entre los ad squads.', 'O Snapchat exige pelo menos 5 por dia por ad squad; a OrivenAI divide este orçamento igualmente pelos ad squads.'],
     ofl_hRsa: ['Responsive search ad', 'Responsieve zoekadvertentie', 'Responsive Suchanzeige', 'Annonce responsive sur le Réseau de Recherche', 'Anuncio de búsqueda adaptable', 'Anúncio de pesquisa responsivo'],
     ofl_hAdSet: ['Ad set', 'Advertentieset', 'Anzeigengruppe', 'Ensemble de publicités', 'Conjunto de anuncios', 'Conjunto de anúncios'],
     ofl_hAd: ['Ad', 'Advertentie', 'Anzeige', 'Annonce', 'Anuncio', 'Anúncio'],

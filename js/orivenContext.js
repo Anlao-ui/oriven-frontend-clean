@@ -191,7 +191,8 @@
         google: !!(window._gadsConnected || (pd.google && pd.google.connected)),
         meta: !!(window._metaConnected || (pd.meta && pd.meta.connected)),
         tiktok: !!(window._tiktokConnected || (pd.tiktok && pd.tiktok.connected)),
-        pinterest: !!(pd.pinterest && pd.pinterest.connected)
+        pinterest: !!(pd.pinterest && pd.pinterest.connected),
+        snapchat: !!(pd.snapchat && pd.snapchat.connected)
       }
     };
   };

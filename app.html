@@ -1687,6 +1687,40 @@
             </div>
           </div>
 
+          <!-- Snapchat Ads — OAuth (scope snapchat-marketing-api), same card
+               shape as Pinterest. The Public Profile ID (optional; shown on
+               Snap Ads) is entered here once an ad account is selected —
+               Snap's Public Profile listing API is allow-listed, so it can't
+               be picked from a list. -->
+          <div class="con-card" id="conCardSnapchat">
+            <div class="con-card-top">
+              <div class="con-card-logo con-logo-snapchat">
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22" aria-hidden="true"><path d="M10 3.6c2.2 0 3.7 1.6 3.7 3.8v1.8l1.3.35-.95.95c.5 1.1 1.45 1.8 2.3 2.15-.75.65-1.9.7-2.55.95-.35.7-1 1.35-3.8 1.35s-3.45-.65-3.8-1.35c-.65-.25-1.8-.3-2.55-.95.85-.35 1.8-1.05 2.3-2.15l-.95-.95 1.3-.35V7.4c0-2.2 1.5-3.8 3.7-3.8z" fill="#fff" stroke="#111" stroke-width=".9" stroke-linejoin="round"/></svg>
+              </div>
+              <button type="button" class="con-card-open" onclick="_orvPlatOpen('snapchat')" aria-label="Open Snapchat Ads Manager in a new tab" title="Open Snapchat Ads Manager"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg></button>
+              <div class="con-card-status" id="conStatusSnapchat">
+                <div class="con-dot con-dot-off"></div>
+                <span data-i18n="conNotConnected">Not connected</span>
+              </div>
+            </div>
+            <div class="con-card-name">Snapchat Ads</div>
+            <div class="con-card-details">
+              <div class="con-detail-row">
+                <span class="con-detail-lbl" data-i18n="conDetailConnectedAccounts">Connected Accounts</span>
+                <span class="con-detail-val" id="conAccSnapchat">—</span>
+              </div>
+            </div>
+            <!-- Account list injected here when connected -->
+            <div id="conAcctListSnapchat" class="con-acct-list" style="display:none"></div>
+            <div id="conAcctErrSnapchat" class="con-acct-err" style="display:none"></div>
+            <div id="conSnapProfile" class="con-snap-profile" style="display:none"></div>
+            <div id="conReadySnapchat" class="con-ready-row" style="display:none"></div>
+            <div class="con-card-foot">
+              <button class="con-btn-connect" id="conBtnSnapchat" onclick="conConnect('snapchat')" data-i18n="conConnectSnapchatBtn">Connect Snapchat Ads →</button>
+              <button class="con-btn-disconnect" id="conBtnSnapchatDisc" style="display:none" onclick="conDisconnect('snapchat')" data-i18n="conDisconnectBtn">Disconnect</button>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -2423,7 +2457,7 @@
     // reads c.manual, so an existing OrivenAI-generated campaign — which
     // never has this field — is completely unaffected by any of this).
 
-    var _MC_PLAT_LABELS = { google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads', linkedin:'LinkedIn Ads', pinterest:'Pinterest Ads' };
+    var _MC_PLAT_LABELS = { google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads', linkedin:'LinkedIn Ads', pinterest:'Pinterest Ads', snapchat:'Snapchat Ads' };
     var _MC_STATUS_LABELS = { active:'Active', paused:'Paused', draft:'Draft', completed:'Completed', archived:'Archived' };
 
     function _mcEsc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -4770,6 +4804,9 @@
       ],
       pinterest: [
         { key:'feed', label:'Home Feed', orient:'tall' }
+      ],
+      snapchat: [
+        { key:'snap', label:'Full screen', orient:'tall' }
       ]
     };
     function _awPlacementsFor(pkg, plat){
@@ -7815,6 +7852,7 @@ var _STATUS_CLS    = { draft:'clib-status-draft', generated:'clib-status-generat
 var _GOAL_CLS = { Sales:'cc3-goal-sales', Leads:'cc3-goal-leads', Traffic:'cc3-goal-traffic', Awareness:'cc3-goal-awareness' };
 
 var _PLAT_ICONS = {
+  snapchat: '<svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><rect width="12" height="12" rx="3" fill="#FFFC00"/><path d="M6 2.5c1.25 0 2.15.95 2.15 2.2v1.05l.75.2-.55.55c.3.65.85 1.05 1.35 1.25-.45.4-1.1.4-1.5.55-.2.4-.6.8-2.2.8s-2-.4-2.2-.8c-.4-.15-1.05-.15-1.5-.55.5-.2 1.05-.6 1.35-1.25l-.55-.55.75-.2V4.7c0-1.25.9-2.2 2.15-2.2z" fill="#fff" stroke="#111" stroke-width=".55" stroke-linejoin="round"/></svg>',
   google: '<svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><path d="M10.9 6.1c0-.4 0-.8-.1-1.1H6v2.1h2.8a2.4 2.4 0 0 1-1 1.5v1.2h1.7c1-1 1.4-2.3 1.4-3.7z" fill="#4285F4"/><path d="M6 11c1.4 0 2.6-.5 3.5-1.3l-1.7-1.3a3.2 3.2 0 0 1-1.8.5 3.2 3.2 0 0 1-3-2.1H1.3v1.3A5.3 5.3 0 0 0 6 11z" fill="#34A853"/><path d="M3 6.8a3.1 3.1 0 0 1 0-1.6V3.9H1.3a5.3 5.3 0 0 0 0 4.2L3 6.8z" fill="#FBBC05"/><path d="M6 2.7c.8 0 1.5.3 2 .8L9.6 1.9A5.3 5.3 0 0 0 1.3 3.9L3 5.2a3.2 3.2 0 0 1 3-2.5z" fill="#EA4335"/></svg>',
   meta:   '<svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><rect width="12" height="12" rx="3" fill="#1877F2"/><path d="M8.1 6a2.1 2.1 0 1 0-4.2 0c0 1 .7 1.8 1.7 2V7H4.7V6h.9V5.3c0-.6.3-.9.9-.9h.5V5.2h-.4c-.2 0-.2.1-.2.3V6h.7L7 7H6.4v1c1-.2 1.7-1 1.7-2z" fill="white"/></svg>',
   tiktok: '<svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" width="11" height="11" style="flex-shrink:0"><rect width="12" height="12" rx="3" fill="#010101"/><path d="M7.9 3.1h-.9v3.7a.75.75 0 1 1-1-.7V4.8a2.5 2.5 0 1 0 2.2 2.5V4.8c.3.2.7.3 1.1.3V4a1.1 1.1 0 0 1-1.4-.9z" fill="white"/></svg>',
@@ -7830,7 +7868,7 @@ function _renderCampCard(c){
   var goalCls = _GOAL_CLS[goal] || 'cc3-goal-sales';
   var platAttr = c.platform ? ' data-platform="'+_esc(c.platform)+'"' : '';
   var platIcon = _PLAT_ICONS[c.platform] || '';
-  var platName = {google:'Google Ads',meta:'Meta Ads',tiktok:'TikTok Ads',linkedin:'LinkedIn Ads',pinterest:'Pinterest Ads'}[c.platform] || (c.platformLabel || c.platform || '');
+  var platName = {google:'Google Ads',meta:'Meta Ads',tiktok:'TikTok Ads',linkedin:'LinkedIn Ads',pinterest:'Pinterest Ads',snapchat:'Snapchat Ads'}[c.platform] || (c.platformLabel || c.platform || '');
   var creativeLabel = isManual ? _mcCreativeSummary(c) : (c.creativeMode === 'videos' ? 'Video' : 'Images');
   var d = new Date(c.created);
   var dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
@@ -7926,7 +7964,7 @@ function _renderCampCard(c){
    just appended after the known ones. A provider group renders ONLY
    when it has at least one real pending campaign — no empty "Google Ads
    (0 campaigns)" sections, no fabricated groups. */
-var LAUNCH_PROVIDER_ORDER = ['google', 'meta', 'tiktok', 'pinterest'];
+var LAUNCH_PROVIDER_ORDER = ['google', 'meta', 'tiktok', 'pinterest', 'snapchat'];
 
 /* Ad Library pass — real search + platform + status filtering over the
    same real pending-campaign list. Status filter uses the exact real
@@ -8240,6 +8278,7 @@ function _launchFormatLabel(camp, r){
     if (p === 'google') f = (((pkg.googleAds || {}).campaignType) || 'SEARCH') === 'SEARCH' ? 'Text ads' : 'Image ads';
     else if (p === 'tiktok') f = 'Video';
     else if (p === 'pinterest') f = ((pkg.pinterestAds || {}).creativeType === 'video') ? 'Video' : 'Image';
+    else if (p === 'snapchat') f = ((pkg.snapchatAds || {}).creativeType === 'video' || pkg.creativeFormat === 'video') ? 'Video' : 'Image';
     else f = 'Image';
   }
   return _LAUNCH_FMT_KEY[f] ? _LT(_LAUNCH_FMT_KEY[f]) : f;
@@ -8296,7 +8335,7 @@ function _renderLaunchCard(c){
 // {platform} contract, now protected by a real server-side idempotency
 // lock (server.js _acquirePublishLock/_releasePublishLock).
 // ════════════════════════════════════════════════════════════════
-var LC_PLATFORM_NAMES = { google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads', pinterest:'Pinterest Ads' };
+var LC_PLATFORM_NAMES = { google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads', pinterest:'Pinterest Ads', snapchat:'Snapchat Ads' };
 // Launch text in the user's language (js/launchI18n.js).
 function _LT(k, v){ return window.orvTx ? window.orvTx(k, v) : k; }
 var _lcState = { campId: null, camp: null, fields: null, checks: [], setupStatus: null, launching: false, selectedCheckKey: null };
@@ -8316,7 +8355,7 @@ window._launchBackToSelect = function(){
 function _launchExtractFields(pkg, platform){
   pkg = pkg || {};
   var s = pkg.strategy || {};
-  var platKey = { google:'googleAds', meta:'metaAds', tiktok:'tiktokAds', pinterest:'pinterestAds' }[platform] || 'metaAds';
+  var platKey = { google:'googleAds', meta:'metaAds', tiktok:'tiktokAds', pinterest:'pinterestAds', snapchat:'snapchatAds' }[platform] || 'metaAds';
   var m = pkg[platKey] || {};
   var visualConcepts = pkg.visualConcepts || [];
   var imageUrl = m.imageUrl || m.uploadedImageUrl ||
@@ -8651,7 +8690,7 @@ function _lqFmtDate(iso){
 // existing API path, and is the correct fix for the fake-pause trust
 // problem: a real network call and a real response, never a local-only
 // status flip pretending to be one.
-var LQ_LIVE_PLATFORM_LABEL = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
+var LQ_LIVE_PLATFORM_LABEL = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' };
 function _lqRenderControlSelectedLive(camp){
   var el = document.getElementById('lqControlCol');
   if (!el) return;
@@ -9039,6 +9078,18 @@ function _launchAdPreviewCardHtml(platform, m, imageUrl, campaignName, media){
         '<div class="lw-adp-pin-title">' + (m.title ? _prfEsc(m.title) : '<span class="lw-adp-empty">' + _prfEsc(_LT('lch_noPinTitle')) + '</span>') + '</div>' +
         (m.description ? '<div class="lw-adp-pin-desc">' + _prfEsc(m.description) + '</div>' : '') +
         '<button type="button" class="lw-adp-pin-cta" disabled>' + (m.cta ? _prfEsc(m.cta) : _prfEsc(_LT('lch_noCta'))) + '</button>' +
+      '</div>' +
+    '</div>';
+  }
+  if (platform === 'snapchat') {
+    // Snap Ad: full-screen 9:16 image/video, brand name + headline on top
+    // of the creative, swipe-up CTA at the bottom.
+    var snHl = m.headline || '';
+    return '<div class="lw-adp-card lw-adp-tiktok lw-adp-snap">' + imgHtml +
+      '<div class="lw-adp-snap-top">' + _prfEsc(m.brandName || (campaignName || _LT('lch_yourBrand')).split(' ').slice(0, 2).join(' ')) + '</div>' +
+      '<div class="lw-adp-tt-overlay">' +
+        '<div class="lw-adp-tt-hook">' + (snHl ? _prfEsc(snHl.length > 34 ? snHl.slice(0, 33) + '…' : snHl) : '<span class="lw-adp-empty">' + _prfEsc(_LT('lch_noHeadline')) + '</span>') + '</div>' +
+        '<button type="button" class="lw-adp-snap-cta" disabled>' + (m.cta ? _prfEsc(m.cta) : _prfEsc(_LT('lch_noCta'))) + '</button>' +
       '</div>' +
     '</div>';
   }
@@ -9528,7 +9579,8 @@ var _CRP_STATUS_MAP = {
   google:    { ENABLED:'Active', PAUSED:'Paused', REMOVED:'Removed', UNKNOWN:'Unknown' },
   meta:      { ACTIVE:'Active', PAUSED:'Paused', ARCHIVED:'Archived', DELETED:'Deleted', IN_PROCESS:'In Review', DISAPPROVED:'Disapproved', PAYMENT_ERROR:'Payment Error', UNKNOWN:'Unknown' },
   tiktok:    { ENABLE:'Active', DISABLE:'Paused', DELETE:'Deleted' },
-  pinterest: { RUNNING:'Active', PAUSED:'Paused', NOT_STARTED:'Not started', COMPLETED:'Completed', ADVERTISER_DISABLED:'Disabled', ARCHIVED:'Archived', DRAFT:'Draft', DELETED_DRAFT:'Deleted' }
+  pinterest: { RUNNING:'Active', PAUSED:'Paused', NOT_STARTED:'Not started', COMPLETED:'Completed', ADVERTISER_DISABLED:'Disabled', ARCHIVED:'Archived', DRAFT:'Draft', DELETED_DRAFT:'Deleted' },
+  snapchat:  { ACTIVE:'Active', PAUSED:'Paused', DELETED:'Deleted' }
 };
 function _crpStatusLabel(camp, liveRow){
   if (liveRow && liveRow.status) {
@@ -11678,7 +11730,7 @@ window.admPublishCampaign = function(campId, accountId, accountName, accountExtr
         for (var k = 0; k < _campaigns.length; k++) if (_campaigns[k].id === campId && !_campaigns[k].destinationAccountId) { _campaigns[k].destinationAccountId = accountId; _campaigns[k].destinationAccountName = accountName || accountId; _saveCamps(); }
       }
       if (typeof initAdsManager === 'function') initAdsManager();
-      var _platLabel = { google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads', pinterest:'Pinterest Ads' }[platform] || platform;
+      var _platLabel = { google:'Google Ads', meta:'Meta Ads', tiktok:'TikTok Ads', pinterest:'Pinterest Ads', snapchat:'Snapchat Ads' }[platform] || platform;
       if (typeof toast === 'function') {
         if (_res.kind === 'published' || _res.kind === 'already') { if (typeof window.notifAllowed !== 'function' || window.notifAllowed('notifPublish')) toast((_res.kind === 'already' ? 'Already on ' : 'Created on ') + _platLabel + ' — paused until you activate it.', 'ok'); }
         else toast(_res.out.title + ': ' + _res.out.message, 'error');
@@ -12003,7 +12055,7 @@ window._orvUpdateCampPkg = function(id, pkg) {
     if(_campaigns[_i].id === id){
       _campaigns[_i].pkg = pkg;
       var _pl = pkg.platform || _campaigns[_i].platform;
-      var mk = _pl==='meta'?'meta-ads':_pl==='tiktok'?'tiktok-ads':_pl==='pinterest'?'pinterest-ads':'google-ads';
+      var mk = _pl==='meta'?'meta-ads':_pl==='tiktok'?'tiktok-ads':_pl==='pinterest'?'pinterest-ads':_pl==='snapchat'?'snapchat-ads':'google-ads';
       if(_campaigns[_i].generated && _campaigns[_i].generated[mk]){
         _campaigns[_i].generated[mk].data = pkg;
       }
@@ -13337,7 +13389,8 @@ window._launchRepaint = function(){
         google: !!(window._gadsConnected || (pd.google && pd.google.connected)),
         meta: !!(window._metaConnected || (pd.meta && pd.meta.connected)),
         tiktok: !!(window._tiktokConnected || (pd.tiktok && pd.tiktok.connected)),
-        pinterest: !!(pd.pinterest && pd.pinterest.connected)
+        pinterest: !!(pd.pinterest && pd.pinterest.connected),
+        snapchat: !!(pd.snapchat && pd.snapchat.connected)
       };
     },
     enumerable: true
@@ -14746,7 +14799,7 @@ function _conApplyCard(platform, connected, detail) {
   }
 
   /* Sync into the platform data store so overview + performance pages stay consistent */
-  if (!window._orvPlatformData) window._orvPlatformData = { google:{connected:false}, meta:{connected:false}, tiktok:{connected:false}, pinterest:{connected:false} };
+  if (!window._orvPlatformData) window._orvPlatformData = { google:{connected:false}, meta:{connected:false}, tiktok:{connected:false}, pinterest:{connected:false}, snapchat:{connected:false} };
   if (!window._orvPlatformData[platform]) window._orvPlatformData[platform] = { connected:false };
   window._orvPlatformData[platform].connected = !!connected;
   if (typeof window._orvSetConn === 'function') window._orvSetConn(platform, !!connected);
@@ -14760,7 +14813,7 @@ function _conApplyCard(platform, connected, detail) {
 /* _conFetchStatus(platform) — calls the server status endpoint and applies the result */
 function _conFetchStatus(platform) {
   console.log('[Connect] Fetching status for', platform);
-  var ep = { google: '/api/google/status', meta: '/api/meta/status', tiktok: '/api/tiktok/status', pinterest: '/api/pinterest/status' }[platform];
+  var ep = { google: '/api/google/status', meta: '/api/meta/status', tiktok: '/api/tiktok/status', pinterest: '/api/pinterest/status', snapchat: '/api/snapchat/status' }[platform];
   if (!ep) return;
 
   /* Show loading state */
@@ -14957,11 +15010,39 @@ function _conFetchStatus(platform) {
               _conFetchStatus('pinterest');
             });
           }
+        } else if (platform === 'snapchat') {
+          // Snapchat Ads — same pattern as Pinterest: the discovered ad
+          // accounts (re-read once per page session), explicit selection,
+          // plus the optional Public Profile ID for the selected account.
+          var sAccs = Array.isArray(d.snapchat_ads_accounts) ? d.snapchat_ads_accounts : [];
+          var sSel = d.active_ad_account && d.active_ad_account.account_name;
+          var sFirst = !window._snapAccountsAutoLoaded && !sAccs.length && !d.snapchat_ads_accounts_status;
+          var sSummary;
+          if (sFirst) sSummary = 'Loading Snapchat ad accounts…';
+          else if (d.snapchat_ads_accounts_status && !sAccs.length) sSummary = 'Could not load — see below';
+          else if (!sAccs.length) sSummary = 'No Snapchat ad accounts are accessible with this Snapchat login.';
+          else sSummary = sAccs.length + ' account' + (sAccs.length !== 1 ? 's' : '') + (sSel ? ' · Selected: ' + sSel : ' · Choose one below');
+          detail = { accounts: sSummary };
+          window._activeSnapAccount = d.active_ad_account || null;
+          var sErrEl = document.getElementById('conAcctErrSnapchat');
+          if (sErrEl) {
+            if (d.snapchat_ads_accounts_status) { sErrEl.textContent = d.snapchat_ads_accounts_status.message; sErrEl.style.display = ''; }
+            else { sErrEl.style.display = 'none'; sErrEl.textContent = ''; }
+          }
+          setTimeout(function() { _conRenderAccountList('snapchat', sAccs, d.active_ad_account); _conRenderSnapProfile(d.active_ad_account); }, 0);
+          if (!window._snapAccountsAutoLoaded) {
+            window._snapAccountsAutoLoaded = true;
+            apiFetch('/api/snapchat/accounts').then(function(r) {
+              if (!r.ok && sErrEl) { sErrEl.textContent = (r.data && r.data.error) || 'Could not load your Snapchat ad accounts.'; sErrEl.style.display = ''; }
+              _conFetchStatus('snapchat');
+            }).catch(function() { _conFetchStatus('snapchat'); });
+          }
         }
       } else {
         /* Hide account list when disconnected */
-        var _listEl = document.getElementById('conAcctList' + (platform === 'google' ? 'Google' : platform === 'meta' ? 'Meta' : platform === 'tiktok' ? 'Tiktok' : platform === 'pinterest' ? 'Pinterest' : ''));
+        var _listEl = document.getElementById('conAcctList' + (platform === 'google' ? 'Google' : platform === 'meta' ? 'Meta' : platform === 'tiktok' ? 'Tiktok' : platform === 'pinterest' ? 'Pinterest' : platform === 'snapchat' ? 'Snapchat' : ''));
         if (_listEl) { _listEl.style.display = 'none'; _listEl.innerHTML = ''; }
+        if (platform === 'snapchat') _conRenderSnapProfile(null);
         if (platform === 'meta') {
           var _pageListEl = document.getElementById('conPageListMeta');
           if (_pageListEl) { _pageListEl.style.display = 'none'; _pageListEl.innerHTML = ''; }
@@ -14987,7 +15068,7 @@ function _conMarkUnknown(platform) {
 
 /* Render per-account rows inside the integration card */
 function _conRenderAccountList(platform, accounts, activeAccount) {
-  var elId = platform === 'google' ? 'conAcctListGoogle' : platform === 'tiktok' ? 'conAcctListTiktok' : platform === 'pinterest' ? 'conAcctListPinterest' : 'conAcctListMeta';
+  var elId = platform === 'google' ? 'conAcctListGoogle' : platform === 'tiktok' ? 'conAcctListTiktok' : platform === 'pinterest' ? 'conAcctListPinterest' : platform === 'snapchat' ? 'conAcctListSnapchat' : 'conAcctListMeta';
   var el = document.getElementById(elId);
   if (!el) return;
   if (!accounts || !accounts.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
@@ -14998,11 +15079,12 @@ function _conRenderAccountList(platform, accounts, activeAccount) {
     // Pinterest's real /ad_accounts response shape is {id, name, currency,
     // country, owner} — no customer_id/account_id field to fall back to,
     // so it needs its own id-field branch alongside Google's.
-    var aId   = platform === 'google' ? (a.customer_id || a.account_id || '') : platform === 'pinterest' ? (a.id || '') : (a.account_id || '');
-    var aIdClean = String(aId).replace(/-/g,'');
-    var aName = platform === 'google' ? (a.account_name || a.name || aId) : platform === 'pinterest' ? (a.name || aId) : (a.account_name || aId);
-    var isActive = activeId && aIdClean === activeId;
-    var idDisplay = platform === 'google' ? 'Customer ID: ' + aId : (platform === 'tiktok' ? 'Advertiser ID: ' + aId : platform === 'pinterest' ? 'Ad Account ID: ' + aId : 'Account ID: ' + aId);
+    var aId   = platform === 'google' ? (a.customer_id || a.account_id || '') : (platform === 'pinterest' || platform === 'snapchat') ? (a.id || '') : (a.account_id || '');
+    // Snapchat ids are UUIDs: the dashes are part of the id.
+    var aIdClean = platform === 'snapchat' ? String(aId) : String(aId).replace(/-/g,'');
+    var aName = platform === 'google' ? (a.account_name || a.name || aId) : (platform === 'pinterest' || platform === 'snapchat') ? (a.name || aId) : (a.account_name || aId);
+    var isActive = activeId && aIdClean === (platform === 'snapchat' ? String(activeAccount.account_id) : activeId);
+    var idDisplay = platform === 'google' ? 'Customer ID: ' + aId : (platform === 'tiktok' ? 'Advertiser ID: ' + aId : platform === 'pinterest' ? 'Ad Account ID: ' + aId : platform === 'snapchat' ? (a.organization_name ? a.organization_name + ' · ' : '') + (a.currency || '') + (a.status && a.status !== 'ACTIVE' ? ' · ' + a.status : '') : 'Account ID: ' + aId);
     // Manager/MCC status + real account status, shown alongside the ID --
     // both already come back from _fetchGoogleAdsAccounts, just weren't
     // surfaced in this row before.
@@ -15036,6 +15118,34 @@ function _conRenderAccountList(platform, accounts, activeAccount) {
 
 function _conEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+/* Snapchat: the optional Public Profile ID for the selected ad account. */
+function _conRenderSnapProfile(active) {
+  var el = document.getElementById('conSnapProfile');
+  if (!el) return;
+  if (!active || !active.account_id) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  var cur = active.profile_id || '';
+  el.innerHTML = '<label class="con-snap-profile-lbl" for="conSnapProfileInput">Snapchat Public Profile ID <span>(optional)</span></label>'
+    + '<div class="con-snap-profile-row"><input type="text" class="con-ready-input" id="conSnapProfileInput" spellcheck="false" autocomplete="off" placeholder="e.g. 1a2b3c4d-5e6f-…" value="' + _conEsc(cur) + '">'
+    + '<button type="button" class="con-ready-action" id="conSnapProfileSave" onclick="conSaveSnapProfile()">' + (cur ? 'Update' : 'Save') + '</button></div>'
+    + '<p class="con-snap-profile-hint">Shown on your Snap Ads. Find it in Snap Business Manager → Public Profiles. Snapchat may reject ads without one.</p>';
+  el.style.display = '';
+}
+window.conSaveSnapProfile = function() {
+  var input = document.getElementById('conSnapProfileInput');
+  var btn = document.getElementById('conSnapProfileSave');
+  if (!input) return;
+  if (btn) btn.disabled = true;
+  apiFetch('/api/snapchat/public-profile', { method: 'POST', body: JSON.stringify({ profile_id: input.value.trim() }) }).then(function(r) {
+    if (btn) btn.disabled = false;
+    if (r.ok) {
+      window._activeSnapAccount = r.data && r.data.active_ad_account;
+      if (window.orvSpec && window.orvSpec.invalidatePlatform) window.orvSpec.invalidatePlatform('snapchat');
+      if (typeof toast === 'function') toast(input.value.trim() ? 'Public Profile saved' : 'Public Profile removed', 'ok');
+      _conRenderSnapProfile(r.data && r.data.active_ad_account);
+    } else if (typeof toast === 'function') toast((r.data && r.data.error) || 'Could not save the Public Profile — please try again.', 'err');
+  }).catch(function() { if (btn) btn.disabled = false; if (typeof toast === 'function') toast('Network error — please try again', 'err'); });
+};
+
 window.conSetActive = function(platform, accountId, accountName, extra) {
   extra = extra || {};
   /* TikTok's /api/tiktok/active-account expects advertiser_id/advertiser_name,
@@ -15054,6 +15164,7 @@ window.conSetActive = function(platform, accountId, accountName, extra) {
         if (platform === 'google') window._activeAdAccount = r.data && r.data.active_ad_account;
         if (platform === 'meta')   window._activeMetaAccount = r.data && r.data.active_ad_account;
         if (platform === 'tiktok') window._activeTadsAccount = r.data && r.data.active_ad_account;
+        if (platform === 'snapchat') window._activeSnapAccount = r.data && r.data.active_ad_account;
         if (typeof toast === 'function') toast('Active account updated');
         _conFetchStatus(platform);
       } else {
@@ -15138,7 +15249,7 @@ window.initIntegrations = function() {
       auth_error:     'Authentication error — please try again.',
       missing_params: 'OAuth error — please try again.'
     };
-    var _names = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
+    var _names = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' };
     setTimeout(function() {
       if (_oar.connected) {
         if (typeof toast === 'function') toast((_names[_oar.provider] || 'Account') + ' ' + (typeof t==='function'?t('toastConnectedSuffix'):'connected!'));
@@ -15153,6 +15264,7 @@ window.initIntegrations = function() {
   _conFetchStatus('meta');
   _conFetchStatus('tiktok');
   _conFetchStatus('pinterest');
+  _conFetchStatus('snapchat');
 
   /* Universal Setup Engine — real readiness (Connected vs Ready are
      different things; see setupStateEngine.js). Fetched separately
@@ -15616,24 +15728,28 @@ window.conConnect = function(platform) {
   var cap = platform === 'tiktok' ? 'Tiktok' : platform.charAt(0).toUpperCase() + platform.slice(1);
   var btn = document.getElementById('conBtn' + cap);
   if (btn) { btn.textContent = typeof t==='function'?t('toastConnectingEllipsis'):'Connecting…'; btn.disabled = true; }
-  var ep = { google: '/api/google/auth-url', meta: '/api/meta/auth-url', tiktok: '/api/tiktok/auth-url', pinterest: '/api/pinterest/auth-url' }[platform];
+  var ep = { google: '/api/google/auth-url', meta: '/api/meta/auth-url', tiktok: '/api/tiktok/auth-url', pinterest: '/api/pinterest/auth-url', snapchat: '/api/snapchat/auth-url' }[platform];
   if (!ep) return;
+  var _notReady = false;
   apiFetch(ep)
     .then(function(result) {
       if (result.ok && result.data && result.data.url) {
         window.location.href = result.data.url;
       } else {
+        _notReady = result.status === 503;
         throw new Error('no url');
       }
     })
     .catch(function() {
-      if (btn) { var _btnKeys={Google:'conConnectGoogleBtn',Meta:'conConnectMetaBtn',Tiktok:'conConnectTiktokBtn',Pinterest:'conConnectPinterestBtn'}; btn.textContent = (typeof t==='function'&&_btnKeys[cap])?t(_btnKeys[cap]):('Connect ' + cap + ' Ads →'); btn.disabled = false; }
+      if (btn) { var _btnKeys={Google:'conConnectGoogleBtn',Meta:'conConnectMetaBtn',Tiktok:'conConnectTiktokBtn',Pinterest:'conConnectPinterestBtn',Snapchat:'conConnectSnapchatBtn'}; btn.textContent = (typeof t==='function'&&_btnKeys[cap])?t(_btnKeys[cap]):('Connect ' + cap + ' Ads →'); btn.disabled = false; }
+      // 503: the platform isn't configured on the server yet — say that, not "try again".
+      if (_notReady && typeof toast === 'function') { toast((typeof t==='function'&&t('toastPlatformNotReady')!=='toastPlatformNotReady')?t('toastPlatformNotReady'):'This platform isn’t available yet. Please try again later.', 'err'); return; }
       if (typeof toast === 'function') toast(typeof t==='function'?t('toastConnectionFailed'):'Connection failed — please try again.', 'err');
     });
 };
 
 window.conDisconnect = function(platform) {
-  var names = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
+  var names = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' };
   orvWorkspace.flow.confirmDisconnect(platform, function(){
     return apiFetch('/api/' + platform + '/disconnect', { method: 'POST' }).then(function(r) {
       if (!r.ok) return { ok: false, title: 'Couldn’t disconnect', message: 'OrivenAI still has access to ' + (names[platform] || platform) + '. Try again.' };
@@ -15657,7 +15773,7 @@ window._prfActivePlatform = (function() {
 window._prfAllCampaigns = [];
 window._prfPlatKpis = {};
 
-var _PRF_PLAT_LABELS = { all: 'All Platforms', google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
+var _PRF_PLAT_LABELS = { all: 'All Platforms', google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' };
 
 /* Time range — dropdown replaces the old 3-pill selector; CUSTOM reveals
    two native date inputs instead of duplicating a picker that doesn't
@@ -15690,7 +15806,7 @@ function PRF_T(key, vars, fallback) {
   if (vars) Object.keys(vars).forEach(function(v) { s = s.split('{' + v + '}').join(vars[v] == null ? '' : vars[v]); });
   return s;
 }
-var PRF_PLATFORMS = ['google', 'meta', 'tiktok', 'pinterest'];
+var PRF_PLATFORMS = ['google', 'meta', 'tiktok', 'pinterest', 'snapchat'];
 var PRF_TIMEOUT_MS = 30000;
 var _prfState = {
   owner: null,             // user id the loaded data belongs to
@@ -15806,6 +15922,10 @@ function _prfStatusInfo(platform, row) {
   } else if (platform === 'pinterest') {
     key = raw === 'RUNNING' ? 'active' : raw === 'ACTIVE' ? 'enabled' : raw === 'PAUSED' ? 'paused' : raw === 'NOT_STARTED' ? 'enabled' : raw === 'COMPLETED' ? 'ended'
       : raw === 'ARCHIVED' ? 'archived' : raw === 'ADVERTISER_DISABLED' ? 'issue' : raw === 'DRAFT' ? 'in_review' : 'unknown';
+  } else if (platform === 'snapchat') {
+    // Snap campaign status is ACTIVE | PAUSED; delivery_status lists issues (e.g. INVALID_NOT_EFFECTIVE_ACTIVE).
+    var dl = (row.delivery_status || []).join(' ');
+    key = raw === 'PAUSED' ? 'paused' : raw === 'DELETED' ? 'archived' : raw === 'ACTIVE' ? (/INVALID|REJECT|NO_ACTIVE/.test(dl) ? 'issue' : 'enabled') : 'unknown';
   }
   var labelKey = { active: 'cmpStActive', enabled: 'cmpStEnabled', paused: 'cmpStPaused', in_review: 'cmpStInReview', issue: 'cmpStIssue', limited: 'cmpStLimited', ended: 'cmpStEnded', archived: 'cmpStArchived', unknown: 'cmpStUnknown' }[key];
   var fb = { active: 'Active', enabled: 'Enabled', paused: 'Paused', in_review: 'In review', issue: 'Issue detected', limited: 'Limited', ended: 'Ended', archived: 'Archived', unknown: 'Status unavailable' }[key];
@@ -15867,6 +15987,7 @@ window.initAdsDashboard = function() { window.prfInit(); };
    page family) so the switcher matches the rest of the app rather than
    inventing a second icon set. */
 var _PRF_PLAT_ICONS = {
+  snapchat: '<svg viewBox="0 0 12 12" fill="none" width="13" height="13" style="flex-shrink:0" aria-hidden="true"><rect width="12" height="12" rx="3" fill="#FFFC00"/><path d="M6 2.5c1.25 0 2.15.95 2.15 2.2v1.05l.75.2-.55.55c.3.65.85 1.05 1.35 1.25-.45.4-1.1.4-1.5.55-.2.4-.6.8-2.2.8s-2-.4-2.2-.8c-.4-.15-1.05-.15-1.5-.55.5-.2 1.05-.6 1.35-1.25l-.55-.55.75-.2V4.7c0-1.25.9-2.2 2.15-2.2z" fill="#fff" stroke="#111" stroke-width=".55" stroke-linejoin="round"/></svg>',
   google: '<svg viewBox="0 0 12 12" fill="none" width="13" height="13" style="flex-shrink:0"><path d="M10.9 6.1c0-.4 0-.8-.1-1.1H6v2.1h2.8a2.4 2.4 0 0 1-1 1.5v1.2h1.7c1-1 1.4-2.3 1.4-3.7z" fill="#4285F4"/><path d="M6 11c1.4 0 2.6-.5 3.5-1.3l-1.7-1.3a3.2 3.2 0 0 1-1.8.5 3.2 3.2 0 0 1-3-2.1H1.3v1.3A5.3 5.3 0 0 0 6 11z" fill="#34A853"/><path d="M3 6.8a3.1 3.1 0 0 1 0-1.6V3.9H1.3a5.3 5.3 0 0 0 0 4.2L3 6.8z" fill="#FBBC05"/><path d="M6 2.7c.8 0 1.5.3 2 .8L9.6 1.9A5.3 5.3 0 0 0 1.3 3.9L3 5.2a3.2 3.2 0 0 1 3-2.5z" fill="#EA4335"/></svg>',
   meta:   '<svg viewBox="0 0 12 12" fill="none" width="13" height="13" style="flex-shrink:0"><rect width="12" height="12" rx="3" fill="#1877F2"/><path d="M8.1 6a2.1 2.1 0 1 0-4.2 0c0 1 .7 1.8 1.7 2V7H4.7V6h.9V5.3c0-.6.3-.9.9-.9h.5V5.2h-.4c-.2 0-.2.1-.2.3V6h.7L7 7H6.4v1c1-.2 1.7-1 1.7-2z" fill="white"/></svg>',
   tiktok: '<svg viewBox="0 0 12 12" fill="none" width="13" height="13" style="flex-shrink:0"><rect width="12" height="12" rx="3" fill="#010101"/><path d="M7.9 3.1h-.9v3.7a.75.75 0 1 1-1-.7V4.8a2.5 2.5 0 1 0 2.2 2.5V4.8c.3.2.7.3 1.1.3V4a1.1 1.1 0 0 1-1.4-.9z" fill="white"/></svg>',
@@ -16004,10 +16125,10 @@ window.prfSwitchPlatform = function(platform, byUser) {
   _prfSyncCampaignsSection(platform);
 };
 
-var _PRF_ADM_PREFIX = { google: 'G', meta: 'M', tiktok: 'T', pinterest: 'P' };
+var _PRF_ADM_PREFIX = { google: 'G', meta: 'M', tiktok: 'T', pinterest: 'P', snapchat: 'S' };
 // Real per-provider hierarchy (Meta: /api/meta/adsets + /ads; Pinterest:
 // /api/pinterest/ad-groups + /ads; Google/TikTok: campaigns only).
-var PRF_HIERARCHY_SUPPORT = { google: ['campaigns'], meta: ['campaigns', 'adsets', 'ads'], tiktok: ['campaigns'], pinterest: ['campaigns', 'adsets', 'ads'] };
+var PRF_HIERARCHY_SUPPORT = { google: ['campaigns'], meta: ['campaigns', 'adsets', 'ads'], tiktok: ['campaigns'], pinterest: ['campaigns', 'adsets', 'ads'], snapchat: ['campaigns'] };
 var PRF_HIERARCHY_LABELS = { campaigns: 'Campaigns', adsets: 'Ad Sets', ads: 'Ads' };
 function _prfHierarchyLabel(level) { return PRF_T('cmpLevel_' + level, null, PRF_HIERARCHY_LABELS[level] || level); }
 window._prfHierarchy = window._prfHierarchy || 'campaigns';
@@ -16242,19 +16363,34 @@ var _PRF_PARSE = {
     var kpi = o ? Object.assign(_prfEmptyKpi(), { spend: _prfNum(o.spend), impr: _prfNum(o.impressions), clicks: _prfNum(o.clicks), conv: _prfNum(o.conversions),
       reach: _prfNum(o.reach), cpm: _prfNum(o.cpm), cpc: _prfNum(o.cpc), frequency: _prfNum(o.frequency), cpa: _prfNum(o.cpa) }) : null;
     return { rows: rows, kpi: kpi, currency: (d.account && d.account.currency) || null, accountLevel: true };
+  },
+  // Snapchat: per-campaign totals (Snap's breakdown), clicks = swipe-ups,
+  // conversions not reported (no Snap Pixel in OrivenAI yet) — null, never 0.
+  snapchat: function(d) {
+    var o = d.overview;
+    var rows = (d.campaigns || []).map(function(c) {
+      var m = c.metrics || null;
+      return { platform: 'snapchat', id: String(c.campaign_id), name: c.campaign_name, status: c.status, delivery_status: c.delivery_status || null,
+        spend: m ? _prfNum(m.spend) : null, impressions: m ? _prfNum(m.impressions) : null, clicks: m ? _prfNum(m.clicks) : null, conv: null, convVal: null,
+        reach: null, budget: _prfNum(c.daily_budget), lifetimeBudget: _prfNum(c.lifetime_spend_cap), metricsLevel: m ? 'campaign' : 'none' };
+    });
+    var kpi = o ? Object.assign(_prfEmptyKpi(), { spend: _prfNum(o.spend), impr: _prfNum(o.impressions), clicks: _prfNum(o.clicks), conv: null, cpm: _prfNum(o.cpm), cpc: _prfNum(o.cpc) }) : null;
+    return { rows: rows, kpi: kpi, currency: (d.account && d.account.currency) || null, rangeUsed: d.date_range && d.date_range.clamped ? 'LAST_90_DAYS' : null, metricsMissing: !o };
   }
 };
 var _PRF_BASE = {
   google: '/api/ads/overview?include_all=1&',
   meta: '/api/meta/campaigns?include_all=1&',
   tiktok: '/api/tiktok/overview?',
-  pinterest: '/api/pinterest/overview?'
+  pinterest: '/api/pinterest/overview?',
+  snapchat: '/api/snapchat/overview?'
 };
 var _PRF_URL = {
   google: function() { return _PRF_BASE.google + _prfRangeParams(); },
   meta: function() { return _PRF_BASE.meta + _prfRangeParams(); },
   tiktok: function() { return _PRF_BASE.tiktok + _prfRangeParams(); },
-  pinterest: function() { return _PRF_BASE.pinterest + _prfRangeParams(); }
+  pinterest: function() { return _PRF_BASE.pinterest + _prfRangeParams(); },
+  snapchat: function() { return _PRF_BASE.snapchat + _prfRangeParams(); }
 };
 // Campaign Comparison (js/campaignComparison.js) reads exactly this page's
 // data — same endpoints, same parsing (null = not reported), same
@@ -20624,7 +20760,7 @@ window._orvSetConn = function(platform, state){
   if(!(platform in window._orvConnStatus)) return;
   window._orvConnStatus[platform] = (state === true || state === false) ? state : null;
 };
-var _ADM_PLAT_LINKS  = { google:'https://ads.google.com/', meta:'https://adsmanager.facebook.com/', tiktok:'https://ads.tiktok.com/', pinterest:'https://ads.pinterest.com/' };
+var _ADM_PLAT_LINKS  = { google:'https://ads.google.com/', meta:'https://adsmanager.facebook.com/', tiktok:'https://ads.tiktok.com/', pinterest:'https://ads.pinterest.com/', snapchat:'https://ads.snapchat.com/' };
 
 /* ── Sidebar platform shortcuts (Navbar Redesign, Final Polish) ────────
    Compact links under Campaigns. Real connection state (same

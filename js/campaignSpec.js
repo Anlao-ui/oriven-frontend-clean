@@ -91,7 +91,7 @@
     fetchFor(camp, p, keyOf(camp, p), true);
   };
   S.invalidatePlatform = function (p) { epoch[p] = (epoch[p] || 0) + 1; };
-  S.invalidateAll = function () { ['meta', 'google', 'tiktok', 'pinterest'].forEach(S.invalidatePlatform); };
+  S.invalidateAll = function () { ['meta', 'google', 'tiktok', 'pinterest', 'snapchat'].forEach(S.invalidatePlatform); };
   S.reset = function () { cache = {}; inflight = {}; epoch = {}; liveDone = {}; nonce = {}; };
   S.peek = function (camp) { var c = camp && cache[camp.id]; return c ? c.res : null; };
   // The previous answer for exactly this campaign content, while its re-check
@@ -106,7 +106,7 @@
   S.errors = function (res) { return (res && res.issues || []).filter(function (i) { return i.level === 'error'; }); };
 
   // ── Labels ───────────────────────────────────────────────────────
-  var PLAT = { meta: 'Meta', google: 'Google Ads', tiktok: 'TikTok', pinterest: 'Pinterest' };
+  var PLAT = { meta: 'Meta', google: 'Google Ads', tiktok: 'TikTok', pinterest: 'Pinterest', snapchat: 'Snapchat' };
   var CAT_KEYS = ['HOUSING', 'EMPLOYMENT', 'FINANCIAL_PRODUCTS_SERVICES', 'ISSUES_ELECTIONS_POLITICS'];
   function catLabel(c) { return CAT_KEYS.indexOf(c) >= 0 ? T('ocs_cat_' + c) : pretty(c); }
   var BADGE = {
@@ -198,7 +198,7 @@
     }
 
     // Overview / objective
-    var goals = p === 'tiktok' && choices ? choices.tiktokGoals : (choices ? choices.goals : ['Sales', 'Leads', 'Traffic', 'Awareness']);
+    var goals = p === 'snapchat' ? ['Traffic', 'Awareness'] : p === 'tiktok' && choices ? choices.tiktokGoals : (choices ? choices.goals : ['Sales', 'Leads', 'Traffic', 'Awareness']);
     var structure = groupsText(p, spec.adGroups.length) + ' · ' +
       adsText(spec.adGroups.reduce(function (n, g) { return n + (g.ads ? g.ads.length : 0); }, 0));
     var inCreate = '<span class="ocs-badge ocs-b-auto">' + esc(T('ocs_chosenInCreate')) + '</span>';
@@ -219,8 +219,8 @@
       row(T('ocs_dailyBudget'), spec.budget.amount != null ? esc(T('ocs_perDayVal', { amount: money(spec.budget.amount, spec.budget.currency) })) : '<span class="ocs-miss">' + esc(T('ocs_notSet')) + '</span>' + (spec.budget.suggestion ? ' <span class="ocs-sugg">' + esc(T('ocs_aiSuggestion', { amount: money(spec.budget.suggestion, spec.budget.currency) })) + '</span>' : ''),
         badge(spec.sources.budget === 'user' ? 'user' : 'missing', /^budget/),
         fieldIssues(/^budget/) + editor('budget', '<label class="ocs-lbl">' + esc(T('ocs_amountPerDay')) + (spec.budget.currency ? ' (' + esc(spec.budget.currency) + ')' : '') +
-          '<input class="ofd-input" type="number" inputmode="decimal" min="' + (p === 'tiktok' && choices ? choices.tiktokMinDaily + 1 : 1) + '" step="0.01" name="budget" value="' + esc(spec.budget.amount != null ? spec.budget.amount : (spec.budget.suggestion || '')) + '"></label>' +
-          '<p class="ocs-note">' + esc((p === 'tiktok' ? T('ocs_ttMin', { n: choices ? choices.tiktokMinDaily : 20 }) + ' ' : '') + T('ocs_budgetNote')) + '</p>', T('ocs_saveBudget'))),
+          '<input class="ofd-input" type="number" inputmode="decimal" min="' + (p === 'tiktok' && choices ? choices.tiktokMinDaily + 1 : p === 'snapchat' ? 5 : 1) + '" step="0.01" name="budget" value="' + esc(spec.budget.amount != null ? spec.budget.amount : (spec.budget.suggestion || '')) + '"></label>' +
+          '<p class="ocs-note">' + esc((p === 'tiktok' ? T('ocs_ttMin', { n: choices ? choices.tiktokMinDaily : 20 }) + ' ' : p === 'snapchat' ? T('ocs_snapMin', { n: (choices && choices.snapchatMinDaily) || 5 }) + ' ' : '') + T('ocs_budgetNote')) + '</p>', T('ocs_saveBudget'))),
       row(T('ocs_budgetLevel'), esc(T(spec.campaign.budgetLevel === 'AD_GROUP' ? 'ocs_lvlAdGroup' : spec.campaign.budgetLevel === 'AD_SET' ? 'ocs_lvlAdSet' : 'ocs_lvlCampaign')), autoBadge('auto')),
       row(T('ocs_schedule'), esc(T('ocs_runsContinuously')), autoBadge('auto'))
     ].join(''), spec.budget.amount != null ? T('ocs_perDayShort', { amount: money(spec.budget.amount, spec.budget.currency) }) : T('ocs_notSet'));
@@ -236,7 +236,7 @@
     var langEd = '<label class="ocs-lbl">' + esc(T('ocs_langsLabel')) + '<select class="ofd-input" name="languages" multiple size="5">' + (choices ? choices.languages : []).map(function (l) {
       return '<option value="' + esc(l.code) + '"' + (lList.indexOf(l.code) >= 0 ? ' selected' : '') + '>' + esc(l.name) + '</option>';
     }).join('') + '</select></label>';
-    var hasAge = p === 'meta' || p === 'tiktok';
+    var hasAge = p === 'meta' || p === 'tiktok' || p === 'snapchat';
     var ageOpts = []; for (var a = 18; a <= 65; a++) ageOpts.push({ v: a, l: a === 65 ? '65+' : String(a) });
     html += section('targeting', T('ocs_secTargeting'), [
       row(T('ocs_countries'), cList.length ? esc(cList.map(countryName).join(', ')) : '<span class="ocs-miss">' + esc(T('ocs_chooseOneCountry')) + '</span>', badge(src.countries, /^targeting\.countries/),
@@ -247,6 +247,7 @@
       p === 'meta' ? row(T('ocs_placements'), esc(spec.targeting.placementLabel), badge(src.placement), editor('placement', '<label class="ocs-lbl">' + esc(T('ocs_placements')) + select('placement', Object.keys(choices ? choices.metaPlacements : { automatic: 1 }).map(function (k) { return { v: k, l: choices ? choices.metaPlacements[k] : k }; }), spec.targeting.placement) + '</label>', T('ocs_savePlacements'))) : '',
       p === 'meta' ? row(T('ocs_advantage'), esc(T(spec.targeting.advantageAudience ? 'ocs_advOn' : 'ocs_advOff')), autoBadge('auto'), '<p class="ocs-note">' + esc(T('ocs_countriesHard')) + '</p>') : '',
       p === 'tiktok' ? row(T('ocs_placement'), esc(T('ocs_ttFeed')), autoBadge('auto')) : '',
+      p === 'snapchat' ? row(T('ocs_placement'), esc(T('ocs_snapPlacement')), autoBadge('auto')) : '',
       p === 'google' && spec.campaignType === 'SEARCH' ? row(T('ocs_networks'), esc(T('ocs_searchNetworks')), autoBadge('auto')) : '',
       spec.suggestions && spec.suggestions.audienceDescription ? row(T('ocs_audienceIdea'), esc(spec.suggestions.audienceDescription), autoBadge('ai'), '<p class="ocs-note">' + esc(T('ocs_audienceIdeaNote')) + '</p>') : ''
     ].join(''), cList.length ? cList.map(countryName).join(', ') : T('ocs_countryNeeded'));
@@ -264,6 +265,7 @@
       '<div class="ocs-groups">' + groupsHtml + '</div>',
       fieldIssues(/^(assets\.(headlines|descriptions|squareImage|landscapeImage)|creative|pin\.)/),
       p === 'tiktok' ? row(T('ocs_format'), spec.creative.format === 'VIDEO' ? esc(T('ocs_videoWithCover')) : '<span class="ocs-miss">' + esc(T('ocs_videoNeeded')) + '</span>', badge(spec.creative.format === 'VIDEO' ? 'auto' : 'unsupported', /^creative\.video/)) : '',
+      p === 'snapchat' ? row(T('ocs_format'), esc(T(spec.creative.format === 'VIDEO' ? 'ocs_snapFormatVideo' : 'ocs_snapFormatImage')), autoBadge('auto'), fieldIssues(/^creative\./)) : '',
       p === 'google' && spec.campaignType === 'PERFORMANCE_MAX' ? row(T('ocs_landscape'), spec.assets.landscapeImageUrl ? esc(T('ocs_landscapeReady')) : '<span class="ocs-miss">' + esc(T('ocs_missing')) + '</span>', badge(spec.assets.landscapeImageUrl ? 'auto' : 'missing', /^assets\.landscapeImage/)) : '',
       canGroups && spec.adGroups.length < 5 ? editor('addGroup', '<label class="ocs-lbl">' + esc(T('ocs_name')) + '<input class="ofd-input" name="groupName" maxlength="80" placeholder="' + esc(T('ocs_groupPh_' + meta_(p), { n: spec.adGroups.length + 1 })) + '"></label>' +
         (hasAge ? '<div class="ocs-pair"><label class="ocs-lbl">' + esc(T('ocs_agesFrom')) + select('gAgeMin', ageOpts, spec.targeting.ageMin) + '</label><label class="ocs-lbl">' + esc(T('ocs_toLower')) + select('gAgeMax', ageOpts, spec.targeting.ageMax) + '</label></div>' : '') +
@@ -292,7 +294,7 @@
       trk.push(row(T('ocs_convActions'), spec.tracking.needsConversion ? (ca == null ? esc(T('ocs_couldntBeChecked')) : ca ? esc(T('ocs_activeInAccount', { n: ca })) : '<span class="ocs-miss">' + esc(T('ocs_noneInAccount')) + '</span>') : esc(T('ocs_notNeededFor', { goal: goalLabel(spec.campaign.goal) })),
         badge(spec.tracking.needsConversion ? (ca ? 'auto' : 'missing') : 'auto', /^tracking\.conversion/), fieldIssues(/^tracking\.conversion/) + (spec.tracking.needsConversion ? '<p class="ocs-note">' + esc(T('ocs_gConvNote')) + '</p>' : '')));
     } else {
-      trk.push(row(T('ocs_convTracking'), esc(T('ocs_ttNoConv')), autoBadge('unsupported')));
+      trk.push(row(T('ocs_convTracking'), esc(T(p === 'snapchat' ? 'ocs_snapNoConv' : 'ocs_ttNoConv')), autoBadge('unsupported')));
     }
     html += section('tracking', T('ocs_convTracking'), trk.join(''));
 
@@ -351,6 +353,10 @@
       idRows.push(row(T('ocs_igAccount'), spec.identity.instagramUsername ? '@' + esc(spec.identity.instagramUsername) : (spec.targeting.placement === 'facebook_only' ? esc(T('ocs_notNeeded')) : '<span class="ocs-miss">' + esc(T('ocs_notLinked')) + '</span>'), badge(spec.identity.instagramUserId ? 'auto' : (spec.targeting.placement === 'facebook_only' ? 'auto' : 'missing'), /^identity\.instagram/), fieldIssues(/^identity\.instagram/)));
     }
     if (p === 'tiktok') idRows.push(row(T('ocs_ttIdentity'), spec.identity.displayName ? esc(spec.identity.displayName) : '<span class="ocs-miss">' + esc(T('ocs_notSelected')) + '</span>', badge(spec.identity.identityId ? 'auto' : 'missing', /^identity/), fieldIssues(/^identity/) + '<p class="ocs-note">' + esc(T('ocs_chooseInConnections')) + '</p>'));
+    if (p === 'snapchat') {
+      idRows.push(row(T('ocs_snapBrand'), spec.identity.brandName ? esc(spec.identity.brandName) : '<span class="ocs-miss">' + esc(T('ocs_notSelected')) + '</span>', badge(spec.identity.brandName ? 'profile' : 'missing', /^identity\.brandName/), fieldIssues(/^identity\.brandName/)));
+      idRows.push(row(T('ocs_snapProfile'), spec.identity.profileId ? esc(T('ocs_snapProfileSet')) : esc(T('ocs_snapProfileHow')), autoBadge(spec.identity.profileId ? 'auto' : 'missing'), fieldIssues(/^identity\.profileId/)));
+    }
     if (idRows.length) html += section('identity', T('ocs_secIdentity'), idRows.join(''));
 
     // Advanced
@@ -456,7 +462,7 @@
     rows.push([T('ocs_objective'), goalLabel(sp.campaign.goal) + (sp.campaign.objective ? ' (' + pretty(sp.campaign.objective) + ')' : '')]);
     rows.push([T('ocs_countries'), (sp.targeting.countries || []).length ? sp.targeting.countries.map(countryName).join(', ') : T('ocs_notChosen')]);
     rows.push([T('ocs_languages'), (sp.targeting.languages || []).length ? sp.targeting.languages.map(langName).join(', ') : T('ocs_allLanguages')]);
-    if (p === 'meta' || p === 'tiktok') rows.push([T('ocs_ages'), sp.targeting.ageMin + '–' + sp.targeting.ageMax + (sp.targeting.ageMax === 65 ? '+' : '')]);
+    if (p === 'meta' || p === 'tiktok' || p === 'snapchat') rows.push([T('ocs_ages'), sp.targeting.ageMin + '–' + sp.targeting.ageMax + (sp.targeting.ageMax === 65 ? '+' : '')]);
     if (p === 'meta') rows.push([T('ocs_placements'), sp.targeting.placementLabel]);
     if (sp.tracking.needsConversion) rows.push([T('ocs_conversion'), p === 'meta' ? (sp.tracking.pixelId ? T('ocs_pixelVal', { id: sp.tracking.pixelId, event: pretty(sp.tracking.conversionEvent) }) : T('ocs_noPixelSel')) : p === 'pinterest' ? (sp.tracking.conversionTagId ? T('ocs_tagVal', { id: sp.tracking.conversionTagId, event: pretty(sp.tracking.conversionEvent) }) : T('ocs_noTagSel')) : (sp.tracking.conversionActions ? T('ocs_nConvActions', { n: sp.tracking.conversionActions }) : T('ocs_noneFound'))]);
     rows.push([T('ocs_structure'), groupsText(p, sp.adGroups.length) + ', ' + adsText(sp.adGroups.reduce(function (n, g) { return n + (g.ads ? g.ads.length : 0); }, 0))]);

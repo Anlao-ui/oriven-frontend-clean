@@ -33,7 +33,7 @@
   }
   function val(root, id) { var e = root.querySelector('#' + id); return e ? String(e.value || '').trim() : ''; }
   function platformLabel(p) { return CAP[p] ? CAP[p].short : p === 'multi' ? 'Several platforms' : (p || '—'); }
-  var PLAT_OPTS = [['', 'Choose…'], ['meta', 'Meta'], ['google', 'Google'], ['tiktok', 'TikTok'], ['pinterest', 'Pinterest'], ['multi', 'Several platforms']];
+  var PLAT_OPTS = [['', 'Choose…'], ['meta', 'Meta'], ['google', 'Google'], ['tiktok', 'TikTok'], ['pinterest', 'Pinterest'], ['snapchat', 'Snapchat'], ['multi', 'Several platforms']];
   var OBJ_OPTS = [['', 'Choose…'], ['sales', 'Sales'], ['leads', 'Leads'], ['traffic', 'Traffic'], ['awareness', 'Awareness'], ['engagement', 'Engagement'], ['app', 'App installs']];
   var STATUS_OPTS = [['idea', 'Idea'], ['planned', 'Planned'], ['ready', 'Ready'], ['progress', 'In progress'], ['done', 'Completed']];
 
@@ -450,7 +450,7 @@
 
   // ── Naming & UTM templates ─────────────────────────────────────────
   var DEF_NAMING = { pattern: '{platform}_{objective}_{campaign}_{date}', sep: '_', case: 'lower' };
-  var DEF_UTM = { source: { meta: 'facebook', google: 'google', tiktok: 'tiktok', pinterest: 'pinterest' }, medium: 'paid_social', mediumGoogle: 'cpc', campaign: '{campaign}', content: '{ad}', term: '' };
+  var DEF_UTM = { source: { meta: 'facebook', google: 'google', tiktok: 'tiktok', pinterest: 'pinterest', snapchat: 'snapchat' }, medium: 'paid_social', mediumGoogle: 'cpc', campaign: '{campaign}', content: '{ad}', term: '' };
   function naming() { return Object.assign({}, DEF_NAMING, plan().naming || {}); }
   function utm() { var u = plan().utm || {}; return Object.assign({}, DEF_UTM, u, { source: Object.assign({}, DEF_UTM.source, u.source || {}) }); }
   function slug(s, n) {
