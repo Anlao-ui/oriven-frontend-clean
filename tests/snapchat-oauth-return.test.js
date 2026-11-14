@@ -44,8 +44,12 @@ const srv = http.createServer((q, r) => {
   check('1. backend connected → success message, no error', t.length === 1 && /Snapchat Ads connected successfully/.test(t[0][0]) && t[0][1] !== 'err', t);
   t = await run('snapchat_error=token_exchange&snapchat_reason=invalid_client');
   check('2. invalid_client → says Snapchat didn’t accept OrivenAI’s app credentials (error)', t.length === 1 && t[0][1] === 'err' && /didn't accept OrivenAI's app credentials \(invalid_client\)/.test(t[0][0]), t);
-  t = await run('snapchat_error=token_exchange&snapchat_reason=invalid_grant');
-  check('3. invalid_grant → sign-in expired or already used, connect again', t.length === 1 && t[0][1] === 'err' && /expired or was already used/.test(t[0][0]), t);
+  t = await run('snapchat_error=token_exchange&snapchat_reason=invalid_grant&snapchat_status=400&snapchat_detail=Authorization%20code%20has%20expired.&snapchat_code_age=42&snapchat_code_len=43');
+  check('3. invalid_grant → Snap’s own description, HTTP status and code age are shown', t.length === 1 && t[0][1] === 'err' && /invalid_grant/.test(t[0][0]) && /“Authorization code has expired.”/.test(t[0][0]) && /HTTP 400/.test(t[0][0]) && /code age 42s/.test(t[0][0]), t);
+  t = await run('snapchat_error=token_exchange&snapchat_reason=invalid_grant&snapchat_detail=%3Cb%3Ex%3C%2Fb%3E&snapchat_code_reused=1');
+  check('3b. detail can’t inject markup; reuse flag shown', t.length === 1 && !/[<>]/.test(t[0][0]) && /code already used once/.test(t[0][0]), t);
+  t = await run('snapchat_error=invalid_state&snapchat_reason=state_already_used&snapchat_attempt=2');
+  check('3c. second callback with the same state → explains it was already processed', t.length === 1 && /already processed/.test(t[0][0]), t);
   t = await run('snapchat_error=token_exchange&snapchat_reason=http_502');
   check('4. any other reason is shown by its code', t.length === 1 && /\(http_502\)/.test(t[0][0]), t);
   t = await run('snapchat_error=token_exchange&snapchat_reason=%3Cimg%20src%3Dx%3E');
