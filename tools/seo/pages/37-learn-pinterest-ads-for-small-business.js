@@ -79,7 +79,7 @@ module.exports = {
 </ul>
 
 <h2>Running a Pinterest campaign with OrivenAI</h2>
-<figure class="sp-figure"><img src="/assets/films/posters/film-create-800.webp" alt="The OrivenAI Create screen with Google Ads, Meta Ads, TikTok Ads and Pinterest Ads to choose from, campaign goals, and the creative stage" width="800" height="450" loading="lazy" decoding="async"><figcaption>The Create screen in OrivenAI. Pinterest Ads is one of the four platforms you can choose for a campaign.</figcaption></figure>
+<figure class="sp-figure"><img src="/assets/films/posters/film-create-800.webp" alt="The OrivenAI Create screen with Google Ads, Meta Ads, TikTok Ads, Pinterest Ads and Snapchat Ads to choose from, campaign goals, and the creative stage" width="800" height="450" loading="lazy" decoding="async"><figcaption>The Create screen in OrivenAI. Pinterest Ads is one of the five platforms you can choose for a campaign.</figcaption></figure>
 <p>In <a href="/create">Create</a>, choose Pinterest Ads and describe what you’re selling. OrivenAI drafts the Pin title, description and alt text, generates a vertical image (or uses one you attach), and prepares the campaign structure. Before anything is published, <a href="/launch">Launch</a> checks what Pinterest will need:</p>
 <ul>
   <li>The country to target. It comes from your business profile or your choice; OrivenAI never assumes one.</li>

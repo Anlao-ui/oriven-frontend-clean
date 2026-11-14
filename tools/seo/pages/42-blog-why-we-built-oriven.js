@@ -30,7 +30,7 @@ module.exports = {
 <h3>Creative and campaigns live apart</h3>
 <p>A good ad is only useful once it’s in a correctly configured campaign. Getting from “we have creative” to “it’s live with the right objective, audience and budget” is where many small advertisers lose days, or launch half-configured campaigns.</p>
 <h3>Every platform works differently</h3>
-<p>Google, Meta, TikTok and Pinterest each have their own structure, formats and rules. Doing the same work separately for each platform multiplies the effort; our guide on <a href="/learn/how-to-manage-multiple-ad-platforms/">managing multiple ad platforms</a> describes how much discipline that takes.</p>
+<p>Google, Meta, TikTok, Pinterest and Snapchat each have their own structure, formats and rules. Doing the same work separately for each platform multiplies the effort; our guide on <a href="/learn/how-to-manage-multiple-ad-platforms/">managing multiple ad platforms</a> describes how much discipline that takes.</p>
 <h3>Automation without limits is scary</h3>
 <p>Automated changes can save time, but many people don’t trust them, for good reason: an automated rule that changes budgets or pauses campaigns at the wrong moment costs real money.</p>
 
@@ -82,7 +82,7 @@ module.exports = {
 <p>If any of these doesn’t hold, we want to know.</p>
 
 <h2>Where we are now</h2>
-<p>OrivenAI supports Google Ads, Meta Ads, TikTok Ads and Pinterest Ads today. You can read what each part does in <a href="/blog/what-you-can-do-with-oriven">What you can do with OrivenAI</a>, or learn more about the category in <a href="/learn/what-is-an-ai-advertising-platform/">What is an AI advertising platform?</a> If you have feedback, we’d like to hear it at <a href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</p>`,
+<p>OrivenAI supports Google Ads, Meta Ads, TikTok Ads, Pinterest Ads and Snapchat Ads today. You can read what each part does in <a href="/blog/what-you-can-do-with-oriven">What you can do with OrivenAI</a>, or learn more about the category in <a href="/learn/what-is-an-ai-advertising-platform/">What is an AI advertising platform?</a> If you have feedback, we’d like to hear it at <a href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</p>`,
   faq: [],
   related: ['/blog/what-you-can-do-with-oriven', '/blog/oriven-ai-is-now-live', '/learn/how-to-manage-multiple-ad-platforms/'],
   relatedTitle: 'Read next',

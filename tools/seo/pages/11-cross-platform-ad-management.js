@@ -10,22 +10,22 @@ module.exports = {
   kind: 'commercial',
   lastmod: '2026-10-09',
   title: 'Cross-Platform Ad Management Software | OrivenAI',
-  ogTitle: 'Manage Google, Meta, TikTok and Pinterest ads in one workspace',
+  ogTitle: 'Manage Google, Meta, TikTok, Pinterest and Snapchat ads in one workspace',
   // Keyword map 2026-11: primary "cross-platform ad management software";
   // secondary "advertising management software", "ad management software for
   // small business", "multi-channel advertising software", "manage Google and
   // Meta ads in one place". The one page for that cluster (no other page targets it).
-  description: 'Ad management software for small teams: plan, create, launch and follow Google, Meta, TikTok and Pinterest ads from one workspace, with one brief per campaign.',
+  description: 'Ad management software for small teams: plan, create, launch and follow Google, Meta, TikTok, Pinterest and Snapchat ads from one workspace, with one brief per campaign.',
   crumb: 'Cross-platform ad management',
   teaser: 'One brief, adapted per platform, launched and followed from one workspace.',
   eyebrow: 'Cross-platform advertising',
-  h1: 'Manage Google, Meta, TikTok and Pinterest ads from one workspace',
+  h1: 'Manage Google, Meta, TikTok, Pinterest and Snapchat ads from one workspace',
   lede: 'Write one brief and OrivenAI adapts it to each platform’s formats and campaign structures. Launch when each draft is ready, then follow every campaign’s results side by side.',
   secondary: { href: '/product', label: 'See supported platforms' },
   heroNote: 'Creating, launching and tracking campaigns are included in every plan.',
   body: `
 <section class="sp-section" aria-labelledby="problem-h"><div class="sp-wrap">
-  <h2 id="problem-h">The problem with running ads on four platforms</h2>
+  <h2 id="problem-h">The problem with running ads on several platforms</h2>
   <p>Each ad platform has its own editor, its own campaign structure and its own reporting. Google Ads thinks in campaigns and ad groups around search intent; Meta, TikTok and Pinterest think in audiences and creative formats. Running all of them means rewriting the same offer four times, keeping naming and tracking consistent by hand, and stitching reports together in a spreadsheet.</p>
   <p>OrivenAI keeps the shared parts (your business, your brand, your plan) in one place and lets each platform keep what makes it different.</p>
 </div></section>
@@ -60,9 +60,9 @@ module.exports = {
   <h2 id="choose-h">What to look for in advertising management software</h2>
   <p>“Advertising management software” covers very different products. Before comparing features, check these five things, and be wary of any tool that can’t answer them plainly:</p>
   <h3>Does it act on your campaigns, or only report on them?</h3>
-  <p>Reporting tools pull data from your ad accounts into one dashboard. Management tools also create, publish or change campaigns through each platform’s API. OrivenAI does both for the four platforms above: it creates and publishes campaigns, shows their results in <a href="/campaigns">one ads dashboard</a>, and can pause, resume or adjust them with <a href="/ppc-automation-software/">rules you control</a>.</p>
+  <p>Reporting tools pull data from your ad accounts into one dashboard. Management tools also create, publish or change campaigns through each platform’s API. OrivenAI does both for the five platforms above: it creates and publishes campaigns, shows their results in <a href="/campaigns">one ads dashboard</a>, and can pause, resume or adjust them with <a href="/ppc-automation-software/">rules you control</a>.</p>
   <h3>Which ad platforms does it cover?</h3>
-  <p>Coverage differs a lot between tools. OrivenAI covers Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads and Pinterest Ads. It doesn’t manage Microsoft Advertising, LinkedIn Ads or Amazon Ads; if those are central to your mix, choose a tool that does.</p>
+  <p>Coverage differs a lot between tools. OrivenAI covers Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads, Pinterest Ads and Snapchat Ads. It doesn’t manage Microsoft Advertising, LinkedIn Ads or Amazon Ads; if those are central to your mix, choose a tool that does.</p>
   <h3>Who is it built for?</h3>
   <p>Enterprise platforms are usually sold through a sales call and priced for large budgets. Tools for small teams should let you start on your own, explain what they’ll change and show their price. OrivenAI is self-serve, with <a href="/pricing">plans from ${F.fromPrice}</a> paid once, without automatic renewal.</p>
   <h3>How does it handle measurement?</h3>
@@ -76,12 +76,12 @@ module.exports = {
   <h2 id="who-h">Who it’s for</h2>
   <div class="sp-grid sp-grid-2">
     <div class="sp-card"><h3>Small businesses and founders</h3><p>You know your product, not every ad platform’s editor. Start from a description of what you sell and get campaigns built in each platform’s own structure.</p></div>
-    <div class="sp-card"><h3>Marketers running several channels</h3><p>Keep briefs, naming, tracking and results for Google, Meta, TikTok and Pinterest in one place instead of four tabs and a spreadsheet.</p></div>
+    <div class="sp-card"><h3>Marketers running several channels</h3><p>Keep briefs, naming, tracking and results for Google, Meta, TikTok, Pinterest and Snapchat in one place instead of five tabs and a spreadsheet.</p></div>
   </div>
 </div></section>`,
   faq: [
     ['Can I manage Google Ads and Meta Ads together in OrivenAI?', '<p>Yes. Connect both accounts, create campaigns for each from the same workspace, publish them through each platform’s API, and follow their results side by side in Campaigns.</p>'],
-    ['Does OrivenAI combine conversions from different platforms into one number?', '<p>No. Google, Meta, TikTok and Pinterest each attribute conversions in their own way, so adding them up would double-count. OrivenAI shows each platform’s reported results side by side instead.</p>'],
+    ['Does OrivenAI combine conversions from different platforms into one number?', '<p>No. Google, Meta, TikTok, Pinterest and Snapchat each attribute conversions in their own way, so adding them up would double-count. OrivenAI shows each platform’s reported results side by side instead.</p>'],
     ['Do I need an existing ad account on each platform?', '<p>You connect your own ad accounts through each platform’s sign-in. Campaigns are published to, and billed by, those accounts. OrivenAI charges only for its own plan and credits.</p>'],
     ['Does OrivenAI publish campaigns automatically?', '<p>No. Launching is always a manual step. Each draft shows its readiness, and you choose when to publish.</p>'],
     ['Is cross-platform management included in every plan?', '<p>Yes. Every plan includes Control Center, Research, Create, Launch, Campaigns and Automations; plans differ only in period, price and credits.</p>'],

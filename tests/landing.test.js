@@ -220,7 +220,7 @@ async function main() {
   await scrollTo(page, 'faq'); await page.waitForTimeout(200);
   await page.locator('#faq summary', { hasText: 'Which advertising platforms are supported?' }).click();
   const qa = await page.evaluate(() => { const d = [...document.querySelectorAll('#faq details')].find((x) => /Which advertising platforms/.test(x.querySelector('summary').textContent)); return { open: d.open, text: d.textContent }; });
-  check('FAQ opens on click and answers with the supported platforms', qa.open && /Google Ads, Meta Ads \(Facebook and Instagram\), TikTok Ads and Pinterest Ads/.test(qa.text), qa);
+  check('FAQ opens on click and answers with the supported platforms', qa.open && /Google Ads, Meta Ads \(Facebook and Instagram\), TikTok Ads, Pinterest Ads and Snapchat Ads/.test(qa.text), qa);
   await page.focus('#faq details:nth-of-type(1) summary'); await page.keyboard.press('Enter');
   check('FAQ is keyboard-operable', await page.evaluate(() => document.querySelectorAll('#faq details')[0].open));
 

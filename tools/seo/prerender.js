@@ -41,15 +41,15 @@ const ROUTES = {
   '/pricing': 'pricing', '/faq': 'faq', '/terms': 'terms', '/privacy': 'privacy', '/refund-policy': 'refund-policy',
   '/cookie-policy': 'cookie-policy', '/security': 'security', '/contact': 'contact',
   '/product/google-ads': 'product-google-ads', '/product/meta-ads': 'product-meta-ads', '/product/tiktok-ads': 'product-tiktok-ads',
-  '/product/pinterest-ads': 'product-pinterest-ads', '/create': 'product-create', '/launch': 'product-launch',
+  '/product/pinterest-ads': 'product-pinterest-ads', '/product/snapchat-ads': 'product-snapchat-ads', '/create': 'product-create', '/launch': 'product-launch',
   '/campaigns': 'product-campaigns', '/research': 'product-research', '/autopilot': 'product-autopilot', '/business': 'product-business',
 };
 // Pages kept out of search: illustrative case studies (no real customer
 // proof yet — founder input needed) and the 404 page.
 const NOINDEX = new Set(['/case-studies']);
 const PRODUCT = new Set(['/product', '/pricing', '/create', '/launch', '/campaigns', '/research', '/autopilot', '/business',
-  '/product/google-ads', '/product/meta-ads', '/product/tiktok-ads', '/product/pinterest-ads']);
-const CRUMB_PARENT = { '/product/google-ads': '/product', '/product/meta-ads': '/product', '/product/tiktok-ads': '/product', '/product/pinterest-ads': '/product' };
+  '/product/google-ads', '/product/meta-ads', '/product/tiktok-ads', '/product/pinterest-ads', '/product/snapchat-ads']);
+const CRUMB_PARENT = { '/product/google-ads': '/product', '/product/meta-ads': '/product', '/product/tiktok-ads': '/product', '/product/pinterest-ads': '/product', '/product/snapchat-ads': '/product' };
 
 const outFile = (route) => route.slice(1) + '.html';
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
