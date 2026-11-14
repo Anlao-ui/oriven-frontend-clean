@@ -15254,7 +15254,9 @@ window.initIntegrations = function() {
       if (_oar.connected) {
         if (typeof toast === 'function') toast((_names[_oar.provider] || 'Account') + ' ' + (typeof t==='function'?t('toastConnectedSuffix'):'connected!'));
       } else if (_oar.error) {
-        if (typeof toast === 'function') toast(_errMap[_oar.error] || (typeof t==='function'?t('toastConnectionFailedShort'):'Connection failed.'), 'err');
+        // A token-exchange failure with a reason (Snapchat) says why (js/auth.js).
+        var _why = (_oar.reason && typeof _oauthReturnMessage === 'function') ? (_names[_oar.provider] || 'Account') + ' ' + _oauthReturnMessage(_oar) : null;
+        if (typeof toast === 'function') toast(_why || _errMap[_oar.error] || (typeof t==='function'?t('toastConnectionFailedShort'):'Connection failed.'), 'err');
       }
     }, 200);
   }
