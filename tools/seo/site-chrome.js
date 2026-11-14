@@ -13,7 +13,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 const COLS = [
   ['Product', [['/product', 'All six sections'], ['/business', 'Control Center'], ['/research', 'Research'], ['/create', 'Create'], ['/launch', 'Launch'], ['/campaigns', 'Campaigns'], ['/autopilot', 'Automations']]],
   ['Assistants', [['scout', 'Scout'], ['vector', 'Vector'], ['nova', 'Nova'], ['momentum', 'Momentum'], ['metric', 'Metric'], ['flux', 'Flux']].map(([k, n]) => ['/#agent-' + k, n, ` data-ik-goto="${k}"`])],
-  ['Platforms', [['/product/google-ads', 'Google Ads'], ['/product/meta-ads', 'Meta Ads'], ['/product/tiktok-ads', 'TikTok Ads'], ['/product/pinterest-ads', 'Pinterest Ads'], ['/cross-platform-ad-management/', 'Cross-platform ads'], ['/ppc-automation-software/', 'PPC automation']]],
+  ['Platforms', [['/product/google-ads', 'Google Ads'], ['/product/meta-ads', 'Meta Ads'], ['/product/tiktok-ads', 'TikTok Ads'], ['/product/pinterest-ads', 'Pinterest Ads'], ['/product/snapchat-ads', 'Snapchat Ads'], ['/cross-platform-ad-management/', 'Cross-platform ads'], ['/ppc-automation-software/', 'PPC automation']]],
   ['Resources', [['/solutions', 'Solutions'], ['/learn/', 'Learn'], ['/blog', 'Blog'], ['/faq', 'FAQ'], ['/case-studies', 'Case Studies'], ['/pricing', 'Pricing']]],
   ['Company', [['/about', 'About'], ['mailto:contact@orivenai.com', 'Contact'], ['/privacy', 'Privacy Policy'], ['/terms', 'Terms of Service'], ['/cookie-policy', 'Cookie Policy'], ['/refund-policy', 'Refund Policy'], ['/security', 'Security'], ['#cookie-settings', 'Cookie settings', ' data-cookie-settings']]],
 ];

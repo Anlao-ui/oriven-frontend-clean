@@ -566,17 +566,20 @@ a.ik-chip:hover .ik-glyph { color: var(--ac, var(--silver)); }
 .ik-ints-grid:has(.ik-int[data-int="google"]:hover) .ik-net__node[data-int="google"] circle,
 .ik-ints-grid:has(.ik-int[data-int="meta"]:hover) .ik-net__node[data-int="meta"] circle,
 .ik-ints-grid:has(.ik-int[data-int="tiktok"]:hover) .ik-net__node[data-int="tiktok"] circle,
-.ik-ints-grid:has(.ik-int[data-int="pinterest"]:hover) .ik-net__node[data-int="pinterest"] circle { stroke: var(--volt); }
+.ik-ints-grid:has(.ik-int[data-int="pinterest"]:hover) .ik-net__node[data-int="pinterest"] circle,
+.ik-ints-grid:has(.ik-int[data-int="snapchat"]:hover) .ik-net__node[data-int="snapchat"] circle { stroke: var(--volt); }
 .ik-ints-grid:has(.ik-int[data-int="google"]:hover) .ik-net__pulse[data-int="google"],
 .ik-ints-grid:has(.ik-int[data-int="meta"]:hover) .ik-net__pulse[data-int="meta"],
 .ik-ints-grid:has(.ik-int[data-int="tiktok"]:hover) .ik-net__pulse[data-int="tiktok"],
-.ik-ints-grid:has(.ik-int[data-int="pinterest"]:hover) .ik-net__pulse[data-int="pinterest"] { opacity: 1; stroke-dasharray: 100 0; stroke-dashoffset: 0; transition: stroke-dasharray .6s var(--ease-out), opacity .2s; }
+.ik-ints-grid:has(.ik-int[data-int="pinterest"]:hover) .ik-net__pulse[data-int="pinterest"],
+.ik-ints-grid:has(.ik-int[data-int="snapchat"]:hover) .ik-net__pulse[data-int="snapchat"] { opacity: 1; stroke-dasharray: 100 0; stroke-dashoffset: 0; transition: stroke-dasharray .6s var(--ease-out), opacity .2s; }
 /* On entering view: one signal travels out to each platform, once. */
 @keyframes ik-pulse { 0% { stroke-dashoffset: 112; opacity: 1; } 90% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
 .ik-motion .ik-ints-grid.is-in .ik-net__pulse { animation: ik-pulse 1.4s var(--ease) both; }
 .ik-motion .ik-ints-grid.is-in .ik-net__pulse[data-int="meta"] { animation-delay: .18s; }
 .ik-motion .ik-ints-grid.is-in .ik-net__pulse[data-int="tiktok"] { animation-delay: .36s; }
 .ik-motion .ik-ints-grid.is-in .ik-net__pulse[data-int="pinterest"] { animation-delay: .54s; }
+.ik-motion .ik-ints-grid.is-in .ik-net__pulse[data-int="snapchat"] { animation-delay: .72s; }
 .ik-ints { border-top: 1px solid var(--line); }
 .ik-int { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px 18px; align-items: center; padding: 20px 4px; border-bottom: 1px solid var(--line); border-radius: var(--r-s); transition: background-color var(--t) var(--ease); }
 .ik-int:hover { background: rgba(236, 238, 230, .025); }

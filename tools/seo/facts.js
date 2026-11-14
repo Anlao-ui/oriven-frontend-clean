@@ -5,7 +5,7 @@
 // wishes. Keep in sync with:
 //   js/plans.js (ORIVEN_PRICING, CREDIT_COSTS) — prices, credits, costs (read below, never retyped)
 //   backend services/pricing.js + planEntitlements.js — one product, the same features in every plan
-//   backend server.js (/api/publish/{google,meta,tiktok,pinterest})
+//   backend server.js (/api/publish/{google,meta,tiktok,pinterest,snapchat})
 //   backend services/automations/* (engine, limits, platforms) + js/automations.js
 // When a fact changes, change it here and re-run: node tools/seo/build.js
 // ════════════════════════════════════════════════════════════════
@@ -76,6 +76,7 @@ module.exports = {
     '/product/meta-ads': { name: 'OrivenAI for Meta Ads', description: 'Facebook and Instagram campaigns, created and launched through Meta’s API.' },
     '/product/tiktok-ads': { name: 'OrivenAI for TikTok Ads', description: 'Vertical video ads prepared in OrivenAI and created on TikTok paused, ready for review.' },
     '/product/pinterest-ads': { name: 'OrivenAI for Pinterest Ads', description: 'Pins, campaigns and country targeting prepared in OrivenAI and created on Pinterest paused.' },
+    '/product/snapchat-ads': { name: 'OrivenAI for Snapchat Ads', description: 'Full-screen image and video Snap Ads prepared in OrivenAI and created on Snapchat paused, with campaign reporting.' },
     '/business': { name: 'Control Center', description: 'Your dashboard, marketing plan and business context in one place.' },
   },
 };

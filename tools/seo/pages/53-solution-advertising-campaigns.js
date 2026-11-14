@@ -34,7 +34,7 @@ module.exports = {
   <h2 id="how-h">How OrivenAI handles it</h2>
   ${path(['Create', 'Launch · Ad Studio', 'Campaigns'])}
   <div class="sp-grid">
-    <div class="sp-card"><span class="sp-tag">Create</span><h3>Ads made for the platform</h3><p>Image and video ads for Google, Meta, TikTok and Pinterest. Options a platform doesn’t support are shown disabled, with the reason, before anything is generated.</p></div>
+    <div class="sp-card"><span class="sp-tag">Create</span><h3>Ads made for the platform</h3><p>Image and video ads for Google, Meta, TikTok, Pinterest and Snapchat. Options a platform doesn’t support are shown disabled, with the reason, before anything is generated.</p></div>
     <div class="sp-card"><span class="sp-tag">Launch</span><h3>Checked before it’s published</h3><p>Each draft is marked ready, check warnings, blocked or failed, with what blocks it: account, budget, targeting, tracking or creative.</p></div>
     <div class="sp-card"><span class="sp-tag">Publish</span><h3>Created paused</h3><p>Publishing goes through each platform’s official API and creates the campaign paused, so you decide when it starts spending.</p></div>
     <div class="sp-card"><span class="sp-tag">Campaigns</span><h3>One view of every campaign</h3><p>Spend, clicks, CTR, CPA and ROAS by platform and campaign, date ranges, and pause or resume on Google Ads, Meta Ads and Pinterest Ads.</p></div>
@@ -59,7 +59,7 @@ module.exports = {
   <h2 id="who-h">When it helps most</h2>
   <div class="sp-grid">
     <div class="sp-card"><h3>Publishing to a platform you don’t know well</h3><p>Launch shows what TikTok or Pinterest needs before you publish, instead of after a failed upload.</p></div>
-    <div class="sp-card"><h3>Running on several platforms at once</h3><p>Follow Google, Meta, TikTok and Pinterest campaigns side by side in Campaigns.</p></div>
+    <div class="sp-card"><h3>Running on several platforms at once</h3><p>Follow Google, Meta, TikTok, Pinterest and Snapchat campaigns side by side in Campaigns.</p></div>
     <div class="sp-card"><h3>Keeping control of spend</h3><p>Everything is created paused; nothing spends until you switch it on.</p></div>
   </div>
 </div></section>
@@ -70,7 +70,7 @@ module.exports = {
 </div></section>`,
   faq: [
     ['Are campaigns started automatically after publishing?', '<p>No. Campaigns published from Launch are created paused. You switch them on when you’re ready.</p>'],
-    ['Which platforms can I publish to?', '<p>Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads and Pinterest Ads, through each platform’s official API, once the ad account is connected.</p>'],
+    ['Which platforms can I publish to?', '<p>Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads, Pinterest Ads and Snapchat Ads, through each platform’s official API, once the ad account is connected.</p>'],
     ['What is the difference between Launch and Campaigns?', '<p>Launch gets ads out: it checks drafts and publishes them. Campaigns follows what is running: results, trends and, where the platform allows it, pause and resume.</p>'],
   ],
   related: ['/solutions/plan-to-content', '/solutions/structured-automation', '/solutions/connected-workflow', '/solutions/research-before-creation', '/launch', '/campaigns'],

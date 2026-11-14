@@ -10,7 +10,7 @@ module.exports = {
   readMinutes: 7,
   title: 'How to Manage Multiple Ad Platforms | OrivenAI',
   ogTitle: 'How to manage multiple ad platforms',
-  description: 'Running Google, Meta, TikTok and Pinterest ads? A system for shared briefs, consistent naming and UTMs, honest reporting and budget decisions.',
+  description: 'Running Google, Meta, TikTok, Pinterest and Snapchat ads? A system for shared briefs, consistent naming and UTMs, honest reporting and budget decisions.',
   crumb: 'How to manage multiple ad platforms',
   teaser: 'Shared briefs, naming and UTMs, honest reporting and budget decisions.',
   breadcrumbs: [{ name: 'Learn', path: '/learn/' }],
@@ -54,12 +54,12 @@ module.exports = {
 
 <h2>How OrivenAI supports this</h2>
 <figure class="sp-figure"><img src="/assets/films/posters/film-campaigns-800.webp" alt="The OrivenAI Campaigns screen with performance by platform, campaign and date range" width="800" height="450" loading="lazy" decoding="async"><figcaption>Campaigns in OrivenAI: performance pulled from each ad platform, in one place. (Screenshot from the product.)</figcaption></figure>
-<p>OrivenAI is built around this workflow. Your business and brand context lives in Control Center and informs every campaign; Create adapts one brief into each platform’s structure for Google Ads, Meta Ads, TikTok Ads and Pinterest Ads; Planning includes naming and UTM templates; Launch shows each draft’s readiness before you publish; Campaigns shows each platform’s results side by side; and Control Center lists what needs your attention. See <a href="/cross-platform-ad-management/">cross-platform ad management</a>.</p>`,
+<p>OrivenAI is built around this workflow. Your business and brand context lives in Control Center and informs every campaign; Create adapts one brief into each platform’s structure for Google Ads, Meta Ads, TikTok Ads, Pinterest Ads and Snapchat Ads; Planning includes naming and UTM templates; Launch shows each draft’s readiness before you publish; Campaigns shows each platform’s results side by side; and Control Center lists what needs your attention. See <a href="/cross-platform-ad-management/">cross-platform ad management</a>.</p>`,
   faq: [
     ['How many ad platforms should a small business run?', '<p>Usually one or two, chosen by where your customers are and how they buy. Add a platform when you can fund enough spend on it to learn, not just to be present.</p>'],
     ['Why do conversion numbers differ between ad platforms and analytics?', '<p>Platforms use their own attribution models and windows, and can each claim the same conversion. Analytics tools apply one model across all sources. Neither is wrong; they answer different questions.</p>'],
     ['What is a good UTM naming convention?', '<p>One that’s consistent and lower-case, for example utm_source=google or meta, utm_medium=cpc or paid_social, and utm_campaign matching your campaign naming pattern.</p>'],
   ],
   related: ['/cross-platform-ad-management/', '/learn/google-ads-vs-meta-ads/', '/learn/what-is-an-ai-advertising-platform/'],
-  cta: { title: 'Put every platform in one workspace', text: 'Create, launch and track Google, Meta, TikTok and Pinterest campaigns from one workspace.', label: 'Get started' },
+  cta: { title: 'Put every platform in one workspace', text: 'Create, launch and track Google, Meta, TikTok, Pinterest and Snapchat campaigns from one workspace.', label: 'Get started' },
 };

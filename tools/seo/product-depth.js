@@ -43,7 +43,7 @@ const D = {
     intro: 'Create turns what you know about your product into a complete draft for one ad platform: the campaign structure, the copy for every ad, and the image or video creative, in the format that platform expects.',
     steps: [
       ['Describe what you advertise.', 'A product, an offer, who it’s for. Your business profile from Control Center (name, brand, website) is added automatically, and you can bring in findings from Research.'],
-      ['Choose a platform, goal and format.', 'Google Ads, Meta Ads, TikTok Ads or Pinterest Ads; Sales, Leads, Traffic or Awareness; image or video; and how many ad sets or ad groups and ads you want.'],
+      ['Choose a platform, goal and format.', 'Google Ads, Meta Ads, TikTok Ads, Pinterest Ads or Snapchat Ads; Sales, Leads, Traffic or Awareness; image or video; and how many ad sets or ad groups and ads you want.'],
       ['Review the draft.', 'Headlines, primary text, descriptions and calls to action for each ad; for Google Search, keywords, negative keywords, callouts and sitelinks. Every field is editable and shows a character counter.'],
       ['Generate the creative.', 'One image or video per ad slot, sized for the platform. You can attach your own image or product photo instead.'],
       ['Send it to Launch.', 'Nothing is published from Create. Launch checks the campaign and creates it on the platform paused.'],
@@ -94,7 +94,7 @@ const D = {
     faq: [
       ['Will my campaign start spending right away?', 'No. Campaigns are always created paused. Nothing spends until you activate the campaign in the ad platform.'],
       ['What if I publish the same campaign twice?', 'Launch prevents a second publish of the same campaign while one is in progress.'],
-      ['Which campaign types can I launch?', 'Google Search, Performance Max and Demand Gen; Meta image ads; TikTok video ads for traffic and awareness; Pinterest image and video Pins.'],
+      ['Which campaign types can I launch?', 'Google Search, Performance Max and Demand Gen; Meta image ads; TikTok video ads for traffic and awareness; Pinterest image and video Pins; Snapchat full-screen image and video ads for traffic and awareness.'],
     ],
     links: [['/learn/how-to-manage-multiple-ad-platforms/', 'Managing multiple ad platforms'], ['/learn/meta-pixel-vs-conversions-api/', 'Meta Pixel vs Conversions API'], ['/learn/google-ads-vs-meta-ads/', 'Google Ads vs Meta Ads']],
   },
@@ -102,9 +102,9 @@ const D = {
     title: 'See every platform’s results in one place',
     intro: 'Campaigns pulls performance directly from each connected ad platform, so you can compare campaigns without switching between four dashboards.',
     steps: [
-      ['Connect your ad accounts.', 'Google Ads, Meta Ads, TikTok Ads and Pinterest Ads, in Control Center.'],
+      ['Connect your ad accounts.', 'Google Ads, Meta Ads, TikTok Ads, Pinterest Ads and Snapchat Ads, in Control Center.'],
       ['Choose a view.', 'Filter by platform, campaign and date range; read spend, clicks, conversions and the other metrics each platform reports.'],
-      ['Act on what you see.', 'Pause or resume Google Ads, Meta Ads and Pinterest Ads campaigns from OrivenAI, with a confirmation first.'],
+      ['Act on what you see.', 'Pause or resume Google Ads, Meta Ads, Pinterest Ads and Snapchat Ads campaigns from OrivenAI, with a confirmation first.'],
       ['Automate what repeats.', 'Turn a check you do every week into an automation rule.'],
     ],
     fig: fig('campaigns', 'The OrivenAI Campaigns screen with performance by platform, campaign and date range', 'The Campaigns screen. Screenshot from the product.'),
@@ -112,7 +112,7 @@ const D = {
     know: ['Numbers come from each platform’s own reporting, so definitions differ between platforms', 'Data refreshes from the platforms; very recent activity can lag', 'Pausing in OrivenAI pauses the real campaign on the platform'],
     faq: [
       ['Are the numbers estimates?', 'No. They are read from each platform’s reporting API. OrivenAI doesn’t invent or blend metrics across platforms.'],
-      ['Can I pause campaigns from OrivenAI?', 'Yes, for Google Ads, Meta Ads and Pinterest Ads campaigns, after a confirmation. TikTok campaigns are managed in TikTok Ads Manager.'],
+      ['Can I pause campaigns from OrivenAI?', 'Yes, for Google Ads, Meta Ads, Pinterest Ads and Snapchat Ads campaigns, after a confirmation. TikTok campaigns are managed in TikTok Ads Manager.'],
     ],
     links: [['/learn/how-to-manage-multiple-ad-platforms/', 'Managing multiple ad platforms'], ['/learn/how-to-test-ad-creatives/', 'How to test ad creatives'], ['/cross-platform-ad-management/', 'Cross-platform ad management']],
   },
@@ -140,7 +140,7 @@ const D = {
     steps: [
       ['Add your business profile.', 'Name, website, industry, country, products, audiences and competitors.'],
       ['Set your brand identity.', 'Logo, colours and tone of voice, used when copy and creative are generated.'],
-      ['Connect your ad accounts.', 'Google Ads, Meta Ads, TikTok Ads and Pinterest Ads, through each platform’s official sign-in.'],
+      ['Connect your ad accounts.', 'Google Ads, Meta Ads, TikTok Ads, Pinterest Ads and Snapchat Ads, through each platform’s official sign-in.'],
       ['Let the other modules use it.', 'Research uses your country and website; Create uses your brand; Launch uses your country and business name as defaults you can change.'],
     ],
     fig: fig('control-center-v2', 'The OrivenAI Control Center with the business profile, brand identity and connected ad accounts', 'Control Center. Screenshot from the product.'),
@@ -221,6 +221,23 @@ const D = {
       ['Can I pause Pinterest campaigns from OrivenAI?', 'Yes, from Campaigns, after a confirmation.'],
     ],
     links: [['/learn/pinterest-ads-for-small-business/', 'Pinterest ads for small business'], ['/learn/ai-ads-for-ecommerce/', 'AI ads for e-commerce'], ['/learn/ad-character-limits/', 'Ad character limits']],
+  },
+  'product-snapchat-ads': {
+    tag: 'In detail',
+    title: 'What OrivenAI builds on Snapchat',
+    intro: 'OrivenAI creates Snapchat campaigns through the Snapchat Marketing API, paused: your full-screen media, a campaign, ad squads targeting one country, and Snap Ads that swipe up to your page.',
+    steps: [
+      ['Media.', 'Your image, framed whole on a 1080 × 1920 full-screen background (never stretched or cropped), or your vertical 9:16 video, uploaded to your ad account.'],
+      ['Campaign and ad squads.', 'Traffic (optimised for swipe-ups) or Awareness (optimised for impressions); your daily budget split evenly over the ad squads, at least 5 per ad squad; one country and your age range.'],
+      ['Creative and ad.', 'A headline of up to 34 characters, your brand name, a call to action and your page with tracking parameters; optionally your Snapchat Public Profile.'],
+    ],
+    who: ['Brands reaching younger audiences on their phones', 'Businesses with vertical photos or short videos of their product'],
+    know: ['Traffic and Awareness campaigns only: Sales and Leads need a Snap Pixel, which OrivenAI can’t set up yet', 'One country per Snapchat campaign; publish a copy for each other country', 'Conversions aren’t reported in OrivenAI yet; spend, impressions, swipe-ups, CTR, CPC and CPM are', 'Snapchat reviews new ads before they deliver'],
+    faq: [
+      ['Do I need a Snapchat business account?', 'Yes. You need a Snap Business Manager account with an ad account and a payment method.'],
+      ['Can I pause Snapchat campaigns from OrivenAI?', 'Yes, from Campaigns, after a confirmation, and with Automations rules you switch on.'],
+    ],
+    links: [['/learn/ad-character-limits/', 'Ad character limits'], ['/learn/how-to-test-ad-creatives/', 'How to test ad creatives'], ['/cross-platform-ad-management/', 'Cross-platform ad management']],
   },
 };
 

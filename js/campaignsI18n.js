@@ -12,7 +12,7 @@
   if (typeof LANG_STRINGS !== 'object' || !LANG_STRINGS) return;
   var S = {
     en: {
-      connectBannerSub: 'Link Google Ads, Meta Ads, TikTok Ads or Pinterest Ads to see spend, ROAS and conversions from your ad accounts.',
+      connectBannerSub: 'Link Google Ads, Meta Ads, TikTok Ads, Pinterest Ads or Snapchat Ads to see spend, ROAS and conversions from your ad accounts.',
       cmpAllAdSets: 'All Ad Sets', cmpAllAds: 'All Ads', cmpIdShort: 'ID …{id}',
       cmpNoun_campaigns: 'campaign', cmpNoun_adsets: 'ad set', cmpNoun_ads: 'ad', cmpNounPl_adsets: 'ad sets', cmpNounPl_ads: 'ads',
       cmpSelectNoun: 'Select {noun}', cmpLevel_campaigns: 'Campaigns', cmpLevel_adsets: 'Ad Sets', cmpLevel_ads: 'Ads', cmpLevelAria: 'Choose Campaigns, Ad Sets or Ads',
@@ -50,7 +50,7 @@
       cmpT_conversionValue: 'The value attributed to conversions.', cmpT_roas: 'Return on ad spend: conversion value for every 1 spent on advertising.', cmpT_addToCart: 'Tracked add-to-cart events.', cmpT_costPerAddToCart: 'Average cost per tracked add-to-cart event.', cmpT_checkoutInitiated: 'Tracked checkout-start events.', cmpT_costPerCheckout: 'Average cost per tracked checkout-start event.'
     },
     nl: {
-      connectBannerSub: 'Koppel Google Ads, Meta Ads, TikTok Ads of Pinterest Ads om uitgaven, ROAS en conversies uit je advertentieaccounts te zien.',
+      connectBannerSub: 'Koppel Google Ads, Meta Ads, TikTok Ads, Pinterest Ads of Snapchat Ads om uitgaven, ROAS en conversies uit je advertentieaccounts te zien.',
       cmpAllAdSets: 'Alle advertentiesets', cmpAllAds: 'Alle advertenties', cmpIdShort: 'ID …{id}',
       cmpNoun_campaigns: 'campagne', cmpNoun_adsets: 'advertentieset', cmpNoun_ads: 'advertentie', cmpNounPl_adsets: 'advertentiesets', cmpNounPl_ads: 'advertenties',
       cmpSelectNoun: 'Kies {noun}', cmpLevel_campaigns: 'Campagnes', cmpLevel_adsets: 'Advertentiesets', cmpLevel_ads: 'Advertenties', cmpLevelAria: 'Kies campagnes, advertentiesets of advertenties',
@@ -88,7 +88,7 @@
       cmpT_conversionValue: 'De waarde die aan conversies is toegekend.', cmpT_roas: 'Rendement op advertentie-uitgaven: conversiewaarde per 1 uitgegeven aan advertenties.', cmpT_addToCart: 'Gemeten toevoegingen aan de winkelwagen.', cmpT_costPerAddToCart: 'Gemiddelde kosten per gemeten toevoeging aan de winkelwagen.', cmpT_checkoutInitiated: 'Gemeten gestarte betalingen.', cmpT_costPerCheckout: 'Gemiddelde kosten per gemeten gestarte betaling.'
     },
     de: {
-      connectBannerSub: 'Verbinde Google Ads, Meta Ads, TikTok Ads oder Pinterest Ads, um Ausgaben, ROAS und Conversions aus deinen Werbekonten zu sehen.',
+      connectBannerSub: 'Verbinde Google Ads, Meta Ads, TikTok Ads, Pinterest Ads oder Snapchat Ads, um Ausgaben, ROAS und Conversions aus deinen Werbekonten zu sehen.',
       cmpAllAdSets: 'Alle Anzeigengruppen', cmpAllAds: 'Alle Anzeigen', cmpIdShort: 'ID …{id}',
       cmpNoun_campaigns: 'Kampagne', cmpNoun_adsets: 'Anzeigengruppe', cmpNoun_ads: 'Anzeige', cmpNounPl_adsets: 'Anzeigengruppen', cmpNounPl_ads: 'Anzeigen',
       cmpSelectNoun: '{noun} wählen', cmpLevel_campaigns: 'Kampagnen', cmpLevel_adsets: 'Anzeigengruppen', cmpLevel_ads: 'Anzeigen', cmpLevelAria: 'Kampagnen, Anzeigengruppen oder Anzeigen wählen',
@@ -126,7 +126,7 @@
       cmpT_conversionValue: 'Der Conversions zugeordnete Wert.', cmpT_roas: 'Werberendite: Conversion-Wert pro 1 Werbeausgabe.', cmpT_addToCart: 'Erfasste Warenkorb-Hinzufügungen.', cmpT_costPerAddToCart: 'Durchschnittliche Kosten pro erfasster Warenkorb-Hinzufügung.', cmpT_checkoutInitiated: 'Erfasste begonnene Checkouts.', cmpT_costPerCheckout: 'Durchschnittliche Kosten pro erfasstem begonnenem Checkout.'
     },
     fr: {
-      connectBannerSub: 'Reliez Google Ads, Meta Ads, TikTok Ads ou Pinterest Ads pour voir les dépenses, le ROAS et les conversions de vos comptes publicitaires.',
+      connectBannerSub: 'Reliez Google Ads, Meta Ads, TikTok Ads, Pinterest Ads ou Snapchat Ads pour voir les dépenses, le ROAS et les conversions de vos comptes publicitaires.',
       cmpAllAdSets: 'Tous les ensembles de publicités', cmpAllAds: 'Toutes les publicités', cmpIdShort: 'ID …{id}',
       cmpNoun_campaigns: 'campagne', cmpNoun_adsets: 'ensemble de publicités', cmpNoun_ads: 'publicité', cmpNounPl_adsets: 'ensembles de publicités', cmpNounPl_ads: 'publicités',
       cmpSelectNoun: 'Choisir : {noun}', cmpLevel_campaigns: 'Campagnes', cmpLevel_adsets: 'Ensembles de publicités', cmpLevel_ads: 'Publicités', cmpLevelAria: 'Choisir campagnes, ensembles de publicités ou publicités',
@@ -164,7 +164,7 @@
       cmpT_conversionValue: 'La valeur attribuée aux conversions.', cmpT_roas: 'Retour sur dépenses publicitaires : valeur de conversion pour 1 dépensé en publicité.', cmpT_addToCart: 'Les ajouts au panier suivis.', cmpT_costPerAddToCart: 'Coût moyen par ajout au panier suivi.', cmpT_checkoutInitiated: 'Les paiements commencés suivis.', cmpT_costPerCheckout: 'Coût moyen par paiement commencé suivi.'
     },
     es: {
-      connectBannerSub: 'Conecta Google Ads, Meta Ads, TikTok Ads o Pinterest Ads para ver el gasto, el ROAS y las conversiones de tus cuentas publicitarias.',
+      connectBannerSub: 'Conecta Google Ads, Meta Ads, TikTok Ads, Pinterest Ads o Snapchat Ads para ver el gasto, el ROAS y las conversiones de tus cuentas publicitarias.',
       cmpAllAdSets: 'Todos los conjuntos de anuncios', cmpAllAds: 'Todos los anuncios', cmpIdShort: 'ID …{id}',
       cmpNoun_campaigns: 'campaña', cmpNoun_adsets: 'conjunto de anuncios', cmpNoun_ads: 'anuncio', cmpNounPl_adsets: 'conjuntos de anuncios', cmpNounPl_ads: 'anuncios',
       cmpSelectNoun: 'Elegir {noun}', cmpLevel_campaigns: 'Campañas', cmpLevel_adsets: 'Conjuntos de anuncios', cmpLevel_ads: 'Anuncios', cmpLevelAria: 'Elegir campañas, conjuntos de anuncios o anuncios',
@@ -202,7 +202,7 @@
       cmpT_conversionValue: 'El valor atribuido a las conversiones.', cmpT_roas: 'Retorno de la inversión publicitaria: valor de conversión por cada 1 invertido en publicidad.', cmpT_addToCart: 'Añadidos al carrito medidos.', cmpT_costPerAddToCart: 'Coste medio por añadido al carrito medido.', cmpT_checkoutInitiated: 'Pagos iniciados medidos.', cmpT_costPerCheckout: 'Coste medio por pago iniciado medido.'
     },
     pt: {
-      connectBannerSub: 'Ligue o Google Ads, Meta Ads, TikTok Ads ou Pinterest Ads para ver gastos, ROAS e conversões das suas contas de anúncios.',
+      connectBannerSub: 'Ligue o Google Ads, Meta Ads, TikTok Ads, Pinterest Ads ou Snapchat Ads para ver gastos, ROAS e conversões das suas contas de anúncios.',
       cmpAllAdSets: 'Todos os conjuntos de anúncios', cmpAllAds: 'Todos os anúncios', cmpIdShort: 'ID …{id}',
       cmpNoun_campaigns: 'campanha', cmpNoun_adsets: 'conjunto de anúncios', cmpNoun_ads: 'anúncio', cmpNounPl_adsets: 'conjuntos de anúncios', cmpNounPl_ads: 'anúncios',
       cmpSelectNoun: 'Escolher {noun}', cmpLevel_campaigns: 'Campanhas', cmpLevel_adsets: 'Conjuntos de anúncios', cmpLevel_ads: 'Anúncios', cmpLevelAria: 'Escolher campanhas, conjuntos de anúncios ou anúncios',

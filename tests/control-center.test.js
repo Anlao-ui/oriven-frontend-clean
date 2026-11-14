@@ -192,7 +192,7 @@ const shot = (page, name, full) => page.screenshot({ path: path.join(SHOT_DIR, n
     // Connected, no campaigns
     check('connected without campaigns: Running is a real 0', A.connectedNoCamps.camps.stats[0] === '0', A.connectedNoCamps.camps.stats);
     check("connected without campaigns: no tiles, says no activity", A.connectedNoCamps.perf.figs === 0 && !A.connectedNoCamps.perf.connect && /no spend/i.test(A.connectedNoCamps.perf.text), A.connectedNoCamps.perf);
-    check('connected without campaigns: Advertising row 1/4', /1\s*\/\s*4/.test(A.connectedNoCamps.mods[4].st), A.connectedNoCamps.mods[4]);
+    check('connected without campaigns: Advertising row 1/5 (five supported platforms)', /1\s*\/\s*5/.test(A.connectedNoCamps.mods[4].st), A.connectedNoCamps.mods[4]);
     // Active + multiple
     check('active: performance figures shown with partial-value notes visible', A.active.perf.figs >= 3 && A.active.perf.notes.every((d) => d !== 'none'), A.active.perf);
     check('active: spend figure is the real sum (€830.50)', /830[.,]5/.test(A.active.perf.text.replace(/\s/g, '')), A.active.perf.text.slice(0, 300));

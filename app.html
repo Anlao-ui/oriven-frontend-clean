@@ -15835,7 +15835,7 @@ window.prfReset = function() {
   _prfState.ctrl = {}; _prfState.load = {}; _prfState.conn = {}; _prfState.acct = {}; _prfState.pending = null;
   _prfState.statusGen++; _prfState.owner = null;
   window._prfAllCampaigns = []; window._prfPlatKpis = {}; window._prfActiveCampaign = 'all';
-  window._prfMetaAdSets = null; window._prfMetaAds = null; window._prfPinAdGroups = null; window._prfPinAds = null;
+  window._prfMetaAdSets = null; window._prfMetaAds = null; window._prfPinAdGroups = null; window._prfPinAds = null; window._prfSnapSquads = null; window._prfSnapAds = null;
   window._prfConnectedPlatforms = []; window._prfTikTokConnected = false;
   window._prfLastSeries = []; window._prfLastSeriesMeta = {}; window._prfLastKpis = null;
   if (typeof _prfChartReqId === 'number') _prfChartReqId++;
@@ -16042,9 +16042,11 @@ function _prfActiveEntities() {
   if (hierarchy === 'adsets') {
     if (plat === 'meta') list = (window._prfMetaAdSets || []).map(function(s) { return { key: 'adset:' + s.adset_id, id: String(s.adset_id), name: s.adset_name, row: s }; });
     else if (plat === 'pinterest') list = (window._prfPinAdGroups || []).map(function(g) { return { key: 'adset:' + g.ad_group_id, id: String(g.ad_group_id), name: g.ad_group_name, row: g }; });
+    else if (plat === 'snapchat') list = (window._prfSnapSquads || []).map(function(g) { return { key: 'adset:' + g.ad_squad_id, id: String(g.ad_squad_id), name: g.ad_squad_name, row: g }; });
   } else if (hierarchy === 'ads') {
     if (plat === 'meta') list = (window._prfMetaAds || []).map(function(a) { return { key: 'ad:' + a.ad_id, id: String(a.ad_id), name: a.ad_name, row: a }; });
     else if (plat === 'pinterest') list = (window._prfPinAds || []).map(function(a) { return { key: 'ad:' + a.ad_id, id: String(a.ad_id), name: a.ad_name, row: a }; });
+    else if (plat === 'snapchat') list = (window._prfSnapAds || []).map(function(a) { return { key: 'ad:' + a.ad_id, id: String(a.ad_id), name: a.ad_name, row: a }; });
   } else {
     list = (window._prfAllCampaigns || []).filter(function(c) { return c.platform === plat; }).map(function(c) { return { key: c.key, id: c.id, name: c.name, row: c }; });
   }
@@ -16130,7 +16132,7 @@ window.prfSwitchPlatform = function(platform, byUser) {
 var _PRF_ADM_PREFIX = { google: 'G', meta: 'M', tiktok: 'T', pinterest: 'P', snapchat: 'S' };
 // Real per-provider hierarchy (Meta: /api/meta/adsets + /ads; Pinterest:
 // /api/pinterest/ad-groups + /ads; Google/TikTok: campaigns only).
-var PRF_HIERARCHY_SUPPORT = { google: ['campaigns'], meta: ['campaigns', 'adsets', 'ads'], tiktok: ['campaigns'], pinterest: ['campaigns', 'adsets', 'ads'], snapchat: ['campaigns'] };
+var PRF_HIERARCHY_SUPPORT = { google: ['campaigns'], meta: ['campaigns', 'adsets', 'ads'], tiktok: ['campaigns'], pinterest: ['campaigns', 'adsets', 'ads'], snapchat: ['campaigns', 'adsets', 'ads'] };
 var PRF_HIERARCHY_LABELS = { campaigns: 'Campaigns', adsets: 'Ad Sets', ads: 'Ads' };
 function _prfHierarchyLabel(level) { return PRF_T('cmpLevel_' + level, null, PRF_HIERARCHY_LABELS[level] || level); }
 window._prfHierarchy = window._prfHierarchy || 'campaigns';
@@ -16177,7 +16179,8 @@ function _prfSyncCampaignsSection(platform) {
 // ── Ad sets / ads (Meta, Pinterest) — same generation guard as campaigns ──
 var _PRF_ENTITY_SRC = {
   meta: { adsets: { url: '/api/meta/adsets', key: 'adsets', store: '_prfMetaAdSets', ranged: true }, ads: { url: '/api/meta/ads', key: 'ads', store: '_prfMetaAds', ranged: true } },
-  pinterest: { adsets: { url: '/api/pinterest/ad-groups', key: 'ad_groups', store: '_prfPinAdGroups', ranged: false }, ads: { url: '/api/pinterest/ads', key: 'ads', store: '_prfPinAds', ranged: false } }
+  pinterest: { adsets: { url: '/api/pinterest/ad-groups', key: 'ad_groups', store: '_prfPinAdGroups', ranged: false }, ads: { url: '/api/pinterest/ads', key: 'ads', store: '_prfPinAds', ranged: false } },
+  snapchat: { adsets: { url: '/api/snapchat/ad-squads', key: 'ad_squads', store: '_prfSnapSquads', ranged: false }, ads: { url: '/api/snapchat/ads', key: 'ads', store: '_prfSnapAds', ranged: false } }
 };
 var _prfEntityGen = 0;
 function _prfLoadEntities(platform, hierarchy) {
@@ -19007,7 +19010,7 @@ window._bizGoToPage = function(tab){
 // ══════════════════════════════════════════════════════════════════
 var _bmapData = { health: null, validate: null, learnings: [], connections: {}, competitors: [], audiences: [], memoryItems: [], website: null };
 
-var BMAP_PLATFORM_LABELS = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads' };
+var BMAP_PLATFORM_LABELS = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' };
 
 // (window.bmapLoad is defined once, near bizLoadOverview below, as an
 // alias to the real merged loader — see that definition's own comment.)
@@ -19195,10 +19198,10 @@ function _bmap2NodeContent(kind, model){
   if(kind === 'advertising'){
     var ad = model.advertising;
     return {
-      line1: ad.connCount ? (ad.connCount + ' / 4 platforms connected') : 'No connections',
+      line1: ad.connCount ? (ad.connCount + ' / ' + Object.keys(BMAP_PLATFORM_LABELS).length + ' platforms connected') : 'No connections',
       line2: null,
       badge: ad.leaks.length ? _bicN('ms.issues', ad.leaks.length) : null, badgeCls: 'issue',
-      ariaSummary: ad.connCount + ' of 4 platforms connected' + (ad.leaks.length ? ', ' + ad.leaks.length + ' issue' : '')
+      ariaSummary: ad.connCount + ' of ' + Object.keys(BMAP_PLATFORM_LABELS).length + ' platforms connected' + (ad.leaks.length ? ', ' + ad.leaks.length + ' issue' : '')
     };
   }
   if(kind === 'website'){
@@ -19464,6 +19467,7 @@ function _bizIntelModel(){
   if(conn.google) sources.push('Google Ads');
   if(conn.tiktok) sources.push('TikTok Ads');
   if(conn.pinterest) sources.push('Pinterest Ads');
+  if(conn.snapchat) sources.push('Snapchat Ads');
   if((_bmapData.learnings || []).length) sources.push('ORIVEN learning');
 
   return {
@@ -19620,11 +19624,11 @@ function _bicStatus(kind, m){
   return kn ? { tone: 'ok', text: _bicN('ms.items', kn) } : { tone: 'todo', text: _bicT('ms.nothing', null, 'Nothing yet') };
 }
 
-// Advertising card: the real status of each of the four supported
+// Advertising card: the real status of each of the five supported
 // platforms (true / false from /api/{platform}/status, null = unknown —
 // shown as a hollow mark, never as connected). The card's aria-label
 // already carries the summary, so the strip itself is decorative.
-var _BIC_PLAT_SHORT = { google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest' };
+var _BIC_PLAT_SHORT = { google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest', snapchat: 'Snapchat' };
 function _bicPlatStrip(plats){
   return '<div class="bic-card-plats" aria-hidden="true">' + plats.map(function(p){
     var st = p.connected === true ? 'on' : (p.connected === false ? 'off' : 'unknown');
@@ -19989,7 +19993,8 @@ function bizLoadOverview(){
     apiFetch('/api/google/status').catch(function(){ return { ok:false }; }),
     apiFetch('/api/meta/status').catch(function(){ return { ok:false }; }),
     apiFetch('/api/tiktok/status').catch(function(){ return { ok:false }; }),
-    apiFetch('/api/pinterest/status').catch(function(){ return { ok:false }; })
+    apiFetch('/api/pinterest/status').catch(function(){ return { ok:false }; }),
+    apiFetch('/api/snapchat/status').catch(function(){ return { ok:false }; })
   ]).then(function(results){
     _bmapData = {
       health: (results[0].ok && results[0].data) ? results[0].data : null,
@@ -20005,10 +20010,11 @@ function bizLoadOverview(){
         google: _bmConnState(results[7]),
         meta: _bmConnState(results[8]),
         tiktok: _bmConnState(results[9]),
-        pinterest: _bmConnState(results[10])
+        pinterest: _bmConnState(results[10]),
+        snapchat: _bmConnState(results[11])
       }
     };
-    ['google','meta','tiktok','pinterest'].forEach(function(p){ if (typeof window._orvSetConn === 'function') window._orvSetConn(p, _bmapData.connections[p]); });
+    ['google','meta','tiktok','pinterest','snapchat'].forEach(function(p){ if (typeof window._orvSetConn === 'function') window._orvSetConn(p, _bmapData.connections[p]); });
     /* Oriven 1.0 Global Context Engine (Epic 1) — cache into the shared
        context so the AI chat already knows the business's overall health
        without a second fetch, once this page has loaded it. Unchanged

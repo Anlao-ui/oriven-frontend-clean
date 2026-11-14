@@ -237,6 +237,7 @@
     #view-pricing, #view-faq,
     #view-product-google-ads, #view-product-meta-ads, #view-product-tiktok-ads,
     #view-product-pinterest-ads,
+    #view-product-snapchat-ads,
     #view-product-create,
     #view-product-launch, #view-product-campaigns, #view-product-research,
     #view-product-autopilot, #view-product-business,
@@ -1051,7 +1052,7 @@
           <li>Account data: name, email address, hashed password</li>
           <li>Usage data: features used, credits consumed, generation history</li>
           <li>Content you add: your business details, website address, products, audiences, uploaded images, chat messages, and the campaigns, images and videos you create</li>
-          <li>Connected ad accounts: if you connect Google Ads, Meta, TikTok or Pinterest, the access tokens for that connection and the account, campaign and performance data we read from it</li>
+          <li>Connected ad accounts: if you connect Google Ads, Meta, TikTok, Pinterest or Snapchat, the access tokens for that connection and the account, campaign and performance data we read from it</li>
           <li>Payment data: processed via Stripe. We do not store card details.</li>
           <li>Technical data: IP address, browser type, device information, session tokens</li>
           <li>Acquisition data: how you first found OrivenAI, recorded once when you create an account (a traffic channel such as “Google search” or “LinkedIn”, campaign tags in the link you used, the referring website’s domain and the first page you visited). Only if statistics are on.</li>
@@ -1089,7 +1090,7 @@
           <li><strong style="color:rgba(240,240,240,.75)">Google</strong>: advertising measurement (Google Ads), only after you accept advertising cookies</li>
         </ul>
         <p>AI requests contain the content needed for the task: what you type or upload and the business details you saved in OrivenAI. We do not add your name, email address or payment details to them. Avoid entering personal data about other people in prompts or chat.</p>
-        <p>If you connect an ad account, we exchange data with that platform (Google, Meta, TikTok or Pinterest) on your instruction: we read your account and campaign data and send the campaigns you choose to publish. Their own privacy policies apply to the data they hold.</p>
+        <p>If you connect an ad account, we exchange data with that platform (Google, Meta, TikTok, Pinterest or Snapchat) on your instruction: we read your account and campaign data and send the campaigns you choose to publish. Their own privacy policies apply to the data they hold.</p>
       </div>
 
       <div class="lp-legal-section">
@@ -1128,7 +1129,7 @@
       </div>
       <nav class="site-foot__col" aria-label="Product"><h2>Product</h2><a href="/product">All six sections</a><a href="/business">Control Center</a><a href="/research">Research</a><a href="/create">Create</a><a href="/launch">Launch</a><a href="/campaigns">Campaigns</a><a href="/autopilot">Automations</a></nav>
       <nav class="site-foot__col" aria-label="Assistants"><h2>Assistants</h2><a href="/#agent-scout" data-ik-goto="scout">Scout</a><a href="/#agent-vector" data-ik-goto="vector">Vector</a><a href="/#agent-nova" data-ik-goto="nova">Nova</a><a href="/#agent-momentum" data-ik-goto="momentum">Momentum</a><a href="/#agent-metric" data-ik-goto="metric">Metric</a><a href="/#agent-flux" data-ik-goto="flux">Flux</a></nav>
-      <nav class="site-foot__col" aria-label="Platforms"><h2>Platforms</h2><a href="/product/google-ads">Google Ads</a><a href="/product/meta-ads">Meta Ads</a><a href="/product/tiktok-ads">TikTok Ads</a><a href="/product/pinterest-ads">Pinterest Ads</a><a href="/cross-platform-ad-management/">Cross-platform ads</a><a href="/ppc-automation-software/">PPC automation</a></nav>
+      <nav class="site-foot__col" aria-label="Platforms"><h2>Platforms</h2><a href="/product/google-ads">Google Ads</a><a href="/product/meta-ads">Meta Ads</a><a href="/product/tiktok-ads">TikTok Ads</a><a href="/product/pinterest-ads">Pinterest Ads</a><a href="/product/snapchat-ads">Snapchat Ads</a><a href="/cross-platform-ad-management/">Cross-platform ads</a><a href="/ppc-automation-software/">PPC automation</a></nav>
       <nav class="site-foot__col" aria-label="Resources"><h2>Resources</h2><a href="/solutions">Solutions</a><a href="/learn/">Learn</a><a href="/blog">Blog</a><a href="/faq">FAQ</a><a href="/case-studies">Case Studies</a><a href="/pricing">Pricing</a></nav>
       <nav class="site-foot__col" aria-label="Company"><h2>Company</h2><a href="/about">About</a><a href="mailto:contact@orivenai.com">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/cookie-policy">Cookie Policy</a><a href="/refund-policy">Refund Policy</a><a href="/security">Security</a><a href="#cookie-settings" data-cookie-settings="">Cookie settings</a></nav>
     </div>
@@ -1222,6 +1223,8 @@
      that first step on-platform) -- called out explicitly below since
      it's a genuine, current differentiator, not invented.
      ═══════════════════════════════════════════════════════ -->
+
+
 
 
 
@@ -1350,6 +1353,7 @@
     '/product/meta-ads':            'product-meta-ads',
     '/product/tiktok-ads':          'product-tiktok-ads',
     '/product/pinterest-ads':       'product-pinterest-ads',
+    '/product/snapchat-ads':        'product-snapchat-ads',
     '/create':                      'product-create',
     '/launch':                      'product-launch',
     '/campaigns':                   'product-campaigns',
@@ -1389,7 +1393,7 @@
   // Show global nav on content pages
   var NAV_VIEWS = {
     landing:1, about:1, blog:1, product:1, solutions:1, 'case-studies':1, pricing:1, faq:1,
-    'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1, 'product-pinterest-ads':1,
+    'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1, 'product-pinterest-ads':1, 'product-snapchat-ads':1,
     'product-create':1, 'product-launch':1, 'product-campaigns':1, 'product-research':1,
     'product-autopilot':1, 'product-business':1,
     '404':1
@@ -1408,29 +1412,30 @@
   // whatever was hardcoded in <head>. Descriptions are drawn from each
   // page's own real, existing hero sub-copy — nothing invented.
   var PAGE_SEO = {
-    landing: { title: 'AI Advertising Platform for Small Businesses | OrivenAI', desc: 'AI advertising software for small businesses: research your market, create ads with AI and launch Google, Meta, TikTok and Pinterest campaigns in one workspace.', path: '/' },
+    landing: { title: 'AI Advertising Platform for Small Businesses | OrivenAI', desc: 'AI advertising software for small businesses: research your market, create ads with AI and launch Google, Meta, TikTok, Pinterest and Snapchat campaigns in one workspace.', path: '/' },
     login: { title: 'Log In to Your Ad Workspace | OrivenAI', desc: 'Log in to your OrivenAI account to manage your advertising campaigns.', path: '/login', noindex: true },
     signup: { title: 'Create Your Account | OrivenAI', desc: 'Create your OrivenAI account to start creating, launching and managing advertising campaigns.', path: '/signup', noindex: true },
     terms: { title: 'Terms of Service: Accounts, Plans and Credits | OrivenAI', desc: 'The terms that apply when you use OrivenAI, including accounts, plans and credits, connected ad accounts and acceptable use.', path: '/terms' },
     privacy: { title: 'Privacy Policy: How We Protect Your Data | OrivenAI', desc: 'How OrivenAI collects, uses, stores and protects your data and your connected ad account data, and the rights you have over it.', path: '/privacy' },
     'refund-policy': { title: 'Refund Policy: Plans, Credits and Refunds | OrivenAI', desc: 'When payments for OrivenAI plans and credits can be refunded, and how to request a refund.', path: '/refund-policy' },
     'cookie-policy': { title: 'Cookie Policy: Cookies and Consent Choices | OrivenAI', desc: 'Which cookies and similar technologies OrivenAI uses on this website, why, and how to change your consent choices.', path: '/cookie-policy' },
-    security: { title: 'Security: How We Protect Your Ad Accounts | OrivenAI', desc: 'How OrivenAI protects your account and connected Google, Meta, TikTok and Pinterest ad accounts: OAuth, encryption and access.', path: '/security' },
+    security: { title: 'Security: How We Protect Your Ad Accounts | OrivenAI', desc: 'How OrivenAI protects your account and connected Google, Meta, TikTok, Pinterest and Snapchat ad accounts: OAuth, encryption and access.', path: '/security' },
     contact: { title: 'Contact Us: Product, Account and Billing Help | OrivenAI', desc: 'Contact the OrivenAI team with questions about the product, your account, billing or partnerships. We reply by email.', path: '/contact' },
     about: { title: 'About OrivenAI: Why We Built One Ad Workspace', desc: 'Ad work is scattered across platforms and tools. Why we built OrivenAI as one workspace for research, planning, creating, launching and following ads.', path: '/about' },
     blog: { title: 'OrivenAI Blog: Product Updates and Company News | OrivenAI', desc: 'News from OrivenAI: what we launched, why we built it, and how the product works today.', path: '/blog' },
-    product: { title: 'Google, Meta, TikTok & Pinterest Ads Integrations | OrivenAI', desc: 'OrivenAI connects to Google Ads, Meta Ads, TikTok Ads and Pinterest Ads through each platform’s official API: research, create, launch, track and automate ads.', path: '/product' },
+    product: { title: 'Google, Meta, TikTok, Pinterest & Snapchat Ads | OrivenAI', desc: 'OrivenAI connects to Google Ads, Meta Ads, TikTok Ads, Pinterest Ads and Snapchat Ads through each platform’s official API: research, create, launch, track and automate ads.', path: '/product' },
     solutions: { title: 'Advertising Solutions for Small Teams | OrivenAI', desc: 'Five ways OrivenAI simplifies advertising for small teams: one connected workflow, research first, plan to ads, campaign management and rule-based automation.', path: '/solutions' },
     'case-studies': { title: 'Case Studies | OrivenAI', desc: 'Illustrative examples of how Oriven changes a real advertising workflow.', path: '/case-studies' },
     pricing: { title: 'Pricing: AI Ad Software From €17, No Auto-Renewal | OrivenAI', desc: 'OrivenAI plans from €17 for 14 days to €245 for a year: the same product in every plan, paid once, no automatic renewal. Compare credits and costs per ad.', path: '/pricing' },
-    faq: { title: 'FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI', desc: 'Answers about OrivenAI: the six sections, choosing an assistant, credits and plans, connecting Google, Meta, TikTok and Pinterest accounts, Research and Automations.', path: '/faq' },
+    faq: { title: 'FAQ: Credits, Plans and Connecting Ad Accounts | OrivenAI', desc: 'Answers about OrivenAI: the six sections, choosing an assistant, credits and plans, connecting Google, Meta, TikTok, Pinterest and Snapchat accounts, Research and Automations.', path: '/faq' },
     'product-google-ads': { title: 'AI Google Ads Campaign Builder | OrivenAI', desc: 'Build Google Ads Search, Performance Max and Demand Gen campaigns from a brief: keywords, responsive search ads and assets, created paused through Google’s API.', path: '/product/google-ads' },
     'product-meta-ads': { title: 'AI Facebook & Instagram Ads Creator | OrivenAI', desc: 'Create Facebook and Instagram campaigns from a brief: ad sets with countries, ages and placements, image ads, and your Meta Pixel, created paused through Meta’s API.', path: '/product/meta-ads' },
     'product-tiktok-ads': { title: 'TikTok Ads Tool: Create Video Ads with AI | OrivenAI', desc: 'Prepare TikTok video ads with AI: hook, ad text, vertical video, countries and budget, created on TikTok paused for traffic and awareness campaigns.', path: '/product/tiktok-ads' },
     'product-pinterest-ads': { title: 'Pinterest Ads Tool: Create Pin Campaigns with AI | OrivenAI', desc: 'Create Pinterest ad campaigns from a brief: Pins with titles and descriptions, country targeting and Pinterest tag tracking, created paused through Pinterest’s API.', path: '/product/pinterest-ads' },
-    'product-create': { title: 'AI Ad Generator: Copy, Images and Video | OrivenAI', desc: 'An AI ad generator that turns a short brief into ad copy, image or video creative and a campaign structure for Google, Meta, TikTok or Pinterest.', path: '/create' },
+    'product-snapchat-ads': { title: 'Snapchat Ads Tool: Create Snap Ads with AI | OrivenAI', desc: 'Create Snapchat ad campaigns from a brief: full-screen image and video Snap Ads with a swipe-up to your site, created paused through the Snapchat Marketing API.', path: '/product/snapchat-ads' },
+    'product-create': { title: 'AI Ad Generator: Copy, Images and Video | OrivenAI', desc: 'An AI ad generator that turns a short brief into ad copy, image or video creative and a campaign structure for Google, Meta, TikTok, Pinterest or Snapchat.', path: '/create' },
     'product-launch': { title: 'Launch Ad Campaigns With Pre-Launch Checks | OrivenAI', desc: 'Check every campaign before it reaches the ad platform: targeting, budget, tracking and creative. Then create it paused through each platform’s official API.', path: '/launch' },
-    'product-campaigns': { title: 'Unified Ads Dashboard for Every Ad Platform | OrivenAI', desc: 'One ads dashboard for Google, Meta, TikTok and Pinterest performance, by campaign and date range. Pause or resume Google, Meta and Pinterest campaigns in place.', path: '/campaigns' },
+    'product-campaigns': { title: 'Unified Ads Dashboard for Every Ad Platform | OrivenAI', desc: 'One ads dashboard for Google, Meta, TikTok, Pinterest and Snapchat performance, by campaign and date range, with pause and resume in place.', path: '/campaigns' },
     'product-research': { title: 'AI Competitor & Market Research for Ads | OrivenAI', desc: 'Research your market, competitors and customers before you spend on ads. Targeted web searches and your website, with findings checked against their sources.', path: '/research' },
     'product-autopilot': { title: 'Ad Scheduling and Automated Campaign Rules | OrivenAI', desc: 'Schedule campaigns and let rules you write pause, resume or adjust budgets within limits you set. Approval mode and a full activity log of every change.', path: '/autopilot' },
     'product-business': { title: 'Control Center: Marketing Dashboard and Ad Plan | OrivenAI', desc: 'Where you start in OrivenAI: your marketing dashboard, advertising plan, business profile and brand identity, so research, copy and creative use the same facts.', path: '/business' },
@@ -1507,7 +1512,7 @@
   var FADE = 210;
   var NAV_VIEWS = {
     landing:1, about:1, blog:1, product:1, solutions:1, 'case-studies':1, pricing:1, faq:1,
-    'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1, 'product-pinterest-ads':1,
+    'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1, 'product-pinterest-ads':1, 'product-snapchat-ads':1,
     'product-create':1, 'product-launch':1, 'product-campaigns':1, 'product-research':1,
     'product-autopilot':1, 'product-business':1,
     '404':1
@@ -1533,6 +1538,7 @@
     '/product/meta-ads':            'product-meta-ads',
     '/product/tiktok-ads':          'product-tiktok-ads',
     '/product/pinterest-ads':       'product-pinterest-ads',
+    '/product/snapchat-ads':        'product-snapchat-ads',
     '/create':                      'product-create',
     '/launch':                      'product-launch',
     '/campaigns':                   'product-campaigns',

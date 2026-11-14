@@ -8,7 +8,7 @@ module.exports = {
   lastmod: '2026-10-14',
   title: 'Learn AI Advertising: Guides and How-Tos | OrivenAI',
   ogTitle: 'OrivenAI Learn: practical advertising guides',
-  description: 'Practical guides to AI advertising: creating and testing ads, competitor research, PPC automation, and Google, Meta, TikTok and Pinterest ads.',
+  description: 'Practical guides to AI advertising: creating and testing ads, competitor research, PPC automation, and Google, Meta, TikTok, Pinterest and Snapchat ads.',
   crumb: 'Learn',
   teaser: 'Guides to AI advertising, PPC automation and ad platforms.',
   eyebrow: 'Learn',
@@ -62,7 +62,7 @@ module.exports = {
   faq: [
     ['What is OrivenAI?', `<p>${F.canonical}</p>`],
     ['How does OrivenAI work?', '<p>You describe your business once in Control Center. In Create, you write a short brief and choose a platform; OrivenAI builds a campaign in that platform’s structure, with ad copy, targeting and image or video creative. Launch shows whether each draft is ready and publishes it to your own ad account when you choose. Campaigns tracks results, and Automations can schedule campaigns and apply rules you set.</p>'],
-    ['Who is OrivenAI designed for?', '<p>Small businesses, founders and marketers who run ads on Google, Meta, TikTok or Pinterest and want to research, create, launch and follow campaigns in one place, without stitching together separate tools.</p>'],
+    ['Who is OrivenAI designed for?', '<p>Small businesses, founders and marketers who run ads on Google, Meta, TikTok, Pinterest or Snapchat and want to research, create, launch and follow campaigns in one place, without stitching together separate tools.</p>'],
     ['Can OrivenAI create image and video ads?', `<p>Yes. Create generates image ads and video ads in each platform’s formats. A complete image ad uses ${F.costs.imageAd} credits and a video ad ${F.costs.videoAd} credits.</p>`],
     ['Which ad platforms does OrivenAI support?', '<p>Google Ads (Search, Performance Max and Demand Gen), Meta Ads (Facebook and Instagram), TikTok Ads and Pinterest Ads. Campaigns are created and published through each platform’s official API. Automations work with campaigns in your connected ad accounts; what they can change depends on the platform and how the campaign is set up.</p>'],
     ['Does OrivenAI have a free plan?', '<p>No. OrivenAI is paid-only. ' + F.planLine.replace('Every plan includes the full product: ', 'Every plan includes the full product (') .replace('Oriven Chat. ', 'Oriven Chat). ') + ' The shortest plan, Flex, is ' + F.fromPrice + ' for 14 days with ' + F.plans[0].credits + '.</p>'],

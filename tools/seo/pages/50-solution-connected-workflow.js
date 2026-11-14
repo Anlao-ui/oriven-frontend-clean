@@ -33,7 +33,7 @@ module.exports = {
   <div class="sp-grid">
     <div class="sp-card"><span class="sp-tag">01 · Start</span><h3><a href="/business">Control Center</a></h3><p>The Dashboard shows what is running, what needs you and what to do next. The Marketing Plan holds what you will advertise, when and with what budget. Your business profile and brand live here too.</p></div>
     <div class="sp-card"><span class="sp-tag">02 · Learn</span><h3><a href="/research">Research</a></h3><p>Investigate your market, competitors, audience or opportunities before you spend. Reports are kept in your research library.</p></div>
-    <div class="sp-card"><span class="sp-tag">03 · Make</span><h3><a href="/create">Create</a></h3><p>Image and video ads for Google, Meta, TikTok and Pinterest, built in six short steps from your business context.</p></div>
+    <div class="sp-card"><span class="sp-tag">03 · Make</span><h3><a href="/create">Create</a></h3><p>Image and video ads for Google, Meta, TikTok, Pinterest and Snapchat, built in six short steps from your business context.</p></div>
     <div class="sp-card"><span class="sp-tag">04 · Publish</span><h3><a href="/launch">Launch</a></h3><p>Every draft is checked against what the platform needs. Publishing creates the campaign paused, so you decide when it starts.</p></div>
     <div class="sp-card"><span class="sp-tag">05 · Follow</span><h3><a href="/campaigns">Campaigns</a></h3><p>Spend, clicks, CTR, CPA and ROAS from every connected platform in one view.</p></div>
     <div class="sp-card"><span class="sp-tag">06 · Keep going</span><h3><a href="/autopilot">Automations</a></h3><p>Schedules and rules for published campaigns that notify you, ask first or act within limits you set.</p></div>
@@ -55,7 +55,7 @@ module.exports = {
   <div class="sp-grid">
     <div class="sp-card"><h3>Owners who run their own ads</h3><p>One place to see what is running and what to do next, without learning four ad managers.</p></div>
     <div class="sp-card"><h3>Small marketing teams</h3><p>Plan, make and publish from the same context, so the next campaign builds on the last one.</p></div>
-    <div class="sp-card"><h3>Anyone advertising on more than one platform</h3><p>Google Ads, Meta Ads, TikTok Ads and Pinterest Ads, connected over OAuth and followed in one view.</p></div>
+    <div class="sp-card"><h3>Anyone advertising on more than one platform</h3><p>Google Ads, Meta Ads, TikTok Ads, Pinterest Ads and Snapchat Ads, connected over OAuth and followed in one view.</p></div>
   </div>
 </div></section>
 
@@ -66,7 +66,7 @@ module.exports = {
   faq: [
     ['Do I have to use all six sections?', '<p>No. Each section works on its own, and every plan includes all six, so you use what you need.</p>'],
     ['Does OrivenAI run my whole workflow automatically?', '<p>No. The sections share context, but you take each step yourself. Campaigns are created paused, and Automations only act on schedules and rules you switch on.</p>'],
-    ['Which ad platforms are connected?', '<p>Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads and Pinterest Ads, each through its official API over OAuth.</p>'],
+    ['Which ad platforms are connected?', '<p>Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads, Pinterest Ads and Snapchat Ads, each through its official API over OAuth.</p>'],
   ],
   related: ['/solutions/research-before-creation', '/solutions/plan-to-content', '/solutions/advertising-campaigns', '/solutions/structured-automation', '/product', '/business'],
   relatedTitle: 'Other solutions and sections',

@@ -14,7 +14,7 @@ const { footer, cta } = require('./site-chrome');
 const PP = require('./product-pages');
 
 const VIEWS = ['about', 'blog', 'product', 'solutions', 'case-studies', 'pricing', 'faq', 'terms', 'privacy', 'refund-policy', 'cookie-policy', 'security', 'contact',
-  'product-google-ads', 'product-meta-ads', 'product-tiktok-ads', 'product-pinterest-ads',
+  'product-google-ads', 'product-meta-ads', 'product-tiktok-ads', 'product-pinterest-ads', 'product-snapchat-ads',
   'product-business', 'product-research', 'product-create', 'product-launch', 'product-campaigns', 'product-autopilot', '404'];
 
 const START = ['/signup', 'Get started', ' onclick="lpGetStarted(event)"'];
@@ -32,12 +32,13 @@ const CTA = {
   'product-meta-ads': { eyebrow: 'Meta Ads', secondary: ['/product', 'All platforms and sections'] },
   'product-tiktok-ads': { eyebrow: 'TikTok Ads', secondary: ['/product', 'All platforms and sections'] },
   'product-pinterest-ads': { eyebrow: 'Pinterest Ads', secondary: ['/product', 'All platforms and sections'] },
+  'product-snapchat-ads': { eyebrow: 'Snapchat Ads', secondary: ['/product', 'All platforms and sections'] },
 };
 // The six product pages close with their own words (product-pages.js D[k].cta).
 const PCTA = {
   'product-business': ['Start where everything<br>comes together.', 'See what needs you, plan what’s next and keep your business context in one place. Included in every plan.'],
   'product-research': ['Know your market<br>before you spend.', 'Market, competitor, audience and opportunity research, included in every plan.'],
-  'product-create': ['Make your next ad,<br>step by step.', 'Image and video ads for Google, Meta, TikTok and Pinterest, built from your own business context.'],
+  'product-create': ['Make your next ad,<br>step by step.', 'Image and video ads for Google, Meta, TikTok, Pinterest and Snapchat, built from your own business context.'],
   'product-launch': ['Check it.<br>Then publish it.', 'Every draft checked against what the platform needs, and created paused, so you decide when it starts.'],
   'product-campaigns': ['Every campaign,<br>one view.', 'Connect your ad accounts and follow spend, clicks and cost per result in one place.'],
   'product-autopilot': ['Set the rules.<br>Keep the control.', 'Schedules and rules that notify you, ask first or act within your limits. Included in every plan.'],
