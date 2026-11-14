@@ -49,11 +49,23 @@ var _OAUTH_RETURN_ERROR_MAP = {
 var _OAUTH_RETURN_REASON_MAP = {
   invalid_client: "connection failed: Snapchat didn't accept OrivenAI's app credentials (invalid_client). Please contact OrivenAI support.",
   unauthorized_client: "connection failed: this Snapchat app isn't allowed to use this sign-in (unauthorized_client). Please contact OrivenAI support.",
-  invalid_grant: "connection failed: the Snapchat sign-in expired or was already used. Please connect again."
+  invalid_grant: "connection failed: Snapchat refused the sign-in code (invalid_grant).",
+  state_already_used: "this sign-in was already processed — the result above it is the one that counts. Check the connection status."
 };
+// Extra facts the Snapchat callback adds (Snap's cleaned error_description,
+// HTTP status, code age/length, reuse flags) — shown and logged so a failed
+// sign-in can be diagnosed. Letters, digits and basic punctuation only.
+function _oauthCleanDetail(s){ return String(s || "").replace(/[^A-Za-z0-9 .,:;'()_\-…]/g, " ").replace(/\s+/g, " ").trim().slice(0, 160); }
 function _oauthReturnMessage(oar){
-  if(oar.error === "token_exchange" && oar.reason){
-    return _OAUTH_RETURN_REASON_MAP[oar.reason] || ("connection failed (" + String(oar.reason).replace(/[^a-z0-9_]/gi, "").slice(0, 40) + ") — please try again.");
+  if(oar.reason && (oar.error === "token_exchange" || oar.reason === "state_already_used")){
+    var msg = _OAUTH_RETURN_REASON_MAP[oar.reason] || ("connection failed (" + String(oar.reason).replace(/[^a-z0-9_]/gi, "").slice(0, 40) + ") — please try again.");
+    var d = oar.diag || {};
+    var extra = [];
+    if(d.detail) extra.push("Snapchat: “" + _oauthCleanDetail(d.detail) + "”");
+    if(d.status) extra.push("HTTP " + String(d.status).replace(/\D/g, "").slice(0, 3));
+    if(d.codeAge) extra.push("code age " + String(d.codeAge).replace(/\D/g, "").slice(0, 6) + "s");
+    if(d.codeReused) extra.push("code already used once");
+    return extra.length ? msg + " " + extra.join(" · ") + "." : msg;
   }
   return _OAUTH_RETURN_ERROR_MAP[oar.error] || "connection failed.";
 }
@@ -412,7 +424,9 @@ function _detectPendingOAuthReturn(){
       var connected = qp.get(connectedKey);
       var error = qp.get(errorKey);
       if(connected === "1" || error){
-        window._pendingOAuthResult = { provider: provider, connected: connected === "1", error: error || null, reason: qp.get(provider + "_reason") || null };
+        window._pendingOAuthResult = { provider: provider, connected: connected === "1", error: error || null, reason: qp.get(provider + "_reason") || null,
+          diag: { detail: qp.get(provider + "_detail"), status: qp.get(provider + "_status"), codeAge: qp.get(provider + "_code_age"), codeLen: qp.get(provider + "_code_len"), codeReused: qp.get(provider + "_code_reused") === "1", codeSpace: qp.get(provider + "_code_space") === "1", attempt: qp.get(provider + "_attempt") } };
+        if(error) console.warn("[" + provider + " OAuth] failed | " + JSON.stringify({ error: error, reason: qp.get(provider + "_reason"), detail: _oauthCleanDetail(qp.get(provider + "_detail")), status: qp.get(provider + "_status"), codeAge: qp.get(provider + "_code_age"), codeLen: qp.get(provider + "_code_len"), codeReused: qp.get(provider + "_code_reused"), codeSpace: qp.get(provider + "_code_space"), attempt: qp.get(provider + "_attempt") }));
         console.log("[" + provider + " OAuth] Return detected | connected:", connected === "1", "| error:", error || null);
         setTimeout(function(){
           if(typeof _orvNav === "function") _orvNav("connect", "page-integrations");
