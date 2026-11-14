@@ -44,6 +44,19 @@ var _OAUTH_RETURN_ERROR_MAP = {
   auth_error:     "authentication error — please try again.",
   missing_params: "OAuth error — please try again."
 };
+// Why a token exchange failed (?<provider>_reason=, Snap's OAuth error code;
+// sent by the Snapchat callback). Shown instead of the generic message.
+var _OAUTH_RETURN_REASON_MAP = {
+  invalid_client: "connection failed: Snapchat didn't accept OrivenAI's app credentials (invalid_client). Please contact OrivenAI support.",
+  unauthorized_client: "connection failed: this Snapchat app isn't allowed to use this sign-in (unauthorized_client). Please contact OrivenAI support.",
+  invalid_grant: "connection failed: the Snapchat sign-in expired or was already used. Please connect again."
+};
+function _oauthReturnMessage(oar){
+  if(oar.error === "token_exchange" && oar.reason){
+    return _OAUTH_RETURN_REASON_MAP[oar.reason] || ("connection failed (" + String(oar.reason).replace(/[^a-z0-9_]/gi, "").slice(0, 40) + ") — please try again.");
+  }
+  return _OAUTH_RETURN_ERROR_MAP[oar.error] || "connection failed.";
+}
 function showApp(){
   var overlay = document.getElementById("authOverlay");
   var app     = document.querySelector(".app");
@@ -59,7 +72,7 @@ function showApp(){
         if(typeof toast === "function") toast(platformName + " connected successfully!");
         if(typeof navigate === "function") navigate('integrations');
       } else if(_oar.error){
-        var suffix = _OAUTH_RETURN_ERROR_MAP[_oar.error] || "connection failed.";
+        var suffix = _oauthReturnMessage(_oar);
         if(typeof toast === "function") toast(platformName + " " + suffix, "err");
       }
     }, 600);
@@ -399,7 +412,7 @@ function _detectPendingOAuthReturn(){
       var connected = qp.get(connectedKey);
       var error = qp.get(errorKey);
       if(connected === "1" || error){
-        window._pendingOAuthResult = { provider: provider, connected: connected === "1", error: error || null };
+        window._pendingOAuthResult = { provider: provider, connected: connected === "1", error: error || null, reason: qp.get(provider + "_reason") || null };
         console.log("[" + provider + " OAuth] Return detected | connected:", connected === "1", "| error:", error || null);
         setTimeout(function(){
           if(typeof _orvNav === "function") _orvNav("connect", "page-integrations");
