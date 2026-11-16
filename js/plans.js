@@ -283,12 +283,54 @@ var ORIVEN_PLAN_I18N = {
   "Included in every plan": { nl: "In elk abonnement inbegrepen", de: "In jedem Plan enthalten", fr: "Inclus dans chaque formule", es: "Incluido en todos los planes", pt: "Incluído em todos os planos" },
   "Prices exclude VAT; the VAT for your location is added at checkout. Unused credits expire when your access ends.": { nl: "Prijzen exclusief btw; de btw voor jouw locatie wordt bij het afrekenen toegevoegd. Ongebruikte credits vervallen wanneer je toegang eindigt.", de: "Preise zzgl. MwSt.; die MwSt. für deinen Standort wird beim Bezahlen hinzugefügt. Ungenutzte Credits verfallen, wenn dein Zugang endet.", fr: "Prix HT ; la TVA applicable à votre pays est ajoutée lors du paiement. Les crédits non utilisés expirent à la fin de votre accès.", es: "Precios sin IVA; el IVA de tu ubicación se añade al pagar. Los créditos no usados caducan cuando termina tu acceso.", pt: "Preços sem IVA; o IVA da sua localização é adicionado no pagamento. Os créditos não usados expiram quando o seu acesso termina." },
   "Excl. VAT — the VAT for your location is added at checkout.": { nl: "Excl. btw — de btw voor jouw locatie wordt bij het afrekenen toegevoegd.", de: "Zzgl. MwSt. — die MwSt. für deinen Standort wird beim Bezahlen hinzugefügt.", fr: "HT — la TVA de votre pays est ajoutée lors du paiement.", es: "Sin IVA — el IVA de tu ubicación se añade al pagar.", pt: "Sem IVA — o IVA da sua localização é adicionado no pagamento." },
-  "Lowest monthly price ": { nl: "Laagste prijs per maand ", de: "Niedrigster Monatspreis ", fr: "Prix mensuel le plus bas ", es: "Precio mensual más bajo ", pt: "Preço mensal mais baixo " }
+  "Lowest monthly price ": { nl: "Laagste prijs per maand ", de: "Niedrigster Monatspreis ", fr: "Prix mensuel le plus bas ", es: "Precio mensual más bajo ", pt: "Preço mensal mais baixo " },
+  "Try 2 weeks for": { nl: "Probeer 2 weken voor", de: "Teste 2 Wochen für", fr: "Essayez 2 semaines pour", es: "Prueba 2 semanas por", pt: "Experimente 2 semanas por" },
+  "Try for": { nl: "Probeer voor", de: "Teste für", fr: "Essayez pour", es: "Prueba por", pt: "Experimente por" },
+  "for 2 weeks": { nl: "voor 2 weken", de: "für 2 Wochen", fr: "pour 2 semaines", es: "por 2 semanas", pt: "por 2 semanas" },
+  "{price} applies to your first Flex purchase.": { nl: "{price} geldt voor je eerste Flex-aankoop.", de: "{price} gilt für deinen ersten Flex-Kauf.", fr: "{price} s’applique à votre premier achat Flex.", es: "{price} se aplica a tu primera compra de Flex.", pt: "{price} aplica-se à sua primeira compra Flex." },
+  "14-day money-back guarantee": { nl: "14 dagen niet-goed-geld-terug", de: "14 Tage Geld-zurück-Garantie", fr: "Satisfait ou remboursé 14 jours", es: "Garantía de devolución de 14 días", pt: "Garantia de reembolso de 14 dias" },
+  "Refund policy": { nl: "Terugbetalingsbeleid", de: "Erstattungsrichtlinie", fr: "Politique de remboursement", es: "Política de reembolso", pt: "Política de reembolso" }
 };
 function orvPlanT(str){
   var lang = (typeof CURRENT_LANG === "string") ? CURRENT_LANG : "en";
   var row = ORIVEN_PLAN_I18N[str];
   return (row && row[lang]) || str;
+}
+
+// ── Introductory offer: the FIRST Flex purchase for €1 ──────────────────
+// One switch for every place a plan is shown (public pricing cards, landing
+// copy, in-app paywall, onboarding plan step, the demo banner). Mirrors the
+// backend's services/pricing.js INTRO_OFFER (its tests/pricing.test.js fails
+// when they differ): the server applies the €1 itself, through the Stripe
+// promotion code in STRIPE_FLEX_PROMO_ID, to an eligible customer's first
+// Flex checkout. The browser only ever sends the plan id.
+var ORIVEN_INTRO_OFFER = { enabled: true, planId: "flex", price: 1 };
+// The money-back promise, on every plan EXCEPT the €1 Flex trial.
+// Keep it in line with the Refund Policy (/refund-policy).
+var ORIVEN_REFUND_LINE = "14-day money-back guarantee";
+function orvIntroOffer(){
+  var o = ORIVEN_INTRO_OFFER;
+  if(!o || !o.enabled) return null;
+  // Inside the app the account is known: an account that has had a plan
+  // before (active, ended or a legacy subscription) pays the normal price,
+  // so it isn't offered the €1 (the server decides either way).
+  if(typeof window !== "undefined" && typeof window.orvAccess === "function"){
+    var acc = window.orvAccess();
+    if(acc && (acc.active || acc.expiresAt || (acc.status && acc.status !== "free"))) return null;
+  }
+  var plan = null;
+  for(var i = 0; i < ORIVEN_PERIOD_PLANS.length; i++){ if(ORIVEN_PERIOD_PLANS[i].id === o.planId) plan = ORIVEN_PERIOD_PLANS[i]; }
+  return plan ? { planId: plan.id, plan: plan, price: o.price, priceLabel: _orvEuro(o.price), regular: plan.price, regularLabel: _orvEuro(plan.price) } : null;
+}
+// "Try 2 weeks for €1" (or null when the offer is off / not for this account).
+function orvIntroCta(){
+  var o = orvIntroOffer();
+  return o ? orvPlanT("Try 2 weeks for") + " " + o.priceLabel : null;
+}
+// Does a plan carry the money-back line? Every plan except the €1 trial plan.
+function orvPlanHasGuarantee(plan){
+  var o = ORIVEN_INTRO_OFFER;
+  return !(o && o.enabled && plan && plan.id === o.planId);
 }
 
 // Shared card facts, so the three card styles can't drift.
@@ -301,7 +343,20 @@ function orvPlanCardFacts(plan){
     credits: orvFormatCredits(plan.credits) + " " + orvPlanT("credits"),
     instalmentNote: plan.instalments > 1 ? orvFormatCredits(plan.creditsPerInstalment) + " " + orvPlanT("credits a month, added monthly") : "",
     renewal: orvPlanT("One payment. No automatic renewal."),
-    badge: plan.badge ? orvPlanT(plan.badge) : ""
+    badge: plan.badge ? orvPlanT(plan.badge) : "",
+    intro: _orvIntroFacts(plan)
+  };
+}
+// The offer as it appears on the offer plan's card (null on the others).
+function _orvIntroFacts(plan){
+  var o = orvIntroOffer();
+  if(!o || o.planId !== plan.id) return null;
+  return {
+    price: o.priceLabel,
+    was: o.regularLabel,
+    label: orvPlanT("for 2 weeks"),
+    then: orvPlanT("{price} applies to your first Flex purchase.").replace("{price}", o.priceLabel),
+    cta: orvIntroCta()
   };
 }
 function orvIncludedFeaturesHtml(liClass){
@@ -344,17 +399,20 @@ function renderLPPricingCards(containerEl){
     var delay = i === 0 ? '' : (i * 0.06).toFixed(2).replace(/^0/, '');
     var delayAttr = delay ? ' style="transition-delay:' + delay + 's"' : '';
     var saving = orvPlanSaving(plan);
-    var badge = hi ? f.badge : (plan.id === 'flex' ? 'Introductory' : '');
+    var intro = f.intro, offer = orvIntroOffer();
+    var badge = intro ? orvPlanT('Try for') + ' ' + intro.price : hi ? f.badge : (plan.id === 'flex' ? 'Introductory' : '');
     // data-eur: the EUR amount, so the pricing page's currency selector can
     // show an approximate conversion (display only; checkout stays in EUR).
-    var monthLine = plan.months >= 1
+    var monthLine = intro ? intro.then : plan.months >= 1
       ? '<span data-eur="' + (plan.perMonth || plan.price) + '">' + _orvEuro(Math.round((plan.perMonth || plan.price) * 100) / 100) + '</span> ' + orvPlanT("per month")
       : 'For 14 days';
     var credits = f.credits + (plan.instalments > 1 ? '<span class="ov-pc-sub"> · ' + orvFormatCredits(plan.creditsPerInstalment) + ' a month</span>' : '');
     return [
-      '<div class="ov-pc ov-pc--period ov-pc--ws' + (hi ? ' ov-pc-pro' : '') + '" data-observe data-plan="' + plan.id + '"' + delayAttr + '>',
+      '<div class="ov-pc ov-pc--period ov-pc--ws' + (hi ? ' ov-pc-pro' : '') + (intro ? ' ov-pc-intro' : '') + '" data-observe data-plan="' + plan.id + '"' + delayAttr + '>',
         '<div class="ov-pc-head">' + '<div class="ov-pc-badge-slot">' + (badge ? '<div class="ov-pc-badge' + (hi ? '' : ' ov-pc-badge--quiet') + '">' + badge + '</div>' : '') + '</div>' + '<div class="ov-pc-tier">' + plan.name + '</div><p class="ov-pc-for">' + ORIVEN_PLAN_FOR[plan.id] + '</p></div>',
-        '<div class="ov-pc-price"><span class="ov-pc-price-num" data-eur="' + plan.price + '">' + f.price + '</span><span class="ov-pc-period">' + f.period + '</span></div>',
+        intro
+          ? '<div class="ov-pc-price ov-pc-price--intro"><span class="ov-pc-price-num" data-eur="' + offer.price + '">' + intro.price + '</span><s class="ov-pc-was" data-eur="' + plan.price + '"><span class="ov-sr">Regular price </span>' + f.price + '</s><span class="ov-pc-period">' + intro.label + '</span></div>'
+          : '<div class="ov-pc-price"><span class="ov-pc-price-num" data-eur="' + plan.price + '">' + f.price + '</span><span class="ov-pc-period">' + f.period + '</span></div>',
         '<div class="ov-pc-facts">',
           '<p class="ov-pc-duration">' + monthLine + '</p>',
           '<p class="ov-pc-save">' + (saving ? 'Save <span data-eur="' + saving + '">' + _orvEuro(saving) + '</span> vs. Monthly' : '&nbsp;') + '</p>',
@@ -363,7 +421,10 @@ function renderLPPricingCards(containerEl){
           '<p class="ov-pc-vat">' + ORIVEN_VAT_LINE + '</p>',
         '</div>',
         '<ul class="ov-pc-list ov-pc-benefits">' + ORIVEN_CARD_BENEFITS.map(function(b){ return '<li>' + b + '</li>'; }).join('') + '</ul>',
-        '<a href="/app?plan=' + plan.id + '" class="ov-pc-btn' + (hi ? ' ov-pc-btn-pro' : '') + '" data-plan="' + plan.id + '" onclick="orvRememberPlanChoice(\'' + plan.id + '\');if(typeof lpGetStarted===\'function\'){lpGetStarted(event)}">Choose ' + plan.name + '</a>',
+        '<div class="ov-pc-cta">',
+          '<a href="/app?plan=' + plan.id + '" class="ov-pc-btn' + (hi || intro ? ' ov-pc-btn-pro' : '') + '" data-plan="' + plan.id + '" onclick="orvRememberPlanChoice(\'' + plan.id + '\');if(typeof lpGetStarted===\'function\'){lpGetStarted(event)}">' + (intro ? intro.cta : 'Choose ' + plan.name) + '</a>',
+          (orvPlanHasGuarantee(plan) ? '<p class="ov-pc-refund">' + orvPlanT(ORIVEN_REFUND_LINE) + '</p>' : '<p class="ov-pc-refund ov-pc-refund--none" aria-hidden="true">&nbsp;</p>'),
+        '</div>',
       '</div>'
     ].join('');
   }).join('');
@@ -374,18 +435,27 @@ function renderLPPricingCards(containerEl){
 function renderPWPricingCards(containerEl, plansArr){
   if(!containerEl) return;
   var list = (plansArr && plansArr.length && plansArr[0].credits != null && plansArr[0].periodLabel) ? plansArr : ORIVEN_PERIOD_PLANS;
+  // End of the Flex trial (js/flexReminder.js): the longer plans highlighted,
+  // with what they save against Monthly.
+  var longFirst = typeof window !== "undefined" && !!window.ORV_PLANS_HIGHLIGHT_LONG;
+  containerEl.classList.toggle("orv-pw-long", longFirst);
   containerEl.innerHTML = list.map(function(plan){
     var f = orvPlanCardFacts(plan);
     var hi = !!plan.badge;
-    var btnLabel = orvPlanT("Choose") + " " + plan.name;
+    var value = longFirst && plan.months >= 3;
+    var saving = value ? orvPlanSaving(plan) : 0;
+    var btnLabel = f.intro ? f.intro.cta : orvPlanT("Choose") + " " + plan.name;
     return [
-      '<div class="pw-card' + (hi ? ' pw-card-featured' : '') + '" data-plan="' + plan.id + '">',
+      '<div class="pw-card' + (hi ? ' pw-card-featured' : '') + (value ? ' orv-pw-value' : '') + '" data-plan="' + plan.id + '">',
+        value && saving ? '<div class="orv-pw-save">Save ' + _orvEuro(saving) + ' vs. Monthly</div>' : '',
         hi ? '<div class="pw-featured-badge">' + f.badge + '</div>' : '',
         '<div class="pw-card-name">' + plan.name + '</div>',
         '<div class="pw-price-row">',
-          '<span class="pw-price">' + f.price + '</span>',
-          '<span class="pw-period">/ ' + f.period + '</span>',
+          f.intro ? '<span class="pw-price">' + f.intro.price + '</span><s class="orv-was">' + f.price + '</s>' : '<span class="pw-price">' + f.price + '</span>',
+          '<span class="pw-period">/ ' + (f.intro ? f.intro.label : f.period) + '</span>',
         '</div>',
+        f.intro ? '<div class="pw-card-desc orv-intro-then">' + f.intro.then + '</div>' : '',
+        orvPlanHasGuarantee(plan) ? '<div class="pw-card-desc orv-guarantee">' + orvPlanT(ORIVEN_REFUND_LINE) + '</div>' : '',
         '<div class="pw-credits-inline">' + f.credits + '</div>',
         f.perMonth ? '<div class="pw-card-desc">' + f.perMonth + '</div>' : '',
         f.instalmentNote ? '<div class="pw-card-desc">' + f.instalmentNote + '</div>' : '',
@@ -401,20 +471,42 @@ function renderPLPricingCards(containerEl){
   containerEl.innerHTML = ORIVEN_PERIOD_PLANS.map(function(plan){
     var f = orvPlanCardFacts(plan);
     var hi = !!plan.badge;
-    var lines = [f.credits + ' · ' + f.period, f.instalmentNote, f.perMonth, f.renewal].filter(Boolean).map(function(t){
+    var lines = [f.credits + ' · ' + f.period, f.intro ? f.intro.then : '', f.instalmentNote, f.perMonth, f.renewal].filter(Boolean).map(function(t){
       return '<li class="pl-feat"><div class="pl-feat-chk">' + _PLAN_CHK_SVG + '</div><span>' + t + '</span></li>';
     }).join("");
     return [
       '<div class="pl-card' + (hi ? ' pl-popular' : '') + '" data-plan="' + plan.id + '">',
         hi ? '<div class="pl-tag">' + f.badge + '</div>' : '',
         '<div class="pl-card-name">' + plan.name + '</div>',
-        '<div class="pl-price"><span class="pl-price-num">' + f.price + '</span><span class="pl-price-period">/ ' + f.period + '</span></div>',
+        '<div class="pl-price"><span class="pl-price-num">' + (f.intro ? f.intro.price : f.price) + '</span>' + (f.intro ? '<s class="orv-was">' + f.price + '</s>' : '') + '<span class="pl-price-period">/ ' + (f.intro ? f.intro.label : f.period) + '</span></div>',
         '<div class="pl-divider"></div>',
         '<ul class="pl-feats">' + lines + '</ul>',
-        '<button class="pl-btn ' + (hi ? 'pl-btn-primary' : 'pl-btn-outline') + '" onclick="selectPlan(\'' + plan.id + '\',this)">' + orvPlanT("Choose") + ' ' + plan.name + '</button>',
+        '<button class="pl-btn ' + (hi || f.intro ? 'pl-btn-primary' : 'pl-btn-outline') + '" onclick="selectPlan(\'' + plan.id + '\',this)">' + (f.intro ? f.intro.cta : orvPlanT("Choose") + ' ' + plan.name) + '</button>',
       '</div>'
     ].join('');
   }).join('');
+}
+
+// Static page copy that names the offer (landing hero and final call to
+// action): with ORIVEN_INTRO_OFFER off, each element gets back its
+// data-orv-intro-off text, so switching the offer off is the one line above.
+// [data-orv-intro-cta]: a button (its trailing icon is kept);
+// [data-orv-intro-text]: plain text.
+function orvApplyIntroCopy(root){
+  if(typeof document === "undefined") return;
+  var on = !!orvIntroOffer(), cta = orvIntroCta();
+  Array.prototype.forEach.call((root || document).querySelectorAll("[data-orv-intro-cta],[data-orv-intro-text]"), function(el){
+    var off = el.getAttribute("data-orv-intro-off") || "";
+    var text = el.hasAttribute("data-orv-intro-cta") ? (on ? cta : off) : (on ? null : off);
+    if(text == null) return;
+    var icon = el.querySelector("svg");
+    el.textContent = text + (icon ? " " : "");
+    if(icon) el.appendChild(icon);
+  });
+}
+if(typeof document !== "undefined"){
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", function(){ orvApplyIntroCopy(); });
+  else orvApplyIntroCopy();
 }
 
 if (typeof module !== "undefined" && module.exports) {
@@ -423,6 +515,7 @@ if (typeof module !== "undefined" && module.exports) {
     ORIVEN_PERIOD_PLANS: ORIVEN_PERIOD_PLANS, ORIVEN_PLANS: ORIVEN_PLANS, ORIVEN_PAID_STATUSES: ORIVEN_PAID_STATUSES,
     ORIVEN_INCLUDED_FEATURES: ORIVEN_INCLUDED_FEATURES, ORIVEN_WORKFLOW_STEPS: ORIVEN_WORKFLOW_STEPS,
     ORIVEN_WEEKLY_REPORT_LIVE: ORIVEN_WEEKLY_REPORT_LIVE, orvPlanHas: orvPlanHas, orvMinPlanFor: orvMinPlanFor, orvEffectiveStatus: orvEffectiveStatus,
-    orvPeriodPlan: orvPeriodPlan, orvPlanCardFacts: orvPlanCardFacts, ORIVEN_CARD_BENEFITS: ORIVEN_CARD_BENEFITS, ORIVEN_VAT_LINE: ORIVEN_VAT_LINE, orvFormatCredits: orvFormatCredits
+    orvPeriodPlan: orvPeriodPlan, orvPlanCardFacts: orvPlanCardFacts, ORIVEN_CARD_BENEFITS: ORIVEN_CARD_BENEFITS, ORIVEN_VAT_LINE: ORIVEN_VAT_LINE, orvFormatCredits: orvFormatCredits,
+    ORIVEN_INTRO_OFFER: ORIVEN_INTRO_OFFER, ORIVEN_REFUND_LINE: ORIVEN_REFUND_LINE, orvIntroOffer: orvIntroOffer, orvIntroCta: orvIntroCta, orvPlanHasGuarantee: orvPlanHasGuarantee
   };
 }

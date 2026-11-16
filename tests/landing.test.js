@@ -82,7 +82,7 @@ async function main() {
   });
   check('sections in the approved order (2026-11 final): hero, problem, assistant, workspace (seven blocks), inside (the six tutorials), how, plan, integrations, trust, FAQ, final CTA (+ header, footer); no standalone tutorials section', JSON.stringify(st.order) === JSON.stringify(['top', 'problem', 'agents', 'workspace', 'inside', 'how', 'plan', 'integrations', 'trust', 'faq', 'start']) && st.footer && st.header, st.order);
   check('no pricing section on the landing page (no plan grid, no pricing block, no prices); /pricing still linked', !st.pricing.grid && st.pricing.sections === 0 && !st.pricing.perMonth && st.pricing.link, st.pricing);
-  check('FAQ present (10 questions)', st.faq === 10, st.faq);
+  check('FAQ present (11 questions, incl. "What if OrivenAI isn’t right for me?")', st.faq === 11, st.faq);
   check('exactly one H1: "Your new ad workspace."', st.h1.length === 1 && st.h1[0].replace(/\s+/g, ' ') === 'Your new ad workspace.', st.h1);
   check('six assistants with their specialisations', st.agents.join('|') === 'Scout:Research & Insights|Vector:Strategy & Direction|Nova:Creative & Content|Momentum:Growth & Execution|Metric:Performance & Optimisation|Flux:Automation & Systems', st.agents);
   check('every Start CTA goes to /signup; Log in goes to /login', st.signup.length >= 3 && st.signup.every((h) => h === '/signup') && st.login.length >= 1 && st.login.every((h) => h === '/login'), st);
@@ -227,9 +227,10 @@ async function main() {
   // ── D. Header link, dot field ──
   console.log('── D. Header + dot field ──');
   await page.evaluate(() => { document.getElementById('view-landing').scrollTop = 0; }); await page.waitForTimeout(300);
-  await page.click('.ik-hero a[href="#workspace"]'); await page.waitForTimeout(1800);
-  const nav = await page.evaluate(() => ({ url: location.pathname, top: Math.round(document.getElementById('workspace').getBoundingClientRect().top - document.getElementById('view-landing').getBoundingClientRect().top) }));
-  check('hero "See the workspace" scrolls to the workspace section without leaving the page', nav.url === '/' && Math.abs(nav.top) < 4, nav);
+  const nav = await page.evaluate(() => { const a = document.querySelector('.ik-hero .ik-btn--ghost'); return { text: a && a.textContent.trim(), href: a && a.getAttribute('href') }; });
+  check('hero secondary action "View live demo" links to /demo', nav.text === 'View live demo' && nav.href === '/demo', nav);
+  // (as before: start from the workspace section, so the bands below have drawn once)
+  await page.evaluate(() => { const v = document.getElementById('view-landing'); v.scrollTo({ top: document.getElementById('workspace').offsetTop, behavior: 'smooth' }); }); await page.waitForTimeout(1800);
   // Pointer displacement, measured on the problem band (no waves, so it is deterministic once
   // the dots have settled into the grid): the lattice dot under the pointer moves away, then returns.
   await page.evaluate(() => { const v = document.getElementById('view-landing'), b = document.querySelector('.ik-band').getBoundingClientRect(); v.scrollTop += b.top + b.height / 2 - innerHeight * 0.4; });
@@ -295,7 +296,7 @@ async function main() {
   ctx = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 1280, height: 900 } }); page = await ctx.newPage();
   await page.goto(BASE + '/', { waitUntil: 'load' });
   const nj = await page.evaluate(() => { const v = document.getElementById('view-landing'); const h = document.querySelector('h1'); return { visible: getComputedStyle(v).display !== 'none' && h.getBoundingClientRect().height > 0, agents: [...document.querySelectorAll('.ik-agent')].filter((a) => a.getBoundingClientRect().height > 0).length, faq: document.querySelectorAll('#faq details').length, cta: (document.querySelector('.ik-hero a.ik-btn--primary') || {}).getAttribute && document.querySelector('.ik-hero a.ik-btn--primary').getAttribute('href') }; });
-  check('no JavaScript: homepage content visible, all six agents readable, FAQ present, CTA is a real link', nj.visible && nj.agents === 6 && nj.faq === 10 && nj.cta === '/signup', nj);
+  check('no JavaScript: homepage content visible, all six agents readable, FAQ present, CTA is a real link', nj.visible && nj.agents === 6 && nj.faq === 11 && nj.cta === '/signup', nj);
   await ctx.close();
 
   ({ ctx, page, errors } = await open({ ctx: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } }));

@@ -27,6 +27,9 @@ sb.window = sb; vm.createContext(sb);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'plans.js'), 'utf8') + '\n;this.__P = { ORIVEN_PERIOD_PLANS, CREDIT_COSTS };', sb);
 const PLANS = sb.__P.ORIVEN_PERIOD_PLANS, C = sb.__P.CREDIT_COSTS;
 const euro = (n) => '€' + (Number.isInteger(n) ? n : n.toFixed(2));
+// The €1 first Flex purchase (plans.js ORIVEN_INTRO_OFFER): €1 for 2 weeks, the regular price struck through.
+const INTRO = require('../js/plans.js').orvIntroOffer();
+const isIntro = (p) => !!(INTRO && INTRO.planId === p.id);
 const DAY = 864e5;
 
 async function enterApp(page) {
@@ -94,9 +97,9 @@ const creditsMock = (bal, extra) => Object.assign({ balance: bal, monthlyAllowan
     ld: Array.from(document.querySelectorAll('script[type="application/ld+json"]')).map((s) => s.textContent).join('\n'),
   }));
   check('A1. five cards, Flex … Annual in order', JSON.stringify(pub.cards.map((c) => c.id)) === JSON.stringify(PLANS.map((p) => p.id)), pub.cards.map((c) => c.id));
-  check('A2. each card: name, VAT-inclusive price, period and credits from plans.js', PLANS.every((p, i) => pub.cards[i] && pub.cards[i].tier === p.name && pub.cards[i].price.includes(euro(p.price)) && pub.cards[i].price.includes(p.periodLabel) && pub.cards[i].credits.replace(/\./g, '').includes(String(p.credits))), pub.cards);
+  check('A2. each card: name, VAT-inclusive price, period and credits from plans.js', PLANS.every((p, i) => pub.cards[i] && pub.cards[i].tier === p.name && pub.cards[i].price.includes(euro(p.price)) && (isIntro(p) ? pub.cards[i].price.includes(INTRO.priceLabel) && /for 2 weeks/.test(pub.cards[i].price) : pub.cards[i].price.includes(p.periodLabel)) && pub.cards[i].credits.replace(/\./g, '').includes(String(p.credits))), pub.cards);
   check('A3. five columns on a wide screen, every card visible', pub.cols === 5 && pub.cards.every((c) => c.visible), pub.cols);
-  check('A4. buttons say "Choose <plan>"', pub.cards.every((c, i) => c.btn === 'Choose ' + PLANS[i].name));
+  check('A4. buttons say "Choose <plan>" (the €1 Flex trial: "Try 2 weeks for €1")', pub.cards.every((c, i) => c.btn === (isIntro(PLANS[i]) ? 'Try 2 weeks for ' + INTRO.priceLabel : 'Choose ' + PLANS[i].name)), pub.cards.map((c) => c.btn));
   check('A5b. comparison table has exactly Plan, Access, Price, Credits: no price per month, no credits-arrive column', JSON.stringify(pub.pdCols) === JSON.stringify(['Plan', 'Access', 'Price', 'Credits']) && pub.cellsPerRow.every((n) => n === 4) && !/per month|credits arrive|all at once|a month/i.test(pub.detailText), { cols: pub.pdCols, cells: pub.cellsPerRow });
   check('A5. comparison table: the five plans, one row each, with price, period and credits from plans.js', pub.head.length === 5 && PLANS.every((p, i) => pub.head[i].name === p.name && pub.head[i].price === euro(p.price) && pub.head[i].access === p.periodLabel && pub.head[i].credits.replace(/,/g, '') === String(p.credits)), pub.head);
   const cost = (label) => (pub.costs.find((r) => r[0].startsWith(label)) || [])[1];
@@ -124,7 +127,7 @@ const creditsMock = (bal, extra) => Object.assign({ balance: bal, monthlyAllowan
     text: document.getElementById('modal-paywall').innerText,
     open: document.getElementById('modal-paywall').classList.contains('open'),
   }));
-  check('B1. modal open with the five plans, prices and periods from plans.js', pw.open && pw.cards.length === 5 && PLANS.every((p, i) => pw.cards[i].id === p.id && pw.cards[i].price === euro(p.price) && pw.cards[i].period.includes(p.periodLabel) && pw.cards[i].credits.replace(/\./g, '').includes(String(p.credits))), pw.cards);
+  check('B1. modal open with the five plans, prices and periods from plans.js', pw.open && pw.cards.length === 5 && PLANS.every((p, i) => pw.cards[i].id === p.id && (isIntro(p) ? pw.cards[i].price === INTRO.priceLabel && /for 2 weeks/.test(pw.cards[i].period) : pw.cards[i].price === euro(p.price) && pw.cards[i].period.includes(p.periodLabel)) && pw.cards[i].credits.replace(/\./g, '').includes(String(p.credits))), pw.cards);
   check('B2. no Free card, no "Continue Free", no "Cancel anytime"', !/Continue Free|Stay on Free|Cancel anytime|Starter|Creator|Professional/.test(pw.text), pw.text.slice(0, 300));
   check('B3. footer: prices excl. VAT, added at checkout, no automatic renewal', /Prices excl\. VAT, added at checkout/.test(pw.text) && !/include VAT/.test(pw.text) && /No automatic renewal/.test(pw.text));
 
