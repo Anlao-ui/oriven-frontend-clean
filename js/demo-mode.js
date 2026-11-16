@@ -59,6 +59,20 @@
   }
   if (window.localStorage !== LS) throw new Error('demo storage not isolated');
 
+  // The app keeps its page in the address bar as /app?view=…; in the demo it
+  // stays /demo?view=…, so a reload or a shared link opens the demo again.
+  ['pushState', 'replaceState'].forEach(function (m) {
+    var orig = history[m];
+    history[m] = function (st, title, url) {
+      if (url != null) {
+        var u = String(url), o = location.origin;
+        u = u.replace(new RegExp('^(' + o.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')?/app(\\.html)?(?=[?#]|$)'), function (_, host) { return (host || '') + '/demo'; });
+        url = u;
+      }
+      return orig.call(history, st, title, url);
+    };
+  });
+
   // ── 3. Session + seeded browser state ─────────────────────────────
   var FAR = 4102444800; // 2100-01-01: never refreshed
   var USER = { id: UID, aud: 'authenticated', role: 'authenticated', email: EMAIL, email_confirmed_at: '2026-01-01T00:00:00Z', phone: '', app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: { first_name: 'Sanne' }, identities: [], created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' };

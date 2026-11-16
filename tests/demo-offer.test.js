@@ -35,7 +35,9 @@ const rules = fs.readFileSync(path.join(ROOT, '_redirects'), 'utf8').split(/\r?\
 let plansOverride = null; // the kill-switch case serves a modified js/plans.js
 const srv = http.createServer((q, r) => {
   let p = decodeURIComponent(new URL(q.url, BASE).pathname);
-  const m = rules.find((x) => x[0] === p && /^20?0/.test(x[2] || '')); if (m) p = m[1].split('?')[0];
+  // Like Netlify: a trailing slash is ignored when rules are matched (/demo/ matches the /demo rule).
+  const slash = (x) => (x.length > 1 ? x.replace(/\/+$/, '') : x);
+  const m = rules.find((x) => slash(x[0]) === slash(p) && /^20?0/.test(x[2] || '')); if (m) p = m[1].split('?')[0];
   if (p === '/js/plans.js' && plansOverride) { r.writeHead(200, { 'Content-Type': TYPES['.js'] }); return r.end(plansOverride); }
   // A bare page with the real plans.js + flexReminder.js; the account's access is stubbed per test.
   if (p === '/__flex.html') { r.writeHead(200, { 'Content-Type': TYPES['.html'] }); return r.end('<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/css/offer.css"></head><body style="background:#0B0C0A"><div id="pw"></div><script>window.orvAccess=function(){return window.__acc||null};window.openPaywall=function(){window.__pw=(window.__pw||0)+1;renderPWPricingCards(document.getElementById("pw"))};</script><script src="/js/plans.js"></script><script src="/js/flexReminder.js"></script></body></html>'); }
@@ -122,6 +124,17 @@ const REJECT = { v: 1, ads: false, stats: true, hc: false, at: '2026-11-15T00:00
   await ctx.close();
   plansOverride = null;
 
+  // No redirect loops: with Netlify's slash-insensitive matching, no 3xx rule may send a path to itself
+  const loops = rules.filter((x) => /^30\d/.test(x[2] || '') && x[0].replace(/\/+$/, '') === x[1].split('?')[0].replace(/\/+$/, ''));
+  check('_redirects: no rule redirects a path to itself (Netlify ignores the trailing slash: /demo/ → /demo looped)', loops.length === 0, loops);
+  {
+    const c2 = await browser.newContext(); const p2 = await c2.newPage(); p2.on('pageerror', (e) => errors.push('/demo/: ' + e.message));
+    await p2.goto(BASE + '/demo/', { waitUntil: 'load' }); await p2.waitForTimeout(5000);
+    const r2 = await p2.evaluate(() => ({ path: location.pathname, demo: window.ORV_DEMO === true, bar: !!document.querySelector('.orv-demo-bar') }));
+    check('/demo/ (trailing slash) ends up on /demo with the demo running', r2.path === '/demo' && r2.demo && r2.bar, r2);
+    await c2.close();
+  }
+
   // Refund Policy matches the money-back copy
   ({ ctx, page } = await open('/refund-policy'));
   const rp = await page.evaluate(() => document.body.innerText);
@@ -207,6 +220,12 @@ const REJECT = { v: 1, ads: false, stats: true, hc: false, at: '2026-11-15T00:00
   await go('auto-rules', 3000);
   const auR = await demo.evaluate(() => document.getElementById('page-autopilot').innerText);
   check('Automations: the example schedule (Overview) and rule (Rules)', /Weekday hours/.test(auO) && /Scale winners/.test(auR), [auO.slice(0, 120), auR.slice(0, 120)]);
+
+  // The address bar stays on /demo (the app writes /app?view=…), so a reload keeps the demo
+  const url1 = await demo.evaluate(() => location.pathname + location.search);
+  await demo.reload({ waitUntil: 'load' }); await demo.waitForTimeout(5000);
+  const after1 = await demo.evaluate(() => ({ url: location.pathname + location.search, demo: window.ORV_DEMO === true, bar: !!document.querySelector('.orv-demo-bar') }));
+  check('address bar stays on /demo while moving through the app; a reload opens the demo again', /^\/demo(\?|$)/.test(url1) && /^\/demo(\?|$)/.test(after1.url) && after1.demo && after1.bar, { url1, after1 });
 
   // AI and paid actions through the app's own apiFetch
   const ai = await demo.evaluate(async () => {

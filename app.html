@@ -6,7 +6,11 @@
        (ORV_NO_PAGEVIEW); site-analytics.js only supplies the signup's
        first-touch source. -->
 <!-- /demo only: js/demo-mode.js runs before everything else and answers every
-     request from js/demo-data.js (sample data, no network, isolated storage). -->
+     request from js/demo-data.js (sample data, no network, isolated storage).
+     /demo/ (trailing slash) goes on to /demo first: the page's relative
+     script paths only work at /demo, and Netlify can't redirect it (a rule
+     for /demo/ also matches /demo; see tools/seo/prerender.js). -->
+<script>if(location.pathname==='/demo/'){location.replace('/demo'+location.search+location.hash);document.write('<plaintext style="display:none">');}</script>
 <script>if(/^\/demo\/?$/.test(location.pathname))document.write('<script src="/js/demo-data.js"><\/script><script src="/js/demo-mode.js"><\/script>');</script>
 <script src="js/consent.js"></script>
 <script>window.ORV_NO_PAGEVIEW = true;</script>
