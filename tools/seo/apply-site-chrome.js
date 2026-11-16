@@ -13,7 +13,7 @@
 const { footer, cta } = require('./site-chrome');
 const PP = require('./product-pages');
 
-const VIEWS = ['about', 'blog', 'product', 'solutions', 'case-studies', 'pricing', 'faq', 'terms', 'privacy', 'refund-policy', 'cookie-policy', 'security', 'contact',
+const VIEWS = ['about', 'blog', 'product', 'solutions', 'case-studies', 'pricing', 'faq', 'terms', 'privacy', 'refund-policy', 'cookie-policy', 'security', 'contact', 'demo',
   'product-google-ads', 'product-meta-ads', 'product-tiktok-ads', 'product-pinterest-ads', 'product-snapchat-ads',
   'product-business', 'product-research', 'product-create', 'product-launch', 'product-campaigns', 'product-autopilot', '404'];
 

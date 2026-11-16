@@ -1,29 +1,33 @@
 /* ════════════════════════════════════════════════════════════════
-   /demo: the real OrivenAI app with sample data, without an account.
+   /demo-app: the real OrivenAI app with sample data, read-only.
 
-   Loaded by app.html's first script, and only on /demo, BEFORE every other
-   script. It makes the page self-contained:
+   Shown inside the large modal on the marketing page /demo (index.html
+   #view-demo, a sandboxed iframe), and on its own at /demo-app. Loaded by
+   app.html's first script, only on /demo-app, BEFORE every other script:
 
    1. Network: fetch, XMLHttpRequest, WebSocket, EventSource, sendBeacon and
       window.open are replaced. Every OrivenAI API call and every Supabase
       call is answered here from js/demo-data.js (static sample data); every
       other request is refused, except GETs of this site's own files and of
-      the static script/font CDNs the app already uses. So a demo visit
-      reaches no OrivenAI server, no AI provider, no ad platform and no
-      Stripe: it costs nothing per visitor.
+      the static script/font CDNs the app already uses. A demo visit reaches
+      no OrivenAI server, no AI provider, no ad platform and no Stripe: it
+      costs nothing per visitor.
    2. Storage: localStorage and sessionStorage are in-memory copies for this
       page, so the demo never reads or changes a real signed-in visitor's
-      data, and nothing from the demo survives a reload.
+      data (it works the same signed in or not).
    3. Session: a fake signed-in session for the sample user "Sanne" of the
       fictional shop "Amber & Clay" (never valid on any server).
-   4. AI actions answer with pre-written examples after a short wait.
-      Paying, publishing, connecting accounts and deleting are refused with
-      a short explanation.
-   5. A banner says this is a demo with sample data, with the €1 offer.
+   4. Read-only: creating, generating, saving, connecting, publishing and
+      paying show "Not available in the demo — Try 2 weeks for €1". The
+      sample content (example ads, research report, plan, automations) is
+      pre-written.
+   5. In the modal the page shows no banner of its own (the marketing page
+      around it carries the offer); links to the website open in the main
+      window, never inside the frame.
    ════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-  if (!/^\/demo\/?$/.test(location.pathname)) return;
+  if (!/^\/demo-app\/?$/.test(location.pathname)) return;
   if (window.ORV_DEMO) return;
   window.ORV_DEMO = true;
 
@@ -32,10 +36,12 @@
   var UID = 'demo-amber';
   var EMAIL = 'sanne@amberandclay.example';
   var SB_KEY = 'sb-rsqfoqitooxmkyrkuyzi-auth-token';
+  var FRAMED = (function () { try { return window.top !== window; } catch (_) { return true; } })();
+  var NOT = 'Not available in the demo';
   var MSG = {
-    ai: 'This is a demo, so nothing is generated: you see a ready-made example instead.',
-    blocked: 'This is a demo with sample data. Try OrivenAI for 2 weeks for €1 to do this with your own business.',
-    pay: 'This is a demo, so there is nothing to buy here. Try OrivenAI for 2 weeks for €1 from the pricing page.',
+    ai: NOT + ' — Try 2 weeks for €1',
+    blocked: NOT + ' — Try 2 weeks for €1',
+    pay: NOT + ' — Try 2 weeks for €1',
   };
 
   // ── 2. Storage: in-memory, per page ───────────────────────────────
@@ -60,13 +66,13 @@
   if (window.localStorage !== LS) throw new Error('demo storage not isolated');
 
   // The app keeps its page in the address bar as /app?view=…; in the demo it
-  // stays /demo?view=…, so a reload or a shared link opens the demo again.
+  // stays /demo-app?view=…, so a reload keeps the demo (never the real /app).
   ['pushState', 'replaceState'].forEach(function (m) {
     var orig = history[m];
     history[m] = function (st, title, url) {
       if (url != null) {
         var u = String(url), o = location.origin;
-        u = u.replace(new RegExp('^(' + o.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')?/app(\\.html)?(?=[?#]|$)'), function (_, host) { return (host || '') + '/demo'; });
+        u = u.replace(new RegExp('^(' + o.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')?/app(\\.html)?(?=[?#]|$)'), function (_, host) { return (host || '') + '/demo-app'; });
         url = u;
       }
       return orig.call(history, st, title, url);
@@ -111,50 +117,6 @@
     return r;
   }
 
-  // ── Pre-written AI answers ────────────────────────────────────────
-  var IMAGES = ['/assets/demo/ad2.jpg', '/assets/demo/ad4.jpg', '/assets/demo/ad5.jpg', '/assets/demo/ad6.jpg'];
-  var imgTurn = 0;
-  // One finished campaign per platform, written by hand for the sample shop.
-  var LP = 'https://amberandclay.example/shop';
-  var AUDIENCE = 'Gift buyers aged 25–45 in the Netherlands who like candles, interior design and handmade gifts';
-  var CONCEPTS = [
-    { angle: 'Burn time', hook: 'Sixty hours of warm light', cta: 'Shop now', adCopy: { headline: 'Sixty hours of warm light', primaryText: 'Each soy candle is poured by hand in small batches and burns for about 60 hours.', description: 'Free shipping over €50' } },
-    { angle: 'Slow evenings', hook: 'Slow evenings, hand-poured', cta: 'Shop now', adCopy: { headline: 'Slow evenings, hand-poured', primaryText: 'Natural soy wax, cotton wicks and scents inspired by Dutch autumn walks.', description: 'Made in Utrecht' } },
-    { angle: 'Gifting', hook: 'The gift that glows for weeks', cta: 'Shop gifts', adCopy: { headline: 'The gift that glows for weeks', primaryText: 'Wrapped by hand, with a note in your words. Ready to give.', description: 'Gift wrapping included' } },
-  ];
-  var EXAMPLES = {
-    meta: { metaAds: { campaignObjective: 'Sales', budget: 25, targetAudience: AUDIENCE, placements: ['Facebook Feed', 'Instagram Feed', 'Instagram Stories', 'Reels'], primaryText: 'Soy candles poured by hand in small batches. About 60 hours of slow, warm light per candle.', headline: 'Slow evenings, hand-poured', description: 'Free shipping over €50', cta: 'Shop now' } },
-    google: { googleAds: { campaignType: 'SEARCH', budget: 20, biddingStrategy: 'Maximise conversions', keywords: ['hand poured candles', 'soy candles netherlands', 'handmade candle gift', 'natural soy candle', 'scented candles utrecht', 'candle gift set'], headlines: ['Hand-Poured Soy Candles', '60 Hours of Warm Light', 'Made in Utrecht', 'Free Shipping Over €50', 'Gift Wrapping Included'], descriptions: ['Soy candles poured by hand in small batches. About 60 hours of slow, warm light.', 'Natural wax, cotton wicks, autumn scents. Wrapped by hand, ready to give.'] } },
-    tiktok: { tiktokAds: { campaignObjective: 'Traffic', budget: 30, targetAudience: 'People aged 20–40 in the Netherlands interested in home decor, DIY and slow living', hook: 'POV: one candle, sixty hours of slow evenings', script: '0–2s: close-up of wax being poured. 2–6s: wick trimmed, candle lit in a dark room. 6–12s: time-lapse of an evening on the sofa. 12–15s: “Hand-poured in Utrecht. Link in bio.”', cta: 'Shop now', creatorStyleConcept: 'Calm studio footage, natural light, no voice-over, soft ambient sound' } },
-    pinterest: { pinterestAds: { campaignObjective: 'Consideration', budget: 15, creativeType: 'image', title: 'Autumn candles, poured by hand', description: 'Natural soy candles with about 60 hours of warm light. Gift-wrapped and made in small batches in Utrecht.', cta: 'Shop now', boardSuggestion: 'Cosy autumn home' } },
-  };
-  EXAMPLES.snapchat = { snapchatAds: { campaignObjective: 'Traffic', budget: 15, headline: 'Sixty hours of warm light', brandName: 'Amber & Clay', cta: 'Shop now' }, metaAds: EXAMPLES.meta.metaAds };
-  function examplePackage(body) {
-    var plat = String((body && (body.platform || body.adPlatform)) || 'meta').toLowerCase();
-    var key = /google/.test(plat) ? 'google' : /tiktok/.test(plat) ? 'tiktok' : /pinterest/.test(plat) ? 'pinterest' : /snap/.test(plat) ? 'snapchat' : 'meta';
-    var pkg = JSON.parse(JSON.stringify(EXAMPLES[key]));
-    pkg.campaignName = 'Candle season — autumn (example)';
-    pkg.strategy = { goal: key === 'meta' || key === 'google' ? 'Sales' : 'Traffic', targetAudience: AUDIENCE, landingPageUrl: LP, budgetRecommendation: { amount: (pkg[key + 'Ads'] || {}).budget || 20 } };
-    pkg.concepts = JSON.parse(JSON.stringify(CONCEPTS));
-    if (key === 'tiktok') pkg.videoAssets = [{ ref: 'a', videoUrl: location.origin + '/assets/ads/TA3.mp4' }];
-    else if (key !== 'google') pkg.visualConcepts = [{ conceptRef: 'a', generatedImageUrl: location.origin + IMAGES[0] }];
-    pkg.demoExample = true;
-    return pkg;
-  }
-  function exampleImage(body) {
-    var p = String((body && (body.prompt || body.product)) || '').toLowerCase();
-    var i = /oil|serum|botanic/.test(p) ? 1 : /mug|ceramic|tea|cup/.test(p) ? 2 : /glass|ring|jewel/.test(p) ? 3 : /candle|wax|autumn|gift/.test(p) ? 0 : (imgTurn++ % IMAGES.length);
-    return location.origin + IMAGES[i];
-  }
-  function chatReply(body) {
-    var m = String((body && (body.message || body.text)) || '').toLowerCase();
-    var tail = '\n\n(This is a demo: this answer is a ready-made example, not generated for you.)';
-    if (/budget|spend|cost|roas|cpa/.test(m)) return 'Candle season — prospecting on Meta returns the most per euro right now (about €4.70 back for every €1 over 30 days). I’d move €5 a day from the paused Gift guide campaign to it, and keep Retargeting as it is.' + tail;
-    if (/headline|copy|text|ad|hook/.test(m)) return 'Three headlines for the autumn candles:\n1. Slow evenings, hand-poured\n2. Sixty hours of warm light\n3. The gift that glows for weeks\nThe second one leads with burn time, the thing reviewers praise most and few shops mention.' + tail;
-    if (/pinterest|tiktok|snapchat|google|meta|platform/.test(m)) return 'For Amber & Clay: Meta and Google bring most sales today. Pinterest suits the gift season (people plan purchases there), TikTok works for the pottery workshop videos, and Snapchat reaches younger gift buyers at a low cost per click.' + tail;
-    return 'Here’s what I’d do this week: 1) keep Candle season running, it has the best return; 2) start the gift campaign in the last week of October, because buying starts in early November; 3) test the burn-time headline against the scent headline.' + tail;
-  }
-
   // ── 1. Network ────────────────────────────────────────────────────
   var nativeFetch = window.fetch.bind(window);
   var SAME = location.origin;
@@ -164,7 +126,6 @@
   window.orvDemoBlocked = blockedLog; // for the tests: what the demo refused
 
   function json(status, data) { return new Response(status === 204 ? null : JSON.stringify(data), { status: status, headers: { 'Content-Type': 'application/json' } }); }
-  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
   function parseBody(b) { try { return typeof b === 'string' ? JSON.parse(b) : null; } catch (_) { return null; } }
 
   var REFUSE = /^\/api\/(publish|create-checkout-session|create-portal-session|billing\/|account\/delete|schedule-plan-change|[a-z]+\/disconnect|[a-z]+\/campaign\/|automations|autopilot\/rules|manual-campaigns|signup|verify-email|resend-verification|website-monitor|onboarding\/(complete|goal)|setup\/)/;
@@ -176,12 +137,11 @@
       var s = sample(path + query);
       return Promise.resolve(json(200, s === undefined ? {} : s));
     }
-    if (path === '/api/create-checkout-session' || path === '/api/create-portal-session' || /^\/api\/billing\//.test(path)) return Promise.resolve(json(403, { ok: false, code: 'DEMO', error: MSG.pay }));
-    if (path === '/api/ai/chat') return wait(1100).then(function () { return json(200, { ok: true, reply: chatReply(body), demo: true }); });
-    if (path === '/api/ai/create-ad') return wait(1600).then(function () { return json(200, { ok: true, data: examplePackage(body), demo: true }); });
-    if (/^\/api\/(generate-image|generate-logo|product-shoots\/generate)$/.test(path)) return wait(1400).then(function () { var u = exampleImage(body); return json(200, { ok: true, imageUrl: u, url: u, demo: true }); });
-    if (AI.test(path)) return wait(900).then(function () { return json(403, { ok: false, code: 'DEMO', error: MSG.ai + ' ' + MSG.blocked }); });
-    if (REFUSE.test(path)) return Promise.resolve(json(403, { ok: false, code: 'DEMO', error: MSG.blocked }));
+    // Read-only: anything that would create, generate, save, connect,
+    // publish or pay is refused, with the same short message.
+    if (path === '/api/create-checkout-session' || path === '/api/create-portal-session' || /^\/api\/billing\//.test(path) || AI.test(path) || REFUSE.test(path)) {
+      toast(); return Promise.resolve(json(403, { ok: false, code: 'DEMO', error: MSG.blocked }));
+    }
     // Harmless bookkeeping (preferences, read markers, events): accepted, not kept.
     return Promise.resolve(json(200, { ok: true, demo: true }));
   }
@@ -247,6 +207,10 @@
     if (!a) return;
     var u; try { u = new URL(a.getAttribute('href'), location.href); } catch (_) { return; }
     if (u.protocol === 'mailto:') return;
+    if (u.origin === SAME) {
+      if (/^\/app(\.html)?$/.test(u.pathname)) { a.setAttribute('href', '/demo-app' + u.search + u.hash); return; }
+      if (FRAMED && !/^\/demo-app/.test(u.pathname) && !/^#/.test(a.getAttribute('href') || '')) a.setAttribute('target', '_top');
+    }
     if (API_HOST.test(u.origin) || /\.supabase\.co$/.test(u.hostname) || /stripe\.com$/.test(u.hostname)) { e.preventDefault(); e.stopPropagation(); blockedLog.push('LINK ' + u.href.split('?')[0]); toast(MSG.blocked); }
   }, true);
 
@@ -260,14 +224,21 @@
     '.orv-demo-bar button{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:0;background:transparent;color:rgba(236,238,230,.6);font-size:16px;line-height:1;cursor:pointer}.orv-demo-bar button:hover{color:#ECEEE6;background:rgba(255,255,255,.08)}' +
     '.orv-demo-bar.is-min .orv-demo-bar__t span{display:none}.orv-demo-s{display:none}' +
     '@media (max-width:640px){.orv-demo-bar{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));transform:none;max-width:none;gap:10px;padding-left:14px}.orv-demo-bar__t{flex:1 1 auto;font-size:13px}.orv-demo-bar__t span,.orv-demo-l{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.orv-demo-s{display:inline}.orv-demo-bar a{padding:0 12px;font-size:13px}}' +
-    '.orv-demo-toast{position:fixed;z-index:2147483001;left:50%;bottom:76px;transform:translateX(-50%);max-width:min(460px,calc(100vw - 32px));padding:12px 16px;border-radius:12px;background:#1C1F1A;color:#ECEEE6;border:1px solid rgba(255,255,255,.14);font:14px/1.45 Geist,Inter,system-ui,sans-serif;box-shadow:0 12px 40px -12px rgba(0,0,0,.8)}' +
+    '.orv-demo-toast a{color:#B6FF3B;font-weight:600;text-decoration:none;margin-left:6px;white-space:nowrap}.orv-demo-toast a:hover{text-decoration:underline}' +
+    '.orv-demo-toast{position:fixed;z-index:2147483001;left:50%;bottom:24px;transform:translateX(-50%);max-width:min(460px,calc(100vw - 32px));padding:12px 16px;border-radius:12px;background:#1C1F1A;color:#ECEEE6;border:1px solid rgba(255,255,255,.14);font:14px/1.45 Geist,Inter,system-ui,sans-serif;box-shadow:0 12px 40px -12px rgba(0,0,0,.8)}' +
     '@media (prefers-reduced-motion:no-preference){.orv-demo-toast{animation:orvDemoIn .18s ease-out}@keyframes orvDemoIn{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}}';
   var toastTimer = null;
+  // "Not available in the demo — Try 2 weeks for €1" (the link opens the
+  // signup in the main window).
   function toast(text) {
     if (!document.body) return;
+    if (!document.getElementById('orvDemoCss')) { var st = document.createElement('style'); st.id = 'orvDemoCss'; st.textContent = CSS; document.head.appendChild(st); }
     var t = document.querySelector('.orv-demo-toast');
-    if (!t) { t = document.createElement('div'); t.className = 'orv-demo-toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
-    t.textContent = text; clearTimeout(toastTimer); toastTimer = setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 4200);
+    if (!t) { t = document.createElement('div'); t.className = 'orv-demo-toast'; t.setAttribute('role', 'status'); t.setAttribute('aria-live', 'polite'); document.body.appendChild(t); }
+    var c = cta();
+    t.innerHTML = '<span>' + (text && text !== MSG.blocked ? String(text).replace(/[&<>]/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[x]; }) : NOT) + '</span>' +
+      (c ? ' <a href="/signup" target="_top" data-demo-cta>' + c + '</a>' : '');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 4200);
   }
   window.orvDemoToast = toast;
   // The offer as a new visitor sees it (the sample account itself has a plan,
@@ -277,11 +248,11 @@
     return o && o.enabled ? 'Try 2 weeks for €' + o.price : 'Get started';
   }
   function banner() {
-    if (document.querySelector('.orv-demo-bar')) return;
-    var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
+    if (!document.getElementById('orvDemoCss')) { var st = document.createElement('style'); st.id = 'orvDemoCss'; st.textContent = CSS; document.head.appendChild(st); }
+    if (FRAMED || document.querySelector('.orv-demo-bar')) return;
     var bar = document.createElement('div'); bar.className = 'orv-demo-bar'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Demo');
     bar.innerHTML = '<span class="orv-demo-bar__dot" aria-hidden="true"></span><span class="orv-demo-bar__t"><b class="orv-demo-l">You’re viewing a demo</b><b class="orv-demo-s" aria-hidden="true">Demo</b><span> with sample data</span></span>' +
-      '<a href="/signup" data-demo-cta>' + cta() + '</a><button type="button" aria-label="Make the demo banner smaller" title="Smaller">&#8722;</button>';
+      '<a href="/signup" target="_top" data-demo-cta>' + cta() + '</a><button type="button" aria-label="Make the demo banner smaller" title="Smaller">&#8722;</button>';
     bar.querySelector('button').addEventListener('click', function () { var m = bar.classList.toggle('is-min'); this.innerHTML = m ? '&#43;' : '&#8722;'; this.setAttribute('aria-label', m ? 'Show the whole demo banner' : 'Make the demo banner smaller'); });
     document.body.appendChild(bar);
   }
@@ -293,7 +264,11 @@
     // No product tour or first-run dialogs over the demo.
     if (window.orvTour) { try { window.orvTour.open = function () {}; window.orvTour.close(); } catch (_) {} }
     document.querySelectorAll('#orvConsentBanner, .orv-cc').forEach(function (e) { e.remove(); });
-    // Messages from refused actions arrive as the app's own toasts; ours adds the way forward.
+    // Generating an ad or sending the assistant a message: the message instead
+    // of the app's own request-and-error flow (nothing would be answered anyway).
+    ['cgrGenerate', 'orvAiSend', 'crwsSendChat'].forEach(function (fn) {
+      if (typeof window[fn] === 'function' && !window[fn]._demo) { var w = function () { toast(); return false; }; w._demo = true; window[fn] = w; }
+    });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', settle); else settle();
   window.addEventListener('load', function () { setTimeout(settle, 600); setTimeout(settle, 2500); });

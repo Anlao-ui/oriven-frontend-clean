@@ -281,7 +281,7 @@
        same nav-height offset — the nav is visible on all of these too,
        see NAV_VIEWS below). */
     #view-about, #view-blog, #view-product, #view-solutions, #view-case-studies,
-    #view-pricing, #view-faq,
+    #view-pricing, #view-faq, #view-demo,
     #view-product-google-ads, #view-product-meta-ads, #view-product-tiktok-ads,
     #view-product-pinterest-ads,
     #view-product-snapchat-ads,
@@ -4462,6 +4462,116 @@
 </div>
 </div><!-- /view-pricing -->
 
+<!-- ═══════════════════════════════════════════════════════════
+     VIEW: DEMO /demo — a marketing page (landing navbar + footer) whose
+     large modal shows the read-only demo app (/demo-app, js/demo-mode.js)
+     in a sandboxed iframe: it can never move this page, so /demo never
+     turns into /app. Opens on arrival; closing keeps the visitor here.
+     ═══════════════════════════════════════════════════════════ -->
+<div id="view-demo" class="pub-view">
+<div class="ov-sub-page">
+  <section class="ov-sp-section ov-demo">
+    <div class="ov-sp-section-inner ov-demo__in">
+      <p class="ov-eyebrow">Live demo</p>
+      <h1 class="ov-demo__h1">Explore OrivenAI with sample data</h1>
+      <p class="ov-demo__lead">The whole workspace, filled in for a fictional shop: your dashboard, all five ad platforms, campaigns, AI ad creation, research, automations, your assistant and settings. Click around as much as you like.</p>
+      <div class="ov-demo__actions">
+        <button type="button" class="site-btn site-btn--primary" data-demo-open>Open the demo</button>
+        <a class="site-btn site-btn--ghost" href="/signup" onclick="lpGetStarted(event)" data-orv-intro-cta data-orv-intro-off="Get started">Try 2 weeks for €1</a>
+      </div>
+      <ul class="ov-demo__list" aria-label="What’s in the demo">
+        <li><b>Control Center</b>Dashboard, marketing plan and progress</li>
+        <li><b>Five ad platforms</b>Google, Meta, TikTok, Pinterest and Snapchat</li>
+        <li><b>Campaigns</b>Results per platform, campaign and ad group</li>
+        <li><b>Create</b>Example AI ads in My Content and Creative Testing</li>
+        <li><b>Research</b>A finished competitor report with checked sources</li>
+        <li><b>Automations</b>A weekday schedule and a budget rule</li>
+      </ul>
+      <p class="ov-demo__note">Read-only: nothing is created, saved, sent or charged, and nothing you do here reaches an ad platform. “Amber &amp; Clay” and every figure are fictional.</p>
+    </div>
+  </section>
+
+  <div class="ov-demo-modal" id="orvDemoModal" hidden>
+    <div class="ov-demo-modal__scrim" data-demo-close></div>
+    <div class="ov-demo-modal__panel" role="dialog" aria-modal="true" aria-labelledby="orvDemoTitle">
+      <div class="ov-demo-modal__bar">
+        <span class="ov-demo-modal__dot" aria-hidden="true"></span>
+        <p class="ov-demo-modal__t" id="orvDemoTitle">Explore OrivenAI with sample data <span>Read-only · nothing is saved or sent</span></p>
+        <a class="ov-demo-modal__cta" href="/signup" onclick="lpGetStarted(event)" data-orv-intro-cta data-orv-intro-off="Get started">Try 2 weeks for €1</a>
+        <button type="button" class="ov-demo-modal__x" data-demo-close aria-label="Close the demo"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+      </div>
+      <div class="ov-demo-modal__frame">
+        <p class="ov-demo-modal__loading" aria-hidden="true">Loading the demo…</p>
+        <iframe id="orvDemoFrame" title="OrivenAI demo with sample data" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation" referrerpolicy="same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var view = document.getElementById('view-demo'); if (!view) return;
+    var modal = document.getElementById('orvDemoModal'), frame = document.getElementById('orvDemoFrame'), back = null;
+    function active() { return !view.classList.contains('pub-view'); }
+    function open() {
+      if (!modal.hidden) return;
+      back = document.activeElement;
+      if (!frame.getAttribute('src')) frame.setAttribute('src', '/demo-app');
+      modal.hidden = false; view.classList.add('ov-demo-is-open');
+      setTimeout(function () { var x = modal.querySelector('.ov-demo-modal__x'); if (x) x.focus(); }, 0);
+    }
+    function close() {
+      if (modal.hidden) return;
+      modal.hidden = true; view.classList.remove('ov-demo-is-open');
+      var b = view.querySelector('[data-demo-open]'); (b || back || document.body).focus && (b || back).focus();
+    }
+    view.addEventListener('click', function (e) {
+      if (e.target.closest('[data-demo-open]')) { e.preventDefault(); open(); }
+      else if (e.target.closest('[data-demo-close]')) { e.preventDefault(); close(); }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (modal.hidden) return;
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key === 'Tab') { // keep focus inside the window: bar controls ↔ the demo
+        var f = Array.prototype.slice.call(modal.querySelectorAll('a[href], button, iframe'));
+        var i = f.indexOf(document.activeElement);
+        if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+      }
+    });
+    frame.addEventListener('load', function () { if (frame.getAttribute('src')) modal.classList.add('is-loaded'); });
+    // Open on arrival, and whenever the view is shown by in-site navigation.
+    if (active()) open();
+    // (only when the view itself is shown or hidden, not on this script's own class changes)
+    var wasActive = active();
+    new MutationObserver(function () { var now = active(); if (now === wasActive) return; wasActive = now; if (now) open(); else close(); }).observe(view, { attributes: true, attributeFilter: ['class'] });
+    window.orvDemoModal = { open: open, close: close };
+  })();
+  </script>
+
+  <!-- site-footer:start -->
+  <footer class="site-foot" data-site-footer>
+  <div class="site-foot__in">
+    <div class="site-foot__top">
+      <div class="site-foot__brand">
+        <a href="/" aria-label="OrivenAI home"><img src="/assets/orivenlogo-256.webp" width="48" height="48" alt="OrivenAI" loading="lazy"></a>
+        <p>The connected AI marketing workspace: research, plan, create, launch and improve, in one place.</p>
+      </div>
+      <nav class="site-foot__col" aria-label="Product"><h2>Product</h2><a href="/product">All six sections</a><a href="/business">Control Center</a><a href="/research">Research</a><a href="/create">Create</a><a href="/launch">Launch</a><a href="/campaigns">Campaigns</a><a href="/autopilot">Automations</a></nav>
+      <nav class="site-foot__col" aria-label="Assistants"><h2>Assistants</h2><a href="/#agent-scout" data-ik-goto="scout">Scout</a><a href="/#agent-vector" data-ik-goto="vector">Vector</a><a href="/#agent-nova" data-ik-goto="nova">Nova</a><a href="/#agent-momentum" data-ik-goto="momentum">Momentum</a><a href="/#agent-metric" data-ik-goto="metric">Metric</a><a href="/#agent-flux" data-ik-goto="flux">Flux</a></nav>
+      <nav class="site-foot__col" aria-label="Platforms"><h2>Platforms</h2><a href="/product/google-ads">Google Ads</a><a href="/product/meta-ads">Meta Ads</a><a href="/product/tiktok-ads">TikTok Ads</a><a href="/product/pinterest-ads">Pinterest Ads</a><a href="/product/snapchat-ads">Snapchat Ads</a><a href="/cross-platform-ad-management/">Cross-platform ads</a><a href="/ppc-automation-software/">PPC automation</a></nav>
+      <nav class="site-foot__col" aria-label="Resources"><h2>Resources</h2><a href="/solutions">Solutions</a><a href="/learn/">Learn</a><a href="/blog">Blog</a><a href="/faq">FAQ</a><a href="/case-studies">Case Studies</a><a href="/pricing">Pricing</a></nav>
+      <nav class="site-foot__col" aria-label="Company"><h2>Company</h2><a href="/about">About</a><a href="mailto:contact@orivenai.com">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/cookie-policy">Cookie Policy</a><a href="/refund-policy">Refund Policy</a><a href="/security">Security</a><a href="#cookie-settings" data-cookie-settings>Cookie settings</a></nav>
+    </div>
+    <div class="site-foot__bottom">
+      <span>&copy; 2026 Oriven &middot; KVK: 42039993 &middot; Netherlands &middot; All rights reserved.</span>
+      <button type="button" class="site-foot__totop" data-scroll-top>Scroll to top <span aria-hidden="true">&uarr;</span></button>
+    </div>
+  </div>
+</footer>
+  <!-- site-footer:end -->
+</div>
+</div><!-- /view-demo -->
+
 <div id="view-404" class="pub-view" style="height:100vh;overflow-y:auto;overflow-x:hidden;">
   <div class="ov-sub-page">
     <div class="ov-sp-hero" style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:140px 24px 80px;">
@@ -4515,7 +4625,7 @@
     '/refund-policy': 'refund-policy', '/cookie-policy': 'cookie-policy',
     '/security': 'security', '/contact': 'contact',
     '/about': 'about', '/blog': 'blog', '/product': 'product', '/solutions': 'solutions',
-    '/case-studies': 'case-studies', '/pricing': 'pricing', '/faq': 'faq',
+    '/case-studies': 'case-studies', '/pricing': 'pricing', '/faq': 'faq', '/demo': 'demo',
     '/product/google-ads':          'product-google-ads',
     '/product/meta-ads':            'product-meta-ads',
     '/product/tiktok-ads':          'product-tiktok-ads',
@@ -4559,7 +4669,7 @@
 
   // Show global nav on content pages
   var NAV_VIEWS = {
-    landing:1, about:1, blog:1, product:1, solutions:1, 'case-studies':1, pricing:1, faq:1,
+    landing:1, about:1, blog:1, product:1, solutions:1, 'case-studies':1, pricing:1, faq:1, demo:1,
     'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1, 'product-pinterest-ads':1, 'product-snapchat-ads':1,
     'product-create':1, 'product-launch':1, 'product-campaigns':1, 'product-research':1,
     'product-autopilot':1, 'product-business':1,
@@ -4606,6 +4716,7 @@
     'product-research': { title: 'AI Competitor & Market Research for Ads | OrivenAI', desc: 'Research your market, competitors and customers before you spend on ads. Targeted web searches and your website, with findings checked against their sources.', path: '/research' },
     'product-autopilot': { title: 'Ad Scheduling and Automated Campaign Rules | OrivenAI', desc: 'Schedule campaigns and let rules you write pause, resume or adjust budgets within limits you set. Approval mode and a full activity log of every change.', path: '/autopilot' },
     'product-business': { title: 'Control Center: Marketing Dashboard and Ad Plan | OrivenAI', desc: 'Where you start in OrivenAI: your marketing dashboard, advertising plan, business profile and brand identity, so research, copy and creative use the same facts.', path: '/business' },
+    demo: { title: 'Live Demo: Explore the AI Ad Workspace | OrivenAI', desc: 'Explore OrivenAI with sample data: dashboard, five ad platforms, campaigns, AI ad creation, research, automations and the assistant. Read-only, no account needed.', path: '/demo' },
     '404': { title: 'Page Not Found | OrivenAI', desc: 'The page you are looking for does not exist or has been moved.', path: null, noindex: true }
   };
   window.PAGE_SEO = PAGE_SEO;
@@ -4678,7 +4789,7 @@
 (function(){
   var FADE = 210;
   var NAV_VIEWS = {
-    landing:1, about:1, blog:1, product:1, solutions:1, 'case-studies':1, pricing:1, faq:1,
+    landing:1, about:1, blog:1, product:1, solutions:1, 'case-studies':1, pricing:1, faq:1, demo:1,
     'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1, 'product-pinterest-ads':1, 'product-snapchat-ads':1,
     'product-create':1, 'product-launch':1, 'product-campaigns':1, 'product-research':1,
     'product-autopilot':1, 'product-business':1,
@@ -4701,6 +4812,7 @@
     '/case-studies': 'case-studies',
     '/pricing':      'pricing',
     '/faq':          'faq',
+    '/demo':         'demo',
     '/product/google-ads':          'product-google-ads',
     '/product/meta-ads':            'product-meta-ads',
     '/product/tiktok-ads':          'product-tiktok-ads',

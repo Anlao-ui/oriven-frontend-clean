@@ -39,7 +39,7 @@ const PORT = 8897;
 const ROUTES = {
   '/about': 'about', '/blog': 'blog', '/product': 'product', '/solutions': 'solutions', '/case-studies': 'case-studies',
   '/pricing': 'pricing', '/faq': 'faq', '/terms': 'terms', '/privacy': 'privacy', '/refund-policy': 'refund-policy',
-  '/cookie-policy': 'cookie-policy', '/security': 'security', '/contact': 'contact',
+  '/cookie-policy': 'cookie-policy', '/security': 'security', '/contact': 'contact', '/demo': 'demo',
   '/product/google-ads': 'product-google-ads', '/product/meta-ads': 'product-meta-ads', '/product/tiktok-ads': 'product-tiktok-ads',
   '/product/pinterest-ads': 'product-pinterest-ads', '/product/snapchat-ads': 'product-snapchat-ads', '/create': 'product-create', '/launch': 'product-launch',
   '/campaigns': 'product-campaigns', '/research': 'product-research', '/autopilot': 'product-autopilot', '/business': 'product-business',
@@ -187,8 +187,8 @@ function redirectsFile() {
     // No '/demo/ → /demo' rule: Netlify ignores a trailing slash when it
     // matches rules, so that rule also matched /demo itself and redirected
     // /demo to /demo forever. app.html sends /demo/ on to /demo instead.
-    '# The demo: the app shell with sample data and no network (js/demo-mode.js)',
-    '/demo           /app.html       200',
+    '# The read-only demo app (js/demo-mode.js), shown in the modal on /demo',
+    '/demo-app       /app.html       200',
     '',
     '# HeyCatch short links: one-character paths carry channel attribution',
     '# (heycatch.ai/agents.md step 4). No real route here is one character long.',

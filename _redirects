@@ -7,8 +7,8 @@
 /login          /index.html     200
 /plan           /app            302
 /onboarding     /app?tour=1     302
-# The demo: the app shell with sample data and no network (js/demo-mode.js)
-/demo           /app.html       200
+# The read-only demo app (js/demo-mode.js), shown in the modal on /demo
+/demo-app       /app.html       200
 
 # HeyCatch short links: one-character paths carry channel attribution
 # (heycatch.ai/agents.md step 4). No real route here is one character long.
@@ -64,6 +64,7 @@
 /cookie-policy             /cookie-policy.html             200!
 /security                  /security.html                  200!
 /contact                   /contact.html                   200!
+/demo                      /demo.html                      200!
 /product/google-ads        /product/google-ads.html        200!
 /product/meta-ads          /product/meta-ads.html          200!
 /product/tiktok-ads        /product/tiktok-ads.html        200!
