@@ -184,6 +184,11 @@ function redirectsFile() {
     '/login          /index.html     200',
     '/plan           /app            302',
     '/onboarding     /app?tour=1     302',
+    // No '/demo/ → /demo' rule: Netlify ignores a trailing slash when it
+    // matches rules, so that rule also matched /demo itself and redirected
+    // /demo to /demo forever. app.html sends /demo/ on to /demo instead.
+    '# The demo: the app shell with sample data and no network (js/demo-mode.js)',
+    '/demo           /app.html       200',
     '',
     '# HeyCatch short links: one-character paths carry channel attribution',
     '# (heycatch.ai/agents.md step 4). No real route here is one character long.',

@@ -74,6 +74,8 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&q
     if (/^mailto:|^https?:\/\//.test(href) || href.startsWith('#')) return true;
     const u = href.split('#')[0].split('?')[0];
     if (gen.has(u) || spa.has(u)) return true;
+    // Netlify rewrites (200) are real routes too, e.g. /demo → /app.html
+    if (fs.readFileSync(path.join(ROOT, '_redirects'), 'utf8').split(/\r?\n/).some((l) => { const x = l.trim().split(/\s+/); return x[0] === u && /^200/.test(x[2] || '') && fs.existsSync(path.join(ROOT, x[1].split('?')[0].replace(/^\//, ''))); })) return true;
     return fs.existsSync(path.join(ROOT, u.replace(/^\//, '')));
   };
   const broken = [];

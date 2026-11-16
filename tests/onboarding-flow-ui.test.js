@@ -324,7 +324,7 @@ const server = app.listen(PORT, async () => {
     // ── 7. Paywall ─────────────────────────────────────────────────
     console.log('\n7. Paywall');
     const pw = await page.evaluate(() => ({ plans: Array.from(document.querySelectorAll('#onx .onx-plan')).map((p) => p.getAttribute('data-plan') + ':' + p.querySelector('.onx-plan__p').textContent), free: /free|trial|explore first/i.test(document.querySelector('#onx .onx-pay').innerText), close: !!document.querySelector('#onx [aria-label="Close"], #onx .onx-close') }));
-    check('7.1 five plans from plans.js (no free plan, trial, "explore first" or close button)', pw.plans.length === 5 && pw.plans[0] === 'flex:€17' && pw.plans[4] === 'annual:€245' && !pw.free && !pw.close, pw);
+    check('7.1 five plans from plans.js (no free plan, trial, "explore first" or close button)', pw.plans.length === 5 && pw.plans[0] === 'flex:€1 €17' && pw.plans[4] === 'annual:€245' && !pw.free && !pw.close, pw);
     const cards = await page.evaluate(() => Array.from(document.querySelectorAll('#onx .onx-plan')).map((c) => {
       const top = (s) => Math.round(c.querySelector(s).getBoundingClientRect().top), r = c.getBoundingClientRect();
       return { id: c.dataset.plan, badge: c.querySelector('.onx-plan__badge').textContent, featured: c.classList.contains('is-featured'), n: top('.onx-plan__n'), p: top('.onx-plan__p'), d: top('.onx-plan__d'), c: top('.onx-plan__c'), b: top('[data-buy]'), h: Math.round(r.height), t: Math.round(r.top) };
@@ -332,7 +332,7 @@ const server = app.listen(PORT, async () => {
     const same = (k) => new Set(cards.map((x) => x[k])).size === 1;
     check('7.1b badges: Monthly "Most Popular", Annual "Lowest Monthly Price", no other badges', cards.find((x) => x.id === 'monthly').badge === 'Most Popular' && cards.find((x) => x.id === 'annual').badge === 'Lowest Monthly Price' && cards.filter((x) => x.badge).length === 2, cards.map((x) => x.id + ':' + x.badge));
     check('7.1c the five cards line up: same top, height, name, price, period, credits and button rows', ['t', 'h', 'n', 'p', 'd', 'c', 'b'].every(same), cards);
-    check('7.1d prices, periods and credits unchanged (plans.js)', JSON.stringify(pw.plans) === JSON.stringify(['flex:€17', 'monthly:€29', 'quarterly:€78', 'semiannual:€143', 'annual:€245']));
+    check('7.1d prices, periods and credits unchanged (plans.js); Flex shows the €1 trial with €17 struck through (ORIVEN_INTRO_OFFER)', JSON.stringify(pw.plans) === JSON.stringify(['flex:€1 €17', 'monthly:€29', 'quarterly:€78', 'semiannual:€143', 'annual:€245']), pw.plans);
     await page.keyboard.press('Escape');
     check('7.2 Escape doesn’t dismiss the paywall', (await step(page)) === 'paywall');
     const html = await page.content();

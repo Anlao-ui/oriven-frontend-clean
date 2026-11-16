@@ -7,6 +7,8 @@
 /login          /index.html     200
 /plan           /app            302
 /onboarding     /app?tour=1     302
+# The demo: the app shell with sample data and no network (js/demo-mode.js)
+/demo           /app.html       200
 
 # HeyCatch short links: one-character paths carry channel attribution
 # (heycatch.ai/agents.md step 4). No real route here is one character long.

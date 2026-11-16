@@ -158,6 +158,7 @@
   <link rel="stylesheet" href="/css/site-chrome.css">
   <link rel="stylesheet" href="/css/pricing-planner.css">
   <link rel="stylesheet" href="/css/ow-system.css">
+  <link rel="stylesheet" href="/css/offer.css">
   <script src="/js/ow-ui.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
@@ -949,6 +950,7 @@
            Case Studies was already off primary nav from the previous
            pass and stays that way. Pricing links straight to /pricing —
            never an in-page anchor. -->
+      <a href="/demo" class="lp-nav-link">Demo</a>
       <a href="/pricing" class="lp-nav-link">Pricing</a>
     </div>
     <div class="lp-nav-right">
@@ -1023,6 +1025,7 @@
       </div>
     </div>
 
+    <a href="/demo" class="lp-mm-link" onclick="lpCloseMm()">Demo</a>
     <a href="/pricing" class="lp-mm-link" onclick="lpCloseMm()">Pricing</a>
   </nav>
   <div class="lp-mm-divider"></div>
@@ -1061,9 +1064,10 @@
       <h1 class="ik-h1" id="ik-h1"><span>Your new</span> <span>ad workspace.</span></h1>
       <p class="ik-hero__sub">Plan, create, launch and improve your advertising on Google, Meta, TikTok, Pinterest and Snapchat from one place. Your research, plan, ads and results stay connected, so every step builds on the last.</p>
       <div class="ik-actions">
-        <a class="ik-btn ik-btn--primary" href="/signup" data-ik-cta="hero">Get started <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
-        <a class="ik-btn ik-btn--ghost" href="#workspace" data-ik-cta="workspace">See the workspace <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"/></svg></a>
+        <a class="ik-btn ik-btn--primary" href="/signup" data-ik-cta="hero" data-orv-intro-cta data-orv-intro-off="Get started">Try 2 weeks for €1 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+        <a class="ik-btn ik-btn--ghost" href="/demo" data-ik-cta="demo">View live demo <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5v9l7-4.5z"/></svg></a>
       </div>
+      <p class="ik-hero__fine">Not happy within 14 days? Money back on regular plans.</p>
     </div>
     <div class="ik-hero__mark" data-ik-ring><svg class="ik-ring ik-ring--hero" viewBox="244 197 534 585" aria-hidden="true" focusable="false"><use href="#ik-p0" class="ik-seg" data-i="0" style="--i:0;--ox:10.6px;--oy:-14.6px"/><use href="#ik-p1" class="ik-seg" data-i="1" style="--i:1;--ox:17.7px;--oy:3.1px"/><use href="#ik-p2" class="ik-seg" data-i="2" style="--i:2;--ox:7.3px;--oy:16.4px"/><use href="#ik-p3" class="ik-seg" data-i="3" style="--i:3;--ox:-8.5px;--oy:15.9px"/><use href="#ik-p4" class="ik-seg" data-i="4" style="--i:4;--ox:-17.7px;--oy:3.1px"/><use href="#ik-p5" class="ik-seg" data-i="5" style="--i:5;--ox:-9.5px;--oy:-15.3px"/></svg></div>
   </div>
@@ -1454,6 +1458,7 @@
       <p class="ik-eyebrow">Integrations</p>
       <h2 class="ik-h2" id="ik-int-title">Works with the ad platforms you already use.</h2>
       <p class="ik-lead">Connect your accounts over OAuth and run them from one workspace. Your campaigns keep running on each platform’s own ad system.</p>
+      <p class="ik-demo-note">Want to look around first? <a href="/demo">Try the demo</a>, no account connection needed.</p>
     </div>
     <div class="ik-ints-grid" data-ik-ints>
       <figure class="ik-net-wrap" data-reveal="pop"><svg class="ik-net" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
@@ -1504,7 +1509,8 @@
       <details><summary>Do I need marketing experience?<i aria-hidden="true"></i></summary><div><p>No. You start from your business profile in Control Center, and each section takes you through its step: research, create, launch and follow the results. Experienced advertisers keep full manual control over every campaign.</p></div></details>
       <details><summary>Which advertising platforms are supported?<i aria-hidden="true"></i></summary><div><p>Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads, Pinterest Ads and Snapchat Ads. Every integration uses OAuth: you never share your passwords with OrivenAI, and we never store your credentials.</p></div></details>
       <details><summary>Can OrivenAI launch campaigns automatically?<i aria-hidden="true"></i></summary><div><p>Only the way you set it up. Campaigns you publish from Launch are created paused, so you decide when they start. Automations act only on schedules and rules you explicitly switch on, and each rule either notifies you, asks for your approval or acts within the limits you set.</p></div></details>
-      <details><summary>Is there a free plan?<i aria-hidden="true"></i></summary><div><p>No. OrivenAI is paid-only, so there is no free plan and no free credits. You can explore every public page, the product pages and the pricing without an account. The shortest plan, Flex, gives you 14 days of full access with 1,050 credits for €17, paid once. Nothing renews automatically. <a href="/pricing">See the plans</a>.</p></div></details>
+      <details><summary>Is there a free plan?<i aria-hidden="true"></i></summary><div><p>No. OrivenAI is paid-only, so there is no free plan and no free credits. You can look around the whole product first in the <a href="/demo">live demo</a>, with sample data and without an account. New customers can try OrivenAI for 2 weeks for €1: their first Flex purchase, paid once; nothing renews automatically. <a href="/pricing">See the plans</a>.</p></div></details>
+      <details><summary>What if OrivenAI isn’t right for me?<i aria-hidden="true"></i></summary><div><p>Monthly, Quarterly, Semi-Annual and Annual come with a 14-day money-back guarantee: if OrivenAI isn’t right for you, email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a> within 14 days of your first purchase of that plan and you get the full amount back, provided no more than 20% of the plan’s credits have been used. The €1 Flex trial isn’t eligible for a refund. Nothing renews automatically, so there is nothing to cancel either. The details are in the <a href="/refund-policy">Refund Policy</a>.</p></div></details>
       <details><summary>What are credits?<i aria-hidden="true"></i></summary><div><p>Credits are the usage balance that comes with your plan. A complete image ad uses 120 credits (draft plus image), a video ad 245, a Research report 90 and an Oriven Chat message 30. They’re spent from one pool across every usage-based feature, and unused credits expire when your access ends.</p></div></details>
       <details><summary>How does OrivenAI handle my business data?<i aria-hidden="true"></i></summary><div><p>Your business profile, research and campaigns are stored in your account and used to fit your ads and recommendations to your business. Ad platforms connect over OAuth, so OrivenAI never sees your passwords. Advertising cookies load only with your consent. Read the <a href="/privacy">Privacy Policy</a> for details.</p></div></details>
     </div>
@@ -1515,9 +1521,9 @@
   <div class="ik-wrap" data-reveal="stagger">
     <div class="ik-final__ring"><svg class="ik-ring ik-ring--final" viewBox="244 197 534 585" aria-hidden="true" focusable="false"><use href="#ik-p0" class="ik-seg" data-i="0" style="--i:0;--ox:10.6px;--oy:-14.6px"/><use href="#ik-p1" class="ik-seg" data-i="1" style="--i:1;--ox:17.7px;--oy:3.1px"/><use href="#ik-p2" class="ik-seg" data-i="2" style="--i:2;--ox:7.3px;--oy:16.4px"/><use href="#ik-p3" class="ik-seg" data-i="3" style="--i:3;--ox:-8.5px;--oy:15.9px"/><use href="#ik-p4" class="ik-seg" data-i="4" style="--i:4;--ox:-17.7px;--oy:3.1px"/><use href="#ik-p5" class="ik-seg" data-i="5" style="--i:5;--ox:-9.5px;--oy:-15.3px"/></svg></div>
     <h2 class="ik-h2" id="ik-final-title">Start your ad workspace.</h2>
-    <p class="ik-lead">Plans from €17 for 14 days, paid once. You choose your assistant during setup.</p>
+    <p class="ik-lead" data-orv-intro-text data-orv-intro-off="Plans from €17 for 14 days, paid once. You choose your assistant during setup.">Try OrivenAI for 2 weeks for €1, paid once. Nothing renews automatically. You choose your assistant during setup.</p>
     <div class="ik-actions">
-      <a class="ik-btn ik-btn--primary" href="/signup" data-ik-cta="final">Get started <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+      <a class="ik-btn ik-btn--primary" href="/signup" data-ik-cta="final" data-orv-intro-cta data-orv-intro-off="Get started">Try 2 weeks for €1 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
       <a class="ik-btn ik-btn--ghost" href="/login">Log in</a>
     </div>
   </div>
@@ -1884,7 +1890,7 @@
         <ul>
           <li>You were charged in error (duplicate charge, incorrect amount)</li>
           <li>The Service was unavailable for more than 48 consecutive hours due to our fault</li>
-          <li>You request a refund within 7 days of your first purchase and have not used more than 10% of the credits that purchase has given you so far</li>
+          <li>Regular plans (Monthly, Quarterly, Semi-Annual and Annual) come with a 14-day money-back guarantee. If you’re not satisfied, request a refund within 14 days of your first purchase of that plan and we’ll refund the full amount, provided no more than 20% of the plan’s credits have been used. The Flex introductory offer (€1) is not eligible for a refund.</li>
         </ul>
         <p>When a purchase is refunded in full, the remaining access and credits from that purchase end.</p>
       </div>
@@ -1893,7 +1899,7 @@
         <h2>4. Non-Refundable Items</h2>
         <ul>
           <li>Credits already consumed in generating content</li>
-          <li>Partial-period refunds (outside the 7-day window for a first purchase)</li>
+          <li>Partial-period refunds (requests made more than 14 days after the first purchase of a regular plan, renewals or repeat purchases, and the €1 Flex introductory offer)</li>
           <li>Unused credits or time when an access period ends</li>
           <li>Monthly charges of a legacy subscription that was not cancelled before it renewed</li>
         </ul>
@@ -4267,7 +4273,8 @@
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Do I need marketing experience?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. You start from your business profile in Control Center, and each section takes you through its step: research, create, launch and follow the results. Experienced advertisers keep full manual control over every campaign.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Which advertising platforms are supported?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads, Pinterest Ads and Snapchat Ads. Every integration uses OAuth: you never share your passwords with OrivenAI, and we never store your credentials.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Can OrivenAI launch campaigns automatically?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Only the way you set it up. Campaigns you publish from Launch are created paused, so you decide when they start. Automations act only on schedules and rules you explicitly switch on, and each rule either notifies you, asks for your approval or acts within the limits you set.</div></div>
-        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Is there a free plan?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. OrivenAI is paid-only, so there is no free plan and no free credits. You can explore every public page, the product pages and the pricing without an account. The shortest plan, Flex, gives you 14 days of full access with 1,050 credits for €17, paid once. Nothing renews automatically. <a href="/pricing">See the plans</a>.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>Is there a free plan?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">No. OrivenAI is paid-only, so there is no free plan and no free credits. You can look around the whole product first in the <a href="/demo">live demo</a>, with sample data and without an account. New customers can try OrivenAI for 2 weeks for €1: their first Flex purchase, paid once; nothing renews automatically. <a href="/pricing">See the plans</a>.</div></div>
+        <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What if OrivenAI isn’t right for me?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Monthly, Quarterly, Semi-Annual and Annual come with a 14-day money-back guarantee: if OrivenAI isn’t right for you, email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a> within 14 days of your first purchase of that plan and you get the full amount back, provided no more than 20% of the plan’s credits have been used. The €1 Flex trial isn’t eligible for a refund. Nothing renews automatically, so there is nothing to cancel either. The details are in the <a href="/refund-policy">Refund Policy</a>.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What are credits?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Credits are the usage balance that comes with your plan. A complete image ad uses 120 credits (draft plus image), a video ad 245, a Research report 90 and an Oriven Chat message 30. They’re spent from one pool across every usage-based feature, and unused credits expire when your access ends.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>How does OrivenAI handle my business data?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Your business profile, research and campaigns are stored in your account and used to fit your ads and recommendations to your business. Ad platforms connect over OAuth, so OrivenAI never sees your passwords. Advertising cookies load only with your consent. Read the <a href="/privacy">Privacy Policy</a> for details.</div></div>
         <div class="ov-faq ov-vis"><button class="ov-faq-q" onclick="ovFaq(this)"><span>What’s the difference between the plans?</span><span class="ov-faq-ic">+</span></button><div class="ov-faq-a">Only how long your access runs, what it costs and how many credits it includes. Every plan includes every feature: Research, Create, Launch, Campaigns, Automations, Oriven Chat, in-app notifications and Priority Support. Flex runs 14 days, Monthly one month, Quarterly three, Semi-Annual six and Annual twelve; the longer the plan, the lower the price per month. <a href="/pricing">Compare the plans</a>.</div></div>
@@ -4361,6 +4368,16 @@
       <div class="ov-pricing-grid-4" id="lpPricingGrid"></div>
     </div>
   </section>
+  <div class="ov-refund-wrap"><div class="ov-sp-section-inner ov-pricing-fold-wide">
+    <!-- Money-back promise on the regular plans (not the €1 Flex trial).
+         The Refund Policy (/refund-policy) must say the same before this goes live. -->
+    <aside class="ov-refund" aria-label="Money-back guarantee">
+      <svg class="ov-refund__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      <div><p class="ov-refund__t">14-day money-back guarantee</p>
+      <p class="ov-refund__d">On Monthly, Quarterly, Semi-Annual and Annual: not satisfied? Email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a> within 14 days of your first purchase of that plan for a full refund, as long as no more than 20% of its credits have been used. The €1 Flex trial isn’t covered. <a href="/refund-policy">Refund policy</a></p></div>
+      <a class="ov-refund__demo" href="/demo">Not sure yet? View the live demo &rarr;</a>
+    </aside>
+  </div></div>
 
   <!-- Create Your Own Plan (js/pricingPlanner.js): recommends one of the five
        plans from the credit costs in js/plans.js, computed in the browser. -->

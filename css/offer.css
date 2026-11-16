@@ -1,0 +1,67 @@
+/* ════════════════════════════════════════════════════════════════
+   Try 2 weeks for €1 (js/plans.js ORIVEN_INTRO_OFFER, first Flex purchase), the 14-day money-back
+   line (regular plans), the end-of-Flex prompt and the demo links. Public pages (index.html, home.html, generated
+   pages) and the app (paywall + onboarding plan cards). Reuses the existing
+   tokens: --green (Electric Lime, app + pricing cards), --volt / --text-*
+   (landing). No new colours.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Screen-reader-only text ("Regular price" before a struck-through price). */
+.ov-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── Public pricing cards ─────────────────────────────────────────── */
+.ov-pc-price--intro { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 2px; }
+.ov-pc-price--intro .ov-pc-period { flex-basis: 100%; }
+.ov-pc-was { font-size: .46em; font-weight: 500; color: rgba(255, 255, 255, .5); text-decoration-thickness: 1.5px; text-decoration-color: rgba(255, 255, 255, .55); font-variant-numeric: tabular-nums; }
+.ov-pc--period .ov-pc-cta { align-self: end; display: grid; gap: 10px; }
+.ov-pc-refund { margin: 0; font-size: 12px; line-height: 1.45; color: rgba(255, 255, 255, .6); text-align: center; text-wrap: balance; }
+.ov-pc-refund a { color: rgba(255, 255, 255, .78); text-underline-offset: 2px; }
+.ov-pc-refund a:hover { color: #fff; }
+
+/* Refund block under the five cards: its own band directly below the pricing
+   section (so the section's dot field keeps ending just below the cards). */
+.ov-refund-wrap { position: relative; z-index: 1; padding: 0 24px 8px; }
+.ov-refund-wrap .ov-sp-section-inner { max-width: 1360px; margin: 0 auto; }
+.ov-refund-wrap .ov-refund { margin-top: 0; }
+@media (max-width: 760px) { .ov-refund-wrap { padding: 0 20px 8px; } }
+.ov-refund { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px 18px; margin: 18px 0 0; padding: 18px 22px; border: 1px solid rgba(255, 255, 255, .12); border-radius: 14px; background: rgba(255, 255, 255, .03); }
+.ov-refund__icon { width: 26px; height: 26px; color: var(--green, #B6FF3B); }
+.ov-refund__t { margin: 0 0 3px; font-size: 15px; font-weight: 600; color: #F2F2F0; }
+.ov-refund__d { margin: 0; font-size: 13.5px; line-height: 1.5; color: rgba(255, 255, 255, .68); max-width: 70ch; }
+.ov-refund__d a { color: rgba(255, 255, 255, .86); text-underline-offset: 2px; }
+.ov-refund__demo { justify-self: end; white-space: nowrap; font-size: 13.5px; font-weight: 600; color: var(--green, #B6FF3B); text-decoration: none; }
+.ov-refund__demo:hover { text-decoration: underline; text-underline-offset: 3px; }
+.ov-refund a:focus-visible, .ov-pc-refund a:focus-visible { outline: 2px solid var(--green, #B6FF3B); outline-offset: 2px; border-radius: 4px; }
+@media (max-width: 760px) {
+  .ov-refund { grid-template-columns: auto 1fr; padding: 16px; }
+  .ov-refund__demo { grid-column: 1 / -1; justify-self: start; white-space: normal; }
+}
+
+/* ── Landing (Ink & Signal tokens from css/landing.css) ───────────── */
+.ik-hero__fine { margin: -10px 0 0; font-size: 14px; line-height: 1.5; color: var(--text-3, #7A7F73); }
+.ik-hero__fine a, .ik-demo-note a { color: var(--text-2, #A6AA9F); text-underline-offset: 3px; }
+.ik-hero__fine a:hover, .ik-demo-note a:hover { color: var(--text, #ECEEE6); }
+.ik-demo-note { margin: 14px 0 0; font-size: 15px; line-height: 1.5; color: var(--text-3, #7A7F73); }
+.ik-head--center .ik-demo-note { text-align: center; }
+
+/* ── App: paywall (pw-card), plan cards (pl-card), onboarding (onx-plan) ── */
+.orv-was { margin-left: 8px; font-size: .5em; font-weight: 500; color: rgba(255, 255, 255, .5); vertical-align: middle; }
+.orv-intro-then { color: rgba(255, 255, 255, .7); }
+
+/* ── Paywall: money-back line; longer plans highlighted after Flex ── */
+.orv-guarantee { color: rgba(255, 255, 255, .62); font-size: 12px; }
+.orv-pw-long .pw-card.orv-pw-value { border-color: color-mix(in srgb, var(--green, #B6FF3B) 45%, transparent); }
+.orv-pw-save { display: inline-block; margin-bottom: 8px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: #0B0C0A; background: var(--green, #B6FF3B); }
+
+/* ── End of Flex: the prompt to choose a regular plan (js/flexReminder.js) ── */
+.orv-flex-prompt { position: fixed; z-index: 9000; left: 50%; bottom: 20px; transform: translateX(-50%); width: min(440px, calc(100vw - 32px)); padding: 18px 18px 16px; border-radius: 16px; background: #121311; color: #ECEEE6; border: 1px solid rgba(255, 255, 255, .14); box-shadow: 0 18px 50px -18px rgba(0, 0, 0, .85); font: 14px/1.5 Geist, Inter, system-ui, sans-serif; }
+.orv-flex-prompt__t { margin: 0 0 4px; font-size: 15.5px; font-weight: 600; text-wrap: balance; }
+.orv-flex-prompt__d { margin: 0 0 14px; color: rgba(236, 238, 230, .72); }
+.orv-flex-prompt__row { display: flex; gap: 8px; }
+.orv-flex-prompt__go { min-height: 38px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--green, #B6FF3B); color: #0B0C0A; font: 600 13.5px Geist, Inter, system-ui, sans-serif; cursor: pointer; }
+.orv-flex-prompt__later { min-height: 38px; padding: 0 14px; border: 1px solid rgba(255, 255, 255, .18); border-radius: 999px; background: transparent; color: rgba(236, 238, 230, .8); font: 500 13.5px Geist, Inter, system-ui, sans-serif; cursor: pointer; }
+.orv-flex-prompt button:focus-visible { outline: 2px solid var(--green, #B6FF3B); outline-offset: 2px; }
+@media (max-width: 640px) { .orv-flex-prompt { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: auto; transform: none; } }
+.ov-pc-refund--none { visibility: hidden; }
+/* Flex card with the €1 trial: the first-purchase note stays small */
+.ov-pc.ov-pc-intro .ov-pc-duration { font-size: 13px; font-weight: 500; line-height: 1.45; color: rgba(255, 255, 255, .7); }

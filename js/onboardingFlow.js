@@ -450,7 +450,12 @@
       var chosen = typeof orvRememberedPlanChoice === 'function' ? orvRememberedPlanChoice() : null;
       // Renewal (access ended): the same plans, a short heading; the account's
       // work and settings are kept.
-      var heading = S.renewal
+      // After the 2-week Flex trial: the longer plans first (lowest price a month).
+      var accNow = typeof window.orvAccess === 'function' ? window.orvAccess() : null;
+      var afterFlex = !!(S.renewal && accNow && accNow.plan === 'flex');
+      var heading = afterFlex
+        ? head('Your 2 weeks have ended', 'Choose a plan to keep going.', 'Your campaigns, content and settings are kept. Longer plans cost less per month. You pay once; nothing renews automatically.')
+        : S.renewal
         ? head('Your access has ended', 'Choose a plan to continue with OrivenAI.', 'Your campaigns, content and settings are kept. Every plan includes every feature. You pay once; nothing renews automatically.')
         : head('Choose your plan', 'Pick how long you want OrivenAI. Your marketing plan is written for exactly that period.', 'Every plan includes every feature. Right after payment we write your marketing plan from your answers — for 14 days, 1, 3, 6 or 12 months, matching the plan you choose. You pay once; nothing renews automatically.');
       return '<section class="onx-pay">' +
@@ -459,19 +464,22 @@
         '<p class="onx-pay__note" role="status" aria-live="polite" hidden></p>' +
         '<div class="onx-plans">' + plans.map(function (p) {
           var f = typeof orvPlanCardFacts === 'function' ? orvPlanCardFacts(p) : { price: '€' + p.price, period: p.periodLabel, credits: p.credits + ' credits' };
-          var badge = PLAN_BADGES[p.id] || '', featured = p.id === FEATURED_PLAN;
+          var badge = PLAN_BADGES[p.id] || '', featured = p.id === (afterFlex ? 'annual' : FEATURED_PLAN);
+          if (afterFlex) badge = p.id === 'annual' ? 'Lowest Monthly Price' : p.id === 'semiannual' ? 'Best value' : '';
+          var saving = afterFlex && typeof orvPlanSaving === 'function' ? orvPlanSaving(p) : 0;
           // Every card has the same rows (badge, name, price, period, credits,
           // note, button), empty where a plan has nothing, so they line up.
           return '<div class="onx-plan' + (featured ? ' is-featured' : '') + (badge ? ' has-badge' : '') + (p.id === chosen ? ' is-chosen' : '') + '" data-plan="' + esc(p.id) + '"' + (p.id === chosen ? ' aria-label="' + esc(p.name + ' — your choice') + '"' : '') + '>' +
             '<span class="onx-plan__badge"' + (badge ? '' : ' aria-hidden="true"') + '>' + esc(badge) + '</span>' +
             '<h2 class="onx-plan__n">' + esc(p.name) + '</h2>' +
-            '<p class="onx-plan__p">' + esc(f.price) + '</p>' +
-            '<p class="onx-plan__d">' + esc(f.period) + '</p>' +
+            // The €1 first Flex purchase (plans.js ORIVEN_INTRO_OFFER); the server applies it.
+            (f.intro ? '<p class="onx-plan__p">' + esc(f.intro.price) + ' <s class="orv-was">' + esc(f.price) + '</s></p>' : '<p class="onx-plan__p">' + esc(f.price) + '</p>') +
+            '<p class="onx-plan__d">' + esc(f.intro ? f.intro.label : f.period) + '</p>' +
             '<p class="onx-plan__c">' + esc(f.credits) + '</p>' +
-            '<p class="onx-plan__m">' + esc(f.instalmentNote || '') + '</p>' +
-            '<button type="button" class="onx-btn ' + (featured ? 'onx-btn--primary' : 'onx-btn--outline') + '" data-buy="' + esc(p.id) + '">Choose ' + esc(p.name) + '</button></div>';
+            '<p class="onx-plan__m">' + esc(f.intro ? f.intro.then : saving ? 'Save €' + saving + ' vs. Monthly' : (f.instalmentNote || '')) + '</p>' +
+            '<button type="button" class="onx-btn ' + (featured || f.intro ? 'onx-btn--primary' : 'onx-btn--outline') + '" data-buy="' + esc(p.id) + '">' + esc(f.intro ? 'Try for ' + f.intro.price : 'Choose ' + p.name) + '</button></div>';
         }).join('') + '</div>' +
-        '<p class="onx-pay__fine">' + esc(typeof ORIVEN_VAT_LINE !== 'undefined' ? ORIVEN_VAT_LINE : 'Excl. VAT — the VAT for your location is added at checkout.') + ' Secure payment by Stripe. ' +
+        '<p class="onx-pay__fine">' + esc(typeof ORIVEN_VAT_LINE !== 'undefined' ? ORIVEN_VAT_LINE : 'Excl. VAT — the VAT for your location is added at checkout.') + ' Secure payment by Stripe. ' + esc(typeof ORIVEN_REFUND_LINE !== 'undefined' ? ORIVEN_REFUND_LINE + (typeof ORIVEN_INTRO_OFFER !== 'undefined' && ORIVEN_INTRO_OFFER.enabled ? ' on every plan except Flex. ' : '. ') : '') +
           '<a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a> · <a href="/terms" target="_blank" rel="noopener">Terms</a></p>' +
         '<p class="onx-pay__out"><button type="button" class="onx-btn onx-btn--text" data-go="assistant">Back</button><button type="button" class="onx-btn onx-btn--text" data-signout>Sign out</button></p>' +
       '</section>';
