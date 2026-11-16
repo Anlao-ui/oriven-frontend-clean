@@ -15,9 +15,9 @@
 /site.webmanifest
   Content-Type: application/manifest+json; charset=utf-8
 
-# The demo (/demo, the app shell with sample data): reachable and linked from
-# every page, but not a search result of its own.
-/demo
+# The demo app (/demo-app, shown in the modal on /demo): not a search result
+# of its own; /demo itself is a normal marketing page.
+/demo-app
   X-Robots-Tag: noindex, follow
 
 # Every page: no framing by other sites (clickjacking), no MIME sniffing,

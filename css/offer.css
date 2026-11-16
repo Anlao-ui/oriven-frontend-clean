@@ -65,3 +65,42 @@
 .ov-pc-refund--none { visibility: hidden; }
 /* Flex card with the €1 trial: the first-purchase note stays small */
 .ov-pc.ov-pc-intro .ov-pc-duration { font-size: 13px; font-weight: 500; line-height: 1.45; color: rgba(255, 255, 255, .7); }
+
+/* ── /demo: marketing page with the demo in a large modal (index.html #view-demo) ── */
+.ov-demo { padding: clamp(72px, 9vh, 112px) 24px 72px; }
+.ov-demo__in { max-width: 980px; margin: 0 auto; }
+.ov-demo__h1 { margin: 10px 0 16px; font-size: clamp(38px, 5vw, 64px); line-height: 1.02; letter-spacing: -.03em; font-weight: 700; color: #F2F2F0; text-wrap: balance; }
+.ov-demo__lead { margin: 0; max-width: 62ch; font-size: clamp(16px, 1.3vw, 18px); line-height: 1.6; color: rgba(242, 242, 240, .72); text-wrap: pretty; }
+.ov-demo__actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 40px; }
+.ov-demo__actions button.site-btn { cursor: pointer; font-family: inherit; font-weight: 600; }
+.ov-demo__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.ov-demo__list li { padding: 16px 18px; border: 1px solid rgba(255, 255, 255, .1); border-radius: 14px; background: rgba(255, 255, 255, .025); font-size: 14px; line-height: 1.45; color: rgba(242, 242, 240, .66); }
+.ov-demo__list b { display: block; margin-bottom: 3px; font-size: 15px; font-weight: 600; color: #F2F2F0; }
+.ov-demo__note { margin: 22px 0 0; font-size: 13.5px; line-height: 1.5; color: rgba(242, 242, 240, .5); }
+#view-demo.ov-demo-is-open { overflow: hidden !important; }
+
+.ov-demo-modal { position: fixed; inset: 0; z-index: 10050; display: grid; place-items: center; }
+.ov-demo-modal[hidden] { display: none; }
+.ov-demo-modal__scrim { position: absolute; inset: 0; background: rgba(5, 6, 5, .78); }
+.ov-demo-modal__panel { position: relative; display: flex; flex-direction: column; width: calc(100vw - 48px); height: calc(100vh - 48px); height: calc(100dvh - 48px); max-width: 1680px; border-radius: 20px; overflow: hidden; background: #0B0C0A; border: 1px solid rgba(255, 255, 255, .14); box-shadow: 0 30px 90px -30px rgba(0, 0, 0, .9); }
+.ov-demo-modal__bar { display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 8px 10px 8px 18px; border-bottom: 1px solid rgba(255, 255, 255, .1); background: #101210; }
+.ov-demo-modal__dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: var(--green, #B6FF3B); }
+.ov-demo-modal__t { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 14.5px; font-weight: 600; color: #F2F2F0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov-demo-modal__t span { margin-left: 10px; font-weight: 400; color: rgba(242, 242, 240, .55); }
+.ov-demo-modal__cta { flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 38px; padding: 0 16px; border-radius: 999px; background: var(--green, #B6FF3B); color: #0B0C0A; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.ov-demo-modal__cta:hover { background: #C9FF6B; }
+.ov-demo-modal__x { flex: 0 0 auto; display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid rgba(255, 255, 255, .14); border-radius: 50%; background: transparent; color: rgba(242, 242, 240, .8); cursor: pointer; }
+.ov-demo-modal__x svg { width: 16px; height: 16px; }
+.ov-demo-modal__x:hover { color: #F2F2F0; background: rgba(255, 255, 255, .06); }
+.ov-demo-modal a:focus-visible, .ov-demo-modal button:focus-visible, .ov-demo-modal iframe:focus-visible, .ov-demo__actions .site-btn:focus-visible { outline: 2px solid var(--green, #B6FF3B); outline-offset: 2px; }
+.ov-demo-modal__frame { position: relative; flex: 1 1 auto; min-height: 0; background: #0B0C0A; }
+.ov-demo-modal__frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #0B0C0A; }
+.ov-demo-modal__loading { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font-size: 14px; color: rgba(242, 242, 240, .55); }
+.ov-demo-modal.is-loaded .ov-demo-modal__loading { display: none; }
+@media (max-width: 760px) {
+  .ov-demo { padding: 56px 20px 56px; }
+  .ov-demo-modal__panel { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; border: 0; }
+  .ov-demo-modal__bar { gap: 10px; padding: 8px 8px 8px 14px; padding-top: calc(8px + env(safe-area-inset-top)); }
+  .ov-demo-modal__t span { display: none; }
+  .ov-demo-modal__cta { padding: 0 12px; font-size: 13px; }
+}

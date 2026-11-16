@@ -126,14 +126,7 @@ const REJECT = { v: 1, ads: false, stats: true, hc: false, at: '2026-11-15T00:00
 
   // No redirect loops: with Netlify's slash-insensitive matching, no 3xx rule may send a path to itself
   const loops = rules.filter((x) => /^30\d/.test(x[2] || '') && x[0].replace(/\/+$/, '') === x[1].split('?')[0].replace(/\/+$/, ''));
-  check('_redirects: no rule redirects a path to itself (Netlify ignores the trailing slash: /demo/ → /demo looped)', loops.length === 0, loops);
-  {
-    const c2 = await browser.newContext(); const p2 = await c2.newPage(); p2.on('pageerror', (e) => errors.push('/demo/: ' + e.message));
-    await p2.goto(BASE + '/demo/', { waitUntil: 'load' }); await p2.waitForTimeout(5000);
-    const r2 = await p2.evaluate(() => ({ path: location.pathname, demo: window.ORV_DEMO === true, bar: !!document.querySelector('.orv-demo-bar') }));
-    check('/demo/ (trailing slash) ends up on /demo with the demo running', r2.path === '/demo' && r2.demo && r2.bar, r2);
-    await c2.close();
-  }
+  check('_redirects: no rule redirects a path to itself (Netlify ignores the trailing slash)', loops.length === 0, loops);
 
   // Refund Policy matches the money-back copy
   ({ ctx, page } = await open('/refund-policy'));
@@ -181,106 +174,151 @@ const REJECT = { v: 1, ads: false, stats: true, hc: false, at: '2026-11-15T00:00
     await c.close();
   }
 
-  // ── B. /demo ──
-  // Real storage of this origin before the demo
+  // ── B. /demo: a marketing page whose modal shows the read-only demo app ──
+  const CDN = /^GET https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|unpkg\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
+  const outsideOf = (list) => list.filter((t) => !t.split(' ')[1].startsWith(BASE + '/') && !/^GET (data|blob):/.test(t) && !CDN.test(t));
+  // A signed-in visitor: a real-looking session in this site's storage (the demo must not use or change it)
   ({ ctx, page } = await open('/', { consent: false }));
-  await page.evaluate(() => { localStorage.setItem('probe', 'real'); });
+  await page.evaluate(() => { localStorage.setItem('probe', 'real'); localStorage.setItem('sb-rsqfoqitooxmkyrkuyzi-auth-token', JSON.stringify({ access_token: 'real-user-token', refresh_token: 'r', expires_at: 4102444800, user: { id: 'real-user' } })); localStorage.setItem('orv_consent_v1', JSON.stringify({ v: 1, ads: false, stats: true, hc: false, at: 'x' })); });
   const demo = await ctx.newPage();
-  const tried = [];
+  const tried = [], navs = [], framed = [];
   demo.on('pageerror', (e) => errors.push('/demo: ' + e.message));
-  demo.on('request', (rq) => tried.push(rq.method() + ' ' + rq.url()));
+  demo.on('request', (rq) => { const t = rq.method() + ' ' + rq.url(); tried.push(t); if (rq.frame() !== demo.mainFrame()) framed.push(t); if (rq.isNavigationRequest()) navs.push(rq.url()); });
   await demo.goto(BASE + '/demo', { waitUntil: 'load' });
-  await demo.waitForTimeout(6000);
-  const st = await demo.evaluate(() => ({ demo: window.ORV_DEMO === true, isolated: (function () { try { return window.localStorage.getItem('probe') === null; } catch (_) { return false; } })(), bar: (document.querySelector('.orv-demo-bar') || {}).textContent || '', cta: document.querySelector('.orv-demo-bar a') && document.querySelector('.orv-demo-bar a').getAttribute('href'), signedIn: !!document.querySelector('.app') && getComputedStyle(document.querySelector('.app')).display !== 'none', page: (document.querySelector('.page.active') || {}).id, consent: !!document.querySelector('.orv-cc') }));
-  check('/demo: demo mode on, the app is open (signed in as the sample user), no cookie banner', st.demo && st.signedIn && !st.consent, st);
-  check('/demo: banner "You’re viewing a demo with sample data" + "Try 2 weeks for €1" → /signup', /You’re viewing a demo/.test(st.bar) && /with sample data/.test(st.bar) && /Try 2 weeks for €1/.test(st.bar) && st.cta === '/signup', st);
-  check('/demo: the demo cannot see the real storage of this site', st.isolated, st);
+  await demo.waitForTimeout(8000);
+  const pg1 = await demo.evaluate(() => ({ url: location.pathname, nav: getComputedStyle(document.getElementById('lpNav')).display !== 'none', navDemo: !!document.querySelector('#lpNav a.lp-nav-link[href="/demo"]'), foot: !!document.querySelector('#view-demo .site-foot'), h1: (document.querySelector('#view-demo h1') || {}).textContent, open: !document.getElementById('orvDemoModal').hidden, src: document.getElementById('orvDemoFrame').getAttribute('src'), sandbox: document.getElementById('orvDemoFrame').getAttribute('sandbox'), cta: (document.querySelector('.ov-demo-modal__cta') || {}).textContent, ctaHref: document.querySelector('.ov-demo-modal__cta').getAttribute('href'), introCta: (document.querySelector('.ov-demo__actions a') || {}).textContent }));
+  check('/demo is a marketing page: landing navbar (with Demo), footer, "Explore OrivenAI with sample data"', pg1.url === '/demo' && pg1.nav && pg1.navDemo && pg1.foot && /Explore OrivenAI with sample data/.test(pg1.h1 || ''), pg1);
+  check('/demo: the large demo window opens by itself, showing /demo-app in a sandboxed frame (no top navigation without a click)', pg1.open && pg1.src === '/demo-app' && /allow-scripts/.test(pg1.sandbox) && !/allow-top-navigation(\s|$)/.test(pg1.sandbox) && /allow-top-navigation-by-user-activation/.test(pg1.sandbox), pg1);
+  check('/demo: "Try 2 weeks for €1" in the window and next to the intro', /Try 2 weeks for €1/.test(pg1.cta || '') && pg1.ctaHref === '/signup' && /Try 2 weeks for €1/.test(pg1.introCta || ''), pg1);
+  const size = await demo.evaluate(() => { const r = document.querySelector('.ov-demo-modal__panel').getBoundingClientRect(); return { w: r.width / innerWidth, h: r.height / innerHeight }; });
+  check('/demo: the window is nearly full-screen (≥ 90 % of the viewport)', size.w >= 0.9 && size.h >= 0.9, size);
+  const fr = demo.frames().find((f) => /\/demo-app/.test(f.url()));
+  const inside = fr && await fr.evaluate(() => ({ demo: window.ORV_DEMO === true, path: location.pathname, isolated: (function () { try { return window.localStorage.getItem('probe') === null; } catch (_) { return false; } })(), sampleUser: !!document.querySelector('.app') && getComputedStyle(document.querySelector('.app')).display !== 'none', ownBar: !!document.querySelector('.orv-demo-bar'), consent: !!document.querySelector('.orv-cc') }));
+  check('inside the window: the demo app with the sample account, its own storage (not the visitor’s), no banner or cookie dialog of its own', !!inside && inside.demo && inside.path === '/demo-app' && inside.isolated && inside.sampleUser && !inside.ownBar && !inside.consent, inside);
   await demo.screenshot({ path: path.join(SHOTS, 'demo-start.png') });
 
-  const go = async (id, ms) => { await demo.evaluate((x) => window.orvAppNav && window.orvAppNav.go(x), id); await demo.waitForTimeout(ms || 2200); };
-  await go('dashboard', 3000);
-  const dash = await demo.evaluate(() => document.querySelector('.page.active').innerText.replace(/\s+/g, ' ').slice(0, 3000));
-  check('Dashboard shows the sample business and real-looking figures', /Amber & Clay|Sanne/.test(dash) && /€\s?\d/.test(dash), dash.slice(0, 300));
-  await demo.screenshot({ path: path.join(SHOTS, 'demo-dashboard.png') });
-  await go('overview', 2500);
-  const plats = await demo.evaluate(() => Array.from(document.querySelectorAll('#page-performance button')).map((b) => b.textContent.trim()).filter((t) => /^(Google|Meta|TikTok|Pinterest|Snapchat) Ads/.test(t)).map((t) => t.split(' Ads')[0]));
-  check('Campaign Overview: all five platforms', ['Google', 'Meta', 'TikTok', 'Pinterest', 'Snapchat'].every((p) => plats.includes(p)), plats);
-  const metaRows = await demo.evaluate(() => document.getElementById('page-performance').innerText);
-  check('Campaign Overview lists sample campaigns', /Candle season|Search — hand-thrown mugs|Pottery workshop/.test(metaRows), metaRows.slice(0, 300));
-  await demo.screenshot({ path: path.join(SHOTS, 'demo-campaigns.png') });
-  await go('research', 2500);
-  const rs = await demo.evaluate(() => document.querySelector('.page.active').innerText);
-  check('Research: the sample reports (fictional competitors only)', /Handmade candle brands in the Netherlands/.test(rs) && !/Kaarsenhuis|Wax & Wick/.test(rs), rs.slice(0, 300));
+  // Every main section inside the window
+  const go = async (id, ms) => { await fr.evaluate((x) => window.orvAppNav && window.orvAppNav.go(x), id); await demo.waitForTimeout(ms || 2200); };
+  const activeText = () => fr.evaluate(() => { const a = document.querySelector('.page.active'); return a ? a.id + ' | ' + a.innerText.replace(/\s+/g, ' ').slice(0, 2500) : ''; });
+  await go('dashboard', 3000); const dash = await activeText();
+  check('section: Dashboard (sample business and figures)', /Amber & Clay|Sanne/.test(dash) && /€\s?\d/.test(dash), dash.slice(0, 200));
+  await go('plan', 2500); const plan = await activeText();
+  check('section: Marketing Plan', /Week|phase|plan/i.test(plan) && plan.length > 200, plan.slice(0, 160));
+  await go('progress', 2500); const prog = await activeText();
+  check('section: Progress', prog.length > 150, prog.slice(0, 160));
+  await go('research', 2500); const rs = await activeText();
+  check('section: Research (the sample report, fictional competitors only)', /Handmade candle brands in the Netherlands/.test(rs) && !/Kaarsenhuis|Wax & Wick/.test(rs), rs.slice(0, 160));
+  await go('insights', 2500); const ins = await activeText();
+  check('section: Insights', ins.length > 150, ins.slice(0, 160));
+  await go('create', 2500); const cr = await activeText();
+  check('section: Create', cr.length > 100, cr.slice(0, 160));
   await go('content', 4000);
-  const mc = await demo.evaluate(() => ({ t: document.body.innerText, imgs: Array.from(document.querySelectorAll('#page-my-content img')).filter((i) => /\/assets\/demo\//.test(i.currentSrc || i.src) && i.complete && i.naturalWidth > 0).length }));
-  check('My Content: the example AI images are shown (loaded from /assets/demo)', mc.imgs >= 3 && /Candle season/.test(mc.t), mc.imgs);
-  await demo.screenshot({ path: path.join(SHOTS, 'demo-content.png') });
-  await go('auto-overview', 4000);
-  const auO = await demo.evaluate(() => document.getElementById('page-autopilot').innerText);
-  await go('auto-rules', 3000);
-  const auR = await demo.evaluate(() => document.getElementById('page-autopilot').innerText);
-  check('Automations: the example schedule (Overview) and rule (Rules)', /Weekday hours/.test(auO) && /Scale winners/.test(auR), [auO.slice(0, 120), auR.slice(0, 120)]);
+  const mc = await fr.evaluate(() => ({ t: document.body.innerText, imgs: Array.from(document.querySelectorAll('#page-my-content img')).filter((i) => /\/assets\/demo\//.test(i.currentSrc || i.src) && i.complete && i.naturalWidth > 0).length }));
+  check('section: My Content with the pre-written example AI ads (images shown)', mc.imgs >= 3 && /Candle season/.test(mc.t), mc.imgs);
+  await go('testing', 2500); const ct = await activeText();
+  check('section: Creative Testing (example headlines)', /Slow evenings, hand-poured|Sixty hours/.test(ct), ct.slice(0, 160));
+  await go('adstudio', 2500); const as = await activeText();
+  check('section: Ad Studio (Launch)', as.length > 100, as.slice(0, 160));
+  await go('audiences', 2500); const au = await activeText();
+  check('section: Audience Builder (sample audiences)', /Gift buyers|Home lovers/.test(au), au.slice(0, 160));
+  await go('overview', 2500);
+  const plats = await fr.evaluate(() => Array.from(document.querySelectorAll('#page-performance button')).map((b) => b.textContent.trim()).filter((t) => /^(Google|Meta|TikTok|Pinterest|Snapchat) Ads/.test(t)).map((t) => t.split(' Ads')[0]));
+  check('section: Campaign Overview with all five ad platforms', ['Google', 'Meta', 'TikTok', 'Pinterest', 'Snapchat'].every((p) => plats.includes(p)), plats);
+  for (const name of ['Meta Ads', 'TikTok Ads', 'Pinterest Ads', 'Snapchat Ads', 'Google Ads']) {
+    await fr.evaluate((n) => { const b = Array.from(document.querySelectorAll('#page-performance button')).find((x) => x.textContent.trim().indexOf(n) === 0); if (b) b.click(); }, name); await demo.waitForTimeout(1500);
+    const t = await fr.evaluate(() => document.getElementById('page-performance').innerText);
+    check('  ' + name + ': sample campaigns shown', /Ad account\s*Amber & Clay|Amber & Clay/.test(t) && /€/.test(t), t.slice(0, 120));
+  }
+  await demo.screenshot({ path: path.join(SHOTS, 'demo-campaigns.png') });
+  await go('compare', 2500); const cmp = await activeText();
+  check('section: Campaign Comparison', cmp.length > 100, cmp.slice(0, 160));
+  await go('auto-overview', 4000); const aO = await fr.evaluate(() => document.getElementById('page-autopilot').innerText);
+  await go('auto-rules', 3000); const aR = await fr.evaluate(() => document.getElementById('page-autopilot').innerText);
+  check('section: Automations (the example schedule and rule)', /Weekday hours/.test(aO) && /Scale winners/.test(aR), [aO.slice(0, 80), aR.slice(0, 80)]);
+  const asst = await fr.evaluate(async () => { const b = document.querySelector('#orvAiFab, .orv-ai-fab, [data-assistant-open], .oa-launcher, .orv-agent-launcher'); if (b) b.click(); else if (typeof window.orvAiOpen === 'function') window.orvAiOpen(); await new Promise((r) => setTimeout(r, 900)); const p = document.querySelector('#orvAiPanel'); return { open: !!p && getComputedStyle(p).display !== 'none' && p.getBoundingClientRect().height > 100, name: /Nova/.test(document.body.innerText) }; });
+  check('section: the AI assistant (Nova) opens', asst.open && asst.name, asst);
+  await fr.evaluate(() => { if (typeof window.orvAiClose === 'function') window.orvAiClose(); document.querySelectorAll('#orvAiPanel').forEach((p) => p.classList.remove('open')); });
+  const sett = await fr.evaluate(async () => { if (typeof window.openSettingsModal === 'function') window.openSettingsModal(); await new Promise((r) => setTimeout(r, 1200)); const m = document.querySelector('#settingsModal, .smd-modal, #modal-settings, .settings-modal'); return { open: !!m && m.getBoundingClientRect().height > 100, text: m ? m.innerText.slice(0, 160) : '' }; });
+  check('section: Settings open (sample account)', sett.open, sett);
+  await demo.screenshot({ path: path.join(SHOTS, 'demo-settings.png') });
+  await fr.evaluate(() => { if (typeof window.closeSettingsModal === 'function') window.closeSettingsModal(); document.querySelectorAll('.modal.open').forEach((m) => m.classList.remove('open')); });
 
-  // The address bar stays on /demo (the app writes /app?view=…), so a reload keeps the demo
-  const url1 = await demo.evaluate(() => location.pathname + location.search);
-  await demo.reload({ waitUntil: 'load' }); await demo.waitForTimeout(5000);
-  const after1 = await demo.evaluate(() => ({ url: location.pathname + location.search, demo: window.ORV_DEMO === true, bar: !!document.querySelector('.orv-demo-bar') }));
-  check('address bar stays on /demo while moving through the app; a reload opens the demo again', /^\/demo(\?|$)/.test(url1) && /^\/demo(\?|$)/.test(after1.url) && after1.demo && after1.bar, { url1, after1 });
-
-  // AI and paid actions through the app's own apiFetch
-  const ai = await demo.evaluate(async () => {
-    const t0 = performance.now();
-    const chat = await apiFetch('/api/ai/chat', { method: 'POST', body: JSON.stringify({ message: 'Write three headlines for my candle ad' }) });
-    const ad = await apiFetch('/api/ai/create-ad', { method: 'POST', body: JSON.stringify({ platform: 'pinterest', prompt: 'candles' }) });
-    const img = await apiFetch('/api/generate-image', { method: 'POST', body: JSON.stringify({ prompt: 'x' }) });
-    const res = await apiFetch('/api/research/query', { method: 'POST', body: JSON.stringify({ question: 'x' }) });
-    const pay = await apiFetch('/api/create-checkout-session', { method: 'POST', body: JSON.stringify({ plan: 'monthly' }) });
-    const pub = await apiFetch('/api/publish/meta', { method: 'POST', body: JSON.stringify({}) });
-    const del = await apiFetch('/api/account/delete', { method: 'POST', body: '{}' });
-    return { ms: performance.now() - t0, chat: chat.ok && /headlines/i.test(chat.data.reply) && /demo/i.test(chat.data.reply), ad: ad.ok && !!(ad.data.data && (ad.data.data.pinterestAds || ad.data.data.concepts)), img: img.ok && img.data.imageUrl === location.origin + '/assets/demo/ad2.jpg', research: res.status === 403 && res.data.code === 'DEMO', pay: pay.status === 403 && /demo/i.test(pay.data.error), pub: pub.status === 403, del: del.status === 403 };
+  // Read-only: nothing can be created, generated, saved, connected, published or paid
+  await go('create', 2000);
+  const ro1 = await fr.evaluate(async () => { window._ov3Platform = 'meta'; window.cgrGenerate('An autumn ad for our candles', 'meta', 'images'); await new Promise((r) => setTimeout(r, 400)); const t = document.querySelector('.orv-demo-toast'); return { toast: t ? t.innerText : '', link: t && t.querySelector('a') ? [t.querySelector('a').getAttribute('href'), t.querySelector('a').getAttribute('target')] : null, page: document.querySelector('.page.active').id }; });
+  check('Create → generate: "Not available in the demo — Try 2 weeks for €1" (link opens the signup in the main window), nothing generated', /Not available in the demo/.test(ro1.toast) && /Try 2 weeks for €1/.test(ro1.toast) && ro1.link && ro1.link[0] === '/signup' && ro1.link[1] === '_top' && ro1.page !== 'page-ad-workspace', ro1);
+  await demo.screenshot({ path: path.join(SHOTS, 'demo-readonly.png') });
+  const ro2 = await fr.evaluate(async () => { window.orvAiSend('Write me an ad'); await new Promise((r) => setTimeout(r, 300)); return (document.querySelector('.orv-demo-toast') || {}).innerText || ''; });
+  check('assistant → send a message: the same message, no answer is generated', /Not available in the demo/.test(ro2), ro2);
+  const ro3 = await fr.evaluate(async () => {
+    const r = {};
+    for (const [k, p, b] of [['chat', '/api/ai/chat', { message: 'x' }], ['ad', '/api/ai/create-ad', { platform: 'meta' }], ['image', '/api/generate-image', { prompt: 'x' }], ['research', '/api/research/query', { question: 'x' }], ['automation', '/api/automations', { name: 'x' }], ['publish', '/api/publish/meta', {}], ['connect', '/api/meta/disconnect', {}], ['pay', '/api/create-checkout-session', { plan: 'flex' }], ['delete', '/api/account/delete', {}], ['audience', '/api/audiences', { name: 'x' }]]) {
+      const x = await apiFetch(p, { method: 'POST', body: JSON.stringify(b) }); r[k] = x.status + ':' + (x.data && x.data.code);
+    }
+    return r;
   });
-  check('AI actions return pre-written examples after a short wait (chat, ad, image); research explains the demo', ai.chat && ai.ad && ai.img && ai.research && ai.ms > 3000, ai);
-  check('paying, publishing and deleting the account are refused in the demo', ai.pay && ai.pub && ai.del, ai);
-  // The real Create flow in the interface: an example campaign, with copy and image, after a short build
-  await go('create', 2500);
-  await demo.evaluate(() => { window._ov3Platform = 'meta'; window.cgrGenerate('An autumn ad for our hand-poured soy candles', 'meta', 'images'); });
-  await demo.waitForTimeout(8000);
-  const built = await demo.evaluate(() => { const a = document.querySelector('.page.active'); return { id: a.id, t: a.innerText, img: Array.from(a.querySelectorAll('img')).some((i) => /\/assets\/demo\/ad2\.jpg$/.test(i.currentSrc || i.src) && i.naturalWidth > 0) }; });
-  check('Create → build: a finished example Meta campaign (headline, primary text, audience, image)', /Campaign ready/.test(built.t) && /Slow evenings, hand-poured/.test(built.t) && /Gift buyers aged 25–45/.test(built.t) && built.img, { id: built.id, img: built.img, t: built.t.slice(0, 200) });
-  await demo.screenshot({ path: path.join(SHOTS, 'demo-create.png') });
-  const blockedByDemo = await demo.evaluate(() => (window.orvDemoBlocked || []).slice());
+  check('every create / generate / save / connect / publish / pay request is refused inside the page (403 DEMO), no example result', Object.values(ro3).every((v) => v === '403:DEMO'), ro3);
+  const url1 = await fr.evaluate(() => location.pathname + location.search);
+  check('the demo stays on /demo-app inside the window (the app’s /app?view=… is kept as /demo-app?view=…)', /^\/demo-app(\?|$)/.test(url1), url1);
 
-  // Nothing left the page: every request the demo made was to this server or a static CDN GET
-  const CDN = /^GET https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|unpkg\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
-  const outside = tried.filter((t) => !t.split(' ')[1].startsWith(BASE + '/') && !/^GET (data|blob):/.test(t) && !CDN.test(t));
-  check('/demo attempted NO request to any other host (no API, Supabase, AI, ad platform, Stripe, analytics)', outside.length === 0, outside.slice(0, 10));
-  const toApi = tried.filter((t) => /\/api\//.test(t));
-  check('/demo sent no /api request at all (all answered inside the page)', toApi.length === 0, toApi.slice(0, 5));
-  console.log('  (refused inside the demo: ' + blockedByDemo.length + ')');
+  // Never /app, nothing left the page
+  const top1 = await demo.evaluate(() => location.pathname);
+  check('the page itself stays on /demo, never /app (no navigation to /app anywhere)', top1 === '/demo' && !navs.some((u) => /\/app(\?|$|\.html)/.test(u.replace(BASE, ''))), { top1, navs });
+  const outside = outsideOf(framed);
+  check('the demo window attempted NO request to any other host (no API, Supabase, AI, ad platform, Stripe, analytics) and no /api request', framed.length > 10 && outside.length === 0 && !framed.some((t) => /\/api\//.test(t)), outside.slice(0, 10));
+  const pageOnly = outsideOf(tried.filter((t) => framed.indexOf(t) < 0));
+  check('the /demo page itself: only what every marketing page sends (its cookieless page count, the consent-gated HeyCatch script); no Supabase, AI or Stripe', pageOnly.every((t) => /^POST http:\/\/localhost:5500\/api\/t$|^GET https:\/\/esm\.sh\/@heycatch\//.test(t)), pageOnly);
+
+  // Close and reopen
+  await demo.click('.ov-demo-modal__x'); await demo.waitForTimeout(400);
+  const closed = await demo.evaluate(() => ({ hidden: document.getElementById('orvDemoModal').hidden, url: location.pathname, reopen: !!document.querySelector('#view-demo [data-demo-open]') }));
+  check('closing the window keeps the visitor on /demo with an "Open the demo" button and the €1 CTA', closed.hidden && closed.url === '/demo' && closed.reopen, closed);
+  await demo.screenshot({ path: path.join(SHOTS, 'demo-closed.png') });
+  await demo.click('#view-demo [data-demo-open]'); await demo.waitForTimeout(500);
+  check('"Open the demo" opens the window again', await demo.evaluate(() => !document.getElementById('orvDemoModal').hidden));
   await demo.close();
 
-  // Real storage after the demo: unchanged
+  // The visitor's own session and storage are untouched
   const after = await page.evaluate(() => { const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); o[k] = localStorage.getItem(k); } return o; });
-  check('after the demo, the real storage is unchanged (no demo session, no sample campaigns)', after.probe === 'real' && !Object.keys(after).some((k) => /^sb-|oriven_campaigns_demo|demo-amber/.test(k)), Object.keys(after));
+  check('signed-in visitor: their session and storage are unchanged by the demo (no sample campaigns, same token)', after.probe === 'real' && /real-user-token/.test(after['sb-rsqfoqitooxmkyrkuyzi-auth-token'] || '') && !Object.keys(after).some((k) => /oriven_campaigns_demo|demo-amber/.test(k)), Object.keys(after));
   await ctx.close();
+
+  // "Demo" in the navbar: desktop and the mobile menu, from the homepage
+  for (const vp of [{ width: 1440, height: 900, n: 'desktop' }, { width: 390, height: 844, n: 'mobile' }]) {
+    ({ ctx, page } = await open('/', { vp }));
+    if (vp.n === 'mobile') { await page.click('#lpHamburger'); await page.waitForTimeout(400); await page.click('#lpMobileMenu a.lp-mm-link[href="/demo"]'); }
+    else await page.click('#lpNav a.lp-nav-link[href="/demo"]');
+    await page.waitForURL(/\/demo$/, { timeout: 10000 }).catch(() => {}); await page.waitForTimeout(6000);
+    const r = await page.evaluate(() => ({ url: location.pathname, open: !document.getElementById('orvDemoModal').hidden, frame: document.getElementById('orvDemoFrame').getAttribute('src') }));
+    const sz = await page.evaluate(() => { const p = document.querySelector('.ov-demo-modal__panel').getBoundingClientRect(); return { l: p.left, r: innerWidth - p.right, w: p.width, vw: innerWidth }; });
+    check('navbar "Demo" (' + vp.n + ') → /demo with the window open, never /app', r.url === '/demo' && r.open && r.frame === '/demo-app' && (vp.n === 'desktop' || (sz.l <= 1 && sz.r <= 1)), { r, sz });
+    if (vp.n === 'mobile') await page.screenshot({ path: path.join(SHOTS, 'demo-mobile.png') });
+    await ctx.close();
+  }
+
+  // /demo/ (trailing slash) is the same page; /demo-app/ goes on to /demo-app
+  {
+    const c2 = await browser.newContext(); const p2 = await c2.newPage();
+    await p2.goto(BASE + '/demo/', { waitUntil: 'load' }); await p2.waitForTimeout(3000);
+    const a = await p2.evaluate(() => ({ view: !!document.querySelector('#view-demo:not(.pub-view)'), open: !document.getElementById('orvDemoModal').hidden }));
+    await p2.goto(BASE + '/demo-app/', { waitUntil: 'load' }); await p2.waitForTimeout(4000);
+    const b = await p2.evaluate(() => ({ path: location.pathname, demo: window.ORV_DEMO === true }));
+    check('/demo/ shows the demo page; /demo-app/ ends up on /demo-app with the demo running', a.view && a.open && b.path === '/demo-app' && b.demo, { a, b });
+    await c2.close();
+  }
 
   // /app is untouched by the demo code
   ({ ctx, page } = await open('/app', { wait: 1500 }));
   check('/app does not load the demo layer', await page.evaluate(() => !window.ORV_DEMO && !window.ORV_DEMO_DATA && !document.querySelector('.orv-demo-bar')));
   await ctx.close();
 
-  // Mobile demo banner
-  ({ ctx, page } = await open('/demo', { vp: { width: 390, height: 844 }, wait: 5000, consent: false }));
-  const mb = await page.evaluate(() => { const b = document.querySelector('.orv-demo-bar').getBoundingClientRect(); return { l: b.left, r: innerWidth - b.right, bottom: innerHeight - b.bottom, h: b.height, overflow: document.documentElement.scrollWidth - innerWidth }; });
-  check('mobile /demo: banner fits the screen (12px gutters, bottom)', mb.l >= 8 && mb.r >= 8 && mb.bottom >= 8 && mb.h < 80, mb);
-  await page.screenshot({ path: path.join(SHOTS, 'demo-mobile.png') });
-  await ctx.close();
-
   await browser.close(); srv.close();
   const files = ['js/demo-mode.js', 'js/demo-data.js'].map((f) => fs.readFileSync(path.join(ROOT, f), 'utf8')).join('\n');
   check('demo files contain no real competitor names or domains', !/kaarsenhuis|waxandwick|Wax & Wick/i.test(files));
   const head = fs.readFileSync(path.join(ROOT, 'app.html'), 'utf8').split('js/consent.js"></script>')[0];
-  check('app.html loads the demo layer only on /demo, before consent.js', head.includes("if(/^\\/demo\\/?$/.test(location.pathname))document.write('<script src=\"/js/demo-data.js\"><\\/script><script src=\"/js/demo-mode.js\"><\\/script>');"), head.slice(-400));
+  check('app.html loads the demo layer only on /demo-app, before consent.js', head.includes("if(/^\\/demo-app\\/?$/.test(location.pathname))document.write('<script src=\"/js/demo-data.js\"><\\/script><script src=\"/js/demo-mode.js\"><\\/script>');"), head.slice(-400));
+  const red = fs.readFileSync(path.join(ROOT, '_redirects'), 'utf8');
+  check('_redirects: /demo is the marketing page (demo.html), /demo-app the app shell', /^\/demo\s+\/demo\.html\s+200!/m.test(red) && /^\/demo-app\s+\/app\.html\s+200/m.test(red) && !/^\/demo\s+\/app\.html/m.test(red));
   const errs = errors.filter((e) => !/Blocked in the demo|Failed to fetch|NetworkError/.test(e));
   check('no page errors', !errs.length, errs.slice(0, 8));
   console.log(`\n${pass + fail} checks run, ${pass} passed, ${fail} failed.`);

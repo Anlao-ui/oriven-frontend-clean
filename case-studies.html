@@ -235,7 +235,7 @@
        same nav-height offset — the nav is visible on all of these too,
        see NAV_VIEWS below). */
     #view-about, #view-blog, #view-product, #view-solutions, #view-case-studies,
-    #view-pricing, #view-faq,
+    #view-pricing, #view-faq, #view-demo,
     #view-product-google-ads, #view-product-meta-ads, #view-product-tiktok-ads,
     #view-product-pinterest-ads,
     #view-product-snapchat-ads,
@@ -1288,6 +1288,14 @@
      relocating these containers here is enough; no JS call sites changed. -->
 
 
+<!-- ═══════════════════════════════════════════════════════════
+     VIEW: DEMO /demo — a marketing page (landing navbar + footer) whose
+     large modal shows the read-only demo app (/demo-app, js/demo-mode.js)
+     in a sandboxed iframe: it can never move this page, so /demo never
+     turns into /app. Opens on arrival; closing keeps the visitor here.
+     ═══════════════════════════════════════════════════════════ -->
+
+
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1309,7 +1317,7 @@
     '/refund-policy': 'refund-policy', '/cookie-policy': 'cookie-policy',
     '/security': 'security', '/contact': 'contact',
     '/about': 'about', '/blog': 'blog', '/product': 'product', '/solutions': 'solutions',
-    '/case-studies': 'case-studies', '/pricing': 'pricing', '/faq': 'faq',
+    '/case-studies': 'case-studies', '/pricing': 'pricing', '/faq': 'faq', '/demo': 'demo',
     '/product/google-ads':          'product-google-ads',
     '/product/meta-ads':            'product-meta-ads',
     '/product/tiktok-ads':          'product-tiktok-ads',
@@ -1353,7 +1361,7 @@
 
   // Show global nav on content pages
   var NAV_VIEWS = {
-    landing:1, about:1, blog:1, product:1, solutions:1, 'case-studies':1, pricing:1, faq:1,
+    landing:1, about:1, blog:1, product:1, solutions:1, 'case-studies':1, pricing:1, faq:1, demo:1,
     'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1, 'product-pinterest-ads':1, 'product-snapchat-ads':1,
     'product-create':1, 'product-launch':1, 'product-campaigns':1, 'product-research':1,
     'product-autopilot':1, 'product-business':1,
@@ -1400,6 +1408,7 @@
     'product-research': { title: 'AI Competitor & Market Research for Ads | OrivenAI', desc: 'Research your market, competitors and customers before you spend on ads. Targeted web searches and your website, with findings checked against their sources.', path: '/research' },
     'product-autopilot': { title: 'Ad Scheduling and Automated Campaign Rules | OrivenAI', desc: 'Schedule campaigns and let rules you write pause, resume or adjust budgets within limits you set. Approval mode and a full activity log of every change.', path: '/autopilot' },
     'product-business': { title: 'Control Center: Marketing Dashboard and Ad Plan | OrivenAI', desc: 'Where you start in OrivenAI: your marketing dashboard, advertising plan, business profile and brand identity, so research, copy and creative use the same facts.', path: '/business' },
+    demo: { title: 'Live Demo: Explore the AI Ad Workspace | OrivenAI', desc: 'Explore OrivenAI with sample data: dashboard, five ad platforms, campaigns, AI ad creation, research, automations and the assistant. Read-only, no account needed.', path: '/demo' },
     '404': { title: 'Page Not Found | OrivenAI', desc: 'The page you are looking for does not exist or has been moved.', path: null, noindex: true }
   };
   window.PAGE_SEO = PAGE_SEO;
@@ -1472,7 +1481,7 @@
 (function(){
   var FADE = 210;
   var NAV_VIEWS = {
-    landing:1, about:1, blog:1, product:1, solutions:1, 'case-studies':1, pricing:1, faq:1,
+    landing:1, about:1, blog:1, product:1, solutions:1, 'case-studies':1, pricing:1, faq:1, demo:1,
     'product-google-ads':1, 'product-meta-ads':1, 'product-tiktok-ads':1, 'product-pinterest-ads':1, 'product-snapchat-ads':1,
     'product-create':1, 'product-launch':1, 'product-campaigns':1, 'product-research':1,
     'product-autopilot':1, 'product-business':1,
@@ -1495,6 +1504,7 @@
     '/case-studies': 'case-studies',
     '/pricing':      'pricing',
     '/faq':          'faq',
+    '/demo':         'demo',
     '/product/google-ads':          'product-google-ads',
     '/product/meta-ads':            'product-meta-ads',
     '/product/tiktok-ads':          'product-tiktok-ads',
