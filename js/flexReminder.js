@@ -49,6 +49,7 @@
     el.setAttribute('data-kind', st.kind);
     el.innerHTML = '<p class="orv-flex-prompt__t" id="orvFlexPromptT">' + esc(title) + '</p>' +
       '<p class="orv-flex-prompt__d">' + esc(body) + '</p>' +
+      (typeof window.ORIVEN_GUARANTEE_TEXT === 'string' ? '<p class="orv-flex-prompt__g">' + esc(window.ORIVEN_GUARANTEE_TEXT) + '</p>' : '') +
       '<div class="orv-flex-prompt__row"><button type="button" class="orv-flex-prompt__go" data-flex-plans>See plans</button>' +
       '<button type="button" class="orv-flex-prompt__later" data-flex-later>Later</button></div>';
     el.querySelector('[data-flex-plans]').addEventListener('click', function () {

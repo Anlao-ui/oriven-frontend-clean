@@ -93,7 +93,7 @@
       { id: 'overview', label: 'Campaign Overview', icon: 'overview', go: page('performance', 'page-performance') },
       // Not in the sidebar: opened from Campaign Overview, Audience Builder and the assistant.
       { id: 'builder', label: 'Campaign Builder', icon: 'builder', hidden: true, parent: 'overview', go: function () { openPanel('builder'); } },
-      { id: 'compare', label: 'Campaign Comparison', icon: 'compare', go: function () { if (window.orvCampaignComparison) window.orvCampaignComparison.open(); } },
+      { id: 'compare', label: 'Platform Comparison', icon: 'compare', go: function () { if (window.orvCampaignComparison) window.orvCampaignComparison.open(); } },
     ] },
     { id: 'au', n: '06', name: 'Automations', items: [
       { id: 'auto-overview', label: 'Overview', icon: 'nodes', go: autoTab('overview') },

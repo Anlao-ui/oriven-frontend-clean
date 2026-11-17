@@ -1,222 +1,209 @@
 /* ════════════════════════════════════════════════════════════════
-   Campaigns → Campaign Comparison (#page-campaign-comparison)
+   Campaigns → Platform Comparison (#page-campaign-comparison)
 
-   Compare campaigns side by side on the figures the ad platforms report —
-   read through the same endpoints and parsing as Campaign Overview
-   (window.orvCampaignSources, app.html), for the period you choose.
-   Derived metrics (CTR, CPC, CPM, conversion rate, CPA, ROAS) are computed
-   only from reported figures; anything not reported shows as "Not
-   reported", never as 0 or an estimate. Money is only compared within one
-   currency. An AI explanation (paid) uses exactly the figures shown and is
-   saved, so it can be revisited.
-   window.orvCampaignComparison.open()
+   What no single ad manager shows: every connected platform side by side.
+     Platforms (default)  Google, Meta, TikTok, Pinterest and Snapchat:
+                          a comparison table (cards on small screens) with
+                          the best value per metric in Electric Lime and the
+                          weakest muted; a summary computed from the figures
+                          (no AI); one line chart for a chosen metric, one
+                          line per platform; share of spend vs share of
+                          conversions.
+     Campaigns            2–3 campaigns from any platforms, head to head,
+                          with the same table, highlighting and chart.
+   One period for both (this week, last week, last 30 days, custom) and an
+   optional "vs previous period". Unconnected platforms keep their column
+   with a "Connect" button. Figures: js/orvAnalytics.js (GET
+   /api/analytics/series); derived metrics only from reported inputs.
+   window.orvCampaignComparison.open()   (name kept: the nav and links use it)
    ════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-  var K = window.orvGrowthKit; if (!K) return;
-  var esc = K.esc, api = K.api;
+  var K = window.orvGrowthKit, A = window.orvAnalytics; if (!K || !A) return;
+  var esc = A.esc;
   var PAGE = 'page-campaign-comparison', ROOT = 'ccmRoot';
-  var RANGES = [['LAST_30_DAYS', 'Last 30 days'], ['LAST_90_DAYS', 'Last 90 days'], ['LAST_12_MONTHS', 'Last 12 months'], ['LIFETIME', 'Lifetime'], ['CUSTOM', 'Custom period']];
-  var PLAT = { google: 'Google', meta: 'Meta', tiktok: 'TikTok', pinterest: 'Pinterest', snapchat: 'Snapchat' };
-  // [key, label, kind ('n' number, '%', 'm' money, 'x' ratio), better ('hi'|'lo')]
-  var METRICS = [['impressions', 'Impressions', 'n', 'hi'], ['reach', 'Reach', 'n', 'hi'], ['clicks', 'Clicks', 'n', 'hi'], ['ctr', 'CTR', '%', 'hi'], ['cpc', 'CPC', 'm', 'lo'], ['cpm', 'CPM', 'm', 'lo'],
-    ['conversions', 'Conversions', 'n', 'hi'], ['conversionRate', 'Conversion rate', '%', 'hi'], ['cpa', 'CPA', 'm', 'lo'], ['roas', 'ROAS', 'x', 'hi'], ['spend', 'Ad spend', 'm', null]];
-  var SMALL_SAMPLE = 1000; // impressions under which differences may be chance
-  var S = { uid: null, range: 'LAST_30_DAYS', since: '', until: '', conn: null, rows: null, loadErr: {}, sel: {}, busy: false, insight: null, msg: null, saved: null, viewing: null };
+  var RANGES = [['THIS_WEEK', 'This week'], ['LAST_WEEK', 'Last week'], ['LAST_30_DAYS', 'Last 30 days'], ['CUSTOM', 'Custom']];
+  var ROWS = ['spend', 'impressions', 'clicks', 'ctr', 'cpc', 'conversions', 'cpa', 'roas', 'returnPerEuro'];
+  var CHART_METRICS = ['spend', 'impressions', 'clicks', 'ctr', 'conversions', 'cpc', 'cpa', 'roas'];
+  var MAX_CAMPAIGNS = 3;
+  var S = fresh();
+  function fresh() { return { uid: null, mode: 'platforms', range: 'LAST_30_DAYS', since: '', until: '', prevOn: false, chartMetric: 'spend', conn: null, data: null, campaigns: null, picked: [], gen: 0 }; }
 
   function open() {
     if (!K.mount(PAGE, ROOT, onClick)) return;
-    if (K.uid() !== S.uid) S = { uid: K.uid(), range: 'LAST_30_DAYS', since: '', until: '', conn: null, rows: null, loadErr: {}, sel: {}, busy: false, insight: null, msg: null, saved: null, viewing: null };
+    var pg = document.getElementById(PAGE);
+    if (pg && !pg._pcmBound) { pg._pcmBound = true; pg.addEventListener('change', onChange); }
+    if (K.uid() !== S.uid) { S = fresh(); S.uid = K.uid(); }
     K.show('compare', PAGE);
-    render(); start();
+    load(true); // re-check connections on every visit (a platform may just have been connected)
   }
-  function src() { return window.orvCampaignSources || null; }
-  function start() {
-    var C = src();
-    if (!C) { S.conn = {}; S.rows = []; render(); return; }
-    S.conn = null; render();
-    Promise.all(C.platforms.map(function (p) { return C.status(p).then(function (s) { return [p, s]; }); })).then(function (list) {
-      S.conn = {}; list.forEach(function (x) { S.conn[x[0]] = x[1]; });
-      loadRows();
-    });
-    loadSaved();
-  }
-  function connected() { return Object.keys(S.conn || {}).filter(function (p) { return S.conn[p] && S.conn[p].conn === 'connected'; }); }
-  function rangeObj() { return { key: S.range, since: S.since, until: S.until, label: (RANGES.filter(function (r) { return r[0] === S.range; })[0] || [0, ''])[1] + (S.range === 'CUSTOM' && S.since ? ' (' + S.since + ' – ' + S.until + ')' : '') }; }
-  function loadRows() {
-    var C = src(), plats = connected();
-    S.rows = null; S.loadErr = {}; S.insight = null; render();
-    if (!plats.length) { S.rows = []; render(); return; }
-    var range = rangeObj();
-    Promise.all(plats.map(function (p) {
-      return C.load(p, range, (S.conn[p] || {}).currency).then(function (out) { return out; }, function (err) { S.loadErr[p] = (err && err.kind) || 'unavailable'; return { rows: [] }; });
-    })).then(function (outs) {
-      var all = [];
-      outs.forEach(function (o) { (o.rows || []).forEach(function (r) { all.push(r); }); });
-      S.rows = all;
-      Object.keys(S.sel).forEach(function (k) { if (!all.some(function (r) { return r.key === k; })) delete S.sel[k]; });
-      render();
+  function win() { return A.windowFor(S.range, S.since, S.until); }
+  function currency() { var c = S.conn || {}; for (var i = 0; i < A.PLATFORMS.length; i++) { var x = c[A.PLATFORMS[i]]; if (x && x.conn === 'connected' && x.currency) return x.currency; } return 'EUR'; }
+  function connected() { return A.PLATFORMS.filter(function (p) { return S.conn && S.conn[p] && S.conn[p].conn === 'connected'; }); }
+
+  // ── Data ─────────────────────────────────────────────────────────
+  function load(recheck) {
+    var g = ++S.gen; S.data = null; render();
+    A.connections(!!recheck).then(function (conn) {
+      if (g !== S.gen) return;
+      S.conn = conn; render();
+      var w = win(), targets = S.mode === 'platforms'
+        ? connected().map(function (p) { return { key: p, platform: p, name: A.NAME[p], opts: {} }; })
+        : S.picked.map(function (c) { return { key: c.key, platform: c.platform, name: c.name, opts: { campaignId: c.id } }; });
+      if (S.mode === 'campaigns') loadCampaignList(g);
+      Promise.all(targets.map(function (t) {
+        var get = S.prevOn ? A.seriesWithPrevious(t.platform, w, t.opts) : A.series(t.platform, w, t.opts).then(function (d) { return { cur: d.series, prev: null, valueReported: d.conversionValue === 'reported', clamped: d.clamped }; });
+        return get.then(function (d) { return { t: t, d: d }; }, function (err) { return { t: t, err: err }; });
+      })).then(function (list) { if (g === S.gen) { S.data = list; render(); } });
     });
   }
-  function loadSaved() { api('/api/campaigns/compare/saved').then(function (r) { S.saved = r.ok && r.data ? r.data.comparisons || [] : []; render(); }); }
-
-  // ── Figures ───────────────────────────────────────────────────────
-  var num = function (v) { return typeof v === 'number' && isFinite(v) ? v : null; };
-  // The compared metrics of one platform row: reported figures, plus ratios
-  // computed only from reported figures (null when an input is missing).
-  function metricsOf(r) {
-    var impr = num(r.impressions), clicks = num(r.clicks), spend = num(r.spend), conv = num(r.conv), val = num(r.convVal);
-    return {
-      impressions: impr, reach: num(r.reach), clicks: clicks, spend: spend, conversions: conv,
-      ctr: impr && clicks != null ? clicks / impr * 100 : null,
-      cpc: clicks && spend != null ? spend / clicks : null,
-      cpm: num(r.cpm) != null ? num(r.cpm) : (impr && spend != null ? spend / impr * 1000 : null),
-      conversionRate: clicks && conv != null ? conv / clicks * 100 : null,
-      cpa: conv && spend != null ? spend / conv : null,
-      roas: spend && val != null ? val / spend : null,
-    };
-  }
-  function comparable(r) { return r.metricsLevel === 'campaign'; }
-  function hasData(m) { return (m.impressions || 0) > 0 || (m.clicks || 0) > 0 || (m.spend || 0) > 0; }
-  function fmt(v, kind, cur) {
-    if (v == null) return '<span class="rx-muted" title="The platform didn’t report this for this campaign">Not reported</span>';
-    if (kind === '%') return v.toFixed(2) + '%';
-    if (kind === 'x') return v.toFixed(2) + '×';
-    if (kind === 'm') return typeof window.orvFormatMoney === 'function' && cur ? window.orvFormatMoney(v, cur) : (cur ? cur + ' ' : '') + v.toFixed(2);
-    return Math.round(v).toLocaleString();
+  function loadCampaignList(g) {
+    if (S.campaigns) return;
+    var C = window.orvCampaignSources, plats = connected();
+    if (!C || !plats.length) { S.campaigns = []; return; }
+    Promise.all(plats.map(function (p) { return C.load(p, { key: 'LAST_90_DAYS' }, (S.conn[p] || {}).currency).then(function (o) { return o.rows || []; }, function () { return []; }); })).then(function (lists) {
+      var all = []; lists.forEach(function (l) { l.forEach(function (r) { if (r && r.id) all.push({ key: r.platform + ':' + r.id, platform: r.platform, id: String(r.id), name: r.name || r.id, spend: r.spend }); }); });
+      all.sort(function (a, b) { return (b.spend || 0) - (a.spend || 0); });
+      S.campaigns = all;
+      if (g === S.gen) render();
+    });
   }
 
-  // ── Rendering ─────────────────────────────────────────────────────
+  // ── Render ───────────────────────────────────────────────────────
   function render() {
-    var el = document.getElementById(ROOT); if (!el) return;
-    if (S.viewing) { el.innerHTML = savedView(S.viewing); return; }
-    var head = K.head('Campaigns', 'Campaign Comparison', 'Compare your campaigns side by side on the figures your ad platforms report, and see where they differ.');
-    if (S.conn === null) { el.innerHTML = head + '<p class="rx-muted gx-loading">Checking your ad platforms…</p>' + savedBlock(); return; }
-    if (!connected().length) {
-      el.innerHTML = head + '<section class="rx-card gx-empty"><h2 class="rx-h2">Connect an ad platform first</h2><p class="rx-muted">Campaign Comparison uses your real campaign results. Connect Meta, Google, TikTok or Pinterest, run a campaign, and compare it here.</p><button type="button" class="rx-btn rx-btn-primary" data-ccm-page="ad-platforms">Open Ad Platforms</button></section>' + savedBlock();
-      return;
-    }
-    var rows = S.rows || [];
-    var picked = rows.filter(function (r) { return S.sel[r.key]; });
-    el.innerHTML = head
-      + '<div class="gx-row gx-row--wrap gx-bar"><label class="rx-lbl gx-inline">Period<select class="rx-input" id="ccmRange">' + RANGES.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === S.range ? ' selected' : '') + '>' + esc(r[1]) + '</option>'; }).join('') + '</select></label>'
-      + (S.range === 'CUSTOM' ? '<label class="rx-lbl gx-inline">From<input class="rx-input" type="date" id="ccmSince" value="' + esc(S.since) + '"></label><label class="rx-lbl gx-inline">To<input class="rx-input" type="date" id="ccmUntil" value="' + esc(S.until) + '"></label><button type="button" class="rx-btn" data-ccm-apply>Apply</button>' : '')
-      + '</div>'
-      + Object.keys(S.loadErr).map(function (p) { return '<p class="rx-warn">' + esc(PLAT[p] || p) + ' couldn’t be read right now (' + esc(S.loadErr[p]) + '). Its campaigns are missing from the list.</p>'; }).join('')
-      + '<div class="gx-cols gx-cols--cmp"><section class="rx-card gx-card" aria-labelledby="ccmPickH"><h2 class="rx-h2" id="ccmPickH">Campaigns</h2>'
-      + (S.rows === null ? '<p class="rx-muted gx-loading">Loading campaign results…</p>' : rows.length ? picker(rows) : '<p class="rx-muted">No campaigns found in this period on your connected platforms.</p>')
-      + '</section><section class="gx-cmp" aria-labelledby="ccmCmpH"><h2 class="rx-h2" id="ccmCmpH">Comparison</h2>' + compare(picked) + '</section></div>'
-      + savedBlock();
+    var root = document.getElementById(ROOT); if (!root) return;
+    var w = win();
+    var html = K.head('Campaigns', 'Platform Comparison', 'Every ad platform side by side: where your budget goes and what it brings back. Figures as the platforms report them.') +
+      '<div class="pcm-bar">' +
+        '<div class="ova-seg" role="group" aria-label="Compare"><button type="button" data-pcm-mode="platforms" aria-pressed="' + (S.mode === 'platforms') + '">Platforms</button><button type="button" data-pcm-mode="campaigns" aria-pressed="' + (S.mode === 'campaigns') + '">Campaigns</button></div>' +
+        '<div class="ova-ctrls"><select class="ova-select" data-pcm-range aria-label="Period">' + RANGES.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === S.range ? ' selected' : '') + '>' + r[1] + '</option>'; }).join('') + '</select>' +
+        (S.range === 'CUSTOM' ? '<input type="date" class="ova-date" data-pcm-since value="' + esc(S.since || w.since) + '" aria-label="From"><input type="date" class="ova-date" data-pcm-until value="' + esc(S.until || w.until) + '" aria-label="To">' : '') +
+        '<label class="ova-check"><input type="checkbox" data-pcm-prev' + (S.prevOn ? ' checked' : '') + '> Compare to previous period</label></div>' +
+      '</div><p class="ova-sub pcm-period">' + esc(A.shortDate(w.since) + ' – ' + A.shortDate(w.until)) + (S.prevOn ? ', compared with the ' + A.days(w.since, w.until) + ' days before' : '') + '</p>';
+    if (!S.conn) { root.innerHTML = html + '<div class="ova-empty">Loading your ad platforms…</div>'; return; }
+    if (!connected().length) { root.innerHTML = html + '<div class="ova-empty"><b>Connect an ad platform first.</b> Connect Google, Meta, TikTok, Pinterest or Snapchat Ads to compare them here. <span class="ova-link" data-pcm-connect>Connect a platform</span></div>' + table([]); return; }
+    if (S.mode === 'campaigns') html += picker();
+    if (!S.data) { root.innerHTML = html + '<div class="ova-empty">Loading figures…</div>'; return; }
+    var cols = columns();
+    if (S.mode === 'campaigns' && cols.filter(function (c) { return c.tot; }).length < 2) { root.innerHTML = html + '<div class="ova-empty">Choose two or three campaigns to compare them head to head.</div>'; return; }
+    html += summary(cols) + table(cols) + '<div class="pcm-two">' + chartCard(cols) + (S.mode === 'platforms' ? shareCard(cols) : '') + '</div>';
+    root.innerHTML = html;
+    A.bindCharts(root);
   }
-  function picker(rows) {
-    var by = {}; rows.forEach(function (r) { (by[r.platform] = by[r.platform] || []).push(r); });
-    return Object.keys(by).map(function (p) {
-      var accountOnly = by[p].every(function (r) { return r.metricsLevel === 'account'; }), noMetrics = by[p].every(function (r) { return r.metricsLevel === 'none'; });
-      return '<div class="gx-pgroup"><p class="gx-sub">' + esc(PLAT[p] || p) + '</p>'
-        + (accountOnly ? '<p class="rx-muted gx-fine">Pinterest reports results for the whole ad account only, so its campaigns can’t be compared one by one.</p>' : '')
-        + (noMetrics ? '<p class="rx-muted gx-fine">This platform didn’t return campaign results for this period.</p>' : '')
-        + '<ul class="gx-plist">' + by[p].map(function (r) {
-          var ok = comparable(r), m = metricsOf(r);
-          return '<li><label class="gx-check' + (ok ? '' : ' is-off') + '"><input type="checkbox" data-ccm-sel="' + esc(r.key) + '"' + (S.sel[r.key] ? ' checked' : '') + (ok ? '' : ' disabled') + '> <span>' + esc(r.name || 'Unnamed campaign') + '</span></label>'
-            + '<span class="rx-muted gx-plist__m">' + (ok ? (hasData(m) ? fmt(m.impressions, 'n') + ' impressions' : 'no activity in this period') : '—') + '</span></li>';
-        }).join('') + '</ul></div>';
-    }).join('');
+  // One column per platform (all five, unconnected ones too) or per campaign.
+  function columns() {
+    var by = {}; (S.data || []).forEach(function (x) { by[x.t.key] = x; });
+    if (S.mode === 'campaigns') return S.picked.map(function (c) { var x = by[c.key]; return col(c.key, c.platform, c.name + ' · ' + A.SHORT[c.platform], x, true); });
+    return A.PLATFORMS.map(function (p) { var conn = S.conn[p] && S.conn[p].conn === 'connected'; return col(p, p, A.NAME[p], by[p], conn); });
   }
-  function compare(picked) {
-    if (picked.length < 2) return '<p class="rx-muted">Choose at least two campaigns to compare.</p>';
-    var cols = picked.map(function (r) { return { r: r, m: metricsOf(r), cur: r.currency || null }; });
-    var withData = cols.filter(function (c) { return hasData(c.m); });
-    var curs = Array.from(new Set(cols.map(function (c) { return c.cur; }).filter(Boolean)));
-    var notes = [];
-    if (withData.length < 2) notes.push('There isn’t enough data for a meaningful comparison: at least two of these campaigns need impressions, clicks or spend in this period.');
-    var small = cols.filter(function (c) { return hasData(c.m) && (c.m.impressions || 0) < SMALL_SAMPLE; });
-    if (small.length) notes.push(small.map(function (c) { return c.r.name; }).join(', ') + (small.length === 1 ? ' has' : ' have') + ' fewer than ' + SMALL_SAMPLE.toLocaleString() + ' impressions — differences may be chance.');
-    if (curs.length > 1) notes.push('These campaigns use different currencies (' + curs.join(', ') + '), so money figures aren’t compared with each other.');
-    var best = {};
-    METRICS.forEach(function (mt) {
-      if (!mt[3]) return;
-      var vals = cols.map(function (c, i) { return { i: i, v: c.m[mt[0]] }; }).filter(function (x) { return x.v != null; });
-      if (vals.length < 2 || (mt[2] === 'm' && curs.length > 1)) return;
-      vals.sort(function (a, b) { return mt[3] === 'hi' ? b.v - a.v : a.v - b.v; });
-      if (vals[0].v !== vals[1].v) best[mt[0]] = vals[0].i;
+  function col(key, platform, name, x, conn) {
+    var c = { key: key, platform: platform, name: name, conn: conn, color: A.COLOR[platform] };
+    if (!conn) { c.state = 'connect'; return c; }
+    if (!x) { c.state = 'loading'; return c; }
+    if (x.err) { c.state = 'error'; return c; }
+    c.valueReported = x.d.valueReported; c.cur = x.d.cur; c.prev = x.d.prev;
+    c.tot = A.sum(x.d.cur, x.d.valueReported); c.ptot = x.d.prev ? A.sum(x.d.prev, x.d.valueReported) : null;
+    if (!(c.tot.impressions || c.tot.spend || c.tot.clicks)) c.state = 'nodata';
+    return c;
+  }
+  // Best (lime) / worst (muted) per metric among columns with that figure.
+  function rank(cols, key) {
+    var m = A.meta(key); if (!m.better) return {};
+    var vals = cols.filter(function (c) { return c.tot && c.state !== 'nodata'; }).map(function (c) { return [c.key, A.value(c.tot, key)]; }).filter(function (x) { return x[1] != null && isFinite(x[1]); });
+    if (vals.length < 2) return {};
+    vals.sort(function (a, b) { return a[1] - b[1]; });
+    var lo = vals[0], hi = vals[vals.length - 1]; if (lo[1] === hi[1]) return {};
+    var best = m.better === 'hi' ? hi[0] : lo[0], worst = m.better === 'hi' ? lo[0] : hi[0], o = {}; o[best] = 'best'; o[worst] = 'worst'; return o;
+  }
+  function table(cols) {
+    if (!cols.length) cols = A.PLATFORMS.map(function (p) { return { key: p, platform: p, name: A.NAME[p], state: 'connect', color: A.COLOR[p] }; });
+    var ranks = {}; ROWS.forEach(function (k) { ranks[k] = rank(cols, k); });
+    var cell = function (c, k) {
+      if (c.state === 'connect') return '';
+      if (c.state === 'loading') return '<span class="pcm-mut">…</span>';
+      if (c.state === 'error') return '<span class="pcm-mut">Unavailable</span>';
+      var m = A.meta(k), v = A.value(c.tot, k);
+      if ((k === 'roas' || k === 'returnPerEuro') && !c.valueReported) return '<span class="pcm-mut">Not reported</span>';
+      var r = ranks[k][c.key], ch = S.prevOn && c.ptot ? A.fmtChange(A.change(v, A.value(c.ptot, k)), m.better) : null;
+      return '<span class="pcm-v' + (r ? ' is-' + r : '') + '">' + esc(A.fmt(v, m.kind, currency())) + (r === 'best' ? '<span class="ova-sr"> (best)</span>' : r === 'worst' ? '<span class="ova-sr"> (weakest)</span>' : '') + '</span>' + (ch ? '<span class="pcm-ch ' + ch.cls + '">' + esc(ch.text.replace(' vs previous period', '')) + '</span>' : '');
+    };
+    var headCell = function (c) {
+      return '<th scope="col" class="pcm-col"><span class="pcm-colname"><i class="ova-dot" style="--c:' + c.color + '"></i>' + esc(c.name) + '</span>' +
+        (c.state === 'connect' ? '<span class="ova-link" data-pcm-connect>Connect ' + esc(A.SHORT[c.platform]) + '</span>' : c.state === 'nodata' ? '<span class="pcm-mut">No data yet</span>' : '') +
+        (S.mode === 'campaigns' ? '<button type="button" class="pcm-x" data-pcm-unpick="' + esc(c.key) + '" aria-label="Remove ' + esc(c.name) + '">×</button>' : '') + '</th>';
+    };
+    var desk = '<div class="pcm-table-wrap"><table class="pcm-table"><thead><tr><th scope="col" class="pcm-rowh">Metric</th>' + cols.map(headCell).join('') + '</tr></thead><tbody>' +
+      ROWS.map(function (k) { return '<tr><th scope="row" class="pcm-rowh">' + esc(A.meta(k).label) + '</th>' + cols.map(function (c) { return '<td class="' + (c.state === 'connect' ? 'is-off' : '') + '">' + cell(c, k) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+    var cards = '<div class="pcm-cards">' + cols.map(function (c) {
+      return '<article class="pcm-card"><h3 class="pcm-card__h"><i class="ova-dot" style="--c:' + c.color + '"></i>' + esc(c.name) + (S.mode === 'campaigns' ? '<button type="button" class="pcm-x" data-pcm-unpick="' + esc(c.key) + '" aria-label="Remove ' + esc(c.name) + '">×</button>' : '') + '</h3>' +
+        (c.state === 'connect' ? '<p class="pcm-mut"><span class="ova-link" data-pcm-connect>Connect ' + esc(A.SHORT[c.platform]) + '</span> to compare it.</p>' : c.state === 'nodata' ? '<p class="pcm-mut">No data yet for this period.</p>' :
+          '<dl>' + ROWS.map(function (k) { return '<div><dt>' + esc(A.meta(k).label) + '</dt><dd>' + cell(c, k) + '</dd></div>'; }).join('') + '</dl>') + '</article>';
+    }).join('') + '</div>';
+    return '<section class="pcm-sec" aria-label="Comparison table">' + desk + cards + '<p class="pcm-legend"><span class="pcm-v is-best">Best</span> value per metric &nbsp;·&nbsp; <span class="pcm-v is-worst">Weakest</span> &nbsp;·&nbsp; Spend has no best or worst.</p></section>';
+  }
+  // Rule-based summary (no AI): shares, the highest CPA, a budget suggestion.
+  function summary(cols) {
+    var live = cols.filter(function (c) { return c.tot && c.state !== 'nodata'; });
+    if (!live.length) return '';
+    var spend = live.reduce(function (s, c) { return s + c.tot.spend; }, 0), conv = live.reduce(function (s, c) { return s + c.tot.conversions; }, 0);
+    var lines = [];
+    if (live.length < 2) lines.push('Only ' + live[0].name + ' has figures in this period, so there is nothing to compare it with yet.');
+    else if (spend > 0 && conv > 0) {
+      var withShare = live.map(function (c) { return { c: c, s: c.tot.spend / spend, v: c.tot.conversions / conv }; });
+      var top = withShare.slice().sort(function (a, b) { return (b.v - b.s) - (a.v - a.s); })[0], low = withShare.slice().sort(function (a, b) { return (a.v - a.s) - (b.v - b.s); })[0];
+      lines.push(top.c.name + ' delivers ' + Math.round(top.v * 100) + '% of conversions on ' + Math.round(top.s * 100) + '% of spend.');
+      var cpas = live.filter(function (c) { return c.tot.conversions > 0; }).map(function (c) { return [c, c.tot.spend / c.tot.conversions]; }).sort(function (a, b) { return b[1] - a[1]; });
+      if (cpas.length >= 2) lines.push(cpas[0][0].name + ' has the highest CPA (' + A.fmt(cpas[0][1], 'm', currency()) + '); ' + cpas[cpas.length - 1][0].name + ' the lowest (' + A.fmt(cpas[cpas.length - 1][1], 'm', currency()) + ').');
+      var none = live.filter(function (c) { return c.tot.spend > 0 && c.tot.conversions === 0; });
+      if (none.length) lines.push(none.map(function (c) { return c.name; }).join(' and ') + (none.length > 1 ? ' have' : ' has') + ' spend but no reported conversions.');
+      var tip = null;
+      if (top.c !== low.c && top.v - top.s >= 0.1 && low.s - low.v >= 0.1) tip = 'Consider shifting budget from ' + low.c.name + ' to ' + top.c.name + '.';
+      if (conv < 10) lines.push('Fewer than 10 conversions in this period, so these differences may be chance.');
+      return '<section class="pcm-summary" aria-label="Summary"><ul>' + lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' + (tip ? '<p class="pcm-tip">' + esc(tip) + '</p>' : '<p class="pcm-tip is-quiet">No platform is clearly over- or under-funded in this period.</p>') + '<p class="pcm-basis">Calculated from the figures below; no AI.</p></section>';
+    } else lines.push(conv ? 'No spend reported in this period.' : 'No conversions reported in this period, so spend can’t be weighed against results yet.');
+    return '<section class="pcm-summary" aria-label="Summary"><ul>' + lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul><p class="pcm-basis">Calculated from the figures below; no AI.</p></section>';
+  }
+  function chartCard(cols) {
+    var w = win(), labels = []; for (var d = w.since; d <= w.until; d = A.addDays(d, 1)) labels.push(d);
+    var m = A.meta(S.chartMetric);
+    var lines = cols.filter(function (c) { return c.cur && c.state !== 'nodata'; }).map(function (c) {
+      var by = {}; c.cur.forEach(function (r) { by[r.date] = r; });
+      return { name: S.mode === 'campaigns' ? c.name : A.SHORT[c.platform], color: c.color, values: labels.map(function (dt) { var r = by[dt]; return r && (S.chartMetric !== 'roas' || c.valueReported) ? A.value(r, S.chartMetric) : null; }) };
     });
-    var table = '<div class="rx-table-wrap"><table class="rx-table gx-table"><thead><tr><th scope="col">Metric</th>' + cols.map(function (c) { return '<th scope="col">' + esc(c.r.name) + '<span class="rx-muted gx-th">' + esc(PLAT[c.r.platform] || c.r.platform) + (c.cur ? ' · ' + esc(c.cur) : '') + '</span></th>'; }).join('') + '</tr></thead><tbody>'
-      + METRICS.map(function (mt) {
-        return '<tr><th scope="row">' + esc(mt[1]) + '</th>' + cols.map(function (c, i) { return '<td class="' + (best[mt[0]] === i ? 'gx-best' : '') + '">' + fmt(c.m[mt[0]], mt[2], c.cur) + (best[mt[0]] === i ? ' <span class="gx-best__t">best</span>' : '') + '</td>'; }).join('') + '</tr>';
-      }).join('') + '</tbody></table></div>';
-    var diffs = diffList(cols, best, curs.length > 1);
-    return (notes.length ? '<div class="rx-warn gx-notes">' + notes.map(function (n) { return '<p>' + esc(n) + '</p>'; }).join('') + '</div>' : '')
-      + table
-      + (diffs ? '<h3 class="rx-h3">Biggest differences</h3><ul class="gx-diffs">' + diffs + '</ul>' : '')
-      + insightBlock(withData.length >= 2, cols);
+    if (S.mode === 'campaigns') { var seen = {}; lines.forEach(function (l, i) { var k = l.color; if (seen[k]) l.color = ['#3DD6D0', '#F2D94E', '#FF7A7A'][i % 3]; seen[l.color] = 1; }); }
+    return '<article class="ova-card pcm-chart"><div class="ova-card__hd"><h3 class="ova-h3">Over time</h3><select class="ova-select" data-pcm-metric aria-label="Metric">' + CHART_METRICS.map(function (k) { return '<option value="' + k + '"' + (k === S.chartMetric ? ' selected' : '') + '>' + esc(A.meta(k).label) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="ova-card__body">' + A.lineChart(lines, labels, { kind: m.kind, currency: currency(), label: m.label + ' per ' + (S.mode === 'campaigns' ? 'campaign' : 'platform'), empty: 'No ' + m.label.toLowerCase() + ' reported in this period.' }) + '</div></article>';
   }
-  // Where the best campaign leads the others by the most (relative), per metric.
-  function diffList(cols, best, mixed) {
-    var out = [];
-    METRICS.forEach(function (mt) {
-      var bi = best[mt[0]]; if (bi == null) return;
-      var b = cols[bi].m[mt[0]];
-      cols.forEach(function (c, i) {
-        var v = c.m[mt[0]]; if (i === bi || v == null || !v) return;
-        if (mt[2] === 'm' && mixed) return;
-        var rel = mt[3] === 'hi' ? (b - v) / v : (v - b) / v;
-        if (rel >= 0.15) out.push({ rel: rel, t: cols[bi].r.name + ': ' + mt[1] + ' ' + fmt(b, mt[2], cols[bi].cur).replace(/<[^>]+>/g, '') + ' vs ' + fmt(v, mt[2], c.cur).replace(/<[^>]+>/g, '') + ' for ' + c.r.name });
-      });
-    });
-    out.sort(function (a, b) { return b.rel - a.rel; });
-    return out.slice(0, 5).map(function (d) { return '<li>' + esc(d.t) + '</li>'; }).join('');
+  function shareCard(cols) {
+    var live = cols.filter(function (c) { return c.tot && c.state !== 'nodata'; });
+    var spend = live.reduce(function (s, c) { return s + c.tot.spend; }, 0), conv = live.reduce(function (s, c) { return s + c.tot.conversions; }, 0);
+    var body = !live.length || !spend ? '<div class="ova-empty">No spend reported in this period.</div>' :
+      A.pairBars(live.map(function (c) { return { label: A.SHORT[c.platform], color: c.color, a: c.tot.spend / spend, b: conv ? c.tot.conversions / conv : null }; }), 'Share of spend', 'Share of conversions');
+    return '<article class="ova-card pcm-share"><div class="ova-card__hd"><h3 class="ova-h3">Spend vs conversions</h3></div><div class="ova-card__body">' + body +
+      '<p class="pcm-basis">A platform with a longer conversion bar than spend bar earns more than its share of the budget.</p></div></article>';
   }
-  function insightBlock(enough, cols) {
-    if (S.insight) return insightHtml(S.insight.insight, 'Explained from the figures above · saved');
-    return '<div class="rx-card gx-ai"><h3 class="rx-h3">Explain the differences</h3><p class="rx-muted">OrivenAI explains what the figures show and what to test next — using only the numbers above.</p>'
-      + (S.msg ? '<p class="rx-err" role="alert">' + esc(S.msg) + '</p>' : '')
-      + '<div class="gx-row"><button type="button" class="rx-btn rx-btn-primary" data-ccm-explain' + (!enough || S.busy ? ' disabled' : '') + '>' + (S.busy ? '<span class="gx-spin" aria-hidden="true"></span> Explaining…' : 'Explain with AI') + '</button><span class="rx-cost">' + K.cost('intelligence', 45) + ' credits</span></div>'
-      + (!enough ? '<p class="rx-muted gx-fine">Available when at least two campaigns have data in this period.</p>' : '') + '</div>';
-  }
-  function insightHtml(x, tag) {
-    var list = function (t, l) { return (l || []).length ? '<h4>' + esc(t) + '</h4><ul class="rx-bul">' + l.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : ''; };
-    return '<div class="rx-card gx-ai"><div class="gx-comp__h"><h3 class="rx-h3">What the figures show</h3>' + K.basis('analysis') + '</div><p class="rx-muted gx-fine">' + esc(tag) + '</p><p>' + esc(x.summary) + '</p>'
-      + list('Differences', x.differences) + list('Trends', x.trends) + list('What to test next', x.recommendations) + list('What the data can’t show', x.caveats) + '</div>';
-  }
-  function savedBlock() {
-    var s = S.saved;
-    if (!s || !s.length) return '';
-    return '<section class="gx-sec"><h2 class="rx-h2">Saved comparisons</h2><ul class="gx-saved">' + s.map(function (c) {
-      return '<li class="gx-saved__row"><button type="button" class="gx-saved__i" data-ccm-view="' + esc(c.id) + '"><b>' + esc(c.title || 'Comparison') + '</b><span class="rx-muted">' + esc((c.range && c.range.label) || '') + ' · ' + esc(K.day(c.savedAt || c.generatedAt)) + '</span></button><button type="button" class="rx-btn rx-btn-ghost" data-ccm-del="' + esc(c.id) + '">Remove</button></li>';
-    }).join('') + '</ul></section>';
-  }
-  function savedView(c) {
-    var cols = (c.campaigns || []).map(function (x) { return { r: { name: x.name, platform: x.platform }, m: x.metrics || {}, cur: x.currency || null }; });
-    var table = '<div class="rx-table-wrap"><table class="rx-table gx-table"><thead><tr><th scope="col">Metric</th>' + cols.map(function (x) { return '<th scope="col">' + esc(x.r.name) + '<span class="rx-muted gx-th">' + esc(PLAT[x.r.platform] || x.r.platform) + (x.cur ? ' · ' + esc(x.cur) : '') + '</span></th>'; }).join('') + '</tr></thead><tbody>'
-      + METRICS.map(function (mt) { return '<tr><th scope="row">' + esc(mt[1]) + '</th>' + cols.map(function (x) { return '<td>' + fmt(x.m[mt[0]], mt[2], x.cur) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
-    return '<button type="button" class="rx-back" data-ccm-back>← Campaign Comparison</button>'
-      + K.head('Saved comparison', c.title || 'Comparison', 'Figures as reported for ' + ((c.range && c.range.label) || 'the chosen period') + ', saved on ' + K.day(c.savedAt || c.generatedAt) + '. Open Campaign Comparison for today’s figures.')
-      + table + (c.insight ? insightHtml(c.insight, 'Explained from these figures') : '');
+  function picker() {
+    if (!S.campaigns) return '<div class="pcm-picker"><span class="pcm-mut">Loading your campaigns…</span></div>';
+    var left = S.campaigns.filter(function (c) { return !S.picked.some(function (p) { return p.key === c.key; }); });
+    var full = S.picked.length >= MAX_CAMPAIGNS;
+    return '<div class="pcm-picker"><label class="pcm-picker__l" for="pcmPick">Add a campaign</label><select class="ova-select" id="pcmPick" data-pcm-pick' + (full || !left.length ? ' disabled' : '') + '><option value="">' + (full ? 'Up to three campaigns' : left.length ? 'Choose a campaign…' : 'No more campaigns') + '</option>' +
+      A.PLATFORMS.map(function (p) { var l = left.filter(function (c) { return c.platform === p; }); return l.length ? '<optgroup label="' + esc(A.NAME[p]) + '">' + l.map(function (c) { return '<option value="' + esc(c.key) + '">' + esc(c.name) + '</option>'; }).join('') + '</optgroup>' : ''; }).join('') +
+      '</select><span class="pcm-mut">' + S.picked.length + ' of ' + MAX_CAMPAIGNS + ' chosen</span></div>';
   }
 
-  // ── Actions ───────────────────────────────────────────────────────
-  function explain(btn) {
-    var picked = (S.rows || []).filter(function (r) { return S.sel[r.key]; });
-    S.busy = true; S.msg = null; render();
-    var body = { range: rangeObj(), campaigns: picked.map(function (r) { return { platform: r.platform, id: r.id, name: r.name, status: r.status, currency: r.currency || null, metrics: metricsOf(r) }; }) };
-    api('/api/campaigns/compare/insight', 'POST', body).then(function (r) {
-      S.busy = false;
-      if (r.ok && r.data && r.data.comparison) { S.insight = r.data.comparison; if (typeof window.consumeUsage === 'function') window.consumeUsage(K.cost('intelligence', 45)); loadSaved(); render(); return; }
-      S.msg = K.refused(r, 'create'); render();
-    });
-  }
+  // ── Events ───────────────────────────────────────────────────────
   function onClick(e) {
-    var b = e.target.closest('button, input[data-ccm-sel]'); if (!b) return;
-    if (b.matches('[data-ccm-sel]')) { S.sel[b.getAttribute('data-ccm-sel')] = b.checked; S.insight = null; S.msg = null; render(); return; }
-    if (b.hasAttribute('data-ccm-explain')) { explain(b); return; }
-    if (b.hasAttribute('data-ccm-apply')) { S.since = (document.getElementById('ccmSince') || {}).value || ''; S.until = (document.getElementById('ccmUntil') || {}).value || ''; if (S.since && S.until) loadRows(); return; }
-    if (b.hasAttribute('data-ccm-page')) { if (window.orvPages) window.orvPages.open(b.getAttribute('data-ccm-page')); return; }
-    if (b.hasAttribute('data-ccm-view')) { var id = b.getAttribute('data-ccm-view'); S.viewing = (S.saved || []).filter(function (c) { return c.id === id; })[0] || null; render(); return; }
-    if (b.hasAttribute('data-ccm-back')) { S.viewing = null; render(); return; }
-    if (b.hasAttribute('data-ccm-del')) { api('/api/campaigns/compare/' + encodeURIComponent(b.getAttribute('data-ccm-del')), 'DELETE').then(function () { loadSaved(); }); return; }
+    var t = e.target.closest('[data-pcm-mode]'); if (t) { S.mode = t.getAttribute('data-pcm-mode'); load(); return; }
+    if (e.target.closest('[data-pcm-connect]')) { e.preventDefault(); if (typeof window.bizGoTo === 'function') window.bizGoTo('connections'); return; }
+    var u = e.target.closest('[data-pcm-unpick]'); if (u) { var k = u.getAttribute('data-pcm-unpick'); S.picked = S.picked.filter(function (p) { return p.key !== k; }); load(); }
   }
-  document.addEventListener('change', function (e) {
-    if (e.target && e.target.id === 'ccmRange') { S.range = e.target.value; if (S.range !== 'CUSTOM') loadRows(); else render(); }
-  });
-  window.orvCampaignComparison = { open: open, reload: start, _metricsOf: metricsOf };
+  function onChange(e) {
+    var el = e.target;
+    if (el.matches('[data-pcm-range]')) { S.range = el.value; if (el.value !== 'CUSTOM') { S.since = S.until = ''; load(); } else render(); }
+    else if (el.matches('[data-pcm-since]') || el.matches('[data-pcm-until]')) { var r = document.getElementById(ROOT), s = r.querySelector('[data-pcm-since]').value, u = r.querySelector('[data-pcm-until]').value; if (s && u) { S.since = s; S.until = u; load(); } }
+    else if (el.matches('[data-pcm-prev]')) { S.prevOn = el.checked; load(); }
+    else if (el.matches('[data-pcm-metric]')) { S.chartMetric = el.value; render(); }
+    else if (el.matches('[data-pcm-pick]')) { var c = (S.campaigns || []).filter(function (x) { return x.key === el.value; })[0]; if (c && S.picked.length < MAX_CAMPAIGNS) { S.picked.push(c); load(); } }
+  }
+  window.orvCampaignComparison = { open: open, _state: function () { return S; } };
 })();

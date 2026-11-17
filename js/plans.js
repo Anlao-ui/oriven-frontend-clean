@@ -288,6 +288,7 @@ var ORIVEN_PLAN_I18N = {
   "Try for": { nl: "Probeer voor", de: "Teste für", fr: "Essayez pour", es: "Prueba por", pt: "Experimente por" },
   "for 2 weeks": { nl: "voor 2 weken", de: "für 2 Wochen", fr: "pour 2 semaines", es: "por 2 semanas", pt: "por 2 semanas" },
   "{price} applies to your first Flex purchase.": { nl: "{price} geldt voor je eerste Flex-aankoop.", de: "{price} gilt für deinen ersten Flex-Kauf.", fr: "{price} s’applique à votre premier achat Flex.", es: "{price} se aplica a tu primera compra de Flex.", pt: "{price} aplica-se à sua primeira compra Flex." },
+  "14-day money-back guarantee on regular plans.": { nl: "14 dagen niet-goed-geld-terug op reguliere abonnementen.", de: "14 Tage Geld-zurück-Garantie für reguläre Pläne.", fr: "Satisfait ou remboursé 14 jours sur les formules classiques.", es: "Garantía de devolución de 14 días en los planes regulares.", pt: "Garantia de reembolso de 14 dias nos planos regulares." },
   "14-day money-back guarantee": { nl: "14 dagen niet-goed-geld-terug", de: "14 Tage Geld-zurück-Garantie", fr: "Satisfait ou remboursé 14 jours", es: "Garantía de devolución de 14 días", pt: "Garantia de reembolso de 14 dias" },
   "Refund policy": { nl: "Terugbetalingsbeleid", de: "Erstattungsrichtlinie", fr: "Politique de remboursement", es: "Política de reembolso", pt: "Política de reembolso" }
 };
@@ -308,6 +309,9 @@ var ORIVEN_INTRO_OFFER = { enabled: true, planId: "flex", price: 1 };
 // The money-back promise, on every plan EXCEPT the €1 Flex trial.
 // Keep it in line with the Refund Policy (/refund-policy).
 var ORIVEN_REFUND_LINE = "14-day money-back guarantee";
+// The same sentence wherever the plans are summed up (landing, pricing,
+// in-app plans, onboarding, end of Flex, demo, FAQ). Never on Flex itself.
+var ORIVEN_GUARANTEE_TEXT = "14-day money-back guarantee on regular plans.";
 function orvIntroOffer(){
   var o = ORIVEN_INTRO_OFFER;
   if(!o || !o.enabled) return null;
@@ -516,6 +520,6 @@ if (typeof module !== "undefined" && module.exports) {
     ORIVEN_INCLUDED_FEATURES: ORIVEN_INCLUDED_FEATURES, ORIVEN_WORKFLOW_STEPS: ORIVEN_WORKFLOW_STEPS,
     ORIVEN_WEEKLY_REPORT_LIVE: ORIVEN_WEEKLY_REPORT_LIVE, orvPlanHas: orvPlanHas, orvMinPlanFor: orvMinPlanFor, orvEffectiveStatus: orvEffectiveStatus,
     orvPeriodPlan: orvPeriodPlan, orvPlanCardFacts: orvPlanCardFacts, ORIVEN_CARD_BENEFITS: ORIVEN_CARD_BENEFITS, ORIVEN_VAT_LINE: ORIVEN_VAT_LINE, orvFormatCredits: orvFormatCredits,
-    ORIVEN_INTRO_OFFER: ORIVEN_INTRO_OFFER, ORIVEN_REFUND_LINE: ORIVEN_REFUND_LINE, orvIntroOffer: orvIntroOffer, orvIntroCta: orvIntroCta, orvPlanHasGuarantee: orvPlanHasGuarantee
+    ORIVEN_INTRO_OFFER: ORIVEN_INTRO_OFFER, ORIVEN_REFUND_LINE: ORIVEN_REFUND_LINE, ORIVEN_GUARANTEE_TEXT: ORIVEN_GUARANTEE_TEXT, orvIntroOffer: orvIntroOffer, orvIntroCta: orvIntroCta, orvPlanHasGuarantee: orvPlanHasGuarantee
   };
 }
