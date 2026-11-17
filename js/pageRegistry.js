@@ -27,7 +27,7 @@
     'audience-builder':    { label: 'Audience Builder', open: nav('audiences') },
     campaigns:             { label: 'Campaign Overview', open: nav('overview') },
     'campaign-builder':    { label: 'Campaign Builder', open: nav('builder') },
-    'campaign-comparison': { label: 'Campaign Comparison', open: nav('compare') },
+    'campaign-comparison': { label: 'Platform Comparison', open: nav('compare') },
     automations:           { label: 'Automations', open: nav('auto-overview') },
     settings:              { label: 'Settings', open: function () { if (typeof window.openSettingsModal === 'function') { window.openSettingsModal(); return true; } return false; } },
     'ad-platforms':        { label: 'Ad Platforms', open: function () {

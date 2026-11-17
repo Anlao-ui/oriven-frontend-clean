@@ -694,7 +694,7 @@
 <style>.orv-optin{display:flex;gap:9px;align-items:flex-start;margin:4px 0 14px;font-size:12.5px;line-height:1.45;cursor:pointer}.orv-optin input{margin-top:2px;accent-color:#B7FF2A;flex:0 0 auto}.orv-optin-dark{color:rgba(240,240,240,.7)}</style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"https://orivenai.com/#organization","name":"OrivenAI","alternateName":["Oriven","ORIVEN","Oriven AI"],"url":"https://orivenai.com/","logo":"https://orivenai.com/assets/orivenlogo-192.png","email":"contact@orivenai.com","description":"OrivenAI (orivenai.com) is an AI advertising platform for researching, creating, launching and automating ad campaigns."}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Live Demo: Explore the AI Ad Workspace | OrivenAI","description":"Explore OrivenAI with sample data: dashboard, five ad platforms, campaigns, AI ad creation, research, automations and the assistant. Read-only, no account needed.","url":"https://orivenai.com/demo","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"OrivenAI","url":"https://orivenai.com/"},"publisher":{"@id":"https://orivenai.com/#organization"}}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://orivenai.com/"},{"@type":"ListItem","position":2,"name":"Explore OrivenAI with sample data","item":"https://orivenai.com/demo"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://orivenai.com/"},{"@type":"ListItem","position":2,"name":"OrivenAI live demo with sample data","item":"https://orivenai.com/demo"}]}</script>
 </head>
 <body data-prerendered="/demo" class="public-page">
 
@@ -1209,90 +1209,47 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════
-     VIEW: DEMO /demo — a marketing page (landing navbar + footer) whose
-     large modal shows the read-only demo app (/demo-app, js/demo-mode.js)
-     in a sandboxed iframe: it can never move this page, so /demo never
-     turns into /app. Opens on arrival; closing keeps the visitor here.
+     VIEW: DEMO /demo — a normal page of the website (landing navbar +
+     footer). Right under the navbar, the read-only demo app (/demo-app,
+     js/demo-mode.js) fills the visible screen height, inline (no pop-up);
+     a slim bar under it carries the offer. The frame is sandboxed: it can
+     never move this page, so /demo never turns into /app.
      ═══════════════════════════════════════════════════════════ -->
-<div id="view-demo" class="ov-demo-is-open">
+<div id="view-demo" class="">
 <div class="ov-sub-page">
+  <section class="ov-demo-hero" aria-labelledby="ovDemoH">
+    <h1 class="ov-sr" id="ovDemoH">OrivenAI live demo with sample data</h1>
+    <div class="ov-demo-hero__frame">
+      <p class="ov-demo-hero__loading" aria-hidden="true">Loading the demo…</p>
+      <iframe id="orvDemoFrame" src="/demo-app" title="OrivenAI demo with sample data: browse every section" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation" referrerpolicy="same-origin"></iframe>
+    </div>
+    <div class="ov-demo-hero__bar">
+      <p class="ov-demo-hero__t"><b>Explore OrivenAI with sample data.</b> <span>Read-only: nothing is saved, sent or charged.</span></p>
+      <p class="ov-demo-hero__g">14-day money-back guarantee on regular plans.</p>
+      <a class="ov-demo-hero__cta" href="/signup" onclick="lpGetStarted(event)" data-orv-intro-cta="" data-orv-intro-off="Get started">Try 2 weeks for €1</a>
+    </div>
+  </section>
+
   <section class="ov-sp-section ov-demo">
     <div class="ov-sp-section-inner ov-demo__in">
-      <p class="ov-eyebrow">Live demo</p>
-      <h1 class="ov-demo__h1">Explore OrivenAI with sample data</h1>
-      <p class="ov-demo__lead">The whole workspace, filled in for a fictional shop: your dashboard, all five ad platforms, campaigns, AI ad creation, research, automations, your assistant and settings. Click around as much as you like.</p>
-      <div class="ov-demo__actions">
-        <button type="button" class="site-btn site-btn--primary" data-demo-open="">Open the demo</button>
-        <a class="site-btn site-btn--ghost" href="/signup" onclick="lpGetStarted(event)" data-orv-intro-cta="" data-orv-intro-off="Get started">Try 2 weeks for €1</a>
-      </div>
+      <p class="ov-eyebrow">What’s in the demo</p>
+      <h2 class="ov-demo__h2">The whole workspace, filled in for a fictional shop</h2>
       <ul class="ov-demo__list" aria-label="What’s in the demo">
         <li><b>Control Center</b>Dashboard, marketing plan and progress</li>
         <li><b>Five ad platforms</b>Google, Meta, TikTok, Pinterest and Snapchat</li>
-        <li><b>Campaigns</b>Results per platform, campaign and ad group</li>
+        <li><b>Campaigns</b>Metric tiles and a platform-by-platform comparison</li>
         <li><b>Create</b>Example AI ads in My Content and Creative Testing</li>
         <li><b>Research</b>A finished competitor report with checked sources</li>
         <li><b>Automations</b>A weekday schedule and a budget rule</li>
       </ul>
       <p class="ov-demo__note">Read-only: nothing is created, saved, sent or charged, and nothing you do here reaches an ad platform. “Amber &amp; Clay” and every figure are fictional.</p>
+      <div class="ov-demo__actions">
+        <a class="site-btn site-btn--primary" href="/signup" onclick="lpGetStarted(event)" data-orv-intro-cta="" data-orv-intro-off="Get started">Try 2 weeks for €1</a>
+        <a class="site-btn site-btn--ghost" href="/pricing">See all plans</a>
+      </div>
+      <p class="ov-demo__g">14-day money-back guarantee on regular plans.</p>
     </div>
   </section>
-
-  <div class="ov-demo-modal is-loaded" id="orvDemoModal">
-    <div class="ov-demo-modal__scrim" data-demo-close=""></div>
-    <div class="ov-demo-modal__panel" role="dialog" aria-modal="true" aria-labelledby="orvDemoTitle">
-      <div class="ov-demo-modal__bar">
-        <span class="ov-demo-modal__dot" aria-hidden="true"></span>
-        <p class="ov-demo-modal__t" id="orvDemoTitle">Explore OrivenAI with sample data <span>Read-only · nothing is saved or sent</span></p>
-        <a class="ov-demo-modal__cta" href="/signup" onclick="lpGetStarted(event)" data-orv-intro-cta="" data-orv-intro-off="Get started">Try 2 weeks for €1</a>
-        <button type="button" class="ov-demo-modal__x" data-demo-close="" aria-label="Close the demo"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
-      </div>
-      <div class="ov-demo-modal__frame">
-        <p class="ov-demo-modal__loading" aria-hidden="true">Loading the demo…</p>
-        <iframe id="orvDemoFrame" title="OrivenAI demo with sample data" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation" referrerpolicy="same-origin" src="/demo-app"></iframe>
-      </div>
-    </div>
-  </div>
-
-  <script>
-  (function () {
-    var view = document.getElementById('view-demo'); if (!view) return;
-    var modal = document.getElementById('orvDemoModal'), frame = document.getElementById('orvDemoFrame'), back = null;
-    function active() { return !view.classList.contains('pub-view'); }
-    function open() {
-      if (!modal.hidden) return;
-      back = document.activeElement;
-      if (!frame.getAttribute('src')) frame.setAttribute('src', '/demo-app');
-      modal.hidden = false; view.classList.add('ov-demo-is-open');
-      setTimeout(function () { var x = modal.querySelector('.ov-demo-modal__x'); if (x) x.focus(); }, 0);
-    }
-    function close() {
-      if (modal.hidden) return;
-      modal.hidden = true; view.classList.remove('ov-demo-is-open');
-      var b = view.querySelector('[data-demo-open]'); (b || back || document.body).focus && (b || back).focus();
-    }
-    view.addEventListener('click', function (e) {
-      if (e.target.closest('[data-demo-open]')) { e.preventDefault(); open(); }
-      else if (e.target.closest('[data-demo-close]')) { e.preventDefault(); close(); }
-    });
-    document.addEventListener('keydown', function (e) {
-      if (modal.hidden) return;
-      if (e.key === 'Escape') { close(); return; }
-      if (e.key === 'Tab') { // keep focus inside the window: bar controls ↔ the demo
-        var f = Array.prototype.slice.call(modal.querySelectorAll('a[href], button, iframe'));
-        var i = f.indexOf(document.activeElement);
-        if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
-        else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
-      }
-    });
-    frame.addEventListener('load', function () { if (frame.getAttribute('src')) modal.classList.add('is-loaded'); });
-    // Open on arrival, and whenever the view is shown by in-site navigation.
-    if (active()) open();
-    // (only when the view itself is shown or hidden, not on this script's own class changes)
-    var wasActive = active();
-    new MutationObserver(function () { var now = active(); if (now === wasActive) return; wasActive = now; if (now) open(); else close(); }).observe(view, { attributes: true, attributeFilter: ['class'] });
-    window.orvDemoModal = { open: open, close: close };
-  })();
-  </script>
 
   <!-- site-footer:start -->
   <footer class="site-foot" data-site-footer="">

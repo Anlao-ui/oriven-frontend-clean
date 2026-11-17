@@ -57,6 +57,7 @@
 <link rel="stylesheet" href="css/plan-confirm.css">
 <!-- One card look for every app page (titles and sections in cards, narrow frame). Last on purpose. -->
 <link rel="stylesheet" href="css/app-cards.css">
+<link rel="stylesheet" href="css/analytics.css">
 
 
 
@@ -6999,7 +7000,10 @@
 <script src="js/competitorAnalysis.js"></script>
 <script src="js/creativeTesting.js"></script>
 <script src="js/audienceBuilder.js"></script>
+<script src="js/analyticsI18n.js"></script>
+<script src="js/orvAnalytics.js"></script>
 <script src="js/campaignComparison.js"></script>
+<script src="js/overviewTiles.js"></script>
 <script src="js/myContent.js"></script>
 <script src="js/appNav.js"></script>
 <script src="js/createCompat.js"></script>
@@ -16067,6 +16071,8 @@ function _prfActiveEntities() {
   return list;
 }
 window._prfStatusInfoFor = function(platform, row) { return _prfStatusInfo(platform, row); };
+// The current level's entities, for the metric tiles (js/overviewTiles.js).
+window._prfActiveEntitiesForTiles = function() { return _prfActiveEntities(); };
 // Back-compat for older callers: visible names of the current level.
 function _prfActiveEntityNames() { return _prfActiveEntities().map(function(e) { return e.name; }); }
 function _prfCampaignByKey(key) {

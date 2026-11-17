@@ -131,7 +131,47 @@
   var REFUSE = /^\/api\/(publish|create-checkout-session|create-portal-session|billing\/|account\/delete|schedule-plan-change|[a-z]+\/disconnect|[a-z]+\/campaign\/|automations|autopilot\/rules|manual-campaigns|signup|verify-email|resend-verification|website-monitor|onboarding\/(complete|goal)|setup\/)/;
   var AI = /^\/api\/(ai\/|research\/query|market-research|generate-[a-z-]+|video-ads\/generate|motion-graphics\/generate|product-shoots\/generate|creative\/|create\/analyze|ads\/(analyze|recommend)|business\/(website|reflection|validate)|campaigns\/compare|audiences)/;
 
+  // ── Sample daily figures for the metric tiles and Platform Comparison ──
+  // (GET /api/analytics/series): the same numbers every time for a given
+  // day, with a weekly rhythm; sizes that match the sample campaigns.
+  var PROFILE = {
+    google: { spend: 17.3, impressions: 830, clicks: 49, conversions: 1.4, aov: 56 },
+    meta: { spend: 33, impressions: 2470, clicks: 72, conversions: 2.7, aov: 68 },
+    tiktok: { spend: 14.2, impressions: 3120, clicks: 51, conversions: 0.6 },
+    pinterest: { spend: 2.9, impressions: 470, clicks: 7, conversions: 0.12 },
+    snapchat: { spend: 2.2, impressions: 1720, clicks: 64, conversions: 0.07 },
+  };
+  function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function rnd(s) { var t = hash(s) + 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+  function dayStr(d) { return d.toISOString().slice(0, 10); }
+  function demoSeries(qs) {
+    var q = new URLSearchParams(qs || ''), p = q.get('platform'), base = PROFILE[p];
+    if (!base) return null;
+    var today = dayStr(new Date()), until = /^\d{4}-\d{2}-\d{2}$/.test(q.get('until') || '') && q.get('until') <= today ? q.get('until') : today;
+    var since = /^\d{4}-\d{2}-\d{2}$/.test(q.get('since') || '') ? q.get('since') : dayStr(new Date(Date.parse(until) - 29 * 864e5)), clamped = null;
+    if ((p === 'pinterest' || p === 'snapchat') && Date.parse(until) - Date.parse(since) > 89 * 864e5) { var min = dayStr(new Date(Date.parse(until) - 89 * 864e5)); clamped = { since: min, wanted: since }; since = min; }
+    var scope = q.get('adId') ? 'ad:' + q.get('adId') : q.get('campaignId') ? 'c:' + q.get('campaignId') : 'all';
+    var f = scope === 'all' ? 1 : (q.get('adId') ? 0.08 + rnd(scope) * 0.22 : 0.25 + rnd(scope) * 0.35);
+    var valued = !!base.aov, series = [];
+    for (var t = Date.parse(since + 'T00:00:00Z'); t <= Date.parse(until + 'T00:00:00Z'); t += 864e5) {
+      var date = dayStr(new Date(t)), n = Math.round(t / 864e5), k = p + '|' + scope + '|' + date;
+      var w = (1 + 0.16 * Math.sin(n * 2 * Math.PI / 7) + 0.06 * Math.sin(n / 9)) * (0.85 + rnd(k) * 0.3) * f;
+      var conv = Math.max(0, Math.round(base.conversions * w * (0.6 + rnd(k + 'c') * 0.8) + (rnd(k + 'r') - 0.5)));
+      series.push({ date: date, spend: Math.round(base.spend * w * 100) / 100, impressions: Math.round(base.impressions * w), clicks: Math.round(base.clicks * w * (0.9 + rnd(k + 'k') * 0.2)), conversions: conv,
+        conversionValue: valued ? Math.round(conv * base.aov * (0.8 + rnd(k + 'v') * 0.4) * 100) / 100 : null });
+    }
+    return { platform: p, since: since, until: until, series: series, conversionValue: valued ? 'reported' : 'not_reported', clamped: clamped };
+  }
+  var DEMO_ADS = [['120200000001', 'Slow evenings — Feed'], ['120200000002', 'Sixty hours of warm light — Reels'], ['120200000003', 'Gift guide — Stories'], ['120200000004', 'Workshop teaser — Feed']];
+
   function api(method, path, query, body) {
+    if ((method === 'GET' || method === 'HEAD') && path === '/api/analytics/series') {
+      var ds = demoSeries(String(query || '').replace(/^\?/, ''));
+      return Promise.resolve(ds ? json(200, ds) : json(400, { error: 'Choose a platform.', code: 'BAD_PLATFORM' }));
+    }
+    if ((method === 'GET' || method === 'HEAD') && path === '/api/meta/ads') {
+      return Promise.resolve(json(200, { ads: DEMO_ADS.map(function (a, i) { var w = 0.6 + rnd(a[0]) * 0.9; return { ad_id: a[0], ad_name: a[1], status: i === 3 ? 'PAUSED' : 'ACTIVE', spend: Math.round(160 * w) / 1, impressions: Math.round(14000 * w), clicks: Math.round(380 * w), conversions: Math.round(11 * w) }; }) }));
+    }
     if (method === 'GET' || method === 'HEAD') {
       if (path === '/api/research/reports' || path.indexOf('/api/research/reports/') === 0) { var r = sample(path + query); return Promise.resolve(r === undefined ? json(404, { error: 'Not found in the demo' }) : json(200, r)); }
       var s = sample(path + query);

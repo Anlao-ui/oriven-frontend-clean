@@ -479,7 +479,7 @@
             '<p class="onx-plan__m">' + esc(f.intro ? f.intro.then : saving ? 'Save €' + saving + ' vs. Monthly' : (f.instalmentNote || '')) + '</p>' +
             '<button type="button" class="onx-btn ' + (featured || f.intro ? 'onx-btn--primary' : 'onx-btn--outline') + '" data-buy="' + esc(p.id) + '">' + esc(f.intro ? 'Try for ' + f.intro.price : 'Choose ' + p.name) + '</button></div>';
         }).join('') + '</div>' +
-        '<p class="onx-pay__fine">' + esc(typeof ORIVEN_VAT_LINE !== 'undefined' ? ORIVEN_VAT_LINE : 'Excl. VAT — the VAT for your location is added at checkout.') + ' Secure payment by Stripe. ' + esc(typeof ORIVEN_REFUND_LINE !== 'undefined' ? ORIVEN_REFUND_LINE + (typeof ORIVEN_INTRO_OFFER !== 'undefined' && ORIVEN_INTRO_OFFER.enabled ? ' on every plan except Flex. ' : '. ') : '') +
+        '<p class="onx-pay__fine">' + esc(typeof ORIVEN_VAT_LINE !== 'undefined' ? ORIVEN_VAT_LINE : 'Excl. VAT — the VAT for your location is added at checkout.') + ' Secure payment by Stripe. ' + esc(typeof ORIVEN_GUARANTEE_TEXT !== 'undefined' ? ORIVEN_GUARANTEE_TEXT + ' ' : '') +
           '<a href="/refund-policy" target="_blank" rel="noopener">Refund policy</a> · <a href="/terms" target="_blank" rel="noopener">Terms</a></p>' +
         '<p class="onx-pay__out"><button type="button" class="onx-btn onx-btn--text" data-go="assistant">Back</button><button type="button" class="onx-btn onx-btn--text" data-signout>Sign out</button></p>' +
       '</section>';

@@ -365,7 +365,9 @@ const server = app.listen(PORT, async () => {
     await signIn(page, 'mock-other');
     await goCamps(page);
     v = await view(page);
-    check('other account: nothing from the first account; connect banner shown', v.opts.length === 1 && await page.evaluate(() => getComputedStyle(document.getElementById('prfConnectBanner')).display !== 'none'), v);
+    await page.waitForTimeout(800);
+    const notConn = await page.evaluate(() => Array.from(document.querySelectorAll('#ovtRoot .ova-tile')).map((t) => t.querySelector('.ova-tile__v').textContent + ' | ' + t.querySelector('.ova-tile__d').textContent));
+    check('other account: nothing from the first account; the metric tiles say "Not connected" with a Connect link (the old banner is gone)', v.opts.length === 1 && notConn.length === 8 && notConn.every((x) => /^Not connected \| Connect /.test(x)), { v, notConn });
 
     const real = errors.filter((e) => !/supabase|Failed to fetch/i.test(e));
     check('no page errors', !real.length, real);

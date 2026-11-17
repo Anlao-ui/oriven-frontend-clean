@@ -124,7 +124,7 @@ const server = app.listen(PORT, async () => {
     // ── 1. In the sidebar, under the existing sections ─────────────
     console.log('\n1. Navigation');
     const nav = await page.evaluate(() => Array.from(document.querySelectorAll('.orv-sb .onv-item')).map((b) => b.dataset.onv));
-    check('1.1 Creative Testing, Audience Builder and Campaign Comparison are in the sidebar; Competitor Analysis opens from the Research header (no new section)', ['testing', 'audiences', 'compare'].every((k) => nav.includes(k)) && !nav.includes('competitors'), nav);
+    check('1.1 Creative Testing, Audience Builder and Platform Comparison are in the sidebar; Competitor Analysis opens from the Research header (no new section)', ['testing', 'audiences', 'compare'].every((k) => nav.includes(k)) && !nav.includes('competitors'), nav);
     const keys = await page.evaluate(() => ['competitor-analysis', 'creative-testing', 'audience-builder', 'campaign-comparison'].map((k) => window.orvPages.has(k)));
     check('1.2 the shared page keys know the four pages (plan tasks and the assistant open them)', keys.every(Boolean), keys);
 
@@ -192,47 +192,30 @@ const server = app.listen(PORT, async () => {
     const after = await page.evaluate((uid) => { const l = JSON.parse(localStorage.getItem('oriven_campaigns_' + uid)); return { draft: l.find((c) => c.id === 'camp-draft').pkg, live: l.find((c) => c.id === 'camp-live').pkg, pending: sessionStorage.getItem('orv_pending_audience'), banner: !!document.querySelector('.onv-cb__aud') }; }, UID);
     check('4.6 applying sets the draft campaign’s audience (strategy and Meta) and leaves the published one alone', /^Local gift shoppers/.test(after.draft.strategy.targetAudience) && /^Local gift shoppers/.test(after.draft.metaAds.targetAudience) && after.live.strategy.targetAudience === 'Everyone' && !after.pending && !after.banner, after);
 
-    // ── 5. Campaign Comparison ──────────────────────────────────────
-    console.log('\n5. Campaign Comparison');
+    // ── 5. Platform Comparison ──────────────────────────────────────
+    console.log('\n5. Platform Comparison');
     const src = await page.evaluate(() => !!(window.orvCampaignSources && Array.isArray(window.orvCampaignSources.platforms) && typeof window.orvCampaignSources.load === 'function' && typeof window.orvCampaignSources.status === 'function'));
-    check('5.1 it reads the same campaign data as Campaign Overview (window.orvCampaignSources)', src);
+    check('5.1 it reads the same connections and campaigns as Campaign Overview (window.orvCampaignSources)', src);
     // No platform connected
     await page.evaluate(() => { window.__realSources = window.orvCampaignSources; window.orvCampaignSources = { platforms: ['meta', 'google'], status: () => Promise.resolve({ conn: 'disconnected' }), load: () => Promise.resolve({ rows: [] }) }; });
-    await page.click('.orv-sb .onv-item[data-onv="compare"]'); await page.waitForTimeout(500);
+    await page.click('.orv-sb .onv-item[data-onv="compare"]'); await page.waitForTimeout(600);
     t = await txt(page, '#ccmRoot');
-    check('5.2 nothing connected: says to connect an ad platform (no sample campaigns)', (await activePage(page)) === 'page-campaign-comparison' && /Connect an ad platform first/.test(t) && !(await page.$('.gx-table')), t.slice(0, 300));
-    // Two Meta campaigns with real figures, one without conversions reported; Pinterest account-level only.
+    check('5.2 nothing connected: says to connect an ad platform first; every platform column offers Connect (no sample figures)', (await activePage(page)) === 'page-campaign-comparison' && /Connect an ad platform first/.test(t) && (await page.$$('#ccmRoot .pcm-table thead [data-pcm-connect]')).length === 5 && !/€\s?\d/.test(t.replace(/Return per €1 spent/g, '')), t.slice(0, 300));
+    // Meta and Pinterest connected, with fixed daily figures
     await page.evaluate(() => {
-      const rows = {
-        meta: [
-          { key: 'meta:1', platform: 'meta', id: '1', name: 'Spring Sale', status: 'ACTIVE', metricsLevel: 'campaign', currency: 'EUR', impressions: 12000, reach: 9000, clicks: 360, spend: 120, conv: 12, convVal: 480 },
-          { key: 'meta:2', platform: 'meta', id: '2', name: 'Workshop', status: 'ACTIVE', metricsLevel: 'campaign', currency: 'EUR', impressions: 8000, reach: null, clicks: 160, spend: 100, conv: null, convVal: null },
-        ],
-        pinterest: [{ key: 'pin:a', platform: 'pinterest', id: 'a', name: 'Pinterest account', metricsLevel: 'account', impressions: 5000 }],
-      };
-      window.orvCampaignSources = { platforms: ['meta', 'pinterest'], status: () => Promise.resolve({ conn: 'connected', currency: 'EUR' }), load: (p, range) => { window.__lastRange = range; return Promise.resolve({ rows: rows[p] || [] }); } };
-      window.orvCampaignComparison.reload();
+      const A = window.orvAnalytics, day = { meta: { spend: 20, impressions: 4000, clicks: 80, conversions: 4, conversionValue: 120 }, pinterest: { spend: 10, impressions: 3000, clicks: 15, conversions: 0, conversionValue: 0 } };
+      window.orvCampaignSources = { platforms: A.PLATFORMS, status: (p) => Promise.resolve(day[p] ? { conn: 'connected', currency: 'EUR' } : { conn: 'not_connected' }), load: () => Promise.resolve({ rows: [] }) };
+      window.__series = []; A.reset();
+      A.series = (p, w) => { window.__series.push(p); const out = []; for (let d = w.since; d <= w.until; d = A.addDays(d, 1)) out.push(Object.assign({ date: d }, day[p])); return Promise.resolve({ series: out, conversionValue: p === 'meta' ? 'reported' : 'not_reported' }); };
     });
-    await page.waitForTimeout(500);
-    t = await txt(page, '#ccmRoot');
-    check('5.3 campaigns listed per platform; Pinterest explained as account-level only and not selectable', /Spring Sale/.test(t) && /Workshop/.test(t) && /Pinterest reports results for the whole ad account only/.test(t) && await page.evaluate(() => document.querySelector('[data-ccm-sel="pin:a"]').disabled), t.slice(0, 500));
-    await page.click('[data-ccm-sel="meta:1"]'); await page.waitForTimeout(150);
-    check('5.4 one campaign: asks for at least two (no table, AI not offered)', /Choose at least two campaigns/.test(await txt(page, '#ccmRoot')) && !(await page.$('.gx-table')));
-    await page.click('[data-ccm-sel="meta:2"]'); await page.waitForTimeout(200);
-    const tb = await page.evaluate(() => { const rows = {}; document.querySelectorAll('.gx-table tbody tr').forEach((tr) => { rows[tr.querySelector('th').textContent] = Array.from(tr.querySelectorAll('td')).map((td) => td.innerText.replace(/\s+/g, ' ').trim()); }); return rows; });
-    check('5.5 every metric: impressions, reach, clicks, CTR, CPC, CPM, conversions, conversion rate, CPA, ROAS, spend', ['Impressions', 'Reach', 'Clicks', 'CTR', 'CPC', 'CPM', 'Conversions', 'Conversion rate', 'CPA', 'ROAS', 'Ad spend'].every((k) => tb[k] && tb[k].length === 2), Object.keys(tb));
-    check('5.6 figures computed only from reported numbers: CTR 3.00% vs 2.00%, ROAS 4.00× vs "Not reported" (never 0 or an estimate)', /^3\.00%/.test(tb.CTR[0]) && /^2\.00%/.test(tb.CTR[1]) && /^4\.00×/.test(tb.ROAS[0]) && tb.ROAS[1] === 'Not reported' && tb.Conversions[1] === 'Not reported' && tb.Reach[1] === 'Not reported', tb);
-    check('5.7 the better campaign per metric is marked, and the biggest differences are listed', /best/i.test(tb.CTR[0]) && !/best/i.test(tb.CTR[1]) && /Biggest differences/.test(await txt(page, '#ccmRoot')), tb.CTR);
-    await page.selectOption('#ccmRange', 'LAST_90_DAYS'); await page.waitForTimeout(400);
-    check('5.8 the period can be changed (the platforms are asked for that range); the chosen campaigns stay chosen', await page.evaluate(() => window.__lastRange && window.__lastRange.key === 'LAST_90_DAYS' && document.querySelector('[data-ccm-sel="meta:1"]').checked && document.querySelector('[data-ccm-sel="meta:2"]').checked));
-    await page.click('[data-ccm-explain]'); await page.waitForTimeout(600);
-    const ins = M.insights[0];
-    t = await txt(page, '#ccmRoot');
-    check('5.9 "Explain with AI" sends exactly the figures shown (missing ones as null) and shows the explanation as AI analysis', ins && ins.campaigns.length === 2 && ins.campaigns[1].metrics.conversions === null && ins.campaigns[1].metrics.roas === null && ins.campaigns[0].metrics.impressions === 12000 && ins.range.key === 'LAST_90_DAYS' && /What the figures show/.test(t) && /AI analysis/.test(t) && /Conversions were not reported/.test(t), ins);
-    check('5.10 the comparison is saved and can be reopened', /Saved comparisons[\s\S]*Spring Sale vs Workshop/.test(t));
+    await page.click('.orv-sb .onv-item[data-onv="dashboard"]').catch(() => {}); await page.waitForTimeout(300);
+    await page.click('.orv-sb .onv-item[data-onv="compare"]'); await page.waitForTimeout(800);
+    const pc = await page.evaluate(() => { const r = document.getElementById('ccmRoot'); const rows = {}; r.querySelectorAll('.pcm-table tbody tr').forEach((tr) => { rows[tr.querySelector('th').textContent] = Array.from(tr.querySelectorAll('td')).map((td) => ({ t: td.innerText.replace(/\s+/g, ' ').trim(), best: !!td.querySelector('.is-best'), worst: !!td.querySelector('.is-worst') })); }); return { rows, connect: Array.from(r.querySelectorAll('.pcm-table thead [data-pcm-connect]')).map((x) => x.textContent), text: r.innerText, asked: Array.from(new Set(window.__series)).sort() }; });
+    check('5.3 only connected platforms are asked for figures; the others show "Connect X"', pc.asked.join() === 'meta,pinterest' && pc.connect.join() === 'Connect Google,Connect TikTok,Connect Snapchat', { asked: pc.asked, connect: pc.connect });
+    check('5.4 every metric row, computed from the reported figures (CTR 2.00% vs 0.50%; CPA €5 vs none; ROAS 6.00× vs not reported)', pc.rows.CTR && /^2\.00%/.test(pc.rows.CTR[1].t) && /^0\.50%/.test(pc.rows.CTR[3].t) && /€\s?5/.test(pc.rows.CPA[1].t) && /^6\.00×/.test(pc.rows.ROAS[1].t) && !/\d/.test(pc.rows.ROAS[3].t), pc.rows);
+    check('5.5 best value highlighted, the weakest marked', pc.rows.CTR[1].best && pc.rows.CTR[3].worst, pc.rows.CTR);
+    check('5.6 a rule-based summary (no AI, no credits)', /Pinterest Ads has spend but no reported conversions/.test(pc.text) && /no AI/.test(pc.text) && !/Explain with AI|credits/.test(pc.text), pc.text.slice(0, 600));
     await page.screenshot({ path: path.join(SHOTS, 'comparison.png') });
-    await page.click('[data-ccm-view="cmp1"]'); await page.waitForTimeout(300);
-    check('5.11 a saved comparison shows its figures as saved, for its period', /Saved comparison/i.test(await txt(page, '#ccmRoot')) && /Last 90 days/.test(await txt(page, '#ccmRoot')));
     await page.evaluate(() => { window.orvCampaignSources = window.__realSources; });
 
     // ── 6. Phone ────────────────────────────────────────────────────

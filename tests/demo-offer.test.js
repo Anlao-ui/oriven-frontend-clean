@@ -73,7 +73,7 @@ const REJECT = { v: 1, ads: false, stats: true, hc: false, at: '2026-11-15T00:00
   const mm = await page.evaluate(() => Array.from(document.querySelectorAll('#lpMobileMenu .lp-mm-nav > .lp-mm-item > button, #lpMobileMenu .lp-mm-nav > a')).map((e) => e.textContent.trim().split(/\s/)[0]));
   check('mobile menu: … Demo, Pricing (Demo links to /demo)', mm.slice(-2).join() === 'Demo,Pricing' && await page.evaluate(() => !!document.querySelector('#lpMobileMenu a.lp-mm-link[href="/demo"]')), mm);
   const hero = await page.evaluate(() => { const b = document.querySelectorAll('.ik-hero .ik-actions a'); return { p: b[0] && b[0].textContent.trim(), ph: b[0] && b[0].getAttribute('href'), s: b[1] && b[1].textContent.trim(), sh: b[1] && b[1].getAttribute('href'), fine: (document.querySelector('.ik-hero__fine') || {}).textContent, icon: !!(b[0] && b[0].querySelector('svg')) }; });
-  check('hero: "Try 2 weeks for €1" (icon kept), "View live demo" → /demo, "Not happy within 14 days? Money back on regular plans."', hero.p === 'Try 2 weeks for €1' && hero.icon && hero.ph === '/signup' && hero.s === 'View live demo' && hero.sh === '/demo' && /Not happy within 14 days\? Money back on regular plans\./.test(hero.fine || ''), hero);
+  check('hero: "Try 2 weeks for €1" (icon kept), "View live demo" → /demo, "14-day money-back guarantee on regular plans."', hero.p === 'Try 2 weeks for €1' && hero.icon && hero.ph === '/signup' && hero.s === 'View live demo' && hero.sh === '/demo' && /^14-day money-back guarantee on regular plans\.$/.test((hero.fine || '').trim()), hero);
   const note = await page.evaluate(() => { const n = document.querySelector('#integrations .ik-demo-note'); return n && { t: n.textContent.trim(), h: n.querySelector('a').getAttribute('href') }; });
   check('Integrations: "Want to look around first? Try the demo, no account connection needed."', note && /Want to look around first\? Try the demo, no account connection needed\./.test(note.t) && note.h === '/demo', note);
   const fin = await page.evaluate(() => { const b = document.querySelector('.ik-final .ik-actions a'); return { b: b.textContent.trim(), lead: document.querySelector('.ik-final .ik-lead').textContent.trim() }; });
@@ -186,12 +186,13 @@ const REJECT = { v: 1, ads: false, stats: true, hc: false, at: '2026-11-15T00:00
   demo.on('request', (rq) => { const t = rq.method() + ' ' + rq.url(); tried.push(t); if (rq.frame() !== demo.mainFrame()) framed.push(t); if (rq.isNavigationRequest()) navs.push(rq.url()); });
   await demo.goto(BASE + '/demo', { waitUntil: 'load' });
   await demo.waitForTimeout(8000);
-  const pg1 = await demo.evaluate(() => ({ url: location.pathname, nav: getComputedStyle(document.getElementById('lpNav')).display !== 'none', navDemo: !!document.querySelector('#lpNav a.lp-nav-link[href="/demo"]'), foot: !!document.querySelector('#view-demo .site-foot'), h1: (document.querySelector('#view-demo h1') || {}).textContent, open: !document.getElementById('orvDemoModal').hidden, src: document.getElementById('orvDemoFrame').getAttribute('src'), sandbox: document.getElementById('orvDemoFrame').getAttribute('sandbox'), cta: (document.querySelector('.ov-demo-modal__cta') || {}).textContent, ctaHref: document.querySelector('.ov-demo-modal__cta').getAttribute('href'), introCta: (document.querySelector('.ov-demo__actions a') || {}).textContent }));
-  check('/demo is a marketing page: landing navbar (with Demo), footer, "Explore OrivenAI with sample data"', pg1.url === '/demo' && pg1.nav && pg1.navDemo && pg1.foot && /Explore OrivenAI with sample data/.test(pg1.h1 || ''), pg1);
-  check('/demo: the large demo window opens by itself, showing /demo-app in a sandboxed frame (no top navigation without a click)', pg1.open && pg1.src === '/demo-app' && /allow-scripts/.test(pg1.sandbox) && !/allow-top-navigation(\s|$)/.test(pg1.sandbox) && /allow-top-navigation-by-user-activation/.test(pg1.sandbox), pg1);
-  check('/demo: "Try 2 weeks for €1" in the window and next to the intro', /Try 2 weeks for €1/.test(pg1.cta || '') && pg1.ctaHref === '/signup' && /Try 2 weeks for €1/.test(pg1.introCta || ''), pg1);
-  const size = await demo.evaluate(() => { const r = document.querySelector('.ov-demo-modal__panel').getBoundingClientRect(); return { w: r.width / innerWidth, h: r.height / innerHeight }; });
-  check('/demo: the window is nearly full-screen (≥ 90 % of the viewport)', size.w >= 0.9 && size.h >= 0.9, size);
+  const pg1 = await demo.evaluate(() => { const nav = document.getElementById('lpNav').getBoundingClientRect(), hero = document.querySelector('.ov-demo-hero').getBoundingClientRect(), fr = document.getElementById('orvDemoFrame'), bar = document.querySelector('.ov-demo-hero__bar'), foot = document.querySelector('#view-demo .site-foot');
+    return { url: location.pathname, nav: getComputedStyle(document.getElementById('lpNav')).display !== 'none', login: !!document.querySelector('#lpNav .lp-nav-login'), start: !!document.querySelector('#lpNav .lp-cta-btn'), navDemo: !!document.querySelector('#lpNav a.lp-nav-link[href="/demo"]'), foot: !!foot, footTop: foot ? Math.round(foot.getBoundingClientRect().top) : 0, vh: innerHeight, navB: Math.round(nav.bottom), heroTop: Math.round(hero.top), heroB: Math.round(hero.bottom), frameH: Math.round(fr.getBoundingClientRect().height),
+      src: fr.getAttribute('src'), sandbox: fr.getAttribute('sandbox'), modal: !!document.querySelector('#orvDemoModal, .ov-demo-modal, [data-demo-open], .ov-demo-modal__x'), bar: bar ? bar.innerText : '', cta: (document.querySelector('.ov-demo-hero__cta') || {}).textContent, ctaHref: document.querySelector('.ov-demo-hero__cta').getAttribute('href') }; });
+  check('/demo is a normal page: landing navbar (Log in, Get started, Demo) and the footer after scrolling', pg1.url === '/demo' && pg1.nav && pg1.login && pg1.start && pg1.navDemo && pg1.foot && pg1.footTop >= pg1.vh, pg1);
+  check('/demo: the demo is inline, right under the navbar, filling the screen height (no pop-up, no open/close buttons)', !pg1.modal && pg1.heroTop === pg1.navB && pg1.heroB === pg1.vh && pg1.frameH > pg1.vh * 0.7 && pg1.src === '/demo-app', pg1);
+  check('/demo: sandboxed frame (it can’t move the page without a click)', /allow-scripts/.test(pg1.sandbox) && !/allow-top-navigation(\s|$)/.test(pg1.sandbox) && /allow-top-navigation-by-user-activation/.test(pg1.sandbox), pg1.sandbox);
+  check('/demo: a slim bar under the demo: the line, the money-back sentence and "Try 2 weeks for €1"', /Explore OrivenAI with sample data/.test(pg1.bar) && /14-day money-back guarantee on regular plans\./.test(pg1.bar) && /Try 2 weeks for €1/.test(pg1.cta || '') && pg1.ctaHref === '/signup', pg1);
   const fr = demo.frames().find((f) => /\/demo-app/.test(f.url()));
   const inside = fr && await fr.evaluate(() => ({ demo: window.ORV_DEMO === true, path: location.pathname, isolated: (function () { try { return window.localStorage.getItem('probe') === null; } catch (_) { return false; } })(), sampleUser: !!document.querySelector('.app') && getComputedStyle(document.querySelector('.app')).display !== 'none', ownBar: !!document.querySelector('.orv-demo-bar'), consent: !!document.querySelector('.orv-cc') }));
   check('inside the window: the demo app with the sample account, its own storage (not the visitor’s), no banner or cookie dialog of its own', !!inside && inside.demo && inside.path === '/demo-app' && inside.isolated && inside.sampleUser && !inside.ownBar && !inside.consent, inside);
@@ -269,13 +270,11 @@ const REJECT = { v: 1, ads: false, stats: true, hc: false, at: '2026-11-15T00:00
   const pageOnly = outsideOf(tried.filter((t) => framed.indexOf(t) < 0));
   check('the /demo page itself: only what every marketing page sends (its cookieless page count, the consent-gated HeyCatch script); no Supabase, AI or Stripe', pageOnly.every((t) => /^POST http:\/\/localhost:5500\/api\/t$|^GET https:\/\/esm\.sh\/@heycatch\//.test(t)), pageOnly);
 
-  // Close and reopen
-  await demo.click('.ov-demo-modal__x'); await demo.waitForTimeout(400);
-  const closed = await demo.evaluate(() => ({ hidden: document.getElementById('orvDemoModal').hidden, url: location.pathname, reopen: !!document.querySelector('#view-demo [data-demo-open]') }));
-  check('closing the window keeps the visitor on /demo with an "Open the demo" button and the €1 CTA', closed.hidden && closed.url === '/demo' && closed.reopen, closed);
-  await demo.screenshot({ path: path.join(SHOTS, 'demo-closed.png') });
-  await demo.click('#view-demo [data-demo-open]'); await demo.waitForTimeout(500);
-  check('"Open the demo" opens the window again', await demo.evaluate(() => !document.getElementById('orvDemoModal').hidden));
+  // Scrolling down: what's in the demo, the €1 CTA, the money-back line, the footer
+  await demo.evaluate(() => { const v = document.getElementById('view-demo'); v.scrollTop = v.scrollHeight; }); await demo.waitForTimeout(400);
+  const below = await demo.evaluate(() => ({ text: document.querySelector('#view-demo .ov-demo').innerText, foot: document.querySelector('#view-demo .site-foot').getBoundingClientRect().top < innerHeight }));
+  check('below the demo: what’s inside, "Try 2 weeks for €1", "14-day money-back guarantee on regular plans.", then the footer', /What’s in the demo/i.test(below.text) && /Try 2 weeks for €1/.test(below.text) && /14-day money-back guarantee on regular plans\./.test(below.text) && below.foot, below);
+  await demo.screenshot({ path: path.join(SHOTS, 'demo-below.png') });
   await demo.close();
 
   // The visitor's own session and storage are untouched
@@ -289,9 +288,9 @@ const REJECT = { v: 1, ads: false, stats: true, hc: false, at: '2026-11-15T00:00
     if (vp.n === 'mobile') { await page.click('#lpHamburger'); await page.waitForTimeout(400); await page.click('#lpMobileMenu a.lp-mm-link[href="/demo"]'); }
     else await page.click('#lpNav a.lp-nav-link[href="/demo"]');
     await page.waitForURL(/\/demo$/, { timeout: 10000 }).catch(() => {}); await page.waitForTimeout(6000);
-    const r = await page.evaluate(() => ({ url: location.pathname, open: !document.getElementById('orvDemoModal').hidden, frame: document.getElementById('orvDemoFrame').getAttribute('src') }));
-    const sz = await page.evaluate(() => { const p = document.querySelector('.ov-demo-modal__panel').getBoundingClientRect(); return { l: p.left, r: innerWidth - p.right, w: p.width, vw: innerWidth }; });
-    check('navbar "Demo" (' + vp.n + ') → /demo with the window open, never /app', r.url === '/demo' && r.open && r.frame === '/demo-app' && (vp.n === 'desktop' || (sz.l <= 1 && sz.r <= 1)), { r, sz });
+    const r = await page.evaluate(() => { const h = document.querySelector('.ov-demo-hero').getBoundingClientRect(); return { url: location.pathname, frame: document.getElementById('orvDemoFrame').getAttribute('src'), l: Math.round(h.left), r: Math.round(innerWidth - h.right), top: Math.round(h.top), bottom: Math.round(innerHeight - h.bottom), overflow: document.documentElement.scrollWidth - innerWidth }; });
+    const inner = await page.frames().find((f) => /\/demo-app/.test(f.url())).evaluate(() => ({ demo: window.ORV_DEMO === true, overflow: document.documentElement.scrollWidth - innerWidth }));
+    check('navbar "Demo" (' + vp.n + ') → /demo with the demo inline, full width and screen-high under the navbar, never /app; no sideways scroll outside or inside', r.url === '/demo' && r.frame === '/demo-app' && r.l === 0 && r.r === 0 && r.top === 64 && r.bottom === 0 && r.overflow <= 0 && inner.demo && inner.overflow <= 0, { r, inner });
     if (vp.n === 'mobile') await page.screenshot({ path: path.join(SHOTS, 'demo-mobile.png') });
     await ctx.close();
   }
@@ -300,7 +299,7 @@ const REJECT = { v: 1, ads: false, stats: true, hc: false, at: '2026-11-15T00:00
   {
     const c2 = await browser.newContext(); const p2 = await c2.newPage();
     await p2.goto(BASE + '/demo/', { waitUntil: 'load' }); await p2.waitForTimeout(3000);
-    const a = await p2.evaluate(() => ({ view: !!document.querySelector('#view-demo:not(.pub-view)'), open: !document.getElementById('orvDemoModal').hidden }));
+    const a = await p2.evaluate(() => ({ view: !!document.querySelector('#view-demo:not(.pub-view)'), open: document.getElementById('orvDemoFrame').getAttribute('src') === '/demo-app' }));
     await p2.goto(BASE + '/demo-app/', { waitUntil: 'load' }); await p2.waitForTimeout(4000);
     const b = await p2.evaluate(() => ({ path: location.pathname, demo: window.ORV_DEMO === true }));
     check('/demo/ shows the demo page; /demo-app/ ends up on /demo-app with the demo running', a.view && a.open && b.path === '/demo-app' && b.demo, { a, b });

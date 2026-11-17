@@ -159,7 +159,7 @@ const ROT = 'function(t){ if(!t || t === "none") return 0; var m = t.match(/matr
   check('3.1 no "AI marketing platform" badge', !hero.eyebrow && !/AI marketing platform/i.test(hero.text), hero);
   check('3.2 no pricing sentence ("From €17 for 14 days…")', !hero.meta && !/From €17|automatic renewal/.test(hero.text));
   check('3.3 CTAs: "Try 2 weeks for €1" → /signup and "View live demo" → /demo', hero.btns.length === 2 && /^Try 2 weeks for €1/.test(hero.btns[0][0]) && hero.btns[0][1] === '/signup' && /^View live demo/.test(hero.btns[1][0]) && hero.btns[1][1] === '/demo', hero.btns);
-  check('3.4 money-back line under the hero buttons', /Not happy within 14 days\? Money back on regular plans\./.test(hero.text));
+  check('3.4 money-back line under the hero buttons', /14-day money-back guarantee on regular plans\./.test(hero.text));
   await page.close();
 
   // ── 4. Problem sequence ──────────────────────────────────────────

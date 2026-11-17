@@ -30,6 +30,12 @@ function _renderPaywallCards(){
   var grid = document.getElementById("pwPlanGrid");
   if(grid && typeof renderPWPricingCards === "function") renderPWPricingCards(grid, ORIVEN_PERIOD_PLANS);
   _pwRenderAccessNote();
+  // The money-back sentence under the plans (regular plans only, never Flex).
+  if(grid && typeof ORIVEN_GUARANTEE_TEXT !== "undefined"){
+    var g = grid.parentNode.querySelector(".pw-guarantee");
+    if(!g){ g = document.createElement("p"); g.className = "pw-guarantee"; grid.parentNode.insertBefore(g, grid.nextSibling); }
+    g.textContent = (typeof orvPlanT === "function" ? orvPlanT(ORIVEN_GUARANTEE_TEXT) : ORIVEN_GUARANTEE_TEXT);
+  }
 }
 
 // One line under the title: when the current access ends (account with
