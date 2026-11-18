@@ -188,7 +188,7 @@ const shot = (page, name, full) => page.screenshot({ path: path.join(SHOT_DIR, n
     // No platforms
     check('no platforms: profile step done, connect + campaign steps', A.noPlatforms.setup.done === 2 && A.noPlatforms.setup.todo === 1 || (A.noPlatforms.setup.done >= 1 && /connect/i.test(A.noPlatforms.setup.text)), A.noPlatforms.setup);
     check('no platforms: Advertising row "Not connected"', /not connected/i.test(A.noPlatforms.mods[4].st), A.noPlatforms.mods[4]);
-    check('no platforms: drafts counted from OrivenAI records (1)', A.noPlatforms.camps.stats[1] === '1' && /1 draft/i.test(A.noPlatforms.status), [A.noPlatforms.camps.stats, A.noPlatforms.status]);
+    check('no platforms: active and paused say "Not connected"; drafts counted from OrivenAI records (1)', A.noPlatforms.camps.stats[0] === 'Not connected' && A.noPlatforms.camps.stats[1] === 'Not connected' && A.noPlatforms.camps.stats[2] === '1' && /1 draft/i.test(A.noPlatforms.status), [A.noPlatforms.camps.stats, A.noPlatforms.status]);
     // Connected, no campaigns
     check('connected without campaigns: Running is a real 0', A.connectedNoCamps.camps.stats[0] === '0', A.connectedNoCamps.camps.stats);
     check("connected without campaigns: no tiles, says no activity", A.connectedNoCamps.perf.figs === 0 && !A.connectedNoCamps.perf.connect && /no spend/i.test(A.connectedNoCamps.perf.text), A.connectedNoCamps.perf);
@@ -206,7 +206,7 @@ const shot = (page, name, full) => page.screenshot({ path: path.join(SHOT_DIR, n
     // Publish error
     const failRow = A.publishError.needs.rows.find((x) => x.rank === 0);
     check('publish error: a red (risk) row, ranked first', !!failRow && A.publishError.needs.rows.filter((x) => !x.hidden).sort((a, b) => a.order - b.order)[0].rank === 0 && /is-risk/.test(A.publishError.needs.cls), A.publishError.needs);
-    check('publish error: counted under "Needs attention" in Campaigns', +A.publishError.camps.stats[2] >= 1, A.publishError.camps.stats);
+    check('publish error: counted under "Needs attention" in Campaigns', +A.publishError.camps.stats[3] >= 1, A.publishError.camps.stats);
     // Unavailable
     check('unavailable: Meta read failed → note + retry, Google figures still shown', A.unavailable.perf.retry && /Meta/.test(A.unavailable.perf.text), A.unavailable.perf);
     check('unavailable: Running flagged as partial, not a silent number', /\*/.test(A.unavailable.camps.stats[0]) || /unavailable/i.test(A.unavailable.camps.stats[0]), A.unavailable.camps.stats);

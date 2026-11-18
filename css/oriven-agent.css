@@ -118,3 +118,39 @@ body:not(.dark-mode) .orv-agent-pick { border-color: var(--border); }
 .orv-agent-picker.is-asking .orv-agent-picker-q { color: var(--charcoal, currentColor); font-weight: 600; }
 .orv-agent-picker.is-asking .orv-agent-picker-list { outline: 2px solid var(--green, #B7FF2A); outline-offset: 4px; border-radius: 10px; }
 .orv-ai-input:disabled { cursor: not-allowed; opacity: .7; }
+
+/* ── Launcher shape + collapse (2026-11-18) ──────────────────────
+   Rounded, but not a circle or pill: soft corners with one straighter
+   corner toward the screen edge, a little larger than before. The chevron
+   (#orvAiTuck, js/aiDock.js) sits beside it; collapsed, the launcher slides
+   out to the right and only the chevron stays in the corner. */
+.orv-ai-fab { right: 52px; border-radius: 14px 14px 4px 14px; padding: 11px 18px 11px 13px; min-height: 44px;
+  transition: transform .28s cubic-bezier(.22, .61, .36, 1), opacity .2s ease, box-shadow .18s, border-color .18s; }
+.orv-ai-fab.orv-agent-on { padding: 10px 18px 10px 12px; }
+.orv-agent-fab-glyph { border-radius: 8px; }
+.orv-ai-tuck {
+  position: fixed; right: 16px; bottom: 24px; z-index: 201;
+  display: grid; place-items: center; width: 28px; height: 44px; padding: 0;
+  border: 1px solid rgba(255, 255, 255, .14); border-radius: 10px 4px 4px 10px;
+  background: #121311; color: rgba(255, 255, 255, .72); cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+  transition: background .15s, color .15s, transform .28s cubic-bezier(.22, .61, .36, 1);
+}
+.orv-ai-tuck:hover { background: #1A1C19; color: #fff; }
+.orv-ai-tuck:focus-visible { outline: 2px solid var(--green, #B6FF3B); outline-offset: 2px; }
+.orv-ai-tuck svg { transition: transform .28s cubic-bezier(.22, .61, .36, 1); }
+body:not(.dark-mode) .orv-ai-tuck { background: #fff; color: #3A3B37; border-color: rgba(0, 0, 0, .12); box-shadow: 0 6px 18px rgba(0, 0, 0, .12); }
+/* Collapsed: the launcher leaves the screen to the right; the chevron (pointing left) stays. */
+html.orv-ai-tucked .orv-ai-fab { transform: translateX(calc(100% + 72px)); opacity: 0; pointer-events: none; }
+html.orv-ai-tucked .orv-ai-tuck svg { transform: rotate(180deg); }
+/* Hidden together: when the launcher is hidden (panel open, chat off, printing), so is the chevron. */
+.orv-ai-fab.orv-ai-fab-hidden ~ .orv-ai-tuck, body.orv-no-chat .orv-ai-tuck, body.op-printing .orv-ai-tuck { display: none; }
+@media (max-width: 640px) {
+  .orv-ai-fab { bottom: 16px; right: 44px; min-height: 40px; }
+  .orv-ai-tuck { right: 10px; bottom: 16px; width: 26px; height: 40px; }
+}
+@media (prefers-reduced-motion: reduce) { .orv-ai-fab, .orv-ai-tuck, .orv-ai-tuck svg { transition: none; } }
+@media print { .orv-ai-tuck { display: none; } }
+/* In the demo (/demo-app opened directly) the demo bar runs along the bottom on phones:
+   the launcher and its control sit above it so both stay reachable. */
+@media (max-width: 640px) { body:has(.orv-demo-bar) .orv-ai-fab, body:has(.orv-demo-bar) .orv-ai-tuck { bottom: calc(80px + env(safe-area-inset-bottom)); } }

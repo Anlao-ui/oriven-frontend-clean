@@ -25,7 +25,7 @@
       newRule: 'New rule', newSchedule: 'Schedule campaign', pauseAll: 'Pause all automations', resumeAll: 'Resume all automations', settings: 'Settings',
       stRunning: 'Running', stPausedAll: 'All automations paused', stKilled: 'Paused by OrivenAI', stNoJobs: 'Not running on this server', stChecks: 'rules checked every {h}',
       hours: '{n} h', minutes: '{n} min',
-      tActive: 'Active', tScheduled: 'Scheduled runs', tApprovals: 'Awaiting approval', tDone: 'Done · 7 days', tFailed: 'Failed · 7 days',
+      tActive: 'Active', tPaused: 'Paused', tScheduled: 'Scheduled runs', tApprovals: 'Awaiting approval', tDone: 'Done · 7 days', tFailed: 'Failed · 7 days',
       approvalsH: 'Needs your approval', approve: 'Approve', reject: 'Reject', expiresIn: 'expires {when}', whyLine: 'Why: {why}',
       nextRunH: 'Next scheduled action', nextRunNone: 'Nothing scheduled.', lastCheckH: 'Last check', lastCheckNever: 'No check has run yet.', managingH: 'Managing',
       managingN: '{n} selected campaign(s)', managingAll: 'all eligible campaigns on {platforms}', managingNone: 'No campaigns yet.',
@@ -117,7 +117,7 @@
       newRule: 'Nieuwe regel', newSchedule: 'Campagne plannen', pauseAll: 'Alle automatiseringen pauzeren', resumeAll: 'Alle automatiseringen hervatten', settings: 'Instellingen',
       stRunning: 'Actief', stPausedAll: 'Alle automatiseringen gepauzeerd', stKilled: 'Gepauzeerd door OrivenAI', stNoJobs: 'Draait niet op deze server', stChecks: 'regels elke {h} gecontroleerd',
       hours: '{n} u', minutes: '{n} min',
-      tActive: 'Actief', tScheduled: 'Geplande acties', tApprovals: 'Wacht op goedkeuring', tDone: 'Uitgevoerd · 7 dagen', tFailed: 'Mislukt · 7 dagen',
+      tActive: 'Actief', tPaused: 'Gepauzeerd', tScheduled: 'Geplande acties', tApprovals: 'Wacht op goedkeuring', tDone: 'Uitgevoerd · 7 dagen', tFailed: 'Mislukt · 7 dagen',
       approvalsH: 'Wacht op jouw goedkeuring', approve: 'Goedkeuren', reject: 'Afwijzen', expiresIn: 'verloopt {when}', whyLine: 'Waarom: {why}',
       nextRunH: 'Volgende geplande actie', nextRunNone: 'Niets gepland.', lastCheckH: 'Laatste controle', lastCheckNever: 'Er is nog geen controle uitgevoerd.', managingH: 'Beheert',
       managingN: '{n} geselecteerde campagne(s)', managingAll: 'alle geschikte campagnes op {platforms}', managingNone: 'Nog geen campagnes.',
@@ -202,7 +202,7 @@
       newRule: 'Neue Regel', newSchedule: 'Kampagne planen', pauseAll: 'Alle Automatisierungen pausieren', resumeAll: 'Alle Automatisierungen fortsetzen', settings: 'Einstellungen',
       stRunning: 'Aktiv', stPausedAll: 'Alle Automatisierungen pausiert', stKilled: 'Von OrivenAI pausiert', stNoJobs: 'Läuft auf diesem Server nicht', stChecks: 'Regeln alle {h} geprüft',
       hours: '{n} Std.', minutes: '{n} Min.',
-      tActive: 'Aktiv', tScheduled: 'Geplante Aktionen', tApprovals: 'Warten auf Freigabe', tDone: 'Erledigt · 7 Tage', tFailed: 'Fehlgeschlagen · 7 Tage',
+      tActive: 'Aktiv', tPaused: 'Pausiert', tScheduled: 'Geplante Aktionen', tApprovals: 'Warten auf Freigabe', tDone: 'Erledigt · 7 Tage', tFailed: 'Fehlgeschlagen · 7 Tage',
       approvalsH: 'Wartet auf deine Freigabe', approve: 'Freigeben', reject: 'Ablehnen', expiresIn: 'läuft ab {when}', whyLine: 'Grund: {why}',
       nextRunH: 'Nächste geplante Aktion', nextRunNone: 'Nichts geplant.', lastCheckH: 'Letzte Prüfung', lastCheckNever: 'Es wurde noch nicht geprüft.', managingH: 'Verwaltet',
       managingN: '{n} ausgewählte Kampagne(n)', managingAll: 'alle geeigneten Kampagnen auf {platforms}', managingNone: 'Noch keine Kampagnen.',
@@ -287,7 +287,7 @@
       newRule: 'Nouvelle règle', newSchedule: 'Planifier une campagne', pauseAll: 'Mettre toutes les automatisations en pause', resumeAll: 'Reprendre toutes les automatisations', settings: 'Paramètres',
       stRunning: 'Actif', stPausedAll: 'Toutes les automatisations en pause', stKilled: 'Mis en pause par OrivenAI', stNoJobs: 'Ne tourne pas sur ce serveur', stChecks: 'règles vérifiées toutes les {h}',
       hours: '{n} h', minutes: '{n} min',
-      tActive: 'Actives', tScheduled: 'Actions planifiées', tApprovals: 'En attente d’approbation', tDone: 'Effectuées · 7 jours', tFailed: 'Échouées · 7 jours',
+      tActive: 'Actives', tPaused: 'En pause', tScheduled: 'Actions planifiées', tApprovals: 'En attente d’approbation', tDone: 'Effectuées · 7 jours', tFailed: 'Échouées · 7 jours',
       approvalsH: 'En attente de votre approbation', approve: 'Approuver', reject: 'Refuser', expiresIn: 'expire {when}', whyLine: 'Pourquoi : {why}',
       nextRunH: 'Prochaine action planifiée', nextRunNone: 'Rien de planifié.', lastCheckH: 'Dernière vérification', lastCheckNever: 'Aucune vérification n’a encore eu lieu.', managingH: 'Gère',
       managingN: '{n} campagne(s) sélectionnée(s)', managingAll: 'toutes les campagnes éligibles sur {platforms}', managingNone: 'Pas encore de campagnes.',
@@ -372,7 +372,7 @@
       newRule: 'Nueva regla', newSchedule: 'Programar campaña', pauseAll: 'Pausar todas las automatizaciones', resumeAll: 'Reanudar todas las automatizaciones', settings: 'Ajustes',
       stRunning: 'Activo', stPausedAll: 'Todas las automatizaciones en pausa', stKilled: 'Pausado por OrivenAI', stNoJobs: 'No se ejecuta en este servidor', stChecks: 'reglas revisadas cada {h}',
       hours: '{n} h', minutes: '{n} min',
-      tActive: 'Activas', tScheduled: 'Acciones programadas', tApprovals: 'Pendientes de aprobación', tDone: 'Hechas · 7 días', tFailed: 'Fallidas · 7 días',
+      tActive: 'Activas', tPaused: 'En pausa', tScheduled: 'Acciones programadas', tApprovals: 'Pendientes de aprobación', tDone: 'Hechas · 7 días', tFailed: 'Fallidas · 7 días',
       approvalsH: 'Necesita tu aprobación', approve: 'Aprobar', reject: 'Rechazar', expiresIn: 'caduca {when}', whyLine: 'Motivo: {why}',
       nextRunH: 'Próxima acción programada', nextRunNone: 'Nada programado.', lastCheckH: 'Última revisión', lastCheckNever: 'Todavía no se ha revisado nada.', managingH: 'Gestiona',
       managingN: '{n} campaña(s) seleccionada(s)', managingAll: 'todas las campañas aptas en {platforms}', managingNone: 'Todavía no hay campañas.',
@@ -457,7 +457,7 @@
       newRule: 'Nova regra', newSchedule: 'Agendar campanha', pauseAll: 'Pausar todas as automações', resumeAll: 'Retomar todas as automações', settings: 'Configurações',
       stRunning: 'Ativo', stPausedAll: 'Todas as automações pausadas', stKilled: 'Pausado pela OrivenAI', stNoJobs: 'Não está rodando neste servidor', stChecks: 'regras verificadas a cada {h}',
       hours: '{n} h', minutes: '{n} min',
-      tActive: 'Ativas', tScheduled: 'Ações agendadas', tApprovals: 'Aguardando aprovação', tDone: 'Concluídas · 7 dias', tFailed: 'Com falha · 7 dias',
+      tActive: 'Ativas', tPaused: 'Em pausa', tScheduled: 'Ações agendadas', tApprovals: 'Aguardando aprovação', tDone: 'Concluídas · 7 dias', tFailed: 'Com falha · 7 dias',
       approvalsH: 'Precisa da sua aprovação', approve: 'Aprovar', reject: 'Recusar', expiresIn: 'expira {when}', whyLine: 'Motivo: {why}',
       nextRunH: 'Próxima ação agendada', nextRunNone: 'Nada agendado.', lastCheckH: 'Última verificação', lastCheckNever: 'Nenhuma verificação foi feita ainda.', managingH: 'Gerencia',
       managingN: '{n} campanha(s) selecionada(s)', managingAll: 'todas as campanhas elegíveis em {platforms}', managingNone: 'Ainda não há campanhas.',
@@ -718,7 +718,7 @@
     var html = '';
     var main = '', rail = '';
     if (!A.automations.length) main += emptyIntro();
-    html += '<div class="atm-tiles">' + tile(T('tActive'), c.active || 0, c.active ? 'live' : null) + tile(T('tScheduled'), c.scheduled || 0) + tile(T('tApprovals'), c.pendingApprovals || 0, c.pendingApprovals ? 'warn' : null) + tile(T('tDone'), c.completed7d || 0) + tile(T('tFailed'), c.failed7d || 0, c.failed7d ? 'bad' : null) + '</div>';
+    html += '<div class="atm-tiles">' + tile(T('tActive'), c.active || 0, c.active ? 'live' : null) + tile(T('tPaused'), c.paused || 0) + tile(T('tScheduled'), c.scheduled || 0) + tile(T('tApprovals'), (c.pendingApprovals || 0) + (c.needsReview || 0), (c.pendingApprovals || c.needsReview) ? 'warn' : null) + tile(T('tDone'), c.completed7d || 0) + tile(T('tFailed'), c.failed7d || 0, c.failed7d ? 'bad' : null) + '</div>';
     if (A.approvals.length) main += '<div class="atm-card"><h2 class="atm-h2">' + esc(T('approvalsH')) + '</h2>' + A.approvals.map(approvalCard).join('') + '</div>';
     var nx = o.nextRun;
     var managing = c.managedCampaigns || c.accountWide && c.accountWide.length ? [c.managedCampaigns ? T('managingN', { n: c.managedCampaigns }) : '', c.accountWide && c.accountWide.length ? T('managingAll', { platforms: c.accountWide.map(platName).join(', ') }) : ''].filter(Boolean).join(' · ') : T('managingNone');
@@ -769,12 +769,13 @@
   }
   function scheduler() {
     var list = A.automations.filter(function (a) { return a.kind === 'schedule'; });
-    var html = list.length ? '<div class="atm-list">' + list.map(autoCard).join('') + '</div>'
-      : '<div class="atm-card atm-empty"><h2>' + esc(T('schedEmptyH')) + '</h2><p>' + esc(T('schedEmptyP')) + '</p><button type="button" class="atm-btn atm-btn-primary" data-au="new-schedule">' + esc(T('newSchedule')) + '</button></div>';
-    html += '<div class="atm-card"><h2 class="atm-h2">' + esc(T('upcomingH')) + '</h2>' + (A.jobs.length ? '<ul class="atm-jobs">' + A.jobs.slice(0, 50).map(function (j) {
+    // Two columns: the schedules, and the upcoming runs beside them (not stacked full width).
+    var html = '<div class="atm-split"><div class="atm-split-main">' + (list.length ? '<div class="atm-list atm-list-tight">' + list.map(autoCard).join('') + '</div>'
+      : '<div class="atm-card atm-empty"><h2>' + esc(T('schedEmptyH')) + '</h2><p>' + esc(T('schedEmptyP')) + '</p><button type="button" class="atm-btn atm-btn-primary" data-au="new-schedule">' + esc(T('newSchedule')) + '</button></div>');
+    html += '</div><div class="atm-card atm-split-side"><h2 class="atm-h2">' + esc(T('upcomingH')) + '</h2>' + (A.jobs.length ? '<ul class="atm-jobs">' + A.jobs.slice(0, 50).map(function (j) {
       return '<li><span class="atm-job-when">' + esc(localWhen(j.local_time, j.timezone)) + '<span class="atm-muted"> · ' + esc(rel(j.run_at)) + '</span></span><span class="atm-job-what">' + esc(T('act.' + j.action)) + ' · ' + esc(j.campaign_name || j.campaign_id) + ' <span class="atm-muted">(' + esc(platName(j.platform)) + ')</span></span>' +
         '<button type="button" class="atm-link atm-danger" data-au="cancel-job" data-id="' + esc(j.id) + '">' + esc(T('cancelRun')) + '</button></li>';
-    }).join('') + '</ul>' : '<p class="atm-muted">' + esc(T('upcomingNone')) + '</p>') + '</div>';
+    }).join('') + '</ul>' : '<p class="atm-muted">' + esc(T('upcomingNone')) + '</p>') + '</div></div>';
     return html;
   }
   var EX = { completed: 'exCompleted', failed: 'exFailed', partial: 'exPartial', skipped: 'exSkipped', pending_approval: 'exPending', running: 'exRunning', cancelled: 'exCancelled', scheduled: 'exScheduled' };
