@@ -119,38 +119,53 @@ body:not(.dark-mode) .orv-agent-pick { border-color: var(--border); }
 .orv-agent-picker.is-asking .orv-agent-picker-list { outline: 2px solid var(--green, #B7FF2A); outline-offset: 4px; border-radius: 10px; }
 .orv-ai-input:disabled { cursor: not-allowed; opacity: .7; }
 
-/* ── Launcher shape + collapse (2026-11-18) ──────────────────────
-   Rounded, but not a circle or pill: soft corners with one straighter
-   corner toward the screen edge, a little larger than before. The chevron
-   (#orvAiTuck, js/aiDock.js) sits beside it; collapsed, the launcher slides
-   out to the right and only the chevron stays in the corner. */
-.orv-ai-fab { right: 52px; border-radius: 14px 14px 4px 14px; padding: 11px 18px 11px 13px; min-height: 44px;
-  transition: transform .28s cubic-bezier(.22, .61, .36, 1), opacity .2s ease, box-shadow .18s, border-color .18s; }
-.orv-ai-fab.orv-agent-on { padding: 10px 18px 10px 12px; }
+/* ── Assistant launcher panel (#orvAiDock, js/aiDock.js) ─────────────
+   One panel, all four corners rounded: the arrow (#orvAiTuck) is attached to
+   its left side, the launcher (#orvAiFab) fills the rest. The panel draws the
+   background, border and shadow; the two buttons inside are transparent.
+   Collapsed, the WHOLE panel (arrow included) slides right until only the
+   arrow is left, flush against the screen edge; expanding slides it back. */
+.orv-ai-dock {
+  --dock-gap: 24px; --dock-arrow: 30px;
+  position: fixed; right: var(--dock-gap); bottom: 24px; z-index: 200;
+  display: flex; align-items: stretch; min-height: 46px;
+  border-radius: 14px; overflow: hidden;
+  background: #121311; border: 1px solid rgba(var(--orv-agent-rgb, 255, 255, 255), .32);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .35);
+  transition: transform .34s cubic-bezier(.22, .61, .36, 1), border-color .18s, box-shadow .18s;
+}
+.orv-ai-dock:hover { border-color: rgba(var(--orv-agent-rgb, 255, 255, 255), .6); }
+body:not(.dark-mode) .orv-ai-dock { background: #fff; box-shadow: 0 6px 22px rgba(0, 0, 0, .12); border-color: rgba(0, 0, 0, .12); }
+.orv-ai-dock .orv-ai-fab, .orv-ai-dock .orv-ai-fab.orv-agent-on {
+  position: static; inset: auto; transform: none !important; margin: 0;
+  border: 0; border-radius: 0; background: transparent !important; box-shadow: none !important;
+  padding: 10px 18px 10px 12px; min-height: 0;
+}
+.orv-ai-dock .orv-ai-fab:hover { transform: none; box-shadow: none; }
+.orv-ai-dock .orv-ai-fab:focus-visible { outline: 2px solid var(--green, #B6FF3B); outline-offset: -3px; }
 .orv-agent-fab-glyph { border-radius: 8px; }
 .orv-ai-tuck {
-  position: fixed; right: 16px; bottom: 24px; z-index: 201;
-  display: grid; place-items: center; width: 28px; height: 44px; padding: 0;
-  border: 1px solid rgba(255, 255, 255, .14); border-radius: 10px 4px 4px 10px;
-  background: #121311; color: rgba(255, 255, 255, .72); cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
-  transition: background .15s, color .15s, transform .28s cubic-bezier(.22, .61, .36, 1);
+  flex: 0 0 var(--dock-arrow); display: grid; place-items: center; width: var(--dock-arrow); padding: 0;
+  border: 0; border-right: 1px solid rgba(255, 255, 255, .1); border-radius: 0;
+  background: rgba(255, 255, 255, .03); color: rgba(255, 255, 255, .7); cursor: pointer;
+  transition: background .15s, color .15s;
 }
-.orv-ai-tuck:hover { background: #1A1C19; color: #fff; }
-.orv-ai-tuck:focus-visible { outline: 2px solid var(--green, #B6FF3B); outline-offset: 2px; }
-.orv-ai-tuck svg { transition: transform .28s cubic-bezier(.22, .61, .36, 1); }
-body:not(.dark-mode) .orv-ai-tuck { background: #fff; color: #3A3B37; border-color: rgba(0, 0, 0, .12); box-shadow: 0 6px 18px rgba(0, 0, 0, .12); }
-/* Collapsed: the launcher leaves the screen to the right; the chevron (pointing left) stays. */
-html.orv-ai-tucked .orv-ai-fab { transform: translateX(calc(100% + 72px)); opacity: 0; pointer-events: none; }
+.orv-ai-tuck:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+.orv-ai-tuck:focus-visible { outline: 2px solid var(--green, #B6FF3B); outline-offset: -3px; }
+.orv-ai-tuck svg { transition: transform .34s cubic-bezier(.22, .61, .36, 1); }
+body:not(.dark-mode) .orv-ai-tuck { background: rgba(0, 0, 0, .03); color: #3A3B37; border-right-color: rgba(0, 0, 0, .1); }
+/* Collapsed: the panel moves right by its own width minus the arrow, plus the gap to the edge,
+   so the arrow ends up flush against the right edge and the launcher is fully off-screen. */
+html.orv-ai-tucked .orv-ai-dock { transform: translateX(calc(100% - var(--dock-arrow) - 1px + var(--dock-gap))); }
 html.orv-ai-tucked .orv-ai-tuck svg { transform: rotate(180deg); }
-/* Hidden together: when the launcher is hidden (panel open, chat off, printing), so is the chevron. */
-.orv-ai-fab.orv-ai-fab-hidden ~ .orv-ai-tuck, body.orv-no-chat .orv-ai-tuck, body.op-printing .orv-ai-tuck { display: none; }
+/* Hidden together: when the launcher is hidden (panel open, chat off, printing), so is the whole panel. */
+.orv-ai-dock:has(.orv-ai-fab-hidden), body.orv-no-chat .orv-ai-dock, body.op-printing .orv-ai-dock { display: none; }
 @media (max-width: 640px) {
-  .orv-ai-fab { bottom: 16px; right: 44px; min-height: 40px; }
-  .orv-ai-tuck { right: 10px; bottom: 16px; width: 26px; height: 40px; }
+  .orv-ai-dock { --dock-gap: 16px; --dock-arrow: 28px; bottom: 16px; min-height: 42px; }
+  .orv-ai-dock .orv-ai-fab, .orv-ai-dock .orv-ai-fab.orv-agent-on { padding: 8px 14px 8px 10px; }
 }
-@media (prefers-reduced-motion: reduce) { .orv-ai-fab, .orv-ai-tuck, .orv-ai-tuck svg { transition: none; } }
-@media print { .orv-ai-tuck { display: none; } }
+@media (prefers-reduced-motion: reduce) { .orv-ai-dock, .orv-ai-tuck svg { transition: none; } }
+@media print { .orv-ai-dock { display: none; } }
 /* In the demo (/demo-app opened directly) the demo bar runs along the bottom on phones:
-   the launcher and its control sit above it so both stay reachable. */
-@media (max-width: 640px) { body:has(.orv-demo-bar) .orv-ai-fab, body:has(.orv-demo-bar) .orv-ai-tuck { bottom: calc(80px + env(safe-area-inset-bottom)); } }
+   the launcher panel sits above it so it stays reachable. */
+@media (max-width: 640px) { body:has(.orv-demo-bar) .orv-ai-dock { bottom: calc(80px + env(safe-area-inset-bottom)); } }
