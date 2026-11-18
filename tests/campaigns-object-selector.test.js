@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════
-// Campaigns — Object Selector / Metric Explorer / Campaign Replay
+// Campaigns — Object Selector / Metric Explorer (Campaign Replay left Campaign Overview on 2026-11-18)
 // (Campaigns Composition pass)
 //
 // Verifies the PROVIDER -> HIERARCHY -> SPECIFIC OBJECT -> DATE RANGE ->
@@ -137,7 +137,8 @@ async function main() {
       await page.evaluate(() => { _orvNav('performance', 'page-performance'); });
       await page.waitForTimeout(900);
       const disc = await page.evaluate(() => ({
-        bannerVisible: getComputedStyle(document.getElementById('prfConnectBanner')).display !== 'none',
+        bannerGone: !document.getElementById('prfConnectBanner'),
+        periodText: (document.getElementById('ovtPeriod') || {}).textContent || '',
         oldLiveWrapGone: !document.getElementById('admGLiveWrap'),
         oldAdSetsWrapGone: !document.getElementById('prfAdSetsWrap'),
         oldPillSelectorGone: !document.getElementById('prfMetricSelector'),
@@ -146,7 +147,7 @@ async function main() {
       check('1. The removed Live Campaigns browser (admGLiveWrap) does not exist anywhere in Campaigns', disc.oldLiveWrapGone);
       check('1b. The removed Ad Sets/Ads browser tables do not exist anywhere in Campaigns', disc.oldAdSetsWrapGone);
       check('1c. The old giant metric-pill field does not exist', disc.oldPillSelectorGone);
-      check('2. Disconnected: connect banner dominates, real next action, no fake selectors populated', disc.bannerVisible);
+      check('2. Disconnected: no separate banner; the comparison names the platform to connect, no fake selectors populated', disc.bannerGone && /Connect .+ to compare periods/.test(disc.periodText), disc);
       check('JS errors (disconnected)', jsErrors.length === 0, jsErrors);
       await page.close();
     }
@@ -165,11 +166,11 @@ async function main() {
       const zero = await page.evaluate(() => ({
         campSelectOptions: Array.from(document.getElementById('prfCampSelect').options).map((o) => o.textContent),
         campSelectDisabled: document.getElementById('prfCampSelect').disabled,
-        replayText: document.getElementById('prfReplaySection').textContent,
+        replayGone: !document.getElementById('prfReplaySection') && !document.getElementById('prfReplayToggleBtn') && typeof window._prfToggleReplay === 'undefined',
       }));
       check('4. Connected but zero real campaigns: object selector shows only the honest "All Campaigns" aggregate, no fabricated object', JSON.stringify(zero.campSelectOptions) === JSON.stringify(['All Campaigns']));
       check('4b. Zero campaigns: object selector is disabled (nothing real to select)', zero.campSelectDisabled);
-      check('4c. Zero campaigns: Replay shows an honest "no activity" message, never "here are your campaigns" framing', /No recorded activity/.test(zero.replayText) && !/here are your campaigns/i.test(zero.replayText));
+      check('4c. Campaign Replay is no longer part of Campaign Overview', zero.replayGone);
       await page.close();
     }
 
@@ -190,13 +191,13 @@ async function main() {
         activeMetric: window._prfActiveMetric,
         explorerTileCount: document.querySelectorAll('#prfExplorerGrid .prf-explorer-tile').length,
         activeExplorerTile: (document.querySelector('#prfExplorerGrid .prf-explorer-tile-active') || {}).getAttribute && document.querySelector('#prfExplorerGrid .prf-explorer-tile-active').getAttribute('data-metric'),
-        replayItems: Array.from(document.querySelectorAll('#prfReplayList .prf-ra-title')).map((el) => el.textContent),
+        replayGone: !document.getElementById('prfReplaySection') && !document.getElementById('prfReplayToggleBtn') && typeof window._prfToggleReplay === 'undefined',
       }));
       check('5. Google: object level offers Campaigns only (no fabricated Ad Sets/Ads — Google has no such endpoint)', JSON.stringify(m.hierOptions) === JSON.stringify(['campaigns']), m.hierOptions);
       check('6. Object selector contains real campaign names for the selected provider', m.campSelectOptions.includes('Summer Acquisition') && m.campSelectOptions.includes('Brand Search'), m.campSelectOptions);
       check('7. Exactly one primary graph renders (the removed two-graph system stays removed)', m.oneGraph, m);
       check('8. The Metric Explorer shows every real Google-supported metric, and its active tile matches the graph\'s active metric (one shared source of truth)', m.explorerTileCount > 5 && m.activeExplorerTile === m.activeMetric, m);
-      check('9. Campaign Replay shows real matched events for the account (aggregate view)', m.replayItems.length === 2, m.replayItems);
+      check('9. No Campaign Replay panel in Campaign Overview', m.replayGone, m);
 
       // Select a specific campaign -> the real underlying KPI computation
       // (which the graph's historical fetch and the Metric Explorer's
@@ -205,10 +206,8 @@ async function main() {
       await page.waitForTimeout(900);
       const afterSelect = await page.evaluate(() => ({
         spendKpi: window._prfLastKpis && window._prfLastKpis.spend,
-        replayItems: Array.from(document.querySelectorAll('#prfReplayList .prf-ra-title')).map((el) => el.textContent),
       }));
       check('10. Selecting a specific object narrows the real underlying KPI computation to its own numbers (not the aggregate)', afterSelect.spendKpi === 412.5, afterSelect);
-      check('11. Campaign Replay narrows to the selected object\'s own real matched events', afterSelect.replayItems.length === 2, afterSelect.replayItems);
 
       // Click a Metric Explorer tile (the ONE remaining metric-selection
       // mechanism — Campaigns Final Cleanup pass removed the graph's own
@@ -296,12 +295,11 @@ async function main() {
         campSelectOptions: Array.from(document.getElementById('prfCampSelect').options).map((o) => o.textContent),
         label: document.getElementById('prfCampSelect').title,
         chartText: document.getElementById('prfChartsGrid').textContent,
-        replayText: document.getElementById('prfReplaySection').textContent,
       }));
       check('17. Ad Set level shows real ad sets (not campaign names mislabeled as ad sets)', metaAdSets.campSelectOptions.includes('Lookalike 1%') && metaAdSets.campSelectOptions.includes('Interest Stack') && !metaAdSets.campSelectOptions.includes('Meta Retargeting'), metaAdSets.campSelectOptions);
       check('17b. Ad Set level object selector label reflects the level ("Select ad set")', /select ad set/i.test(metaAdSets.label), metaAdSets.label);
       check('18. Ad Set level: the graph honestly says historical data isn\'t available there (never a fabricated line, never silently reusing the Campaigns-level chart)', /Data not available for this level/i.test(metaAdSets.chartText), metaAdSets);
-      check('19. Ad Set level Campaign Replay honestly says it\'s unavailable at this level (real event correlation is campaign-name-only)', /isn.t available at the Ad Sets level/i.test(metaAdSets.replayText), metaAdSets.replayText);
+      check('19. (Campaign Replay removed from Campaign Overview: nothing to check at the Ad Set level)', true, metaAdSets.replayText);
 
       await page.selectOption('#prfHierarchySelect', 'ads');
       await page.waitForTimeout(900);
@@ -360,11 +358,8 @@ async function main() {
       await page.waitForTimeout(900);
       await page.selectOption('#prfCampSelect', 'Brand Search'); // has no matching events in the fixture
       await page.waitForTimeout(500);
-      const emptyReplay = await page.evaluate(() => ({
-        items: document.querySelectorAll('#prfReplayList .prf-ra-item').length,
-        emptyText: document.getElementById('prfReplayEmpty').textContent,
-      }));
-      check('25. Campaign Replay honestly shows zero items for an object with no real matched events (never a fabricated event)', emptyReplay.items === 0 && /No recorded activity/.test(emptyReplay.emptyText), emptyReplay);
+      const emptyReplay = await page.evaluate(() => ({ gone: !document.getElementById('prfReplaySection') && !document.getElementById('prfReplayToggleBtn') && typeof window._prfToggleReplay === 'undefined' }));
+      check('25. Selecting an object shows no Campaign Replay (removed from Campaign Overview)', emptyReplay.gone, emptyReplay);
       await page.close();
     }
 
@@ -378,15 +373,15 @@ async function main() {
       const at1280 = await page.evaluate(() => {
         const row = document.getElementById('prfWorkspaceRow');
         const perf = document.getElementById('prfPerfCol').getBoundingClientRect();
-        const replay = document.getElementById('prfReplayCol').getBoundingClientRect();
+        const dash = document.getElementById('prfDash'), chart = document.querySelector('#prfDash .prf-chart-wrap').getBoundingClientRect(), period = document.getElementById('ovtPeriod').getBoundingClientRect();
         return {
           overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 2,
           flexDirection: getComputedStyle(row).flexDirection,
-          replayWidth: replay.width, perfWidth: perf.width,
+          graphBesidePeriod: Math.abs(chart.top - period.top) < 2 && chart.right <= period.left, graphWidth: chart.width, perfWidth: perf.width, dashW: dash.getBoundingClientRect().width,
         };
       });
       check('26. No horizontal overflow at 1280px', !at1280.overflow);
-      check('26b. The two-column workspace composition still holds at 1280px with a genuinely usable (not squeezed) Replay column', at1280.flexDirection === 'row' && at1280.replayWidth >= 300 && at1280.perfWidth > at1280.replayWidth, at1280);
+      check('26b. At 1280px the graph sits beside the period comparison (not full width)', at1280.graphBesidePeriod && at1280.graphWidth < at1280.dashW * 0.7 && at1280.perfWidth > 0, at1280);
       await page.close();
     }
     {
@@ -403,7 +398,7 @@ async function main() {
         explorerCols: (() => { const g = document.getElementById('prfExplorerGrid'); return g ? getComputedStyle(g).gridTemplateColumns.split(' ').length : null; })(),
       }));
       check('27. No horizontal overflow at 390px', !mobile.overflow);
-      check('27b. The workspace stacks deliberately at 390px (controls, graph, Metric Explorer, Replay in order — not squeezed side-by-side)', mobile.stacked);
+      check('27b. The workspace stacks deliberately at 390px (controls, metric cards, graph, comparisons — not squeezed side-by-side)', mobile.stacked);
       check('27c. The graph and both top selectors remain visible/usable at 390px', mobile.graphVisible && mobile.selectorsVisible, mobile);
       check('27d. The Metric Explorer grid compacts to at most 2 columns at 390px', mobile.explorerCols !== null && mobile.explorerCols <= 2, mobile.explorerCols);
       await page.close();

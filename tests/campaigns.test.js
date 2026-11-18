@@ -188,8 +188,6 @@ const server = app.listen(PORT, async () => {
     check('partial reporting is explained', /didn’t report every metric/.test(v.notice), v.notice);
     // Replay: events are matched by name — shared-name note
     await page.evaluate(() => prfSwitchCampaign('meta:m1')); await page.waitForTimeout(1200);
-    const replay = await page.evaluate(() => document.getElementById('prfReplayList').innerText);
-    check('Replay warns when another campaign shares the selected name', /same name/.test(replay), replay);
 
     // JPY: zero-decimal currency, budgets in minor units
     st.currency.meta = 'JPY'; st.metaRespCurrency = 'JPY';
@@ -322,7 +320,8 @@ const server = app.listen(PORT, async () => {
     await goCamps(page, { platform: 'meta' });
 
     // ── MARKUP ────────────────────────────────────────────────────
-    check('Replay markup exists once (no duplicate ids)', await page.evaluate(() => ['prfReplaySection', 'prfReplayList', 'prfReplayEmpty', 'prfReplayHd'].every((id) => document.querySelectorAll('#' + id).length === 1)));
+    const gone = await page.evaluate(() => ({ replay: ['prfReplaySection', 'prfReplayList', 'prfReplayEmpty', 'prfReplayToggleBtn'].filter((id) => document.getElementById(id)), banner: !!document.getElementById('prfConnectBanner'), header: !!document.querySelector('#orvHubTabsCampaigns .camp-shell-hdr'), angle: !!document.getElementById('ovtAngles'), replayFn: typeof window._prfToggleReplay, builder: !!(window.orvAppNav && window.orvAppNav.go) }));
+    check('Campaign Overview: no Campaign Replay, no green connect banner, no header block (title/subtitle/Campaign Builder link), no angle comparison', !gone.replay.length && !gone.banner && !gone.header && !gone.angle && gone.replayFn === 'undefined', gone);
     const modal = await page.evaluate(() => { prfOpenCustomize(); const t = document.getElementById('pcmPlatformNote').innerText; prfCloseCustomize(); return t; });
     check('Customize Metrics copy says "Campaigns", not "Campaign Overview"', /Campaigns shows for Meta Ads/.test(modal) && !/Campaign Overview/.test(modal), modal);
 
@@ -366,8 +365,8 @@ const server = app.listen(PORT, async () => {
     await goCamps(page);
     v = await view(page);
     await page.waitForTimeout(800);
-    const notConn = await page.evaluate(() => Array.from(document.querySelectorAll('#ovtRoot .ova-tile')).map((t) => t.querySelector('.ova-tile__v').textContent + ' | ' + t.querySelector('.ova-tile__d').textContent));
-    check('other account: nothing from the first account; the metric tiles say "Not connected" with a Connect link (the old banner is gone)', v.opts.length === 1 && notConn.length === 8 && notConn.every((x) => /^Not connected \| Connect /.test(x)), { v, notConn });
+    const notConn = await page.evaluate(() => ({ graph: (document.querySelector('#prfChartsGrid .prf-chart-lock') || {}).innerText || '', period: (document.getElementById('ovtPeriod') || {}).innerText || '', banner: !!document.getElementById('prfConnectBanner') }));
+    check('other account: nothing from the first account; the graph and the period comparison say which platform to connect (no separate banner)', v.opts.length === 1 && /Connect/i.test(notConn.graph) && /Connect .+ to compare periods/.test(notConn.period) && !notConn.banner, { v, notConn });
 
     const real = errors.filter((e) => !/supabase|Failed to fetch/i.test(e));
     check('no page errors', !real.length, real);

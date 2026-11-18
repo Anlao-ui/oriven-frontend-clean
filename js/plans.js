@@ -332,9 +332,10 @@ function orvIntroCta(){
   return o ? orvPlanT("Try 2 weeks for") + " " + o.priceLabel : null;
 }
 // Does a plan carry the money-back line? Every plan except the €1 trial plan.
+// The Refund Policy (§3) gives the 14-day money-back guarantee to the regular plans
+// (Monthly, Quarterly, Semi-Annual, Annual) only: never Flex, with or without the €1 offer.
 function orvPlanHasGuarantee(plan){
-  var o = ORIVEN_INTRO_OFFER;
-  return !(o && o.enabled && plan && plan.id === o.planId);
+  return !!(plan && plan.id !== "flex");
 }
 
 // Shared card facts, so the three card styles can't drift.

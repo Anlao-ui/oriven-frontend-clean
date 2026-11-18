@@ -98,9 +98,9 @@ async function main() {
       await page.evaluate(() => { _orvNav('performance', 'page-performance'); });
       await page.waitForTimeout(500);
       const hubTabs = await page.evaluate(() => Array.from(document.querySelectorAll('#orvHubTabsCampaigns .orv-hub-tab')).map((el) => el.textContent.trim()));
-      const hubTitle = await page.evaluate(() => document.querySelector('.camp-shell-title')?.textContent);
+      const hubTitle = await page.evaluate(() => document.getElementById('prfOvTitle')?.textContent);
       check('5. Campaigns hub tab strip no longer offers Overview/Live Campaigns/Insights as separate destinations (0 tabs -- one merged workspace)', hubTabs.length === 0, JSON.stringify(hubTabs));
-      check('5b. The merged workspace still identifies itself as "Campaigns"', hubTitle === 'Campaigns', hubTitle);
+      check('5b. The merged workspace identifies itself with one plain title, "Campaign Overview" (no header block)', hubTitle === 'Campaign Overview' && !(await page.$('#orvHubTabsCampaigns .camp-shell-hdr')), hubTitle);
 
       // ── 6. Insights is no longer a primary Campaigns destination (no tab
       // to click), but the real Intelligence functionality underneath is

@@ -1,9 +1,10 @@
 /* ════════════════════════════════════════════════════════════════
-   Campaign Overview metric tiles (#ovtRoot, js/overviewTiles.js) and
-   Platform Comparison (#ccmRoot, js/campaignComparison.js), charts from
+   Campaign Overview (metric cards #prfExplorerGrid, the selected metric's
+   graph and the comparison cards #ovtPeriod / #ovtAds, js/overviewCompare.js)
+   and Platform Comparison (#ccmRoot, js/campaignComparison.js), charts from
    js/orvAnalytics.js. One spacing scale, one radius, one surface:
      space 4 · 8 · 12 · 16 · 24 · 32   radius 14 (cards) / 10 (controls) / 999 (pills)
-   Grids: 4 columns desktop, 2 tablet, 1 mobile. Electric Lime = "best";
+   Platform Comparison: table on desktop, stacked cards from tablet down. Electric Lime = "best";
    platform colours only for series. App is dark-only.
    ════════════════════════════════════════════════════════════════ */
 :root {
@@ -15,9 +16,47 @@
   --a-lime: #B6FF3B; --a-good: #8EE07A; --a-bad: #FF9A85;
 }
 
-/* The old single chart, metric explorer and connect banner are replaced by the tiles. */
-#page-performance #prfConnectBanner, #page-performance #prfChartsGrid, #page-performance #prfMetricExplorer, #page-performance #prfTikTokComing { display: none !important; }
-#page-performance #prfChartWrap { position: relative; }
+/* ── Campaign Overview ───────────────────────────────────────────
+   Metric cards: the existing compact cards, one even grid (no category
+   boxes of different widths), each card the same size. */
+#page-performance .prf-metric-explorer { margin-top: var(--a-s4); gap: var(--a-s2); }
+#page-performance #prfExplorerGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--a-s2); align-items: stretch; }
+#page-performance #prfExplorerGrid .prf-mgroup, #page-performance #prfExplorerGrid .prf-mgroup-tiles { display: contents; }
+#page-performance #prfExplorerGrid .prf-mgroup-h { display: none; }
+#page-performance #prfExplorerGrid .prf-explorer-tile { min-width: 0; min-height: 64px; }
+/* A subtle, muted dark-blue tint (same size, same grid); the selected card keeps its lime state. */
+body.dark-mode #page-performance #prfExplorerGrid .prf-explorer-tile:not(.prf-explorer-tile-active) { background: #111A26; border-color: rgba(120, 160, 220, .16); }
+body.dark-mode #page-performance #prfExplorerGrid .prf-explorer-tile:not(.prf-explorer-tile-active):hover { background: #152133; border-color: rgba(120, 160, 220, .26); }
+/* The page title: one line, no header block. */
+#prfPerfCol > .prf-ov-title { order: -3; flex: 0 0 100%; }
+.prf-ov-title { margin: 0 0 var(--a-s4); font-size: 22px; font-weight: 700; line-height: 1.2; letter-spacing: -.015em; color: var(--a-text); }
+/* The selected metric's graph next to the period comparison; ad vs ad below. */
+.prf-dash { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--a-s4); align-items: start; margin-top: var(--a-s4); color: var(--a-text); }
+.prf-dash-wide { grid-column: 1 / -1; }
+#prfDash .prf-chart-wrap, #prfDash .prf-charts-grid { margin: 0; min-width: 0; }
+#prfDash .prf-chart-card-primary { margin: 0; border-radius: var(--a-r); }
+@media (min-width: 1101px) { #prfDash .prf-chart-card-primary .prf-chart-body { height: 340px; } }
+.ovc-table th, .ovc-table td { padding-top: 6px; padding-bottom: 6px; }
+.ova-loading { padding: var(--a-s4) 0; font-size: 13px; color: var(--a-text-3); }
+button.ova-link { padding: 0; border: 0; background: none; font: inherit; font-weight: 600; }
+.ovc-custom { display: flex; flex-wrap: wrap; gap: var(--a-s3); margin-bottom: var(--a-s3); }
+.ovc-custom fieldset { display: flex; flex-wrap: wrap; align-items: center; gap: var(--a-s2); min-width: 0; margin: 0; padding: 0; border: 0; }
+.ovc-custom legend { float: left; margin-right: var(--a-s1); padding: 0; font-size: 12px; font-weight: 600; color: var(--a-text-3); }
+.ovc-custom .ova-date { min-width: 0; }
+#ovtPeriod .ova-sub { margin: 0 0 var(--a-s3); }
+.ovc-table th[scope="row"] { color: var(--a-text-2); }
+.ovc-table td, .ovc-table thead th:not(:first-child) { padding-left: var(--a-s3); text-align: right; white-space: nowrap; }
+.ovc-table td.is-good { color: var(--a-good); } .ovc-table td.is-bad { color: var(--a-bad); } .ovc-table td.is-flat, .ovc-table td.is-neutral { color: var(--a-text-2); }
+.ovc-table td.is-best { color: var(--a-lime); font-weight: 700; }
+.ovc-table tbody tr:last-child th, .ovc-table tbody tr:last-child td { border-bottom: 0; }
+.ovc-ads { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--a-s5); align-items: start; }
+.ovc-verdict { margin: 0 0 var(--a-s1); font-size: 14px; line-height: 1.55; color: var(--a-text-2); }
+.ovc-verdict b { color: var(--a-text); }
+.ovc-verdict.is-muted { margin-bottom: var(--a-s3); }
+.ovc-adtable { margin-top: var(--a-s3); }
+.ovc-adtable thead th { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+.ovc-vs { font-size: 12px; color: var(--a-text-3); }
+.ovc-sub-hd { margin-bottom: var(--a-s3); }
 
 .ova { display: flex; flex-direction: column; gap: var(--a-s4); margin-top: var(--a-s4); color: var(--a-text); }
 .ova-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--a-s4); }
@@ -39,33 +78,12 @@
 .ova-check input { accent-color: var(--a-lime); width: 16px; height: 16px; }
 .ova-link { color: var(--a-lime); font-weight: 600; cursor: pointer; text-decoration: none; }
 .ova-link:hover { text-decoration: underline; text-underline-offset: 3px; }
-.ova-select:focus-visible, .ova-date:focus-visible, .ova-btn:focus-visible, .ova-seg button:focus-visible, .ova-tile:focus-visible, .ova-check input:focus-visible, .pcm-x:focus-visible { outline: 2px solid var(--a-lime); outline-offset: 2px; }
+.ova-select:focus-visible, .ova-date:focus-visible, .ova-btn:focus-visible, .ova-seg button:focus-visible, .ova-link:focus-visible, .ova-check input:focus-visible, .pcm-x:focus-visible { outline: 2px solid var(--a-lime); outline-offset: 2px; }
 
-/* Metric tiles: 4 / 2 / 1 columns */
-.ova-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--a-s3); }
-.ova-tile { display: grid; grid-template-rows: auto auto auto 1fr; gap: var(--a-s1); min-height: 148px; padding: var(--a-s4); border-radius: var(--a-r); border: 1px solid var(--a-line); background: var(--a-surface); color: var(--a-text); text-align: left; font: inherit; cursor: pointer; transition: border-color .15s, background .15s; }
-.ova-tile:hover { border-color: var(--a-line-2); background: var(--a-surface-2); }
-.ova-tile.is-active { border-color: var(--a-text); }
-.ova-tile__n { font-size: 12.5px; font-weight: 600; letter-spacing: .02em; color: var(--a-text-2); }
-.ova-tile__v { font-size: clamp(22px, 2vw, 26px); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.ova-tile__d { font-size: 12px; color: var(--a-text-3); font-variant-numeric: tabular-nums; }
-.ova-tile__d.is-good { color: var(--a-good); } .ova-tile__d.is-bad { color: var(--a-bad); } .ova-tile__d.is-neutral { color: var(--a-text-2); }
-.ova-tile__s { align-self: end; display: block; height: 40px; }
-.ova-tile.is-empty .ova-tile__v { color: var(--a-text-3); }
-.ova-tile.is-loading .ova-tile__v, .ova-tile.is-loading .ova-tile__d { width: 60%; border-radius: 6px; background: var(--a-surface-2); }
-.ova-spark { display: block; width: 100%; height: 40px; overflow: visible; }
-.ova-spark__line { fill: none; stroke: var(--a-text); stroke-width: 1.6; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.ova-spark__area { fill: rgba(242, 242, 240, .07); stroke: none; }
-.ova-spark circle { fill: var(--a-text); }
-.ova-spark.is-empty line { stroke: var(--a-line); stroke-dasharray: 3 4; }
-
-/* Detail chart + comparison cards */
-.ova-detail, .ova-card { padding: var(--a-s4); border-radius: var(--a-r); border: 1px solid var(--a-line); background: var(--a-surface); }
-.ova-detail__hd, .ova-card__hd { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--a-s3); margin-bottom: var(--a-s4); }
+/* Cards */
+.ova-card { padding: var(--a-s4); border-radius: var(--a-r); border: 1px solid var(--a-line); background: var(--a-surface); }
+.ova-card__hd { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--a-s3); margin-bottom: var(--a-s4); }
 .ova-card__hd h4 { margin: 0; font-size: 14px; font-weight: 600; }
-.ova-detail__body { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: var(--a-s5); align-items: start; }
-.ova-cmp { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--a-s3); }
-#ovtAngles { grid-column: 1 / -1; }
 .ova-empty { padding: var(--a-s4); border-radius: var(--a-r-sm); border: 1px dashed var(--a-line-2); color: var(--a-text-2); font-size: 13.5px; line-height: 1.55; }
 .ova-empty b { color: var(--a-text); }
 .ova-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--a-s3); margin-bottom: var(--a-s4); }
@@ -156,26 +174,29 @@
 
 /* Tablet */
 @media (max-width: 1100px) {
-  .ova-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ova-detail__body { grid-template-columns: minmax(0, 1fr); }
+  .prf-dash, .ovc-ads { grid-template-columns: minmax(0, 1fr); }
   .pcm-two { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 900px) {
-  .ova-cmp { grid-template-columns: minmax(0, 1fr); }
   .pcm-table-wrap { display: none; }
   .pcm-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--a-s3); }
 }
 /* Mobile */
 @media (max-width: 600px) {
-  .ova-grid { grid-template-columns: minmax(0, 1fr); }
-  .ova-tile { min-height: 0; grid-template-columns: minmax(0, 1fr) 120px; grid-template-rows: auto auto auto; column-gap: var(--a-s3); }
-  .ova-tile__s { grid-column: 2; grid-row: 1 / 4; align-self: center; }
-  .ova-head { flex-direction: column; }
+  #page-performance #prfExplorerGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Comparison tables become one block per metric */
+  .ovc-table thead { display: none; }
+  .ovc-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--a-s1) var(--a-s3); padding: var(--a-s3) 0; border-bottom: 1px solid var(--a-line); }
+  .ovc-table tbody tr:last-child { border-bottom: 0; }
+  .ovc-table tbody th[scope="row"] { grid-column: 1 / -1; padding: 0; border: 0; color: var(--a-text); font-weight: 600; }
+  .ovc-table tbody td { padding: 0; border: 0; text-align: left; white-space: normal; }
+  .ovc-table tbody td::before { content: attr(data-l); display: block; font-size: 11.5px; font-weight: 500; color: var(--a-text-3); }
+  .ovc-custom fieldset { width: 100%; }
+  .ovc-custom .ova-date { flex: 1 1 130px; }
   .ova-kpis { grid-template-columns: minmax(0, 1fr); }
   .pcm-cards { grid-template-columns: minmax(0, 1fr); }
   .pcm-bar { flex-direction: column; align-items: stretch; }
   .pcm-picker .ova-select { min-width: 0; width: 100%; }
   .ova-pair { grid-template-columns: 76px minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .ova-tile { transition: none; } }
 .ova-tip[hidden], .ova-cross[hidden] { display: none; }

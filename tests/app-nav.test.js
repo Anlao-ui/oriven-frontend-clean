@@ -259,8 +259,9 @@ const server = app.listen(PORT, async () => {
     const mcx = await page.evaluate(() => ({ on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv, page: document.querySelector('.page.active').id, h1: (document.querySelector('#mclRoot h1') || {}).textContent, empty: !!document.querySelector('#mclRoot .mcl-empty[data-state="empty"]') }));
     check('2.7 My Content is still a real page; this account has nothing saved: an empty state, no sample content; Create stays highlighted', mcx.page === 'page-my-content' && mcx.h1 === 'My Content' && mcx.empty && mcx.on === 'create', mcx);
     await page.click('.orv-sb .onv-item[data-onv="overview"]'); await page.waitForTimeout(600);
-    check('2.8a Campaign Overview links to Campaign Builder', await page.isVisible('#orvHubTabsCampaigns a.orv-related[data-orv-go="campaign-builder"]'));
-    await page.click('#orvHubTabsCampaigns a.orv-related[data-orv-go="campaign-builder"]'); await page.waitForTimeout(500);
+    check('2.8a Campaign Overview is analytics only: no header block with the Campaign Builder link', !(await page.$('#orvHubTabsCampaigns .camp-shell-hdr, #orvHubTabsCampaigns a.orv-related[data-orv-go="campaign-builder"]')));
+    // Campaign Builder itself is unchanged and still opens from the rest of the app (Creative Testing, Audience Builder, plan tasks).
+    await page.evaluate(() => window.orvAppNav.go('builder')); await page.waitForTimeout(500);
     const cb = await page.evaluate(() => ({ rows: Array.from(document.querySelectorAll('.onv-cb__list li b')).map((b) => b.textContent), on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv }));
     check('2.8 Campaign Builder lists the account’s real campaigns to open; Campaign Overview stays highlighted', JSON.stringify(cb.rows) === '["Spring candles — Meta"]' && cb.on === 'overview', cb);
     await page.click('.onv-cb__list [data-onv-open="c-draft"]'); await page.waitForTimeout(800);
@@ -622,7 +623,7 @@ const server = app.listen(PORT, async () => {
       });
       check('15.1 Dashboard at 1440×900: one screen (no page scroll), nothing scrolls inside a card, the greeting and status line are a card', dash.inner.length === 0 && dash.pageScroll <= 1 && dash.greetingCard, dash);
       const notCard = [], wide = [];
-      for (const id of ['plan', 'progress', 'research', 'insights', 'create', 'testing', 'adstudio', 'audiences', 'overview', 'compare', 'auto-overview', 'auto-scheduler', 'auto-rules', 'auto-activity']) {
+      for (const id of ['plan', 'progress', 'research', 'insights', 'create', 'testing', 'adstudio', 'audiences', 'compare', 'auto-overview', 'auto-scheduler', 'auto-rules', 'auto-activity']) {
         await p10.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p10.waitForTimeout(id.startsWith('auto') ? 1100 : 900);
         const r = await p10.evaluate(() => {
           const vis = (e) => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden';
@@ -634,7 +635,11 @@ const server = app.listen(PORT, async () => {
         if (!r.card) notCard.push(id + ': ' + r.title);
         if (r.overflow > 0 || (r.card && (r.right > 40))) wide.push(Object.assign({ id }, r));
       }
-      check('15.2 every app page shows its title in a card', notCard.length === 0, notCard);
+      // Campaign Overview: a plain one-line title, deliberately no header card (requested 2026-11-18).
+      check('15.2 every app page shows its title in a card (Campaign Overview: a plain title only)', notCard.length === 0, notCard);
+      await p10.click('.orv-sb .onv-item[data-onv="overview"]'); await p10.waitForTimeout(900);
+      const ovt = await p10.evaluate(() => { const h = document.getElementById('prfOvTitle'); return { text: h && h.textContent.trim(), tag: h && h.tagName, header: !!document.querySelector('#orvHubTabsCampaigns .camp-shell-hdr') }; });
+      check('15.2b Campaign Overview: just the title "Campaign Overview" above the metric cards (no header block, subtitle or buttons)', ovt.text === 'Campaign Overview' && ovt.tag === 'H1' && !ovt.header, ovt);
       check('15.3 title cards reach the right side of the page (narrow frame, no wide empty margin); no page scrolls sideways', wide.length === 0, wide);
       await c10.close();
     }

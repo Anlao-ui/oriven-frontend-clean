@@ -1,6 +1,7 @@
 // ════════════════════════════════════════════════════════════════
-// Campaign Overview metric tiles (js/overviewTiles.js) and Platform
-// Comparison (js/campaignComparison.js), on js/orvAnalytics.js.
+// Campaign Overview (metric cards, the selected metric's graph, period and
+// ad-vs-ad comparisons: js/overviewCompare.js) and Platform Comparison
+// (js/campaignComparison.js), on js/orvAnalytics.js.
 // Runs in the demo app (/demo-app: js/demo-mode.js answers every request
 // with sample data for all five platforms), so no backend is needed.
 // Fenced (tests/_fence.js): only this test's static server is reachable.
@@ -42,57 +43,76 @@ const srv = http.createServer((q, r) => {
     return { ctx, p };
   }
   const go = async (p, id, ms) => { await p.evaluate((x) => window.orvAppNav.go(x), id); await p.waitForTimeout(ms || 3000); };
-  const tiles = (p) => p.evaluate(() => Array.from(document.querySelectorAll('#ovtRoot .ova-tile')).map((t) => ({ k: t.getAttribute('data-ovt-metric'), n: t.querySelector('.ova-tile__n').textContent, v: t.querySelector('.ova-tile__v').textContent.trim(), d: t.querySelector('.ova-tile__d').textContent.trim(), spark: !!t.querySelector('.ova-spark__line'), empty: t.classList.contains('is-empty') })));
 
-  // ── A. Campaign Overview: tiles ──
+  // ── A. Campaign Overview ──
   let { ctx, p } = await boot();
   await go(p, 'overview', 4000);
-  const old = await p.evaluate(() => ['prfConnectBanner', 'prfChartsGrid', 'prfMetricExplorer'].map((id) => { const e = document.getElementById(id); return !e || getComputedStyle(e).display === 'none'; }));
-  check('the green "Connect your ad accounts" banner, the single big chart and the old metric list are gone', old.every(Boolean), old);
-  let t = await tiles(p);
-  check('eight tiles: Impressions, Clicks, CTR, Spend, Conversions, CPC, CPA, ROAS', t.map((x) => x.n).join() === 'Impressions,Clicks,CTR,Spend,Conversions,CPC,CPA,ROAS', t.map((x) => x.n));
-  check('each tile: a value, the change vs the previous period and a sparkline', t.every((x) => x.v && x.v !== '—' && /vs previous period/.test(x.d) && x.spark), t);
-  const cols = await p.evaluate(() => getComputedStyle(document.querySelector('#ovtRoot .ova-grid')).gridTemplateColumns.split(' ').length);
-  check('desktop: 4 tiles per row', cols === 4, cols);
-  await p.screenshot({ path: path.join(SHOTS, 'tiles-desktop.png') });
+  const cards = (pg) => pg.evaluate(() => Array.from(document.querySelectorAll('#prfExplorerGrid .prf-explorer-tile')).map((t) => { const b = t.getBoundingClientRect(); return { id: t.getAttribute('data-metric'), n: t.querySelector('.prf-explorer-label').textContent.trim(), v: t.querySelector('.prf-explorer-val').textContent.trim(), w: Math.round(b.width), h: Math.round(b.height), active: t.classList.contains('prf-explorer-tile-active') }; }));
+  const gone = await p.evaluate(() => ({ banner: !!document.getElementById('prfConnectBanner'), replay: ['prfReplaySection', 'prfReplayToggleBtn'].filter((id) => document.getElementById(id)).length, header: !!document.querySelector('#orvHubTabsCampaigns .camp-shell-hdr'), angle: !!document.getElementById('ovtAngles'), tiles: !!document.getElementById('ovtRoot'), tiktokSoon: !!document.getElementById('prfTikTokComing') }));
+  check('removed: green connect banner, Campaign Replay, the header block (Campaigns / subtitle / Campaign Builder link), angle vs angle, the big tiles', !gone.banner && !gone.replay && !gone.header && !gone.angle && !gone.tiles && !gone.tiktokSoon, gone);
+  const top = await p.evaluate(() => { const h = document.getElementById('prfOvTitle'), g = document.getElementById('prfExplorerGrid'), t = document.querySelector('#prfExplorerGrid .prf-explorer-tile:not(.prf-explorer-tile-active)'); return { title: h && h.textContent, above: h && g && h.getBoundingClientRect().bottom <= g.getBoundingClientRect().top, bg: t && getComputedStyle(t).backgroundColor }; });
+  check('the title "Campaign Overview" above the cards; the cards have the muted dark-blue tint', top.title === 'Campaign Overview' && top.above && top.bg === 'rgb(17, 26, 38)', top);
+  let c = await cards(p);
+  const want = ['Impressions', 'Clicks', 'CTR', 'CPC', 'CPM', 'Spend', 'Conversions', 'Conversion Value', 'ROAS'];
+  check('Google Ads: compact metric cards with real values, incl. Impressions, Clicks, CTR, CPC, CPM, Spend, Conversions, Conversion value, ROAS', want.every((n) => c.some((x) => x.n.toLowerCase() === n.toLowerCase() && x.v && x.v !== '—')), c.map((x) => x.n + '=' + x.v));
+  const ws = new Set(c.map((x) => x.w)), hs = new Set(c.map((x) => x.h));
+  check('the cards are one even grid: all the same size, none wide (each ≤ 260px on desktop)', ws.size === 1 && hs.size === 1 && c[0].w <= 260, { ws: [...ws], hs: [...hs] });
+  // Clicking a card: that metric's graph, clearly selected, not full width
+  await p.click('#prfExplorerGrid [data-metric="ctr"]'); await p.waitForTimeout(1500);
+  let gr = await p.evaluate(() => { const card = document.querySelector('#prfChartsGrid .prf-chart-card'), dash = document.getElementById('prfDash'); return { title: (card.querySelector('.prf-chart-title') || {}).textContent, w: Math.round(card.getBoundingClientRect().width), dashW: Math.round(dash.getBoundingClientRect().width), locked: !!card.querySelector('.prf-lock-show'), bars: card.querySelectorAll('.prf-bars *').length }; });
+  c = await cards(p);
+  check('clicking the CTR card shows "CTR over time", the card stays highlighted, and the graph shares the row (not full width)', gr.title === 'CTR over time' && c.filter((x) => x.active).map((x) => x.id).join() === 'ctr' && gr.w < gr.dashW * 0.7 && !gr.locked && gr.bars > 0, { gr, active: c.filter((x) => x.active).map((x) => x.id) });
+  await p.click('#prfExplorerGrid [data-metric="cpc"]'); await p.waitForTimeout(1200);
+  check('…and the CPC card shows "CPC over time"', await p.evaluate(() => document.querySelector('#prfChartsGrid .prf-chart-title').textContent === 'CPC over time'));
+  await p.screenshot({ path: path.join(SHOTS, 'overview-desktop.png') });
 
-  // Detail chart
-  await p.click('#ovtRoot [data-ovt-metric="spend"]'); await p.waitForTimeout(1500);
-  let det = await p.evaluate(() => { const d = document.getElementById('ovtDetail'); return { shown: !d.hidden, title: (d.querySelector('.ova-h3') || {}).textContent, legend: Array.from(d.querySelectorAll('.ova-legend li')).map((l) => l.textContent), lines: d.querySelectorAll('.ova-line').length, rows: d.querySelectorAll('.ova-table tbody tr').length, range: (d.querySelector('[data-ovt-drange]') || {}).value }; });
-  check('clicking a tile opens the detail chart: one line per platform (5) and a per-platform table', det.shown && /Spend by platform/.test(det.title) && det.lines === 5 && det.legend.join() === 'Google,Meta,TikTok,Pinterest,Snapchat' && det.rows === 5, det);
-  await p.selectOption('#ovtDetail [data-ovt-drange]', 'LAST_7_DAYS'); await p.waitForTimeout(1500);
-  const days7 = await p.evaluate(() => { const s = document.querySelector('#ovtDetail .ova-chart__data'); return s ? JSON.parse(s.textContent).labels.length : 0; });
-  check('the detail chart has its own period (Last 7 days → 7 days)', days7 === 7, days7);
-  await p.hover('#ovtDetail .ova-chart__plot', { position: { x: 300, y: 80 } }); await p.waitForTimeout(200);
-  const tip = await p.evaluate(() => { const t = document.querySelector('#ovtDetail .ova-tip'); return t && !t.hidden ? t.innerText : ''; });
-  check('hovering the chart shows the day with every platform’s value', /Google/.test(tip) && /Snapchat/.test(tip), tip);
-  await p.screenshot({ path: path.join(SHOTS, 'detail.png') });
-  await p.click('#ovtDetail [data-ovt-close]'); await p.waitForTimeout(300);
-  check('the detail chart closes', await p.evaluate(() => document.getElementById('ovtDetail').hidden));
+  // Period comparison
+  const per = () => p.evaluate(() => { const el = document.getElementById('ovtPeriod'); return { head: Array.from(el.querySelectorAll('thead th')).map((x) => x.textContent), rows: Array.from(el.querySelectorAll('tbody tr')).map((tr) => [tr.querySelector('th').textContent].concat(Array.from(tr.querySelectorAll('td')).map((td) => td.textContent))), sub: (el.querySelector('.ova-sub') || {}).textContent || '', dates: el.querySelectorAll('input[type="date"]').length }; });
+  let pd = await per();
+  const ctrRow = pd.rows.find((r) => r[0] === 'CTR') || [];
+  check('period comparison, default this week vs last week (the same days): current, previous, difference and % change per metric', pd.head.join() === 'Metric,This week,Last week,Difference,Change' && /This week \(.+\) vs Last week \(.+\)/.test(pd.sub) && ctrRow.length === 5 && /%$/.test(ctrRow[1]) && /pt$/.test(ctrRow[3]) && /%/.test(ctrRow[4]), pd);
+  check('…only metrics Google reports (ROAS and conversion value included for Google)', pd.rows.map((r) => r[0]).join().toLowerCase() === 'impressions,clicks,ctr,cpc,cpm,spend,conversions,conversion rate,cpa,conversion value,roas', pd.rows.map((r) => r[0]));
+  await p.click('#ovtPeriod [data-ovc-mode="month"]'); await p.waitForTimeout(1500);
+  pd = await per();
+  check('month toggle: this month vs last month (same days)', pd.head[1] === 'This month' && pd.head[2] === 'Last month' && /This month \(.+\) vs Last month/.test(pd.sub), pd.head);
+  await p.click('#ovtPeriod [data-ovc-mode="custom"]'); await p.waitForTimeout(1500);
+  pd = await per();
+  check('custom: two periods with their own dates (A and B)', pd.dates === 4 && pd.head[1] === 'Period A' && pd.head[2] === 'Period B', pd);
+  await p.fill('#ovtPeriod [data-ovc-date="bSince"]', await p.evaluate(() => window.orvAnalytics.addDays(window.orvAnalytics.today(), -40))); await p.dispatchEvent('#ovtPeriod [data-ovc-date="bSince"]', 'change'); await p.waitForTimeout(1500);
+  pd = await per();
+  check('…changing a date recalculates the comparison', pd.rows.length >= 5 && pd.dates === 4, pd.sub);
+  await p.click('#ovtPeriod [data-ovc-mode="week"]'); await p.waitForTimeout(1000);
 
-  // Comparison tiles
-  let wk = await p.evaluate(() => { const c = document.getElementById('ovtWeek'); return { kpis: Array.from(c.querySelectorAll('.ova-kpis span')).map((s) => s.textContent), lines: c.querySelectorAll('.ova-line').length, dashed: c.querySelectorAll('.ova-line.is-dashed').length }; });
-  check('this period vs the one before: last 7 days vs the 7 before, both lines overlaid (previous dashed), with the change', wk.kpis.join() === 'Last 7 days,The 7 days before,Change' && wk.lines === 2 && wk.dashed === 1, wk);
-  await p.click('#ovtWeek [data-ovt-len="30"]'); await p.waitForTimeout(1500);
-  wk = await p.evaluate(() => Array.from(document.querySelectorAll('#ovtWeek .ova-kpis span')).map((s) => s.textContent));
-  check('…the toggle switches to 30 days vs 30 days', wk[0] === 'Last 30 days' && wk[1] === 'The 30 days before', wk);
-  const ads = await p.evaluate(() => { const c = document.getElementById('ovtAds'); return { selects: c.querySelectorAll('select').length, lines: c.querySelectorAll('.ova-line').length, legend: Array.from(c.querySelectorAll('.ova-legend li')).map((l) => l.textContent), best: c.querySelectorAll('.ova-kpis .is-best').length }; });
-  check('ad vs ad: two ads and a metric to choose, both ads in one chart, the better one marked', ads.selects === 3 && ads.lines === 2 && ads.legend.length === 2 && ads.legend[0] !== ads.legend[1] && ads.best <= 1, ads);
-  await p.selectOption('#ovtAds [data-ovt-admetric]', 'spend'); await p.waitForTimeout(1200);
-  check('…changing the metric redraws it', await p.evaluate(() => document.querySelectorAll('#ovtAds .ova-line').length === 2));
-  const ang = await p.evaluate(() => document.getElementById('ovtAngles').innerText);
-  check('angle vs angle: says what is missing (angles aren’t saved with published ads yet)', /Not available yet/.test(ang) && /angle saved with every ad/.test(ang), ang);
-  await p.screenshot({ path: path.join(SHOTS, 'compare-tiles.png') });
+  // Ad vs ad: Google doesn't report per-ad results → says so, offers Meta
+  let ad = await p.evaluate(() => document.getElementById('ovtAds').innerText);
+  check('ad vs ad on Google Ads: explains results per ad come from Meta Ads, with a button to compare Meta ads', /Results per ad come from Meta Ads/.test(ad) && /Compare Meta ads/.test(ad), ad);
+  await p.click('#ovtAds [data-ovc-meta]'); await p.waitForTimeout(3500);
+  ad = await p.evaluate(() => { const el = document.getElementById('ovtAds'); return { plat: window._prfActivePlatform, selects: el.querySelectorAll('select').length, verdict: (el.querySelector('.ovc-verdict') || {}).textContent || '', rows: Array.from(el.querySelectorAll('.ovc-adtable tbody tr')).map((tr) => ({ m: tr.querySelector('th').textContent, a: tr.children[1].childNodes[0].textContent, b: tr.children[2].childNodes[0].textContent, best: tr.querySelectorAll('.is-best').length })), lines: el.querySelectorAll('.ova-line').length }; });
+  check('…Meta: pick two ads and a period; a plain-language verdict (which ad does better and why, no AI), the figures side by side and both ads over time', ad.plat === 'meta' && ad.selects === 4 && /is doing better: .+ \(.+ vs .+\)|perform about the same|Too early/.test(ad.verdict) && ad.rows.length >= 8 && ad.lines === 2, ad);
+  check('…"better" is marked only on efficiency metrics, and never where both ads show the same figure', ad.rows.every((r) => !r.best || (['ctr', 'cpc', 'cpm', 'conversion rate', 'cpa', 'roas'].includes(r.m.toLowerCase()) && r.a !== r.b)) && ad.rows.some((r) => r.best), ad.rows);
+  const secondAd = await p.evaluate(() => Array.from(document.querySelectorAll('#ovtAds [data-ovc-ad="B"] option')).filter((o) => !o.disabled && !o.selected)[0].value);
+  await p.selectOption('#ovtAds [data-ovc-ad="B"]', secondAd); await p.waitForTimeout(2500);
+  check('…choosing another ad recalculates', await p.evaluate((v) => document.querySelector('#ovtAds [data-ovc-ad="B"]').value === v && document.querySelectorAll('#ovtAds .ova-line').length === 2, secondAd));
+  await p.selectOption('#ovtAds [data-ovc-admetric]', 'cpc'); await p.waitForTimeout(1500);
+  check('…and the chart metric can be changed', await p.evaluate(() => /CPC over time/.test(document.querySelector('#ovtAds .ovc-adchart h4').textContent)));
+  await p.screenshot({ path: path.join(SHOTS, 'overview-meta.png'), fullPage: true });
 
-  // Per platform: ROAS not reported where there is no conversion value; not connected
-  await p.evaluate(() => window.prfSwitchPlatform('tiktok', true)); await p.waitForTimeout(2500);
-  t = await tiles(p);
-  const roas = t.filter((x) => x.k === 'roas')[0];
-  check('TikTok: ROAS tile says "Not reported by TikTok Ads" (no conversion value), the others have figures', roas.empty && /Not reported by TikTok Ads/.test(roas.d) && t.filter((x) => x.k !== 'roas').every((x) => !x.empty), t);
-  await p.evaluate(() => { const C = window.orvCampaignSources, orig = C.status; window.__origStatus = orig; C.status = (pl) => (pl === 'pinterest' ? Promise.resolve({ conn: 'not_connected', currency: null }) : orig(pl)); window.orvAnalytics.reset(); window.prfSwitchPlatform('pinterest', true); }); await p.waitForTimeout(2500);
-  t = await tiles(p);
-  check('a platform that isn’t connected: every tile shows "Not connected" with "Connect Pinterest Ads"', t.every((x) => x.empty && x.v === 'Not connected' && /Connect Pinterest Ads/.test(x.d)), t.slice(0, 2));
-  await p.screenshot({ path: path.join(SHOTS, 'tiles-not-connected.png') });
+  // Per platform: different metric sets; TikTok and Snapchat graphs from their own figures
+  await p.evaluate(() => window.prfSwitchPlatform('snapchat', true)); await p.waitForTimeout(3000);
+  c = await cards(p);
+  gr = await p.evaluate(() => { const card = document.querySelector('#prfChartsGrid .prf-chart-card'); return { locked: !!card.querySelector('.prf-lock-show'), lock: (card.querySelector('.prf-chart-lock') || {}).innerText || '', bars: card.querySelectorAll('.prf-bars *').length }; });
+  pd = await per();
+  check('Snapchat Ads: no Conversions, CPA, Conversion value or ROAS cards (not reported), the others with values', !c.some((x) => /^(Conversions|CPA|Conversion Value|ROAS)$/i.test(x.n)) && c.some((x) => x.n === 'Impressions' && x.v !== '—'), c.map((x) => x.n));
+  check('Snapchat Ads: the graph shows Snapchat’s own daily figures (before: none, or other platforms’ figures)', !gr.locked && gr.bars > 0, gr);
+  check('Snapchat Ads: the period comparison leaves out what Snapchat doesn’t report', !pd.rows.some((r) => /^(Conversions|CPA|ROAS)$/.test(r[0])) && pd.rows.some((r) => r[0] === 'CTR'), pd.rows.map((r) => r[0]));
+  await p.evaluate(() => window.prfSwitchPlatform('tiktok', true)); await p.waitForTimeout(3000);
+  c = await cards(p);
+  gr = await p.evaluate(() => { const card = document.querySelector('#prfChartsGrid .prf-chart-card'); return { locked: !!card.querySelector('.prf-lock-show'), bars: card.querySelectorAll('.prf-bars *').length }; });
+  check('TikTok Ads: no ROAS / Conversion value cards; the graph has TikTok’s daily figures (before: "no analytics yet")', !c.some((x) => /^(ROAS|Conversion Value)$/i.test(x.n)) && c.some((x) => x.n === 'Conversions') && !gr.locked && gr.bars > 0, { cards: c.map((x) => x.n), gr });
+  // Not connected
+  await p.evaluate(() => { const C = window.orvCampaignSources, orig = C.status; window.__origStatus = orig; C.status = (pl) => (pl === 'pinterest' ? Promise.resolve({ conn: 'not_connected', currency: null }) : orig(pl)); window.orvAnalytics.reset(); window._prfConnectedPlatforms = (window._prfConnectedPlatforms || []).filter((x) => x !== 'pinterest'); window.prfSwitchPlatform('pinterest', true); }); await p.waitForTimeout(2500);
+  const nc = await p.evaluate(() => ({ period: document.getElementById('ovtPeriod').innerText, ads: document.getElementById('ovtAds').innerText }));
+  check('a platform that isn’t connected: the comparison says "Connect Pinterest Ads to compare periods" (no figures, no banner)', /Connect Pinterest Ads to compare periods/.test(nc.period) && !/\d+%/.test(nc.period), nc);
 
   // ── B. Platform Comparison ──
   await p.evaluate(() => { window.orvCampaignSources.status = window.__origStatus; window.orvAnalytics.reset(); });
@@ -106,13 +126,15 @@ const srv = http.createServer((q, r) => {
   check('Platform Comparison (renamed): all five platforms side by side', pc.title === 'Platform Comparison' && pc.head.join() === 'Google Ads,Meta Ads,TikTok Ads,Pinterest Ads,Snapchat Ads', pc.head);
   check('rows: Spend, Impressions, Clicks, CTR, CPC, Conversions, CPA, ROAS, Return per €1 spent', pc.rows.map((r) => r.m).join() === 'Spend,Impressions,Clicks,CTR,CPC,Conversions,CPA,ROAS,Return per €1 spent', pc.rows.map((r) => r.m));
   check('best value per metric highlighted and weakest marked (one each; none for Spend)', pc.rows.filter((r) => r.m !== 'Spend').every((r) => r.best === 1 && r.worst === 1) && pc.rows[0].best === 0, pc.rows);
-  check('a rule-based summary: shares of conversions vs spend, the highest CPA, "no AI"', /% of conversions on \d+% of spend/.test(pc.summary) && /highest CPA/.test(pc.summary) && /no AI/.test(pc.summary), pc.summary);
+  check('a rule-based summary: shares of conversions vs spend, the highest CPA, "no AI"; Snapchat (no conversions reported) left out and said so', /% of conversions on \d+% of spend/.test(pc.summary) && /highest CPA/.test(pc.summary) && /no AI/.test(pc.summary) && /Snapchat Ads doesn’t report conversions/.test(pc.summary), pc.summary);
+  const snapConv = await p.evaluate(() => Array.from(document.querySelectorAll('#ccmRoot .pcm-table tbody tr')).filter((tr) => /^(Conversions|CPA)$/.test(tr.querySelector('th').textContent)).map((tr) => tr.children[5].textContent));
+  check('Snapchat conversions and CPA read "Not reported" (never 0 or "no conversions")', snapConv.join() === 'Not reported,Not reported', snapConv);
   check('one line chart with a line per platform', pc.legend.join() === 'Google,Meta,TikTok,Pinterest,Snapchat', pc.legend);
   const sumShare = pc.shares.reduce((a, b) => a + b, 0);
-  check('share of spend vs share of conversions per platform (spend shares add up to ~100%)', pc.share === 5 && sumShare >= 98 && sumShare <= 102, pc.shares);
+  check('share of spend vs share of conversions for the platforms that report conversions (spend shares add up to ~100%)', pc.share === 4 && sumShare >= 98 && sumShare <= 102, pc.shares);
   await p.screenshot({ path: path.join(SHOTS, 'platforms-desktop.png'), fullPage: false });
   await p.selectOption('#ccmRoot [data-pcm-metric]', 'conversions'); await p.waitForTimeout(500);
-  check('the chart metric can be changed', await p.evaluate(() => /Conversions per platform/.test(document.querySelector('#ccmRoot .pcm-chart svg').getAttribute('aria-label'))));
+  check('the chart metric can be changed (conversions: no line for Snapchat)', await p.evaluate(() => /Conversions per platform/.test(document.querySelector('#ccmRoot .pcm-chart svg').getAttribute('aria-label')) && !Array.from(document.querySelectorAll('#ccmRoot .pcm-chart .ova-legend li')).some((l) => l.textContent === 'Snapchat')));
   await p.selectOption('#ccmRoot [data-pcm-range]', 'LAST_WEEK'); await p.waitForTimeout(2500);
   const lw = await p.evaluate(() => JSON.parse(document.querySelector('#ccmRoot .pcm-chart .ova-chart__data').textContent).labels);
   const mon = new Date(lw[0] + 'T12:00:00').getDay();
@@ -147,12 +169,13 @@ const srv = http.createServer((q, r) => {
   await ctx.close();
 
   // ── C. Responsive ──
-  for (const vp of [{ width: 820, height: 1100, n: 'tablet', tiles: 2, cards: 2 }, { width: 390, height: 844, n: 'mobile', tiles: 1, cards: 1 }]) {
+  for (const vp of [{ width: 820, height: 1100, n: 'tablet', cards: 2 }, { width: 390, height: 844, n: 'mobile', cards: 1 }]) {
     ({ ctx, p } = await boot({ width: vp.width, height: vp.height }));
     await go(p, 'overview', 4000);
-    const tc = await p.evaluate(() => ({ cols: getComputedStyle(document.querySelector('#ovtRoot .ova-grid')).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - innerWidth, wide: Array.from(document.querySelectorAll('#ovtRoot *')).filter((e) => e.getBoundingClientRect().right > innerWidth + 1).length }));
-    check(vp.n + ': ' + vp.tiles + ' tile(s) per row, nothing wider than the screen', tc.cols === vp.tiles && tc.overflow <= 0 && tc.wide === 0, tc);
-    await p.screenshot({ path: path.join(SHOTS, 'tiles-' + vp.n + '.png') });
+    const tc = await p.evaluate(() => { const g = document.getElementById('prfExplorerGrid'), ch = document.querySelector('#prfDash .prf-chart-wrap').getBoundingClientRect(), per = document.getElementById('ovtPeriod').getBoundingClientRect(), th = document.querySelector('#ovtPeriod thead');
+      return { cols: getComputedStyle(g).gridTemplateColumns.split(' ').length, stacked: Math.abs(ch.width - per.width) < 2 && per.top > ch.top, tableHead: th ? getComputedStyle(th).display : null, overflow: document.documentElement.scrollWidth - innerWidth, wide: Array.from(document.querySelectorAll('#page-performance *')).filter((e) => { const b = e.getBoundingClientRect(); return b.width && b.right > innerWidth + 1 && !e.closest('#prfPlatTabsInner') && !e.closest('.prf-chart-body') && getComputedStyle(e).position !== 'fixed'; }).length }; });
+    check(vp.n + ': metric cards ' + (vp.n === 'mobile' ? '2' : '3+') + ' per row, graph and comparison stacked, nothing wider than the screen' + (vp.n === 'mobile' ? ', comparison table as one block per metric' : ''), (vp.n === 'mobile' ? tc.cols === 2 && tc.tableHead === 'none' : tc.cols >= 3) && tc.stacked && tc.overflow <= 0 && tc.wide === 0, tc);
+    await p.screenshot({ path: path.join(SHOTS, 'overview-' + vp.n + '.png'), fullPage: true });
     await go(p, 'compare', 4000);
     const cc = await p.evaluate(() => ({ table: getComputedStyle(document.querySelector('#ccmRoot .pcm-table-wrap')).display, cards: getComputedStyle(document.querySelector('#ccmRoot .pcm-cards')).display, cols: getComputedStyle(document.querySelector('#ccmRoot .pcm-cards')).gridTemplateColumns.split(' ').length, n: document.querySelectorAll('#ccmRoot .pcm-card').length, overflow: document.documentElement.scrollWidth - innerWidth, wide: Array.from(document.querySelectorAll('#ccmRoot *')).filter((e) => e.getBoundingClientRect().right > innerWidth + 1).length }));
     check(vp.n + ': the table becomes stacked cards (' + vp.cards + ' per row), no sideways scrolling', cc.table === 'none' && cc.cards === 'grid' && cc.cols === vp.cards && cc.n === 5 && cc.overflow <= 0 && cc.wide === 0, cc);

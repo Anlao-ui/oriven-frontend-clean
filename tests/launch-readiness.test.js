@@ -268,9 +268,9 @@ const server = app.listen(PORT, async () => {
     const after = await page.evaluate(() => { const c = _orvGetCampaigns().filter((x) => x.id === 'meta-ok')[0]; const r = orvLaunch.readiness(c); return { refreshing: r.refreshing, canPublish: r.canPublish, state: r.state }; });
     check('re-check in flight: card keeps READY TO LAUNCH (no flicker), publishing waits for the fresh answer', mid.card === 'READY TO LAUNCH' && mid.refreshing === true && mid.canPublish === false, mid);
     check('…fresh answer arrives: publishing available again', after.refreshing === false && after.canPublish === true && after.state === 'ready', after);
-    // Campaigns subtitle (same translation system).
-    const cs = await page.evaluate(() => { const e = document.querySelector('#orvHubTabsCampaigns .camp-shell-hdr .orv-page-sub'); CURRENT_LANG = 'de'; applyLanguage(); const de = e && e.textContent; CURRENT_LANG = 'en'; applyLanguage(); return { en: e && e.textContent, de }; });
-    check('Campaigns subtitle present and translated', cs.en === 'Monitor campaign performance, track key metrics and manage your advertising across platforms.' && /Behalte die Leistung deiner Kampagnen/.test(cs.de), cs);
+    // Campaign Overview no longer has the Campaigns header block (title, subtitle, Campaign Builder link).
+    const cs = await page.evaluate(() => ({ header: !!document.querySelector('#orvHubTabsCampaigns .camp-shell-hdr'), builder: !!(window.orvAppNav && window.orvAppNav.go) }));
+    check('Campaigns header block removed from Campaign Overview; Campaign Builder still reachable through the app navigation', !cs.header && cs.builder, cs);
     check('Google Search without keywords → BLOCKED (was READY)', google['google-nokw'] === 'BLOCKED', google);
     check('Google headlines over 30 chars (only 1 usable) → BLOCKED', google['google-longh'] === 'BLOCKED', google);
     check('Google numeric budget (an AI suggestion) → BLOCKED until confirmed (was READY)', google['google-numbud'] === 'BLOCKED', google);

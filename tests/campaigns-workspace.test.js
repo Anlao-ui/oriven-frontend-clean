@@ -103,23 +103,23 @@ async function main() {
 
     const state = await page.evaluate(() => ({
       pageActive: document.getElementById('page-performance').classList.contains('active'),
-      title: document.querySelector('.camp-shell-title') ? document.querySelector('.camp-shell-title').textContent : null,
+      title: document.getElementById('prfOvTitle') ? document.getElementById('prfOvTitle').textContent : null,
       hasInsightsTab: !!document.querySelector('[data-hub-target="intelligence"]'),
       oldPillSelectorGone: !document.getElementById('prfMetricSelector'),
       oldEmbeddedLiveTablesGone: !document.getElementById('admGLiveTableContainer') && !document.getElementById('admMLiveTableContainer'),
       oldCampaignsAiTriggerGone: !document.getElementById('prfAiTrigger') && !document.getElementById('prfAiSection'),
       hasOneGraph: document.querySelectorAll('.prf-chart-card').length === 1,
       hasMetricExplorer: !!document.getElementById('prfMetricExplorer'),
-      hasReplay: !!document.querySelector('.prf-replay-col'),
+      replayGone: !document.getElementById('prfReplaySection') && !document.getElementById('prfReplayToggleBtn') && typeof window._prfToggleReplay === 'undefined',
     }));
-    check('Campaigns loads correctly (#page-performance active, real "Campaigns" title)', state.pageActive && state.title === 'Campaigns', state);
+    check('Campaigns loads correctly (#page-performance active, title "Campaign Overview")', state.pageActive && state.title === 'Campaign Overview', state);
     check('The old Insights tab is still gone', !state.hasInsightsTab, state);
     check('The old flat metric-pill selector (#prfMetricSelector) is gone, not resurrected', state.oldPillSelectorGone, state);
     check('The old embedded Live Campaigns tables are gone, not resurrected', state.oldEmbeddedLiveTablesGone, state);
     check('The old Campaigns-specific AI trigger/section is gone, not resurrected', state.oldCampaignsAiTriggerGone, state);
     check('Current architecture present: exactly one primary graph', state.hasOneGraph, state);
     check('Current architecture present: Metric Explorer exists', state.hasMetricExplorer, state);
-    check('Current architecture present: Campaign Replay column exists', state.hasReplay, state);
+    check('Campaign Replay is no longer part of Campaign Overview (removed 2026-11-18; the separate Replay page stays)', state.replayGone, state);
 
     await page.waitForTimeout(600);
     const ctx = await page.evaluate(() => ({
