@@ -22,16 +22,22 @@
 /* Metric groups (2026-11-18): Reach · Cost & budget · Engagement · Conversions · Revenue, each a
    compact container in its own muted colour (no orange everywhere). Groups sit side by side and wrap;
    a group grows with its number of cards, so every card keeps the same compact size. */
-#page-performance #prfExplorerGrid { display: flex; flex-wrap: wrap; gap: var(--a-s3); align-items: stretch; }
+#page-performance #prfExplorerGrid { display: flex; flex-wrap: wrap; gap: var(--a-s3); align-items: flex-start; }
 #page-performance #prfExplorerGrid .prf-mgroup { --g-bg: rgba(255, 255, 255, .02); --g-line: rgba(255, 255, 255, .08); --g-dot: #A6ABB3; --g-ink: rgba(242, 242, 240, .62);
-  flex: var(--n, 1) 1 calc(var(--n, 1) * 148px); min-width: 0; display: flex; flex-direction: column; gap: var(--a-s2); padding: var(--a-s2) var(--a-s3) var(--a-s3); border: 1px solid var(--g-line); border-radius: var(--a-r); background: var(--g-bg); }
+  flex: 0 1 auto; max-width: 100%; min-width: 0; display: flex; flex-direction: column; gap: var(--a-s2); padding: var(--a-s2) var(--a-s3) var(--a-s3); border: 1px solid var(--g-line); border-radius: var(--a-r); background: var(--g-bg); }
 #page-performance #prfExplorerGrid .prf-mgroup[data-group="reach"] { --g-bg: rgba(110, 150, 210, .07); --g-line: rgba(110, 150, 210, .2); --g-dot: #7FA3D6; --g-ink: #9DB6DC; }
 #page-performance #prfExplorerGrid .prf-mgroup[data-group="cost"] { --g-bg: rgba(160, 170, 185, .06); --g-line: rgba(160, 170, 185, .18); --g-dot: #A3ACB9; --g-ink: #B4BBC6; }
 #page-performance #prfExplorerGrid .prf-mgroup[data-group="engagement"] { --g-bg: rgba(160, 135, 215, .07); --g-line: rgba(160, 135, 215, .2); --g-dot: #A891D8; --g-ink: #BBA9E0; }
 #page-performance #prfExplorerGrid .prf-mgroup[data-group="conversions"] { --g-bg: rgba(110, 185, 140, .07); --g-line: rgba(110, 185, 140, .2); --g-dot: #7DBF96; --g-ink: #9CCDAE; }
 #page-performance #prfExplorerGrid .prf-mgroup[data-group="revenue"] { --g-bg: rgba(205, 180, 120, .07); --g-line: rgba(205, 180, 120, .2); --g-dot: #CDB27A; --g-ink: #D6C196; }
 #page-performance #prfExplorerGrid .prf-mgroup-h { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--g-ink); }
-#page-performance #prfExplorerGrid .prf-mgroup-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: var(--a-s2); }
+/* Content-sized (2026-11-18): every card has the same compact width and a group is only as wide as
+   its cards, so a two-metric group stays small; groups wrap side by side and never stretch to fill a row. */
+#page-performance #prfExplorerGrid { --tile-w: 126px; }
+/* At most four cards per line in a group (a 7-metric group wraps to 4 + 3), so groups pack into balanced rows. */
+#page-performance #prfExplorerGrid .prf-mgroup { max-width: min(100%, calc(4 * var(--tile-w) + 3 * var(--a-s2) + 2 * var(--a-s3) + 2px)); }
+#page-performance #prfExplorerGrid .prf-mgroup-tiles { display: flex; flex-wrap: wrap; gap: var(--a-s2); }
+#page-performance #prfExplorerGrid .prf-mgroup-tiles > .prf-explorer-tile { flex: 0 0 var(--tile-w); width: var(--tile-w); }
 #page-performance #prfExplorerGrid .prf-explorer-tile { min-width: 0; min-height: 62px; }
 #page-performance #prfExplorerGrid .prf-explorer-dot { background: var(--g-dot) !important; opacity: 1; }
 body.dark-mode #page-performance #prfExplorerGrid .prf-explorer-tile:not(.prf-explorer-tile-active) { background: rgba(11, 12, 10, .55); border-color: rgba(255, 255, 255, .07); }
@@ -200,7 +206,7 @@ button.ova-link { padding: 0; border: 0; background: none; font: inherit; font-w
 /* Mobile */
 @media (max-width: 600px) {
   #page-performance #prfExplorerGrid .prf-mgroup { flex-basis: 100%; }
-  #page-performance #prfExplorerGrid .prf-mgroup-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #page-performance #prfExplorerGrid .prf-mgroup-tiles > .prf-explorer-tile { flex: 0 0 calc(50% - var(--a-s2) / 2); width: calc(50% - var(--a-s2) / 2); min-width: 0; }
   /* Comparison tables become one block per metric */
   .ovc-table thead { display: none; }
   .ovc-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--a-s1) var(--a-s3); padding: var(--a-s3) 0; border-bottom: 1px solid var(--a-line); }

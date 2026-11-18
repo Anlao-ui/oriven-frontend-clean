@@ -3,7 +3,7 @@
 // data for every request, no backend): Dashboard cards (performance,
 // campaigns, automations, a compact "Needs you"), Creative Testing
 // "Compare two" (creative vs performance comparison), the assistant
-// launcher's collapse/expand, Automations overview and Scheduler layout.
+// launcher panel (arrow attached on its left; the whole panel slides), Automations overview and Scheduler layout.
 // Fenced (tests/_fence.js): only this test's static server is reachable.
 // RUN: node tests/finalization-ui.test.js
 // ════════════════════════════════════════════════════════════════
@@ -88,17 +88,23 @@ const srv = http.createServer((q, r) => {
   // ── 3. The assistant launcher collapses and comes back ──
   for (const vp of [{ width: 1440, height: 900, n: 'desktop' }, { width: 390, height: 844, n: 'mobile' }]) {
     ({ ctx, p } = await boot({ width: vp.width, height: vp.height }));
-    const g = () => p.evaluate(() => { const r = (id) => { const b = document.getElementById(id).getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), b: Math.round(b.bottom), radius: getComputedStyle(document.getElementById(id)).borderRadius, op: getComputedStyle(document.getElementById(id)).opacity }; }; return { vw: innerWidth, vh: innerHeight, fab: r('orvAiFab'), tuck: r('orvAiTuck'), tucked: document.documentElement.classList.contains('orv-ai-tucked'), expanded: document.getElementById('orvAiTuck').getAttribute('aria-expanded') }; });
+    const g = () => p.evaluate(() => { const r = (id) => { const b = document.getElementById(id).getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), t: Math.round(b.top), b: Math.round(b.bottom) }; }; const cs = getComputedStyle(document.getElementById('orvAiDock')); return { vw: innerWidth, vh: innerHeight, dock: r('orvAiDock'), fab: r('orvAiFab'), tuck: r('orvAiTuck'), radii: [cs.borderTopLeftRadius, cs.borderTopRightRadius, cs.borderBottomRightRadius, cs.borderBottomLeftRadius], tucked: document.documentElement.classList.contains('orv-ai-tucked'), expanded: document.getElementById('orvAiTuck').getAttribute('aria-expanded') }; });
     let s = await g();
-    check(vp.n + ': assistant launcher bottom-right, rounded but not a pill/circle, with a collapse control beside it', s.fab.r <= s.vw && s.fab.b <= s.vh && !/999|50%|50px/.test(s.fab.radius) && /4px/.test(s.fab.radius) && s.tuck.l >= s.fab.r && s.tuck.r <= s.vw && s.expanded === 'true', s);
-    await p.click('#orvAiTuck'); await p.waitForTimeout(500);
+    const open0 = s.dock;
+    check(vp.n + ': one launcher panel bottom-right, all four corners equally rounded, the arrow attached to its left side', s.dock.r <= s.vw && s.dock.b <= s.vh && new Set(s.radii).size === 1 && parseFloat(s.radii[0]) >= 12 && Math.abs(s.tuck.l - s.dock.l) <= 1 && Math.abs(s.tuck.r - s.fab.l) <= 1 && s.expanded === 'true', s);
+    await p.evaluate(() => { document.querySelector('.orv-ai-dock').style.transitionDuration = '1s'; });
+    await p.click('#orvAiTuck'); await p.waitForTimeout(400);
+    const mid = await g();
+    check(vp.n + ': while sliding, the arrow moves with the panel (still attached to its left edge)', mid.dock.l > open0.l && mid.dock.l < s.vw && Math.abs(mid.tuck.l - mid.dock.l) <= 1, { open0, mid: mid.dock, arrow: mid.tuck });
+    await p.waitForTimeout(900);
+    await p.evaluate(() => { document.querySelector('.orv-ai-dock').style.transitionDuration = ''; });
     s = await g();
-    check(vp.n + ': collapsed — the launcher slides out to the right, the control stays inside the screen', s.tucked && s.fab.l >= s.vw && s.tuck.r <= s.vw && s.tuck.l >= 0 && s.expanded === 'false', s);
+    check(vp.n + ': collapsed — the whole panel is off-screen to the right; only the arrow shows, flush against the right edge', s.tucked && s.fab.l >= s.vw && s.tuck.r === s.vw && s.tuck.l >= s.vw - 32 && s.expanded === 'false', s);
     await go(p, 'overview', 1500);
     check(vp.n + ': stays collapsed when moving to another page', (await g()).tucked);
     await p.click('#orvAiTuck'); await p.waitForTimeout(500);
     s = await g();
-    check(vp.n + ': clicking the control brings the launcher back, and it opens the assistant', !s.tucked && s.fab.r <= s.vw && s.fab.l < s.vw, s);
+    check(vp.n + ': clicking the arrow slides the whole panel back to exactly where it was', !s.tucked && s.dock.l === open0.l && s.dock.r === open0.r && Math.abs(s.tuck.l - s.dock.l) <= 1, { now: s.dock, was: open0 });
     await p.click('#orvAiFab'); await p.waitForTimeout(800);
     check(vp.n + ': the launcher still opens the assistant', await p.evaluate(() => { const pn = document.getElementById('orvAiPanel'); return !!pn && getComputedStyle(pn).display !== 'none' && pn.getBoundingClientRect().height > 50; }));
     await ctx.close();

@@ -5941,13 +5941,16 @@
 </div>
 
 <!-- AI Floating Action Button -->
+<!-- The assistant launcher as one panel (js/aiDock.js): the arrow is attached to its left side.
+     Collapsed, the whole panel (arrow included) slides to the right until only the arrow shows at
+     the screen edge; clicking it slides everything back. The choice is remembered. -->
+<div class="orv-ai-dock" id="orvAiDock">
+<button type="button" class="orv-ai-tuck" id="orvAiTuck" aria-controls="orvAiFab" aria-expanded="true" aria-label="Hide your assistant" title="Hide your assistant"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
 <button class="orv-ai-fab" id="orvAiFab" onclick="orvToggleAi()" aria-label="Open your assistant">
   <span class="orv-ai-fab-dot"></span>
   <span class="orv-ai-fab-label">Your assistant</span>
 </button>
-<!-- Collapse / expand the assistant launcher (js/aiDock.js). Collapsed, the launcher slides out to the
-     right and only this small control stays in the bottom-right corner; the choice is remembered. -->
-<button type="button" class="orv-ai-tuck" id="orvAiTuck" aria-controls="orvAiFab" aria-expanded="true" aria-label="Hide your assistant" title="Hide your assistant"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
+</div>
 
 <!-- Campaign Type Selection Overlay -->
 <div class="ct-overlay" id="campTypeOverlay">
