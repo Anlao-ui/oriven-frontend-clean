@@ -139,7 +139,7 @@
     meta: { spend: 33, impressions: 2470, clicks: 72, conversions: 2.7, aov: 68 },
     tiktok: { spend: 14.2, impressions: 3120, clicks: 51, conversions: 0.6 },
     pinterest: { spend: 2.9, impressions: 470, clicks: 7, conversions: 0.12 },
-    snapchat: { spend: 2.2, impressions: 1720, clicks: 64, conversions: 0.07 },
+    snapchat: { spend: 2.2, impressions: 1720, clicks: 64, conversions: 0 }, // the Snapchat integration doesn't fetch conversions (STAT_FIELDS)
   };
   function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   function rnd(s) { var t = hash(s) + 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }
@@ -152,12 +152,14 @@
     if ((p === 'pinterest' || p === 'snapchat') && Date.parse(until) - Date.parse(since) > 89 * 864e5) { var min = dayStr(new Date(Date.parse(until) - 89 * 864e5)); clamped = { since: min, wanted: since }; since = min; }
     var scope = q.get('adId') ? 'ad:' + q.get('adId') : q.get('campaignId') ? 'c:' + q.get('campaignId') : 'all';
     var f = scope === 'all' ? 1 : (q.get('adId') ? 0.08 + rnd(scope) * 0.22 : 0.25 + rnd(scope) * 0.35);
+    // Each sample ad has its own click-through, cost and conversion profile, so ad vs ad shows real differences.
+    var ad = q.get('adId'), mClick = ad ? 0.7 + rnd(scope + 'ctr') * 0.75 : 1, mCost = ad ? 0.85 + rnd(scope + 'cpm') * 0.35 : 1, mConv = ad ? 0.55 + rnd(scope + 'cv') * 0.95 : 1;
     var valued = !!base.aov, series = [];
     for (var t = Date.parse(since + 'T00:00:00Z'); t <= Date.parse(until + 'T00:00:00Z'); t += 864e5) {
       var date = dayStr(new Date(t)), n = Math.round(t / 864e5), k = p + '|' + scope + '|' + date;
       var w = (1 + 0.16 * Math.sin(n * 2 * Math.PI / 7) + 0.06 * Math.sin(n / 9)) * (0.85 + rnd(k) * 0.3) * f;
-      var conv = Math.max(0, Math.round(base.conversions * w * (0.6 + rnd(k + 'c') * 0.8) + (rnd(k + 'r') - 0.5)));
-      series.push({ date: date, spend: Math.round(base.spend * w * 100) / 100, impressions: Math.round(base.impressions * w), clicks: Math.round(base.clicks * w * (0.9 + rnd(k + 'k') * 0.2)), conversions: conv,
+      var conv = Math.max(0, Math.round(base.conversions * w * mClick * mConv * (0.6 + rnd(k + 'c') * 0.8) + (rnd(k + 'r') - 0.5)));
+      series.push({ date: date, spend: Math.round(base.spend * w * mCost * 100) / 100, impressions: Math.round(base.impressions * w), clicks: Math.round(base.clicks * w * mClick * (0.9 + rnd(k + 'k') * 0.2)), conversions: conv,
         conversionValue: valued ? Math.round(conv * base.aov * (0.8 + rnd(k + 'v') * 0.4) * 100) / 100 : null });
     }
     return { platform: p, since: since, until: until, series: series, conversionValue: valued ? 'reported' : 'not_reported', clamped: clamped };
@@ -168,6 +170,39 @@
     if ((method === 'GET' || method === 'HEAD') && path === '/api/analytics/series') {
       var ds = demoSeries(String(query || '').replace(/^\?/, ''));
       return Promise.resolve(ds ? json(200, ds) : json(400, { error: 'Choose a platform.', code: 'BAD_PLATFORM' }));
+    }
+    // The Campaign Overview graph reads kpi-series for Google, Meta and Pinterest: the same sample
+    // days as above, so the graph, the metric cards and the comparisons tell one story.
+    if ((method === 'GET' || method === 'HEAD') && path === '/api/intelligence/kpi-series') {
+      var kq = new URLSearchParams(String(query || '').replace(/^\?/, '')), today = dayStr(new Date()), back = function (n) { return dayStr(new Date(Date.now() - n * 864e5)); };
+      var key = kq.get('date_range') || 'LAST_30_DAYS', ks = back(29), ku = today, now = new Date();
+      if (key === 'TODAY') ks = today; else if (key === 'YESTERDAY') { ks = ku = back(1); } else if (key === 'LAST_7_DAYS') ks = back(6); else if (key === 'LAST_90_DAYS') ks = back(89);
+      else if (key === 'LAST_12_MONTHS' || key === 'LIFETIME') ks = back(364); else if (key === 'THIS_MONTH') ks = today.slice(0, 8) + '01';
+      else if (key === 'LAST_MONTH') { var lm = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0)); ku = dayStr(lm); ks = ku.slice(0, 8) + '01'; }
+      else if (key === 'CUSTOM' && /^\d{4}-\d{2}-\d{2}$/.test(kq.get('date_since') || '') && /^\d{4}-\d{2}-\d{2}$/.test(kq.get('date_until') || '')) { ks = kq.get('date_since'); ku = kq.get('date_until'); }
+      var kd = demoSeries('platform=' + encodeURIComponent(kq.get('platform') || '') + '&since=' + ks + '&until=' + ku + (kq.get('campaignId') ? '&campaignId=' + encodeURIComponent(kq.get('campaignId')) : ''));
+      if (!kd) return Promise.resolve(json(200, { series: [] }));
+      var reach = kd.platform === 'meta' || kd.platform === 'pinterest';
+      return Promise.resolve(json(200, { platform: kd.platform, series: kd.series.map(function (r) { return { date: r.date, spend: r.spend, impressions: r.impressions, clicks: r.clicks, conversions: r.conversions, conversions_value: r.conversionValue, reach: reach ? Math.round(r.impressions / 1.7) : undefined }; }) }));
+    }
+    // Google overview: the sample snapshot predates CPM and impression share; add them from its own figures.
+    if ((method === 'GET' || method === 'HEAD') && path === '/api/ads/overview') {
+      var go = sample(path + query);
+      if (go && go.overview) {
+        var cpm = function (o) { return o.impressions ? Math.round((o.spend / o.impressions) * 1000 * 100) / 100 : null; };
+        go.overview.avgCpm = cpm(go.overview); go.overview.searchImpressionShare = 63.4;
+        (go.campaigns || []).forEach(function (c, i) { c.avgCpm = cpm(c); c.searchImpressionShare = [66.1, 58.9][i % 2]; });
+      }
+      return Promise.resolve(json(200, go === undefined ? {} : go));
+    }
+    // Meta campaigns: the sample snapshot predates link clicks and the shop funnel; add them from its own figures.
+    if ((method === 'GET' || method === 'HEAD') && path === '/api/meta/campaigns') {
+      var mc = sample(path + query);
+      (mc && mc.campaigns || []).forEach(function (c) {
+        if (c.clicks != null && c.linkClicks == null) c.linkClicks = Math.round(c.clicks * 0.78);
+        if (c.conversions != null && c.addToCart == null) { c.addToCart = Math.round(c.conversions * 4.2); c.checkoutInitiated = Math.round(c.conversions * 1.9); }
+      });
+      return Promise.resolve(json(200, mc === undefined ? {} : mc));
     }
     if ((method === 'GET' || method === 'HEAD') && path === '/api/meta/ads') {
       return Promise.resolve(json(200, { ads: DEMO_ADS.map(function (a, i) { var w = 0.6 + rnd(a[0]) * 0.9; return { ad_id: a[0], ad_name: a[1], status: i === 3 ? 'PAUSED' : 'ACTIVE', spend: Math.round(160 * w) / 1, impressions: Math.round(14000 * w), clicks: Math.round(380 * w), conversions: Math.round(11 * w) }; }) }));

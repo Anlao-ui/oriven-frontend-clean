@@ -118,6 +118,8 @@
       case 'ctr': return t.impressions ? (t.clicks / t.impressions) * 100 : null;
       case 'cpc': return t.clicks ? t.spend / t.clicks : null;
       case 'cpa': return t.conversions ? t.spend / t.conversions : null;
+      case 'cpm': return t.impressions ? (t.spend / t.impressions) * 1000 : null;
+      case 'conversionRate': return t.clicks ? (t.conversions / t.clicks) * 100 : null;
       case 'roas': return t.conversionValue != null && t.spend ? t.conversionValue / t.spend : null;
       case 'returnPerEuro': return t.conversionValue != null && t.spend ? t.conversionValue / t.spend : null;
       case 'conversionValue': return t.conversionValue;
@@ -125,15 +127,19 @@
     return null;
   }
   function change(cur, prev) { if (cur == null || prev == null || !isFinite(cur) || !isFinite(prev) || prev === 0) return null; return ((cur - prev) / Math.abs(prev)) * 100; }
-  function meta(key) { for (var i = 0; i < METRICS.length; i++) if (METRICS[i][0] === key) return { key: key, label: METRICS[i][1], kind: METRICS[i][2], better: METRICS[i][3] }; if (key === 'returnPerEuro') return { key: key, label: 'Return per €1 spent', kind: 'm', better: 'hi' }; return { key: key, label: key, kind: 'n', better: null }; }
+  function meta(key) { for (var i = 0; i < METRICS.length; i++) if (METRICS[i][0] === key) return { key: key, label: METRICS[i][1], kind: METRICS[i][2], better: METRICS[i][3] }; if (EXTRA[key]) return { key: key, label: EXTRA[key][0], kind: EXTRA[key][1], better: EXTRA[key][2] }; return { key: key, label: key, kind: 'n', better: null }; }
+  // Metrics the Overview comparisons also show (not part of the Platform Comparison rows above).
+  var EXTRA = { returnPerEuro: ['Return per €1 spent', 'm', 'hi'], cpm: ['CPM', 'm', 'lo'], conversionRate: ['Conversion rate', '%', 'hi'], conversionValue: ['Conversion value', 'm', 'hi'] };
   function fmt(v, kind, cur) {
     if (v == null || !isFinite(v)) return '—';
+    // Same money format as the metric cards (js/metrics.js orvFormatMoney) when it's loaded.
+    if (kind === 'm' && typeof window.orvFormatMoney === 'function') return window.orvFormatMoney(v, cur || 'EUR');
     if (kind === 'm') { try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur || 'EUR', maximumFractionDigits: Math.abs(v) < 10 ? 2 : 0, minimumFractionDigits: Math.abs(v) < 10 ? 2 : 0 }).format(v); } catch (_) { return '€' + v.toFixed(2); } }
     if (kind === '%') return v.toFixed(v < 10 ? 2 : 1) + '%';
     if (kind === 'x') return v.toFixed(2) + '×';
     if (Math.abs(v) >= 1e6) return (v / 1e6).toFixed(1) + 'M';
     if (Math.abs(v) >= 1e4) return (v / 1e3).toFixed(1) + 'K';
-    return Math.round(v * 10) % 10 && v < 100 ? v.toFixed(1) : Math.round(v).toLocaleString();
+    return Math.round(v * 10) % 10 && v < 100 ? v.toFixed(1) : Math.round(v).toLocaleString('en');
   }
   function fmtChange(pct, better) {
     if (pct == null) return { text: T('No earlier figures'), short: '—', cls: 'is-flat' };
@@ -144,16 +150,6 @@
   function dailyValues(rows, key) { return (rows || []).map(function (r) { return value(r, key); }); }
 
   // ── SVG charts ───────────────────────────────────────────────────
-  function sparkline(vals, opts) {
-    opts = opts || {};
-    var w = 160, h = 40, pts = (vals || []).map(function (v, i) { return [i, v]; }).filter(function (p) { return p[1] != null && isFinite(p[1]); });
-    if (pts.length < 2) return '<svg class="ova-spark is-empty" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true"><line x1="0" y1="' + (h - 1) + '" x2="' + w + '" y2="' + (h - 1) + '"/></svg>';
-    var n = vals.length - 1 || 1, ys = pts.map(function (p) { return p[1]; }), lo = Math.min.apply(null, ys), hi = Math.max.apply(null, ys), span = hi - lo || 1;
-    var xy = pts.map(function (p) { return [(p[0] / n) * w, h - 3 - ((p[1] - lo) / span) * (h - 8)]; });
-    var d = xy.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
-    var last = xy[xy.length - 1];
-    return '<svg class="ova-spark" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true"><path class="ova-spark__area" d="' + d + ' L' + last[0].toFixed(1) + ' ' + h + ' L' + xy[0][0].toFixed(1) + ' ' + h + ' Z"/><path class="ova-spark__line" d="' + d + '"/><circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="2.5"/></svg>';
-  }
   // lines: [{ id, name, color, values: [number|null], dashed? }], labels: dates
   var chartN = 0;
   function lineChart(lines, labels, opts) {
@@ -207,5 +203,5 @@
   window.orvAnalytics = { PLATFORMS: PLATFORMS, NAME: NAME, SHORT: SHORT, COLOR: COLOR, METRICS: METRICS, windowFor: windowFor, previous: previous, days: days, addDays: addDays, today: today,
     T: T, Th: Th, label: label,
     series: series, seriesWithPrevious: seriesWithPrevious, connections: connections, reset: reset, sum: sum, value: value, change: change, meta: meta, fmt: fmt, fmtChange: fmtChange, dailyValues: dailyValues,
-    sparkline: sparkline, lineChart: lineChart, bindCharts: bindCharts, pairBars: pairBars, shortDate: shortDate, esc: esc };
+    lineChart: lineChart, bindCharts: bindCharts, pairBars: pairBars, shortDate: shortDate, esc: esc };
 })();

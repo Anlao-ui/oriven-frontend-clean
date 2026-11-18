@@ -11,7 +11,7 @@
 // with its own compact header metric select, followed by a compact
 // Metric Explorer sourced from the shared metrics.js registry and kept
 // in sync with the graph's active metric (one shared state, not two
-// independent selections); Campaign Replay lives in the right column;
+// independent selections); (Campaign Replay left Campaign Overview on 2026-11-18);
 // provider switching safely reconciles the active metric; fullscreen
 // expand preserves the active metric with no duplicate chart ids; the
 // global ORIVEN intelligence control is untouched.
@@ -138,22 +138,17 @@ async function main() {
     // Campaigns removing its OWN AI button didn't also remove the global one.
     check('4. Global ORIVEN intelligence control still exists (Campaigns removing its own AI button did not touch it)', structure.globalOrivenBtnExists, structure);
 
-    // 7/8. Campaign Replay is a right-column sibling of the performance
-    // column, not a wide strip underneath everything.
+    // 7/8. Campaign Replay left Campaign Overview (2026-11-18); the selected
+    // metric's graph shares its row with the period comparison.
     const replayLayout = await page.evaluate(() => {
-      const row = document.getElementById('prfWorkspaceRow');
-      const perf = document.getElementById('prfPerfCol');
-      const replay = document.getElementById('prfReplayCol');
-      const replaySection = document.getElementById('prfReplaySection');
+      const chart = document.querySelector('#prfDash .prf-chart-wrap'), period = document.getElementById('ovtPeriod');
       return {
-        replayInsideWorkspaceRow: row.contains(replay),
-        replayIsSiblingOfPerf: replay.parentElement === row && perf.parentElement === row,
-        replayNotBelowEverything: replay.getBoundingClientRect().top < (perf.getBoundingClientRect().top + perf.getBoundingClientRect().height),
-        replaySectionInsideReplayCol: replay.contains(replaySection),
+        replayGone: !document.getElementById('prfReplaySection') && !document.getElementById('prfReplayToggleBtn') && typeof window._prfToggleReplay === 'undefined',
+        graphBesidePeriod: !!(chart && period) && Math.abs(chart.getBoundingClientRect().top - period.getBoundingClientRect().top) < 2,
       };
     });
-    check('7. Campaign Replay sits in the right workspace column on desktop (sibling of the performance column, not a strip below it)', replayLayout.replayInsideWorkspaceRow && replayLayout.replayIsSiblingOfPerf && replayLayout.replayNotBelowEverything, replayLayout);
-    check('8. The old full-width bottom Replay composition is gone (Replay lives inside .prf-replay-col now)', replayLayout.replaySectionInsideReplayCol, replayLayout);
+    check('7. Campaign Replay is no longer part of Campaign Overview', replayLayout.replayGone, replayLayout);
+    check('8. On desktop the graph shares its row with the period comparison (not full width)', replayLayout.graphBesidePeriod, replayLayout);
 
     // 9. Top context row architecture remains, AND (final Composition
     // polish pass) is now a real two-column grid: left controls
@@ -167,21 +162,19 @@ async function main() {
       const scopeRow = document.getElementById('prfScopeRow');
       const platTabs = document.getElementById('prfPlatTabs');
       const graphCard = document.getElementById('prfChartCard');
-      const replaySection = document.getElementById('prfReplaySection');
       const r = (el) => el ? el.getBoundingClientRect() : null;
       return {
         hasProviderTabs: document.querySelectorAll('#prfPlatTabsInner .prf-ptab').length === 4,
         hasHierarchySelect: !!document.getElementById('prfHierarchySelect'),
         hasObjectSelect: !!document.getElementById('prfCampSelect'),
         hasRangeSelect: !!document.getElementById('prfRangeSelect'),
-        scopeRow: r(scopeRow), platTabs: r(platTabs), graph: r(graphCard), replay: r(replaySection),
+        scopeRow: r(scopeRow), platTabs: r(platTabs), graph: r(graphCard),
         noHeroCenterWrapper: !document.getElementById('prfHeroCenter'),
       };
     });
     check('9. Top provider -> hierarchy -> object -> date-range architecture remains intact', topControls.hasProviderTabs && topControls.hasHierarchySelect && topControls.hasObjectSelect && topControls.hasRangeSelect, topControls);
     check('9b. Left controls (Campaigns/object/date) share the exact left edge with the primary graph below them', topControls.scopeRow && topControls.graph && Math.abs(topControls.scopeRow.left - topControls.graph.left) < 1.5, topControls);
-    check('9c. Provider tabs share the exact left edge with Campaign Replay below them (moved to the right column, not the left)', topControls.platTabs && topControls.replay && Math.abs(topControls.platTabs.left - topControls.replay.left) < 1.5, topControls);
-    check('9d. The primary graph and Campaign Replay share the exact same top edge (0-1px delta) — the critical alignment requirement', topControls.graph && topControls.replay && Math.abs(topControls.graph.top - topControls.replay.top) <= 1, { delta: topControls.graph && topControls.replay ? topControls.graph.top - topControls.replay.top : null });
+    check('9c. Provider tabs and the graph share the same left edge', topControls.platTabs && topControls.graph && Math.abs(topControls.platTabs.left - topControls.graph.left) < 1.5, topControls);
     check('9e. The old separately centered #prfHeroCenter wrapper is gone', topControls.noHeroCenterWrapper, topControls);
 
     // ── PROVIDER SWITCH RECONCILIATION (forced invalid selection) ───────

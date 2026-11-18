@@ -66,18 +66,25 @@
 /* Flex card with the €1 trial: the first-purchase note stays small */
 .ov-pc.ov-pc-intro .ov-pc-duration { font-size: 13px; font-weight: 500; line-height: 1.45; color: rgba(255, 255, 255, .7); }
 
-/* ── /demo: a normal page; the demo inline, screen-high, under the navbar (index.html #view-demo) ── */
-.ov-demo-hero { display: flex; flex-direction: column; height: calc(100vh - var(--lp-nav-h, 64px)); height: calc(100dvh - var(--lp-nav-h, 64px)); min-height: 420px; background: #0B0C0A; border-bottom: 1px solid rgba(255, 255, 255, .1); }
-.ov-demo-hero__frame { position: relative; flex: 1 1 auto; min-height: 0; }
-.ov-demo-hero__frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #0B0C0A; }
+/* ── /demo: a normal public page; the interactive demo in a contained workspace frame (index.html #view-demo) ──
+   Margins on every side, a gap under the navbar, a bordered rounded frame with a slim
+   window strip, the CTA bar below the frame. The app inside keeps its own responsive
+   layout (it is never scaled down): wide frame = desktop app, narrow frame = mobile app. */
+.ov-demo-hero { --demo-gap: 24px; --demo-side: clamp(16px, 3.2vw, 48px); display: flex; flex-direction: column; gap: 16px; padding: var(--demo-gap) var(--demo-side) 32px; background: #0B0C0A; }
+.ov-demo-hero__frame { display: flex; flex-direction: column; width: 100%; max-width: 1360px; margin: 0 auto; height: calc(100vh - var(--lp-nav-h, 64px) - 140px); height: calc(100dvh - var(--lp-nav-h, 64px) - 140px); min-height: 480px; max-height: 920px; border: 1px solid rgba(255, 255, 255, .12); border-radius: 18px; overflow: hidden; background: #0B0C0A; }
+.ov-demo-hero__chrome { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; height: 36px; padding: 0 14px; border-bottom: 1px solid rgba(255, 255, 255, .08); background: #121411; font-size: 12px; color: rgba(242, 242, 240, .55); }
+.ov-demo-hero__dots { display: inline-flex; gap: 6px; } .ov-demo-hero__dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, .16); }
+.ov-demo-hero__label { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; font-weight: 500; }
+.ov-demo-hero__ro { flex: 0 0 auto; padding: 2px 8px; border: 1px solid rgba(255, 255, 255, .14); border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+.ov-demo-hero__view { position: relative; flex: 1 1 auto; min-height: 0; }
+.ov-demo-hero__view iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #0B0C0A; }
 .ov-demo-hero__loading { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; font-size: 14px; color: rgba(242, 242, 240, .55); }
-.ov-demo-hero__bar { flex: 0 0 auto; display: flex; align-items: center; gap: 16px; min-height: 56px; padding: 8px 12px 8px 24px; border-top: 1px solid rgba(255, 255, 255, .1); background: #101210; }
+.ov-demo-hero__bar { display: flex; align-items: center; gap: 16px; width: 100%; max-width: 1360px; margin: 0 auto; padding: 10px 10px 10px 20px; border: 1px solid rgba(255, 255, 255, .1); border-radius: 14px; background: #101210; }
 .ov-demo-hero__t { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 14px; color: #F2F2F0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ov-demo-hero__t b { font-weight: 600; } .ov-demo-hero__t span { color: rgba(242, 242, 240, .55); }
-.ov-demo-hero__g { flex: 0 0 auto; margin: 0; font-size: 13px; color: rgba(242, 242, 240, .7); white-space: nowrap; }
-.ov-demo-hero__cta { flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 40px; padding: 0 18px; border-radius: 999px; background: var(--green, #B6FF3B); color: #0B0C0A; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.ov-demo-hero__cta { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 18px; border-radius: 999px; background: var(--green, #B6FF3B); color: #0B0C0A; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .ov-demo-hero__cta:hover { background: #C9FF6B; }
-.ov-demo-hero__cta:focus-visible, .ov-demo-hero__frame iframe:focus-visible { outline: 2px solid var(--green, #B6FF3B); outline-offset: 2px; }
+.ov-demo-hero__cta:focus-visible, .ov-demo-hero__view iframe:focus-visible { outline: 2px solid var(--green, #B6FF3B); outline-offset: 2px; }
 .ov-demo { padding: 64px 24px 72px; }
 .ov-demo__in { max-width: 980px; margin: 0 auto; }
 .ov-demo__h2 { margin: 10px 0 24px; font-size: clamp(26px, 3vw, 36px); line-height: 1.1; letter-spacing: -.02em; font-weight: 700; color: #F2F2F0; text-wrap: balance; }
@@ -87,12 +94,17 @@
 .ov-demo__list b { display: block; margin-bottom: 4px; font-size: 15px; font-weight: 600; color: #F2F2F0; }
 .ov-demo__note { margin: 16px 0 0; font-size: 13.5px; line-height: 1.5; color: rgba(242, 242, 240, .5); }
 .ov-demo__g { margin: 12px 0 0; font-size: 13px; color: rgba(242, 242, 240, .7); }
-@media (max-width: 1100px) { .ov-demo-hero__g { display: none; } .ov-demo__list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .ov-demo__list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) {
-  .ov-demo-hero__bar { gap: 10px; padding: 8px 8px 8px 16px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+  .ov-demo-hero { --demo-gap: 16px; gap: 12px; padding-bottom: 24px; }
+  .ov-demo-hero__frame { height: calc(100vh - var(--lp-nav-h, 64px) - 172px); height: calc(100dvh - var(--lp-nav-h, 64px) - 172px); min-height: 460px; border-radius: 14px; }
+  .ov-demo-hero__chrome { height: 32px; padding: 0 12px; }
+  .ov-demo-hero__dots { display: none; }
+  .ov-demo-hero__label { text-align: left; }
+  .ov-demo-hero__bar { flex-wrap: wrap; gap: 10px; padding: 12px; }
   .ov-demo-hero__t span { display: none; }
-  .ov-demo-hero__t { font-size: 13px; white-space: normal; }
-  .ov-demo-hero__cta { padding: 0 14px; font-size: 13px; }
+  .ov-demo-hero__t { flex-basis: 100%; font-size: 13.5px; white-space: normal; }
+  .ov-demo-hero__cta { flex: 1 1 100%; min-height: 44px; }
   .ov-demo { padding: 48px 16px 56px; }
   .ov-demo__list { grid-template-columns: minmax(0, 1fr); }
 }

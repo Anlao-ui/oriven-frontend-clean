@@ -799,10 +799,10 @@ async function main() {
     await page.waitForTimeout(700);
     const tiktokFetchWiring = await page.evaluate(() => ({
       kpis: window._prfPlatKpis && window._prfPlatKpis.tiktok,
-      bannerHidden: getComputedStyle(document.getElementById('prfConnectBanner')).display === 'none',
+      bannerGone: !document.getElementById('prfConnectBanner'),
     }));
     check('21. TikTok\'s real reporting endpoint is now actually invoked (KPI data populated) when TikTok alone is connected', tiktokFetchWiring.kpis && tiktokFetchWiring.kpis.spend === 88 && tiktokFetchWiring.kpis.impr === 4400, JSON.stringify(tiktokFetchWiring.kpis));
-    check('21b. The "connect your ad accounts" banner does not wrongly show when TikTok alone is connected', tiktokFetchWiring.bannerHidden, JSON.stringify(tiktokFetchWiring));
+    check('21b. No "connect your ad accounts" banner at all (removed 2026-11-18: the graph and comparisons say which platform to connect)', tiktokFetchWiring.bannerGone, JSON.stringify(tiktokFetchWiring));
 
   } finally {
     await page.close();

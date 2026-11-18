@@ -299,79 +299,24 @@ async function main() {
     }
 
     // ════════════════════════════════════════════════════════════
-    // 17. Campaign Replay (in Campaigns' own right column) — real
-    // events, links into the full Replay page.
-    //
-    // Not obsolete architecture: #prfReplaySection/#prfReplayList/
-    // .prf-ra-item/.prf-ra-title ARE today's real Campaign Replay card
-    // (Campaigns Composition pass, right column) -- this was previously
-    // failing only because _prfLoadCampaignReplay() correctly, honestly
-    // scopes events to the ACTIVE PROVIDER TAB (`e.platform === plat`,
-    // app.html) and this test seeded a 'meta' event without ever
-    // switching off the default 'google' tab (nothing is connected in
-    // this environment, so Campaigns falls back to Google) -- the event
-    // was being filtered out exactly as it honestly should be for a
-    // platform mismatch. Fixed by switching to the Meta tab, matching the
-    // seeded event's platform, before checking.
+    // 17–19. Campaign Overview no longer has a Campaign Replay panel
+    // (removed 2026-11-18: Campaign Overview is analytics only). The full
+    // Campaign Replay page stays and still opens from a campaign.
     // ════════════════════════════════════════════════════════════
     {
       const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
       await signIn(page, user);
       const camp = makeCampaign({ name: 'Overview Activity Campaign' });
-      await seedEvent(user.userId, { platform: 'meta', campaign_name: camp.name, title: `Published "${camp.name}" to Meta Ads`, detail: 'x', created_at: new Date().toISOString() });
       await seedCampaigns(page, [camp]);
       await gotoOverview(page);
-      await page.click('.prf-ptab-meta');
       await page.waitForTimeout(1000);
-      const ra = await page.evaluate(() => ({
-        visible: document.getElementById('prfReplaySection').style.display !== 'none',
-        hasItem: !!document.querySelector('.prf-ra-item'),
-        itemText: document.querySelector('.prf-ra-title')?.textContent,
-      }));
-      check('17. Campaign Replay shows a real activity item when real events exist for the active platform', ra.visible && ra.hasItem, ra);
-      check('17b. The activity item shows the real event title, not fabricated', ra.itemText === `Published "${camp.name}" to Meta Ads`, ra.itemText);
-
-      await page.click('.prf-ra-item-link');
+      const ov = await page.evaluate(() => ({ panel: !!document.getElementById('prfReplaySection'), toggle: !!document.getElementById('prfReplayToggleBtn'), fn: typeof window._prfToggleReplay }));
+      check('17. Campaign Overview shows no Campaign Replay panel or button', !ov.panel && !ov.toggle && ov.fn === 'undefined', ov);
+      await page.evaluate((id) => { window._crpOpenFromLocal(id); }, camp.id);
       await page.waitForTimeout(1000);
       const opened = await page.evaluate(() => document.getElementById('page-campaign-replay').classList.contains('active'));
-      check('18. Clicking a Campaign Replay item opens the full Replay page for the matching real campaign', opened, opened);
+      check('18. The full Campaign Replay page still opens for a campaign', opened, opened);
       await page.close();
-    }
-
-    // ════════════════════════════════════════════════════════════
-    // 19. Campaign Replay — honest empty state (no events)
-    //
-    // Current architecture (verified against app.html's
-    // _prfLoadCampaignReplay): the card itself is never hidden once
-    // populated -- it stays visible with an honest "No recorded
-    // activity..." message inside it. Hiding the whole card would be
-    // LESS honest, not more (spec, this session's Composition pass: "no
-    // fake events... honest empty state"), so this assertion is updated
-    // to check for that visible, honest empty message rather than the
-    // section being hidden entirely.
-    // ════════════════════════════════════════════════════════════
-    {
-      const email2 = `oriven.replay.test+${Date.now()}.empty@example.com`;
-      const password2 = 'Test-' + Math.random().toString(36).slice(2) + '-Aa1!';
-      const { data: created2 } = await supabaseAdmin.auth.admin.createUser({ email: email2, password: password2, email_confirm: true });
-      const userId2 = created2.user.id;
-      await supabaseAdmin.from('profiles').upsert({ id: userId2, email: email2, subscription_status: 'creator', onboarding_completed: true }, { onConflict: 'id' });
-      try {
-        const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-        await signIn(page, { email: email2, password: password2 });
-        await gotoOverview(page);
-        await page.waitForTimeout(1000);
-        const empty = await page.evaluate(() => ({
-          visible: document.getElementById('prfReplaySection').style.display !== 'none',
-          noFakeItems: !document.querySelector('.prf-ra-item'),
-          emptyMsgVisible: getComputedStyle(document.getElementById('prfReplayEmpty')).display !== 'none',
-          emptyMsgText: document.getElementById('prfReplayEmpty').textContent,
-        }));
-        check('19. A fresh account with zero real events shows the card with an honest empty-state message (never fabricated items, never a fully hidden card)', empty.visible && empty.noFakeItems && empty.emptyMsgVisible && /No recorded activity/i.test(empty.emptyMsgText), empty);
-        await page.close();
-      } finally {
-        await deleteTestUser(userId2);
-      }
     }
 
     // ════════════════════════════════════════════════════════════

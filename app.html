@@ -414,16 +414,6 @@
          into one sidebar entry; the member pages themselves are untouched,
          this strip is the only new UI. ═══════════════════════════════ -->
     <div class="orv-hub-tabs" id="orvHubTabsCampaigns" style="display:none">
-      <!-- Campaigns Final Polish — title centered relative to the main
-           content area (spec 1), subtitle removed entirely (spec 2): the
-           page now begins with just "Campaigns" followed directly by the
-           provider controls. -->
-      <div class="camp-shell-hdr">
-        <h1 class="camp-shell-title">Campaigns</h1>
-        <p class="orv-page-sub" data-i18n="cmp_pageSub">Monitor campaign performance, track key metrics and manage your advertising across platforms.</p>
-        <!-- Campaign Builder lives under Campaigns (not in the sidebar). -->
-        <a class="orv-related" href="/app?view=builder" data-orv-go="campaign-builder"><span class="orv-related__l">Edit a campaign</span><b>Campaign Builder</b><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-      </div>
       <!-- Campaigns UX/UI Simplification & Consolidation sprint — Overview,
            Live Campaigns and Insights are no longer three destinations the
            user has to choose between. #page-performance is now the ONE
@@ -765,6 +755,8 @@
              then "what happened" (Replay). -->
         <div class="prf-workspace-row" id="prfWorkspaceRow">
           <div class="prf-perf-col" id="prfPerfCol">
+            <!-- The page title, nothing more (no subtitle or buttons): Campaign Overview is analytics only. -->
+            <h1 class="prf-ov-title" id="prfOvTitle">Campaign Overview</h1>
 
             <!-- Hierarchy -> object -> date range (spec 1-3): Campaigns/Ad
                  Sets/Ads is a REAL selectable level, not a label --
@@ -830,69 +822,6 @@
             <div class="prf-camp-info" id="prfCampInfo" style="display:none" aria-live="polite"></div>
             <div class="prf-data-notice" id="prfDataNotice" style="display:none"></div>
 
-            <!-- TikTok Analytics — copy swaps based on real connection
-                 status, set by prfSwitchPlatform(); never claims "connect
-                 to unlock" once the account is actually connected, since
-                 the real blocker at that point is that TikTok has no
-                 metrics backend yet, not the connection itself. -->
-            <div id="prfTikTokComing" style="display:none;padding:48px 0;text-align:center">
-              <div style="margin-bottom:16px;opacity:.35">
-                <svg viewBox="0 0 56 56" fill="none" width="48" height="48"><rect x="6" y="6" width="44" height="44" rx="8" stroke="currentColor" stroke-width="1.5"/><path d="M31.5 14h-5v17a3.5 3.5 0 1 1-3.5-3.5v-4.1A7.5 7.5 0 1 0 32.5 31V22c1.4 1 3.1 1.5 4.8 1.5v-4a5 5 0 0 1-5-5.5H31.5z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-              <div id="prfTikTokTitle" style="font-size:15px;font-weight:700;color:var(--charcoal);letter-spacing:-.02em;margin-bottom:8px" data-i18n="tiktokAnalyticsTitle">TikTok Analytics</div>
-              <div id="prfTikTokSub" style="font-size:13px;color:var(--muted);max-width:340px;margin:0 auto;line-height:1.6" data-i18n="tiktokAnalyticsComingSub">Analytics will become available once your TikTok Ads account has been connected.</div>
-            </div>
-
-            <div class="prf-connect-banner" id="prfConnectBanner">
-              <div class="prf-cb-ico">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
-              </div>
-              <div class="prf-cb-copy">
-                <div class="prf-cb-title" data-i18n="connectBannerTitle">Connect your ad accounts to unlock live analytics</div>
-                <div class="prf-cb-sub" data-i18n="connectBannerSub">Link Google Ads, Meta Ads, or TikTok Ads to start tracking spend, ROAS, and conversions in real time.</div>
-              </div>
-              <button class="btn btn-p btn-sm" onclick="bizGoTo('connections')" data-i18n="connectAccountsBtn">Connect Accounts →</button>
-            </div>
-
-            <!-- ONE primary graph (Campaigns Composition pass — the second
-                 graph, window._prfGraphMetric.A/.B, is fully removed; see
-                 window._prfActiveMetric / _prfBuildChartCardHtml below).
-                 Built by _prfRenderTrendCards() INTO #prfChartsGrid (its
-                 innerHTML is replaced on every metric/platform/range
-                 change — real historical series, honest empty states,
-                 fullscreen, all unchanged from the single-graph engine).
-                 #prfChartWrap (position:relative) wraps it as a STABLE
-                 sibling-of-Replay container so Campaign Replay below,
-                 anchored to THIS wrapper rather than nested inside the
-                 chart grid itself, survives those re-renders instead of
-                 being destroyed/recreated by them. -->
-            <div class="prf-chart-wrap" id="prfChartWrap">
-              <div class="prf-charts-grid" id="prfChartsGrid"></div>
-
-              <!-- ══ CAMPAIGN REPLAY ═════════════════════════════════════
-                   Control-Room pass — was a permanent right-hand column
-                   (~35% of the chart's width, visually loud even with "No
-                   recorded activity"), then briefly a full-width section
-                   below the metrics (pushed the page's usable height down
-                   further than needed). Now a small toggle in the chart's
-                   own header (#prfReplayToggleBtn, _prfBuildChartCardHtml)
-                   opens this as a compact popover anchored to the chart's
-                   upper-right corner — visible only while open, never
-                   permanently covering the chart. Preserves the feature
-                   exactly — same ids, same real-events-only source
-                   (GET /api/intelligence/events, the same
-                   _crpFetchMatchedEvents-based platform+name correlation
-                   the full Campaign Replay page uses), same click-through
-                   to _crpOpenFromLocal — only its visual priority/
-                   placement changed. Answers "what happened to the object
-                   I'm analyzing during this period?", never a campaign
-                   list. -->
-              <div class="prf-recent-activity prf-recent-activity-compact prf-replay-popover" id="prfReplaySection">
-                <div class="prf-ra-hd" id="prfReplayHd" data-i18n="cmpReplayTitle">Campaign Replay</div>
-                <div class="prf-ra-list" id="prfReplayList"></div>
-                <div class="prf-ra-empty" id="prfReplayEmpty" style="display:none"></div>
-              </div>
-            </div>
 
             <!-- ══ METRIC EXPLORER ═══════════════════════════════════════
                  A compact overview of EVERY real metric this platform/
@@ -910,6 +839,19 @@
               <div class="prf-explorer-hd" data-i18n="cmpMetrics">Metrics</div>
               <div class="prf-explorer-grid" id="prfExplorerGrid" role="group" aria-label="All supported performance metrics"></div>
             </div>
+
+            <!-- Analytics dashboard (Campaign Overview refinement): the selected
+                 metric's graph (#prfChartsGrid, _prfRenderTrendCards — clicking a
+                 metric card above picks it) next to the period comparison, then
+                 ad vs ad. Comparison cards: js/overviewCompare.js. -->
+            <div class="prf-dash" id="prfDash">
+              <div class="prf-chart-wrap" id="prfChartWrap">
+                <div class="prf-charts-grid" id="prfChartsGrid"></div>
+              </div>
+              <section class="ova-card prf-dash-side" id="ovtPeriod" aria-labelledby="ovtPeriodH"></section>
+              <section class="ova-card prf-dash-wide" id="ovtAds" aria-labelledby="ovtAdsH"></section>
+            </div>
+
 
           </div>
         </div>
@@ -7003,7 +6945,7 @@
 <script src="js/analyticsI18n.js"></script>
 <script src="js/orvAnalytics.js"></script>
 <script src="js/campaignComparison.js"></script>
-<script src="js/overviewTiles.js"></script>
+<script src="js/overviewCompare.js"></script>
 <script src="js/myContent.js"></script>
 <script src="js/appNav.js"></script>
 <script src="js/createCompat.js"></script>
@@ -9850,124 +9792,6 @@ window._crpOpenFromLive = function(platform, campaignId, campaignName, status, c
   _crpOpen(camp || { platform: platform, name: campaignName }, liveRow, 'performance', 'page-performance');
 };
 
-// ── CAMPAIGN REPLAY (Part F) — real events only, the exact same
-// /api/intelligence/events source the full Replay page reads (never a
-// second/fabricated feed), scoped to the selected platform + specific
-// campaign (by platform+campaign_name — the same real, disclosed-
-// imperfect correlation _crpFetchMatchedEvents already uses) and to the
-// real selected date range. This is deliberately NOT a campaign list
-// (spec: "the bottom of Campaigns should no longer say 'here are your
-// campaigns' — instead: 'here is what happened to the object you're
-// analyzing'"). If a matched event corresponds to a local campaign,
-// clicking it opens the full existing Replay page for that campaign;
-// otherwise it's shown as plain text (never a dead-looking but
-// non-functional link). An honest empty state, never invented items.
-function _prfRangeSinceDate(){
-  var range = window._prfActiveRange || 'LAST_30_DAYS';
-  if (range === 'CUSTOM') return window._prfCustomSince ? new Date(window._prfCustomSince) : null;
-  if (range === 'LIFETIME') return null; // no real lower bound — the backend's own 180-day cap is the honest ceiling
-  var now = new Date();
-  if (range === 'THIS_MONTH') return new Date(now.getFullYear(), now.getMonth(), 1);
-  if (range === 'LAST_MONTH') return new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  var days = { TODAY: 0, YESTERDAY: 1, LAST_7_DAYS: 7, LAST_30_DAYS: 30, LAST_90_DAYS: 90, LAST_12_MONTHS: 365 }[range];
-  if (days == null) days = 30;
-  return new Date(now.getTime() - days * 86400000);
-}
-// GET /api/intelligence/events's own `days` param (raw count, capped at
-// 180 server-side) is a coarse over-fetch; _prfRangeSinceDate() above then
-// does the real, precise client-side cutoff against each event's actual
-// created_at.
-function _prfReplayFetchDays(){
-  var range = window._prfActiveRange || 'LAST_30_DAYS';
-  if (range === 'CUSTOM' && window._prfCustomSince) {
-    var d = Math.ceil((Date.now() - new Date(window._prfCustomSince).getTime()) / 86400000) + 1;
-    return Math.min(180, Math.max(1, d));
-  }
-  var MAP = { TODAY: 2, YESTERDAY: 3, LAST_7_DAYS: 8, LAST_30_DAYS: 31, LAST_90_DAYS: 91, THIS_MONTH: 32, LAST_MONTH: 62, LAST_12_MONTHS: 180, LIFETIME: 180 };
-  return MAP[range] || 31;
-}
-window._prfLoadCampaignReplay = function(){
-  var wrap = document.getElementById('prfReplaySection');
-  var list = document.getElementById('prfReplayList');
-  var emptyEl = document.getElementById('prfReplayEmpty');
-  if (!wrap || !list) return;
-  var hierarchy = window._prfHierarchy || 'campaigns';
-  var plat = window._prfActivePlatform || 'google';
-  var owner = window._prfState ? window._prfState.owner : null;
-  var reqGen = (window._prfReplayGen = (window._prfReplayGen || 0) + 1);
-  if (hierarchy !== 'campaigns') {
-    // Events only identify campaigns (platform + name) — never shown as
-    // if they belonged to an ad set or ad.
-    _prfShowReplayToggle();
-    list.innerHTML = '';
-    if (emptyEl) { emptyEl.style.display = ''; emptyEl.textContent = PRF_T('cmpReplayLevel', { level: _prfHierarchyLabel(hierarchy) }, 'Campaign Replay isn’t available at the {level} level.'); }
-    return;
-  }
-  var campKey = window._prfActiveCampaign || 'all';
-  var sel = campKey !== 'all' ? _prfCampaignByKey(campKey) : null;
-  var campName = sel ? sel.name : null;
-  // intelligence_events carry the campaign NAME only: if another campaign on
-  // this platform has the same name, say that the two can't be separated.
-  var shared = sel ? (window._prfAllCampaigns || []).filter(function(c) { return c.platform === plat && c.name === sel.name; }).length > 1 : false;
-  var since = _prfRangeSinceDate();
-  apiFetch('/api/intelligence/events?days=' + _prfReplayFetchDays() + '&type=campaign_action').then(function(res){
-    if (window._prfReplayGen !== reqGen || (window._prfState && window._prfState.owner !== owner)) return; // superseded
-    if (!(res.ok && res.data && Array.isArray(res.data.events))) throw new Error('replay');
-    var events = res.data.events.filter(function(e){ return e.platform === plat; });
-    if (campName) { var nameLc = campName.toLowerCase(); events = events.filter(function(e){ return e.campaign_name && e.campaign_name.toLowerCase() === nameLc; }); }
-    if (since) events = events.filter(function(e){ return new Date(e.created_at) >= since; });
-    events = events.slice(0, 8);
-    _prfShowReplayToggle();
-    var note = shared ? '<div class="prf-ra-note">' + _prfEsc(PRF_T('cmpReplayNameShared', null, '')) + '</div>' : '';
-    if (!events.length) {
-      list.innerHTML = note;
-      if (emptyEl) {
-        emptyEl.style.display = '';
-        emptyEl.textContent = !campName ? PRF_T('cmpReplayNoneAll', { platform: _PRF_PLAT_LABELS[plat] || plat }, 'No recorded activity for {platform} in this range.')
-          : PRF_T('cmpReplayNoneOne', { name: campName }, 'No recorded activity for “{name}” in this range.');
-      }
-      return;
-    }
-    if (emptyEl) emptyEl.style.display = 'none';
-    _loadCamps();
-    list.innerHTML = note + events.map(function(e){
-      // Open the local record only when the provider id matches; a name
-      // match alone could be a different campaign.
-      var match = null;
-      if (sel) { for (var i = 0; i < _campaigns.length; i++) { if (_campaigns[i].platform === plat && String(_campaigns[i].platformCampaignId || '') === String(sel.id)) { match = _campaigns[i]; break; } } }
-      var timeStr = _crpFmtTime(e.created_at);
-      var body = '<div class="prf-ra-title">' + _crpEsc(e.title) + '</div><div class="prf-ra-time">' + _crpEsc(timeStr) + '</div>';
-      return match
-        ? '<div class="prf-ra-item prf-ra-item-link" onclick="_crpOpenFromLocal(\'' + match.id + '\')" role="button" tabindex="0" onkeydown="if(event.key===\'Enter\'){_crpOpenFromLocal(\'' + match.id + '\')}">' + body + '</div>'
-        : '<div class="prf-ra-item">' + body + '</div>';
-    }).join('');
-  }).catch(function(){
-    if (window._prfReplayGen !== reqGen) return;
-    _prfShowReplayToggle();
-    list.innerHTML = '';
-    if (emptyEl) { emptyEl.style.display = ''; emptyEl.textContent = PRF_T('cmpReplayErr', null, 'Activity couldn’t be loaded right now.'); }
-  });
-};
-
-// Campaign Replay — Control-Room pass, upper-right compact panel. Real
-// content-loading (_prfLoadCampaignReplay above) is unchanged; only what
-// happens once content is ready changed: instead of unconditionally
-// showing the (formerly permanent) panel, it reveals the small "Replay"
-// toggle button in the chart header, leaving the actual panel collapsed
-// until the user explicitly opens it — never covering the chart
-// permanently, and never open by default with no user action.
-function _prfShowReplayToggle(){
-  var btn = document.getElementById('prfReplayToggleBtn');
-  if (btn) btn.style.display = '';
-}
-window._prfToggleReplay = function(){
-  var wrap = document.getElementById('prfReplaySection');
-  var btn = document.getElementById('prfReplayToggleBtn');
-  if (!wrap) return;
-  var open = wrap.classList.contains('prf-replay-open');
-  wrap.classList.toggle('prf-replay-open', !open);
-  if (btn) btn.setAttribute('aria-expanded', open ? 'false' : 'true');
-};
 
 /* ── Campaign library filter + search ──────────────────────────── */
 var _clibFilter = 'google';
@@ -15853,9 +15677,8 @@ window.prfReset = function() {
   window._prfConnectedPlatforms = []; window._prfTikTokConnected = false;
   window._prfLastSeries = []; window._prfLastSeriesMeta = {}; window._prfLastKpis = null;
   if (typeof _prfChartReqId === 'number') _prfChartReqId++;
-  window._prfReplayGen = (window._prfReplayGen || 0) + 1;
   window.orvMetricCurrency = null;
-  ['prfExplorerGrid', 'prfChartsGrid', 'prfReplayList', 'prfDataNotice', 'prfCampInfo'].forEach(function(id) { var el = document.getElementById(id); if (el) el.innerHTML = ''; });
+  ['prfExplorerGrid', 'prfChartsGrid', 'prfDataNotice', 'prfCampInfo'].forEach(function(id) { var el = document.getElementById(id); if (el) el.innerHTML = ''; });
   var sel = document.getElementById('prfCampSelect');
   if (sel) sel.innerHTML = '<option value="all">' + _prfEsc(PRF_T('apAllCampaigns', null, 'All Campaigns')) + '</option>';
   if (window.orvWorkspace && orvWorkspace.campPicker) orvWorkspace.campPicker.sync();
@@ -15969,7 +15792,6 @@ window.prfInit = function() {
   var uid = _prfUid();
   if (_prfState.owner !== uid) { window.prfReset(); _prfState.owner = uid; }
   var sg = ++_prfState.statusGen;
-  var banner = document.getElementById('prfConnectBanner');
   PRF_PLATFORMS.forEach(function(p) { if (!_prfState.conn[p]) _prfState.conn[p] = 'checking'; });
   _prfBuildTabs();
   var pending = PRF_PLATFORMS.length;
@@ -15981,7 +15803,6 @@ window.prfInit = function() {
     window._prfConnectedPlatforms = loadable.filter(function(p) { return p !== 'tiktok'; });
     window._prfTikTokConnected = loadable.indexOf('tiktok') !== -1;
     var allKnownDisconnected = PRF_PLATFORMS.every(function(p) { return _prfState.conn[p] === 'not_connected'; });
-    if (banner) banner.style.display = allKnownDisconnected ? '' : 'none';
     _prfBuildTabs();
     if (loadable.length) _prfLoadData(loadable, { sync: true });
     else { _prfRenderNotice(); }
@@ -16071,7 +15892,7 @@ function _prfActiveEntities() {
   return list;
 }
 window._prfStatusInfoFor = function(platform, row) { return _prfStatusInfo(platform, row); };
-// The current level's entities, for the metric tiles (js/overviewTiles.js).
+// The current level's entities, for the comparison cards (js/overviewCompare.js).
 window._prfActiveEntitiesForTiles = function() { return _prfActiveEntities(); };
 // Back-compat for older callers: visible names of the current level.
 function _prfActiveEntityNames() { return _prfActiveEntities().map(function(e) { return e.name; }); }
@@ -16137,8 +15958,6 @@ window.prfSwitchPlatform = function(platform, byUser) {
   _prfRenderHierarchySelect(platform);
   if (typeof prfCloseExpandedChart === 'function') prfCloseExpandedChart();
   document.querySelectorAll('#prfPlatTabsInner .prf-ptab').forEach(function(tb) { tb.classList.toggle('active', tb.dataset.plat === platform); });
-  var tikEl = document.getElementById('prfTikTokComing');
-  if (tikEl) tikEl.style.display = 'none';
   window.orvMetricCurrency = _prfCurrencyFor(platform);
   _prfBuildCampaignSelect();
   _prfApplyView();
@@ -16546,7 +16365,6 @@ function _prfApplyView() {
     if (typeof _prfChartReqId === 'number') _prfChartReqId++;
     _prfRenderTrendCards();
   }
-  if (typeof _prfLoadCampaignReplay === 'function') _prfLoadCampaignReplay();
 }
 
 // Ad Sets / Ads level — the entity's own row (Meta has metrics; Pinterest's
@@ -16565,7 +16383,6 @@ function _prfApplyEntityLevelView(plat, entityKey, hierarchy) {
   window._prfLastSeries = [];
   window._prfLastSeriesMeta = { plat: plat, connected: true, noLevelData: true };
   _prfRenderKpiTiles(kpis);
-  if (typeof _prfLoadCampaignReplay === 'function') _prfLoadCampaignReplay();
 }
 
 // ── Notices: errors, connection, partial / unavailable data ─────────
@@ -16934,10 +16751,6 @@ function _prfBuildChartCardHtml(id) {
       '<div class="prf-chart-hd">' +
         '<span class="prf-chart-title">' + _prfEsc(PRF_T('cmpOverTime', { metric: orvMetricLabel(id) }, '{metric} over time')) + '</span>' +
         '<div class="prf-chart-hd-controls">' +
-          '<button type="button" class="prf-chart-replay-btn" id="prfReplayToggleBtn" onclick="_prfToggleReplay()" aria-expanded="false" aria-controls="prfReplaySection" title="' + _prfEsc(PRF_T('cmpReplayTitle', null, 'Campaign Replay')) + '" style="display:none">' +
-            '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M4 3v8l7-4z"/></svg>' +
-            _prfEsc(PRF_T('cmpReplay', null, 'Replay')) +
-          '</button>' +
           '<button type="button" class="prf-chart-expand-btn" onclick="prfExpandChart(\'' + id + '\')" aria-label="' + _prfEsc(PRF_T('cmpExpand', { chart: PRF_T('cmpOverTime', { metric: orvMetricLabel(id) }, '{metric} over time') }, 'Expand {chart}')) + '" title="' + _prfEsc(PRF_T('cmpExpand', { chart: '' }, 'Expand').trim()) + '">' + _prfExpandSvg() + '</button>' +
         '</div>' +
       '</div>' +
@@ -17085,11 +16898,7 @@ function _prfLoadChartSeries(plat, campaignId) {
      fetch, never fabricate a series. Real connection state still drives
      which honest empty state shows (not-connected vs connected-but-no-
      history-endpoint-yet). */
-  if (plat === 'tiktok') {
-    window._prfLastSeries = []; window._prfLastSeriesMeta = { plat: 'tiktok', connected: !!window._prfTikTokConnected, noBackend: true };
-    _prfRenderTrendCharts();
-    return;
-  }
+  if (plat === 'tiktok' || plat === 'snapchat') { _prfLoadAnalyticsSeries(plat, campaignId); return; }
   /* Real connection state, not just "is this a valid platform name" — a
      single platform tab (google/meta/pinterest) previously always queried
      its kpi-series endpoint regardless of window._prfConnectedPlatforms, so
@@ -17158,6 +16967,37 @@ function _prfLoadChartSeries(plat, campaignId) {
     });
     var merged = Object.keys(byDate).map(function(k) { return byDate[k]; }).sort(function(a, b) { return a.date < b.date ? -1 : 1; });
     window._prfLastSeries = merged; window._prfLastSeriesMeta = { plat: plat, connected: true };
+    _prfRenderTrendCharts();
+  });
+}
+
+/* TikTok and Snapchat: GET /api/analytics/series (the same endpoint the
+   Overview comparisons and Platform Comparison use), for the page's range and
+   campaign. Same row shape as kpi-series; reach isn't reported there. */
+function _prfLoadAnalyticsSeries(plat, campaignId) {
+  var reqId = ++_prfChartReqId;
+  var seriesOwner = window._prfState ? window._prfState.owner : null;
+  // TikTok's connection is tracked in its own flag (window._prfTikTokConnected).
+  var on = (window._prfConnectedPlatforms || []).indexOf(plat) !== -1 || (plat === 'tiktok' && !!window._prfTikTokConnected);
+  if (!on) {
+    window._prfLastSeries = []; window._prfLastSeriesMeta = { plat: plat, connected: false };
+    _prfRenderTrendCharts();
+    return;
+  }
+  var A = window.orvAnalytics;
+  var w = A ? A.windowFor(window._prfActiveRange || 'LAST_30_DAYS', window._prfCustomSince, window._prfCustomUntil) : null;
+  if (!w) { window._prfLastSeries = []; window._prfLastSeriesMeta = { plat: plat, connected: true, error: true }; _prfRenderTrendCharts(); return; }
+  A.series(plat, w, campaignId ? { campaignId: campaignId } : {}).then(function(d) {
+    if (reqId !== _prfChartReqId || (window._prfState && window._prfState.owner !== seriesOwner)) return;
+    var valued = d.conversionValue === 'reported';
+    window._prfLastSeries = (d.series || []).map(function(r) {
+      return { date: r.date, spend: r.spend || 0, impressions: r.impressions || 0, clicks: r.clicks || 0, conversions: r.conversions || 0, conversions_value: valued ? (r.conversionValue || 0) : 0, hasValue: valued, reach: 0, hasReach: false };
+    });
+    window._prfLastSeriesMeta = { plat: plat, connected: true };
+    _prfRenderTrendCharts();
+  }, function() {
+    if (reqId !== _prfChartReqId) return;
+    window._prfLastSeries = []; window._prfLastSeriesMeta = { plat: plat, connected: true, error: true };
     _prfRenderTrendCharts();
   });
 }
