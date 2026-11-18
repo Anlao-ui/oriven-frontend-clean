@@ -222,3 +222,13 @@ body.dark-mode .atm-wrap, body.dark-mode .atm-overlay { --au-ok: #5fd68f; --au-w
 @media (min-width: 1025px) { .atm-wrap { padding-left: 40px; padding-right: 40px; } }
 /* The Launch note inside the accounts card, set off by a line. */
 .atm-ovrail .atm-card .atm-note { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+/* Overview counts: six tiles; Scheduler: schedules beside the upcoming runs (2026-11-18). */
+.atm-tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.atm-split { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 12px; align-items: start; }
+.atm-split-main { min-width: 0; }
+.atm-list.atm-list-tight { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.atm-split-side { margin: 0; }
+.atm-split-side .atm-jobs li { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+.atm-split-side .atm-job-what { grid-column: 1 / -1; grid-row: 2; font-size: 13px; }
+@media (max-width: 1100px) { .atm-split { grid-template-columns: minmax(0, 1fr); } }

@@ -218,12 +218,16 @@
       return;
     }
     var quiet = !tot.mixedCurrency && isNum(tot.spend) && tot.spend === 0 && (!ptot || !isNum(ptot.spend) || ptot.spend === 0);
+    // CTR from the reported clicks and impressions (null when either is missing, never a made-up 0).
+    var withCtr = function (t) { if (!t) return t; var o = Object.assign({}, t); o.ctr = isNum(t.clicks) && isNum(t.impressions) && t.impressions > 0 ? (t.clicks / t.impressions) * 100 : null; return o; };
+    var T2 = withCtr(tot), P2 = withCtr(ptot);
     var max = Math.max.apply(null, split.map(function (p) { return snap.platforms[p].totals.spend || 0; }).concat([1]));
     el.innerHTML = '<p class="ccx-meta">' + esc(CT('perfMeta')) + '</p>' + badNote +
       (tot.mixedCurrency ? '<p class="ccx-note">' + esc(CT('perfMixed')) + '</p>' : '') +
       (quiet ? '<p class="ccx-quiet">' + esc(CT('perfQuiet')) + '</p>' : '') +
-      '<div class="op-figs op-figs-ov ccx-figs">' + figure(CT('fig.spend'), 'spend', tot, ptot, cur) + figure(CT('fig.conversions'), 'conversions', tot, ptot, cur) + figure(CT('fig.cpa'), 'cpa', tot, ptot, cur) +
-        figure(CT('fig.roas'), 'roas', tot, ptot, cur, { why: tot.partialValue ? CT('partialValue') : '' }) + '</div>' +
+      '<div class="op-figs op-figs-ov ccx-figs ccx-figs-6">' + figure(CT('fig.impressions'), 'impressions', T2, P2, cur) + figure(CT('fig.clicks'), 'clicks', T2, P2, cur) + figure(CT('fig.ctr'), 'ctr', T2, P2, cur) +
+        figure(CT('fig.spend'), 'spend', T2, P2, cur) + figure(CT('fig.conversions'), 'conversions', T2, P2, cur) +
+        (isNum(tot.roas) ? figure(CT('fig.roas'), 'roas', T2, P2, cur, { note: tot.partialValue ? CT('partialValue') : '' }) : '') + '</div>' +
       '<ul class="ccx-split" aria-label="' + esc(CT('splitAria')) + '">' + split.map(function (p) {
         var T = snap.platforms[p].totals, c = snap.platforms[p].currency;
         return '<li><span class="ccx-split-l">' + UI.platBadge(p) + '</span><span class="ccx-split-bar"><i class="ov-pl-' + p + '" style="width:' + Math.max(3, (T.spend || 0) / max * 100).toFixed(1) + '%"></i></span>' +
@@ -279,13 +283,17 @@
     var needAtt = (n.failed || 0) + (n.blocked || 0);
     var bad = unreadable(snap), connected = snap ? snap.connected.length : 0;
     var live = snap ? snap.campaigns.filter(function (c) { return c.status === 'active'; }) : [];
+    var pausedN = snap ? snap.campaigns.filter(function (c) { return c.status === 'paused'; }).length : 0;
+    var onPlatforms = snap ? snap.campaigns.length : 0;
     live.sort(function (a, b) { return (b.spend || 0) - (a.spend || 0); });
     // "Running" is only claimed from a successful platform read.
     var runningKnown = !!snap && !failed && connected > 0 && bad.length < connected;
     if (window.orvCC) window.orvCC.setRunning(runningKnown ? live.length : null);
     var runningVal = !snap || failed ? '<span class="ccx-stat-na">' + esc(CT('unavailable')) + '</span>' : !connected ? '<span class="ccx-stat-na">' + esc(CT(bad.length ? 'unavailable' : 'notConnected')) + '</span>' : (bad.length === connected ? '<span class="ccx-stat-na">' + esc(CT('unavailable')) + '</span>' : '<b>' + live.length + '</b>' + (bad.length ? '<span class="ccx-stat-flag" title="' + esc(CT('perfUnavailable', { list: bad.map(function (p) { return CAP[p].name; }).join(', ') })) + '">*</span>' : ''));
     var stat = function (val, label, src, cls) { return '<div class="ccx-stat' + (cls ? ' ' + cls : '') + '"><span class="ccx-stat-v">' + val + '</span><span class="ccx-stat-l">' + esc(label) + '</span><span class="ccx-stat-s">' + esc(src) + '</span></div>'; };
-    var stats = '<div class="ccx-stats">' + stat(runningVal, CT('running'), CT('runningSrc')) + stat('<b>' + drafts.length + '</b>', CT('drafts'), CT('draftsSrc')) + stat('<b>' + needAtt + '</b>', CT('needAtt'), CT('needAttSrc'), needAtt ? 'is-warn' : '') + '</div>';
+    var pausedVal = runningKnown ? '<b>' + pausedN + '</b>' : runningVal;
+    var totalLine = runningKnown ? '<p class="ccx-meta ccx-camps-total">' + esc(CN('campsTotal', onPlatforms)) + '</p>' : '';
+    var stats = totalLine + '<div class="ccx-stats ccx-stats-4">' + stat(runningVal, CT('active'), CT('runningSrc')) + stat(pausedVal, CT('paused'), CT('runningSrc')) + stat('<b>' + drafts.length + '</b>', CT('drafts'), CT('draftsNotPub')) + stat('<b>' + needAtt + '</b>', CT('needAtt'), CT('needAttSrc'), needAtt ? 'is-warn' : '') + '</div>';
     var pick = live.slice(0, 3);
     if (pick.length < 3) pick = pick.concat(drafts.slice(0, 3 - pick.length));
     var total = live.length + drafts.length;
@@ -311,10 +319,11 @@
   function paintAutopilotMini(t) {
     var el = document.getElementById('ovAuto'); if (!el) return;
     if (!hasAutomationPlan()) { lastAuto = { locked: true }; paintAutoFrom(lastAuto); return; }
-    Promise.all([window.apiFetch('/api/automations/overview'), window.apiFetch('/api/automations/activity?limit=1')].map(function (p) { return p.catch(function () { return null; }); })).then(function (x) {
+    Promise.all([window.apiFetch('/api/automations/overview'), window.apiFetch('/api/automations/activity?limit=3')].map(function (p) { return p.catch(function () { return null; }); })).then(function (x) {
       if (stale('dash', t)) return;
       var o = x[0] && x[0].ok ? x[0].data : null;
-      lastAuto = { o: o, last: x[1] && x[1].ok && x[1].data && x[1].data.items ? x[1].data.items[0] : null, error: !o };
+      var items = x[1] && x[1].ok && x[1].data && x[1].data.items ? x[1].data.items : [];
+      lastAuto = { o: o, last: items[0] || null, recent: items.slice(0, 3), error: !o };
       paintAutoFrom(lastAuto);
     });
   }
@@ -322,16 +331,25 @@
     var el = document.getElementById('ovAuto'); if (!el) return;
     if (a.locked) { el.innerHTML = '<p class="ccx-line">' + esc(CT('autoFree')) + '</p><p class="ccx-meta">' + esc(CT('autoFreeSub')) + '</p>'; return; }
     if (a.error) { el.innerHTML = '<p class="ccx-meta">' + esc(CT('autoErr')) + '</p>'; return; }
-    var o = a.o, last = a.last, c = o.counts || {}, on = c.active || 0, waiting = c.pendingApprovals || 0;
+    var o = a.o, c = o.counts || {}, on = c.active || 0, waiting = c.pendingApprovals || 0, paused = c.paused || 0, review = c.needsReview || 0, errors = c.failed7d || 0;
+    var attention = review + waiting;
     var conn = (o.accounts || []).filter(function (x) { return x.connected; }).map(function (x) { return (CAP[x.platform] && CAP[x.platform].short) || x.platform; });
-    var head = o.pausedAll ? CT('autoPaused') : on ? CN('autoActive', on) : CT('autoNone');
-    var sub = on ? (conn.length ? CT('autoManaging', { list: window.orvCC ? orvCC.list(conn) : conn.join(', ') }) : '') : (conn.length ? CT('autoConnected', { list: window.orvCC ? orvCC.list(conn) : conn.join(', ') }) : CT('autoNoAccounts'));
-    var lines = [];
-    if (o.nextRun) lines.push(CT('autoNext', { when: window.orvCC ? orvCC.rel(o.nextRun.run_at) : rel(o.nextRun.run_at) }));
-    if (last && !waiting) lines.push(CT('autoLast', { what: (CT('autoAct.' + last.action) || last.action) + (last.campaign_name ? ' · ' + last.campaign_name : ''), when: window.orvCC ? orvCC.rel(last.created_at) : rel(last.created_at) }));
-    el.innerHTML = '<p class="ccx-line"><span class="ccx-sdot' + (on && !o.pausedAll ? ' is-on' : o.pausedAll ? ' is-warn' : '') + '" aria-hidden="true"></span>' + esc(head) + '</p>' +
-      (sub ? '<p class="ccx-meta">' + esc(sub) + '</p>' : '') +
-      (lines.length ? '<p class="ccx-meta">' + lines.map(esc).join(' · ') + '</p>' : '') +
+    // No automations at all: one small call to action, not an empty panel.
+    if (!on && !paused && !review && !(c.rules || 0) && !(c.schedules || 0)) {
+      el.innerHTML = '<div class="ccx-state ccx-state-sm"><p>' + esc(CT('aCtaText')) + '</p><button type="button" class="ccx-btn ccx-btn-ghost" onclick="orvWorkspace.ops.go(\'autopilot\')">' + esc(CT('aCta')) + '</button></div>' +
+        (conn.length ? '' : '<p class="ccx-meta">' + esc(CT('autoNoAccounts')) + '</p>');
+      return;
+    }
+    var stat = function (n, label, cls) { return '<div class="ccx-stat ccx-stat-mini' + (cls ? ' ' + cls : '') + '"><span class="ccx-stat-v"><b>' + n + '</b></span><span class="ccx-stat-l">' + esc(label) + '</span></div>'; };
+    var stats = '<div class="ccx-stats ccx-stats-4 ccx-auto-stats">' + stat(on, CT('aActive'), on && !o.pausedAll ? 'is-on' : '') + stat(paused, CT('aPaused')) + stat(attention, CT('aAttention'), attention ? 'is-warn' : '') + stat(errors, CT('aErrors'), errors ? 'is-bad' : '') + '</div>';
+    var head = o.pausedAll ? '<p class="ccx-line"><span class="ccx-sdot is-warn" aria-hidden="true"></span>' + esc(CT('autoPaused')) + '</p>' : '';
+    var next = o.nextRun ? '<p class="ccx-meta">' + esc(CT('autoNext', { when: window.orvCC ? orvCC.rel(o.nextRun.run_at) : rel(o.nextRun.run_at) })) + '</p>' : '';
+    var recent = (a.recent || []).length ? '<p class="ccx-sub-h">' + esc(CT('aRecent')) + '</p><ul class="ccx-alist">' + a.recent.map(function (r) {
+      var what = (CT('autoAct.' + r.action) || r.action || '') + (r.campaign_name ? ' · ' + r.campaign_name : '');
+      var st = r.status || '', bad = st === 'failed';
+      return '<li class="' + (bad ? 'is-bad' : '') + '"><span class="ccx-alist-w">' + esc(what) + '</span><span class="ccx-alist-m">' + esc((CT('aSt.' + st) !== 'aSt.' + st ? CT('aSt.' + st) : st) + ' · ' + (window.orvCC ? orvCC.rel(r.created_at) : rel(r.created_at))) + '</span></li>';
+    }).join('') + '</ul>' : '';
+    el.innerHTML = head + stats + next + recent +
       (waiting ? '<button type="button" class="ccx-pill-btn" onclick="orvWorkspace.ops.go(\'autopilot\')">' + esc(CN('autoWaiting', waiting)) + ' <span aria-hidden="true">→</span></button>' : '');
   }
   OPS.askOverview = function () {

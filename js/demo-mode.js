@@ -164,6 +164,36 @@
     }
     return { platform: p, since: since, until: until, series: series, conversionValue: valued ? 'reported' : 'not_reported', clamped: clamped };
   }
+  // The date window a ranged request asks for (date_range, or CUSTOM with date_since/date_until).
+  function rangeOf(kq) {
+    var today = dayStr(new Date()), back = function (n) { return dayStr(new Date(Date.now() - n * 864e5)); };
+    var key = kq.get('date_range') || 'LAST_30_DAYS', ks = back(29), ku = today, now = new Date();
+    if (key === 'TODAY') ks = today; else if (key === 'YESTERDAY') { ks = ku = back(1); } else if (key === 'LAST_7_DAYS') ks = back(6); else if (key === 'LAST_90_DAYS') ks = back(89);
+    else if (key === 'LAST_12_MONTHS' || key === 'LIFETIME') ks = back(364); else if (key === 'THIS_MONTH') ks = today.slice(0, 8) + '01';
+    else if (key === 'LAST_MONTH') { var lm = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0)); ku = dayStr(lm); ks = ku.slice(0, 8) + '01'; }
+    else if (key === 'CUSTOM' && /^\d{4}-\d{2}-\d{2}$/.test(kq.get('date_since') || '') && /^\d{4}-\d{2}-\d{2}$/.test(kq.get('date_until') || '')) { ks = kq.get('date_since'); ku = kq.get('date_until'); }
+    return { since: ks, until: ku };
+  }
+  // Platform snapshots (overview/campaign lists) for the requested window: the sample is a 30-day
+  // snapshot, so its figures are scaled by the same sample days the graphs use (demoSeries).
+  var SNAP_PLATFORM = { '/api/ads/overview': 'google', '/api/meta/campaigns': 'meta', '/api/tiktok/overview': 'tiktok', '/api/pinterest/overview': 'pinterest', '/api/snapchat/overview': 'snapchat' };
+  var SCALE_KEYS = { spend: 1, impressions: 1, clicks: 1, conversions: 1, conversionValue: 1, conversions_value: 1, reach: 1, linkClicks: 1, addToCart: 1, checkoutInitiated: 1, video_views: 1, swipes: 1 };
+  function scaleTo(obj, f) {
+    if (Array.isArray(obj)) { obj.forEach(function (x) { scaleTo(x, f); }); return obj; }
+    if (obj && typeof obj === 'object') Object.keys(obj).forEach(function (k) {
+      var v = obj[k];
+      if (SCALE_KEYS[k] && typeof v === 'number') obj[k] = k === 'spend' || k === 'conversionValue' || k === 'conversions_value' ? Math.round(v * f * 100) / 100 : Math.round(v * f);
+      else if (v && typeof v === 'object') scaleTo(v, f);
+    });
+    return obj;
+  }
+  function windowFactor(platform, query) {
+    var w = rangeOf(new URLSearchParams(String(query || '').replace(/^\?/, '')));
+    var sum = function (since, until) { var d = demoSeries('platform=' + platform + '&since=' + since + '&until=' + until); return d ? d.series.reduce(function (t, r) { return t + r.spend; }, 0) : 0; };
+    var base = sum(dayStr(new Date(Date.now() - 29 * 864e5)), dayStr(new Date()));
+    return base ? sum(w.since, w.until) / base : 1;
+  }
+  function rangedSample(path, query) { var x = sample(path + query); return x && SNAP_PLATFORM[path] ? scaleTo(x, windowFactor(SNAP_PLATFORM[path], query)) : x; }
   var DEMO_ADS = [['120200000001', 'Slow evenings — Feed'], ['120200000002', 'Sixty hours of warm light — Reels'], ['120200000003', 'Gift guide — Stories'], ['120200000004', 'Workshop teaser — Feed']];
 
   function api(method, path, query, body) {
@@ -174,12 +204,7 @@
     // The Campaign Overview graph reads kpi-series for Google, Meta and Pinterest: the same sample
     // days as above, so the graph, the metric cards and the comparisons tell one story.
     if ((method === 'GET' || method === 'HEAD') && path === '/api/intelligence/kpi-series') {
-      var kq = new URLSearchParams(String(query || '').replace(/^\?/, '')), today = dayStr(new Date()), back = function (n) { return dayStr(new Date(Date.now() - n * 864e5)); };
-      var key = kq.get('date_range') || 'LAST_30_DAYS', ks = back(29), ku = today, now = new Date();
-      if (key === 'TODAY') ks = today; else if (key === 'YESTERDAY') { ks = ku = back(1); } else if (key === 'LAST_7_DAYS') ks = back(6); else if (key === 'LAST_90_DAYS') ks = back(89);
-      else if (key === 'LAST_12_MONTHS' || key === 'LIFETIME') ks = back(364); else if (key === 'THIS_MONTH') ks = today.slice(0, 8) + '01';
-      else if (key === 'LAST_MONTH') { var lm = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0)); ku = dayStr(lm); ks = ku.slice(0, 8) + '01'; }
-      else if (key === 'CUSTOM' && /^\d{4}-\d{2}-\d{2}$/.test(kq.get('date_since') || '') && /^\d{4}-\d{2}-\d{2}$/.test(kq.get('date_until') || '')) { ks = kq.get('date_since'); ku = kq.get('date_until'); }
+      var kq = new URLSearchParams(String(query || '').replace(/^\?/, '')), kw = rangeOf(kq), ks = kw.since, ku = kw.until;
       var kd = demoSeries('platform=' + encodeURIComponent(kq.get('platform') || '') + '&since=' + ks + '&until=' + ku + (kq.get('campaignId') ? '&campaignId=' + encodeURIComponent(kq.get('campaignId')) : ''));
       if (!kd) return Promise.resolve(json(200, { series: [] }));
       var reach = kd.platform === 'meta' || kd.platform === 'pinterest';
@@ -187,7 +212,7 @@
     }
     // Google overview: the sample snapshot predates CPM and impression share; add them from its own figures.
     if ((method === 'GET' || method === 'HEAD') && path === '/api/ads/overview') {
-      var go = sample(path + query);
+      var go = rangedSample(path, query);
       if (go && go.overview) {
         var cpm = function (o) { return o.impressions ? Math.round((o.spend / o.impressions) * 1000 * 100) / 100 : null; };
         go.overview.avgCpm = cpm(go.overview); go.overview.searchImpressionShare = 63.4;
@@ -195,9 +220,19 @@
       }
       return Promise.resolve(json(200, go === undefined ? {} : go));
     }
+    if ((method === 'GET' || method === 'HEAD') && (path === '/api/tiktok/overview' || path === '/api/pinterest/overview' || path === '/api/snapchat/overview')) {
+      var ps = rangedSample(path, query);
+      return Promise.resolve(json(200, ps === undefined ? {} : ps));
+    }
+    // Automations overview: the sample snapshot predates Snapchat in the account list (the engine supports all five).
+    if ((method === 'GET' || method === 'HEAD') && path === '/api/automations/overview') {
+      var ao = sample(path + query);
+      if (ao && Array.isArray(ao.accounts) && !ao.accounts.some(function (x) { return x.platform === 'snapchat'; })) ao.accounts.push({ platform: 'snapchat', label: 'Snapchat Ads', connected: true });
+      return Promise.resolve(json(200, ao === undefined ? {} : ao));
+    }
     // Meta campaigns: the sample snapshot predates link clicks and the shop funnel; add them from its own figures.
     if ((method === 'GET' || method === 'HEAD') && path === '/api/meta/campaigns') {
-      var mc = sample(path + query);
+      var mc = rangedSample(path, query);
       (mc && mc.campaigns || []).forEach(function (c) {
         if (c.clicks != null && c.linkClicks == null) c.linkClicks = Math.round(c.clicks * 0.78);
         if (c.conversions != null && c.addToCart == null) { c.addToCart = Math.round(c.conversions * 4.2); c.checkoutInitiated = Math.round(c.conversions * 1.9); }
@@ -205,7 +240,9 @@
       return Promise.resolve(json(200, mc === undefined ? {} : mc));
     }
     if ((method === 'GET' || method === 'HEAD') && path === '/api/meta/ads') {
-      return Promise.resolve(json(200, { ads: DEMO_ADS.map(function (a, i) { var w = 0.6 + rnd(a[0]) * 0.9; return { ad_id: a[0], ad_name: a[1], status: i === 3 ? 'PAUSED' : 'ACTIVE', spend: Math.round(160 * w) / 1, impressions: Math.round(14000 * w), clicks: Math.round(380 * w), conversions: Math.round(11 * w) }; }) }));
+      // Each sample ad's totals for the requested window come from the same sample days as its graph.
+      var aw = rangeOf(new URLSearchParams(String(query || '').replace(/^\?/, '')));
+      return Promise.resolve(json(200, { ads: DEMO_ADS.map(function (a, i) { var d = demoSeries('platform=meta&adId=' + a[0] + '&since=' + aw.since + '&until=' + aw.until), t = { spend: 0, impressions: 0, clicks: 0, conversions: 0 }; (d ? d.series : []).forEach(function (r) { t.spend += r.spend; t.impressions += r.impressions; t.clicks += r.clicks; t.conversions += r.conversions; }); return { ad_id: a[0], ad_name: a[1], status: i === 3 ? 'PAUSED' : 'ACTIVE', spend: Math.round(t.spend * 100) / 100, impressions: t.impressions, clicks: t.clicks, conversions: t.conversions, ctr: t.impressions ? Math.round(t.clicks / t.impressions * 10000) / 100 : null }; }), date_range: 'LAST_30_DAYS' }));
     }
     if (method === 'GET' || method === 'HEAD') {
       if (path === '/api/research/reports' || path.indexOf('/api/research/reports/') === 0) { var r = sample(path + query); return Promise.resolve(r === undefined ? json(404, { error: 'Not found in the demo' }) : json(200, r)); }

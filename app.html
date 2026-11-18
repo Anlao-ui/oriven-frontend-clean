@@ -5945,6 +5945,9 @@
   <span class="orv-ai-fab-dot"></span>
   <span class="orv-ai-fab-label">Your assistant</span>
 </button>
+<!-- Collapse / expand the assistant launcher (js/aiDock.js). Collapsed, the launcher slides out to the
+     right and only this small control stays in the bottom-right corner; the choice is remembered. -->
+<button type="button" class="orv-ai-tuck" id="orvAiTuck" aria-controls="orvAiFab" aria-expanded="true" aria-label="Hide your assistant" title="Hide your assistant"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
 
 <!-- Campaign Type Selection Overlay -->
 <div class="ct-overlay" id="campTypeOverlay">
@@ -6946,6 +6949,7 @@
 <script src="js/orvAnalytics.js"></script>
 <script src="js/campaignComparison.js"></script>
 <script src="js/overviewCompare.js"></script>
+<script src="js/aiDock.js"></script>
 <script src="js/myContent.js"></script>
 <script src="js/appNav.js"></script>
 <script src="js/createCompat.js"></script>
@@ -16686,10 +16690,19 @@ function _prfRenderMetricExplorer(platform, kpis, activeId) {
   wrap.style.display = '';
   // Grouped by the registry's own category (delivery/traffic/conversion), so
   // related metrics sit together; same tiles, same ids, same selection.
-  var _GROUPS = [['delivery', PRF_T('cmpGrpDelivery', null, 'Delivery & spend')], ['traffic', PRF_T('cmpGrpTraffic', null, 'Traffic')], ['conversion', PRF_T('cmpGrpConversion', null, 'Conversion')]];
-  var _known = _GROUPS.map(function(g){ return g[0]; });
-  var groups = _GROUPS.map(function(g){ return { key: g[0], label: g[1], ids: ids.filter(function(id){ return (ORIVEN_METRICS[id].category || '') === g[0]; }) }; })
-    .concat([{ key: 'other', label: PRF_T('cmpGrpOther', null, 'Other'), ids: ids.filter(function(id){ return _known.indexOf(ORIVEN_METRICS[id].category || '') === -1; }) }])
+  // Grouped by what the metric measures (2026-11-18): Reach, Cost & budget, Engagement,
+  // Conversions, Revenue — each a compact container in its own muted colour. Only metrics this
+  // platform reports are in `ids` (registry), so a group a platform lacks simply isn't shown.
+  var _GROUPS = [
+    ['reach', PRF_T('cmpGrpReach', null, 'Reach'), ['impressions', 'reach', 'frequency', 'searchImpressionShare']],
+    ['cost', PRF_T('cmpGrpCost', null, 'Cost & budget'), ['spend', 'cpm', 'budget', 'lifetimeBudget']],
+    ['engagement', PRF_T('cmpGrpEngagement', null, 'Engagement'), ['clicks', 'linkClicks', 'ctr', 'cpc']],
+    ['conversions', PRF_T('cmpGrpConversions', null, 'Conversions'), ['conversions', 'conversionRate', 'cpa', 'addToCart', 'costPerAddToCart', 'checkoutInitiated', 'costPerCheckout']],
+    ['revenue', PRF_T('cmpGrpRevenue', null, 'Revenue'), ['conversionValue', 'roas']]
+  ];
+  var _known = [].concat.apply([], _GROUPS.map(function(g){ return g[2]; }));
+  var groups = _GROUPS.map(function(g){ return { key: g[0], label: g[1], ids: g[2].filter(function(id){ return ids.indexOf(id) !== -1; }) }; })
+    .concat([{ key: 'other', label: PRF_T('cmpGrpOther', null, 'Other'), ids: ids.filter(function(id){ return _known.indexOf(id) === -1; }) }])
     .filter(function(g){ return g.ids.length; });
   ids = [].concat.apply([], groups.map(function(g){ return g.ids; }));
   var current = Array.prototype.map.call(grid.querySelectorAll('.prf-explorer-tile'), function(el) { return el.getAttribute('data-metric'); });
@@ -16706,18 +16719,30 @@ function _prfRenderMetricExplorer(platform, kpis, activeId) {
       return '<button type="button" class="prf-explorer-tile" data-metric="' + id + '" data-category="' + (m.category || '') + '" onclick="prfSelectMetric(\'' + id + '\')" aria-pressed="false" title="' + _prfEsc(orvMetricTooltip(id)) + '">' +
         '<span class="prf-explorer-label"><span class="prf-explorer-dot" aria-hidden="true"></span>' + _prfEsc(orvMetricLabel(id)) + '</span>' +
         '<span class="prf-explorer-val" id="prfExp_' + id + '">—</span>' +
+        '<span class="prf-explorer-state" aria-live="polite"></span>' +
       '</button>';
   };
   if (setChanged) {
     grid.innerHTML = groups.map(function(g) {
-      return '<div class="prf-mgroup" data-category="' + g.key + '" role="group" aria-label="' + _prfEsc(PRF_T('cmpGrpAria', { group: g.label }, '{group} metrics')) + '">' +
+      return '<div class="prf-mgroup" data-category="' + g.key + '" data-group="' + g.key + '" style="--n:' + g.ids.length + '" role="group" aria-label="' + _prfEsc(PRF_T('cmpGrpAria', { group: g.label }, '{group} metrics')) + '">' +
         '<div class="prf-mgroup-h">' + _prfEsc(g.label) + '</div>' +
         '<div class="prf-mgroup-tiles">' + g.ids.map(tileHtml).join('') + '</div></div>';
     }).join('');
   }
+  // Loading vs not available vs a real value: a card never shows a made-up 0.
+  var _ld = (window._prfState && _prfState.load && _prfState.load[platform]) || {};
+  var _loading = _ld.state === 'loading';
   ids.forEach(function(id, i) {
     var m = ORIVEN_METRICS[id];
     var raw = m.get(kpis);
+    var tile = grid.querySelector('.prf-explorer-tile[data-metric="' + id + '"]');
+    if (tile) {
+      var na = raw == null || (typeof raw === 'number' && !isFinite(raw));
+      tile.classList.toggle('is-loading', _loading && na);
+      tile.classList.toggle('is-na', !_loading && na);
+      var st = tile.querySelector('.prf-explorer-state');
+      if (st) st.textContent = _loading && na ? PRF_T('cmpStateLoading', null, 'Loading…') : na ? PRF_T('cmpStateNa', null, 'Not available') : '';
+    }
     // Same honest null-handling orvFormatMetric uses everywhere else --
     // missing real data reads "—", a real reported zero reads "0"/"€0",
     // the two are never collapsed into each other.
