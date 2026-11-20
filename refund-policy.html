@@ -1814,6 +1814,9 @@ ovInitCountUp(document.getElementById('lpPricingGrid'), { duration: 1100, stagge
 // Credits explainer (settings.js) reads it independently and is
 // unaffected by this removal.
 
+} // pause the landing-only block: the mobile menu below must work on EVERY public page
+   // (pricing, demo, faq, product pages… are prerendered from this file with another view).
+
 // -- Mobile hamburger -------------------------------------------------------------------------
 var ham      = document.getElementById('lpHamburger');
 var menu     = document.getElementById('lpMobileMenu');
@@ -1837,6 +1840,8 @@ window.closeMobile = function(){
   ham.classList.remove('open');
   if(lv) lv.style.overflow = '';
 };
+
+if(window._pubView === 'landing'){ // landing-only code continues
 
 // -- FAQ accordion ----------------------------------------------------------------------------
 function toggleFaq(btn){
@@ -4554,6 +4559,11 @@ window.addEventListener('pageshow', function(e){
      else return;
      e.preventDefault();tabs[next].click();tabs[next].focus();sync();
    });
+   // A row that scrolls sideways (the tutorial tabs on a phone): fade the edge only while more
+   // tabs are hidden, and keep the chosen tab in view.
+   function edge(){ list.classList.toggle('is-end', list.scrollLeft + list.clientWidth >= list.scrollWidth - 4); }
+   list.addEventListener('scroll', edge, { passive: true }); edge();
+   list.addEventListener('click', function(e){ var t = e.target.closest && e.target.closest('[role="tab"]'); if (t && list.scrollWidth > list.clientWidth + 4) { var l = t.getBoundingClientRect().left - list.getBoundingClientRect().left + list.scrollLeft - 8; list.scrollTo({ left: Math.max(0, l), behavior: 'smooth' }); } });
  });
 
  buttons.forEach(function(btn,i){
