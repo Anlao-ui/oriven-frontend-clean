@@ -820,3 +820,23 @@ a.ik-chip:hover .ik-glyph { color: var(--ac, var(--silver)); }
 .ik-shot__pages { position: absolute; left: 16px; right: 16px; bottom: 14px; margin: 0; text-align: center; font-size: 13px; color: var(--text-2); text-shadow: 0 1px 8px rgba(0, 0, 0, .9); pointer-events: none; }
 .ik-shot .ik-play { white-space: nowrap; }
 @media (max-width: 559px) { .ik-shot__pages { display: none; } .ik-shot .ik-play { min-height: 40px; padding: 0 14px 0 12px; gap: 8px; font-size: 13px; } .ik-shot .ik-play svg { width: 15px; height: 15px; } }
+
+/* ── Mobile polish (2026-11-20) ─────────────────────────────────── */
+/* Workspace blocks: a lone last block (07) in the two-column layout sits centred. */
+@media (min-width: 460px) and (max-width: 899px) {
+  .ik-ws__flow > li:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc((100% - clamp(10px, 1vw, 16px)) / 2); }
+}
+/* Tutorial tabs: a swipeable row that shows it continues (fade at the edge, snap to tabs). */
+@media (max-width: 900px) {
+  .ik-tabs { scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; touch-action: pan-x pan-y;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent); padding-right: 28px; }
+  .ik-tabs.is-end { -webkit-mask-image: none; mask-image: none; }
+  .ik-tabs::-webkit-scrollbar { display: none; }
+  .ik-tab { scroll-snap-align: start; }
+}
+/* One loop, six sections: the ring and counter stay in a solid bar directly under the navbar;
+   the sections scroll underneath it, so the one below the bar is always readable. */
+@media (max-width: 900px) {
+  .ik-loop__visual { top: 0; z-index: 3; margin: 0 calc(-1 * var(--gutter)); padding: 10px var(--gutter) 12px; background: var(--ink); border-bottom: 1px solid var(--line); box-shadow: 0 10px 18px -12px rgba(0, 0, 0, .8); }
+  .ik-loop__ringbox { width: 128px; }
+}
