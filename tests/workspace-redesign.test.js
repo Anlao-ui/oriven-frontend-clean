@@ -101,6 +101,8 @@ const srv = http.createServer((q, r) => {
     links.push(...d.links); rows[pl] = d.rows;
     check(pl + ': the page shows only this platform (switcher + context agree)', d.ctx.toLowerCase().startsWith(pl === 'tiktok' ? 'tiktok' : pl) && d.plat.toLowerCase().includes(pl === 'tiktok' ? 'tiktok' : pl), d);
     check(pl + ': never claims "Active" from an id alone', !/\bActive\b/.test(d.text.replace(/Pinterest status: ACTIVE/g, '')), d.text.match(/.{40}\bActive\b.{40}/));
+    check(pl + (pl === 'snapchat' ? ': no OrivenAI actions, so no verification notice' : ': its OrivenAI actions say they are not yet verified with a real account'),
+      pl === 'snapchat' ? !/not yet verified/i.test(d.text) : /In OrivenAI · not yet verified with a real account/.test(d.text), d.text.slice(0, 300));
   }
   const hosts = links.map((u) => new URL(u).hostname);
   check('every external setup link goes to an official platform domain', links.length >= 5 && hosts.every((h) => /(^|\.)(facebook\.com|google\.com|tiktok\.com|pinterest\.com|snapchat\.com|snap\.com)$/.test(h)), hosts);
@@ -111,6 +113,18 @@ const srv = http.createServer((q, r) => {
   await p.click('[data-aset-ask="ttTest"]'); await p.waitForTimeout(200);
   check('sending a test event asks for confirmation first, naming platform, account and effect', await p.evaluate(() => { const c = document.querySelector('.aset-confirm'); return !!c && /TikTok Ads/.test(c.textContent) && /real event/.test(c.textContent); }));
   await p.click('[data-aset-cancel]');
+  await p.click('[data-aset-plat="meta"]'); await p.waitForTimeout(1200);
+  const metaCards = await p.evaluate(() => ({ connected: /Connected/.test(document.querySelector('.aset-ctx').textContent), notice: document.querySelectorAll('[data-aset-unverified="meta"]').length }));
+  check('Meta: the pixel card itself carries the “not yet verified with a real ad account” notice (when connected)', !metaCards.connected || metaCards.notice >= 1, metaCards);
+
+  // ── 3b. Language switch ──────────────────────────────────────
+  await p.evaluate(() => { window.CURRENT_LANG = 'nl'; window.applyLanguage(); }); await p.waitForTimeout(400);
+  check('language: Advertising Settings redraws in Dutch, with the not-verified notice translated', await p.evaluate(() => { const t = document.querySelector('#asetRoot').textContent; return /Advertentie-instellingen/.test(t) && /nog niet geverifieerd met een echt account/.test(t) && !/What you can configure/.test(t); }));
+  await p.evaluate(() => window.orvAppNav.go('simulator')); await p.waitForTimeout(700);
+  await p.click('[data-asim-view="lab"]'); await p.waitForTimeout(400);
+  check('language: Ad Simulator is in Dutch (Scenario Lab, compare, method)', await p.evaluate(() => { const t = document.querySelector('#asimRoot').textContent; return /Scenariolab/.test(t) && /Scenario’s vergelijken/.test(t) && /Hoe deze cijfers tot stand komen/.test(t) && !/Compare scenarios/.test(t); }));
+  await p.evaluate(() => { window.CURRENT_LANG = 'en'; window.applyLanguage(); }); await p.waitForTimeout(300);
+  check('language: back to English', await p.evaluate(() => /Compare scenarios/.test(document.querySelector('#asimRoot').textContent)));
 
   // ── 4. Phones ────────────────────────────────────────────────
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });

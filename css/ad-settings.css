@@ -77,6 +77,13 @@ body.dark-mode .aset {
 .aset-confirm dt { color: var(--muted); }
 .aset-confirm dd { margin: 0; color: var(--charcoal); }
 
+/* "Not yet verified with a real ad account" — shown on every native action
+   until REAL_ACCOUNT_VERIFIED in js/adSettings.js says otherwise. */
+.aset-unverified { margin: 0; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5; color: var(--c2); background: color-mix(in srgb, var(--aset-warn) 8%, transparent); border: 1px dashed color-mix(in srgb, var(--aset-warn) 45%, transparent); }
+.aset-unverified__tag { display: inline-flex; align-items: center; gap: 6px; margin-right: 4px; font-size: 12px; font-weight: 700; color: var(--aset-warn); letter-spacing: .01em; }
+.aset-unverified__tag::before { content: ''; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid currentColor; }
+.aset-unverified__line { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--aset-warn); }
+
 /* Capability matrix */
 .aset-tablewrap { overflow-x: auto; }
 .aset-matrix table { width: 100%; border-collapse: collapse; font-size: 13.5px; }

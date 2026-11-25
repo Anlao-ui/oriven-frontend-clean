@@ -51,6 +51,7 @@
   };
   // Where each piece of configuration happens, per platform (from the capability registry).
   var WHERE = { native: 'In OrivenAI', partial: 'In OrivenAI + your website', guided: 'Guided — on the platform', none: 'Not available in OrivenAI yet' };
+  function whereLabel(p, w) { return T(WHERE[w]) + ((w === 'native' || w === 'partial') && !REAL_ACCOUNT_VERIFIED[p] ? ' · ' + T('not yet verified with a real account') : ''); }
   var MATRIX = {
     meta: [['Meta Pixel', 'native', 'Create or reuse the pixel on your ad account; OrivenAI reads whether it has received events.'], ['Pixel on your website', 'guided', 'Installing the base code is done on your website (or tag manager).'], ['Conversions API', 'native', 'Send a test event with Meta’s own test code; nothing counts as a real event.'], ['Standard & custom events', 'guided', 'Configured in Meta Events Manager.'], ['Domain verification', 'guided', 'Done in Meta’s business settings.'], ['Attribution settings', 'guided', 'Set per ad set in Meta Ads Manager.']],
     google: [['Conversion action', 'native', 'Create or reuse a conversion action on your Google Ads account and read its status.'], ['Google tag code', 'partial', 'OrivenAI shows the real tag code Google generates; installing it is done on your website.'], ['Enhanced conversions', 'guided', 'Turned on in Google Ads (Goals → Conversions).'], ['Attribution & counting', 'guided', 'Set per conversion action in Google Ads.']],
@@ -58,6 +59,22 @@
     pinterest: [['Pinterest Tag', 'native', 'Create or reuse the Tag on your ad account; OrivenAI reads its status.'], ['Tag on your website', 'guided', 'Installing the base code is done on your website.'], ['Conversions API', 'native', 'Validate a test event with Pinterest’s test mode; it isn’t recorded.'], ['Attribution settings', 'guided', 'Set in Pinterest Ads Manager.']],
     snapchat: [['Snap Pixel', 'guided', 'Created and installed via Snapchat Ads Manager.'], ['Conversions API', 'none', 'Snap offers a Conversions API with a validation mode; OrivenAI doesn’t send to it yet.'], ['Attribution settings', 'guided', 'Set in Snapchat Ads Manager.']],
   };
+
+  // Copy is English here and translated through js/workspaceI18n.js (keyed by the English text).
+  function T(s, v) { var f = window.orvWsT; if (f) return f(s, v); return v ? String(s).replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }) : s; }
+
+  // Real-account verification of the native actions. These calls go to each
+  // platform's official API (server-side adapters), but so far they have only
+  // been tested against simulated platform responses — never against a real
+  // ad account. Flip a platform to true ONLY after its create/read/test actions
+  // have actually been run against a real account and checked in the
+  // platform's own interface. Until then the page says so on every action.
+  var REAL_ACCOUNT_VERIFIED = { meta: false, google: false, pinterest: false, tiktok: false };
+  function unverified(p) {
+    if (REAL_ACCOUNT_VERIFIED[p]) return '';
+    return '<p class="aset-unverified" data-aset-unverified="' + p + '"><span class="aset-unverified__tag">' + esc(T('Not yet verified with a real ad account')) + '</span> ' +
+      esc(T('These actions use {p}’s official API, but OrivenAI has only tested them against simulated responses so far. Check the result in {p} itself.', { p: NAME[p] })) + '</p>';
+  }
 
   var S = fresh(null);
   function fresh(uid) { return { uid: uid, plat: 'meta', conn: {}, setup: {}, data: {}, busy: {}, msg: {}, confirm: null, googleName: 'Purchase', tiktokCode: '', metaTestCode: '' }; }
@@ -69,6 +86,7 @@
     if (K.uid() !== S.uid) S = fresh(K.uid());
     if (p && PLATS.indexOf(p) >= 0) S.plat = p;
     K.show('adsettings', PAGE);
+    hookLang();
     render();
     loadPlatform(S.plat);
   }
@@ -102,25 +120,25 @@
   function render() {
     var root = document.getElementById(ROOT); if (!root) return;
     var p = S.plat, c = S.conn[p] || { loading: true };
-    var tabs = '<div class="aset-plats" role="tablist" aria-label="Advertising platform">' + PLATS.map(function (x) {
+    var tabs = '<div class="aset-plats" role="tablist" aria-label="' + esc(T('Advertising platform')) + '">' + PLATS.map(function (x) {
       var cx = S.conn[x], dot = !cx || cx.loading ? 'is-unknown' : cx.connected ? 'is-on' : cx.expired ? 'is-warn' : 'is-off';
       return '<button type="button" role="tab" class="aset-plat' + (x === p ? ' is-on' : '') + '" aria-selected="' + (x === p) + '" data-aset-plat="' + x + '"><i class="aset-dot ' + dot + '" aria-hidden="true"></i>' + esc(NAME[x]) + '</button>';
     }).join('') + '</div>';
-    var head = K.head('Settings', 'Advertising Settings', 'Tracking, conversions and measurement for each advertising platform — set up in OrivenAI where the platform allows it, and guided step by step where it doesn’t.',
-      '<div class="aset-headact"><button type="button" class="rx-btn rx-btn-ghost" data-aset-general>Account, billing &amp; notifications</button></div>');
+    var head = K.head(T('Settings'), T('Advertising Settings'), T('Tracking, conversions and measurement for each advertising platform — set up in OrivenAI where the platform allows it, and guided step by step where it doesn’t.'),
+      '<div class="aset-headact"><button type="button" class="rx-btn rx-btn-ghost" data-aset-general>' + esc(T('Account, billing & notifications')) + '</button></div>');
     root.innerHTML = '<div class="aset">' + head + tabs + contextBar(p, c) + body(p, c) + '</div>';
   }
   function contextBar(p, c) {
-    var acct = c.account && (c.account.name || c.account.id) ? esc(c.account.name || c.account.id) + (c.account.name && c.account.id ? ' <span class="aset-muted">(' + esc(c.account.id) + ')</span>' : '') : '<span class="aset-muted">No ad account selected</span>';
-    var state = c.loading ? 'Checking connection…' : c.connected ? '<i class="aset-dot is-on" aria-hidden="true"></i>Connected' : c.expired ? '<i class="aset-dot is-warn" aria-hidden="true"></i>Connection expired' : '<i class="aset-dot is-off" aria-hidden="true"></i>Not connected';
-    return '<section class="aset-ctx" aria-label="What you are configuring"><div><span class="aset-lbl">Platform</span><b>' + esc(NAME[p]) + '</b></div><div><span class="aset-lbl">Ad account</span><b>' + acct + '</b></div><div><span class="aset-lbl">Connection</span><b>' + state + '</b></div>' +
-      '<button type="button" class="rx-btn rx-btn-ghost" data-aset-platforms>' + (c.connected ? 'Change account' : 'Connect') + '</button></section>';
+    var acct = c.account && (c.account.name || c.account.id) ? esc(c.account.name || c.account.id) + (c.account.name && c.account.id ? ' <span class="aset-muted">(' + esc(c.account.id) + ')</span>' : '') : '<span class="aset-muted">' + esc(T('No ad account selected')) + '</span>';
+    var state = c.loading ? esc(T('Checking connection…')) : c.connected ? '<i class="aset-dot is-on" aria-hidden="true"></i>' + esc(T('Connected')) : c.expired ? '<i class="aset-dot is-warn" aria-hidden="true"></i>' + esc(T('Connection expired')) : '<i class="aset-dot is-off" aria-hidden="true"></i>' + esc(T('Not connected'));
+    return '<section class="aset-ctx" aria-label="' + esc(T('What you are configuring')) + '"><div><span class="aset-lbl">' + esc(T('Platform')) + '</span><b>' + esc(NAME[p]) + '</b></div><div><span class="aset-lbl">' + esc(T('Ad account')) + '</span><b>' + acct + '</b></div><div><span class="aset-lbl">' + esc(T('Connection')) + '</span><b>' + state + '</b></div>' +
+      '<button type="button" class="rx-btn rx-btn-ghost" data-aset-platforms>' + esc(T(c.connected ? 'Change account' : 'Connect')) + '</button></section>';
   }
   function body(p, c) {
-    if (c.loading) return '<section class="rx-card"><p class="aset-muted">Checking your ' + esc(NAME[p]) + ' connection…</p></section>';
+    if (c.loading) return '<section class="rx-card"><p class="aset-muted">' + esc(T('Checking your {p} connection…', { p: NAME[p] })) + '</p></section>';
     var parts = [];
-    if (!c.connected) parts.push('<section class="rx-card aset-empty"><h2 class="aset-h">' + esc(NAME[p]) + (c.expired ? ' needs to be reconnected' : ' isn’t connected') + '</h2><p class="aset-sub">Connect ' + esc(NAME[p]) + ' and choose an ad account to manage its tracking here. ' + (c.expired ? 'The connection expired; reconnecting keeps your settings.' : '') + '</p><button type="button" class="rx-btn rx-btn-primary" data-aset-platforms>' + (c.expired ? 'Reconnect' : 'Connect ' + esc(NAME[p])) + '</button></section>');
-    else if (!c.account) parts.push('<section class="rx-card aset-empty"><h2 class="aset-h">Choose an ad account</h2><p class="aset-sub">Tracking is set up per ad account. Choose which ' + esc(NAME[p]) + ' ad account OrivenAI works with.</p><button type="button" class="rx-btn rx-btn-primary" data-aset-platforms>Choose ad account</button></section>');
+    if (!c.connected) parts.push('<section class="rx-card aset-empty"><h2 class="aset-h">' + esc(T(c.expired ? '{p} needs to be reconnected' : '{p} isn’t connected', { p: NAME[p] })) + '</h2><p class="aset-sub">' + esc(T('Connect {p} and choose an ad account to manage its tracking here.', { p: NAME[p] }) + (c.expired ? ' ' + T('The connection expired; reconnecting keeps your settings.') : '')) + '</p><button type="button" class="rx-btn rx-btn-primary" data-aset-platforms>' + esc(c.expired ? T('Reconnect') : T('Connect {p}', { p: NAME[p] })) + '</button></section>');
+    else if (!c.account) parts.push('<section class="rx-card aset-empty"><h2 class="aset-h">' + esc(T('Choose an ad account')) + '</h2><p class="aset-sub">' + esc(T('Tracking is set up per ad account. Choose which {p} ad account OrivenAI works with.', { p: NAME[p] })) + '</p><button type="button" class="rx-btn rx-btn-primary" data-aset-platforms>' + esc(T('Choose ad account')) + '</button></section>');
     else parts = parts.concat(SECTIONS[p]());
     parts.push(matrixHtml(p));
     return '<div class="aset-grid">' + parts.join('') + '</div>';
@@ -129,21 +147,22 @@
   // Shared pieces
   function status(kind, text) { return '<span class="aset-st aset-st--' + kind + '"><i aria-hidden="true"></i>' + text + '</span>'; }
   function msg(key) { var m = S.msg[key]; return m ? '<p class="aset-msg aset-msg--' + esc(m.kind) + '" role="status">' + esc(m.text) + '</p>' : ''; }
-  function link(k) { var l = LINKS[k]; return '<a class="aset-ext" href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(l.label) + '<span class="aset-ext__i" aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>'; }
-  function busyBtn(key, label, attrs, primary) { var b = S.busy[key]; return '<button type="button" class="rx-btn ' + (primary ? 'rx-btn-primary' : 'rx-btn-ghost') + '" ' + attrs + (b ? ' disabled' : '') + '>' + esc(b ? b : label) + '</button>'; }
+  function link(k) { var l = LINKS[k]; return '<a class="aset-ext" href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(T(l.label)) + '<span class="aset-ext__i" aria-hidden="true">↗</span><span class="sr-only"> ' + esc(T('(opens in a new tab)')) + '</span></a>'; }
+  function busyBtn(key, label, attrs, primary) { var b = S.busy[key]; return '<button type="button" class="rx-btn ' + (primary ? 'rx-btn-primary' : 'rx-btn-ghost') + '" ' + attrs + (b ? ' disabled' : '') + '>' + esc(T(b ? b : label)) + '</button>'; }
   function confirmBox(key, what) {
     if (S.confirm !== key) return '';
     var c = S.conn[S.plat] || {}, acct = c.account ? (c.account.name || c.account.id) : '';
-    return '<div class="aset-confirm" role="dialog" aria-label="Confirm">' +
-      '<p><b>' + esc(what.title) + '</b></p><dl><dt>Platform</dt><dd>' + esc(NAME[S.plat]) + '</dd><dt>Ad account</dt><dd>' + esc(acct || '—') + '</dd><dt>What happens</dt><dd>' + esc(what.does) + '</dd><dt>Afterwards</dt><dd>' + esc(what.after) + '</dd></dl>' +
-      '<div class="aset-acts"><button type="button" class="rx-btn rx-btn-primary" data-aset-go="' + esc(key) + '">' + esc(what.go) + '</button><button type="button" class="rx-btn rx-btn-ghost" data-aset-cancel>Cancel</button></div></div>';
+    return '<div class="aset-confirm" role="dialog" aria-label="' + esc(T('Confirm')) + '">' +
+      '<p><b>' + esc(what.title) + '</b></p><dl><dt>' + esc(T('Platform')) + '</dt><dd>' + esc(NAME[S.plat]) + '</dd><dt>' + esc(T('Ad account')) + '</dt><dd>' + esc(acct || '—') + '</dd><dt>' + esc(T('What happens')) + '</dt><dd>' + esc(what.does) + '</dd><dt>' + esc(T('Afterwards')) + '</dt><dd>' + esc(what.after) + '</dd></dl>' +
+      (REAL_ACCOUNT_VERIFIED[S.plat] ? '' : '<p class="aset-unverified__line">' + esc(T('Not yet verified with a real ad account — check the result in {p} afterwards.', { p: NAME[S.plat] })) + '</p>') +
+      '<div class="aset-acts"><button type="button" class="rx-btn rx-btn-primary" data-aset-go="' + esc(key) + '">' + esc(what.go) + '</button><button type="button" class="rx-btn rx-btn-ghost" data-aset-cancel>' + esc(T('Cancel')) + '</button></div></div>';
   }
-  function card(id, title, sub, inner) { return '<section class="rx-card aset-card" aria-labelledby="' + id + '"><div class="aset-card__h"><h2 class="aset-h" id="' + id + '">' + esc(title) + '</h2></div>' + (sub ? '<p class="aset-sub">' + sub + '</p>' : '') + inner + '</section>'; }
+  function card(id, title, sub, inner) { return '<section class="rx-card aset-card" aria-labelledby="' + id + '"><div class="aset-card__h"><h2 class="aset-h" id="' + id + '">' + esc(T(title)) + '</h2></div>' + (sub ? '<p class="aset-sub">' + sub + '</p>' : '') + inner + '</section>'; }
   function when(iso) { if (!iso) return ''; var d = new Date(isNaN(+iso) ? iso : +iso * 1000); return isNaN(d) ? '' : d.toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
   function diagnostics(p) {
     var st = S.setup[p], rv = st && st.remoteVerification;
-    var last = rv && rv.checked ? (rv.ok ? status('ok', 'Account verified with ' + esc(NAME[p])) : status('warn', esc(NAME[p]) + ' couldn’t confirm this account')) + ' <span class="aset-muted">' + esc(when(rv.lastVerifiedAt)) + '</span>' : '<span class="aset-muted">Not checked with ' + esc(NAME[p]) + ' in this session yet.</span>';
-    return card('asetDiag' + p, 'Diagnostics', 'Checks the connection and ad account with ' + esc(NAME[p]) + ' itself — a live check, only when you ask for it.',
+    var last = rv && rv.checked ? (rv.ok ? status('ok', esc(T('Account verified with {p}', { p: NAME[p] }))) : status('warn', esc(T('{p} couldn’t confirm this account', { p: NAME[p] })))) + ' <span class="aset-muted">' + esc(when(rv.lastVerifiedAt)) + '</span>' : '<span class="aset-muted">' + esc(T('Not checked with {p} in this session yet.', { p: NAME[p] })) + '</span>';
+    return card('asetDiag' + p, 'Diagnostics', esc(T('Checks the connection and ad account with {p} itself — a live check, only when you ask for it.', { p: NAME[p] })),
       '<div class="aset-row">' + last + '</div><div class="aset-acts">' + busyBtn('recheck', 'Check now', 'data-aset-recheck') + '</div>' + msg('recheck'));
   }
 
@@ -151,74 +170,74 @@
   var SECTIONS = {
     meta: function () {
       var d = (S.data.meta || {}).pixel || { loading: true }, v = d.v || {};
-      var st = d.loading ? '<span class="aset-muted">Reading your pixel from Meta…</span>' : d.err ? status('warn', esc(d.err)) :
-        !v.exists ? status('off', 'No pixel on this ad account') :
-        v.receivingEvents ? status('ok', 'Receiving events') + (v.lastFiredAt ? ' <span class="aset-muted">last event ' + esc(when(v.lastFiredAt)) + '</span>' : '') :
-        v.installed ? status('ok', 'Has received events') + (v.lastFiredAt ? ' <span class="aset-muted">last event ' + esc(when(v.lastFiredAt)) + '</span>' : '') :
-        status('warn', 'ID available — installation not verified');
-      var id = v.pixel && v.pixel.id ? '<div class="aset-kv"><span>Pixel ID</span><code>' + esc(v.pixel.id) + '</code><button type="button" class="aset-link" data-aset-copy="' + esc(v.pixel.id) + '">Copy</button></div>' + (v.pixel.name ? '<div class="aset-kv"><span>Name</span><b>' + esc(v.pixel.name) + '</b></div>' : '') : '';
+      var st = d.loading ? '<span class="aset-muted">' + esc(T('Reading your pixel from Meta…')) + '</span>' : d.err ? status('warn', esc(d.err)) :
+        !v.exists ? status('off', esc(T('No pixel on this ad account'))) :
+        v.receivingEvents ? status('ok', esc(T('Receiving events'))) + (v.lastFiredAt ? ' <span class="aset-muted">' + esc(T('last event {d}', { d: when(v.lastFiredAt) })) + '</span>' : '') :
+        v.installed ? status('ok', esc(T('Has received events'))) + (v.lastFiredAt ? ' <span class="aset-muted">' + esc(T('last event {d}', { d: when(v.lastFiredAt) })) + '</span>' : '') :
+        status('warn', esc(T('ID available — installation not verified')));
+      var id = v.pixel && v.pixel.id ? '<div class="aset-kv"><span>' + esc(T('Pixel ID')) + '</span><code>' + esc(v.pixel.id) + '</code><button type="button" class="aset-link" data-aset-copy="' + esc(v.pixel.id) + '">' + esc(T('Copy')) + '</button></div>' + (v.pixel.name ? '<div class="aset-kv"><span>' + esc(T('Name')) + '</span><b>' + esc(v.pixel.name) + '</b></div>' : '') : '';
       var create = !d.loading && !d.err && !v.exists ? busyBtn('metaPixel', 'Create Meta Pixel', 'data-aset-ask="metaPixel"', true) : '';
-      var steps = v.exists && !v.installed ? '<ol class="aset-steps"><li>Open Meta Events Manager and choose this pixel.</li><li>Install the base code on every page of your website — directly, through Google Tag Manager or your shop platform’s Meta integration.</li><li>Come back and press Refresh: the status changes once Meta reports an event.</li></ol>' : '';
-      var capi = v.exists ? card('asetMetaCapi', 'Conversions API (server-side events)', 'Sends events from a server instead of the browser. OrivenAI can send a <b>test</b> event to your pixel with Meta’s own test code, so it shows up only under Test events and never in your results.',
-        '<label class="aset-field"><span class="aset-lbl">Test event code</span><input class="aset-in" data-aset-in="metaTestCode" placeholder="e.g. TEST12345" value="' + esc(S.metaTestCode) + '" autocomplete="off"><span class="aset-hint">Find it in Meta Events Manager → your pixel → Test events.</span></label>' +
+      var steps = v.exists && !v.installed ? '<ol class="aset-steps"><li>' + esc(T('Open Meta Events Manager and choose this pixel.')) + '</li><li>' + esc(T('Install the base code on every page of your website — directly, through Google Tag Manager or your shop platform’s Meta integration.')) + '</li><li>' + esc(T('Come back and press Refresh: the status changes once Meta reports an event.')) + '</li></ol>' : '';
+      var capi = v.exists ? card('asetMetaCapi', 'Conversions API (server-side events)', T('Sends events from a server instead of the browser. OrivenAI can send a <b>test</b> event to your pixel with Meta’s own test code, so it shows up only under Test events and never in your results.'),
+        unverified('meta') + '<label class="aset-field"><span class="aset-lbl">' + esc(T('Test event code')) + '</span><input class="aset-in" data-aset-in="metaTestCode" placeholder="' + esc(T('e.g. {x}', { x: 'TEST12345' })) + '" value="' + esc(S.metaTestCode) + '" autocomplete="off"><span class="aset-hint">' + esc(T('Find it in Meta Events Manager → your pixel → Test events.')) + '</span></label>' +
         '<div class="aset-acts">' + busyBtn('metaCapi', 'Send test event', 'data-aset-metacapi' + (S.metaTestCode.trim() ? '' : ' disabled')) + '</div>' + msg('metaCapi')) : '';
-      return [card('asetMetaPixel', 'Meta Pixel', 'The pixel records what visitors do on your website, so Meta can measure and optimise your ads.',
-        '<div class="aset-row">' + st + (d.loading ? '' : ' <button type="button" class="aset-link" data-aset-refresh>Refresh</button>') + '</div>' + id + create + confirmBox('metaPixel', { title: 'Create a Meta Pixel?', does: 'OrivenAI asks Meta to create a pixel named “OrivenAI Pixel” on this ad account. If one exists already, it is reused — never duplicated.', after: 'You install the pixel on your website. Until Meta reports an event, its status stays “installation not verified”.', go: 'Create pixel' }) + msg('metaPixel') + steps +
+      return [card('asetMetaPixel', 'Meta Pixel', esc(T('The pixel records what visitors do on your website, so Meta can measure and optimise your ads.')),
+        unverified('meta') + '<div class="aset-row">' + st + (d.loading ? '' : ' <button type="button" class="aset-link" data-aset-refresh>' + esc(T('Refresh')) + '</button>') + '</div>' + id + create + confirmBox('metaPixel', { title: T('Create a Meta Pixel?'), does: T('OrivenAI asks Meta to create a pixel named “OrivenAI Pixel” on this ad account. If one exists already, it is reused — never duplicated.'), after: T('You install the pixel on your website. Until Meta reports an event, its status stays “installation not verified”.'), go: T('Create pixel') }) + msg('metaPixel') + steps +
         '<div class="aset-links">' + link('meta') + '</div>'), capi, diagnostics('meta')].filter(Boolean);
     },
     google: function () {
       var d = (S.data.google || {}).conversion || { loading: true }, v = d.v || {}, tag = (S.data.google || {}).tag;
-      var st = d.loading ? '<span class="aset-muted">Reading your conversion actions from Google…</span>' : d.err ? status('warn', esc(d.err)) :
-        !v.exists ? status('off', 'No conversion action named “' + esc(S.googleName) + '”') :
-        v.enabled ? status('ok', 'Conversion action enabled') + ' <span class="aset-muted">Google status: ' + esc(v.status) + '</span>' : status('warn', 'Exists — Google status: ' + esc(v.status || 'unknown'));
+      var st = d.loading ? '<span class="aset-muted">' + esc(T('Reading your conversion actions from Google…')) + '</span>' : d.err ? status('warn', esc(d.err)) :
+        !v.exists ? status('off', esc(T('No conversion action named “{name}”', { name: S.googleName }))) :
+        v.enabled ? status('ok', esc(T('Conversion action enabled'))) + ' <span class="aset-muted">' + esc(T('Google status: {s}', { s: v.status })) + '</span>' : status('warn', esc(T('Exists — Google status: {s}', { s: v.status || T('unknown') })));
       var tagHtml = '';
       if (v.exists) {
         var t = tag && tag.v;
-        tagHtml = card('asetGoogleTag', 'Google tag code', 'The real code Google generates for this conversion action. It works once it’s installed on your website; OrivenAI can’t install it for you or see whether it is installed.',
-          (t && t.snippets && t.snippets.length ? t.snippets.slice(0, 2).map(function (sn) { return (sn.globalSiteTag ? '<p class="aset-lbl">Google tag (' + esc(sn.pageFormat || sn.type || 'page') + ')</p><pre class="aset-code">' + esc(sn.globalSiteTag) + '</pre>' : '') + (sn.eventSnippet ? '<p class="aset-lbl">Event snippet</p><pre class="aset-code">' + esc(sn.eventSnippet) + '</pre>' : ''); }).join('') + status('warn', 'Tag code available — installation not verified')
-            : tag && tag.err ? status('warn', esc(tag.err)) : tag && tag.loading ? '<span class="aset-muted">Reading the tag code from Google…</span>' : t && !t.exists ? status('off', 'Google returned no tag code for this action') : '') +
+        tagHtml = card('asetGoogleTag', 'Google tag code', esc(T('The real code Google generates for this conversion action. It works once it’s installed on your website; OrivenAI can’t install it for you or see whether it is installed.')),
+          unverified('google') + (t && t.snippets && t.snippets.length ? t.snippets.slice(0, 2).map(function (sn) { return (sn.globalSiteTag ? '<p class="aset-lbl">' + esc(T('Google tag ({x})', { x: sn.pageFormat || sn.type || 'page' })) + '</p><pre class="aset-code">' + esc(sn.globalSiteTag) + '</pre>' : '') + (sn.eventSnippet ? '<p class="aset-lbl">' + esc(T('Event snippet')) + '</p><pre class="aset-code">' + esc(sn.eventSnippet) + '</pre>' : ''); }).join('') + status('warn', esc(T('Tag code available — installation not verified')))
+            : tag && tag.err ? status('warn', esc(tag.err)) : tag && tag.loading ? '<span class="aset-muted">' + esc(T('Reading the tag code from Google…')) + '</span>' : t && !t.exists ? status('off', esc(T('Google returned no tag code for this action'))) : '') +
           '<div class="aset-acts">' + (tag && tag.v ? '' : busyBtn('googleTag', 'Show tag code', 'data-aset-googletag')) + '</div>');
       }
       var create = !d.loading && !d.err && !v.exists ? busyBtn('googleConv', 'Create conversion action', 'data-aset-ask="googleConv"', true) : '';
-      return [card('asetGoogleConv', 'Conversion tracking', 'A conversion action tells Google Ads which result counts — for example a purchase.',
-        '<label class="aset-field"><span class="aset-lbl">Conversion action name</span><span class="aset-pair"><input class="aset-in" data-aset-in="googleName" value="' + esc(S.googleName) + '" maxlength="100"><button type="button" class="rx-btn rx-btn-ghost" data-aset-refresh>Check</button></span></label>' +
-        '<div class="aset-row">' + st + '</div>' + create + confirmBox('googleConv', { title: 'Create the conversion action “' + S.googleName + '”?', does: 'OrivenAI asks Google Ads to create a conversion action with this name. If one with the same name exists, it is reused. Existing goals and primary actions are not changed.', after: 'Install its tag code on your website; Google starts counting once the tag fires.', go: 'Create conversion action' }) + msg('googleConv') +
+      return [card('asetGoogleConv', 'Conversion tracking', esc(T('A conversion action tells Google Ads which result counts — for example a purchase.')),
+        unverified('google') + '<label class="aset-field"><span class="aset-lbl">' + esc(T('Conversion action name')) + '</span><span class="aset-pair"><input class="aset-in" data-aset-in="googleName" value="' + esc(S.googleName) + '" maxlength="100"><button type="button" class="rx-btn rx-btn-ghost" data-aset-refresh>' + esc(T('Check')) + '</button></span></label>' +
+        '<div class="aset-row">' + st + '</div>' + create + confirmBox('googleConv', { title: T('Create the conversion action “{name}”?', { name: S.googleName }), does: T('OrivenAI asks Google Ads to create a conversion action with this name. If one with the same name exists, it is reused. Existing goals and primary actions are not changed.'), after: T('Install its tag code on your website; Google starts counting once the tag fires.'), go: T('Create conversion action') }) + msg('googleConv') +
         '<div class="aset-links">' + link('google') + '</div>'), tagHtml, diagnostics('google')].filter(Boolean);
     },
     tiktok: function () {
-      return [card('asetTtPixel', 'TikTok Pixel', 'TikTok doesn’t let OrivenAI create pixels. Create one in TikTok Events Manager (Tools → Events Manager → Connect Data Source → Web), then paste its pixel code here to link it to your ad account and test it.',
-        '<div class="aset-links">' + link('tiktok') + '</div>' +
-        '<label class="aset-field"><span class="aset-lbl">Pixel code</span><input class="aset-in" data-aset-in="tiktokCode" placeholder="e.g. C1ABCDEF2GHIJK3LMNOP" value="' + esc(S.tiktokCode) + '" autocomplete="off"></label>' +
+      return [card('asetTtPixel', 'TikTok Pixel', esc(T('TikTok doesn’t let OrivenAI create pixels. Create one in TikTok Events Manager (Tools → Events Manager → Connect Data Source → Web), then paste its pixel code here to link it to your ad account and test it.')),
+        '<div class="aset-links">' + link('tiktok') + '</div>' + unverified('tiktok') +
+        '<label class="aset-field"><span class="aset-lbl">' + esc(T('Pixel code')) + '</span><input class="aset-in" data-aset-in="tiktokCode" placeholder="' + esc(T('e.g. {x}', { x: 'C1ABCDEF2GHIJK3LMNOP' })) + '" value="' + esc(S.tiktokCode) + '" autocomplete="off"></label>' +
         '<div class="aset-acts">' + busyBtn('ttLink', 'Link to my ad account', 'data-aset-ttlink' + (S.tiktokCode.trim() ? '' : ' disabled')) + busyBtn('ttTest', 'Send test event', 'data-aset-ask="ttTest"' + (S.tiktokCode.trim() ? '' : ' disabled')) + '</div>' +
-        confirmBox('ttTest', { title: 'Send a test event to this pixel?', does: 'OrivenAI sends one ViewContent event to pixel ' + S.tiktokCode.trim() + ' through TikTok’s Events API. TikTok doesn’t offer OrivenAI a separate test mode, so it is a real event.', after: 'Check TikTok Events Manager to see that it arrived.', go: 'Send event' }) +
+        confirmBox('ttTest', { title: T('Send a test event to this pixel?'), does: T('OrivenAI sends one ViewContent event to pixel {code} through TikTok’s Events API. TikTok doesn’t offer OrivenAI a separate test mode, so it is a real event.', { code: S.tiktokCode.trim() }), after: T('Check TikTok Events Manager to see that it arrived.'), go: T('Send event') }) +
         msg('ttLink') + msg('ttTest')), diagnostics('tiktok')];
     },
     pinterest: function () {
       var d = (S.data.pinterest || {}).tag || { loading: true }, v = d.v || {};
-      var st = d.loading ? '<span class="aset-muted">Reading your Tag from Pinterest…</span>' : d.err ? status('warn', esc(d.err)) :
-        !v.exists ? status('off', 'No Pinterest Tag on this ad account') :
-        v.lastReceivedAt ? status('ok', 'Has received events') + ' <span class="aset-muted">last event ' + esc(when(v.lastReceivedAt)) + '</span>' :
-        status('warn', 'ID available — installation not verified') + (v.status ? ' <span class="aset-muted">Pinterest status: ' + esc(v.status) + '</span>' : '');
-      var id = v.tag && v.tag.id ? '<div class="aset-kv"><span>Tag ID</span><code>' + esc(v.tag.id) + '</code><button type="button" class="aset-link" data-aset-copy="' + esc(v.tag.id) + '">Copy</button></div>' : '';
+      var st = d.loading ? '<span class="aset-muted">' + esc(T('Reading your Tag from Pinterest…')) + '</span>' : d.err ? status('warn', esc(d.err)) :
+        !v.exists ? status('off', esc(T('No Pinterest Tag on this ad account'))) :
+        v.lastReceivedAt ? status('ok', esc(T('Has received events'))) + ' <span class="aset-muted">' + esc(T('last event {d}', { d: when(v.lastReceivedAt) })) + '</span>' :
+        status('warn', esc(T('ID available — installation not verified'))) + (v.status ? ' <span class="aset-muted">' + esc(T('Pinterest status: {s}', { s: v.status })) + '</span>' : '');
+      var id = v.tag && v.tag.id ? '<div class="aset-kv"><span>' + esc(T('Tag ID')) + '</span><code>' + esc(v.tag.id) + '</code><button type="button" class="aset-link" data-aset-copy="' + esc(v.tag.id) + '">' + esc(T('Copy')) + '</button></div>' : '';
       var create = !d.loading && !d.err && !v.exists ? busyBtn('pinTag', 'Create Pinterest Tag', 'data-aset-ask="pinTag"', true) : '';
-      var capi = v.exists ? card('asetPinCapi', 'Conversions API (server-side events)', 'OrivenAI validates a test event with Pinterest’s own test mode — Pinterest checks it but doesn’t record it.',
-        '<div class="aset-acts">' + busyBtn('pinCapi', 'Validate a test event', 'data-aset-pincapi') + '</div>' + msg('pinCapi')) : '';
-      return [card('asetPinTag', 'Pinterest Tag', 'The Tag records what visitors do on your website, so Pinterest can measure your ads.',
-        '<div class="aset-row">' + st + (d.loading ? '' : ' <button type="button" class="aset-link" data-aset-refresh>Refresh</button>') + '</div>' + id + create +
-        confirmBox('pinTag', { title: 'Create a Pinterest Tag?', does: 'OrivenAI asks Pinterest to create a Tag on this ad account. If one exists, it is reused. Enhanced match stays off.', after: 'Install the Tag on your website (Pinterest: Business → Conversions). Until Pinterest reports an event, it stays “installation not verified”.', go: 'Create Tag' }) + msg('pinTag') +
+      var capi = v.exists ? card('asetPinCapi', 'Conversions API (server-side events)', esc(T('OrivenAI validates a test event with Pinterest’s own test mode — Pinterest checks it but doesn’t record it.')),
+        unverified('pinterest') + '<div class="aset-acts">' + busyBtn('pinCapi', 'Validate a test event', 'data-aset-pincapi') + '</div>' + msg('pinCapi')) : '';
+      return [card('asetPinTag', 'Pinterest Tag', esc(T('The Tag records what visitors do on your website, so Pinterest can measure your ads.')),
+        unverified('pinterest') + '<div class="aset-row">' + st + (d.loading ? '' : ' <button type="button" class="aset-link" data-aset-refresh>' + esc(T('Refresh')) + '</button>') + '</div>' + id + create +
+        confirmBox('pinTag', { title: T('Create a Pinterest Tag?'), does: T('OrivenAI asks Pinterest to create a Tag on this ad account. If one exists, it is reused. Enhanced match stays off.'), after: T('Install the Tag on your website (Pinterest: Business → Conversions). Until Pinterest reports an event, it stays “installation not verified”.'), go: T('Create Tag') }) + msg('pinTag') +
         '<div class="aset-links">' + link('pinterest') + '</div>'), capi, diagnostics('pinterest')].filter(Boolean);
     },
     snapchat: function () {
-      return [card('asetSnapPixel', 'Snap Pixel', 'OrivenAI can’t create or read Snap Pixels yet: Snapchat’s documentation doesn’t offer this to OrivenAI. Create and install the pixel in Snapchat Ads Manager — the official guide walks you through it.',
+      return [card('asetSnapPixel', 'Snap Pixel', esc(T('OrivenAI can’t create or read Snap Pixels yet: Snapchat’s documentation doesn’t offer this to OrivenAI. Create and install the pixel in Snapchat Ads Manager — the official guide walks you through it.')),
         '<div class="aset-links">' + link('snapchat') + '</div>'),
-        card('asetSnapCapi', 'Conversions API', 'Snap’s Conversions API (with a validation mode) exists, but OrivenAI doesn’t send events to it yet.', '<div class="aset-links">' + link('snapCapi') + '</div>')];
+        card('asetSnapCapi', 'Conversions API', esc(T('Snap’s Conversions API (with a validation mode) exists, but OrivenAI doesn’t send events to it yet.')), '<div class="aset-links">' + link('snapCapi') + '</div>')];
     },
   };
   function matrixHtml(p) {
-    return '<section class="rx-card aset-card aset-matrix" aria-labelledby="asetMx"><h2 class="aset-h" id="asetMx">What you can configure for ' + esc(NAME[p]) + '</h2>' +
-      '<div class="aset-tablewrap"><table><thead><tr><th scope="col">Setting</th><th scope="col">Where</th><th scope="col">What it means</th></tr></thead><tbody>' +
-      MATRIX[p].map(function (r) { return '<tr><th scope="row">' + esc(r[0]) + '</th><td><span class="aset-where aset-where--' + r[1] + '">' + esc(WHERE[r[1]]) + '</span></td><td>' + esc(r[2]) + '</td></tr>'; }).join('') +
-      '</tbody></table></div><p class="aset-muted">Platforms differ in what they let other tools do; this list follows what each platform’s official API offers OrivenAI today.</p></section>';
+    return '<section class="rx-card aset-card aset-matrix" aria-labelledby="asetMx"><h2 class="aset-h" id="asetMx">' + esc(T('What you can configure for {p}', { p: NAME[p] })) + '</h2>' +
+      '<div class="aset-tablewrap"><table><thead><tr><th scope="col">' + esc(T('Setting')) + '</th><th scope="col">' + esc(T('Where')) + '</th><th scope="col">' + esc(T('What it means')) + '</th></tr></thead><tbody>' +
+      MATRIX[p].map(function (r) { return '<tr><th scope="row">' + esc(T(r[0])) + '</th><td><span class="aset-where aset-where--' + r[1] + '">' + esc(whereLabel(p, r[1])) + '</span></td><td>' + esc(T(r[2])) + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="aset-muted">' + esc(T('Platforms differ in what they let other tools do; this list follows what each platform’s official API offers OrivenAI today.')) + '</p></section>';
   }
 
   // ── Actions ────────────────────────────────────────────────────
@@ -238,50 +257,50 @@
     if (b.hasAttribute('data-aset-platforms')) { if (window.orvPages) window.orvPages.open('ad-platforms'); return; }
     if (b.hasAttribute('data-aset-general')) { if (window.orvPages) window.orvPages.open('settings'); return; }
     if (b.hasAttribute('data-aset-refresh')) { loadTracking(p); if (p === 'google') { (S.data.google || {}).tag = null; } return; }
-    if (b.hasAttribute('data-aset-copy')) { var txt = a('data-aset-copy'); try { navigator.clipboard.writeText(txt); b.textContent = 'Copied'; } catch (_) {} return; }
+    if (b.hasAttribute('data-aset-copy')) { var txt = a('data-aset-copy'); try { navigator.clipboard.writeText(txt); b.textContent = T('Copied'); } catch (_) {} return; }
     if (b.hasAttribute('data-aset-ask')) { S.confirm = a('data-aset-ask'); render(); return; }
     if (b.hasAttribute('data-aset-cancel')) { S.confirm = null; render(); return; }
     if (b.hasAttribute('data-aset-go')) {
       var k = a('data-aset-go');
       if (k === 'metaPixel') run(k, 'Creating…', api('/api/setup/meta/tracking', 'POST', { name: 'OrivenAI Pixel' }), function (d) {
-        S.msg[k] = { kind: 'ok', text: d.created ? 'Meta created pixel ' + (d.pixel && d.pixel.id) + '. Install it on your website next.' : 'This ad account already has pixel ' + (d.pixel && d.pixel.id) + ' — OrivenAI is using that one.' };
+        S.msg[k] = { kind: 'ok', text: T(d.created ? 'Meta created pixel {id}. Install it on your website next.' : 'This ad account already has pixel {id} — OrivenAI is using that one.', { id: d.pixel && d.pixel.id }) };
         S.data.meta.pixel = { loading: false, v: Object.assign({ pixel: d.pixel }, d.health || { exists: true }) };
       });
       if (k === 'googleConv') run(k, 'Creating…', api('/api/setup/google/conversions', 'POST', { name: S.googleName }), function (d) {
-        S.msg[k] = { kind: 'ok', text: d.created ? 'Google Ads created the conversion action “' + S.googleName + '”.' : 'A conversion action named “' + S.googleName + '” already exists — OrivenAI is using it.' };
+        S.msg[k] = { kind: 'ok', text: T(d.created ? 'Google Ads created the conversion action “{name}”.' : 'A conversion action named “{name}” already exists — OrivenAI is using it.', { name: S.googleName }) };
         get('google', 'conversion', '/api/setup/google/conversions/' + encodeURIComponent(S.googleName) + '/status');
       });
       if (k === 'pinTag') run(k, 'Creating…', api('/api/setup/pinterest/tag', 'POST', {}), function (d) {
-        S.msg[k] = { kind: 'ok', text: d.created ? 'Pinterest created Tag ' + (d.tag && d.tag.id) + '. Install it on your website next.' : 'This ad account already has Tag ' + (d.tag && d.tag.id) + ' — OrivenAI is using that one.' };
+        S.msg[k] = { kind: 'ok', text: T(d.created ? 'Pinterest created Tag {id}. Install it on your website next.' : 'This ad account already has Tag {id} — OrivenAI is using that one.', { id: d.tag && d.tag.id }) };
         get('pinterest', 'tag', '/api/setup/pinterest/tag/health');
       });
       if (k === 'ttTest') run(k, 'Sending…', api('/api/setup/tiktok/test-event', 'POST', { pixelCode: S.tiktokCode.trim(), event: 'ViewContent' }), function (d) {
-        S.msg[k] = d.sent ? { kind: 'ok', text: 'TikTok accepted the event. Check TikTok Events Manager to see it arrive.' } : { kind: 'warn', text: 'TikTok didn’t accept the event — check the pixel code.' };
+        S.msg[k] = d.sent ? { kind: 'ok', text: T('TikTok accepted the event. Check TikTok Events Manager to see it arrive.') } : { kind: 'warn', text: T('TikTok didn’t accept the event — check the pixel code.') };
       });
       return;
     }
     if (b.hasAttribute('data-aset-metacapi')) run('metaCapi', 'Sending…', api('/api/setup/meta/conversions', 'POST', { eventName: 'PageView', testEventCode: S.metaTestCode.trim() }), function (d) {
-      S.msg.metaCapi = d.sent ? { kind: 'ok', text: 'Meta received the test event' + (d.eventsReceived ? ' (' + d.eventsReceived + ')' : '') + '. You’ll see it under Test events in Events Manager.' } : { kind: 'warn', text: 'Meta didn’t confirm receiving the event. Check the test code and try again.' };
+      S.msg.metaCapi = d.sent ? { kind: 'ok', text: T('Meta received the test event{n}. You’ll see it under Test events in Events Manager.', { n: d.eventsReceived ? ' (' + d.eventsReceived + ')' : '' }) } : { kind: 'warn', text: T('Meta didn’t confirm receiving the event. Check the test code and try again.') };
     });
     if (b.hasAttribute('data-aset-pincapi')) run('pinCapi', 'Validating…', api('/api/setup/pinterest/events', 'POST', { eventName: 'page_visit', actionSource: 'web', test: true }), function (d) {
-      S.msg.pinCapi = d.sent ? { kind: 'ok', text: 'Pinterest processed the test event in test mode — the Conversions API connection works.' } : { kind: 'warn', text: 'Pinterest didn’t process the test event.' };
+      S.msg.pinCapi = d.sent ? { kind: 'ok', text: T('Pinterest processed the test event in test mode — the Conversions API connection works.') } : { kind: 'warn', text: T('Pinterest didn’t process the test event.') };
     });
     if (b.hasAttribute('data-aset-googletag')) { S.data.google = S.data.google || {}; get('google', 'tag', '/api/setup/google/conversions/' + encodeURIComponent(S.googleName) + '/tag'); return; }
     if (b.hasAttribute('data-aset-ttlink')) {
       S.busy.ttLink = 'Linking…'; S.msg.ttLink = null; render();
       api('/api/setup/tiktok/business-centers').then(function (r) {
         var bc = r.ok && r.data && r.data.businessCenters && r.data.businessCenters[0];
-        if (!bc) { S.busy.ttLink = null; S.msg.ttLink = { kind: 'warn', text: r.ok ? 'No TikTok Business Center found for this connection. Linking a pixel needs one.' : K.refused(r) }; render(); return; }
+        if (!bc) { S.busy.ttLink = null; S.msg.ttLink = { kind: 'warn', text: r.ok ? T('No TikTok Business Center found for this connection. Linking a pixel needs one.') : K.refused(r) }; render(); return; }
         return api('/api/setup/tiktok/pixel/link', 'POST', { bcId: bc.bcId, pixelCode: S.tiktokCode.trim() }).then(function (x) {
           S.busy.ttLink = null;
-          S.msg.ttLink = x.ok && x.data ? { kind: 'ok', text: x.data.alreadyLinked ? 'This pixel is already linked to your ad account.' : 'TikTok linked the pixel to your ad account.' } : { kind: 'warn', text: K.refused(x) };
+          S.msg.ttLink = x.ok && x.data ? { kind: 'ok', text: T(x.data.alreadyLinked ? 'This pixel is already linked to your ad account.' : 'TikTok linked the pixel to your ad account.') } : { kind: 'warn', text: K.refused(x) };
           render();
         });
       });
       return;
     }
     if (b.hasAttribute('data-aset-recheck')) run('recheck', 'Checking…', api('/api/setup/' + p + '/recheck', 'POST'), function (d) {
-      S.msg.recheck = d.ok ? { kind: 'ok', text: NAME[p] + ' confirmed this ad account just now.' } : { kind: 'warn', text: NAME[p] + ' couldn’t confirm this ad account — it may need attention in ' + NAME[p] + '.' };
+      S.msg.recheck = d.ok ? { kind: 'ok', text: T('{p} confirmed this ad account just now.', { p: NAME[p] }) } : { kind: 'warn', text: T('{p} couldn’t confirm this ad account — it may need attention in {p}.', { p: NAME[p] }) };
       api('/api/setup/' + p + '/status').then(function (x) { S.setup[p] = x.ok ? x.data : S.setup[p]; render(); });
     });
   }
@@ -294,5 +313,13 @@
     if (k === 'metaTestCode') document.querySelectorAll('#' + PAGE + ' [data-aset-metacapi]').forEach(function (b) { if (!S.busy.metaCapi) b.disabled = !on; });
   }
 
-  window.orvAdSettings = { open: open, LINKS: LINKS, _state: function () { return S; } };
+  // Language switch (Settings): redraw in the new language once the page has been opened.
+  function hookLang() {
+    if (typeof window.applyLanguage !== 'function' || window.applyLanguage._aset) return;
+    var orig = window.applyLanguage;
+    window.applyLanguage = function () { var r = orig.apply(this, arguments); try { if (document.getElementById(ROOT)) render(); } catch (_) {} return r; };
+    window.applyLanguage._aset = true;
+  }
+  hookLang();
+  window.orvAdSettings = { open: open, LINKS: LINKS, REAL_ACCOUNT_VERIFIED: REAL_ACCOUNT_VERIFIED, _state: function () { return S; } };
 })();

@@ -109,7 +109,8 @@ body.dark-mode .asim {
 .asim-chan { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; border: 1px solid var(--asim-line); background: var(--asim-soft); }
 .asim-chan__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .asim-chan__name { font-size: 14px; color: var(--charcoal); }
-.asim-chan__top .asim-icon { margin-left: auto; }
+.asim-chan__top .asim-icon { margin-left: auto; order: 2; }
+.asim-chan__top .asim-src { order: 3; }  /* the source label wraps under the name; the remove button stays on the name row */
 .asim-src { font-size: 11.5px; color: var(--muted); padding: 2px 8px; border-radius: 999px; background: var(--surface); border: 1px solid var(--asim-line); }
 .asim-src--acct { color: var(--charcoal); border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 55%, transparent); background: var(--asim-acc-bg); }
 .asim-share input[type=range], .asim-slider input[type=range] { width: 100%; accent-color: var(--og-rich, #2E9E5B); }
