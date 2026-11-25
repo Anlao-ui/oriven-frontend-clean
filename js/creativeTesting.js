@@ -163,7 +163,7 @@
   }
   function render() {
     var el = document.getElementById(ROOT); if (!el) return;
-    el.innerHTML = K.head('Create', 'Creative Testing', 'Write several versions of an ad idea, compare them side by side and keep the strongest. Chosen versions go to My Content, ready for your campaigns.')
+    el.innerHTML = K.head('Creative Studio', 'Creative Testing', 'Write several versions of an ad idea, compare them side by side and keep the strongest. Chosen versions go to My Creatives, ready for your campaigns.')
       + '<div class="cts-top"><section class="rx-card gx-card" aria-labelledby="ctsNewH"><h2 class="rx-h2" id="ctsNewH">New variations</h2>'
       + (S.assets.length ? '<label class="rx-lbl">Start from something you made <span class="rx-muted">(optional)</span><select class="rx-input" id="ctsFrom"><option value="">—</option>' + S.assets.map(function (a, i) { return '<option value="' + i + '">' + esc((a.title || seedOf(a)).slice(0, 80)) + '</option>'; }).join('') + '</select></label>' : '')
       + '<label class="rx-lbl">Your ad idea<textarea class="rx-input gx-ta" id="ctsSeed" rows="3" maxlength="1000" placeholder="e.g. Hand-poured soy candles from Utrecht — the gift that lasts"></textarea></label>'

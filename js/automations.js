@@ -19,7 +19,7 @@
   var STR = {
     en: {
       title: 'Automations', subtitle: 'Schedule campaigns, watch their performance and let OrivenAI act within limits you set.',
-      tabOverview: 'Overview', tabScheduler: 'Scheduler', tabRules: 'Rules', tabActivity: 'Activity',
+      tabOverview: 'Automation Overview', tabScheduler: 'Scheduler', tabRules: 'My Automations', tabActivity: 'Automation History',
       subOverview: 'What runs on its own, what’s coming up and what needs your approval.', subScheduler: 'Plan when campaigns start, pause and change.',
       subRules: 'Rules that watch your campaigns and notify you, ask first or act within your limits.', subActivity: 'Everything your automations did, with the reason and the result.',
       newRule: 'New rule', newSchedule: 'Schedule campaign', pauseAll: 'Pause all automations', resumeAll: 'Resume all automations', settings: 'Settings',
@@ -111,7 +111,7 @@
     },
     nl: {
       title: 'Automatiseringen', subtitle: 'Plan campagnes, volg hun resultaten en laat OrivenAI handelen binnen grenzen die jij instelt.',
-      tabOverview: 'Overzicht', tabScheduler: 'Planner', tabRules: 'Regels', tabActivity: 'Activiteit',
+      tabOverview: 'Automatiseringsoverzicht', tabScheduler: 'Planner', tabRules: 'Mijn automatiseringen', tabActivity: 'Automatiseringsgeschiedenis',
       subOverview: 'Wat vanzelf loopt, wat eraan komt en wat jouw goedkeuring nodig heeft.', subScheduler: 'Plan wanneer campagnes starten, pauzeren en veranderen.',
       subRules: 'Regels die je campagnes volgen en je waarschuwen, eerst vragen of binnen jouw grenzen handelen.', subActivity: 'Alles wat je automatiseringen deden, met de reden en het resultaat.',
       newRule: 'Nieuwe regel', newSchedule: 'Campagne plannen', pauseAll: 'Alle automatiseringen pauzeren', resumeAll: 'Alle automatiseringen hervatten', settings: 'Instellingen',
@@ -198,7 +198,7 @@
     },
     de: {
       title: 'Automatisierungen', subtitle: 'Kampagnen planen, ihre Leistung beobachten und OrivenAI innerhalb deiner Grenzen handeln lassen.',
-      tabOverview: 'Übersicht', tabScheduler: 'Planer', tabRules: 'Regeln', tabActivity: 'Aktivität',
+      tabOverview: 'Automatisierungsübersicht', tabScheduler: 'Planer', tabRules: 'Meine Automatisierungen', tabActivity: 'Automatisierungsverlauf',
       newRule: 'Neue Regel', newSchedule: 'Kampagne planen', pauseAll: 'Alle Automatisierungen pausieren', resumeAll: 'Alle Automatisierungen fortsetzen', settings: 'Einstellungen',
       stRunning: 'Aktiv', stPausedAll: 'Alle Automatisierungen pausiert', stKilled: 'Von OrivenAI pausiert', stNoJobs: 'Läuft auf diesem Server nicht', stChecks: 'Regeln alle {h} geprüft',
       hours: '{n} Std.', minutes: '{n} Min.',
@@ -283,7 +283,7 @@
     },
     fr: {
       title: 'Automatisations', subtitle: 'Planifiez vos campagnes, suivez leurs performances et laissez OrivenAI agir dans les limites que vous fixez.',
-      tabOverview: 'Aperçu', tabScheduler: 'Planificateur', tabRules: 'Règles', tabActivity: 'Activité',
+      tabOverview: 'Aperçu des automatisations', tabScheduler: 'Planificateur', tabRules: 'Mes automatisations', tabActivity: 'Historique des automatisations',
       newRule: 'Nouvelle règle', newSchedule: 'Planifier une campagne', pauseAll: 'Mettre toutes les automatisations en pause', resumeAll: 'Reprendre toutes les automatisations', settings: 'Paramètres',
       stRunning: 'Actif', stPausedAll: 'Toutes les automatisations en pause', stKilled: 'Mis en pause par OrivenAI', stNoJobs: 'Ne tourne pas sur ce serveur', stChecks: 'règles vérifiées toutes les {h}',
       hours: '{n} h', minutes: '{n} min',
@@ -368,7 +368,7 @@
     },
     es: {
       title: 'Automatizaciones', subtitle: 'Programa campañas, sigue su rendimiento y deja que OrivenAI actúe dentro de los límites que tú fijes.',
-      tabOverview: 'Resumen', tabScheduler: 'Programador', tabRules: 'Reglas', tabActivity: 'Actividad',
+      tabOverview: 'Resumen de automatizaciones', tabScheduler: 'Programador', tabRules: 'Mis automatizaciones', tabActivity: 'Historial de automatizaciones',
       newRule: 'Nueva regla', newSchedule: 'Programar campaña', pauseAll: 'Pausar todas las automatizaciones', resumeAll: 'Reanudar todas las automatizaciones', settings: 'Ajustes',
       stRunning: 'Activo', stPausedAll: 'Todas las automatizaciones en pausa', stKilled: 'Pausado por OrivenAI', stNoJobs: 'No se ejecuta en este servidor', stChecks: 'reglas revisadas cada {h}',
       hours: '{n} h', minutes: '{n} min',
@@ -453,7 +453,7 @@
     },
     pt: {
       title: 'Automações', subtitle: 'Agende campanhas, acompanhe o desempenho e deixe a OrivenAI agir dentro dos limites que você definir.',
-      tabOverview: 'Visão geral', tabScheduler: 'Agendador', tabRules: 'Regras', tabActivity: 'Atividade',
+      tabOverview: 'Visão geral das automações', tabScheduler: 'Agendador', tabRules: 'Minhas automações', tabActivity: 'Histórico de automações',
       newRule: 'Nova regra', newSchedule: 'Agendar campanha', pauseAll: 'Pausar todas as automações', resumeAll: 'Retomar todas as automações', settings: 'Configurações',
       stRunning: 'Ativo', stPausedAll: 'Todas as automações pausadas', stKilled: 'Pausado pela OrivenAI', stNoJobs: 'Não está rodando neste servidor', stChecks: 'regras verificadas a cada {h}',
       hours: '{n} h', minutes: '{n} min',

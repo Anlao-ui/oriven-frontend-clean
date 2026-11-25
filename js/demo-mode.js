@@ -128,7 +128,7 @@
   function json(status, data) { return new Response(status === 204 ? null : JSON.stringify(data), { status: status, headers: { 'Content-Type': 'application/json' } }); }
   function parseBody(b) { try { return typeof b === 'string' ? JSON.parse(b) : null; } catch (_) { return null; } }
 
-  var REFUSE = /^\/api\/(publish|create-checkout-session|create-portal-session|billing\/|account\/delete|schedule-plan-change|[a-z]+\/disconnect|[a-z]+\/campaign\/|automations|autopilot\/rules|manual-campaigns|signup|verify-email|resend-verification|website-monitor|onboarding\/(complete|goal)|setup\/)/;
+  var REFUSE = /^\/api\/(publish|create-checkout-session|create-portal-session|billing\/|account\/delete|schedule-plan-change|[a-z]+\/disconnect|[a-z]+\/campaign\/|automations|autopilot\/rules|manual-campaigns|signup|verify-email|resend-verification|website-monitor|onboarding\/(complete|goal)|setup\/|simulations)/;
   var AI = /^\/api\/(ai\/|research\/query|market-research|generate-[a-z-]+|video-ads\/generate|motion-graphics\/generate|product-shoots\/generate|creative\/|create\/analyze|ads\/(analyze|recommend)|business\/(website|reflection|validate)|campaigns\/compare|audiences)/;
 
   // ── Sample daily figures for the metric tiles and Platform Comparison ──

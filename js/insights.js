@@ -76,7 +76,7 @@
   function render() {
     var root = document.getElementById('insRoot'); if (!root) return;
     // The title card; the counts line (reports · findings · opportunities) sits inside it.
-    var headWith = function (facts) { return '<header class="rx-head ins-head"><div><h1 class="rx-title">Insights</h1><p class="rx-sub">What your research has found, in one place — findings, opportunities and next actions, each linked to the report it came from.</p>' + (facts || '') + '</div>' +
+    var headWith = function (facts) { return '<header class="rx-head ins-head"><div><h1 class="rx-title">Saved Research</h1><p class="rx-sub">What your research has found, in one place — findings, opportunities and next actions, each linked to the report it came from.</p>' + (facts || '') + '</div>' +
       '<button type="button" class="rx-btn rx-btn-ghost" data-ins="new">New research</button></header>'; };
     var head = headWith('');
     if (!S.data && !S.err) { root.innerHTML = head + '<p class="rx-muted">Loading your insights…</p>'; return; }

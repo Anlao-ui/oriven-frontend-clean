@@ -14,21 +14,21 @@
   'use strict';
   function nav(id) { return function () { if (window.orvAppNav && window.orvAppNav.go) { window.orvAppNav.go(id); return true; } return false; }; }
   var PAGES = {
-    'control-center':      { label: 'Control Center', open: nav('dashboard') },
-    'marketing-plan':      { label: 'Marketing Plan', open: nav('plan') },
-    progress:              { label: 'Progress', open: nav('progress') },
+    'control-center':      { label: 'Dashboard', open: nav('dashboard') },
+    'marketing-plan':      { label: 'AI Plans', open: nav('plan') },
+    progress:              { label: 'Tasks', open: nav('progress') },
     research:              { label: 'Research', open: nav('research') },
     'competitor-analysis': { label: 'Competitor Analysis', open: nav('competitors') },
-    insights:              { label: 'Insights', open: nav('insights') },
-    create:                { label: 'Create', open: nav('create') },
+    insights:              { label: 'Saved Research', open: nav('insights') },
+    create:                { label: 'Create Ads', open: nav('create') },
     'creative-testing':    { label: 'Creative Testing', open: nav('testing') },
-    'my-content':          { label: 'My Content', open: nav('content') },
-    launch:                { label: 'Ad Studio', open: nav('adstudio') },
-    'audience-builder':    { label: 'Audience Builder', open: nav('audiences') },
-    campaigns:             { label: 'Campaign Overview', open: nav('overview') },
+    'my-content':          { label: 'My Creatives', open: nav('content') },
+    launch:                { label: 'Campaigns', open: nav('adstudio') },
+    'audience-builder':    { label: 'Audiences', open: nav('audiences') },
+    campaigns:             { label: 'Performance Overview', open: nav('overview') },
     'campaign-builder':    { label: 'Campaign Builder', open: nav('builder') },
-    'campaign-comparison': { label: 'Platform Comparison', open: nav('compare') },
-    automations:           { label: 'Automations', open: nav('auto-overview') },
+    'campaign-comparison': { label: 'Cross-platform Comparison', open: nav('compare') },
+    automations:           { label: 'Autopilot', open: nav('auto-overview') },
     settings:              { label: 'Settings', open: function () { if (typeof window.openSettingsModal === 'function') { window.openSettingsModal(); return true; } return false; } },
     'ad-platforms':        { label: 'Ad Platforms', open: function () {
       if (typeof window.bizGoTo !== 'function') return false;

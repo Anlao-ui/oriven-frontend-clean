@@ -220,7 +220,7 @@
 
   // ── Render / events ──────────────────────────────────────────────
   function render() {
-    var h = card('prfOvTitle'); if (h) h.textContent = T('Campaign Overview');
+    var h = card('prfOvTitle'); if (h) h.textContent = T('Performance Overview');
     if (!card('ovtPeriod')) return;
     var g = ++S.gen;
     A.connections().then(function (conn) { if (g !== S.gen) return; renderPeriod(g, conn); renderAds(g, conn); });

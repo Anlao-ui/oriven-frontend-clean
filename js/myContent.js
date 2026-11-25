@@ -114,7 +114,7 @@
   // ── Rendering ───────────────────────────────────────────────────
   function render() {
     var root = document.getElementById('mclRoot'); if (!root) return;
-    var head = '<header class="mcl-head"><div><h1>My Content</h1><p>Everything you’ve made in Create — images, videos, ad creatives and copy — saved to your account.</p></div>' +
+    var head = '<header class="mcl-head"><div><h1>My Creatives</h1><p>Everything you’ve made in Creative Studio — images, videos, ad creatives and copy — saved to your account.</p></div>' +
       '<button type="button" class="onv-btn onv-btn--primary" data-mcl="create">Create something</button></header>';
     if (S.items === null && !S.err) { root.innerHTML = head + '<p class="mcl-muted">Loading your content…</p>'; return; }
     if (S.err && !S.items) { root.innerHTML = head + '<div class="mcl-empty" data-state="error"><p>Your content couldn’t load.</p><button type="button" class="onv-btn" data-mcl="retry">Try again</button></div>'; return; }
@@ -245,7 +245,7 @@
   }
   function remove(a) {
     var F = window.orvWorkspace && window.orvWorkspace.flow;
-    var body = '<p>It’s removed from My Content. Campaigns that already use it keep their own copy.</p>';
+    var body = '<p>It’s removed from My Creatives. Campaigns that already use it keep their own copy.</p>';
     var ask = F && F.confirm ? F.confirm({ title: 'Delete this ' + LABEL[typeOf(a)].toLowerCase() + '?', body: body, confirmLabel: 'Delete', cancelLabel: 'Cancel', danger: true }) : Promise.resolve(window.confirm('Delete this item?'));
     ask.then(function (yes) {
       if (!yes) return;

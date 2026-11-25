@@ -8,6 +8,7 @@
 window.ORV_ANALYTICS_I18N = {
   nl: {
     'Campaign Overview': 'Campagne-overzicht',
+    'Performance Overview': 'Prestatieoverzicht',
     'Daily figures per ad aren’t available for {p}: this compares the whole account.': 'Dagcijfers per advertentie zijn er niet voor {p}: dit vergelijkt het hele account.',
     'Daily figures per ad set aren’t available for {p}: this compares the whole account.': 'Dagcijfers per advertentieset zijn er niet voor {p}: dit vergelijkt het hele account.',
     'Connect {p}': 'Koppel {p}', 'Loading…': 'Laden…', 'pt': 'pt',
@@ -33,6 +34,7 @@ window.ORV_ANALYTICS_I18N = {
   },
   de: {
     'Campaign Overview': 'Kampagnenübersicht',
+    'Performance Overview': 'Leistungsübersicht',
     'Daily figures per ad aren’t available for {p}: this compares the whole account.': 'Tageswerte pro Anzeige gibt es für {p} nicht: Hier wird das gesamte Konto verglichen.',
     'Daily figures per ad set aren’t available for {p}: this compares the whole account.': 'Tageswerte pro Anzeigengruppe gibt es für {p} nicht: Hier wird das gesamte Konto verglichen.',
     'Connect {p}': '{p} verbinden', 'Loading…': 'Wird geladen…', 'pt': 'Pkt.',
@@ -58,6 +60,7 @@ window.ORV_ANALYTICS_I18N = {
   },
   fr: {
     'Campaign Overview': 'Aperçu des campagnes',
+    'Performance Overview': 'Aperçu des performances',
     'Daily figures per ad aren’t available for {p}: this compares the whole account.': 'Les chiffres quotidiens par annonce ne sont pas disponibles pour {p} : la comparaison porte sur le compte entier.',
     'Daily figures per ad set aren’t available for {p}: this compares the whole account.': 'Les chiffres quotidiens par ensemble de publicités ne sont pas disponibles pour {p} : la comparaison porte sur le compte entier.',
     'Connect {p}': 'Connecter {p}', 'Loading…': 'Chargement…', 'pt': 'pt',
@@ -83,6 +86,7 @@ window.ORV_ANALYTICS_I18N = {
   },
   es: {
     'Campaign Overview': 'Resumen de campañas',
+    'Performance Overview': 'Resumen de rendimiento',
     'Daily figures per ad aren’t available for {p}: this compares the whole account.': 'No hay cifras diarias por anuncio para {p}: se compara la cuenta completa.',
     'Daily figures per ad set aren’t available for {p}: this compares the whole account.': 'No hay cifras diarias por conjunto de anuncios para {p}: se compara la cuenta completa.',
     'Connect {p}': 'Conectar {p}', 'Loading…': 'Cargando…', 'pt': 'pp',
@@ -108,6 +112,7 @@ window.ORV_ANALYTICS_I18N = {
   },
   pt: {
     'Campaign Overview': 'Visão geral das campanhas',
+    'Performance Overview': 'Visão geral de desempenho',
     'Daily figures per ad aren’t available for {p}: this compares the whole account.': 'Não há números diários por anúncio para {p}: compara-se a conta inteira.',
     'Daily figures per ad set aren’t available for {p}: this compares the whole account.': 'Não há números diários por conjunto de anúncios para {p}: compara-se a conta inteira.',
     'Connect {p}': 'Ligar {p}', 'Loading…': 'A carregar…', 'pt': 'p.p.',

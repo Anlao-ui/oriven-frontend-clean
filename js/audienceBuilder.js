@@ -35,7 +35,7 @@
 
   function render() {
     var el = document.getElementById(ROOT); if (!el) return;
-    el.innerHTML = K.head('Launch', 'Audience Builder', 'Define who your ads are for. OrivenAI suggests audiences from your onboarding answers, business details and research; you decide what to keep.')
+    el.innerHTML = K.head('Campaign Management', 'Audiences', 'Define who your ads are for. OrivenAI suggests audiences from your onboarding answers, business details and research; you decide what to keep.')
       + '<p class="gx-status-note"><span class="gx-pill">Prepared in OrivenAI</span> Audiences here are prepared for your campaigns. They are not created in Meta, Google, TikTok or Pinterest until a campaign using them is published there.</p>'
       + '<section class="rx-card gx-card" aria-labelledby="aubSugH"><h2 class="rx-h2" id="aubSugH">Suggest audiences</h2>'
       + '<label class="rx-lbl">Anything to focus on? <span class="rx-muted">(optional)</span><input class="rx-input" id="aubFocus" maxlength="300" placeholder="e.g. people buying gifts for Mother’s Day"></label>'

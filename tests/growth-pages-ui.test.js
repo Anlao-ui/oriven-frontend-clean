@@ -124,7 +124,7 @@ const server = app.listen(PORT, async () => {
     // ── 1. In the sidebar, under the existing sections ─────────────
     console.log('\n1. Navigation');
     const nav = await page.evaluate(() => Array.from(document.querySelectorAll('.orv-sb .onv-item')).map((b) => b.dataset.onv));
-    check('1.1 Creative Testing, Audience Builder and Platform Comparison are in the sidebar; Competitor Analysis opens from the Research header (no new section)', ['testing', 'audiences', 'compare'].every((k) => nav.includes(k)) && !nav.includes('competitors'), nav);
+    check('1.1 Creative Testing, Audiences, Cross-platform Comparison and Competitor Analysis are in the sidebar (workspace redesign 2026-11)', ['testing', 'audiences', 'compare', 'competitors'].every((k) => nav.includes(k)), nav);
     const keys = await page.evaluate(() => ['competitor-analysis', 'creative-testing', 'audience-builder', 'campaign-comparison'].map((k) => window.orvPages.has(k)));
     check('1.2 the shared page keys know the four pages (plan tasks and the assistant open them)', keys.every(Boolean), keys);
 

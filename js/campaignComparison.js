@@ -77,7 +77,7 @@
   function render() {
     var root = document.getElementById(ROOT); if (!root) return;
     var w = win();
-    var html = K.head('Campaigns', 'Platform Comparison', 'Every ad platform side by side: where your budget goes and what it brings back. Figures as the platforms report them.') +
+    var html = K.head('Analytics', 'Cross-platform Comparison', 'Every ad platform side by side: where your budget goes and what it brings back. Figures as the platforms report them.') +
       '<div class="pcm-bar">' +
         '<div class="ova-seg" role="group" aria-label="Compare"><button type="button" data-pcm-mode="platforms" aria-pressed="' + (S.mode === 'platforms') + '">Platforms</button><button type="button" data-pcm-mode="campaigns" aria-pressed="' + (S.mode === 'campaigns') + '">Campaigns</button></div>' +
         '<div class="ova-ctrls"><select class="ova-select" data-pcm-range aria-label="Period">' + RANGES.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === S.range ? ' selected' : '') + '>' + r[1] + '</option>'; }).join('') + '</select>' +

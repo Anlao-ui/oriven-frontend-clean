@@ -58,6 +58,8 @@
 <!-- One card look for every app page (titles and sections in cards, narrow frame). Last on purpose. -->
 <link rel="stylesheet" href="css/app-cards.css">
 <link rel="stylesheet" href="css/analytics.css">
+<link rel="stylesheet" href="css/ad-simulator.css">
+<link rel="stylesheet" href="css/ad-settings.css">
 
 
 
@@ -756,7 +758,7 @@
         <div class="prf-workspace-row" id="prfWorkspaceRow">
           <div class="prf-perf-col" id="prfPerfCol">
             <!-- The page title, nothing more (no subtitle or buttons): Campaign Overview is analytics only. -->
-            <h1 class="prf-ov-title" id="prfOvTitle">Campaign Overview</h1>
+            <h1 class="prf-ov-title" id="prfOvTitle">Performance Overview</h1>
 
             <!-- Hierarchy -> object -> date range (spec 1-3): Campaigns/Ad
                  Sets/Ads is a REAL selectable level, not a label --
@@ -3025,7 +3027,7 @@
       <div id="launchSelectView">
         <div class="camp-hub lq-hub">
           <div class="lq-hdr">
-            <h1 class="lq-hdr-title" data-i18n="navLaunch">Launch</h1>
+            <h1 class="lq-hdr-title" data-onv-t="Campaigns">Campaigns</h1>
             <p class="orv-page-sub" data-i18n="lch_pageSub">Review your ads, resolve any issues and launch campaigns to your connected platforms.</p>
           </div>
           <!-- Filter/Navigation Stability pass — two fixed rows instead of
@@ -3117,7 +3119,7 @@
         </button>
 
         <div class="lw-identity">
-          <div class="lw-eyebrow" data-i18n="navLaunch">Launch</div>
+          <div class="lw-eyebrow" data-onv-t="Campaigns">Campaigns</div>
           <h1 class="lw-camp-name" id="lcCampName"></h1>
           <div class="lw-camp-meta" id="lcCampMeta"></div>
         </div>
@@ -6954,6 +6956,9 @@
 <script src="js/overviewCompare.js"></script>
 <script src="js/aiDock.js"></script>
 <script src="js/myContent.js"></script>
+<script src="js/adSimEngine.js"></script>
+<script src="js/adSimulator.js"></script>
+<script src="js/adSettings.js"></script>
 <script src="js/appNav.js"></script>
 <script src="js/createCompat.js"></script>
 <script src="js/createFlow.js"></script>
