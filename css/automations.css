@@ -232,3 +232,34 @@ body.dark-mode .atm-wrap, body.dark-mode .atm-overlay { --au-ok: #5fd68f; --au-w
 .atm-split-side .atm-jobs li { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
 .atm-split-side .atm-job-what { grid-column: 1 / -1; grid-row: 2; font-size: 13px; }
 @media (max-width: 1100px) { .atm-split { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Autopilot page structure (2026-11-25) ───────────────────────────
+   My Automations and Automation History: the main card (rules / runs) beside
+   a column of summary cards; both columns end level; empty states sit inside
+   the cards instead of replacing them. */
+.atm-split2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: 16px; align-items: stretch; }
+.atm-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.atm-side > .atm-card:last-child { flex: 1 1 auto; }
+.atm-split2 .atm-card { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.atm-card-hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.atm-count { font: 600 12px/1 'Geist Mono', ui-monospace, monospace; padding: 4px 9px; border-radius: 99px; border: 1px solid var(--border); color: var(--muted); }
+.atm-main-card .atm-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.atm-main-card .atm-filters { margin: 0; }
+.atm-main-card .atm-acts { margin: 0; }
+.atm-empty-in { flex: 1 1 auto; min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; border: 1px dashed var(--border); border-radius: 12px; background: var(--og-card-soft, transparent); }
+.atm-empty-in h3 { margin: 0; font-size: 17px; }
+.atm-empty-in p { margin: 0; max-width: 52ch; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.atm-how { margin: 0; display: grid; gap: 10px; }
+.atm-how dt { font-weight: 650; font-size: 13.5px; color: var(--charcoal); }
+.atm-how dd { margin: 2px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.atm-fine { margin: auto 0 0; font-size: 12.5px; line-height: 1.5; }
+.atm-kv { margin: 0; display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px; font-size: 13.5px; line-height: 1.5; }
+.atm-stat { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; font-size: 13.5px; }
+.atm-stat li { display: flex; justify-content: space-between; gap: 10px; padding-bottom: 7px; border-bottom: 1px solid var(--border); }
+.atm-stat li:last-child { border-bottom: 0; padding-bottom: 0; }
+.atm-stat b { font-variant-numeric: tabular-nums; }
+.atm-errs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 13px; }
+.atm-errs li { display: flex; flex-direction: column; gap: 2px; }
+@media (max-width: 1000px) { .atm-split2 { grid-template-columns: minmax(0, 1fr); } }
+.atm-ovmain > .atm-card:last-child { display: flex; flex-direction: column; gap: 12px; }
+.atm-empty-in--sm { min-height: 120px; }

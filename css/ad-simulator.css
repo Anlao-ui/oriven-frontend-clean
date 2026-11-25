@@ -212,3 +212,29 @@ body.dark-mode .asim-share input[type=range], body.dark-mode .asim-slider input[
   .asim-dl dd { margin-bottom: 6px; }
 }
 @media (prefers-reduced-motion: reduce) { .asim * { transition: none !important; } }
+
+/* ── Layout refinement (2026-11-25) ──────────────────────────────────
+   Assumptions and Results side by side, the same height; What if as one
+   wide card below them (sliders left, effect right), so a long assumptions
+   column never leaves an empty area next to What if, and opening
+   "Advanced assumptions" only grows the top row. */
+@media (min-width: 1101px) {
+  .asim-grid { align-items: stretch; }
+  .asim-grid > .asim-out { display: contents; }
+  .asim-grid > .asim-setup { grid-column: 1; grid-row: 1; }
+  .asim-grid > .asim-out > .asim-results { grid-column: 2; grid-row: 1; }
+  .asim-grid > .asim-out > .asim-whatif { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; row-gap: 12px; align-items: start; }
+  .asim-whatif > .asim-wih, .asim-whatif > .asim-sub, .asim-whatif > .asim-sliders { grid-column: 1; }
+  .asim-whatif > #asimWiOut { grid-column: 2; grid-row: 1 / span 3; align-self: stretch; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 12px; background: var(--og-card-soft, transparent); border: 1px solid var(--asim-line); }
+  .asim-whatif > #asimWiOut > .asim-note:only-child { margin: auto 0; text-align: center; }
+  /* Results: the per-platform table sits at the bottom when the card is taller than its content */
+  .asim-results { display: flex; flex-direction: column; }
+}
+/* Hand-off: its buttons sit at the bottom of the card, level with the method card's end. */
+.asim-foot > .asim-handoff { display: flex; flex-direction: column; }
+.asim-foot > .asim-handoff > .asim-chips:last-child { margin-top: auto; }
+@media (min-width: 1101px) {
+  .asim-grid > .asim-out > .asim-whatif { grid-template-rows: auto auto 1fr; }
+  .asim-whatif > .asim-sliders { align-self: start; }
+}
+.asim-compare > .rx-btn { align-self: flex-start; }

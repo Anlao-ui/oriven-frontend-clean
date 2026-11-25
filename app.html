@@ -6960,6 +6960,7 @@
 <script src="js/adSimEngine.js"></script>
 <script src="js/adSimulator.js"></script>
 <script src="js/adSettings.js"></script>
+<script src="js/campaignsShell.js"></script>
 <script src="js/appNav.js"></script>
 <script src="js/createCompat.js"></script>
 <script src="js/createFlow.js"></script>
@@ -8132,7 +8133,14 @@ function _lqSetDisplay(el, value){
   if (value) el.style.setProperty('display', value, 'important');
   else el.style.removeProperty('display'); // falls back to the real stylesheet rule when shown
 }
+// Campaigns page cards (js/campaignsShell.js) repaint after every list render;
+// they read the same list (read-only) through window._lqPendingList.
+window._lqPendingList = function(){ return _lqAllPending.slice(); };
 function _launchRenderFilteredList(){
+  _launchRenderFilteredListCore();
+  try { if (window.orvCampaignsShell) window.orvCampaignsShell.paint(); } catch (_) {}
+}
+function _launchRenderFilteredListCore(){
   var wrap = document.getElementById('launchGrid');
   var empty = document.getElementById('launchEmpty');
   var filtersEl = document.getElementById('lqFilters');

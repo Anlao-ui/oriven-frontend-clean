@@ -160,3 +160,103 @@ body.dark-mode #orvHubTabsCampaigns { --app-card-bg: rgba(255, 255, 255, .028); 
 }
 /* Empty plan pages ("No marketing plan yet", "No progress steps yet") are a card too: full width, text centred inside. */
 .mpl-empty { max-width: none; margin: 0; text-align: center; box-sizing: border-box; padding: 56px 32px; border: 1px solid var(--app-card-line, var(--border)); border-radius: var(--app-card-r); background: var(--app-card-bg, var(--surface)); }
+
+/* ── 8. One green card system (2026-11-25) ─────────────────────────────
+   The sidebar's green family (--og-* in app-nav.css) carried into every
+   card, so cards from different pages read as one product:
+     --og-card        the ordinary card: a near-neutral surface with a green bias
+     --og-card-line   its border
+     --og-card-soft   a card inside a card (quieter fill)
+     --og-card-head   the page title card: the same surface with a green wash
+     --og-card-hi     the one card per page that matters most ("Next up", key results)
+   Every page's own card tokens point here (Dashboard, plan pages, Campaigns),
+   so nothing is black on one page and grey on the next. */
+.page, .onv-panel {
+  --og-card: #FBFCF8;
+  --og-card-line: #DCE5D2;
+  --og-card-soft: rgba(46, 125, 50, .045);
+  --og-card-head: linear-gradient(118deg, rgba(124, 203, 69, .13), rgba(124, 203, 69, 0) 58%) #FBFCF8;
+  --og-card-hi: linear-gradient(155deg, #EAF5DD 0%, #F6FAF0 72%);
+  --og-card-hi-line: rgba(46, 125, 50, .32);
+  --surface: var(--og-card);
+  --border: var(--og-card-line);
+}
+body.dark-mode .page, body.dark-mode .onv-panel {
+  --og-card: #0D110C;
+  --og-card-line: rgba(150, 205, 110, .12);
+  --og-card-soft: rgba(150, 205, 110, .04);
+  --og-card-head: linear-gradient(118deg, rgba(124, 203, 69, .11), rgba(124, 203, 69, 0) 58%) #0D110C;
+  --og-card-hi: linear-gradient(155deg, #15240F 0%, #0F170D 74%);
+  --og-card-hi-line: rgba(160, 220, 100, .30);
+  --surface: var(--og-card);
+  --border: var(--og-card-line);
+}
+#bizPanelOverview { --ccx-surface: var(--og-card); --ccx-line: var(--og-card-line); --ccx-raise: var(--og-card-soft); }
+.onv-panel { --onv-surface: var(--og-card); --onv-line: var(--og-card-line); }
+#bizPanelOverview, .onv-panel, body.dark-mode #orvHubTabsCampaigns { --app-card-bg: var(--og-card); --app-card-line: var(--og-card-line); }
+/* Page title cards: the green wash, like the sidebar's active group. */
+#bizPanelOverview .ccx-hd, #page-marketing-plan .mpl-head, #page-progress .prg-head, .rx-wrap > .rx-head,
+#page-create .cr2-hero, #page-my-content .mcl-head, #page-launch .lq-hdr, #orvHubTabsCampaigns .camp-shell-hdr,
+.onv-cb > .onv-cb__head, .atm-wrap > .atm-head, .rx-head.gx-head { background: var(--og-card-head); }
+/* Growth pages (Ad Simulator, Audiences, Creative Testing, Comparison, Advertising Settings, …): the title block is a card too. */
+.rx-head.gx-head { box-sizing: border-box; margin: 0; padding: var(--app-card-pad); border: 1px solid var(--app-card-line, var(--border)); border-radius: var(--app-card-r); }
+@media (min-width: 1025px) { .rx-head.gx-head { padding-right: 24px; } }
+/* The card that matters most on a page. */
+.og-hi, #page-progress .prg-next, #mpl-roadmap .mpl-next, .asim-tile--key {
+  background: var(--og-card-hi) !important;
+  border-color: var(--og-card-hi-line) !important;
+}
+/* Cards inside cards use the quieter green fill. */
+.ins-sec .ins-card, .ins-sec .ins-action, .ins-sec .ins-rec li,
+.gx-sec .gx-card, .gx-sec .gx-aud, .gx-sec .gx-saved__i, .gx-sec .gx-set { background: var(--og-card-soft); }
+
+/* ── 9. Campaigns page structure (js/campaignsShell.js) ─────────────── */
+.cmx-card { box-sizing: border-box; padding: var(--app-card-pad); border: 1px solid var(--app-card-line, var(--border)); border-radius: var(--app-card-r); background: var(--app-card-bg, var(--surface)); min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.cmx-card h2 { margin: 0; font-size: 16px; font-weight: 700; color: var(--charcoal); letter-spacing: -.01em; }
+.cmx-sub { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.55; max-width: 72ch; }
+.lq-hub.cmx-on { display: flex; flex-direction: column; gap: 16px; }
+.lq-hub.cmx-on > .lq-hdr { margin: 0 !important; }
+.cmx-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.cmx-tile { gap: 4px; }
+.cmx-tile__k { font-size: 13px; font-weight: 600; color: var(--muted); }
+.cmx-tile b { font-size: 28px; line-height: 1.1; font-weight: 700; color: var(--charcoal); font-variant-numeric: tabular-nums; }
+.cmx-tile__s { font-size: 12.5px; color: var(--muted); }
+.cmx-tile--hi { background: var(--og-card-hi); border-color: var(--og-card-hi-line); }
+.cmx-tile--warn { border-color: color-mix(in srgb, #F5B84A 45%, var(--border)); }
+.cmx-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: 16px; align-items: stretch; }
+.cmx-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.cmx-side > .cmx-card:last-child { flex: 1 1 auto; }
+.cmx-list { gap: 14px; }
+.cmx-list .lq-filters { margin: 0 !important; }
+.cmx-list .lq-workspace-row { margin: 0 !important; flex: 1 1 auto; display: flex; flex-direction: column; }
+.cmx-list .lq-campaigns-col { flex: 1 1 auto; display: flex; flex-direction: column; }
+.cmx-list .camp-hub-empty { flex: 1 1 auto; margin: 0 !important; border: 1px dashed var(--border) !important; border-radius: 14px !important; background: var(--og-card-soft) !important; min-height: 260px; }
+.cmx-list .camp-hub-empty-title { font-size: 18px; }
+.cmx-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.cmx-acts--c { justify-content: center; margin-top: 6px; }
+.cmx-btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: var(--charcoal); border: 1px solid var(--border); background: var(--surface); }
+.cmx-btn:hover { border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 60%, transparent); }
+.cmx-btn:focus-visible { outline: 2px solid var(--og-mid, #7CCB45); outline-offset: 2px; }
+.cmx-btn--primary { background: var(--green, #B7FF2A); border-color: transparent; color: #10140C; }
+.cmx-next p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--charcoal); }
+.cmx-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.cmx-bar { display: grid; grid-template-columns: minmax(0, 1fr) 70px 24px; gap: 10px; align-items: center; font-size: 13px; color: var(--c2, var(--charcoal)); }
+.cmx-bar i { height: 6px; border-radius: 99px; background: var(--og-card-soft); overflow: hidden; }
+.cmx-bar em { display: block; height: 100%; border-radius: 99px; background: var(--og-mid, #7CCB45); }
+.cmx-bar--warning em { background: #F5B84A; } .cmx-bar--blocked em, .cmx-bar--failed em { background: #FF7A6E; }
+.cmx-bar b { text-align: right; font-variant-numeric: tabular-nums; }
+.cmx-empty-line { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.5; padding: 12px 14px; border: 1px dashed var(--border); border-radius: 12px; }
+@media (max-width: 1100px) { .cmx-grid { grid-template-columns: minmax(0, 1fr); } .cmx-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .cmx-sum { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; } .cmx-tile b { font-size: 22px; } }
+.cmx-list .camp-hub-empty { max-width: none !important; width: auto !important; align-self: stretch; }
+.cmx-list .camp-hub-empty-ico { color: var(--og-deep, #2E7D32); }
+body.dark-mode .cmx-list .camp-hub-empty-ico { color: var(--og-fresh, #C9F27A); }
+/* My Creatives: its panel already has the page gutter, so the list frame inside adds none (same edges as every page). */
+@media (min-width: 1025px) { #page-my-content .mcl-page > .mcl { padding-left: 0 !important; padding-right: 0 !important; } }
+/* The Dashboard is a dark design in both themes (light text on its own dark ground): its cards
+   always use the dark green values, also when the app is in light mode. */
+#bizPanelOverview {
+  --og-card: #0D110C; --og-card-line: rgba(150, 205, 110, .12); --og-card-soft: rgba(150, 205, 110, .04);
+  --og-card-head: linear-gradient(118deg, rgba(124, 203, 69, .11), rgba(124, 203, 69, 0) 58%) #0D110C;
+  --og-card-hi: linear-gradient(155deg, #15240F 0%, #0F170D 74%); --og-card-hi-line: rgba(160, 220, 100, .30);
+}

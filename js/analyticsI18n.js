@@ -7,6 +7,7 @@
    ════════════════════════════════════════════════════════════════ */
 window.ORV_ANALYTICS_I18N = {
   nl: {
+    'Two individual ads head to head: which one earns its budget. To compare whole platforms or campaigns, use': 'Twee losse advertenties tegenover elkaar: welke verdient zijn budget. Voor hele platforms of campagnes naast elkaar gebruik je', 'Cross-platform Comparison': 'Platformvergelijking',
     'Campaign Overview': 'Campagne-overzicht',
     'Performance Overview': 'Prestatieoverzicht',
     'Daily figures per ad aren’t available for {p}: this compares the whole account.': 'Dagcijfers per advertentie zijn er niet voor {p}: dit vergelijkt het hele account.',
@@ -33,6 +34,7 @@ window.ORV_ANALYTICS_I18N = {
     '{v}% vs previous period': '{v}% t.o.v. vorige periode', 'No earlier figures': 'Geen eerdere cijfers', 'No figures for this period yet.': 'Nog geen cijfers voor deze periode.'
   },
   de: {
+    'Two individual ads head to head: which one earns its budget. To compare whole platforms or campaigns, use': 'Zwei einzelne Anzeigen im direkten Vergleich: welche ihr Budget verdient. Um ganze Plattformen oder Kampagnen zu vergleichen, nutze den', 'Cross-platform Comparison': 'Plattformvergleich',
     'Campaign Overview': 'Kampagnenübersicht',
     'Performance Overview': 'Leistungsübersicht',
     'Daily figures per ad aren’t available for {p}: this compares the whole account.': 'Tageswerte pro Anzeige gibt es für {p} nicht: Hier wird das gesamte Konto verglichen.',
@@ -59,6 +61,7 @@ window.ORV_ANALYTICS_I18N = {
     '{v}% vs previous period': '{v}% ggü. Vorperiode', 'No earlier figures': 'Keine früheren Zahlen', 'No figures for this period yet.': 'Noch keine Zahlen für diesen Zeitraum.'
   },
   fr: {
+    'Two individual ads head to head: which one earns its budget. To compare whole platforms or campaigns, use': 'Deux annonces face à face : laquelle mérite son budget. Pour comparer des plateformes ou campagnes entières, utilisez la', 'Cross-platform Comparison': 'Comparaison des plateformes',
     'Campaign Overview': 'Aperçu des campagnes',
     'Performance Overview': 'Aperçu des performances',
     'Daily figures per ad aren’t available for {p}: this compares the whole account.': 'Les chiffres quotidiens par annonce ne sont pas disponibles pour {p} : la comparaison porte sur le compte entier.',
@@ -85,6 +88,7 @@ window.ORV_ANALYTICS_I18N = {
     '{v}% vs previous period': '{v} % vs période précédente', 'No earlier figures': 'Aucun chiffre antérieur', 'No figures for this period yet.': 'Pas encore de chiffres pour cette période.'
   },
   es: {
+    'Two individual ads head to head: which one earns its budget. To compare whole platforms or campaigns, use': 'Dos anuncios cara a cara: cuál se gana su presupuesto. Para comparar plataformas o campañas completas, usa la', 'Cross-platform Comparison': 'Comparación de plataformas',
     'Campaign Overview': 'Resumen de campañas',
     'Performance Overview': 'Resumen de rendimiento',
     'Daily figures per ad aren’t available for {p}: this compares the whole account.': 'No hay cifras diarias por anuncio para {p}: se compara la cuenta completa.',
@@ -111,6 +115,7 @@ window.ORV_ANALYTICS_I18N = {
     '{v}% vs previous period': '{v} % vs periodo anterior', 'No earlier figures': 'Sin cifras anteriores', 'No figures for this period yet.': 'Aún no hay cifras para este periodo.'
   },
   pt: {
+    'Two individual ads head to head: which one earns its budget. To compare whole platforms or campaigns, use': 'Dois anúncios frente a frente: qual merece o orçamento. Para comparar plataformas ou campanhas inteiras, use a', 'Cross-platform Comparison': 'Comparação de plataformas',
     'Campaign Overview': 'Visão geral das campanhas',
     'Performance Overview': 'Visão geral de desempenho',
     'Daily figures per ad aren’t available for {p}: this compares the whole account.': 'Não há números diários por anúncio para {p}: compara-se a conta inteira.',

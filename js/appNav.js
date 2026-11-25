@@ -85,7 +85,6 @@
       { id: 'adstudio', label: 'Campaigns', icon: 'studio', go: page('launch', 'page-launch') },
       // Not in the sidebar: the campaign editor's way in, opened from Campaigns, Audiences and the assistant.
       { id: 'builder', label: 'Campaign Builder', icon: 'builder', hidden: true, parent: 'adstudio', go: function () { openPanel('builder'); } },
-      { id: 'audiences', label: 'Audiences', icon: 'audience', go: function () { if (window.orvAudienceBuilder) window.orvAudienceBuilder.open(); } },
       { id: 'simulator', label: 'Ad Simulator', icon: 'simulator', go: simPage() },
     ] },
     { id: 'cs', name: 'Creative Studio', items: [
@@ -99,7 +98,10 @@
     ] },
     { id: 'rs', name: 'Research', items: [
       { id: 'research', label: 'Research', icon: 'research', go: page('research', 'page-research') },
-      { id: 'competitors', label: 'Competitor Analysis', icon: 'competitors', go: function () { if (window.orvCompetitors) window.orvCompetitors.open(); } },
+      // Audience and competitive research are areas inside Research (2026-11-25 refinement):
+      // opened from the Research start cards, the assistant and /app?view=; Research stays marked.
+      { id: 'audiences', label: 'Audiences', icon: 'audience', hidden: true, parent: 'research', go: function () { if (window.orvAudienceBuilder) window.orvAudienceBuilder.open(); } },
+      { id: 'competitors', label: 'Competitor Analysis', icon: 'competitors', hidden: true, parent: 'research', go: function () { if (window.orvCompetitors) window.orvCompetitors.open(); } },
       { id: 'insights', label: 'Saved Research', icon: 'insights', go: function () { if (window.orvInsights) window.orvInsights.open(); } },
     ] },
     { id: 'ap', name: 'Autopilot', items: [

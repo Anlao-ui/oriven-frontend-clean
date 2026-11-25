@@ -414,7 +414,69 @@
   function cost() { return (typeof CREDIT_COSTS !== 'undefined' && CREDIT_COSTS.research) || 25; }
 
   // ── State ─────────────────────────────────────────────────────────
+  // Research areas (2026-11-25 refinement): the start screen shows three areas
+  // and Saved research; an area opens the composer with only its own types.
+  var AREAS = {
+    audience: { types: ['audience'], tool: 'audiences' },
+    competitive: { types: ['competitor', 'advertising'], tool: 'competitors' },
+    market: { types: ['market', 'product', 'trends', 'opportunity'], tool: null },
+  };
+  function areaOf(type) { for (var k in AREAS) if (AREAS[k].types.indexOf(type) >= 0) return k; return 'market'; }
+  var AREA_STR = {
+    en: {
+      other: 'Other research areas',
+      audience: ['Audience research', 'Find out who buys from you and why: needs, frustrations, motivations and the words they use.', ['Who your customers are', 'What makes them buy — or hesitate', 'Audiences you can use in campaigns'], 'Start audience research', 'Your audiences'],
+      competitive: ['Competitive research', 'See how competitors position, price, message and advertise — and where you can stand apart.', ['Competitor positioning and offers', 'How comparable brands advertise', 'Gaps worth testing'], 'Start competitive research', 'Your competitors'],
+      market: ['Market & trends', 'Understand your market: demand, developments, product niches and opportunities.', ['Market overview and demand', 'Trends among your customers', 'Opportunities and angles to test'], 'Start market research', ''],
+      saved: 'Saved research', savedAll: 'All saved research', savedEmpty: 'Research you run is saved here automatically, so you can come back to it and use it in Create.',
+      back: 'All research areas', toolAudiences: 'Saved audiences, built from your business details and research. Use them in Campaign Builder.', toolCompetitors: 'The competitors you track, with their positioning side by side.', open: 'Open', inArea: 'In this area',
+    },
+    nl: {
+      other: 'Andere onderzoeksgebieden',
+      audience: ['Doelgroeponderzoek', 'Ontdek wie bij je koopt en waarom: behoeften, frustraties, motivaties en de woorden die ze gebruiken.', ['Wie je klanten zijn', 'Wat ze over de streep trekt — of laat twijfelen', 'Doelgroepen die je in campagnes gebruikt'], 'Start doelgroeponderzoek', 'Je doelgroepen'],
+      competitive: ['Concurrentieonderzoek', 'Zie hoe concurrenten zich positioneren, prijzen, communiceren en adverteren — en waar jij je kunt onderscheiden.', ['Positionering en aanbod van concurrenten', 'Hoe vergelijkbare merken adverteren', 'Gaten die het testen waard zijn'], 'Start concurrentieonderzoek', 'Je concurrenten'],
+      market: ['Markt & trends', 'Begrijp je markt: vraag, ontwikkelingen, productniches en kansen.', ['Marktoverzicht en vraag', 'Trends bij je klanten', 'Kansen en invalshoeken om te testen'], 'Start marktonderzoek', ''],
+      saved: 'Opgeslagen onderzoek', savedAll: 'Al het opgeslagen onderzoek', savedEmpty: 'Onderzoek dat je uitvoert wordt hier automatisch bewaard, zodat je erop terug kunt komen en het in Create kunt gebruiken.',
+      back: 'Alle onderzoeksgebieden', toolAudiences: 'Opgeslagen doelgroepen, gebouwd uit je bedrijfsgegevens en onderzoek. Gebruik ze in de Campagnebouwer.', toolCompetitors: 'De concurrenten die je volgt, met hun positionering naast elkaar.', open: 'Openen', inArea: 'In dit gebied',
+    },
+    de: {
+      other: 'Andere Recherchebereiche',
+      audience: ['Zielgruppenrecherche', 'Finde heraus, wer bei dir kauft und warum: Bedürfnisse, Frust, Motive und die Worte, die sie benutzen.', ['Wer deine Kunden sind', 'Was sie zum Kauf bringt — oder zögern lässt', 'Zielgruppen für deine Kampagnen'], 'Zielgruppenrecherche starten', 'Deine Zielgruppen'],
+      competitive: ['Wettbewerbsrecherche', 'Sieh, wie Wettbewerber sich positionieren, Preise setzen, kommunizieren und werben — und wo du dich abheben kannst.', ['Positionierung und Angebote der Wettbewerber', 'Wie vergleichbare Marken werben', 'Lücken, die sich zu testen lohnen'], 'Wettbewerbsrecherche starten', 'Deine Wettbewerber'],
+      market: ['Markt & Trends', 'Verstehe deinen Markt: Nachfrage, Entwicklungen, Produktnischen und Chancen.', ['Marktüberblick und Nachfrage', 'Trends bei deinen Kunden', 'Chancen und Ansätze zum Testen'], 'Marktrecherche starten', ''],
+      saved: 'Gespeicherte Recherchen', savedAll: 'Alle gespeicherten Recherchen', savedEmpty: 'Deine Recherchen werden hier automatisch gespeichert, damit du darauf zurückkommen und sie in Create nutzen kannst.',
+      back: 'Alle Recherchebereiche', toolAudiences: 'Gespeicherte Zielgruppen aus deinen Unternehmensdaten und Recherchen. Nutze sie im Kampagnen-Builder.', toolCompetitors: 'Die Wettbewerber, die du verfolgst, mit ihrer Positionierung nebeneinander.', open: 'Öffnen', inArea: 'In diesem Bereich',
+    },
+    fr: {
+      other: 'Autres domaines de recherche',
+      audience: ['Recherche d’audience', 'Découvrez qui achète chez vous et pourquoi : besoins, frustrations, motivations et les mots qu’ils emploient.', ['Qui sont vos clients', 'Ce qui les pousse à acheter — ou à hésiter', 'Des audiences à utiliser dans vos campagnes'], 'Lancer une recherche d’audience', 'Vos audiences'],
+      competitive: ['Recherche concurrentielle', 'Voyez comment vos concurrents se positionnent, fixent leurs prix, communiquent et font de la publicité — et où vous démarquer.', ['Positionnement et offres des concurrents', 'Comment des marques comparables font de la publicité', 'Des pistes à tester'], 'Lancer une recherche concurrentielle', 'Vos concurrents'],
+      market: ['Marché & tendances', 'Comprenez votre marché : demande, évolutions, niches de produits et opportunités.', ['Vue d’ensemble du marché et de la demande', 'Tendances chez vos clients', 'Opportunités et angles à tester'], 'Lancer une étude de marché', ''],
+      saved: 'Recherches enregistrées', savedAll: 'Toutes les recherches enregistrées', savedEmpty: 'Vos recherches sont enregistrées ici automatiquement, pour y revenir et les utiliser dans Create.',
+      back: 'Tous les domaines de recherche', toolAudiences: 'Audiences enregistrées, construites à partir de vos informations et de vos recherches. Utilisez-les dans la création de campagne.', toolCompetitors: 'Les concurrents que vous suivez, avec leur positionnement côte à côte.', open: 'Ouvrir', inArea: 'Dans ce domaine',
+    },
+    es: {
+      other: 'Otras áreas de investigación',
+      audience: ['Investigación de audiencias', 'Descubre quién te compra y por qué: necesidades, frustraciones, motivaciones y las palabras que usan.', ['Quiénes son tus clientes', 'Qué les hace comprar — o dudar', 'Audiencias para usar en tus campañas'], 'Empezar investigación de audiencias', 'Tus audiencias'],
+      competitive: ['Investigación competitiva', 'Mira cómo se posicionan, fijan precios, comunican y anuncian tus competidores — y dónde puedes diferenciarte.', ['Posicionamiento y ofertas de la competencia', 'Cómo anuncian marcas comparables', 'Huecos que vale la pena probar'], 'Empezar investigación competitiva', 'Tus competidores'],
+      market: ['Mercado y tendencias', 'Entiende tu mercado: demanda, novedades, nichos de producto y oportunidades.', ['Panorama del mercado y la demanda', 'Tendencias entre tus clientes', 'Oportunidades y enfoques para probar'], 'Empezar investigación de mercado', ''],
+      saved: 'Investigación guardada', savedAll: 'Toda la investigación guardada', savedEmpty: 'La investigación que haces se guarda aquí automáticamente, para que puedas volver a ella y usarla en Create.',
+      back: 'Todas las áreas de investigación', toolAudiences: 'Audiencias guardadas, creadas a partir de los datos de tu negocio y tu investigación. Úsalas en el creador de campañas.', toolCompetitors: 'Los competidores que sigues, con su posicionamiento lado a lado.', open: 'Abrir', inArea: 'En esta área',
+    },
+    pt: {
+      other: 'Outras áreas de pesquisa',
+      audience: ['Pesquisa de público', 'Descubra quem compra de si e porquê: necessidades, frustrações, motivações e as palavras que usam.', ['Quem são os seus clientes', 'O que os leva a comprar — ou a hesitar', 'Públicos para usar nas campanhas'], 'Iniciar pesquisa de público', 'Os seus públicos'],
+      competitive: ['Pesquisa competitiva', 'Veja como os concorrentes se posicionam, definem preços, comunicam e anunciam — e onde se pode destacar.', ['Posicionamento e ofertas dos concorrentes', 'Como anunciam marcas comparáveis', 'Lacunas que vale a pena testar'], 'Iniciar pesquisa competitiva', 'Os seus concorrentes'],
+      market: ['Mercado e tendências', 'Perceba o seu mercado: procura, evoluções, nichos de produto e oportunidades.', ['Visão geral do mercado e da procura', 'Tendências entre os seus clientes', 'Oportunidades e ângulos para testar'], 'Iniciar pesquisa de mercado', ''],
+      saved: 'Pesquisas guardadas', savedAll: 'Todas as pesquisas guardadas', savedEmpty: 'A pesquisa que fizer fica guardada aqui automaticamente, para voltar a ela e usá-la no Create.',
+      back: 'Todas as áreas de pesquisa', toolAudiences: 'Públicos guardados, criados a partir dos dados do seu negócio e das suas pesquisas. Use-os no criador de campanhas.', toolCompetitors: 'Os concorrentes que acompanha, com o posicionamento lado a lado.', open: 'Abrir', inArea: 'Nesta área',
+    },
+  };
+  function TA(k) { var L = AREA_STR[lang()] || AREA_STR.en; return L[k] != null ? L[k] : AREA_STR.en[k]; }
+  var AREA_IC = { audience: 'audience', competitive: 'competitor', market: 'market' };
+
   var S = {
+    area: null,
     view: 'home', reports: null, listErr: false, biz: undefined, question: '', type: 'market', urls: [], urlOpen: false, urlErr: null,
     includeWebsite: true, starting: false, formErr: null, job: null, report: null, reportErr: null, renaming: null, picks: {},
   };
@@ -448,7 +510,10 @@
   }
 
   function typeCards() {
-    return '<div class="rx-types" role="radiogroup" aria-label="' + esc(T('typeLabel')) + '">' + TYPES.map(function (t) {
+    var list = S.area && AREAS[S.area] ? AREAS[S.area].types : TYPES;
+    if (list.indexOf(S.type) < 0) S.type = list[0];
+    if (list.length === 1) return '<p class="rx-hint rx-youget">' + esc(T('youGet', { list: pick('types.' + S.type)[2] })) + '</p>';
+    return '<div class="rx-types" role="radiogroup" aria-label="' + esc(T('typeLabel')) + '">' + list.map(function (t) {
       var d = pick('types.' + t), on = S.type === t;
       return '<label class="rx-type rx-dir' + (on ? ' is-on' : '') + '" data-dir="' + t + '"><input type="radio" name="rxType" value="' + t + '"' + (on ? ' checked' : '') + ' data-rx="type">' +
         '<span class="rx-dir-ic">' + dirIcon(t) + '</span><span class="rx-type-t">' + esc(d[0]) + '</span><span class="rx-type-d">' + esc(d[1]) + '</span></label>';
@@ -472,8 +537,12 @@
   }
   // Recent research on Research Home: the newest few; the whole library,
   // search and what was learned live in Insights (js/insights.js).
-  function recentBlock() {
-    var list = (S.reports || []).slice(0, 4);
+  function recentBlock(area, extra) {
+    var out = recentInner(area); return extra ? out.replace(/<\/section>$/, extra + '</section>') : out;
+  }
+  function recentInner(area) {
+    var types = area && AREAS[area] ? AREAS[area].types : null;
+    var list = (S.reports || []).filter(function (r) { return !types || types.indexOf(r.type) >= 0; }).slice(0, 4);
     var html = '<section class="rx-card rx-recent" aria-labelledby="rxRecentH"><h2 class="rx-h2" id="rxRecentH">' + esc(T('recentTitle')) + '</h2>';
     if (S.reports === null) return html + '<p class="rx-muted">' + esc(T('loading')) + '</p></section>';
     if (S.listErr && !list.length) return html + '<p class="rx-muted">' + esc(T('libErr')) + ' <button type="button" class="rx-link" data-rx="lib-retry">' + esc(T('retry')) + '</button></p></section>';
@@ -487,29 +556,67 @@
     return html;
   }
   // The evidence labels, explained once beside the form.
-  function howBlock() {
-    return '<section class="rx-card rx-how" aria-labelledby="rxHowH"><h2 class="rx-h2" id="rxHowH">' + esc(T('howTitle')) + '</h2><p class="rx-hint">' + esc(T('howIntro')) + '</p><dl class="rx-legend">' +
-      ['source_checked', 'source_cited', 'analysis', 'idea'].map(function (k) { return '<div><dt><span class="rx-ev rx-ev-' + k + '">' + esc(T('ev.' + k)) + '</span></dt><dd>' + esc(T('evTip.' + k)) + '</dd></div>'; }).join('') + '</dl></section>';
+  // Beside the form it is folded away (one click opens it), so the form and the side column stay level.
+  function howBlock(folded) {
+    var legend = '<p class="rx-hint">' + esc(T('howIntro')) + '</p><dl class="rx-legend">' +
+      ['source_checked', 'source_cited', 'analysis', 'idea'].map(function (k) { return '<div><dt><span class="rx-ev rx-ev-' + k + '">' + esc(T('ev.' + k)) + '</span></dt><dd>' + esc(T('evTip.' + k)) + '</dd></div>'; }).join('') + '</dl>';
+    if (folded) return '<details class="rx-how rx-how--fold"><summary>' + esc(T('howTitle')) + '</summary>' + legend + '</details>';
+    return '<section class="rx-card rx-how" aria-labelledby="rxHowH"><h2 class="rx-h2" id="rxHowH">' + esc(T('howTitle')) + '</h2>' + legend + '</section>';
+  }
+  // The three research areas and Saved research, as four equal cards.
+  function areaCard(k) {
+    var a = TA(k);
+    return '<section class="rx-card rx-area" data-area="' + k + '" aria-labelledby="rxArea_' + k + '"><div class="rx-area-top"><span class="rx-area-ic">' + dirIcon(AREA_IC[k]) + '</span><h2 class="rx-h2" id="rxArea_' + k + '">' + esc(a[0]) + '</h2></div>' +
+      '<p class="rx-area-d">' + esc(a[1]) + '</p><ul class="rx-area-list">' + a[2].map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
+      '<div class="rx-area-acts"><button type="button" class="rx-btn rx-btn-primary" data-rx="area" data-area="' + k + '">' + esc(a[3]) + '</button>' +
+      (AREAS[k].tool ? '<button type="button" class="rx-btn rx-btn-ghost" data-rx="tool" data-tool="' + AREAS[k].tool + '">' + esc(a[4]) + '</button>' : '') + '</div></section>';
+  }
+  function savedCard() {
+    var list = (S.reports || []).slice(0, 4);
+    var body = S.reports === null ? '<p class="rx-muted">' + esc(T('loading')) + '</p>'
+      : S.listErr && !list.length ? '<p class="rx-muted">' + esc(T('libErr')) + ' <button type="button" class="rx-link" data-rx="lib-retry">' + esc(T('retry')) + '</button></p>'
+      : !list.length ? '<div class="rx-area-empty"><p class="rx-muted">' + esc(TA('savedEmpty')) + '</p></div>'
+      : '<ul class="rx-recent-list">' + list.map(function (r) {
+          var tl = r.type && pick('types.' + r.type) ? pick('types.' + r.type)[0] : '';
+          var st = r.status === 'running' ? '<span class="rx-st is-run">' + esc(T('stRunning')) + '</span>' : r.status === 'failed' ? '<span class="rx-st is-fail">' + esc(T('stFailed')) + '</span>' : '';
+          return '<li><button type="button" class="rx-recent-i" data-rx="' + (r.status === 'running' ? 'progress' : r.status === 'ready' ? 'open' : 'noop') + '" data-id="' + esc(r.id) + '"' + (r.status === 'failed' ? ' disabled' : '') + '>' +
+            '<span class="rx-recent-ic" aria-hidden="true">' + dirIcon(r.type || 'market') + '</span><span class="rx-recent-b"><span class="rx-lib-t">' + esc(r.title) + '</span><span class="rx-lib-m">' + esc([tl, rel(r.createdAt)].filter(Boolean).join(' · ')) + '</span></span>' + st + '</button></li>';
+        }).join('') + '</ul>';
+    return '<section class="rx-card rx-area rx-area--saved" aria-labelledby="rxAreaSaved"><div class="rx-area-top"><span class="rx-area-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v16l-5-3.5L7 20z"/></svg></span><h2 class="rx-h2" id="rxAreaSaved">' + esc(TA('saved')) + '</h2></div>' + body +
+      '<div class="rx-area-acts"><button type="button" class="rx-btn rx-btn-ghost" data-rx="insights">' + esc(TA('savedAll')) + '</button></div></section>';
+  }
+  function toolCard(area) {
+    var tool = AREAS[area] && AREAS[area].tool; if (!tool) return '';
+    var a = TA(area);
+    return '<section class="rx-card rx-tool" aria-labelledby="rxToolH"><h2 class="rx-h2" id="rxToolH">' + esc(a[4]) + '</h2><p class="rx-hint">' + esc(TA(tool === 'audiences' ? 'toolAudiences' : 'toolCompetitors')) + '</p>' +
+      '<div><button type="button" class="rx-btn rx-btn-ghost" data-rx="tool" data-tool="' + tool + '">' + esc(TA('open') + ' ' + a[4].charAt(0).toLowerCase() + a[4].slice(1)) + '</button></div></section>';
+  }
+  function otherAreasCard(area) {
+    var others = Object.keys(AREAS).filter(function (k) { return k !== area; });
+    return '<section class="rx-card rx-tool" aria-labelledby="rxOtherH"><h2 class="rx-h2" id="rxOtherH">' + esc(TA('other')) + '</h2><div class="rx-other">' +
+      others.map(function (k) { return '<button type="button" class="rx-other-i" data-rx="area" data-area="' + k + '"><span class="rx-area-ic">' + dirIcon(AREA_IC[k]) + '</span><span><b>' + esc(TA(k)[0]) + '</b></span></button>'; }).join('') + '</div></section>';
   }
   function homeView() {
     var running = (S.reports || []).filter(function (r) { return r.status === 'running'; })[0];
-    var n = S.question.length;
+    var banner = running ? '<div class="rx-banner" role="status"><span class="rx-pulse" aria-hidden="true"></span><span>' + esc(T('runningBanner', { t: running.title })) + '</span><button type="button" class="rx-btn rx-btn-ghost" data-rx="progress" data-id="' + esc(running.id) + '">' + esc(T('viewProgress')) + '</button></div>' : '';
+    if (!S.area) {
+      return '<header class="rx-head"><h1 class="rx-title">' + esc(T('title')) + '</h1><p class="rx-sub">' + esc(T('subtitle')) + '</p></header>' + banner +
+        '<div class="rx-areas">' + areaCard('audience') + areaCard('competitive') + areaCard('market') + savedCard() + '</div>';
+    }
+    var n = S.question.length, multi = AREAS[S.area].types.length > 1, base = multi ? 1 : 0;
     var st = function (n2, label, forId) { return '<div class="rx-stepl"><span class="rx-stepn" aria-hidden="true">' + n2 + '</span>' + (forId ? '<label class="rx-lbl" for="' + forId + '">' + esc(label) + '</label>' : '<span class="rx-lbl">' + esc(label) + '</span>') + '</div>'; };
-    return '<header class="rx-head"><h1 class="rx-title">' + esc(T('title')) + '</h1><p class="rx-sub">' + esc(T('subtitle')) + '</p>' +
-      // Competitor Analysis lives under Research (not in the sidebar).
-      '<a class="orv-related" href="/app?view=competitors" data-orv-go="competitor-analysis"><span class="orv-related__l">Your competitors</span><b>Competitor Analysis</b><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></header>' +
-      (running ? '<div class="rx-banner" role="status"><span class="rx-pulse" aria-hidden="true"></span><span>' + esc(T('runningBanner', { t: running.title })) + '</span><button type="button" class="rx-btn rx-btn-ghost" data-rx="progress" data-id="' + esc(running.id) + '">' + esc(T('viewProgress')) + '</button></div>' : '') +
+    return '<header class="rx-head"><button type="button" class="rx-back" data-rx="area" data-area="">← ' + esc(TA('back')) + '</button><h1 class="rx-title">' + esc(TA(S.area)[0]) + '</h1><p class="rx-sub">' + esc(TA(S.area)[1]) + '</p></header>' + banner +
       '<div class="rx-home rx-ws"><form class="rx-card rx-form rx-composer" data-rx-form="1" novalidate>' +
-        '<fieldset class="rx-fs">' + '<legend class="rx-sr">' + esc(T('typeLabel')) + '</legend>' + st(1, T('stepDir')) + typeCards() + '</fieldset>' +
-        '<div class="rx-ask">' + st(2, T('stepAsk'), 'researchQueryInput') +
+        (multi ? '<fieldset class="rx-fs">' + '<legend class="rx-sr">' + esc(T('typeLabel')) + '</legend>' + st(1, T('stepDir')) + typeCards() + '</fieldset>' : '') +
+        '<div class="rx-ask">' + st(base + 1, T('stepAsk'), 'researchQueryInput') + (multi ? '' : typeCards()) +
         '<textarea id="researchQueryInput" class="rx-input rx-q" rows="3" maxlength="' + Q_MAX + '" placeholder="' + esc(T('qPh')) + '" aria-describedby="rxQCount' + (S.formErr ? ' rxFormErr' : '') + '">' + esc(S.question) + '</textarea>' +
         '<div class="rx-starters"><span class="rx-lbl-sm">' + esc(T('startersLbl')) + '</span>' + starters(S.type).map(function (q, i) { return '<button type="button" class="rx-starter" data-rx="starter" data-i="' + i + '">' + esc(q) + '</button>'; }).join('') + '</div>' +
         '<div class="rx-row rx-row-between"><span class="rx-hint" id="rxQCount" aria-live="polite">' + esc(T('qCount', { n: n, max: Q_MAX })) + '</span></div></div>' +
-        '<div class="rx-ctx">' + st(3, T('stepCtx')) + '<div class="rx-ctx-biz">' + bizBlock() + '</div>' + sitesBlock() + '</div>' +
+        '<div class="rx-ctx">' + st(base + 2, T('stepCtx')) + '<div class="rx-ctx-biz">' + bizBlock() + '</div>' + sitesBlock() + '</div>' +
         (S.formErr ? '<p class="rx-err" id="rxFormErr" role="alert">' + S.formErr + '</p>' : '') +
         '<div class="rx-start"><div class="rx-cost"><b>' + esc(T('cost', { n: cost() })) + '</b><span>' + esc(T('costWhat')) + '</span></div>' +
           '<button type="submit" class="rx-btn rx-btn-primary rx-btn-lg" id="researchSubmitBtn"' + (S.starting || running ? ' disabled' : '') + '>' + esc(S.starting ? T('starting') : T('start')) + '</button></div>' +
-      '</form><aside class="rx-aside">' + recentBlock() + howBlock() + '</aside></div>';
+      '</form><aside class="rx-aside">' + (toolCard(S.area) || otherAreasCard(S.area)) + recentBlock(S.area) + howBlock() + '</aside></div>';
   }
 
   function progressView() {
@@ -852,7 +959,7 @@
   function goHome(clear) {
     clearTimeout(pollTimer);
     S.view = 'home'; S.renaming = null;
-    if (clear) { S.question = ''; S.urls = []; S.formErr = null; S.type = 'market'; S.mode = 'home'; } // new research: the form (also from Insights)
+    if (clear) { S.question = ''; S.urls = []; S.formErr = null; S.type = 'market'; S.mode = 'home'; S.area = null; } // new research: the area cards (also from Insights)
     render(); loadLibrary(); window.scrollTo(0, 0);
     if (typeof window.orvAppNavSync === 'function') window.orvAppNavSync();
     if (clear) { var i = $('researchQueryInput'); if (i) i.focus(); }
@@ -873,6 +980,8 @@
     var a = t.getAttribute('data-rx'), id = t.getAttribute('data-id');
     if (a === 'toc') { ev.preventDefault(); var target = $('rxs-' + t.getAttribute('data-k')); if (target) { target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); var hh = target.querySelector('h2'); if (hh) { hh.setAttribute('tabindex', '-1'); try { hh.focus({ preventScroll: true }); } catch (_) {} } } return; }
     if (a === 'type') return; // change handler
+    if (a === 'area') { S.area = t.getAttribute('data-area') || null; if (S.area && AREAS[S.area].types.indexOf(S.type) < 0) S.type = AREAS[S.area].types[0]; S.formErr = null; render(); (document.scrollingElement || document.documentElement).scrollTop = 0; return; }
+    if (a === 'tool') { var tool = t.getAttribute('data-tool'); if (window.orvAppNav && window.orvAppNav.go) { window.orvAppNav.go(tool); return; } if (tool === 'audiences' && window.orvAudienceBuilder) window.orvAudienceBuilder.open(); if (tool === 'competitors' && window.orvCompetitors) window.orvCompetitors.open(); return; }
     if (a === 'open') return openReport(id);
     if (a === 'progress') return openProgress(id);
     if (a === 'home') { if (S.from === 'insights' && S.view === 'report' && window.orvInsights) { S.from = null; return window.orvInsights.open(); } return goHome(false); }
@@ -880,7 +989,7 @@
     if (a === 'starter') { var q2 = starters(S.type)[+t.getAttribute('data-i')]; if (q2) { S.question = q2.slice(0, Q_MAX); S.formErr = null; render(); var qi = $('researchQueryInput'); if (qi) { qi.focus(); qi.setSelectionRange(qi.value.length, qi.value.length); } } return; }
     if (a === 'home-new') return goHome(true);
     if (a === 'lib-retry') return loadLibrary();
-    if (a === 'retry-job') { var req = S.job && S.job.request; if (req) { S.question = req.question; S.type = req.type; S.urls = req.urls || []; } goHome(false); return; }
+    if (a === 'retry-job') { var req = S.job && S.job.request; if (req) { S.question = req.question; S.type = req.type; S.urls = req.urls || []; S.area = areaOf(req.type); } goHome(false); return; }
     if (a === 'rename') { S.renaming = id; render(); var rn = $('rxRename'); if (rn) { rn.focus(); rn.select(); } return; }
     if (a === 'rename-report') { S.renaming = 'report'; render(); var rr = $('rxRename'); if (rr) { rr.focus(); rr.select(); } return; }
     if (a === 'rename-cancel') { S.renaming = null; render(); return; }
@@ -930,6 +1039,8 @@
     if (S.keepReport) { S.keepReport = false; return; } // a report just opened from Insights
     clearTimeout(pollTimer);
     S.view = 'home'; S.renaming = null; S.mode = 'home'; S.from = null;
+    // A question already typed (or handed over by the assistant) keeps its area open.
+    S.area = S.question ? areaOf(S.type) : null;
     render(); loadLibrary(); loadBiz();
   }
   // Opens a saved report from Insights (its back button returns there).
@@ -951,7 +1062,8 @@
     enter: enter, reset: reset, open: openReport, openFrom: openFrom, library: library, types: function () { return TYPES.slice(); }, typeLabel: function (t) { var d = pick('types.' + t); return d ? d[0] : null; }, dirIcon: dirIcon,
     mode: function () { return S.from === 'insights' && S.view === 'report' ? 'insights' : (S.mode || 'home'); },
     getDraft: function () { return { question: S.question, type: S.type, urls: S.urls.slice() }; },
-    setDraft: function (d) { if (!d) return; if (typeof d.question === 'string') S.question = d.question.slice(0, Q_MAX); if (TYPES.indexOf(d.type) !== -1) S.type = d.type; if (Array.isArray(d.urls)) S.urls = d.urls.slice(0, URL_MAX); render(); },
+    setDraft: function (d) { if (!d) return; if (typeof d.question === 'string') S.question = d.question.slice(0, Q_MAX); if (TYPES.indexOf(d.type) !== -1) S.type = d.type; if (Array.isArray(d.urls)) S.urls = d.urls.slice(0, URL_MAX); S.area = areaOf(S.type); render(); },
+    openArea: function (k) { S.area = AREAS[k] ? k : null; if (S.area && AREAS[S.area].types.indexOf(S.type) < 0) S.type = AREAS[S.area].types[0]; S.view = 'home'; render(); },
     _state: function () { return S; }, _T: T, _STR: STR, _adaptLegacy: adaptLegacy,
   };
   window._researchNewSession = reset; // account switch (orivenWorkspace.js)

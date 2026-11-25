@@ -141,15 +141,21 @@
       + row('CPA', A.cpa, B.cpa, money, 'lo')
       + '</tbody></table><p class="rx-muted cts-basis">Calculated from Meta Ads’ reported figures; no AI.</p></section>';
   }
+  // Before two are chosen, the card shows where they will appear and what the comparison holds.
+  function emptySides(a, b) {
+    var slot = function (k, x) { return '<div class="cts-slot' + (x ? ' is-set' : '') + '"><b>' + k + '</b><span>' + esc(x ? x.label || 'Chosen' : 'Choose a version, ad, image or concept') + '</span></div>'; };
+    return '<div class="cts-slots">' + slot('A', a) + slot('B', b) + '</div>' +
+      '<ul class="cts-what"><li>The two side by side, as they would appear</li><li>What differs between them — words, length, offer, call to action</li><li>Real results per ad once both run on Meta Ads; until then, neither is called the stronger one</li></ul>';
+  }
   function compareHtml() {
     var list = items();
     var head = '<section class="rx-card gx-card cts-cmp" aria-labelledby="ctsCmpH"><h2 class="rx-h2" id="ctsCmpH">Compare two</h2>'
       + '<p class="rx-muted cts-lead">Two versions, two ads, two images or two concepts, side by side.</p>';
     if (S.sets === null) return head + '<p class="rx-muted gx-loading">Loading…</p></section>';
-    if (list.length < 2) return head + '<p class="rx-muted">Create variations, save ads or images in Create, or connect Meta Ads to compare live ads.</p></section>';
+    if (list.length < 2) return head + emptySides() + '<p class="rx-muted">Create variations, save ads or images in Create, or connect Meta Ads to compare live ads.</p></section>';
     var a = list.filter(function (x) { return x.key === S.cmpA; })[0], b = list.filter(function (x) { return x.key === S.cmpB; })[0];
     var pickers = '<div class="cts-pickers"><label class="rx-lbl">A' + pickerHtml('ctsCmpA', S.cmpA, S.cmpB, list) + '</label><label class="rx-lbl">B' + pickerHtml('ctsCmpB', S.cmpB, S.cmpA, list) + '</label></div>';
-    if (!a || !b) return head + pickers + '<p class="rx-muted">Choose two to see them side by side.</p></section>';
+    if (!a || !b) return head + pickers + emptySides(a, b) + '<p class="rx-muted">Choose two to see them side by side.</p></section>';
     var perf = a.live && b.live;
     return head + pickers
       + '<div class="cts-sides">' + sideHtml(a, 'A') + sideHtml(b, 'B') + '</div>'

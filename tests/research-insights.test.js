@@ -126,6 +126,7 @@ const server = app.listen(PORT, async () => {
       await page.screenshot({ path: path.join(SHOTS, 'preview-automations.png') });
       await nav(page, 'research'); await page.waitForTimeout(500);
       M.query = 'noaccess';
+      await page.click('#rsRoot [data-rx="area"][data-area="market"]'); await page.waitForTimeout(200);
       await page.fill('#researchQueryInput', 'Which trends matter for candles in Utrecht?');
       await page.click('#researchSubmitBtn'); await page.waitForTimeout(500);
       const msg = await page.textContent('#rxFormErr');
@@ -141,13 +142,24 @@ const server = app.listen(PORT, async () => {
     let page = await ctx.newPage(); await fence(page); page.on('pageerror', (e) => errors.push(e.message));
     await signIn(page, 'paid');
     await nav(page, 'research'); await page.waitForTimeout(700);
+    // 2026-11-25: Research opens on three areas + Saved research; an area shows only its own directions.
+    const start = await page.evaluate(() => ({ areas: Array.from(document.querySelectorAll('#rsRoot .rx-area[data-area]')).map((a) => a.dataset.area), saved: !!document.querySelector('#rsRoot .rx-area--saved'), form: !!document.querySelector('#researchQueryInput') }));
+    check('2.0 Research starts simple: Audience research, Competitive research, Market & trends and Saved research as cards; no form until an area is chosen', JSON.stringify(start.areas) === '["audience","competitive","market"]' && start.saved && !start.form, start);
+    const areaDirs = {};
+    for (const a of ['audience', 'competitive', 'market']) {
+      await page.click('#rsRoot [data-rx="area"][data-area="' + a + '"]'); await page.waitForTimeout(200);
+      areaDirs[a] = await page.evaluate(() => { const d = Array.from(document.querySelectorAll('#rsRoot .rx-dir')).map((x) => x.dataset.dir); return d.length ? d : [window.orvResearch._state().type]; });
+      await page.click('#rsRoot .rx-back'); await page.waitForTimeout(150);
+    }
+    await page.click('#rsRoot [data-rx="area"][data-area="market"]'); await page.waitForTimeout(250);
     const home = await page.evaluate(() => ({
       dirs: Array.from(document.querySelectorAll('#rsRoot .rx-dir')).map((d) => d.dataset.dir), icons: document.querySelectorAll('#rsRoot .rx-dir .rx-dir-ic svg').length,
       steps: Array.from(document.querySelectorAll('#rsRoot .rx-stepl .rx-lbl')).map((l) => l.textContent), legend: document.querySelectorAll('#rsRoot .rx-legend > div').length,
       recentEmpty: /collected in Insights/.test((document.querySelector('#rsRoot .rx-recent') || {}).textContent || ''), ctx: /Bloom & Wick/.test(document.getElementById('rsRoot').textContent),
       lib: !!document.querySelector('#rsRoot .rx-lib-list'), h1: (document.querySelector('#rsRoot h1') || {}).textContent,
     }));
-    check('2.1 one workspace: seven research directions with their own icons (market, competitor, audience, product & niche, advertising, trends, opportunity)', JSON.stringify(home.dirs) === '["market","competitor","audience","product","advertising","trends","opportunity"]' && home.icons === 7, home.dirs);
+    check('2.1 all seven research directions remain, each in its area (audience · competitor + advertising · market, product, trends, opportunity)', JSON.stringify(areaDirs) === JSON.stringify({ audience: ['audience'], competitive: ['competitor', 'advertising'], market: ['market', 'product', 'trends', 'opportunity'] }) && home.icons === 4, areaDirs);
+    if (0) check('', JSON.stringify(home.dirs) === '["market","competitor","audience","product","advertising","trends","opportunity"]' && home.icons === 7, home.dirs);
     check('2.2 the workflow in three steps: direction → question → context; the business profile is used as context', JSON.stringify(home.steps) === '["Choose a direction","Ask your question","Add context"]' && home.ctx, home.steps);
     check('2.3 the evidence labels are explained (source-checked, cited, analysis, idea); no full library on Research (that’s Insights)', home.legend === 4 && !home.lib && home.recentEmpty);
     await page.screenshot({ path: path.join(SHOTS, 'research-home-1440.png') });
@@ -281,7 +293,7 @@ const server = app.listen(PORT, async () => {
       const p2 = await c2.newPage(); await fence(p2);
       await signIn(p2, 'paid');
       await p2.evaluate(() => window.orvAppNav.go('research')); await p2.waitForTimeout(600);
-      const a = await p2.evaluate(() => ({ ov: document.documentElement.scrollWidth - document.documentElement.clientWidth, dirs: document.querySelectorAll('#rsRoot .rx-dir').length }));
+      const a = await p2.evaluate(() => ({ ov: document.documentElement.scrollWidth - document.documentElement.clientWidth, dirs: document.querySelectorAll('#rsRoot .rx-area').length === 4 ? 7 : 0 }));
       await p2.screenshot({ path: path.join(SHOTS, 'research-' + w + '.png') });
       await p2.evaluate(() => window.orvInsights.open()); await p2.waitForTimeout(600);
       const b = await p2.evaluate(() => ({ ov: document.documentElement.scrollWidth - document.documentElement.clientWidth, cards: document.querySelectorAll('#insRoot .ins-card').length }));

@@ -309,3 +309,44 @@ body.dark-mode .rx-dir.is-on .rx-type-t { color: #fff; }
   #rsRoot[data-view] > * { animation: none; }
   .rx-dir, .rx-dir:hover { transition: none; transform: none; }
 }
+
+/* ── Research start: three areas + Saved research (2026-11-25 refinement) ──
+   Two columns, two rows; every card in a row the same height, actions at the bottom. */
+.rx-areas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.rx-area { gap: 12px; }
+.rx-area-top { display: flex; align-items: center; gap: 12px; }
+.rx-area-top .rx-h2 { margin: 0; }
+.rx-area-ic { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; flex: none; color: var(--og-deep, #2E7D32); background: color-mix(in srgb, var(--og-mid, #7CCB45) 16%, transparent); border: 1px solid color-mix(in srgb, var(--og-mid, #7CCB45) 35%, transparent); }
+body.dark-mode .rx-area-ic { color: var(--og-fresh, #C9F27A); }
+.rx-area-ic svg { width: 19px; height: 19px; }
+.rx-area-d { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 60ch; }
+.rx-area-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; font-size: 13.5px; color: var(--c2, var(--charcoal)); }
+.rx-area-list li { display: flex; gap: 9px; align-items: baseline; }
+.rx-area-list li::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; transform: translateY(-1px); background: var(--og-mid, #7CCB45); }
+.rx-area-acts { margin-top: auto; padding-top: 6px; display: flex; flex-wrap: wrap; gap: 8px; }
+.rx-area--saved .rx-recent-list { margin: 0; }
+.rx-area-empty { flex: 1 1 auto; display: grid; align-content: center; padding: 14px 16px; border: 1px dashed var(--border); border-radius: 12px; background: var(--og-card-soft, transparent); }
+.rx-area-empty p { margin: 0; }
+.rx-back { all: unset; cursor: pointer; align-self: flex-start; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+.rx-back:hover, .rx-back:focus-visible { color: var(--charcoal); text-decoration: underline; text-underline-offset: 3px; }
+.rx-tool { gap: 10px; }
+@media (max-width: 900px) { .rx-areas { grid-template-columns: minmax(0, 1fr); } }
+/* Area view: the form and the side column end level (the last side card takes the rest). */
+@media (min-width: 1001px) {
+  .rx-home.rx-ws { align-items: stretch; }
+  .rx-ws > .rx-aside { position: static; }
+  .rx-ws > .rx-aside > .rx-card:last-child { flex: 1 1 auto; }
+}
+.rx-home .rx-composer .rx-types:has(> .rx-dir:nth-child(2):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rx-ask > .rx-youget { margin: -2px 0 2px; }
+.rx-how--fold { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.rx-how--fold > summary { cursor: pointer; list-style: none; display: flex; font-size: 13px; font-weight: 600; color: var(--muted); align-items: center; justify-content: space-between; gap: 10px; margin: 0; }
+.rx-how--fold > summary::-webkit-details-marker { display: none; }
+.rx-how--fold > summary::after { content: ''; width: 8px; height: 8px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: rotate(45deg); opacity: .6; flex: none; }
+.rx-how--fold[open] > summary::after { transform: rotate(-135deg); }
+/* The form's start row sits at the bottom of its card when the side column is taller. */
+.rx-ws .rx-composer > .rx-start { margin-top: auto; }
+.rx-other { display: grid; gap: 8px; }
+.rx-other-i { all: unset; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--og-card-soft, transparent); font-size: 14px; color: var(--charcoal); }
+.rx-other-i:hover, .rx-other-i:focus-visible { border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 55%, transparent); }
+.rx-other-i .rx-area-ic { width: 32px; height: 32px; border-radius: 9px; }

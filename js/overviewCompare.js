@@ -126,7 +126,9 @@
   function renderAds(g, conn) {
     var el = card('ovtAds'); if (!el) return;
     var p = platform();
-    var head = function (ctrls) { return '<div class="ova-card__hd"><h3 class="ova-h3" id="ovtAdsH">' + esc(T('Ad vs ad')) + '</h3>' + (ctrls || '') + '</div>'; };
+    // What Ad vs ad is for, next to Cross-platform Comparison (whole platforms and campaigns).
+    var head = function (ctrls) { return '<div class="ova-card__hd"><h3 class="ova-h3" id="ovtAdsH">' + esc(T('Ad vs ad')) + '</h3>' + (ctrls || '') + '</div>' +
+      '<p class="ovc-purpose">' + esc(T('Two individual ads head to head: which one earns its budget. To compare whole platforms or campaigns, use')) + ' <button type="button" class="ova-link" data-ovc-cmp>' + esc(T('Cross-platform Comparison')) + '</button>.</p>'; };
     if (p !== 'meta') {
       var metaOn = conn.meta && conn.meta.conn === 'connected';
       el.innerHTML = head() + empty(esc(T('Results per ad come from Meta Ads. {p} doesn’t report results per ad to OrivenAI yet.', { p: A.NAME[p] })) +
@@ -229,6 +231,7 @@
     var root = card('prfDash'); if (!root || !root.contains(e.target)) return;
     var m = e.target.closest('[data-ovc-mode]'); if (m) { S.mode = m.getAttribute('data-ovc-mode'); var g = ++S.gen; A.connections().then(function (c) { renderPeriod(g, c); renderAds(g, c); }); return; }
     if (e.target.closest('[data-ovc-connect]')) { if (typeof window.bizGoTo === 'function') window.bizGoTo('connections'); return; }
+    if (e.target.closest('[data-ovc-cmp]')) { if (window.orvAppNav) window.orvAppNav.go('compare'); return; }
     if (e.target.closest('[data-ovc-meta]')) { if (typeof window.prfSwitchPlatform === 'function') window.prfSwitchPlatform('meta', true); return; }
     if (e.target.closest('[data-ovc-retry]')) { A.reset(); S.ads = null; render(); }
   });

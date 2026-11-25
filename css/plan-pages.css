@@ -289,3 +289,36 @@
   .prg-rail .prg-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .prg-rail .prg-next b { flex-basis: 100%; }
 }
+
+/* ── Tasks (2026-11-25 refinement) ───────────────────────────────────
+   The summary rail runs the full height of the phases beside it: top and
+   bottom level, also with phases opened or closed, and with twelve months.
+   The last rail card ("Per phase") takes the rest of the height. */
+@media (min-width: 1181px) {
+  .prg-layout { align-items: stretch; }
+  .prg-rail { position: static; align-self: stretch; }
+  .prg-rail > .prg-card:last-child { flex: 1 1 auto; display: flex; flex-direction: column; }
+  .prg-rail > .prg-card:last-child .mpl-fine { margin-top: auto !important; padding-top: 12px; }
+  .prg-main { display: flex; flex-direction: column; gap: 0; }
+  .prg-main > .prg-phase:last-child { margin-bottom: 0; }
+}
+/* Who does a task: OrivenAI (with a button to hand it over) or the user. */
+.prg-who { margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--onv-text); }
+.prg-who > span { display: inline-block; margin-right: 8px; padding: 1px 8px; border-radius: 999px; font: 600 10.5px/1.6 var(--onv-mono); letter-spacing: .05em; text-transform: uppercase; vertical-align: 1px; }
+.prg-who--ai > span { color: var(--onv-acc); background: var(--onv-acc-bg); }
+.prg-who--busy > span { color: var(--og-fresh, #C9F27A); background: color-mix(in srgb, var(--og-rich, #2E9E5B) 24%, transparent); }
+body:not(.dark-mode) .prg-who--busy > span { color: #1B5E20; }
+.prg-who--you > span { color: var(--onv-muted); background: var(--onv-hover); }
+.prg-link { all: unset; cursor: pointer; font-weight: 600; color: var(--onv-strong); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--onv-faint); }
+.prg-link--go { color: var(--onv-acc); text-decoration-color: currentColor; }
+.prg-link:focus-visible { outline: 2px solid var(--onv-acc); outline-offset: 2px; border-radius: 3px; }
+.prg-exec-ask { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--og-card-hi, var(--onv-acc-bg)); border: 1px solid var(--og-card-hi-line, var(--onv-line)); display: flex; flex-direction: column; gap: 8px; }
+.prg-exec-ask p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--onv-strong); text-decoration: none !important; }
+.prg-exec-ask .prg-exec-fine { font-size: 12.5px; color: var(--onv-muted); }
+.prg-exec-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.prg-coming { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.prg-coming__i { all: unset; cursor: pointer; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 9px; }
+.prg-coming__i:hover, .prg-coming__i:focus-visible { background: var(--onv-hover); }
+.prg-coming__t { font-size: 13.5px; line-height: 1.4; color: var(--onv-strong); }
+.prg-coming__m { font: 500 10.5px/1.4 var(--onv-mono); letter-spacing: .04em; color: var(--onv-muted); }
+.prg-step.is-flash { background: var(--onv-acc-bg); transition: background .6s; border-radius: 10px; }

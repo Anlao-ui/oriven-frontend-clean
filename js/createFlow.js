@@ -1109,6 +1109,13 @@
     var open = firstOpenStep();
     var html = '<div class="ow-stage-head"><span class="cr2-stage-eyebrow">' + esc(T('stEyebrow')) + '</span><span class="ow-stage-ready' + (open ? '' : ' is-ready') + '" id="owStageReady">' + esc(open ? T('stNext', { step: T('st' + open) }) : T('stReady')) + '</span></div>';
     var gen = $('aicGenBtn'); if (gen) gen.classList.toggle('ow-armed', !open);
+    // How far this ad is (2026-11-25): each part lights up as soon as it is filled in,
+    // the step you are on is marked — so the preview below reads as the ad being built.
+    html += '<ol class="cf-stage-steps" aria-label="' + esc(T('stEyebrow')) + '">' + [1, 2, 3, 4, 5, 6].map(function (n) {
+      var done = n <= 4 ? !stepError(n) : n === 5 ? S.maxStep > 5 || S.step > 5 : !open && S.step === 6;
+      var cls = n === S.step ? ' is-current' : done ? ' is-done' : '';
+      return '<li class="cf-stage-step' + cls + '"><i aria-hidden="true"></i><span>' + esc(T('st' + n)) + '</span></li>';
+    }).join('') + '</ol>';
     // What is being advertised — the user's own words, exactly.
     var name = S.productName.trim(), desc = S.description.trim();
     html += '<div class="cf-stage-what"><p class="cf-stage-name' + (name ? '' : ' is-empty') + '">' + esc(name || T('stNoName')) + '</p>' + (desc ? '<p class="ow-brief cf-stage-desc">' + esc(desc.length > 160 ? desc.slice(0, 160) + '…' : desc) + '</p>' : '') + '</div>';

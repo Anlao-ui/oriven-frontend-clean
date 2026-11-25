@@ -146,8 +146,9 @@ const srv = http.createServer((q, r) => {
   const mon = new Date(lw[0] + 'T12:00:00').getDay();
   check('period "Last week": Monday to Sunday (7 days)', lw.length === 7 && mon === 1, lw);
   await p.click('#ccmRoot [data-pcm-prev]'); await p.waitForTimeout(2500);
-  const prev = await p.evaluate(() => ({ ch: document.querySelectorAll('#ccmRoot .pcm-table .pcm-ch').length, period: document.querySelector('#ccmRoot .pcm-period').textContent }));
-  check('"Compare to previous period" adds the change under every value', prev.ch >= 30 && /compared with the 7 days before/.test(prev.period), prev);
+  const prev = await p.evaluate(() => ({ ch: document.querySelectorAll('#ccmRoot .pcm-table .pcm-ch').length, period: document.querySelector('#ccmRoot .pcm-period').textContent, prevCard: (document.querySelector('#ccmRoot .pcm-pc__prev.is-on') || {}).textContent || '' }));
+  // 2026-11-25: the previous period has its own card inside the period card, with its own dates.
+  check('"Compare to previous period" adds the change under every value and names the previous period in its own card', prev.ch >= 30 && /Previous period/i.test(prev.prevCard) && /the 7 days right before/.test(prev.prevCard) && /\d{4}/.test(prev.period), prev);
   await p.selectOption('#ccmRoot [data-pcm-range]', 'CUSTOM'); await p.waitForTimeout(300);
   check('custom period: two date fields', await p.evaluate(() => !!document.querySelector('#ccmRoot [data-pcm-since]') && !!document.querySelector('#ccmRoot [data-pcm-until]')));
   await p.selectOption('#ccmRoot [data-pcm-range]', 'LAST_30_DAYS'); await p.waitForTimeout(2500);

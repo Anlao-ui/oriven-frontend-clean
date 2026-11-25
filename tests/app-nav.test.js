@@ -135,10 +135,12 @@ async function signIn(page, url) {
 }
 const PAGES = [
   ['dashboard', 'Overview', 'page-business-brain'], ['plan', 'Overview', 'page-marketing-plan'], ['progress', 'Overview', 'page-progress'],
-  ['adstudio', 'Campaign Management', 'page-launch'], ['audiences', 'Campaign Management', 'page-audience-builder'], ['simulator', 'Campaign Management', 'page-ad-simulator'],
+  ['adstudio', 'Campaign Management', 'page-launch'], ['simulator', 'Campaign Management', 'page-ad-simulator'],
   ['create', 'Creative Studio', 'page-create'], ['content', 'Creative Studio', 'page-my-content'], ['testing', 'Creative Studio', 'page-creative-testing'],
   ['overview', 'Analytics', 'page-performance'], ['compare', 'Analytics', 'page-campaign-comparison'],
-  ['research', 'Research', 'page-research'], ['competitors', 'Research', 'page-competitor-analysis'], ['insights', 'Research', 'page-insights'],
+  ['research', 'Research', 'page-research'], ['insights', 'Research', 'page-insights'],
+  // Inside Research since 2026-11-25 (not sidebar items): opened from Research; Research stays marked.
+  ['audiences', 'Research', 'page-audience-builder', 'research'], ['competitors', 'Research', 'page-competitor-analysis', 'research'],
   ['auto-overview', 'Autopilot', 'page-autopilot'], ['auto-rules', 'Autopilot', 'page-autopilot'], ['auto-activity', 'Autopilot', 'page-autopilot'],
 ];
 
@@ -161,9 +163,9 @@ const server = app.listen(PORT, async () => {
         icons: Array.from(root.querySelectorAll('.onv-item')).map((b) => b.querySelector('.onv-ic svg') && b.querySelector('.onv-ic svg').children.length) };
     });
     check('1.1 exactly six groups in order: Overview, Campaign Management, Creative Studio, Analytics, Research, Autopilot (workspace redesign 2026-11)', JSON.stringify(st.secs.map((s) => s.h)) === '["Overview","Campaign Management","Creative Studio","Analytics","Research","Autopilot"]', st.secs.map((s) => s.h));
-    check('1.2 the pages under each heading match the agreed structure', JSON.stringify(st.secs.map((s) => s.items)) === JSON.stringify([['Dashboard', 'AI Plans', 'Tasks'], ['Campaigns', 'Audiences', 'Ad Simulator'], ['Create Ads', 'My Creatives', 'Creative Testing'], ['Performance Overview', 'Cross-platform Comparison'], ['Research', 'Competitor Analysis', 'Saved Research'], ['Automation Overview', 'My Automations', 'Automation History']]), st.secs.map((s) => s.items));
+    check('1.2 the pages under each heading match the agreed structure', JSON.stringify(st.secs.map((s) => s.items)) === JSON.stringify([['Dashboard', 'AI Plans', 'Tasks'], ['Campaigns', 'Ad Simulator'], ['Create Ads', 'My Creatives', 'Creative Testing'], ['Performance Overview', 'Cross-platform Comparison'], ['Research', 'Saved Research'], ['Automation Overview', 'My Automations', 'Automation History']]), st.secs.map((s) => s.items));
     check('1.3 section names are headings (h2), not links or buttons, with no pointer cursor', st.secs.every((s) => s.tag === 'H2') && !st.headClickable && st.cursor === 'default' && st.pe === 'none');
-    check('1.4 every page has its own icon', st.icons.length === 17 && st.icons.every((n) => n >= 1), st.icons);
+    check('1.4 every page has its own icon', st.icons.length === 15 && st.icons.every((n) => n >= 1), st.icons);
     check('1.4b Campaign Builder and Scheduler are reached from their pages, not the sidebar', !(await page.evaluate(() => /Campaign Builder|Scheduler/.test(document.querySelector('.orv-sb .onv').textContent) || !!document.querySelector('.onv-item[data-onv="builder"], .onv-item[data-onv="auto-scheduler"]'))));
     check('1.5 no seventh group', st.secs.length === 6);
     check('1.6 the existing account is not sent into any onboarding (no overlay, no tour)', !(await page.$('#onx')) && !(await page.evaluate(() => window.__tourOpened)));
@@ -211,10 +213,11 @@ const server = app.listen(PORT, async () => {
     console.log('\n2. Every page opens, with the right highlight');
     await page.screenshot({ path: path.join(SHOTS, 'start-1440.png') });
     const res = [];
-    for (const [id, sec, pid] of PAGES) {
-      await page.click('.orv-sb .onv-item[data-onv="' + id + '"]');
+    for (const [id, sec, pid, via] of PAGES) {
+      if (via) await page.evaluate((x) => window.orvAppNav.go(x), id); else await page.click('.orv-sb .onv-item[data-onv="' + id + '"]');
       await page.waitForTimeout(id.startsWith('auto') ? 900 : 500);
       const r = await page.evaluate((id) => {
+        id = id.split('|')[1] || id;
         const on = Array.from(document.querySelectorAll('.orv-sb .onv-item.is-on')).map((b) => b.dataset.onv);
         const act = document.querySelector('.page.active');
         const secOn = Array.from(document.querySelectorAll('.orv-sb .onv-sec.is-active .onv-sec__t')).map((x) => x.textContent);
@@ -223,11 +226,11 @@ const server = app.listen(PORT, async () => {
         return { on, page: act && act.id, secOn, bar: !!bar, first: host && host.firstElementChild ? (host.firstElementChild.id || host.firstElementChild.className) : null,
           aria: (document.querySelector('.orv-sb .onv-item[data-onv="' + id + '"]') || {}).getAttribute && document.querySelector('.orv-sb .onv-item[data-onv="' + id + '"]').getAttribute('aria-current'),
           atmTab: window.orvAutomations && window.orvAutomations.tab ? window.orvAutomations.tab() : null, atmH1: (document.querySelector('#auRoot .atm-title') || {}).textContent, atmTabs: document.querySelectorAll('#auRoot .atm-tab, #auRoot [role="tablist"]').length };
-      }, id);
-      res.push(Object.assign({ id, sec, pid }, r));
+      }, id + '|' + (via || id));
+      res.push(Object.assign({ id, sec, pid, via }, r));
       if (['dashboard', 'insights', 'progress', 'builder', 'auto-rules', 'adstudio'].includes(id)) await page.screenshot({ path: path.join(SHOTS, id + '-1440.png') });
     }
-    const badHl = res.filter((r) => r.on.length !== 1 || r.on[0] !== r.id || r.page !== r.pid || r.secOn[0] !== r.sec || r.aria !== 'page');
+    const badHl = res.filter((r) => r.on.length !== 1 || r.on[0] !== (r.via || r.id) || r.page !== r.pid || r.secOn[0] !== r.sec || r.aria !== 'page');
     check('2.1 all 17 links open their page; exactly one item highlighted, aria-current set, its section marked active', !badHl.length, badHl);
     check('2.2 no top context bar on any page (no section/page line, description, divider or "Next" buttons): pages start with their own content', res.every((r) => !r.bar && !/onv-ctx/.test(String(r.first))), res.filter((r) => r.bar).map((r) => r.id));
     check('2.3 each Autopilot link opens its own page (Automation Overview, My Automations, Automation History), headed by its own name, with no tab strip repeating the sidebar', [['overview', 'Automation Overview'], ['rules', 'My Automations'], ['activity', 'Automation History']].every(([t, h]) => { const r = res.find((x) => x.id === 'auto-' + t) || {}; return r.atmTab === t && r.atmTabs === 0 && r.atmH1 === h; }), res.filter((r) => r.id.startsWith('auto')).map((r) => [r.id, r.atmTab, r.atmH1, r.atmTabs]));
@@ -244,19 +247,19 @@ const server = app.listen(PORT, async () => {
     const ins = await page.evaluate(() => ({ h: (document.querySelector('#insRoot .rx-title') || {}).textContent, lib: /Candle market in Utrecht/.test((document.getElementById('insRoot') || {}).textContent || ''), form: !!document.querySelector('#page-insights #researchQueryInput') }));
     check('2.5 Saved Research is its own page with the saved research (real reports, no research form)', ins.h === 'Saved Research' && ins.lib && !ins.form, ins);
     await page.click('#insRoot [data-ins="new"]'); await page.waitForTimeout(500);
-    check('2.6 "New research" from Insights goes to the Research form and the highlight follows', await page.isVisible('#researchQueryInput') && await page.evaluate(() => document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'research'));
+    check('2.6 "New research" from Insights goes to Research (its start: the research areas) and the highlight follows', await page.isVisible('#page-research .rx-areas') && await page.evaluate(() => document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'research'));
     // The three pages that left the sidebar are still reachable from their parent page.
     await page.click('.orv-sb .onv-item[data-onv="research"]'); await page.waitForTimeout(500);
     await page.screenshot({ path: path.join(SHOTS, 'related-research-1440.png'), clip: { x: 264, y: 0, width: 1176, height: 300 } });
-    check('2.6b Research links to Competitor Analysis', await page.isVisible('#page-research a.orv-related[data-orv-go="competitor-analysis"]'));
-    await page.click('#page-research a.orv-related[data-orv-go="competitor-analysis"]'); await page.waitForTimeout(600);
+    check('2.6b Research links to Competitor Analysis (the Competitive research card)', await page.isVisible('#page-research [data-rx="tool"][data-tool="competitors"]'));
+    await page.click('#page-research [data-rx="tool"][data-tool="competitors"]'); await page.waitForTimeout(600);
     const cax = await page.evaluate(() => ({ page: document.querySelector('.page.active').id, on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv, url: location.pathname + location.search }));
-    check('2.6c …which opens Competitor Analysis in the app (own address), highlighted as its own sidebar page', cax.page === 'page-competitor-analysis' && cax.on === 'competitors' && cax.url === '/app?view=competitors', cax);
+    check('2.6c …which opens Competitor Analysis in the app (own address), with Research highlighted (it is part of Research)', cax.page === 'page-competitor-analysis' && cax.on === 'research' && cax.url === '/app?view=competitors', cax);
     await page.click('.orv-sb .onv-item[data-onv="create"]'); await page.waitForTimeout(700);
     await page.screenshot({ path: path.join(SHOTS, 'related-create-1440.png'), clip: { x: 264, y: 0, width: 1176, height: 300 } });
     check('2.7a Create links to My Content', await page.isVisible('#page-create a.orv-related[data-orv-go="my-content"]'));
     await page.click('#page-create a.orv-related[data-orv-go="my-content"]'); await page.waitForTimeout(600);
-    const mcx = await page.evaluate(() => ({ on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv, page: document.querySelector('.page.active').id, h1: (document.querySelector('#mclRoot h1') || {}).textContent, empty: !!document.querySelector('#mclRoot .mcl-empty[data-state="empty"]') }));
+    const mcx = await page.evaluate(() => ({ on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv, page: document.querySelector('.page.active').id, h1: (document.querySelector('#mclRoot h1') || {}).textContent, empty: !!document.querySelector('#mclRoot .mcl-kinds') }));
     check('2.7 My Creatives is a real page; this account has nothing saved: an empty state, no sample content; highlighted as its own sidebar page', mcx.page === 'page-my-content' && mcx.h1 === 'My Creatives' && mcx.empty && mcx.on === 'content', mcx);
     await page.click('.orv-sb .onv-item[data-onv="overview"]'); await page.waitForTimeout(600);
     check('2.8a Campaign Overview is analytics only: no header block with the Campaign Builder link', !(await page.$('#orvHubTabsCampaigns .camp-shell-hdr, #orvHubTabsCampaigns a.orv-related[data-orv-go="campaign-builder"]')));
@@ -291,6 +294,7 @@ const server = app.listen(PORT, async () => {
     // ── 4. Existing pages still work ───────────────────────────────
     console.log('\n4. Existing functionality');
     await page.click('.orv-sb .onv-item[data-onv="research"]'); await page.waitForTimeout(500);
+    await page.click('#rsRoot [data-rx="area"][data-area="audience"]'); await page.waitForTimeout(200);
     await page.fill('#researchQueryInput', 'Who buys handmade candles in Utrecht?');
     check('4.1 Research: the form works (typing, research types, start button)', (await page.inputValue('#researchQueryInput')).length > 10 && await page.isVisible('#researchSubmitBtn'));
     await page.click('.orv-sb .onv-item[data-onv="create"]'); await page.waitForTimeout(700);
@@ -325,7 +329,7 @@ const server = app.listen(PORT, async () => {
         await p2.screenshot({ path: path.join(SHOTS, 'drawer-' + w + '.png') });
         await p2.click('.orv-mob-drawer .onv-item[data-onv="auto-activity"]'); await p2.waitForTimeout(900);
         const after = await p2.evaluate(() => ({ open: document.getElementById('orvMobDrawer').classList.contains('open') || document.getElementById('orvMobDrawer').getAttribute('aria-hidden') === 'false', on: (document.querySelector('.orv-mob-drawer .onv-item.is-on') || {}).dataset, page: document.querySelector('.page.active').id, ov: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
-        check(`6.${w} mobile drawer: six groups, 17 pages, 44px touch targets; picking a page closes it and opens the page; no horizontal overflow`, d.secs === 6 && d.items === 17 && d.small === 0 && d.foot && !after.open && after.on && after.on.onv === 'auto-activity' && after.page === 'page-autopilot' && after.ov <= 1, { d, after });
+        check(`6.${w} mobile drawer: six groups, 15 pages, 44px touch targets; picking a page closes it and opens the page; no horizontal overflow`, d.secs === 6 && d.items === 15 && d.small === 0 && d.foot && !after.open && after.on && after.on.onv === 'auto-activity' && after.page === 'page-autopilot' && after.ov <= 1, { d, after });
         await p2.screenshot({ path: path.join(SHOTS, 'activity-' + w + '.png') });
       } else {
         const d = await p2.evaluate(() => ({ w: Math.round(document.querySelector('.orv-sb').getBoundingClientRect().width), ov: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
@@ -596,7 +600,7 @@ const server = app.listen(PORT, async () => {
       await signIn(p9);
       const found = [];
       for (const id of ['dashboard', 'plan', 'progress', 'research', 'insights', 'create', 'testing', 'adstudio', 'audiences', 'overview', 'compare', 'auto-overview', 'auto-rules', 'auto-activity']) {
-        await p9.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p9.waitForTimeout(id.startsWith('auto') ? 1100 : 800);
+        if (id === 'audiences') await p9.evaluate(() => window.orvAppNav.go('audiences')); else await p9.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p9.waitForTimeout(id.startsWith('auto') ? 1100 : 800);
         const f = await p9.evaluate(() => { const vis = (e) => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden'; const btns = [...document.querySelectorAll('.orv-film-btn, [data-orv-film], [data-ow-video], #ccxTutorials, .ccx-tut')].filter(vis).length; const text = [...document.querySelectorAll('.page.active, #orvHubTabsCampaigns')].some((p) => vis(p) && /Watch (tutorial|overview)|Learn OrivenAI/.test(p.innerText)); return { btns, text }; });
         if (f.btns || f.text) found.push(Object.assign({ id }, f));
       }
@@ -624,7 +628,7 @@ const server = app.listen(PORT, async () => {
       check('15.1 Dashboard at 1440×900: one screen (no page scroll), nothing scrolls inside a card, the greeting and status line are a card', dash.inner.length === 0 && dash.pageScroll <= 1 && dash.greetingCard, dash);
       const notCard = [], wide = [];
       for (const id of ['plan', 'progress', 'research', 'insights', 'create', 'testing', 'adstudio', 'audiences', 'compare', 'auto-overview', 'auto-rules', 'auto-activity']) {
-        await p10.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p10.waitForTimeout(id.startsWith('auto') ? 1100 : 900);
+        if (id === 'audiences') await p10.evaluate(() => window.orvAppNav.go('audiences')); else await p10.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p10.waitForTimeout(id.startsWith('auto') ? 1100 : 900);
         const r = await p10.evaluate(() => {
           const vis = (e) => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden';
           const h = [...document.querySelectorAll('h1')].filter(vis).filter((x) => x.getBoundingClientRect().left > 200)[0];

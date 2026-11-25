@@ -496,12 +496,13 @@
           stat(d.total - d.completed, 'Remaining') +
         '</div>' +
         (next ? '<div class="prg-next"><span>Next up</span><b>' + esc(next.step) + '</b>' + (next.page ? pageBtn(next.page, next.button, true) : '') + '</div>' : '') +
+        comingUp(d, next) +
         '<section class="prg-card" aria-labelledby="prgPhasesH"><h2 class="prg-card__h" id="prgPhasesH">Per phase</h2>' +
         '<ol class="prg-months" aria-label="Progress per phase">' + d.phases.map(function (p, i) {
           var n = p.steps.filter(function (x) { return x.done; }).length, w = p.steps.length ? Math.round(n / p.steps.length * 100) : 0;
           return '<li' + (i === cur ? ' data-state="now"' : '') + ' title="' + esc(p.phase + ': ' + n + ' of ' + p.steps.length + ' done') + '"><span>' + esc(p.phase) + '</span><i><em style="width:' + w + '%"></em></i><span class="prg-months__n">' + n + '/' + p.steps.length + '</span></li>';
         }).join('') + '</ol>' +
-        '<p class="mpl-fine">Tasks OrivenAI can see — research, audiences, creatives, campaigns, automations, connected platforms — tick off by themselves once they’re really done. Opening a page doesn’t count. Only tasks OrivenAI can’t check have a box to tick yourself.</p>' +
+        '<p class="mpl-fine">Tasks marked “OrivenAI can do this” can be handed to your assistant, which carries them out with its own tools. Tasks OrivenAI can see — research, audiences, creatives, campaigns, automations, connected platforms — tick off by themselves once they’re really done. Opening a page doesn’t count. Only tasks OrivenAI can’t check have a box to tick yourself.</p>' +
         '</section>' +
       '</aside><div class="prg-main">' +
       d.phases.map(function (p, i) {
@@ -517,6 +518,77 @@
       '</div></div>' +
     '</article>';
   }
+  // ── Tasks OrivenAI can carry out (2026-11-25 refinement) ──────────
+  // A task whose page has an assistant tool behind it can be handed to the
+  // assistant: it does the work with its real tools (start_research,
+  // generate_* / create_campaign_package, create_automation, list_campaigns)
+  // and asks before anything that uses credits or changes a live campaign.
+  // Handing over is remembered on this device only; the task is never marked
+  // done here — it ticks off when OrivenAI's own check (progressFacts) sees
+  // the result. Tasks without a tool say why they need the user.
+  var EXEC = {
+    research: 'runs this research and saves the report to Saved Research',
+    'competitor-analysis': 'runs this competitor research and saves the report',
+    create: 'drafts this ad for you in Create — you keep, change or discard it',
+    'creative-testing': 'writes the variations to test',
+    'campaign-builder': 'prepares the campaign package as a draft — nothing is published',
+    automations: 'sets up this automation and shows it to you before it is switched on',
+    campaigns: 'reads your results and tells you what it sees',
+    'campaign-comparison': 'compares your results and tells you what it sees',
+  };
+  var NEEDS_YOU = {
+    launch: 'Publishing is your decision: review it in Campaigns.',
+    'ad-platforms': 'Connecting an ad account happens on the platform’s own login.',
+    'marketing-plan': 'A decision about your plan.',
+    'audience-builder': 'Choosing who your ads are for is your call — OrivenAI suggests audiences there.',
+  };
+  function execKey() { return S.uid ? 'orv_task_exec_' + S.uid : null; }
+  function execGet() { var k = execKey(); if (!k) return {}; try { return JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (_) { return {}; } }
+  function execSet(id, at) { var k = execKey(); if (!k) return; try { var m = execGet(); if (at) m[id] = at; else delete m[id]; localStorage.setItem(k, JSON.stringify(m)); } catch (_) {} }
+  function relTime(iso) { var t = Date.parse(iso || ''); if (!t) return ''; var m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : day(iso); }
+  function execBlock(x, page) {
+    if (x.done) return '';
+    var can = EXEC[page], handed = execGet()[x.id];
+    if (!can) return NEEDS_YOU[page] ? '<p class="prg-who prg-who--you"><span>Up to you</span>' + esc(NEEDS_YOU[page]) + '</p>' : '';
+    if (S.execAsk === x.id) {
+      return '<div class="prg-exec-ask" role="group" aria-label="Hand this task to OrivenAI"><p><b>OrivenAI ' + esc(can) + '.</b> Your assistant opens and starts on it with its own tools. It asks you before anything that uses credits or changes a live campaign.</p>' +
+        '<p class="prg-exec-fine">This task ticks off once OrivenAI sees the result — not when you press Start.</p>' +
+        '<div class="prg-exec-acts"><button type="button" class="onv-btn onv-btn--primary" data-prg-exec-go="' + esc(x.id) + '">Start</button><button type="button" class="onv-btn" data-prg-exec-cancel>Cancel</button></div></div>';
+    }
+    if (handed) return '<p class="prg-who prg-who--busy"><span>With your assistant</span>Handed over ' + esc(relTime(handed)) + '. It ticks off when OrivenAI sees the result. <button type="button" class="prg-link" data-prg-exec-open>Open assistant</button> · <button type="button" class="prg-link" data-prg-exec-ask="' + esc(x.id) + '">Hand over again</button></p>';
+    return '<p class="prg-who prg-who--ai"><span>OrivenAI can do this</span>OrivenAI ' + esc(can) + '. <button type="button" class="prg-link prg-link--go" data-prg-exec-ask="' + esc(x.id) + '">Let OrivenAI do it</button></p>';
+  }
+  function findStep(id) { var d = S.progress; if (!d) return null; for (var i = 0; i < d.phases.length; i++) for (var j = 0; j < d.phases[i].steps.length; j++) if (d.phases[i].steps[j].id === id) return d.phases[i].steps[j]; return null; }
+  function rerenderProgress() {
+    var root = document.getElementById('prgRoot'); if (!root || !S.progress) return;
+    var y = (document.scrollingElement || document.documentElement).scrollTop;
+    var open = Array.prototype.map.call(root.querySelectorAll('.prg-phase'), function (d) { return d.open; });
+    root.innerHTML = progressHtml(S.progress);
+    root.querySelectorAll('.prg-phase').forEach(function (d, i) { if (open[i] != null) d.open = open[i]; });
+    (document.scrollingElement || document.documentElement).scrollTop = y;
+  }
+  function handOver(id) {
+    var x = findStep(id); if (!x) return;
+    var page = x.page || AREA_PAGE[x.area] || null;
+    if (typeof window.orvAiSend !== 'function') { S.execAsk = null; rerenderProgress(); if (typeof window.orvToast === 'function') window.orvToast('The assistant isn’t available right now — open ' + (pageLabel(page) || 'the page') + ' to do this task.', 'warn'); return; }
+    var msg = 'Please carry out this task from my marketing plan: “' + x.step + '”.' + (x.what ? ' ' + x.what : '') +
+      ' Use your tools to do it. Ask me first before anything that uses credits or changes a live campaign, and tell me when it’s done or what I still need to do myself.';
+    if (window.orvAiDock && window.orvAiDock.isTucked && window.orvAiDock.isTucked()) window.orvAiDock.show();
+    if (typeof window.orvOpenAi === 'function') window.orvOpenAi();
+    window.orvAiSend(msg);
+    execSet(id, new Date().toISOString());
+    S.execAsk = null; rerenderProgress();
+  }
+  // The next open tasks after "Next up" (up to four), each a jump to the task itself.
+  function comingUp(d, next) {
+    var list = [];
+    d.phases.forEach(function (p) { p.steps.forEach(function (x) { if (!x.done && (!next || x.id !== next.id)) list.push({ x: x, phase: p.phase }); }); });
+    list = list.slice(0, 4); if (!list.length) return '';
+    return '<section class="prg-card" aria-labelledby="prgComingH"><h2 class="prg-card__h" id="prgComingH">Coming up</h2><ul class="prg-coming">' + list.map(function (it) {
+      var page = it.x.page || AREA_PAGE[it.x.area] || null, can = !!EXEC[page];
+      return '<li><button type="button" class="prg-coming__i" data-prg-jump="' + esc(it.x.id) + '"><span class="prg-coming__t">' + esc(it.x.step) + '</span><span class="prg-coming__m">' + esc(it.phase) + ' · ' + (can ? 'OrivenAI can do this' : 'Up to you') + '</span></button></li>';
+    }).join('') + '</ul></section>';
+  }
   var TICK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function stepHtml(x) {
     var page = x.page || AREA_PAGE[x.area] || null;
@@ -530,7 +602,7 @@
     return '<li class="prg-step' + (x.done ? ' is-done' : '') + '" data-step="' + esc(x.id) + '">' + mark +
       '<div class="prg-step__b"><p>' + esc(x.step) + '</p>' +
         (!x.done && x.what ? '<p class="prg-what">' + esc(x.what) + '</p>' : '') +
-        '<span class="prg-area">' + esc(info) + '</span></div>' +
+        '<span class="prg-area">' + esc(info) + '</span>' + execBlock(x, page) + '</div>' +
       (!x.done ? pageBtn(page, x.button) : '') + '</li>';
   }
   function toggleStep(btn) {
@@ -564,6 +636,11 @@
   function onClick(e) {
     var b = e.target.closest('button, a'); if (!b) return;
     if (b.hasAttribute('data-prg-toggle')) { toggleStep(b); return; }
+    if (b.hasAttribute('data-prg-exec-ask')) { S.execAsk = b.getAttribute('data-prg-exec-ask'); rerenderProgress(); var go = document.querySelector('[data-prg-exec-go]'); if (go) go.focus({ preventScroll: true }); return; }
+    if (b.hasAttribute('data-prg-jump')) { var li2 = document.querySelector('#prgRoot [data-step="' + b.getAttribute('data-prg-jump') + '"]'); if (li2) { var ph = li2.closest('details'); if (ph) ph.open = true; li2.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); li2.classList.add('is-flash'); setTimeout(function () { li2.classList.remove('is-flash'); }, 1600); } return; }
+    if (b.hasAttribute('data-prg-exec-cancel')) { S.execAsk = null; rerenderProgress(); return; }
+    if (b.hasAttribute('data-prg-exec-go')) { handOver(b.getAttribute('data-prg-exec-go')); return; }
+    if (b.hasAttribute('data-prg-exec-open')) { if (window.orvAiDock && window.orvAiDock.isTucked && window.orvAiDock.isTucked()) window.orvAiDock.show(); if (typeof window.orvOpenAi === 'function') window.orvOpenAi(); return; }
     if (b.hasAttribute('data-orv-page')) { if (window.orvPages) window.orvPages.open(b.getAttribute('data-orv-page')); return; }
     if (b.hasAttribute('data-mpl-go')) { var to = b.getAttribute('data-mpl-go'); if (to === 'plan' || to === 'progress') open(to); else if (window.orvAppNav) window.orvAppNav.go(to); return; }
     if (b.hasAttribute('data-mpl-retry')) { retryPlan(b); return; }

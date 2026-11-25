@@ -87,11 +87,11 @@ const server = app.listen(PORT, async () => {
     // ── 1. Empty ───────────────────────────────────────────────────
     console.log('\n1. No content yet');
     await openMine(page);
-    const em = await page.evaluate(() => ({ page: document.querySelector('.page.active').id, on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv, soon: !!document.querySelector('.orv-sb .onv-item[data-onv="content"]'), link: !!document.querySelector('#page-create a.orv-related[data-orv-go="my-content"]'), empty: !!document.querySelector('#mclRoot .mcl-empty[data-state="empty"]'), imgs: document.querySelectorAll('#mclRoot img, #mclRoot video').length, text: document.getElementById('mclRoot').innerText }));
-    check('1.1 My Creatives opens (its own sidebar entry under Creative Studio, also linked from the Create header), with an empty state and no sample content', em.page === 'page-my-content' && em.on === 'content' && em.soon && em.link && em.empty && em.imgs === 0 && /make in Create are saved here/.test(em.text), em);
+    const em = await page.evaluate(() => ({ page: document.querySelector('.page.active').id, on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv, soon: !!document.querySelector('.orv-sb .onv-item[data-onv="content"]'), link: !!document.querySelector('#page-create a.orv-related[data-orv-go="my-content"]'), empty: !!document.querySelector('#mclRoot .mcl-kinds'), imgs: document.querySelectorAll('#mclRoot img, #mclRoot video').length, text: document.getElementById('mclRoot').innerText }));
+    check('1.1 My Creatives opens (its own sidebar entry under Creative Studio, also linked from the Create header), with its card structure (one card per kind, each empty) and no sample content', em.page === 'page-my-content' && em.on === 'content' && em.soon && em.link && em.empty && em.imgs === 0 && /Nothing saved yet/.test(em.text), em);
     await page.screenshot({ path: path.join(SHOTS, 'empty-1440.png') });
-    await page.click('#mclRoot .mcl-empty [data-mcl="create"]'); await page.waitForTimeout(600);
-    check('1.2 "Go to Create" opens Create', (await page.evaluate(() => document.querySelector('.page.active').id)) === 'page-create');
+    await page.click('#mclRoot .mcl-kinds [data-mcl="create"]'); await page.waitForTimeout(600);
+    check('1.2 "Make an image" opens Create', (await page.evaluate(() => document.querySelector('.page.active').id)) === 'page-create');
 
     // ── 2. The library ─────────────────────────────────────────────
     console.log('\n2. Saved content');

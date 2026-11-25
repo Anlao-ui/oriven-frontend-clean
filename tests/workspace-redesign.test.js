@@ -40,7 +40,7 @@ const srv = http.createServer((q, r) => {
 
   // ── 1. Sidebar ───────────────────────────────────────────────
   const nav = await p.evaluate(() => Array.from(document.querySelectorAll('.orv-sb .onv-sec')).map((s) => [s.querySelector('.onv-sec__t').textContent, Array.from(s.querySelectorAll('.onv-lbl')).map((x) => x.textContent)]));
-  const want = [['Overview', ['Dashboard', 'AI Plans', 'Tasks']], ['Campaign Management', ['Campaigns', 'Audiences', 'Ad Simulator']], ['Creative Studio', ['Create Ads', 'My Creatives', 'Creative Testing']], ['Analytics', ['Performance Overview', 'Cross-platform Comparison']], ['Research', ['Research', 'Competitor Analysis', 'Saved Research']], ['Autopilot', ['Automation Overview', 'My Automations', 'Automation History']]];
+  const want = [['Overview', ['Dashboard', 'AI Plans', 'Tasks']], ['Campaign Management', ['Campaigns', 'Ad Simulator']], ['Creative Studio', ['Create Ads', 'My Creatives', 'Creative Testing']], ['Analytics', ['Performance Overview', 'Cross-platform Comparison']], ['Research', ['Research', 'Saved Research']], ['Autopilot', ['Automation Overview', 'My Automations', 'Automation History']]];
   check('sidebar: six groups with the redesigned pages, in order', JSON.stringify(nav) === JSON.stringify(want), nav);
   check('no "NEW" badge on Ad Simulator', await p.evaluate(() => !/new/i.test((document.querySelector('.orv-sb [data-onv="simulator"]') || {}).textContent.replace('Ad Simulator', ''))));
   const line = await p.evaluate(() => { const r = document.querySelector('.orv-sb .onv-sec .onv-route'), cs = getComputedStyle(r); return { img: cs.backgroundImage, w: parseFloat(cs.width), h: r.getBoundingClientRect().height }; });
@@ -125,6 +125,27 @@ const srv = http.createServer((q, r) => {
   check('language: Ad Simulator is in Dutch (Scenario Lab, compare, method)', await p.evaluate(() => { const t = document.querySelector('#asimRoot').textContent; return /Scenariolab/.test(t) && /Scenario’s vergelijken/.test(t) && /Hoe deze cijfers tot stand komen/.test(t) && !/Compare scenarios/.test(t); }));
   await p.evaluate(() => { window.CURRENT_LANG = 'en'; window.applyLanguage(); }); await p.waitForTimeout(300);
   check('language: back to English', await p.evaluate(() => /Compare scenarios/.test(document.querySelector('#asimRoot').textContent)));
+
+  // ── 3c. Refinement 2026-11-25: structure and alignment ───────
+  const bottoms = (sel) => p.evaluate((sel) => Array.from(document.querySelectorAll(sel)).map((e) => Math.round(e.getBoundingClientRect().bottom)), sel);
+  await p.evaluate(() => window.orvAppNav.go('research')); await p.waitForTimeout(900);
+  check('Research starts with three areas and Saved research, two by two, rows level', await p.evaluate(() => { const c = Array.from(document.querySelectorAll('#rsRoot .rx-areas > .rx-area')).map((e) => e.getBoundingClientRect()); return c.length === 4 && Math.abs(c[0].bottom - c[1].bottom) <= 1 && Math.abs(c[2].bottom - c[3].bottom) <= 1 && !document.querySelector('#researchQueryInput'); }));
+  await p.evaluate(() => window.orvAppNav.go('progress')); await p.waitForTimeout(1500);
+  const tk = await p.evaluate(() => { const r = document.querySelector('#prgRoot .prg-rail'), m = document.querySelector('#prgRoot .prg-main'); return r && m ? { rail: Math.round(r.getBoundingClientRect().bottom), main: Math.round(m.getBoundingClientRect().bottom), ai: document.querySelectorAll('#prgRoot .prg-who--ai').length, you: document.querySelectorAll('#prgRoot .prg-who--you').length } : null; });
+  check('Tasks: the summary column ends level with the phases; tasks say who does them (OrivenAI can do this / Up to you)', tk && Math.abs(tk.rail - tk.main) <= 2 && tk.ai > 0 && tk.you > 0, tk);
+  await p.click('#prgRoot [data-prg-exec-ask]'); await p.waitForTimeout(300);
+  check('Tasks: "Let OrivenAI do it" asks first and says the task ticks off only when OrivenAI sees the result', await p.evaluate(() => { const a = document.querySelector('.prg-exec-ask'); return !!a && /ticks off once OrivenAI sees the result/.test(a.textContent) && !!a.querySelector('[data-prg-exec-go]'); }));
+  await p.click('[data-prg-exec-cancel]'); await p.waitForTimeout(200);
+  await p.evaluate(() => window.orvAppNav.go('adstudio')); await p.waitForTimeout(1500);
+  const cm = await p.evaluate(() => ({ tiles: document.querySelectorAll('#cmxSum .cmx-tile').length, list: !!document.querySelector('.cmx-list #lqFilters'), side: document.querySelectorAll('#cmxSide > .cmx-card').length, b: [Math.round(document.querySelector('.cmx-list').getBoundingClientRect().bottom), Math.round(document.querySelector('#cmxSide').getBoundingClientRect().bottom)] }));
+  check('Campaigns: four summary cards, the list card with its filters, three side cards; both columns end level', cm.tiles === 4 && cm.list && cm.side === 3 && Math.abs(cm.b[0] - cm.b[1]) <= 2, cm);
+  await p.evaluate(() => window.orvAppNav.go('simulator')); await p.waitForTimeout(700);
+  await p.evaluate(() => { if (!window.orvAdSimulator._state().sim) document.querySelector('[data-asim-start]').click(); }); await p.waitForTimeout(400);
+  const sb = await bottoms('.asim-grid > .asim-setup, .asim-grid .asim-results');
+  check('Ad Simulator: Assumptions and Results end level; What if spans below them', sb.length === 2 && Math.abs(sb[0] - sb[1]) <= 2 && await p.evaluate(() => { const w = document.querySelector('.asim-whatif').getBoundingClientRect(), g = document.querySelector('.asim-grid').getBoundingClientRect(); return w.width > g.width * 0.95; }), sb);
+  await p.evaluate(() => { document.querySelector('.asim-adv').open = true; }); await p.waitForTimeout(200);
+  const sb2 = await bottoms('.asim-grid > .asim-setup, .asim-grid .asim-results');
+  check('Ad Simulator: opening Advanced assumptions keeps the two cards level', Math.abs(sb2[0] - sb2[1]) <= 2, sb2);
 
   // ── 4. Phones ────────────────────────────────────────────────
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });

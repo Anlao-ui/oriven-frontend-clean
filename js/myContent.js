@@ -119,9 +119,18 @@
     if (S.items === null && !S.err) { root.innerHTML = head + '<p class="mcl-muted">Loading your content…</p>'; return; }
     if (S.err && !S.items) { root.innerHTML = head + '<div class="mcl-empty" data-state="error"><p>Your content couldn’t load.</p><button type="button" class="onv-btn" data-mcl="retry">Try again</button></div>'; return; }
     if (!S.items.length) {
-      root.innerHTML = head + '<section class="mcl-empty" data-state="empty"><div class="mcl-empty__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 15l4.5-4 4 3.5 3-2.5 5.5 4.5"/><circle cx="15.5" cy="9.5" r="1.5"/></svg></div>' +
-        '<h2>Nothing here yet</h2><p>Images, videos, ad creatives and copy you make in Create are saved here automatically, so you can find, download and reuse them later.</p>' +
-        '<button type="button" class="onv-btn onv-btn--primary" data-mcl="create">Go to Create</button></section>';
+      // No creatives yet: the page keeps its structure — one card per kind of creative,
+      // saying where it comes from and how to make the first one.
+      var KINDS = [
+        ['image', 'Images', 'Ad images and product shots you generate in Create Ads.', 'Make an image', '<rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 15l4.5-4 4 3.5 3-2.5 5.5 4.5"/><circle cx="15.5" cy="9.5" r="1.5"/>'],
+        ['video', 'Videos', 'Short video ads made in Create Ads. They appear here as soon as they finish rendering.', 'Make a video', '<rect x="3.5" y="6" width="12" height="12" rx="2.5"/><path d="M15.5 10.5l5-3v9l-5-3"/>'],
+        ['ad', 'Ad creatives', 'Complete ads — image, headline, text and call to action — ready for a campaign.', 'Make an ad', '<rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8 9h8M8 13h5"/><rect x="8" y="15.5" width="5" height="2" rx="1"/>'],
+        ['copy', 'Copy', 'Headlines, captions and ad texts — also the versions you keep in Creative Testing.', 'Write copy', '<path d="M5 6h14M5 10h14M5 14h9M5 18h6"/>'],
+      ];
+      root.innerHTML = head + '<div class="mcl-kinds">' + KINDS.map(function (k) {
+        return '<section class="mcl-kind" aria-labelledby="mclK_' + k[0] + '"><div class="mcl-kind__top"><span class="mcl-kind__ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + k[4] + '</svg></span><h2 id="mclK_' + k[0] + '">' + k[1] + '</h2><span class="mcl-kind__n">0</span></div>' +
+          '<p>' + k[2] + '</p><div class="mcl-kind__slot">Nothing saved yet</div><div><button type="button" class="onv-btn" data-mcl="create">' + k[3] + '</button></div></section>';
+      }).join('') + '</div>';
       return;
     }
     var present = TYPES.filter(function (t) { return S.items.some(function (a) { return typeOf(a) === t[0]; }); });
@@ -273,5 +282,5 @@
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
-  window.orvMyContent = { open: open, reload: function () { S.items = null; load(); }, _typeOf: typeOf };
+  window.orvMyContent = { open: open, reload: function () { S.items = null; load(); }, _typeOf: typeOf, _state: function () { return S; }, _render: render };
 })();
