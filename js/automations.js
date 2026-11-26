@@ -19,7 +19,7 @@
   var STR = {
     en: {
       title: 'Automations', subtitle: 'Schedule campaigns, watch their performance and let OrivenAI act within limits you set.',
-      tabOverview: 'Overview', tabScheduler: 'Scheduler', tabRules: 'Rules', tabActivity: 'Activity',
+      tabOverview: 'Automation Overview', tabScheduler: 'Scheduler', tabRules: 'My Automations', tabActivity: 'Automation History',
       subOverview: 'What runs on its own, what’s coming up and what needs your approval.', subScheduler: 'Plan when campaigns start, pause and change.',
       subRules: 'Rules that watch your campaigns and notify you, ask first or act within your limits.', subActivity: 'Everything your automations did, with the reason and the result.',
       newRule: 'New rule', newSchedule: 'Schedule campaign', pauseAll: 'Pause all automations', resumeAll: 'Resume all automations', settings: 'Settings',
@@ -111,7 +111,7 @@
     },
     nl: {
       title: 'Automatiseringen', subtitle: 'Plan campagnes, volg hun resultaten en laat OrivenAI handelen binnen grenzen die jij instelt.',
-      tabOverview: 'Overzicht', tabScheduler: 'Planner', tabRules: 'Regels', tabActivity: 'Activiteit',
+      tabOverview: 'Automatiseringsoverzicht', tabScheduler: 'Planner', tabRules: 'Mijn automatiseringen', tabActivity: 'Automatiseringsgeschiedenis',
       subOverview: 'Wat vanzelf loopt, wat eraan komt en wat jouw goedkeuring nodig heeft.', subScheduler: 'Plan wanneer campagnes starten, pauzeren en veranderen.',
       subRules: 'Regels die je campagnes volgen en je waarschuwen, eerst vragen of binnen jouw grenzen handelen.', subActivity: 'Alles wat je automatiseringen deden, met de reden en het resultaat.',
       newRule: 'Nieuwe regel', newSchedule: 'Campagne plannen', pauseAll: 'Alle automatiseringen pauzeren', resumeAll: 'Alle automatiseringen hervatten', settings: 'Instellingen',
@@ -198,7 +198,7 @@
     },
     de: {
       title: 'Automatisierungen', subtitle: 'Kampagnen planen, ihre Leistung beobachten und OrivenAI innerhalb deiner Grenzen handeln lassen.',
-      tabOverview: 'Übersicht', tabScheduler: 'Planer', tabRules: 'Regeln', tabActivity: 'Aktivität',
+      tabOverview: 'Automatisierungsübersicht', tabScheduler: 'Planer', tabRules: 'Meine Automatisierungen', tabActivity: 'Automatisierungsverlauf',
       newRule: 'Neue Regel', newSchedule: 'Kampagne planen', pauseAll: 'Alle Automatisierungen pausieren', resumeAll: 'Alle Automatisierungen fortsetzen', settings: 'Einstellungen',
       stRunning: 'Aktiv', stPausedAll: 'Alle Automatisierungen pausiert', stKilled: 'Von OrivenAI pausiert', stNoJobs: 'Läuft auf diesem Server nicht', stChecks: 'Regeln alle {h} geprüft',
       hours: '{n} Std.', minutes: '{n} Min.',
@@ -283,7 +283,7 @@
     },
     fr: {
       title: 'Automatisations', subtitle: 'Planifiez vos campagnes, suivez leurs performances et laissez OrivenAI agir dans les limites que vous fixez.',
-      tabOverview: 'Aperçu', tabScheduler: 'Planificateur', tabRules: 'Règles', tabActivity: 'Activité',
+      tabOverview: 'Aperçu des automatisations', tabScheduler: 'Planificateur', tabRules: 'Mes automatisations', tabActivity: 'Historique des automatisations',
       newRule: 'Nouvelle règle', newSchedule: 'Planifier une campagne', pauseAll: 'Mettre toutes les automatisations en pause', resumeAll: 'Reprendre toutes les automatisations', settings: 'Paramètres',
       stRunning: 'Actif', stPausedAll: 'Toutes les automatisations en pause', stKilled: 'Mis en pause par OrivenAI', stNoJobs: 'Ne tourne pas sur ce serveur', stChecks: 'règles vérifiées toutes les {h}',
       hours: '{n} h', minutes: '{n} min',
@@ -368,7 +368,7 @@
     },
     es: {
       title: 'Automatizaciones', subtitle: 'Programa campañas, sigue su rendimiento y deja que OrivenAI actúe dentro de los límites que tú fijes.',
-      tabOverview: 'Resumen', tabScheduler: 'Programador', tabRules: 'Reglas', tabActivity: 'Actividad',
+      tabOverview: 'Resumen de automatizaciones', tabScheduler: 'Programador', tabRules: 'Mis automatizaciones', tabActivity: 'Historial de automatizaciones',
       newRule: 'Nueva regla', newSchedule: 'Programar campaña', pauseAll: 'Pausar todas las automatizaciones', resumeAll: 'Reanudar todas las automatizaciones', settings: 'Ajustes',
       stRunning: 'Activo', stPausedAll: 'Todas las automatizaciones en pausa', stKilled: 'Pausado por OrivenAI', stNoJobs: 'No se ejecuta en este servidor', stChecks: 'reglas revisadas cada {h}',
       hours: '{n} h', minutes: '{n} min',
@@ -453,7 +453,7 @@
     },
     pt: {
       title: 'Automações', subtitle: 'Agende campanhas, acompanhe o desempenho e deixe a OrivenAI agir dentro dos limites que você definir.',
-      tabOverview: 'Visão geral', tabScheduler: 'Agendador', tabRules: 'Regras', tabActivity: 'Atividade',
+      tabOverview: 'Visão geral das automações', tabScheduler: 'Agendador', tabRules: 'Minhas automações', tabActivity: 'Histórico de automações',
       newRule: 'Nova regra', newSchedule: 'Agendar campanha', pauseAll: 'Pausar todas as automações', resumeAll: 'Retomar todas as automações', settings: 'Configurações',
       stRunning: 'Ativo', stPausedAll: 'Todas as automações pausadas', stKilled: 'Pausado pela OrivenAI', stNoJobs: 'Não está rodando neste servidor', stChecks: 'regras verificadas a cada {h}',
       hours: '{n} h', minutes: '{n} min',
@@ -700,7 +700,9 @@
     try { root.innerHTML = header() + '<section class="atm-panel" id="auPanel" data-page="' + esc(A.tab) + '"' + (A.locked ? '' : ' aria-labelledby="auPageH"') + '>' + body + '</section>'; } finally { render._busy = false; }
   }
 
-  function tile(label, value, tone) { return '<div class="atm-tile' + (tone ? ' is-' + tone : '') + '"><span class="atm-tile-v">' + esc(value) + '</span><span class="atm-tile-l">' + esc(label) + '</span></div>'; }
+  // Tones (2026-11-26): live = rich green, scheduled = light green, warn/bad = yellow, so Autopilot reads at a glance.
+  var TONE = { live: ' og-tone-rich', sched: ' og-tone-fresh', warn: ' og-tone-warn', bad: ' og-tone-warn' };
+  function tile(label, value, tone) { return '<div class="atm-tile' + (tone ? ' is-' + tone + (TONE[tone] || '') : '') + '"><span class="atm-tile-v">' + esc(value) + '</span><span class="atm-tile-l">' + esc(label) + '</span></div>'; }
   function approvalCard(p) {
     var obs = p.observed || {};
     var why = obs.metric ? T('trigLine', { metric: metricName(obs.metric), observed: fmtMetric(obs.metric, obs.observed, null), op: T('op.' + obs.operator) || obs.operator, threshold: fmtMetric(obs.metric, obs.threshold, null), days: obs.window_days || 7 }) : '';
@@ -718,11 +720,11 @@
     var html = '';
     var main = '', rail = '';
     if (!A.automations.length) main += emptyIntro();
-    html += '<div class="atm-tiles">' + tile(T('tActive'), c.active || 0, c.active ? 'live' : null) + tile(T('tPaused'), c.paused || 0) + tile(T('tScheduled'), c.scheduled || 0) + tile(T('tApprovals'), (c.pendingApprovals || 0) + (c.needsReview || 0), (c.pendingApprovals || c.needsReview) ? 'warn' : null) + tile(T('tDone'), c.completed7d || 0) + tile(T('tFailed'), c.failed7d || 0, c.failed7d ? 'bad' : null) + '</div>';
+    html += '<div class="atm-tiles">' + tile(T('tActive'), c.active || 0, c.active ? 'live' : null) + tile(T('tPaused'), c.paused || 0) + tile(T('tScheduled'), c.scheduled || 0, c.scheduled ? 'sched' : null) + tile(T('tApprovals'), (c.pendingApprovals || 0) + (c.needsReview || 0), (c.pendingApprovals || c.needsReview) ? 'warn' : null) + tile(T('tDone'), c.completed7d || 0) + tile(T('tFailed'), c.failed7d || 0, c.failed7d ? 'bad' : null) + '</div>';
     if (A.approvals.length) main += '<div class="atm-card"><h2 class="atm-h2">' + esc(T('approvalsH')) + '</h2>' + A.approvals.map(approvalCard).join('') + '</div>';
     var nx = o.nextRun;
     var managing = c.managedCampaigns || c.accountWide && c.accountWide.length ? [c.managedCampaigns ? T('managingN', { n: c.managedCampaigns }) : '', c.accountWide && c.accountWide.length ? T('managingAll', { platforms: c.accountWide.map(platName).join(', ') }) : ''].filter(Boolean).join(' · ') : T('managingNone');
-    rail += '<div class="atm-card"><dl class="atm-facts">' +
+    rail += '<div class="atm-card og-tone-deep"><dl class="atm-facts">' +
       '<div><dt>' + esc(T('nextRunH')) + '</dt><dd>' + (nx ? esc(T('act.' + nx.action)) + ' · ' + esc(nx.campaign_name || '') + '<br><span class="atm-muted">' + esc(localWhen(nx.local_time, nx.timezone)) + ' · ' + esc(rel(nx.run_at)) + '</span>' : esc(T('nextRunNone'))) + '</dd></div>' +
       '<div><dt>' + esc(T('lastCheckH')) + '</dt><dd>' + (o.lastCheckAt ? esc(rel(o.lastCheckAt)) : esc(T('lastCheckNever'))) + '</dd></div>' +
       '<div><dt>' + esc(T('managingH')) + '</dt><dd>' + esc(managing) + '</dd></div></dl></div>';
@@ -733,7 +735,7 @@
       }).join('') + '</ul>' + ((o.accounts || []).some(function (a) { return !a.connected; }) ? '<button type="button" class="atm-link" data-au="connect">' + esc(T('connect')) + '</button>' : '') + launchNote + '</div>';
     else rail += '<div class="atm-card">' + launchNote + '</div>';
     main += '<div class="atm-card"><div class="atm-card-head"><h2 class="atm-h2">' + esc(T('recentH')) + '</h2>' + (A.activity.length ? '<button type="button" class="atm-link" data-tab="activity">' + esc(T('viewAll')) + '</button>' : '') + '</div>' +
-      (A.activity.length ? '<ul class="atm-acts">' + A.activity.slice(0, 5).map(actRow).join('') + '</ul>' : '<p class="atm-muted">' + esc(T('noActivity')) + '</p>') + '</div>';
+      (A.activity.length ? '<ul class="atm-acts">' + A.activity.slice(0, 5).map(actRow).join('') + '</ul>' : '<div class="atm-empty-in atm-empty-in--sm"><p>' + esc(T('noActivity')) + '</p></div>') + '</div>';
     return html + '<div class="atm-ovgrid"><div class="atm-ovmain">' + main + '</div><aside class="atm-ovrail" aria-label="' + esc(T('accountsH')) + '">' + rail + '</aside></div>';
   }
 
@@ -762,10 +764,33 @@
       '<h3 class="atm-auto-name">' + esc(a.name) + '</h3><p class="atm-auto-sum">' + esc(summaryOf(a)) + '</p>' + (lines.length ? '<p class="atm-auto-meta">' + lines.join('<br>') + '</p>' : '') +
       '<div class="atm-auto-actions"><button type="button" class="atm-link" data-au="edit" data-id="' + esc(a.id) + '">' + esc(T('edit')) + '</button><button type="button" class="atm-link" data-au="history" data-id="' + esc(a.id) + '">' + esc(T('history')) + '</button><button type="button" class="atm-link atm-danger" data-au="delete" data-id="' + esc(a.id) + '">' + esc(T('del')) + '</button></div></article>';
   }
+  // ── Page structure (2026-11-25 refinement): every Autopilot page keeps its cards,
+  // with or without data. Side cards count only what was loaded — nothing invented.
+  var AUX = {
+    en: { yourRules: 'Your rules', howH: 'How a rule works', how1: 'Notify me', how1d: 'OrivenAI tells you when the condition is met. Nothing changes.', how2: 'Ask first', how2d: 'OrivenAI prepares the change and waits for your approval.', how3: 'Act within limits', how3d: 'OrivenAI makes the change itself — never beyond the limits you set.', howNote: 'Rules only watch campaigns that are published on an ad platform.', schedH: 'Scheduled pauses & resumes', schedN: '{n} schedule(s)', schedNone: 'No schedules yet — pause and resume campaigns at set times, for example outside opening hours.', nextRun: 'Next run', openSched: 'Open Scheduler', histH: 'Execution history', histEmpty: 'Nothing has run yet. Every time a rule or schedule acts, the run appears here with its reason, result and time.', statusH: 'Status', statusNote: 'Counted from the runs shown.', timingH: 'Timing', lastRun: 'Last run', noneYet: 'None yet', noPlanned: 'No runs planned', errorsH: 'Errors', noErrors: 'No failed runs in this list.' },
+    nl: { yourRules: 'Je regels', howH: 'Hoe een regel werkt', how1: 'Laat het me weten', how1d: 'OrivenAI meldt het als de voorwaarde klopt. Er verandert niets.', how2: 'Eerst vragen', how2d: 'OrivenAI bereidt de wijziging voor en wacht op je akkoord.', how3: 'Handelen binnen grenzen', how3d: 'OrivenAI voert de wijziging zelf uit — nooit buiten de grenzen die je instelt.', howNote: 'Regels letten alleen op campagnes die op een advertentieplatform gepubliceerd zijn.', schedH: 'Geplande pauzes en hervattingen', schedN: '{n} planning(en)', schedNone: 'Nog geen planningen — pauzeer en hervat campagnes op vaste tijden, bijvoorbeeld buiten openingstijden.', nextRun: 'Volgende uitvoering', openSched: 'Planner openen', histH: 'Uitvoeringsgeschiedenis', histEmpty: 'Er is nog niets uitgevoerd. Elke keer dat een regel of planning iets doet, verschijnt die uitvoering hier met reden, resultaat en tijd.', statusH: 'Status', statusNote: 'Geteld over de getoonde uitvoeringen.', timingH: 'Tijden', lastRun: 'Laatste uitvoering', noneYet: 'Nog geen', noPlanned: 'Niets gepland', errorsH: 'Fouten', noErrors: 'Geen mislukte uitvoeringen in deze lijst.' },
+    de: { yourRules: 'Deine Regeln', howH: 'So funktioniert eine Regel', how1: 'Benachrichtigen', how1d: 'OrivenAI meldet sich, wenn die Bedingung erfüllt ist. Nichts wird geändert.', how2: 'Erst fragen', how2d: 'OrivenAI bereitet die Änderung vor und wartet auf deine Freigabe.', how3: 'Innerhalb von Grenzen handeln', how3d: 'OrivenAI nimmt die Änderung selbst vor — nie über deine Grenzen hinaus.', howNote: 'Regeln beobachten nur Kampagnen, die auf einer Werbeplattform veröffentlicht sind.', schedH: 'Geplante Pausen & Fortsetzungen', schedN: '{n} Zeitplan/Zeitpläne', schedNone: 'Noch keine Zeitpläne — pausiere und starte Kampagnen zu festen Zeiten, etwa außerhalb der Öffnungszeiten.', nextRun: 'Nächste Ausführung', openSched: 'Planer öffnen', histH: 'Ausführungsverlauf', histEmpty: 'Bisher wurde nichts ausgeführt. Jede Aktion einer Regel oder eines Zeitplans erscheint hier mit Grund, Ergebnis und Zeit.', statusH: 'Status', statusNote: 'Gezählt über die angezeigten Ausführungen.', timingH: 'Zeiten', lastRun: 'Letzte Ausführung', noneYet: 'Noch keine', noPlanned: 'Nichts geplant', errorsH: 'Fehler', noErrors: 'Keine fehlgeschlagenen Ausführungen in dieser Liste.' },
+    fr: { yourRules: 'Vos règles', howH: 'Comment fonctionne une règle', how1: 'Me prévenir', how1d: 'OrivenAI vous prévient quand la condition est remplie. Rien ne change.', how2: 'Demander d’abord', how2d: 'OrivenAI prépare la modification et attend votre accord.', how3: 'Agir dans des limites', how3d: 'OrivenAI applique la modification lui-même — jamais au-delà de vos limites.', howNote: 'Les règles ne suivent que les campagnes publiées sur une plateforme publicitaire.', schedH: 'Pauses et reprises planifiées', schedN: '{n} planification(s)', schedNone: 'Aucune planification — mettez en pause et relancez vos campagnes à heures fixes, par exemple hors des heures d’ouverture.', nextRun: 'Prochaine exécution', openSched: 'Ouvrir le planificateur', histH: 'Historique des exécutions', histEmpty: 'Rien n’a encore été exécuté. Chaque action d’une règle ou d’une planification apparaît ici avec sa raison, son résultat et l’heure.', statusH: 'Statut', statusNote: 'Compté sur les exécutions affichées.', timingH: 'Horaires', lastRun: 'Dernière exécution', noneYet: 'Aucune', noPlanned: 'Rien de prévu', errorsH: 'Erreurs', noErrors: 'Aucune exécution en échec dans cette liste.' },
+    es: { yourRules: 'Tus reglas', howH: 'Cómo funciona una regla', how1: 'Avisarme', how1d: 'OrivenAI te avisa cuando se cumple la condición. No cambia nada.', how2: 'Preguntar primero', how2d: 'OrivenAI prepara el cambio y espera tu aprobación.', how3: 'Actuar dentro de límites', how3d: 'OrivenAI hace el cambio por sí mismo — nunca más allá de los límites que fijes.', howNote: 'Las reglas solo vigilan campañas publicadas en una plataforma publicitaria.', schedH: 'Pausas y reanudaciones programadas', schedN: '{n} programación(es)', schedNone: 'Aún no hay programaciones — pausa y reanuda campañas a horas fijas, por ejemplo fuera del horario de apertura.', nextRun: 'Próxima ejecución', openSched: 'Abrir programador', histH: 'Historial de ejecuciones', histEmpty: 'Aún no se ha ejecutado nada. Cada vez que una regla o programación actúa, aparece aquí con su motivo, resultado y hora.', statusH: 'Estado', statusNote: 'Contado sobre las ejecuciones mostradas.', timingH: 'Tiempos', lastRun: 'Última ejecución', noneYet: 'Ninguna', noPlanned: 'Nada programado', errorsH: 'Errores', noErrors: 'No hay ejecuciones fallidas en esta lista.' },
+    pt: { yourRules: 'As suas regras', howH: 'Como funciona uma regra', how1: 'Avisar-me', how1d: 'O OrivenAI avisa quando a condição se verifica. Nada muda.', how2: 'Perguntar primeiro', how2d: 'O OrivenAI prepara a alteração e espera pela sua aprovação.', how3: 'Agir dentro de limites', how3d: 'O OrivenAI faz a alteração sozinho — nunca além dos limites que definir.', howNote: 'As regras só acompanham campanhas publicadas numa plataforma de anúncios.', schedH: 'Pausas e retomas agendadas', schedN: '{n} agendamento(s)', schedNone: 'Ainda sem agendamentos — pause e retome campanhas a horas fixas, por exemplo fora do horário de funcionamento.', nextRun: 'Próxima execução', openSched: 'Abrir agendador', histH: 'Histórico de execuções', histEmpty: 'Ainda nada foi executado. Sempre que uma regra ou agendamento atua, a execução aparece aqui com motivo, resultado e hora.', statusH: 'Estado', statusNote: 'Contado sobre as execuções mostradas.', timingH: 'Tempos', lastRun: 'Última execução', noneYet: 'Nenhuma', noPlanned: 'Nada agendado', errorsH: 'Erros', noErrors: 'Nenhuma execução falhada nesta lista.' },
+  };
+  function X(k, v) { var l = typeof CURRENT_LANG === 'string' && AUX[CURRENT_LANG] ? CURRENT_LANG : 'en'; var s2 = AUX[l][k] || AUX.en[k] || k; return v ? s2.replace(/\{(\w+)\}/g, function (m, x) { return v[x] != null ? v[x] : m; }) : s2; }
+  function nextJobLine() {
+    var j = A.jobs && A.jobs[0];
+    return j ? esc(T('act.' + j.action)) + ' · ' + esc(j.campaign_name || j.campaign_id || '') + '<br><span class="atm-muted">' + esc(localWhen(j.local_time, j.timezone)) + ' · ' + esc(rel(j.run_at)) + '</span>' : '<span class="atm-muted">' + esc(X('noPlanned')) + '</span>';
+  }
   function rules() {
     var list = A.automations.filter(function (a) { return a.kind !== 'schedule'; });
-    if (!list.length) return '<div class="atm-card atm-empty"><h2>' + esc(T('rulesEmptyH')) + '</h2><p>' + esc(T('rulesEmptyP')) + '</p><button type="button" class="atm-btn atm-btn-primary" data-au="new-rule">+ ' + esc(T('newRule')) + '</button></div>';
-    return '<div class="atm-list">' + list.map(autoCard).join('') + '</div>';
+    var scheds = A.automations.filter(function (a) { return a.kind === 'schedule'; });
+    var main = '<section class="atm-card atm-main-card" aria-labelledby="auRulesH"><div class="atm-card-hd"><h2 class="atm-h2" id="auRulesH">' + esc(X('yourRules')) + '</h2><span class="atm-count">' + list.length + '</span></div>' +
+      (list.length ? '<div class="atm-list">' + list.map(autoCard).join('') + '</div>'
+        : '<div class="atm-empty-in"><h3>' + esc(T('rulesEmptyH')) + '</h3><p>' + esc(T('rulesEmptyP')) + '</p><button type="button" class="atm-btn atm-btn-primary" data-au="new-rule">+ ' + esc(T('newRule')) + '</button></div>') + '</section>';
+    var how = '<section class="atm-card" aria-labelledby="auHowH"><h2 class="atm-h2" id="auHowH">' + esc(X('howH')) + '</h2><dl class="atm-how">' +
+      [['how1', 'how1d'], ['how2', 'how2d'], ['how3', 'how3d']].map(function (x) { return '<div><dt>' + esc(X(x[0])) + '</dt><dd>' + esc(X(x[1])) + '</dd></div>'; }).join('') + '</dl><p class="atm-muted atm-fine">' + esc(X('howNote')) + '</p></section>';
+    var sched = '<section class="atm-card" aria-labelledby="auSchH"><h2 class="atm-h2" id="auSchH">' + esc(X('schedH')) + '</h2>' +
+      (scheds.length ? '<p>' + esc(X('schedN', { n: scheds.length })) + '</p><p class="atm-kv"><span class="atm-muted">' + esc(X('nextRun')) + '</span><span>' + nextJobLine() + '</span></p>' : '<p class="atm-muted">' + esc(X('schedNone')) + '</p>') +
+      '<div><button type="button" class="atm-btn" data-au="open-scheduler">' + esc(X('openSched')) + '</button></div></section>';
+    return '<div class="atm-split2">' + main + '<aside class="atm-side">' + how + sched + '</aside></div>';
   }
   function scheduler() {
     var list = A.automations.filter(function (a) { return a.kind === 'schedule'; });
@@ -799,8 +824,21 @@
   }
   function activity() {
     var F = [['all', 'fAll'], ['completed', 'fCompleted'], ['failed', 'fFailed'], ['partial', 'fPartial'], ['pending_approval', 'fPending'], ['skipped', 'fSkipped'], ['cancelled', 'fCancelled']];
-    return '<div class="atm-filters" role="group" aria-label="' + esc(T('tabActivity')) + '">' + F.map(function (f) { return '<button type="button" class="atm-chip' + (A.filter === f[0] ? ' is-on' : '') + '" aria-pressed="' + (A.filter === f[0]) + '" data-au="filter" data-filter="' + f[0] + '">' + esc(T(f[1])) + '</button>'; }).join('') + '</div>' +
-      '<div class="atm-card">' + (A.activity.length ? '<ul class="atm-acts">' + A.activity.map(actRow).join('') + '</ul>' : '<p class="atm-muted">' + esc(T('noActivity')) + '</p>') + '</div>';
+    var list = A.activity || [];
+    var main = '<section class="atm-card atm-main-card" aria-labelledby="auHistH"><div class="atm-card-hd"><h2 class="atm-h2" id="auHistH">' + esc(X('histH')) + '</h2><span class="atm-count">' + list.length + '</span></div>' +
+      '<div class="atm-filters" role="group" aria-label="' + esc(T('tabActivity')) + '">' + F.map(function (f) { return '<button type="button" class="atm-chip' + (A.filter === f[0] ? ' is-on' : '') + '" aria-pressed="' + (A.filter === f[0]) + '" data-au="filter" data-filter="' + f[0] + '">' + esc(T(f[1])) + '</button>'; }).join('') + '</div>' +
+      (list.length ? '<ul class="atm-acts">' + list.map(actRow).join('') + '</ul>' : '<div class="atm-empty-in"><p>' + esc(A.filter && A.filter !== 'all' ? T('noActivity') : X('histEmpty')) + '</p></div>') + '</section>';
+    var by = {}; list.forEach(function (e) { by[e.status] = (by[e.status] || 0) + 1; });
+    var rows = ['completed', 'pending_approval', 'partial', 'skipped', 'failed', 'cancelled'].map(function (k) { return '<li><span>' + esc(T(EX[k])) + '</span><b>' + (by[k] || 0) + '</b></li>'; }).join('');
+    var status = '<section class="atm-card" aria-labelledby="auStH"><h2 class="atm-h2" id="auStH">' + esc(X('statusH')) + '</h2><ul class="atm-stat">' + rows + '</ul><p class="atm-muted atm-fine">' + esc(X('statusNote')) + '</p></section>';
+    var last = list[0];
+    var timing = '<section class="atm-card" aria-labelledby="auTmH"><h2 class="atm-h2" id="auTmH">' + esc(X('timingH')) + '</h2>' +
+      '<p class="atm-kv"><span class="atm-muted">' + esc(X('lastRun')) + '</span><span>' + (last ? esc(T('act.' + last.action)) + ' · ' + esc(last.campaign_name || last.campaign_id || '') + '<br><span class="atm-muted">' + esc(rel(last.created_at)) + '</span>' : '<span class="atm-muted">' + esc(X('noneYet')) + '</span>') + '</span></p>' +
+      '<p class="atm-kv"><span class="atm-muted">' + esc(X('nextRun')) + '</span><span>' + nextJobLine() + '</span></p></section>';
+    var errs = list.filter(function (e) { return e.status === 'failed' || e.status === 'partial'; }).slice(0, 3);
+    var errors = '<section class="atm-card" aria-labelledby="auErH"><h2 class="atm-h2" id="auErH">' + esc(X('errorsH')) + '</h2>' +
+      (errs.length ? '<ul class="atm-errs">' + errs.map(function (e) { return '<li><b>' + esc(T('act.' + e.action)) + ' · ' + esc(e.campaign_name || e.campaign_id || '') + '</b><span class="atm-warn">' + esc(reason(e.reason)) + (e.error ? ' — ' + esc(String(e.error).slice(0, 120)) : '') + '</span><span class="atm-muted">' + esc(rel(e.created_at)) + '</span></li>'; }).join('') + '</ul>' : '<p class="atm-muted">' + esc(X('noErrors')) + '</p>') + '</section>';
+    return '<div class="atm-split2">' + main + '<aside class="atm-side">' + status + timing + errors + '</aside></div>';
   }
 
   // ── Plain-language summary (also shown before saving) ─────────────
@@ -1102,6 +1140,7 @@
     if (name === 'reload') return load();
     if (name === 'new-rule') return openBuilder('rule');
     if (name === 'new-schedule') return openBuilder('schedule');
+    if (name === 'open-scheduler') { if (window.orvAppNav) window.orvAppNav.go('auto-scheduler'); else show('scheduler'); return; }
     if (name === 'settings') return openSettings();
     if (name === 'launch') { if (typeof window._orvNav === 'function') window._orvNav('launch', 'page-launch'); return; }
     if (name === 'connect') { if (typeof window.bizGoTo === 'function') window.bizGoTo('connections'); else if (typeof window._orvNav === 'function') window._orvNav('business-brain'); return; }

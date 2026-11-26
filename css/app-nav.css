@@ -250,7 +250,7 @@ body:not(.dark-mode) .orv-related b { color: #18181A; }
    15 pages in six sections. The vertical rhythm tightens in steps as the
    window gets shorter, so the whole navigation stays visible at common
    laptop sizes. Desktop sidebar only: the phone drawer keeps 44px rows. */
-@media (min-width: 769px) and (max-height: 960px) {
+@media (min-width: 769px) and (max-height: 1070px) {
   html body .orv-sb.onv-mounted .orv-sb-nav { padding-top: 6px !important; padding-bottom: 8px !important; }
   .orv-sb .onv-sec { padding: 7px 0 2px; }
   .orv-sb .onv-sec + .onv-sec { margin-top: 2px; }
@@ -261,7 +261,7 @@ body:not(.dark-mode) .orv-related b { color: #18181A; }
 }
 /* (Up to 840px, not 820px: the 31px rows above needed 830px even with no
    gap, so 821–836px tall windows used to scroll.) */
-@media (min-width: 769px) and (max-height: 840px) {
+@media (min-width: 769px) and (max-height: 950px) {
   .orv-sb .onv-sec { padding: 5px 0 1px; }
   .orv-sb .onv-sec__h { margin-bottom: 2px; font-size: 10px; }
   .orv-sb .onv-list { gap: 0; }
@@ -271,7 +271,7 @@ body:not(.dark-mode) .orv-related b { color: #18181A; }
   .orv-sb .onv-item.is-on::before { top: 6px; bottom: 6px; }
   .orv-sb .onv-route { top: 27px; bottom: 14px; }
 }
-@media (min-width: 769px) and (max-height: 740px) {
+@media (min-width: 769px) and (max-height: 850px) {
   .orv-sb .onv-sec { padding: 3px 0 0; }
   .orv-sb .onv-sec + .onv-sec { margin-top: 1px; }
   .orv-sb .onv-sec__h { margin-bottom: 1px; }
@@ -280,7 +280,7 @@ body:not(.dark-mode) .orv-related b { color: #18181A; }
   .orv-sb .onv-ic svg { width: 15px; height: 15px; }
   .orv-sb .onv-route { top: 23px; bottom: 12px; }
 }
-@media (min-width: 769px) and (max-height: 680px) {
+@media (min-width: 769px) and (max-height: 790px) {
   html body .orv-sb.onv-mounted .orv-sb-nav { padding-top: 2px !important; padding-bottom: 4px !important; }
   .orv-sb .onv-sec { padding: 2px 0 0; }
   .orv-sb .onv-sec + .onv-sec { margin-top: 0; }
@@ -289,7 +289,7 @@ body:not(.dark-mode) .orv-related b { color: #18181A; }
 }
 /* Short windows (a 1366×768 or 1280×720 laptop with the browser's own bars):
    a slimmer logo row and footer give the pages the room. */
-@media (min-width: 769px) and (max-height: 760px) {
+@media (min-width: 769px) and (max-height: 870px) {
   html body .orv-sb.onv-mounted .orv-sb-logo { min-height: 52px; padding: 10px 18px 8px !important; }
   html body .orv-sb.onv-mounted .orv-sb-logo-img { width: 32px !important; }
   html body .orv-sb.onv-mounted .orv-sb-bottom { padding: 4px 12px 8px !important; }
@@ -300,20 +300,42 @@ body:not(.dark-mode) .orv-related b { color: #18181A; }
    sidebar needs with no gap − 8px safety) / 9, cap). Whatever the window
    height, the list therefore still fits: the sidebar never needs to scroll. */
 @media (min-width: 769px) {
-  .orv-sb .onv-list { gap: clamp(1px, calc((100vh - 926px) / 9), 4px); }
+  .orv-sb .onv-list { gap: clamp(1px, calc((100vh - 1036px) / 9), 4px); }
 }
-@media (min-width: 769px) and (max-height: 960px) {
-  .orv-sb .onv-list { gap: clamp(0px, calc((100vh - 838px) / 9), 3px); }
+@media (min-width: 769px) and (max-height: 1070px) {
+  .orv-sb .onv-list { gap: clamp(0px, calc((100vh - 948px) / 9), 3px); }
 }
-@media (min-width: 769px) and (max-height: 840px) {
-  .orv-sb .onv-list { gap: clamp(0px, calc((100vh - 762px) / 9), 2px); }
+@media (min-width: 769px) and (max-height: 950px) {
+  .orv-sb .onv-list { gap: clamp(0px, calc((100vh - 872px) / 9), 2px); }
 }
-@media (min-width: 769px) and (max-height: 760px) {
-  .orv-sb .onv-list { gap: clamp(0px, calc((100vh - 749px) / 9), 2px); }
+@media (min-width: 769px) and (max-height: 870px) {
+  .orv-sb .onv-list { gap: clamp(0px, calc((100vh - 859px) / 9), 2px); }
 }
-@media (min-width: 769px) and (max-height: 740px) {
-  .orv-sb .onv-list { gap: clamp(0px, calc((100vh - 672px) / 9), 2px); }
+@media (min-width: 769px) and (max-height: 850px) {
+  .orv-sb .onv-list { gap: clamp(0px, calc((100vh - 782px) / 9), 2px); }
 }
-@media (min-width: 769px) and (max-height: 680px) {
-  .orv-sb .onv-list { gap: clamp(0px, calc((100vh - 645px) / 9), 2px); }
+@media (min-width: 769px) and (max-height: 790px) {
+  .orv-sb .onv-list { gap: clamp(0px, calc((100vh - 755px) / 9), 2px); }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   Workspace redesign (2026-11): one green family for the whole sidebar.
+   Every group carries a continuous vertical line through its icons —
+   fresh green at the top, OrivenAI green in the middle, deep green at
+   the bottom. Quiet in other groups, full strength in the open one.
+   ════════════════════════════════════════════════════════════════ */
+:root {
+  --og-fresh: #C9F27A;   /* highlights */
+  --og-mid: #7CCB45;     /* primary green, lines' middle */
+  --og-rich: #2E9E5B;    /* secondary accents */
+  --og-deep: #145A3A;    /* premium surfaces, lines' end */
+  --og-muted: #5F7A66;   /* subdued details */
+}
+.onv [data-sec] { --sx: var(--onv-acc); --onv-g1: #8FC43F; --onv-g2: #4E9A2E; --onv-g3: #1E5E3B; }
+body.dark-mode .onv [data-sec] { --onv-g1: #D6FF8C; --onv-g2: #86D04E; --onv-g3: #1F7A4D; }
+.onv-sec__h { padding-left: 10px; }
+.onv .onv-route { left: 23px; width: 2.5px; border-radius: 3px; background: linear-gradient(180deg, var(--onv-g1), var(--onv-g2) 52%, var(--onv-g3)); opacity: .32; transition: opacity .3s var(--onv-ease); }
+.onv .onv-sec.is-active .onv-route { opacity: .95; }
+.onv .onv-route i { display: none; }
+.onv-item.is-on .onv-ic { color: var(--onv-acc); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--onv-g2) 55%, transparent); }
+.onv-sec.is-active .onv-sec__h { color: var(--onv-strong); }

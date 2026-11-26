@@ -160,3 +160,267 @@ body.dark-mode #orvHubTabsCampaigns { --app-card-bg: rgba(255, 255, 255, .028); 
 }
 /* Empty plan pages ("No marketing plan yet", "No progress steps yet") are a card too: full width, text centred inside. */
 .mpl-empty { max-width: none; margin: 0; text-align: center; box-sizing: border-box; padding: 56px 32px; border: 1px solid var(--app-card-line, var(--border)); border-radius: var(--app-card-r); background: var(--app-card-bg, var(--surface)); }
+
+/* ── 8. One green card system (2026-11-25) ─────────────────────────────
+   The sidebar's green family (--og-* in app-nav.css) carried into every
+   card, so cards from different pages read as one product:
+     --og-card        the ordinary card: a near-neutral surface with a green bias
+     --og-card-line   its border
+     --og-card-soft   a card inside a card (quieter fill)
+     --og-card-head   the page title card: the same surface with a green wash
+     --og-card-hi     the one card per page that matters most ("Next up", key results)
+   Every page's own card tokens point here (Dashboard, plan pages, Campaigns),
+   so nothing is black on one page and grey on the next. */
+.page, .onv-panel {
+  --og-card: #FFFFFF;
+  --og-card-line: #D9E6CE;
+  --og-card-soft: #F1F7EA;
+  --og-card-head: linear-gradient(135deg, #E3F3D2 0%, #F4FAEE 62%, #FFFFFF 100%);
+  --og-card-hi: linear-gradient(150deg, #DDF1C8 0%, #ECF7E1 100%);
+  --og-card-hi-line: #A9D58A;
+  --og-shadow: 0 1px 2px rgba(24, 48, 20, .06), 0 10px 26px -12px rgba(30, 70, 30, .22);
+  --surface: var(--og-card);
+  --border: var(--og-card-line);
+}
+body.dark-mode .page, body.dark-mode .onv-panel {
+  --og-card: #16211A;
+  --og-card-line: rgba(168, 222, 128, .15);
+  --og-card-soft: rgba(168, 222, 128, .065);
+  --og-card-head: linear-gradient(135deg, #24452B 0%, #1B2E20 58%, #17231B 100%);
+  --og-card-hi: linear-gradient(150deg, #2D5C35 0%, #22472A 100%);
+  --og-card-hi-line: rgba(176, 230, 120, .38);
+  --og-shadow: 0 1px 0 rgba(255, 255, 255, .045) inset, 0 12px 30px -14px rgba(0, 0, 0, .7);
+  --surface: var(--og-card);
+  --border: var(--og-card-line);
+}
+#bizPanelOverview { --ccx-surface: var(--og-card); --ccx-line: var(--og-card-line); --ccx-raise: var(--og-card-soft); }
+.onv-panel { --onv-surface: var(--og-card); --onv-line: var(--og-card-line); }
+#bizPanelOverview, .onv-panel, body.dark-mode #orvHubTabsCampaigns { --app-card-bg: var(--og-card); --app-card-line: var(--og-card-line); }
+/* Page title cards: the green wash, like the sidebar's active group. */
+#bizPanelOverview .ccx-hd, #page-marketing-plan .mpl-head, #page-progress .prg-head, .rx-wrap > .rx-head,
+#page-create .cr2-hero, #page-my-content .mcl-head, #page-launch .lq-hdr, #orvHubTabsCampaigns .camp-shell-hdr,
+.onv-cb > .onv-cb__head, .atm-wrap > .atm-head, .rx-head.gx-head { background: var(--og-card-head); }
+/* Growth pages (Ad Simulator, Audiences, Creative Testing, Comparison, Advertising Settings, …): the title block is a card too. */
+.rx-head.gx-head { box-sizing: border-box; margin: 0; padding: var(--app-card-pad); border: 1px solid var(--app-card-line, var(--border)); border-radius: var(--app-card-r); }
+@media (min-width: 1025px) { .rx-head.gx-head { padding-right: 24px; } }
+/* The card that matters most on a page. */
+.og-hi, #page-progress .prg-next, #mpl-roadmap .mpl-next, .asim-tile--key {
+  background: var(--og-card-hi) !important;
+  border-color: var(--og-card-hi-line) !important;
+}
+/* Cards inside cards use the quieter green fill. */
+.ins-sec .ins-card, .ins-sec .ins-action, .ins-sec .ins-rec li,
+.gx-sec .gx-card, .gx-sec .gx-aud, .gx-sec .gx-saved__i, .gx-sec .gx-set { background: var(--og-card-soft); }
+
+/* ── 9. Campaigns page structure (js/campaignsShell.js) ─────────────── */
+.cmx-card { box-sizing: border-box; padding: var(--app-card-pad); border: 1px solid var(--app-card-line, var(--border)); border-radius: var(--app-card-r); background: var(--app-card-bg, var(--surface)); min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.cmx-card h2 { margin: 0; font-size: 16px; font-weight: 700; color: var(--charcoal); letter-spacing: -.01em; }
+.cmx-sub { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.55; max-width: 72ch; }
+.lq-hub.cmx-on { display: flex; flex-direction: column; gap: 16px; }
+.lq-hub.cmx-on > .lq-hdr { margin: 0 !important; }
+.cmx-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.cmx-tile { gap: 4px; }
+.cmx-tile__k { font-size: 13px; font-weight: 600; color: var(--muted); }
+.cmx-tile b { font-size: 28px; line-height: 1.1; font-weight: 700; color: var(--charcoal); font-variant-numeric: tabular-nums; }
+.cmx-tile__s { font-size: 12.5px; color: var(--muted); }
+.cmx-tile--hi { background: var(--og-card-hi); border-color: var(--og-card-hi-line); }
+.cmx-tile--warn { border-color: color-mix(in srgb, #F5B84A 45%, var(--border)); }
+.cmx-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: 16px; align-items: stretch; }
+.cmx-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.cmx-side > .cmx-card:last-child { flex: 1 1 auto; }
+.cmx-list { gap: 14px; }
+.cmx-list .lq-filters { margin: 0 !important; }
+.cmx-list .lq-workspace-row { margin: 0 !important; flex: 1 1 auto; display: flex; flex-direction: column; }
+.cmx-list .lq-campaigns-col { flex: 1 1 auto; display: flex; flex-direction: column; }
+.cmx-list .camp-hub-empty { flex: 1 1 auto; margin: 0 !important; border: 1px dashed var(--border) !important; border-radius: 14px !important; background: var(--og-card-soft) !important; min-height: 260px; }
+.cmx-list .camp-hub-empty-title { font-size: 18px; }
+.cmx-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.cmx-acts--c { justify-content: center; margin-top: 6px; }
+.cmx-btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: var(--charcoal); border: 1px solid var(--border); background: var(--surface); }
+.cmx-btn:hover { border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 60%, transparent); }
+.cmx-btn:focus-visible { outline: 2px solid var(--og-mid, #7CCB45); outline-offset: 2px; }
+.cmx-btn--primary { background: var(--green, #B7FF2A); border-color: transparent; color: #10140C; }
+.cmx-next p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--charcoal); }
+.cmx-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.cmx-bar { display: grid; grid-template-columns: minmax(0, 1fr) 70px 24px; gap: 10px; align-items: center; font-size: 13px; color: var(--c2, var(--charcoal)); }
+.cmx-bar i { height: 6px; border-radius: 99px; background: var(--og-card-soft); overflow: hidden; }
+.cmx-bar em { display: block; height: 100%; border-radius: 99px; background: var(--og-mid, #7CCB45); }
+.cmx-bar--warning em { background: #F5B84A; } .cmx-bar--blocked em, .cmx-bar--failed em { background: #FF7A6E; }
+.cmx-bar b { text-align: right; font-variant-numeric: tabular-nums; }
+.cmx-empty-line { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.5; padding: 12px 14px; border: 1px dashed var(--border); border-radius: 12px; }
+@media (max-width: 1100px) { .cmx-grid { grid-template-columns: minmax(0, 1fr); } .cmx-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .cmx-sum { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; } .cmx-tile b { font-size: 22px; } }
+.cmx-list .camp-hub-empty { max-width: none !important; width: auto !important; align-self: stretch; }
+.cmx-list .camp-hub-empty-ico { color: var(--og-deep, #2E7D32); }
+body.dark-mode .cmx-list .camp-hub-empty-ico { color: var(--og-fresh, #C9F27A); }
+/* My Creatives: its panel already has the page gutter, so the list frame inside adds none (same edges as every page). */
+@media (min-width: 1025px) { #page-my-content .mcl-page > .mcl { padding-left: 0 !important; padding-right: 0 !important; } }
+/* The Dashboard is a dark design in both themes (light text on its own dark ground): its cards
+   always use the dark green values, also when the app is in light mode. */
+#bizPanelOverview {
+  --og-card: #16211A; --og-card-line: rgba(168, 222, 128, .15); --og-card-soft: rgba(168, 222, 128, .065);
+  --og-card-head: linear-gradient(135deg, #24452B 0%, #1B2E20 58%, #17231B 100%);
+  --og-card-hi: linear-gradient(150deg, #2D5C35 0%, #22472A 100%); --og-card-hi-line: rgba(176, 230, 120, .38);
+  --og-shadow: 0 1px 0 rgba(255, 255, 255, .045) inset, 0 12px 30px -14px rgba(0, 0, 0, .7);
+}
+
+
+/* ── 10. Substantial cards (2026-11-26, reference: fuller colour, rounded, depth) ──
+   Every card container gets the same radius, a solid surface and a subtle shadow,
+   so cards read as objects instead of outlines on a black page. */
+.page .rx-card, .page .gx-card, .page .ova-card, .page .atm-card, .page .atm-tile, .page .cmx-card, .page .prg-card, .page .prg-stat,
+.page .mcl-kind, .page .mcl-head, .page .pcm-periodcard, .page .pcm-sec, .page .pcm-summary, .page .asim-tile, .page .asim-sc,
+.page .ins-sec, .page .gx-sec, .page .lq-hdr, .page .prf-chart-card-primary, #page-performance #prfExplorerGrid .prf-mgroup,
+#bizPanelOverview .ccx-card, #bizPanelOverview .ccx-hd, .page .rx-head.gx-head, #prfOvTitle, .page .mpl-head, .page .prg-head, .page .cr2-hero,
+.page #mpl-roadmap, .page .mpl-card, .page .mpl-toc, .page .prg-phase, .page .cf-card, .page .pt-tabs, .page .dsh-card, .page .nda-card {
+  box-shadow: var(--og-shadow);
+}
+/* Colour tones for the cards that should stand out (used sparingly, one family). */
+.og-tone-fresh { background: linear-gradient(150deg, #CDEFA7 0%, #B3E287 100%) !important; border-color: #9FD172 !important; color: #14260F;
+  --charcoal: #14260F; --c2: #1F3A18; --muted: rgba(20, 38, 15, .66); --onv-strong: #14260F; --onv-text: rgba(20, 38, 15, .75); --onv-muted: rgba(20, 38, 15, .55); --ccx-ink: #14260F; --ccx-sub: rgba(20, 38, 15, .72); --ccx-muted: rgba(20, 38, 15, .55); --a-text: #14260F; --a-text-2: rgba(20, 38, 15, .72); --a-text-3: rgba(20, 38, 15, .58); }
+.og-tone-rich { background: linear-gradient(150deg, #3C8A4A 0%, #2B6B38 100%) !important; border-color: #4C9A59 !important; color: #F1FAEA;
+  --charcoal: #F4FBEE; --c2: #E3F3D8; --muted: rgba(240, 250, 232, .74); --onv-strong: #F4FBEE; --onv-text: rgba(240, 250, 232, .82); --onv-muted: rgba(240, 250, 232, .66); --ccx-ink: #F4FBEE; --ccx-sub: rgba(240, 250, 232, .8); --ccx-muted: rgba(240, 250, 232, .64); --a-text: #F4FBEE; --a-text-2: rgba(240, 250, 232, .8); --a-text-3: rgba(240, 250, 232, .66); }
+.og-tone-deep { background: linear-gradient(150deg, #24522E 0%, #1B3F23 100%) !important; border-color: #336B3E !important; color: #EAF6E2;
+  --charcoal: #EEF8E8; --c2: #DCEFD2; --muted: rgba(234, 246, 226, .7); --onv-strong: #EEF8E8; --onv-text: rgba(234, 246, 226, .8); --onv-muted: rgba(234, 246, 226, .62); --ccx-ink: #EEF8E8; --ccx-sub: rgba(234, 246, 226, .78); --ccx-muted: rgba(234, 246, 226, .6); --a-text: #EEF8E8; --a-text-2: rgba(234, 246, 226, .78); --a-text-3: rgba(234, 246, 226, .62); }
+.og-tone-warn { background: linear-gradient(150deg, #F7D466 0%, #EFBD3F 100%) !important; border-color: #E2AE2C !important; color: #2C2105;
+  --charcoal: #2C2105; --c2: #3B2D08; --muted: rgba(44, 33, 5, .7); --onv-strong: #2C2105; --onv-text: rgba(44, 33, 5, .78); --onv-muted: rgba(44, 33, 5, .6); --ccx-ink: #2C2105; --ccx-sub: rgba(44, 33, 5, .76); --ccx-muted: rgba(44, 33, 5, .6); --a-text: #2C2105; --a-text-2: rgba(44, 33, 5, .76); --a-text-3: rgba(44, 33, 5, .6); }
+/* AI Plans & Tasks tabs */
+.pt-wrap { padding-bottom: 0 !important; }
+.pt-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 6px; border: 1px solid var(--og-card-line); border-radius: var(--app-card-r); background: var(--og-card); margin: 0 0 4px; }
+.pt-tab { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; border-radius: 12px; color: var(--onv-text, var(--muted)); }
+.pt-tab span { font-size: 15px; font-weight: 700; color: var(--onv-strong, var(--charcoal)); }
+.pt-tab small { font-size: 12.5px; color: var(--onv-muted, var(--muted)); }
+.pt-tab:hover { background: var(--og-card-soft); }
+.pt-tab.is-on { background: var(--og-card-hi); box-shadow: inset 0 0 0 1px var(--og-card-hi-line); }
+.pt-tab:focus-visible { outline: 2px solid var(--og-mid, #7CCB45); outline-offset: 2px; }
+
+/* ── 11. Needs Attention (js/needsAttention.js) ───────────────────────
+   Yellow is the attention colour: problems and warnings are recognisable at a glance. */
+.nda { display: flex; flex-direction: column; gap: 16px; padding: var(--app-gutter); box-sizing: border-box; }
+.nda-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: var(--app-card-pad); border-radius: var(--app-card-r); border: 1px solid #E8C55A; background: linear-gradient(135deg, rgba(247, 212, 102, .22) 0%, var(--og-card) 62%); box-shadow: var(--og-shadow); }
+.nda-head h1 { margin: 0 0 6px; font-size: clamp(24px, 2vw, 30px); letter-spacing: -.02em; color: var(--charcoal); }
+.nda-head p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 72ch; }
+.nda-refresh, .nda-act { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--charcoal); background: var(--og-card); border: 1px solid var(--og-card-line); white-space: nowrap; }
+.nda-refresh:hover, .nda-act:hover { border-color: #D9A92A; }
+.nda-refresh:focus-visible, .nda-act:focus-visible { outline: 2px solid #E2AE2C; outline-offset: 2px; }
+.nda-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.nda-tile { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: var(--app-card-r); border: 1px solid var(--og-card-line); background: var(--og-card); box-shadow: var(--og-shadow); }
+.nda-tile span { font-size: 13px; font-weight: 600; color: var(--muted); }
+.nda-tile b { font-size: 30px; line-height: 1.1; font-weight: 750; color: var(--charcoal); font-variant-numeric: tabular-nums; }
+.nda-tile b.nda-time { font-size: 24px; }
+.nda-tile small { font-size: 12.5px; color: var(--muted); }
+.nda-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.nda-card { display: flex; flex-direction: column; gap: 10px; padding: var(--app-card-pad); border-radius: var(--app-card-r); border: 1px solid var(--og-card-line); background: var(--og-card); box-shadow: var(--og-shadow); border-top: 4px solid var(--og-card-line); }
+.nda-card.is-problem { border-top-color: #E0533F; }
+.nda-card.is-warning { border-top-color: #EDB83A; }
+.nda-card.is-ready { border-top-color: var(--og-mid, #7CCB45); }
+.nda-card.is-ok { border-top-color: color-mix(in srgb, var(--og-mid, #7CCB45) 45%, var(--og-card-line)); }
+.nda-card__h { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.nda-card__h h2 { margin: 0; font-size: 16px; font-weight: 700; color: var(--charcoal); }
+.nda-card__sub { margin: -4px 0 0; font-size: 12.5px; color: var(--muted); }
+.nda-badge { min-width: 26px; text-align: center; padding: 3px 8px; border-radius: 99px; font: 700 12px/1.2 'Geist Mono', ui-monospace, monospace; background: var(--og-card-soft); color: var(--charcoal); }
+.nda-card.is-problem .nda-badge, .nda-card.is-warning .nda-badge { background: #F7D466; color: #2C2105; }
+.nda-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.nda-item { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--og-card-soft); border: 1px solid transparent; }
+.nda-item.is-problem { background: rgba(224, 83, 63, .08); border-color: rgba(224, 83, 63, .28); }
+.nda-item.is-warning { background: rgba(239, 189, 63, .12); border-color: rgba(226, 174, 44, .4); }
+.nda-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--og-mid, #7CCB45); }
+.nda-item.is-problem .nda-dot { background: #E0533F; box-shadow: 0 0 0 3px rgba(224, 83, 63, .18); }
+.nda-item.is-warning .nda-dot { background: #EDB83A; box-shadow: 0 0 0 3px rgba(237, 184, 58, .22); }
+.nda-item__b { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nda-item__b b { font-size: 14px; color: var(--charcoal); line-height: 1.4; }
+.nda-item__b span { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.nda-empty { flex: 1 1 auto; margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 84px; border-radius: 12px; border: 1px dashed var(--og-card-line); color: var(--muted); font-size: 13.5px; }
+.nda-empty i { font-style: normal; color: var(--og-mid, #7CCB45); font-weight: 700; }
+.nda-howl { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.nda-howl b { color: var(--charcoal); }
+@media (max-width: 1100px) { .nda-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .nda-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 560px) { .nda { padding: 16px; } .nda-head { flex-direction: column; } .nda-item { grid-template-columns: 12px minmax(0, 1fr); } .nda-item .nda-act { grid-column: 2; justify-self: start; } }
+
+/* ── 12. Dashboard (js/dashboardV2.js) ────────────────────────────────
+   Performance first and largest; Needs Attention and platforms beside it;
+   three compact cards below. The older Dashboard blocks stay in the page,
+   hidden (they still compute the signals Needs Attention reads). */
+#bizPanelOverview.dsh-on > :not(#dshRoot) { display: none !important; }
+.dsh { display: flex; flex-direction: column; gap: 16px; }
+#bizPanelOverview .dsh { --charcoal: #F2F6EE; --muted: rgba(232, 242, 226, .62); --c2: rgba(232, 242, 226, .8); color: var(--charcoal); }
+.dsh h1, .dsh h2 { margin: 0; color: var(--charcoal); }
+.dsh-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px; border-radius: var(--app-card-r); border: 1px solid var(--og-card-line); background: var(--og-card-head); box-shadow: var(--og-shadow); }
+.dsh-head h1 { font-size: clamp(22px, 1.9vw, 28px); letter-spacing: -.02em; }
+.dsh-head p { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+.dsh select { box-sizing: border-box; min-height: 36px; padding: 6px 30px 6px 12px; border-radius: 10px; border: 1px solid var(--og-card-line); background: var(--og-card); color: var(--charcoal); font: inherit; font-size: 13.5px; font-weight: 600; max-width: 260px; }
+.dsh-card { box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 20px 22px; border-radius: 18px; border: 1px solid var(--og-card-line); background: var(--og-card); box-shadow: var(--og-shadow); }
+.dsh-card__h { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dsh-card__h h2 { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.dsh-row1 { display: grid; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); gap: 16px; align-items: stretch; }
+.dsh-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.dsh-side > .dsh-card:first-child { flex: 1 1 auto; }
+.dsh-row2 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.dsh-sel { display: flex; flex-wrap: wrap; gap: 10px; }
+.dsh-sel label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.dsh-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.dsh-kpi { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 14px; background: rgba(0, 0, 0, .16); border: 1px solid rgba(190, 240, 150, .14); min-width: 0; }
+.dsh-kpi span { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.dsh-kpi b { font-size: 24px; line-height: 1.15; font-weight: 750; color: var(--charcoal); font-variant-numeric: tabular-nums; }
+.dsh-kpi small { font-size: 11.5px; color: var(--muted); }
+.dsh-kpi small.is-good { color: #9FE06A; }
+.dsh-kpi small.is-bad { color: #FF9B8A; }
+.dsh-kpi.is-on { background: linear-gradient(150deg, #CDEFA7 0%, #B3E287 100%); border-color: #9FD172; }
+.dsh-kpi.is-on span, .dsh-kpi.is-on small { color: rgba(20, 38, 15, .7); }
+.dsh-kpi.is-on b { color: #14260F; }
+.dsh-kpi.is-on small.is-good { color: #1E6B2A; }
+.dsh-kpi.is-on small.is-bad { color: #A2311F; }
+.dsh-kpi:focus-visible { outline: 2px solid #C9F27A; outline-offset: 2px; }
+.dsh-chart { min-height: 200px; }
+.dsh-chart .ova-legend { margin: 0 0 8px; }
+.dsh-loading, .dsh-muted { color: var(--muted); font-size: 13.5px; margin: 0; }
+.dsh-loading { min-height: 280px; display: grid; place-items: center; }
+.dsh-fine { margin: 0; font-size: 12px; color: var(--muted); }
+.dsh-btn { all: unset; box-sizing: border-box; cursor: pointer; align-self: flex-start; margin-top: auto; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 650; color: var(--charcoal); background: rgba(0, 0, 0, .14); border: 1px solid rgba(190, 240, 150, .2); }
+.dsh-btn:hover { border-color: rgba(190, 240, 150, .5); }
+.dsh-btn--primary { background: var(--green, #B7FF2A); color: #10140C; border-color: transparent; margin-top: 0; }
+.dsh-btn:focus-visible, .dsh-link:focus-visible { outline: 2px solid #C9F27A; outline-offset: 2px; }
+.dsh-link { all: unset; cursor: pointer; font-size: 13px; font-weight: 650; color: #C9F27A; }
+.dsh-count { min-width: 26px; text-align: center; padding: 3px 9px; border-radius: 99px; font: 750 13px/1.2 "Geist Mono", ui-monospace, monospace; background: rgba(0, 0, 0, .16); }
+.dsh-attn.og-tone-warn .dsh-btn { background: rgba(44, 33, 5, .1); border-color: rgba(44, 33, 5, .25); }
+.dsh-attn.og-tone-warn .dsh-count { background: #2C2105; color: #F7D466; }
+.dsh-att { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.dsh-att li { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 10px; align-items: baseline; font-size: 13.5px; font-weight: 600; line-height: 1.4; }
+.dsh-att li i { width: 9px; height: 9px; border-radius: 50%; background: #2C2105; transform: translateY(1px); }
+.dsh-att li.is-problem i { background: #B7341F; }
+.dsh-ok { margin: 0; display: flex; gap: 8px; font-size: 13.5px; color: var(--c2); }
+.dsh-ok i { font-style: normal; color: #9FE06A; font-weight: 800; }
+.dsh-platlist { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.dsh-platlist li { display: grid; grid-template-columns: 10px minmax(0, 1fr); column-gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; background: rgba(0, 0, 0, .14); font-size: 13px; font-weight: 650; color: var(--charcoal); }
+.dsh-platlist li i { width: 8px; height: 8px; border-radius: 50%; background: rgba(232, 242, 226, .35); grid-row: span 2; }
+.dsh-platlist li.is-on i { background: #9FE06A; box-shadow: 0 0 0 3px rgba(159, 224, 106, .18); }
+.dsh-platlist li.is-warn i { background: #EDB83A; }
+.dsh-platlist small { font-size: 11.5px; font-weight: 500; color: var(--muted); }
+.dsh-camps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.dsh-camps li { display: grid; gap: 4px; }
+.dsh-camps__t { display: grid; grid-template-columns: 9px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 13.5px; }
+.dsh-camps__t i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+.dsh-camps__t span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--charcoal); font-weight: 600; }
+.dsh-camps__t b { font-variant-numeric: tabular-nums; color: var(--charcoal); }
+.dsh-bar { height: 6px; border-radius: 99px; background: rgba(0, 0, 0, .2); overflow: hidden; }
+.dsh-bar em { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #7CCB45, #B3E287); }
+.dsh-camps small { font-size: 11.5px; color: var(--muted); }
+.dsh-recs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.dsh-rec { display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; border-radius: 12px; background: rgba(0, 0, 0, .14); }
+.dsh-rec b { font-size: 13.5px; line-height: 1.45; font-weight: 600; color: var(--charcoal); }
+.dsh-tag { align-self: flex-start; padding: 2px 8px; border-radius: 99px; font: 650 10.5px/1.6 "Geist Mono", ui-monospace, monospace; letter-spacing: .04em; text-transform: uppercase; background: rgba(232, 242, 226, .12); color: var(--muted); }
+.dsh-tag.is-ai { background: #CDEFA7; color: #14260F; }
+.dsh-tag.is-calc { background: rgba(124, 203, 69, .2); color: #C9F27A; }
+.dsh-autonums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.dsh-autonums div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: rgba(0, 0, 0, .16); }
+.dsh-autonums b { font-size: 24px; font-weight: 750; color: var(--charcoal); font-variant-numeric: tabular-nums; }
+.dsh-autonums span { font-size: 12px; color: var(--muted); }
+.dsh-next { margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; color: var(--charcoal); }
+.dsh-next span { font-size: 12px; color: var(--muted); }
+.dsh-empty { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 240px; padding: 16px; text-align: center; border: 1px dashed rgba(190, 240, 150, .25); border-radius: 14px; color: var(--muted); font-size: 13.5px; }
+.dsh-empty p { margin: 0; max-width: 40ch; }
+.dsh-empty--sm { min-height: 120px; }
+@media (max-width: 1200px) { .dsh-row2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dsh-row2 > :last-child { grid-column: 1 / -1; } }
+@media (max-width: 1000px) { .dsh-row1 { grid-template-columns: minmax(0, 1fr); } .dsh-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .dsh-row2 { grid-template-columns: minmax(0, 1fr); } .dsh-head { flex-direction: column; align-items: flex-start; } .dsh-sel select { max-width: 100%; } }
+.dsh-empty .dsh-btn { align-self: center; margin-top: 0; }

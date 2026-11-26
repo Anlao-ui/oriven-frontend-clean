@@ -77,13 +77,8 @@
   function render() {
     var root = document.getElementById(ROOT); if (!root) return;
     var w = win();
-    var html = K.head('Campaigns', 'Platform Comparison', 'Every ad platform side by side: where your budget goes and what it brings back. Figures as the platforms report them.') +
-      '<div class="pcm-bar">' +
-        '<div class="ova-seg" role="group" aria-label="Compare"><button type="button" data-pcm-mode="platforms" aria-pressed="' + (S.mode === 'platforms') + '">Platforms</button><button type="button" data-pcm-mode="campaigns" aria-pressed="' + (S.mode === 'campaigns') + '">Campaigns</button></div>' +
-        '<div class="ova-ctrls"><select class="ova-select" data-pcm-range aria-label="Period">' + RANGES.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === S.range ? ' selected' : '') + '>' + r[1] + '</option>'; }).join('') + '</select>' +
-        (S.range === 'CUSTOM' ? '<input type="date" class="ova-date" data-pcm-since value="' + esc(S.since || w.since) + '" aria-label="From"><input type="date" class="ova-date" data-pcm-until value="' + esc(S.until || w.until) + '" aria-label="To">' : '') +
-        '<label class="ova-check"><input type="checkbox" data-pcm-prev' + (S.prevOn ? ' checked' : '') + '> Compare to previous period</label></div>' +
-      '</div><p class="ova-sub pcm-period">' + esc(A.shortDate(w.since) + ' – ' + A.shortDate(w.until)) + (S.prevOn ? ', compared with the ' + A.days(w.since, w.until) + ' days before' : '') + '</p>';
+    var html = K.head('Analytics', 'Cross-platform Comparison', 'Every ad platform side by side: where your budget goes and what it brings back. Figures as the platforms report them.') +
+      periodCard(w);
     if (!S.conn) { root.innerHTML = html + '<div class="ova-empty">Loading your ad platforms…</div>'; return; }
     if (!connected().length) { root.innerHTML = html + '<div class="ova-empty"><b>Connect an ad platform first.</b> Connect Google, Meta, TikTok, Pinterest or Snapchat Ads to compare them here. <span class="ova-link" data-pcm-connect>Connect a platform</span></div>' + table([]); return; }
     if (S.mode === 'campaigns') html += picker();
@@ -93,6 +88,24 @@
     html += summary(cols) + table(cols) + '<div class="pcm-two">' + chartCard(cols) + (S.mode === 'platforms' ? shareCard(cols) : '') + '</div>';
     root.innerHTML = html;
     A.bindCharts(root);
+  }
+  // The period, in its own card: what is compared, over which dates (always counted
+  // from today), and — when switched on — the previous period it is compared with.
+  function periodCard(w) {
+    var n = A.days(w.since, w.until), pw = A.previous(w);
+    var longDate = function (d) { try { return new Date(d + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (_) { return A.shortDate(d); } };
+    return '<section class="pcm-periodcard" aria-label="Period">' +
+      '<div class="pcm-pc__main">' +
+        '<div class="pcm-pc__row"><div class="ova-seg" role="group" aria-label="Compare"><button type="button" data-pcm-mode="platforms" aria-pressed="' + (S.mode === 'platforms') + '">Platforms</button><button type="button" data-pcm-mode="campaigns" aria-pressed="' + (S.mode === 'campaigns') + '">Campaigns</button></div>' +
+          '<select class="ova-select" data-pcm-range aria-label="Period">' + RANGES.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === S.range ? ' selected' : '') + '>' + r[1] + '</option>'; }).join('') + '</select>' +
+          (S.range === 'CUSTOM' ? '<input type="date" class="ova-date" data-pcm-since value="' + esc(S.since || w.since) + '" aria-label="From"><input type="date" class="ova-date" data-pcm-until value="' + esc(S.until || w.until) + '" aria-label="To">' : '') + '</div>' +
+        '<p class="pcm-pc__range"><span class="pcm-pc__lbl">Selected period</span><b class="pcm-period">' + esc(longDate(w.since) + ' – ' + longDate(w.until)) + '</b><span class="pcm-pc__n">' + n + ' days · up to today</span></p>' +
+      '</div>' +
+      '<div class="pcm-pc__prev' + (S.prevOn ? ' is-on' : '') + '">' +
+        '<label class="ova-check"><input type="checkbox" data-pcm-prev' + (S.prevOn ? ' checked' : '') + '> Compare to previous period</label>' +
+        (S.prevOn ? '<p class="pcm-pc__range"><span class="pcm-pc__lbl">Previous period</span><b>' + esc(longDate(pw.since) + ' – ' + longDate(pw.until)) + '</b><span class="pcm-pc__n">the ' + n + ' days right before · the change shows under each value</span></p>'
+          : '<p class="pcm-pc__hint">Shows, under every value in the table, how much it changed against the ' + n + ' days right before.</p>') +
+      '</div></section>';
   }
   // One column per platform (all five, unconnected ones too) or per campaign.
   function columns() {

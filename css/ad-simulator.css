@@ -1,0 +1,240 @@
+/* ════════════════════════════════════════════════════════════════
+   Ad Simulator (js/adSimulator.js). Built on the Research/growth page
+   components (.rx-wrap .rx-card .rx-btn, css/research.css) with the app's
+   tokens; the green family from css/app-nav.css (--og-*). Prefix asim-.
+   Dark mode via body.dark-mode, like the rest of the app.
+   ════════════════════════════════════════════════════════════════ */
+.asim {
+  --asim-line: var(--border);
+  --asim-soft: color-mix(in srgb, var(--charcoal) 4%, transparent);
+  --asim-acc: #2E7D32;
+  --asim-acc-bg: color-mix(in srgb, var(--og-mid, #7CCB45) 16%, transparent);
+  --asim-bar: #4E9A2E;
+  --asim-bar-lo: color-mix(in srgb, #4E9A2E 45%, #1E5E3B);
+  --asim-good: #15803D;
+  --asim-bad: #B45309;
+  display: flex; flex-direction: column; gap: 18px; min-width: 0;
+}
+body.dark-mode .asim {
+  --asim-soft: rgba(255, 255, 255, .035);
+  --asim-acc: var(--og-fresh, #C9F27A);
+  --asim-acc-bg: color-mix(in srgb, var(--og-mid, #7CCB45) 14%, transparent);
+  --asim-bar: #86D04E;
+  --asim-bar-lo: #2E6B45;
+  --asim-good: #86E07A;
+  --asim-bad: #FFB45E;
+}
+.asim .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.asim .rx-btn-danger { background: #B91C1C; color: #fff; border-color: transparent; }
+.asim .rx-btn-danger:hover { filter: brightness(1.05); }
+.asim-headact { display: flex; gap: 8px; align-items: center; }
+
+/* Views */
+.asim-views { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--asim-line); border-radius: 12px; background: var(--surface); align-self: flex-start; }
+.asim-view { all: unset; cursor: pointer; padding: 7px 14px; border-radius: 9px; font-size: 13.5px; font-weight: 600; color: var(--muted); }
+.asim-view:hover { color: var(--charcoal); }
+.asim-view.is-on { background: var(--asim-acc-bg); color: var(--charcoal); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--og-mid, #7CCB45) 45%, transparent); }
+.asim-view:focus-visible, .asim-icon:focus-visible, .asim-chip:focus-visible, .asim-sc__main:focus-visible, .asim-link:focus-visible { outline: 2px solid var(--asim-acc); outline-offset: 2px; }
+
+/* Shared */
+.asim-h { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.01em; color: var(--charcoal); text-wrap: balance; }
+.asim-h3 { margin: 6px 0 0; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.asim-h3 small { text-transform: none; letter-spacing: 0; font-weight: 500; margin-left: 6px; }
+.asim-sub { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; max-width: 70ch; }
+.asim-note { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.asim-warn { margin: 0; padding: 9px 12px; border-radius: 10px; background: var(--warn-bg); color: var(--warn-c); font-size: 12.5px; line-height: 1.45; }
+.asim-muted { color: var(--muted); }
+.asim-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.asim-lbl { font-size: 12.5px; font-weight: 600; color: var(--c2); display: flex; justify-content: space-between; gap: 8px; }
+.asim-lbl output { font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.asim-hint { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.asim-in { box-sizing: border-box; width: 100%; min-height: 38px; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--asim-line); background: var(--surface); color: var(--charcoal); font: inherit; font-size: 14px; font-variant-numeric: tabular-nums; }
+.asim-in:focus { outline: 2px solid color-mix(in srgb, var(--og-mid, #7CCB45) 70%, transparent); outline-offset: 0; border-color: transparent; }
+.asim-row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.asim-row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.asim-row4 { display: grid; grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr)); gap: 10px; }
+.asim-pair { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 6px; }
+.asim-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.asim-chip { all: unset; cursor: pointer; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--asim-line); font-size: 13px; font-weight: 600; color: var(--c2); background: var(--surface); }
+.asim-chip:hover { border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 60%, transparent); }
+.asim-chip.is-on { background: var(--asim-acc-bg); border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 60%, transparent); color: var(--charcoal); }
+.asim-link { all: unset; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--asim-acc); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.asim-link[disabled] { cursor: default; opacity: .6; text-decoration: none; }
+.asim-icon { all: unset; cursor: pointer; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; color: var(--muted); }
+.asim-icon:hover { background: var(--asim-soft); color: var(--charcoal); }
+.asim-icon[disabled] { opacity: .35; cursor: default; }
+.asim-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.asim-msg { margin: 0; padding: 10px 14px; border-radius: 10px; font-size: 13.5px; }
+.asim-msg--ok { background: var(--asim-acc-bg); color: var(--charcoal); }
+.asim-msg--warn { background: var(--warn-bg); color: var(--warn-c); }
+.asim-pill { display: inline-flex; padding: 4px 10px; border-radius: 999px; background: var(--asim-soft); color: var(--c2); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.asim-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.asim-dot--ok { background: var(--asim-good); }
+.asim-dot--warn { background: var(--asim-bad); }
+.asim-pdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
+.asim-pdot--google { background: #5B9BFF; } .asim-pdot--meta { background: #B49BFF; } .asim-pdot--tiktok { background: #3DD6D0; } .asim-pdot--pinterest { background: #FF7A7A; } .asim-pdot--snapchat { background: #E8C93A; }
+
+/* New simulation */
+.asim-start { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.asim-start__intro h2 { margin: 0 0 8px; font-size: 20px; }
+.asim-start__intro p { margin: 0 0 14px; color: var(--muted); line-height: 1.55; }
+.asim-start__form { display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 14px; background: var(--asim-soft); }
+.asim-start__go { align-self: flex-start; }
+.asim-facts { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.asim-facts li { padding-left: 18px; position: relative; color: var(--c2); font-size: 14px; line-height: 1.5; }
+.asim-facts li::before { content: ''; position: absolute; left: 0; top: .55em; width: 7px; height: 7px; border-radius: 2px; background: linear-gradient(135deg, var(--og-fresh, #C9F27A), var(--og-rich, #2E9E5B)); }
+.asim-facts b { color: var(--charcoal); }
+
+/* Simulation bar + scenario cards */
+.asim-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.asim-name { flex: 1 1 260px; max-width: 460px; }
+.asim-name__in { font-size: 16px; font-weight: 650; }
+.asim-save-state { font-size: 13px; color: var(--muted); }
+.asim-scenarios { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.asim-sc { position: relative; display: flex; align-items: stretch; border: 1px solid var(--asim-line); border-radius: 14px; background: var(--surface); min-width: 0; }
+.asim-sc.is-on { border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 70%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--og-mid, #7CCB45) 14%, transparent); }
+.asim-sc__main { all: unset; cursor: pointer; flex: 1; min-width: 0; padding: 12px 6px 12px 14px; display: flex; flex-direction: column; gap: 3px; }
+.asim-sc__main b { font-size: 14px; color: var(--charcoal); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asim-sc__main span { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asim-sc__main .asim-sc__k { color: var(--c2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.asim-sc__acts { display: flex; flex-direction: column; padding: 6px 6px 6px 0; gap: 2px; }
+.asim-sc--add { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 76px; border: 1px dashed var(--b2); border-radius: 14px; color: var(--muted); font-size: 13.5px; font-weight: 600; }
+.asim-sc--add:hover { color: var(--charcoal); border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 60%, transparent); }
+
+/* Lab grid */
+.asim-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 16px; align-items: start; }
+.asim-out { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.asim-setup { gap: 14px; }
+.asim-chans { display: flex; flex-direction: column; gap: 10px; }
+.asim-chan { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; border: 1px solid var(--asim-line); background: var(--asim-soft); }
+.asim-chan__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.asim-chan__name { font-size: 14px; color: var(--charcoal); }
+.asim-chan__top .asim-icon { margin-left: auto; order: 2; }
+.asim-chan__top .asim-src { order: 3; }  /* the source label wraps under the name; the remove button stays on the name row */
+.asim-src { font-size: 11.5px; color: var(--muted); padding: 2px 8px; border-radius: 999px; background: var(--surface); border: 1px solid var(--asim-line); }
+.asim-src--acct { color: var(--charcoal); border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 55%, transparent); background: var(--asim-acc-bg); }
+.asim-share input[type=range], .asim-slider input[type=range] { width: 100%; accent-color: var(--og-rich, #2E9E5B); }
+body.dark-mode .asim-share input[type=range], body.dark-mode .asim-slider input[type=range] { accent-color: var(--og-mid, #7CCB45); }
+.asim-share, .asim-slider { display: flex; flex-direction: column; gap: 4px; }
+.asim-addp { display: flex; flex-direction: column; gap: 8px; }
+.asim-adv { border-top: 1px solid var(--asim-line); padding-top: 12px; }
+.asim-adv summary { cursor: pointer; font-size: 13.5px; font-weight: 650; color: var(--c2); }
+.asim-adv[open] { display: flex; flex-direction: column; gap: 12px; }
+.asim-sure { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; }
+.asim-sure legend { margin-bottom: 6px; }
+.asim-radio { display: flex; gap: 8px; align-items: baseline; font-size: 13.5px; color: var(--c2); cursor: pointer; }
+.asim-radio input { accent-color: var(--og-rich, #2E9E5B); }
+.asim-radio span { color: var(--muted); }
+.asim-radio b { color: var(--charcoal); font-weight: 600; margin-right: 4px; }
+
+/* Results */
+.asim-resh { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.asim-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.asim-tile { padding: 10px 12px; border-radius: 11px; background: var(--asim-soft); border: 1px solid var(--asim-line); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.asim-tile span { font-size: 11.5px; color: var(--muted); }
+.asim-tile b { font-size: 17px; font-weight: 700; color: var(--charcoal); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.asim-tile--key { background: var(--asim-acc-bg); border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 45%, transparent); }
+.asim-hist, .asim-range { margin: 0; }
+.asim-hist svg, .asim-range svg { width: 100%; height: auto; display: block; overflow: visible; }
+.asim-range svg { max-width: 760px; }
+.asim-hist svg { max-width: 720px; }
+.asim-hist figcaption, .asim-range figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.asim-hb { fill: var(--asim-bar); }
+.asim-hb.is-below { fill: var(--asim-bar-lo); }
+.asim-hb:hover { fill: var(--asim-acc); }
+.asim-hm { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.asim-hm.is-med { stroke: var(--charcoal); stroke-dasharray: none; }
+.asim-hm.is-spend { stroke: var(--asim-bad); }
+.asim-hl { font-size: 10.5px; fill: var(--muted); font-weight: 600; }
+.asim-hl.is-med { fill: var(--charcoal); }
+.asim-hl.is-spend { fill: var(--asim-bad); }
+.asim-ax { font-size: 10.5px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.asim-band, .asim-wi, .asim-ptable, .asim-ctable { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.asim-band th, .asim-band td, .asim-wi th, .asim-wi td, .asim-ptable th, .asim-ptable td, .asim-ctable th, .asim-ctable td { padding: 8px 10px; border-bottom: 1px solid var(--asim-line); text-align: right; white-space: nowrap; }
+.asim-band thead th, .asim-wi thead th, .asim-ptable thead th, .asim-ctable thead th { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.asim-band th[scope=row], .asim-wi th[scope=row], .asim-ptable th[scope=row], .asim-ctable th[scope=row], .asim-band thead th:first-child, .asim-wi thead th:first-child, .asim-ptable thead th:first-child, .asim-ctable thead th:first-child { text-align: left; font-weight: 600; color: var(--c2); }
+.asim-band small { display: block; font-weight: 500; font-size: 10.5px; }
+.asim-be { margin: 0; font-size: 13.5px; color: var(--c2); line-height: 1.5; }
+.asim-be b { color: var(--charcoal); font-variant-numeric: tabular-nums; }
+.asim-tablewrap { overflow-x: auto; max-width: 100%; }
+.asim-d.is-up { color: var(--asim-good); font-weight: 650; }
+.asim-d.is-down { color: var(--asim-bad); font-weight: 650; }
+
+/* What if */
+.asim-wih, .asim-cmph { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.asim-sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; }
+
+/* Compare */
+.asim-inline { display: flex; align-items: center; gap: 8px; }
+.asim-inline .asim-in { width: auto; min-height: 34px; }
+.asim-ctable td small { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
+.asim-ctable td.is-best { background: var(--asim-acc-bg); font-weight: 700; color: var(--charcoal); }
+.asim-best-key { padding: 1px 6px; border-radius: 5px; background: var(--asim-acc-bg); color: var(--charcoal); }
+.asim-rl { stroke: var(--asim-bar); stroke-width: 6; stroke-linecap: round; opacity: .55; }
+.asim-rd { fill: var(--asim-bar); stroke: var(--surface); stroke-width: 2; }
+.asim-rr.is-on .asim-rl { opacity: .9; }
+.asim-rr.is-on .asim-rn { fill: var(--charcoal); font-weight: 700; }
+.asim-rn { font-size: 12.5px; fill: var(--c2); }
+.asim-rv { font-size: 12px; fill: var(--charcoal); font-weight: 650; font-variant-numeric: tabular-nums; }
+.asim-rax { stroke: var(--asim-line); }
+
+/* Hand-off + method */
+.asim-foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.asim-xfer { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; color: var(--c2); line-height: 1.5; }
+.asim-dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 14px; font-size: 13.5px; line-height: 1.5; }
+.asim-dl dt { font-weight: 650; color: var(--charcoal); }
+.asim-dl dd { margin: 0; color: var(--c2); }
+.asim-ai { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+
+/* My Simulations */
+.asim-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.asim-li { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 20px; }
+.asim-li > div:first-child { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.asim-li b { font-size: 15px; color: var(--charcoal); }
+.asim-li span { font-size: 12.5px; color: var(--muted); }
+.asim-li.is-on { border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 60%, transparent); }
+.asim-confirm { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--c2); }
+.asim-empty { align-items: flex-start; }
+
+/* Smaller screens */
+@media (max-width: 1180px) {
+  .asim-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .asim-start, .asim-foot { grid-template-columns: minmax(0, 1fr); }
+  .asim-row3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .asim-row3 > :last-child { grid-column: 1 / -1; }
+  .asim-row4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .asim-row4 > :first-child { grid-column: 1 / -1; }
+  .asim-sliders { grid-template-columns: minmax(0, 1fr); }
+  .asim-scenarios { grid-template-columns: minmax(0, 1fr); }
+  .asim-dl { grid-template-columns: minmax(0, 1fr); }
+  .asim-dl dd { margin-bottom: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { .asim * { transition: none !important; } }
+
+/* ── Layout refinement (2026-11-25) ──────────────────────────────────
+   Assumptions and Results side by side, the same height; What if as one
+   wide card below them (sliders left, effect right), so a long assumptions
+   column never leaves an empty area next to What if, and opening
+   "Advanced assumptions" only grows the top row. */
+@media (min-width: 1101px) {
+  .asim-grid { align-items: stretch; }
+  .asim-grid > .asim-out { display: contents; }
+  .asim-grid > .asim-setup { grid-column: 1; grid-row: 1; }
+  .asim-grid > .asim-out > .asim-results { grid-column: 2; grid-row: 1; }
+  .asim-grid > .asim-out > .asim-whatif { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; row-gap: 12px; align-items: start; }
+  .asim-whatif > .asim-wih, .asim-whatif > .asim-sub, .asim-whatif > .asim-sliders { grid-column: 1; }
+  .asim-whatif > #asimWiOut { grid-column: 2; grid-row: 1 / span 3; align-self: stretch; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 12px; background: var(--og-card-soft, transparent); border: 1px solid var(--asim-line); }
+  .asim-whatif > #asimWiOut > .asim-note:only-child { margin: auto 0; text-align: center; }
+  /* Results: the per-platform table sits at the bottom when the card is taller than its content */
+  .asim-results { display: flex; flex-direction: column; }
+}
+/* Hand-off: its buttons sit at the bottom of the card, level with the method card's end. */
+.asim-foot > .asim-handoff { display: flex; flex-direction: column; }
+.asim-foot > .asim-handoff > .asim-chips:last-child { margin-top: auto; }
+@media (min-width: 1101px) {
+  .asim-grid > .asim-out > .asim-whatif { grid-template-rows: auto auto 1fr; }
+  .asim-whatif > .asim-sliders { align-self: start; }
+}
+.asim-compare > .rx-btn { align-self: flex-start; }

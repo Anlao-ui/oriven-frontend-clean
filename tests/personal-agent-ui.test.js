@@ -277,7 +277,7 @@ const server = app.listen(PORT, async () => {
       await ip.click('#orvAiFab'); await ip.waitForTimeout(400);
       const st = await ip.evaluate(() => ({ titles: [...document.querySelectorAll('#orvAgentStarters .orv-agent-starter-t')].map((e) => e.textContent), shown: !document.getElementById('orvAgentStarters').hidden, where: (document.getElementById('orvAgentWhere') || {}).textContent, sugg: (document.querySelector('#orvAiSuggestList .orv-ai-suggest-hd') || {}).textContent, intro: document.getElementById('orvAgentIntro').textContent, tagline: document.querySelector('#orvAiPanel .orv-agent-tagline').textContent, sendDisabled: document.getElementById('orvAiSendBtn').disabled }));
       check('I1 empty conversation: Metric’s greeting and tagline, and four starting points (Analyze my campaigns, Improve my advertising, Create something new, Explain my performance)', st.shown && JSON.stringify(st.titles) === JSON.stringify(['Analyze my campaigns', 'Improve my advertising', 'Create something new', 'Explain my performance']) && /^Metric says hello/.test(st.intro) && st.tagline === 'Precise, direct and evidence-oriented.', st);
-      check('I2 the panel shows the page it knows you are on (Campaign Overview), with that page’s own questions', st.where === 'On Campaign Overview' && st.sugg === 'On Campaign Overview', st);
+      check('I2 the panel shows the page it knows you are on (Performance Overview), with that page’s own questions', st.where === 'On Performance Overview' && st.sugg === 'On Performance Overview', st);
       check('I3 an empty message can’t be sent (Send is disabled)', st.sendDisabled);
       await ip.screenshot({ path: path.join(SHOTS, 'chat-welcome-1440.png') });
       await ip.click('#orvAgentAboutBtn'); await ip.waitForTimeout(400);
@@ -310,7 +310,7 @@ const server = app.listen(PORT, async () => {
 
       // Context per page: each page goes as its own view; the panel says which.
       const seen = [];
-      for (const [id, label] of [['plan', 'Marketing Plan'], ['research', 'Research'], ['create', 'Create'], ['audiences', 'Audience Builder'], ['competitors', 'Competitor Analysis']]) {
+      for (const [id, label] of [['plan', 'AI Plans & Tasks'], ['research', 'Audience Research'], ['create', 'Create Ads'], ['audiences', 'Audiences'], ['competitors', 'Competitor Analysis']]) {
         await ip.evaluate((v) => window.orvAppNav.go(v), id); await ip.waitForTimeout(600);
         await ip.click('#orvAiFab'); await ip.waitForTimeout(300);
         const w = await ip.evaluate(() => (document.getElementById('orvAgentWhere') || {}).textContent);

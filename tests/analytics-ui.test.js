@@ -53,7 +53,7 @@ const srv = http.createServer((q, r) => {
   const top = await p.evaluate(() => { const h = document.getElementById('prfOvTitle'), g = document.getElementById('prfExplorerGrid');
     const groups = Array.from(document.querySelectorAll('#prfExplorerGrid .prf-mgroup')).map((x) => ({ g: x.getAttribute('data-group'), label: x.querySelector('.prf-mgroup-h').textContent, bg: getComputedStyle(x).backgroundColor, dot: getComputedStyle(x.querySelector('.prf-explorer-dot')).backgroundColor, ids: Array.from(x.querySelectorAll('.prf-explorer-tile')).map((t) => t.getAttribute('data-metric')) }));
     return { title: h && h.textContent, above: h && g && h.getBoundingClientRect().bottom <= g.getBoundingClientRect().top, groups }; });
-  check('the title "Campaign Overview" above the cards', top.title === 'Campaign Overview' && top.above, top.title);
+  check('the title "Performance Overview" above the cards', top.title === 'Performance Overview' && top.above, top.title);
   check('Google: metrics grouped as Reach, Cost & budget, Engagement, Conversions, Revenue — each group its own muted colour (no orange everywhere)', top.groups.map((x) => x.g).join() === 'reach,cost,engagement,conversions,revenue' && new Set(top.groups.map((x) => x.bg)).size === 5 && new Set(top.groups.map((x) => x.dot)).size === 5 && !top.groups.some((x) => /245, 166, 35/.test(x.dot)), top.groups);
   check('…the right metrics in each group (Engagement: clicks, CTR, CPC; Revenue: conversion value, ROAS)', top.groups[2].ids.join() === 'clicks,ctr,cpc' && top.groups[4].ids.join() === 'conversionValue,roas' && top.groups[0].ids.indexOf('impressions') === 0, top.groups.map((x) => x.g + ':' + x.ids.join('/')));
   let c = await cards(p);
@@ -89,20 +89,22 @@ const srv = http.createServer((q, r) => {
   check('…changing a date recalculates the comparison', pd.rows.length >= 5 && pd.dates === 4, pd.sub);
   await p.click('#ovtPeriod [data-ovc-mode="week"]'); await p.waitForTimeout(1000);
 
-  // Ad vs ad: Google doesn't report per-ad results → says so, offers Meta
-  let ad = await p.evaluate(() => document.getElementById('ovtAds').innerText);
-  check('ad vs ad on Google Ads: explains results per ad come from Meta Ads, with a button to compare Meta ads', /Results per ad come from Meta Ads/.test(ad) && /Compare Meta ads/.test(ad), ad);
-  await p.click('#ovtAds [data-ovc-meta]'); await p.waitForTimeout(3500);
-  ad = await p.evaluate(() => { const el = document.getElementById('ovtAds'); return { plat: window._prfActivePlatform, selects: el.querySelectorAll('select').length, verdict: (el.querySelector('.ovc-verdict') || {}).textContent || '', rows: Array.from(el.querySelectorAll('.ovc-adtable tbody tr')).map((tr) => ({ m: tr.querySelector('th').textContent, a: tr.children[1].childNodes[0].textContent, b: tr.children[2].childNodes[0].textContent, best: tr.querySelectorAll('.is-best').length })), lines: el.querySelectorAll('.ova-line').length }; });
+  // Ads vs Ads (2026-11-26): its own Analytics page, Meta ads (the platform that reports results per ad); not repeated on Performance Overview
+  check('Performance Overview no longer repeats Ad vs ad', await p.evaluate(() => { const el = document.getElementById('ovtAds'); return !el || el.offsetParent === null; }));
+  await p.evaluate(() => window.orvAppNav.go('adsvsads')); await p.waitForTimeout(3500);
+  let ad = await p.evaluate(() => ({ page: document.querySelector('.page.active').id, text: document.getElementById('advRoot').innerText, on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv }));
+  check('Ads vs Ads opens as its own Analytics page and says results per ad come from Meta Ads', ad.page === 'page-ads-vs-ads' && ad.on === 'adsvsads' && /Results per ad come from Meta Ads/.test(ad.text), ad);
+  ad = await p.evaluate(() => { const el = document.getElementById('advCard'); return { plat: 'meta', selects: el.querySelectorAll('select').length, verdict: (el.querySelector('.ovc-verdict') || {}).textContent || '', rows: Array.from(el.querySelectorAll('.ovc-adtable tbody tr')).map((tr) => ({ m: tr.querySelector('th').textContent, a: tr.children[1].childNodes[0].textContent, b: tr.children[2].childNodes[0].textContent, best: tr.querySelectorAll('.is-best').length })), lines: el.querySelectorAll('.ova-line').length }; });
   check('…Meta: pick two ads and a period; a plain-language verdict (which ad does better and why, no AI), the figures side by side and both ads over time', ad.plat === 'meta' && ad.selects === 4 && /is doing better: .+ \(.+ vs .+\)|perform about the same|Too early/.test(ad.verdict) && ad.rows.length >= 8 && ad.lines === 2, ad);
   check('…"better" is marked only on efficiency metrics, and never where both ads show the same figure', ad.rows.every((r) => !r.best || (['ctr', 'cpc', 'cpm', 'conversion rate', 'cpa', 'roas'].includes(r.m.toLowerCase()) && r.a !== r.b)) && ad.rows.some((r) => r.best), ad.rows);
-  const secondAd = await p.evaluate(() => Array.from(document.querySelectorAll('#ovtAds [data-ovc-ad="B"] option')).filter((o) => !o.disabled && !o.selected)[0].value);
-  await p.selectOption('#ovtAds [data-ovc-ad="B"]', secondAd); await p.waitForTimeout(2500);
-  check('…choosing another ad recalculates', await p.evaluate((v) => document.querySelector('#ovtAds [data-ovc-ad="B"]').value === v && document.querySelectorAll('#ovtAds .ova-line').length === 2, secondAd));
-  await p.selectOption('#ovtAds [data-ovc-admetric]', 'cpc'); await p.waitForTimeout(1500);
-  check('…and the chart metric can be changed', await p.evaluate(() => /CPC over time/.test(document.querySelector('#ovtAds .ovc-adchart h4').textContent)));
+  const secondAd = await p.evaluate(() => Array.from(document.querySelectorAll('#advCard [data-ovc-ad="B"] option')).filter((o) => !o.disabled && !o.selected)[0].value);
+  await p.selectOption('#advCard [data-ovc-ad="B"]', secondAd); await p.waitForTimeout(2500);
+  check('…choosing another ad recalculates', await p.evaluate((v) => document.querySelector('#advCard [data-ovc-ad="B"]').value === v && document.querySelectorAll('#advCard .ova-line').length === 2, secondAd));
+  await p.selectOption('#advCard [data-ovc-admetric]', 'cpc'); await p.waitForTimeout(1500);
+  check('…and the chart metric can be changed', await p.evaluate(() => /CPC over time/.test(document.querySelector('#advCard .ovc-adchart h4').textContent)));
   await p.screenshot({ path: path.join(SHOTS, 'overview-meta.png'), fullPage: true });
 
+  await p.evaluate(() => window.orvAppNav.go('overview')); await p.waitForTimeout(2500);
   // Per platform: different metric sets; TikTok and Snapchat graphs from their own figures
   await p.evaluate(() => window.prfSwitchPlatform('snapchat', true)); await p.waitForTimeout(3000);
   c = await cards(p);
@@ -129,7 +131,7 @@ const srv = http.createServer((q, r) => {
     const rows = Array.from(r.querySelectorAll('.pcm-table tbody tr')).map((tr) => ({ m: tr.querySelector('th').textContent, best: tr.querySelectorAll('.is-best').length, worst: tr.querySelectorAll('.is-worst').length }));
     return { title: r.querySelector('.rx-title').textContent, head, rows, connect: Array.from(r.querySelectorAll('.pcm-table thead [data-pcm-connect]')).map((x) => x.textContent), summary: (r.querySelector('.pcm-summary') || {}).innerText || '', legend: Array.from(r.querySelectorAll('.pcm-chart .ova-legend li')).map((l) => l.textContent), share: Array.from(r.querySelectorAll('.pcm-share .ova-pair')).length, shares: Array.from(r.querySelectorAll('.pcm-share .ova-bar.is-a em')).map((e) => parseInt(e.textContent, 10)), nav: (document.querySelector('.anv-item.is-active, [aria-current="page"]') || {}).textContent || '' };
   });
-  check('Platform Comparison (renamed): all five platforms side by side', pc.title === 'Platform Comparison' && pc.head.join() === 'Google Ads,Meta Ads,TikTok Ads,Pinterest Ads,Snapchat Ads', pc.head);
+  check('Cross-platform Comparison (renamed): all five platforms side by side', pc.title === 'Cross-platform Comparison' && pc.head.join() === 'Google Ads,Meta Ads,TikTok Ads,Pinterest Ads,Snapchat Ads', pc.head);
   check('rows: Spend, Impressions, Clicks, CTR, CPC, Conversions, CPA, ROAS, Return per €1 spent', pc.rows.map((r) => r.m).join() === 'Spend,Impressions,Clicks,CTR,CPC,Conversions,CPA,ROAS,Return per €1 spent', pc.rows.map((r) => r.m));
   check('best value per metric highlighted and weakest marked (one each; none for Spend)', pc.rows.filter((r) => r.m !== 'Spend').every((r) => r.best === 1 && r.worst === 1) && pc.rows[0].best === 0, pc.rows);
   check('a rule-based summary: shares of conversions vs spend, the highest CPA, "no AI"; Snapchat (no conversions reported) left out and said so', /% of conversions on \d+% of spend/.test(pc.summary) && /highest CPA/.test(pc.summary) && /no AI/.test(pc.summary) && /Snapchat Ads doesn’t report conversions/.test(pc.summary), pc.summary);
@@ -146,8 +148,9 @@ const srv = http.createServer((q, r) => {
   const mon = new Date(lw[0] + 'T12:00:00').getDay();
   check('period "Last week": Monday to Sunday (7 days)', lw.length === 7 && mon === 1, lw);
   await p.click('#ccmRoot [data-pcm-prev]'); await p.waitForTimeout(2500);
-  const prev = await p.evaluate(() => ({ ch: document.querySelectorAll('#ccmRoot .pcm-table .pcm-ch').length, period: document.querySelector('#ccmRoot .pcm-period').textContent }));
-  check('"Compare to previous period" adds the change under every value', prev.ch >= 30 && /compared with the 7 days before/.test(prev.period), prev);
+  const prev = await p.evaluate(() => ({ ch: document.querySelectorAll('#ccmRoot .pcm-table .pcm-ch').length, period: document.querySelector('#ccmRoot .pcm-period').textContent, prevCard: (document.querySelector('#ccmRoot .pcm-pc__prev.is-on') || {}).textContent || '' }));
+  // 2026-11-25: the previous period has its own card inside the period card, with its own dates.
+  check('"Compare to previous period" adds the change under every value and names the previous period in its own card', prev.ch >= 30 && /Previous period/i.test(prev.prevCard) && /the 7 days right before/.test(prev.prevCard) && /\d{4}/.test(prev.period), prev);
   await p.selectOption('#ccmRoot [data-pcm-range]', 'CUSTOM'); await p.waitForTimeout(300);
   check('custom period: two date fields', await p.evaluate(() => !!document.querySelector('#ccmRoot [data-pcm-since]') && !!document.querySelector('#ccmRoot [data-pcm-until]')));
   await p.selectOption('#ccmRoot [data-pcm-range]', 'LAST_30_DAYS'); await p.waitForTimeout(2500);

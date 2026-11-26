@@ -224,3 +224,13 @@ body.dark-mode #page-create .cf-serp-h { color: #8ab4f8; }
   #page-create .cf-card, #page-create .cf-adv-sum::before, #page-create .cf-drop { transition: none; }
   #page-create .cf-card:hover { transform: none; }
 }
+
+/* Creative Stage: the ad's progress, step by step (2026-11-25). */
+.cf-stage-steps { list-style: none; margin: 2px 0 4px; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.cf-stage-step { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 11px; font-weight: 600; color: var(--muted); }
+.cf-stage-step i { display: block; height: 4px; border-radius: 99px; background: color-mix(in srgb, var(--og-mid, #7CCB45) 14%, transparent); }
+.cf-stage-step span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cf-stage-step.is-done i { background: var(--og-mid, #7CCB45); }
+.cf-stage-step.is-done { color: var(--c2, var(--charcoal)); }
+.cf-stage-step.is-current i { background: linear-gradient(90deg, var(--og-mid, #7CCB45), var(--og-fresh, #C9F27A)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--og-mid, #7CCB45) 25%, transparent); }
+.cf-stage-step.is-current { color: var(--charcoal); }

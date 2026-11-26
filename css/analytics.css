@@ -223,3 +223,50 @@ button.ova-link { padding: 0; border: 0; background: none; font: inherit; font-w
   .ova-pair { grid-template-columns: 76px minmax(0, 1fr); }
 }
 .ova-tip[hidden], .ova-cross[hidden] { display: none; }
+
+/* ── Cross-platform Comparison: everything in cards (2026-11-25) ─────
+   The period (with the previous period) is a card; the table and its
+   legend are one card; the chart and the share card end level. */
+.pcm-periodcard { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--a-s4); padding: var(--a-s4); border-radius: var(--a-r); border: 1px solid var(--a-line); background: var(--a-surface); align-items: stretch; }
+.pcm-pc__main { display: flex; flex-direction: column; gap: var(--a-s3); min-width: 0; }
+.pcm-pc__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--a-s2) var(--a-s3); }
+.pcm-pc__range { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.pcm-pc__range b { font-size: 15px; color: var(--a-text); font-weight: 650; }
+.pcm-pc__lbl { font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--a-text-3); }
+.pcm-pc__n, .pcm-pc__hint { font-size: 12.5px; color: var(--a-text-3); margin: 0; line-height: 1.5; }
+.pcm-pc__prev { display: flex; flex-direction: column; gap: var(--a-s3); padding: var(--a-s3) var(--a-s4); border-radius: var(--a-r-sm); border: 1px dashed var(--a-line-2, var(--a-line)); }
+.pcm-pc__prev.is-on { border-style: solid; border-color: color-mix(in srgb, var(--og-mid, #7CCB45) 45%, transparent); background: var(--og-card-soft, transparent); }
+.pcm-period { margin: 0; }
+.pcm-sec { padding: var(--a-s4); border-radius: var(--a-r); border: 1px solid var(--a-line); background: var(--a-surface); gap: var(--a-s3); }
+.pcm-sec > .pcm-table-wrap { border: 0; border-radius: 0; background: transparent; }
+.pcm-sec > .pcm-legend { padding-top: var(--a-s3); border-top: 1px solid var(--a-line); }
+@media (min-width: 1001px) { .pcm-two { align-items: stretch; } .pcm-two > * { height: 100%; box-sizing: border-box; } }
+@media (max-width: 900px) { .pcm-periodcard { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Performance Overview (2026-11-25) ───────────────────────────────
+   The title is a card like every page's; the graph and Compare periods end
+   level (the graph grows to the comparison's height instead of leaving a
+   gap under it). */
+#prfOvTitle { box-sizing: border-box; margin: 0 0 var(--a-s4); padding: var(--app-card-pad, 20px 24px); border: 1px solid var(--app-card-line, var(--a-line)); border-radius: var(--app-card-r, 16px); background: var(--og-card-head, var(--a-surface)); }
+@media (min-width: 1101px) {
+  #prfDash { align-items: stretch; }
+  #prfDash > .prf-chart-wrap, #prfDash .prf-charts-grid { display: flex; flex-direction: column; min-height: 0; }
+  #prfDash .prf-charts-grid, #prfDash .prf-chart-card-primary { flex: 1 1 auto; }
+  #prfDash .prf-chart-card-primary { display: flex; flex-direction: column; }
+  /* A fixed height (the chart draws to it), the same as Compare periods' table; the card stretches the last few pixels. */
+  #prfDash .prf-chart-card-primary .prf-chart-body { height: 470px; flex: none; }
+}
+.ovc-purpose { margin: 0 0 var(--a-s3); font-size: 13px; line-height: 1.5; color: var(--a-text-3); }
+
+
+/* Ads vs Ads is its own page (2026-11-26): not repeated in Performance Overview. */
+#page-performance #ovtAds { display: none !important; }
+#advRoot { display: flex; flex-direction: column; gap: var(--a-s4); color: var(--a-text); }
+#advRoot > .rx-head { margin-bottom: 0; }
+.adv-grid { display: flex; flex-direction: column; gap: var(--a-s4); }
+/* The comparison is wide (table + chart side by side); the two notes sit next to each other below it, the same height. */
+.adv-side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--a-s4); align-items: stretch; }
+@media (max-width: 800px) { .adv-side { grid-template-columns: minmax(0, 1fr); } }
+.adv-list { margin: var(--a-s2) 0 0; padding: 0; list-style: none; display: grid; gap: var(--a-s2); font-size: 13.5px; line-height: 1.5; color: var(--a-text-2); }
+.adv-list b { color: var(--a-text); }
+@media (max-width: 1000px) { .adv-grid { grid-template-columns: minmax(0, 1fr); } }

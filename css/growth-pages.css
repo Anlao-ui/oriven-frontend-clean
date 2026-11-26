@@ -146,3 +146,14 @@
 .cts-basis { margin: 6px 0 0; font-size: 12px; }
 @media (max-width: 1100px) { .cts-top { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 600px) { .cts-pickers, .cts-sides { grid-template-columns: minmax(0, 1fr); } }
+
+/* Creative Testing (2026-11-25): New variations and Compare two end level; before two are
+   chosen, Compare two shows where they will appear and what the comparison holds. */
+@media (min-width: 1101px) { .cts-top { align-items: stretch; } }
+.cts-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.cts-slot { min-height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; padding: 14px; text-align: center; border: 1px dashed var(--border); border-radius: 12px; background: var(--og-card-soft, transparent); color: var(--muted); font-size: 13px; }
+.cts-slot b { font: 700 15px/1 'Geist Mono', ui-monospace, monospace; color: var(--charcoal); }
+.cts-slot.is-set { border-style: solid; color: var(--charcoal); }
+.cts-what { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; font-size: 13.5px; color: var(--c2, var(--charcoal)); }
+.cts-what li { display: flex; gap: 9px; align-items: baseline; }
+.cts-what li::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--og-mid, #7CCB45); transform: translateY(-1px); }

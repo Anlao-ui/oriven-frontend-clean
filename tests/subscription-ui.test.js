@@ -184,7 +184,7 @@ const server = app.listen(PORT, async () => {
     check('F1 each change is saved to the account (PUT /api/user/preferences) with only that setting', puts.some((b) => b.showWorkflowSteps === !wasOn && Object.keys(b).length === 1) && puts.some((b) => b.notifAutopilot === notifTgl && Object.keys(b).length === 1), puts);
     check('F2 no settings save ever carries the assistant', M.calls.filter((c) => c.p === '/api/user/preferences' && c.m !== 'GET').every((c) => !('assistant' in (c.body || {}))));
     const steps = await page.evaluate(() => { const n = document.querySelector('.orv-sb .onv-sec__n'), r = document.querySelector('.orv-sb .onv-route'); return { num: n ? getComputedStyle(n).display : null, route: r ? getComputedStyle(r).display : null }; });
-    check('F3 "Show workflow steps" really changes the sidebar (numbers and route line)', wasOn ? steps.num === 'none' && steps.route === 'none' : steps.num !== 'none', steps);
+    check('F3 "Show workflow steps" really changes the sidebar (the route lines of the groups)', wasOn ? steps.route === 'none' : steps.route !== 'none', steps);
     await page.goto(BASE + '/app.html', { waitUntil: 'domcontentloaded' }); // a refresh (the app's /app route is app.html)
     await page.waitForFunction(() => typeof loadSettings === 'function', null, { timeout: 20000 });
     const kept = await page.evaluate(() => { const c = loadSettings(); return { steps: c.showWorkflowSteps, notif: c.notifAutopilot }; });

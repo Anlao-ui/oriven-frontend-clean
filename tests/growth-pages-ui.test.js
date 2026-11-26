@@ -124,7 +124,7 @@ const server = app.listen(PORT, async () => {
     // ── 1. In the sidebar, under the existing sections ─────────────
     console.log('\n1. Navigation');
     const nav = await page.evaluate(() => Array.from(document.querySelectorAll('.orv-sb .onv-item')).map((b) => b.dataset.onv));
-    check('1.1 Creative Testing, Audience Builder and Platform Comparison are in the sidebar; Competitor Analysis opens from the Research header (no new section)', ['testing', 'audiences', 'compare'].every((k) => nav.includes(k)) && !nav.includes('competitors'), nav);
+    check('1.1 Creative Testing and Cross-platform Comparison are in the sidebar; Audiences and Competitor Analysis are part of Research, not sidebar items (refinement 2026-11-25)', ['testing', 'compare'].every((k) => nav.includes(k)) && !nav.includes('audiences') && !nav.includes('competitors'), nav);
     const keys = await page.evaluate(() => ['competitor-analysis', 'creative-testing', 'audience-builder', 'campaign-comparison'].map((k) => window.orvPages.has(k)));
     check('1.2 the shared page keys know the four pages (plan tasks and the assistant open them)', keys.every(Boolean), keys);
 
@@ -172,7 +172,7 @@ const server = app.listen(PORT, async () => {
       ]));
     }, UID);
     M.suggest = 'context';
-    await page.click('.orv-sb .onv-item[data-onv="audiences"]'); await page.waitForTimeout(500);
+    await page.evaluate(() => window.orvAppNav.go('audiences')); await page.waitForTimeout(500);
     t = await txt(page, '#aubRoot');
     check('4.1 opens with no audiences and says audiences are prepared in OrivenAI, not created in an ad platform', (await activePage(page)) === 'page-audience-builder' && /No saved audiences yet/.test(t) && /not created in Meta, Google, TikTok or Pinterest/.test(t), t.slice(0, 400));
     await page.click('[data-aub-suggest]'); await page.waitForTimeout(500);
