@@ -1507,7 +1507,7 @@
             </div>
             <div class="adp-head__aside">
               <span class="adp-head__k" data-onv-t="Tracking and conversions">Tracking and conversions</span>
-              <button type="button" class="adp-head__btn" onclick="orvOpenAdSettings()" data-onv-t="Open Advertising settings">Open Advertising settings</button>
+              <button type="button" class="adp-head__btn" onclick="orvSettingsAds()" data-onv-t="Open Advertising settings">Open Advertising settings</button>
             </div>
           </div>
       <div class="con-wrap" style="max-width:none;padding:0;height:auto;overflow:visible">
@@ -5903,6 +5903,11 @@
     </div>
 
     <div class="orv-ai-feed" id="orvAiFeed" role="log" aria-live="polite" aria-relevant="additions">
+      <!-- The assistant introduces itself (js/orivenAgent.js hello()): an assistant
+           message, "Hey, I am <the chosen assistant>. <its own opening line>". Always
+           first, also above an earlier conversation; never stored, never sent, and
+           never a message from the user. -->
+      <div class="orv-ai-msg orv-ai-msg-ai orv-agent-hello" id="orvAgentHello" hidden><div class="orv-ai-msg-bubble orv-agent-fmt" id="orvAgentHelloText"></div></div>
       <div class="orv-ai-greeting" id="orvAiGreeting">
         <div class="orv-agent-eyebrow" id="orvAgentEyebrow"></div>
         <div class="orv-ai-greeting-text" id="orvAiGreetingText">Hello.</div>
@@ -6203,11 +6208,11 @@
         <div class="smd-grp smd-grp--ads" role="group" aria-labelledby="smdGrpAds">
           <div class="smd-grp-h" id="smdGrpAds" data-onv-t="Advertising settings">Advertising settings</div>
           <p class="smd-grp-d" data-onv-t="Tracking and conversions for each platform">Tracking and conversions for each platform</p>
-          <button type="button" class="smd-ai" data-smd-ads="meta" onclick="orvOpenAdSettings('meta')"><i class="smd-ai__dot" style="--p:#4F8CFF"></i>Meta</button>
-          <button type="button" class="smd-ai" data-smd-ads="google" onclick="orvOpenAdSettings('google')"><i class="smd-ai__dot" style="--p:#F4B400"></i>Google</button>
-          <button type="button" class="smd-ai" data-smd-ads="tiktok" onclick="orvOpenAdSettings('tiktok')"><i class="smd-ai__dot" style="--p:#25F4EE"></i>TikTok</button>
-          <button type="button" class="smd-ai" data-smd-ads="pinterest" onclick="orvOpenAdSettings('pinterest')"><i class="smd-ai__dot" style="--p:#E60023"></i>Pinterest</button>
-          <button type="button" class="smd-ai" data-smd-ads="snapchat" onclick="orvOpenAdSettings('snapchat')"><i class="smd-ai__dot" style="--p:#FFFC00"></i>Snapchat</button>
+          <button type="button" class="smd-ai" data-smd-ads="meta" aria-controls="smdp-ads" onclick="orvSettingsAds('meta')"><i class="smd-ai__dot" style="--p:#4F8CFF"></i>Meta</button>
+          <button type="button" class="smd-ai" data-smd-ads="google" aria-controls="smdp-ads" onclick="orvSettingsAds('google')"><i class="smd-ai__dot" style="--p:#F4B400"></i>Google</button>
+          <button type="button" class="smd-ai" data-smd-ads="tiktok" aria-controls="smdp-ads" onclick="orvSettingsAds('tiktok')"><i class="smd-ai__dot" style="--p:#25F4EE"></i>TikTok</button>
+          <button type="button" class="smd-ai" data-smd-ads="pinterest" aria-controls="smdp-ads" onclick="orvSettingsAds('pinterest')"><i class="smd-ai__dot" style="--p:#E60023"></i>Pinterest</button>
+          <button type="button" class="smd-ai" data-smd-ads="snapchat" aria-controls="smdp-ads" onclick="orvSettingsAds('snapchat')"><i class="smd-ai__dot" style="--p:#FFFC00"></i>Snapchat</button>
           <button type="button" class="smd-grp-link" onclick="orvOpenAdPlatformsFromSettings()" data-onv-t="Connect accounts in Ad Platforms">Connect accounts in Ad Platforms</button>
         </div>
       </nav>
@@ -6217,6 +6222,10 @@
         <!-- ── General (Oriven 1.0 UX Refinement V4 — merges the former
              Workspace/Appearance/Language tabs; same fields, same ids,
              same handlers, one tab instead of three) ─────────────────── -->
+        <!-- Advertising settings for one platform (js/adSettings.js openIn), switched by the
+             Meta/Google/TikTok/Pinterest/Snapchat items on the left without leaving Settings. -->
+        <div class="smd-panel" id="smdp-ads" role="region" aria-label="Advertising settings"></div>
+
         <div class="smd-panel active" id="smdp-general">
           <div class="smd-panel-hd"><div class="smd-panel-title" data-i18n="smdNavGeneral">General</div></div>
           <!-- Workspace Name: no longer shown anywhere (the sidebar shows the
@@ -6994,6 +7003,7 @@
 <script src="js/needsAttention.js"></script>
 <script src="js/dashboardV2.js"></script>
 <script src="js/appNav.js"></script>
+<script src="js/navHelp.js"></script>
 <script src="js/createCompat.js"></script>
 <script src="js/createFlow.js"></script>
 
@@ -13749,7 +13759,7 @@ window._launchRepaint = function(){
         if(window.orvAgent && orvAgent.busy) orvAgent.busy(false);
         /* Nothing was sent: if the conversation is still empty, bring the
            welcome back (it was faded out optimistically above). */
-        if(greeting && !feed.querySelector('.orv-ai-msg')){ setTimeout(function(){ greeting.style.display = ''; greeting.style.opacity = '1'; }, 220); }
+        if(greeting && !feed.querySelector('.orv-ai-msg:not(.orv-agent-hello)')){ setTimeout(function(){ greeting.style.display = ''; greeting.style.opacity = '1'; }, 220); }
         return;
       }
     }

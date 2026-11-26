@@ -164,6 +164,9 @@
   }
 
   // ── Rendering ────────────────────────────────────────────────────
+  // The "?" next to an item (js/navHelp.js shows what the page does). A sibling
+  // of the item's button, so it never opens the page itself.
+  function helpBtn(id, label) { return '<button type="button" class="onv-help" data-onv-help="' + id + '" aria-expanded="false" aria-label="' + esc('About ' + tr(label)) + '"><span aria-hidden="true">?</span></button>'; }
   function navHtml(where) {
     return SECTIONS.map(function (s) {
       return '<section class="onv-sec" data-sec="' + s.id + '" aria-labelledby="onvH-' + where + '-' + s.id + '">' +
@@ -173,7 +176,7 @@
         '<ul class="onv-list">' + s.shown.map(function (it) {
           return '<li><button type="button" class="onv-item' + (it.dev ? ' is-dev' : '') + '" data-onv="' + it.id + '" title="' + esc(tr(it.label)) + '">' +
             '<span class="onv-ic">' + svg(it.icon) + '</span><span class="onv-lbl" data-onv-t="' + esc(it.label) + '">' + esc(tr(it.label)) + '</span>' +
-            (it.dev ? '<span class="onv-dev" aria-label="in development">Soon</span>' : '') + '</button></li>';
+            (it.dev ? '<span class="onv-dev" aria-label="in development">Soon</span>' : '') + '</button>' + helpBtn(it.id, it.label) + '</li>';
         }).join('') + '</ul></section>';
     }).join('');
   }
@@ -216,8 +219,8 @@
   function footHtml(where) {
     var d = where === 'desktop';
     return '<div class="onv onv-foot" data-onv-root="foot-' + where + '">' +
-      '<button type="button" class="onv-item" data-onv-foot="settings"' + (d ? ' id="orvNavSettingsBtn"' : '') + ' title="' + esc(tr('Settings')) + '"><span class="onv-ic">' + svg('gear') + '</span><span class="onv-lbl" data-onv-t="Settings">' + esc(tr('Settings')) + '</span></button>' +
-      '<button type="button" class="onv-item" data-onv-foot="platforms"' + (d ? ' id="orvLauncherBtn"' : '') + ' title="' + esc(tr('Ad Platforms')) + '"><span class="onv-ic">' + svg('platforms') + '</span><span class="onv-lbl" data-onv-t="Ad Platforms">' + esc(tr('Ad Platforms')) + '</span></button>' +
+      '<div class="onv-fwrap"><button type="button" class="onv-item" data-onv-foot="settings"' + (d ? ' id="orvNavSettingsBtn"' : '') + ' title="' + esc(tr('Settings')) + '"><span class="onv-ic">' + svg('gear') + '</span><span class="onv-lbl" data-onv-t="Settings">' + esc(tr('Settings')) + '</span></button>' + helpBtn('settings', 'Settings') + '</div>' +
+      '<div class="onv-fwrap"><button type="button" class="onv-item" data-onv-foot="platforms"' + (d ? ' id="orvLauncherBtn"' : '') + ' title="' + esc(tr('Ad Platforms')) + '"><span class="onv-ic">' + svg('platforms') + '</span><span class="onv-lbl" data-onv-t="Ad Platforms">' + esc(tr('Ad Platforms')) + '</span></button>' + helpBtn('platforms', 'Ad Platforms') + '</div>' +
       '<button type="button" class="onv-item onv-mom" data-onv-foot="assistant" aria-label="' + esc(tr('Your AI assistant')) + '">' +
         '<span class="onv-ic onv-mom__ic" data-onv-mom-ic aria-hidden="true"><span class="onv-mom__core"></span></span>' +
         '<span class="onv-mom__t"><b data-onv-mom-name>' + esc(tr('Assistant')) + '</b><small data-onv-t="Your AI assistant">' + esc(tr('Your AI assistant')) + '</small></span>' +
@@ -307,7 +310,32 @@
     if (document.body.classList.contains('orv-ai-ws') && typeof window.orvCloseAi === 'function') window.orvCloseAi();
     H.ready = H.ready || !!(typeof _currentUser !== 'undefined' && _currentUser);
   }
-  window.orvOpenAdSettings = function (p) { leaveSettings(); if (window.orvAdSettings) window.orvAdSettings.open(p); setTimeout(sync, 0); };
+  // Settings → Advertising settings → a platform: that platform's settings in
+  // Settings' own content area (no page change). Opens Settings when it is closed.
+  window.orvSettingsAds = function (p) {
+    var modal = document.getElementById('modal-settings'), panel = document.getElementById('smdp-ads');
+    if (!modal || !panel || !window.orvAdSettings || !window.orvAdSettings.openIn) { if (window.orvAdSettings) window.orvAdSettings.openPage(p); return; }
+    if (!modal.classList.contains('open')) {
+      if (document.body.classList.contains('orv-ai-ws') && typeof window.orvCloseAi === 'function') window.orvCloseAi();
+      if (typeof window.openSettingsModal === 'function') window.openSettingsModal(); else if (typeof window.openModal === 'function') window.openModal('modal-settings');
+    }
+    var plat = p || (window.orvAdSettings.current ? window.orvAdSettings.current() : 'meta');
+    document.querySelectorAll('#modal-settings .smd-ni').forEach(function (b) { b.classList.remove('active'); b.removeAttribute('aria-current'); });
+    document.querySelectorAll('#modal-settings .smd-ai').forEach(function (b) { var on = b.getAttribute('data-smd-ads') === plat; b.classList.toggle('active', on); if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+    document.querySelectorAll('#modal-settings .smd-panel').forEach(function (x) { x.classList.toggle('active', x === panel); });
+    window.orvAdSettings.openIn(panel, plat);
+    var content = panel.closest('.smd-content'); if (content) content.scrollTop = 0;
+    var sel = document.querySelector('#modal-settings .smd-ai.active'); if (sel && sel.scrollIntoView && window.innerWidth <= 600) { try { sel.scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (_) {} }
+  };
+  // Kept for older callers: same as above.
+  window.orvOpenAdSettings = function (p) { window.orvSettingsAds(p); };
+  // A General settings item clears the platform selection.
+  (function wrapSmdNav() {
+    if (typeof window.smdNav !== 'function' || window.smdNav._ads) { if (typeof window.smdNav !== 'function') document.addEventListener('DOMContentLoaded', wrapSmdNav); return; }
+    var orig = window.smdNav;
+    window.smdNav = function () { document.querySelectorAll('#modal-settings .smd-ai').forEach(function (b) { b.classList.remove('active'); b.removeAttribute('aria-current'); }); return orig.apply(this, arguments); };
+    window.smdNav._ads = true;
+  })();
   window.orvOpenAdPlatformsFromSettings = function () { leaveSettings(); if (typeof window._orvOpenPlatforms === 'function') window._orvOpenPlatforms(); setTimeout(sync, 0); };
   function openSettings(section) {
     if (typeof window.openSettingsModal !== 'function') return;

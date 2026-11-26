@@ -76,7 +76,7 @@
       panel.setAttribute('aria-label', 'Your OrivenAI assistant');
       var left = panel.querySelector('.orv-ai-panel-head-left');
       if (left) left.innerHTML = '<div class="orv-agent-id"><div class="orv-agent-id-text"><div class="orv-ai-panel-name">Your assistant</div></div></div>';
-      var intro = document.getElementById('orvAgentIntro'); if (intro) intro.textContent = '';
+      hello(null);
       var eb = document.getElementById('orvAgentEyebrow'); if (eb) eb.textContent = '';
       var inp = document.getElementById('orvAiInput'); if (inp) inp.placeholder = 'Ask your assistant anything…';
     }
@@ -105,6 +105,24 @@
         '<div class="orv-agent-nameline"><span class="orv-ai-panel-name">' + esc(a.name) + '</span><span class="orv-agent-status" role="status"><span class="orv-agent-status-t">' + STATUS[status] + '</span></span></div>' +
         '<div class="orv-agent-tagline">' + esc(a.tone || a.role) + '</div>' +
       '</div></div>';
+  }
+
+  // ── The introduction ────────────────────────────────────────────────
+  // The chosen assistant introduces itself as an assistant message, always
+  // "Hey, I am <name>." followed by its own opening line from the server
+  // (agents.js hello). Shown first in every conversation; not part of the
+  // saved conversation or the history sent to the model.
+  function helloText(a) {
+    if (!a || !a.name) return '';
+    var line = String(a.hello || a.intro || '').trim();
+    return 'Hey, I am ' + a.name + '.' + (line ? ' ' + line : '');
+  }
+  function hello(a) {
+    var box = document.getElementById('orvAgentHello'), t = document.getElementById('orvAgentHelloText'); if (!box || !t) return;
+    var txt = helloText(a);
+    box.hidden = !txt;
+    if (t.textContent !== txt) t.textContent = txt;
+    var old = document.getElementById('orvAgentIntro'); if (old) old.remove(); // the earlier paragraph form
   }
 
   // ── Four starting points (empty conversation) ───────────────────────
@@ -266,7 +284,7 @@
       panel.setAttribute('aria-label', 'Choose your OrivenAI assistant');
       var left = panel.querySelector('.orv-ai-panel-head-left');
       if (left) left.innerHTML = '<div class="orv-agent-id"><div class="orv-agent-id-text"><div class="orv-ai-panel-name">Your assistant</div><div class="orv-agent-role">Choose one to start</div></div></div>';
-      var intro = document.getElementById('orvAgentIntro'); if (intro) intro.textContent = '';
+      hello(null);
       var eb = document.getElementById('orvAgentEyebrow'); if (eb) eb.textContent = '';
       var div = panel.querySelector('.orv-ai-section-divider span'); if (div) div.textContent = 'Choose your assistant first';
       lockInput(true);
@@ -323,9 +341,7 @@
       // claims nothing about the user's data.
       var eb = document.getElementById('orvAgentEyebrow'); if (eb) eb.textContent = a.role || '';
       var gt = document.getElementById('orvAiGreetingText');
-      var intro = document.getElementById('orvAgentIntro');
-      if (gt && !intro) { intro = document.createElement('p'); intro.id = 'orvAgentIntro'; intro.className = 'orv-agent-intro'; gt.parentNode.insertBefore(intro, gt.nextSibling); }
-      if (intro) intro.textContent = a.hello || a.intro || '';
+      hello(a);
       var div = panel.querySelector('.orv-ai-section-divider span');
       if (div) div.textContent = 'Ask ' + a.name;
       var inp = document.getElementById('orvAiInput');
@@ -535,7 +551,7 @@
     var k = key(); if (k) { try { localStorage.removeItem(k); } catch (_) {} }
     if (history) history.length = 0;
     if (feed) {
-      Array.prototype.slice.call(feed.children).forEach(function (el) { if (!el.classList.contains('orv-ai-greeting')) el.remove(); });
+      Array.prototype.slice.call(feed.children).forEach(function (el) { if (!el.classList.contains('orv-ai-greeting') && !el.classList.contains('orv-agent-hello')) el.remove(); });
       var g = feed.querySelector('.orv-ai-greeting'); if (g) { g.style.display = ''; g.style.opacity = '1'; }
     }
   }
@@ -548,7 +564,7 @@
     resetLook();
   }
 
-  window.orvAgent = { load: load, apply: apply, current: function () { return S.agent; }, isChosen: function () { return !!(S.agent && S.assigned); }, choose: choose, formatReply: formatReply, renderResults: renderResults, historyText: historyText, record: record, restore: restore, clear: clear, forgetAll: forgetAll, openPage: openPage, glyph: glyph, hasPage: hasPage, busy: busy, where: where, status: function () { return status; } };
+  window.orvAgent = { helloText: helloText, load: load, apply: apply, current: function () { return S.agent; }, isChosen: function () { return !!(S.agent && S.assigned); }, choose: choose, formatReply: formatReply, renderResults: renderResults, historyText: historyText, record: record, restore: restore, clear: clear, forgetAll: forgetAll, openPage: openPage, glyph: glyph, hasPage: hasPage, busy: busy, where: where, status: function () { return status; } };
 
   function start() { bindComposer(); if (typeof apiFetch === 'function') load(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(start, 400); }); else setTimeout(start, 400);

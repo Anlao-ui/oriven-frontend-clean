@@ -100,15 +100,16 @@ const srv = http.createServer((q, r) => {
     return JSON.stringify(h) === '["General settings","Advertising settings"]' && JSON.stringify(gen) === '["general","account","notifications","security","subscription","help"]' && JSON.stringify(ads) === '["meta","google","tiktok","pinterest","snapchat"]';
   }));
   await p.click('#modal-settings [data-smd-ads="meta"]'); await p.waitForTimeout(2200);
-  check('Settings → Advertising settings → Meta opens Advertising Settings on Meta, Settings marked active, /app?view=adsettings', await p.evaluate(() => !!document.querySelector('#page-ad-settings.active') && !!document.querySelector('.orv-sb [data-onv-foot="settings"].is-on') && /view=adsettings/.test(location.search) && !document.querySelector('#modal-settings.open, #modal-settings.on')));
+  // Since the second design pass the platform's settings open inside Settings itself (no page change).
+  check('Settings → Advertising settings → Meta shows Meta’s settings inside Settings (modal stays open, no page change, Meta selected)', await p.evaluate(() => !!document.querySelector('#modal-settings.open') && !!document.querySelector('#modal-settings #smdp-ads.active #asetEmbedRoot .aset-ctx') && /Meta Ads/.test(document.querySelector('#smdp-ads .aset-emb-t').textContent) && document.querySelector('#modal-settings .smd-ai.active').getAttribute('data-smd-ads') === 'meta' && !document.querySelector('#modal-settings .smd-ni.active') && !document.querySelector('#page-ad-settings.active') && !/view=adsettings/.test(location.search)));
   check('the selected platform and ad account are shown', await p.evaluate(() => /Meta Ads/.test(document.querySelector('.aset-ctx').textContent) && /Ad account/.test(document.querySelector('.aset-ctx').textContent)));
   const links = [];
   const rows = {};
   for (const pl of ['meta', 'google', 'tiktok', 'pinterest', 'snapchat']) {
-    await p.click('[data-aset-plat="' + pl + '"]'); await p.waitForTimeout(1200);
-    const d = await p.evaluate(() => ({ plat: document.querySelector('.aset-plat.is-on').textContent, ctx: document.querySelector('.aset-ctx b').textContent, links: Array.from(document.querySelectorAll('.aset-ext')).map((a) => a.href), rows: document.querySelectorAll('.aset-matrix tbody tr').length, text: document.querySelector('#asetRoot').textContent }));
+    await p.click('#modal-settings [data-smd-ads="' + pl + '"]'); await p.waitForTimeout(1200);
+    const d = await p.evaluate(() => ({ still: !!document.querySelector('#modal-settings.open') && !document.querySelector('#page-ad-settings.active'), plat: document.querySelector('#modal-settings .smd-ai.active').textContent + ' ' + document.querySelector('#smdp-ads .aset-emb-t').textContent, ctx: document.querySelector('.aset-ctx b').textContent, links: Array.from(document.querySelectorAll('.aset-ext')).map((a) => a.href), rows: document.querySelectorAll('.aset-matrix tbody tr').length, text: document.querySelector('#asetEmbedRoot').textContent }));
     links.push(...d.links); rows[pl] = d.rows;
-    check(pl + ': the page shows only this platform (switcher + context agree)', d.ctx.toLowerCase().startsWith(pl === 'tiktok' ? 'tiktok' : pl) && d.plat.toLowerCase().includes(pl === 'tiktok' ? 'tiktok' : pl), d);
+    check(pl + ': Settings shows only this platform, without leaving Settings (navigation + context agree)', d.still && d.ctx.toLowerCase().startsWith(pl === 'tiktok' ? 'tiktok' : pl) && d.plat.toLowerCase().includes(pl === 'tiktok' ? 'tiktok' : pl), d);
     check(pl + ': never claims "Active" from an id alone', !/\bActive\b/.test(d.text.replace(/Pinterest status: ACTIVE/g, '')), d.text.match(/.{40}\bActive\b.{40}/));
     check(pl + (pl === 'snapchat' ? ': no OrivenAI actions, so no verification notice' : ': its OrivenAI actions say they are not yet verified with a real account'),
       pl === 'snapchat' ? !/not yet verified/i.test(d.text) : /In OrivenAI · not yet verified with a real account/.test(d.text), d.text.slice(0, 300));
@@ -116,19 +117,20 @@ const srv = http.createServer((q, r) => {
   const hosts = links.map((u) => new URL(u).hostname);
   check('every external setup link goes to an official platform domain', links.length >= 5 && hosts.every((h) => /(^|\.)(facebook\.com|google\.com|tiktok\.com|pinterest\.com|snapchat\.com|snap\.com)$/.test(h)), hosts);
   check('each platform lists what can be configured where', Object.values(rows).every((n) => n >= 3), rows);
-  await p.click('[data-aset-plat="tiktok"]'); await p.waitForTimeout(500);
+  await p.click('#modal-settings [data-smd-ads="tiktok"]'); await p.waitForTimeout(500);
   check('TikTok: the actions need a pixel code first (disabled until entered)', await p.evaluate(() => document.querySelector('[data-aset-ttlink]').disabled && document.querySelector('[data-aset-ask="ttTest"]').disabled));
   await p.fill('[data-aset-in="tiktokCode"]', 'C1TEST');
   await p.click('[data-aset-ask="ttTest"]'); await p.waitForTimeout(200);
   check('sending a test event asks for confirmation first, naming platform, account and effect', await p.evaluate(() => { const c = document.querySelector('.aset-confirm'); return !!c && /TikTok Ads/.test(c.textContent) && /real event/.test(c.textContent); }));
   await p.click('[data-aset-cancel]');
-  await p.click('[data-aset-plat="meta"]'); await p.waitForTimeout(1200);
+  await p.click('#modal-settings [data-smd-ads="meta"]'); await p.waitForTimeout(1200);
   const metaCards = await p.evaluate(() => ({ connected: /Connected/.test(document.querySelector('.aset-ctx').textContent), notice: document.querySelectorAll('[data-aset-unverified="meta"]').length }));
   check('Meta: the pixel card itself carries the “not yet verified with a real ad account” notice (when connected)', !metaCards.connected || metaCards.notice >= 1, metaCards);
 
   // ── 3b. Language switch ──────────────────────────────────────
   await p.evaluate(() => { window.CURRENT_LANG = 'nl'; window.applyLanguage(); }); await p.waitForTimeout(400);
-  check('language: Advertising Settings redraws in Dutch, with the not-verified notice translated', await p.evaluate(() => { const t = document.querySelector('#asetRoot').textContent; return /Advertentie-instellingen/.test(t) && /nog niet geverifieerd met een echt account/.test(t) && !/What you can configure/.test(t); }));
+  check('language: Advertising Settings redraws in Dutch, with the not-verified notice translated', await p.evaluate(() => { const t = document.querySelector('#asetEmbedRoot').textContent; return /Advertentie-instellingen/.test(t) && /nog niet geverifieerd met een echt account/.test(t) && !/What you can configure/.test(t); }));
+  await p.evaluate(() => closeModal('modal-settings'));
   await p.evaluate(() => window.orvAppNav.go('simulator')); await p.waitForTimeout(700);
   await p.click('[data-asim-view="lab"]'); await p.waitForTimeout(400);
   check('language: Ad Simulator is in Dutch (Scenario Lab, compare, method)', await p.evaluate(() => { const t = document.querySelector('#asimRoot').textContent; return /Scenariolab/.test(t) && /Scenario’s vergelijken/.test(t) && /Hoe deze cijfers tot stand komen/.test(t) && !/Compare scenarios/.test(t); }));
@@ -176,6 +178,58 @@ const srv = http.createServer((q, r) => {
   await p.evaluate(() => window.orvAppNav.go('adsvsads')); await p.waitForTimeout(3000);
   check('Ads vs Ads: its own Analytics page with the two-ad comparison', await p.evaluate(() => document.querySelector('.page.active').id === 'page-ads-vs-ads' && document.querySelectorAll('#advCard select').length >= 2));
 
+  // ── 3e. Second design pass: help, neutral surfaces, assistant identity ──
+  await p.evaluate(() => { if (typeof closeModal === 'function') closeModal('modal-settings'); if (window.orvCloseAi) window.orvCloseAi(); window.orvAppNav.go('dashboard'); }); await p.waitForTimeout(1500);
+  const helpIds = await p.evaluate(() => {
+    const items = [...document.querySelectorAll('.orv-sb .onv-item[data-onv]')].map((b) => b.getAttribute('data-onv'));
+    const helps = [...document.querySelectorAll('.orv-sb .onv-help[data-onv-help]')].map((b) => b.getAttribute('data-onv-help'));
+    return { items, helps, missing: items.filter((x) => helps.indexOf(x) < 0 || !window.orvNavHelp.text(x)), foot: ['settings', 'platforms'].every((x) => helps.indexOf(x) >= 0 && window.orvNavHelp.text(x)), nested: !!document.querySelector('.onv-item .onv-help') };
+  });
+  check('every sidebar destination (and Settings, Ad Platforms) has a “?” with its own explanation — never inside the link itself', helpIds.items.length === 17 && !helpIds.missing.length && helpIds.foot && !helpIds.nested, helpIds);
+  const calm = await p.evaluate(() => getComputedStyle(document.querySelector('.orv-sb .onv-help[data-onv-help="simulator"]')).opacity);
+  check('the “?” stays out of sight until its row is hovered or focused (no clutter)', calm === '0', calm);
+  await p.hover('.orv-sb .onv-item[data-onv="simulator"]'); await p.waitForTimeout(250);
+  await p.hover('.orv-sb .onv-help[data-onv-help="simulator"]'); await p.waitForTimeout(350);
+  const tipH = await p.evaluate(() => { const t = document.getElementById('onvTip'), r = t.getBoundingClientRect(), sb = document.querySelector('.orv-sb').getBoundingClientRect(); return { shown: !t.hidden, text: t.textContent, left: r.left, right: r.right, top: r.top, bottom: r.bottom, sbRight: sb.right, vw: innerWidth, vh: innerHeight, page: document.querySelector('.page.active').id }; });
+  check('hovering the “?” explains the page in a tooltip beside the sidebar, fully inside the window', tipH.shown && /Ad Simulator/.test(tipH.text) && /simulation/i.test(tipH.text) && tipH.left >= tipH.sbRight && tipH.right <= tipH.vw && tipH.top >= 0 && tipH.bottom <= tipH.vh, tipH);
+  await p.mouse.move(900, 600); await p.waitForTimeout(400);
+  await p.focus('.orv-sb .onv-help[data-onv-help="compare"]'); await p.waitForTimeout(250);
+  const tipK = await p.evaluate(() => ({ shown: !document.getElementById('onvTip').hidden, text: document.getElementById('onvTip').textContent, desc: document.querySelector('.orv-sb .onv-help[data-onv-help="compare"]').getAttribute('aria-describedby') }));
+  await p.keyboard.press('Escape'); await p.waitForTimeout(250);
+  const tipEsc = await p.evaluate(() => document.getElementById('onvTip').hidden);
+  check('keyboard: focusing the “?” shows the tooltip (linked with aria-describedby), Escape closes it', tipK.shown && /budget/.test(tipK.text) && tipK.desc === 'onvTip' && tipEsc, { tipK, tipEsc });
+  await p.click('.orv-sb .onv-help[data-onv-help="insights"]'); await p.waitForTimeout(500);
+  check('clicking the “?” explains, it doesn’t open the page', await p.evaluate(() => document.querySelector('.page.active').id !== 'page-insights' && !document.getElementById('onvTip').hidden && /research/i.test(document.getElementById('onvTip').textContent)));
+  await p.mouse.click(900, 700); await p.waitForTimeout(200);
+  const look = await p.evaluate(() => {
+    const bg = (el) => el ? getComputedStyle(el).backgroundColor : null;
+    const ic = document.querySelector('.orv-sb .onv-mom__ic'), cs = getComputedStyle(ic), after = getComputedStyle(ic, '::after');
+    return { canvas: bg(document.querySelector('.mc')), card: bg(document.querySelector('#bizPanelOverview .dsh-card')), sidebar: bg(document.querySelector('.orv-sb')),
+      anim: [cs.animationName, after.animationName, getComputedStyle(ic.querySelector('.onv-mom__core') || ic, '').animationName], afterContent: after.content };
+  });
+  const green = (c) => { const m = /rgba?\((\d+), (\d+), (\d+)/.exec(c || ''); return m ? (+m[2] - Math.max(+m[1], +m[3])) : 99; };
+  check('the canvas, sidebar and cards are neutral charcoal (no green surfaces)', green(look.canvas) <= 3 && green(look.card) <= 4 && green(look.sidebar) <= 3, look);
+  check('the assistant’s icon is static: no rotating or scanning animation', look.anim.every((a) => a === 'none') && (look.afterContent === 'none' || look.afterContent === 'normal'), look);
+  const persona = await p.evaluate(() => {
+    const item = document.querySelector('.orv-sb [data-onv-foot="assistant"]'), live = item.querySelector('.onv-mom__live');
+    const fab = document.getElementById('orvAiFab');
+    const navOn = document.querySelector('.orv-sb .onv-item.is-on:not(.onv-mom)');
+    return { agent: fab.getAttribute('data-agent'), agentRgb: fab.style.getPropertyValue('--orv-agent-rgb').replace(/\s/g, ''), live: getComputedStyle(live).backgroundColor.replace(/\s/g, ''), navOn: navOn ? getComputedStyle(navOn).backgroundColor : null, btn: getComputedStyle(document.querySelector('[data-asim-start], .dsh-btn--primary, .rx-btn-primary') || document.body).backgroundColor };
+  });
+  check('the assistant item wears the chosen persona’s colour, not the app green', !!persona.agent && persona.live === 'rgb(' + persona.agentRgb + ')', persona);
+  // Pretend the persona were Momentum: the assistant turns orange, the rest of the app keeps its green.
+  const mo = await p.evaluate(async () => {
+    const a = window.orvAgent.current(); const keep = Object.assign({}, a);
+    Object.assign(a, { id: 'momentum', name: 'Momentum', color: '#FF8A3D' }); window.orvAgent.apply(); await new Promise((r) => setTimeout(r, 200));
+    window.orvAppNavAssistant.open(); await new Promise((r) => setTimeout(r, 500));
+    const item = document.querySelector('.orv-sb [data-onv-foot="assistant"]');
+    const out = { hello: document.getElementById('orvAgentHelloText').textContent, live: getComputedStyle(item.querySelector('.onv-mom__live')).backgroundColor, head: getComputedStyle(document.querySelector('#orvAiPanel .orv-ai-panel-head')).boxShadow,
+      navOn: getComputedStyle(document.querySelector('.orv-sb .onv-item.is-on:not(.onv-mom)') || document.body).backgroundColor, green: getComputedStyle(document.documentElement).getPropertyValue('--orv-green').trim() };
+    window.orvCloseAi(); Object.assign(a, keep); window.orvAgent.apply();
+    return out;
+  });
+  check('Momentum: “Hey, I am Momentum…”, orange on the assistant’s own elements; the app’s navigation keeps the OrivenAI green', /^Hey, I am Momentum\./.test(mo.hello) && mo.live === 'rgb(255, 138, 61)' && /255, 138, 61/.test(mo.head) && !/255, 138, 61/.test(mo.navOn) && mo.green.toUpperCase() === '#B7FF2A', mo);
+
   // ── 4. Phones ────────────────────────────────────────────────
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
   const q = await phone.newPage(); q.on('pageerror', (e) => errors.push('phone: ' + e.message));
@@ -184,8 +238,8 @@ const srv = http.createServer((q, r) => {
   await q.evaluate(() => { document.querySelector('[data-asim-qp="google"]').click(); document.querySelector('[data-asim-start]').click(); }); await q.waitForTimeout(500);
   const o1 = await q.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   await q.evaluate(() => window.orvAdSettings.open('google')); await q.waitForTimeout(1200);
-  const o2 = await q.evaluate(() => document.documentElement.scrollWidth - innerWidth);
-  check('phones: Ad Simulator and Advertising Settings have no sideways page overflow', o1 <= 0 && o2 <= 0, { o1, o2 });
+  const o2 = await q.evaluate(() => { const c = document.querySelector('#smdp-ads'); return Math.max(document.documentElement.scrollWidth - innerWidth, c && document.querySelector('#modal-settings.open') ? c.scrollWidth - c.clientWidth : 99); });
+  check('phones: Ad Simulator, and Advertising Settings inside Settings, have no sideways overflow', o1 <= 0 && o2 <= 0, { o1, o2 });
   await phone.close();
 
   await browser.close(); srv.close();

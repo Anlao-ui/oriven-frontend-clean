@@ -26,12 +26,18 @@
    Official links: verified against the platforms' own documentation
    (2026-11-25): see LINKS.
    window.orvAdSettings.open(platform?)
+   Since 2026-11-26 it is shown inside Settings (the modal's content area,
+   #smdp-ads → #asetEmbedRoot, opened by js/appNav.js orvSettingsAds): the
+   platforms are chosen in the Settings navigation, the content is the same.
+   The standalone page (#page-ad-settings) is only a fallback when the
+   Settings modal isn't available.
    ════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
   var K = window.orvGrowthKit; if (!K) return;
   var esc = K.esc, api = K.api;
-  var PAGE = 'page-ad-settings', ROOT = 'asetRoot';
+  var PAGE = 'page-ad-settings', ROOT = 'asetRoot', EMBED_ROOT = 'asetEmbedRoot';
+  var R = ROOT, EMBED = false; // where it is drawn now: the page, or inside Settings
   var PLATS = ['meta', 'google', 'tiktok', 'pinterest', 'snapchat'];
   var NAME = { google: 'Google Ads', meta: 'Meta Ads', tiktok: 'TikTok Ads', pinterest: 'Pinterest Ads', snapchat: 'Snapchat Ads' };
   // Official pages, each confirmed on the platform's own documentation:
@@ -79,7 +85,26 @@
   var S = fresh(null);
   function fresh(uid) { return { uid: uid, plat: 'meta', conn: {}, setup: {}, data: {}, busy: {}, msg: {}, confirm: null, googleName: 'Purchase', tiktokCode: '', metaTestCode: '' }; }
 
+  // Everyone who opens Advertising Settings gets it inside Settings.
   function open(p) {
+    if (typeof window.orvSettingsAds === 'function' && document.getElementById('smdp-ads')) { window.orvSettingsAds(p && PLATS.indexOf(p) >= 0 ? p : S.plat); return; }
+    openPage(p);
+  }
+  // Inside Settings: the platform's settings in the modal's content area.
+  function openIn(host, p) {
+    if (!host) return;
+    var root = document.getElementById(EMBED_ROOT);
+    if (!root) { root = document.createElement('div'); root.id = EMBED_ROOT; host.appendChild(root); }
+    if (!host._asetBound) { host._asetBound = true; host.addEventListener('click', onClick); host.addEventListener('input', onInput); }
+    if (K.uid() !== S.uid) S = fresh(K.uid());
+    if (p && PLATS.indexOf(p) >= 0) { if (S.plat !== p) S.confirm = null; S.plat = p; }
+    R = EMBED_ROOT; EMBED = true;
+    hookLang();
+    render();
+    if (!S.conn[S.plat] || !S.conn[S.plat].ok) loadPlatform(S.plat);
+  }
+  function openPage(p) {
+    R = ROOT; EMBED = false;
     if (!K.mount(PAGE, ROOT, onClick)) return;
     var pg = document.getElementById(PAGE);
     if (pg && !pg._asetBound) { pg._asetBound = true; pg.addEventListener('input', onInput); }
@@ -118,7 +143,7 @@
 
   // ── Render ─────────────────────────────────────────────────────
   function render() {
-    var root = document.getElementById(ROOT); if (!root) return;
+    var root = document.getElementById(R); if (!root) return;
     var p = S.plat, c = S.conn[p] || { loading: true };
     var tabs = '<div class="aset-plats" role="tablist" aria-label="' + esc(T('Advertising platform')) + '">' + PLATS.map(function (x) {
       var cx = S.conn[x], dot = !cx || cx.loading ? 'is-unknown' : cx.connected ? 'is-on' : cx.expired ? 'is-warn' : 'is-off';
@@ -126,6 +151,13 @@
     }).join('') + '</div>';
     var head = K.head(T('Settings'), T('Advertising Settings'), T('Tracking, conversions and measurement for each advertising platform — set up in OrivenAI where the platform allows it, and guided step by step where it doesn’t.'),
       '<div class="aset-headact"><button type="button" class="rx-btn rx-btn-ghost" data-aset-general>' + esc(T('Account, billing & notifications')) + '</button></div>');
+    if (EMBED) {
+      // Inside Settings the platforms are picked in the Settings navigation: a compact heading instead of the page title and tabs.
+      root.innerHTML = '<div class="aset aset--embed"><div class="aset-emb-h"><span class="aset-lbl">' + esc(T('Advertising Settings')) + '</span><h3 class="aset-emb-t">' + esc(NAME[p]) + '</h3>' +
+        '<p class="aset-emb-d">' + esc(T('Tracking, conversions and measurement for each advertising platform — set up in OrivenAI where the platform allows it, and guided step by step where it doesn’t.')) + '</p></div>' +
+        contextBar(p, c) + body(p, c) + '</div>';
+      return;
+    }
     root.innerHTML = '<div class="aset">' + head + tabs + contextBar(p, c) + body(p, c) + '</div>';
   }
   function contextBar(p, c) {
@@ -254,7 +286,7 @@
     var a = function (n) { return b.getAttribute(n); };
     var p = S.plat;
     if (b.hasAttribute('data-aset-plat')) { S.plat = a('data-aset-plat'); S.confirm = null; render(); if (!S.conn[S.plat] || !S.conn[S.plat].ok) loadPlatform(S.plat); return; }
-    if (b.hasAttribute('data-aset-platforms')) { if (window.orvPages) window.orvPages.open('ad-platforms'); return; }
+    if (b.hasAttribute('data-aset-platforms')) { if (EMBED && typeof window.orvOpenAdPlatformsFromSettings === 'function') window.orvOpenAdPlatformsFromSettings(); else if (window.orvPages) window.orvPages.open('ad-platforms'); return; }
     if (b.hasAttribute('data-aset-general')) { if (window.orvPages) window.orvPages.open('settings'); return; }
     if (b.hasAttribute('data-aset-refresh')) { loadTracking(p); if (p === 'google') { (S.data.google || {}).tag = null; } return; }
     if (b.hasAttribute('data-aset-copy')) { var txt = a('data-aset-copy'); try { navigator.clipboard.writeText(txt); b.textContent = T('Copied'); } catch (_) {} return; }
@@ -309,17 +341,17 @@
     var k = el.getAttribute('data-aset-in'); S[k] = el.value.slice(0, 100);
     // enable/disable the buttons that need this field, without redrawing the field
     var on = !!S[k].trim();
-    if (k === 'tiktokCode') document.querySelectorAll('#' + PAGE + ' [data-aset-ttlink], #' + PAGE + ' [data-aset-ask="ttTest"]').forEach(function (b) { if (!S.busy.ttLink && !S.busy.ttTest) b.disabled = !on; });
-    if (k === 'metaTestCode') document.querySelectorAll('#' + PAGE + ' [data-aset-metacapi]').forEach(function (b) { if (!S.busy.metaCapi) b.disabled = !on; });
+    if (k === 'tiktokCode') document.querySelectorAll('#' + R + ' [data-aset-ttlink], #' + R + ' [data-aset-ask="ttTest"]').forEach(function (b) { if (!S.busy.ttLink && !S.busy.ttTest) b.disabled = !on; });
+    if (k === 'metaTestCode') document.querySelectorAll('#' + R + ' [data-aset-metacapi]').forEach(function (b) { if (!S.busy.metaCapi) b.disabled = !on; });
   }
 
   // Language switch (Settings): redraw in the new language once the page has been opened.
   function hookLang() {
     if (typeof window.applyLanguage !== 'function' || window.applyLanguage._aset) return;
     var orig = window.applyLanguage;
-    window.applyLanguage = function () { var r = orig.apply(this, arguments); try { if (document.getElementById(ROOT)) render(); } catch (_) {} return r; };
+    window.applyLanguage = function () { var r = orig.apply(this, arguments); try { if (document.getElementById(R)) render(); } catch (_) {} return r; };
     window.applyLanguage._aset = true;
   }
   hookLang();
-  window.orvAdSettings = { open: open, LINKS: LINKS, REAL_ACCOUNT_VERIFIED: REAL_ACCOUNT_VERIFIED, _state: function () { return S; } };
+  window.orvAdSettings = { open: open, openIn: openIn, openPage: openPage, current: function () { return S.plat; }, LINKS: LINKS, REAL_ACCOUNT_VERIFIED: REAL_ACCOUNT_VERIFIED, _state: function () { return S; } };
 })();
