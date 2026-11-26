@@ -230,6 +230,55 @@ const srv = http.createServer((q, r) => {
   });
   check('Momentum: “Hey, I am Momentum…”, orange on the assistant’s own elements; the app’s navigation keeps the OrivenAI green', /^Hey, I am Momentum\./.test(mo.hello) && mo.live === 'rgb(255, 138, 61)' && /255, 138, 61/.test(mo.head) && !/255, 138, 61/.test(mo.navOn) && mo.green.toUpperCase() === '#B7FF2A', mo);
 
+  // ── 3f. Refinement round: greeting, spacing, Create modes, metrics, headings ──
+  await p.evaluate(() => { if (typeof closeModal === 'function') closeModal('modal-settings'); if (window.orvCloseAi) window.orvCloseAi(); window.orvAppNav.go('dashboard'); }); await p.waitForTimeout(1500);
+  await p.evaluate(() => window.orvAppNavSetFirstName('Alex Morgan')); await p.waitForTimeout(300);
+  const greet = await p.evaluate(() => ({ h: document.querySelector('#dshRoot [data-dsh-greeting]').textContent, range: !!document.querySelector('#dshRoot select[data-dsh="range"], #dshRoot .dsh-range'), period: /\bPeriod\b/.test(document.querySelector('#dshRoot .dsh-head').textContent) }));
+  check('Dashboard greets the signed-in person by first name only (“…, Alex.”), never the workspace name', /^Good (morning|afternoon|evening), Alex\.$/.test(greet.h) && !/Oriven/i.test(greet.h), greet);
+  check('Dashboard has no period selector and no “Period” label', !greet.range && !greet.period, greet);
+  await p.evaluate(() => window.orvAppNavSetFirstName('OrivenAI')); await p.waitForTimeout(200);
+  check('a name that is just the product name is not used as a greeting name', /^Good (morning|afternoon|evening)\.$/.test(await p.evaluate(() => document.querySelector('#dshRoot [data-dsh-greeting]').textContent)));
+  await p.evaluate(() => window.orvAppNavSetFirstName('Alex'));
+  const frame = [];
+  for (const v of ['dashboard', 'attention', 'simulator', 'testing', 'compare', 'research', 'insights', 'overview', 'auto-overview']) {
+    await p.evaluate((v) => window.orvAppNav.go(v), v); await p.waitForTimeout(900);
+    frame.push(await p.evaluate((v) => {
+      const pg = document.querySelector('.page.active'), mc = document.querySelector('.mc').getBoundingClientRect();
+      const wrap = [...pg.children].find((c) => c.offsetHeight > 40 && !/notif/.test(c.className));
+      const cs = getComputedStyle(wrap);
+      return { v, top: parseInt(cs.paddingTop), bottom: parseInt(cs.paddingBottom), left: parseInt(cs.paddingLeft), right: parseInt(cs.paddingRight), above: Math.round(pg.getBoundingClientRect().top - mc.top) };
+    }, v));
+  }
+  check('every page uses the same frame as Needs Attention: 24px top, bottom and sides at 1440px, nothing above the page', frame.every((f) => f.top === 24 && f.bottom === 24 && f.left === 24 && f.right === 24 && f.above === 0), frame);
+  await p.evaluate(() => window.orvAppNav.go('adstudio')); await p.waitForTimeout(900);
+  check('Campaigns: the sidebar says “Campaigns”, the heading says what it is for (“Campaign Studio”)', await p.evaluate(() => document.querySelector('#page-launch .lq-hdr-title').textContent === 'Campaign Studio' && document.querySelector('.orv-sb .onv-item[data-onv="adstudio"] .onv-lbl').textContent === 'Campaigns'));
+  await p.evaluate(() => { try { localStorage.clear(); } catch (_) {} window.orvAppNav.go('create'); window.orvCreateModes.choose(null); }); await p.waitForTimeout(900);
+  const ch = await p.evaluate(() => ({ opts: [...document.querySelectorAll('#crmRoot [data-crm-choose]')].map((b) => b.getAttribute('data-crm-choose') + ':' + b.querySelector('.crm-opt__t').textContent), aiHidden: getComputedStyle(document.querySelector('#page-create .cr2-workspace-row')).display === 'none' }));
+  check('Create Ads starts with a choice: Create with AI or Create manually (the AI steps wait until AI is chosen)', JSON.stringify(ch.opts) === JSON.stringify(['ai:Create with AI', 'manual:Create manually']) && ch.aiHidden, ch);
+  await p.click('[data-crm-choose="ai"]'); await p.waitForTimeout(500);
+  check('Create with AI shows the existing guided flow, unchanged, with a way to switch', await p.evaluate(() => getComputedStyle(document.querySelector('#page-create .cr2-workspace-row')).display !== 'none' && !!document.querySelector('#cfSteps li') && !document.getElementById('crmSwitch').hidden));
+  await p.click('#crmSwitch'); await p.waitForTimeout(500);
+  const m1 = await p.evaluate(() => ({ h: document.querySelector('#crmRoot h2').textContent, plats: [...document.querySelectorAll('[data-crm-plat]')].map((b) => b.getAttribute('data-crm-plat')), next: document.querySelector('[data-crm-next]').disabled, ai: getComputedStyle(document.querySelector('#page-create .cr2-workspace-row')).display }));
+  check('Create manually asks the platform FIRST (Meta, Google, TikTok, Pinterest, Snapchat); Next is disabled until one is chosen', m1.h === 'Which advertising platform do you want to create an ad for?' && JSON.stringify(m1.plats) === '["meta","google","tiktok","pinterest","snapchat"]' && m1.next && m1.ai === 'none', m1);
+  await p.click('[data-crm-plat="tiktok"]'); await p.click('[data-crm-next]'); await p.waitForTimeout(300);
+  const tt = await p.evaluate(() => ({ h: document.querySelector('#crmRoot h2').textContent, goals: [...document.querySelectorAll('#crmRoot input[name="crmGoal"]')].map((i) => i.value + (i.disabled ? '-' : '+')) }));
+  check('TikTok manual: campaign step, with only the goals OrivenAI can publish on TikTok enabled (Traffic, Awareness)', tt.h === 'Campaign' && JSON.stringify(tt.goals.slice().sort()) === '["Awareness+","Leads-","Sales-","Traffic+"]', tt);
+  await p.click('[data-crm-next]'); await p.waitForTimeout(300);
+  const err = await p.evaluate(() => [...document.querySelectorAll('#crmRoot .crm-errs li')].map((l) => l.textContent));
+  check('the form says what is missing before continuing (name, objective, budget)', err.length >= 3 && err.some((x) => /name/.test(x)) && err.some((x) => /budget/.test(x)), err);
+  await p.fill('[data-crm="name"]', 'Video visits'); await p.check('input[name="crmGoal"][value="Traffic"]'); await p.fill('[data-crm="budget"]', '30'); await p.click('[data-crm-next]'); await p.waitForTimeout(400);
+  if (await p.$('[data-crm-country="NL"]')) await p.click('[data-crm-country="NL"]'); else await p.fill('[data-crm="countries"]', 'NL');
+  await p.click('[data-crm-next]'); await p.waitForTimeout(300);
+  const ad = await p.evaluate(() => ({ h: document.querySelector('#crmRoot h2').textContent, video: !!document.querySelector('[data-crm-file="video"]'), image: !!document.querySelector('[data-crm-file="image"]'), text: !!document.querySelector('[data-crm="adText"]') }));
+  check('TikTok manual: the ad step asks for ad text and a video (no image upload)', ad.h === 'Ad' && ad.video && !ad.image && ad.text, ad);
+  await p.evaluate(() => window.orvAppNav.go('content')); await p.waitForTimeout(900);
+  check('My Creatives says where each item came from (made with AI or uploaded) when that is known', await p.evaluate(() => [...document.querySelectorAll('#mclRoot .mcl-info span')].some((s) => /Made with AI|Uploaded by you/.test(s.textContent))));
+  await p.evaluate(() => window.orvAppNav.go('overview')); await p.waitForTimeout(1600);
+  const pm = await p.evaluate(() => { const h = document.getElementById('prfPlatformMetrics'); return { ok: !!h, text: h ? h.textContent : '', nums: h ? h.querySelectorAll('.pfm-m dd').length : -1 }; });
+  check('Performance Overview has a Platform metrics section that, in the demo, says it needs a real account (no invented numbers)', pm.ok && /Platform metrics/.test(pm.text) && /aren’t part of the demo|couldn’t be loaded|isn’t connected/.test(pm.text) && !/reports no extra metrics/.test(pm.text) && pm.nums === 0, pm);
+  const defs = await p.evaluate(() => { const D = window.orvPlatformMetrics.DEF; return Object.keys(D).every((k) => D[k][0] && D[k][2] && (D[k][2]['*'] || Object.keys(D[k][2]).length)); });
+  check('every platform metric has a label and a definition of how the platform counts it', defs);
+
   // ── 4. Phones ────────────────────────────────────────────────
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
   const q = await phone.newPage(); q.on('pageerror', (e) => errors.push('phone: ' + e.message));

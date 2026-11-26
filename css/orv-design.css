@@ -389,3 +389,150 @@ body.orv-ai-ws .mc { overflow: hidden; }
   .onv-item.onv-mom.is-on { outline: 2px solid Highlight; }
   .onv-help { border: 1px solid CanvasText; opacity: 1; }
 }
+
+/* ── 9. Performance Overview → Platform metrics (js/platformMetrics.js) ── */
+.pfm { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+.pfm-h h2 { margin: 0; font-size: var(--orv-fs-card); font-weight: 700; color: var(--charcoal); }
+.pfm-sub { margin: 4px 0 0; font-size: 13px; color: var(--muted); max-width: 72ch; }
+.pfm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 12px; align-items: start; }
+.pfm-grp { border: 1px solid var(--orv-line); border-radius: 14px; background: var(--orv-card-2); }
+.pfm-grp > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; font-size: 13px; font-weight: 650; color: var(--charcoal); }
+.pfm-grp > summary::-webkit-details-marker { display: none; }
+.pfm-grp > summary small { font: 600 11px/1 var(--onv-mono, ui-monospace, monospace); color: var(--muted); padding: 3px 7px; border-radius: 99px; background: rgba(255, 255, 255, .05); }
+.pfm-grp > summary:focus-visible { outline: 2px solid var(--orv-green-ui); outline-offset: 2px; border-radius: 14px; }
+.pfm-list { margin: 0; padding: 0 14px 12px; display: grid; gap: 8px; }
+.pfm-m { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 2px; padding: 9px 0; border-top: 1px solid var(--orv-line); }
+.pfm-m dt { font-size: 13px; font-weight: 600; color: var(--charcoal); }
+.pfm-m dd { margin: 0; font-size: 15px; font-weight: 700; color: var(--charcoal); font-variant-numeric: tabular-nums; text-align: right; }
+.pfm-m p { grid-column: 1 / -1; margin: 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
+.pfm-na { font-size: 12px; font-weight: 600; color: var(--muted); }
+.pfm-foot { margin: 0; font-size: 12px; color: var(--muted); }
+
+/* ── 10. One page frame for every page (shared spacing tokens) ─────────────
+   Reference: Needs Attention. The same distance from the content to the
+   top, sides and bottom on every page; up to 1024px the top also clears the
+   fixed menu button. Short pages simply end — nothing is stretched. */
+/* The page tokens already introduced on body (orivenOps.css "one page system") now carry these values everywhere. */
+html body { --orv-page-x: 24px; --orv-page-top: 24px; --orv-page-bottom: 24px; }
+@media (max-width: 1024px) { html body { --orv-page-top: 68px; } }
+@media (max-width: 768px) { html body { --orv-page-x: 16px; --orv-page-bottom: 20px; } }
+.page > .rx-wrap, .page > .onv-panel, .page > .cr2-wrap, .page > .nda, .page > .atm-wrap,
+#page-business-brain > .orv-page-wrap-biz, #page-launch .camp-hub.lq-hub, #page-performance > .prf-wrap {
+  box-sizing: border-box !important;
+  padding-top: var(--orv-page-top) !important; padding-bottom: var(--orv-page-bottom) !important;
+  padding-left: var(--orv-page-x) !important; padding-right: var(--orv-page-x) !important;
+  margin-top: 0 !important; margin-bottom: 0 !important; min-height: 0 !important;
+}
+/* AI Plans & Tasks: the tab strip sits in the frame; the document under it ends with the same bottom space. */
+.page > .onv-panel.pt-wrap { padding-bottom: 0 !important; }
+.page > .onv-panel.pt-wrap ~ .onv-panel, .page > .onv-panel.pt-wrap ~ * > .mpl-doc, .page > .onv-panel.pt-wrap ~ * > .prg-doc { padding-top: 0 !important; }
+#page-performance #prfWorkspaceRow { margin-top: 0 !important; }
+#page-performance #prfOvTitle { margin-top: 0 !important; }
+#bizPanelConnections > .biz-module-hd:empty { display: none; }
+/* The floating chat button is gone on every plan (the assistant lives in the sidebar), so the
+   80px "scroll clear of the chat button" space on phones goes too — as it already did without chat. */
+@media (max-width: 768px) {
+  html body .mc { padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
+  html body #page-dashboard.active { padding-bottom: 0 !important; }
+  html body #page-create .cr2-gen-row { bottom: 0 !important; }
+  html body #page-create.active { padding-bottom: 0 !important; margin-bottom: 0 !important; }
+}
+/* The old Campaigns hub strip has no tabs any more: when it is empty it takes no room. */
+#orvHubTabsCampaigns:not(:has(> *)) { display: none !important; }
+#bizPanelConnections > .biz-module-hd:not(:has(*)) { display: none !important; }
+
+/* ── 11. Create Ads: two ways to create (js/createModes.js) ────────────── */
+#page-create.crm-choose .cr2-workspace-row, #page-create.crm-manual .cr2-workspace-row,
+#page-create.crm-choose .cr2-biz-row, #page-create.crm-manual .cr2-biz-row,
+#page-create.crm-choose .cr2-gen-row, #page-create.crm-manual .cr2-gen-row { display: none !important; }
+.crm { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+#page-create.crm-ai .crm { display: none; }
+.crm-switch { all: unset; box-sizing: border-box; cursor: pointer; margin-top: 12px; display: inline-flex; align-items: center; min-height: 34px; padding: 6px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--charcoal); border: 1px solid var(--orv-line-2); background: var(--orv-card-2); }
+.crm-switch:hover { border-color: rgba(var(--orv-green-ui-rgb), .55); }
+.crm-switch:focus-visible, .crm-opt:focus-visible, .crm-plat:focus-visible, .crm-btn:focus-visible, .crm-link:focus-visible { outline: 2px solid var(--orv-green-ui); outline-offset: 2px; }
+.crm-choose { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.crm-opt { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 8px; padding: 24px; border-radius: var(--orv-r-card); border: 1px solid var(--orv-line); background: var(--orv-card); box-shadow: var(--orv-shadow-1); transition: border-color .16s var(--orv-ease); }
+.crm-opt:hover { border-color: rgba(var(--orv-green-ui-rgb), .5); }
+.crm-opt__ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: var(--orv-green); background: rgba(var(--orv-green-ui-rgb), .1); box-shadow: inset 0 0 0 1px rgba(var(--orv-green-ui-rgb), .3); }
+.crm-opt__ic svg { width: 22px; height: 22px; }
+.crm-opt__t { font-size: 18px; font-weight: 700; color: var(--charcoal); letter-spacing: -.01em; }
+.crm-opt__d { font-size: 14px; line-height: 1.5; color: var(--muted); }
+.crm-opt ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; color: var(--c2, var(--charcoal)); }
+.crm-opt__go { margin-top: auto; padding-top: 8px; font-size: 13.5px; font-weight: 650; color: #C9F27A; }
+.crm-note { margin: 0; font-size: 13px; color: var(--muted); }
+.crm-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.crm-steps button { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; font-size: 13px; font-weight: 600; color: var(--muted); border: 1px solid var(--orv-line); background: var(--orv-card); }
+.crm-steps button[disabled] { cursor: default; opacity: .55; }
+.crm-steps b { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 50%; font-size: 12px; background: rgba(255, 255, 255, .06); color: var(--charcoal); }
+.crm-steps .is-on button { color: var(--charcoal); border-color: rgba(var(--orv-green-ui-rgb), .5); }
+.crm-steps .is-on b { background: var(--orv-green); color: var(--orv-green-ink); }
+.crm-steps .is-done b { background: rgba(var(--orv-green-ui-rgb), .2); color: #B9E58E; }
+.crm-card { display: flex; flex-direction: column; gap: 16px; padding: 24px; border-radius: var(--orv-r-card); border: 1px solid var(--orv-line); background: var(--orv-card); box-shadow: var(--orv-shadow-1); }
+.crm-card h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.015em; color: var(--charcoal); }
+.crm-sub { margin: -8px 0 0; font-size: 14px; line-height: 1.5; color: var(--muted); max-width: 72ch; }
+.crm-plats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 12px; }
+.crm-plat { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 14px; border: 1px solid var(--orv-line); background: var(--orv-card-2); }
+.crm-plat b { font-size: 15px; color: var(--charcoal); }
+.crm-plat span { font-size: 13px; color: var(--c2, var(--charcoal)); }
+.crm-plat small { font-size: 12px; color: var(--muted); }
+.crm-plat em { font-style: normal; font-size: 12px; color: var(--muted); margin-top: 4px; }
+.crm-plat em.is-ok { color: #9FE06A; }
+.crm-plat.is-on { border-color: var(--orv-green); box-shadow: inset 0 0 0 1px var(--orv-green); }
+.crm-f { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.crm-l { font-size: 13px; font-weight: 600; color: var(--charcoal); }
+.crm-l i, .crm-fs legend i { font-style: normal; font-weight: 500; font-size: 11.5px; color: var(--muted); }
+.crm-in { box-sizing: border-box; width: 100%; max-width: 640px; min-height: 40px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--orv-line-2); background: rgba(0, 0, 0, .25); color: var(--charcoal); font: inherit; font-size: 14px; }
+textarea.crm-in { resize: vertical; line-height: 1.5; }
+.crm-in--num { max-width: 180px; }
+.crm-in:focus { outline: none; border-color: rgba(var(--orv-green-ui-rgb), .7); box-shadow: 0 0 0 3px rgba(var(--orv-green-ui-rgb), .15); }
+.crm-help { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--muted); max-width: 72ch; }
+.crm-count { margin-left: 6px; font-variant-numeric: tabular-nums; }
+.crm-count.is-warn { color: #F2CC6B; }
+.crm-count.is-bad { color: var(--orv-red); }
+.crm-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.crm-fs { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.crm-fs legend { padding: 0; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--charcoal); }
+.crm-goals { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 8px; }
+.crm-goal { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px 10px 36px; position: relative; border-radius: 12px; border: 1px solid var(--orv-line); background: var(--orv-card-2); cursor: pointer; font-size: 13.5px; }
+.crm-goal input { position: absolute; left: 12px; top: 12px; accent-color: var(--orv-green); }
+.crm-goal b { font-weight: 600; color: var(--charcoal); }
+.crm-goal small { font-size: 12px; color: var(--muted); }
+.crm-goal.is-off { opacity: .6; cursor: not-allowed; }
+.crm-goal:has(input:checked) { border-color: var(--orv-green); }
+.crm-countries { display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow: auto; padding: 2px; }
+.crm-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 99px; border: 1px solid var(--orv-line-2); font-size: 12.5px; color: var(--c2, var(--charcoal)); cursor: pointer; }
+.crm-chip input { accent-color: var(--orv-green); margin: 0; }
+.crm-chip.is-on { border-color: var(--orv-green); color: var(--charcoal); }
+.crm-up { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.crm-up__p { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--muted); }
+.crm-up__p img, .crm-up__p video { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 1px solid var(--orv-line); }
+.crm-btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: var(--charcoal); border: 1px solid var(--orv-line-2); background: var(--orv-card-2); }
+.crm-btn:hover { border-color: rgba(var(--orv-green-ui-rgb), .55); }
+.crm-btn[disabled] { opacity: .5; cursor: not-allowed; }
+.crm-btn--primary { background: var(--orv-green); color: var(--orv-green-ink); border-color: transparent; }
+.crm-btn--primary:hover { background: var(--orv-green-hover); }
+.crm-link { all: unset; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.crm-link:hover { color: var(--charcoal); }
+.crm-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 8px; border-top: 1px solid var(--orv-line); flex-wrap: wrap; }
+.crm-nav__r { display: flex; align-items: center; gap: 16px; }
+.crm-errs { padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(var(--orv-amber-rgb), .45); background: rgba(var(--orv-amber-rgb), .07); font-size: 13.5px; color: var(--charcoal); }
+.crm-errs ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
+.crm-sum { margin: 0; display: grid; gap: 8px; }
+.crm-sum div { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--orv-card-2); }
+.crm-sum dt { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.crm-sum dd { margin: 0; font-size: 13.5px; color: var(--charcoal); overflow-wrap: anywhere; }
+.crm-check { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--orv-line-2); font-size: 13.5px; color: var(--charcoal); display: flex; flex-direction: column; gap: 6px; }
+.crm-check ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.crm-check p { margin: 4px 0 0; color: var(--muted); }
+.crm-check.is-ok { border-color: rgba(var(--orv-green-ui-rgb), .45); background: rgba(var(--orv-green-ui-rgb), .06); }
+.crm-check.is-bad, .crm-check.is-warn { border-color: rgba(var(--orv-amber-rgb), .45); background: rgba(var(--orv-amber-rgb), .07); }
+.crm-check .crm-btn { align-self: flex-start; }
+.crm-actions { display: flex; gap: 10px; }
+@media (max-width: 900px) {
+  .crm-choose { grid-template-columns: minmax(0, 1fr); }
+  .crm-steps button { justify-content: center; padding: 8px; font-size: 0; }
+  .crm-steps button b { font-size: 12px; }
+  .crm-row { grid-template-columns: minmax(0, 1fr); }
+  .crm-sum div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .crm-card, .crm-opt { padding: 18px; }
+}

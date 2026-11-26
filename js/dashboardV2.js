@@ -95,13 +95,17 @@
     }
     return r;
   }
+  function firstName() { var n = typeof window.orvAppNavFirstName === 'function' ? String(window.orvAppNavFirstName() || '').trim() : ''; return /^(oriven\s*ai|orivenai|oriven)$/i.test(n) ? '' : n; }
+  document.addEventListener('orv:first-name', function () { var h = document.querySelector('#dshRoot [data-dsh-greeting]'); if (h) { var n = firstName(); h.textContent = greeting() + (n ? ', ' + n : '') + '.'; } });
   function greeting() { var h = new Date().getHours(); return T(h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening'); }
   function paint() {
     var r = mount(); if (!r) return;
     var A = window.orvAnalytics; if (!A) return;
-    var name = window.orvWorkspace && window.orvWorkspace.businessName ? window.orvWorkspace.businessName() : '';
-    var head = '<header class="dsh-head"><div><h1>' + esc(greeting() + (name ? ', ' + name : '') + '.') + '</h1><p>' + esc(T('sub')) + '</p></div>' +
-      '<label class="dsh-range"><span class="sr-only">Period</span><select data-dsh="range">' + [7, 30, 90].map(function (n) { return '<option value="' + n + '"' + (S.range === n ? ' selected' : '') + '>' + esc(T('range' + n)) + '</option>'; }).join('') + '</select></label></header>';
+    // The signed-in person's first name (profiles.first_name, else the first name given at sign-up —
+    // js/appNav.js orvAppNavFirstName). Never the workspace/business name, never the email.
+    var name = firstName();
+    // No period control on the Dashboard: it always shows the last 30 days (the cards say what they compare with).
+    var head = '<header class="dsh-head"><div><h1 data-dsh-greeting>' + esc(greeting() + (name ? ', ' + name : '') + '.') + '</h1><p>' + esc(T('sub')) + '</p></div></header>';
     r.innerHTML = head + '<div class="dsh-row1">' + perfCard() + '<div class="dsh-side">' + attentionCard() + platformsCard() + '</div></div>' +
       '<div class="dsh-row2">' + campsCard() + recsCard() + autoCard() + '</div>';
     if (A.bindCharts) A.bindCharts(r);
