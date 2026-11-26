@@ -110,8 +110,18 @@ async function openApp(ctx, user) {
   await signInAs(p, user);
   return p;
 }
-const fabText = (page) => page.evaluate(() => document.getElementById('orvAiFab').textContent.trim());
-const fab = (page) => page.evaluate(() => { const f = document.getElementById('orvAiFab'); const cs = getComputedStyle(f); const r = f.getBoundingClientRect(); return { text: f.textContent.trim(), glyph: !!f.querySelector('svg.orv-agent-fab-glyph circle'), color: f.style.getPropertyValue('--orv-agent'), visible: cs.display !== 'none' && r.width > 0, right: r.right, bottom: r.bottom, w: innerWidth, h: innerHeight }; });
+const SB_ITEM = '.orv-sb [data-onv-foot="assistant"]';
+const fabText = (page) => page.evaluate(() => { const b = document.querySelector('.orv-sb [data-onv-foot="assistant"] [data-onv-mom-name]'); return b ? b.textContent.trim() : ''; });
+const fab = (page) => page.evaluate(() => {
+  const mob = innerWidth <= 1024;
+  const b = document.querySelector((mob ? '.orv-mob-drawer' : '.orv-sb') + ' [data-onv-foot="assistant"]');
+  const dock = document.getElementById('orvAiDock'); const r = b.getBoundingClientRect();
+  return { text: b.querySelector('[data-onv-mom-name]').textContent.trim(), glyph: !!b.querySelector('svg.onv-mom__glyph circle'), color: b.style.getPropertyValue('--onv-mom'), visible: mob ? !!b : (getComputedStyle(b).display !== 'none' && r.width > 0), floating: !!dock && getComputedStyle(dock).display !== 'none', w: innerWidth, h: innerHeight, inSidebar: !!b.closest('.onv-foot') };
+});
+const openAsst = async (page) => {
+  if (await page.evaluate(() => innerWidth <= 1024)) { await page.click('#orvMobToggle'); await page.waitForTimeout(350); await page.click('.orv-mob-drawer [data-onv-foot="assistant"]'); }
+  else await page.click(SB_ITEM);
+};
 const panelOpen = (page) => page.evaluate(() => document.getElementById('orvAiPanel').classList.contains('orv-ai-open'));
 const send = async (page, text) => { await page.fill('#orvAiInput', text); await page.press('#orvAiInput', 'Enter'); await page.waitForTimeout(700); };
 
@@ -126,25 +136,26 @@ const server = app.listen(PORT, async () => {
 
     console.log('\nA. Launcher');
     let f = await fab(page);
-    check('bottom-right launcher shows the user’s agent: [Scout mark] Scout, not "Oriven Chat"', f.visible && f.glyph && f.text === 'Scout' && f.right > f.w - 60 && f.bottom > f.h - 60, f);
+    check('the sidebar’s assistant item shows the user’s agent: [Scout mark] Scout, not "Oriven Chat" — and there is no floating launcher', f.visible && f.glyph && f.text === 'Scout' && f.inSidebar && !f.floating, f);
     check('…in Scout’s colour from the landing page (#7CF0CC)', f.color.trim().toUpperCase() === '#7CF0CC', f.color);
     for (const [pg, id] of [['research', 'page-research'], ['create', 'page-create'], ['launch', 'page-launch'], ['performance', 'page-performance']]) {
       await page.evaluate(([p, i]) => window._orvNav(p, i), [pg, id]); await page.waitForTimeout(250);
     }
     f = await fab(page);
     check('…and stays on every page (checked on Research, Create, Launch, Campaigns)', f.visible && f.text === 'Scout');
-    await page.screenshot({ path: path.join(SHOTS, 'desktop-launcher.png'), clip: { x: 1440 - 260, y: 900 - 90, width: 260, height: 90 } });
+    await page.screenshot({ path: path.join(SHOTS, 'desktop-launcher.png'), clip: { x: 0, y: 900 - 160, width: 280, height: 160 } });
 
     console.log('\nB. Popup');
-    await page.click('#orvAiFab'); await page.waitForTimeout(400);
+    await openAsst(page); await page.waitForTimeout(400);
     const head = await page.evaluate(() => { const p = document.getElementById('orvAiPanel'); const pr = p.getBoundingClientRect(), sb = document.querySelector('.orv-sb').getBoundingClientRect();
       return { name: p.querySelector('.orv-ai-panel-name').textContent, mark: !!p.querySelector('.orv-agent-avatar svg.orv-agent-head-glyph circle'), status: (p.querySelector('.orv-agent-status') || {}).textContent, dataStatus: p.getAttribute('data-status'), tagline: (p.querySelector('.orv-agent-tagline') || {}).textContent, eyebrow: (document.getElementById('orvAgentEyebrow') || {}).textContent,
-        greeting: document.getElementById('orvAiGreetingText').textContent, intro: (document.getElementById('orvAgentIntro') || {}).textContent || '', sub: document.getElementById('orvAiGreetingSub').textContent, ph: document.getElementById('orvAiInput').placeholder, fabHidden: document.getElementById('orvAiFab').classList.contains('orv-ai-fab-hidden'),
+        greeting: document.getElementById('orvAiGreetingText').textContent, intro: (document.getElementById('orvAgentIntro') || {}).textContent || '', sub: document.getElementById('orvAiGreetingSub').textContent, ph: document.getElementById('orvAiInput').placeholder, fabHidden: document.querySelector('.orv-sb [data-onv-foot="assistant"]').classList.contains('is-on'),
         w: Math.round(pr.width), h: Math.round(pr.height), right: Math.round(innerWidth - pr.right), bottom: Math.round(innerHeight - pr.bottom), clearOfSidebar: pr.left > sb.right + 100, top: Math.round(pr.top) }; });
     check('click → the header shows Scout’s mark, real name, a status (Ready) and Scout’s own tagline (its tone)', (await panelOpen(page)) && head.mark && head.name === 'Scout' && head.status === 'Ready' && head.dataStatus === 'ready' && head.tagline === 'Curious, thorough and evidence-first.', head);
     check('…the welcome: the specialisation, a time-of-day greeting, and Scout’s own opening line (from the server), with no claim about data', head.eyebrow === 'Research & Insights' && /^Good (morning|afternoon|evening)/.test(head.greeting) && head.intro === 'Scout says hello: tell me what you want to work on.' && !/found|Here’s what I/.test(head.sub), head);
-    check('…the input asks for Scout, the launcher steps aside', /^Message Scout/.test(head.ph) && head.fabHidden, head);
-    check('the panel is larger than before (was 380 × ≤600) and anchored bottom-right, clear of the sidebar and the top bar', head.w >= 440 && head.w < 520 && head.h >= 700 && head.right <= 26 && head.bottom <= 26 && head.clearOfSidebar && head.top >= 70, head);
+    check('…the input asks for Scout, the sidebar item is marked open', /^Message Scout/.test(head.ph) && head.fabHidden, head);
+    const ws = await page.evaluate(() => { const r = document.getElementById('orvAiPanel').getBoundingClientRect(), sb = document.querySelector('.orv-sb').getBoundingClientRect(); return { left: Math.round(r.left), sbRight: Math.round(sb.right), right: Math.round(innerWidth - r.right), top: Math.round(r.top), bottom: Math.round(innerHeight - r.bottom), ws: document.body.classList.contains('orv-ai-ws') }; });
+    check('the chat opens as a workspace: from the sidebar’s edge to the right edge, full height', ws.ws && Math.abs(ws.left - ws.sbRight) <= 1 && ws.right <= 0 && ws.top <= 0 && ws.bottom <= 0, ws);
     await page.screenshot({ path: path.join(SHOTS, 'desktop-open.png') });
     const focusColor = await page.evaluate(() => { const i = document.getElementById('orvAiInput'); i.focus(); return getComputedStyle(document.querySelector('#orvAiPanel .orv-agent-composer')).borderTopColor; });
     check('the composer’s focus ring uses the agent’s colour (Scout 124, 240, 204), not the app’s lime', /124,\s*240,\s*204/.test(focusColor), focusColor);
@@ -183,15 +194,15 @@ const server = app.listen(PORT, async () => {
     console.log('\nD. Minimise, reopen, reload');
     const count = () => page.evaluate(() => document.querySelectorAll('#orvAiFeed .orv-ai-msg').length);
     const n1 = await count();
-    await page.click('#orvAgentMin'); await page.waitForTimeout(300);
-    check('minimise hides the popup and brings the launcher back', !(await panelOpen(page)) && (await fab(page)).visible);
-    await page.click('#orvAiFab'); await page.waitForTimeout(300);
+    await page.click('#orvAiPanel .orv-ai-panel-close[aria-label^="Close"]'); await page.waitForTimeout(300);
+    check('Close hides the workspace; the sidebar item stays there to reopen it', !(await panelOpen(page)) && (await fab(page)).visible && !(await page.evaluate(() => document.body.classList.contains('orv-ai-ws'))));
+    await openAsst(page); await page.waitForTimeout(300);
     check('…reopening shows the same conversation', (await panelOpen(page)) && (await count()) === n1);
     await page.keyboard.press('Escape'); await page.waitForTimeout(200);
     check('Escape closes it too (conversation kept)', !(await panelOpen(page)));
     await page.reload({ waitUntil: 'domcontentloaded' });
     await signIn(page);
-    await page.click('#orvAiFab'); await page.waitForTimeout(500);
+    await openAsst(page); await page.waitForTimeout(500);
     const restored = await page.evaluate(() => ({ earlier: !!document.querySelector('.orv-agent-earlier'), users: [...document.querySelectorAll('#orvAiFeed .orv-ai-msg-user')].map((e) => e.textContent), cards: document.querySelectorAll('#orvAiFeed .orv-agent-card').length }));
     check('after a reload the conversation is back (this device), with its cards', restored.earlier && restored.users.includes('Create a campaign for my candles') && restored.cards >= 2, restored);
     await send(page, 'And now?');
@@ -214,8 +225,8 @@ const server = app.listen(PORT, async () => {
     console.log('\nF. Choosing an assistant (account that never chose)');
     M.agent = 'vector'; M.assigned = false;
     await page.evaluate(() => window.orvAgent.load(true)); await page.waitForTimeout(500);
-    await page.click('#orvAiFab'); await page.waitForTimeout(300);
-    const un = await page.evaluate(() => ({ fab: document.getElementById('orvAiFab').textContent.trim(), name: document.querySelector('.orv-ai-panel-name').textContent, agentAttr: document.getElementById('orvAiFab').getAttribute('data-agent'), input: document.getElementById('orvAiInput').disabled, text: document.getElementById('orvAiPanel').innerText }));
+    await openAsst(page); await page.waitForTimeout(300);
+    const un = await page.evaluate(() => ({ fab: document.querySelector('.orv-sb [data-onv-foot="assistant"] [data-onv-mom-name]').textContent.trim(), name: document.querySelector('.orv-ai-panel-name').textContent, agentAttr: document.getElementById('orvAiFab').getAttribute('data-agent'), input: document.getElementById('orvAiInput').disabled, text: document.getElementById('orvAiPanel').innerText }));
     check('never chosen: the widget shows no assistant the user didn’t pick (not the default Vector) and asks for the choice', un.fab === 'Choose your assistant' && un.name === 'Your assistant' && !un.agentAttr && !/Vector, your|I’m Vector/.test(un.text), un);
     const chats0 = M.chatBodies.length;
     await page.evaluate(() => window.orvAiSend && window.orvAiSend()); await page.waitForTimeout(300);
@@ -231,7 +242,7 @@ const server = app.listen(PORT, async () => {
     const hc = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     let hp = await openApp(hc, 'ann');
     check('H1 no saved choice: "Choose your assistant" — none assigned, nothing saved automatically', (await fabText(hp)) === 'Choose your assistant' && !ACC.puts.length && !ACC.store['tok-ann'], { fab: await fabText(hp), puts: ACC.puts });
-    await hp.click('#orvAiFab'); await hp.waitForTimeout(300);
+    await openAsst(hp); await hp.waitForTimeout(300);
     await hp.click('#orvAgentPicker [data-agent-pick="scout"]'); await hp.waitForTimeout(500);
     check('H2 choosing Scout saves it to the account (PUT /api/agent); the widget shows Scout', ACC.store['tok-ann'] === 'scout' && (await fabText(hp)) === 'Scout', { store: ACC.store, fab: await fabText(hp) });
     await hp.keyboard.press('Escape');
@@ -240,7 +251,7 @@ const server = app.listen(PORT, async () => {
     await signInAs(hp, 'ann');
     check('H3 select Scout → refresh → Scout', (await fabText(hp)) === 'Scout');
     await signOut(hp);
-    check('H4 signed out: the launcher no longer shows Scout', (await fabText(hp)) === 'Your assistant', await fabText(hp));
+    check('H4 signed out: the sidebar no longer shows Scout', (await fabText(hp)) === 'Assistant', await fabText(hp));
     // Values a browser could have kept must not decide anything.
     await hp.evaluate(() => { try { localStorage.setItem('orv_agent', 'momentum'); localStorage.setItem('assistant', 'momentum'); sessionStorage.setItem('orv_agent', 'momentum'); Object.keys(localStorage).filter((x) => /settings/i.test(x)).forEach((k) => { const v = JSON.parse(localStorage.getItem(k) || '{}'); v.assistant = 'momentum'; localStorage.setItem(k, JSON.stringify(v)); }); } catch (_) {} });
     await signInAs(hp, 'ann');
@@ -249,7 +260,7 @@ const server = app.listen(PORT, async () => {
     const hc2 = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     hp = await openApp(hc2, 'ann');
     check('H6 select Scout → close and reopen (new browser session) → Scout', (await fabText(hp)) === 'Scout');
-    await hp.click('#orvAiFab'); await hp.waitForTimeout(300);
+    await openAsst(hp); await hp.waitForTimeout(300);
     const pk = await hp.evaluate(() => { const p = document.getElementById('orvAiPanel'); return { change: !!document.querySelector('[data-agent-change]'), picker: !!document.getElementById('orvAgentPicker'), word: /\bChange\b/.test(p.innerText), name: (p.querySelector('.orv-ai-panel-name') || {}).textContent }; });
     check('H7 no way to switch: no "Change" button and no picker once an assistant is chosen', !pk.change && !pk.picker && !pk.word && pk.name === 'Scout', pk);
     const putsBefore = ACC.puts.length;
@@ -274,7 +285,7 @@ const server = app.listen(PORT, async () => {
       const puts0 = M.puts.length + ACC.puts.length;
       await signIn(ip);
       await ip.evaluate(() => window.orvAppNav.go('overview')); await ip.waitForTimeout(500);
-      await ip.click('#orvAiFab'); await ip.waitForTimeout(400);
+      await openAsst(ip); await ip.waitForTimeout(400);
       const st = await ip.evaluate(() => ({ titles: [...document.querySelectorAll('#orvAgentStarters .orv-agent-starter-t')].map((e) => e.textContent), shown: !document.getElementById('orvAgentStarters').hidden, where: (document.getElementById('orvAgentWhere') || {}).textContent, sugg: (document.querySelector('#orvAiSuggestList .orv-ai-suggest-hd') || {}).textContent, intro: document.getElementById('orvAgentIntro').textContent, tagline: document.querySelector('#orvAiPanel .orv-agent-tagline').textContent, sendDisabled: document.getElementById('orvAiSendBtn').disabled }));
       check('I1 empty conversation: Metric’s greeting and tagline, and four starting points (Analyze my campaigns, Improve my advertising, Create something new, Explain my performance)', st.shown && JSON.stringify(st.titles) === JSON.stringify(['Analyze my campaigns', 'Improve my advertising', 'Create something new', 'Explain my performance']) && /^Metric says hello/.test(st.intro) && st.tagline === 'Precise, direct and evidence-oriented.', st);
       check('I2 the panel shows the page it knows you are on (Performance Overview), with that page’s own questions', st.where === 'On Performance Overview' && st.sugg === 'On Performance Overview', st);
@@ -312,7 +323,7 @@ const server = app.listen(PORT, async () => {
       const seen = [];
       for (const [id, label] of [['plan', 'AI Plans & Tasks'], ['research', 'Audience Research'], ['create', 'Create Ads'], ['audiences', 'Audiences'], ['competitors', 'Competitor Analysis']]) {
         await ip.evaluate((v) => window.orvAppNav.go(v), id); await ip.waitForTimeout(600);
-        await ip.click('#orvAiFab'); await ip.waitForTimeout(300);
+        await openAsst(ip); await ip.waitForTimeout(300);
         const w = await ip.evaluate(() => (document.getElementById('orvAgentWhere') || {}).textContent);
         const k = M.chatBodies.length;
         await send(ip, 'What should I do here?');
@@ -323,7 +334,7 @@ const server = app.listen(PORT, async () => {
       check('I12 page context never changes the assistant: still Metric everywhere', (await fabText(ip)) === 'Metric' && (await ip.evaluate(() => window.orvAgent.current().id)) === 'metric' && M.puts.length + ACC.puts.length === puts0, { puts: M.puts.length + ACC.puts.length - puts0 });
 
       // Errors: an unreachable server says so (Offline), Try again recovers.
-      await ip.click('#orvAiFab'); await ip.waitForTimeout(300);
+      await openAsst(ip); await ip.waitForTimeout(300);
       await ip.route('**/api/ai/chat', (r) => r.abort('connectionfailed'));
       await send(ip, 'Are you there?'); await ip.waitForTimeout(400);
       const off = await ip.evaluate(() => ({ status: document.querySelector('#orvAiPanel .orv-agent-status').textContent, err: ([...document.querySelectorAll('#orvAiFeed .orv-agent-error')].pop() || {}).textContent || '' }));
@@ -352,11 +363,11 @@ const server = app.listen(PORT, async () => {
       check('I16 …and when the server refuses (402, e.g. another tab spent them) the chat says so with the upgrade link', M.chatBodies.length === k3 + 1 && /out of AI credits/.test(await ip.textContent('#orvAiFeed')));
       await ip.evaluate(() => window.orvCloseAi());
 
-      // Tablet width: still a floating panel, inside the screen.
+      // Tablet width (sidebar is a menu drawer): the chat workspace is a full-width sheet under the menu button.
       await ip.setViewportSize({ width: 1024, height: 768 }); await ip.waitForTimeout(300);
-      await ip.click('#orvAiFab'); await ip.waitForTimeout(400);
+      await openAsst(ip); await ip.waitForTimeout(400);
       const tb = await ip.evaluate(() => { const r = document.getElementById('orvAiPanel').getBoundingClientRect(); return { w: Math.round(r.width), left: Math.round(r.left), top: Math.round(r.top), right: Math.round(innerWidth - r.right), ov: document.documentElement.scrollWidth - innerWidth }; });
-      check('I17 tablet (1024×768): a large floating panel inside the screen, below the menu button, no overflow', tb.w >= 420 && tb.left > 0 && tb.top >= 60 && tb.right <= 26 && tb.ov <= 0, tb);
+      check('I17 tablet (1024×768): a full-width chat sheet below the menu button, no overflow', tb.w >= 1023 && tb.left === 0 && tb.top >= 60 && tb.right <= 0 && tb.ov <= 0, tb);
       await ip.screenshot({ path: path.join(SHOTS, 'chat-tablet-1024.png') });
       await ic.close();
     }
@@ -366,7 +377,7 @@ const server = app.listen(PORT, async () => {
       const up = await uc.newPage(); await fence(up);
       M.agent = 'vector'; M.assigned = false;
       await signIn(up);
-      await up.click('#orvAiFab'); await up.waitForTimeout(400);
+      await openAsst(up); await up.waitForTimeout(400);
       const un = await up.evaluate(() => ({ about: !document.getElementById('orvAgentAboutBtn') || document.getElementById('orvAgentAboutBtn').hidden, starters: document.getElementById('orvAgentStarters').hidden, picker: !!document.getElementById('orvAgentPicker'), name: document.querySelector('#orvAiPanel .orv-ai-panel-name').textContent }));
       check('I18 an account that never chose sees the choice, not the starting points or a default assistant', un.starters && un.picker && un.name === 'Your assistant' && un.about, un);
       M.assigned = true; M.agent = 'scout';
@@ -379,8 +390,8 @@ const server = app.listen(PORT, async () => {
     M.agent = 'flux'; M.assigned = true;
     await signIn(mp);
     f = await fab(mp);
-    check('phone: launcher [Flux mark] Flux inside the screen', f.visible && f.text === 'Flux' && f.right <= f.w && f.bottom <= f.h, f);
-    await mp.click('#orvAiFab'); await mp.waitForTimeout(400);
+    check('phone: the menu’s assistant item shows [Flux mark] Flux; no floating launcher', f.visible && f.text === 'Flux' && f.glyph && !f.floating, f);
+    await openAsst(mp); await mp.waitForTimeout(500);
     const pm = await mp.evaluate(() => { const r = document.getElementById('orvAiPanel').getBoundingClientRect(); const inp = document.getElementById('orvAiInput').getBoundingClientRect(); const m = document.getElementById('orvMobToggle').getBoundingClientRect();
       const hit = document.elementFromPoint(m.left + m.width / 2, m.top + m.height / 2);
       return { w: r.width, top: Math.round(r.top), bottom: Math.round(r.bottom), vw: innerWidth, vh: innerHeight, inputVisible: inp.bottom <= innerHeight && inp.top > 0, overflow: document.documentElement.scrollWidth > innerWidth + 1, menuClear: m.bottom <= r.top, menuHit: !!(hit && hit.closest('#orvMobToggle')), starters: document.querySelectorAll('#orvAgentStarters .orv-agent-starter').length }; });

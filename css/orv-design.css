@@ -1,0 +1,369 @@
+/* ════════════════════════════════════════════════════════════════════════
+   OrivenAI design system (2026-11-26) — "premium advertising workspace"
+   Loaded last. One set of colour roles that every page uses, the card
+   hierarchy built on them, a type scale, the sidebar's control area and the
+   assistant's chat workspace.
+
+   Colour roles (each green has one job):
+     --orv-g-primary   the OrivenAI green: primary actions, active states, key highlights
+     --orv-g-deep      rich deep green: the one or two cards per page that matter most
+     --orv-g-medium    medium green: supporting cards and accents
+     --orv-g-light     light green: positive states, accent and status cards
+     --orv-card        the neutral card (graphite with a green bias)
+     --orv-canvas      the workspace behind the cards
+     --orv-warn        amber: Needs Attention, warnings, things to act on
+     --orv-err         red: real errors and failures only
+   Card hierarchy (classes; the older og-tone-* names map onto them):
+     primary   .orv-card--primary  = .og-tone-deep / .og-tone-rich   (deep green)
+     secondary .orv-card--secondary = the default card                (neutral)
+     accent    .orv-card--accent   = .og-tone-fresh                  (light green)
+     warning   .orv-card--warn     = .og-tone-warn                   (amber)
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --orv-g-primary: #B7FF2A;
+  --orv-g-primary-ink: #10140C;
+  --orv-g-primary-hover: #C6FF55;
+  --orv-g-deep-a: #2F6E3B; --orv-g-deep-b: #225A2E; --orv-g-deep-line: #3D7F49;
+  --orv-g-medium: #E3F1D6; --orv-g-medium-line: #C7E0B2;
+  --orv-g-light-a: #D8F3B8; --orv-g-light-b: #C2E99A; --orv-g-light-line: #A9D985;
+  --orv-card: #FFFFFF; --orv-card-line: #D7E5CB; --orv-card-soft: #F0F6E9;
+  --orv-canvas: #F1F5EE;
+  --orv-warn-a: #F8D86E; --orv-warn-b: #F0C041; --orv-warn-line: #E2AE2C; --orv-warn-ink: #2C2105;
+  --orv-err: #D9473C;
+  --orv-ink: #14200F; --orv-ink-2: #3A4A33; --orv-ink-3: #66755F;
+  --orv-shadow-1: 0 1px 2px rgba(24, 48, 20, .06), 0 10px 26px -14px rgba(30, 70, 30, .24);
+  --orv-shadow-2: 0 1px 2px rgba(24, 48, 20, .08), 0 18px 40px -18px rgba(30, 70, 30, .34);
+  --orv-r-card: 18px; --orv-r-inner: 12px;
+  /* Type scale */
+  --orv-fs-page: clamp(23px, 1.75vw, 28px);
+  --orv-fs-section: 18px;
+  --orv-fs-card: 16px;
+  --orv-fs-metric: 28px;
+  --orv-fs-body: 14px;
+  --orv-fs-small: 12.5px;
+  --orv-fs-label: 11px;
+  --orv-ease: cubic-bezier(.22, .61, .36, 1);
+}
+body.dark-mode {
+  --orv-g-deep-a: #2E6A39; --orv-g-deep-b: #204D2A; --orv-g-deep-line: #3B7B47;
+  --orv-g-medium: #1F3A27; --orv-g-medium-line: rgba(170, 225, 130, .2);
+  --orv-g-light-a: #D3F2AE; --orv-g-light-b: #B9E58E; --orv-g-light-line: #9FD172;
+  --orv-card: #1A271F; --orv-card-line: rgba(170, 225, 130, .13); --orv-card-soft: rgba(170, 225, 130, .07);
+  --orv-canvas: #0F1612;
+  --orv-ink: #EEF6E8; --orv-ink-2: rgba(232, 242, 226, .8); --orv-ink-3: rgba(232, 242, 226, .6);
+  --orv-err: #F06A5E;
+  --orv-shadow-1: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 12px 30px -14px rgba(0, 0, 0, .72);
+  --orv-shadow-2: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 20px 44px -18px rgba(0, 0, 0, .8);
+}
+
+/* ── 1. The workspace canvas: green-biased graphite, never flat black ─────── */
+html body:not(.guest-mode) .mc { background: var(--orv-canvas) !important; }
+html body.dark-mode:not(.guest-mode) .mc {
+  background:
+    radial-gradient(1100px 520px at 18% -8%, rgba(86, 170, 74, .10), transparent 62%),
+    radial-gradient(900px 600px at 100% 0%, rgba(60, 140, 70, .06), transparent 60%),
+    var(--orv-canvas) !important;
+}
+/* Pages are drawn on the canvas (they used to paint their own flat black/white). */
+html body:not(.guest-mode) .mc > .page { background: transparent !important; }
+body.dark-mode .orv-sb.onv-mounted { background: #0C130F !important; }
+body:not(.dark-mode) .orv-sb.onv-mounted { background: #F7FAF4 !important; }
+body.dark-mode .onv-ic { background: #111A14; }
+
+/* ── 2. Cards read from the same roles on every page ───────────────────────
+   The page tokens from app-cards.css §8 now point at the roles above, so
+   Dashboard, plans, Campaigns, Analytics, Research and Autopilot share one
+   surface, one border and one depth. */
+.page, .onv-panel {
+  --og-card: var(--orv-card);
+  --og-card-line: var(--orv-card-line);
+  --og-card-soft: var(--orv-card-soft);
+  --og-shadow: var(--orv-shadow-1);
+}
+body.dark-mode .page, body.dark-mode .onv-panel {
+  --og-card: var(--orv-card);
+  --og-card-line: var(--orv-card-line);
+  --og-card-soft: var(--orv-card-soft);
+  --og-card-head: linear-gradient(135deg, #285331 0%, #1E3A25 58%, #1A2A20 100%);
+  --og-card-hi: linear-gradient(150deg, var(--orv-g-deep-a) 0%, var(--orv-g-deep-b) 100%);
+  --og-card-hi-line: var(--orv-g-deep-line);
+  --og-shadow: var(--orv-shadow-1);
+}
+/* The Dashboard is drawn dark in both themes (light text on its own ground). */
+#bizPanelOverview {
+  --og-card: #1A271F; --og-card-line: rgba(170, 225, 130, .13); --og-card-soft: rgba(170, 225, 130, .07);
+  --og-card-head: linear-gradient(135deg, #285331 0%, #1E3A25 58%, #1A2A20 100%);
+  --og-card-hi: linear-gradient(150deg, #2E6A39 0%, #204D2A 100%); --og-card-hi-line: #3B7B47;
+  --og-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 12px 30px -14px rgba(0, 0, 0, .72);
+}
+body:not(.dark-mode) #bizPanelOverview { --og-shadow: 0 1px 2px rgba(24, 48, 20, .1), 0 14px 32px -16px rgba(20, 50, 24, .45); }
+
+/* Card hierarchy. The tones keep their text tokens from app-cards.css §10;
+   only the surfaces move onto the roles. */
+.orv-card--primary, .og-tone-deep { background: linear-gradient(150deg, var(--orv-g-deep-a) 0%, var(--orv-g-deep-b) 100%) !important; border-color: var(--orv-g-deep-line) !important; }
+.og-tone-rich { background: linear-gradient(150deg, #3A8547 0%, #2B6B37 100%) !important; border-color: #4A9757 !important; }
+.orv-card--accent, .og-tone-fresh { background: linear-gradient(150deg, var(--orv-g-light-a) 0%, var(--orv-g-light-b) 100%) !important; border-color: var(--orv-g-light-line) !important; }
+.orv-card--warn, .og-tone-warn { background: linear-gradient(150deg, var(--orv-warn-a) 0%, var(--orv-warn-b) 100%) !important; border-color: var(--orv-warn-line) !important; }
+.orv-card--secondary { background: var(--orv-card) !important; border-color: var(--orv-card-line) !important; }
+/* A faint top light on cards: they read as layers, not outlines. */
+.page .dsh-card, .page .nda-card, .page .rx-card, .page .gx-sec, .page .ova-card, .page .atm-card, .page .cmx-card, .page .ins-sec,
+.page .prg-card, .page .mpl-card, .page .asim-sc, .page .pcm-sec, .page .cf-card, #bizPanelOverview .dsh-card {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .025), rgba(255, 255, 255, 0) 120px);
+}
+body:not(.dark-mode) .page .rx-card, body:not(.dark-mode) .page .gx-sec, body:not(.dark-mode) .page .ova-card, body:not(.dark-mode) .page .atm-card,
+body:not(.dark-mode) .page .cmx-card, body:not(.dark-mode) .page .ins-sec, body:not(.dark-mode) .page .prg-card, body:not(.dark-mode) .page .mpl-card,
+body:not(.dark-mode) .page .asim-sc, body:not(.dark-mode) .page .pcm-sec, body:not(.dark-mode) .page .cf-card, body:not(.dark-mode) .page .nda-card { background-image: none; }
+
+/* Things you can click that look like cards lift a little on hover. */
+.dsh-kpi, .pt-tab, .nda-tile, .orv-agent-starter, .smd-ai, .cmx-tile[role="button"], .atm-tile[data-atm-go] {
+  transition: transform .18s var(--orv-ease), box-shadow .18s var(--orv-ease), background-color .18s var(--orv-ease), border-color .18s var(--orv-ease);
+}
+.dsh-kpi:hover, .orv-agent-starter:hover { transform: translateY(-1px); box-shadow: var(--orv-shadow-2); }
+
+/* Primary buttons share the OrivenAI green everywhere. */
+.rx-btn-primary, .cmx-btn--primary, .dsh-btn--primary, .gx-btn--primary {
+  background: var(--orv-g-primary) !important; color: var(--orv-g-primary-ink) !important; border-color: transparent !important;
+  transition: background-color .15s var(--orv-ease), transform .15s var(--orv-ease);
+}
+.rx-btn-primary:hover, .cmx-btn--primary:hover, .dsh-btn--primary:hover, .gx-btn--primary:hover { background: var(--orv-g-primary-hover) !important; }
+
+/* ── 3. Type scale: page titles, section and card headings, metrics ─────── */
+.page .rx-head h1, .page .gx-head h1, .page .mpl-head h1, .page .prg-head h1, .page .mcl-head h1, .page .lq-hdr h1,
+.page .atm-head h1, .page .cr2-hero h1, .page .camp-shell-hdr h1, #bizPanelOverview .dsh-head h1, .page .nda-head h1, .onv-cb__head h1 {
+  font-size: var(--orv-fs-page) !important; line-height: 1.15 !important; font-weight: 700 !important; letter-spacing: -.022em !important; text-wrap: balance;
+}
+.page .dsh-card__h h2, .page .nda-card h2, .page .cmx-card h2, .page .rx-card > h2, .page .gx-sec > h2, .page .ins-sec > h2 {
+  font-size: var(--orv-fs-card); font-weight: 700; letter-spacing: -.012em;
+}
+.page .rx-eyebrow, .page .gx-eyebrow, .page .ccx-eyebrow {
+  font-size: var(--orv-fs-label) !important; letter-spacing: .1em !important; text-transform: uppercase; font-weight: 650 !important;
+}
+
+/* ── 4. Sidebar: the workspace control area ───────────────────────────────
+   Settings · Ad Platforms · the assistant · the account, as one block. */
+html body .orv-sb.onv-mounted .orv-sb-bottom { padding: 10px 12px 12px !important; }
+.onv-foot { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; }
+.onv-foot > * { min-width: 0; }
+/* The assistant: a little more presence than a page, in green, with the
+   chosen assistant's mark (js/orivenAgent.js glyph) and one quiet motion. */
+.onv-item.onv-mom {
+  --onv-mom-rgb: 183, 255, 42;
+  margin: 6px 0 4px; min-height: 48px !important; padding: 6px 10px !important; gap: 10px;
+  background: linear-gradient(135deg, rgba(120, 200, 80, .16) 0%, rgba(120, 200, 80, .05) 100%);
+  box-shadow: inset 0 0 0 1px rgba(150, 220, 100, .22);
+  border-radius: 12px;
+  transition: background .2s var(--orv-ease), box-shadow .2s var(--orv-ease), transform .2s var(--orv-ease);
+}
+body:not(.dark-mode) .onv-item.onv-mom { background: linear-gradient(135deg, #E2F3CF 0%, #F1F9E9 100%); box-shadow: inset 0 0 0 1px #C5E2A8; }
+.onv-item.onv-mom:hover { background: linear-gradient(135deg, rgba(120, 200, 80, .24) 0%, rgba(120, 200, 80, .08) 100%); box-shadow: inset 0 0 0 1px rgba(170, 235, 120, .4); }
+body:not(.dark-mode) .onv-item.onv-mom:hover { background: linear-gradient(135deg, #D6EEBE 0%, #EAF6DE 100%); box-shadow: inset 0 0 0 1px #A9D58A; }
+.onv-item.onv-mom.is-on { background: linear-gradient(135deg, rgba(150, 230, 90, .3) 0%, rgba(120, 200, 80, .12) 100%); box-shadow: inset 0 0 0 1px rgba(183, 255, 42, .55); font-weight: 500; }
+body:not(.dark-mode) .onv-item.onv-mom.is-on { background: linear-gradient(135deg, #CBEBA9 0%, #E2F3CF 100%); box-shadow: inset 0 0 0 1px #8FC765; }
+.onv-item.onv-mom.is-on::before { display: none; }
+.onv-mom__ic {
+  position: relative; width: 32px !important; height: 32px !important; border-radius: 10px !important; overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, #2C5A33 0%, #16301C 100%) !important; box-shadow: inset 0 0 0 1px rgba(183, 255, 42, .35) !important;
+  color: rgb(var(--onv-mom-rgb));
+}
+.onv-mom__glyph { position: relative; z-index: 1; width: 20px; height: 20px; }
+/* No assistant chosen yet: a soft core instead of a mark. */
+.onv-mom__core { position: absolute; inset: 0; margin: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--orv-g-primary); box-shadow: 0 0 0 4px rgba(183, 255, 42, .14); }
+.onv-mom__glyph ~ .onv-mom__core { width: 100%; height: 100%; border-radius: 0; background: radial-gradient(circle, rgba(var(--onv-mom-rgb), .22) 0%, transparent 62%); box-shadow: none; animation: onvMomBreathe 3.6s var(--orv-ease) infinite; }
+.onv-mom__ic::after {
+  content: ''; position: absolute; inset: -40%; z-index: 0;
+  background: conic-gradient(from 0deg, transparent 0 300deg, rgba(183, 255, 42, .45) 340deg, transparent 360deg);
+  animation: onvMomOrbit 6s linear infinite; opacity: .55;
+}
+.onv-mom__ic > * { position: relative; z-index: 1; }
+.onv-mom__ic::before { content: ''; position: absolute; inset: 1.5px; border-radius: 8.5px; background: radial-gradient(circle at 50% 40%, #2C5A33 0%, #16301C 100%); z-index: 0; }
+.onv-mom__t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.onv-mom__t b { font: 650 13.5px/1.2 var(--onv-font); color: var(--onv-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.onv-mom__t small { font: 500 11.5px/1.25 var(--onv-font); color: var(--onv-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.onv-mom__live { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--orv-g-primary); box-shadow: 0 0 0 3px rgba(183, 255, 42, .16); }
+body:not(.dark-mode) .onv-mom__live { background: #4E9A2C; box-shadow: 0 0 0 3px rgba(78, 154, 44, .16); }
+.onv-item.onv-mom:hover .onv-mom__ic::after { animation-duration: 2.4s; opacity: .8; }
+@keyframes onvMomOrbit { to { transform: rotate(360deg); } }
+@keyframes onvMomBreathe { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+
+/* The account: a full-width row like the items above it. */
+.onv-acct {
+  all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: 46px; padding: 6px 10px; border-radius: 12px; margin-top: 4px;
+  background: var(--onv-surface); box-shadow: inset 0 0 0 1px var(--onv-line);
+  transition: background .15s var(--orv-ease), box-shadow .15s var(--orv-ease);
+}
+.onv-acct:hover { background: var(--onv-hover); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--onv-acc) 35%, transparent); }
+.onv-acct:focus-visible, .onv-item.onv-mom:focus-visible { outline: 2px solid var(--onv-acc); outline-offset: 2px; }
+.onv-acct .onv-acct__t { flex: 1; }
+.onv-acct__chev { flex: none; width: 14px; height: 14px; color: var(--onv-muted); transition: transform .2s var(--orv-ease); }
+.onv-acct:hover .onv-acct__chev { transform: translateX(2px); color: var(--onv-strong); }
+.orv-mob-drawer .onv-acct { min-height: 52px; }
+.orv-mob-drawer .onv-item.onv-mom { min-height: 54px !important; }
+/* Short windows: the control area tightens with the rest of the sidebar. */
+@media (min-width: 769px) and (max-height: 950px) {
+  html body .orv-sb.onv-mounted .orv-sb-bottom { padding: 6px 12px 8px !important; }
+  .onv-item.onv-mom { min-height: 38px !important; margin: 2px 0 0; padding: 3px 10px !important; }
+  .onv-mom__ic { width: 28px !important; height: 28px !important; }
+  .onv-acct { min-height: 38px; padding: 3px 10px; margin-top: 2px; }
+}
+@media (min-width: 769px) and (max-height: 840px) {
+  .onv-item.onv-mom { min-height: 36px !important; }
+  .onv-mom__t small { display: none; }
+  .onv-mom__ic { width: 24px !important; height: 24px !important; border-radius: 8px !important; }
+  .onv-acct { min-height: 36px; }
+}
+
+html body .orv-sb #orvNavSettingsBtn.onv-item { width: 100% !important; height: auto !important; justify-content: flex-start !important; padding: 3px 10px !important; border-radius: 9px !important; }
+html body .orv-sb #orvNavSettingsBtn.onv-item svg { width: 18px !important; height: 18px !important; }
+
+/* The Settings modal on the same surfaces. */
+body.dark-mode .smd-modal { background: #141D17 !important; border-color: rgba(170, 225, 130, .13) !important; }
+body.dark-mode .smd-nav { background: rgba(0, 0, 0, .14); }
+body.dark-mode .smd-hd, body.dark-mode .smd-nav { border-color: rgba(170, 225, 130, .1) !important; }
+body.dark-mode .smd-ni.active { background: rgba(183, 255, 42, .1) !important; color: #EEF6E8 !important; }
+
+/* ── 5. Settings: General settings and Advertising settings ────────────── */
+.smd-nav { width: 212px !important; padding: 14px 10px !important; gap: 18px !important; }
+.smd-grp { display: flex; flex-direction: column; gap: 2px; }
+.smd-grp-h { font-size: 11px; line-height: 1.3; font-weight: 650; letter-spacing: .09em; text-transform: uppercase; color: var(--charcoal); padding: 0 10px; }
+.smd-grp-d { margin: 2px 0 6px; padding: 0 10px; font-size: 12px; line-height: 1.4; color: var(--muted); }
+.smd-grp--ads { padding-top: 14px; border-top: 1px solid var(--border); }
+.smd-ai { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 9px; width: 100%; padding: 7px 10px; border-radius: 7px; font-size: 13px; color: var(--muted); }
+.smd-ai:hover { background: rgba(0, 0, 0, .04); color: var(--charcoal); }
+body.dark-mode .smd-ai:hover { background: rgba(255, 255, 255, .06); }
+.smd-ai:focus-visible, .smd-grp-link:focus-visible { outline: 2px solid var(--og-mid, #7CCB45); outline-offset: 1px; }
+.smd-ai__dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--p); box-shadow: 0 0 0 2px color-mix(in srgb, var(--p) 22%, transparent); }
+.smd-ai::after { content: '›'; margin-left: auto; opacity: .45; font-size: 15px; line-height: 1; }
+.smd-grp-link { all: unset; box-sizing: border-box; cursor: pointer; margin-top: 8px; padding: 6px 10px; font-size: 12px; font-weight: 600; color: var(--green-text, #3F6212); }
+body.dark-mode .smd-grp-link { color: #C9F27A; }
+.smd-grp-link:hover { text-decoration: underline; }
+@media (max-width: 960px) and (min-width: 601px) { .smd-nav { width: 184px !important; } }
+@media (max-width: 600px) {
+  .smd-nav { width: 100% !important; gap: 6px !important; padding: 8px 10px !important; }
+  .smd-grp { display: contents; }
+  .smd-grp-d, .smd-grp-link { display: none; }
+  .smd-grp-h { flex-shrink: 0; align-self: center; padding: 0 2px 0 6px; font-size: 10px; color: var(--muted); }
+  .smd-grp--ads { border-top: 0; padding-top: 0; }
+  .smd-ai { flex-shrink: 0; width: auto; white-space: nowrap; }
+  .smd-ai::after { content: none; }
+}
+
+/* ── 6. The assistant as a chat workspace ─────────────────────────────────
+   Opened from the sidebar (js/appNav.js) or from any "Ask" button: the same
+   panel (#orvAiPanel), conversation, credit check and confirmations, laid out
+   beside the sidebar instead of floating in a corner. Like the panel before
+   it (css/assistant-panel.css) it is dark in both themes; its surfaces use
+   the green graphite roles. The conversation is one centred column. */
+#orvAiDock, .orv-ai-dock { display: none !important; }
+html body.orv-ai-ws #orvAiPanel {
+  --oa-bg: #0F1612; --oa-head: #131D17; --oa-raise: #1A271F; --oa-raise-2: #213027;
+  --oa-line: rgba(170, 225, 130, .1); --oa-line-2: rgba(170, 225, 130, .17);
+  --ws-col: 860px; --ws-pad: max(28px, calc((100% - var(--ws-col)) / 2));
+}
+html body.orv-ai-ws #orvAiPanel.orv-ai-panel {
+  left: 264px; right: 0; top: 0; bottom: 0; width: auto; height: auto; max-width: none; max-height: none;
+  border: 0; border-left: 1px solid var(--oa-line); border-radius: 0; box-shadow: none; transform: none; z-index: 205;
+  background:
+    radial-gradient(1000px 460px at 50% -12%, rgba(var(--oa-acc-rgb), .07), transparent 62%),
+    radial-gradient(800px 500px at 0% 100%, rgba(80, 170, 80, .06), transparent 60%),
+    var(--oa-bg);
+}
+html body.orv-ai-ws #orvAiPanel .orv-ai-panel-head { padding: 16px var(--ws-pad); background: rgba(19, 29, 23, .82); backdrop-filter: blur(10px); }
+html body.orv-ai-ws #orvAiPanel .orv-ai-feed { padding: 34px var(--ws-pad) 26px; gap: 20px; }
+html body.orv-ai-ws #orvAiPanel .orv-ai-input-wrap { padding: 14px var(--ws-pad) 20px; background: rgba(15, 22, 18, .9); }
+html body.orv-ai-ws #orvAiPanel .orv-agent-composer { padding: 8px 8px 8px 16px; border-radius: 18px; box-shadow: 0 14px 34px -18px rgba(0, 0, 0, .8); }
+html body.orv-ai-ws #orvAiPanel .orv-ai-input { font-size: 15px; }
+html body.orv-ai-ws #orvAiPanel .orv-ai-send:not(:disabled) { background: var(--orv-g-primary); color: var(--orv-g-primary-ink); }
+html body.orv-ai-ws #orvAiPanel .orv-ai-panel-name { font-size: 18px; }
+html body.orv-ai-ws #orvAiPanel .orv-agent-avatar, html body.orv-ai-ws #orvAiPanel .orv-agent-head-glyph { width: 46px; height: 46px; }
+html body.orv-ai-ws #orvAiPanel .orv-agent-tagline { -webkit-line-clamp: 1; }
+html body.orv-ai-ws #orvAiPanel .orv-ai-msg-bubble { font-size: 14.5px; }
+html body.orv-ai-ws #orvAiPanel .orv-ai-msg-user .orv-ai-msg-bubble { max-width: min(620px, 78%); }
+html body.orv-ai-ws #orvAiPanel .orv-ai-greeting { padding-top: 3vh; }
+html body.orv-ai-ws #orvAiPanel .orv-ai-greeting-text { font-size: clamp(28px, 2.6vw, 38px); }
+html body.orv-ai-ws #orvAiPanel .orv-agent-intro { max-width: 60ch; font-size: 15.5px; }
+html body.orv-ai-ws #orvAiPanel .orv-agent-starters-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+html body.orv-ai-ws #orvAiPanel .orv-agent-starter { min-height: 132px; padding: 16px; box-shadow: 0 10px 26px -18px rgba(0, 0, 0, .8); }
+html body.orv-ai-ws #orvAiPanel .orv-ai-rec-card { background: var(--oa-raise); }
+/* The minimise button duplicates Close in the workspace. */
+html body.orv-ai-ws #orvAgentMin { display: none; }
+html body.orv-ai-ws #orvAiPanel .orv-agent-meta { flex-wrap: wrap; row-gap: 4px; }
+#orvAiPanel .orv-agent-cost { color: var(--oa-faint); }
+#orvAiPanel .orv-agent-cost[hidden] { display: none; }
+/* The page underneath doesn't scroll while the workspace is open. */
+body.orv-ai-ws .mc { overflow: hidden; }
+/* Up to 1024px the sidebar is a menu drawer (button top-left): the workspace
+   is a sheet under that button, and the drawer opens above it. */
+@media (min-width: 769px) and (max-width: 1024px) {
+  html body.orv-ai-ws #orvAiPanel.orv-ai-panel { left: 0; top: 64px; border-left: 0; border-top: 1px solid var(--oa-line-2); border-radius: 20px 20px 0 0; }
+}
+@media (max-width: 1024px) {
+  body.orv-ai-ws .orv-mob-drawer { z-index: 9270 !important; }
+  body.orv-ai-ws .orv-mob-drawer-overlay { z-index: 9265 !important; }
+}
+@media (min-width: 769px) and (max-width: 1180px) {
+  html body.orv-ai-ws #orvAiPanel .orv-agent-starters-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html body.orv-ai-ws #orvAiPanel .orv-agent-starter { min-height: 104px; }
+}
+@media (max-width: 768px) {
+  html body.orv-ai-ws #orvAiPanel { --ws-pad: 16px; }
+  html body.orv-ai-ws #orvAiPanel.orv-ai-panel { left: 0; top: 68px; border-left: 0; border-top: 1px solid var(--oa-line-2); border-radius: 20px 20px 0 0; z-index: 9250; }
+  html body.orv-ai-ws #orvAiPanel .orv-ai-panel-head { padding: 12px 12px 12px 16px; }
+  html body.orv-ai-ws #orvAiPanel .orv-ai-feed { padding: 20px 16px; }
+  html body.orv-ai-ws #orvAiPanel .orv-ai-input-wrap { padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  html body.orv-ai-ws #orvAiPanel .orv-agent-starters-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  html body.orv-ai-ws #orvAiPanel .orv-agent-starter { min-height: 96px; padding: 12px; }
+  html body.orv-ai-ws #orvAiPanel .orv-ai-greeting-text { font-size: 24px; }
+  html body.orv-ai-ws #orvAiPanel .orv-agent-cost { flex-basis: 100%; }
+}
+@media (max-width: 380px) { html body.orv-ai-ws #orvAiPanel .orv-agent-starters-grid { grid-template-columns: 1fr; } }
+
+/* ── 8. Pages that kept their own surfaces ────────────────────────────────
+   Performance Overview's metric groups and chart, and Ad Platforms, onto the
+   same card roles as the rest of the workspace. */
+#page-performance .prf-chart-card-primary, #page-performance .ova-card.prf-dash-side {
+  background-color: var(--og-card) !important; border-color: var(--og-card-line) !important; box-shadow: var(--og-shadow);
+}
+/* Metric groups keep their own muted tint (analytics.css --g-bg, one per group), now on a card surface. */
+#page-performance #prfExplorerGrid .prf-mgroup { background-color: var(--og-card); box-shadow: var(--og-shadow); border-radius: 16px; }
+/* (each tint from analytics.css, pre-mixed over the card surface #1A271F so it stays a solid, distinct colour) */
+#page-performance #prfExplorerGrid .prf-mgroup[data-group="reach"] { background-color: #202F2C; }
+#page-performance #prfExplorerGrid .prf-mgroup[data-group="cost"] { background-color: #222F28; }
+#page-performance #prfExplorerGrid .prf-mgroup[data-group="engagement"] { background-color: #232E2C; }
+#page-performance #prfExplorerGrid .prf-mgroup[data-group="conversions"] { background-color: #203127; }
+#page-performance #prfExplorerGrid .prf-mgroup[data-group="revenue"] { background-color: #273125; }
+/* Ad Platforms: a title card like every page, with the way to per-platform
+   tracking (Advertising settings) beside it; the platform cards are cards. */
+.adp-head {
+  box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  margin: 0 0 16px; padding: var(--app-card-pad, 22px 24px); border-radius: var(--app-card-r, 18px);
+  border: 1px solid var(--og-card-line, var(--border)); background: var(--og-card-head, var(--surface)); box-shadow: var(--og-shadow);
+}
+.adp-head__t { min-width: 0; flex: 1 1 420px; }
+.adp-head .biz-conn-title { font-size: var(--orv-fs-page) !important; margin: 0 0 6px; }
+.adp-head .ov3-ph-sub { margin: 0 !important; max-width: 70ch; }
+.adp-head__aside { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.adp-head__k { font-size: var(--orv-fs-label); font-weight: 650; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.adp-head__btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; min-height: 36px; padding: 8px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: var(--charcoal); border: 1px solid var(--og-card-line, var(--border)); background: var(--og-card, var(--surface)); }
+.adp-head__btn:hover { border-color: var(--og-mid, #7CCB45); }
+.adp-head__btn:focus-visible { outline: 2px solid var(--og-mid, #7CCB45); outline-offset: 2px; }
+#bizPanelConnections .con-card { background: var(--og-card, var(--surface)) !important; border-color: var(--og-card-line, var(--border)) !important; box-shadow: var(--og-shadow); border-radius: var(--orv-r-card); }
+body.dark-mode #bizPanelConnections .con-card:hover { border-color: rgba(183, 255, 42, .3) !important; }
+
+/* ── 7. Motion: quiet, and none when the system asks for less ──────────── */
+@media (prefers-reduced-motion: reduce) {
+  .onv-mom__ic::after, .onv-mom__glyph ~ .onv-mom__core { animation: none !important; }
+  .dsh-kpi:hover, .orv-agent-starter:hover { transform: none; }
+}
+@media (forced-colors: active) {
+  .onv-item.onv-mom, .onv-acct { border: 1px solid CanvasText; }
+  .onv-item.onv-mom.is-on { outline: 2px solid Highlight; }
+}
+
+/* Dashboard selectors stay inside their card on phones. */
+@media (max-width: 640px) {
+  .dsh-sel { width: 100%; }
+  .dsh-sel label { flex: 1 1 100%; min-width: 0; }
+  .dsh-sel label select { flex: 1 1 auto; min-width: 0; width: 100%; max-width: none; }
+}

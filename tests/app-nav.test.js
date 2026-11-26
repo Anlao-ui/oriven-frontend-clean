@@ -178,18 +178,20 @@ const server = app.listen(PORT, async () => {
       const f = document.querySelector('.orv-sb .onv-foot'); if (!f) return null;
       const items = Array.from(f.querySelectorAll('[data-onv-foot]')).map((b) => b.getAttribute('data-onv-foot'));
       const cs = (sel) => getComputedStyle(f.querySelector(sel));
-      return { items, name: f.querySelector('[data-onv-name]').textContent, plan: f.querySelector('[data-onv-plan]').textContent, platIc: !!f.querySelector('[data-onv-foot="platforms"] .onv-ic svg'), sameItem: f.querySelector('[data-onv-foot="platforms"]').className.indexOf('onv-item') >= 0, tourId: !!document.getElementById('orvNavSettingsBtn'), oldRow: !!document.querySelector('.orv-sb .orv-launcher-dots') };
+      const fw = f.getBoundingClientRect().width, aw = f.querySelector('[data-onv-foot="account"]').getBoundingClientRect().width;
+      return { items, name: f.querySelector('[data-onv-name]').textContent, plan: f.querySelector('[data-onv-plan]').textContent, platIc: !!f.querySelector('[data-onv-foot="platforms"] .onv-ic svg'), setIc: !!f.querySelector('[data-onv-foot="settings"] .onv-ic svg') && f.querySelector('[data-onv-foot="settings"] .onv-lbl').textContent === 'Settings', sameItem: f.querySelector('[data-onv-foot="platforms"]').className.indexOf('onv-item') >= 0 && f.querySelector('[data-onv-foot="settings"]').className.indexOf('onv-item') >= 0, tourId: document.getElementById('orvNavSettingsBtn') === f.querySelector('[data-onv-foot="settings"]'), oldRow: !!document.querySelector('.orv-sb .orv-launcher-dots'), noGear: !f.querySelector('.onv-acct__gear'), acctFull: aw >= fw - 2, asst: f.querySelector('[data-onv-foot="assistant"] small').textContent };
     });
-    check('1.9 the bottom area: Ad Platforms and Advertising Settings as sidebar items (same style, own icons), then one account row with a Settings button', ft && JSON.stringify(ft.items) === '["platforms","adsettings","account","settings"]' && ft.platIc && ft.sameItem && ft.tourId && !ft.oldRow, ft);
+    // 2026-11-26: Settings · Ad Platforms · the assistant · a full-width account row (no separate gear, no Advertising Settings item).
+    check('1.9 the bottom area: Settings, Ad Platforms, the assistant, then one full-width account row (no extra gear)', ft && JSON.stringify(ft.items) === '["settings","platforms","assistant","account"]' && ft.platIc && ft.setIc && ft.sameItem && ft.tourId && !ft.oldRow && ft.noGear && ft.acctFull && ft.asst === 'Your AI assistant', ft);
     check('1.10 the account row shows the first name only (“Alexandra”): no surname, no email, never “OrivenAI”', ft && ft.name === 'Alexandra' && !/van Dijk|@|oriven/i.test(ft.name + ' ' + ft.plan) && !/existing@example/.test(await page.textContent('.orv-sb .onv-foot')), ft);
     await page.evaluate(() => { document.getElementById('sidebarUserName').textContent = 'OrivenAI'; });
     await page.waitForTimeout(200);
     check('1.10b the workspace name (“OrivenAI”) is never used as the person’s name', (await page.textContent('.orv-sb [data-onv-name]')) === 'Alexandra');
     await page.evaluate(() => window.orvAppNavSetFirstName('Maximiliana-Evangelina-Bartholomea Lindqvist'));
     await page.waitForTimeout(150);
-    const lg = await page.evaluate(() => { const sb = document.querySelector('.orv-sb').getBoundingClientRect(), g = document.querySelector('.orv-sb [data-onv-foot="settings"]').getBoundingClientRect(), n = document.querySelector('.orv-sb [data-onv-name]'), a = document.querySelector('.orv-sb .onv-acct').getBoundingClientRect();
-      return { name: n.textContent, gearInside: g.right <= sb.right - 8 && g.left >= sb.left, gearRight: Math.round(a.right - g.right), truncated: n.scrollWidth > n.clientWidth && getComputedStyle(n).textOverflow === 'ellipsis', gearH: Math.round(g.height) }; });
-    check('1.10c a very long first name is cut with an ellipsis; the Settings gear stays inside the sidebar, aligned right (surname still left out)', lg.name === 'Maximiliana-Evangelina-Bartholomea' && lg.gearInside && lg.gearRight <= 1 && lg.truncated, lg);
+    const lg = await page.evaluate(() => { const sb = document.querySelector('.orv-sb').getBoundingClientRect(), n = document.querySelector('.orv-sb [data-onv-name]'), a = document.querySelector('.orv-sb .onv-acct').getBoundingClientRect(), c = document.querySelector('.orv-sb .onv-acct__chev').getBoundingClientRect();
+      return { name: n.textContent, rowInside: a.right <= sb.right - 8 && a.left >= sb.left, chevInside: c.right <= a.right && c.width > 0, truncated: n.scrollWidth > n.clientWidth && getComputedStyle(n).textOverflow === 'ellipsis' }; });
+    check('1.10c a very long first name is cut with an ellipsis; the account row stays inside the sidebar (surname still left out)', lg.name === 'Maximiliana-Evangelina-Bartholomea' && lg.rowInside && lg.chevInside && lg.truncated, lg);
     await page.screenshot({ path: path.join(SHOTS, 'account-long-name.png'), clip: { x: 0, y: 780, width: 280, height: 120 } });
     await page.evaluate(() => window.orvAppNavSetFirstName('Alexandra'));
     await page.waitForTimeout(150);
@@ -577,16 +579,17 @@ const server = app.listen(PORT, async () => {
         ins: document.querySelector('.orv-sb .onv-item[data-onv="insights"] .onv-lbl').textContent,
         insTitle: document.querySelector('.orv-sb .onv-item[data-onv="insights"]').getAttribute('title'),
         plat: document.querySelector('.orv-sb [data-onv-foot="platforms"] .onv-lbl').textContent,
-        gear: document.querySelector('.orv-sb [data-onv-foot="settings"]').getAttribute('aria-label'),
+        gear: document.querySelector('.orv-sb [data-onv-foot="settings"] .onv-lbl').textContent,
+        asst: document.querySelector('.orv-sb [data-onv-foot="assistant"] small').textContent,
       }));
       await p8.evaluate(() => { CURRENT_LANG = 'nl'; applyLanguage(); }); await p8.waitForTimeout(150);
       const nl = await labels();
-      check('13.1 Dutch: sections, links, tooltips and footer translated (product names kept)', JSON.stringify(nl.sec) === JSON.stringify(['Overzicht', 'Campagnes', 'Creative Studio', 'Analyse', 'Onderzoek', 'Autopilot']) && nl.ins === 'Opgeslagen onderzoek' && nl.insTitle === 'Opgeslagen onderzoek' && nl.plat === 'Advertentieplatforms' && nl.gear === 'Instellingen', nl);
+      check('13.1 Dutch: sections, links, tooltips and footer translated (product names kept)', JSON.stringify(nl.sec) === JSON.stringify(['Overzicht', 'Campagnes', 'Creative Studio', 'Analyse', 'Onderzoek', 'Autopilot']) && nl.ins === 'Opgeslagen onderzoek' && nl.insTitle === 'Opgeslagen onderzoek' && nl.plat === 'Advertentieplatforms' && nl.gear === 'Instellingen' && nl.asst === 'Je AI-assistent', nl);
       await p8.click('.orv-sb .onv-item[data-onv="insights"]'); await p8.waitForTimeout(400);
       check('13.2 a translated link still opens its page', await p8.evaluate(() => document.querySelector('.page.active').id === 'page-insights'));
       await p8.evaluate(() => { CURRENT_LANG = 'en'; applyLanguage(); }); await p8.waitForTimeout(150);
       const en = await labels();
-      check('13.3 back to English', en.sec[1] === 'Campaigns' && en.ins === 'Saved Research' && en.plat === 'Ad Platforms' && en.gear === 'Settings', en);
+      check('13.3 back to English', en.sec[1] === 'Campaigns' && en.ins === 'Saved Research' && en.plat === 'Ad Platforms' && en.gear === 'Settings' && en.asst === 'Your AI assistant', en);
       await c8.close();
     }
 

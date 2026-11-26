@@ -10,7 +10,7 @@
 window.ORV_WS_I18N = {
   nl: {
     'Scenario {l}': 'Scenario {l}', 'Ad Simulator views': 'Weergaven van de advertentiesimulator', 'Scenario Lab': 'Scenariolab', 'My Simulations': 'Mijn simulaties',
-    'Campaign Management': 'Campagnebeheer', 'Ad Simulator': 'Advertentiesimulator',
+    'Campaigns': 'Campagnes', 'Ad Simulator': 'Advertentiesimulator',
     'Try budgets, platforms and assumptions before you spend real money. Every result here is worked out from your assumptions — a simulation, not a forecast of what the platforms will deliver.': 'Probeer budgetten, platforms en aannames uit voordat je echt geld uitgeeft. Elk resultaat hier is berekend uit jouw aannames — een simulatie, geen voorspelling van wat de platforms leveren.',
     'New simulation': 'Nieuwe simulatie',
     'Start with a few basics. You can change every assumption afterwards, add more scenarios and compare them side by side.': 'Begin met een paar basisgegevens. Daarna kun je elke aanname aanpassen, scenario’s toevoegen en ze naast elkaar vergelijken.',
@@ -161,7 +161,7 @@ window.ORV_WS_I18N = {
   },
   de: {
     'Scenario {l}': 'Szenario {l}', 'Ad Simulator views': 'Ansichten des Anzeigensimulators', 'Scenario Lab': 'Szenario-Labor', 'My Simulations': 'Meine Simulationen',
-    'Campaign Management': 'Kampagnenverwaltung', 'Ad Simulator': 'Anzeigensimulator',
+    'Campaigns': 'Kampagnen', 'Ad Simulator': 'Anzeigensimulator',
     'Try budgets, platforms and assumptions before you spend real money. Every result here is worked out from your assumptions — a simulation, not a forecast of what the platforms will deliver.': 'Probiere Budgets, Plattformen und Annahmen aus, bevor du echtes Geld ausgibst. Jedes Ergebnis hier wird aus deinen Annahmen berechnet — eine Simulation, keine Prognose dessen, was die Plattformen liefern.',
     'New simulation': 'Neue Simulation',
     'Start with a few basics. You can change every assumption afterwards, add more scenarios and compare them side by side.': 'Beginne mit ein paar Grundangaben. Danach kannst du jede Annahme ändern, weitere Szenarien hinzufügen und sie nebeneinander vergleichen.',
@@ -312,7 +312,7 @@ window.ORV_WS_I18N = {
   },
   fr: {
     'Scenario {l}': 'Scénario {l}', 'Ad Simulator views': 'Vues du simulateur publicitaire', 'Scenario Lab': 'Labo de scénarios', 'My Simulations': 'Mes simulations',
-    'Campaign Management': 'Gestion des campagnes', 'Ad Simulator': 'Simulateur publicitaire',
+    'Campaigns': 'Campagnes', 'Ad Simulator': 'Simulateur publicitaire',
     'Try budgets, platforms and assumptions before you spend real money. Every result here is worked out from your assumptions — a simulation, not a forecast of what the platforms will deliver.': 'Testez budgets, plateformes et hypothèses avant de dépenser de l’argent réel. Chaque résultat ici est calculé à partir de vos hypothèses — une simulation, pas une prévision de ce que les plateformes livreront.',
     'New simulation': 'Nouvelle simulation',
     'Start with a few basics. You can change every assumption afterwards, add more scenarios and compare them side by side.': 'Commencez par quelques éléments de base. Vous pourrez ensuite modifier chaque hypothèse, ajouter des scénarios et les comparer côte à côte.',
@@ -463,7 +463,7 @@ window.ORV_WS_I18N = {
   },
   es: {
     'Scenario {l}': 'Escenario {l}', 'Ad Simulator views': 'Vistas del simulador de anuncios', 'Scenario Lab': 'Laboratorio de escenarios', 'My Simulations': 'Mis simulaciones',
-    'Campaign Management': 'Gestión de campañas', 'Ad Simulator': 'Simulador de anuncios',
+    'Campaigns': 'Campañas', 'Ad Simulator': 'Simulador de anuncios',
     'Try budgets, platforms and assumptions before you spend real money. Every result here is worked out from your assumptions — a simulation, not a forecast of what the platforms will deliver.': 'Prueba presupuestos, plataformas y supuestos antes de gastar dinero real. Cada resultado aquí se calcula a partir de tus supuestos — una simulación, no un pronóstico de lo que entregarán las plataformas.',
     'New simulation': 'Nueva simulación',
     'Start with a few basics. You can change every assumption afterwards, add more scenarios and compare them side by side.': 'Empieza con unos pocos datos básicos. Después puedes cambiar cada supuesto, añadir escenarios y compararlos uno al lado del otro.',
@@ -614,7 +614,7 @@ window.ORV_WS_I18N = {
   },
   pt: {
     'Scenario {l}': 'Cenário {l}', 'Ad Simulator views': 'Vistas do simulador de anúncios', 'Scenario Lab': 'Laboratório de cenários', 'My Simulations': 'As minhas simulações',
-    'Campaign Management': 'Gestão de campanhas', 'Ad Simulator': 'Simulador de anúncios',
+    'Campaigns': 'Campanhas', 'Ad Simulator': 'Simulador de anúncios',
     'Try budgets, platforms and assumptions before you spend real money. Every result here is worked out from your assumptions — a simulation, not a forecast of what the platforms will deliver.': 'Experimente orçamentos, plataformas e pressupostos antes de gastar dinheiro real. Cada resultado aqui é calculado a partir dos seus pressupostos — uma simulação, não uma previsão do que as plataformas vão entregar.',
     'New simulation': 'Nova simulação',
     'Start with a few basics. You can change every assumption afterwards, add more scenarios and compare them side by side.': 'Comece com alguns dados básicos. Depois pode alterar cada pressuposto, adicionar cenários e compará-los lado a lado.',

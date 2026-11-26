@@ -90,8 +90,17 @@ const srv = http.createServer((q, r) => {
   check('My Simulations: an honest empty state, no example simulations', await p.evaluate(() => /No saved simulations yet/.test(document.querySelector('#asimRoot').textContent) && !document.querySelector('.asim-li')));
 
   // ── 3. Advertising Settings ──────────────────────────────────
-  await p.click('.orv-sb [data-onv-foot="adsettings"]'); await p.waitForTimeout(2200);
-  check('Advertising Settings opens from the sidebar footer, marked active, /app?view=adsettings', await p.evaluate(() => !!document.querySelector('#page-ad-settings.active') && !!document.querySelector('.orv-sb [data-onv-foot="adsettings"].is-on') && /view=adsettings/.test(location.search)));
+  // Since 2026-11-26 Advertising Settings lives inside Settings (Settings → Advertising settings → a platform).
+  check('no separate Advertising Settings item in the sidebar', await p.evaluate(() => !document.querySelector('.orv-sb [data-onv-foot="adsettings"]')));
+  await p.click('.orv-sb [data-onv-foot="settings"]'); await p.waitForTimeout(700);
+  check('Settings shows two groups: General settings and Advertising settings (Meta, Google, TikTok, Pinterest, Snapchat)', await p.evaluate(() => {
+    const h = [...document.querySelectorAll('#modal-settings .smd-grp-h')].map((e) => e.textContent.trim());
+    const gen = [...document.querySelectorAll('#modal-settings .smd-grp:first-child .smd-ni')].map((e) => e.getAttribute('data-smd'));
+    const ads = [...document.querySelectorAll('#modal-settings [data-smd-ads]')].map((e) => e.getAttribute('data-smd-ads'));
+    return JSON.stringify(h) === '["General settings","Advertising settings"]' && JSON.stringify(gen) === '["general","account","notifications","security","subscription","help"]' && JSON.stringify(ads) === '["meta","google","tiktok","pinterest","snapchat"]';
+  }));
+  await p.click('#modal-settings [data-smd-ads="meta"]'); await p.waitForTimeout(2200);
+  check('Settings → Advertising settings → Meta opens Advertising Settings on Meta, Settings marked active, /app?view=adsettings', await p.evaluate(() => !!document.querySelector('#page-ad-settings.active') && !!document.querySelector('.orv-sb [data-onv-foot="settings"].is-on') && /view=adsettings/.test(location.search) && !document.querySelector('#modal-settings.open, #modal-settings.on')));
   check('the selected platform and ad account are shown', await p.evaluate(() => /Meta Ads/.test(document.querySelector('.aset-ctx').textContent) && /Ad account/.test(document.querySelector('.aset-ctx').textContent)));
   const links = [];
   const rows = {};

@@ -239,6 +239,16 @@
     el.title = label ? 'Your assistant knows which page you have open' : '';
   }
 
+  // What a message costs, shown under the message box before anything is
+  // sent (the credit check in app.html orvAiSend charges CREDIT_COSTS.chat).
+  function cost() {
+    var el = document.getElementById('orvAgentCost'); if (!el) return;
+    // A message that needs extra steps (tools) uses up to two more chatStep charges (js/plans.js).
+    var n = null, step = 0; try { if (typeof CREDIT_COSTS !== 'undefined' && CREDIT_COSTS) { n = CREDIT_COSTS.chat || null; step = CREDIT_COSTS.chatStep || 0; } } catch (_) {}
+    el.hidden = !n;
+    el.textContent = n ? n + ' credits per message' + (step ? ' (up to ' + (n + 2 * step) + ' when it carries out steps)' : '') + ' · changes to live campaigns wait for your confirmation' : '';
+  }
+
   // No assistant chosen yet: the widget doesn't wear the server's default
   // (that would show an assistant the user never picked). It asks for the
   // choice, and chat waits until one is made.
@@ -323,6 +333,7 @@
       renderPicker();
       renderStarters();
       where();
+      cost();
       bindComposer();
       ensureAboutUI();
     }
@@ -392,7 +403,7 @@
   function hasPage(key) { return !!(window.orvPages && window.orvPages.has(key)); }
   function openPage(key) {
     if (!hasPage(key) || !window.orvPages.open(key)) return false;
-    if (typeof window.orvCloseAi === 'function' && window.innerWidth < 769) window.orvCloseAi();
+    if (typeof window.orvCloseAi === 'function') window.orvCloseAi(); // the assistant fills the workspace: show the opened page (the conversation is kept)
     return true;
   }
   function pageBtn(key, label) { return hasPage(key) ? '<button type="button" class="orv-agent-card-btn" data-agent-page="' + esc(key) + '">' + esc(label || ('Open ' + window.orvPages.label(key))) + '</button>' : ''; }

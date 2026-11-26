@@ -136,19 +136,19 @@
   // are everywhere in the app; the rest follows Settings → Language, with the
   // same words the pages themselves use (Automations' page names, Campaigns).
   var L10N = {
-    nl: { 'Research': 'Onderzoek', 'Create': 'Maken', 'Campaigns': 'Campagnes', 'Automations': 'Automatiseringen', 'Marketing Plan': 'Marketingplan', 'Progress': 'Voortgang', 'Insights': 'Inzichten', 'My Content': 'Mijn content', 'Campaign Overview': 'Campagne-overzicht', 'Campaign Builder': 'Campagnebouwer', 'Overview': 'Overzicht', 'Scheduler': 'Planner', 'Rules': 'Regels', 'Activity': 'Activiteit', 'Ad Platforms': 'Advertentieplatforms', 'Account': 'Account', 'Settings': 'Instellingen' },
-    de: { 'Research': 'Recherche', 'Create': 'Erstellen', 'Campaigns': 'Kampagnen', 'Automations': 'Automatisierungen', 'Marketing Plan': 'Marketingplan', 'Progress': 'Fortschritt', 'Insights': 'Erkenntnisse', 'My Content': 'Meine Inhalte', 'Campaign Overview': 'Kampagnenübersicht', 'Campaign Builder': 'Kampagnen-Builder', 'Overview': 'Übersicht', 'Scheduler': 'Planer', 'Rules': 'Regeln', 'Activity': 'Aktivität', 'Ad Platforms': 'Werbeplattformen', 'Account': 'Konto', 'Settings': 'Einstellungen' },
-    fr: { 'Research': 'Recherche', 'Create': 'Créer', 'Campaigns': 'Campagnes', 'Automations': 'Automatisations', 'Marketing Plan': 'Plan marketing', 'Progress': 'Progression', 'Insights': 'Enseignements', 'My Content': 'Mes contenus', 'Campaign Overview': 'Aperçu des campagnes', 'Campaign Builder': 'Création de campagne', 'Overview': 'Aperçu', 'Scheduler': 'Planificateur', 'Rules': 'Règles', 'Activity': 'Activité', 'Ad Platforms': 'Plateformes publicitaires', 'Account': 'Compte', 'Settings': 'Paramètres' },
-    es: { 'Research': 'Investigación', 'Create': 'Crear', 'Campaigns': 'Campañas', 'Automations': 'Automatizaciones', 'Marketing Plan': 'Plan de marketing', 'Progress': 'Progreso', 'Insights': 'Hallazgos', 'My Content': 'Mi contenido', 'Campaign Overview': 'Resumen de campañas', 'Campaign Builder': 'Creador de campañas', 'Overview': 'Resumen', 'Scheduler': 'Programador', 'Rules': 'Reglas', 'Activity': 'Actividad', 'Ad Platforms': 'Plataformas de anuncios', 'Account': 'Cuenta', 'Settings': 'Ajustes' },
-    pt: { 'Research': 'Pesquisa', 'Create': 'Criar', 'Campaigns': 'Campanhas', 'Automations': 'Automações', 'Marketing Plan': 'Plano de marketing', 'Progress': 'Progresso', 'Insights': 'Descobertas', 'My Content': 'Meu conteúdo', 'Campaign Overview': 'Visão geral das campanhas', 'Campaign Builder': 'Criador de campanhas', 'Overview': 'Visão geral', 'Scheduler': 'Agendador', 'Rules': 'Regras', 'Activity': 'Atividade', 'Ad Platforms': 'Plataformas de anúncios', 'Account': 'Conta', 'Settings': 'Configurações' },
+    nl: { 'Research': 'Onderzoek', 'Create': 'Maken', 'Campaigns': 'Campagnes', 'Automations': 'Automatiseringen', 'Marketing Plan': 'Marketingplan', 'Progress': 'Voortgang', 'Insights': 'Inzichten', 'My Content': 'Mijn content', 'Campaign Overview': 'Campagne-overzicht', 'Campaign Builder': 'Campagnebouwer', 'Overview': 'Overzicht', 'Scheduler': 'Planner', 'Rules': 'Regels', 'Activity': 'Activiteit', 'Ad Platforms': 'Advertentieplatforms', 'Account': 'Account', 'Settings': 'Instellingen', 'Your AI assistant': 'Je AI-assistent', 'Choose your assistant': 'Kies je assistent', 'Assistant': 'Assistent' },
+    de: { 'Research': 'Recherche', 'Create': 'Erstellen', 'Campaigns': 'Kampagnen', 'Automations': 'Automatisierungen', 'Marketing Plan': 'Marketingplan', 'Progress': 'Fortschritt', 'Insights': 'Erkenntnisse', 'My Content': 'Meine Inhalte', 'Campaign Overview': 'Kampagnenübersicht', 'Campaign Builder': 'Kampagnen-Builder', 'Overview': 'Übersicht', 'Scheduler': 'Planer', 'Rules': 'Regeln', 'Activity': 'Aktivität', 'Ad Platforms': 'Werbeplattformen', 'Account': 'Konto', 'Settings': 'Einstellungen', 'Your AI assistant': 'Dein KI-Assistent', 'Choose your assistant': 'Wähle deinen Assistenten', 'Assistant': 'Assistent' },
+    fr: { 'Research': 'Recherche', 'Create': 'Créer', 'Campaigns': 'Campagnes', 'Automations': 'Automatisations', 'Marketing Plan': 'Plan marketing', 'Progress': 'Progression', 'Insights': 'Enseignements', 'My Content': 'Mes contenus', 'Campaign Overview': 'Aperçu des campagnes', 'Campaign Builder': 'Création de campagne', 'Overview': 'Aperçu', 'Scheduler': 'Planificateur', 'Rules': 'Règles', 'Activity': 'Activité', 'Ad Platforms': 'Plateformes publicitaires', 'Account': 'Compte', 'Settings': 'Paramètres', 'Your AI assistant': 'Votre assistant IA', 'Choose your assistant': 'Choisissez votre assistant', 'Assistant': 'Assistant' },
+    es: { 'Research': 'Investigación', 'Create': 'Crear', 'Campaigns': 'Campañas', 'Automations': 'Automatizaciones', 'Marketing Plan': 'Plan de marketing', 'Progress': 'Progreso', 'Insights': 'Hallazgos', 'My Content': 'Mi contenido', 'Campaign Overview': 'Resumen de campañas', 'Campaign Builder': 'Creador de campañas', 'Overview': 'Resumen', 'Scheduler': 'Programador', 'Rules': 'Reglas', 'Activity': 'Actividad', 'Ad Platforms': 'Plataformas de anuncios', 'Account': 'Cuenta', 'Settings': 'Ajustes', 'Your AI assistant': 'Tu asistente de IA', 'Choose your assistant': 'Elige tu asistente', 'Assistant': 'Asistente' },
+    pt: { 'Research': 'Pesquisa', 'Create': 'Criar', 'Campaigns': 'Campanhas', 'Automations': 'Automações', 'Marketing Plan': 'Plano de marketing', 'Progress': 'Progresso', 'Insights': 'Descobertas', 'My Content': 'Meu conteúdo', 'Campaign Overview': 'Visão geral das campanhas', 'Campaign Builder': 'Criador de campanhas', 'Overview': 'Visão geral', 'Scheduler': 'Agendador', 'Rules': 'Regras', 'Activity': 'Atividade', 'Ad Platforms': 'Plataformas de anúncios', 'Account': 'Conta', 'Settings': 'Configurações', 'Your AI assistant': 'O seu assistente de IA', 'Choose your assistant': 'Escolha o seu assistente', 'Assistant': 'Assistente' },
   };
   // The workspace redesign's group and page names.
   var L10N2 = {
-    nl: { 'AI Plans & Tasks': 'AI-plannen & taken', 'Needs Attention': 'Vraagt aandacht', 'Ads vs Ads': 'Advertenties vergelijken', 'Audience Research': 'Doelgroeponderzoek', 'Competitive Research': 'Concurrentieonderzoek', 'Overview': 'Overzicht', 'AI Plans': 'AI-plannen', 'Tasks': 'Taken', 'Campaign Management': 'Campagnebeheer', 'Campaigns': 'Campagnes', 'Audiences': 'Doelgroepen', 'Ad Simulator': 'Advertentiesimulator', 'Creative Studio': 'Creative Studio', 'Create Ads': 'Advertenties maken', 'My Creatives': 'Mijn creatives', 'Analytics': 'Analyse', 'Performance Overview': 'Prestatieoverzicht', 'Cross-platform Comparison': 'Platformvergelijking', 'Competitor Analysis': 'Concurrentieanalyse', 'Saved Research': 'Opgeslagen onderzoek', 'Autopilot': 'Autopilot', 'Automation Overview': 'Automatiseringsoverzicht', 'My Automations': 'Mijn automatiseringen', 'Automation History': 'Automatiseringsgeschiedenis', 'Advertising Settings': 'Advertentie-instellingen' },
-    de: { 'AI Plans & Tasks': 'KI-Pläne & Aufgaben', 'Needs Attention': 'Braucht Aufmerksamkeit', 'Ads vs Ads': 'Anzeigen im Vergleich', 'Audience Research': 'Zielgruppenrecherche', 'Competitive Research': 'Wettbewerbsrecherche', 'Overview': 'Übersicht', 'AI Plans': 'KI-Pläne', 'Tasks': 'Aufgaben', 'Campaign Management': 'Kampagnenverwaltung', 'Campaigns': 'Kampagnen', 'Audiences': 'Zielgruppen', 'Ad Simulator': 'Anzeigensimulator', 'Create Ads': 'Anzeigen erstellen', 'My Creatives': 'Meine Creatives', 'Analytics': 'Analysen', 'Performance Overview': 'Leistungsübersicht', 'Cross-platform Comparison': 'Plattformvergleich', 'Competitor Analysis': 'Wettbewerbsanalyse', 'Saved Research': 'Gespeicherte Recherchen', 'Automation Overview': 'Automatisierungsübersicht', 'My Automations': 'Meine Automatisierungen', 'Automation History': 'Automatisierungsverlauf', 'Advertising Settings': 'Werbeeinstellungen' },
-    fr: { 'AI Plans & Tasks': 'Plans IA & tâches', 'Needs Attention': 'À traiter', 'Ads vs Ads': 'Annonces face à face', 'Audience Research': 'Recherche d’audience', 'Competitive Research': 'Recherche concurrentielle', 'Overview': 'Aperçu', 'AI Plans': 'Plans IA', 'Tasks': 'Tâches', 'Campaign Management': 'Gestion des campagnes', 'Campaigns': 'Campagnes', 'Audiences': 'Audiences', 'Ad Simulator': 'Simulateur publicitaire', 'Create Ads': 'Créer des annonces', 'My Creatives': 'Mes créations', 'Analytics': 'Analyses', 'Performance Overview': 'Aperçu des performances', 'Cross-platform Comparison': 'Comparaison des plateformes', 'Competitor Analysis': 'Analyse concurrentielle', 'Saved Research': 'Recherches enregistrées', 'Automation Overview': 'Aperçu des automatisations', 'My Automations': 'Mes automatisations', 'Automation History': 'Historique des automatisations', 'Advertising Settings': 'Paramètres publicitaires' },
-    es: { 'AI Plans & Tasks': 'Planes de IA y tareas', 'Needs Attention': 'Requiere atención', 'Ads vs Ads': 'Anuncio contra anuncio', 'Audience Research': 'Investigación de audiencias', 'Competitive Research': 'Investigación competitiva', 'Overview': 'Resumen', 'AI Plans': 'Planes de IA', 'Tasks': 'Tareas', 'Campaign Management': 'Gestión de campañas', 'Campaigns': 'Campañas', 'Audiences': 'Audiencias', 'Ad Simulator': 'Simulador de anuncios', 'Create Ads': 'Crear anuncios', 'My Creatives': 'Mis creatividades', 'Analytics': 'Analítica', 'Performance Overview': 'Resumen de rendimiento', 'Cross-platform Comparison': 'Comparación de plataformas', 'Competitor Analysis': 'Análisis de competidores', 'Saved Research': 'Investigación guardada', 'Automation Overview': 'Resumen de automatizaciones', 'My Automations': 'Mis automatizaciones', 'Automation History': 'Historial de automatizaciones', 'Advertising Settings': 'Ajustes de publicidad' },
-    pt: { 'AI Plans & Tasks': 'Planos de IA e tarefas', 'Needs Attention': 'Precisa de atenção', 'Ads vs Ads': 'Anúncio contra anúncio', 'Audience Research': 'Pesquisa de público', 'Competitive Research': 'Pesquisa competitiva', 'Overview': 'Visão geral', 'AI Plans': 'Planos de IA', 'Tasks': 'Tarefas', 'Campaign Management': 'Gestão de campanhas', 'Campaigns': 'Campanhas', 'Audiences': 'Públicos', 'Ad Simulator': 'Simulador de anúncios', 'Create Ads': 'Criar anúncios', 'My Creatives': 'Meus criativos', 'Analytics': 'Análises', 'Performance Overview': 'Visão geral de desempenho', 'Cross-platform Comparison': 'Comparação de plataformas', 'Competitor Analysis': 'Análise de concorrentes', 'Saved Research': 'Pesquisas salvas', 'Automation Overview': 'Visão geral das automações', 'My Automations': 'Minhas automações', 'Automation History': 'Histórico de automações', 'Advertising Settings': 'Configurações de publicidade' },
+    nl: { 'AI Plans & Tasks': 'AI-plannen & taken', 'Needs Attention': 'Vraagt aandacht', 'Ads vs Ads': 'Advertenties vergelijken', 'Audience Research': 'Doelgroeponderzoek', 'Competitive Research': 'Concurrentieonderzoek', 'Overview': 'Overzicht', 'AI Plans': 'AI-plannen', 'Tasks': 'Taken', 'Campaign Management': 'Campagnebeheer', 'Campaigns': 'Campagnes', 'Audiences': 'Doelgroepen', 'Ad Simulator': 'Advertentiesimulator', 'Creative Studio': 'Creative Studio', 'Create Ads': 'Advertenties maken', 'My Creatives': 'Mijn creatives', 'Analytics': 'Analyse', 'Performance Overview': 'Prestatieoverzicht', 'Cross-platform Comparison': 'Platformvergelijking', 'Competitor Analysis': 'Concurrentieanalyse', 'Saved Research': 'Opgeslagen onderzoek', 'Autopilot': 'Autopilot', 'Automation Overview': 'Automatiseringsoverzicht', 'My Automations': 'Mijn automatiseringen', 'Automation History': 'Automatiseringsgeschiedenis', 'Advertising Settings': 'Advertentie-instellingen', 'General settings': 'Algemene instellingen', 'Advertising settings': 'Advertentie-instellingen', 'Your account, plan and preferences': 'Je account, abonnement en voorkeuren', 'Tracking and conversions for each platform': 'Tracking en conversies per platform', 'Connect accounts in Ad Platforms': 'Accounts koppelen in Advertentieplatforms', 'Tracking and conversions': 'Tracking en conversies', 'Open Advertising settings': 'Advertentie-instellingen openen' },
+    de: { 'AI Plans & Tasks': 'KI-Pläne & Aufgaben', 'Needs Attention': 'Braucht Aufmerksamkeit', 'Ads vs Ads': 'Anzeigen im Vergleich', 'Audience Research': 'Zielgruppenrecherche', 'Competitive Research': 'Wettbewerbsrecherche', 'Overview': 'Übersicht', 'AI Plans': 'KI-Pläne', 'Tasks': 'Aufgaben', 'Campaign Management': 'Kampagnenverwaltung', 'Campaigns': 'Kampagnen', 'Audiences': 'Zielgruppen', 'Ad Simulator': 'Anzeigensimulator', 'Create Ads': 'Anzeigen erstellen', 'My Creatives': 'Meine Creatives', 'Analytics': 'Analysen', 'Performance Overview': 'Leistungsübersicht', 'Cross-platform Comparison': 'Plattformvergleich', 'Competitor Analysis': 'Wettbewerbsanalyse', 'Saved Research': 'Gespeicherte Recherchen', 'Automation Overview': 'Automatisierungsübersicht', 'My Automations': 'Meine Automatisierungen', 'Automation History': 'Automatisierungsverlauf', 'Advertising Settings': 'Werbeeinstellungen', 'General settings': 'Allgemeine Einstellungen', 'Advertising settings': 'Werbeeinstellungen', 'Your account, plan and preferences': 'Dein Konto, Tarif und deine Einstellungen', 'Tracking and conversions for each platform': 'Tracking und Conversions je Plattform', 'Connect accounts in Ad Platforms': 'Konten unter Werbeplattformen verbinden', 'Tracking and conversions': 'Tracking und Conversions', 'Open Advertising settings': 'Werbeeinstellungen öffnen' },
+    fr: { 'AI Plans & Tasks': 'Plans IA & tâches', 'Needs Attention': 'À traiter', 'Ads vs Ads': 'Annonces face à face', 'Audience Research': 'Recherche d’audience', 'Competitive Research': 'Recherche concurrentielle', 'Overview': 'Aperçu', 'AI Plans': 'Plans IA', 'Tasks': 'Tâches', 'Campaign Management': 'Gestion des campagnes', 'Campaigns': 'Campagnes', 'Audiences': 'Audiences', 'Ad Simulator': 'Simulateur publicitaire', 'Create Ads': 'Créer des annonces', 'My Creatives': 'Mes créations', 'Analytics': 'Analyses', 'Performance Overview': 'Aperçu des performances', 'Cross-platform Comparison': 'Comparaison des plateformes', 'Competitor Analysis': 'Analyse concurrentielle', 'Saved Research': 'Recherches enregistrées', 'Automation Overview': 'Aperçu des automatisations', 'My Automations': 'Mes automatisations', 'Automation History': 'Historique des automatisations', 'Advertising Settings': 'Paramètres publicitaires', 'General settings': 'Paramètres généraux', 'Advertising settings': 'Paramètres publicitaires', 'Your account, plan and preferences': 'Votre compte, votre offre et vos préférences', 'Tracking and conversions for each platform': 'Suivi et conversions par plateforme', 'Connect accounts in Ad Platforms': 'Connecter des comptes dans Plateformes publicitaires', 'Tracking and conversions': 'Suivi et conversions', 'Open Advertising settings': 'Ouvrir les paramètres publicitaires' },
+    es: { 'AI Plans & Tasks': 'Planes de IA y tareas', 'Needs Attention': 'Requiere atención', 'Ads vs Ads': 'Anuncio contra anuncio', 'Audience Research': 'Investigación de audiencias', 'Competitive Research': 'Investigación competitiva', 'Overview': 'Resumen', 'AI Plans': 'Planes de IA', 'Tasks': 'Tareas', 'Campaign Management': 'Gestión de campañas', 'Campaigns': 'Campañas', 'Audiences': 'Audiencias', 'Ad Simulator': 'Simulador de anuncios', 'Create Ads': 'Crear anuncios', 'My Creatives': 'Mis creatividades', 'Analytics': 'Analítica', 'Performance Overview': 'Resumen de rendimiento', 'Cross-platform Comparison': 'Comparación de plataformas', 'Competitor Analysis': 'Análisis de competidores', 'Saved Research': 'Investigación guardada', 'Automation Overview': 'Resumen de automatizaciones', 'My Automations': 'Mis automatizaciones', 'Automation History': 'Historial de automatizaciones', 'Advertising Settings': 'Ajustes de publicidad', 'General settings': 'Ajustes generales', 'Advertising settings': 'Ajustes de publicidad', 'Your account, plan and preferences': 'Tu cuenta, tu plan y tus preferencias', 'Tracking and conversions for each platform': 'Seguimiento y conversiones por plataforma', 'Connect accounts in Ad Platforms': 'Conecta cuentas en Plataformas de anuncios', 'Tracking and conversions': 'Seguimiento y conversiones', 'Open Advertising settings': 'Abrir ajustes de publicidad' },
+    pt: { 'AI Plans & Tasks': 'Planos de IA e tarefas', 'Needs Attention': 'Precisa de atenção', 'Ads vs Ads': 'Anúncio contra anúncio', 'Audience Research': 'Pesquisa de público', 'Competitive Research': 'Pesquisa competitiva', 'Overview': 'Visão geral', 'AI Plans': 'Planos de IA', 'Tasks': 'Tarefas', 'Campaign Management': 'Gestão de campanhas', 'Campaigns': 'Campanhas', 'Audiences': 'Públicos', 'Ad Simulator': 'Simulador de anúncios', 'Create Ads': 'Criar anúncios', 'My Creatives': 'Meus criativos', 'Analytics': 'Análises', 'Performance Overview': 'Visão geral de desempenho', 'Cross-platform Comparison': 'Comparação de plataformas', 'Competitor Analysis': 'Análise de concorrentes', 'Saved Research': 'Pesquisas salvas', 'Automation Overview': 'Visão geral das automações', 'My Automations': 'Minhas automações', 'Automation History': 'Histórico de automações', 'Advertising Settings': 'Configurações de publicidade', 'General settings': 'Configurações gerais', 'Advertising settings': 'Configurações de publicidade', 'Your account, plan and preferences': 'A sua conta, plano e preferências', 'Tracking and conversions for each platform': 'Acompanhamento e conversões por plataforma', 'Connect accounts in Ad Platforms': 'Ligar contas em Plataformas de anúncios', 'Tracking and conversions': 'Acompanhamento e conversões', 'Open Advertising settings': 'Abrir configurações de publicidade' },
   };
   Object.keys(L10N2).forEach(function (l) { Object.keys(L10N2[l]).forEach(function (k) { L10N[l][k] = L10N2[l][k]; }); });
   function tr(en) { var l = (typeof CURRENT_LANG !== 'undefined' && CURRENT_LANG) || 'en'; return (L10N[l] && L10N[l][en]) || en; }
@@ -202,23 +202,29 @@
     mountPanel();
   }
 
-  // ── Footer: Ad Platforms, then one account row with Settings ───────────
-  // Ad Platforms is a page like the others (same item, hover, active state
-  // and icon motion). The account row shows who is signed in and the plan;
-  // it opens the existing Settings modal at Account, the gear at General —
-  // the one Settings surface the app has. Ids other code relies on are kept:
-  // #orvNavSettingsBtn (tour step), #orvSbWorkspace / #orvSbAvatar (written
-  // by settings.js and the old rail tooltip; hidden here).
+  // ── Footer: the workspace control area ─────────────────────────────────
+  // Settings · Ad Platforms · the assistant · the account (2026-11-26):
+  //   Settings      the one Settings surface (the existing modal), with General
+  //                 settings and the per-platform Advertising Settings inside it.
+  //   Ad Platforms  connecting accounts and choosing the ad account (unchanged).
+  //   Assistant     the user's own assistant (js/orivenAgent.js — the persona
+  //                 chosen at onboarding, from GET /api/agent), opened as a full
+  //                 chat workspace. It replaces the floating launcher.
+  //   Account       full-width row; opens Settings at Account.
+  // Ids other code relies on are kept: #orvNavSettingsBtn (tour step),
+  // #orvLauncherBtn, #orvSbWorkspace / #orvSbAvatar (written by settings.js).
   function footHtml(where) {
     var d = where === 'desktop';
     return '<div class="onv onv-foot" data-onv-root="foot-' + where + '">' +
+      '<button type="button" class="onv-item" data-onv-foot="settings"' + (d ? ' id="orvNavSettingsBtn"' : '') + ' title="' + esc(tr('Settings')) + '"><span class="onv-ic">' + svg('gear') + '</span><span class="onv-lbl" data-onv-t="Settings">' + esc(tr('Settings')) + '</span></button>' +
       '<button type="button" class="onv-item" data-onv-foot="platforms"' + (d ? ' id="orvLauncherBtn"' : '') + ' title="' + esc(tr('Ad Platforms')) + '"><span class="onv-ic">' + svg('platforms') + '</span><span class="onv-lbl" data-onv-t="Ad Platforms">' + esc(tr('Ad Platforms')) + '</span></button>' +
-      '<button type="button" class="onv-item" data-onv-foot="adsettings" title="' + esc(tr('Advertising Settings')) + '"><span class="onv-ic">' + svg('sliders') + '</span><span class="onv-lbl" data-onv-t="Advertising Settings">' + esc(tr('Advertising Settings')) + '</span></button>' +
-      '<div class="onv-acct">' +
-        '<button type="button" class="onv-acct__main" data-onv-foot="account" data-onv-ta="Account" aria-label="' + esc(tr('Account')) + '"><span class="onv-acct__av" aria-hidden="true" data-onv-av>·</span>' +
-          '<span class="onv-acct__t"><b data-onv-name></b><span data-onv-plan></span></span></button>' +
-        '<button type="button" class="onv-acct__gear onv-item" data-onv-foot="settings"' + (d ? ' id="orvNavSettingsBtn"' : '') + ' data-onv-ta="Settings" aria-label="' + esc(tr('Settings')) + '" title="' + esc(tr('Settings')) + '"><span class="onv-ic">' + svg('gear') + '</span></button>' +
-      '</div>' +
+      '<button type="button" class="onv-item onv-mom" data-onv-foot="assistant" aria-label="' + esc(tr('Your AI assistant')) + '">' +
+        '<span class="onv-ic onv-mom__ic" data-onv-mom-ic aria-hidden="true"><span class="onv-mom__core"></span></span>' +
+        '<span class="onv-mom__t"><b data-onv-mom-name>' + esc(tr('Assistant')) + '</b><small data-onv-t="Your AI assistant">' + esc(tr('Your AI assistant')) + '</small></span>' +
+        '<span class="onv-mom__live" aria-hidden="true"></span></button>' +
+      '<button type="button" class="onv-acct" data-onv-foot="account" data-onv-ta="Account" aria-label="' + esc(tr('Account')) + '"><span class="onv-acct__av" aria-hidden="true" data-onv-av>·</span>' +
+        '<span class="onv-acct__t"><b data-onv-name></b><span data-onv-plan></span></span>' +
+        '<svg class="onv-acct__chev" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
       (d ? '<button type="button" id="orvSbWorkspace" hidden tabindex="-1"></button><span id="orvSbAvatar" hidden></span>' : '') +
     '</div>';
   }
@@ -231,17 +237,78 @@
         var b = e.target.closest('[data-onv-foot]'); if (!b) return;
         var k = b.getAttribute('data-onv-foot');
         if (t[0] === 'mobile' && typeof window._orvDrawerClose === 'function') window._orvDrawerClose();
-        if (k === 'adsettings') { H.ready = H.ready || !!(typeof _currentUser !== 'undefined' && _currentUser); if (window.orvAdSettings) window.orvAdSettings.open(); setTimeout(sync, 0); return; }
+        if (k === 'assistant') { openAssistant(); return; }
+        if (typeof window.orvCloseAi === 'function' && document.body.classList.contains('orv-ai-ws')) window.orvCloseAi();
         if (k === 'platforms') { H.ready = H.ready || !!(typeof _currentUser !== 'undefined' && _currentUser); if (typeof window._orvOpenPlatforms === 'function') window._orvOpenPlatforms(); setTimeout(sync, 0); return; }
         openSettings(k === 'account' ? 'account' : null);
       });
     });
     paintAccount();
+    paintAssistant();
     // The legacy identity block (hidden) is what auth.js / settings.js keep
     // current: follow it.
     ['sbPlanLabel'].forEach(function (id) { var el = document.getElementById(id); if (el) new MutationObserver(paintAccount).observe(el, { childList: true, characterData: true, subtree: true }); });
+    // The assistant's identity is written by js/orivenAgent.js onto the
+    // (now hidden) launcher #orvAiFab: follow it, so the sidebar always shows
+    // the same name, mark and colour as the chat.
+    var fab = document.getElementById('orvAiFab');
+    if (fab) new MutationObserver(paintAssistant).observe(fab, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'data-agent'] });
+    var panel = document.getElementById('orvAiPanel');
+    if (panel) new MutationObserver(paintAssistant).observe(panel, { attributes: true, attributeFilter: ['class'] });
     var tries = 0; (function again() { paintAccount(); if (++tries < 12) setTimeout(again, 700); })();
   }
+  // The assistant opens as the full chat workspace (body.orv-ai-ws, styled in
+  // css/orv-design.css) — the same conversation, endpoint, credit check and
+  // confirmations as before (app.html orvOpenAi / orvAiSend). Clicking it while
+  // it is open keeps it open and puts the cursor in the message box.
+  function openAssistant() {
+    document.body.classList.add('orv-ai-ws');
+    var open = document.getElementById('orvAiPanel');
+    if (open && open.classList.contains('orv-ai-open')) { var inp = document.getElementById('orvAiInput'); if (inp) inp.focus(); paintAssistant(); return; }
+    if (typeof window.orvOpenAi === 'function') window.orvOpenAi();
+    if (!(open && open.classList.contains('orv-ai-open'))) document.body.classList.remove('orv-ai-ws'); // not opened (plan without chat)
+    paintAssistant();
+  }
+  function paintAssistant() {
+    // Mirrors the launcher js/orivenAgent.js keeps current (#orvAiFab, hidden
+    // since the sidebar took over): the chosen assistant's name and mark,
+    // "Choose your assistant" before a choice, "Assistant" when signed out.
+    var fab = document.getElementById('orvAiFab');
+    var lbl = fab ? fab.querySelector('.orv-ai-fab-label') : null;
+    var raw = lbl ? String(lbl.textContent || '').trim() : '';
+    var chosen = !!(fab && fab.getAttribute('data-agent'));
+    var name = chosen && raw ? raw : raw === 'Choose your assistant' ? tr('Choose your assistant') : tr('Assistant');
+    var key = chosen ? fab.getAttribute('data-agent') : '';
+    var g = chosen ? fab.querySelector('svg.orv-agent-fab-glyph') : null;
+    var glyphSvg = g ? g.outerHTML.replace('orv-agent-fab-glyph', 'onv-mom__glyph') : '';
+    var rgbv = fab ? fab.style.getPropertyValue('--orv-agent-rgb') : '';
+    var hex = fab ? fab.style.getPropertyValue('--orv-agent') : '';
+    var panel = document.getElementById('orvAiPanel');
+    var isOpen = !!(panel && panel.classList.contains('orv-ai-open'));
+    document.querySelectorAll('.onv-foot [data-onv-foot="assistant"]').forEach(function (b) {
+      var n = b.querySelector('[data-onv-mom-name]'); if (n && n.textContent !== name) n.textContent = name;
+      var ic = b.querySelector('[data-onv-mom-ic]');
+      if (ic && ic.getAttribute('data-k') !== key) { ic.setAttribute('data-k', key); ic.innerHTML = glyphSvg + '<span class="onv-mom__core"></span>'; }
+      if (rgbv) b.style.setProperty('--onv-mom-rgb', rgbv); else b.style.removeProperty('--onv-mom-rgb');
+      if (hex) b.style.setProperty('--onv-mom', hex); else b.style.removeProperty('--onv-mom');
+      if (key) b.setAttribute('data-agent', key); else b.removeAttribute('data-agent');
+      var label = name + ' — ' + tr('Your AI assistant');
+      b.setAttribute('aria-label', label); b.title = label;
+      b.classList.toggle('is-on', isOpen);
+      b.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+    if (!isOpen) document.body.classList.remove('orv-ai-ws');
+  }
+  window.orvAppNavAssistant = { open: openAssistant, paint: paintAssistant };
+  // Settings → Advertising settings → a platform: the Advertising Settings
+  // page on that platform. Settings → "Connect accounts": Ad Platforms.
+  function leaveSettings() {
+    if (typeof window.closeModal === 'function') window.closeModal('modal-settings');
+    if (document.body.classList.contains('orv-ai-ws') && typeof window.orvCloseAi === 'function') window.orvCloseAi();
+    H.ready = H.ready || !!(typeof _currentUser !== 'undefined' && _currentUser);
+  }
+  window.orvOpenAdSettings = function (p) { leaveSettings(); if (window.orvAdSettings) window.orvAdSettings.open(p); setTimeout(sync, 0); };
+  window.orvOpenAdPlatformsFromSettings = function () { leaveSettings(); if (typeof window._orvOpenPlatforms === 'function') window._orvOpenPlatforms(); setTimeout(sync, 0); };
   function openSettings(section) {
     if (typeof window.openSettingsModal !== 'function') return;
     window.openSettingsModal();
@@ -387,6 +454,8 @@
     if (!H.pop) { H.target = id; H.targetAt = Date.now(); }
     if (!H.pop && H.initial === null) H.ready = H.ready || !!window._currentUser || (typeof _currentUser !== 'undefined' && !!_currentUser);
     S.justId = id;
+    // Opening a page leaves the assistant workspace (the conversation is kept).
+    if (document.body.classList.contains('orv-ai-ws') && typeof window.orvCloseAi === 'function') window.orvCloseAi();
     it.go();
     setTimeout(sync, 0);
   }
@@ -520,7 +589,8 @@
     var pgAct = document.querySelector('.page.active');
     var onPlatforms = !!(pgAct && pgAct.id === 'page-business-brain' && (typeof window._bizActiveTab === 'string' ? window._bizActiveTab : (typeof _bizActiveTab !== 'undefined' ? _bizActiveTab : '')) === 'connections');
     var onAdSettings = !!(pgAct && pgAct.id === 'page-ad-settings');
-    document.querySelectorAll('.onv-foot [data-onv-foot="adsettings"]').forEach(function (b) { b.classList.toggle('is-on', onAdSettings); if (onAdSettings) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    // Advertising Settings lives inside Settings: on its page, Settings is the lit item.
+    document.querySelectorAll('.onv-foot [data-onv-foot="settings"]').forEach(function (b) { b.classList.toggle('is-on', onAdSettings); if (onAdSettings) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     document.querySelectorAll('.onv-foot [data-onv-foot="platforms"]').forEach(function (b) { b.classList.toggle('is-on', onPlatforms); if (onPlatforms) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     S.roots.forEach(function (root) {
       var shownId = navTarget(id);
@@ -574,7 +644,7 @@
     // Follow Settings → Language like the pages do.
     if (typeof window.applyLanguage === 'function' && !window.applyLanguage._onv) {
       var origLang = window.applyLanguage;
-      window.applyLanguage = function () { var r = origLang.apply(this, arguments); try { relabel(); } catch (_) {} return r; };
+      window.applyLanguage = function () { var r = origLang.apply(this, arguments); try { relabel(); paintAssistant(); } catch (_) {} return r; };
       window.applyLanguage._onv = true;
     }
     relabel();

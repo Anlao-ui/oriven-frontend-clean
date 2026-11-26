@@ -99,7 +99,7 @@
       '<button type="button" role="tab" class="asim-view' + (S.view === 'lab' ? ' is-on' : '') + '" aria-selected="' + (S.view === 'lab') + '" data-asim-view="lab">' + esc(T('Scenario Lab')) + '</button>' +
       '<button type="button" role="tab" class="asim-view' + (S.view === 'list' ? ' is-on' : '') + '" aria-selected="' + (S.view === 'list') + '" data-asim-view="list">' + esc(T('My Simulations')) + '</button>' +
       '</div>';
-    var head = K.head(T('Campaign Management'), T('Ad Simulator'), T('Try budgets, platforms and assumptions before you spend real money. Every result here is worked out from your assumptions — a simulation, not a forecast of what the platforms will deliver.'),
+    var head = K.head(T('Campaigns'), T('Ad Simulator'), T('Try budgets, platforms and assumptions before you spend real money. Every result here is worked out from your assumptions — a simulation, not a forecast of what the platforms will deliver.'),
       '<div class="asim-headact"><button type="button" class="rx-btn rx-btn-ghost" data-asim-new>' + esc(T('New simulation')) + '</button></div>');
     root.innerHTML = '<div class="asim">' + head + tabs + (S.view === 'list' ? listHtml() : S.sim ? labHtml() : startHtml()) + '</div>';
     if (S.view === 'list' && S.list === null) loadList();
