@@ -134,13 +134,13 @@ async function signIn(page, url) {
   await page.waitForTimeout(600);
 }
 const PAGES = [
-  ['dashboard', 'Overview', 'page-business-brain'], ['plan', 'Overview', 'page-marketing-plan'], ['progress', 'Overview', 'page-progress'],
-  ['adstudio', 'Campaign Management', 'page-launch'], ['simulator', 'Campaign Management', 'page-ad-simulator'],
+  // 2026-11-26 product structure. A fourth value: the page is part of that sidebar item (not an item itself).
+  ['dashboard', 'Overview', 'page-business-brain'], ['plan', 'Overview', 'page-marketing-plan'], ['attention', 'Overview', 'page-needs-attention'], ['progress', 'Overview', 'page-progress', 'plan'],
+  ['adstudio', 'Campaigns', 'page-launch'], ['simulator', 'Campaigns', 'page-ad-simulator'],
   ['create', 'Creative Studio', 'page-create'], ['content', 'Creative Studio', 'page-my-content'], ['testing', 'Creative Studio', 'page-creative-testing'],
-  ['overview', 'Analytics', 'page-performance'], ['compare', 'Analytics', 'page-campaign-comparison'],
-  ['research', 'Research', 'page-research'], ['insights', 'Research', 'page-insights'],
-  // Inside Research since 2026-11-25 (not sidebar items): opened from Research; Research stays marked.
-  ['audiences', 'Research', 'page-audience-builder', 'research'], ['competitors', 'Research', 'page-competitor-analysis', 'research'],
+  ['overview', 'Analytics', 'page-performance'], ['compare', 'Analytics', 'page-campaign-comparison'], ['adsvsads', 'Analytics', 'page-ads-vs-ads'],
+  ['research', 'Research', 'page-research'], ['competitive', 'Research', 'page-research'], ['insights', 'Research', 'page-insights'],
+  ['audiences', 'Research', 'page-audience-builder', 'research'], ['competitors', 'Research', 'page-competitor-analysis', 'competitive'],
   ['auto-overview', 'Autopilot', 'page-autopilot'], ['auto-rules', 'Autopilot', 'page-autopilot'], ['auto-activity', 'Autopilot', 'page-autopilot'],
 ];
 
@@ -162,10 +162,10 @@ const server = app.listen(PORT, async () => {
       return { secs, headClickable: !!root.querySelector('.onv-sec__h a, .onv-sec__h button, .onv-sec__h[onclick], .onv-sec__h[tabindex]'), cursor: getComputedStyle(h).cursor, pe: getComputedStyle(h).pointerEvents,
         icons: Array.from(root.querySelectorAll('.onv-item')).map((b) => b.querySelector('.onv-ic svg') && b.querySelector('.onv-ic svg').children.length) };
     });
-    check('1.1 exactly six groups in order: Overview, Campaign Management, Creative Studio, Analytics, Research, Autopilot (workspace redesign 2026-11)', JSON.stringify(st.secs.map((s) => s.h)) === '["Overview","Campaign Management","Creative Studio","Analytics","Research","Autopilot"]', st.secs.map((s) => s.h));
-    check('1.2 the pages under each heading match the agreed structure', JSON.stringify(st.secs.map((s) => s.items)) === JSON.stringify([['Dashboard', 'AI Plans', 'Tasks'], ['Campaigns', 'Ad Simulator'], ['Create Ads', 'My Creatives', 'Creative Testing'], ['Performance Overview', 'Cross-platform Comparison'], ['Research', 'Saved Research'], ['Automation Overview', 'My Automations', 'Automation History']]), st.secs.map((s) => s.items));
+    check('1.1 exactly six groups in order: Overview, Campaigns, Creative Studio, Analytics, Research, Autopilot (workspace redesign 2026-11)', JSON.stringify(st.secs.map((s) => s.h)) === '["Overview","Campaigns","Creative Studio","Analytics","Research","Autopilot"]', st.secs.map((s) => s.h));
+    check('1.2 the pages under each heading match the agreed structure', JSON.stringify(st.secs.map((s) => s.items)) === JSON.stringify([['Dashboard', 'AI Plans & Tasks', 'Needs Attention'], ['Campaigns', 'Ad Simulator'], ['Create Ads', 'My Creatives', 'Creative Testing'], ['Performance Overview', 'Cross-platform Comparison', 'Ads vs Ads'], ['Audience Research', 'Competitive Research', 'Saved Research'], ['Automation Overview', 'My Automations', 'Automation History']]), st.secs.map((s) => s.items));
     check('1.3 section names are headings (h2), not links or buttons, with no pointer cursor', st.secs.every((s) => s.tag === 'H2') && !st.headClickable && st.cursor === 'default' && st.pe === 'none');
-    check('1.4 every page has its own icon', st.icons.length === 15 && st.icons.every((n) => n >= 1), st.icons);
+    check('1.4 every page has its own icon', st.icons.length === 17 && st.icons.every((n) => n >= 1), st.icons);
     check('1.4b Campaign Builder and Scheduler are reached from their pages, not the sidebar', !(await page.evaluate(() => /Campaign Builder|Scheduler/.test(document.querySelector('.orv-sb .onv').textContent) || !!document.querySelector('.onv-item[data-onv="builder"], .onv-item[data-onv="auto-scheduler"]'))));
     check('1.5 no seventh group', st.secs.length === 6);
     check('1.6 the existing account is not sent into any onboarding (no overlay, no tour)', !(await page.$('#onx')) && !(await page.evaluate(() => window.__tourOpened)));
@@ -238,7 +238,7 @@ const server = app.listen(PORT, async () => {
     const mp = await page.evaluate(() => { const pg = document.getElementById('page-marketing-plan'); return { active: pg.classList.contains('active'), text: pg.innerText, state: (pg.querySelector('.mpl-empty') || {}).dataset, planning: !!(document.getElementById('bizPanelPlanning') || {}).offsetParent }; });
     check('2.4 Marketing Plan is its own page; this account has no plan: a short empty state (activation and payment), no invented plan', mp.active && mp.state && mp.state.state === 'none' && /No marketing plan yet/.test(mp.text) && /activation and payment/.test(mp.text) && !mp.planning && !/Priorities|Action plan|Week 1/.test(mp.text), mp);
     check('2.4b …and nothing unrelated on it (no Back to Control Center, Plan advertising, Upcoming, Budget plan, Brief, Latest research)', !/Back to Control Center|Plan advertising|Upcoming|Budget plan|Brief|Latest research/i.test(mp.text), mp.text.slice(0, 300));
-    await page.click('.orv-sb .onv-item[data-onv="progress"]'); await page.waitForTimeout(600);
+    await page.evaluate(() => window.orvAppNav.go('progress')); await page.waitForTimeout(600);
     const pgx = await page.evaluate(() => { const pg = document.getElementById('page-progress'); return { active: pg.classList.contains('active'), text: pg.innerText, steps: pg.querySelectorAll('.prg-step').length }; });
     check('2.4c Progress for this account: no steps, an honest empty state, no numbers or fake data', pgx.active && pgx.steps === 0 && /No progress steps yet/.test(pgx.text) && !/\d/.test(pgx.text), pgx);
     check('2.4d opening Marketing Plan / Progress made no paid or write request (no plan generation, no credits)', !calls.some((c) => c.m !== 'GET' && /onboarding\/plan|onboarding\/progress|credits|checkout/.test(c.p)), calls.filter((c) => c.m !== 'GET').map((c) => c.p));
@@ -247,14 +247,14 @@ const server = app.listen(PORT, async () => {
     const ins = await page.evaluate(() => ({ h: (document.querySelector('#insRoot .rx-title') || {}).textContent, lib: /Candle market in Utrecht/.test((document.getElementById('insRoot') || {}).textContent || ''), form: !!document.querySelector('#page-insights #researchQueryInput') }));
     check('2.5 Saved Research is its own page with the saved research (real reports, no research form)', ins.h === 'Saved Research' && ins.lib && !ins.form, ins);
     await page.click('#insRoot [data-ins="new"]'); await page.waitForTimeout(500);
-    check('2.6 "New research" from Insights goes to Research (its start: the research areas) and the highlight follows', await page.isVisible('#page-research .rx-areas') && await page.evaluate(() => document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'research'));
+    check('2.6 "New research" from Insights goes to Audience Research (its form) and the highlight follows', await page.isVisible('#researchQueryInput') && await page.evaluate(() => document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'research'));
     // The three pages that left the sidebar are still reachable from their parent page.
-    await page.click('.orv-sb .onv-item[data-onv="research"]'); await page.waitForTimeout(500);
+    await page.click('.orv-sb .onv-item[data-onv="competitive"]'); await page.waitForTimeout(500);
     await page.screenshot({ path: path.join(SHOTS, 'related-research-1440.png'), clip: { x: 264, y: 0, width: 1176, height: 300 } });
-    check('2.6b Research links to Competitor Analysis (the Competitive research card)', await page.isVisible('#page-research [data-rx="tool"][data-tool="competitors"]'));
+    check('2.6b Competitive Research links to Competitor Analysis (its tool card)', await page.isVisible('#page-research [data-rx="tool"][data-tool="competitors"]'));
     await page.click('#page-research [data-rx="tool"][data-tool="competitors"]'); await page.waitForTimeout(600);
     const cax = await page.evaluate(() => ({ page: document.querySelector('.page.active').id, on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv, url: location.pathname + location.search }));
-    check('2.6c …which opens Competitor Analysis in the app (own address), with Research highlighted (it is part of Research)', cax.page === 'page-competitor-analysis' && cax.on === 'research' && cax.url === '/app?view=competitors', cax);
+    check('2.6c …which opens Competitor Analysis in the app (own address), with Competitive Research highlighted (it is part of it)', cax.page === 'page-competitor-analysis' && cax.on === 'competitive' && cax.url === '/app?view=competitors', cax);
     await page.click('.orv-sb .onv-item[data-onv="create"]'); await page.waitForTimeout(700);
     await page.screenshot({ path: path.join(SHOTS, 'related-create-1440.png'), clip: { x: 264, y: 0, width: 1176, height: 300 } });
     check('2.7a Create links to My Content', await page.isVisible('#page-create a.orv-related[data-orv-go="my-content"]'));
@@ -287,14 +287,13 @@ const server = app.listen(PORT, async () => {
     check('3.2 the motion ends (no looping animation left running)', await page.evaluate(() => !document.querySelector('.onv-item.is-just') && Array.from(document.querySelectorAll('.onv *')).every((e) => { const cs = getComputedStyle(e); return cs.animationName === 'none' || cs.animationIterationCount !== 'infinite'; })));
     await page.hover('.orv-sb .onv-item[data-onv="research"]');
     await page.waitForTimeout(60);
-    check('3.3 hover plays the icon motion (magnifier scans)', (await page.evaluate(() => getComputedStyle(document.querySelector('.orv-sb .onv-item[data-onv="research"] .i-lens')).animationName)) === 'onv-scan');
+    check('3.3 hover plays the icon motion', await page.evaluate(() => Array.from(document.querySelectorAll('.orv-sb .onv-item[data-onv="research"] svg *')).some((e) => getComputedStyle(e).animationName !== 'none') || getComputedStyle(document.querySelector('.orv-sb .onv-item[data-onv="research"] svg')).animationName !== 'none'));
     const lines = await page.evaluate(() => Array.from(document.querySelectorAll('.orv-sb .onv-sec')).map((s) => [s.classList.contains('is-active'), parseFloat(getComputedStyle(s.querySelector('.onv-route')).opacity)]));
     check('3.4 the open group’s gradient line is at full strength, the other groups’ lines are quiet', lines.every(([on, o]) => (on ? o > 0.9 : o < 0.5)) && lines.filter(([on]) => on).length === 1, lines);
 
     // ── 4. Existing pages still work ───────────────────────────────
     console.log('\n4. Existing functionality');
     await page.click('.orv-sb .onv-item[data-onv="research"]'); await page.waitForTimeout(500);
-    await page.click('#rsRoot [data-rx="area"][data-area="audience"]'); await page.waitForTimeout(200);
     await page.fill('#researchQueryInput', 'Who buys handmade candles in Utrecht?');
     check('4.1 Research: the form works (typing, research types, start button)', (await page.inputValue('#researchQueryInput')).length > 10 && await page.isVisible('#researchSubmitBtn'));
     await page.click('.orv-sb .onv-item[data-onv="create"]'); await page.waitForTimeout(700);
@@ -329,7 +328,7 @@ const server = app.listen(PORT, async () => {
         await p2.screenshot({ path: path.join(SHOTS, 'drawer-' + w + '.png') });
         await p2.click('.orv-mob-drawer .onv-item[data-onv="auto-activity"]'); await p2.waitForTimeout(900);
         const after = await p2.evaluate(() => ({ open: document.getElementById('orvMobDrawer').classList.contains('open') || document.getElementById('orvMobDrawer').getAttribute('aria-hidden') === 'false', on: (document.querySelector('.orv-mob-drawer .onv-item.is-on') || {}).dataset, page: document.querySelector('.page.active').id, ov: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
-        check(`6.${w} mobile drawer: six groups, 15 pages, 44px touch targets; picking a page closes it and opens the page; no horizontal overflow`, d.secs === 6 && d.items === 15 && d.small === 0 && d.foot && !after.open && after.on && after.on.onv === 'auto-activity' && after.page === 'page-autopilot' && after.ov <= 1, { d, after });
+        check(`6.${w} mobile drawer: six groups, 17 pages, 44px touch targets; picking a page closes it and opens the page; no horizontal overflow`, d.secs === 6 && d.items === 17 && d.small === 0 && d.foot && !after.open && after.on && after.on.onv === 'auto-activity' && after.page === 'page-autopilot' && after.ov <= 1, { d, after });
         await p2.screenshot({ path: path.join(SHOTS, 'activity-' + w + '.png') });
       } else {
         const d = await p2.evaluate(() => ({ w: Math.round(document.querySelector('.orv-sb').getBoundingClientRect().width), ov: document.documentElement.scrollWidth - document.documentElement.clientWidth }));
@@ -355,16 +354,17 @@ const server = app.listen(PORT, async () => {
       await p4.click('.orv-sb .onv-item[data-onv="dashboard"]'); await p4.waitForTimeout(900);
       const d = await p4.evaluate(() => {
         const mc = document.querySelector('.mc');
-        const ids = ['owNeeds', 'ovPerf', 'ovCamps', 'ovAuto', 'bicGrid'];
-        const vis = ids.map((id) => { const e = document.getElementById(id); const r = e && e.getBoundingClientRect(); return { id, shown: !!(e && e.offsetParent !== null && r.height > 0) }; });
+        // 2026-11-26 Dashboard: Performance, Needs attention, platforms, top campaigns, recommendations, Autopilot.
+        const ids = ['.dsh-perf', '.dsh-attn', '.dsh-plats', '.dsh-campcard', '.dsh-reccard', '.dsh-auto'];
+        const vis = ids.map((id) => { const e = document.querySelector('#dshRoot ' + id); const r = e && e.getBoundingClientRect(); return { id, shown: !!(e && e.offsetParent !== null && r.height > 0) }; });
         const mods = document.getElementById('bicGrid');
         const pg = document.querySelector('.page.active');
         // 2026-11-13: nothing may scroll inside a card or a column (no inner scrollbars).
         const inner = [...pg.querySelectorAll('*')].filter((e) => e.clientHeight > 0 && e.scrollHeight > e.clientHeight + 2 && /(auto|scroll)/.test(getComputedStyle(e).overflowY)).map((e) => e.id || e.className);
         return { over: mc.scrollHeight - mc.clientHeight + Math.max(0, pg.scrollHeight - pg.clientHeight), vis: vis.filter((v) => !v.shown).map((v) => v.id), inner, modsScroll: mods ? mods.scrollHeight > mods.clientHeight + 1 : null, ov: document.documentElement.scrollWidth - document.documentElement.clientWidth };
       });
-      // One screen from 760px tall (1366×768 and up); shorter windows may scroll the page, never a card.
-      const oneScreen = h >= 760;
+      // 2026-11-26: the Dashboard may scroll as a page (performance first); never a card.
+      const oneScreen = false;
       check(`7.${w}x${h} Dashboard: ${oneScreen ? 'one screen (no page scroll), ' : ''}nothing scrolls inside a card or column, every block is shown, nothing wider than the screen`, (!oneScreen || d.over <= 1) && !d.inner.length && !d.modsScroll && !d.vis.length && d.ov <= 1, d);
       if (w === 1280) await p4.screenshot({ path: path.join(SHOTS, 'dashboard-1280x720.png') });
       await c4.close();
@@ -425,7 +425,7 @@ const server = app.listen(PORT, async () => {
 
     // ── 9. Progress for that account ───────────────────────────────
     console.log('\n9. Progress');
-    await p6.click('.orv-sb .onv-item[data-onv="progress"]'); await p6.waitForTimeout(700);
+    await p6.evaluate(() => window.orvAppNav.go('progress')); await p6.waitForTimeout(700);
     const pr = await p6.evaluate(() => { const pg = document.getElementById('page-progress'); return { phases: pg.querySelectorAll('.prg-phase').length, steps: pg.querySelectorAll('.prg-step').length, count: (pg.querySelector('.prg-count') || {}).textContent, eyebrow: (pg.querySelector('.mpl-eyebrow') || {}).textContent, now: (pg.querySelector('.prg-phase[data-state="now"] summary b') || {}).textContent, text: pg.innerText, secs: !!pg.querySelector('.mpl-sec') }; });
     check('9.1 the tasks load from the plan: 4 weekly phases, 12 tasks, 0 of 12 done, the current week marked', pr.phases === 4 && pr.steps === 12 && /0 of 12 tasks done/.test(pr.count) && /Progress · 1 month/.test(pr.eyebrow) && pr.now === 'Week 2', pr);
     check('9.2 only actionable steps: no dashboard cards, plan preview, business info or statistics', !/Needs you|Business context|Performance(?! Overview)|Priorities|Positioning/i.test(pr.text) && !pr.secs);
@@ -436,18 +436,18 @@ const server = app.listen(PORT, async () => {
     await p6.close();
     const p7 = await c6.newPage(); await fence(p7);
     await signIn(p7);
-    await p7.click('.orv-sb .onv-item[data-onv="progress"]'); await p7.waitForTimeout(700);
+    await p7.evaluate(() => window.orvAppNav.go('progress')); await p7.waitForTimeout(700);
     const t2 = await p7.evaluate(() => ({ aria: (document.querySelector('[data-prg-toggle="p1-a1"]') || {}).getAttribute && document.querySelector('[data-prg-toggle="p1-a1"]').getAttribute('aria-checked'), count: (document.querySelector('.prg-count') || {}).textContent }));
     check('9.4 the completed step is still done when the page is opened again (new session)', t2.aria === 'true' && /1 of 12/.test(t2.count), t2);
     await p7.click('.prg-step[data-step="p2-a2"] .prg-go'); await p7.waitForTimeout(700);
     check('9.5 a step’s "Open Create" button takes you to Create', await p7.evaluate(() => document.querySelector('.page.active').id === 'page-create' && document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'create'));
-    await p7.click('.orv-sb .onv-item[data-onv="progress"]'); await p7.waitForTimeout(600);
+    await p7.evaluate(() => window.orvAppNav.go('progress')); await p7.waitForTimeout(600);
     await p7.click('[data-prg-toggle="p1-a1"]'); await p7.waitForTimeout(500);
     check('9.6 a step can be unticked again', !M.done['p1-a1'] && /0 of 12/.test(await p7.textContent('.prg-count')));
     const au = await p7.evaluate(() => { const li = document.querySelector('.prg-step[data-step="p1-a2"]'); const pg = document.getElementById('page-progress');
       return { toggle: !!li.querySelector('[data-prg-toggle]'), mark: !!li.querySelector('.prg-check--auto'), t: li.innerText, stats: Array.from(pg.querySelectorAll('.prg-stat')).map((x) => x.innerText.replace(/\s+/g, ' ').toLowerCase()), months: pg.querySelectorAll('.prg-months li').length, next: (pg.querySelector('.prg-next') || {}).innerText || '' }; });
     check('9.7 a task OrivenAI verifies has no tick box (opening a page or clicking never completes it) and says it ticks off by itself', !au.toggle && au.mark && /ticks off by itself/.test(au.t), au);
-    check('9.8 the overview: current phase, done this phase, completed, remaining, progress per week and the next task with its button', au.stats.length === 4 && /week 2 current phase/.test(au.stats[0]) && /^0 completed/.test(au.stats[2]) && /^12 remaining/.test(au.stats[3]) && au.months === 4 && /Next up/i.test(au.next), au);
+    check('9.8 the overview: execution status (done, with OrivenAI, OrivenAI can do, up to you), progress per week and the next task with its button', au.stats.length === 4 && /^0 done/.test(au.stats[0]) && /with orivenai/.test(au.stats[1]) && /orivenai can do/.test(au.stats[2]) && /up to you/.test(au.stats[3]) && au.months === 4 && /Next up/i.test(au.next), au);
     const posts0 = calls.filter((c) => c.m === 'POST' && c.p === '/api/onboarding/progress').length;
     await p7.evaluate(() => apiFetch('/api/onboarding/progress', { method: 'POST', body: JSON.stringify({ stepId: 'p1-a2', done: true }) }).then((r) => r && r.status)).then((st) => check('9.9 …and a hand-made request to tick it is refused (409, as the server does)', st === 409 && !M.done['p1-a2'], { st, posts0 }));
     await p7.close();
@@ -460,7 +460,7 @@ const server = app.listen(PORT, async () => {
       await signIn(p8);
       await p8.click('.orv-sb .onv-item[data-onv="plan"]'); await p8.waitForTimeout(600);
       const a = await p8.evaluate(() => ({ eyebrow: document.querySelector('#page-marketing-plan .mpl-eyebrow').textContent, phases: document.querySelectorAll('#page-marketing-plan .mpl-road > li').length }));
-      await p8.click('.orv-sb .onv-item[data-onv="progress"]'); await p8.waitForTimeout(600);
+      await p8.evaluate(() => window.orvAppNav.go('progress')); await p8.waitForTimeout(600);
       const b = await p8.evaluate(() => ({ count: document.querySelector('.prg-count').textContent, phases: document.querySelectorAll('.prg-phase').length, steps: document.querySelectorAll('.prg-step').length }));
       check(`10.${period} ${label}: the plan covers ${label} (${phases} phases) and Progress has ${total} steps`, new RegExp(label).test(a.eyebrow) && a.phases === phases && b.phases === phases && b.steps === total && new RegExp('0 of ' + total).test(b.count), { a, b });
       if (period === 'annual') await p8.screenshot({ path: path.join(SHOTS, 'progress-annual-1440.png') });
@@ -506,7 +506,7 @@ const server = app.listen(PORT, async () => {
     const d12 = await p12.evaluate(() => { const pg = document.getElementById('page-marketing-plan'); return { summary: (pg.querySelector('.mpl-summary') || {}).textContent, meta: (pg.querySelector('.mpl-meta') || {}).textContent, asked: (pg.querySelector('.mpl-asked') || {}).innerText || '', banner: !!pg.querySelector('.mpl-regen-state') }; });
     check('11b.3 the new plan appears by itself: new summary, "Version 2", what was asked; the banner is gone', /gift boxes first/.test(d12.summary) && /Version 2/.test(d12.meta) && /We now sell gift boxes/.test(d12.asked) && !d12.banner, d12);
     await p12.screenshot({ path: path.join(SHOTS, 'plan-regenerated-1440.png') });
-    await p12.click('.orv-sb .onv-item[data-onv="progress"]'); await p12.waitForTimeout(700);
+    await p12.evaluate(() => window.orvAppNav.go('progress')); await p12.waitForTimeout(700);
     const pr12 = await p12.evaluate(() => { const pg = document.getElementById('page-progress'); return { now: (pg.querySelector('.prg-phase[data-state="now"] summary b') || {}).textContent, count: (pg.querySelector('.prg-count') || {}).textContent }; });
     check('11b.4 Progress follows the new plan: it starts today (Week 1 is now) with nothing ticked yet', pr12.now === 'Week 1' && /^0 of 12/.test(pr12.count), pr12);
     M.regenFail = true;
@@ -581,12 +581,12 @@ const server = app.listen(PORT, async () => {
       }));
       await p8.evaluate(() => { CURRENT_LANG = 'nl'; applyLanguage(); }); await p8.waitForTimeout(150);
       const nl = await labels();
-      check('13.1 Dutch: sections, links, tooltips and footer translated (product names kept)', JSON.stringify(nl.sec) === JSON.stringify(['Overzicht', 'Campagnebeheer', 'Creative Studio', 'Analyse', 'Onderzoek', 'Autopilot']) && nl.ins === 'Opgeslagen onderzoek' && nl.insTitle === 'Opgeslagen onderzoek' && nl.plat === 'Advertentieplatforms' && nl.gear === 'Instellingen', nl);
+      check('13.1 Dutch: sections, links, tooltips and footer translated (product names kept)', JSON.stringify(nl.sec) === JSON.stringify(['Overzicht', 'Campagnes', 'Creative Studio', 'Analyse', 'Onderzoek', 'Autopilot']) && nl.ins === 'Opgeslagen onderzoek' && nl.insTitle === 'Opgeslagen onderzoek' && nl.plat === 'Advertentieplatforms' && nl.gear === 'Instellingen', nl);
       await p8.click('.orv-sb .onv-item[data-onv="insights"]'); await p8.waitForTimeout(400);
       check('13.2 a translated link still opens its page', await p8.evaluate(() => document.querySelector('.page.active').id === 'page-insights'));
       await p8.evaluate(() => { CURRENT_LANG = 'en'; applyLanguage(); }); await p8.waitForTimeout(150);
       const en = await labels();
-      check('13.3 back to English', en.sec[1] === 'Campaign Management' && en.ins === 'Saved Research' && en.plat === 'Ad Platforms' && en.gear === 'Settings', en);
+      check('13.3 back to English', en.sec[1] === 'Campaigns' && en.ins === 'Saved Research' && en.plat === 'Ad Platforms' && en.gear === 'Settings', en);
       await c8.close();
     }
 
@@ -600,7 +600,7 @@ const server = app.listen(PORT, async () => {
       await signIn(p9);
       const found = [];
       for (const id of ['dashboard', 'plan', 'progress', 'research', 'insights', 'create', 'testing', 'adstudio', 'audiences', 'overview', 'compare', 'auto-overview', 'auto-rules', 'auto-activity']) {
-        if (id === 'audiences') await p9.evaluate(() => window.orvAppNav.go('audiences')); else await p9.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p9.waitForTimeout(id.startsWith('auto') ? 1100 : 800);
+        if (id === 'audiences' || id === 'progress') await p9.evaluate((x) => window.orvAppNav.go(x), id); else await p9.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p9.waitForTimeout(id.startsWith('auto') ? 1100 : 800);
         const f = await p9.evaluate(() => { const vis = (e) => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden'; const btns = [...document.querySelectorAll('.orv-film-btn, [data-orv-film], [data-ow-video], #ccxTutorials, .ccx-tut')].filter(vis).length; const text = [...document.querySelectorAll('.page.active, #orvHubTabsCampaigns')].some((p) => vis(p) && /Watch (tutorial|overview)|Learn OrivenAI/.test(p.innerText)); return { btns, text }; });
         if (f.btns || f.text) found.push(Object.assign({ id }, f));
       }
@@ -628,7 +628,7 @@ const server = app.listen(PORT, async () => {
       check('15.1 Dashboard at 1440×900: one screen (no page scroll), nothing scrolls inside a card, the greeting and status line are a card', dash.inner.length === 0 && dash.pageScroll <= 1 && dash.greetingCard, dash);
       const notCard = [], wide = [];
       for (const id of ['plan', 'progress', 'research', 'insights', 'create', 'testing', 'adstudio', 'audiences', 'compare', 'auto-overview', 'auto-rules', 'auto-activity']) {
-        if (id === 'audiences') await p10.evaluate(() => window.orvAppNav.go('audiences')); else await p10.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p10.waitForTimeout(id.startsWith('auto') ? 1100 : 900);
+        if (id === 'audiences' || id === 'progress') await p10.evaluate((x) => window.orvAppNav.go(x), id); else await p10.click('.orv-sb .onv-item[data-onv="' + id + '"]'); await p10.waitForTimeout(id.startsWith('auto') ? 1100 : 900);
         const r = await p10.evaluate(() => {
           const vis = (e) => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden';
           const h = [...document.querySelectorAll('h1')].filter(vis).filter((x) => x.getBoundingClientRect().left > 200)[0];

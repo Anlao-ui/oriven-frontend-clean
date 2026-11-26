@@ -207,7 +207,7 @@ const REJECT = { v: 1, ads: false, stats: true, hc: false, at: '2026-11-15T00:00
   check('section: Marketing Plan', /Week|phase|plan/i.test(plan) && plan.length > 200, plan.slice(0, 160));
   await go('progress', 2500); const prog = await activeText();
   check('section: Progress', prog.length > 150, prog.slice(0, 160));
-  await go('research', 2500); const rs = await activeText();
+  await go('competitive', 2500); const rs = await activeText();
   check('section: Research (the sample report, fictional competitors only)', /Handmade candle brands in the Netherlands/.test(rs) && !/Kaarsenhuis|Wax & Wick/.test(rs), rs.slice(0, 160));
   await go('insights', 2500); const ins = await activeText();
   check('section: Insights', ins.length > 150, ins.slice(0, 160));

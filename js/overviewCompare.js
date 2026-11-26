@@ -123,12 +123,11 @@
   }
 
   // ── Ad vs ad ─────────────────────────────────────────────────────
-  function renderAds(g, conn) {
-    var el = card('ovtAds'); if (!el) return;
-    var p = platform();
+  function renderAds(g, conn, target, onlyMeta) {
+    var el = target || card('ovtAds'); if (!el) return;
+    var p = onlyMeta ? 'meta' : platform();
     // What Ad vs ad is for, next to Cross-platform Comparison (whole platforms and campaigns).
-    var head = function (ctrls) { return '<div class="ova-card__hd"><h3 class="ova-h3" id="ovtAdsH">' + esc(T('Ad vs ad')) + '</h3>' + (ctrls || '') + '</div>' +
-      '<p class="ovc-purpose">' + esc(T('Two individual ads head to head: which one earns its budget. To compare whole platforms or campaigns, use')) + ' <button type="button" class="ova-link" data-ovc-cmp>' + esc(T('Cross-platform Comparison')) + '</button>.</p>'; };
+    var head = function (ctrls) { return '<div class="ova-card__hd"><h3 class="ova-h3" id="ovtAdsH">' + esc(T('Ad vs ad')) + '</h3>' + (ctrls || '') + '</div>'; };
     if (p !== 'meta') {
       var metaOn = conn.meta && conn.meta.conn === 'connected';
       el.innerHTML = head() + empty(esc(T('Results per ad come from Meta Ads. {p} doesn’t report results per ad to OrivenAI yet.', { p: A.NAME[p] })) +
@@ -225,26 +224,53 @@
     var h = card('prfOvTitle'); if (h) h.textContent = T('Performance Overview');
     if (!card('ovtPeriod')) return;
     var g = ++S.gen;
-    A.connections().then(function (conn) { if (g !== S.gen) return; renderPeriod(g, conn); renderAds(g, conn); });
+    // Ad vs ad is its own Analytics page now (Ads vs Ads, below); not repeated here.
+    A.connections().then(function (conn) { if (g !== S.gen) return; renderPeriod(g, conn); });
   }
+
+  // ── Ads vs Ads page (#page-ads-vs-ads, 2026-11-26) ───────────────
+  // The same comparison as before (two Meta ads, their real reported
+  // figures), as an Analytics destination of its own.
+  var ADV_PAGE = 'page-ads-vs-ads', ADV_ROOT = 'advRoot';
+  function advRender() {
+    var root = card(ADV_ROOT); if (!root) return;
+    var K = window.orvGrowthKit;
+    if (!card('advCard')) {
+      root.innerHTML = (K ? K.head('Analytics', 'Ads vs Ads', 'Two individual ads head to head, with the figures the platform reports for each — which one earns its budget.') : '') +
+        '<div class="adv-grid"><section class="ova-card adv-card" id="advCard" aria-labelledby="ovtAdsH"></section>' +
+        '<aside class="adv-side"><section class="ova-card"><h3 class="ova-h3">How this fits</h3><ul class="adv-list"><li><b>Ads vs Ads</b> compares two single ads: copy, creative and results.</li><li><b>Cross-platform Comparison</b> compares whole platforms or campaigns. <button type="button" class="ova-link" data-ovc-cmp>Open it</button></li><li><b>Performance Overview</b> follows one platform over time.</li></ul></section>' +
+        '<section class="ova-card"><h3 class="ova-h3">Where the figures come from</h3><p class="ova-note">Results per ad come from Meta Ads, as Meta reports them. Other platforms don’t report results per ad to OrivenAI yet, so they aren’t listed here. The verdict is calculated from those figures; no AI.</p></section></aside></div>';
+    }
+    var g = ++S.gen;
+    A.connections().then(function (conn) { if (g !== S.gen) return; renderAds(g, conn, card('advCard'), true); });
+  }
+  function advOpen() {
+    var K = window.orvGrowthKit; if (!K) return;
+    if (!K.mount(ADV_PAGE, ADV_ROOT, null)) return;
+    K.show('adsvsads', ADV_PAGE);
+    advRender();
+  }
+  window.orvAdsVsAds = { open: advOpen, render: advRender };
+  function inAdv(t) { var r = card(ADV_ROOT); return !!(r && r.contains(t)); }
+  function rerender(t) { if (inAdv(t)) advRender(); else render(); }
   document.addEventListener('click', function (e) {
-    var root = card('prfDash'); if (!root || !root.contains(e.target)) return;
+    var root = card('prfDash'); if (!(root && root.contains(e.target)) && !inAdv(e.target)) return;
     var m = e.target.closest('[data-ovc-mode]'); if (m) { S.mode = m.getAttribute('data-ovc-mode'); var g = ++S.gen; A.connections().then(function (c) { renderPeriod(g, c); renderAds(g, c); }); return; }
     if (e.target.closest('[data-ovc-connect]')) { if (typeof window.bizGoTo === 'function') window.bizGoTo('connections'); return; }
     if (e.target.closest('[data-ovc-cmp]')) { if (window.orvAppNav) window.orvAppNav.go('compare'); return; }
     if (e.target.closest('[data-ovc-meta]')) { if (typeof window.prfSwitchPlatform === 'function') window.prfSwitchPlatform('meta', true); return; }
-    if (e.target.closest('[data-ovc-retry]')) { A.reset(); S.ads = null; render(); }
+    if (e.target.closest('[data-ovc-retry]')) { A.reset(); S.ads = null; rerender(e.target); }
   });
   document.addEventListener('change', function (e) {
-    var root = card('prfDash'); if (!root || !root.contains(e.target)) return;
+    var root = card('prfDash'); if (!(root && root.contains(e.target)) && !inAdv(e.target)) return;
     var el = e.target;
     if (el.matches('[data-ovc-date]')) {
       var k = el.getAttribute('data-ovc-date'), pr = periods();
       S.aSince = S.aSince || pr.a.since; S.aUntil = S.aUntil || pr.a.until; S.bSince = S.bSince || pr.b.since; S.bUntil = S.bUntil || pr.b.until;
       S[k] = el.value; if (valid(S.aSince, S.aUntil) && valid(S.bSince, S.bUntil)) render();
-    } else if (el.matches('[data-ovc-ad]')) { S['ad' + el.getAttribute('data-ovc-ad')] = el.value; render(); }
-    else if (el.matches('[data-ovc-days]')) { S.adDays = +el.value; render(); }
-    else if (el.matches('[data-ovc-admetric]')) { S.adMetric = el.value; render(); }
+    } else if (el.matches('[data-ovc-ad]')) { S['ad' + el.getAttribute('data-ovc-ad')] = el.value; rerender(el); }
+    else if (el.matches('[data-ovc-days]')) { S.adDays = +el.value; rerender(el); }
+    else if (el.matches('[data-ovc-admetric]')) { S.adMetric = el.value; rerender(el); }
   });
 
   // Re-render when the page's platform / campaign / period / level changes, on showing the page and on a language change.

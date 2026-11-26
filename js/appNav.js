@@ -53,6 +53,8 @@
   IC.platforms = '<path class="i-a" d="M9 3.5v4"/><path class="i-b" d="M15 3.5v4"/><path d="M6.5 7.5h11v3.5a5.5 5.5 0 0 1-11 0z"/><path class="i-draw" pathLength="1" d="M12 16.5v2.5a2.5 2.5 0 0 0 2.5 2.5H18"/>';
   IC.gear = '<g class="i-gear"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></g>';
   IC.simulator = '<path d="M4 19h16"/><path class="i-draw" pathLength="1" d="M5 15.5l4-4 3 2.5 6.5-7"/><path d="M5 15.5l4-1.5 3 1 6.5-3" opacity=".45" stroke-dasharray="1.6 2.2"/><circle class="i-dot i-c" cx="18.5" cy="7" r="1.6"/>';
+  IC.attention = '<path d="M12 4.5 3.5 19h17z"/><path class="i-a" d="M12 10v4"/><circle class="i-dot" cx="12" cy="16.6" r=".9"/>';
+  IC.adsvsads = '<rect x="3.5" y="5" width="7" height="14" rx="1.6"/><rect class="i-b" x="13.5" y="5" width="7" height="14" rx="1.6"/><path d="M7 15h0M17 11h0" stroke-width="2.4"/>';
   IC.sliders = '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle class="i-a" cx="15" cy="7" r="2"/><circle class="i-b" cx="9" cy="17" r="2"/>';
   function svg(name) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + IC[name] + '</svg>'; }
 
@@ -75,13 +77,21 @@
   // One workspace, six groups. Every page keeps the id it always had
   // (/app?view=, the assistant and in-page links use them); only the
   // grouping and the names changed (2026-11 workspace redesign).
+  // Research areas (js/research.js): Audience Research and Competitive Research are the
+  // same research engine, each opened on its own area.
+  function researchArea(area) { return page('research', 'page-research', function () { if (window.orvResearch && window.orvResearch.openArea) window.orvResearch.openArea(area); }); }
+
+  // One workspace, six groups (2026-11-26 product structure). Every page keeps the id it
+  // always had (/app?view=, the assistant and in-page links use them).
   var SECTIONS = [
     { id: 'ov', name: 'Overview', items: [
       { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', go: biz('overview') },
-      { id: 'plan', label: 'AI Plans', icon: 'plan', go: planPage('plan') },
-      { id: 'progress', label: 'Tasks', icon: 'progress', go: planPage('progress') },
+      // AI Plans & Tasks: one destination with two tabs; Tasks keeps its own page id.
+      { id: 'plan', label: 'AI Plans & Tasks', icon: 'plan', go: planPage('plan') },
+      { id: 'progress', label: 'Tasks', icon: 'progress', hidden: true, parent: 'plan', go: planPage('progress') },
+      { id: 'attention', label: 'Needs Attention', icon: 'attention', go: function () { if (window.orvNeedsAttention) window.orvNeedsAttention.open(); } },
     ] },
-    { id: 'cm', name: 'Campaign Management', items: [
+    { id: 'cm', name: 'Campaigns', items: [
       { id: 'adstudio', label: 'Campaigns', icon: 'studio', go: page('launch', 'page-launch') },
       // Not in the sidebar: the campaign editor's way in, opened from Campaigns, Audiences and the assistant.
       { id: 'builder', label: 'Campaign Builder', icon: 'builder', hidden: true, parent: 'adstudio', go: function () { openPanel('builder'); } },
@@ -95,14 +105,15 @@
     { id: 'an', name: 'Analytics', items: [
       { id: 'overview', label: 'Performance Overview', icon: 'overview', go: page('performance', 'page-performance') },
       { id: 'compare', label: 'Cross-platform Comparison', icon: 'compare', go: function () { if (window.orvCampaignComparison) window.orvCampaignComparison.open(); } },
+      { id: 'adsvsads', label: 'Ads vs Ads', icon: 'adsvsads', go: function () { if (window.orvAdsVsAds) window.orvAdsVsAds.open(); } },
     ] },
     { id: 'rs', name: 'Research', items: [
-      { id: 'research', label: 'Research', icon: 'research', go: page('research', 'page-research') },
-      // Audience and competitive research are areas inside Research (2026-11-25 refinement):
-      // opened from the Research start cards, the assistant and /app?view=; Research stays marked.
-      { id: 'audiences', label: 'Audiences', icon: 'audience', hidden: true, parent: 'research', go: function () { if (window.orvAudienceBuilder) window.orvAudienceBuilder.open(); } },
-      { id: 'competitors', label: 'Competitor Analysis', icon: 'competitors', hidden: true, parent: 'research', go: function () { if (window.orvCompetitors) window.orvCompetitors.open(); } },
+      { id: 'research', label: 'Audience Research', icon: 'audience', go: researchArea('audience') },
+      { id: 'competitive', label: 'Competitive Research', icon: 'competitors', go: researchArea('competitive') },
       { id: 'insights', label: 'Saved Research', icon: 'insights', go: function () { if (window.orvInsights) window.orvInsights.open(); } },
+      // Tools inside the two research pages (not sidebar items; ids, links and the assistant unchanged).
+      { id: 'audiences', label: 'Audiences', icon: 'audience', hidden: true, parent: 'research', go: function () { if (window.orvAudienceBuilder) window.orvAudienceBuilder.open(); } },
+      { id: 'competitors', label: 'Competitor Analysis', icon: 'competitors', hidden: true, parent: 'competitive', go: function () { if (window.orvCompetitors) window.orvCompetitors.open(); } },
     ] },
     { id: 'ap', name: 'Autopilot', items: [
       { id: 'auto-overview', label: 'Automation Overview', icon: 'nodes', go: autoTab('overview') },
@@ -133,11 +144,11 @@
   };
   // The workspace redesign's group and page names.
   var L10N2 = {
-    nl: { 'Overview': 'Overzicht', 'AI Plans': 'AI-plannen', 'Tasks': 'Taken', 'Campaign Management': 'Campagnebeheer', 'Campaigns': 'Campagnes', 'Audiences': 'Doelgroepen', 'Ad Simulator': 'Advertentiesimulator', 'Creative Studio': 'Creative Studio', 'Create Ads': 'Advertenties maken', 'My Creatives': 'Mijn creatives', 'Analytics': 'Analyse', 'Performance Overview': 'Prestatieoverzicht', 'Cross-platform Comparison': 'Platformvergelijking', 'Competitor Analysis': 'Concurrentieanalyse', 'Saved Research': 'Opgeslagen onderzoek', 'Autopilot': 'Autopilot', 'Automation Overview': 'Automatiseringsoverzicht', 'My Automations': 'Mijn automatiseringen', 'Automation History': 'Automatiseringsgeschiedenis', 'Advertising Settings': 'Advertentie-instellingen' },
-    de: { 'Overview': 'Übersicht', 'AI Plans': 'KI-Pläne', 'Tasks': 'Aufgaben', 'Campaign Management': 'Kampagnenverwaltung', 'Campaigns': 'Kampagnen', 'Audiences': 'Zielgruppen', 'Ad Simulator': 'Anzeigensimulator', 'Create Ads': 'Anzeigen erstellen', 'My Creatives': 'Meine Creatives', 'Analytics': 'Analysen', 'Performance Overview': 'Leistungsübersicht', 'Cross-platform Comparison': 'Plattformvergleich', 'Competitor Analysis': 'Wettbewerbsanalyse', 'Saved Research': 'Gespeicherte Recherchen', 'Automation Overview': 'Automatisierungsübersicht', 'My Automations': 'Meine Automatisierungen', 'Automation History': 'Automatisierungsverlauf', 'Advertising Settings': 'Werbeeinstellungen' },
-    fr: { 'Overview': 'Aperçu', 'AI Plans': 'Plans IA', 'Tasks': 'Tâches', 'Campaign Management': 'Gestion des campagnes', 'Campaigns': 'Campagnes', 'Audiences': 'Audiences', 'Ad Simulator': 'Simulateur publicitaire', 'Create Ads': 'Créer des annonces', 'My Creatives': 'Mes créations', 'Analytics': 'Analyses', 'Performance Overview': 'Aperçu des performances', 'Cross-platform Comparison': 'Comparaison des plateformes', 'Competitor Analysis': 'Analyse concurrentielle', 'Saved Research': 'Recherches enregistrées', 'Automation Overview': 'Aperçu des automatisations', 'My Automations': 'Mes automatisations', 'Automation History': 'Historique des automatisations', 'Advertising Settings': 'Paramètres publicitaires' },
-    es: { 'Overview': 'Resumen', 'AI Plans': 'Planes de IA', 'Tasks': 'Tareas', 'Campaign Management': 'Gestión de campañas', 'Campaigns': 'Campañas', 'Audiences': 'Audiencias', 'Ad Simulator': 'Simulador de anuncios', 'Create Ads': 'Crear anuncios', 'My Creatives': 'Mis creatividades', 'Analytics': 'Analítica', 'Performance Overview': 'Resumen de rendimiento', 'Cross-platform Comparison': 'Comparación de plataformas', 'Competitor Analysis': 'Análisis de competidores', 'Saved Research': 'Investigación guardada', 'Automation Overview': 'Resumen de automatizaciones', 'My Automations': 'Mis automatizaciones', 'Automation History': 'Historial de automatizaciones', 'Advertising Settings': 'Ajustes de publicidad' },
-    pt: { 'Overview': 'Visão geral', 'AI Plans': 'Planos de IA', 'Tasks': 'Tarefas', 'Campaign Management': 'Gestão de campanhas', 'Campaigns': 'Campanhas', 'Audiences': 'Públicos', 'Ad Simulator': 'Simulador de anúncios', 'Create Ads': 'Criar anúncios', 'My Creatives': 'Meus criativos', 'Analytics': 'Análises', 'Performance Overview': 'Visão geral de desempenho', 'Cross-platform Comparison': 'Comparação de plataformas', 'Competitor Analysis': 'Análise de concorrentes', 'Saved Research': 'Pesquisas salvas', 'Automation Overview': 'Visão geral das automações', 'My Automations': 'Minhas automações', 'Automation History': 'Histórico de automações', 'Advertising Settings': 'Configurações de publicidade' },
+    nl: { 'AI Plans & Tasks': 'AI-plannen & taken', 'Needs Attention': 'Vraagt aandacht', 'Ads vs Ads': 'Advertenties vergelijken', 'Audience Research': 'Doelgroeponderzoek', 'Competitive Research': 'Concurrentieonderzoek', 'Overview': 'Overzicht', 'AI Plans': 'AI-plannen', 'Tasks': 'Taken', 'Campaign Management': 'Campagnebeheer', 'Campaigns': 'Campagnes', 'Audiences': 'Doelgroepen', 'Ad Simulator': 'Advertentiesimulator', 'Creative Studio': 'Creative Studio', 'Create Ads': 'Advertenties maken', 'My Creatives': 'Mijn creatives', 'Analytics': 'Analyse', 'Performance Overview': 'Prestatieoverzicht', 'Cross-platform Comparison': 'Platformvergelijking', 'Competitor Analysis': 'Concurrentieanalyse', 'Saved Research': 'Opgeslagen onderzoek', 'Autopilot': 'Autopilot', 'Automation Overview': 'Automatiseringsoverzicht', 'My Automations': 'Mijn automatiseringen', 'Automation History': 'Automatiseringsgeschiedenis', 'Advertising Settings': 'Advertentie-instellingen' },
+    de: { 'AI Plans & Tasks': 'KI-Pläne & Aufgaben', 'Needs Attention': 'Braucht Aufmerksamkeit', 'Ads vs Ads': 'Anzeigen im Vergleich', 'Audience Research': 'Zielgruppenrecherche', 'Competitive Research': 'Wettbewerbsrecherche', 'Overview': 'Übersicht', 'AI Plans': 'KI-Pläne', 'Tasks': 'Aufgaben', 'Campaign Management': 'Kampagnenverwaltung', 'Campaigns': 'Kampagnen', 'Audiences': 'Zielgruppen', 'Ad Simulator': 'Anzeigensimulator', 'Create Ads': 'Anzeigen erstellen', 'My Creatives': 'Meine Creatives', 'Analytics': 'Analysen', 'Performance Overview': 'Leistungsübersicht', 'Cross-platform Comparison': 'Plattformvergleich', 'Competitor Analysis': 'Wettbewerbsanalyse', 'Saved Research': 'Gespeicherte Recherchen', 'Automation Overview': 'Automatisierungsübersicht', 'My Automations': 'Meine Automatisierungen', 'Automation History': 'Automatisierungsverlauf', 'Advertising Settings': 'Werbeeinstellungen' },
+    fr: { 'AI Plans & Tasks': 'Plans IA & tâches', 'Needs Attention': 'À traiter', 'Ads vs Ads': 'Annonces face à face', 'Audience Research': 'Recherche d’audience', 'Competitive Research': 'Recherche concurrentielle', 'Overview': 'Aperçu', 'AI Plans': 'Plans IA', 'Tasks': 'Tâches', 'Campaign Management': 'Gestion des campagnes', 'Campaigns': 'Campagnes', 'Audiences': 'Audiences', 'Ad Simulator': 'Simulateur publicitaire', 'Create Ads': 'Créer des annonces', 'My Creatives': 'Mes créations', 'Analytics': 'Analyses', 'Performance Overview': 'Aperçu des performances', 'Cross-platform Comparison': 'Comparaison des plateformes', 'Competitor Analysis': 'Analyse concurrentielle', 'Saved Research': 'Recherches enregistrées', 'Automation Overview': 'Aperçu des automatisations', 'My Automations': 'Mes automatisations', 'Automation History': 'Historique des automatisations', 'Advertising Settings': 'Paramètres publicitaires' },
+    es: { 'AI Plans & Tasks': 'Planes de IA y tareas', 'Needs Attention': 'Requiere atención', 'Ads vs Ads': 'Anuncio contra anuncio', 'Audience Research': 'Investigación de audiencias', 'Competitive Research': 'Investigación competitiva', 'Overview': 'Resumen', 'AI Plans': 'Planes de IA', 'Tasks': 'Tareas', 'Campaign Management': 'Gestión de campañas', 'Campaigns': 'Campañas', 'Audiences': 'Audiencias', 'Ad Simulator': 'Simulador de anuncios', 'Create Ads': 'Crear anuncios', 'My Creatives': 'Mis creatividades', 'Analytics': 'Analítica', 'Performance Overview': 'Resumen de rendimiento', 'Cross-platform Comparison': 'Comparación de plataformas', 'Competitor Analysis': 'Análisis de competidores', 'Saved Research': 'Investigación guardada', 'Automation Overview': 'Resumen de automatizaciones', 'My Automations': 'Mis automatizaciones', 'Automation History': 'Historial de automatizaciones', 'Advertising Settings': 'Ajustes de publicidad' },
+    pt: { 'AI Plans & Tasks': 'Planos de IA e tarefas', 'Needs Attention': 'Precisa de atenção', 'Ads vs Ads': 'Anúncio contra anúncio', 'Audience Research': 'Pesquisa de público', 'Competitive Research': 'Pesquisa competitiva', 'Overview': 'Visão geral', 'AI Plans': 'Planos de IA', 'Tasks': 'Tarefas', 'Campaign Management': 'Gestão de campanhas', 'Campaigns': 'Campanhas', 'Audiences': 'Públicos', 'Ad Simulator': 'Simulador de anúncios', 'Create Ads': 'Criar anúncios', 'My Creatives': 'Meus criativos', 'Analytics': 'Análises', 'Performance Overview': 'Visão geral de desempenho', 'Cross-platform Comparison': 'Comparação de plataformas', 'Competitor Analysis': 'Análise de concorrentes', 'Saved Research': 'Pesquisas salvas', 'Automation Overview': 'Visão geral das automações', 'My Automations': 'Minhas automações', 'Automation History': 'Histórico de automações', 'Advertising Settings': 'Configurações de publicidade' },
   };
   Object.keys(L10N2).forEach(function (l) { Object.keys(L10N2[l]).forEach(function (k) { L10N[l][k] = L10N2[l][k]; }); });
   function tr(en) { var l = (typeof CURRENT_LANG !== 'undefined' && CURRENT_LANG) || 'en'; return (L10N[l] && L10N[l][en]) || en; }
@@ -403,7 +414,12 @@
     if (pid === 'page-creative-testing') return 'testing';
     if (pid === 'page-audience-builder') return 'audiences';
     if (pid === 'page-campaign-comparison') return 'compare';
-    if (pid === 'page-research') return window.orvResearch && window.orvResearch.mode && window.orvResearch.mode() === 'insights' ? 'insights' : 'research'; // a report opened from Insights
+    if (pid === 'page-research') {
+      if (window.orvResearch && window.orvResearch.mode && window.orvResearch.mode() === 'insights') return 'insights'; // a report opened from Insights
+      return window.orvResearch && window.orvResearch.area && window.orvResearch.area() === 'competitive' ? 'competitive' : 'research';
+    }
+    if (pid === 'page-needs-attention') return 'attention';
+    if (pid === 'page-ads-vs-ads') return 'adsvsads';
     if (pid === 'page-create' || pid === 'page-create-workspace' || pid === 'page-creative-workspace') return 'create';
     if (pid === 'page-launch') return 'adstudio';
     if (pid === 'page-performance' || pid === 'page-campaigns' || pid === 'page-ads-manager') return 'overview';

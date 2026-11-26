@@ -142,13 +142,14 @@
     var a = d.actions.filter(function (x) { return match(x, ['action', 'why', 'reportTitle']); });
     var rc = (d.recurringCompetitors || []).filter(function (c) { return !S.q.trim() || String(c.name).toLowerCase().indexOf(S.q.trim().toLowerCase()) !== -1; });
     var none = S.q.trim() || S.type !== 'all' ? 'Nothing matches this filter.' : null;
-    return section('Key findings', 'The main conclusions of each report, with how well they’re supported.', f.length ? '<div class="ins-grid">' + f.map(function (x) { return findingCard(x, saved); }).join('') + '</div>' : '', none || 'Your reports didn’t produce key conclusions yet.') +
+    // Two by two (2026-11-26): the sections sit side by side instead of half-empty full-width rows.
+    return '<div class="ins-ov">' + section('Key findings', 'The main conclusions of each report, with how well they’re supported.', f.length ? '<div class="ins-grid">' + f.map(function (x) { return findingCard(x, saved); }).join('') + '</div>' : '', none || 'Your reports didn’t produce key conclusions yet.') +
       section('Opportunities', T('ideasNote'), o.length ? '<div class="ins-grid">' + o.map(function (x) { return oppCard(x, saved); }).join('') + '</div>' : '', none || 'No opportunities in your research yet — Opportunity, Market, Product and Trends research add them.') +
       section('Recommended next actions', T('nextNote'), a.length ? '<ul class="ins-actions">' + a.map(function (x) { return actionRow(x, saved); }).join('') + '</ul>' : '', none || 'Next actions appear for research completed from now on.') +
       (rc.length ? section('Named in more than one report', 'Competitors that came up repeatedly in your research.', '<ul class="ins-rec">' + rc.map(function (c) {
         return '<li><b>' + esc(c.name) + '</b>' + (safeUrl(c.website) ? ' <a href="' + esc(c.website) + '" target="_blank" rel="noopener noreferrer">' + esc(c.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')) + '</a>' : '') +
           '<span class="ins-rec__in">In ' + c.reports.length + ' reports: ' + c.reports.map(function (r) { return '<button type="button" class="ins-link" data-ins="open" data-id="' + esc(r.reportId) + '">' + esc(r.reportTitle) + '</button>'; }).join(', ') + '</span></li>';
-      }).join('') + '</ul>', '') : '');
+      }).join('') + '</ul>', '') : '') + '</div>';
   }
   function libraryHtml() {
     var list = (S.data.reports || []).filter(function (r) { return match(r, ['title', 'question']); });

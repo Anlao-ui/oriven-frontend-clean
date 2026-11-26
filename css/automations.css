@@ -263,3 +263,8 @@ body.dark-mode .atm-wrap, body.dark-mode .atm-overlay { --au-ok: #5fd68f; --au-w
 @media (max-width: 1000px) { .atm-split2 { grid-template-columns: minmax(0, 1fr); } }
 .atm-ovmain > .atm-card:last-child { display: flex; flex-direction: column; gap: 12px; }
 .atm-empty-in--sm { min-height: 120px; }
+/* Toned tiles keep their own text colours (the tone sets them). */
+.atm-tile[class*="og-tone"] .atm-tile-v { color: var(--charcoal) !important; }
+.atm-tile[class*="og-tone"] .atm-tile-l { color: var(--muted) !important; }
+.og-tone-deep .atm-facts dt { color: rgba(234, 246, 226, .6); }
+.og-tone-deep .atm-facts dd, .og-tone-deep .atm-facts dd * { color: #EEF8E8; }

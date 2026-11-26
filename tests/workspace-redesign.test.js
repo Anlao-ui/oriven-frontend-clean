@@ -40,7 +40,7 @@ const srv = http.createServer((q, r) => {
 
   // ── 1. Sidebar ───────────────────────────────────────────────
   const nav = await p.evaluate(() => Array.from(document.querySelectorAll('.orv-sb .onv-sec')).map((s) => [s.querySelector('.onv-sec__t').textContent, Array.from(s.querySelectorAll('.onv-lbl')).map((x) => x.textContent)]));
-  const want = [['Overview', ['Dashboard', 'AI Plans', 'Tasks']], ['Campaign Management', ['Campaigns', 'Ad Simulator']], ['Creative Studio', ['Create Ads', 'My Creatives', 'Creative Testing']], ['Analytics', ['Performance Overview', 'Cross-platform Comparison']], ['Research', ['Research', 'Saved Research']], ['Autopilot', ['Automation Overview', 'My Automations', 'Automation History']]];
+  const want = [['Overview', ['Dashboard', 'AI Plans & Tasks', 'Needs Attention']], ['Campaigns', ['Campaigns', 'Ad Simulator']], ['Creative Studio', ['Create Ads', 'My Creatives', 'Creative Testing']], ['Analytics', ['Performance Overview', 'Cross-platform Comparison', 'Ads vs Ads']], ['Research', ['Audience Research', 'Competitive Research', 'Saved Research']], ['Autopilot', ['Automation Overview', 'My Automations', 'Automation History']]];
   check('sidebar: six groups with the redesigned pages, in order', JSON.stringify(nav) === JSON.stringify(want), nav);
   check('no "NEW" badge on Ad Simulator', await p.evaluate(() => !/new/i.test((document.querySelector('.orv-sb [data-onv="simulator"]') || {}).textContent.replace('Ad Simulator', ''))));
   const line = await p.evaluate(() => { const r = document.querySelector('.orv-sb .onv-sec .onv-route'), cs = getComputedStyle(r); return { img: cs.backgroundImage, w: parseFloat(cs.width), h: r.getBoundingClientRect().height }; });
@@ -129,7 +129,11 @@ const srv = http.createServer((q, r) => {
   // ── 3c. Refinement 2026-11-25: structure and alignment ───────
   const bottoms = (sel) => p.evaluate((sel) => Array.from(document.querySelectorAll(sel)).map((e) => Math.round(e.getBoundingClientRect().bottom)), sel);
   await p.evaluate(() => window.orvAppNav.go('research')); await p.waitForTimeout(900);
-  check('Research starts with three areas and Saved research, two by two, rows level', await p.evaluate(() => { const c = Array.from(document.querySelectorAll('#rsRoot .rx-areas > .rx-area')).map((e) => e.getBoundingClientRect()); return c.length === 4 && Math.abs(c[0].bottom - c[1].bottom) <= 1 && Math.abs(c[2].bottom - c[3].bottom) <= 1 && !document.querySelector('#researchQueryInput'); }));
+  // 2026-11-26: Audience Research and Competitive Research are separate pages, each with only its own research types.
+  const aud = await p.evaluate(() => ({ h: document.querySelector('#rsRoot h1').textContent, dirs: Array.from(document.querySelectorAll('#rsRoot .rx-dir')).map((d) => d.dataset.dir) }));
+  await p.evaluate(() => window.orvAppNav.go('competitive')); await p.waitForTimeout(700);
+  const comp = await p.evaluate(() => ({ h: document.querySelector('#rsRoot h1').textContent, dirs: Array.from(document.querySelectorAll('#rsRoot .rx-dir')).map((d) => d.dataset.dir), on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv }));
+  check('Audience Research shows only audience research; Competitive Research only competitive research (Competitive Research highlighted)', aud.h === 'Audience Research' && JSON.stringify(aud.dirs) === '["audience","product","trends"]' && comp.h === 'Competitive Research' && JSON.stringify(comp.dirs) === '["competitor","advertising","market","opportunity"]' && comp.on === 'competitive', { aud, comp });
   await p.evaluate(() => window.orvAppNav.go('progress')); await p.waitForTimeout(1500);
   const tk = await p.evaluate(() => { const r = document.querySelector('#prgRoot .prg-rail'), m = document.querySelector('#prgRoot .prg-main'); return r && m ? { rail: Math.round(r.getBoundingClientRect().bottom), main: Math.round(m.getBoundingClientRect().bottom), ai: document.querySelectorAll('#prgRoot .prg-who--ai').length, you: document.querySelectorAll('#prgRoot .prg-who--you').length } : null; });
   check('Tasks: the summary column ends level with the phases; tasks say who does them (OrivenAI can do this / Up to you)', tk && Math.abs(tk.rail - tk.main) <= 2 && tk.ai > 0 && tk.you > 0, tk);
@@ -146,6 +150,22 @@ const srv = http.createServer((q, r) => {
   await p.evaluate(() => { document.querySelector('.asim-adv').open = true; }); await p.waitForTimeout(200);
   const sb2 = await bottoms('.asim-grid > .asim-setup, .asim-grid .asim-results');
   check('Ad Simulator: opening Advanced assumptions keeps the two cards level', Math.abs(sb2[0] - sb2[1]) <= 2, sb2);
+
+  // ── 3d. Product structure 2026-11-26 ─────────────────────────
+  await p.evaluate(() => window.orvAppNav.go('dashboard')); await p.waitForTimeout(3500);
+  const dsh = await p.evaluate(() => ({ perf: !!document.querySelector('#dshRoot .dsh-perf [data-dsh="campaign"]') && !!document.querySelector('#dshRoot .dsh-perf [data-dsh="metric"]'), kpis: document.querySelectorAll('#dshRoot .dsh-kpi').length, chart: !!document.querySelector('#dshRoot .dsh-chart svg'), cards: ['.dsh-attn', '.dsh-plats', '.dsh-campcard', '.dsh-reccard', '.dsh-auto'].every((c) => !!document.querySelector('#dshRoot ' + c)), old: !!(document.getElementById('owNeeds') || {}).offsetParent }));
+  check('Dashboard: Performance with a campaign and a metric selector, four key figures and a chart; Needs attention, platforms, top campaigns, recommendations and Autopilot; the old blocks are not shown', dsh.perf && dsh.kpis === 4 && dsh.chart && dsh.cards && !dsh.old, dsh);
+  await p.click('#dshRoot [data-dsh-metric="spend"]'); await p.waitForTimeout(300);
+  check('Dashboard: choosing a figure makes it the chart metric', await p.evaluate(() => document.querySelector('#dshRoot [data-dsh-metric="spend"]').classList.contains('is-on') && document.querySelector('#dshRoot [data-dsh="metric"]').value === 'spend'));
+  await p.evaluate(() => window.orvAppNav.go('attention')); await p.waitForTimeout(3000);
+  const nda = await p.evaluate(() => ({ page: document.querySelector('.page.active').id, cards: document.querySelectorAll('#ndaRoot .nda-card').length, tiles: document.querySelectorAll('#ndaRoot .nda-tile').length, items: document.querySelectorAll('#ndaRoot .nda-item').length, on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv }));
+  check('Needs Attention: its own page with four summary tiles and one card per category (accounts, tracking, performance, campaigns, automations) plus how it is checked', nda.page === 'page-needs-attention' && nda.on === 'attention' && nda.tiles === 4 && nda.cards === 6 && nda.items >= 1, nda);
+  await p.evaluate(() => window.orvAppNav.go('plan')); await p.waitForTimeout(1500);
+  check('AI Plans & Tasks: one destination with Plans and Tasks tabs', await p.evaluate(() => document.querySelectorAll('#page-marketing-plan .pt-tab').length === 2 && document.querySelector('#page-marketing-plan .pt-tab.is-on').textContent.indexOf('Plans') === 0));
+  await p.click('#page-marketing-plan .pt-tab[data-mpl-go="progress"]'); await p.waitForTimeout(1500);
+  check('…the Tasks tab opens the tasks, AI Plans & Tasks stays highlighted', await p.evaluate(() => document.querySelector('.page.active').id === 'page-progress' && document.querySelector('.orv-sb .onv-item.is-on').dataset.onv === 'plan' && document.querySelector('#page-progress .pt-tab.is-on').textContent.indexOf('Tasks') === 0));
+  await p.evaluate(() => window.orvAppNav.go('adsvsads')); await p.waitForTimeout(3000);
+  check('Ads vs Ads: its own Analytics page with the two-ad comparison', await p.evaluate(() => document.querySelector('.page.active').id === 'page-ads-vs-ads' && document.querySelectorAll('#advCard select').length >= 2));
 
   // ── 4. Phones ────────────────────────────────────────────────
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });

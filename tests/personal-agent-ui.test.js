@@ -310,7 +310,7 @@ const server = app.listen(PORT, async () => {
 
       // Context per page: each page goes as its own view; the panel says which.
       const seen = [];
-      for (const [id, label] of [['plan', 'AI Plans'], ['research', 'Research'], ['create', 'Create Ads'], ['audiences', 'Audiences'], ['competitors', 'Competitor Analysis']]) {
+      for (const [id, label] of [['plan', 'AI Plans & Tasks'], ['research', 'Audience Research'], ['create', 'Create Ads'], ['audiences', 'Audiences'], ['competitors', 'Competitor Analysis']]) {
         await ip.evaluate((v) => window.orvAppNav.go(v), id); await ip.waitForTimeout(600);
         await ip.click('#orvAiFab'); await ip.waitForTimeout(300);
         const w = await ip.evaluate(() => (document.getElementById('orvAgentWhere') || {}).textContent);

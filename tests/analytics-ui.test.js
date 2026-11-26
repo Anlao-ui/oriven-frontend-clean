@@ -89,20 +89,22 @@ const srv = http.createServer((q, r) => {
   check('…changing a date recalculates the comparison', pd.rows.length >= 5 && pd.dates === 4, pd.sub);
   await p.click('#ovtPeriod [data-ovc-mode="week"]'); await p.waitForTimeout(1000);
 
-  // Ad vs ad: Google doesn't report per-ad results → says so, offers Meta
-  let ad = await p.evaluate(() => document.getElementById('ovtAds').innerText);
-  check('ad vs ad on Google Ads: explains results per ad come from Meta Ads, with a button to compare Meta ads', /Results per ad come from Meta Ads/.test(ad) && /Compare Meta ads/.test(ad), ad);
-  await p.click('#ovtAds [data-ovc-meta]'); await p.waitForTimeout(3500);
-  ad = await p.evaluate(() => { const el = document.getElementById('ovtAds'); return { plat: window._prfActivePlatform, selects: el.querySelectorAll('select').length, verdict: (el.querySelector('.ovc-verdict') || {}).textContent || '', rows: Array.from(el.querySelectorAll('.ovc-adtable tbody tr')).map((tr) => ({ m: tr.querySelector('th').textContent, a: tr.children[1].childNodes[0].textContent, b: tr.children[2].childNodes[0].textContent, best: tr.querySelectorAll('.is-best').length })), lines: el.querySelectorAll('.ova-line').length }; });
+  // Ads vs Ads (2026-11-26): its own Analytics page, Meta ads (the platform that reports results per ad); not repeated on Performance Overview
+  check('Performance Overview no longer repeats Ad vs ad', await p.evaluate(() => { const el = document.getElementById('ovtAds'); return !el || el.offsetParent === null; }));
+  await p.evaluate(() => window.orvAppNav.go('adsvsads')); await p.waitForTimeout(3500);
+  let ad = await p.evaluate(() => ({ page: document.querySelector('.page.active').id, text: document.getElementById('advRoot').innerText, on: document.querySelector('.orv-sb .onv-item.is-on').dataset.onv }));
+  check('Ads vs Ads opens as its own Analytics page and says results per ad come from Meta Ads', ad.page === 'page-ads-vs-ads' && ad.on === 'adsvsads' && /Results per ad come from Meta Ads/.test(ad.text), ad);
+  ad = await p.evaluate(() => { const el = document.getElementById('advCard'); return { plat: 'meta', selects: el.querySelectorAll('select').length, verdict: (el.querySelector('.ovc-verdict') || {}).textContent || '', rows: Array.from(el.querySelectorAll('.ovc-adtable tbody tr')).map((tr) => ({ m: tr.querySelector('th').textContent, a: tr.children[1].childNodes[0].textContent, b: tr.children[2].childNodes[0].textContent, best: tr.querySelectorAll('.is-best').length })), lines: el.querySelectorAll('.ova-line').length }; });
   check('…Meta: pick two ads and a period; a plain-language verdict (which ad does better and why, no AI), the figures side by side and both ads over time', ad.plat === 'meta' && ad.selects === 4 && /is doing better: .+ \(.+ vs .+\)|perform about the same|Too early/.test(ad.verdict) && ad.rows.length >= 8 && ad.lines === 2, ad);
   check('…"better" is marked only on efficiency metrics, and never where both ads show the same figure', ad.rows.every((r) => !r.best || (['ctr', 'cpc', 'cpm', 'conversion rate', 'cpa', 'roas'].includes(r.m.toLowerCase()) && r.a !== r.b)) && ad.rows.some((r) => r.best), ad.rows);
-  const secondAd = await p.evaluate(() => Array.from(document.querySelectorAll('#ovtAds [data-ovc-ad="B"] option')).filter((o) => !o.disabled && !o.selected)[0].value);
-  await p.selectOption('#ovtAds [data-ovc-ad="B"]', secondAd); await p.waitForTimeout(2500);
-  check('…choosing another ad recalculates', await p.evaluate((v) => document.querySelector('#ovtAds [data-ovc-ad="B"]').value === v && document.querySelectorAll('#ovtAds .ova-line').length === 2, secondAd));
-  await p.selectOption('#ovtAds [data-ovc-admetric]', 'cpc'); await p.waitForTimeout(1500);
-  check('…and the chart metric can be changed', await p.evaluate(() => /CPC over time/.test(document.querySelector('#ovtAds .ovc-adchart h4').textContent)));
+  const secondAd = await p.evaluate(() => Array.from(document.querySelectorAll('#advCard [data-ovc-ad="B"] option')).filter((o) => !o.disabled && !o.selected)[0].value);
+  await p.selectOption('#advCard [data-ovc-ad="B"]', secondAd); await p.waitForTimeout(2500);
+  check('…choosing another ad recalculates', await p.evaluate((v) => document.querySelector('#advCard [data-ovc-ad="B"]').value === v && document.querySelectorAll('#advCard .ova-line').length === 2, secondAd));
+  await p.selectOption('#advCard [data-ovc-admetric]', 'cpc'); await p.waitForTimeout(1500);
+  check('…and the chart metric can be changed', await p.evaluate(() => /CPC over time/.test(document.querySelector('#advCard .ovc-adchart h4').textContent)));
   await p.screenshot({ path: path.join(SHOTS, 'overview-meta.png'), fullPage: true });
 
+  await p.evaluate(() => window.orvAppNav.go('overview')); await p.waitForTimeout(2500);
   // Per platform: different metric sets; TikTok and Snapchat graphs from their own figures
   await p.evaluate(() => window.prfSwitchPlatform('snapchat', true)); await p.waitForTimeout(3000);
   c = await cards(p);

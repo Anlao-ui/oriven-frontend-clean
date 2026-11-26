@@ -57,7 +57,8 @@ const srv = http.createServer((q, r) => {
   check('Dashboard performance: Impressions, Clicks, CTR, Spend, Conversions (ROAS only when reported), real values, change vs the 7 days before', ['Impressions', 'Clicks', 'CTR', 'Spend', 'Conversions'].every((l, i) => d.figs[i] && d.figs[i].l === l && d.figs[i].v && d.figs[i].v !== '—') && d.figs.some((f) => /%/.test(f.d)), d.figs);
   check('Dashboard campaigns: active and paused on the ad platforms, drafts not published yet, need attention, and the total on the platforms', /^Active=\d+$/.test(d.camps[0]) && /^Paused=\d+$/.test(d.camps[1]) && /^Drafts=\d+$/.test(d.camps[2]) && /^Need attention=\d+$/.test(d.camps[3]) && /\d+ campaigns on your ad platforms/.test(d.total), [d.camps, d.total]);
   check('Dashboard automations: active, paused, need attention, errors (7 days) and the recent real runs', /^Active=\d+$/.test(d.auto[0]) && /^Paused=\d+$/.test(d.auto[1]) && /^Need attention=\d+$/.test(d.auto[2]) && /^Errors · 7 days=\d+$/.test(d.auto[3]) && d.recent.length >= 1, [d.auto, d.recent]);
-  check('Dashboard fits one 1440×900 screen, no sideways scroll', d.scroll <= 1 && d.overflow <= 0, d);
+  // 2026-11-26: the new Dashboard (performance first) may scroll as a page; it must never scroll sideways.
+  check('Dashboard: the new overview is shown (Performance, Needs attention, Autopilot) and nothing scrolls sideways', d.overflow <= 0 && await p.evaluate(() => !!document.querySelector('#dshRoot .dsh-perf') && !!document.querySelector('#dshRoot .dsh-attn') && !!document.querySelector('#dshRoot .dsh-auto')), d);
   await p.screenshot({ path: path.join(SHOTS, 'dashboard.png') });
   // Nothing needs the user: one compact status line, no big empty panel
   await p.evaluate(() => { document.querySelectorAll('#owNeeds [data-rank]').forEach((r) => r.remove()); window.orvCC.needsSync(); });

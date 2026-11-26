@@ -700,7 +700,9 @@
     try { root.innerHTML = header() + '<section class="atm-panel" id="auPanel" data-page="' + esc(A.tab) + '"' + (A.locked ? '' : ' aria-labelledby="auPageH"') + '>' + body + '</section>'; } finally { render._busy = false; }
   }
 
-  function tile(label, value, tone) { return '<div class="atm-tile' + (tone ? ' is-' + tone : '') + '"><span class="atm-tile-v">' + esc(value) + '</span><span class="atm-tile-l">' + esc(label) + '</span></div>'; }
+  // Tones (2026-11-26): live = rich green, scheduled = light green, warn/bad = yellow, so Autopilot reads at a glance.
+  var TONE = { live: ' og-tone-rich', sched: ' og-tone-fresh', warn: ' og-tone-warn', bad: ' og-tone-warn' };
+  function tile(label, value, tone) { return '<div class="atm-tile' + (tone ? ' is-' + tone + (TONE[tone] || '') : '') + '"><span class="atm-tile-v">' + esc(value) + '</span><span class="atm-tile-l">' + esc(label) + '</span></div>'; }
   function approvalCard(p) {
     var obs = p.observed || {};
     var why = obs.metric ? T('trigLine', { metric: metricName(obs.metric), observed: fmtMetric(obs.metric, obs.observed, null), op: T('op.' + obs.operator) || obs.operator, threshold: fmtMetric(obs.metric, obs.threshold, null), days: obs.window_days || 7 }) : '';
@@ -718,11 +720,11 @@
     var html = '';
     var main = '', rail = '';
     if (!A.automations.length) main += emptyIntro();
-    html += '<div class="atm-tiles">' + tile(T('tActive'), c.active || 0, c.active ? 'live' : null) + tile(T('tPaused'), c.paused || 0) + tile(T('tScheduled'), c.scheduled || 0) + tile(T('tApprovals'), (c.pendingApprovals || 0) + (c.needsReview || 0), (c.pendingApprovals || c.needsReview) ? 'warn' : null) + tile(T('tDone'), c.completed7d || 0) + tile(T('tFailed'), c.failed7d || 0, c.failed7d ? 'bad' : null) + '</div>';
+    html += '<div class="atm-tiles">' + tile(T('tActive'), c.active || 0, c.active ? 'live' : null) + tile(T('tPaused'), c.paused || 0) + tile(T('tScheduled'), c.scheduled || 0, c.scheduled ? 'sched' : null) + tile(T('tApprovals'), (c.pendingApprovals || 0) + (c.needsReview || 0), (c.pendingApprovals || c.needsReview) ? 'warn' : null) + tile(T('tDone'), c.completed7d || 0) + tile(T('tFailed'), c.failed7d || 0, c.failed7d ? 'bad' : null) + '</div>';
     if (A.approvals.length) main += '<div class="atm-card"><h2 class="atm-h2">' + esc(T('approvalsH')) + '</h2>' + A.approvals.map(approvalCard).join('') + '</div>';
     var nx = o.nextRun;
     var managing = c.managedCampaigns || c.accountWide && c.accountWide.length ? [c.managedCampaigns ? T('managingN', { n: c.managedCampaigns }) : '', c.accountWide && c.accountWide.length ? T('managingAll', { platforms: c.accountWide.map(platName).join(', ') }) : ''].filter(Boolean).join(' · ') : T('managingNone');
-    rail += '<div class="atm-card"><dl class="atm-facts">' +
+    rail += '<div class="atm-card og-tone-deep"><dl class="atm-facts">' +
       '<div><dt>' + esc(T('nextRunH')) + '</dt><dd>' + (nx ? esc(T('act.' + nx.action)) + ' · ' + esc(nx.campaign_name || '') + '<br><span class="atm-muted">' + esc(localWhen(nx.local_time, nx.timezone)) + ' · ' + esc(rel(nx.run_at)) + '</span>' : esc(T('nextRunNone'))) + '</dd></div>' +
       '<div><dt>' + esc(T('lastCheckH')) + '</dt><dd>' + (o.lastCheckAt ? esc(rel(o.lastCheckAt)) : esc(T('lastCheckNever'))) + '</dd></div>' +
       '<div><dt>' + esc(T('managingH')) + '</dt><dd>' + esc(managing) + '</dd></div></dl></div>';

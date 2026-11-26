@@ -51,7 +51,11 @@
     Object.keys(PAGES).forEach(function (k) {
       var pg = document.createElement('div');
       pg.className = 'page'; pg.id = PAGES[k];
-      pg.innerHTML = '<div class="onv-panel ' + (k === 'plan' ? 'mpl' : 'prg') + '" id="' + (k === 'plan' ? 'mplRoot' : 'prgRoot') + '" aria-live="polite"></div>';
+      // AI Plans & Tasks is one destination: the same two tabs on both pages (2026-11-26).
+      pg.innerHTML = '<div class="onv-panel pt-wrap"><div class="pt-tabs" role="tablist" aria-label="AI Plans & Tasks">' +
+        '<button type="button" role="tab" class="pt-tab' + (k === 'plan' ? ' is-on' : '') + '" aria-selected="' + (k === 'plan') + '" data-mpl-go="plan"><span>Plans</span><small>What OrivenAI recommends and why</small></button>' +
+        '<button type="button" role="tab" class="pt-tab' + (k === 'progress' ? ' is-on' : '') + '" aria-selected="' + (k === 'progress') + '" data-mpl-go="progress"><span>Tasks</span><small>What OrivenAI runs, what is done, what is up to you</small></button>' +
+        '</div></div><div class="onv-panel ' + (k === 'plan' ? 'mpl' : 'prg') + '" id="' + (k === 'plan' ? 'mplRoot' : 'prgRoot') + '" aria-live="polite"></div>';
       mc.appendChild(pg);
       pg.addEventListener('click', onClick);
       pg.addEventListener('submit', function (e) {
@@ -489,12 +493,9 @@
       '</header>' +
       // Summary in a rail of cards (beside the phases on wide screens, above them on narrow ones).
       '<div class="prg-layout"><aside class="prg-rail" aria-label="Progress summary">' +
-        '<div class="prg-stats">' +
-          stat(curP ? esc(curP.phase) : '—', 'Current phase') +
-          stat(curP ? curDone + '/' + curP.steps.length : '—', 'Done this phase') +
-          stat(d.completed, 'Completed') +
-          stat(d.total - d.completed, 'Remaining') +
-        '</div>' +
+        // Execution status (2026-11-26): what is done, what OrivenAI is working on, what it can
+        // take over, and what is up to the user — counted from the real task states.
+        execStats(d, stat) +
         (next ? '<div class="prg-next"><span>Next up</span><b>' + esc(next.step) + '</b>' + (next.page ? pageBtn(next.page, next.button, true) : '') + '</div>' : '') +
         comingUp(d, next) +
         '<section class="prg-card" aria-labelledby="prgPhasesH"><h2 class="prg-card__h" id="prgPhasesH">Per phase</h2>' +
@@ -578,6 +579,16 @@
     window.orvAiSend(msg);
     execSet(id, new Date().toISOString());
     S.execAsk = null; rerenderProgress();
+  }
+  function execStats(d, stat) {
+    var handed = execGet(), c = { done: 0, busy: 0, can: 0, you: 0 };
+    d.phases.forEach(function (p) { p.steps.forEach(function (x) {
+      if (x.done) { c.done++; return; }
+      var page = x.page || AREA_PAGE[x.area] || null;
+      if (EXEC[page] && handed[x.id]) c.busy++; else if (EXEC[page]) c.can++; else c.you++;
+    }); });
+    var tile = function (n, l, tone) { return '<div class="prg-stat' + (tone ? ' ' + tone : '') + '"><b>' + n + '</b><span>' + esc(l) + '</span></div>'; };
+    return '<div class="prg-stats">' + tile(c.done, 'Done', c.done ? 'og-tone-fresh' : '') + tile(c.busy, 'With OrivenAI', c.busy ? 'og-tone-rich' : '') + tile(c.can, 'OrivenAI can do') + tile(c.you, 'Up to you') + '</div>';
   }
   // The next open tasks after "Next up" (up to four), each a jump to the task itself.
   function comingUp(d, next) {

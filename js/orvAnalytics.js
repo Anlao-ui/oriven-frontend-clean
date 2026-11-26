@@ -157,7 +157,8 @@
     var id = 'ovaC' + (++chartN), W = 640, H = opts.height || 240, L = 52, R = 12, T = 12, B = 26;
     var all = []; lines.forEach(function (l) { l.values.forEach(function (v) { if (v != null && isFinite(v)) all.push(v); }); });
     var legend = '<ul class="ova-legend">' + lines.map(function (l) { return '<li><i style="--c:' + l.color + '"' + (l.dashed ? ' class="is-dashed"' : '') + '></i>' + esc(l.name) + '</li>'; }).join('') + '</ul>';
-    if (!all.length) return '<div class="ova-chart is-empty"><p>' + esc(opts.empty || T('No figures for this period yet.')) + '</p></div>';
+    // tpl, not T: inside this function T is the chart's top padding (a number).
+    if (!all.length) return '<div class="ova-chart is-empty"><p>' + esc(opts.empty || tpl('No figures for this period yet.')) + '</p></div>';
     var lo = Math.min(0, Math.min.apply(null, all)), hi = Math.max.apply(null, all) || 1;
     var nice = Math.pow(10, Math.floor(Math.log10(hi))); hi = Math.ceil(hi / nice * 1.1) * nice || 1;
     var n = Math.max(1, labels.length - 1), x = function (i) { return L + (i / n) * (W - L - R); }, y = function (v) { return T + (1 - (v - lo) / (hi - lo)) * (H - T - B); };

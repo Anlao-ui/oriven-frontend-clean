@@ -100,3 +100,9 @@
 .ins-from { white-space: normal; text-align: left; line-height: 1.4; }
 @media (max-width: 720px) { .ins-rec { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .ins-action { transition: none; } }
+
+/* Saved Research overview: sections two by two, each row level (2026-11-26). */
+.ins-ov { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.ins-ov > .ins-sec + .ins-sec { margin-top: 0; }
+.ins-ov .ins-grid { grid-template-columns: minmax(0, 1fr) !important; }
+@media (max-width: 1000px) { .ins-ov { grid-template-columns: minmax(0, 1fr); } }

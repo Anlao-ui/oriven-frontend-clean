@@ -417,24 +417,24 @@
   // Research areas (2026-11-25 refinement): the start screen shows three areas
   // and Saved research; an area opens the composer with only its own types.
   var AREAS = {
-    audience: { types: ['audience'], tool: 'audiences' },
-    competitive: { types: ['competitor', 'advertising'], tool: 'competitors' },
-    market: { types: ['market', 'product', 'trends', 'opportunity'], tool: null },
+    // Two research destinations (2026-11-26): every research type belongs to exactly one.
+    audience: { types: ['audience', 'product', 'trends'], tool: 'audiences' },
+    competitive: { types: ['competitor', 'advertising', 'market', 'opportunity'], tool: 'competitors' },
   };
-  function areaOf(type) { for (var k in AREAS) if (AREAS[k].types.indexOf(type) >= 0) return k; return 'market'; }
+  function areaOf(type) { for (var k in AREAS) if (AREAS[k].types.indexOf(type) >= 0) return k; return 'audience'; }
   var AREA_STR = {
     en: {
       other: 'Other research areas',
-      audience: ['Audience research', 'Find out who buys from you and why: needs, frustrations, motivations and the words they use.', ['Who your customers are', 'What makes them buy — or hesitate', 'Audiences you can use in campaigns'], 'Start audience research', 'Your audiences'],
-      competitive: ['Competitive research', 'See how competitors position, price, message and advertise — and where you can stand apart.', ['Competitor positioning and offers', 'How comparable brands advertise', 'Gaps worth testing'], 'Start competitive research', 'Your competitors'],
+      audience: ['Audience Research', 'Who buys from you and why: needs, frustrations, motivations, what they look for in your category and how their habits change.', ['Who your customers are', 'What makes them buy — or hesitate', 'Audiences you can use in campaigns'], 'Start audience research', 'Your audiences'],
+      competitive: ['Competitive Research', 'How competitors position, price, message and advertise, what moves your market — and where you can stand apart.', ['Competitor positioning and offers', 'How comparable brands advertise', 'Gaps worth testing'], 'Start competitive research', 'Your competitors'],
       market: ['Market & trends', 'Understand your market: demand, developments, product niches and opportunities.', ['Market overview and demand', 'Trends among your customers', 'Opportunities and angles to test'], 'Start market research', ''],
       saved: 'Saved research', savedAll: 'All saved research', savedEmpty: 'Research you run is saved here automatically, so you can come back to it and use it in Create.',
       back: 'All research areas', toolAudiences: 'Saved audiences, built from your business details and research. Use them in Campaign Builder.', toolCompetitors: 'The competitors you track, with their positioning side by side.', open: 'Open', inArea: 'In this area',
     },
     nl: {
       other: 'Andere onderzoeksgebieden',
-      audience: ['Doelgroeponderzoek', 'Ontdek wie bij je koopt en waarom: behoeften, frustraties, motivaties en de woorden die ze gebruiken.', ['Wie je klanten zijn', 'Wat ze over de streep trekt — of laat twijfelen', 'Doelgroepen die je in campagnes gebruikt'], 'Start doelgroeponderzoek', 'Je doelgroepen'],
-      competitive: ['Concurrentieonderzoek', 'Zie hoe concurrenten zich positioneren, prijzen, communiceren en adverteren — en waar jij je kunt onderscheiden.', ['Positionering en aanbod van concurrenten', 'Hoe vergelijkbare merken adverteren', 'Gaten die het testen waard zijn'], 'Start concurrentieonderzoek', 'Je concurrenten'],
+      audience: ['Doelgroeponderzoek', 'Wie bij je koopt en waarom: behoeften, frustraties, motivaties, wat ze zoeken in je categorie en hoe hun gewoonten veranderen.', ['Wie je klanten zijn', 'Wat ze over de streep trekt — of laat twijfelen', 'Doelgroepen die je in campagnes gebruikt'], 'Start doelgroeponderzoek', 'Je doelgroepen'],
+      competitive: ['Concurrentieonderzoek', 'Hoe concurrenten zich positioneren, prijzen, communiceren en adverteren, wat je markt beweegt — en waar jij je kunt onderscheiden.', ['Positionering en aanbod van concurrenten', 'Hoe vergelijkbare merken adverteren', 'Gaten die het testen waard zijn'], 'Start concurrentieonderzoek', 'Je concurrenten'],
       market: ['Markt & trends', 'Begrijp je markt: vraag, ontwikkelingen, productniches en kansen.', ['Marktoverzicht en vraag', 'Trends bij je klanten', 'Kansen en invalshoeken om te testen'], 'Start marktonderzoek', ''],
       saved: 'Opgeslagen onderzoek', savedAll: 'Al het opgeslagen onderzoek', savedEmpty: 'Onderzoek dat je uitvoert wordt hier automatisch bewaard, zodat je erop terug kunt komen en het in Create kunt gebruiken.',
       back: 'Alle onderzoeksgebieden', toolAudiences: 'Opgeslagen doelgroepen, gebouwd uit je bedrijfsgegevens en onderzoek. Gebruik ze in de Campagnebouwer.', toolCompetitors: 'De concurrenten die je volgt, met hun positionering naast elkaar.', open: 'Openen', inArea: 'In dit gebied',
@@ -599,13 +599,14 @@
   function homeView() {
     var running = (S.reports || []).filter(function (r) { return r.status === 'running'; })[0];
     var banner = running ? '<div class="rx-banner" role="status"><span class="rx-pulse" aria-hidden="true"></span><span>' + esc(T('runningBanner', { t: running.title })) + '</span><button type="button" class="rx-btn rx-btn-ghost" data-rx="progress" data-id="' + esc(running.id) + '">' + esc(T('viewProgress')) + '</button></div>' : '';
+    if (!S.area) S.area = 'audience';
     if (!S.area) {
       return '<header class="rx-head"><h1 class="rx-title">' + esc(T('title')) + '</h1><p class="rx-sub">' + esc(T('subtitle')) + '</p></header>' + banner +
         '<div class="rx-areas">' + areaCard('audience') + areaCard('competitive') + areaCard('market') + savedCard() + '</div>';
     }
     var n = S.question.length, multi = AREAS[S.area].types.length > 1, base = multi ? 1 : 0;
     var st = function (n2, label, forId) { return '<div class="rx-stepl"><span class="rx-stepn" aria-hidden="true">' + n2 + '</span>' + (forId ? '<label class="rx-lbl" for="' + forId + '">' + esc(label) + '</label>' : '<span class="rx-lbl">' + esc(label) + '</span>') + '</div>'; };
-    return '<header class="rx-head"><button type="button" class="rx-back" data-rx="area" data-area="">← ' + esc(TA('back')) + '</button><h1 class="rx-title">' + esc(TA(S.area)[0]) + '</h1><p class="rx-sub">' + esc(TA(S.area)[1]) + '</p></header>' + banner +
+    return '<header class="rx-head"><h1 class="rx-title">' + esc(TA(S.area)[0]) + '</h1><p class="rx-sub">' + esc(TA(S.area)[1]) + '</p></header>' + banner +
       '<div class="rx-home rx-ws"><form class="rx-card rx-form rx-composer" data-rx-form="1" novalidate>' +
         (multi ? '<fieldset class="rx-fs">' + '<legend class="rx-sr">' + esc(T('typeLabel')) + '</legend>' + st(1, T('stepDir')) + typeCards() + '</fieldset>' : '') +
         '<div class="rx-ask">' + st(base + 1, T('stepAsk'), 'researchQueryInput') + (multi ? '' : typeCards()) +
@@ -616,7 +617,7 @@
         (S.formErr ? '<p class="rx-err" id="rxFormErr" role="alert">' + S.formErr + '</p>' : '') +
         '<div class="rx-start"><div class="rx-cost"><b>' + esc(T('cost', { n: cost() })) + '</b><span>' + esc(T('costWhat')) + '</span></div>' +
           '<button type="submit" class="rx-btn rx-btn-primary rx-btn-lg" id="researchSubmitBtn"' + (S.starting || running ? ' disabled' : '') + '>' + esc(S.starting ? T('starting') : T('start')) + '</button></div>' +
-      '</form><aside class="rx-aside">' + (toolCard(S.area) || otherAreasCard(S.area)) + recentBlock(S.area) + howBlock() + '</aside></div>';
+      '</form><aside class="rx-aside">' + toolCard(S.area) + recentBlock(S.area) + howBlock() + '</aside></div>';
   }
 
   function progressView() {
@@ -959,7 +960,7 @@
   function goHome(clear) {
     clearTimeout(pollTimer);
     S.view = 'home'; S.renaming = null;
-    if (clear) { S.question = ''; S.urls = []; S.formErr = null; S.type = 'market'; S.mode = 'home'; S.area = null; } // new research: the area cards (also from Insights)
+    if (clear) { S.question = ''; S.urls = []; S.formErr = null; S.type = AREAS[S.area || 'audience'].types[0]; S.mode = 'home'; } // new research: the same area's form (also from Insights)
     render(); loadLibrary(); window.scrollTo(0, 0);
     if (typeof window.orvAppNavSync === 'function') window.orvAppNavSync();
     if (clear) { var i = $('researchQueryInput'); if (i) i.focus(); }
@@ -1039,8 +1040,9 @@
     if (S.keepReport) { S.keepReport = false; return; } // a report just opened from Insights
     clearTimeout(pollTimer);
     S.view = 'home'; S.renaming = null; S.mode = 'home'; S.from = null;
-    // A question already typed (or handed over by the assistant) keeps its area open.
-    S.area = S.question ? areaOf(S.type) : null;
+    // The page opens on the area its sidebar item asked for (openArea); a question
+    // handed over by the assistant opens the area of its research type.
+    S.area = S.nextArea || (S.question ? areaOf(S.type) : S.area) || 'audience'; S.nextArea = null;
     render(); loadLibrary(); loadBiz();
   }
   // Opens a saved report from Insights (its back button returns there).
@@ -1063,7 +1065,8 @@
     mode: function () { return S.from === 'insights' && S.view === 'report' ? 'insights' : (S.mode || 'home'); },
     getDraft: function () { return { question: S.question, type: S.type, urls: S.urls.slice() }; },
     setDraft: function (d) { if (!d) return; if (typeof d.question === 'string') S.question = d.question.slice(0, Q_MAX); if (TYPES.indexOf(d.type) !== -1) S.type = d.type; if (Array.isArray(d.urls)) S.urls = d.urls.slice(0, URL_MAX); S.area = areaOf(S.type); render(); },
-    openArea: function (k) { S.area = AREAS[k] ? k : null; if (S.area && AREAS[S.area].types.indexOf(S.type) < 0) S.type = AREAS[S.area].types[0]; S.view = 'home'; render(); },
+    openArea: function (k) { S.area = S.nextArea = AREAS[k] ? k : 'audience'; if (AREAS[S.area].types.indexOf(S.type) < 0) S.type = AREAS[S.area].types[0]; S.view = 'home'; S.formErr = null; render(); },
+    area: function () { return S.area; },
     _state: function () { return S; }, _T: T, _STR: STR, _adaptLegacy: adaptLegacy,
   };
   window._researchNewSession = reset; // account switch (orivenWorkspace.js)

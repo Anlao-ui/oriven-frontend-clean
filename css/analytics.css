@@ -258,3 +258,15 @@ button.ova-link { padding: 0; border: 0; background: none; font: inherit; font-w
 }
 .ovc-purpose { margin: 0 0 var(--a-s3); font-size: 13px; line-height: 1.5; color: var(--a-text-3); }
 
+
+/* Ads vs Ads is its own page (2026-11-26): not repeated in Performance Overview. */
+#page-performance #ovtAds { display: none !important; }
+#advRoot { display: flex; flex-direction: column; gap: var(--a-s4); color: var(--a-text); }
+#advRoot > .rx-head { margin-bottom: 0; }
+.adv-grid { display: flex; flex-direction: column; gap: var(--a-s4); }
+/* The comparison is wide (table + chart side by side); the two notes sit next to each other below it, the same height. */
+.adv-side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--a-s4); align-items: stretch; }
+@media (max-width: 800px) { .adv-side { grid-template-columns: minmax(0, 1fr); } }
+.adv-list { margin: var(--a-s2) 0 0; padding: 0; list-style: none; display: grid; gap: var(--a-s2); font-size: 13.5px; line-height: 1.5; color: var(--a-text-2); }
+.adv-list b { color: var(--a-text); }
+@media (max-width: 1000px) { .adv-grid { grid-template-columns: minmax(0, 1fr); } }
