@@ -136,5 +136,10 @@ module.exports = function applySiteChrome(html) {
     if (a < 0 || b < 0) throw new Error('view not found: ' + key);
     html = html.slice(0, a) + applyView(key, html.slice(a, b)) + html.slice(b);
   }
+  // The homepage (#view-landing) carries the same footer right after its <main>;
+  // refresh it from the same source so its links never drift from the other pages.
+  const la = html.indexOf('<div id="view-landing" class="pub-view"');
+  const fa = la < 0 ? -1 : html.indexOf('</main><footer class="site-foot" data-site-footer>', la);
+  if (fa > 0) { const fs0 = fa + '</main>'.length, fe = html.indexOf('</footer>', fs0) + '</footer>'.length; html = html.slice(0, fs0) + footer() + html.slice(fe); }
   return html;
 };

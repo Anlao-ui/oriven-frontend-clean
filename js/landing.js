@@ -245,12 +245,40 @@
   var inside = $('[data-ik-inside]');
   if (inside) {
     var shotTabs = $$('[role="tab"]', $('.ik-tabs', inside)), shots = $$('.ik-shot', inside), caps = $$('.ik-shot__cap', inside);
-    var shotName = $('[data-ik-shot-name]', inside);
+    var shotName = $('[data-ik-shot-name]', inside), pgs = $$('.ik-shot__pg', inside);
+    // The screen recordings (tools/product-films-section.js): the visible
+    // tab's recording plays, muted and looping, while the section is on
+    // screen. With reduced motion nothing starts by itself; Pause/Play
+    // (data-ik-film-toggle) is always there, and the visitor's choice holds.
+    var filmBtn = $('[data-ik-film-toggle]', inside), filmLabel = $('[data-ik-film-label]', inside);
+    var filmPaused = reduceMq.matches, filmSeen = false, current = 0;
+    var setFilmBtn = function () {
+      if (!filmBtn) return;
+      filmBtn.setAttribute('aria-pressed', String(filmPaused));
+      filmBtn.setAttribute('aria-label', filmPaused ? 'Play the recording' : 'Pause the recording');
+      filmBtn.classList.toggle('is-paused', filmPaused);
+      if (filmLabel) filmLabel.textContent = filmPaused ? 'Play' : 'Pause';
+    };
+    var syncFilms = function () {
+      shots.forEach(function (s, j) {
+        var v = s.querySelector('video.ik-film'); if (!v) return;
+        if (j === current && filmSeen && !filmPaused) { if (v.preload === 'none') v.preload = 'auto'; var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
+        else if (!v.paused) v.pause();
+      });
+    };
+    if (filmBtn) filmBtn.addEventListener('click', function () { filmPaused = !filmPaused; setFilmBtn(); syncFilms(); });
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { filmSeen = en[0].isIntersecting; syncFilms(); }, { threshold: 0.35 }).observe(inside);
+    else { filmSeen = true; }
+    setFilmBtn(); syncFilms();
     var showShot = function (i, focus) {
+      current = i;
       shots.forEach(function (s, j) { var on = j === i; s.classList.toggle('is-active', on); var v = s.querySelector('video'); if (v && !on) v.pause(); });
       caps.forEach(function (c, j) { c.classList.toggle('is-active', j === i); });
+      pgs.forEach(function (c, j) { c.classList.toggle('is-active', j === i); });
       shotTabs.forEach(function (t, j) { t.setAttribute('aria-selected', String(j === i)); t.tabIndex = j === i ? 0 : -1; });
       if (shotName) shotName.textContent = shotTabs[i].textContent.replace(/^\d+/, '');
+      var nv = shots[i] && shots[i].querySelector('video.ik-film'); if (nv) { try { nv.currentTime = 0; } catch (_) {} }
+      syncFilms();
       if (focus) shotTabs[i].focus();
     };
     shotTabs.forEach(function (t, j) { t.addEventListener('click', function () { showShot(j); }); });
@@ -258,27 +286,6 @@
       var i = shotTabs.indexOf(document.activeElement); if (i < 0) return;
       var to = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? shotTabs.length - 1 : null;
       if (to === null) return; e.preventDefault(); showShot((to + shotTabs.length) % shotTabs.length, true);
-    });
-    $$('[data-ik-play]', inside).forEach(function (btn) {
-      // A tab's tutorial (data-ow-video, written by tools/tutorials-section.js)
-      // opens in the shared player (js/ow-ui.js), not inline in the frame.
-      if (btn.hasAttribute('data-ow-video')) return;
-      btn.addEventListener('click', function () {
-        var shot = btn.closest('.ik-shot'), media = btn.parentNode, v = media.querySelector('video');
-        if (!v) {
-          v = document.createElement('video');
-          v.muted = true; v.loop = true; v.playsInline = true; v.controls = true; v.preload = 'auto';
-          v.setAttribute('aria-label', btn.getAttribute('aria-label').replace('Play the ', ''));
-          v.src = shot.getAttribute('data-film');
-          // Captions for the section films (assets/films/sections/<key>.vtt).
-          var cap = shot.getAttribute('data-captions');
-          if (cap) { var tr = document.createElement('track'); tr.kind = 'captions'; tr.srclang = 'en'; tr.label = 'English'; tr.src = cap; tr.default = true; v.appendChild(tr); }
-          media.appendChild(v);
-        }
-        shot.classList.add('is-playing');
-        var p = v.play(); if (p && p.catch) p.catch(function () {});
-        v.focus();
-      });
     });
   }
 

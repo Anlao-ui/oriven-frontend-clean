@@ -173,7 +173,7 @@ const server = app.listen(PORT, async () => {
     check('1.7 no collapse/expand button; the sidebar is always expanded (264px) with its labels', !sb.btn && !sb.cls && sb.w === 264, sb);
     const hd = await page.evaluate(() => { const logo = document.querySelector('.orv-sb .orv-sb-logo'); const img = logo.querySelector('img'); const r = img.getBoundingClientRect(), h = logo.getBoundingClientRect(), sb = document.querySelector('.orv-sb').getBoundingClientRect();
       return { text: logo.textContent.trim(), w: Math.round(r.width), h: Math.round(r.height), centre: Math.round((r.top + r.height / 2) - (h.top + h.height / 2)), inside: r.right < sb.right - 20, natural: img.naturalWidth === img.naturalHeight }; });
-    check('1.8 the sidebar header is the logo only (no "ORIVEN" text), now 40px, square (not stretched), vertically centred, well inside the sidebar', hd.text === '' && hd.w === 40 && hd.h === 40 && Math.abs(hd.centre) <= 3 && hd.inside, hd);
+    check('1.8 the sidebar header is the logo only (no "ORIVEN" text), now 52px (was 40px; the asset has its own margin), square (not stretched), vertically centred, well inside the sidebar', hd.text === '' && hd.w === 52 && hd.h === 52 && Math.abs(hd.centre) <= 3 && hd.inside, hd);
     const ft = await page.evaluate(() => {
       const f = document.querySelector('.orv-sb .onv-foot'); if (!f) return null;
       const items = Array.from(f.querySelectorAll('[data-onv-foot]')).map((b) => b.getAttribute('data-onv-foot'));

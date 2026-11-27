@@ -531,13 +531,31 @@
     }).filter(Boolean);
     return String(text || '') + (notes.length ? '\n' + notes.join('\n') : '');
   }
+  // The opening exchange: a conversation that began with only a greeting
+  // ("Hi", "Hello Nova", "Goedemorgen"…) and the assistant's introduction in
+  // reply. The panel already opens with the assistant's own introduction
+  // (hello()), so that exchange is not shown again as history. It stays in
+  // the model's history, so no context is lost.
+  var GREETING = /^(hi+|hey+|hello|hallo|hoi|heey|hiya|yo|howdy|good (morning|afternoon|evening|day)|goede(morgen|middag|navond)|bonjour|salut|hola|ol[aá]|ciao|guten (morgen|tag|abend)|moin|servus)([ ,]+[a-zà-ÿ]+)?[\s!.,?\u{1F44B}]*$/iu;
+  function isGreeting(m) { var t = m && m.r === 'u' ? String(m.t || '').trim() : ''; return !!t && t.length <= 40 && GREETING.test(t); }
+  function openingCount(msgs) {
+    var i = 0;
+    while (isGreeting(msgs[i])) {
+      i++;
+      while (msgs[i] && msgs[i].r === 'a' && !(msgs[i].c && msgs[i].c.length)) i++;
+    }
+    return i;
+  }
   // Renders a saved conversation into the feed once per page load.
   function restore(feed, history) {
     if (S.restored || !feed) return; S.restored = true;
     var v = read(); if (!v.msgs.length) return;
+    var skip = openingCount(v.msgs);
+    if (history) v.msgs.slice(0, skip).forEach(function (m) { history.push({ role: m.r === 'u' ? 'user' : 'assistant', content: m.r === 'u' ? m.t : historyText(m.t, m.c) }); });
+    if (skip >= v.msgs.length) return; // only the opening exchange: the panel looks like a fresh start
     var g = feed.querySelector('.orv-ai-greeting'); if (g) g.style.display = 'none';
     var sep = document.createElement('div'); sep.className = 'orv-agent-earlier'; sep.textContent = 'Earlier in this conversation'; feed.appendChild(sep);
-    v.msgs.forEach(function (m) {
+    v.msgs.slice(skip).forEach(function (m) {
       var d = document.createElement('div');
       d.className = 'orv-ai-msg ' + (m.r === 'u' ? 'orv-ai-msg-user' : 'orv-ai-msg-ai');
       d.innerHTML = '<div class="orv-ai-msg-bubble' + (m.r === 'u' ? '' : ' orv-agent-fmt') + '">' + (m.r === 'u' ? esc(m.t) : formatReply(m.t)) + '</div>';
@@ -564,7 +582,7 @@
     resetLook();
   }
 
-  window.orvAgent = { helloText: helloText, load: load, apply: apply, current: function () { return S.agent; }, isChosen: function () { return !!(S.agent && S.assigned); }, choose: choose, formatReply: formatReply, renderResults: renderResults, historyText: historyText, record: record, restore: restore, clear: clear, forgetAll: forgetAll, openPage: openPage, glyph: glyph, hasPage: hasPage, busy: busy, where: where, status: function () { return status; } };
+  window.orvAgent = { helloText: helloText, load: load, apply: apply, current: function () { return S.agent; }, isChosen: function () { return !!(S.agent && S.assigned); }, choose: choose, formatReply: formatReply, renderResults: renderResults, historyText: historyText, record: record, restore: restore, openingCount: openingCount, clear: clear, forgetAll: forgetAll, openPage: openPage, glyph: glyph, hasPage: hasPage, busy: busy, where: where, status: function () { return status; } };
 
   function start() { bindComposer(); if (typeof apiFetch === 'function') load(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(start, 400); }); else setTimeout(start, 400);
