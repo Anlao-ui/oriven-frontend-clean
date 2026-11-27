@@ -60,6 +60,8 @@
 <link rel="stylesheet" href="css/analytics.css">
 <link rel="stylesheet" href="css/ad-simulator.css">
 <link rel="stylesheet" href="css/ad-settings.css">
+<!-- OrivenAI design system: colour roles, card hierarchy, type scale, sidebar control area and the assistant workspace. Last on purpose. -->
+<link rel="stylesheet" href="css/orv-design.css">
 
 
 
@@ -1496,8 +1498,18 @@
         <div class="intel-tab-panel" id="bizPanelConnections" style="display:none">
           <div class="biz-module-hd">
           </div>
-          <h1 class="biz-conn-title">Ad Platforms</h1>
-          <p class="ov3-ph-sub" style="margin-bottom:16px" data-i18n="bizConnectionsIntro">Your advertising platforms. Connect an account and Oriven can read and manage campaigns on it directly.</p>
+          <!-- Title card (2026-11-26). Ad Platforms = connections and the ad account in use;
+               per-platform tracking/conversions = Settings → Advertising settings (js/adSettings.js). -->
+          <div class="adp-head">
+            <div class="adp-head__t">
+              <h1 class="biz-conn-title">Ad Platforms</h1>
+              <p class="ov3-ph-sub" data-i18n="bizConnectionsIntro">Your advertising platforms. Connect an account and Oriven can read and manage campaigns on it directly.</p>
+            </div>
+            <div class="adp-head__aside">
+              <span class="adp-head__k" data-onv-t="Tracking and conversions">Tracking and conversions</span>
+              <button type="button" class="adp-head__btn" onclick="orvSettingsAds()" data-onv-t="Open Advertising settings">Open Advertising settings</button>
+            </div>
+          </div>
       <div class="con-wrap" style="max-width:none;padding:0;height:auto;overflow:visible">
         <div class="con-cards">
 
@@ -3027,7 +3039,8 @@
       <div id="launchSelectView">
         <div class="camp-hub lq-hub">
           <div class="lq-hdr">
-            <h1 class="lq-hdr-title" data-onv-t="Campaigns">Campaigns</h1>
+            <!-- The sidebar says where you are (Campaigns); the heading says what the workspace is for. -->
+            <h1 class="lq-hdr-title" data-onv-t="Campaign Studio">Campaign Studio</h1>
             <p class="orv-page-sub" data-i18n="lch_pageSub">Review your ads, resolve any issues and launch campaigns to your connected platforms.</p>
           </div>
           <!-- Filter/Navigation Stability pass — two fixed rows instead of
@@ -5891,6 +5904,11 @@
     </div>
 
     <div class="orv-ai-feed" id="orvAiFeed" role="log" aria-live="polite" aria-relevant="additions">
+      <!-- The assistant introduces itself (js/orivenAgent.js hello()): an assistant
+           message, "Hey, I am <the chosen assistant>. <its own opening line>". Always
+           first, also above an earlier conversation; never stored, never sent, and
+           never a message from the user. -->
+      <div class="orv-ai-msg orv-ai-msg-ai orv-agent-hello" id="orvAgentHello" hidden><div class="orv-ai-msg-bubble orv-agent-fmt" id="orvAgentHelloText"></div></div>
       <div class="orv-ai-greeting" id="orvAiGreeting">
         <div class="orv-agent-eyebrow" id="orvAgentEyebrow"></div>
         <div class="orv-ai-greeting-text" id="orvAiGreetingText">Hello.</div>
@@ -5920,7 +5938,7 @@
           <span class="orv-agent-send-spin" aria-hidden="true"></span>
         </button>
       </div>
-      <div class="orv-agent-meta"><span class="orv-agent-where" id="orvAgentWhere" hidden></span><span class="orv-agent-hint" id="orvAgentHint">Enter to send · Shift + Enter for a new line</span></div>
+      <div class="orv-agent-meta"><span class="orv-agent-where" id="orvAgentWhere" hidden></span><span class="orv-agent-cost" id="orvAgentCost" hidden></span><span class="orv-agent-hint" id="orvAgentHint">Enter to send · Shift + Enter for a new line</span></div>
     </div>
   </aside>
 
@@ -6173,13 +6191,31 @@
 
     <div class="smd-body">
 
-      <nav class="smd-nav">
-        <button class="smd-ni active" data-smd="general" onclick="smdNav(this)" data-i18n="smdNavGeneral">General</button>
-        <button class="smd-ni" data-smd="subscription" onclick="smdNav(this)" data-i18n="smdNavSubscription">Subscription</button>
-        <button class="smd-ni" data-smd="notifications" onclick="smdNav(this)" data-i18n="smdNavNotifications">Notifications</button>
-        <button class="smd-ni" data-smd="account" onclick="smdNav(this)" data-i18n="smdNavAccount">Account</button>
-        <button class="smd-ni" data-smd="security" onclick="smdNav(this)" data-i18n="smdNavSecurity">Security</button>
-        <button class="smd-ni" data-smd="help" onclick="smdNav(this)" data-i18n="helpTitle">Help</button>
+      <!-- Two groups (2026-11-26): General settings (this modal's panels) and
+           Advertising settings (per platform; opens the Advertising Settings
+           page, js/adSettings.js). Connecting accounts stays in Ad Platforms.
+           Group labels are translated by js/appNav.js (data-onv-t). -->
+      <nav class="smd-nav" aria-label="Settings">
+        <div class="smd-grp" role="group" aria-labelledby="smdGrpGen">
+          <div class="smd-grp-h" id="smdGrpGen" data-onv-t="General settings">General settings</div>
+          <p class="smd-grp-d" data-onv-t="Your account, plan and preferences">Your account, plan and preferences</p>
+          <button class="smd-ni active" data-smd="general" onclick="smdNav(this)" data-i18n="smdNavGeneral">General</button>
+          <button class="smd-ni" data-smd="account" onclick="smdNav(this)" data-i18n="smdNavAccount">Account</button>
+          <button class="smd-ni" data-smd="notifications" onclick="smdNav(this)" data-i18n="smdNavNotifications">Notifications</button>
+          <button class="smd-ni" data-smd="security" onclick="smdNav(this)" data-i18n="smdNavSecurity">Security</button>
+          <button class="smd-ni" data-smd="subscription" onclick="smdNav(this)" data-i18n="smdNavSubscription">Subscription</button>
+          <button class="smd-ni" data-smd="help" onclick="smdNav(this)" data-i18n="helpTitle">Help</button>
+        </div>
+        <div class="smd-grp smd-grp--ads" role="group" aria-labelledby="smdGrpAds">
+          <div class="smd-grp-h" id="smdGrpAds" data-onv-t="Advertising settings">Advertising settings</div>
+          <p class="smd-grp-d" data-onv-t="Tracking and conversions for each platform">Tracking and conversions for each platform</p>
+          <button type="button" class="smd-ai" data-smd-ads="meta" aria-controls="smdp-ads" onclick="orvSettingsAds('meta')"><i class="smd-ai__dot" style="--p:#4F8CFF"></i>Meta</button>
+          <button type="button" class="smd-ai" data-smd-ads="google" aria-controls="smdp-ads" onclick="orvSettingsAds('google')"><i class="smd-ai__dot" style="--p:#F4B400"></i>Google</button>
+          <button type="button" class="smd-ai" data-smd-ads="tiktok" aria-controls="smdp-ads" onclick="orvSettingsAds('tiktok')"><i class="smd-ai__dot" style="--p:#25F4EE"></i>TikTok</button>
+          <button type="button" class="smd-ai" data-smd-ads="pinterest" aria-controls="smdp-ads" onclick="orvSettingsAds('pinterest')"><i class="smd-ai__dot" style="--p:#E60023"></i>Pinterest</button>
+          <button type="button" class="smd-ai" data-smd-ads="snapchat" aria-controls="smdp-ads" onclick="orvSettingsAds('snapchat')"><i class="smd-ai__dot" style="--p:#FFFC00"></i>Snapchat</button>
+          <button type="button" class="smd-grp-link" onclick="orvOpenAdPlatformsFromSettings()" data-onv-t="Connect accounts in Ad Platforms">Connect accounts in Ad Platforms</button>
+        </div>
       </nav>
 
       <div class="smd-content">
@@ -6187,6 +6223,10 @@
         <!-- ── General (Oriven 1.0 UX Refinement V4 — merges the former
              Workspace/Appearance/Language tabs; same fields, same ids,
              same handlers, one tab instead of three) ─────────────────── -->
+        <!-- Advertising settings for one platform (js/adSettings.js openIn), switched by the
+             Meta/Google/TikTok/Pinterest/Snapchat items on the left without leaving Settings. -->
+        <div class="smd-panel" id="smdp-ads" role="region" aria-label="Advertising settings"></div>
+
         <div class="smd-panel active" id="smdp-general">
           <div class="smd-panel-hd"><div class="smd-panel-title" data-i18n="smdNavGeneral">General</div></div>
           <!-- Workspace Name: no longer shown anywhere (the sidebar shows the
@@ -6954,6 +6994,7 @@
 <script src="js/orvAnalytics.js"></script>
 <script src="js/campaignComparison.js"></script>
 <script src="js/overviewCompare.js"></script>
+<script src="js/platformMetrics.js"></script>
 <script src="js/aiDock.js"></script>
 <script src="js/myContent.js"></script>
 <script src="js/workspaceI18n.js"></script>
@@ -6964,8 +7005,10 @@
 <script src="js/needsAttention.js"></script>
 <script src="js/dashboardV2.js"></script>
 <script src="js/appNav.js"></script>
+<script src="js/navHelp.js"></script>
 <script src="js/createCompat.js"></script>
 <script src="js/createFlow.js"></script>
+<script src="js/createModes.js"></script>
 
 <!-- ════════════════════════════════════════════════════════════
      AI CONVERSATION FLOW OVERLAY
@@ -13556,6 +13599,11 @@ window._launchRepaint = function(){
        to dock the bell just left of the panel's close button instead of
        leaving it glued to the viewport corner, on top of the panel. */
     document.body.classList.add('orv-ai-open');
+    /* 2026-11-26: the assistant is opened from the sidebar and shown as a
+       full chat workspace next to it (css/orv-design.css) — wherever it is
+       opened from. The floating launcher is gone. */
+    document.body.classList.add('orv-ai-ws');
+    if(window.orvAppNavAssistant) window.orvAppNavAssistant.paint();
     // Bug fix (Floating Assistant pass) — this used to call
     // _orvAiUpdateContext(_orvAiCurrentPage), which pushes the STALE local
     // mirror back into window.orvContext.page, clobbering the correct
@@ -13584,6 +13632,8 @@ window._launchRepaint = function(){
     if(panel){ panel.classList.remove('orv-ai-open'); panel.setAttribute('aria-hidden','true'); }
     if(fab) fab.classList.remove('orv-ai-fab-hidden');
     document.body.classList.remove('orv-ai-open');
+    document.body.classList.remove('orv-ai-ws');
+    if(window.orvAppNavAssistant) window.orvAppNavAssistant.paint();
     /* Reset greeting for next open */
     var greeting = document.getElementById('orvAiGreeting');
     if(greeting){ greeting.style.display = ''; greeting.style.opacity = '1'; }
@@ -13601,6 +13651,8 @@ window._launchRepaint = function(){
     if(!e.target || !document.documentElement.contains(e.target)) return;
     /* A drawer or the video player opened from the panel (css/ow-system.css) sits above it: not outside. */
     if(e.target.closest && e.target.closest('.ow-drawer, .ow-player')) return;
+    /* The sidebar's assistant item (js/appNav.js) opens it; the mobile menu button opens the menu. */
+    if(e.target.closest && e.target.closest('[data-onv-foot="assistant"], .orv-mob-drawer, .orv-mob-drawer-overlay, .orv-mob-toggle, .mbk')) return;
     if(panel && !panel.contains(e.target) && fab && !fab.contains(e.target)) window.orvCloseAi();
   }
 
@@ -13710,7 +13762,7 @@ window._launchRepaint = function(){
         if(window.orvAgent && orvAgent.busy) orvAgent.busy(false);
         /* Nothing was sent: if the conversation is still empty, bring the
            welcome back (it was faded out optimistically above). */
-        if(greeting && !feed.querySelector('.orv-ai-msg')){ setTimeout(function(){ greeting.style.display = ''; greeting.style.opacity = '1'; }, 220); }
+        if(greeting && !feed.querySelector('.orv-ai-msg:not(.orv-agent-hello)')){ setTimeout(function(){ greeting.style.display = ''; greeting.style.opacity = '1'; }, 220); }
         return;
       }
     }

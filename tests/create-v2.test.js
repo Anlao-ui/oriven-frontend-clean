@@ -121,7 +121,8 @@ async function enterCreate(page, o, keepDraft) {
   // page has stayed the same for 3 s before opening Create.
   await page.evaluate(() => { window.__lastNav = { id: null, at: performance.now() }; setInterval(function () { var a = document.querySelector('.page.active'); var id = a && a.id; if (id !== window.__lastNav.id) window.__lastNav = { id: id, at: performance.now() }; }, 100); });
   for (let i = 0; i < 150; i++) { await page.waitForTimeout(200); const quiet = await page.evaluate(() => performance.now() - window.__lastNav.at > 3000 && performance.now() > 8500); if (quiet) break; }
-  await page.evaluate(() => { if (window.orvTour) { try { window.orvTour.close(); } catch (_) {} } if (document.getElementById('orvConsentBanner')) document.getElementById('orvConsentBanner').remove(); _orvNav('create', 'page-create');
+  await page.evaluate(() => { if (window.orvTour) { try { window.orvTour.close(); } catch (_) {} } if (document.getElementById('orvConsentBanner')) document.getElementById('orvConsentBanner').remove(); _orvNav('create', 'page-create'); // Create Ads opens on the choice “Create with AI / Create manually” (js/createModes.js, covered by workspace-redesign); this suite is the AI flow, so pick it like a user would.
+    if (window.orvCreateModes) window.orvCreateModes.choose('ai');
     // Supabase is blocked here, so its session lookup can stall ~15 s on a token refresh; real users have a live session.
     if (window.SB && SB.auth) SB.auth.getSession = async function () { return { data: { session: null }, error: null }; };
   });

@@ -76,7 +76,7 @@
       panel.setAttribute('aria-label', 'Your OrivenAI assistant');
       var left = panel.querySelector('.orv-ai-panel-head-left');
       if (left) left.innerHTML = '<div class="orv-agent-id"><div class="orv-agent-id-text"><div class="orv-ai-panel-name">Your assistant</div></div></div>';
-      var intro = document.getElementById('orvAgentIntro'); if (intro) intro.textContent = '';
+      hello(null);
       var eb = document.getElementById('orvAgentEyebrow'); if (eb) eb.textContent = '';
       var inp = document.getElementById('orvAiInput'); if (inp) inp.placeholder = 'Ask your assistant anything…';
     }
@@ -105,6 +105,24 @@
         '<div class="orv-agent-nameline"><span class="orv-ai-panel-name">' + esc(a.name) + '</span><span class="orv-agent-status" role="status"><span class="orv-agent-status-t">' + STATUS[status] + '</span></span></div>' +
         '<div class="orv-agent-tagline">' + esc(a.tone || a.role) + '</div>' +
       '</div></div>';
+  }
+
+  // ── The introduction ────────────────────────────────────────────────
+  // The chosen assistant introduces itself as an assistant message, always
+  // "Hey, I am <name>." followed by its own opening line from the server
+  // (agents.js hello). Shown first in every conversation; not part of the
+  // saved conversation or the history sent to the model.
+  function helloText(a) {
+    if (!a || !a.name) return '';
+    var line = String(a.hello || a.intro || '').trim();
+    return 'Hey, I am ' + a.name + '.' + (line ? ' ' + line : '');
+  }
+  function hello(a) {
+    var box = document.getElementById('orvAgentHello'), t = document.getElementById('orvAgentHelloText'); if (!box || !t) return;
+    var txt = helloText(a);
+    box.hidden = !txt;
+    if (t.textContent !== txt) t.textContent = txt;
+    var old = document.getElementById('orvAgentIntro'); if (old) old.remove(); // the earlier paragraph form
   }
 
   // ── Four starting points (empty conversation) ───────────────────────
@@ -239,6 +257,16 @@
     el.title = label ? 'Your assistant knows which page you have open' : '';
   }
 
+  // What a message costs, shown under the message box before anything is
+  // sent (the credit check in app.html orvAiSend charges CREDIT_COSTS.chat).
+  function cost() {
+    var el = document.getElementById('orvAgentCost'); if (!el) return;
+    // A message that needs extra steps (tools) uses up to two more chatStep charges (js/plans.js).
+    var n = null, step = 0; try { if (typeof CREDIT_COSTS !== 'undefined' && CREDIT_COSTS) { n = CREDIT_COSTS.chat || null; step = CREDIT_COSTS.chatStep || 0; } } catch (_) {}
+    el.hidden = !n;
+    el.textContent = n ? n + ' credits per message' + (step ? ' (up to ' + (n + 2 * step) + ' when it carries out steps)' : '') + ' · changes to live campaigns wait for your confirmation' : '';
+  }
+
   // No assistant chosen yet: the widget doesn't wear the server's default
   // (that would show an assistant the user never picked). It asks for the
   // choice, and chat waits until one is made.
@@ -256,7 +284,7 @@
       panel.setAttribute('aria-label', 'Choose your OrivenAI assistant');
       var left = panel.querySelector('.orv-ai-panel-head-left');
       if (left) left.innerHTML = '<div class="orv-agent-id"><div class="orv-agent-id-text"><div class="orv-ai-panel-name">Your assistant</div><div class="orv-agent-role">Choose one to start</div></div></div>';
-      var intro = document.getElementById('orvAgentIntro'); if (intro) intro.textContent = '';
+      hello(null);
       var eb = document.getElementById('orvAgentEyebrow'); if (eb) eb.textContent = '';
       var div = panel.querySelector('.orv-ai-section-divider span'); if (div) div.textContent = 'Choose your assistant first';
       lockInput(true);
@@ -313,9 +341,7 @@
       // claims nothing about the user's data.
       var eb = document.getElementById('orvAgentEyebrow'); if (eb) eb.textContent = a.role || '';
       var gt = document.getElementById('orvAiGreetingText');
-      var intro = document.getElementById('orvAgentIntro');
-      if (gt && !intro) { intro = document.createElement('p'); intro.id = 'orvAgentIntro'; intro.className = 'orv-agent-intro'; gt.parentNode.insertBefore(intro, gt.nextSibling); }
-      if (intro) intro.textContent = a.hello || a.intro || '';
+      hello(a);
       var div = panel.querySelector('.orv-ai-section-divider span');
       if (div) div.textContent = 'Ask ' + a.name;
       var inp = document.getElementById('orvAiInput');
@@ -323,6 +349,7 @@
       renderPicker();
       renderStarters();
       where();
+      cost();
       bindComposer();
       ensureAboutUI();
     }
@@ -392,7 +419,7 @@
   function hasPage(key) { return !!(window.orvPages && window.orvPages.has(key)); }
   function openPage(key) {
     if (!hasPage(key) || !window.orvPages.open(key)) return false;
-    if (typeof window.orvCloseAi === 'function' && window.innerWidth < 769) window.orvCloseAi();
+    if (typeof window.orvCloseAi === 'function') window.orvCloseAi(); // the assistant fills the workspace: show the opened page (the conversation is kept)
     return true;
   }
   function pageBtn(key, label) { return hasPage(key) ? '<button type="button" class="orv-agent-card-btn" data-agent-page="' + esc(key) + '">' + esc(label || ('Open ' + window.orvPages.label(key))) + '</button>' : ''; }
@@ -504,13 +531,31 @@
     }).filter(Boolean);
     return String(text || '') + (notes.length ? '\n' + notes.join('\n') : '');
   }
+  // The opening exchange: a conversation that began with only a greeting
+  // ("Hi", "Hello Nova", "Goedemorgen"…) and the assistant's introduction in
+  // reply. The panel already opens with the assistant's own introduction
+  // (hello()), so that exchange is not shown again as history. It stays in
+  // the model's history, so no context is lost.
+  var GREETING = /^(hi+|hey+|hello|hallo|hoi|heey|hiya|yo|howdy|good (morning|afternoon|evening|day)|goede(morgen|middag|navond)|bonjour|salut|hola|ol[aá]|ciao|guten (morgen|tag|abend)|moin|servus)([ ,]+[a-zà-ÿ]+)?[\s!.,?\u{1F44B}]*$/iu;
+  function isGreeting(m) { var t = m && m.r === 'u' ? String(m.t || '').trim() : ''; return !!t && t.length <= 40 && GREETING.test(t); }
+  function openingCount(msgs) {
+    var i = 0;
+    while (isGreeting(msgs[i])) {
+      i++;
+      while (msgs[i] && msgs[i].r === 'a' && !(msgs[i].c && msgs[i].c.length)) i++;
+    }
+    return i;
+  }
   // Renders a saved conversation into the feed once per page load.
   function restore(feed, history) {
     if (S.restored || !feed) return; S.restored = true;
     var v = read(); if (!v.msgs.length) return;
+    var skip = openingCount(v.msgs);
+    if (history) v.msgs.slice(0, skip).forEach(function (m) { history.push({ role: m.r === 'u' ? 'user' : 'assistant', content: m.r === 'u' ? m.t : historyText(m.t, m.c) }); });
+    if (skip >= v.msgs.length) return; // only the opening exchange: the panel looks like a fresh start
     var g = feed.querySelector('.orv-ai-greeting'); if (g) g.style.display = 'none';
     var sep = document.createElement('div'); sep.className = 'orv-agent-earlier'; sep.textContent = 'Earlier in this conversation'; feed.appendChild(sep);
-    v.msgs.forEach(function (m) {
+    v.msgs.slice(skip).forEach(function (m) {
       var d = document.createElement('div');
       d.className = 'orv-ai-msg ' + (m.r === 'u' ? 'orv-ai-msg-user' : 'orv-ai-msg-ai');
       d.innerHTML = '<div class="orv-ai-msg-bubble' + (m.r === 'u' ? '' : ' orv-agent-fmt') + '">' + (m.r === 'u' ? esc(m.t) : formatReply(m.t)) + '</div>';
@@ -524,7 +569,7 @@
     var k = key(); if (k) { try { localStorage.removeItem(k); } catch (_) {} }
     if (history) history.length = 0;
     if (feed) {
-      Array.prototype.slice.call(feed.children).forEach(function (el) { if (!el.classList.contains('orv-ai-greeting')) el.remove(); });
+      Array.prototype.slice.call(feed.children).forEach(function (el) { if (!el.classList.contains('orv-ai-greeting') && !el.classList.contains('orv-agent-hello')) el.remove(); });
       var g = feed.querySelector('.orv-ai-greeting'); if (g) { g.style.display = ''; g.style.opacity = '1'; }
     }
   }
@@ -537,7 +582,7 @@
     resetLook();
   }
 
-  window.orvAgent = { load: load, apply: apply, current: function () { return S.agent; }, isChosen: function () { return !!(S.agent && S.assigned); }, choose: choose, formatReply: formatReply, renderResults: renderResults, historyText: historyText, record: record, restore: restore, clear: clear, forgetAll: forgetAll, openPage: openPage, glyph: glyph, hasPage: hasPage, busy: busy, where: where, status: function () { return status; } };
+  window.orvAgent = { helloText: helloText, load: load, apply: apply, current: function () { return S.agent; }, isChosen: function () { return !!(S.agent && S.assigned); }, choose: choose, formatReply: formatReply, renderResults: renderResults, historyText: historyText, record: record, restore: restore, openingCount: openingCount, clear: clear, forgetAll: forgetAll, openPage: openPage, glyph: glyph, hasPage: hasPage, busy: busy, where: where, status: function () { return status; } };
 
   function start() { bindComposer(); if (typeof apiFetch === 'function') load(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(start, 400); }); else setTimeout(start, 400);

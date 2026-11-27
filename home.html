@@ -799,28 +799,63 @@
                 <span class="lp-dd-badge">Live</span>
               </span>
             </a>
+
+            <a href="/product/snapchat-ads" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 20 20"><rect width="20" height="20" rx="5" fill="#FFFC00"/><path d="M10 3.6c2.2 0 3.7 1.6 3.7 3.8v1.8l1.3.35-.95.95c.5 1.1 1.45 1.8 2.3 2.15-.75.65-1.9.7-2.55.95-.35.7-1 1.35-3.8 1.35s-3.45-.65-3.8-1.35c-.65-.25-1.8-.3-2.55-.95.85-.35 1.8-1.05 2.3-2.15l-.95-.95 1.3-.35V7.4c0-2.2 1.5-3.8 3.7-3.8z" fill="#fff" stroke="#111" stroke-width=".9" stroke-linejoin="round"/></svg>
+              </span>
+              <span class="lp-dd-item-inner">
+                <span class="lp-dd-item-name">Snapchat Ads</span>
+                <span class="lp-dd-badge">Live</span>
+              </span>
+            </a>
           </div>
 
           <!-- Col 2: Products -->
           <div class="lp-dd-col">
             <div class="lp-dd-colhead">Products</div>
 
-            <!-- Landing Page Refinement pass — reordered to the canonical
-                 workflow sequence (Business first, as the context every
-                 other module builds on, then Research/Create/Launch/
-                 Campaigns/Autopilot) rather than Create-first. Every
-                 item's href/icon/description is unchanged — only the
-                 order moved. Every item below links to its real dedicated
-                 /product page. Intelligence/Ad Library remain
-                 deliberately absent as standalone items (folded into
-                 Campaigns' Insights/Creatives tabs). -->
+            <!-- The six sections of the app, in the app's sidebar order and
+                 with its names (js/appNav.js SECTIONS); the same names as the
+                 homepage's "The real product" and "One loop" sections. Each
+                 links to the public page that covers it. -->
             <a href="/business" class="lp-dd-item" role="menuitem">
               <span class="lp-dd-icon">
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="rgba(183,255,42,.8)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="2.25" y="2.25" width="5" height="6" rx="1.2"/><rect x="8.75" y="2.25" width="5" height="3.5" rx="1.2"/><rect x="8.75" y="7.25" width="5" height="6.5" rx="1.2"/><rect x="2.25" y="9.75" width="5" height="4" rx="1.2"/></svg>
               </span>
               <span>
-                <span class="lp-dd-item-name">Control Center</span>
-                <span class="lp-dd-item-desc">What is happening, what needs you, what is planned, and the business context behind it.</span>
+                <span class="lp-dd-item-name">Overview</span>
+                <span class="lp-dd-item-desc">Your dashboard, AI plans and tasks, and what needs your attention.</span>
+              </span>
+            </a>
+
+            <a href="/launch" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H6M13 3V10" stroke="rgba(183,255,42,.8)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Campaigns</span>
+                <span class="lp-dd-item-desc">Check and launch campaigns in Campaign Studio; try budgets in the Ad Simulator.</span>
+              </span>
+            </a>
+
+            <a href="/create" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="rgba(183,255,42,.8)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 2.25l1.15 3.35 3.35 1.15-3.35 1.15-1.15 3.35-1.15-3.35-3.35-1.15 3.35-1.15z"/><path d="M12.25 9.75v3.5M10.5 11.5H14"/><path d="M12 2.5v1.5M11.25 3.25h1.5"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Creative Studio</span>
+                <span class="lp-dd-item-desc">Make ads with AI or by hand, keep every creative and test versions.</span>
+              </span>
+            </a>
+
+            <a href="/campaigns" class="lp-dd-item" role="menuitem">
+              <span class="lp-dd-icon">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="rgba(183,255,42,.8)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 13.5h11"/><path d="M4.5 11V8"/><path d="M8 11V4.5"/><path d="M11.5 11V6.5"/></svg>
+              </span>
+              <span>
+                <span class="lp-dd-item-name">Analytics</span>
+                <span class="lp-dd-item-desc">Results from every platform, compared side by side and ad by ad.</span>
               </span>
             </a>
 
@@ -830,37 +865,7 @@
               </span>
               <span>
                 <span class="lp-dd-item-name">Research</span>
-                <span class="lp-dd-item-desc">Investigate markets, competitors, audiences and opportunities.</span>
-              </span>
-            </a>
-
-            <a href="/create" class="lp-dd-item" role="menuitem">
-              <span class="lp-dd-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="rgba(183,255,42,.8)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.75 2.25l1.15 3.35 3.35 1.15-3.35 1.15-1.15 3.35-1.15-3.35-3.35-1.15 3.35-1.15z"/><path d="M12.25 9.75v3.5M10.5 11.5H14"/><path d="M12 2.5v1.5M11.25 3.25h1.5"/></svg>
-              </span>
-              <span>
-                <span class="lp-dd-item-name">Create</span>
-                <span class="lp-dd-item-desc">Turn strategy into platform-ready creative.</span>
-              </span>
-            </a>
-
-            <a href="/launch" class="lp-dd-item" role="menuitem">
-              <span class="lp-dd-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 13L13 3M13 3H6M13 3V10" stroke="rgba(183,255,42,.8)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </span>
-              <span>
-                <span class="lp-dd-item-name">Launch</span>
-                <span class="lp-dd-item-desc">Review readiness and launch to your connected platforms.</span>
-              </span>
-            </a>
-
-            <a href="/campaigns" class="lp-dd-item" role="menuitem">
-              <span class="lp-dd-icon">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="3" y="2.5" width="10" height="12" rx="1.5" stroke="rgba(183,255,42,.8)" stroke-width="1.3"/><rect x="6" y="1" width="4" height="2.5" rx="1" fill="rgba(183,255,42,.8)"/><line x1="5.5" y1="7" x2="10.5" y2="7" stroke="rgba(183,255,42,.8)" stroke-width="1.1"/><line x1="5.5" y1="10" x2="10.5" y2="10" stroke="rgba(183,255,42,.8)" stroke-width="1.1"/></svg>
-              </span>
-              <span>
-                <span class="lp-dd-item-name">Campaigns</span>
-                <span class="lp-dd-item-desc">Spend, delivery, traffic and conversions across your platforms.</span>
+                <span class="lp-dd-item-desc">Audience and competitive research, saved with its sources.</span>
               </span>
             </a>
 
@@ -869,12 +874,11 @@
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="rgba(183,255,42,.8)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1.75" y="2" width="4" height="4" rx="1.1"/><rect x="1.75" y="10" width="4" height="4" rx="1.1"/><rect x="10.25" y="6" width="4" height="4" rx="1.1"/><path d="M5.75 4h1.5a1.5 1.5 0 0 1 1.5 1.5V8h1.5"/><path d="M5.75 12h1.5a1.5 1.5 0 0 0 1.5-1.5V8"/></svg>
               </span>
               <span>
-                <span class="lp-dd-item-name">Automations</span>
-                <span class="lp-dd-item-desc">Schedules and rules that manage your campaigns within your limits.</span>
+                <span class="lp-dd-item-name">Autopilot</span>
+                <span class="lp-dd-item-desc">Automations that work within your limits, with a full history.</span>
               </span>
             </a>
           </div>
-
         </div><!-- /lp-dd-mega -->
       </div><!-- /lpDdProduct -->
 
@@ -897,7 +901,7 @@
               <span><span class="lp-dd-item-name">Research before you create</span><span class="lp-dd-item-desc">Know your market, competitors and audience before you spend.</span></span>
             </a>
             <a href="/solutions/plan-to-content" class="lp-dd-item" role="menuitem">
-              <span><span class="lp-dd-item-name">From marketing plan to content</span><span class="lp-dd-item-desc">A plan becomes a brief that prefills Create.</span></span>
+              <span><span class="lp-dd-item-name">From marketing plan to content</span><span class="lp-dd-item-desc">A plan built around your business, with tasks that lead to Creative Studio.</span></span>
             </a>
             <a href="/solutions/advertising-campaigns" class="lp-dd-item" role="menuitem">
               <span><span class="lp-dd-item-name">Ads and campaigns</span><span class="lp-dd-item-desc">Create, check and publish ads, then follow every campaign.</span></span>
@@ -985,13 +989,14 @@
         <a href="/product/meta-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">Meta Ads</a>
         <a href="/product/tiktok-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">TikTok Ads</a>
         <a href="/product/pinterest-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">Pinterest Ads</a>
+        <a href="/product/snapchat-ads" class="lp-mm-dd-link" onclick="lpCloseMm()">Snapchat Ads</a>
         <div class="lp-mm-cat">Products</div>
-        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Control Center</a>
+        <a href="/business" class="lp-mm-dd-link" onclick="lpCloseMm()">Overview</a>
+        <a href="/launch" class="lp-mm-dd-link" onclick="lpCloseMm()">Campaigns</a>
+        <a href="/create" class="lp-mm-dd-link" onclick="lpCloseMm()">Creative Studio</a>
+        <a href="/campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Analytics</a>
         <a href="/research" class="lp-mm-dd-link" onclick="lpCloseMm()">Research</a>
-        <a href="/create" class="lp-mm-dd-link" onclick="lpCloseMm()">Create</a>
-        <a href="/launch" class="lp-mm-dd-link" onclick="lpCloseMm()">Launch</a>
-        <a href="/campaigns" class="lp-mm-dd-link" onclick="lpCloseMm()">Campaigns</a>
-        <a href="/autopilot" class="lp-mm-dd-link" onclick="lpCloseMm()">Automations</a>
+        <a href="/autopilot" class="lp-mm-dd-link" onclick="lpCloseMm()">Autopilot</a>
       </div>
     </div>
 
@@ -1122,7 +1127,7 @@
           </dl>
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Market, competitor, audience and opportunity research</li><li>Separating what is established from ideas to test</li><li>Turning findings into a clear next step</li></ul>
-          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Control Center</a><a class="ik-chip" href="/create">Create</a><a class="ik-chip" href="/campaigns">Campaigns</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Overview</a><a class="ik-chip" href="/create">Creative Studio</a><a class="ik-chip" href="/campaigns">Analytics</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
           <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Scout">
@@ -1140,7 +1145,7 @@
           </dl>
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Turning goals into clear priorities</li><li>Choosing channels and budgets you can defend</li><li>Keeping your brand and audience behind every decision</li></ul>
-          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/research">Research</a><a class="ik-chip" href="/create">Create</a><a class="ik-chip" href="/launch">Launch</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/research">Research</a><a class="ik-chip" href="/create">Creative Studio</a><a class="ik-chip" href="/launch">Campaigns</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
           <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Vector">
@@ -1158,7 +1163,7 @@
           </dl>
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Ad concepts, headlines and copy in your brand voice</li><li>Image and video ads from a short brief</li><li>Variations for each platform’s formats</li></ul>
-          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/research">Research</a><a class="ik-chip" href="/launch">Launch</a><a class="ik-chip" href="/campaigns">Campaigns</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/research">Research</a><a class="ik-chip" href="/launch">Campaigns</a><a class="ik-chip" href="/campaigns">Analytics</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
           <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Nova">
@@ -1176,7 +1181,7 @@
           </dl>
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Turning plans into the next concrete step</li><li>Checking launch readiness and clearing blockers</li><li>Keeping campaigns moving week to week</li></ul>
-          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Control Center</a><a class="ik-chip" href="/create">Create</a><a class="ik-chip" href="/campaigns">Campaigns</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Overview</a><a class="ik-chip" href="/create">Creative Studio</a><a class="ik-chip" href="/campaigns">Analytics</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
           <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Momentum">
@@ -1194,7 +1199,7 @@
           </dl>
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Reading spend, clicks, CTR, CPA and ROAS</li><li>Comparing campaigns and platforms side by side</li><li>Spotting what needs your attention</li></ul>
-          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Control Center</a><a class="ik-chip" href="/create">Create</a><a class="ik-chip" href="/autopilot">Automations</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Overview</a><a class="ik-chip" href="/create">Creative Studio</a><a class="ik-chip" href="/autopilot">Autopilot</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
           <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Metric">
@@ -1212,7 +1217,7 @@
           </dl>
           <p class="ik-agent__label">Strongest at</p>
           <ul class="ik-agent__skills"><li>Schedules and rules for published campaigns</li><li>Rules that notify you, ask first or act within your limits</li><li>Spotting repetitive work worth automating</li></ul>
-          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Control Center</a><a class="ik-chip" href="/launch">Launch</a><a class="ik-chip" href="/campaigns">Campaigns</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
+          <div class="ik-with"><span class="ik-with__label">Also helps you with</span><a class="ik-chip" href="/business">Overview</a><a class="ik-chip" href="/launch">Campaigns</a><a class="ik-chip" href="/campaigns">Analytics</a><span class="ik-chip ik-chip--muted">and the rest of OrivenAI</span></div>
           <button type="button" class="ik-btn ik-btn--ghost ik-agent__more" data-ik-profile>View full profile <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
         <div class="ik-chat" role="group" aria-label="Illustrative example conversation with Flux">
@@ -1288,59 +1293,50 @@
     <div class="ik-head ik-head--center" data-reveal="stagger">
       <p class="ik-eyebrow">Inside OrivenAI</p>
       <h2 class="ik-h2" id="ik-inside-title">The real product, not a mock-up.</h2>
-      <p class="ik-lead">Pick a section and watch its tutorial: every page in it, recorded in the real app with a sample business.</p>
+      <p class="ik-lead">Six sections, recorded in the real app with a sample business. Pick one to see it.</p>
     </div>
+    <!-- inside:start (written by tools/product-films-section.js from tools/product-films.js) -->
     <div class="ik-inside__stage" data-ik-inside data-reveal="scale">
       <div class="ik-frame">
-        <div class="ik-frame__bar"><span class="ik-frame__path">orivenai.com/app · <b data-ik-shot-name>Control Center</b></span><span class="ik-mono">Sample workspace</span></div>
-        <div class="ik-shot is-active" id="shot-business" data-tutorial="control-center" role="tabpanel" aria-labelledby="ik-shot-tab-business">
+        <div class="ik-frame__bar"><span class="ik-frame__path">orivenai.com/app · <b data-ik-shot-name>Overview</b></span><span class="ik-frame__right"><span class="ik-mono">Sample workspace</span><button type="button" class="ik-film-toggle" data-ik-film-toggle aria-pressed="false" aria-label="Pause the recording"><svg class="ik-film-ic ik-film-ic--pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="4" y="3" width="3" height="10" rx="1"/><rect x="9" y="3" width="3" height="10" rx="1"/></svg><svg class="ik-film-ic ik-film-ic--play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 3v10l8-5z"/></svg><span data-ik-film-label>Pause</span></button></span></div>
+        <div class="ik-shot is-active" id="shot-overview" role="tabpanel" aria-labelledby="ik-shot-tab-overview">
           <div class="ik-shot__media">
-            <img src="/assets/films/tutorials/control-center-thumb.webp" width="960" height="540" alt="Control Center tutorial: Dashboard, Marketing Plan, Progress, recorded in the real OrivenAI app with a sample business" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play data-ow-video="/assets/films/tutorials/control-center.mp4" data-ow-poster="/assets/films/tutorials/control-center.jpg" data-ow-captions="/assets/films/tutorials/control-center.vtt" data-ow-title="Control Center tutorial" aria-label="Play the Control Center tutorial: Dashboard, Marketing Plan, Progress"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Watch tutorial</button>
-            <p class="ik-shot__pages" aria-hidden="true">Dashboard · Marketing Plan · Progress</p>
+            <video class="ik-film" muted loop playsinline preload="metadata" poster="/assets/films/product/overview.jpg" width="1920" height="1080" aria-label="Screen recording of Overview in the OrivenAI app (sample workspace): Dashboard, AI Plans &amp; Tasks, Needs Attention"><source src="/assets/films/product/overview.mp4" type="video/mp4"></video>
           </div>
         </div>
-        <div class="ik-shot" id="shot-research" data-tutorial="research" role="tabpanel" aria-labelledby="ik-shot-tab-research">
+        <div class="ik-shot" id="shot-campaigns" role="tabpanel" aria-labelledby="ik-shot-tab-campaigns">
           <div class="ik-shot__media">
-            <img src="/assets/films/tutorials/research-thumb.webp" width="960" height="540" alt="Research tutorial: Research, Insights, Competitor Analysis, recorded in the real OrivenAI app with a sample business" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play data-ow-video="/assets/films/tutorials/research.mp4" data-ow-poster="/assets/films/tutorials/research.jpg" data-ow-captions="/assets/films/tutorials/research.vtt" data-ow-title="Research tutorial" aria-label="Play the Research tutorial: Research, Insights, Competitor Analysis"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Watch tutorial</button>
-            <p class="ik-shot__pages" aria-hidden="true">Research · Insights · Competitor Analysis</p>
+            <video class="ik-film" muted loop playsinline preload="none" poster="/assets/films/product/campaigns.jpg" width="1920" height="1080" aria-label="Screen recording of Campaigns in the OrivenAI app (sample workspace): Campaign Studio, Ad Simulator"><source src="/assets/films/product/campaigns.mp4" type="video/mp4"></video>
           </div>
         </div>
-        <div class="ik-shot" id="shot-create" data-tutorial="create" role="tabpanel" aria-labelledby="ik-shot-tab-create">
+        <div class="ik-shot" id="shot-creative-studio" role="tabpanel" aria-labelledby="ik-shot-tab-creative-studio">
           <div class="ik-shot__media">
-            <img src="/assets/films/tutorials/create-thumb.webp" width="960" height="540" alt="Create tutorial: Create, Creative Testing, My Content, recorded in the real OrivenAI app with a sample business" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play data-ow-video="/assets/films/tutorials/create.mp4" data-ow-poster="/assets/films/tutorials/create.jpg" data-ow-captions="/assets/films/tutorials/create.vtt" data-ow-title="Create tutorial" aria-label="Play the Create tutorial: Create, Creative Testing, My Content"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Watch tutorial</button>
-            <p class="ik-shot__pages" aria-hidden="true">Create · Creative Testing · My Content</p>
+            <video class="ik-film" muted loop playsinline preload="none" poster="/assets/films/product/creative-studio.jpg" width="1920" height="1080" aria-label="Screen recording of Creative Studio in the OrivenAI app (sample workspace): Create Ads, My Creatives, Creative Testing"><source src="/assets/films/product/creative-studio.mp4" type="video/mp4"></video>
           </div>
         </div>
-        <div class="ik-shot" id="shot-launch" data-tutorial="launch" role="tabpanel" aria-labelledby="ik-shot-tab-launch">
+        <div class="ik-shot" id="shot-analytics" role="tabpanel" aria-labelledby="ik-shot-tab-analytics">
           <div class="ik-shot__media">
-            <img src="/assets/films/tutorials/launch-thumb.webp" width="960" height="540" alt="Launch tutorial: Audience Builder, Ad Studio, recorded in the real OrivenAI app with a sample business" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play data-ow-video="/assets/films/tutorials/launch.mp4" data-ow-poster="/assets/films/tutorials/launch.jpg" data-ow-captions="/assets/films/tutorials/launch.vtt" data-ow-title="Launch tutorial" aria-label="Play the Launch tutorial: Audience Builder, Ad Studio"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Watch tutorial</button>
-            <p class="ik-shot__pages" aria-hidden="true">Audience Builder · Ad Studio</p>
+            <video class="ik-film" muted loop playsinline preload="none" poster="/assets/films/product/analytics.jpg" width="1920" height="1080" aria-label="Screen recording of Analytics in the OrivenAI app (sample workspace): Performance Overview, Cross-platform Comparison, Ads vs Ads"><source src="/assets/films/product/analytics.mp4" type="video/mp4"></video>
           </div>
         </div>
-        <div class="ik-shot" id="shot-campaigns" data-tutorial="campaigns" role="tabpanel" aria-labelledby="ik-shot-tab-campaigns">
+        <div class="ik-shot" id="shot-research" role="tabpanel" aria-labelledby="ik-shot-tab-research">
           <div class="ik-shot__media">
-            <img src="/assets/films/tutorials/campaigns-thumb.webp" width="960" height="540" alt="Campaigns tutorial: Campaign Overview, Campaign Comparison, Campaign Builder, recorded in the real OrivenAI app with a sample business" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play data-ow-video="/assets/films/tutorials/campaigns.mp4" data-ow-poster="/assets/films/tutorials/campaigns.jpg" data-ow-captions="/assets/films/tutorials/campaigns.vtt" data-ow-title="Campaigns tutorial" aria-label="Play the Campaigns tutorial: Campaign Overview, Campaign Comparison, Campaign Builder"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Watch tutorial</button>
-            <p class="ik-shot__pages" aria-hidden="true">Campaign Overview · Campaign Comparison · Campaign Builder</p>
+            <video class="ik-film" muted loop playsinline preload="none" poster="/assets/films/product/research.jpg" width="1920" height="1080" aria-label="Screen recording of Research in the OrivenAI app (sample workspace): Audience Research, Competitive Research, Saved Research"><source src="/assets/films/product/research.mp4" type="video/mp4"></video>
           </div>
         </div>
-        <div class="ik-shot" id="shot-autopilot" data-tutorial="automations" role="tabpanel" aria-labelledby="ik-shot-tab-autopilot">
+        <div class="ik-shot" id="shot-autopilot" role="tabpanel" aria-labelledby="ik-shot-tab-autopilot">
           <div class="ik-shot__media">
-            <img src="/assets/films/tutorials/automations-thumb.webp" width="960" height="540" alt="Automations tutorial: Overview, Scheduler, Rules, Activity, recorded in the real OrivenAI app with a sample business" loading="lazy" decoding="async">
-            <button type="button" class="ik-play" data-ik-play data-ow-video="/assets/films/tutorials/automations.mp4" data-ow-poster="/assets/films/tutorials/automations.jpg" data-ow-captions="/assets/films/tutorials/automations.vtt" data-ow-title="Automations tutorial" aria-label="Play the Automations tutorial: Overview, Scheduler, Rules, Activity"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>Watch tutorial</button>
-            <p class="ik-shot__pages" aria-hidden="true">Overview · Scheduler · Rules · Activity</p>
+            <video class="ik-film" muted loop playsinline preload="none" poster="/assets/films/product/autopilot.jpg" width="1920" height="1080" aria-label="Screen recording of Autopilot in the OrivenAI app (sample workspace): Automation Overview, My Automations, Automation History"><source src="/assets/films/product/autopilot.mp4" type="video/mp4"></video>
           </div>
         </div>
       </div>
       <div class="ik-inside__bar">
-        <div class="ik-tabs" role="tablist" aria-label="Product sections"><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-business" aria-controls="shot-business" aria-selected="true" tabindex="0" data-shot="business"><span>01</span>Control Center</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-research" aria-controls="shot-research" aria-selected="false" tabindex="-1" data-shot="research"><span>02</span>Research</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-create" aria-controls="shot-create" aria-selected="false" tabindex="-1" data-shot="create"><span>03</span>Create</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-launch" aria-controls="shot-launch" aria-selected="false" tabindex="-1" data-shot="launch"><span>04</span>Launch</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-campaigns" aria-controls="shot-campaigns" aria-selected="false" tabindex="-1" data-shot="campaigns"><span>05</span>Campaigns</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-autopilot" aria-controls="shot-autopilot" aria-selected="false" tabindex="-1" data-shot="autopilot"><span>06</span>Automations</button></div>
-        <div class="ik-caps"><a class="ik-shot__cap ik-link is-active" data-cap="business" href="/business">Explore Control Center <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="research" href="/research">Explore Research <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="create" href="/create">Explore Create <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="launch" href="/launch">Explore Launch <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="campaigns" href="/campaigns">Explore Campaigns <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="autopilot" href="/autopilot">Explore Automations <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
+        <div class="ik-tabs" role="tablist" aria-label="Product sections"><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-overview" aria-controls="shot-overview" aria-selected="true" tabindex="0" data-shot="overview"><span>01</span>Overview</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-campaigns" aria-controls="shot-campaigns" aria-selected="false" tabindex="-1" data-shot="campaigns"><span>02</span>Campaigns</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-creative-studio" aria-controls="shot-creative-studio" aria-selected="false" tabindex="-1" data-shot="creative-studio"><span>03</span>Creative Studio</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-analytics" aria-controls="shot-analytics" aria-selected="false" tabindex="-1" data-shot="analytics"><span>04</span>Analytics</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-research" aria-controls="shot-research" aria-selected="false" tabindex="-1" data-shot="research"><span>05</span>Research</button><button type="button" class="ik-tab" role="tab" id="ik-shot-tab-autopilot" aria-controls="shot-autopilot" aria-selected="false" tabindex="-1" data-shot="autopilot"><span>06</span>Autopilot</button></div>
+        <p class="ik-shot__pagesline" aria-live="polite"><span class="ik-shot__pg is-active" data-pg="overview">Dashboard · AI Plans &amp; Tasks · Needs Attention</span><span class="ik-shot__pg" data-pg="campaigns">Campaign Studio · Ad Simulator</span><span class="ik-shot__pg" data-pg="creative-studio">Create Ads · My Creatives · Creative Testing</span><span class="ik-shot__pg" data-pg="analytics">Performance Overview · Cross-platform Comparison · Ads vs Ads</span><span class="ik-shot__pg" data-pg="research">Audience Research · Competitive Research · Saved Research</span><span class="ik-shot__pg" data-pg="autopilot">Automation Overview · My Automations · Automation History</span></p>
+        <div class="ik-caps"><a class="ik-shot__cap ik-link is-active" data-cap="overview" href="/business">Explore Overview <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="campaigns" href="/launch">Explore Campaigns <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="creative-studio" href="/create">Explore Creative Studio <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="analytics" href="/campaigns">Explore Analytics <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="research" href="/research">Explore Research <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a><a class="ik-shot__cap ik-link" data-cap="autopilot" href="/autopilot">Explore Autopilot <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
       </div>
     </div>
+    <!-- inside:end -->
   </div>
 </section>
 <section class="ik-sec ik-how" id="how" aria-labelledby="ik-how-title">
@@ -1348,10 +1344,10 @@
     <div class="ik-head" data-reveal="stagger">
       <p class="ik-eyebrow">The workflow</p>
       <h2 class="ik-h2" id="ik-how-title">One loop. Six sections.</h2>
-      <p class="ik-lead">Everything you do builds on what came before. Research shapes the plan, the plan shapes the ads, and results shape what comes next.</p>
+      <p class="ik-lead">Six connected sections in one advertising workspace. Use them in any order: each works from the same business profile, campaigns and results.</p>
     </div>
     <dl class="ik-legend" data-reveal="stagger">
-      <div><dt>Six sections</dt><dd>Where the work happens: Control Center, Research, Create, Launch, Campaigns and Automations, each with its own pages.</dd></div>
+      <div><dt>Six sections</dt><dd>Overview, Campaigns, Creative Studio, Analytics, Research and Autopilot, each with its own pages.</dd></div>
       <div><dt>Your assistant</dt><dd>The one you choose. It can guide you through every section, in its own style.</dd></div>
       <div><dt>Shared context</dt><dd>Your business profile, brand and results, used where relevant and only inside your account.</dd></div>
     </dl>
@@ -1359,52 +1355,52 @@
       <div class="ik-loop__visual">
         <div class="ik-loop__ringbox">
           <svg class="ik-ring ik-ring--loop" viewBox="244 197 534 585" aria-hidden="true" focusable="false"><use href="#ik-p0" class="ik-seg" data-i="0" style="--i:0;--ox:10.6px;--oy:-14.6px"/><use href="#ik-p1" class="ik-seg" data-i="1" style="--i:1;--ox:17.7px;--oy:3.1px"/><use href="#ik-p2" class="ik-seg" data-i="2" style="--i:2;--ox:7.3px;--oy:16.4px"/><use href="#ik-p3" class="ik-seg" data-i="3" style="--i:3;--ox:-8.5px;--oy:15.9px"/><use href="#ik-p4" class="ik-seg" data-i="4" style="--i:4;--ox:-17.7px;--oy:3.1px"/><use href="#ik-p5" class="ik-seg" data-i="5" style="--i:5;--ox:-9.5px;--oy:-15.3px"/></svg>
-          <span class="ik-loop__tag" data-i="0" style="left:74.1%;top:16.8%" aria-hidden="true">Control Center</span><span class="ik-loop__tag" data-i="1" style="left:90.4%;top:57.1%" aria-hidden="true">Research</span><span class="ik-loop__tag" data-i="2" style="left:66.7%;top:87.5%" aria-hidden="true">Create</span><span class="ik-loop__tag" data-i="3" style="left:30.8%;top:86.2%" aria-hidden="true">Launch</span><span class="ik-loop__tag" data-i="4" style="left:9.6%;top:57.1%" aria-hidden="true">Campaigns</span><span class="ik-loop__tag" data-i="5" style="left:28.3%;top:15.2%" aria-hidden="true">Automations</span>
+          <span class="ik-loop__tag" data-i="0" style="left:74.1%;top:16.8%" aria-hidden="true">Overview</span><span class="ik-loop__tag" data-i="1" style="left:90.4%;top:57.1%" aria-hidden="true">Campaigns</span><span class="ik-loop__tag" data-i="2" style="left:66.7%;top:87.5%" aria-hidden="true">Creative Studio</span><span class="ik-loop__tag" data-i="3" style="left:30.8%;top:86.2%" aria-hidden="true">Analytics</span><span class="ik-loop__tag" data-i="4" style="left:9.6%;top:57.1%" aria-hidden="true">Research</span><span class="ik-loop__tag" data-i="5" style="left:28.3%;top:15.2%" aria-hidden="true">Autopilot</span>
           <span class="ik-loop__center" aria-hidden="true" data-ik-loop-count>01 / 06</span>
         </div>
       </div>
       <ol class="ik-steps">
         <li class="ik-step" data-i="0">
-          <p class="ik-step__num"><i aria-hidden="true"></i>01 · Control Center</p>
-          <h3>Know where you stand</h3>
-          <p>Your dashboard and your marketing plan in one place: what is happening, what needs you and what is next.</p>
-          <p class="ik-step__out"><span>Leads to</span>Priorities</p>
-          <ul class="ik-step__pages" aria-label="Pages in Control Center"><li>Dashboard</li><li>Marketing Plan</li><li>Progress</li></ul>
+          <p class="ik-step__num"><i aria-hidden="true"></i>01 · Overview</p>
+          <h3>See where you stand</h3>
+          <p>Your dashboard, an AI plan built around your business with the tasks that follow from it, and one list of what needs your attention.</p>
+          <p class="ik-step__out"><span>You get</span>Priorities</p>
+          <ul class="ik-step__pages" aria-label="Pages in Overview"><li>Dashboard</li><li>AI Plans &amp; Tasks</li><li>Needs Attention</li></ul>
         </li>
         <li class="ik-step" data-i="1">
-          <p class="ik-step__num"><i aria-hidden="true"></i>02 · Research</p>
-          <h3>Understand the market</h3>
-          <p>Market, competitor, audience and opportunity research, with every finding marked by how well it is supported.</p>
-          <p class="ik-step__out"><span>Leads to</span>Findings</p>
-          <ul class="ik-step__pages" aria-label="Pages in Research"><li>Research</li><li>Insights</li><li>Competitor Analysis</li></ul>
+          <p class="ik-step__num"><i aria-hidden="true"></i>02 · Campaigns</p>
+          <h3>Launch with confidence</h3>
+          <p>Campaign Studio checks each campaign before it goes to your ad platforms and starts it paused. The Ad Simulator lets you try budgets first.</p>
+          <p class="ik-step__out"><span>You get</span>Campaigns ready to run</p>
+          <ul class="ik-step__pages" aria-label="Pages in Campaigns"><li>Campaign Studio</li><li>Ad Simulator</li></ul>
         </li>
         <li class="ik-step" data-i="2">
-          <p class="ik-step__num"><i aria-hidden="true"></i>03 · Create</p>
+          <p class="ik-step__num"><i aria-hidden="true"></i>03 · Creative Studio</p>
           <h3>Make the ads</h3>
-          <p>Platform-ready image and video ads, with headlines and copy in your brand voice.</p>
-          <p class="ik-step__out"><span>Leads to</span>Creative</p>
-          <ul class="ik-step__pages" aria-label="Pages in Create"><li>Create</li><li>Creative Testing</li><li>My Content</li></ul>
+          <p>Image and video ads made with AI or built by hand, every creative in one library, and versions to compare before you choose.</p>
+          <p class="ik-step__out"><span>You get</span>Creative</p>
+          <ul class="ik-step__pages" aria-label="Pages in Creative Studio"><li>Create Ads</li><li>My Creatives</li><li>Creative Testing</li></ul>
         </li>
         <li class="ik-step" data-i="3">
-          <p class="ik-step__num"><i aria-hidden="true"></i>04 · Launch</p>
-          <h3>Go live on your terms</h3>
-          <p>Readiness checks, then publishing to your connected platforms. Campaigns start paused until you switch them on.</p>
-          <p class="ik-step__out"><span>Leads to</span>Live campaigns</p>
-          <ul class="ik-step__pages" aria-label="Pages in Launch"><li>Ad Studio</li><li>Audience Builder</li></ul>
+          <p class="ik-step__num"><i aria-hidden="true"></i>04 · Analytics</p>
+          <h3>Know what works</h3>
+          <p>Spend, clicks and conversions from every connected platform, compared per platform and ad by ad.</p>
+          <p class="ik-step__out"><span>You get</span>Clear results</p>
+          <ul class="ik-step__pages" aria-label="Pages in Analytics"><li>Performance Overview</li><li>Cross-platform Comparison</li><li>Ads vs Ads</li></ul>
         </li>
         <li class="ik-step" data-i="4">
-          <p class="ik-step__num"><i aria-hidden="true"></i>05 · Campaigns</p>
-          <h3>See what is working</h3>
-          <p>Spend, clicks, CTR, CPA and ROAS across every connected platform, and each campaign’s setup a click away.</p>
-          <p class="ik-step__out"><span>Leads to</span>Results</p>
-          <ul class="ik-step__pages" aria-label="Pages in Campaigns"><li>Campaign Overview</li><li>Campaign Comparison</li><li>Campaign Builder</li></ul>
+          <p class="ik-step__num"><i aria-hidden="true"></i>05 · Research</p>
+          <h3>Understand your market</h3>
+          <p>Audience and competitive research, with each finding marked by how well its sources support it, saved for later.</p>
+          <p class="ik-step__out"><span>You get</span>Findings</p>
+          <ul class="ik-step__pages" aria-label="Pages in Research"><li>Audience Research</li><li>Competitive Research</li><li>Saved Research</li></ul>
         </li>
         <li class="ik-step" data-i="5">
-          <p class="ik-step__num"><i aria-hidden="true"></i>06 · Automations</p>
+          <p class="ik-step__num"><i aria-hidden="true"></i>06 · Autopilot</p>
           <h3>Keep it running</h3>
-          <p>Schedules and rules that act within the limits you set, and notify you or ask first when you want them to.</p>
-          <p class="ik-step__out"><span>Leads to</span>Back into research</p>
-          <ul class="ik-step__pages" aria-label="Pages in Automations"><li>Overview</li><li>Scheduler</li><li>Rules</li><li>Activity</li></ul>
+          <p>Schedules and rules that act within the limits you set, ask first when you want them to, and keep a history of what they did.</p>
+          <p class="ik-step__out"><span>You get</span>Time back</p>
+          <ul class="ik-step__pages" aria-label="Pages in Autopilot"><li>Automation Overview</li><li>My Automations</li><li>Automation History</li></ul>
         </li>
       </ol>
     </div>
@@ -1485,7 +1481,7 @@
       <p class="ik-lead">Use AI where it helps. Keep control where it matters: approvals, budgets, accounts and data stay with you.</p>
     </div>
     <dl class="ik-rules">
-      <div class="ik-rule" data-reveal="pop" style="--d:0"><dt>Approval</dt><dd><b>Nothing goes live without you.</b> Campaigns are created paused, and Automations act only on schedules and rules you switch on.</dd></div>
+      <div class="ik-rule" data-reveal="pop" style="--d:0"><dt>Approval</dt><dd><b>Nothing goes live without you.</b> Campaigns are created paused, and Autopilot acts only on schedules and rules you switch on.</dd></div>
       <div class="ik-rule" data-reveal="pop" style="--d:1"><dt>Costs</dt><dd><b>One credit balance, published prices.</b> 120 credits for an image ad, 245 for a video ad, 30 for a chat message. <a href="/pricing">See plans</a></dd></div>
       <div class="ik-rule" data-reveal="pop" style="--d:2"><dt>Accounts</dt><dd><b>Your ad accounts stay yours.</b> Platforms connect over OAuth, so OrivenAI never sees your passwords.</dd></div>
       <div class="ik-rule" data-reveal="pop" style="--d:1"><dt>Data</dt><dd><b>Your business data stays in your account.</b> It is used to fit your ads and recommendations to your business. <a href="/privacy">Privacy Policy</a></dd></div>
@@ -1502,13 +1498,13 @@
       <p class="ik-lead">More on the <a class="ik-link" href="/faq">FAQ page</a>, or write to <a class="ik-link" href="mailto:contact@orivenai.com">contact@orivenai.com</a>.</p>
     </div>
     <div class="ik-qa" data-reveal="stagger">
-      <details><summary>What is OrivenAI?<i aria-hidden="true"></i></summary><div><p>OrivenAI is one connected workspace for your marketing, in six sections: Control Center for your dashboard, marketing plan and business context; Research to investigate a market; Create to build platform-ready ads; Launch to review and publish them; Campaigns to follow performance; and Automations for schedules and rules that act within your limits.</p></div></details>
+      <details><summary>What is OrivenAI?<i aria-hidden="true"></i></summary><div><p>OrivenAI is one connected workspace for your advertising, in six sections: Overview for your dashboard, AI plans and tasks, and what needs your attention; Campaigns to check and launch campaigns and try budgets first; Creative Studio to make and test ads; Analytics to follow results across your platforms; Research for audience and competitive research; and Autopilot for schedules and rules that act within your limits.</p></div></details>
       <details><summary>What is an OrivenAI assistant?<i aria-hidden="true"></i></summary><div><p>An assistant is the AI personality you work with in OrivenAI. There are six, each with its own specialisation, tone and character. Whichever one you choose can help you across the whole platform, not just in its specialist area. Choosing your assistant is being introduced in stages.</p></div></details>
       <details><summary>Do I use all six assistants at once?<i aria-hidden="true"></i></summary><div><p>No. You choose one assistant, and it stays with you as you move between research, planning, creating, launching and following results. The other five are simply different styles you could pick instead.</p></div></details>
       <details><summary>Can I switch assistants?<i aria-hidden="true"></i></summary><div><p>Choosing an assistant is being introduced in stages, so there is nothing to switch yet. Until then, <a href="/#agents">meet all six</a> to see which style fits you best: each one can help with the whole platform, and they differ in where they are strongest and how they talk to you.</p></div></details>
-      <details><summary>Do I need marketing experience?<i aria-hidden="true"></i></summary><div><p>No. You start from your business profile in Control Center, and each section takes you through its step: research, create, launch and follow the results. Experienced advertisers keep full manual control over every campaign.</p></div></details>
+      <details><summary>Do I need marketing experience?<i aria-hidden="true"></i></summary><div><p>No. You start from your business profile, and each section guides you through its part: researching your market, making ads, launching campaigns and following the results. Experienced advertisers keep full manual control over every campaign.</p></div></details>
       <details><summary>Which advertising platforms are supported?<i aria-hidden="true"></i></summary><div><p>Google Ads, Meta Ads (Facebook and Instagram), TikTok Ads, Pinterest Ads and Snapchat Ads. Every integration uses OAuth: you never share your passwords with OrivenAI, and we never store your credentials.</p></div></details>
-      <details><summary>Can OrivenAI launch campaigns automatically?<i aria-hidden="true"></i></summary><div><p>Only the way you set it up. Campaigns you publish from Launch are created paused, so you decide when they start. Automations act only on schedules and rules you explicitly switch on, and each rule either notifies you, asks for your approval or acts within the limits you set.</p></div></details>
+      <details><summary>Can OrivenAI launch campaigns automatically?<i aria-hidden="true"></i></summary><div><p>Only the way you set it up. Campaigns you publish from Campaign Studio are created paused, so you decide when they start. Autopilot acts only on schedules and rules you explicitly switch on, and each rule either notifies you, asks for your approval or acts within the limits you set.</p></div></details>
       <details><summary>Is there a free plan?<i aria-hidden="true"></i></summary><div><p>No. OrivenAI is paid-only, so there is no free plan and no free credits. You can look around the whole product first in the <a href="/demo">live demo</a>, with sample data and without an account. New customers can try OrivenAI for 2 weeks for €1: their first Flex purchase, paid once; nothing renews automatically. <a href="/pricing">See the plans</a>.</p></div></details>
       <details><summary>What if OrivenAI isn’t right for me?<i aria-hidden="true"></i></summary><div><p>14-day money-back guarantee on regular plans. That means Monthly, Quarterly, Semi-Annual and Annual: if OrivenAI isn’t right for you, email <a href="mailto:contact@orivenai.com">contact@orivenai.com</a> within 14 days of your first purchase of that plan and you get the full amount back, provided no more than 20% of the plan’s credits have been used. The €1 Flex trial isn’t eligible for a refund. Nothing renews automatically, so there is nothing to cancel either. The details are in the <a href="/refund-policy">Refund Policy</a>.</p></div></details>
       <details><summary>What are credits?<i aria-hidden="true"></i></summary><div><p>Credits are the usage balance that comes with your plan. A complete image ad uses 120 credits (draft plus image), a video ad 245, a Research report 90 and an Oriven Chat message 30. They’re spent from one pool across every usage-based feature, and unused credits expire when your access ends.</p></div></details>
@@ -1540,9 +1536,9 @@
         <a href="/" aria-label="OrivenAI home"><img src="/assets/orivenlogo-256.webp" width="48" height="48" alt="OrivenAI" loading="lazy"></a>
         <p>The connected AI marketing workspace: research, plan, create, launch and improve, in one place.</p>
       </div>
-      <nav class="site-foot__col" aria-label="Product"><h2>Product</h2><a href="/product">All six sections</a><a href="/business">Control Center</a><a href="/research">Research</a><a href="/create">Create</a><a href="/launch">Launch</a><a href="/campaigns">Campaigns</a><a href="/autopilot">Automations</a></nav>
+      <nav class="site-foot__col" aria-label="Product"><h2>Product</h2><a href="/product">All six sections</a><a href="/business">Overview</a><a href="/launch">Campaigns</a><a href="/create">Creative Studio</a><a href="/campaigns">Analytics</a><a href="/research">Research</a><a href="/autopilot">Autopilot</a></nav>
       <nav class="site-foot__col" aria-label="Assistants"><h2>Assistants</h2><a href="/#agent-scout" data-ik-goto="scout">Scout</a><a href="/#agent-vector" data-ik-goto="vector">Vector</a><a href="/#agent-nova" data-ik-goto="nova">Nova</a><a href="/#agent-momentum" data-ik-goto="momentum">Momentum</a><a href="/#agent-metric" data-ik-goto="metric">Metric</a><a href="/#agent-flux" data-ik-goto="flux">Flux</a></nav>
-      <nav class="site-foot__col" aria-label="Platforms"><h2>Platforms</h2><a href="/product/google-ads">Google Ads</a><a href="/product/meta-ads">Meta Ads</a><a href="/product/tiktok-ads">TikTok Ads</a><a href="/product/pinterest-ads">Pinterest Ads</a><a href="/cross-platform-ad-management/">Cross-platform ads</a><a href="/ppc-automation-software/">PPC automation</a></nav>
+      <nav class="site-foot__col" aria-label="Platforms"><h2>Platforms</h2><a href="/product/google-ads">Google Ads</a><a href="/product/meta-ads">Meta Ads</a><a href="/product/tiktok-ads">TikTok Ads</a><a href="/product/pinterest-ads">Pinterest Ads</a><a href="/product/snapchat-ads">Snapchat Ads</a><a href="/cross-platform-ad-management/">Cross-platform ads</a><a href="/ppc-automation-software/">PPC automation</a></nav>
       <nav class="site-foot__col" aria-label="Resources"><h2>Resources</h2><a href="/solutions">Solutions</a><a href="/learn/">Learn</a><a href="/blog">Blog</a><a href="/faq">FAQ</a><a href="/case-studies">Case Studies</a><a href="/pricing">Pricing</a></nav>
       <nav class="site-foot__col" aria-label="Company"><h2>Company</h2><a href="/about">About</a><a href="mailto:contact@orivenai.com">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/cookie-policy">Cookie Policy</a><a href="/refund-policy">Refund Policy</a><a href="/security">Security</a><a href="#cookie-settings" data-cookie-settings>Cookie settings</a></nav>
     </div>
@@ -1881,7 +1877,7 @@
     'product-campaigns': { title: 'Unified Ads Dashboard for Every Ad Platform | OrivenAI', desc: 'One ads dashboard for Google, Meta, TikTok, Pinterest and Snapchat performance, by campaign and date range, with pause and resume in place.', path: '/campaigns' },
     'product-research': { title: 'AI Competitor & Market Research for Ads | OrivenAI', desc: 'Research your market, competitors and customers before you spend on ads. Targeted web searches and your website, with findings checked against their sources.', path: '/research' },
     'product-autopilot': { title: 'Ad Scheduling and Automated Campaign Rules | OrivenAI', desc: 'Schedule campaigns and let rules you write pause, resume or adjust budgets within limits you set. Approval mode and a full activity log of every change.', path: '/autopilot' },
-    'product-business': { title: 'Control Center: Marketing Dashboard and Ad Plan | OrivenAI', desc: 'Where you start in OrivenAI: your marketing dashboard, advertising plan, business profile and brand identity, so research, copy and creative use the same facts.', path: '/business' },
+    'product-business': { title: 'Marketing Dashboard, AI Ad Plan and Alerts | OrivenAI', desc: 'Where you start in OrivenAI: your marketing dashboard, an AI plan with tasks built around your business, and one list of what needs your attention.', path: '/business' },
     demo: { title: 'Live Demo: Explore the AI Ad Workspace | OrivenAI', desc: 'Explore OrivenAI with sample data: dashboard, five ad platforms, campaigns, AI ad creation, research, automations and the assistant. Read-only, no account needed.', path: '/demo' },
     '404': { title: 'Page Not Found | OrivenAI', desc: 'The page you are looking for does not exist or has been moved.', path: null, noindex: true }
   };

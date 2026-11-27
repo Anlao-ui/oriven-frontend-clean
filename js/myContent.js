@@ -39,6 +39,15 @@
     if (k === 'email' || c.text || c.result || c.variations) return 'copy';
     return 'other';
   }
+  // Where it came from: uploaded by you (manual upload route) or made by OrivenAI's AI (every other generator).
+  // Copies keep their original's origin unknown, so they say nothing rather than guess.
+  function originOf(a) {
+    var k = a.kind || '', src = a.source_route || '';
+    if (k === 'manual_image' || k === 'manual_video' || src === '/api/manual-campaigns/upload-creative') return 'upload';
+    if (src && src !== '/api/creative/assets/:id/duplicate') return 'ai';
+    return null;
+  }
+  var ORIGIN = { upload: 'Uploaded by you', ai: 'Made with AI' };
   function mediaUrl(a) { var c = a.content || {}; return safeUrl(c.url) || safeUrl(c.imageUrl) || null; }
   // The copy a record carries, for previews, search and "Copy text".
   function adParts(c) {
@@ -180,7 +189,8 @@
     if (!list.length) { el.innerHTML = '<p class="mcl-muted mcl-none">Nothing matches — try another filter or search.</p>'; return; }
     el.innerHTML = '<ul class="mcl-grid">' + list.map(function (a) {
       var t = typeOf(a), st = stateOf(a);
-      var meta = [LABEL[t], a.platform ? a.platform.charAt(0).toUpperCase() + a.platform.slice(1) : null, day(a.created_at)].filter(Boolean).join(' · ');
+      var org = originOf(a);
+      var meta = [LABEL[t], org ? ORIGIN[org] : null, a.platform ? a.platform.charAt(0).toUpperCase() + a.platform.slice(1) : null, day(a.created_at)].filter(Boolean).join(' · ');
       return '<li class="mcl-item" data-type="' + t + '"><button type="button" class="mcl-card" data-mcl="open" data-id="' + esc(a.id) + '" aria-label="Open ' + esc(a.title || LABEL[t]) + '">' +
         '<span class="mcl-thumb mcl-thumb--' + t + '">' + thumb(a) + '</span>' +
         '<span class="mcl-info"><b>' + esc(a.title || a.product_name || LABEL[t]) + '</b><span>' + esc(meta) + '</span>' + (st ? '<span class="mcl-st mcl-st--' + esc(st[0]) + '">' + esc(st[1]) + '</span>' : '') + '</span>' +
@@ -219,7 +229,7 @@
         (p.cta ? '<p><b>Call to action:</b> ' + esc(p.cta) + '</p>' : '') + '</div>';
     } else if (c.html) preview = '<iframe class="mcl-frame" sandbox="" title="' + esc(a.title || 'Preview') + '" srcdoc="' + esc(c.html) + '"></iframe>';
     else preview = '<pre class="mcl-text">' + esc(tx) + '</pre>';
-    var details = [['Type', LABEL[t]], ['Created', day(a.created_at)], ['Platform', a.platform], ['Product', a.product_name], ['Campaign', a.campaign_name]].filter(function (x) { return x[1]; });
+    var details = [['Type', LABEL[t]], ['Made', originOf(a) ? ORIGIN[originOf(a)] : null], ['Created', day(a.created_at)], ['Platform', a.platform], ['Product', a.product_name], ['Campaign', a.campaign_name]].filter(function (x) { return x[1]; });
     var canDownload = (t === 'image' || t === 'video') && u;
     m.innerHTML = '<div class="mcl-modal__scrim" data-mcl="close"></div><div class="mcl-dialog" role="dialog" aria-modal="true" aria-labelledby="mclDH">' +
       '<header class="mcl-dialog__h"><div><p class="mcl-eyebrow">' + esc(LABEL[t]) + (st ? ' · ' + esc(st[1]) : '') + '</p><h2 id="mclDH">' + esc(a.title || a.product_name || LABEL[t]) + '</h2></div>' +

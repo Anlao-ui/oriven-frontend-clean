@@ -774,7 +774,7 @@
     var body = $('cfAdvBody'), line = $('cfAdvLine'); if (!body) return;
     var html = '';
     if (S.platform === 'google' && S.goal) {
-      var types = CC.typeKeys('google').filter(function (k) { return CC.typeInfo('google', k).goals.indexOf(S.goal) !== -1; });
+      var types = CC.typeKeys('google').filter(function (k) { var ti = CC.typeInfo('google', k); return !ti.manualOnly && ti.goals.indexOf(S.goal) !== -1; }); // manual-only types (Display) never in the AI flow
       html += '<div class="cf-field"><span class="cf-lbl">' + esc(T('gtypeL')) + '</span><div class="cf-cards cf-cards-sm" role="radiogroup">' + types.map(function (k) {
         var on = typeFor() === k;
         return '<button type="button" class="cf-card cf-gtype' + (on ? ' is-on' : '') + '" role="radio" aria-checked="' + on + '" data-gtype="' + k + '"><span class="cf-card-t">' + esc(T('gtype_' + k)) + '</span><span class="cf-card-s">' + esc(fmtName(CC.typeInfo('google', k).formats[0])) + '</span><span class="cf-card-d">' + esc(T('gtype_' + k + '_d')) + '</span></button>';

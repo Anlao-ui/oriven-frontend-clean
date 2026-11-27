@@ -52,10 +52,15 @@ body.dark-mode .onv [data-sec="au"] { --sx: #B9A2FF; }
    body.dark-mode .orv-sb rules. The <=1024px drawer breakpoint is untouched. */
 html body .orv-sb.onv-mounted { width: 264px !important; min-width: 264px !important; max-width: 264px !important; align-items: stretch !important; }
 html body .orv-sb.onv-mounted .orv-sb-logo { justify-content: flex-start !important; padding: 18px 18px 14px !important; gap: 10px; }
+/* The larger logo keeps the row at 72px: 10 + 52 + 10 (id: outranks styles.css #orvSidebar .orv-sb-logo, 14px 12px 12px). */
+html body #orvSidebar.orv-sb.onv-mounted .orv-sb-logo { padding: 10px 12px 9px !important; }
 html body .orv-sb.onv-mounted .orv-sb-logo { align-items: center !important; min-height: 72px; box-sizing: border-box; }
-html body .orv-sb.onv-mounted .orv-sb-logo-img { width: 40px !important; height: auto !important; aspect-ratio: 1 / 1; object-fit: contain; }
+/* 52px (was 40px): the asset has its own margin, so the visible mark was small; the row keeps its 72px height. */
+html body #orvSidebar.orv-sb.onv-mounted .orv-sb-logo-img { width: 52px !important; height: 52px !important; aspect-ratio: 1 / 1; object-fit: contain; } /* id: outranks styles.css #orvSidebar .orv-sb-logo-img (40px) */
 /* Logo only at the top of the sidebar (no wordmark). */
 html body .orv-sb.onv-mounted .orv-sb-logo-name { display: none !important; }
+/* The phone/tablet drawer (≤1024px) shows the same logo a little larger too: 42px (was 32px). */
+html body #orvMobDrawer .orv-mob-drawer-logo { width: 42px !important; height: 42px !important; object-fit: contain; }
 html body .orv-sb.onv-mounted .orv-sb-nav { display: block !important; padding: 10px 12px 16px !important; overflow-y: auto !important; overflow-x: hidden !important; }
 html body .orv-sb.onv-mounted .orv-sb-bottom { display: block !important; padding: 8px 12px 12px !important; border-top: 1px solid var(--onv-foot-line, rgba(24, 24, 26, .12)) !important; }
 body.dark-mode .orv-sb.onv-mounted .orv-sb-bottom { --onv-foot-line: rgba(255, 255, 255, .08); }
@@ -291,7 +296,8 @@ body:not(.dark-mode) .orv-related b { color: #18181A; }
    a slimmer logo row and footer give the pages the room. */
 @media (min-width: 769px) and (max-height: 870px) {
   html body .orv-sb.onv-mounted .orv-sb-logo { min-height: 52px; padding: 10px 18px 8px !important; }
-  html body .orv-sb.onv-mounted .orv-sb-logo-img { width: 32px !important; }
+  html body #orvSidebar.orv-sb.onv-mounted .orv-sb-logo { padding: 5px 12px !important; }
+  html body #orvSidebar.orv-sb.onv-mounted .orv-sb-logo-img { width: 42px !important; height: 42px !important; }
   html body .orv-sb.onv-mounted .orv-sb-bottom { padding: 4px 12px 8px !important; }
 }
 /* Breathing room between the pages of a section (the list's gap; nine gaps

@@ -10,6 +10,7 @@
 // Platform publishing creates campaigns PAUSED; nothing is activated.
 // ════════════════════════════════════════════════════════════════
 const C = require('./facts').costs; // credit costs from js/plans.js, never retyped
+const shot = (key, alt, cap) => `<figure class="ov-deep-fig"><img src="/assets/films/product/${key}.jpg" alt="${alt}" width="800" height="450" loading="lazy" decoding="async"><figcaption>${cap}</figcaption></figure>`;
 const fig = (name, alt, cap) => `<figure class="ov-deep-fig"><img src="/assets/films/posters/film-${name}-800.webp" srcset="/assets/films/posters/film-${name}-800.webp 800w, /assets/films/posters/film-${name}.webp 1600w" sizes="(max-width: 900px) 100vw, 860px" alt="${alt}" width="800" height="450" loading="lazy" decoding="async"><figcaption>${cap}</figcaption></figure>`;
 
 function block(key, d) {
@@ -40,20 +41,20 @@ function block(key, d) {
 const D = {
   'product-create': {
     title: 'From a short brief to a ready-to-review campaign',
-    intro: 'Create turns what you know about your product into a complete draft for one ad platform: the campaign structure, the copy for every ad, and the image or video creative, in the format that platform expects.',
+    intro: 'Create Ads turns what you know about your product into a complete draft for one ad platform: the campaign structure, the copy for every ad, and the image or video creative, in the format that platform expects.',
     steps: [
-      ['Describe what you advertise.', 'A product, an offer, who it’s for. Your business profile from Control Center (name, brand, website) is added automatically, and you can bring in findings from Research.'],
+      ['Describe what you advertise.', 'A product, an offer, who it’s for. Your business profile (name, brand, website) is added automatically, and you can bring in findings from Research.'],
       ['Choose a platform, goal and format.', 'Google Ads, Meta Ads, TikTok Ads, Pinterest Ads or Snapchat Ads; Sales, Leads, Traffic or Awareness; image or video; and how many ad sets or ad groups and ads you want.'],
       ['Review the draft.', 'Headlines, primary text, descriptions and calls to action for each ad; for Google Search, keywords, negative keywords, callouts and sitelinks. Every field is editable and shows a character counter.'],
       ['Generate the creative.', 'One image or video per ad slot, sized for the platform. You can attach your own image or product photo instead.'],
-      ['Send it to Launch.', 'Nothing is published from Create. Launch checks the campaign and creates it on the platform paused.'],
+      ['Send it to Campaign Studio.', 'Nothing is published from Creative Studio. Campaign Studio checks the campaign and creates it on the platform paused.'],
     ],
-    fig: fig('create', 'The OrivenAI Create screen: the brief, platform choice (Google, Meta, TikTok, Pinterest), image or video, campaign goal, campaign type and structure, and the creative stage', 'The Create screen. Screenshot from the product.'),
+    fig: shot('creative-studio', 'Create Ads in OrivenAI: the choice between Create with AI and Create manually', 'Create Ads, in the sample workspace. Screenshot from the product.'),
     who: ['Small businesses and solo marketers who need ads for more than one platform', 'Teams that want a consistent first draft instead of a blank page', 'Anyone who wants to test several angles quickly'],
     know: ['A campaign draft uses ' + C.campaignDraft + ' credits; each image ' + C.image + ', each 5-second video ' + C.video + ' and each 10-second video ' + C.video10s + ' (credits are refunded if generation fails)', 'Videos take a few minutes and keep generating if you leave the page', 'TikTok ads need video; the other platforms accept images', 'AI drafts are a starting point: check claims, prices and offers before publishing'],
     faq: [
-      ['Can I use my own images?', 'Yes. Attach an image or a product photo and Create uses it instead of generating one for that slot, so no image credits are spent on it.'],
-      ['Does Create publish my ads?', 'No. Create prepares the campaign; Launch checks it and creates it on the ad platform paused. You switch it on in the platform when you’re ready.'],
+      ['Can I use my own images?', 'Yes. Attach an image or a product photo and Create Ads uses it instead of generating one for that slot, so no image credits are spent on it.'],
+      ['Does Creative Studio publish my ads?', 'No. Creative Studio prepares the campaign; Campaign Studio checks it and creates it on the ad platform paused. You switch it on in the platform when you’re ready.'],
       ['Which languages can I advertise in?', 'You write the brief in the language you want the ads in, and you can set the campaign’s target languages in its settings.'],
     ],
     links: [['/learn/how-to-create-facebook-and-instagram-ads-with-ai/', 'Creating Facebook and Instagram ads with AI'], ['/learn/how-to-test-ad-creatives/', 'How to test ad creatives'], ['/learn/ad-character-limits/', 'Ad character limits']],
@@ -66,48 +67,48 @@ const D = {
       ['OrivenAI gathers evidence.', 'Up to three targeted web searches using your industry and country, then it reads up to five of the most relevant pages, your own website and any pages you attached.'],
       ['Get a structured report.', 'An executive summary with the key conclusions, then sections that fit the research type: competitor cards and a comparison, customer needs and objections, trends, or opportunities with suggested tests.'],
       ['See what each finding rests on.', 'Findings are labelled Source-checked (a quoted passage was found in a page it read), Cited (a source was named but not checked), Analysis, or Idea to test. Source-checked findings show the quoted passage and the link.'],
-      ['Use it.', 'Reports are saved to your Research library. Add up to eight insights to Create as context for your next campaign.'],
+      ['Use it.', 'Reports are kept in Saved Research. Add up to eight insights to Create Ads as context for your next campaign.'],
     ],
-    fig: fig('research-v2', 'The OrivenAI Research screen: a research question, research types and the business profile used as context', 'The Research screen. Screenshot from the product.'),
+    fig: shot('research', 'Audience Research in OrivenAI: research directions, the question and the business profile used as context', 'Audience Research, in the sample workspace. Screenshot from the product.'),
     who: ['Businesses planning a first campaign in a new market', 'Marketers who want competitor context before writing ads', 'Anyone who needs evidence, not just AI opinions'],
     know: ['Included in every plan; each report uses ' + C.researchRun + ' credits (refunded if it fails)', 'It has no access to competitors’ ad performance, budgets or results, and never claims an ad “works”', 'It doesn’t pull ads from the Meta Ad Library or Google Ads Transparency Center; it links to them so you can check real ads', 'Set your country in your business profile so findings are specific to your market'],
     faq: [
       ['Is Research based on real data?', 'It runs live web searches and reads the most relevant pages, your website and any pages you attach. A finding is only marked Source-checked when the passage it quotes was found in a page it read; everything else is marked Cited, Analysis or Idea to test.'],
       ['Can it show how my competitors’ ads perform?', 'No. No tool has access to another advertiser’s results. Research describes what competitors publicly do and say, and suggests what to test.'],
-      ['Where are my reports kept?', 'In your account, in your Research library, so you can reopen, rename or delete them on any device.'],
+      ['Where are my reports kept?', 'In your account, in Saved Research, so you can reopen, rename or delete them on any device.'],
     ],
     links: [['/learn/how-to-research-competitor-ads/', 'How to research competitor ads'], ['/learn/best-ai-advertising-tools-for-small-business/', 'AI advertising tools for small businesses'], ['/learn/what-is-an-ai-advertising-platform/', 'What an AI advertising platform does']],
   },
   'product-launch': {
     title: 'Check every campaign before it reaches the platform',
-    intro: 'Launch is the step between a draft and a live campaign. It shows what each platform will receive, flags what’s missing, and creates the campaign through the platform’s official API, paused.',
+    intro: 'Campaign Studio is the step between a draft and a live campaign. It shows what each platform will receive, flags what’s missing, and creates the campaign through the platform’s official API, paused.',
     steps: [
-      ['Pick a draft.', 'Every campaign from Create waits in Launch with its readiness status.'],
+      ['Pick a campaign.', 'Every campaign from Creative Studio waits in Campaign Studio with its readiness status.'],
       ['Review the settings.', 'Objective, countries, languages, ages, placements, budget, conversion tracking, destination and tracking parameters, each marked as your choice, from your business profile, automatic, or missing.'],
       ['Fix what’s flagged.', 'For example: choose a country, set a daily budget, select your Meta Pixel or Pinterest tag, confirm Meta’s special ad categories, or add a logo for Performance Max.'],
       ['Confirm.', 'A summary shows exactly what will be created. Nothing is sent until you confirm.'],
       ['It’s created paused.', 'Campaign, ad sets or ad groups and ads are created on the platform paused. You switch them on in the platform.'],
     ],
-    fig: fig('launch', 'The OrivenAI Launch screen with campaign drafts and readiness checks', 'The Launch screen. Screenshot from the product.'),
+    fig: shot('campaigns', 'Campaign Studio in OrivenAI: campaigns per platform with their readiness status', 'Campaign Studio, in the sample workspace. Screenshot from the product.'),
     who: ['Anyone who wants a second pair of eyes before spending money', 'Businesses running the same campaign on more than one platform', 'Teams that want publishing to be a deliberate step'],
     know: ['You always set the budget and the countries; OrivenAI never fills them in for you', 'Sales and Leads campaigns need conversion tracking on the platform (Pixel, tag or conversion actions)', 'If a platform rejects part of a campaign, everything created in that attempt is removed', 'Each platform still reviews ads under its own policies'],
     faq: [
       ['Will my campaign start spending right away?', 'No. Campaigns are always created paused. Nothing spends until you activate the campaign in the ad platform.'],
-      ['What if I publish the same campaign twice?', 'Launch prevents a second publish of the same campaign while one is in progress.'],
+      ['What if I publish the same campaign twice?', 'Campaign Studio prevents a second publish of the same campaign while one is in progress.'],
       ['Which campaign types can I launch?', 'Google Search, Performance Max and Demand Gen; Meta image ads; TikTok video ads for traffic and awareness; Pinterest image and video Pins; Snapchat full-screen image and video ads for traffic and awareness.'],
     ],
     links: [['/learn/how-to-manage-multiple-ad-platforms/', 'Managing multiple ad platforms'], ['/learn/meta-pixel-vs-conversions-api/', 'Meta Pixel vs Conversions API'], ['/learn/google-ads-vs-meta-ads/', 'Google Ads vs Meta Ads']],
   },
   'product-campaigns': {
     title: 'See every platform’s results in one place',
-    intro: 'Campaigns pulls performance directly from each connected ad platform, so you can compare campaigns without switching between four dashboards.',
+    intro: 'Analytics pulls performance directly from each connected ad platform, so you can compare platforms, campaigns and ads without switching between five dashboards.',
     steps: [
-      ['Connect your ad accounts.', 'Google Ads, Meta Ads, TikTok Ads, Pinterest Ads and Snapchat Ads, in Control Center.'],
+      ['Connect your ad accounts.', 'Google Ads, Meta Ads, TikTok Ads, Pinterest Ads and Snapchat Ads, under Ad Platforms.'],
       ['Choose a view.', 'Filter by platform, campaign and date range; read spend, clicks, conversions and the other metrics each platform reports.'],
       ['Act on what you see.', 'Pause or resume Google Ads, Meta Ads, Pinterest Ads and Snapchat Ads campaigns from OrivenAI, with a confirmation first.'],
       ['Automate what repeats.', 'Turn a check you do every week into an automation rule.'],
     ],
-    fig: fig('campaigns', 'The OrivenAI Campaigns screen with performance by platform, campaign and date range', 'The Campaigns screen. Screenshot from the product.'),
+    fig: shot('analytics', 'Performance Overview in OrivenAI: metrics per platform, grouped by reach, cost, engagement, conversions and revenue', 'Performance Overview, in the sample workspace. Screenshot from the product.'),
     who: ['Businesses advertising on two or more platforms', 'Owners who want a quick, honest view of what’s running', 'Marketers who report across platforms'],
     know: ['Numbers come from each platform’s own reporting, so definitions differ between platforms', 'Data refreshes from the platforms; very recent activity can lag', 'Pausing in OrivenAI pauses the real campaign on the platform'],
     faq: [
@@ -118,32 +119,32 @@ const D = {
   },
   'product-autopilot': {
     title: 'Rules you can read, actions you can predict',
-    intro: 'Automations are schedules and rules for campaigns that already run in your ad accounts: you decide the condition or the time, the action and the limits, and every action is logged.',
+    intro: 'Autopilot runs schedules and rules for campaigns that already run in your ad accounts: you decide the condition or the time, the action and the limits, and every action is logged.',
     steps: [
       ['Write a rule.', 'A condition on a metric such as CPA, ROAS, CPC, CTR, conversions or spend, for example “if CPA is above €40 over 7 days”.'],
       ['Choose the action and its limits.', 'Pause or resume a campaign, adjust its budget within a range you set, notify you, or ask for your approval first.'],
       ['Checked for you, also when you’re offline.', 'Schedules run at the time you set in your time zone, and rules are checked regularly on OrivenAI’s servers. Budget rules have a maximum budget and limits on how often and how much they change.'],
       ['Review what happened.', 'Every run and action is recorded, so you can see why something changed.'],
     ],
-    fig: fig('autopilot', 'The OrivenAI Automations screen with automation rules', 'The Automations screen. Screenshot from the product.'),
+    fig: shot('autopilot', 'Automation Overview in OrivenAI: active automations, scheduled runs, approvals and recent activity', 'Automation Overview, in the sample workspace. Screenshot from the product.'),
     who: ['Advertisers who check the same numbers every day', 'Small teams that can’t watch campaigns around the clock', 'Anyone who wants automation they can explain'],
     know: ['Included in every plan; creating an automation costs ' + C.automationCreate + ' credits once, its checks and changes are free', 'Works with the campaigns in your connected ad accounts; shared and lifetime budgets are never changed', 'Rules only do what you wrote; no AI decides what happens', 'Approval mode lets you confirm each change before it happens'],
     faq: [
       ['Can an automation spend more than I want?', 'A rule can only raise a budget up to the maximum you set, by at most the percentage you allow, and only after you confirm it may act on its own. You can also require approval before any change.'],
-      ['How is this different from Google’s automated bidding?', 'Smart Bidding sets bids inside a campaign. Automations act on whole campaigns (switch on, pause, resume, budget) at times or on conditions you choose, across your connected ad accounts.'],
+      ['How is this different from Google’s automated bidding?', 'Smart Bidding sets bids inside a campaign. Autopilot acts on whole campaigns (switch on, pause, resume, budget) at times or on conditions you choose, across your connected ad accounts.'],
     ],
     links: [['/learn/what-is-ppc-automation/', 'What is PPC automation?'], ['/learn/how-to-automate-google-ads-safely/', 'How to automate Google Ads safely'], ['/ppc-automation-software/', 'PPC automation software']],
   },
   'product-business': {
     title: 'One profile that every campaign draws on',
-    intro: 'Control Center holds what OrivenAI should know about your business, so Research, Create and Launch use the same facts instead of you re-typing them.',
+    intro: 'Your business profile holds what OrivenAI should know about your business, so Research, Creative Studio and Campaigns use the same facts instead of you re-typing them.',
     steps: [
       ['Add your business profile.', 'Name, website, industry, country, products, audiences and competitors.'],
       ['Set your brand identity.', 'Logo, colours and tone of voice, used when copy and creative are generated.'],
       ['Connect your ad accounts.', 'Google Ads, Meta Ads, TikTok Ads, Pinterest Ads and Snapchat Ads, through each platform’s official sign-in.'],
-      ['Let the other modules use it.', 'Research uses your country and website; Create uses your brand; Launch uses your country and business name as defaults you can change.'],
+      ['Let the other sections use it.', 'Research uses your country and website; Creative Studio uses your brand; Campaign Studio uses your country and business name as defaults you can change.'],
     ],
-    fig: fig('control-center-v2', 'The OrivenAI Control Center with the business profile, brand identity and connected ad accounts', 'Control Center. Screenshot from the product.'),
+    fig: shot('overview', 'The OrivenAI Dashboard: performance across connected platforms, what needs attention and the connected ad platforms', 'The Dashboard, in the sample workspace. Screenshot from the product.'),
     who: ['Every OrivenAI user: it’s where setup happens', 'Businesses with more than one ad platform to connect'],
     know: ['Your country matters: it’s used as the default market for research and campaigns, and OrivenAI never assumes one', 'Disconnecting an ad account doesn’t pause campaigns already running on it'],
     faq: [

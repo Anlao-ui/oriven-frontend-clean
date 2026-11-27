@@ -86,28 +86,27 @@ const srv = http.createServer((q, r) => {
   await p.screenshot({ path: path.join(SHOTS, 'testing.png') });
   await ctx.close();
 
-  // ── 3. The assistant launcher collapses and comes back ──
+  // ── 3. The assistant: opened from the sidebar (2026-11-26), no floating launcher ──
   for (const vp of [{ width: 1440, height: 900, n: 'desktop' }, { width: 390, height: 844, n: 'mobile' }]) {
     ({ ctx, p } = await boot({ width: vp.width, height: vp.height }));
-    const g = () => p.evaluate(() => { const r = (id) => { const b = document.getElementById(id).getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), t: Math.round(b.top), b: Math.round(b.bottom) }; }; const cs = getComputedStyle(document.getElementById('orvAiDock')); return { vw: innerWidth, vh: innerHeight, dock: r('orvAiDock'), fab: r('orvAiFab'), tuck: r('orvAiTuck'), radii: [cs.borderTopLeftRadius, cs.borderTopRightRadius, cs.borderBottomRightRadius, cs.borderBottomLeftRadius], tucked: document.documentElement.classList.contains('orv-ai-tucked'), expanded: document.getElementById('orvAiTuck').getAttribute('aria-expanded') }; });
-    let s = await g();
-    const open0 = s.dock;
-    check(vp.n + ': one launcher panel bottom-right, all four corners equally rounded, the arrow attached to its left side', s.dock.r <= s.vw && s.dock.b <= s.vh && new Set(s.radii).size === 1 && parseFloat(s.radii[0]) >= 12 && Math.abs(s.tuck.l - s.dock.l) <= 1 && Math.abs(s.tuck.r - s.fab.l) <= 1 && s.expanded === 'true', s);
-    await p.evaluate(() => { document.querySelector('.orv-ai-dock').style.transitionDuration = '1s'; });
-    await p.click('#orvAiTuck'); await p.waitForTimeout(400);
-    const mid = await g();
-    check(vp.n + ': while sliding, the arrow moves with the panel (still attached to its left edge)', mid.dock.l > open0.l && mid.dock.l < s.vw && Math.abs(mid.tuck.l - mid.dock.l) <= 1, { open0, mid: mid.dock, arrow: mid.tuck });
-    await p.waitForTimeout(900);
-    await p.evaluate(() => { document.querySelector('.orv-ai-dock').style.transitionDuration = ''; });
-    s = await g();
-    check(vp.n + ': collapsed — the whole panel is off-screen to the right; only the arrow shows, flush against the right edge', s.tucked && s.fab.l >= s.vw && s.tuck.r === s.vw && s.tuck.l >= s.vw - 32 && s.expanded === 'false', s);
-    await go(p, 'overview', 1500);
-    check(vp.n + ': stays collapsed when moving to another page', (await g()).tucked);
-    await p.click('#orvAiTuck'); await p.waitForTimeout(500);
-    s = await g();
-    check(vp.n + ': clicking the arrow slides the whole panel back to exactly where it was', !s.tucked && s.dock.l === open0.l && s.dock.r === open0.r && Math.abs(s.tuck.l - s.dock.l) <= 1, { now: s.dock, was: open0 });
-    await p.click('#orvAiFab'); await p.waitForTimeout(800);
-    check(vp.n + ': the launcher still opens the assistant', await p.evaluate(() => { const pn = document.getElementById('orvAiPanel'); return !!pn && getComputedStyle(pn).display !== 'none' && pn.getBoundingClientRect().height > 50; }));
+    const mob = vp.width <= 1024;
+    const floating = await p.evaluate(() => { const d = document.getElementById('orvAiDock'); return !!d && getComputedStyle(d).display !== 'none'; });
+    check(vp.n + ': no floating assistant button in the corner', !floating);
+    if (mob) { await p.click('#orvMobToggle'); await p.waitForTimeout(350); }
+    const item = (mob ? '.orv-mob-drawer' : '.orv-sb') + ' [data-onv-foot="assistant"]';
+    const order = await p.evaluate((sel) => [...document.querySelector(sel).closest('.onv-foot').querySelectorAll('[data-onv-foot]')].map((b) => b.getAttribute('data-onv-foot')), item);
+    check(vp.n + ': the assistant sits above the account, below Ad Platforms', JSON.stringify(order) === '["settings","platforms","assistant","account"]', order);
+    await p.click(item); await p.waitForTimeout(800);
+    const st = await p.evaluate(() => { const pn = document.getElementById('orvAiPanel'), r = pn.getBoundingClientRect(); return { open: pn.classList.contains('orv-ai-open'), ws: document.body.classList.contains('orv-ai-ws'), w: Math.round(r.width), h: Math.round(r.height), vw: innerWidth, ov: document.documentElement.scrollWidth - innerWidth }; });
+    check(vp.n + ': it opens the chat workspace (wide, tall, no sideways overflow)', st.open && st.ws && st.w >= (mob ? st.vw - 1 : 1000) && st.h >= 600 && st.ov <= 0, st);
+    if (!mob) {
+      await p.click('.orv-sb .onv-item[data-onv="overview"]'); await p.waitForTimeout(1500);
+      const after = await p.evaluate(() => ({ open: document.getElementById('orvAiPanel').classList.contains('orv-ai-open'), page: (document.querySelector('.page.active') || {}).id }));
+      check(vp.n + ': opening a page from the sidebar closes the workspace and shows the page', !after.open && after.page === 'page-performance', after);
+    } else {
+      await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+      check(vp.n + ': Escape closes it', !(await p.evaluate(() => document.getElementById('orvAiPanel').classList.contains('orv-ai-open'))));
+    }
     await ctx.close();
   }
 

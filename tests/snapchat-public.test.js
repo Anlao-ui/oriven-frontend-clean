@@ -70,7 +70,7 @@ const srv = http.createServer((q, r) => {
   const home = fs.readFileSync(path.join(ROOT, 'home.html'), 'utf8'), product = fs.readFileSync(path.join(ROOT, 'product.html'), 'utf8');
   check('"Five platforms." on /product, no "Four platforms." left', /Five platforms\./.test(product) && !/Four platforms\./.test(product + home));
   check('homepage FAQ names all five platforms', /TikTok Ads, Pinterest Ads and Snapchat Ads/.test(home));
-  check('Audience Builder wording stays four platforms (no Snapchat targeting there)', /Targeting suggestions for Meta, Google, TikTok and Pinterest/.test(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8')));
+  check('no Snapchat targeting suggestions are claimed anywhere (Audience Builder suggests for Meta, Google, TikTok and Pinterest only)', !/Targeting suggestions for[^.<]*Snapchat/.test(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8')));
   check('no page errors', !errors.length, errors);
   console.log(`\n${pass + fail} checks run, ${pass} passed, ${fail} failed.`);
   process.exitCode = fail ? 1 : 0;

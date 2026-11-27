@@ -534,6 +534,22 @@ a.ik-chip:hover .ik-glyph { color: var(--ac, var(--silver)); }
 .ik-play svg { width: 18px; height: 18px; color: var(--volt); }
 .ik-shot.is-playing .ik-play { display: none; }
 
+/* The section recordings (tools/product-films-section.js): Pause/Play in the
+   frame bar, the visible tab's pages under the tabs. */
+.ik-frame__right { display: inline-flex; align-items: center; gap: 12px; }
+.ik-film-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-2); font-size: 12px; font-weight: 500; transition: color var(--t) var(--ease), border-color var(--t) var(--ease); }
+.ik-film-toggle:hover, .ik-film-toggle:focus-visible { color: var(--text); border-color: var(--line-strong); }
+.ik-film-toggle, .ik-film-toggle:active, .ik-film-toggle:active:not(:disabled) { transform: none; }
+.ik-film-ic { width: 11px; height: 11px; color: var(--volt); }
+.ik-film-toggle .ik-film-ic--play, .ik-film-toggle.is-paused .ik-film-ic--pause { display: none; }
+.ik-film-toggle.is-paused .ik-film-ic--play { display: block; }
+.ik:not(.ik-js) .ik-film-toggle { display: none; }
+.ik-shot__pagesline { flex: 1 1 100%; order: 3; margin: -4px 0 0; font-size: 13px; color: var(--text-2); }
+.ik-shot__pg { display: none; }
+.ik-shot__pg.is-active { display: inline; }
+.ik:not(.ik-js) .ik-shot__pagesline { display: none; }
+@media (max-width: 559px) { .ik-frame__right .ik-mono { display: none; } }
+
 .ik-inside__bar { max-width: 1180px; margin: 20px auto 0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px 24px; }
 .ik-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
 .ik-tab {

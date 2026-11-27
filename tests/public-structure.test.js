@@ -1,10 +1,11 @@
 /* ════════════════════════════════════════════════════════════════
    Public site structure: the six sections and their pages, told the same
    way everywhere.
-   Checks: the homepage workflow ("One loop. Six sections.") lists Control
-   Center → Research → Create → Launch → Campaigns → Automations, its ring
-   tags follow the same order, and the twelve pages sit under the right
-   section; /product shows the same six in the same order with the same
+   Checks: the homepage workflow ("One loop. Six sections.") lists the
+   app's six sections in its sidebar order (Overview → Campaigns → Creative
+   Studio → Analytics → Research → Autopilot, js/appNav.js), its ring tags
+   follow the same order, and the seventeen pages sit under the right
+   section with the names the app shows; /product shows the same six in the same order with the same
    pages and real links; each product page names its own pages; the
    homepage FAQ and /faq come from tools/seo/faq.js (every homepage
    question is on /faq with the same answer); desktop and mobile nav list
@@ -34,12 +35,21 @@ const server = http.createServer((q, s) => {
   fs.readFile(f, (e, b) => { s.writeHead(e ? 404 : 200, { 'content-type': TYPES[path.extname(f)] || 'application/octet-stream' }); s.end(e ? 'not found' : b); });
 });
 
-const SECTIONS = ['Control Center', 'Research', 'Create', 'Launch', 'Campaigns', 'Automations'];
+const SECTIONS = ['Overview', 'Campaigns', 'Creative Studio', 'Analytics', 'Research', 'Autopilot'];
 const PAGES = {
-  'Control Center': ['Dashboard', 'Marketing Plan', 'Progress'], Research: ['Research', 'Insights'], Create: ['Create', 'My Content'],
-  Launch: ['Ad Studio'], Campaigns: ['Campaign Overview', 'Campaign Builder'], Automations: ['Automations', 'Activity History'],
+  Overview: ['Dashboard', 'AI Plans & Tasks', 'Needs Attention'], Campaigns: ['Campaign Studio', 'Ad Simulator'],
+  'Creative Studio': ['Create Ads', 'My Creatives', 'Creative Testing'], Analytics: ['Performance Overview', 'Cross-platform Comparison', 'Ads vs Ads'],
+  Research: ['Audience Research', 'Competitive Research', 'Saved Research'], Autopilot: ['Automation Overview', 'My Automations', 'Automation History'],
 };
-const ROUTE = { 'Control Center': '/business', Research: '/research', Create: '/create', Launch: '/launch', Campaigns: '/campaigns', Automations: '/autopilot' };
+const ROUTE = { Overview: '/business', Campaigns: '/launch', 'Creative Studio': '/create', Analytics: '/campaigns', Research: '/research', Autopilot: '/autopilot' };
+// The app's own sidebar is the source of truth (js/appNav.js SECTIONS: section names and visible page labels).
+// Campaigns' first page is labelled "Campaigns" in the sidebar; its page heading is "Campaign Studio".
+const APP_NAV = (() => {
+  const src = fs.readFileSync(path.join(ROOT, 'js', 'appNav.js'), 'utf8');
+  const out = []; const re = /\{ id: '[a-z]+', name: '([^']+)', items: \[([\s\S]*?)\] \}/g; let m;
+  while ((m = re.exec(src))) out.push([m[1], [...m[2].matchAll(/\{ id: '[^']+', label: '([^']+)'(?![^}]*hidden: true)/g)].map((x) => x[1])]);
+  return out;
+})();
 const pageNames = (ul) => [...ul.querySelectorAll('li')].map((li) => li.firstChild.textContent.trim());
 const norm = (s) => s.replace(/\s+/g, ' ').trim();
 
@@ -68,10 +78,11 @@ async function main() {
       note: !!document.querySelector('.ik-pages-note'),
     };
   }, pageNames.toString());
-  check('workflow: six numbered sections in order Control Center → Research → Create → Launch → Campaigns → Automations', JSON.stringify(wf.steps.map((s) => s.name)) === JSON.stringify(SECTIONS) && wf.steps.map((s) => s.num).join() === '01,02,03,04,05,06', wf.steps.map((s) => s.num + ' ' + s.name));
+  check('the app sidebar (js/appNav.js) has exactly these six sections and pages (Campaign Studio is labelled “Campaigns” there)', JSON.stringify(APP_NAV.map((x) => x[0])) === JSON.stringify(SECTIONS) && APP_NAV.every(([n, pages]) => JSON.stringify(pages.map((p) => (n === 'Campaigns' && p === 'Campaigns' ? 'Campaign Studio' : p))) === JSON.stringify(PAGES[n])), APP_NAV);
+  check('workflow: six numbered sections in the app’s order Overview → Campaigns → Creative Studio → Analytics → Research → Autopilot', JSON.stringify(wf.steps.map((s) => s.name)) === JSON.stringify(SECTIONS) && wf.steps.map((s) => s.num).join() === '01,02,03,04,05,06', wf.steps.map((s) => s.num + ' ' + s.name));
   check('workflow ring: six segments, tags in the same order', wf.segs === 6 && JSON.stringify(wf.tags) === JSON.stringify(SECTIONS), wf.tags);
-  check('workflow: the twelve pages, each under its own section', wf.steps.every((s) => JSON.stringify(s.pages) === JSON.stringify(PAGES[s.name])) && wf.steps.reduce((n, s) => n + s.pages.length, 0) === 12, wf.steps);
-  check('workflow: pages not in the app yet are still marked "In development" (Progress, My Content); the separate disclaimer line was removed on request', JSON.stringify(wf.steps.flatMap((s) => s.dev)) === '["Progress","My Content"]' && !wf.note, wf.steps.flatMap((s) => s.dev));
+  check('workflow: the seventeen pages, each under its own section, with the app’s names', wf.steps.every((s) => JSON.stringify(s.pages) === JSON.stringify(PAGES[s.name])) && wf.steps.reduce((n, s) => n + s.pages.length, 0) === 17, wf.steps);
+  check('workflow: every page listed exists in the app, so none is marked "In development"; no separate disclaimer line', wf.steps.flatMap((s) => s.dev).length === 0 && !wf.note, wf.steps.flatMap((s) => s.dev));
   const landingFaq = await page.evaluate(() => [...document.querySelectorAll('#faq details')].map((d) => ({ q: d.querySelector('summary').textContent.trim(), a: d.querySelector('div').textContent.trim() })));
   const nav = await page.evaluate(() => ({
     desk: [...document.querySelectorAll('#lpDdProduct .lp-dd-col')].map((c) => [...c.querySelectorAll('.lp-dd-item-name')].map((n) => n.textContent.trim())),
@@ -99,7 +110,7 @@ async function main() {
   for (const s of SECTIONS) {
     ({ ctx, page } = await open(ROUTE[s]));
     const got = await page.evaluate((fnSrc) => { const names = eval(fnSrc); const ul = document.querySelector('.ov-hero-pages'); return { eyebrow: (document.querySelector('.ov-sp-hero .ov-eyebrow') || {}).textContent, pages: ul ? names(ul) : null, h1: document.querySelectorAll('h1').length }; }, pageNames.toString());
-    check(`${ROUTE[s]}: ${s} names its pages in the header (one H1)`, got.eyebrow.trim() === s && JSON.stringify(got.pages) === JSON.stringify(PAGES[s]) && got.h1 === 1, got);
+    check(`${ROUTE[s]}: ${s} names its pages in the header (one H1)`, got.eyebrow.trim().startsWith(s + ' · ') && JSON.stringify(got.pages) === JSON.stringify(PAGES[s]) && got.h1 === 1, got);
     await ctx.close();
   }
 
@@ -196,7 +207,7 @@ async function main() {
 
   // ── F. Inside each section, and Solutions ──
   console.log('── F. Inside each section, Solutions ──');
-  const STATUS = { 'Control Center': ['live', 'live', 'dev'], Research: ['live', 'part'], Create: ['live', 'dev'], Launch: ['live'], Campaigns: ['live', 'part'], Automations: ['live', 'live'] };
+  const STATUS = Object.fromEntries(SECTIONS.map((s) => [s, PAGES[s].map(() => 'live')])); // every page exists in the app today
   for (const s of SECTIONS) {
     ({ ctx, page, errors } = await open(ROUTE[s]));
     const pp = await page.evaluate(() => {
@@ -214,8 +225,8 @@ async function main() {
       pp && JSON.stringify(pp.pages) === JSON.stringify(PAGES[s]) && JSON.stringify(pp.nav) === JSON.stringify(PAGES[s]) && JSON.stringify(pp.status) === JSON.stringify(STATUS[s]) && pp.figs && !pp.tasks && !pp.generic && errors.length === 0, pp);
     if (s === 'Research') {
       await page.click('[data-pp-link] >> nth=1'); await page.waitForTimeout(1200);
-      const nav = await page.evaluate(() => ({ focus: document.activeElement && document.activeElement.id, cur: (document.querySelector('[data-pp-link][aria-current="true"] .pp__name') || {}).textContent, top: Math.round(document.getElementById('pp-product-research-insights').getBoundingClientRect().top) }));
-      check('page list: a link scrolls to its page, focuses it and marks it current', nav.focus === 'pp-product-research-insights' && nav.cur === 'Insights' && nav.top < 200, nav);
+      const nav = await page.evaluate(() => ({ focus: document.activeElement && document.activeElement.id, cur: (document.querySelector('[data-pp-link][aria-current="true"] .pp__name') || {}).textContent, top: Math.round(document.getElementById('pp-product-research-competitive').getBoundingClientRect().top) }));
+      check('page list: a link scrolls to its page, focuses it and marks it current', nav.focus === 'pp-product-research-competitive' && nav.cur === 'Competitive Research' && nav.top < 200, nav);
     }
     await ctx.close();
   }
