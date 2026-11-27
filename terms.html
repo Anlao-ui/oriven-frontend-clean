@@ -1556,6 +1556,7 @@
     // any other page is a normal page load.
     if(!document.getElementById('view-' + targetKey)){ window.location.href = href; return; }
     if(targetKey === window._pubView) return;
+    if((targetKey === 'login' || targetKey === 'signup') && typeof window._auForgetCachedSession === 'function') window._auForgetCachedSession();
 
     overlay.classList.add('lp-t-in');
 
@@ -1686,13 +1687,7 @@ async function lpGenerateCampaign() {
   try {
     sessionStorage.setItem('pendingCampaignPrompt', prompt);
   } catch(_) {}
-  try {
-    var r = await SB.auth.getSession();
-    if (r.data && r.data.session && r.data.session.user) {
-      window.location.href = '/app';
-      return;
-    }
-  } catch(_) {}
+  // Like Get started: account creation (or Log in from there), never a cached session.
   if (typeof window.lpNavigate === 'function') window.lpNavigate('/signup');
   else window.location.href = '/signup';
 }
@@ -3267,6 +3262,30 @@ async function auForgotPassword(e){
 // public entry point (same as the rest of the landing site) and must
 // always show the form, even if a session happens to still be cached in
 // this browser. Session recovery/reuse belongs to /app only (auth.js).
+//
+// Log in and Get started always mean "authenticate now": a session still
+// cached in this browser (possibly another account's) is signed out on this
+// device when /login or /signup opens, so it can't carry anyone into /app
+// afterwards. Only this browser's session ends; nothing on the account
+// changes. Sign-in and sign-up wait for it, so a fresh session is never
+// removed by it.
+function _auForgetCachedSession(){
+  if(window._auForget) return window._auForget;
+  window._auForget = Promise.resolve().then(function(){
+    return SB.auth.getSession();
+  }).then(function(r){
+    if(r && r.data && r.data.session) return SB.auth.signOut({ scope: 'local' });
+  }).catch(function(){}).then(function(){
+    // signOut keeps the session when its request fails (offline): the cached
+    // session is removed from this browser either way.
+    try { Object.keys(localStorage).forEach(function(k){ if(/^sb-.+-auth-token/.test(k)) localStorage.removeItem(k); }); } catch(_){}
+    window._auForget = null;
+  });
+  return window._auForget;
+}
+async function _auAwaitForget(){ try { if(window._auForget) await window._auForget; } catch(_){} }
+if(window._pubView === 'login' || window._pubView === 'signup') _auForgetCachedSession();
+
 if(window._pubView === 'login'){
   var devLink = document.getElementById('devOnboardingLink');
   if(ORIVEN_DEV && devLink) devLink.style.display = 'block';
@@ -3306,6 +3325,7 @@ async function auLogin(){
   }
   btn.disabled = true; btn.textContent = 'Signing in...';
   try {
+    await _auAwaitForget();
     var res = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(res.error) throw res.error;
     window.location.href = '/app';
@@ -3317,10 +3337,8 @@ async function auLogin(){
 
 // â”€â”€ SIGNUP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if(window._pubView === 'signup'){
-  // Guard for direct URL access: authenticated users don't need to create another account
-  SB.auth.getSession().then(function(r){
-    if(r.data && r.data.session) window.location.href = '/app';
-  });
+  // No jump into /app on a cached session (see _auForgetCachedSession above):
+  // Get started always shows account creation, with "Log in" for existing accounts.
   document.addEventListener('keydown', function(e){
     if(e.key === 'Enter' && e.target.tagName === 'INPUT') auSignup();
   });
@@ -3360,6 +3378,7 @@ async function auSignup(){
     }
     // The account exists now: Google Ads Signup conversion (consent-gated, once per account; js/consent.js).
     var signupConv = window.orvConsent && orvConsent.trackSignupConversion ? orvConsent.trackSignupConversion(signupRes.data && signupRes.data.userId) : null;
+    await _auAwaitForget();
     var signinRes = await SB.auth.signInWithPassword({ email: email, password: pass });
     if(signinRes.error) throw signinRes.error;
     if(signupConv) await signupConv; // let the hit leave before the redirect

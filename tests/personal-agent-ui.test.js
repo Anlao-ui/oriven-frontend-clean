@@ -41,10 +41,12 @@ app.use(express.json({ limit: '2mb' }));
 app.get('/api/onboarding/state', (q, r) => r.json({ eligible: false, reason: 'existing_account', completed: true, stage: 'done', flow: { enabled: false } }));
 app.get('/api/credits/status', (q, r) => r.json({ balance: M.balance == null ? 1000 : M.balance, plan: 'paid', hasAccess: true, accessExpiresAt: new Date(Date.now() + 20 * 864e5).toISOString() }));
 // Section H: per-account choices keyed by the bearer token ("tok-<user>"), like the server's profiles.preferences.assistant.
-const ACC = { store: {}, delay: {}, puts: [] };
+const ACC = { store: {}, delay: {}, puts: [], fail: {} };
 const tokOf = (q) => String(q.headers.authorization || '').replace(/^Bearer\s+/, '');
 app.get('/api/agent', (q, r) => {
   const t = tokOf(q);
+  // Section J: the server's lookup failing answers 503 AGENT_LOOKUP_FAILED, never a default.
+  if (ACC.fail[t] > 0) { ACC.fail[t]--; return r.status(503).json({ error: 'Could not load your assistant right now. Please try again.', code: 'AGENT_LOOKUP_FAILED' }); }
   if (/^tok-/.test(t)) { const a = ACC.store[t]; const send = () => r.json({ agent: pub(a || 'vector'), assigned: !!a, agents: AGENTS }); return ACC.delay[t] ? setTimeout(send, ACC.delay[t]) : send(); }
   r.json({ agent: pub(M.agent), assigned: M.assigned, agents: AGENTS });
 });
@@ -420,6 +422,20 @@ const server = app.listen(PORT, async () => {
       check('I18 an account that never chose sees the choice, not the starting points or a default assistant', un.starters && un.picker && un.name === 'Your assistant' && un.about, un);
       M.assigned = true; M.agent = 'scout';
       await uc.close();
+    }
+
+    console.log('\nJ. The server can’t read the saved choice for a moment (503)');
+    {
+      const jc = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      ACC.store['tok-zed'] = 'momentum'; ACC.fail['tok-zed'] = 2;
+      const jp = await openApp(jc, 'zed'); jp.on('pageerror', (e) => errors.push(e.message));
+      await openAsst(jp); await jp.waitForTimeout(300);
+      const during = await jp.evaluate(() => ({ picker: !!document.getElementById('orvAgentPicker'), name: (document.querySelector('#orvAiPanel .orv-ai-panel-name') || {}).textContent, fab: (document.querySelector('.orv-sb [data-onv-foot="assistant"] [data-onv-mom-name]') || {}).textContent }));
+      check('J1 while the lookup fails: no picker and no other assistant (no Vector, no earlier account’s assistant)', !during.picker && !/Vector|Scout|Nova|Metric|Flux/.test((during.name || '') + (during.fab || '')), during);
+      await jp.waitForTimeout(8500); // retries after 2 s and 5 s
+      check('J2 the retry loads the saved assistant (Momentum) once the server answers', (await fabText(jp)) === 'Momentum' && ACC.fail['tok-zed'] === 0, { fab: await fabText(jp), left: ACC.fail['tok-zed'] });
+      check('J3 nothing was written for the account while it failed (no PUT)', !ACC.puts.some((x) => x[0] === 'tok-zed') && ACC.store['tok-zed'] === 'momentum', ACC.puts);
+      await jc.close();
     }
 
     console.log('\nG. Phone');

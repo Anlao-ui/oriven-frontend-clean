@@ -50,14 +50,28 @@
     if (S.loading && !force && S.forUid === who) return S.loading;
     if (typeof apiFetch !== 'function') return Promise.resolve(null);
     var seq = ++S.seq;
+    // Another account than the one shown: its assistant goes at once, so a
+    // slow or failed lookup can never leave the previous account's on screen.
+    if (S.forUid && S.forUid !== who && S.agent) { S.agent = null; S.assigned = true; S.agents = []; S.retry = 0; resetLook(); }
     S.forUid = who;
+    // A failed lookup (server waking up, network) changes nothing on screen —
+    // never another assistant, never the picker — and is retried a few times
+    // for the same account (the server answers 503, not a default).
+    function retryLater() {
+      if (S.loading === p) S.loading = null;
+      var n = (S.retryFor === who ? S.retry : 0) + 1;
+      S.retryFor = who; S.retry = n;
+      if (n <= 4) setTimeout(function () { if (uid() === who && seq === S.seq) load(true); }, [2e3, 5e3, 10e3, 20e3][n - 1]);
+      return null;
+    }
     var p = apiFetch('/api/agent').then(function (r) {
       if (seq !== S.seq || uid() !== who) return null; // superseded, or another account by now
-      if (!r || !r.ok || !r.data || !r.data.agent) { if (S.loading === p) S.loading = null; return null; }
+      if (!r || !r.ok || !r.data || !r.data.agent) return retryLater();
+      S.retry = 0;
       S.agent = r.data.agent; S.assigned = r.data.assigned !== false; S.agents = r.data.agents || [];
       apply();
       return S.agent;
-    }).catch(function () { if (S.loading === p) S.loading = null; return null; });
+    }).catch(function () { return (seq === S.seq && uid() === who) ? retryLater() : null; });
     S.loading = p;
     return p;
   }
