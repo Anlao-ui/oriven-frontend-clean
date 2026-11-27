@@ -46,7 +46,7 @@ A feature can carry more than one label, for example "Functional · External · 
 |---|---|---|
 | Create Ads: mode choice (AI / manual) | Functional | New. The choice and the manual draft are kept per account on this device. Switching never discards; "Discard draft" asks first. |
 | Create with AI | Functional · External (AI provider) | Existing 6-step flow, unchanged. `/api/ai/create-ad`, image and video generation, credit checks. |
-| Create manually (all 5 platforms) | Functional (spec-checked) · **Not verified** | Platform first, then that platform's campaign, ad set/group/squad and ad fields. The package is validated by the real server spec: 40 checks against `services/campaignSpec.js` pass with no errors for complete drafts on all platforms, including Google Search and Performance Max. Saved as a draft. Publishing goes through Campaign Studio with the existing publish routes. Uploads use `/api/manual-campaigns/upload-creative` (images ≤ 8 MB, video ≤ 12 MB). |
+| Create manually (all 5 platforms) | Functional (spec- and mock-tested) · **Not verified with a real account** | Platform → campaign → audience → **ad sets/groups/squads, each with several ads** (own copy and media per ad; add, duplicate, remove; limits enforced with an explanation) → review by the real server spec. New since the final Create fix: Meta video ads (upload → Meta processing → thumbnail → `video_data` creative), Google Display (responsive display ads) and YouTube video ads via Demand Gen, TikTok Video Views (manual only). Drafts are saved, reopened and edited; old one-ad drafts are migrated automatically. Publishing goes through Campaign Studio and the existing `/api/publish/<platform>` routes, everything PAUSED. Uploads: `/api/manual-campaigns/upload-creative` (images ≤ 8 MB, video ≤ 12 MB). |
 | My Creatives | Functional | `creative_assets` list, filters, search, preview dialog, copy, favourite and duplicate. New: "Made with AI" / "Uploaded by you" from the stored route or kind (unknown origin is left blank, not guessed). |
 | Creative Testing | Functional · External (AI provider) | Variation generation (credits), side-by-side compare, pick. No per-version results until a platform reports them. |
 
@@ -116,6 +116,7 @@ These are period totals for the page's period and campaign. Sources: official pl
 ## Remaining limitations found
 
 - No real-account verification for publishing, platform metrics, Advertising settings actions or automations.
-- Manual creation: one ad set/group and one ad per campaign. Google Display or video campaigns and Meta video ads are not publishable by OrivenAI, so they are not offered.
+- Manual creation: Google **Video campaigns** (campaign type VIDEO) can't be created through the Google Ads API; YouTube video ads are offered as Demand Gen video instead. TikTok Website conversions, Lead generation, App promotion and Product sales are not offered (pixel event, instant form, app or catalog needed). The AI flow is unchanged: no AI-made Meta video or Display campaigns.
+- Manual video uploads are capped at 12 MB by OrivenAI's upload route; larger files must be shortened or compressed first.
 - Manual creation texts and assistant texts are English only. Navigation labels, help tooltips and the Dashboard are translated.
 - The Pinterest overview route (pre-existing) adds reach across campaigns. Reach is de-duplicated per campaign, so that total overstates it. The new platform-metrics route does not add it up.

@@ -536,3 +536,29 @@ textarea.crm-in { resize: vertical; line-height: 1.5; }
   .crm-sum div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .crm-card, .crm-opt { padding: 18px; }
 }
+
+/* ── 12. Create manually: ad sets / ad groups → ads (js/createModes.js) ── */
+.crm-groups { display: flex; flex-direction: column; gap: 14px; }
+.crm-group { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; border: 1px solid var(--orv-line-2); background: var(--orv-card-2); }
+.crm-group__h { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.crm-group__h b { font-size: 14px; color: var(--charcoal); }
+.crm-row--tight { gap: 8px; grid-template-columns: repeat(2, minmax(0, 120px)); }
+.crm-ads { display: flex; flex-direction: column; gap: 8px; }
+.crm-ad { border: 1px solid var(--orv-line); border-radius: 12px; background: var(--orv-card); }
+.crm-ad > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; font-size: 13.5px; font-weight: 600; color: var(--charcoal); }
+.crm-ad > summary::-webkit-details-marker { display: none; }
+.crm-ad > summary > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crm-ad > summary:focus-visible { outline: 2px solid var(--orv-green-ui); outline-offset: 2px; border-radius: 12px; }
+.crm-ad[open] > summary { border-bottom: 1px solid var(--orv-line); }
+.crm-ad__acts { display: flex; gap: 12px; flex: none; }
+.crm-ad__b { display: flex; flex-direction: column; gap: 14px; padding: 14px; }
+.crm-add { display: flex; align-items: center; gap: 12px; }
+.crm-add small { font-size: 12px; color: var(--muted); }
+.crm-tree { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13px; color: var(--charcoal); }
+.crm-tree ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 2px; color: var(--muted); }
+.crm-saved { margin-top: 4px; border: 1px solid var(--orv-line); border-radius: 12px; padding: 0 14px; }
+.crm-saved > summary { cursor: pointer; padding: 10px 0; font-size: 13px; font-weight: 600; color: var(--charcoal); }
+.crm-saved ul { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.crm-saved li { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--muted); }
+.crm-saved li b { color: var(--charcoal); }
+@media (max-width: 640px) { .crm-group { padding: 12px; } .crm-ad__acts { gap: 8px; } }
